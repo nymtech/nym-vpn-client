@@ -2,8 +2,8 @@
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("{0}")]
-    InvalidWireGuardKey(#[from] talpid_types::net::wireguard::InvalidKey),
+    #[error("Invalid WireGuard Key")]
+    InvalidWireGuardKey,
 
     #[error("{0}")]
     AddrParseError(#[from] std::net::AddrParseError),

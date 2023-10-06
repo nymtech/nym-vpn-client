@@ -4,6 +4,7 @@ mod commands;
 mod error;
 mod tunnel;
 
+use std::collections::HashSet;
 use crate::commands::CliArgs;
 use clap::Parser;
 use futures::channel::{mpsc, oneshot};
@@ -23,10 +24,10 @@ use talpid_wireguard::{config::Config, WireguardMonitor};
 
 const DEFAULT_MTU: u16 = 1420;
 
-fn init_config(args: CliArgs) -> Config {
-    Config {
+fn init_config(args: CliArgs) -> Result<Config, error::Error> {
+    Ok(Config {
         tunnel: TunnelConfig {
-            private_key: PrivateKey::from_base64(&args.private_key)?,
+            private_key: PrivateKey::from(PublicKey::from_base64(&args.private_key).map_err(|_| error::Error::InvalidWireGuardKey)?.as_bytes().clone()),
             addresses: args
                 .addresses
                 .iter()
@@ -42,7 +43,7 @@ fn init_config(args: CliArgs) -> Config {
                 .collect(),
         },
         peers: vec![PeerConfig {
-            public_key: PublicKey::from_base64(&args.public_key)?,
+            public_key: PublicKey::from_base64(&args.public_key).map_err(|_| error::Error::InvalidWireGuardKey)?,
             allowed_ips: args
                 .allowed_ips
                 .iter()
@@ -51,10 +52,10 @@ fn init_config(args: CliArgs) -> Config {
             endpoint: SocketAddr::from_str(&args.endpoint)?,
             psk: args
                 .psk
-                .map(|psk| match PrivateKey::from_base64(&psk) {
-                    Ok(key) => Some(PresharedKey::from(Box::new(key.to_bytes()))),
+                .map(|psk| match PublicKey::from_base64(&psk) {
+                    Ok(key) => Some(PresharedKey::from(Box::new(key.as_bytes().clone()))),
                     Err(e) => {
-                        warn!("Could not decode pre-shared key, not using one: {e}");
+                        warn!("Could not decode pre-shared key, not using one: {e:?}");
                         None
                     }
                 })
@@ -64,14 +65,14 @@ fn init_config(args: CliArgs) -> Config {
         ipv6_gateway: None,
         mtu: DEFAULT_MTU,
         obfuscator_config: None,
-    }
+    })
 }
 
 #[tokio::main]
 async fn main() -> Result<(), error::Error> {
     setup_logging();
     let args = commands::CliArgs::parse();
-    let config = init_config(args);
+    let config = init_config(args)?;
 
     let (event_tx, _) = mpsc::unbounded();
     let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
@@ -88,7 +89,7 @@ async fn main() -> Result<(), error::Error> {
                 let _ = rx.await;
             })
         };
-    let mut route_manager = RouteManager::new().await.expect("create route manager");
+    let mut route_manager = RouteManager::new(HashSet::new()).await.expect("create route manager");
     let tun_provider = TunProvider::new();
     let shutdown = TaskManager::new(10);
 
@@ -106,7 +107,7 @@ async fn main() -> Result<(), error::Error> {
             retry_attempt: 3,
             route_manager: route_manager_handle,
         };
-        let monitor = WireguardMonitor::start(config, false, None, args).expect("start wg monitor");
+        let monitor = WireguardMonitor::start(config, None, None, args).expect("start wg monitor");
         println!("Starting wireguard monitor");
         if let Err(e) = monitor.wait() {
             println!("Tunnel disconnected with error {:?}", e);
