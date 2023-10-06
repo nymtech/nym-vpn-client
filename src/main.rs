@@ -4,13 +4,13 @@ mod commands;
 mod error;
 mod tunnel;
 
-use std::collections::HashSet;
 use crate::commands::CliArgs;
 use clap::Parser;
 use futures::channel::{mpsc, oneshot};
-use log::warn;
+use log::{debug, error, info, warn};
 use nym_bin_common::logging::setup_logging;
 use nym_task::TaskManager;
+use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -27,7 +27,12 @@ const DEFAULT_MTU: u16 = 1420;
 fn init_config(args: CliArgs) -> Result<Config, error::Error> {
     Ok(Config {
         tunnel: TunnelConfig {
-            private_key: PrivateKey::from(PublicKey::from_base64(&args.private_key).map_err(|_| error::Error::InvalidWireGuardKey)?.as_bytes().clone()),
+            private_key: PrivateKey::from(
+                PublicKey::from_base64(&args.private_key)
+                    .map_err(|_| error::Error::InvalidWireGuardKey)?
+                    .as_bytes()
+                    .clone(),
+            ),
             addresses: args
                 .addresses
                 .iter()
@@ -43,7 +48,8 @@ fn init_config(args: CliArgs) -> Result<Config, error::Error> {
                 .collect(),
         },
         peers: vec![PeerConfig {
-            public_key: PublicKey::from_base64(&args.public_key).map_err(|_| error::Error::InvalidWireGuardKey)?,
+            public_key: PublicKey::from_base64(&args.public_key)
+                .map_err(|_| error::Error::InvalidWireGuardKey)?,
             allowed_ips: args
                 .allowed_ips
                 .iter()
@@ -89,15 +95,15 @@ async fn main() -> Result<(), error::Error> {
                 let _ = rx.await;
             })
         };
-    let mut route_manager = RouteManager::new(HashSet::new()).await.expect("create route manager");
+    let mut route_manager = RouteManager::new(HashSet::new()).await?;
     let tun_provider = TunProvider::new();
     let shutdown = TaskManager::new(10);
 
-    let mut firewall = Firewall::new().expect("create firewall instance");
-    let mut dns_monitor = DnsMonitor::new(weak_command_tx).expect("create dns monitor");
-    let route_manager_handle = route_manager.handle().expect("route handle manager");
+    let mut firewall = Firewall::new()?;
+    let mut dns_monitor = DnsMonitor::new(weak_command_tx)?;
+    let route_manager_handle = route_manager.handle()?;
 
-    let tunnel_handle = tokio::task::spawn_blocking(move || {
+    let tunnel_handle = tokio::task::spawn_blocking(move || -> Result<(), error::Error> {
         let args = TunnelArgs {
             runtime: tokio::runtime::Handle::current(),
             resource_dir: &PathBuf::from("/tmp/wg-cli"),
@@ -107,34 +113,36 @@ async fn main() -> Result<(), error::Error> {
             retry_attempt: 3,
             route_manager: route_manager_handle,
         };
-        let monitor = WireguardMonitor::start(config, None, None, args).expect("start wg monitor");
-        println!("Starting wireguard monitor");
+        let monitor = WireguardMonitor::start(config, None, None, args)?;
+        info!("Starting wireguard monitor");
         if let Err(e) = monitor.wait() {
-            println!("Tunnel disconnected with error {:?}", e);
+            error!("Tunnel disconnected with error {:?}", e);
         } else {
             finished_shutdown_tx
                 .send(())
-                .expect("send finished shutdown");
-            println!("Sent shutdown message");
+                .map_err(|_| error::Error::OneshotSendError)?;
+            debug!("Sent shutdown message");
         }
+        Ok(())
     });
 
-    shutdown.catch_interrupt().await.expect("catch interrupt");
-    let sig_handle = tokio::task::spawn_blocking(move || {
-        println!("Received interrupt signal");
-        route_manager.clear_routes().expect("routes clear");
-        tunnel_close_tx.send(()).expect("send tunnel close");
+    if let Err(e) = shutdown.catch_interrupt().await {
+        error!("Could not wait for interrupts anymore - {e}. Shutting down the tunnel.");
+    }
+    let sig_handle = tokio::task::spawn_blocking(move || -> Result<(), error::Error> {
+        debug!("Received interrupt signal");
+        route_manager.clear_routes()?;
+        tunnel_close_tx
+            .send(())
+            .map_err(|_| error::Error::OneshotSendError)?;
+        Ok(())
     });
 
-    tunnel_handle.await.expect("tunnel error");
-    sig_handle.await.expect("signal error");
-    finished_shutdown_rx
-        .await
-        .expect("received finished shutdown");
-    dns_monitor.reset().expect("dns reset");
-    firewall.reset_policy().expect("firewall policy reset");
-
-    println!("Finished");
+    tunnel_handle.await??;
+    sig_handle.await??;
+    finished_shutdown_rx.await?;
+    dns_monitor.reset()?;
+    firewall.reset_policy()?;
 
     Ok(())
 }
