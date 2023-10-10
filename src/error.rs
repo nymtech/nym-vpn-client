@@ -37,4 +37,7 @@ pub enum Error {
 
     #[error("Recipient is not formatted correctly")]
     RecipientFormattingError,
+
+    #[error("{0}")]
+    TunError(#[from] tun::Error),
 }

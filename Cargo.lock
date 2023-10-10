@@ -2128,7 +2128,7 @@ dependencies = [
  "indexmap 1.9.3",
  "slab",
  "tokio",
- "tokio-util",
+ "tokio-util 0.7.9",
  "tracing",
 ]
 
@@ -3637,7 +3637,7 @@ source = "git+https://github.com/nymtech/nym?tag=nym-binaries-v2023.1-milka#6e3b
 dependencies = [
  "tokio",
  "tokio-stream",
- "tokio-util",
+ "tokio-util 0.7.9",
  "wasmtimer",
 ]
 
@@ -3784,7 +3784,7 @@ dependencies = [
  "nym-socks5-requests",
  "nym-task",
  "tokio",
- "tokio-util",
+ "tokio-util 0.7.9",
 ]
 
 [[package]]
@@ -3924,7 +3924,7 @@ dependencies = [
  "nym-sphinx-params",
  "nym-sphinx-types",
  "thiserror",
- "tokio-util",
+ "tokio-util 0.7.9",
 ]
 
 [[package]]
@@ -6358,7 +6358,7 @@ dependencies = [
  "futures-core",
  "pin-project-lite",
  "tokio",
- "tokio-util",
+ "tokio-util 0.7.9",
 ]
 
 [[package]]
@@ -6389,6 +6389,20 @@ dependencies = [
  "pin-project",
  "tokio",
  "tungstenite",
+]
+
+[[package]]
+name = "tokio-util"
+version = "0.6.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "36943ee01a6d67977dd3f84a5a1d2efeb4ada3a1ae771cadfaa535d9d9fc6507"
+dependencies = [
+ "bytes",
+ "futures-core",
+ "futures-sink",
+ "log",
+ "pin-project-lite",
+ "tokio",
 ]
 
 [[package]]
@@ -6473,7 +6487,7 @@ dependencies = [
  "prost-derive",
  "tokio",
  "tokio-stream",
- "tokio-util",
+ "tokio-util 0.7.9",
  "tower",
  "tower-layer",
  "tower-service",
@@ -6508,7 +6522,7 @@ dependencies = [
  "rand 0.8.5",
  "slab",
  "tokio",
- "tokio-util",
+ "tokio-util 0.7.9",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -6707,9 +6721,14 @@ version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cbc25e23adc6cac7dd895ce2780f255902290fc39b00e1ae3c33e89f3d20fa66"
 dependencies = [
+ "byteorder",
+ "bytes",
+ "futures-core",
  "ioctl-sys",
  "libc",
  "thiserror",
+ "tokio",
+ "tokio-util 0.6.10",
 ]
 
 [[package]]
@@ -7094,6 +7113,7 @@ dependencies = [
  "talpid-wireguard",
  "thiserror",
  "tokio",
+ "tun",
 ]
 
 [[package]]

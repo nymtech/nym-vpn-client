@@ -15,6 +15,7 @@ talpid-types = { git = "https://github.com/mullvad/mullvadvpn-app", tag = "2023.
 talpid-wireguard = { git = "https://github.com/mullvad/mullvadvpn-app", tag = "2023.2" }
 thiserror = "1.0.38"
 tokio = { version = "1.8", features = ["process", "rt-multi-thread", "fs"] }
+tun = { version = "0.5.5", features = ["async"] }
 
 nym-bin-common = { git = "https://github.com/nymtech/nym", tag = "nym-binaries-v2023.1-milka" }
 nym-sdk = { git = "https://github.com/nymtech/nym", tag = "nym-binaries-v2023.1-milka" }

@@ -78,18 +78,20 @@ async fn main() -> Result<(), error::Error> {
     setup_logging();
     let args = commands::CliArgs::parse();
     let config = init_config(args)?;
-    let mut route_manager = RouteManager::new(HashSet::new()).await?;
-    let route_manager_handle = route_manager.handle()?;
-    let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
-    let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
-    let mut tunnel = Tunnel::new(config, route_manager_handle)?;
-    let recipient_address = Recipient::try_from_base58_string("test")
+    let recipient_address = Recipient::try_from_base58_string("Entztfv6Uaz2hpYHQJ6JKoaCTpDL5dja18SuQWVJAmmx.Cvhn9rBJw5Ay9wgHcbgCnVg89MPSV5s2muPV2YF1BXYu@Fo4f4SQLdoyoGkFae5TpVhRVoXCF8UiypLVGtGjujVPf")
         .map_err(|_| error::Error::RecipientFormattingError)?;
     let shutdown = TaskManager::new(10);
 
-    let processor_config = mixnet_processor::Config::new(12345, recipient_address);
-    start_processor(processor_config, &shutdown).await?;
+    let mut route_manager = RouteManager::new(HashSet::new()).await?;
+    let route_manager_handle = route_manager.handle()?;
+    let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
+
+    let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
+    let mut tunnel = Tunnel::new(config, route_manager_handle)?;
+
     let tunnel_handle = start_tunnel(&tunnel, tunnel_close_rx, finished_shutdown_tx)?;
+    let processor_config = mixnet_processor::Config::new(recipient_address);
+    start_processor(processor_config, &shutdown).await?;
 
     if let Err(e) = shutdown.catch_interrupt().await {
         error!("Could not wait for interrupts anymore - {e}. Shutting down the tunnel.");
