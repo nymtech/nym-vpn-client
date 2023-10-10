@@ -2,25 +2,24 @@
 
 mod commands;
 mod error;
+mod mixnet_processor;
 mod tunnel;
 
 use crate::commands::CliArgs;
+use crate::mixnet_processor::start_processor;
+use crate::tunnel::{start_tunnel, Tunnel};
 use clap::Parser;
-use futures::channel::{mpsc, oneshot};
-use log::{debug, error, info, warn};
+use futures::channel::oneshot;
+use log::{debug, error, warn};
 use nym_bin_common::logging::setup_logging;
+use nym_sdk::mixnet::Recipient;
 use nym_task::TaskManager;
 use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-use std::path::PathBuf;
 use std::str::FromStr;
-use std::sync::{Arc, Mutex};
-use talpid_core::dns::DnsMonitor;
-use talpid_core::firewall::Firewall;
 use talpid_routing::RouteManager;
-use talpid_tunnel::{tun_provider::TunProvider, TunnelArgs};
 use talpid_types::net::wireguard::{PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig};
-use talpid_wireguard::{config::Config, WireguardMonitor};
+use talpid_wireguard::config::Config;
 
 const DEFAULT_MTU: u16 = 1420;
 
@@ -79,52 +78,18 @@ async fn main() -> Result<(), error::Error> {
     setup_logging();
     let args = commands::CliArgs::parse();
     let config = init_config(args)?;
-
-    let (event_tx, _) = mpsc::unbounded();
+    let mut route_manager = RouteManager::new(HashSet::new()).await?;
+    let route_manager_handle = route_manager.handle()?;
     let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
     let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
-    let (command_tx, _) = mpsc::unbounded();
-    let command_tx = Arc::new(command_tx);
-    let weak_command_tx = Arc::downgrade(&command_tx);
-
-    let on_tunnel_event =
-        move |event| -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> {
-            let (tx, rx) = oneshot::channel::<()>();
-            let _ = event_tx.unbounded_send((event, tx));
-            Box::pin(async move {
-                let _ = rx.await;
-            })
-        };
-    let mut route_manager = RouteManager::new(HashSet::new()).await?;
-    let tun_provider = TunProvider::new();
+    let mut tunnel = Tunnel::new(config, route_manager_handle)?;
+    let recipient_address = Recipient::try_from_base58_string("test")
+        .map_err(|_| error::Error::RecipientFormattingError)?;
     let shutdown = TaskManager::new(10);
 
-    let mut firewall = Firewall::new()?;
-    let mut dns_monitor = DnsMonitor::new(weak_command_tx)?;
-    let route_manager_handle = route_manager.handle()?;
-
-    let tunnel_handle = tokio::task::spawn_blocking(move || -> Result<(), error::Error> {
-        let args = TunnelArgs {
-            runtime: tokio::runtime::Handle::current(),
-            resource_dir: &PathBuf::from("/tmp/wg-cli"),
-            on_event: on_tunnel_event,
-            tunnel_close_rx,
-            tun_provider: Arc::new(Mutex::new(tun_provider)),
-            retry_attempt: 3,
-            route_manager: route_manager_handle,
-        };
-        let monitor = WireguardMonitor::start(config, None, None, args)?;
-        info!("Starting wireguard monitor");
-        if let Err(e) = monitor.wait() {
-            error!("Tunnel disconnected with error {:?}", e);
-        } else {
-            finished_shutdown_tx
-                .send(())
-                .map_err(|_| error::Error::OneshotSendError)?;
-            debug!("Sent shutdown message");
-        }
-        Ok(())
-    });
+    let processor_config = mixnet_processor::Config::new(12345, recipient_address);
+    start_processor(processor_config, &shutdown).await?;
+    let tunnel_handle = start_tunnel(&tunnel, tunnel_close_rx, finished_shutdown_tx)?;
 
     if let Err(e) = shutdown.catch_interrupt().await {
         error!("Could not wait for interrupts anymore - {e}. Shutting down the tunnel.");
@@ -141,8 +106,8 @@ async fn main() -> Result<(), error::Error> {
     tunnel_handle.await??;
     sig_handle.await??;
     finished_shutdown_rx.await?;
-    dns_monitor.reset()?;
-    firewall.reset_policy()?;
+    tunnel.dns_monitor.reset()?;
+    tunnel.firewall.reset_policy()?;
 
     Ok(())
 }

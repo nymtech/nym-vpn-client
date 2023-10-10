@@ -2,6 +2,9 @@
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
+    #[error("{0}")]
+    IOError(#[from] std::io::Error),
+
     #[error("Invalid WireGuard Key")]
     InvalidWireGuardKey,
 
@@ -28,4 +31,10 @@ pub enum Error {
 
     #[error("Oneshot send error")]
     OneshotSendError,
+
+    #[error("{0}")]
+    SDKError(#[from] nym_sdk::Error),
+
+    #[error("Recipient is not formatted correctly")]
+    RecipientFormattingError,
 }
