@@ -77,9 +77,9 @@ fn init_config(args: CliArgs) -> Result<Config, error::Error> {
 async fn main() -> Result<(), error::Error> {
     setup_logging();
     let args = commands::CliArgs::parse();
-    let config = init_config(args)?;
-    let recipient_address = Recipient::try_from_base58_string("Entztfv6Uaz2hpYHQJ6JKoaCTpDL5dja18SuQWVJAmmx.Cvhn9rBJw5Ay9wgHcbgCnVg89MPSV5s2muPV2YF1BXYu@Fo4f4SQLdoyoGkFae5TpVhRVoXCF8UiypLVGtGjujVPf")
+    let recipient_address = Recipient::try_from_base58_string(&args.recipient_address)
         .map_err(|_| error::Error::RecipientFormattingError)?;
+    let config = init_config(args)?;
     let shutdown = TaskManager::new(10);
 
     let mut route_manager = RouteManager::new(HashSet::new()).await?;

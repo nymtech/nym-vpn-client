@@ -5,6 +5,10 @@ use clap::Parser;
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about)]
 pub(crate) struct CliArgs {
+    /// Mixnet recipient address.
+    #[clap(long)]
+    pub(crate) recipient_address: String,
+
     /// Associated private key.
     #[clap(long)]
     pub(crate) private_key: String,

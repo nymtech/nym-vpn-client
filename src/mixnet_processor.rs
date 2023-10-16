@@ -4,7 +4,7 @@ use futures::StreamExt;
 use log::*;
 use nym_sdk::mixnet::{IncludedSurbs, MixnetClient, MixnetMessageSender, Recipient};
 use nym_task::{TaskClient, TaskManager};
-use tun::AsyncDevice;
+use tun::{AsyncDevice, Device};
 
 pub struct Config {
     pub mixnet_tun_config: tun::Configuration,
@@ -39,6 +39,10 @@ impl MixnetProcessor {
     }
 
     pub async fn run(self, mut shutdown: TaskClient) {
+        info!(
+            "Opened mixnet processor on tun device {}",
+            self.device.get_ref().name()
+        );
         let mut stream = self.device.into_framed();
         while !shutdown.is_shutdown() {
             tokio::select! {
@@ -46,7 +50,6 @@ impl MixnetProcessor {
                     trace!("MixnetProcessor: Received shutdown");
                 }
                 Some(Ok(packet)) = stream.next() => {
-                    info!("Received {} bytes", packet.get_bytes().len());
                     let ret = self.mixnet_client.send_message(self.recipient, packet.get_bytes(), IncludedSurbs::ExposeSelfAddress).await;
                     if ret.is_err() {
                         error!("Could not forward datagram to the mixnet. The packet will be dropped.");
@@ -65,6 +68,8 @@ pub async fn start_processor(
     let dev = tun::create_as_async(&config.mixnet_tun_config)?;
     let processor = MixnetProcessor::new(dev, mixnet_client, config.recipient);
     let shutdown_listener = shutdown.subscribe();
-    tokio::spawn(async move { processor.run(shutdown_listener) });
+    tokio::spawn(async move {
+        processor.run(shutdown_listener).await;
+    });
     Ok(())
 }
