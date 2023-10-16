@@ -40,4 +40,7 @@ pub enum Error {
 
     #[error("{0}")]
     TunError(#[from] tun::Error),
+
+    #[error("{0}")]
+    WireguardConfigError(#[from] talpid_wireguard::config::Error),
 }

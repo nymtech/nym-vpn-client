@@ -18,59 +18,72 @@ use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::str::FromStr;
 use talpid_routing::RouteManager;
-use talpid_types::net::wireguard::{PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig};
+use talpid_types::net::wireguard::{
+    ConnectionConfig, PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig, TunnelOptions,
+};
+use talpid_types::net::GenericTunnelOptions;
 use talpid_wireguard::config::Config;
 
-const DEFAULT_MTU: u16 = 1420;
-
 fn init_config(args: CliArgs) -> Result<Config, error::Error> {
-    Ok(Config {
-        tunnel: TunnelConfig {
-            private_key: PrivateKey::from(
-                PublicKey::from_base64(&args.private_key)
-                    .map_err(|_| error::Error::InvalidWireGuardKey)?
-                    .as_bytes()
-                    .clone(),
-            ),
-            addresses: args
-                .addresses
-                .iter()
-                .filter_map(|ip| {
-                    if let Ok(parsed) = Ipv4Addr::from_str(ip) {
-                        Some(IpAddr::V4(parsed))
-                    } else if let Ok(parsed) = Ipv6Addr::from_str(ip) {
-                        Some(IpAddr::V6(parsed))
-                    } else {
-                        None
-                    }
-                })
-                .collect(),
-        },
-        peers: vec![PeerConfig {
-            public_key: PublicKey::from_base64(&args.public_key)
-                .map_err(|_| error::Error::InvalidWireGuardKey)?,
-            allowed_ips: args
-                .allowed_ips
-                .iter()
-                .filter_map(|ip| ip.parse().ok())
-                .collect(),
-            endpoint: SocketAddr::from_str(&args.endpoint)?,
-            psk: args
-                .psk
-                .map(|psk| match PublicKey::from_base64(&psk) {
-                    Ok(key) => Some(PresharedKey::from(Box::new(key.as_bytes().clone()))),
-                    Err(e) => {
-                        warn!("Could not decode pre-shared key, not using one: {e:?}");
-                        None
-                    }
-                })
-                .flatten(),
-        }],
+    let tunnel = TunnelConfig {
+        private_key: PrivateKey::from(
+            PublicKey::from_base64(&args.private_key)
+                .map_err(|_| error::Error::InvalidWireGuardKey)?
+                .as_bytes()
+                .clone(),
+        ),
+        addresses: args
+            .addresses
+            .iter()
+            .filter_map(|ip| {
+                if let Ok(parsed) = Ipv4Addr::from_str(ip) {
+                    Some(IpAddr::V4(parsed))
+                } else if let Ok(parsed) = Ipv6Addr::from_str(ip) {
+                    Some(IpAddr::V6(parsed))
+                } else {
+                    None
+                }
+            })
+            .collect(),
+    };
+    let peers = vec![PeerConfig {
+        public_key: PublicKey::from_base64(&args.public_key)
+            .map_err(|_| error::Error::InvalidWireGuardKey)?,
+        allowed_ips: args
+            .allowed_ips
+            .iter()
+            .filter_map(|ip| ip.parse().ok())
+            .collect(),
+        endpoint: SocketAddr::from_str(&args.endpoint)?,
+        psk: args
+            .psk
+            .map(|psk| match PublicKey::from_base64(&psk) {
+                Ok(key) => Some(PresharedKey::from(Box::new(key.as_bytes().clone()))),
+                Err(e) => {
+                    warn!("Could not decode pre-shared key, not using one: {e:?}");
+                    None
+                }
+            })
+            .flatten(),
+    }];
+    let connection_config = ConnectionConfig {
+        tunnel: tunnel.clone(),
+        peer: peers[0].clone(),
+        exit_peer: None,
         ipv4_gateway: Ipv4Addr::from_str(&args.ipv4_gateway)?,
         ipv6_gateway: None,
-        mtu: DEFAULT_MTU,
-        obfuscator_config: None,
-    })
+    };
+    let generic_options = GenericTunnelOptions { enable_ipv6: true };
+    let wg_options = TunnelOptions::default();
+    let config = Config::new(
+        tunnel,
+        peers,
+        &connection_config,
+        &wg_options,
+        &generic_options,
+        None,
+    )?;
+    Ok(config)
 }
 
 #[tokio::main]
