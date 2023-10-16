@@ -112,6 +112,15 @@ async fn main() -> Result<(), error::Error> {
     let sig_handle = tokio::task::spawn_blocking(move || -> Result<(), error::Error> {
         debug!("Received interrupt signal");
         route_manager.clear_routes()?;
+        #[cfg(target_os = "linux")]
+        if let Err(error) = tokio::runtime::Handle::current()
+            .block_on(shared_values.route_manager.clear_routing_rules())
+        {
+            error!(
+                "{}",
+                error.display_chain_with_msg("Failed to clear routing rules")
+            );
+        }
         tunnel_close_tx
             .send(())
             .map_err(|_| error::Error::OneshotSendError)?;
