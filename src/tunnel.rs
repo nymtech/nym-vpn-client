@@ -58,9 +58,10 @@ pub fn start_tunnel(
                     let _ = rx.await;
                 })
             };
+        let resource_dir = std::env::temp_dir().join("nym-wg");
         let args = TunnelArgs {
             runtime: tokio::runtime::Handle::current(),
-            resource_dir: &PathBuf::from("/tmp/wg-cli"),
+            resource_dir: &resource_dir,
             on_event: on_tunnel_event,
             tunnel_close_rx,
             tun_provider: Arc::new(Mutex::new(TunProvider::new())),
