@@ -103,8 +103,12 @@ async fn main() -> Result<(), error::Error> {
     let mut tunnel = Tunnel::new(config, route_manager_handle)?;
 
     let tunnel_handle = start_tunnel(&tunnel, tunnel_close_rx, finished_shutdown_tx)?;
-    let processor_config = mixnet_processor::Config::new(recipient_address);
-    start_processor(processor_config, &shutdown).await?;
+    let processor_config = mixnet_processor::Config::new(
+        recipient_address,
+        tunnel.config.ipv4_gateway.to_string(),
+        tunnel.config.ipv6_gateway.map(|ip| ip.to_string()),
+    );
+    start_processor(processor_config, &mut route_manager, &shutdown).await?;
 
     if let Err(e) = shutdown.catch_interrupt().await {
         error!("Could not wait for interrupts anymore - {e}. Shutting down the tunnel.");

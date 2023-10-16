@@ -3,7 +3,6 @@
 use futures::channel::oneshot::{Receiver, Sender};
 use futures::channel::{mpsc, oneshot};
 use log::*;
-use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use talpid_core::dns::DnsMonitor;
 use talpid_core::firewall::Firewall;

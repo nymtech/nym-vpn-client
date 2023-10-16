@@ -7102,6 +7102,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "futures",
+ "ipnetwork",
  "log",
  "nym-bin-common",
  "nym-sdk",
