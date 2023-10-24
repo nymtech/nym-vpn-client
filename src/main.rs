@@ -19,7 +19,7 @@ use nym_config::defaults::setup_env;
 use nym_sdk::mixnet::Recipient;
 use nym_task::TaskManager;
 use std::collections::HashSet;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
 use talpid_routing::RouteManager;
 use talpid_types::net::wireguard::{
@@ -28,7 +28,10 @@ use talpid_types::net::wireguard::{
 use talpid_types::net::GenericTunnelOptions;
 use talpid_wireguard::config::Config;
 
-fn init_config(args: CliArgs) -> Result<Config, error::Error> {
+fn init_config(
+    args: CliArgs,
+    gateway_data: &nym_wireguard_types::GatewayClient,
+) -> Result<Config, error::Error> {
     let tunnel = TunnelConfig {
         private_key: PrivateKey::from(
             PublicKey::from_base64(&args.private_key)
@@ -51,14 +54,13 @@ fn init_config(args: CliArgs) -> Result<Config, error::Error> {
             .collect(),
     };
     let peers = vec![PeerConfig {
-        public_key: PublicKey::from_base64(&args.public_key)
-            .map_err(|_| error::Error::InvalidWireGuardKey)?,
+        public_key: PublicKey::from(gateway_data.pub_key().to_bytes()),
         allowed_ips: args
             .allowed_ips
             .iter()
             .filter_map(|ip| ip.parse().ok())
             .collect(),
-        endpoint: SocketAddr::from_str(&args.endpoint)?,
+        endpoint: gateway_data.socket(),
         psk: args
             .psk
             .map(|psk| match PublicKey::from_base64(&psk) {
@@ -96,13 +98,13 @@ async fn main() -> Result<(), error::Error> {
     let args = commands::CliArgs::parse();
     setup_env(args.config_env_file.as_ref());
 
-    let gateway_config = GatewayConfig::override_from_env(GatewayConfig::default());
-    let gateway_client = GatewayClient::new(gateway_config);
-    let _host = gateway_client.get_host("").await?;
+    let gateway_config = GatewayConfig::override_from_env(&args, GatewayConfig::default());
+    let gateway_client = GatewayClient::new(gateway_config)?;
+    let gateway_data = gateway_client.get_gateway_data(&args.entry_gateway).await?;
 
     let recipient_address = Recipient::try_from_base58_string(&args.recipient_address)
         .map_err(|_| error::Error::RecipientFormattingError)?;
-    let config = init_config(args)?;
+    let config = init_config(args, &gateway_data)?;
     let shutdown = TaskManager::new(10);
 
     let mut route_manager = RouteManager::new(HashSet::new()).await?;

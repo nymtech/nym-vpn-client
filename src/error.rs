@@ -49,4 +49,16 @@ pub enum Error {
 
     #[error("Invalid Gateway ID")]
     InvalidGatewayID,
+
+    #[error("{0}")]
+    KeyRecoveryError(#[from] nym_crypto::asymmetric::encryption::KeyRecoveryError),
+
+    #[error("{0}")]
+    NymNodeApiClientError(#[from] nym_node_requests::api::client::NymNodeApiClientError),
+
+    #[error("Invalid Gateway API response")]
+    InvalidGatewayAPIResponse,
+
+    #[error("{0}")]
+    WireguardTypesError(#[from] nym_wireguard_types::error::Error),
 }

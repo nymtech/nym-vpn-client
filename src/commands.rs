@@ -9,6 +9,10 @@ pub(crate) struct CliArgs {
     #[clap(short, long)]
     pub(crate) config_env_file: Option<std::path::PathBuf>,
 
+    /// Mixnet public ID of the entry gateway.
+    #[clap(long)]
+    pub(crate) entry_gateway: String,
+
     /// Mixnet recipient address.
     #[clap(long)]
     pub(crate) recipient_address: String,
@@ -21,17 +25,9 @@ pub(crate) struct CliArgs {
     #[clap(long, num_args = 1.., value_delimiter = ' ')]
     pub(crate) addresses: Vec<String>,
 
-    /// Peer's public key.
-    #[clap(long)]
-    pub(crate) public_key: String,
-
     /// Addresses that may be routed to the peer. Use `0.0.0.0/0` to route everything.
     #[clap(long, num_args = 1.., value_delimiter = ' ')]
     pub(crate) allowed_ips: Vec<String>,
-
-    /// IP address of the WireGuard server.
-    #[clap(long)]
-    pub(crate) endpoint: String,
 
     /// Preshared key (PSK).
     #[clap(long)]
