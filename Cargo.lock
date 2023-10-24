@@ -7105,8 +7105,10 @@ dependencies = [
  "ipnetwork",
  "log",
  "nym-bin-common",
+ "nym-config",
  "nym-sdk",
  "nym-task",
+ "nym-validator-client",
  "talpid-core",
  "talpid-routing",
  "talpid-tunnel",
@@ -7115,6 +7117,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tun",
+ "url",
 ]
 
 [[package]]

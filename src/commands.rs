@@ -5,6 +5,10 @@ use clap::Parser;
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about)]
 pub(crate) struct CliArgs {
+    /// Path pointing to an env file describing the network.
+    #[clap(short, long)]
+    pub(crate) config_env_file: Option<std::path::PathBuf>,
+
     /// Mixnet recipient address.
     #[clap(long)]
     pub(crate) recipient_address: String,

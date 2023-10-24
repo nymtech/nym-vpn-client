@@ -43,4 +43,10 @@ pub enum Error {
 
     #[error("{0}")]
     WireguardConfigError(#[from] talpid_wireguard::config::Error),
+
+    #[error("{0}")]
+    ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
+
+    #[error("Invalid Gateway ID")]
+    InvalidGatewayID,
 }

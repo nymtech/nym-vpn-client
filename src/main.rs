@@ -2,16 +2,20 @@
 
 mod commands;
 mod error;
+mod gateway_client;
 mod mixnet_processor;
 mod tunnel;
 
 use crate::commands::CliArgs;
+use crate::gateway_client::Config as GatewayConfig;
 use crate::mixnet_processor::start_processor;
 use crate::tunnel::{start_tunnel, Tunnel};
 use clap::Parser;
 use futures::channel::oneshot;
+use gateway_client::GatewayClient;
 use log::{debug, error, warn};
 use nym_bin_common::logging::setup_logging;
+use nym_config::defaults::setup_env;
 use nym_sdk::mixnet::Recipient;
 use nym_task::TaskManager;
 use std::collections::HashSet;
@@ -90,6 +94,12 @@ fn init_config(args: CliArgs) -> Result<Config, error::Error> {
 async fn main() -> Result<(), error::Error> {
     setup_logging();
     let args = commands::CliArgs::parse();
+    setup_env(args.config_env_file.as_ref());
+
+    let gateway_config = GatewayConfig::override_from_env(GatewayConfig::default());
+    let gateway_client = GatewayClient::new(gateway_config);
+    let _host = gateway_client.get_host("").await?;
+
     let recipient_address = Recipient::try_from_base58_string(&args.recipient_address)
         .map_err(|_| error::Error::RecipientFormattingError)?;
     let config = init_config(args)?;
