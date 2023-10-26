@@ -1,5 +1,6 @@
 use crate::commands::CliArgs;
 use nym_config::defaults::var_names::NYM_API;
+use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_config::OptionalSet;
 use nym_crypto::asymmetric::encryption;
 use nym_node_requests::api::client::NymNodeApiClientExt;
@@ -58,7 +59,9 @@ pub(crate) struct GatewayData {
 impl GatewayClient {
     pub fn new(config: Config) -> Result<Self, crate::error::Error> {
         let api_client = NymApiClient::new(config.api_url);
-        let private_key = encryption::PrivateKey::from_base58_string(config.local_private_key)?;
+        let private_key_intermediate = PublicKey::from_base64(&config.local_private_key)
+            .map_err(|_| crate::error::Error::InvalidWireGuardKey)?;
+        let private_key = encryption::PrivateKey::from_bytes(private_key_intermediate.as_bytes())?;
         let public_key = encryption::PublicKey::from(&private_key);
         let keypair =
             encryption::KeyPair::from_bytes(&private_key.to_bytes(), &public_key.to_bytes())
@@ -87,11 +90,13 @@ impl GatewayClient {
                 }
             })
             .ok_or(crate::error::Error::InvalidGatewayID)?;
-        let gateway_api_client = nym_node_requests::api::Client::new_url(&gateway_host, None)?;
+        let gateway_api_client = nym_node_requests::api::Client::new_url(
+            format!("{}:{}", gateway_host, DEFAULT_NYM_NODE_HTTP_PORT),
+            None,
+        )?;
 
         let init_message = ClientMessage::Initial(InitMessage {
-            pub_key: PeerPublicKey::from_str(&self.keypair.public_key().to_base58_string())
-                .expect("Encoding was checked previously"),
+            pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().try_into().unwrap()),
         });
         let ClientRegistrationResponse::PendingRegistration {
             nonce,
