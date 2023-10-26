@@ -7,7 +7,7 @@ mod mixnet_processor;
 mod tunnel;
 
 use crate::commands::CliArgs;
-use crate::gateway_client::Config as GatewayConfig;
+use crate::gateway_client::{Config as GatewayConfig, GatewayData};
 use crate::mixnet_processor::start_processor;
 use crate::tunnel::{start_tunnel, Tunnel};
 use clap::Parser;
@@ -28,10 +28,7 @@ use talpid_types::net::wireguard::{
 use talpid_types::net::GenericTunnelOptions;
 use talpid_wireguard::config::Config;
 
-fn init_config(
-    args: CliArgs,
-    gateway_data: &nym_wireguard_types::GatewayClient,
-) -> Result<Config, error::Error> {
+fn init_config(args: CliArgs, gateway_data: GatewayData) -> Result<Config, error::Error> {
     let tunnel = TunnelConfig {
         private_key: PrivateKey::from(
             PublicKey::from_base64(&args.private_key)
@@ -54,13 +51,13 @@ fn init_config(
             .collect(),
     };
     let peers = vec![PeerConfig {
-        public_key: PublicKey::from(gateway_data.pub_key().to_bytes()),
+        public_key: gateway_data.public_key,
         allowed_ips: args
             .allowed_ips
             .iter()
             .filter_map(|ip| ip.parse().ok())
             .collect(),
-        endpoint: gateway_data.socket(),
+        endpoint: gateway_data.endpoint,
         psk: args
             .psk
             .map(|psk| match PublicKey::from_base64(&psk) {
@@ -104,7 +101,7 @@ async fn main() -> Result<(), error::Error> {
 
     let recipient_address = Recipient::try_from_base58_string(&args.recipient_address)
         .map_err(|_| error::Error::RecipientFormattingError)?;
-    let config = init_config(args, &gateway_data)?;
+    let config = init_config(args, gateway_data)?;
     let shutdown = TaskManager::new(10);
 
     let mut route_manager = RouteManager::new(HashSet::new()).await?;

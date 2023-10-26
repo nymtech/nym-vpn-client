@@ -7,7 +7,9 @@ use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
 use nym_validator_client::NymApiClient;
+use std::net::SocketAddr;
 use std::str::FromStr;
+use talpid_types::net::wireguard::PublicKey;
 use url::Url;
 
 const DEFAULT_API_URL: &str = "http://127.0.0.1:8000";
@@ -48,6 +50,11 @@ pub(crate) struct GatewayClient {
     keypair: encryption::KeyPair,
 }
 
+pub(crate) struct GatewayData {
+    pub(crate) public_key: PublicKey,
+    pub(crate) endpoint: SocketAddr,
+}
+
 impl GatewayClient {
     pub fn new(config: Config) -> Result<Self, crate::error::Error> {
         let api_client = NymApiClient::new(config.api_url);
@@ -66,7 +73,7 @@ impl GatewayClient {
     pub async fn get_gateway_data(
         &self,
         gateway_identity: &str,
-    ) -> Result<nym_wireguard_types::GatewayClient, crate::error::Error> {
+    ) -> Result<GatewayData, crate::error::Error> {
         let gateway_host = self
             .api_client
             .get_cached_gateways()
@@ -80,7 +87,7 @@ impl GatewayClient {
                 }
             })
             .ok_or(crate::error::Error::InvalidGatewayID)?;
-        let gateway_api_client = nym_node_requests::api::Client::new_url(gateway_host, None)?;
+        let gateway_api_client = nym_node_requests::api::Client::new_url(&gateway_host, None)?;
 
         let init_message = ClientMessage::Initial(InitMessage {
             pub_key: PeerPublicKey::from_str(&self.keypair.public_key().to_base58_string())
@@ -89,6 +96,7 @@ impl GatewayClient {
         let ClientRegistrationResponse::PendingRegistration {
             nonce,
             gateway_data,
+            wg_port,
         } = gateway_api_client
             .post_gateway_register_client(&init_message)
             .await?
@@ -99,16 +107,17 @@ impl GatewayClient {
 
         // let mut mac = HmacSha256::new_from_slice(client_dh.as_bytes()).unwrap();
         // mac.update(client_static_public.as_bytes());
-        // mac.update("127.0.0.1".as_bytes());
-        // mac.update("8080".as_bytes());
         // mac.update(&nonce.to_le_bytes());
         // let mac = mac.finalize().into_bytes();
         //
         // let finalized_message = ClientMessage::Final(GatewayClient {
         //     pub_key: PeerPublicKey::new(client_static_public),
-        //     socket: "127.0.0.1:8080".parse().unwrap(),
         //     mac: ClientMac::new(mac.as_slice().to_vec()),
         // });
+        let gateway_data = GatewayData {
+            public_key: PublicKey::from(gateway_data.pub_key().to_bytes()),
+            endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, wg_port))?,
+        };
 
         Ok(gateway_data)
     }
