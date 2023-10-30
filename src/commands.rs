@@ -25,10 +25,6 @@ pub(crate) struct CliArgs {
     #[clap(long, num_args = 1.., value_delimiter = ' ')]
     pub(crate) addresses: Vec<String>,
 
-    /// Addresses that may be routed to the peer. Use `0.0.0.0/0` to route everything.
-    #[clap(long, num_args = 1.., value_delimiter = ' ')]
-    pub(crate) allowed_ips: Vec<String>,
-
     /// Preshared key (PSK).
     #[clap(long)]
     pub(crate) psk: Option<String>,

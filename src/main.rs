@@ -52,11 +52,7 @@ fn init_config(args: CliArgs, gateway_data: GatewayData) -> Result<Config, error
     };
     let peers = vec![PeerConfig {
         public_key: gateway_data.public_key,
-        allowed_ips: args
-            .allowed_ips
-            .iter()
-            .filter_map(|ip| ip.parse().ok())
-            .collect(),
+        allowed_ips: vec![gateway_data.endpoint.ip().into()],
         endpoint: gateway_data.endpoint,
         psk: args
             .psk
@@ -98,6 +94,7 @@ async fn main() -> Result<(), error::Error> {
     let gateway_config = GatewayConfig::override_from_env(&args, GatewayConfig::default());
     let gateway_client = GatewayClient::new(gateway_config)?;
     let gateway_data = gateway_client.get_gateway_data(&args.entry_gateway).await?;
+    let gateway_pub_key = gateway_data.public_key.to_string();
 
     let recipient_address = Recipient::try_from_base58_string(&args.recipient_address)
         .map_err(|_| error::Error::RecipientFormattingError)?;
@@ -113,6 +110,7 @@ async fn main() -> Result<(), error::Error> {
 
     let tunnel_handle = start_tunnel(&tunnel, tunnel_close_rx, finished_shutdown_tx)?;
     let processor_config = mixnet_processor::Config::new(
+        gateway_pub_key,
         recipient_address,
         tunnel.config.ipv4_gateway.to_string(),
         tunnel.config.ipv6_gateway.map(|ip| ip.to_string()),
