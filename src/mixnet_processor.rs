@@ -3,34 +3,24 @@
 use futures::StreamExt;
 use ipnetwork::IpNetwork;
 use log::*;
-use nym_config::defaults::NymNetworkDetails;
-use nym_sdk::mixnet::{
-    IncludedSurbs, MixnetClient, MixnetClientBuilder, MixnetMessageSender, Recipient,
-};
+use nym_sdk::mixnet::{IncludedSurbs, MixnetClient, MixnetMessageSender, Recipient};
 use nym_task::{TaskClient, TaskManager};
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 use tun::{AsyncDevice, Device};
 
 pub struct Config {
     pub mixnet_tun_config: tun::Configuration,
-    pub entry_gateway: String,
     pub recipient: Recipient,
     pub ipv4_gateway: String,
     pub ipv6_gateway: Option<String>,
 }
 
 impl Config {
-    pub fn new(
-        entry_gateway: String,
-        recipient: Recipient,
-        ipv4_gateway: String,
-        ipv6_gateway: Option<String>,
-    ) -> Self {
+    pub fn new(recipient: Recipient, ipv4_gateway: String, ipv6_gateway: Option<String>) -> Self {
         let mut mixnet_tun_config = tun::Configuration::default();
         mixnet_tun_config.up();
 
         Config {
-            entry_gateway,
             mixnet_tun_config,
             recipient,
             ipv4_gateway,
@@ -119,15 +109,10 @@ fn get_tunnel_nodes(
 
 pub async fn start_processor(
     config: Config,
+    mixnet_client: MixnetClient,
     route_manager: &mut RouteManager,
     shutdown: &TaskManager,
 ) -> Result<(), crate::error::Error> {
-    let mixnet_client = MixnetClientBuilder::new_ephemeral()
-        .request_gateway(config.entry_gateway)
-        .network_details(NymNetworkDetails::new_from_env())
-        .build()?
-        .connect_to_mixnet()
-        .await?;
     let dev = tun::create_as_async(&config.mixnet_tun_config)?;
     let device_name = dev.get_ref().name().to_string();
     let (node_v4, node_v6) =

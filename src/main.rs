@@ -15,8 +15,8 @@ use futures::channel::oneshot;
 use gateway_client::GatewayClient;
 use log::{debug, error, warn};
 use nym_bin_common::logging::setup_logging;
-use nym_config::defaults::setup_env;
-use nym_sdk::mixnet::Recipient;
+use nym_config::defaults::{setup_env, NymNetworkDetails};
+use nym_sdk::mixnet::{MixnetClientBuilder, Recipient};
 use nym_task::TaskManager;
 use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
@@ -94,10 +94,15 @@ async fn main() -> Result<(), error::Error> {
     let gateway_config = GatewayConfig::override_from_env(&args, GatewayConfig::default());
     let gateway_client = GatewayClient::new(gateway_config)?;
     let gateway_data = gateway_client.get_gateway_data(&args.entry_gateway).await?;
-    let gateway_pub_key = gateway_data.public_key.to_string();
 
     let recipient_address = Recipient::try_from_base58_string(&args.recipient_address)
         .map_err(|_| error::Error::RecipientFormattingError)?;
+    let mixnet_client = MixnetClientBuilder::new_ephemeral()
+        .request_gateway(args.entry_gateway.clone())
+        .network_details(NymNetworkDetails::new_from_env())
+        .build()?
+        .connect_to_mixnet()
+        .await?;
     let config = init_config(args, gateway_data)?;
     let shutdown = TaskManager::new(10);
 
@@ -110,12 +115,17 @@ async fn main() -> Result<(), error::Error> {
 
     let tunnel_handle = start_tunnel(&tunnel, tunnel_close_rx, finished_shutdown_tx)?;
     let processor_config = mixnet_processor::Config::new(
-        gateway_pub_key,
         recipient_address,
         tunnel.config.ipv4_gateway.to_string(),
         tunnel.config.ipv6_gateway.map(|ip| ip.to_string()),
     );
-    start_processor(processor_config, &mut route_manager, &shutdown).await?;
+    start_processor(
+        processor_config,
+        mixnet_client,
+        &mut route_manager,
+        &shutdown,
+    )
+    .await?;
 
     if let Err(e) = shutdown.catch_interrupt().await {
         error!("Could not wait for interrupts anymore - {e}. Shutting down the tunnel.");
