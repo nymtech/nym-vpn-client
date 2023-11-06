@@ -26,6 +26,8 @@ use talpid_types::net::wireguard::{
     ConnectionConfig, PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig, TunnelOptions,
 };
 use talpid_types::net::GenericTunnelOptions;
+#[cfg(target_os = "linux")]
+use talpid_types::ErrorExt;
 use talpid_wireguard::config::Config;
 
 fn init_config(args: CliArgs, gateway_data: GatewayData) -> Result<Config, error::Error> {
@@ -71,6 +73,8 @@ fn init_config(args: CliArgs, gateway_data: GatewayData) -> Result<Config, error
         exit_peer: None,
         ipv4_gateway: Ipv4Addr::from_str(&args.ipv4_gateway)?,
         ipv6_gateway: None,
+        #[cfg(target_os = "linux")]
+        fwmark: None,
     };
     let generic_options = GenericTunnelOptions { enable_ipv6: true };
     let wg_options = TunnelOptions::default();
@@ -106,7 +110,16 @@ async fn main() -> Result<(), error::Error> {
     let config = init_config(args, gateway_data)?;
     let shutdown = TaskManager::new(10);
 
+    #[cfg(target_os = "linux")]
+    let mut route_manager =  {
+        let fwmark = 0;
+        let table_id = 0;
+        RouteManager::new(HashSet::new(), fwmark, table_id).await?
+    };
+
+    #[cfg(not(target_os = "linux"))]
     let mut route_manager = RouteManager::new(HashSet::new()).await?;
+
     let route_manager_handle = route_manager.handle()?;
     let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
 
@@ -134,8 +147,8 @@ async fn main() -> Result<(), error::Error> {
         debug!("Received interrupt signal");
         route_manager.clear_routes()?;
         #[cfg(target_os = "linux")]
-        if let Err(error) = tokio::runtime::Handle::current()
-            .block_on(shared_values.route_manager.clear_routing_rules())
+        if let Err(error) =
+            tokio::runtime::Handle::current().block_on(route_manager.clear_routing_rules())
         {
             error!(
                 "{}",

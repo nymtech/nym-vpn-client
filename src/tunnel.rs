@@ -24,12 +24,26 @@ impl Tunnel {
         config: Config,
         route_manager_handle: RouteManagerHandle,
     ) -> Result<Self, crate::error::Error> {
-        let (command_tx, _) = mpsc::unbounded();
-        let command_tx = Arc::new(command_tx);
-        let weak_command_tx = Arc::downgrade(&command_tx);
+        #[cfg(not(target_os = "linux"))]
+        let (firewall, dns_monitor) = {
+            let (command_tx, _) = mpsc::unbounded();
+            let command_tx = Arc::new(command_tx);
+            let weak_command_tx = Arc::downgrade(&command_tx);
+            let firewall = Firewall::new()?;
+            let dns_monitor = DnsMonitor::new(weak_command_tx)?;
+            (firewall, dns_monitor)
+        };
 
-        let firewall = Firewall::new()?;
-        let dns_monitor = DnsMonitor::new(weak_command_tx)?;
+        #[cfg(target_os = "linux")]
+        let (firewall, dns_monitor) = {
+            let fwmark = 0; // ?
+            let firewall = Firewall::new(fwmark)?;
+            let dns_monitor = DnsMonitor::new(
+                tokio::runtime::Handle::current(),
+                route_manager_handle.clone(),
+            )?;
+            (firewall, dns_monitor)
+        };
 
         Ok(Tunnel {
             config,
