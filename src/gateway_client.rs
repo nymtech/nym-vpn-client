@@ -8,7 +8,7 @@ use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
 use nym_validator_client::NymApiClient;
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::PublicKey;
 use url::Url;
@@ -50,10 +50,11 @@ pub(crate) struct GatewayClient {
     api_client: NymApiClient,
     keypair: encryption::KeyPair,
 }
-
+#[derive(Clone)]
 pub(crate) struct GatewayData {
     pub(crate) public_key: PublicKey,
     pub(crate) endpoint: SocketAddr,
+    pub(crate) private_ip: IpAddr,
 }
 
 impl GatewayClient {
@@ -122,6 +123,7 @@ impl GatewayClient {
         let gateway_data = GatewayData {
             public_key: PublicKey::from(gateway_data.pub_key().to_bytes()),
             endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, wg_port))?,
+            private_ip: "10.1.0.2".parse().unwrap(), // placeholder value for now
         };
 
         Ok(gateway_data)

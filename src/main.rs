@@ -15,11 +15,11 @@ use futures::channel::oneshot;
 use gateway_client::GatewayClient;
 use log::{debug, error, warn};
 use nym_bin_common::logging::setup_logging;
-use nym_config::defaults::{setup_env, NymNetworkDetails};
-use nym_sdk::mixnet::{MixnetClientBuilder, Recipient};
+use nym_config::defaults::setup_env;
+use nym_sdk::mixnet::Recipient;
 use nym_task::TaskManager;
 use std::collections::HashSet;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::Ipv4Addr;
 use std::str::FromStr;
 use talpid_routing::RouteManager;
 use talpid_types::net::wireguard::{
@@ -30,7 +30,7 @@ use talpid_types::net::GenericTunnelOptions;
 use talpid_types::ErrorExt;
 use talpid_wireguard::config::Config;
 
-fn init_config(args: CliArgs, gateway_data: GatewayData) -> Result<Config, error::Error> {
+fn init_config(args: &CliArgs, gateway_data: GatewayData) -> Result<Config, error::Error> {
     let tunnel = TunnelConfig {
         private_key: PrivateKey::from(
             PublicKey::from_base64(&args.private_key)
@@ -38,19 +38,7 @@ fn init_config(args: CliArgs, gateway_data: GatewayData) -> Result<Config, error
                 .as_bytes()
                 .clone(),
         ),
-        addresses: args
-            .addresses
-            .iter()
-            .filter_map(|ip| {
-                if let Ok(parsed) = Ipv4Addr::from_str(ip) {
-                    Some(IpAddr::V4(parsed))
-                } else if let Ok(parsed) = Ipv6Addr::from_str(ip) {
-                    Some(IpAddr::V6(parsed))
-                } else {
-                    None
-                }
-            })
-            .collect(),
+        addresses: vec![gateway_data.private_ip],
     };
     let peers = vec![PeerConfig {
         public_key: gateway_data.public_key,
@@ -58,6 +46,7 @@ fn init_config(args: CliArgs, gateway_data: GatewayData) -> Result<Config, error
         endpoint: gateway_data.endpoint,
         psk: args
             .psk
+            .clone()
             .map(|psk| match PublicKey::from_base64(&psk) {
                 Ok(key) => Some(PresharedKey::from(Box::new(key.as_bytes().clone()))),
                 Err(e) => {
@@ -71,7 +60,7 @@ fn init_config(args: CliArgs, gateway_data: GatewayData) -> Result<Config, error
         tunnel: tunnel.clone(),
         peer: peers[0].clone(),
         exit_peer: None,
-        ipv4_gateway: Ipv4Addr::from_str(&args.ipv4_gateway)?,
+        ipv4_gateway: Ipv4Addr::from_str(&gateway_data.private_ip.to_string())?,
         ipv6_gateway: None,
         #[cfg(target_os = "linux")]
         fwmark: None,
@@ -101,17 +90,11 @@ async fn main() -> Result<(), error::Error> {
 
     let recipient_address = Recipient::try_from_base58_string(&args.recipient_address)
         .map_err(|_| error::Error::RecipientFormattingError)?;
-    let mixnet_client = MixnetClientBuilder::new_ephemeral()
-        .request_gateway(args.entry_gateway.clone())
-        .network_details(NymNetworkDetails::new_from_env())
-        .build()?
-        .connect_to_mixnet()
-        .await?;
-    let config = init_config(args, gateway_data)?;
+    let config = init_config(&args, gateway_data.clone())?;
     let shutdown = TaskManager::new(10);
 
     #[cfg(target_os = "linux")]
-    let mut route_manager =  {
+    let mut route_manager = {
         let fwmark = 0;
         let table_id = 0;
         RouteManager::new(HashSet::new(), fwmark, table_id).await?
@@ -123,22 +106,24 @@ async fn main() -> Result<(), error::Error> {
     let route_manager_handle = route_manager.handle()?;
     let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
 
-    let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
     let mut tunnel = Tunnel::new(config, route_manager_handle)?;
 
-    let tunnel_handle = start_tunnel(&tunnel, tunnel_close_rx, finished_shutdown_tx)?;
+    let wireguard_waiting = if args.enable_wireguard {
+        let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
+        let tunnel_handle = start_tunnel(&tunnel, tunnel_close_rx, finished_shutdown_tx)?;
+        Some((finished_shutdown_rx, tunnel_handle))
+    } else {
+        None
+    };
     let processor_config = mixnet_processor::Config::new(
+        args.mixnet_client_path.clone(),
+        args.entry_gateway.clone(),
+        gateway_data.endpoint.ip(),
         recipient_address,
         tunnel.config.ipv4_gateway.to_string(),
         tunnel.config.ipv6_gateway.map(|ip| ip.to_string()),
     );
-    start_processor(
-        processor_config,
-        mixnet_client,
-        &mut route_manager,
-        &shutdown,
-    )
-    .await?;
+    start_processor(processor_config, &mut route_manager, &shutdown).await?;
 
     if let Err(e) = shutdown.catch_interrupt().await {
         error!("Could not wait for interrupts anymore - {e}. Shutting down the tunnel.");
@@ -161,9 +146,13 @@ async fn main() -> Result<(), error::Error> {
         Ok(())
     });
 
-    tunnel_handle.await??;
-    sig_handle.await??;
-    finished_shutdown_rx.await?;
+    if let Some((finished_shutdown_rx, tunnel_handle)) = wireguard_waiting {
+        tunnel_handle.await??;
+        sig_handle.await??;
+        finished_shutdown_rx.await?;
+    } else {
+        sig_handle.await??;
+    }
     tunnel.dns_monitor.reset()?;
     tunnel.firewall.reset_policy()?;
 

@@ -61,4 +61,7 @@ pub enum Error {
 
     #[error("{0}")]
     WireguardTypesError(#[from] nym_wireguard_types::error::Error),
+
+    #[error("Could not obtain the default gateway")]
+    DefaultInterfaceGatewayError,
 }

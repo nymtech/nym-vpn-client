@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "4.0", features = ["cargo", "derive"] }
+clap = { version = "4.4.7", features = ["cargo", "derive"] }
+default-net = "0.20.0"
 futures = "0.3.15"
 ipnetwork = "0.16"
 log = "0.4.20"
@@ -28,11 +29,11 @@ url = "2.4"
 #nym-sdk = { git = "https://github.com/nymtech/nym", tag = "nym-binaries-v2023.1-milka" }
 #nym-task = { git = "https://github.com/nymtech/nym", tag = "nym-binaries-v2023.1-milka" }
 #nym-validator-client = { git = "https://github.com/nymtech/nym", tag = "nym-binaries-v2023.1-milka" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "0aa8e2deb5d5b4b917b096fc6378db3003f0a1ee" }
-nym-config = { git = "https://github.com/nymtech/nym", rev = "0aa8e2deb5d5b4b917b096fc6378db3003f0a1ee" }
-nym-crypto = { git = "https://github.com/nymtech/nym", rev = "0aa8e2deb5d5b4b917b096fc6378db3003f0a1ee" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "0aa8e2deb5d5b4b917b096fc6378db3003f0a1ee" }
-nym-sdk = { git = "https://github.com/nymtech/nym", rev = "0aa8e2deb5d5b4b917b096fc6378db3003f0a1ee" }
-nym-task = { git = "https://github.com/nymtech/nym", rev = "0aa8e2deb5d5b4b917b096fc6378db3003f0a1ee" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "0aa8e2deb5d5b4b917b096fc6378db3003f0a1ee" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "0aa8e2deb5d5b4b917b096fc6378db3003f0a1ee" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "06a96fa74acbf33545e152d903bac0dee251d19a" }
+nym-config = { git = "https://github.com/nymtech/nym", rev = "06a96fa74acbf33545e152d903bac0dee251d19a" }
+nym-crypto = { git = "https://github.com/nymtech/nym", rev = "06a96fa74acbf33545e152d903bac0dee251d19a" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "06a96fa74acbf33545e152d903bac0dee251d19a" }
+nym-sdk = { git = "https://github.com/nymtech/nym", rev = "06a96fa74acbf33545e152d903bac0dee251d19a" }
+nym-task = { git = "https://github.com/nymtech/nym", rev = "06a96fa74acbf33545e152d903bac0dee251d19a" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "06a96fa74acbf33545e152d903bac0dee251d19a" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "06a96fa74acbf33545e152d903bac0dee251d19a" }
