@@ -11,7 +11,7 @@ pub(crate) struct CliArgs {
     pub(crate) config_env_file: Option<PathBuf>,
 
     /// Enable the wireguard traffic between the client and the entry gateway.
-    #[clap(long, default_value_t = false)]
+    #[clap(long, default_value_t = false, requires = "private_key")]
     pub(crate) enable_wireguard: bool,
 
     /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
@@ -28,7 +28,7 @@ pub(crate) struct CliArgs {
 
     /// Associated private key.
     #[clap(long)]
-    pub(crate) private_key: String,
+    pub(crate) private_key: Option<String>,
 
     /// Preshared key (PSK).
     #[clap(long)]
