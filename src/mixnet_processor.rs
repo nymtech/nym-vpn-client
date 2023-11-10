@@ -173,12 +173,15 @@ pub async fn start_processor(
     });
     #[cfg(target_os = "linux")]
     let routes = routes.map(|route| route.use_main_table(false));
+    let mut debug_config = nym_client_core::config::DebugConfig::default();
+    debug_config.traffic.disable_main_poisson_packet_distribution = true;
     let mixnet_client = MixnetClientBuilder::new_with_default_storage(StoragePaths::new_from_dir(
         config.mixnet_client_path,
     )?)
     .await?
     .request_gateway(config.entry_mixnet_gateway)
     .network_details(NymNetworkDetails::new_from_env())
+    .debug_config(debug_config)
     .build()?
     .connect_to_mixnet()
     .await?;

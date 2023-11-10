@@ -7313,6 +7313,7 @@ dependencies = [
  "ipnetwork",
  "log",
  "nym-bin-common",
+ "nym-client-core",
  "nym-config",
  "nym-crypto",
  "nym-node-requests",

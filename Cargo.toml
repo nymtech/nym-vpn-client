@@ -30,6 +30,7 @@ url = "2.4"
 #nym-task = { git = "https://github.com/nymtech/nym", tag = "nym-binaries-v2023.1-milka" }
 #nym-validator-client = { git = "https://github.com/nymtech/nym", tag = "nym-binaries-v2023.1-milka" }
 nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "06a96fa74acbf33545e152d903bac0dee251d19a" }
+nym-client-core = { git = "https://github.com/nymtech/nym", rev = "06a96fa74acbf33545e152d903bac0dee251d19a" }
 nym-config = { git = "https://github.com/nymtech/nym", rev = "06a96fa74acbf33545e152d903bac0dee251d19a" }
 nym-crypto = { git = "https://github.com/nymtech/nym", rev = "06a96fa74acbf33545e152d903bac0dee251d19a" }
 nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "06a96fa74acbf33545e152d903bac0dee251d19a" }
