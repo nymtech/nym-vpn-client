@@ -40,12 +40,9 @@ impl Config {
     }
 
     pub fn override_from_env(args: &CliArgs, config: Config) -> Config {
-        let config = config.with_optional_env(Config::with_custom_api_url, None, NYM_API);
-        if let Some(env_private_key) = args.private_key.as_ref() {
-            config.with_local_private_key(env_private_key.clone())
-        } else {
-            config
-        }
+        config
+            .with_optional_env(Config::with_custom_api_url, None, NYM_API)
+            .with_local_private_key(args.private_key.clone())
     }
 }
 

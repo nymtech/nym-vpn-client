@@ -31,13 +31,12 @@ use talpid_types::ErrorExt;
 use talpid_wireguard::config::Config;
 
 fn init_config(args: &CliArgs, gateway_data: GatewayData) -> Result<Config, error::Error> {
-    // The CLI api should enforce that a private key exists if we enable wireguard
-    let private_key = args.private_key.as_ref().expect("Missing private key");
     let tunnel = TunnelConfig {
         private_key: PrivateKey::from(
-            *PublicKey::from_base64(private_key)
+            PublicKey::from_base64(&args.private_key)
                 .map_err(|_| error::Error::InvalidWireGuardKey)?
-                .as_bytes(),
+                .as_bytes()
+                .clone(),
         ),
         addresses: vec![gateway_data.private_ip],
     };
@@ -48,13 +47,14 @@ fn init_config(args: &CliArgs, gateway_data: GatewayData) -> Result<Config, erro
         psk: args
             .psk
             .clone()
-            .and_then(|psk| match PublicKey::from_base64(&psk) {
-                Ok(key) => Some(PresharedKey::from(Box::new(*key.as_bytes()))),
+            .map(|psk| match PublicKey::from_base64(&psk) {
+                Ok(key) => Some(PresharedKey::from(Box::new(key.as_bytes().clone()))),
                 Err(e) => {
                     warn!("Could not decode pre-shared key, not using one: {e:?}");
                     None
                 }
-            }),
+            })
+            .flatten(),
     }];
     let connection_config = ConnectionConfig {
         tunnel: tunnel.clone(),
