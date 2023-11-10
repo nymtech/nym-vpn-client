@@ -3,7 +3,7 @@
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("{0}")]
-    IOError(#[from] std::io::Error),
+    IO(#[from] std::io::Error),
 
     #[error("Invalid WireGuard Key")]
     InvalidWireGuardKey,
