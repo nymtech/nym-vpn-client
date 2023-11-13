@@ -29,6 +29,10 @@ use talpid_types::net::GenericTunnelOptions;
 #[cfg(target_os = "linux")]
 use talpid_types::ErrorExt;
 use talpid_wireguard::config::Config;
+#[cfg(target_os = "linux")]
+pub const TUNNEL_TABLE_ID: u32 = 0x6d6f6c65;
+#[cfg(target_os = "linux")]
+pub const TUNNEL_FWMARK: u32 = 0x6d6f6c65;
 
 fn init_config(args: &CliArgs, gateway_data: GatewayData) -> Result<Config, error::Error> {
     let tunnel = TunnelConfig {
@@ -93,8 +97,8 @@ async fn main() -> Result<(), error::Error> {
 
     #[cfg(target_os = "linux")]
     let mut route_manager = {
-        let fwmark = 0;
-        let table_id = 0;
+        let fwmark = TUNNEL_FWMARK;
+        let table_id = TUNNEL_TABLE_ID;
         RouteManager::new(HashSet::new(), fwmark, table_id).await?
     };
 
