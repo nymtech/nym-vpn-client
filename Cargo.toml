@@ -38,3 +38,7 @@ nym-sdk = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-task = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "develop" }
+serde = "1.0.192"
+bincode = "1.3.3"
+signature = "1"
+bytes = "1.0"
