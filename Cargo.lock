@@ -4254,6 +4254,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-vpn-cli"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "bytes",
+ "clap",
+ "default-net",
+ "futures",
+ "ipnetwork",
+ "log",
+ "nym-bin-common",
+ "nym-client-core",
+ "nym-config",
+ "nym-crypto",
+ "nym-node-requests",
+ "nym-sdk",
+ "nym-task",
+ "nym-validator-client",
+ "nym-wireguard-types",
+ "serde",
+ "serde_json",
+ "signature 1.4.0",
+ "talpid-core",
+ "talpid-routing",
+ "talpid-tunnel",
+ "talpid-types",
+ "talpid-wireguard",
+ "thiserror",
+ "tokio",
+ "tun",
+ "url",
+]
+
+[[package]]
 name = "nym-wireguard-types"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=develop#1cdd8f6c081d1fbff5c1e9ac58bbde4ce989d84d"
@@ -7301,40 +7335,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6c71e40d7d2c34a5106301fb632274ca37242cd0c9d3e64dbece371a40a2d87"
 dependencies = [
  "webpki 0.22.4",
-]
-
-[[package]]
-name = "wg-cli"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "bytes",
- "clap",
- "default-net",
- "futures",
- "ipnetwork",
- "log",
- "nym-bin-common",
- "nym-client-core",
- "nym-config",
- "nym-crypto",
- "nym-node-requests",
- "nym-sdk",
- "nym-task",
- "nym-validator-client",
- "nym-wireguard-types",
- "serde",
- "serde_json",
- "signature 1.4.0",
- "talpid-core",
- "talpid-routing",
- "talpid-tunnel",
- "talpid-types",
- "talpid-wireguard",
- "thiserror",
- "tokio",
- "tun",
- "url",
 ]
 
 [[package]]
