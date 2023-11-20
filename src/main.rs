@@ -14,7 +14,6 @@ use clap::Parser;
 use futures::channel::oneshot;
 use gateway_client::GatewayClient;
 use log::{debug, error, warn};
-use nym_bin_common::logging::setup_logging;
 use nym_config::defaults::setup_env;
 use nym_sdk::mixnet::Recipient;
 use nym_task::TaskManager;
@@ -76,6 +75,20 @@ fn init_config(args: &CliArgs, gateway_data: GatewayData) -> Result<Config, erro
     Ok(config)
 }
 
+pub fn setup_logging() {
+    let filter = tracing_subscriber::EnvFilter::builder()
+        .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
+        .from_env()
+        .unwrap()
+        .add_directive("hyper::proto=info".parse().unwrap())
+        .add_directive("netlink_proto=info".parse().unwrap());
+
+    tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .compact()
+        .init();
+}
+
 #[tokio::main]
 async fn main() -> Result<(), error::Error> {
     setup_logging();
@@ -83,14 +96,29 @@ async fn main() -> Result<(), error::Error> {
     setup_env(args.config_env_file.as_ref());
 
     let gateway_config = GatewayConfig::override_from_env(&args, GatewayConfig::default());
+    log::info!("nym-api: {}", gateway_config.api_url);
     let gateway_client = GatewayClient::new(gateway_config)?;
     let gateway_data = gateway_client.get_gateway_data(&args.entry_gateway).await?;
+    log::debug!("wg gateway data: {:?}", gateway_data);
+    log::info!("wg gateway endpoint: {}", gateway_data.endpoint);
+    log::info!("wg gateway public key: {}", gateway_data.public_key);
+    log::info!("wg gateway private ip: {}", gateway_data.private_ip);
 
     let recipient_address = Recipient::try_from_base58_string(&args.recipient_address)
         .map_err(|_| error::Error::RecipientFormattingError)?;
+    log::info!("ip-packet-router: {:?}", recipient_address);
+
     let config = init_config(&args, gateway_data.clone())?;
+    log::info!("wg mtu: {}", config.mtu);
+    log::info!("wg fwmark: {:?}", config.fwmark);
+    log::info!("wg enable_ipv6: {}", config.enable_ipv6);
+    log::info!("wg ipv4_gateway: {}", config.ipv4_gateway);
+    log::info!("wg ipv6_gateway: {:?}", config.ipv6_gateway);
+    log::info!("wg peers: {:?}", config.peers);
+
     let shutdown = TaskManager::new(10);
 
+    log::info!("Setting up route manager");
     #[cfg(target_os = "linux")]
     let mut route_manager = {
         let fwmark = 0;
@@ -104,15 +132,19 @@ async fn main() -> Result<(), error::Error> {
     let route_manager_handle = route_manager.handle()?;
     let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
 
+    log::info!("Creating tunnel");
     let mut tunnel = Tunnel::new(config, route_manager_handle)?;
 
     let wireguard_waiting = if args.enable_wireguard {
+        log::info!("Starting wireguard tunnel");
         let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
         let tunnel_handle = start_tunnel(&tunnel, tunnel_close_rx, finished_shutdown_tx)?;
         Some((finished_shutdown_rx, tunnel_handle))
     } else {
+        log::info!("Wireguard is disabled");
         None
     };
+
     let processor_config = mixnet_processor::Config::new(
         args.mixnet_client_path.clone(),
         args.entry_gateway.clone(),
@@ -121,11 +153,14 @@ async fn main() -> Result<(), error::Error> {
         tunnel.config.ipv4_gateway.to_string(),
         tunnel.config.ipv6_gateway.map(|ip| ip.to_string()),
     );
+    log::info!("Mixnet processor config: {:#?}", processor_config);
+
     start_processor(processor_config, &mut route_manager, &shutdown).await?;
 
     if let Err(e) = shutdown.catch_interrupt().await {
         error!("Could not wait for interrupts anymore - {e}. Shutting down the tunnel.");
     }
+
     let sig_handle = tokio::task::spawn_blocking(move || -> Result<(), error::Error> {
         debug!("Received interrupt signal");
         route_manager.clear_routes()?;

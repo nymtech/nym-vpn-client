@@ -10,13 +10,14 @@ use nym_sdk::mixnet::{
 };
 use nym_task::{TaskClient, TaskManager};
 use serde::{Deserialize, Serialize};
-use std::net::IpAddr;
 use std::path::PathBuf;
+use std::{collections::HashSet, net::IpAddr};
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 use tun::{AsyncDevice, Device, TunPacket};
 
 const GATEWAY_ALLOWED_IPS: &str = "10.0.0.2";
 
+#[derive(Debug)]
 pub struct Config {
     pub mixnet_tun_config: tun::Configuration,
     pub mixnet_client_path: PathBuf,
@@ -186,12 +187,17 @@ fn get_tunnel_nodes(
 pub async fn start_processor(
     config: Config,
     route_manager: &mut RouteManager,
-    shutdown: &TaskManager,
+    task_manager: &TaskManager,
 ) -> Result<(), crate::error::Error> {
     let dev = tun::create_as_async(&config.mixnet_tun_config)?;
     let device_name = dev.get_ref().name().to_string();
+    log::info!("Opened tun device {}", device_name);
+
     let (node_v4, node_v6) =
         get_tunnel_nodes(&device_name, config.ipv4_gateway, config.ipv6_gateway);
+    log::info!("Using node_v4: {:?}", node_v4);
+    log::info!("Using node_v6: {:?}", node_v6);
+
     let default_node_address = get_default_interface()
         .map_err(|_| crate::error::Error::DefaultInterfaceGatewayError)?
         .gateway
@@ -199,8 +205,11 @@ pub async fn start_processor(
             Err(crate::error::Error::DefaultInterfaceGatewayError),
             |g| Ok(g.ip_addr),
         )?;
+    log::info!("default_nodeaddress: {:?}", default_node_address);
     let default_node = Node::address(default_node_address);
+    log::info!("default_node: {:?}", default_node);
     let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
+    log::info!("Entry mixnet gateway: {:?}", entry_mixnet_gateway_ip);
 
     let routes = [
         ("0.0.0.0/0", node_v4),
@@ -215,10 +224,14 @@ pub async fn start_processor(
     });
     #[cfg(target_os = "linux")]
     let routes = routes.map(|route| route.use_main_table(false));
+
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     debug_config
         .traffic
         .disable_main_poisson_packet_distribution = true;
+    log::debug!("Mixnet client config: {:#?}", debug_config);
+
+    log::info!("Creating mixnet client");
     let mixnet_client = MixnetClientBuilder::new_with_default_storage(StoragePaths::new_from_dir(
         config.mixnet_client_path,
     )?)
@@ -229,9 +242,14 @@ pub async fn start_processor(
     .build()?
     .connect_to_mixnet()
     .await?;
+
+    log::info!("Adding routes to route manager");
+    log::debug!("Routes: {:#?}", routes.clone().collect::<HashSet<_>>());
     route_manager.add_routes(routes.collect()).await?;
+
+    log::info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(dev, mixnet_client, config.recipient);
-    let shutdown_listener = shutdown.subscribe();
+    let shutdown_listener = task_manager.subscribe();
     tokio::spawn(processor.run(shutdown_listener));
     Ok(())
 }

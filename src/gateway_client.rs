@@ -16,8 +16,8 @@ use url::Url;
 const DEFAULT_API_URL: &str = "http://127.0.0.1:8000";
 
 pub(crate) struct Config {
-    api_url: Url,
-    local_private_key: String,
+    pub(crate) api_url: Url,
+    pub(crate) local_private_key: String,
 }
 
 impl Default for Config {
@@ -50,7 +50,7 @@ pub(crate) struct GatewayClient {
     api_client: NymApiClient,
     keypair: encryption::KeyPair,
 }
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct GatewayData {
     pub(crate) public_key: PublicKey,
     pub(crate) endpoint: SocketAddr,
@@ -78,6 +78,7 @@ impl GatewayClient {
         &self,
         gateway_identity: &str,
     ) -> Result<GatewayData, crate::error::Error> {
+        log::info!("Lookup ip for {}", gateway_identity);
         let gateway_host = self
             .api_client
             .get_cached_gateways()
@@ -91,11 +92,14 @@ impl GatewayClient {
                 }
             })
             .ok_or(crate::error::Error::InvalidGatewayID)?;
+        log::info!("Received wg gateway ip: {}", gateway_host);
+
         let gateway_api_client = nym_node_requests::api::Client::new_url(
             format!("{}:{}", gateway_host, DEFAULT_NYM_NODE_HTTP_PORT),
             None,
         )?;
 
+        log::info!("Registering with the wg gateway...");
         let init_message = ClientMessage::Initial(InitMessage {
             pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().try_into().unwrap()),
         });
@@ -109,6 +113,10 @@ impl GatewayClient {
         else {
             return Err(crate::error::Error::InvalidGatewayAPIResponse);
         };
+        log::debug!("Received nonce: {}", nonce);
+        log::debug!("Received wg_port: {}", wg_port);
+        log::debug!("Received gateway data: {:?}", gateway_data);
+
         gateway_data.verify(self.keypair.private_key(), nonce)?;
 
         // let mut mac = HmacSha256::new_from_slice(client_dh.as_bytes()).unwrap();
