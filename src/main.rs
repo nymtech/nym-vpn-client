@@ -11,18 +11,19 @@ use crate::gateway_client::{Config as GatewayConfig, GatewayData};
 use crate::mixnet_processor::start_processor;
 use crate::tunnel::{start_tunnel, Tunnel};
 use clap::Parser;
+use default_net::get_default_interface;
 use futures::channel::oneshot;
 use gateway_client::GatewayClient;
-use log::{debug, error, warn};
-use nym_config::defaults::setup_env;
-use nym_sdk::mixnet::Recipient;
+use log::{debug, error, info};
+use nym_config::defaults::{setup_env, NymNetworkDetails};
+use nym_sdk::mixnet::{MixnetClientBuilder, Recipient, StoragePaths};
 use nym_task::TaskManager;
 use std::collections::HashSet;
 use std::net::Ipv4Addr;
 use std::str::FromStr;
 use talpid_routing::RouteManager;
 use talpid_types::net::wireguard::{
-    ConnectionConfig, PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig, TunnelOptions,
+    ConnectionConfig, PeerConfig, PrivateKey, PublicKey, TunnelConfig, TunnelOptions,
 };
 use talpid_types::net::GenericTunnelOptions;
 #[cfg(target_os = "linux")]
@@ -40,18 +41,9 @@ fn init_config(args: &CliArgs, gateway_data: GatewayData) -> Result<Config, erro
     };
     let peers = vec![PeerConfig {
         public_key: gateway_data.public_key,
-        allowed_ips: vec![gateway_data.endpoint.ip().into()],
+        allowed_ips: vec!["10.1.0.1".parse().unwrap()],
         endpoint: gateway_data.endpoint,
-        psk: args
-            .psk
-            .clone()
-            .and_then(|psk| match PublicKey::from_base64(&psk) {
-                Ok(key) => Some(PresharedKey::from(Box::new(*key.as_bytes()))),
-                Err(e) => {
-                    warn!("Could not decode pre-shared key, not using one: {e:?}");
-                    None
-                }
-            }),
+        psk: None,
     }];
     let connection_config = ConnectionConfig {
         tunnel: tunnel.clone(),
@@ -96,29 +88,38 @@ async fn main() -> Result<(), error::Error> {
     setup_env(args.config_env_file.as_ref());
 
     let gateway_config = GatewayConfig::override_from_env(&args, GatewayConfig::default());
-    log::info!("nym-api: {}", gateway_config.api_url);
+    info!("nym-api: {}", gateway_config.api_url);
     let gateway_client = GatewayClient::new(gateway_config)?;
     let gateway_data = gateway_client.get_gateway_data(&args.entry_gateway).await?;
-    log::debug!("wg gateway data: {:?}", gateway_data);
-    log::info!("wg gateway endpoint: {}", gateway_data.endpoint);
-    log::info!("wg gateway public key: {}", gateway_data.public_key);
-    log::info!("wg gateway private ip: {}", gateway_data.private_ip);
+    debug!("wg gateway data: {:?}", gateway_data);
+    info!("wg gateway endpoint: {}", gateway_data.endpoint);
+    info!("wg gateway public key: {}", gateway_data.public_key);
+    info!("wg gateway private ip: {}", gateway_data.private_ip);
+    let default_node_address = get_default_interface()
+        .map_err(|_| crate::error::Error::DefaultInterfaceGatewayError)?
+        .gateway
+        .map_or(
+            Err(crate::error::Error::DefaultInterfaceGatewayError),
+            |g| Ok(g.ip_addr),
+        )?;
 
     let recipient_address = Recipient::try_from_base58_string(&args.recipient_address)
         .map_err(|_| error::Error::RecipientFormattingError)?;
-    log::info!("ip-packet-router: {:?}", recipient_address);
+    info!("ip-packet-router: {:?}", recipient_address);
 
     let config = init_config(&args, gateway_data.clone())?;
-    log::info!("wg mtu: {}", config.mtu);
-    log::info!("wg fwmark: {:?}", config.fwmark);
-    log::info!("wg enable_ipv6: {}", config.enable_ipv6);
-    log::info!("wg ipv4_gateway: {}", config.ipv4_gateway);
-    log::info!("wg ipv6_gateway: {:?}", config.ipv6_gateway);
-    log::info!("wg peers: {:?}", config.peers);
+    info!("wg mtu: {}", config.mtu);
+    #[cfg(target_os = "linux")]
+    info!("wg fwmark: {:?}", config.fwmark);
+    #[cfg(target_os = "linux")]
+    info!("wg enable_ipv6: {}", config.enable_ipv6);
+    info!("wg ipv4_gateway: {}", config.ipv4_gateway);
+    info!("wg ipv6_gateway: {:?}", config.ipv6_gateway);
+    info!("wg peers: {:?}", config.peers);
 
     let shutdown = TaskManager::new(10);
 
-    log::info!("Setting up route manager");
+    info!("Setting up route manager");
     #[cfg(target_os = "linux")]
     let mut route_manager = {
         let fwmark = 0;
@@ -132,30 +133,49 @@ async fn main() -> Result<(), error::Error> {
     let route_manager_handle = route_manager.handle()?;
     let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
 
-    log::info!("Creating tunnel");
+    info!("Creating tunnel");
     let mut tunnel = Tunnel::new(config, route_manager_handle)?;
 
     let wireguard_waiting = if args.enable_wireguard {
-        log::info!("Starting wireguard tunnel");
+        info!("Starting wireguard tunnel");
         let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
         let tunnel_handle = start_tunnel(&tunnel, tunnel_close_rx, finished_shutdown_tx)?;
         Some((finished_shutdown_rx, tunnel_handle))
     } else {
-        log::info!("Wireguard is disabled");
+        info!("Wireguard is disabled");
         None
     };
 
+    let mut debug_config = nym_client_core::config::DebugConfig::default();
+    debug_config
+        .traffic
+        .disable_main_poisson_packet_distribution = true;
+    let mixnet_client = MixnetClientBuilder::new_with_default_storage(StoragePaths::new_from_dir(
+        &args.mixnet_client_path,
+    )?)
+    .await?
+    .request_gateway(args.entry_gateway.clone())
+    .network_details(NymNetworkDetails::new_from_env())
+    .debug_config(debug_config)
+    .build()?
+    .connect_to_mixnet()
+    .await?;
     let processor_config = mixnet_processor::Config::new(
-        args.mixnet_client_path.clone(),
-        args.entry_gateway.clone(),
+        default_node_address,
         gateway_data.endpoint.ip(),
         recipient_address,
         tunnel.config.ipv4_gateway.to_string(),
         tunnel.config.ipv6_gateway.map(|ip| ip.to_string()),
     );
-    log::info!("Mixnet processor config: {:#?}", processor_config);
+    info!("Mixnet processor config: {:#?}", processor_config);
 
-    start_processor(processor_config, &mut route_manager, &shutdown).await?;
+    start_processor(
+        processor_config,
+        mixnet_client,
+        &mut route_manager,
+        &shutdown,
+    )
+    .await?;
 
     if let Err(e) = shutdown.catch_interrupt().await {
         error!("Could not wait for interrupts anymore - {e}. Shutting down the tunnel.");

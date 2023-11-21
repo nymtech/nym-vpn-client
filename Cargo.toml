@@ -29,13 +29,12 @@ talpid-tunnel = { git = "https://github.com/mullvad/mullvadvpn-app", tag = "2023
 talpid-types = { git = "https://github.com/mullvad/mullvadvpn-app", tag = "2023.2" }
 talpid-wireguard = { git = "https://github.com/mullvad/mullvadvpn-app", tag = "2023.2" }
 
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "develop" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "develop" }
-
+nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
+nym-client-core = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
+nym-config = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
+nym-crypto = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
+nym-sdk = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
+nym-task = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }

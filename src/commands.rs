@@ -29,8 +29,4 @@ pub(crate) struct CliArgs {
     /// Associated private key.
     #[clap(long)]
     pub(crate) private_key: String,
-
-    /// Preshared key (PSK).
-    #[clap(long)]
-    pub(crate) psk: Option<String>,
 }
