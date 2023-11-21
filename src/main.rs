@@ -95,17 +95,6 @@ async fn main() -> Result<(), error::Error> {
     info!("wg gateway endpoint: {}", gateway_data.endpoint);
     info!("wg gateway public key: {}", gateway_data.public_key);
     info!("wg gateway private ip: {}", gateway_data.private_ip);
-    let default_node_address = get_default_interface()
-        .map_err(|_| crate::error::Error::DefaultInterfaceGatewayError)?
-        .gateway
-        .map_or(
-            Err(crate::error::Error::DefaultInterfaceGatewayError),
-            |g| Ok(g.ip_addr),
-        )?;
-
-    let recipient_address = Recipient::try_from_base58_string(&args.recipient_address)
-        .map_err(|_| error::Error::RecipientFormattingError)?;
-    info!("ip-packet-router: {:?}", recipient_address);
 
     let config = init_config(&args, gateway_data.clone())?;
     info!("wg mtu: {}", config.mtu);
@@ -116,6 +105,19 @@ async fn main() -> Result<(), error::Error> {
     info!("wg ipv4_gateway: {}", config.ipv4_gateway);
     info!("wg ipv6_gateway: {:?}", config.ipv6_gateway);
     info!("wg peers: {:?}", config.peers);
+
+    let default_node_address = get_default_interface()
+        .map_err(|_| crate::error::Error::DefaultInterfaceGatewayError)?
+        .gateway
+        .map_or(
+            Err(crate::error::Error::DefaultInterfaceGatewayError),
+            |g| Ok(g.ip_addr),
+        )?;
+    info!("default_node_address: {}", default_node_address);
+
+    let recipient_address = Recipient::try_from_base58_string(&args.recipient_address)
+        .map_err(|_| error::Error::RecipientFormattingError)?;
+    info!("ip-packet-router: {:?}", recipient_address);
 
     let shutdown = TaskManager::new(10);
 
