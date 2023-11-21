@@ -192,14 +192,22 @@ pub async fn start_processor(
     info!("Using node_v4: {:?}", node_v4);
     info!("Using node_v6: {:?}", node_v6);
 
-    let mut routes = [("0.0.0.0/0".to_string(), node_v4), ("::/0".to_string(), node_v6)].to_vec();
+    let mut routes = [
+        ("0.0.0.0/0".to_string(), node_v4),
+        ("::/0".to_string(), node_v6),
+    ]
+    .to_vec();
 
     // If wireguard is not enabled, and we are not tunneling the connection to the gateway through
     // it, we need to add an exception route for the gateway to the routing table.
     if !enable_wireguard {
         let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
         let default_node = Node::address(config.default_node_address);
-        info!("Add extra route: [{:?}, {:?}]", entry_mixnet_gateway_ip, default_node.clone());
+        info!(
+            "Add extra route: [{:?}, {:?}]",
+            entry_mixnet_gateway_ip,
+            default_node.clone()
+        );
         routes.extend([(entry_mixnet_gateway_ip, default_node.clone())]);
     };
 

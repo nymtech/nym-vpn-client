@@ -17,7 +17,7 @@ const DEFAULT_API_URL: &str = "http://127.0.0.1:8000";
 
 pub(crate) struct Config {
     pub(crate) api_url: Url,
-    pub(crate) local_private_key: String,
+    pub(crate) local_private_key: Option<String>,
 }
 
 impl Default for Config {
@@ -35,20 +35,22 @@ impl Config {
         self
     }
     pub fn with_local_private_key(mut self, local_private_key: String) -> Self {
-        self.local_private_key = local_private_key;
+        self.local_private_key = Some(local_private_key);
         self
     }
 
     pub fn override_from_env(args: &CliArgs, config: Config) -> Config {
+        let mut config = config.with_optional_env(Config::with_custom_api_url, None, NYM_API);
+        if let Some(ref private_key) = args.private_key {
+            config = config.with_local_private_key(private_key.clone());
+        }
         config
-            .with_optional_env(Config::with_custom_api_url, None, NYM_API)
-            .with_local_private_key(args.private_key.clone())
     }
 }
 
 pub(crate) struct GatewayClient {
     api_client: NymApiClient,
-    keypair: encryption::KeyPair,
+    keypair: Option<encryption::KeyPair>,
 }
 #[derive(Clone, Debug)]
 pub(crate) struct GatewayData {
@@ -60,13 +62,20 @@ pub(crate) struct GatewayData {
 impl GatewayClient {
     pub fn new(config: Config) -> Result<Self, crate::error::Error> {
         let api_client = NymApiClient::new(config.api_url);
-        let private_key_intermediate = PublicKey::from_base64(&config.local_private_key)
-            .map_err(|_| crate::error::Error::InvalidWireGuardKey)?;
-        let private_key = encryption::PrivateKey::from_bytes(private_key_intermediate.as_bytes())?;
-        let public_key = encryption::PublicKey::from(&private_key);
-        let keypair =
-            encryption::KeyPair::from_bytes(&private_key.to_bytes(), &public_key.to_bytes())
-                .expect("The keys should be valid from the previous decoding");
+
+        let keypair = if let Some(local_private_key) = config.local_private_key {
+            let private_key_intermediate = PublicKey::from_base64(&local_private_key)
+                .map_err(|_| crate::error::Error::InvalidWireGuardKey)?;
+            let private_key =
+                encryption::PrivateKey::from_bytes(private_key_intermediate.as_bytes())?;
+            let public_key = encryption::PublicKey::from(&private_key);
+            let keypair =
+                encryption::KeyPair::from_bytes(&private_key.to_bytes(), &public_key.to_bytes())
+                    .expect("The keys should be valid from the previous decoding");
+            Some(keypair)
+        } else {
+            None
+        };
 
         Ok(GatewayClient {
             api_client,
@@ -105,9 +114,12 @@ impl GatewayClient {
             None,
         )?;
 
+        // In the CLI it's ensured that the keypair is always present when wireguard is enabled.
+        let keypair = self.keypair.as_ref().unwrap();
+
         log::info!("Registering with the wg gateway...");
         let init_message = ClientMessage::Initial(InitMessage {
-            pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().try_into().unwrap()),
+            pub_key: PeerPublicKey::new(keypair.public_key().to_bytes().try_into().unwrap()),
         });
         let ClientRegistrationResponse::PendingRegistration {
             nonce,
@@ -123,7 +135,8 @@ impl GatewayClient {
         log::debug!("Received wg_port: {}", wg_port);
         log::debug!("Received gateway data: {:?}", gateway_data);
 
-        gateway_data.verify(self.keypair.private_key(), nonce)?;
+        // Unwrap since we have already checked that we have the keypair.
+        gateway_data.verify(keypair.private_key(), nonce)?;
 
         // let mut mac = HmacSha256::new_from_slice(client_dh.as_bytes()).unwrap();
         // mac.update(client_static_public.as_bytes());

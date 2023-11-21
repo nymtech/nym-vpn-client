@@ -30,10 +30,13 @@ use talpid_types::net::GenericTunnelOptions;
 use talpid_types::ErrorExt;
 use talpid_wireguard::config::Config;
 
-fn init_config(args: &CliArgs, gateway_data: GatewayData) -> Result<Config, error::Error> {
+fn init_wireguard_config(
+    args: &CliArgs,
+    gateway_data: GatewayData,
+) -> Result<Config, error::Error> {
     let tunnel = TunnelConfig {
         private_key: PrivateKey::from(
-            *PublicKey::from_base64(&args.private_key)
+            *PublicKey::from_base64(args.private_key.as_ref().unwrap())
                 .map_err(|_| error::Error::InvalidWireGuardKey)?
                 .as_bytes(),
         ),
@@ -91,14 +94,14 @@ async fn main() -> Result<(), error::Error> {
     info!("nym-api: {}", gateway_config.api_url);
     let gateway_client = GatewayClient::new(gateway_config)?;
 
-    let wireguard_config = {
+    let wireguard_config = if args.enable_wireguard {
         let gateway_data = gateway_client.get_gateway_data(&args.entry_gateway).await?;
         debug!("wg gateway data: {:?}", gateway_data);
         info!("wg gateway endpoint: {}", gateway_data.endpoint);
         info!("wg gateway public key: {}", gateway_data.public_key);
         info!("wg gateway private ip: {}", gateway_data.private_ip);
 
-        let config = init_config(&args, gateway_data.clone())?;
+        let config = init_wireguard_config(&args, gateway_data.clone())?;
         info!("wg mtu: {}", config.mtu);
         #[cfg(target_os = "linux")]
         info!("wg fwmark: {:?}", config.fwmark);
@@ -107,8 +110,19 @@ async fn main() -> Result<(), error::Error> {
         info!("wg ipv4_gateway: {}", config.ipv4_gateway);
         info!("wg ipv6_gateway: {:?}", config.ipv6_gateway);
         info!("wg peers: {:?}", config.peers);
-        config
+        Some(config)
+    } else {
+        None
     };
+
+    let ipv4_gateway = wireguard_config
+        .as_ref()
+        .map(|c| c.ipv4_gateway.to_string())
+        .unwrap_or("10.1.0.1".to_string());
+    let ipv6_gateway = wireguard_config
+        .as_ref()
+        .map(|c| c.ipv6_gateway.map(|ip| ip.to_string()))
+        .unwrap_or(None);
 
     let default_node_address = get_default_interface()
         .map_err(|_| crate::error::Error::DefaultInterfaceGatewayError)?
@@ -181,8 +195,8 @@ async fn main() -> Result<(), error::Error> {
         default_node_address,
         gateway_ip,
         recipient_address,
-        tunnel.config.ipv4_gateway.to_string(),
-        tunnel.config.ipv6_gateway.map(|ip| ip.to_string()),
+        ipv4_gateway,
+        ipv6_gateway,
     );
     info!("Mixnet processor config: {:#?}", processor_config);
 

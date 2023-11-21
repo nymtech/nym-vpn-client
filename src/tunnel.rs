@@ -13,7 +13,7 @@ use talpid_wireguard::{config::Config, WireguardMonitor};
 use tokio::task::JoinHandle;
 
 pub struct Tunnel {
-    pub config: Config,
+    pub config: Option<Config>,
     pub firewall: Firewall,
     pub dns_monitor: DnsMonitor,
     pub route_manager_handle: RouteManagerHandle,
@@ -21,7 +21,7 @@ pub struct Tunnel {
 
 impl Tunnel {
     pub fn new(
-        config: Config,
+        config: Option<Config>,
         route_manager_handle: RouteManagerHandle,
     ) -> Result<Self, crate::error::Error> {
         #[cfg(not(target_os = "linux"))]
@@ -60,7 +60,8 @@ pub fn start_tunnel(
     finished_shutdown_tx: Sender<()>,
 ) -> Result<JoinHandle<Result<(), crate::error::Error>>, crate::error::Error> {
     let route_manager = tunnel.route_manager_handle.clone();
-    let config = tunnel.config.clone();
+    // We only start the tunnel when we have wireguard enabled, and then we have the config
+    let config = tunnel.config.as_ref().unwrap().clone();
     let handle = tokio::task::spawn_blocking(move || -> Result<(), crate::error::Error> {
         let (event_tx, _) = mpsc::unbounded();
         let on_tunnel_event =
