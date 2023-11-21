@@ -174,6 +174,7 @@ async fn main() -> Result<(), error::Error> {
         mixnet_client,
         &mut route_manager,
         &shutdown,
+        args.enable_wireguard,
     )
     .await?;
 

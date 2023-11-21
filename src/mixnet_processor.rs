@@ -181,6 +181,7 @@ pub async fn start_processor(
     mixnet_client: MixnetClient,
     route_manager: &mut RouteManager,
     task_manager: &TaskManager,
+    enable_wireguard: bool,
 ) -> Result<(), crate::error::Error> {
     let dev = tun::create_as_async(&config.mixnet_tun_config)?;
     let device_name = dev.get_ref().name().to_string();
@@ -191,16 +192,31 @@ pub async fn start_processor(
     info!("Using node_v4: {:?}", node_v4);
     info!("Using node_v6: {:?}", node_v6);
 
-    let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
-    info!("Entry mixnet gateway: {:?}", entry_mixnet_gateway_ip);
+    let mut routes = [("0.0.0.0/0".to_string(), node_v4), ("::/0".to_string(), node_v6)].to_vec();
 
-    let routes = [("0.0.0.0/0", node_v4), ("::/0", node_v6)]
-        .into_iter()
-        .flat_map(|(network, node)| {
-            replace_default_prefixes(network.parse().unwrap())
-                .into_iter()
-                .map(move |ip| RequiredRoute::new(ip, node.clone()))
-        });
+    if !enable_wireguard {
+        let default_node_address = default_net::get_default_interface()
+            .map_err(|_| crate::error::Error::DefaultInterfaceGatewayError)?
+            .gateway
+            .map_or(
+                Err(crate::error::Error::DefaultInterfaceGatewayError),
+                |g| Ok(g.ip_addr),
+            )?;
+        log::info!("default_nodeaddress: {:?}", default_node_address);
+        let default_node = Node::address(default_node_address);
+        log::info!("default_node: {:?}", default_node);
+
+        let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
+        info!("Entry mixnet gateway: {:?}", entry_mixnet_gateway_ip);
+
+        routes.extend([(entry_mixnet_gateway_ip, default_node.clone())]);
+    };
+
+    let routes = routes.into_iter().flat_map(|(network, node)| {
+        replace_default_prefixes(network.parse().unwrap())
+            .into_iter()
+            .map(move |ip| RequiredRoute::new(ip, node.clone()))
+    });
     #[cfg(target_os = "linux")]
     let routes = routes.map(|route| route.use_main_table(false));
 
