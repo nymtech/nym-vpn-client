@@ -19,7 +19,7 @@ use nym_config::defaults::{setup_env, NymNetworkDetails};
 use nym_sdk::mixnet::{MixnetClientBuilder, Recipient, StoragePaths};
 use nym_task::TaskManager;
 use std::collections::HashSet;
-use std::net::Ipv4Addr;
+use std::net::{IpAddr, Ipv4Addr};
 use std::str::FromStr;
 use talpid_routing::RouteManager;
 use talpid_types::net::wireguard::{
@@ -90,21 +90,25 @@ async fn main() -> Result<(), error::Error> {
     let gateway_config = GatewayConfig::override_from_env(&args, GatewayConfig::default());
     info!("nym-api: {}", gateway_config.api_url);
     let gateway_client = GatewayClient::new(gateway_config)?;
-    let gateway_data = gateway_client.get_gateway_data(&args.entry_gateway).await?;
-    debug!("wg gateway data: {:?}", gateway_data);
-    info!("wg gateway endpoint: {}", gateway_data.endpoint);
-    info!("wg gateway public key: {}", gateway_data.public_key);
-    info!("wg gateway private ip: {}", gateway_data.private_ip);
 
-    let config = init_config(&args, gateway_data.clone())?;
-    info!("wg mtu: {}", config.mtu);
-    #[cfg(target_os = "linux")]
-    info!("wg fwmark: {:?}", config.fwmark);
-    #[cfg(target_os = "linux")]
-    info!("wg enable_ipv6: {}", config.enable_ipv6);
-    info!("wg ipv4_gateway: {}", config.ipv4_gateway);
-    info!("wg ipv6_gateway: {:?}", config.ipv6_gateway);
-    info!("wg peers: {:?}", config.peers);
+    let wireguard_config = {
+        let gateway_data = gateway_client.get_gateway_data(&args.entry_gateway).await?;
+        debug!("wg gateway data: {:?}", gateway_data);
+        info!("wg gateway endpoint: {}", gateway_data.endpoint);
+        info!("wg gateway public key: {}", gateway_data.public_key);
+        info!("wg gateway private ip: {}", gateway_data.private_ip);
+
+        let config = init_config(&args, gateway_data.clone())?;
+        info!("wg mtu: {}", config.mtu);
+        #[cfg(target_os = "linux")]
+        info!("wg fwmark: {:?}", config.fwmark);
+        #[cfg(target_os = "linux")]
+        info!("wg enable_ipv6: {}", config.enable_ipv6);
+        info!("wg ipv4_gateway: {}", config.ipv4_gateway);
+        info!("wg ipv6_gateway: {:?}", config.ipv6_gateway);
+        info!("wg peers: {:?}", config.peers);
+        config
+    };
 
     let default_node_address = get_default_interface()
         .map_err(|_| crate::error::Error::DefaultInterfaceGatewayError)?
@@ -136,7 +140,7 @@ async fn main() -> Result<(), error::Error> {
     let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
 
     info!("Creating tunnel");
-    let mut tunnel = Tunnel::new(config, route_manager_handle)?;
+    let mut tunnel = Tunnel::new(wireguard_config, route_manager_handle)?;
 
     let wireguard_waiting = if args.enable_wireguard {
         info!("Starting wireguard tunnel");
@@ -148,10 +152,13 @@ async fn main() -> Result<(), error::Error> {
         None
     };
 
+    // Disable Poisson rate limiter by default
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     debug_config
         .traffic
         .disable_main_poisson_packet_distribution = true;
+
+    // Create Mixnet client
     let mixnet_client = MixnetClientBuilder::new_with_default_storage(StoragePaths::new_from_dir(
         &args.mixnet_client_path,
     )?)
@@ -162,9 +169,17 @@ async fn main() -> Result<(), error::Error> {
     .build()?
     .connect_to_mixnet()
     .await?;
+
+    let gateway_used = mixnet_client.nym_address().gateway().to_base58_string();
+    info!("Using gateway: {}", gateway_used);
+    let gateway_ip: IpAddr = gateway_client
+        .lookup_gateway_ip(&gateway_used)
+        .await?
+        .parse()?;
+
     let processor_config = mixnet_processor::Config::new(
         default_node_address,
-        gateway_data.endpoint.ip(),
+        gateway_ip,
         recipient_address,
         tunnel.config.ipv4_gateway.to_string(),
         tunnel.config.ipv6_gateway.map(|ip| ip.to_string()),

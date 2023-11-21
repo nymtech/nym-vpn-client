@@ -74,13 +74,11 @@ impl GatewayClient {
         })
     }
 
-    pub async fn get_gateway_data(
+    pub async fn lookup_gateway_ip(
         &self,
         gateway_identity: &str,
-    ) -> Result<GatewayData, crate::error::Error> {
-        log::info!("Lookup ip for {}", gateway_identity);
-        let gateway_host = self
-            .api_client
+    ) -> Result<String, crate::error::Error> {
+        self.api_client
             .get_cached_gateways()
             .await?
             .iter()
@@ -91,7 +89,15 @@ impl GatewayClient {
                     None
                 }
             })
-            .ok_or(crate::error::Error::InvalidGatewayID)?;
+            .ok_or(crate::error::Error::InvalidGatewayID)
+    }
+
+    pub async fn get_gateway_data(
+        &self,
+        gateway_identity: &str,
+    ) -> Result<GatewayData, crate::error::Error> {
+        log::info!("Lookup ip for {}", gateway_identity);
+        let gateway_host = self.lookup_gateway_ip(gateway_identity).await?;
         log::info!("Received wg gateway ip: {}", gateway_host);
 
         let gateway_api_client = nym_node_requests::api::Client::new_url(
