@@ -83,6 +83,20 @@ pub fn setup_logging() {
         .init();
 }
 
+pub async fn setup_route_manager() -> Result<RouteManager, error::Error> {
+    #[cfg(target_os = "linux")]
+    let route_manager = {
+        let fwmark = 0;
+        let table_id = 0;
+        RouteManager::new(HashSet::new(), fwmark, table_id).await?
+    };
+
+    #[cfg(not(target_os = "linux"))]
+    let route_manager = RouteManager::new(HashSet::new()).await?;
+
+    Ok(route_manager)
+}
+
 #[tokio::main]
 async fn main() -> Result<(), error::Error> {
     setup_logging();
@@ -131,15 +145,7 @@ async fn main() -> Result<(), error::Error> {
     let task_manager = TaskManager::new(10);
 
     info!("Setting up route manager");
-    #[cfg(target_os = "linux")]
-    let mut route_manager = {
-        let fwmark = 0;
-        let table_id = 0;
-        RouteManager::new(HashSet::new(), fwmark, table_id).await?
-    };
-
-    #[cfg(not(target_os = "linux"))]
-    let mut route_manager = RouteManager::new(HashSet::new()).await?;
+    let mut route_manager = setup_route_manager().await?;
 
     // let route_manager_handle = route_manager.handle()?;
     let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
