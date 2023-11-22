@@ -9,10 +9,10 @@ use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
 use nym_validator_client::NymApiClient;
-use tracing::{info, debug};
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::PublicKey;
+use tracing::{debug, info};
 use url::Url;
 
 const DEFAULT_API_URL: &str = "http://127.0.0.1:8000";
@@ -104,10 +104,7 @@ impl GatewayClient {
             })
     }
 
-    pub async fn register_wireguard(
-        &self,
-        gateway_identity: &str,
-    ) -> Result<GatewayData> {
+    pub async fn register_wireguard(&self, gateway_identity: &str) -> Result<GatewayData> {
         info!("Lookup ip for {}", gateway_identity);
         let gateway_host = self.lookup_gateway_ip(gateway_identity).await?;
         info!("Received wg gateway ip: {}", gateway_host);
