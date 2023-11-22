@@ -7,11 +7,13 @@ mod mixnet_processor;
 mod routing;
 mod tunnel;
 
-use crate::commands::CliArgs;
-use crate::error::Result;
-use crate::gateway_client::{Config as GatewayConfig, GatewayData};
-use crate::mixnet_processor::IpPacketRouterAddress;
-use crate::tunnel::{start_tunnel, Tunnel};
+use crate::{
+    error::Result,
+    gateway_client::{Config as GatewayConfig, GatewayData},
+    mixnet_processor::IpPacketRouterAddress,
+    tunnel::{start_tunnel, Tunnel},
+};
+
 use clap::Parser;
 use futures::channel::oneshot;
 use gateway_client::GatewayClient;
@@ -66,6 +68,42 @@ impl WireguardConfig {
             None,
         )?))
     }
+
+    fn init(private_key: &str, gateway_data: &GatewayData) -> Result<Self> {
+        let tunnel = TunnelConfig {
+            private_key: PrivateKey::from(
+                *PublicKey::from_base64(private_key)
+                    .map_err(|_| error::Error::InvalidWireGuardKey)?
+                    .as_bytes(),
+            ),
+            addresses: vec![gateway_data.private_ip],
+        };
+        let peers = vec![PeerConfig {
+            public_key: gateway_data.public_key.clone(),
+            allowed_ips: vec!["10.1.0.1".parse().unwrap()],
+            endpoint: gateway_data.endpoint.clone(),
+            psk: None,
+        }];
+        let connection_config = ConnectionConfig {
+            tunnel: tunnel.clone(),
+            peer: peers[0].clone(),
+            exit_peer: None,
+            ipv4_gateway: Ipv4Addr::from_str(&gateway_data.private_ip.to_string())?,
+            ipv6_gateway: None,
+            #[cfg(target_os = "linux")]
+            fwmark: None,
+        };
+        let generic_options = GenericTunnelOptions { enable_ipv6: true };
+        let wg_options = TunnelOptions::default();
+        let config = Self::new(
+            tunnel,
+            peers,
+            &connection_config,
+            &wg_options,
+            &generic_options,
+        )?;
+        Ok(config)
+    }
 }
 
 impl std::fmt::Display for WireguardConfig {
@@ -97,42 +135,6 @@ impl std::fmt::Display for WireguardConfig {
         }
         Ok(())
     }
-}
-
-fn init_wireguard_config(args: &CliArgs, gateway_data: GatewayData) -> Result<WireguardConfig> {
-    let tunnel = TunnelConfig {
-        private_key: PrivateKey::from(
-            *PublicKey::from_base64(args.private_key.as_ref().unwrap())
-                .map_err(|_| error::Error::InvalidWireGuardKey)?
-                .as_bytes(),
-        ),
-        addresses: vec![gateway_data.private_ip],
-    };
-    let peers = vec![PeerConfig {
-        public_key: gateway_data.public_key,
-        allowed_ips: vec!["10.1.0.1".parse().unwrap()],
-        endpoint: gateway_data.endpoint,
-        psk: None,
-    }];
-    let connection_config = ConnectionConfig {
-        tunnel: tunnel.clone(),
-        peer: peers[0].clone(),
-        exit_peer: None,
-        ipv4_gateway: Ipv4Addr::from_str(&gateway_data.private_ip.to_string())?,
-        ipv6_gateway: None,
-        #[cfg(target_os = "linux")]
-        fwmark: None,
-    };
-    let generic_options = GenericTunnelOptions { enable_ipv6: true };
-    let wg_options = TunnelOptions::default();
-    let config = WireguardConfig::new(
-        tunnel,
-        peers,
-        &connection_config,
-        &wg_options,
-        &generic_options,
-    )?;
-    Ok(config)
 }
 
 pub async fn setup_route_manager() -> Result<RouteManager> {
@@ -178,18 +180,26 @@ async fn run() -> Result<()> {
     let args = commands::CliArgs::parse();
     setup_env(args.config_env_file.as_ref());
 
+    // Setup gateway configuration
     let gateway_config = GatewayConfig::override_from_env(&args, GatewayConfig::default());
     info!("nym-api: {}", gateway_config.api_url);
+
+    // Create a gateway client that we use to interact with the entry gateway, in particular to
+    // handle wireguard registeration
     let gateway_client = GatewayClient::new(gateway_config)?;
 
     let wireguard_config = if args.enable_wireguard {
+        // First we need to register with the gateway to setup keys and IP assignment
         info!("Registering with wireguard gateway");
         let wg_gateway_data = gateway_client
             .register_wireguard(&args.entry_gateway)
             .await?;
         debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
-        let wireguard_config = init_wireguard_config(&args, wg_gateway_data.clone())?;
+        // It's ok to unwrap, since clap enforces that this is non-zero when enable_wireguard is
+        // true
+        let private_key = args.private_key.as_ref().unwrap();
+        let wireguard_config = WireguardConfig::init(private_key, &wg_gateway_data)?;
         info!("Wireguard config: \n{wireguard_config}");
         Some(wireguard_config)
     } else {
@@ -233,6 +243,7 @@ async fn run() -> Result<()> {
     info!("Setting up mixnet client");
     let mixnet_client = setup_mixnet_client(&args.entry_gateway, &args.mixnet_client_path).await?;
 
+    // We need the IP of the gateway to correctly configure the routing table
     let gateway_used = mixnet_client.nym_address().gateway().to_base58_string();
     info!("Using gateway: {gateway_used}");
     let entry_mixnet_gateway_ip: IpAddr = gateway_client.lookup_gateway_ip(&gateway_used).await?;
