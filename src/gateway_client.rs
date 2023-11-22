@@ -1,4 +1,5 @@
 use crate::commands::CliArgs;
+use crate::error::Result;
 use nym_config::defaults::var_names::NYM_API;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_config::OptionalSet;
@@ -8,6 +9,7 @@ use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
 use nym_validator_client::NymApiClient;
+use tracing::{info, debug};
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::PublicKey;
@@ -60,7 +62,7 @@ pub(crate) struct GatewayData {
 }
 
 impl GatewayClient {
-    pub fn new(config: Config) -> Result<Self, crate::error::Error> {
+    pub fn new(config: Config) -> Result<Self> {
         let api_client = NymApiClient::new(config.api_url);
 
         let keypair = if let Some(local_private_key) = config.local_private_key {
@@ -83,10 +85,7 @@ impl GatewayClient {
         })
     }
 
-    pub async fn lookup_gateway_ip(
-        &self,
-        gateway_identity: &str,
-    ) -> Result<String, crate::error::Error> {
+    pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
         self.api_client
             .get_cached_gateways()
             .await?
@@ -99,15 +98,19 @@ impl GatewayClient {
                 }
             })
             .ok_or(crate::error::Error::InvalidGatewayID)
+            .and_then(|ip| {
+                ip.parse()
+                    .map_err(|_| crate::error::Error::InvalidGatewayID)
+            })
     }
 
-    pub async fn get_gateway_data(
+    pub async fn register_wireguard(
         &self,
         gateway_identity: &str,
-    ) -> Result<GatewayData, crate::error::Error> {
-        log::info!("Lookup ip for {}", gateway_identity);
+    ) -> Result<GatewayData> {
+        info!("Lookup ip for {}", gateway_identity);
         let gateway_host = self.lookup_gateway_ip(gateway_identity).await?;
-        log::info!("Received wg gateway ip: {}", gateway_host);
+        info!("Received wg gateway ip: {}", gateway_host);
 
         let gateway_api_client = nym_node_requests::api::Client::new_url(
             format!("{}:{}", gateway_host, DEFAULT_NYM_NODE_HTTP_PORT),
@@ -117,7 +120,7 @@ impl GatewayClient {
         // In the CLI it's ensured that the keypair is always present when wireguard is enabled.
         let keypair = self.keypair.as_ref().unwrap();
 
-        log::info!("Registering with the wg gateway...");
+        debug!("Registering with the wg gateway...");
         let init_message = ClientMessage::Initial(InitMessage {
             pub_key: PeerPublicKey::new(keypair.public_key().to_bytes().try_into().unwrap()),
         });
@@ -131,11 +134,12 @@ impl GatewayClient {
         else {
             return Err(crate::error::Error::InvalidGatewayAPIResponse);
         };
-        log::debug!("Received nonce: {}", nonce);
-        log::debug!("Received wg_port: {}", wg_port);
-        log::debug!("Received gateway data: {:?}", gateway_data);
+        debug!("Received nonce: {}", nonce);
+        debug!("Received wg_port: {}", wg_port);
+        debug!("Received gateway data: {:?}", gateway_data);
 
         // Unwrap since we have already checked that we have the keypair.
+        debug!("Verifying data");
         gateway_data.verify(keypair.private_key(), nonce)?;
 
         // let mut mac = HmacSha256::new_from_slice(client_dh.as_bytes()).unwrap();

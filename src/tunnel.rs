@@ -12,6 +12,8 @@ use talpid_tunnel::TunnelArgs;
 use talpid_wireguard::{config::Config, WireguardMonitor};
 use tokio::task::JoinHandle;
 
+use crate::WireguardConfig;
+
 pub struct Tunnel {
     pub config: Option<Config>,
     pub firewall: Firewall,
@@ -21,7 +23,7 @@ pub struct Tunnel {
 
 impl Tunnel {
     pub fn new(
-        config: Option<Config>,
+        config: Option<WireguardConfig>,
         route_manager_handle: RouteManagerHandle,
     ) -> Result<Self, crate::error::Error> {
         #[cfg(not(target_os = "linux"))]
@@ -46,7 +48,7 @@ impl Tunnel {
         };
 
         Ok(Tunnel {
-            config,
+            config: config.map(|c| c.0),
             firewall,
             dns_monitor,
             route_manager_handle,

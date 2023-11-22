@@ -5,7 +5,7 @@ pub enum Error {
     #[error("{0}")]
     IO(#[from] std::io::Error),
 
-    #[error("Invalid WireGuard Key")]
+    #[error("invalid WireGuard Key")]
     InvalidWireGuardKey,
 
     #[error("{0}")]
@@ -29,13 +29,13 @@ pub enum Error {
     #[error("{0}")]
     CanceledError(#[from] futures::channel::oneshot::Canceled),
 
-    #[error("Oneshot send error")]
+    #[error("oneshot send error")]
     OneshotSendError,
 
     #[error("{0}")]
     SDKError(#[from] nym_sdk::Error),
 
-    #[error("Recipient is not formatted correctly")]
+    #[error("recipient is not formatted correctly")]
     RecipientFormattingError,
 
     #[error("{0}")]
@@ -47,7 +47,7 @@ pub enum Error {
     #[error("{0}")]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 
-    #[error("Invalid Gateway ID")]
+    #[error("invalid Gateway ID")]
     InvalidGatewayID,
 
     #[error("{0}")]
@@ -56,12 +56,15 @@ pub enum Error {
     #[error("{0}")]
     NymNodeApiClientError(#[from] nym_node_requests::api::client::NymNodeApiClientError),
 
-    #[error("Invalid Gateway API response")]
+    #[error("invalid Gateway API response")]
     InvalidGatewayAPIResponse,
 
     #[error("{0}")]
     WireguardTypesError(#[from] nym_wireguard_types::error::Error),
 
-    #[error("Could not obtain the default gateway")]
+    #[error("could not obtain the default gateway")]
     DefaultInterfaceGatewayError,
 }
+
+// Result type based on our error type
+pub type Result<T> = std::result::Result<T, Error>;

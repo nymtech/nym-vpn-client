@@ -33,6 +33,7 @@ talpid-wireguard = { git = "https://github.com/mullvad/mullvadvpn-app", tag = "2
 # nym-client-core = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
 # nym-config = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
 # nym-crypto = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
+# nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
 # nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
 # nym-sdk = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
 # nym-task = { git = "https://github.com/nymtech/nym", rev = "a5c1e4abf09d943962115ce337efae08c51c63fd" }
@@ -44,6 +45,7 @@ nym-bin-common = { path = "../nym/common/bin-common" }
 nym-client-core = { path = "../nym/common/client-core" }
 nym-config = { path = "../nym/common/config" }
 nym-crypto = { path = "../nym/common/crypto" }
+nym-ip-packet-requests = { path = "../nym/common/ip-packet-requests" }
 nym-node-requests = { path = "../nym/nym-node/nym-node-requests" }
 nym-sdk = { path = "../nym/sdk/rust/nym-sdk" }
 nym-task = { path = "../nym/common/task" }

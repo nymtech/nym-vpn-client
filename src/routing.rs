@@ -3,9 +3,10 @@ use std::{collections::HashSet, net::IpAddr};
 use default_net::interface::get_default_interface;
 use ipnetwork::IpNetwork;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
-use talpid_wireguard::config::Config as WireguardConfig;
 use tracing::{debug, info};
 use tun::Device;
+
+use crate::WireguardConfig;
 
 const GATEWAY_ALLOWED_IPS: &str = "10.0.0.2";
 
@@ -46,13 +47,23 @@ impl TunnelGatewayIp {
     pub fn new(wireguard_config: Option<WireguardConfig>) -> Self {
         let ipv4 = wireguard_config
             .as_ref()
-            .map(|c| c.ipv4_gateway.to_string())
+            .map(|c| c.0.ipv4_gateway.to_string())
             .unwrap_or("10.1.0.1".to_string());
         let ipv6 = wireguard_config
             .as_ref()
-            .map(|c| c.ipv6_gateway.map(|ip| ip.to_string()))
+            .map(|c| c.0.ipv6_gateway.map(|ip| ip.to_string()))
             .unwrap_or(None);
         Self { ipv4, ipv6 }
+    }
+}
+
+impl std::fmt::Display for TunnelGatewayIp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(ipv6) = &self.ipv6 {
+            write!(f, "ipv4: {}, ipv6: {}", self.ipv4, ipv6)
+        } else {
+            write!(f, "ipv4: {}", self.ipv4)
+        }
     }
 }
 
@@ -70,6 +81,12 @@ impl LanGatewayIp {
                     |g| Ok(g.ip_addr),
                 )?,
         ))
+    }
+}
+
+impl std::fmt::Display for LanGatewayIp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 

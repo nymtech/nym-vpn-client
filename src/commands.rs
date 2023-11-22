@@ -23,8 +23,8 @@ pub(crate) struct CliArgs {
     pub(crate) entry_gateway: String,
 
     /// Mixnet recipient address.
-    #[clap(long)]
-    pub(crate) recipient_address: String,
+    #[clap(long, alias = "recipient-address")]
+    pub(crate) exit_address: String,
 
     /// Associated private key.
     #[clap(long, requires = "enable_wireguard")]

@@ -3739,6 +3739,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-ip-packet-requests"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "bytes",
+ "nym-sphinx",
+ "serde",
+]
+
+[[package]]
 name = "nym-mixnet-contract-common"
 version = "0.6.0"
 dependencies = [
@@ -4234,6 +4244,7 @@ dependencies = [
  "nym-client-core",
  "nym-config",
  "nym-crypto",
+ "nym-ip-packet-requests",
  "nym-node-requests",
  "nym-sdk",
  "nym-task",
