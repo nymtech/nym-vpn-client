@@ -19,6 +19,7 @@ use nym_sdk::mixnet::{MixnetClientBuilder, Recipient, StoragePaths};
 use nym_task::TaskManager;
 use std::collections::HashSet;
 use std::net::{IpAddr, Ipv4Addr};
+use std::path::Path;
 use std::str::FromStr;
 use talpid_routing::RouteManager;
 use talpid_types::net::wireguard::{
@@ -28,6 +29,20 @@ use talpid_types::net::GenericTunnelOptions;
 #[cfg(target_os = "linux")]
 use talpid_types::ErrorExt;
 use talpid_wireguard::config::Config as WireguardConfig;
+
+pub fn setup_logging() {
+    let filter = tracing_subscriber::EnvFilter::builder()
+        .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
+        .from_env()
+        .unwrap()
+        .add_directive("hyper::proto=info".parse().unwrap())
+        .add_directive("netlink_proto=info".parse().unwrap());
+
+    tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .compact()
+        .init();
+}
 
 fn init_wireguard_config(
     args: &CliArgs,
@@ -69,20 +84,6 @@ fn init_wireguard_config(
     Ok(config)
 }
 
-pub fn setup_logging() {
-    let filter = tracing_subscriber::EnvFilter::builder()
-        .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
-        .from_env()
-        .unwrap()
-        .add_directive("hyper::proto=info".parse().unwrap())
-        .add_directive("netlink_proto=info".parse().unwrap());
-
-    tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .compact()
-        .init();
-}
-
 pub async fn setup_route_manager() -> Result<RouteManager, error::Error> {
     #[cfg(target_os = "linux")]
     let route_manager = {
@@ -95,6 +96,30 @@ pub async fn setup_route_manager() -> Result<RouteManager, error::Error> {
     let route_manager = RouteManager::new(HashSet::new()).await?;
 
     Ok(route_manager)
+}
+
+pub async fn setup_mixnet_client(
+    mixnet_entry_gateway: &str,
+    mixnet_client_key_storage_path: &Path,
+) -> Result<nym_sdk::mixnet::MixnetClient, error::Error> {
+    // Disable Poisson rate limiter by default
+    let mut debug_config = nym_client_core::config::DebugConfig::default();
+    debug_config
+        .traffic
+        .disable_main_poisson_packet_distribution = true;
+
+    let key_storage_path = StoragePaths::new_from_dir(mixnet_client_key_storage_path)?;
+
+    let mixnet_client = MixnetClientBuilder::new_with_default_storage(key_storage_path)
+        .await?
+        .request_gateway(mixnet_entry_gateway.to_string())
+        .network_details(NymNetworkDetails::new_from_env())
+        .debug_config(debug_config)
+        .build()?
+        .connect_to_mixnet()
+        .await?;
+
+    Ok(mixnet_client)
 }
 
 #[tokio::main]
@@ -164,25 +189,7 @@ async fn main() -> Result<(), error::Error> {
     };
 
     info!("Setting up mixnet client");
-    let mixnet_client = {
-        // Disable Poisson rate limiter by default
-        let mut debug_config = nym_client_core::config::DebugConfig::default();
-        debug_config
-            .traffic
-            .disable_main_poisson_packet_distribution = true;
-
-        // Create Mixnet client
-        MixnetClientBuilder::new_with_default_storage(StoragePaths::new_from_dir(
-            &args.mixnet_client_path,
-        )?)
-        .await?
-        .request_gateway(args.entry_gateway.clone())
-        .network_details(NymNetworkDetails::new_from_env())
-        .debug_config(debug_config)
-        .build()?
-        .connect_to_mixnet()
-        .await?
-    };
+    let mixnet_client = setup_mixnet_client(&args.entry_gateway, &args.mixnet_client_path).await?;
 
     let gateway_used = mixnet_client.nym_address().gateway().to_base58_string();
     info!("Using gateway: {}", gateway_used);
