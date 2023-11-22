@@ -4,11 +4,11 @@ mod commands;
 mod error;
 mod gateway_client;
 mod mixnet_processor;
+mod routing;
 mod tunnel;
 
 use crate::commands::CliArgs;
 use crate::gateway_client::{Config as GatewayConfig, GatewayData};
-use crate::mixnet_processor::start_processor;
 use crate::tunnel::{start_tunnel, Tunnel};
 use clap::Parser;
 use default_net::get_default_interface;
@@ -166,49 +166,52 @@ async fn main() -> Result<(), error::Error> {
         None
     };
 
-    // Disable Poisson rate limiter by default
-    let mut debug_config = nym_client_core::config::DebugConfig::default();
-    debug_config
-        .traffic
-        .disable_main_poisson_packet_distribution = true;
+    info!("Setting up mixnet client");
+    let mixnet_client = {
+        // Disable Poisson rate limiter by default
+        let mut debug_config = nym_client_core::config::DebugConfig::default();
+        debug_config
+            .traffic
+            .disable_main_poisson_packet_distribution = true;
 
-    // Create Mixnet client
-    let mixnet_client = MixnetClientBuilder::new_with_default_storage(StoragePaths::new_from_dir(
-        &args.mixnet_client_path,
-    )?)
-    .await?
-    .request_gateway(args.entry_gateway.clone())
-    .network_details(NymNetworkDetails::new_from_env())
-    .debug_config(debug_config)
-    .build()?
-    .connect_to_mixnet()
-    .await?;
+        // Create Mixnet client
+        MixnetClientBuilder::new_with_default_storage(StoragePaths::new_from_dir(
+            &args.mixnet_client_path,
+        )?)
+        .await?
+        .request_gateway(args.entry_gateway.clone())
+        .network_details(NymNetworkDetails::new_from_env())
+        .debug_config(debug_config)
+        .build()?
+        .connect_to_mixnet()
+        .await?
+    };
 
     let gateway_used = mixnet_client.nym_address().gateway().to_base58_string();
     info!("Using gateway: {}", gateway_used);
-    let gateway_ip: IpAddr = gateway_client
+    let entry_mixnet_gateway_ip: IpAddr = gateway_client
         .lookup_gateway_ip(&gateway_used)
         .await?
         .parse()?;
 
-    let processor_config = mixnet_processor::Config::new(
+    info!("Setting up routing");
+    let routing_config = routing::RoutingConfig::new(
+        entry_mixnet_gateway_ip,
         default_node_address,
-        gateway_ip,
-        recipient_address,
         ipv4_gateway,
         ipv6_gateway,
     );
-    info!("Mixnet processor config: {:#?}", processor_config);
+    debug!("Routing config: {:#?}", routing_config);
+    let mixnet_tun_dev =
+        routing::setup_routing(&mut route_manager, routing_config, args.enable_wireguard).await?;
 
-    start_processor(
-        processor_config,
-        mixnet_client,
-        &mut route_manager,
-        &shutdown,
-        args.enable_wireguard,
-    )
-    .await?;
+    info!("Setting up mixnet processor");
+    let processor_config = mixnet_processor::Config::new(recipient_address);
+    debug!("Mixnet processor config: {:#?}", processor_config);
+    mixnet_processor::start_processor(processor_config, mixnet_tun_dev, mixnet_client, &shutdown)
+        .await?;
 
+    // Finished starting everything, now wait for shutdown
     if let Err(e) = shutdown.catch_interrupt().await {
         error!("Could not wait for interrupts anymore - {e}. Shutting down the tunnel.");
     }
