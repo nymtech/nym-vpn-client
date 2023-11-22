@@ -13,12 +13,8 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(
-        recipient: Recipient,
-    ) -> Self {
-        Config {
-            recipient,
-        }
+    pub fn new(recipient: Recipient) -> Self {
+        Config { recipient }
     }
 }
 
