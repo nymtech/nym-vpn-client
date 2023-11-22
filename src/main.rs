@@ -11,7 +11,6 @@ use crate::commands::CliArgs;
 use crate::gateway_client::{Config as GatewayConfig, GatewayData};
 use crate::tunnel::{start_tunnel, Tunnel};
 use clap::Parser;
-use default_net::get_default_interface;
 use futures::channel::oneshot;
 use gateway_client::GatewayClient;
 use log::{debug, error, info};
@@ -28,12 +27,12 @@ use talpid_types::net::wireguard::{
 use talpid_types::net::GenericTunnelOptions;
 #[cfg(target_os = "linux")]
 use talpid_types::ErrorExt;
-use talpid_wireguard::config::Config;
+use talpid_wireguard::config::Config as WireguardConfig;
 
 fn init_wireguard_config(
     args: &CliArgs,
     gateway_data: GatewayData,
-) -> Result<Config, error::Error> {
+) -> Result<WireguardConfig, error::Error> {
     let tunnel = TunnelConfig {
         private_key: PrivateKey::from(
             *PublicKey::from_base64(args.private_key.as_ref().unwrap())
@@ -59,7 +58,7 @@ fn init_wireguard_config(
     };
     let generic_options = GenericTunnelOptions { enable_ipv6: true };
     let wg_options = TunnelOptions::default();
-    let config = Config::new(
+    let config = WireguardConfig::new(
         tunnel,
         peers,
         &connection_config,
@@ -115,29 +114,21 @@ async fn main() -> Result<(), error::Error> {
         None
     };
 
-    let ipv4_gateway = wireguard_config
-        .as_ref()
-        .map(|c| c.ipv4_gateway.to_string())
-        .unwrap_or("10.1.0.1".to_string());
-    let ipv6_gateway = wireguard_config
-        .as_ref()
-        .map(|c| c.ipv6_gateway.map(|ip| ip.to_string()))
-        .unwrap_or(None);
+    // The IP adderess of the gateway inside the tunnel. This will depend on if wireguard is
+    // enabled
+    let tunnel_gateway_ip = routing::TunnelGatewayIp::new(wireguard_config.clone());
+    info!("tunnel_gateway_ip: {:?}", tunnel_gateway_ip);
 
-    let default_node_address = get_default_interface()
-        .map_err(|_| crate::error::Error::DefaultInterfaceGatewayError)?
-        .gateway
-        .map_or(
-            Err(crate::error::Error::DefaultInterfaceGatewayError),
-            |g| Ok(g.ip_addr),
-        )?;
-    info!("default_node_address: {}", default_node_address);
+    // Get the IP address of the local LAN gateway
+    let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
+    info!("default_lane_gateway: {:?}", default_lan_gateway_ip);
 
+    // The address of the ip packet router running on the exit gateway
     let recipient_address = Recipient::try_from_base58_string(&args.recipient_address)
         .map_err(|_| error::Error::RecipientFormattingError)?;
     info!("ip-packet-router: {:?}", recipient_address);
 
-    let shutdown = TaskManager::new(10);
+    let task_manager = TaskManager::new(10);
 
     info!("Setting up route manager");
     #[cfg(target_os = "linux")]
@@ -150,11 +141,11 @@ async fn main() -> Result<(), error::Error> {
     #[cfg(not(target_os = "linux"))]
     let mut route_manager = RouteManager::new(HashSet::new()).await?;
 
-    let route_manager_handle = route_manager.handle()?;
+    // let route_manager_handle = route_manager.handle()?;
     let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
 
     info!("Creating tunnel");
-    let mut tunnel = Tunnel::new(wireguard_config, route_manager_handle)?;
+    let mut tunnel = Tunnel::new(wireguard_config, route_manager.handle()?)?;
 
     let wireguard_waiting = if args.enable_wireguard {
         info!("Starting wireguard tunnel");
@@ -197,9 +188,8 @@ async fn main() -> Result<(), error::Error> {
     info!("Setting up routing");
     let routing_config = routing::RoutingConfig::new(
         entry_mixnet_gateway_ip,
-        default_node_address,
-        ipv4_gateway,
-        ipv6_gateway,
+        default_lan_gateway_ip,
+        tunnel_gateway_ip,
     );
     debug!("Routing config: {:#?}", routing_config);
     let mixnet_tun_dev =
@@ -208,11 +198,16 @@ async fn main() -> Result<(), error::Error> {
     info!("Setting up mixnet processor");
     let processor_config = mixnet_processor::Config::new(recipient_address);
     debug!("Mixnet processor config: {:#?}", processor_config);
-    mixnet_processor::start_processor(processor_config, mixnet_tun_dev, mixnet_client, &shutdown)
-        .await?;
+    mixnet_processor::start_processor(
+        processor_config,
+        mixnet_tun_dev,
+        mixnet_client,
+        &task_manager,
+    )
+    .await?;
 
     // Finished starting everything, now wait for shutdown
-    if let Err(e) = shutdown.catch_interrupt().await {
+    if let Err(e) = task_manager.catch_interrupt().await {
         error!("Could not wait for interrupts anymore - {e}. Shutting down the tunnel.");
     }
 

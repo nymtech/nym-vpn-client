@@ -1,7 +1,9 @@
 use std::{collections::HashSet, net::IpAddr};
 
+use default_net::interface::get_default_interface;
 use ipnetwork::IpNetwork;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
+use talpid_wireguard::config::Config as WireguardConfig;
 use tracing::{debug, info};
 use tun::Device;
 
@@ -11,17 +13,15 @@ const GATEWAY_ALLOWED_IPS: &str = "10.0.0.2";
 pub struct RoutingConfig {
     mixnet_tun_config: tun::Configuration,
     entry_mixnet_gateway_ip: IpAddr,
-    default_node_address: IpAddr,
-    ipv4_gateway: String,
-    ipv6_gateway: Option<String>,
+    lan_gateway_ip: LanGatewayIp,
+    tunnel_gateway_ip: TunnelGatewayIp,
 }
 
 impl RoutingConfig {
     pub fn new(
         entry_mixnet_gateway_ip: IpAddr,
-        default_node_address: IpAddr,
-        ipv4_gateway: String,
-        ipv6_gateway: Option<String>,
+        lan_gateway_ip: LanGatewayIp,
+        tunnel_gateway_ip: TunnelGatewayIp,
     ) -> Self {
         let mut mixnet_tun_config = tun::Configuration::default();
         mixnet_tun_config.address(GATEWAY_ALLOWED_IPS);
@@ -30,10 +30,46 @@ impl RoutingConfig {
         Self {
             mixnet_tun_config,
             entry_mixnet_gateway_ip,
-            default_node_address,
-            ipv4_gateway,
-            ipv6_gateway,
+            lan_gateway_ip,
+            tunnel_gateway_ip,
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct TunnelGatewayIp {
+    pub ipv4: String,
+    pub ipv6: Option<String>,
+}
+
+impl TunnelGatewayIp {
+    pub fn new(wireguard_config: Option<WireguardConfig>) -> Self {
+        let ipv4 = wireguard_config
+            .as_ref()
+            .map(|c| c.ipv4_gateway.to_string())
+            .unwrap_or("10.1.0.1".to_string());
+        let ipv6 = wireguard_config
+            .as_ref()
+            .map(|c| c.ipv6_gateway.map(|ip| ip.to_string()))
+            .unwrap_or(None);
+        Self { ipv4, ipv6 }
+    }
+}
+
+#[derive(Debug)]
+pub struct LanGatewayIp(pub IpAddr);
+
+impl LanGatewayIp {
+    pub fn get_default_interface() -> Result<Self, crate::error::Error> {
+        Ok(Self(
+            get_default_interface()
+                .map_err(|_| crate::error::Error::DefaultInterfaceGatewayError)?
+                .gateway
+                .map_or(
+                    Err(crate::error::Error::DefaultInterfaceGatewayError),
+                    |g| Ok(g.ip_addr),
+                )?,
+        ))
     }
 }
 
@@ -89,8 +125,8 @@ pub async fn setup_routing(
 
     let (node_v4, node_v6) = get_tunnel_nodes(
         &device_name,
-        config.ipv4_gateway.clone(),
-        config.ipv6_gateway.clone(),
+        config.tunnel_gateway_ip.ipv4.clone(),
+        config.tunnel_gateway_ip.ipv6.clone(),
     );
     info!("Using node_v4: {:?}", node_v4);
     info!("Using node_v6: {:?}", node_v6);
@@ -105,7 +141,7 @@ pub async fn setup_routing(
     // it, we need to add an exception route for the gateway to the routing table.
     if !enable_wireguard {
         let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
-        let default_node = Node::address(config.default_node_address);
+        let default_node = Node::address(config.lan_gateway_ip.0);
         info!(
             "Add extra route: [{:?}, {:?}]",
             entry_mixnet_gateway_ip,
