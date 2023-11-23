@@ -166,6 +166,7 @@ pub async fn setup_mixnet_client(
 
     let mixnet_client = MixnetClientBuilder::new_with_default_storage(key_storage_path)
         .await?
+        .with_wireguard_mode(true)
         .request_gateway(mixnet_entry_gateway.to_string())
         .network_details(NymNetworkDetails::new_from_env())
         .debug_config(debug_config)

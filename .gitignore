@@ -4,6 +4,7 @@
 **/*.rs.bk
 /*/target
 target
+.idea
 build
 .env
 .env.dev
