@@ -4,7 +4,7 @@ use futures::{SinkExt, StreamExt};
 use nym_ip_packet_requests::TaggedIpPacket;
 use nym_sdk::mixnet::{IncludedSurbs, MixnetClient, MixnetMessageSender, Recipient};
 use nym_task::{TaskClient, TaskManager};
-use tracing::{error, info, trace, warn};
+use tracing::{debug, error, info, trace, warn};
 use tun::{AsyncDevice, Device, TunPacket};
 
 use crate::error::{Error, Result};
@@ -73,7 +73,7 @@ impl MixnetProcessor {
 
         while !shutdown.is_shutdown() {
             tokio::select! {
-                _ = shutdown.recv() => {
+                _ = shutdown.recv_with_delay() => {
                     trace!("MixnetProcessor: Received shutdown");
                 }
                 Some(Ok(packet)) = stream.next() => {
@@ -88,7 +88,7 @@ impl MixnetProcessor {
                     // surbs, assuming that it is exposed in side the message. (This is the case
                     // for SOCKS5 too).
                     let ret = sender.send_message(recipient.0, &packet, IncludedSurbs::ExposeSelfAddress).await;
-                    if ret.is_err() {
+                    if ret.is_err() && !shutdown.is_shutdown_poll() {
                         error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
                     }
                 }
@@ -101,6 +101,7 @@ impl MixnetProcessor {
                 }
             }
         }
+        debug!("MixnetProcessor: Exiting");
     }
 }
 

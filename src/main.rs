@@ -154,6 +154,7 @@ pub async fn setup_route_manager() -> Result<RouteManager> {
 pub async fn setup_mixnet_client(
     mixnet_entry_gateway: &str,
     mixnet_client_key_storage_path: &Path,
+    task_client: nym_task::TaskClient,
 ) -> Result<nym_sdk::mixnet::MixnetClient> {
     // Disable Poisson rate limiter by default
     let mut debug_config = nym_client_core::config::DebugConfig::default();
@@ -168,6 +169,7 @@ pub async fn setup_mixnet_client(
         .request_gateway(mixnet_entry_gateway.to_string())
         .network_details(NymNetworkDetails::new_from_env())
         .debug_config(debug_config)
+        .custom_shutdown(task_client)
         .build()?
         .connect_to_mixnet()
         .await?;
@@ -241,7 +243,12 @@ async fn run() -> Result<()> {
     };
 
     info!("Setting up mixnet client");
-    let mixnet_client = setup_mixnet_client(&args.entry_gateway, &args.mixnet_client_path).await?;
+    let mixnet_client = setup_mixnet_client(
+        &args.entry_gateway,
+        &args.mixnet_client_path,
+        task_manager.subscribe_named("mixnet_client_main"),
+    )
+    .await?;
 
     // We need the IP of the gateway to correctly configure the routing table
     let gateway_used = mixnet_client.nym_address().gateway().to_base58_string();
