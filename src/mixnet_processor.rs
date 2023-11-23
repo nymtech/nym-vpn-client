@@ -85,7 +85,7 @@ impl MixnetProcessor {
 
                     // The enum here about IncludedSurbs and ExposeSelfAddress is misleading. It is
                     // not being used. Basically IncludedSurbs::ExposeSelfAddress just omits the
-                    // surbs, assuming that it is exposed in side the message. (This is the case
+                    // surbs, assuming that it is exposed inside the message. (This is the case
                     // for SOCKS5 too).
                     let ret = sender.send_message(recipient.0, &packet, IncludedSurbs::ExposeSelfAddress).await;
                     if ret.is_err() && !shutdown.is_shutdown_poll() {
