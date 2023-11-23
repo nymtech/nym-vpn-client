@@ -109,6 +109,7 @@ impl std::fmt::Display for WireguardConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "tunnel:")?;
         writeln!(f, "  mtu: {}", self.0.mtu)?;
+        #[cfg(target_os = "linux")]
         writeln!(f, "  enable_ipv6: {}", self.0.enable_ipv6)?;
         writeln!(f, "  addresses:")?;
         for address in &self.0.tunnel.addresses {
