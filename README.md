@@ -1,7 +1,7 @@
 
-## Nym Wireguard CLI
+## Nym VPN CLI
 
-A CLI that uses the Mullvad VPN wrapper around the wireguard-go userspace implementation.
+A CLI VPN client that uses the Nym mixnet. It can optionally do the first connection to the entry gateway using wireguard, and it uses the Mullvad VPN wrapper around the wireguard-go userspace implementation.
 
 ### How to build
 
@@ -28,19 +28,25 @@ The binary needs root permissions. The argument values have to be taken from a W
 
 ```
 $ ./target/debug/nym-vpn-cli --help
-Usage: nym-vpn-cli [OPTIONS] --private-key <PRIVATE_KEY> --public-key <PUBLIC_KEY> --endpoint <ENDPOINT> --ipv4-gateway <IPV4_GATEWAY>
+Usage: nym-vpn-cli [OPTIONS] --mixnet-client-path <MIXNET_CLIENT_PATH> --entry-gateway <ENTRY_GATEWAY> --exit-address <EXIT_ADDRESS>
 
 Options:
-      --private-key <PRIVATE_KEY>     Associated private key
-      --addresses <ADDRESSES>...      Local IP addresses associated with a key pair
-      --public-key <PUBLIC_KEY>       Peer's public key
-      --allowed-ips <ALLOWED_IPS>...  Addresses that may be routed to the peer. Use `0.0.0.0/0` to route everything
-      --endpoint <ENDPOINT>           IP address of the WireGuard server
-      --psk <PSK>                     Preshared key (PSK)
-      --ipv4-gateway <IPV4_GATEWAY>   IPv4 gateway
-  -h, --help                          Print help
-  -V, --version                       Print version
-
+  -c, --config-env-file <CONFIG_ENV_FILE>
+          Path pointing to an env file describing the network
+      --enable-wireguard
+          Enable the wireguard traffic between the client and the entry gateway
+      --mixnet-client-path <MIXNET_CLIENT_PATH>
+          Path to the data directory of a previously initialised mixnet client, where the keys reside
+      --entry-gateway <ENTRY_GATEWAY>
+          Mixnet public ID of the entry gateway
+      --exit-address <EXIT_ADDRESS>
+          Mixnet recipient address
+      --private-key <PRIVATE_KEY>
+          Associated private key
+  -h, --help
+          Print help
+  -V, --version
+          Print version
 ```
 
 Example for a given configuration:
@@ -58,7 +64,7 @@ Endpoint = 185.19.30.168:51820
 PersistentKeepalive = 55
 ```
 
-you would run:
+you would run (TODO: update me! This is outdated):
 
 ```
  sudo ./target/debug/nym-vpn-cli --private-key "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" --addresses 10.49.0.8 2001:db8:a160::8 --public-key "vhNLvkOBprXJDHnuhXz8wvxl8T8bxkia3xn5Ebk/8kI=" --allowed-ips 0.0.0.0/0 ::/0 --endpoint 185.19.30.168:51820 --psk "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=" --ipv4-gateway 172.28.193.195
