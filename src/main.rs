@@ -32,7 +32,6 @@ use talpid_types::net::wireguard::{
 use talpid_types::net::GenericTunnelOptions;
 #[cfg(target_os = "linux")]
 use talpid_types::ErrorExt;
-// use talpid_wireguard::config::Config as WireguardConfig;
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -81,7 +80,7 @@ impl WireguardConfig {
         let peers = vec![PeerConfig {
             public_key: gateway_data.public_key.clone(),
             allowed_ips: vec!["10.1.0.1".parse().unwrap()],
-            endpoint: gateway_data.endpoint.clone(),
+            endpoint: gateway_data.endpoint,
             psk: None,
         }];
         let connection_config = ConnectionConfig {
