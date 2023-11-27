@@ -155,6 +155,7 @@ pub async fn setup_mixnet_client(
     mixnet_entry_gateway: &str,
     mixnet_client_key_storage_path: &Path,
     task_client: nym_task::TaskClient,
+    enable_wireguard: bool,
 ) -> Result<nym_sdk::mixnet::MixnetClient> {
     // Disable Poisson rate limiter by default
     let mut debug_config = nym_client_core::config::DebugConfig::default();
@@ -164,9 +165,10 @@ pub async fn setup_mixnet_client(
 
     let key_storage_path = StoragePaths::new_from_dir(mixnet_client_key_storage_path)?;
 
+    debug!("mixnet client has wireguard_mode={enable_wireguard}");
     let mixnet_client = MixnetClientBuilder::new_with_default_storage(key_storage_path)
         .await?
-        .with_wireguard_mode(true)
+        .with_wireguard_mode(enable_wireguard)
         .request_gateway(mixnet_entry_gateway.to_string())
         .network_details(NymNetworkDetails::new_from_env())
         .debug_config(debug_config)
@@ -287,6 +289,7 @@ async fn run() -> Result<()> {
         &args.entry_gateway,
         &args.mixnet_client_path,
         task_manager.subscribe_named("mixnet_client_main"),
+        args.enable_wireguard,
     )
     .await?;
 
