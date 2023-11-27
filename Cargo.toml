@@ -41,6 +41,7 @@ nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "4a8c09f4
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "4a8c09f47693128b035c62b07ffa46f56d66e8fa" }
 
 # For local development
+#[patch."https://github.com/nymtech/nym"]
 #nym-bin-common = { path = "../nym/common/bin-common" }
 #nym-client-core = { path = "../nym/common/client-core" }
 #nym-config = { path = "../nym/common/config" }
