@@ -32,7 +32,7 @@ RUSTFLAGS='-L [PATH_TO_CLI_REPO]/build/lib/aarch64-apple-darwin' cargo build --r
 replacing the `[PATH_TO_CLI_REPO]` with the absolute path to the `nym-vpn-cli` repository, and of course adjust the path to match the target arch.
 Alternatively add rustflags to `.cargo/config.toml`
 
-```sh
+```
 $ cat .cargo/config.toml 
 [build]
 rustflags = ['-L', '/home/nymuser/src/nym/nym-vpn-cli/build/lib/x86_64-unknown-linux-gnu']
@@ -57,7 +57,7 @@ $ sudo ./target/release/nym-vpn-cli --entry-gateway <ENTRY_GATEWAY> --exit-route
 
 The full set of flags are:
 
-```sh
+```
 $ ./target/release/nym-vpn-cli --help
 Usage: nym-vpn-cli [OPTIONS] --entry-gateway <ENTRY_GATEWAY> --exit-router <EXIT_ROUTER> --ip <IP>
 
