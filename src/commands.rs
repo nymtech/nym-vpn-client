@@ -29,4 +29,8 @@ pub(crate) struct CliArgs {
     /// Associated private key.
     #[clap(long, requires = "enable_wireguard")]
     pub(crate) private_key: Option<String>,
+
+    /// Disable routing all traffic through the VPN TUN device.
+    #[clap(long)]
+    pub(crate) disable_routing: bool,
 }

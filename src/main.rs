@@ -306,8 +306,13 @@ async fn run() -> Result<()> {
         tunnel_gateway_ip,
     );
     debug!("Routing config: {:#?}", routing_config);
-    let mixnet_tun_dev =
-        routing::setup_routing(&mut route_manager, routing_config, args.enable_wireguard).await?;
+    let mixnet_tun_dev = routing::setup_routing(
+        &mut route_manager,
+        routing_config,
+        args.enable_wireguard,
+        args.disable_routing,
+    )
+    .await?;
 
     info!("Setting up mixnet processor");
     let processor_config = mixnet_processor::Config::new(exit_address);

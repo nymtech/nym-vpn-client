@@ -135,10 +135,16 @@ pub async fn setup_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
     enable_wireguard: bool,
+    disable_routing: bool,
 ) -> Result<tun::AsyncDevice, crate::error::Error> {
     let dev = tun::create_as_async(&config.mixnet_tun_config)?;
     let device_name = dev.get_ref().name().to_string();
     info!("Opened tun device {}", device_name);
+
+    if disable_routing {
+        info!("Routing is disabled, skipping adding routes");
+        return Ok(dev);
+    }
 
     let (node_v4, node_v6) = get_tunnel_nodes(
         &device_name,
