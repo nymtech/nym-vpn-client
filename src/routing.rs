@@ -8,8 +8,6 @@ use tun::Device;
 
 use crate::{error::Result, WireguardConfig};
 
-const GATEWAY_ALLOWED_IPS: &str = "10.0.0.2";
-
 #[derive(Debug)]
 pub struct RoutingConfig {
     mixnet_tun_config: tun::Configuration,
@@ -20,12 +18,14 @@ pub struct RoutingConfig {
 
 impl RoutingConfig {
     pub fn new(
+        tun_ip: IpAddr,
         entry_mixnet_gateway_ip: IpAddr,
         lan_gateway_ip: LanGatewayIp,
         tunnel_gateway_ip: TunnelGatewayIp,
     ) -> Self {
+        debug!("TUN device IP: {}", tun_ip);
         let mut mixnet_tun_config = tun::Configuration::default();
-        mixnet_tun_config.address(GATEWAY_ALLOWED_IPS);
+        mixnet_tun_config.address(tun_ip);
         mixnet_tun_config.up();
 
         Self {
@@ -149,7 +149,14 @@ pub async fn setup_routing(
 ) -> Result<tun::AsyncDevice> {
     let dev = tun::create_as_async(&config.mixnet_tun_config)?;
     let device_name = dev.get_ref().name().to_string();
-    info!("Opened tun device {}", device_name);
+    info!("Created tun device {device_name}: ip={device_ip}, broadcast={device_broadcast}, netmask={device_netmask}, destination={device_destination}, mtu={device_mtu}",
+        device_name = device_name,
+        device_ip = dev.get_ref().address()?,
+        device_broadcast = dev.get_ref().broadcast()?,
+        device_netmask = dev.get_ref().netmask()?,
+        device_destination = dev.get_ref().destination()?,
+        device_mtu = dev.get_ref().mtu()?,
+    );
 
     if disable_routing {
         info!("Routing is disabled, skipping adding routes");

@@ -21,9 +21,8 @@ use log::{debug, error, info};
 use nym_config::defaults::{setup_env, NymNetworkDetails};
 use nym_sdk::mixnet::{MixnetClientBuilder, StoragePaths};
 use nym_task::TaskManager;
-use std::collections::HashSet;
+use std::{collections::HashSet, path::PathBuf};
 use std::net::{IpAddr, Ipv4Addr};
-use std::path::Path;
 use std::str::FromStr;
 use talpid_routing::RouteManager;
 use talpid_types::net::wireguard::{
@@ -153,7 +152,7 @@ pub async fn setup_route_manager() -> Result<RouteManager> {
 
 pub async fn setup_mixnet_client(
     mixnet_entry_gateway: &str,
-    mixnet_client_key_storage_path: &Path,
+    mixnet_client_key_storage_path: &Option<PathBuf>,
     task_client: nym_task::TaskClient,
     enable_wireguard: bool,
 ) -> Result<nym_sdk::mixnet::MixnetClient> {
@@ -163,19 +162,32 @@ pub async fn setup_mixnet_client(
         .traffic
         .disable_main_poisson_packet_distribution = true;
 
-    let key_storage_path = StoragePaths::new_from_dir(mixnet_client_key_storage_path)?;
-
     debug!("mixnet client has wireguard_mode={enable_wireguard}");
-    let mixnet_client = MixnetClientBuilder::new_with_default_storage(key_storage_path)
-        .await?
-        .with_wireguard_mode(enable_wireguard)
-        .request_gateway(mixnet_entry_gateway.to_string())
-        .network_details(NymNetworkDetails::new_from_env())
-        .debug_config(debug_config)
-        .custom_shutdown(task_client)
-        .build()?
-        .connect_to_mixnet()
-        .await?;
+    let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
+        debug!("Using custom key storage path: {:?}", path);
+        let key_storage_path = StoragePaths::new_from_dir(path)?;
+        MixnetClientBuilder::new_with_default_storage(key_storage_path)
+            .await?
+            .with_wireguard_mode(enable_wireguard)
+            .request_gateway(mixnet_entry_gateway.to_string())
+            .network_details(NymNetworkDetails::new_from_env())
+            .debug_config(debug_config)
+            .custom_shutdown(task_client)
+            .build()?
+            .connect_to_mixnet()
+            .await?
+    } else {
+        debug!("Using ephemeral key storage");
+        MixnetClientBuilder::new_ephemeral()
+            .with_wireguard_mode(enable_wireguard)
+            .request_gateway(mixnet_entry_gateway.to_string())
+            .network_details(NymNetworkDetails::new_from_env())
+            .debug_config(debug_config)
+            .custom_shutdown(task_client)
+            .build()?
+            .connect_to_mixnet()
+            .await?
+    };
 
     Ok(mixnet_client)
 }
@@ -260,8 +272,8 @@ async fn run() -> Result<()> {
     info!("default_lane_gateway: {default_lan_gateway_ip}");
 
     // The address of the ip packet router running on the exit gateway
-    let exit_address = IpPacketRouterAddress::try_from_base58_string(&args.exit_address)?;
-    info!("exit_address: {exit_address}");
+    let exit_router = IpPacketRouterAddress::try_from_base58_string(&args.exit_router)?;
+    info!("exit_router: {exit_router}");
 
     let task_manager = TaskManager::new(10);
 
@@ -301,6 +313,7 @@ async fn run() -> Result<()> {
 
     info!("Setting up routing");
     let routing_config = routing::RoutingConfig::new(
+        args.ip.into(),
         entry_mixnet_gateway_ip,
         default_lan_gateway_ip,
         tunnel_gateway_ip,
@@ -315,15 +328,19 @@ async fn run() -> Result<()> {
     .await?;
 
     info!("Setting up mixnet processor");
-    let processor_config = mixnet_processor::Config::new(exit_address);
+    let processor_config = mixnet_processor::Config::new(exit_router);
     debug!("Mixnet processor config: {:#?}", processor_config);
-    mixnet_processor::start_processor(
+    if let Err(err) = mixnet_processor::start_processor(
         processor_config,
         mixnet_tun_dev,
         mixnet_client,
         &task_manager,
     )
-    .await?;
+    .await {
+        error!("Failed to start mixnet processor: {err}");
+        // we let exucution continue as we still want to try to clean up the tunnel
+        // TODO: make cleanup code always run on any failure, not just this one
+    }
 
     // Finished starting everything, now wait for shutdown
     wait_for_interrupt(task_manager).await;

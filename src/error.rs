@@ -1,5 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 
+use nym_ip_packet_requests::StaticConnectFailureReason;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("{0}")]
@@ -68,6 +70,9 @@ pub enum Error {
     #[error("could not obtain the gateway from default interface: {0}")]
     DefaultInterfaceGatewayError(String),
 
+    #[error("got reply for connect request, but it appears intended for the wrong address?")]
+    GotReplyIntendedForWrongAddress,
+
     #[error("unexpected connect response")]
     UnexpectedConnectResponse,
 
@@ -77,8 +82,10 @@ pub enum Error {
     #[error("timeout waiting for connect response")]
     TimeoutWaitingForConnectResponse,
 
-    #[error("connect denied")]
-    ConnectDenied,
+    #[error("connect request denied{}", .reason.as_ref().map(|r| format!(": {}", r)).unwrap_or_else(|| "".to_string()))]
+    ConnectRequestDenied {
+        reason: Option<StaticConnectFailureReason>,
+    },
 }
 
 // Result type based on our error type

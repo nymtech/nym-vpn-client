@@ -1,9 +1,6 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 
-use std::{
-    net::{IpAddr, Ipv4Addr},
-    time::Duration,
-};
+use std::{net::IpAddr, time::Duration};
 
 use futures::{SinkExt, StreamExt};
 use nym_ip_packet_requests::{
@@ -91,7 +88,7 @@ impl MixnetProcessor {
         loop {
             tokio::select! {
                 _ = &mut timeout => {
-                    error!("MixnetProcessor: Timed out waiting for reply");
+                    error!("Timed out waiting for reply to connect request");
                     return Err(Error::TimeoutWaitingForConnectResponse);
                 }
                 msgs = self.mixnet_client.wait_for_messages() => {
@@ -99,7 +96,7 @@ impl MixnetProcessor {
                         for msg in msgs {
                             debug!("MixnetProcessor: Got message while waiting for connect response");
                             let Ok(response) = IpPacketResponse::from_reconstructed_message(&msg) else {
-                                error!("MixnetProcessor: Failed to deserialize reconstructed message");
+                                error!("Failed to deserialize reconstructed message");
                                 continue;
                             };
                             if response.id() == Some(request_id) {
@@ -115,15 +112,19 @@ impl MixnetProcessor {
         }
     }
 
-    async fn handle_static_connect_response(
-        &self,
-        response: StaticConnectResponse,
-    ) -> Result<bool> {
+    async fn handle_static_connect_response(&self, response: StaticConnectResponse) -> Result<()> {
         if response.reply_to != *self.mixnet_client.nym_address() {
             error!("Got reply intended for wrong address");
-            return Err(Error::InvalidGatewayAPIResponse);
+            return Err(Error::GotReplyIntendedForWrongAddress);
         }
-        Ok(response.reply.is_success())
+        match response.reply {
+            nym_ip_packet_requests::StaticConnectResponseReply::Success => Ok(()),
+            nym_ip_packet_requests::StaticConnectResponseReply::Failure(reason) => {
+                Err(Error::ConnectRequestDenied {
+                    reason: Some(reason),
+                })
+            }
+        }
     }
 
     async fn connect_to_ip_packet_router(&mut self, ip: IpAddr) -> Result<()> {
@@ -135,37 +136,20 @@ impl MixnetProcessor {
 
         match response.data {
             IpPacketResponseData::StaticConnect(resp) => {
-                if self.handle_static_connect_response(resp).await? {
-                    debug!("Static connect successful");
-                    Ok(())
-                } else {
-                    debug!("Static connect denied");
-                    Err(Error::ConnectDenied)
-                }
+                self.handle_static_connect_response(resp).await
             }
             IpPacketResponseData::DynamicConnect(_) => {
                 error!("Requested static connect, but got dynamic connect response!");
                 Err(Error::UnexpectedConnectResponse)
             }
             IpPacketResponseData::Data(_) => {
-                unreachable!()
+                error!("Requested static connect, but got data response!");
+                Err(Error::UnexpectedConnectResponse)
             }
         }
     }
 
-    pub async fn run(mut self, mut shutdown: TaskClient) {
-        info!("Connecting to IP packet router");
-        let ip = Ipv4Addr::new(10, 0, 0, 2).into();
-        if let Err(_err) = self.connect_to_ip_packet_router(ip).await {
-            // It is not yet implemented on the server to return anything but deny, so we just
-            // ignore it for now....
-
-            //error!("Failed to connect to IP packet router: {err}");
-            //debug!("{err:?}");
-            //TODO: signal back to the main task to shutdown cleanly
-            //return;
-        }
-
+    pub async fn run(self, mut shutdown: TaskClient) {
         info!(
             "Opened mixnet processor on tun device {}",
             self.device.get_ref().name()
@@ -240,7 +224,18 @@ pub async fn start_processor(
     task_manager: &TaskManager,
 ) -> Result<()> {
     info!("Creating mixnet processor");
-    let processor = MixnetProcessor::new(dev, mixnet_client, config.ip_packet_router_address);
+    let ip = dev.get_ref().address()?;
+    let mut processor = MixnetProcessor::new(dev, mixnet_client, config.ip_packet_router_address);
+
+    info!("Connecting to IP packet router");
+    if let Err(err) = processor.connect_to_ip_packet_router(ip.into()).await {
+        error!("Failed to connect to IP packet router: {err}");
+        debug!("{err:?}");
+        //TODO: signal back to the main task to shutdown cleanly
+        return Err(err);
+    }
+    info!("Connected to IP packet router on the exit gateway!");
+
     let shutdown_listener = task_manager.subscribe();
     tokio::spawn(processor.run(shutdown_listener));
     Ok(())

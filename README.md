@@ -28,7 +28,7 @@ The binary needs root permissions. The argument values have to be taken from a W
 
 ```
 $ ./target/debug/nym-vpn-cli --help
-Usage: nym-vpn-cli [OPTIONS] --mixnet-client-path <MIXNET_CLIENT_PATH> --entry-gateway <ENTRY_GATEWAY> --exit-address <EXIT_ADDRESS>
+Usage: nym-vpn-cli [OPTIONS] --mixnet-client-path <MIXNET_CLIENT_PATH> --entry-gateway <ENTRY_GATEWAY> --exit-router <EXIT_ROUTER>
 
 Options:
   -c, --config-env-file <CONFIG_ENV_FILE>
@@ -39,7 +39,7 @@ Options:
           Path to the data directory of a previously initialised mixnet client, where the keys reside
       --entry-gateway <ENTRY_GATEWAY>
           Mixnet public ID of the entry gateway
-      --exit-address <EXIT_ADDRESS>
+      --exit-router <EXIT_ROUTER>
           Mixnet recipient address
       --private-key <PRIVATE_KEY>
           Associated private key
