@@ -62,8 +62,23 @@ pub enum Error {
     #[error("{0}")]
     WireguardTypesError(#[from] nym_wireguard_types::error::Error),
 
-    #[error("could not obtain the default gateway")]
-    DefaultInterfaceGatewayError,
+    #[error("could not obtain the default interface")]
+    DefaultInterfaceError,
+
+    #[error("could not obtain the gateway from default interface: {0}")]
+    DefaultInterfaceGatewayError(String),
+
+    #[error("unexpected connect response")]
+    UnexpectedConnectResponse,
+
+    #[error("mixnet client stopped returning responses")]
+    NoMixnetMessagesReceived,
+
+    #[error("timeout waiting for connect response")]
+    TimeoutWaitingForConnectResponse,
+
+    #[error("connect denied")]
+    ConnectDenied,
 }
 
 // Result type based on our error type

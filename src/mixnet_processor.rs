@@ -1,7 +1,14 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 
+use std::{
+    net::{IpAddr, Ipv4Addr},
+    time::Duration,
+};
+
 use futures::{SinkExt, StreamExt};
-use nym_ip_packet_requests::TaggedIpPacket;
+use nym_ip_packet_requests::{
+    IpPacketRequest, IpPacketResponse, IpPacketResponseData, StaticConnectResponse,
+};
 use nym_sdk::mixnet::{IncludedSurbs, MixnetClient, MixnetMessageSender, Recipient};
 use nym_task::{TaskClient, TaskManager};
 use tracing::{debug, error, info, trace, warn};
@@ -22,7 +29,7 @@ impl Config {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct IpPacketRouterAddress(pub Recipient);
 
 impl IpPacketRouterAddress {
@@ -59,7 +66,106 @@ impl MixnetProcessor {
         }
     }
 
-    pub async fn run(self, mut shutdown: TaskClient) {
+    async fn send_connect_to_ip_packet_router(&mut self, ip: IpAddr) -> Result<u64> {
+        let (request, request_id) = IpPacketRequest::new_static_connect_request(
+            ip,
+            *self.mixnet_client.nym_address(),
+            None,
+            None,
+        );
+        self.mixnet_client
+            .send(nym_sdk::mixnet::InputMessage::new_regular(
+                self.ip_packet_router_address.0,
+                request.to_bytes().unwrap(),
+                nym_task::connections::TransmissionLane::General,
+                None,
+            ))
+            .await?;
+        Ok(request_id)
+    }
+
+    async fn wait_for_connect_response(&mut self, request_id: u64) -> Result<IpPacketResponse> {
+        let timeout = tokio::time::sleep(Duration::from_secs(5));
+        tokio::pin!(timeout);
+
+        loop {
+            tokio::select! {
+                _ = &mut timeout => {
+                    error!("MixnetProcessor: Timed out waiting for reply");
+                    return Err(Error::TimeoutWaitingForConnectResponse);
+                }
+                msgs = self.mixnet_client.wait_for_messages() => {
+                    if let Some(msgs) = msgs {
+                        for msg in msgs {
+                            debug!("MixnetProcessor: Got message while waiting for connect response");
+                            let Ok(response) = IpPacketResponse::from_reconstructed_message(&msg) else {
+                                error!("MixnetProcessor: Failed to deserialize reconstructed message");
+                                continue;
+                            };
+                            if response.id() == Some(request_id) {
+                                info!("Got response with matching id");
+                                return Ok(response);
+                            }
+                        }
+                    } else {
+                        return Err(Error::NoMixnetMessagesReceived);
+                    }
+                }
+            }
+        }
+    }
+
+    async fn handle_static_connect_response(
+        &self,
+        response: StaticConnectResponse,
+    ) -> Result<bool> {
+        if response.reply_to != *self.mixnet_client.nym_address() {
+            error!("Got reply intended for wrong address");
+            return Err(Error::InvalidGatewayAPIResponse);
+        }
+        Ok(response.reply.is_success())
+    }
+
+    async fn connect_to_ip_packet_router(&mut self, ip: IpAddr) -> Result<()> {
+        info!("Sending static connect request");
+        let request_id = self.send_connect_to_ip_packet_router(ip).await?;
+
+        info!("Waiting for reply...");
+        let response = self.wait_for_connect_response(request_id).await?;
+
+        match response.data {
+            IpPacketResponseData::StaticConnect(resp) => {
+                if self.handle_static_connect_response(resp).await? {
+                    debug!("Static connect successful");
+                    Ok(())
+                } else {
+                    debug!("Static connect denied");
+                    Err(Error::ConnectDenied)
+                }
+            }
+            IpPacketResponseData::DynamicConnect(_) => {
+                error!("Requested static connect, but got dynamic connect response!");
+                Err(Error::UnexpectedConnectResponse)
+            }
+            IpPacketResponseData::Data(_) => {
+                unreachable!()
+            }
+        }
+    }
+
+    pub async fn run(mut self, mut shutdown: TaskClient) {
+        info!("Connecting to IP packet router");
+        let ip = Ipv4Addr::new(10, 0, 0, 2).into();
+        if let Err(_err) = self.connect_to_ip_packet_router(ip).await {
+            // It is not yet implemented on the server to return anything but deny, so we just
+            // ignore it for now....
+
+            //error!("Failed to connect to IP packet router: {err}");
+            //debug!("{err:?}");
+            //TODO: signal back to the main task to shutdown cleanly
+            //return;
+        }
+
         info!(
             "Opened mixnet processor on tun device {}",
             self.device.get_ref().name()
@@ -67,9 +173,31 @@ impl MixnetProcessor {
         let (mut sink, mut stream) = self.device.into_framed().split();
         let sender = self.mixnet_client.split_sender();
         let recipient = self.ip_packet_router_address;
-        let mut mixnet_stream = self
+
+        let mixnet_stream = self
             .mixnet_client
-            .map(|reconstructed_message| Ok(TunPacket::new(reconstructed_message.message.clone())));
+            .filter_map(|reconstructed_message| async move {
+                match IpPacketResponse::from_reconstructed_message(&reconstructed_message) {
+                    Ok(response) => match response.data {
+                        IpPacketResponseData::StaticConnect(_) => {
+                            info!("Received static connect response when already connected - ignoring");
+                            None
+                        },
+                        IpPacketResponseData::DynamicConnect(_) => {
+                            info!("Received dynamic connect response when already connected - ignoring");
+                            None
+                        },
+                        IpPacketResponseData::Data(data_response) => {
+                            Some(Ok(TunPacket::new(data_response.ip_packet.into())))
+                        }
+                    },
+                    Err(err) => {
+                        error!("failed to deserialize reconstructed message: {err}");
+                        None
+                    }
+                }
+            });
+        tokio::pin!(mixnet_stream);
 
         while !shutdown.is_shutdown() {
             tokio::select! {
@@ -78,7 +206,7 @@ impl MixnetProcessor {
                 }
                 Some(Ok(packet)) = stream.next() => {
                     // TODO: properly investigate the binary format here and the overheard
-                    let Ok(packet) = TaggedIpPacket::new(packet.into_bytes(), recipient.0, None).to_bytes() else {
+                    let Ok(packet) = IpPacketRequest::new_ip_packet(packet.into_bytes()).to_bytes() else {
                         error!("Failed to serialize packet");
                         continue;
                     };

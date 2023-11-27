@@ -3,10 +3,10 @@ use std::{collections::HashSet, net::IpAddr};
 use default_net::interface::get_default_interface;
 use ipnetwork::IpNetwork;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
-use tracing::{debug, info};
+use tracing::{debug, error, info, trace};
 use tun::Device;
 
-use crate::WireguardConfig;
+use crate::{error::Result, WireguardConfig};
 
 const GATEWAY_ALLOWED_IPS: &str = "10.0.0.2";
 
@@ -71,16 +71,26 @@ impl std::fmt::Display for TunnelGatewayIp {
 pub struct LanGatewayIp(pub IpAddr);
 
 impl LanGatewayIp {
-    pub fn get_default_interface() -> Result<Self, crate::error::Error> {
-        Ok(Self(
-            get_default_interface()
-                .map_err(|_| crate::error::Error::DefaultInterfaceGatewayError)?
-                .gateway
-                .map_or(
-                    Err(crate::error::Error::DefaultInterfaceGatewayError),
-                    |g| Ok(g.ip_addr),
-                )?,
-        ))
+    pub fn get_default_interface() -> Result<Self> {
+        trace!("Getting default interface");
+        let default_interface = get_default_interface().map_err(|err| {
+            error!("Failed to get default interface: {}", err);
+            crate::error::Error::DefaultInterfaceError
+        })?;
+        info!("Default interface: {}", default_interface.name);
+        debug!("Default interface: {:?}", default_interface);
+        Ok(Self(default_interface.gateway.map_or_else(
+            || {
+                error!(
+                    "The default interface `{}` reports no gateway",
+                    default_interface.name
+                );
+                Err(crate::error::Error::DefaultInterfaceGatewayError(
+                    default_interface.name,
+                ))
+            },
+            |g| Ok(g.ip_addr),
+        )?))
     }
 }
 
@@ -136,7 +146,7 @@ pub async fn setup_routing(
     config: RoutingConfig,
     enable_wireguard: bool,
     disable_routing: bool,
-) -> Result<tun::AsyncDevice, crate::error::Error> {
+) -> Result<tun::AsyncDevice> {
     let dev = tun::create_as_async(&config.mixnet_tun_config)?;
     let device_name = dev.get_ref().name().to_string();
     info!("Opened tun device {}", device_name);
