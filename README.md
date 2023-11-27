@@ -1,34 +1,65 @@
+# Nym VPN CLI
 
-## Nym VPN CLI
+A commandline VPN client that uses the [Nym mixnet](https://nymtech.net). 
 
-A CLI VPN client that uses the Nym mixnet. It can optionally do the first connection to the entry gateway using wireguard, and it uses the Mullvad VPN wrapper around the wireguard-go userspace implementation.
+It can optionally do the first connection to the entry gateway using wireguard, and it uses the free software Mullvad crates for wrapping wireguard-go and to handle setting up routes.
 
-### How to build
+## How to build
 
-As a one-time command, from the `wireguard` directory, run the build script:
+### Step 1.
 
-```
-./build.sh
-```
+Build the wireguard-go static library:
 
-This will build inside the `build` directory the static library that wraps the wireguard-go implementation in FFI.
-
-Next, to build the Rust CLI, run the following in the root of the project:
-
-```
-RUSTFLAGS='-L [PATH_TO_CLI_REPO]/build/lib/aarch64-apple-darwin' cargo build
+```sh
+$ ./wireguard/build-wireguard.go.sh
 ```
 
-replacing the `[PATH_TO_CLI_REPO]` with the absolute path to the `nym-vpn-cli` repository.
+This should create a local `build` directory with a static library `libwg.a` that wraps the wireguard-go implementation in a FFI.
 
-
-### How to run
-
-The binary needs root permissions. The argument values have to be taken from a WireGuard configuration file.
-
+```sh
+$ ls build/lib/x86_64-unknown-linux-gnu/      
+libwg.a  libwg.h
 ```
-$ ./target/debug/nym-vpn-cli --help
-Usage: nym-vpn-cli [OPTIONS] --mixnet-client-path <MIXNET_CLIENT_PATH> --entry-gateway <ENTRY_GATEWAY> --exit-router <EXIT_ROUTER>
+
+### Step 2.
+
+Next, to build the Rust CLI, you need to add the library to the search path by prepending `cargo build` with `RUSTFLAGS`,
+
+```sh
+RUSTFLAGS='-L [PATH_TO_CLI_REPO]/build/lib/aarch64-apple-darwin' cargo build --release
+```
+
+replacing the `[PATH_TO_CLI_REPO]` with the absolute path to the `nym-vpn-cli` repository, and of course adjust the path to match the target arch.
+Alternatively add rustflags to `.cargo/config.toml`
+
+```sh
+$ cat .cargo/config.toml 
+[build]
+rustflags = ['-L', '/home/nymuser/src/nym/nym-vpn-cli/build/lib/x86_64-unknown-linux-gnu']
+```
+and then run `cargo build --release` like normal.
+
+## How to run
+
+The binary needs root permissions to setup the TUN virtual network device.
+
+### Case 1: connect to the entry gateway using a websocket connection.
+
+```sh
+$ sudo ./target/release/nym-vpn-cli --entry-gateway <ENTRY_GATEWAY> --exit-router <EXIT_ROUTER> --ip 10.0.0.2
+```
+
+### Case 2: using WireGuard for the connection between the client and the entry gateway.
+
+```sh
+$ sudo ./target/release/nym-vpn-cli --entry-gateway <ENTRY_GATEWAY> --exit-router <EXIT_ROUTER> --ip <VPN_IP> --enable-wireguard --private-key <PRIVATE_KEY>
+```
+
+The full set of flags are:
+
+```sh
+$ ./target/release/nym-vpn-cli --help
+Usage: nym-vpn-cli [OPTIONS] --entry-gateway <ENTRY_GATEWAY> --exit-router <EXIT_ROUTER> --ip <IP>
 
 Options:
   -c, --config-env-file <CONFIG_ENV_FILE>
@@ -43,29 +74,12 @@ Options:
           Mixnet recipient address
       --private-key <PRIVATE_KEY>
           Associated private key
+      --ip <IP>
+          The IP address of the TUN device
+      --disable-routing
+          Disable routing all traffic through the VPN TUN device
   -h, --help
           Print help
   -V, --version
           Print version
-```
-
-Example for a given configuration:
-```
-[Interface]
-PrivateKey = AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
-Address = 10.49.0.8 ,2001:db8:a160::8
-DNS =  172.28.193.195, fd00::c:c1c3 
-
-[Peer]
-PublicKey = vhNLvkOBprXJDHnuhXz8wvxl8T8bxkia3xn5Ebk/8kI=
-PresharedKey = BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=
-AllowedIPs = 0.0.0.0/0,::/0
-Endpoint = 185.19.30.168:51820
-PersistentKeepalive = 55
-```
-
-you would run (TODO: update me! This is outdated):
-
-```
- sudo ./target/debug/nym-vpn-cli --private-key "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" --addresses 10.49.0.8 2001:db8:a160::8 --public-key "vhNLvkOBprXJDHnuhXz8wvxl8T8bxkia3xn5Ebk/8kI=" --allowed-ips 0.0.0.0/0 ::/0 --endpoint 185.19.30.168:51820 --psk "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=" --ipv4-gateway 172.28.193.195
 ```
