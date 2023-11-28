@@ -1,11 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 
-use std::{net::IpAddr, time::Duration};
-
 use futures::{SinkExt, StreamExt};
-use nym_ip_packet_requests::{
-    IpPacketRequest, IpPacketResponse, IpPacketResponseData, StaticConnectResponse,
-};
+use nym_ip_packet_requests::{IpPacketRequest, IpPacketResponse, IpPacketResponseData};
 use nym_sdk::mixnet::{IncludedSurbs, MixnetClient, MixnetMessageSender, Recipient};
 use nym_task::{TaskClient, TaskManager};
 use tracing::{debug, error, info, trace, warn};

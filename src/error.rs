@@ -1,6 +1,6 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 
-use nym_ip_packet_requests::StaticConnectFailureReason;
+use nym_ip_packet_requests::{DynamicConnectFailureReason, StaticConnectFailureReason};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -82,10 +82,11 @@ pub enum Error {
     #[error("timeout waiting for connect response")]
     TimeoutWaitingForConnectResponse,
 
-    #[error("connect request denied{}", .reason.as_ref().map(|r| format!(": {}", r)).unwrap_or_else(|| "".to_string()))]
-    ConnectRequestDenied {
-        reason: Option<StaticConnectFailureReason>,
-    },
+    #[error("connect request denied: {reason}")]
+    StaticConnectRequestDenied { reason: StaticConnectFailureReason },
+
+    #[error("connect request denied: {reason}")]
+    DynamicConnectRequestDenied { reason: DynamicConnectFailureReason },
 }
 
 // Result type based on our error type

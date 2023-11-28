@@ -307,18 +307,25 @@ async fn run() -> Result<()> {
     .await?;
 
     info!("Connecting to IP packet router");
-    if let Err(err) =
-        mixnet_connect::connect_to_ip_packet_router(&mut mixnet_client, exit_router, args.ip.into())
+    let ip =
+        match mixnet_connect::connect_to_ip_packet_router(&mut mixnet_client, exit_router, args.ip)
             .await
-    {
-        // TODO: we should handle shutdown gracefully in all cases, not just this one.
-        error!("Failed to connect to IP packet router: {err}");
-        debug!("{err:?}");
-        mixnet_client.disconnect().await;
-        wait_for_interrupt(task_manager).await;
-        handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
-        return Err(err);
-    }
+        {
+            Ok(ip) => {
+                info!("Connected to IP packet router on the exit gateway!");
+                info!("Using IP address: {ip}");
+                ip
+            }
+            Err(err) => {
+                // TODO: we should handle shutdown gracefully in all cases, not just this one.
+                error!("Failed to connect to IP packet router: {err}");
+                debug!("{err:?}");
+                mixnet_client.disconnect().await;
+                wait_for_interrupt(task_manager).await;
+                handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
+                return Err(err);
+            }
+        };
     info!("Connected to IP packet router on the exit gateway!");
 
     // We need the IP of the gateway to correctly configure the routing table
@@ -329,7 +336,7 @@ async fn run() -> Result<()> {
 
     info!("Setting up routing");
     let routing_config = routing::RoutingConfig::new(
-        args.ip.into(),
+        ip,
         entry_mixnet_gateway_ip,
         default_lan_gateway_ip,
         tunnel_gateway_ip,

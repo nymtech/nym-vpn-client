@@ -1,12 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 
 use clap::Parser;
-use ipnetwork::{Ipv4Network};
-use std::{
-    net::{Ipv4Addr},
-    path::PathBuf,
-    str::FromStr,
-};
+use ipnetwork::Ipv4Network;
+use std::{net::Ipv4Addr, path::PathBuf, str::FromStr};
 
 const TUN_IP_SUBNET: &str = "10.0.0.0/24";
 
@@ -39,7 +35,7 @@ pub(crate) struct CliArgs {
 
     /// The IP address of the TUN device.
     #[arg(long, value_parser = validate_ip)]
-    pub(crate) ip: Ipv4Addr,
+    pub(crate) ip: Option<Ipv4Addr>,
 
     /// Disable routing all traffic through the VPN TUN device.
     #[arg(long)]
@@ -55,6 +51,5 @@ fn validate_ip(ip: &str) -> Result<Ipv4Addr, String> {
     if ip == Ipv4Addr::new(10, 0, 0, 1) {
         return Err("IP address cannot be 10.0.0.1".to_string());
     }
-
-    return Ok(ip);
+    Ok(ip)
 }
