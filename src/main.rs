@@ -3,6 +3,7 @@
 mod commands;
 mod error;
 mod gateway_client;
+mod mixnet_connect;
 mod mixnet_processor;
 mod routing;
 mod tunnel;
@@ -21,9 +22,9 @@ use log::{debug, error, info};
 use nym_config::defaults::{setup_env, NymNetworkDetails};
 use nym_sdk::mixnet::{MixnetClientBuilder, StoragePaths};
 use nym_task::TaskManager;
-use std::{collections::HashSet, path::PathBuf};
 use std::net::{IpAddr, Ipv4Addr};
 use std::str::FromStr;
+use std::{collections::HashSet, path::PathBuf};
 use talpid_routing::RouteManager;
 use talpid_types::net::wireguard::{
     ConnectionConfig, PeerConfig, PrivateKey, PublicKey, TunnelConfig, TunnelOptions,
@@ -297,13 +298,28 @@ async fn run() -> Result<()> {
     };
 
     info!("Setting up mixnet client");
-    let mixnet_client = setup_mixnet_client(
+    let mut mixnet_client = setup_mixnet_client(
         &args.entry_gateway,
         &args.mixnet_client_path,
         task_manager.subscribe_named("mixnet_client_main"),
         args.enable_wireguard,
     )
     .await?;
+
+    info!("Connecting to IP packet router");
+    if let Err(err) =
+        mixnet_connect::connect_to_ip_packet_router(&mut mixnet_client, exit_router, args.ip.into())
+            .await
+    {
+        // TODO: we should handle shutdown gracefully in all cases, not just this one.
+        error!("Failed to connect to IP packet router: {err}");
+        debug!("{err:?}");
+        mixnet_client.disconnect().await;
+        wait_for_interrupt(task_manager).await;
+        handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
+        return Err(err);
+    }
+    info!("Connected to IP packet router on the exit gateway!");
 
     // We need the IP of the gateway to correctly configure the routing table
     let gateway_used = mixnet_client.nym_address().gateway().to_base58_string();
@@ -330,17 +346,13 @@ async fn run() -> Result<()> {
     info!("Setting up mixnet processor");
     let processor_config = mixnet_processor::Config::new(exit_router);
     debug!("Mixnet processor config: {:#?}", processor_config);
-    if let Err(err) = mixnet_processor::start_processor(
+    mixnet_processor::start_processor(
         processor_config,
         mixnet_tun_dev,
         mixnet_client,
         &task_manager,
     )
-    .await {
-        error!("Failed to start mixnet processor: {err}");
-        // we let exucution continue as we still want to try to clean up the tunnel
-        // TODO: make cleanup code always run on any failure, not just this one
-    }
+    .await?;
 
     // Finished starting everything, now wait for shutdown
     wait_for_interrupt(task_manager).await;
