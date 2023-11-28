@@ -46,13 +46,13 @@ The binary needs root permissions to setup the TUN virtual network device.
 ### Case 1: connect to the entry gateway using a websocket connection.
 
 ```sh
-$ sudo ./target/release/nym-vpn-cli --entry-gateway <ENTRY_GATEWAY> --exit-router <EXIT_ROUTER> --ip <VPN_IP>
+$ sudo ./target/release/nym-vpn-cli --entry-gateway <ENTRY_GATEWAY> --exit-router <EXIT_ROUTER>
 ```
 
 ### Case 2: using WireGuard for the connection between the client and the entry gateway.
 
 ```sh
-$ sudo ./target/release/nym-vpn-cli --entry-gateway <ENTRY_GATEWAY> --exit-router <EXIT_ROUTER> --ip <VPN_IP> --enable-wireguard --private-key <PRIVATE_KEY>
+$ sudo ./target/release/nym-vpn-cli --entry-gateway <ENTRY_GATEWAY> --exit-router <EXIT_ROUTER> --enable-wireguard --private-key <PRIVATE_KEY>
 ```
 
 The full set of flags are:
