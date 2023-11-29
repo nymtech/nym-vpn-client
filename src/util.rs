@@ -4,6 +4,8 @@ use crate::error::*;
 use futures::channel::oneshot;
 use log::*;
 use talpid_routing::RouteManager;
+#[cfg(target_os = "linux")]
+use talpid_types::ErrorExt;
 
 pub(crate) async fn wait_for_interrupt(task_manager: nym_task::TaskManager) {
     if let Err(e) = task_manager.catch_interrupt().await {

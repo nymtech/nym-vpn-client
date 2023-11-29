@@ -10,8 +10,6 @@ use crate::commands::override_from_env;
 use clap::Parser;
 use log::*;
 use nym_config::defaults::setup_env;
-#[cfg(target_os = "linux")]
-use talpid_types::ErrorExt;
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
