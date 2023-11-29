@@ -3,16 +3,17 @@
 use futures::channel::oneshot::{Receiver, Sender};
 use futures::channel::{mpsc, oneshot};
 use log::*;
+use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 use talpid_core::dns::DnsMonitor;
 use talpid_core::firewall::Firewall;
-use talpid_routing::RouteManagerHandle;
+use talpid_routing::{RouteManager, RouteManagerHandle};
 use talpid_tunnel::tun_provider::TunProvider;
 use talpid_tunnel::TunnelArgs;
 use talpid_wireguard::{config::Config, WireguardMonitor};
 use tokio::task::JoinHandle;
 
-use crate::WireguardConfig;
+use crate::config::WireguardConfig;
 
 pub struct Tunnel {
     pub config: Option<Config>,
@@ -98,4 +99,18 @@ pub fn start_tunnel(
     });
 
     Ok(handle)
+}
+
+pub async fn setup_route_manager() -> crate::error::Result<RouteManager> {
+    #[cfg(target_os = "linux")]
+    let route_manager = {
+        let fwmark = 0;
+        let table_id = 0;
+        RouteManager::new(HashSet::new(), fwmark, table_id).await?
+    };
+
+    #[cfg(not(target_os = "linux"))]
+    let route_manager = RouteManager::new(HashSet::new()).await?;
+
+    Ok(route_manager)
 }

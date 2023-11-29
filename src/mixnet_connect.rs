@@ -1,3 +1,5 @@
+use nym_config::defaults::NymNetworkDetails;
+use std::path::PathBuf;
 use std::{
     net::{IpAddr, Ipv4Addr},
     time::Duration,
@@ -7,7 +9,7 @@ use nym_ip_packet_requests::{
     DynamicConnectResponse, IpPacketRequest, IpPacketResponse, IpPacketResponseData,
     StaticConnectResponse,
 };
-use nym_sdk::mixnet::{MixnetClient, MixnetMessageSender};
+use nym_sdk::mixnet::{MixnetClient, MixnetClientBuilder, MixnetMessageSender, StoragePaths};
 use tracing::{debug, error, info};
 
 use crate::{
@@ -137,4 +139,46 @@ pub async fn connect_to_ip_packet_router(
             Err(Error::UnexpectedConnectResponse)
         }
     }
+}
+
+pub(crate) async fn setup_mixnet_client(
+    mixnet_entry_gateway: &str,
+    mixnet_client_key_storage_path: &Option<PathBuf>,
+    task_client: nym_task::TaskClient,
+    enable_wireguard: bool,
+) -> Result<MixnetClient> {
+    // Disable Poisson rate limiter by default
+    let mut debug_config = nym_client_core::config::DebugConfig::default();
+    debug_config
+        .traffic
+        .disable_main_poisson_packet_distribution = true;
+
+    debug!("mixnet client has wireguard_mode={enable_wireguard}");
+    let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
+        debug!("Using custom key storage path: {:?}", path);
+        let key_storage_path = StoragePaths::new_from_dir(path)?;
+        MixnetClientBuilder::new_with_default_storage(key_storage_path)
+            .await?
+            .with_wireguard_mode(enable_wireguard)
+            .request_gateway(mixnet_entry_gateway.to_string())
+            .network_details(NymNetworkDetails::new_from_env())
+            .debug_config(debug_config)
+            .custom_shutdown(task_client)
+            .build()?
+            .connect_to_mixnet()
+            .await?
+    } else {
+        debug!("Using ephemeral key storage");
+        MixnetClientBuilder::new_ephemeral()
+            .with_wireguard_mode(enable_wireguard)
+            .request_gateway(mixnet_entry_gateway.to_string())
+            .network_details(NymNetworkDetails::new_from_env())
+            .debug_config(debug_config)
+            .custom_shutdown(task_client)
+            .build()?
+            .connect_to_mixnet()
+            .await?
+    };
+
+    Ok(mixnet_client)
 }

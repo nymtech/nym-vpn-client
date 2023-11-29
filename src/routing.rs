@@ -6,7 +6,8 @@ use talpid_routing::{Node, RequiredRoute, RouteManager};
 use tracing::{debug, error, info, trace};
 use tun::Device;
 
-use crate::{error::Result, WireguardConfig};
+use crate::config::WireguardConfig;
+use crate::error::Result;
 
 const DEFAULT_TUN_MTU: i32 = 1500;
 

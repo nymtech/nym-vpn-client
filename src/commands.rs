@@ -2,6 +2,9 @@
 
 use clap::Parser;
 use ipnetwork::Ipv4Network;
+use nym_config::defaults::var_names::NYM_API;
+use nym_config::OptionalSet;
+use nym_vpn_cli::gateway_client::Config;
 use std::{net::Ipv4Addr, path::PathBuf, str::FromStr};
 
 const TUN_IP_SUBNET: &str = "10.0.0.0/24";
@@ -56,4 +59,12 @@ fn validate_ip(ip: &str) -> Result<Ipv4Addr, String> {
         return Err("IP address cannot be 10.0.0.1".to_string());
     }
     Ok(ip)
+}
+
+pub fn override_from_env(args: &CliArgs, config: Config) -> Config {
+    let mut config = config.with_optional_env(Config::with_custom_api_url, None, NYM_API);
+    if let Some(ref private_key) = args.private_key {
+        config = config.with_local_private_key(private_key.clone());
+    }
+    config
 }

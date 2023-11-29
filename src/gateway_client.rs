@@ -1,8 +1,5 @@
-use crate::commands::CliArgs;
 use crate::error::Result;
-use nym_config::defaults::var_names::NYM_API;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
-use nym_config::OptionalSet;
 use nym_crypto::asymmetric::encryption;
 use nym_node_requests::api::client::NymNodeApiClientExt;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
@@ -17,7 +14,8 @@ use url::Url;
 
 const DEFAULT_API_URL: &str = "http://127.0.0.1:8000";
 
-pub(crate) struct Config {
+#[derive(Clone)]
+pub struct Config {
     pub(crate) api_url: Url,
     pub(crate) local_private_key: Option<String>,
 }
@@ -32,6 +30,9 @@ impl Default for Config {
 }
 
 impl Config {
+    pub fn api_url(&self) -> &Url {
+        &self.api_url
+    }
     pub fn with_custom_api_url(mut self, api_url: Url) -> Self {
         self.api_url = api_url;
         self
@@ -40,22 +41,14 @@ impl Config {
         self.local_private_key = Some(local_private_key);
         self
     }
-
-    pub fn override_from_env(args: &CliArgs, config: Config) -> Config {
-        let mut config = config.with_optional_env(Config::with_custom_api_url, None, NYM_API);
-        if let Some(ref private_key) = args.private_key {
-            config = config.with_local_private_key(private_key.clone());
-        }
-        config
-    }
 }
 
-pub(crate) struct GatewayClient {
+pub struct GatewayClient {
     api_client: NymApiClient,
     keypair: Option<encryption::KeyPair>,
 }
 #[derive(Clone, Debug)]
-pub(crate) struct GatewayData {
+pub struct GatewayData {
     pub(crate) public_key: PublicKey,
     pub(crate) endpoint: SocketAddr,
     pub(crate) private_ip: IpAddr,
