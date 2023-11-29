@@ -8,6 +8,8 @@ use tun::Device;
 
 use crate::{error::Result, WireguardConfig};
 
+const DEFAULT_TUN_MTU: i32 = 1500;
+
 #[derive(Debug)]
 pub struct RoutingConfig {
     mixnet_tun_config: tun::Configuration,
@@ -22,10 +24,12 @@ impl RoutingConfig {
         entry_mixnet_gateway_ip: IpAddr,
         lan_gateway_ip: LanGatewayIp,
         tunnel_gateway_ip: TunnelGatewayIp,
+        mtu: Option<i32>,
     ) -> Self {
         debug!("TUN device IP: {}", tun_ip);
         let mut mixnet_tun_config = tun::Configuration::default();
         mixnet_tun_config.address(tun_ip);
+        mixnet_tun_config.mtu(mtu.unwrap_or(DEFAULT_TUN_MTU));
         mixnet_tun_config.up();
 
         Self {

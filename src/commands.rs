@@ -40,6 +40,10 @@ pub(crate) struct CliArgs {
     /// Disable routing all traffic through the VPN TUN device.
     #[arg(long)]
     pub(crate) disable_routing: bool,
+
+    /// The MTU of the TUN device.
+    #[arg(long)]
+    pub(crate) mtu: Option<i32>,
 }
 
 fn validate_ip(ip: &str) -> Result<Ipv4Addr, String> {

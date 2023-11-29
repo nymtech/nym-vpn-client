@@ -340,6 +340,7 @@ async fn run() -> Result<()> {
         entry_mixnet_gateway_ip,
         default_lan_gateway_ip,
         tunnel_gateway_ip,
+        args.mtu,
     );
     debug!("Routing config: {:#?}", routing_config);
     let mixnet_tun_dev = routing::setup_routing(
