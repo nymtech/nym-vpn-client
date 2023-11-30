@@ -27,7 +27,9 @@ jobs:
       run: pwd
 
     - name: Build
-      run: RUSTFLAGS='-L $(pwd)/build/lib/x86_64-unknown-linux-gnu' cargo build --verbose
+      run: |
+        export LIBRARY_PATH="${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu"
+        RUSTFLAGS="-L ${LIBRARY_PATH}" cargo build --verbose
 
     - name: Run tests
       run: cargo test --verbose
