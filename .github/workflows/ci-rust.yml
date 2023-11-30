@@ -33,3 +33,9 @@ jobs:
 
     - name: Run tests
       run: cargo test --verbose
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: nym-vpn-cli
+        path: target/release/nym-vpn-cli
