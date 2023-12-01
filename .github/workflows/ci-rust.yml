@@ -11,10 +11,13 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-latest]
 
     env:
-      LIBRARY_PATH: ${{ github.workspace }}/build/lib/x86_64-unknown-linux-gnu
+      LIBRARY_PATH: ${{ (matrix.os == 'ubuntu-22.04' && github.workspace + '/build/lib/x86_64-unknown-linux-gnu') || (matrix.os == 'macos-latest' && '/build/lib/aarch64-apple-darwin') }}
 
     steps:
     - name: Checkout repo
@@ -22,6 +25,7 @@ jobs:
 
     - name: Install system dependencies
       run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
+      if: matrix.os == 'ubuntu-22.04'
 
     - name: Install rust toolchain
       uses: actions-rs/toolchain@v1
