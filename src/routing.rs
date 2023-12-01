@@ -3,6 +3,7 @@ use std::{collections::HashSet, net::IpAddr};
 use default_net::interface::get_default_interface;
 use ipnetwork::IpNetwork;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
+use tap::TapFallible;
 use tracing::{debug, error, info, trace};
 use tun::Device;
 
@@ -152,7 +153,9 @@ pub async fn setup_routing(
     enable_wireguard: bool,
     disable_routing: bool,
 ) -> Result<tun::AsyncDevice> {
-    let dev = tun::create_as_async(&config.mixnet_tun_config)?;
+    info!("Creating tun device");
+    let dev = tun::create_as_async(&config.mixnet_tun_config)
+        .tap_err(|err| error!("Failed to create tun device: {}", err))?;
     let device_name = dev.get_ref().name().to_string();
     info!("Created tun device {device_name}: ip={device_ip}, broadcast={device_broadcast}, netmask={device_netmask}, destination={device_destination}, mtu={device_mtu}",
         device_name = device_name,
