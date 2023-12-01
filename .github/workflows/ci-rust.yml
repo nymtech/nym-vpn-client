@@ -53,8 +53,6 @@ jobs:
     - name: Build wireguard
       run: ./wireguard/build-wireguard-go.sh
 
-    - run: ls build/lib
-
     - name: Build
       run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo build --verbose
 
