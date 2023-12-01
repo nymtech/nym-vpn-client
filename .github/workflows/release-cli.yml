@@ -1,8 +1,6 @@
-name: ci-rust
+name: release-cli
 
 on:
-  push:
-  pull_request:
   workflow_dispatch:
 
 env:
@@ -34,10 +32,14 @@ jobs:
     - name: Build wireguard
       run: ./wireguard/build-wireguard-go.sh
 
-    - run: cargo fmt --all -- --check
-
     - name: Build
-      run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo build --verbose
+      run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo build --release --verbose
 
     - name: Run tests
-      run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo test --verbose
+      run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo test --release --verbose
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: nym-vpn-cli
+        path: target/release/nym-vpn-cli
