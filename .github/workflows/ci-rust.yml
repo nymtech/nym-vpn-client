@@ -1,7 +1,7 @@
 name: ci-rust
 
 on:
-  push:
+  # push:
   pull_request:
   workflow_dispatch:
 
@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-latest, windows-latest]
+        os: [ubuntu-22.04, macos-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -39,8 +39,6 @@ jobs:
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
         elif [ "${{ matrix.os }}" = "macos-latest" ]; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/aarch64-apple-darwin" >> $GITHUB_ENV
-        elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-          echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc" >> $GITHUB_ENV
         fi
 
     - name: Install Protoc
