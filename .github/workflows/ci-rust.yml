@@ -14,11 +14,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-latest]
+        os: [ubuntu-22.04, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-
-    # env:
-    #   LIBRARY_PATH: ${{ (matrix.os == 'ubuntu-22.04' && github.workspace + '/build/lib/x86_64-unknown-linux-gnu') || (matrix.os == 'macos-latest' && '/build/lib/aarch64-apple-darwin') }}
 
     steps:
     - name: Checkout repo
@@ -42,12 +39,23 @@ jobs:
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
         elif [ "${{ matrix.os }}" = "macos-latest" ]; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/aarch64-apple-darwin" >> $GITHUB_ENV
+        elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+          echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc" >> $GITHUB_ENV
         fi
+
+    - name: Install Protoc
+      uses: arduino/setup-protoc@v2
+      if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest'
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Check formatting
+      run: cargo fmt --all -- --check
 
     - name: Build wireguard
       run: ./wireguard/build-wireguard-go.sh
 
-    - run: cargo fmt --all -- --check
+    - name: ls build/lib
 
     - name: Build
       run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo build --verbose
