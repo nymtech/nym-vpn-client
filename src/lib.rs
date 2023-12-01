@@ -170,13 +170,24 @@ impl NymVPN {
             self.mtu,
         );
         debug!("Routing config: {:#?}", routing_config);
-        let mixnet_tun_dev = routing::setup_routing(
+        let mixnet_tun_dev = match routing::setup_routing(
             &mut route_manager,
             routing_config,
             self.enable_wireguard,
             self.disable_routing,
         )
-        .await?;
+        .await {
+            Ok(dev) => dev,
+            Err(err) => {
+                // TODO: we should handle shutdown gracefully in all cases, not just this one.
+                error!("Failed to setup TUN virtual network device: {err}");
+                debug!("{err:?}");
+                mixnet_client.disconnect().await;
+                wait_for_interrupt(task_manager).await;
+                handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
+                return Err(err);
+            }
+        };
 
         info!("Setting up mixnet processor");
         let processor_config = mixnet_processor::Config::new(exit_router);

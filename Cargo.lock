@@ -4272,6 +4272,7 @@ dependencies = [
  "talpid-tunnel",
  "talpid-types",
  "talpid-wireguard",
+ "tap",
  "thiserror",
  "tokio",
  "tracing",
