@@ -176,7 +176,8 @@ impl NymVPN {
             self.enable_wireguard,
             self.disable_routing,
         )
-        .await {
+        .await
+        {
             Ok(dev) => dev,
             Err(err) => {
                 // TODO: we should handle shutdown gracefully in all cases, not just this one.
