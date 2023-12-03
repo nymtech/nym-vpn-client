@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-latest]
+        os: [custom-ubuntu-20.04, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -23,7 +23,7 @@ jobs:
 
     - name: Install system dependencies
       run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
-      if: matrix.os == 'ubuntu-22.04'
+      if: matrix.os == 'cusom-ubuntu-20.04'
 
     - name: Install rust toolchain
       uses: actions-rs/toolchain@v1
@@ -35,7 +35,7 @@ jobs:
 
     - name: Set LIBRARY_PATH
       run: |
-        if [ "${{ matrix.os }}" = "ubuntu-22.04" ]; then
+        if [ "${{ matrix.os }}" = "custom-ubuntu-20.04" ]; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
         elif [ "${{ matrix.os }}" = "macos-latest" ]; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
