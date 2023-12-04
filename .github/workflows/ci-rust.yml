@@ -58,3 +58,6 @@ jobs:
 
     - name: Run tests
       run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo test --verbose
+
+    - name: Clippy
+      run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo clippy -- -Dwarnings
