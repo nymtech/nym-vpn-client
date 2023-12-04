@@ -146,12 +146,20 @@ pub(crate) async fn setup_mixnet_client(
     mixnet_client_key_storage_path: &Option<PathBuf>,
     task_client: nym_task::TaskClient,
     enable_wireguard: bool,
+    enable_two_hop: bool,
+    enable_poisson_rate: bool,
 ) -> Result<MixnetClient> {
     // Disable Poisson rate limiter by default
     let mut debug_config = nym_client_core::config::DebugConfig::default();
+
+    info!("mixnet client has Poisson rate limiting enabled: {enable_poisson_rate}");
     debug_config
         .traffic
-        .disable_main_poisson_packet_distribution = true;
+        .disable_main_poisson_packet_distribution = !enable_poisson_rate;
+
+    info!("mixnet client setup to send with two hops: {enable_two_hop}");
+    // TODO: add support for two-hop mixnet traffic as a setting on the mixnet_client.
+    // For now it's something we explicitly set on each set InputMessage.
 
     debug!("mixnet client has wireguard_mode={enable_wireguard}");
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {

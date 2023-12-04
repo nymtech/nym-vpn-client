@@ -2,8 +2,8 @@
 
 use futures::{SinkExt, StreamExt};
 use nym_ip_packet_requests::{IpPacketRequest, IpPacketResponse, IpPacketResponseData};
-use nym_sdk::mixnet::{IncludedSurbs, MixnetClient, MixnetMessageSender, Recipient};
-use nym_task::{TaskClient, TaskManager};
+use nym_sdk::mixnet::{IncludedSurbs, InputMessage, MixnetClient, MixnetMessageSender, Recipient};
+use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use tracing::{debug, error, info, trace, warn};
 use tun::{AsyncDevice, Device, TunPacket};
 
@@ -44,6 +44,8 @@ pub struct MixnetProcessor {
     device: AsyncDevice,
     mixnet_client: MixnetClient,
     ip_packet_router_address: IpPacketRouterAddress,
+    // TODO: handle this as part of setting up the mixnet client
+    enable_two_hop: bool,
 }
 
 impl MixnetProcessor {
@@ -51,11 +53,13 @@ impl MixnetProcessor {
         device: AsyncDevice,
         mixnet_client: MixnetClient,
         ip_packet_router_address: IpPacketRouterAddress,
+        enable_two_hop: bool,
     ) -> Self {
         MixnetProcessor {
             device,
             mixnet_client,
             ip_packet_router_address,
+            enable_two_hop,
         }
     }
 
@@ -105,11 +109,21 @@ impl MixnetProcessor {
                         continue;
                     };
 
-                    // The enum here about IncludedSurbs and ExposeSelfAddress is misleading. It is
-                    // not being used. Basically IncludedSurbs::ExposeSelfAddress just omits the
-                    // surbs, assuming that it is exposed inside the message. (This is the case
-                    // for SOCKS5 too).
-                    let ret = sender.send_message(recipient.0, &packet, IncludedSurbs::ExposeSelfAddress).await;
+                    let lane = TransmissionLane::General;
+                    let packet_type = None;
+                    let input_message = if self.enable_two_hop {
+                        InputMessage::new_regular_with_custom_hops(
+                            recipient.0,
+                            packet,
+                            lane,
+                            packet_type,
+                            0,
+                        )
+                    } else {
+                        InputMessage::new_regular(recipient.0, packet, lane, packet_type)
+                    };
+
+                    let ret = sender.send(input_message).await;
                     if ret.is_err() && !shutdown.is_shutdown_poll() {
                         error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
                     }
@@ -132,9 +146,15 @@ pub async fn start_processor(
     dev: tun::AsyncDevice,
     mixnet_client: MixnetClient,
     task_manager: &TaskManager,
+    enable_two_hop: bool,
 ) -> Result<()> {
     info!("Creating mixnet processor");
-    let processor = MixnetProcessor::new(dev, mixnet_client, config.ip_packet_router_address);
+    let processor = MixnetProcessor::new(
+        dev,
+        mixnet_client,
+        config.ip_packet_router_address,
+        enable_two_hop,
+    );
     let shutdown_listener = task_manager.subscribe();
     tokio::spawn(processor.run(shutdown_listener));
     Ok(())

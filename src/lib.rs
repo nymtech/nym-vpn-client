@@ -43,9 +43,6 @@ pub struct NymVPN {
     /// Gateway configuration
     pub gateway_config: Config,
 
-    /// Enable the wireguard traffic between the client and the entry gateway.
-    pub enable_wireguard: bool,
-
     /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
     pub mixnet_client_path: Option<PathBuf>,
 
@@ -55,17 +52,27 @@ pub struct NymVPN {
     /// Mixnet recipient address.
     pub exit_router: String,
 
+    /// Enable the wireguard traffic between the client and the entry gateway.
+    pub enable_wireguard: bool,
+
     /// Associated private key.
     pub private_key: Option<String>,
 
     /// The IP address of the TUN device.
     pub ip: Option<Ipv4Addr>,
 
+    /// The MTU of the TUN device.
+    pub mtu: Option<i32>,
+
     /// Disable routing all traffic through the VPN TUN device.
     pub disable_routing: bool,
 
-    /// The MTU of the TUN device.
-    pub mtu: Option<i32>,
+    /// Enable two-hop mixnet traffic. This means that traffic jumps directly from entry gateway to
+    /// exit gateway.
+    pub enable_two_hop: bool,
+
+    /// Enable Poission process rate limiting of outbound traffic.
+    pub enable_poisson_rate: bool,
 }
 
 impl NymVPN {
@@ -126,6 +133,8 @@ impl NymVPN {
             &self.mixnet_client_path,
             task_manager.subscribe_named("mixnet_client_main"),
             self.enable_wireguard,
+            self.enable_two_hop,
+            self.enable_poisson_rate,
         )
         .await?;
 
@@ -198,6 +207,7 @@ impl NymVPN {
             mixnet_tun_dev,
             mixnet_client,
             &task_manager,
+            self.enable_two_hop,
         )
         .await?;
 
