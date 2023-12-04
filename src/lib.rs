@@ -143,6 +143,7 @@ impl NymVPN {
             &mut mixnet_client,
             exit_router,
             self.ip,
+            self.enable_two_hop,
         )
         .await
         {

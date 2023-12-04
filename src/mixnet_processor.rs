@@ -2,7 +2,7 @@
 
 use futures::{SinkExt, StreamExt};
 use nym_ip_packet_requests::{IpPacketRequest, IpPacketResponse, IpPacketResponseData};
-use nym_sdk::mixnet::{IncludedSurbs, InputMessage, MixnetClient, MixnetMessageSender, Recipient};
+use nym_sdk::mixnet::{InputMessage, MixnetClient, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use tracing::{debug, error, info, trace, warn};
 use tun::{AsyncDevice, Device, TunPacket};

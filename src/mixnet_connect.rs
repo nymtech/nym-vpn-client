@@ -21,28 +21,42 @@ async fn send_connect_to_ip_packet_router(
     mixnet_client: &mut MixnetClient,
     ip_packet_router_address: IpPacketRouterAddress,
     ip: Option<Ipv4Addr>,
+    enable_two_hop: bool,
 ) -> Result<u64> {
+    let hops = enable_two_hop.then_some(0);
     let (request, request_id) = if let Some(ip) = ip {
         debug!("Sending static connect request with ip: {ip}");
         IpPacketRequest::new_static_connect_request(
             ip.into(),
             *mixnet_client.nym_address(),
-            None,
+            hops,
             None,
         )
     } else {
         debug!("Sending dynamic connect request");
-        IpPacketRequest::new_dynamic_connect_request(*mixnet_client.nym_address(), None, None)
+        IpPacketRequest::new_dynamic_connect_request(*mixnet_client.nym_address(), hops, None)
     };
 
-    mixnet_client
-        .send(nym_sdk::mixnet::InputMessage::new_regular(
-            ip_packet_router_address.0,
-            request.to_bytes().unwrap(),
-            nym_task::connections::TransmissionLane::General,
-            None,
-        ))
-        .await?;
+    if let Some(hops) = hops {
+        mixnet_client
+            .send(nym_sdk::mixnet::InputMessage::new_regular_with_custom_hops(
+                ip_packet_router_address.0,
+                request.to_bytes().unwrap(),
+                nym_task::connections::TransmissionLane::General,
+                None,
+                hops,
+            ))
+            .await?;
+    } else {
+        mixnet_client
+            .send(nym_sdk::mixnet::InputMessage::new_regular(
+                ip_packet_router_address.0,
+                request.to_bytes().unwrap(),
+                nym_task::connections::TransmissionLane::General,
+                None,
+            ))
+            .await?;
+    }
     Ok(request_id)
 }
 
@@ -118,10 +132,16 @@ pub async fn connect_to_ip_packet_router(
     mixnet_client: &mut MixnetClient,
     ip_packet_router_address: IpPacketRouterAddress,
     ip: Option<Ipv4Addr>,
+    enable_two_hop: bool,
 ) -> Result<IpAddr> {
     info!("Sending connect request");
-    let request_id =
-        send_connect_to_ip_packet_router(mixnet_client, ip_packet_router_address, ip).await?;
+    let request_id = send_connect_to_ip_packet_router(
+        mixnet_client,
+        ip_packet_router_address,
+        ip,
+        enable_two_hop,
+    )
+    .await?;
 
     info!("Waiting for reply...");
     let response = wait_for_connect_response(mixnet_client, request_id).await?;
