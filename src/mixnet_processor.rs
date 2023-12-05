@@ -111,17 +111,14 @@ impl MixnetProcessor {
 
                     let lane = TransmissionLane::General;
                     let packet_type = None;
-                    let input_message = if self.enable_two_hop {
-                        InputMessage::new_regular_with_custom_hops(
+                    let hops = self.enable_two_hop.then_some(0);
+                    let input_message = InputMessage::new_regular_with_custom_hops(
                             recipient.0,
                             packet,
                             lane,
                             packet_type,
-                            0,
-                        )
-                    } else {
-                        InputMessage::new_regular(recipient.0, packet, lane, packet_type)
-                    };
+                            hops,
+                        );
 
                     let ret = sender.send(input_message).await;
                     if ret.is_err() && !shutdown.is_shutdown_poll() {

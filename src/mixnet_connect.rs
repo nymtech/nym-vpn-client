@@ -37,26 +37,16 @@ async fn send_connect_to_ip_packet_router(
         IpPacketRequest::new_dynamic_connect_request(*mixnet_client.nym_address(), hops, None)
     };
 
-    if let Some(hops) = hops {
-        mixnet_client
-            .send(nym_sdk::mixnet::InputMessage::new_regular_with_custom_hops(
-                ip_packet_router_address.0,
-                request.to_bytes().unwrap(),
-                nym_task::connections::TransmissionLane::General,
-                None,
-                hops,
-            ))
-            .await?;
-    } else {
-        mixnet_client
-            .send(nym_sdk::mixnet::InputMessage::new_regular(
-                ip_packet_router_address.0,
-                request.to_bytes().unwrap(),
-                nym_task::connections::TransmissionLane::General,
-                None,
-            ))
-            .await?;
-    }
+    mixnet_client
+        .send(nym_sdk::mixnet::InputMessage::new_regular_with_custom_hops(
+            ip_packet_router_address.0,
+            request.to_bytes().unwrap(),
+            nym_task::connections::TransmissionLane::General,
+            None,
+            hops,
+        ))
+        .await?;
+
     Ok(request_id)
 }
 
