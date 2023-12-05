@@ -21,28 +21,32 @@ async fn send_connect_to_ip_packet_router(
     mixnet_client: &mut MixnetClient,
     ip_packet_router_address: IpPacketRouterAddress,
     ip: Option<Ipv4Addr>,
+    enable_two_hop: bool,
 ) -> Result<u64> {
+    let hops = enable_two_hop.then_some(0);
     let (request, request_id) = if let Some(ip) = ip {
         debug!("Sending static connect request with ip: {ip}");
         IpPacketRequest::new_static_connect_request(
             ip.into(),
             *mixnet_client.nym_address(),
-            None,
+            hops,
             None,
         )
     } else {
         debug!("Sending dynamic connect request");
-        IpPacketRequest::new_dynamic_connect_request(*mixnet_client.nym_address(), None, None)
+        IpPacketRequest::new_dynamic_connect_request(*mixnet_client.nym_address(), hops, None)
     };
 
     mixnet_client
-        .send(nym_sdk::mixnet::InputMessage::new_regular(
+        .send(nym_sdk::mixnet::InputMessage::new_regular_with_custom_hops(
             ip_packet_router_address.0,
             request.to_bytes().unwrap(),
             nym_task::connections::TransmissionLane::General,
             None,
+            hops,
         ))
         .await?;
+
     Ok(request_id)
 }
 
@@ -118,10 +122,16 @@ pub async fn connect_to_ip_packet_router(
     mixnet_client: &mut MixnetClient,
     ip_packet_router_address: IpPacketRouterAddress,
     ip: Option<Ipv4Addr>,
+    enable_two_hop: bool,
 ) -> Result<IpAddr> {
     info!("Sending connect request");
-    let request_id =
-        send_connect_to_ip_packet_router(mixnet_client, ip_packet_router_address, ip).await?;
+    let request_id = send_connect_to_ip_packet_router(
+        mixnet_client,
+        ip_packet_router_address,
+        ip,
+        enable_two_hop,
+    )
+    .await?;
 
     info!("Waiting for reply...");
     let response = wait_for_connect_response(mixnet_client, request_id).await?;
@@ -146,12 +156,20 @@ pub(crate) async fn setup_mixnet_client(
     mixnet_client_key_storage_path: &Option<PathBuf>,
     task_client: nym_task::TaskClient,
     enable_wireguard: bool,
+    enable_two_hop: bool,
+    enable_poisson_rate: bool,
 ) -> Result<MixnetClient> {
     // Disable Poisson rate limiter by default
     let mut debug_config = nym_client_core::config::DebugConfig::default();
+
+    info!("mixnet client has Poisson rate limiting enabled: {enable_poisson_rate}");
     debug_config
         .traffic
-        .disable_main_poisson_packet_distribution = true;
+        .disable_main_poisson_packet_distribution = !enable_poisson_rate;
+
+    info!("mixnet client setup to send with two hops: {enable_two_hop}");
+    // TODO: add support for two-hop mixnet traffic as a setting on the mixnet_client.
+    // For now it's something we explicitly set on each set InputMessage.
 
     debug!("mixnet client has wireguard_mode={enable_wireguard}");
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {

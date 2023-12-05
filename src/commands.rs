@@ -16,10 +16,6 @@ pub(crate) struct CliArgs {
     #[arg(short, long)]
     pub(crate) config_env_file: Option<PathBuf>,
 
-    /// Enable the wireguard traffic between the client and the entry gateway.
-    #[arg(long, default_value_t = false, requires = "private_key")]
-    pub(crate) enable_wireguard: bool,
-
     /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
     #[arg(long)]
     pub(crate) mixnet_client_path: Option<PathBuf>,
@@ -32,6 +28,10 @@ pub(crate) struct CliArgs {
     #[arg(long, alias = "recipient-address", alias = "exit-address")]
     pub(crate) exit_router: String,
 
+    /// Enable the wireguard traffic between the client and the entry gateway.
+    #[arg(long, default_value_t = false, requires = "private_key")]
+    pub(crate) enable_wireguard: bool,
+
     /// Associated private key.
     #[arg(long, requires = "enable_wireguard")]
     pub(crate) private_key: Option<String>,
@@ -40,13 +40,22 @@ pub(crate) struct CliArgs {
     #[arg(long, value_parser = validate_ip)]
     pub(crate) ip: Option<Ipv4Addr>,
 
+    /// The MTU of the TUN device.
+    #[arg(long)]
+    pub(crate) mtu: Option<i32>,
+
     /// Disable routing all traffic through the VPN TUN device.
     #[arg(long)]
     pub(crate) disable_routing: bool,
 
-    /// The MTU of the TUN device.
+    /// Enable two-hop mixnet traffic. This means that traffic jumps directly from entry gateway to
+    /// exit gateway.
     #[arg(long)]
-    pub(crate) mtu: Option<i32>,
+    pub(crate) enable_two_hop: bool,
+
+    /// Enable Poission process rate limiting of outbound traffic.
+    #[arg(long)]
+    pub(crate) enable_poisson_rate: bool,
 }
 
 fn validate_ip(ip: &str) -> Result<Ipv4Addr, String> {

@@ -36,14 +36,16 @@ async fn run() -> Result<()> {
 
     let nym_vpn = NymVPN {
         gateway_config,
-        enable_wireguard: args.enable_wireguard,
         mixnet_client_path: args.mixnet_client_path,
         entry_gateway: args.entry_gateway,
         exit_router: args.exit_router,
+        enable_wireguard: args.enable_wireguard,
         private_key: args.private_key,
         ip: args.ip,
-        disable_routing: args.disable_routing,
         mtu: args.mtu,
+        disable_routing: args.disable_routing,
+        enable_two_hop: args.enable_two_hop,
+        enable_poisson_rate: args.enable_poisson_rate,
     };
     nym_vpn.run().await?;
 
