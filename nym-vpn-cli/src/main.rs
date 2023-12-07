@@ -2,14 +2,14 @@
 
 mod commands;
 
-use nym_vpn_cli::error::*;
-use nym_vpn_cli::gateway_client::Config as GatewayConfig;
-use nym_vpn_cli::NymVPN;
+use nym_vpn_lib::error::*;
+use nym_vpn_lib::gateway_client::Config as GatewayConfig;
+use nym_vpn_lib::NymVPN;
 
 use crate::commands::override_from_env;
 use clap::Parser;
 use log::*;
-use nym_config::defaults::setup_env;
+use nym_vpn_lib::nym_config::defaults::setup_env;
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()

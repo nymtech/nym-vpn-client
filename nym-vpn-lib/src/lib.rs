@@ -13,6 +13,8 @@ use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 
+pub use nym_config;
+
 pub mod config;
 pub mod error;
 pub mod gateway_client;
@@ -22,7 +24,7 @@ pub mod routing;
 pub mod tunnel;
 mod util;
 
-pub async fn init_wireguard_config(
+async fn init_wireguard_config(
     gateway_client: &GatewayClient,
     entry_gateway_identity: &str,
     wireguard_private_key: &str,
@@ -260,9 +262,9 @@ pub enum NymVpnExitStatusMessage {
 /// Examples
 ///
 /// ```no_run
-/// let mut vpn_config = nym_vpn_cli::NymVPN::new("Qwertyuiopasdfghjklzxcvbnm1234567890", "Qwertyuiopasdfghjklzxcvbnm1234567890");
+/// let mut vpn_config = nym_vpn_lib::NymVPN::new("Qwertyuiopasdfghjklzxcvbnm1234567890", "Qwertyuiopasdfghjklzxcvbnm1234567890");
 /// vpn_config.enable_two_hop = true;
-/// let vpn_handle = nym_vpn_cli::spawn_nym_vpn(vpn_config);
+/// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
 /// ```
 pub fn spawn_nym_vpn(nym_vpn: NymVPN) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, _vpn_ctrl_rx) = mpsc::unbounded();
