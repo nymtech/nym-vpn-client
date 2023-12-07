@@ -9,7 +9,11 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-latest]
+    runs-on: ${{ matrix.os }}
 
     env:
       LIBRARY_PATH: ${{ github.workspace }}/build/lib/x86_64-unknown-linux-gnu
