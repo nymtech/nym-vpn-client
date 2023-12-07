@@ -7,7 +7,7 @@ use crate::mixnet_connect::setup_mixnet_client;
 use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
-use futures::channel::oneshot;
+use futures::channel::{mpsc, oneshot};
 use log::*;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
@@ -76,6 +76,22 @@ pub struct NymVPN {
 }
 
 impl NymVPN {
+    pub fn new(entry_gateway: &str, exit_router: &str) -> Self {
+        Self {
+            gateway_config: gateway_client::Config::default(),
+            mixnet_client_path: None,
+            entry_gateway: entry_gateway.to_string(),
+            exit_router: exit_router.to_string(),
+            enable_wireguard: false,
+            private_key: None,
+            ip: None,
+            mtu: None,
+            disable_routing: false,
+            enable_two_hop: false,
+            enable_poisson_rate: false,
+        }
+    }
+
     pub async fn run(&self) -> Result<()> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
@@ -221,4 +237,64 @@ impl NymVPN {
 
         Ok(())
     }
+}
+
+#[derive(Debug)]
+pub enum NymVpnStatusMessage {
+    Slow,
+}
+
+#[derive(Debug)]
+pub enum NymVpnCtrlMessage {
+    Stop,
+}
+
+#[derive(Debug)]
+pub enum NymVpnExitStatusMessage {
+    Stopped,
+    Failed,
+}
+
+/// Starts the Nym VPN client.
+///
+/// Examples
+///
+/// ```no_run
+/// let mut vpn_config = nym_vpn_cli::NymVPN::new("Qwertyuiopasdfghjklzxcvbnm1234567890", "Qwertyuiopasdfghjklzxcvbnm1234567890");
+/// vpn_config.enable_two_hop = true;
+/// let vpn_handle = nym_vpn_cli::spawn_nym_vpn(vpn_config);
+/// ```
+pub fn spawn_nym_vpn(nym_vpn: NymVPN) -> Result<NymVpnHandle> {
+    let (vpn_ctrl_tx, _vpn_ctrl_rx) = mpsc::unbounded();
+
+    let (_vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
+
+    let (vpn_exit_tx, vpn_exit_rx) = oneshot::channel();
+
+    std::thread::spawn(|| {
+        let result = tokio::runtime::Runtime::new()
+            .expect("Failed to create Tokio run time")
+            .block_on(async move { nym_vpn.run().await });
+
+        if let Err(err) = result {
+            log::error!("Nym VPN returned error: {err}");
+        }
+
+        log::info!("Nym VPN has shut down");
+        vpn_exit_tx
+            .send(NymVpnExitStatusMessage::Stopped)
+            .expect("Failed to send exit status");
+    });
+
+    Ok(NymVpnHandle {
+        vpn_ctrl_tx,
+        vpn_status_rx,
+        vpn_exit_rx,
+    })
+}
+
+pub struct NymVpnHandle {
+    pub vpn_ctrl_tx: mpsc::UnboundedSender<NymVpnCtrlMessage>,
+    pub vpn_status_rx: mpsc::Receiver<NymVpnStatusMessage>,
+    pub vpn_exit_rx: oneshot::Receiver<NymVpnExitStatusMessage>,
 }
