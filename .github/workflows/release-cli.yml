@@ -57,5 +57,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: nym-vpn-cli
+        name: nym-vpn-cli-${{ matrix.os }}
         path: target/release/nym-vpn-cli
