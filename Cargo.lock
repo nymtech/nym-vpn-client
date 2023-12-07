@@ -4264,9 +4264,15 @@ dependencies = [
 name = "nym-vpn-cli"
 version = "0.1.0"
 dependencies = [
+ "clap",
+ "ipnetwork",
+ "log",
  "nym-vpn-lib",
  "shadowsocks",
  "shadowsocks-service",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -4275,7 +4281,6 @@ version = "0.1.0"
 dependencies = [
  "bincode",
  "bytes",
- "clap",
  "default-net",
  "futures",
  "ipnetwork",

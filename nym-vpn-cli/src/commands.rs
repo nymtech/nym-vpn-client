@@ -2,9 +2,9 @@
 
 use clap::Parser;
 use ipnetwork::Ipv4Network;
-use nym_config::defaults::var_names::NYM_API;
-use nym_config::OptionalSet;
-use nym_vpn_cli::gateway_client::Config;
+use nym_vpn_lib::nym_config::defaults::var_names::NYM_API;
+use nym_vpn_lib::nym_config::OptionalSet;
+use nym_vpn_lib::gateway_client::Config;
 use std::{net::Ipv4Addr, path::PathBuf, str::FromStr};
 
 const TUN_IP_SUBNET: &str = "10.0.0.0/24";

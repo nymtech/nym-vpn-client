@@ -13,6 +13,8 @@ use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 
+pub use nym_config;
+
 pub mod config;
 pub mod error;
 pub mod gateway_client;
