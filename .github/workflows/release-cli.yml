@@ -15,15 +15,13 @@ jobs:
         os: [ubuntu-22.04, macos-latest]
     runs-on: ${{ matrix.os }}
 
-    env:
-      LIBRARY_PATH: ${{ github.workspace }}/build/lib/x86_64-unknown-linux-gnu
-
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
 
     - name: Install system dependencies
       run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
+      if: matrix.os == 'ubuntu-22.04'
 
     - name: Install rust toolchain
       uses: actions-rs/toolchain@v1
@@ -32,6 +30,14 @@ jobs:
         toolchain: stable
         override: true
         components: rustfmt, clippy
+
+    - name: Set LIBRARY_PATH
+      run: |
+        if [ "${{ matrix.os }}" = "ubuntu-22.04" ]; then
+          echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
+        elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+          echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
+        fi
 
     - name: Build wireguard
       run: ./wireguard/build-wireguard-go.sh
