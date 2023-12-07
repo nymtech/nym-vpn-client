@@ -39,6 +39,12 @@ jobs:
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
         fi
 
+    - name: Install Protoc
+      uses: arduino/setup-protoc@v2
+      if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest'
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Build wireguard
       run: ./wireguard/build-wireguard-go.sh
 
