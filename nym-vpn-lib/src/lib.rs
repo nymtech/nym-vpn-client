@@ -24,7 +24,7 @@ pub mod routing;
 pub mod tunnel;
 mod util;
 
-pub async fn init_wireguard_config(
+async fn init_wireguard_config(
     gateway_client: &GatewayClient,
     entry_gateway_identity: &str,
     wireguard_private_key: &str,
