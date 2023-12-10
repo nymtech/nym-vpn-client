@@ -25,6 +25,9 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
       if: matrix.os == 'cusom-ubuntu-20.04'
 
+    - name: Install go toolchain
+      uses: actions/setup-go@v4
+
     - name: Install rust toolchain
       uses: actions-rs/toolchain@v1
       with:
