@@ -42,6 +42,7 @@ async fn init_wireguard_config(
     Ok(wireguard_config)
 }
 
+#[derive(Clone)]
 pub struct NymVPN {
     /// Gateway configuration
     pub gateway_config: Config,
