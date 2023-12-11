@@ -6,6 +6,7 @@
 target
 .idea
 build
+bin
 .env
 .env.dev
 /.vscode/settings.json
