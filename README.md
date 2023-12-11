@@ -18,7 +18,25 @@ It can optionally do the first connection to the entry gateway using wireguard, 
 
 ## How to build
 
-### Step 1.
+### Prerequisites
+
+- Go toolchain
+- Rust toolchain
+- Some C-libraries
+    - libmnl-dev
+    - libnftnl-dev
+
+### The simple way
+
+```sh
+$ make
+```
+
+in the root directory should if all things went well, produce a binary `bin/nym-vpn-cli`
+
+### The manual way
+
+#### Step 1.
 
 Build the wireguard-go static library:
 
@@ -33,7 +51,7 @@ $ ls build/lib/x86_64-unknown-linux-gnu/
 libwg.a  libwg.h
 ```
 
-### Step 2.
+#### Step 2.
 
 Next, to build the Rust CLI, you need to add the library to the search path by prepending `cargo build` with `RUSTFLAGS`,
 
@@ -71,27 +89,37 @@ The full set of flags are:
 
 ```
 $ ./target/release/nym-vpn-cli --help
-Usage: nym-vpn-cli [OPTIONS] --entry-gateway <ENTRY_GATEWAY> --exit-router <EXIT_ROUTER> --ip <IP>
+Usage: nym-vpn-cli [OPTIONS] --entry-gateway <ENTRY_GATEWAY> --exit-router <EXIT_ROUTER>
 
 Options:
   -c, --config-env-file <CONFIG_ENV_FILE>
           Path pointing to an env file describing the network
-      --enable-wireguard
-          Enable the wireguard traffic between the client and the entry gateway
       --mixnet-client-path <MIXNET_CLIENT_PATH>
           Path to the data directory of a previously initialised mixnet client, where the keys reside
       --entry-gateway <ENTRY_GATEWAY>
           Mixnet public ID of the entry gateway
       --exit-router <EXIT_ROUTER>
           Mixnet recipient address
+      --enable-wireguard
+          Enable the wireguard traffic between the client and the entry gateway
       --private-key <PRIVATE_KEY>
           Associated private key
       --ip <IP>
           The IP address of the TUN device
+      --mtu <MTU>
+          The MTU of the TUN device
       --disable-routing
           Disable routing all traffic through the VPN TUN device
+      --enable-two-hop
+          Enable two-hop mixnet traffic. This means that traffic jumps directly from entry gateway to exit gateway
+      --enable-poisson-rate
+          Enable Poission process rate limiting of outbound traffic
   -h, --help
           Print help
   -V, --version
           Print version
 ```
+
+# Known issues
+
+- Routing rules are not restored on linux after stopping the VPN. The workaround is to reconnect to wifi/ethernet.
