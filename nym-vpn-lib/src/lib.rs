@@ -96,6 +96,14 @@ impl NymVPN {
         }
     }
 
+    pub async fn run_and_listen(
+        &self,
+        _vpn_status_tx: mpsc::Sender<NymVpnStatusMessage>,
+        _vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
+    ) -> Result<()> {
+        self.run().await
+    }
+
     pub async fn run(&self) -> Result<()> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
@@ -269,16 +277,16 @@ pub enum NymVpnExitStatusMessage {
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
 /// ```
 pub fn spawn_nym_vpn(nym_vpn: NymVPN) -> Result<NymVpnHandle> {
-    let (vpn_ctrl_tx, _vpn_ctrl_rx) = mpsc::unbounded();
+    let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
 
-    let (_vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
+    let (vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
 
     let (vpn_exit_tx, vpn_exit_rx) = oneshot::channel();
 
     std::thread::spawn(|| {
         let result = tokio::runtime::Runtime::new()
             .expect("Failed to create Tokio run time")
-            .block_on(async move { nym_vpn.run().await });
+            .block_on(async move { nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await });
 
         if let Err(err) = result {
             log::error!("Nym VPN returned error: {err}");
