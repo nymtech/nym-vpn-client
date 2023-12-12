@@ -156,7 +156,7 @@ impl NymVPN {
         };
 
         info!("Setting up mixnet client");
-        let mut mixnet_client = setup_mixnet_client(
+        let mut mixnet_client = match setup_mixnet_client(
             &self.entry_gateway,
             &self.mixnet_client_path,
             task_manager.subscribe_named("mixnet_client_main"),
@@ -164,7 +164,21 @@ impl NymVPN {
             self.enable_two_hop,
             self.enable_poisson_rate,
         )
-        .await?;
+        .await
+        {
+            Ok(client) => {
+                info!("Mixnet client setup successfully");
+                client
+            }
+            Err(err) => {
+                // TODO: we should handle shutdown gracefully in all cases, not just this one.
+                error!("Failed to setup mixnet client: {err}");
+                debug!("{err:?}");
+                wait_for_interrupt(task_manager).await;
+                handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
+                return Err(err);
+            }
+        };
 
         info!("Connecting to IP packet router");
         let ip = match mixnet_connect::connect_to_ip_packet_router(
