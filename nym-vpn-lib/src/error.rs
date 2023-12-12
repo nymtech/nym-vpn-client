@@ -68,7 +68,7 @@ pub enum Error {
     #[error("could not obtain the default interface")]
     DefaultInterfaceError,
 
-    #[error("could not obtain the gateway from default interface: {0}")]
+    #[error("could not obtain the LAN gateway from default interface: {0}")]
     DefaultInterfaceGatewayError(String),
 
     #[error("got reply for connect request, but it appears intended for the wrong address?")]
