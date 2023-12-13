@@ -323,7 +323,15 @@ impl NymVPN {
         // Finished starting everything, now wait for mixnet client shutdown
         let result = wait_for_interrupt_and_signal(task_manager, vpn_ctrl_rx).await;
 
-        handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
+        handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
+            .await
+            .map_err(|err| {
+                error!("Failed to handle interrupt: {err}");
+                debug!("{err:?}");
+                Box::new(NymVpnExitError::Generic {
+                    reason: err.to_string(),
+                })
+            })?;
         tunnel.dns_monitor.reset()?;
         tunnel.firewall.reset_policy()?;
 
