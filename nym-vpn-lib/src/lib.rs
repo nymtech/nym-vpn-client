@@ -106,6 +106,7 @@ impl NymVPN {
         self.run().await
     }
 
+    #[allow(clippy::too_many_arguments)]
     async fn setup_post_mixnet(
         &self,
         mixnet_client: SharedMixnetClient,
