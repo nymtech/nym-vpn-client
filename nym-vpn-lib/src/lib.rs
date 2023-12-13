@@ -9,13 +9,11 @@ use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use futures::channel::{mpsc, oneshot};
-use log::*;
+use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
-use nym_sdk::mixnet::MixnetClient;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
-use std::sync::Arc;
 use talpid_routing::RouteManager;
 
 pub use nym_config;
@@ -130,7 +128,8 @@ impl NymVPN {
         info!("Using IP address: {ip}");
 
         // We need the IP of the gateway to correctly configure the routing table
-        let gateway_used = mixnet_client.lock().await.as_ref().unwrap().nym_address().gateway().to_base58_string();
+        let mixnet_client_address = mixnet_client.nym_address().await;
+        let gateway_used = mixnet_client_address.gateway().to_base58_string();
         info!("Using gateway: {gateway_used}");
         let entry_mixnet_gateway_ip: IpAddr =
             gateway_client.lookup_gateway_ip(&gateway_used).await?;
@@ -186,21 +185,21 @@ impl NymVPN {
         )
         .await?;
 
-        if let Err(err) = self.setup_post_mixnet(
-            // &Arc::clone(mixnet_client),
-            mixnet_client.clone(),
-            route_manager,
-            exit_router,
-            task_manager,
-            gateway_client,
-            default_lan_gateway_ip,
-            tunnel_gateway_ip,
-        )
-        .await  {
+        if let Err(err) = self
+            .setup_post_mixnet(
+                mixnet_client.clone(),
+                route_manager,
+                exit_router,
+                task_manager,
+                gateway_client,
+                default_lan_gateway_ip,
+                tunnel_gateway_ip,
+            )
+            .await
+        {
             error!("Failed to setup post mixnet: {err}");
             debug!("{err:?}");
-            let handle = mixnet_client.lock().await.take().unwrap();
-            handle.disconnect().await;
+            mixnet_client.disconnect().await;
             return Err(err);
         };
         Ok(())
