@@ -11,6 +11,8 @@ use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
 use nym_validator_client::NymApiClient;
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
+use futures::TryFutureExt;
+use nym_node_requests::api::v1::gateway::models::Gateway;
 use nym_validator_client::client::GatewayBond;
 use talpid_types::net::wireguard::PublicKey;
 use tracing::{debug, info};
@@ -47,6 +49,7 @@ impl Config {
     }
 }
 
+#[derive(Clone)]
 pub enum GatewayCriteria {
     Location(String),
     Identity(String)
@@ -88,7 +91,7 @@ impl GatewayClient {
     }
 
     //just grab first gateway we find fow now
-    pub async fn lookup_gateway_by_location(&self, location: &str) -> Result<GatewayBond> {
+    pub async fn lookup_gateway_by_location(&self, location: &str) -> Result<Gateway> {
         self.api_client
             .get_cached_gateways()
             .await?
@@ -100,11 +103,9 @@ impl GatewayClient {
                     None
                 }
             })
-            .ok_or(crate::error::Error::InvalidGatewayLocation)
-            .and_then(|ip| {
-                ip.parse()
-                    .map_err(|_| crate::error::Error::InvalidGatewayLocation)
-            })
+            .ok_or(crate::error::Error::InvalidGatewayLocation).map(|gateway| {
+            Ok(gateway)
+        })
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {

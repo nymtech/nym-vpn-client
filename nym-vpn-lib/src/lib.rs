@@ -216,12 +216,12 @@ impl NymVPN {
         // handle wireguard registration
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
         let entry_gateway_id = match &self.entry_gateway {
-            GatewayCriteria::Identity(identity) => identity,
+            GatewayCriteria::Identity(identity) => identity.to_string(),
             GatewayCriteria::Location(location) => gateway_client.lookup_gateway_by_location(location).await?.gateway.identity_key
         };
 
         let exit_router_ip = match &self.exit_router {
-            GatewayCriteria::Identity(identity) => gateway_client.lookup_gateway_ip(identity).await?.to_string(),
+            GatewayCriteria::Identity(identity) => identity.to_string(),
             GatewayCriteria::Location(location) => gateway_client.lookup_gateway_by_location(location).await?.gateway.host
         };
 
@@ -231,7 +231,7 @@ impl NymVPN {
                 .as_ref()
                 .expect("clap should enforce value when wireguard enabled");
             let wireguard_config =
-                init_wireguard_config(&gateway_client, entry_gateway_id, private_key).await?;
+                init_wireguard_config(&gateway_client, entry_gateway_id.as_str(), private_key).await?;
             Some(wireguard_config)
         } else {
             None
@@ -279,7 +279,7 @@ impl NymVPN {
         if let Err(err) = self
             .setup_tunnel_services(
                 &mut route_manager,
-                entry_gateway_id,
+                entry_gateway_id.as_str(),
                 &exit_router,
                 &task_manager,
                 &gateway_client,
