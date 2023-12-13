@@ -15,6 +15,7 @@ use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 use talpid_routing::RouteManager;
+use util::wait_for_interrupt_and_signal;
 
 pub use nym_config;
 
@@ -96,14 +97,6 @@ impl NymVPN {
             enable_two_hop: false,
             enable_poisson_rate: false,
         }
-    }
-
-    pub async fn run_and_listen(
-        &self,
-        _vpn_status_tx: mpsc::Sender<NymVpnStatusMessage>,
-        _vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
-    ) -> Result<()> {
-        self.run().await
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -206,7 +199,15 @@ impl NymVPN {
         Ok(())
     }
 
-    pub async fn run(&self) -> Result<()> {
+    async fn setup_tunnel(
+        &self,
+    ) -> Result<(
+        Tunnel,
+        TaskManager,
+        RouteManager,
+        Option<(oneshot::Receiver<()>, tokio::task::JoinHandle<Result<()>>)>,
+        oneshot::Sender<()>,
+    )> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
@@ -282,6 +283,19 @@ impl NymVPN {
             return Err(err);
         }
 
+        Ok((
+            tunnel,
+            task_manager,
+            route_manager,
+            wireguard_waiting,
+            tunnel_close_tx,
+        ))
+    }
+
+    pub async fn run(&self) -> Result<()> {
+        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
+            self.setup_tunnel().await?;
+
         // Finished starting everything, now wait for shutdown
         wait_for_interrupt(task_manager).await;
         handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
@@ -290,6 +304,34 @@ impl NymVPN {
         tunnel.firewall.reset_policy()?;
 
         Ok(())
+    }
+
+    pub async fn run_and_listen(
+        &self,
+        _vpn_status_tx: mpsc::Sender<NymVpnStatusMessage>,
+        vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
+    ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) = self
+            .setup_tunnel()
+            .await
+            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+
+        // Finished starting everything, now wait for mixnet client shutdown
+        let result = wait_for_interrupt_and_signal(task_manager, vpn_ctrl_rx).await;
+
+        handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
+            .await
+            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+        tunnel
+            .dns_monitor
+            .reset()
+            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+        tunnel
+            .firewall
+            .reset_policy()
+            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+
+        result
     }
 }
 
@@ -303,10 +345,27 @@ pub enum NymVpnCtrlMessage {
     Stop,
 }
 
+// We are mapping all errors to a generic error since I ran into issues with the error type
+// on a platform (mac) that I wasn't able to troubleshoot on in time. Basically it seemed like
+// not all error cases satisfied the Sync marker trait.
+#[derive(thiserror::Error, Debug)]
+pub enum NymVpnExitError {
+    #[error("{reason}")]
+    Generic { reason: String },
+}
+
+impl NymVpnExitError {
+    fn generic(err: &dyn std::error::Error) -> Self {
+        NymVpnExitError::Generic {
+            reason: err.to_string(),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum NymVpnExitStatusMessage {
     Stopped,
-    Failed,
+    Failed(Box<dyn std::error::Error + Send + Sync + 'static>),
 }
 
 /// Starts the Nym VPN client.
@@ -332,6 +391,10 @@ pub fn spawn_nym_vpn(nym_vpn: NymVPN) -> Result<NymVpnHandle> {
 
         if let Err(err) = result {
             log::error!("Nym VPN returned error: {err}");
+            vpn_exit_tx
+                .send(NymVpnExitStatusMessage::Failed(err))
+                .expect("Failed to send exit status");
+            return;
         }
 
         log::info!("Nym VPN has shut down");
