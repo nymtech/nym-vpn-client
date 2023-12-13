@@ -20,7 +20,7 @@ pub(crate) async fn wait_for_interrupt(task_manager: nym_task::TaskManager) {
 pub(crate) async fn wait_for_interrupt_and_signal(
     mut task_manager: nym_task::TaskManager,
     mut vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
-) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync>> {
+) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     let res = tokio::select! {
         biased;
         message = vpn_ctrl_rx.next() => {

@@ -310,7 +310,7 @@ impl NymVPN {
         &self,
         _vpn_statux_tx: mpsc::Sender<NymVpnStatusMessage>,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
-    ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
             self.setup_tunnel().await?;
 
@@ -338,7 +338,7 @@ pub enum NymVpnCtrlMessage {
 #[derive(Debug)]
 pub enum NymVpnExitStatusMessage {
     Stopped,
-    Failed(Box<dyn std::error::Error + Send + Sync>),
+    Failed(Box<dyn std::error::Error + Send + Sync + 'static>),
 }
 
 /// Starts the Nym VPN client.
