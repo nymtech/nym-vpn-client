@@ -2,17 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::error::Result;
+use futures::TryFutureExt;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_crypto::asymmetric::encryption;
 use nym_node_requests::api::client::NymNodeApiClientExt;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
+use nym_validator_client::client::GatewayBond;
 use nym_validator_client::NymApiClient;
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
-use futures::TryFutureExt;
-use nym_validator_client::client::GatewayBond;
 use talpid_types::net::wireguard::PublicKey;
 use tracing::{debug, info};
 use url::Url;
@@ -51,7 +51,7 @@ impl Config {
 #[derive(Clone)]
 pub enum GatewayCriteria {
     Location(String),
-    Identity(String)
+    Identity(String),
 }
 
 pub struct GatewayClient {
@@ -89,21 +89,21 @@ impl GatewayClient {
         })
     }
 
-        pub async fn lookup_gateway_by_location(&self, location: &str) -> Result<GatewayBond> {
-            log::info!("Lookup gateway for location: {location}");
-            self.api_client
-                .get_cached_gateways()
-                .await?
-                .iter()
-                .find_map(|gateway_bond| {
-                    if gateway_bond.gateway.location == location {
-                        Some(gateway_bond.clone())
-                    } else {
-                        None
-                    }
-                })
-                .ok_or(crate::error::Error::InvalidGatewayLocation)
-        }
+    pub async fn lookup_gateway_by_location(&self, location: &str) -> Result<GatewayBond> {
+        log::info!("Lookup gateway for location: {location}");
+        self.api_client
+            .get_cached_gateways()
+            .await?
+            .iter()
+            .find_map(|gateway_bond| {
+                if gateway_bond.gateway.location == location {
+                    Some(gateway_bond.clone())
+                } else {
+                    None
+                }
+            })
+            .ok_or(crate::error::Error::InvalidGatewayLocation)
+    }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
         self.api_client

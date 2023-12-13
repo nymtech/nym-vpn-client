@@ -121,7 +121,7 @@ impl NymVPN {
             self.enable_two_hop,
         )
         .await?;
-        info!("Sucessfully connected to IP packet router on the exit gateway!");
+        info!("Successfully connected to IP packet router on the exit gateway!");
         info!("Using IP address: {ip}");
 
         // We need the IP of the gateway to correctly configure the routing table
@@ -217,12 +217,25 @@ impl NymVPN {
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
         let entry_gateway_id = match &self.entry_gateway {
             GatewayCriteria::Identity(identity) => identity.to_string(),
-            GatewayCriteria::Location(location) => gateway_client.lookup_gateway_by_location(location).await?.gateway.identity_key
+            GatewayCriteria::Location(location) => {
+                gateway_client
+                    .lookup_gateway_by_location(location)
+                    .await?
+                    .gateway
+                    .identity_key
+            }
         };
 
+        //TODO placeholder for now, change when API/static list is ready
         let exit_router_address = match &self.exit_router {
             GatewayCriteria::Identity(identity) => identity.to_string(),
-            GatewayCriteria::Location(location) => gateway_client.lookup_gateway_by_location(location).await?.gateway.host
+            GatewayCriteria::Location(location) => {
+                gateway_client
+                    .lookup_gateway_by_location(location)
+                    .await?
+                    .gateway
+                    .host
+            }
         };
 
         info!("Determined criteria for location {entry_gateway_id}");
@@ -234,7 +247,8 @@ impl NymVPN {
                 .as_ref()
                 .expect("clap should enforce value when wireguard enabled");
             let wireguard_config =
-                init_wireguard_config(&gateway_client, entry_gateway_id.as_str(), private_key).await?;
+                init_wireguard_config(&gateway_client, entry_gateway_id.as_str(), private_key)
+                    .await?;
             Some(wireguard_config)
         } else {
             None
@@ -250,7 +264,8 @@ impl NymVPN {
         info!("default_lane_gateway: {default_lan_gateway_ip}");
 
         // The address of the ip packet router running on the exit gateway
-        let exit_router = IpPacketRouterAddress::try_from_base58_string(exit_router_address.as_str())?;
+        let exit_router =
+            IpPacketRouterAddress::try_from_base58_string(exit_router_address.as_str())?;
         info!("exit_router: {exit_router}");
 
         let task_manager = TaskManager::new(10);

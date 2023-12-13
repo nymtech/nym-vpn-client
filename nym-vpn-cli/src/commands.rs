@@ -3,7 +3,7 @@
 
 use clap::Parser;
 use ipnetwork::Ipv4Network;
-use nym_vpn_lib::gateway_client::{Config};
+use nym_vpn_lib::gateway_client::Config;
 use nym_vpn_lib::nym_config::defaults::var_names::NYM_API;
 use nym_vpn_lib::nym_config::OptionalSet;
 use nym_vpn_lib::{gateway_client::Config, nym_bin_common::bin_info};
@@ -29,12 +29,25 @@ pub(crate) struct CliArgs {
     pub(crate) mixnet_client_path: Option<PathBuf>,
 
     /// Mixnet public ID of the entry gateway.
-    #[arg(long)]
-    pub(crate) entry_gateway: String,
+    #[clap(long, conflicts_with = "entry_gateway_country")]
+    pub(crate) entry_gateway_id: Option<String>,
+
+    /// Auto-select entry gateway by country ISO.
+    #[clap(long, conflicts_with = "entry_gateway_id", alias = "entry-country")]
+    pub(crate) entry_gateway_country: Option<String>,
 
     /// Mixnet recipient address.
-    #[arg(long, alias = "recipient-address", alias = "exit-address")]
-    pub(crate) exit_router: String,
+    #[arg(
+        long,
+        alias = "recipient-address",
+        alias = "exit-address",
+        conflicts_with = "exit_router_country"
+    )]
+    pub(crate) exit_router_address: Option<String>,
+
+    /// Mixnet recipient address.
+    #[arg(long, alias = "exit-country", conflicts_with = "exit_router_address")]
+    pub(crate) exit_router_country: Option<String>,
 
     /// Enable the wireguard traffic between the client and the entry gateway.
     #[arg(long, default_value_t = false, requires = "private_key")]

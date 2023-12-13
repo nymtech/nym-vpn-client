@@ -26,14 +26,6 @@ pub fn setup_logging() {
         .init();
 }
 
-pub fn determine_gateway_criteria(entry_arg : String) -> GatewayCriteria {
-    return if entry_arg.len() == 2 {
-        GatewayCriteria::Location(entry_arg)
-    } else {
-        GatewayCriteria::Identity(entry_arg)
-    };
-}
-
 async fn run() -> Result<()> {
     setup_logging();
     let args = commands::CliArgs::parse();
@@ -44,12 +36,21 @@ async fn run() -> Result<()> {
     let gateway_config = override_from_env(&args, GatewayConfig::default());
     info!("nym-api: {}", gateway_config.api_url());
 
+    let entry_gateway = match args.entry_gateway_id {
+        Some(id) => GatewayCriteria::Identity(id),
+        None => GatewayCriteria::Location(args.entry_gateway_country.unwrap()),
+    };
+
+    let exit_router = match args.exit_router_address {
+        Some(id) => GatewayCriteria::Identity(id),
+        None => GatewayCriteria::Location(args.exit_router_country.unwrap()),
+    };
 
     let nym_vpn = NymVPN {
         gateway_config,
         mixnet_client_path: args.mixnet_client_path,
-        entry_gateway: determine_gateway_criteria(args.entry_gateway),
-        exit_router: determine_gateway_criteria(args.exit_router),
+        entry_gateway,
+        exit_router,
         enable_wireguard: args.enable_wireguard,
         private_key: args.private_key,
         ip: args.ip,
