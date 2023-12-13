@@ -275,7 +275,6 @@ impl NymVPN {
         {
             error!("Failed to setup tunnel services: {err}");
             debug!("{err:?}");
-            // mixnet_client.disconnect().await;
             wait_for_interrupt(task_manager).await;
             handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
             tunnel.dns_monitor.reset()?;
