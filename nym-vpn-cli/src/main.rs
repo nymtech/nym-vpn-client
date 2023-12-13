@@ -26,6 +26,14 @@ pub fn setup_logging() {
         .init();
 }
 
+pub fn determine_gateway_criteria(entry_arg : String) -> GatewayCriteria {
+    return if entry_arg.len() == 2 {
+        GatewayCriteria::Location(entry_arg)
+    } else {
+        GatewayCriteria::Identity(entry_arg)
+    };
+}
+
 async fn run() -> Result<()> {
     setup_logging();
     let args = commands::CliArgs::parse();
