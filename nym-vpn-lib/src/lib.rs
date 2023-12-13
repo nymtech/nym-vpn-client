@@ -315,7 +315,9 @@ impl NymVPN {
             self.setup_tunnel().await.map_err(|err| {
                 error!("Failed to setup tunnel: {err}");
                 debug!("{err:?}");
-                Box::new(NymVpnExitError::Error { source: err })
+                Box::new(NymVpnExitError::Generic {
+                    reason: err.to_string(),
+                })
             })?;
 
         // Finished starting everything, now wait for mixnet client shutdown
@@ -344,11 +346,8 @@ pub enum NymVpnCtrlMessage {
 // not all error cases satisfied the Sync marker trait.
 #[derive(thiserror::Error, Debug)]
 pub enum NymVpnExitError {
-    #[error(transparent)]
-    Error {
-        #[from]
-        source: crate::error::Error,
-    },
+    #[error("{reason}")]
+    Generic { reason: String },
 }
 
 #[derive(Debug)]
