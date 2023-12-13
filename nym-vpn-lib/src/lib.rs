@@ -101,9 +101,9 @@ impl NymVPN {
     pub async fn run_and_listen(
         &self,
         _vpn_status_tx: mpsc::Sender<NymVpnStatusMessage>,
-        _vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
+        vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> Result<()> {
-        self.run().await
+        self.run(vpn_ctrl_rx).await
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -206,7 +206,7 @@ impl NymVPN {
         Ok(())
     }
 
-    pub async fn run(&self) -> Result<()> {
+    pub async fn run(&self, vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage> ) -> Result<()> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
