@@ -21,6 +21,19 @@ use crate::{
     mixnet_processor::IpPacketRouterAddress,
 };
 
+#[derive(Clone)]
+pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
+
+impl SharedMixnetClient {
+    pub fn new(mixnet_client: MixnetClient) -> Self {
+        Self(Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))))
+    }
+
+    pub async fn lock(&self) -> tokio::sync::MutexGuard<'_, Option<MixnetClient>> {
+        self.0.lock().await
+    }
+}
+
 async fn send_connect_to_ip_packet_router(
     mixnet_client: &mut MixnetClient,
     ip_packet_router_address: &IpPacketRouterAddress,
@@ -123,7 +136,7 @@ async fn handle_dynamic_connect_response(
 }
 
 pub async fn connect_to_ip_packet_router(
-    mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+    mixnet_client: SharedMixnetClient,
     ip_packet_router_address: &IpPacketRouterAddress,
     ip: Option<Ipv4Addr>,
     enable_two_hop: bool,
@@ -165,7 +178,7 @@ pub(crate) async fn setup_mixnet_client(
     enable_wireguard: bool,
     enable_two_hop: bool,
     enable_poisson_rate: bool,
-) -> Result<MixnetClient> {
+) -> Result<SharedMixnetClient> {
     // Disable Poisson rate limiter by default
     let mut debug_config = nym_client_core::config::DebugConfig::default();
 
@@ -205,5 +218,5 @@ pub(crate) async fn setup_mixnet_client(
             .await?
     };
 
-    Ok(mixnet_client)
+    Ok(SharedMixnetClient::new(mixnet_client))
 }

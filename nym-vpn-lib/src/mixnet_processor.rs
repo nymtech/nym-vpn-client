@@ -10,7 +10,7 @@ use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use tracing::{debug, error, info, trace, warn};
 use tun::{AsyncDevice, Device, TunPacket};
 
-use crate::error::{Error, Result};
+use crate::{error::{Error, Result}, mixnet_connect::SharedMixnetClient};
 
 #[derive(Debug)]
 pub struct Config {
@@ -45,7 +45,7 @@ impl std::fmt::Display for IpPacketRouterAddress {
 
 pub struct MixnetProcessor {
     device: AsyncDevice,
-    mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+    mixnet_client: SharedMixnetClient,
     ip_packet_router_address: IpPacketRouterAddress,
     // TODO: handle this as part of setting up the mixnet client
     enable_two_hop: bool,
@@ -54,7 +54,7 @@ pub struct MixnetProcessor {
 impl MixnetProcessor {
     pub fn new(
         device: AsyncDevice,
-        mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+        mixnet_client: SharedMixnetClient,
         ip_packet_router_address: IpPacketRouterAddress,
         enable_two_hop: bool,
     ) -> Self {
@@ -150,7 +150,7 @@ impl MixnetProcessor {
 pub async fn start_processor(
     config: Config,
     dev: tun::AsyncDevice,
-    mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+    mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,
     enable_two_hop: bool,
 ) -> Result<()> {

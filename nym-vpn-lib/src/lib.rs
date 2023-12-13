@@ -10,6 +10,7 @@ use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use futures::channel::{mpsc, oneshot};
 use log::*;
+use mixnet_connect::SharedMixnetClient;
 use nym_sdk::mixnet::MixnetClient;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
@@ -109,7 +110,7 @@ impl NymVPN {
 
     async fn setup_post_mixnet(
         &self,
-        mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+        mixnet_client: SharedMixnetClient,
         route_manager: &mut RouteManager,
         exit_router: &IpPacketRouterAddress,
         task_manager: &TaskManager,
@@ -184,8 +185,6 @@ impl NymVPN {
             self.enable_poisson_rate,
         )
         .await?;
-
-        let mixnet_client = Arc::new(tokio::sync::Mutex::new(Some(mixnet_client)));
 
         if let Err(err) = self.setup_post_mixnet(
             // &Arc::clone(mixnet_client),
