@@ -7,7 +7,7 @@ use crate::gateway_client::{Config, GatewayClient};
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
-use crate::util::{handle_interrupt, wait_for_interrupt, wait_for_interrupt2};
+use crate::util::{handle_interrupt, wait_for_interrupt};
 use futures::channel::{mpsc, oneshot};
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
@@ -15,6 +15,7 @@ use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 use talpid_routing::RouteManager;
+use util::wait_for_interrupt_and_signal;
 
 pub use nym_config;
 
@@ -309,18 +310,18 @@ impl NymVPN {
         &self,
         _vpn_statux_tx: mpsc::Sender<NymVpnStatusMessage>,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
-    ) -> Result<()> {
+    ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
             self.run_start().await?;
 
-        // Finished starting everything, now wait for shutdown
-        wait_for_interrupt2(task_manager, vpn_ctrl_rx).await;
-        handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
+        // Finished starting everything, now wait for mixnet client shutdown
+        let res = wait_for_interrupt_and_signal(task_manager, vpn_ctrl_rx).await;
 
+        handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
         tunnel.dns_monitor.reset()?;
         tunnel.firewall.reset_policy()?;
 
-        Ok(())
+        res
     }
 }
 
@@ -337,7 +338,7 @@ pub enum NymVpnCtrlMessage {
 #[derive(Debug)]
 pub enum NymVpnExitStatusMessage {
     Stopped,
-    Failed,
+    Failed(Box<dyn std::error::Error + Send + Sync>),
 }
 
 /// Starts the Nym VPN client.
@@ -363,6 +364,10 @@ pub fn spawn_nym_vpn(nym_vpn: NymVPN) -> Result<NymVpnHandle> {
 
         if let Err(err) = result {
             log::error!("Nym VPN returned error: {err}");
+            vpn_exit_tx
+                .send(NymVpnExitStatusMessage::Failed(err))
+                .expect("Failed to send exit status");
+            return;
         }
 
         log::info!("Nym VPN has shut down");

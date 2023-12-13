@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{error::*, NymVpnCtrlMessage};
-use futures::{channel::{mpsc, oneshot}, StreamExt};
+use futures::{
+    channel::{mpsc, oneshot},
+    StreamExt,
+};
 use log::*;
 use talpid_routing::RouteManager;
 #[cfg(target_os = "linux")]
@@ -14,10 +17,10 @@ pub(crate) async fn wait_for_interrupt(task_manager: nym_task::TaskManager) {
     }
 }
 
-pub(crate) async fn wait_for_interrupt2(
+pub(crate) async fn wait_for_interrupt_and_signal(
     mut task_manager: nym_task::TaskManager,
     mut vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
-) {
+) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let res = tokio::select! {
         biased;
         message = vpn_ctrl_rx.next() => {
@@ -41,6 +44,15 @@ pub(crate) async fn wait_for_interrupt2(
             Ok(())
         },
     };
+
+    info!("Sending shutdown signal");
+    task_manager.signal_shutdown().ok();
+
+    info!("Waiting for tasks to finish... (Press ctrl-c to force)");
+    task_manager.wait_for_shutdown().await;
+
+    info!("Stopping mixnet client");
+    res
 }
 
 pub(crate) async fn handle_interrupt(
