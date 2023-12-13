@@ -231,6 +231,7 @@ impl NymVpn {
                 .ok_or(error::Error::InvalidGatewayLocation)?,
         };
 
+        //TODO placeholder for now, change when API/static list is ready
         let exit_router_address = match &self.exit_router {
             GatewayCriteria::Identity(identity) => identity.to_string(),
             GatewayCriteria::Location(location) => gateway_client
