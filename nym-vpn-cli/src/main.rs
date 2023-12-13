@@ -4,8 +4,8 @@
 mod commands;
 
 use nym_vpn_lib::error::*;
-use nym_vpn_lib::gateway_client::Config as GatewayConfig;
-use nym_vpn_lib::NymVpn;
+use nym_vpn_lib::gateway_client::{Config as GatewayConfig, GatewayCriteria};
+use nym_vpn_lib::NymVPN;
 
 use crate::commands::override_from_env;
 use clap::Parser;
@@ -26,6 +26,14 @@ pub fn setup_logging() {
         .init();
 }
 
+pub fn determine_gateway_criteria(entry_arg : String) -> GatewayCriteria {
+    return if entry_arg.len() == 2 {
+        GatewayCriteria::Location(entry_arg)
+    } else {
+        GatewayCriteria::Identity(entry_arg)
+    };
+}
+
 async fn run() -> Result<()> {
     setup_logging();
     let args = commands::CliArgs::parse();
@@ -36,11 +44,12 @@ async fn run() -> Result<()> {
     let gateway_config = override_from_env(&args, GatewayConfig::default());
     info!("nym-api: {}", gateway_config.api_url());
 
-    let nym_vpn = NymVpn {
+
+    let nym_vpn = NymVPN {
         gateway_config,
         mixnet_client_path: args.mixnet_client_path,
-        entry_gateway: args.entry_gateway,
-        exit_router: args.exit_router,
+        entry_gateway: determine_gateway_criteria(args.entry_gateway),
+        exit_router: determine_gateway_criteria(args.exit_router),
         enable_wireguard: args.enable_wireguard,
         private_key: args.private_key,
         ip: args.ip,
