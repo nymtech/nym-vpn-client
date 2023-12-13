@@ -3,6 +3,7 @@
 
 use nym_config::defaults::NymNetworkDetails;
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::{
     net::{IpAddr, Ipv4Addr},
     time::Duration,
@@ -22,7 +23,7 @@ use crate::{
 
 async fn send_connect_to_ip_packet_router(
     mixnet_client: &mut MixnetClient,
-    ip_packet_router_address: IpPacketRouterAddress,
+    ip_packet_router_address: &IpPacketRouterAddress,
     ip: Option<Ipv4Addr>,
     enable_two_hop: bool,
 ) -> Result<u64> {
@@ -122,12 +123,15 @@ async fn handle_dynamic_connect_response(
 }
 
 pub async fn connect_to_ip_packet_router(
-    mixnet_client: &mut MixnetClient,
-    ip_packet_router_address: IpPacketRouterAddress,
+    mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+    ip_packet_router_address: &IpPacketRouterAddress,
     ip: Option<Ipv4Addr>,
     enable_two_hop: bool,
 ) -> Result<IpAddr> {
     info!("Sending connect request");
+    let mixnet_client_handle = &mut mixnet_client.lock().await;
+    let mixnet_client = mixnet_client_handle.as_mut().unwrap();
+
     let request_id = send_connect_to_ip_packet_router(
         mixnet_client,
         ip_packet_router_address,

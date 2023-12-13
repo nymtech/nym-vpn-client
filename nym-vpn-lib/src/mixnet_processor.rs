@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+
 use futures::{SinkExt, StreamExt};
 use nym_ip_packet_requests::{IpPacketRequest, IpPacketResponse, IpPacketResponseData};
 use nym_sdk::mixnet::{InputMessage, MixnetClient, MixnetMessageSender, Recipient};
@@ -43,7 +45,7 @@ impl std::fmt::Display for IpPacketRouterAddress {
 
 pub struct MixnetProcessor {
     device: AsyncDevice,
-    mixnet_client: MixnetClient,
+    mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
     ip_packet_router_address: IpPacketRouterAddress,
     // TODO: handle this as part of setting up the mixnet client
     enable_two_hop: bool,
@@ -52,7 +54,7 @@ pub struct MixnetProcessor {
 impl MixnetProcessor {
     pub fn new(
         device: AsyncDevice,
-        mixnet_client: MixnetClient,
+        mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
         ip_packet_router_address: IpPacketRouterAddress,
         enable_two_hop: bool,
     ) -> Self {
@@ -70,11 +72,17 @@ impl MixnetProcessor {
             self.device.get_ref().name()
         );
         let (mut sink, mut stream) = self.device.into_framed().split();
-        let sender = self.mixnet_client.split_sender();
+
+        let mut mixnet_handle = self.mixnet_client.lock().await;
+        let mixnet_client = mixnet_handle.as_mut().unwrap();
+
+        // let sender = self.mixnet_client.split_sender();
+        let sender = mixnet_client.split_sender();
         let recipient = self.ip_packet_router_address;
 
-        let mixnet_stream = self
-            .mixnet_client
+        // let mixnet_stream = self
+        //     .mixnet_client
+        let mixnet_stream = mixnet_client
             .filter_map(|reconstructed_message| async move {
                 match IpPacketResponse::from_reconstructed_message(&reconstructed_message) {
                     Ok(response) => match response.data {
@@ -142,7 +150,7 @@ impl MixnetProcessor {
 pub async fn start_processor(
     config: Config,
     dev: tun::AsyncDevice,
-    mixnet_client: MixnetClient,
+    mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
     task_manager: &TaskManager,
     enable_two_hop: bool,
 ) -> Result<()> {
