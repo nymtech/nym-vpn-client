@@ -308,7 +308,7 @@ impl NymVPN {
 
     pub async fn run_and_listen(
         &self,
-        _vpn_statux_tx: mpsc::Sender<NymVpnStatusMessage>,
+        _vpn_status_tx: mpsc::Sender<NymVpnStatusMessage>,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
