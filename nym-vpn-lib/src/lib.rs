@@ -199,7 +199,7 @@ impl NymVPN {
         Ok(())
     }
 
-    pub async fn run_start(
+    async fn run_start(
         &self,
     ) -> Result<(
         Tunnel,
