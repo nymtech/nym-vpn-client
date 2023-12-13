@@ -311,29 +311,25 @@ impl NymVPN {
         _vpn_status_tx: mpsc::Sender<NymVpnStatusMessage>,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
-            self.setup_tunnel().await.map_err(|err| {
-                error!("Failed to setup tunnel: {err}");
-                debug!("{err:?}");
-                Box::new(NymVpnExitError::Generic {
-                    reason: err.to_string(),
-                })
-            })?;
+        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) = self
+            .setup_tunnel()
+            .await
+            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
 
         // Finished starting everything, now wait for mixnet client shutdown
         let result = wait_for_interrupt_and_signal(task_manager, vpn_ctrl_rx).await;
 
         handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
             .await
-            .map_err(|err| {
-                error!("Failed to handle interrupt: {err}");
-                debug!("{err:?}");
-                Box::new(NymVpnExitError::Generic {
-                    reason: err.to_string(),
-                })
-            })?;
-        tunnel.dns_monitor.reset()?;
-        tunnel.firewall.reset_policy()?;
+            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+        tunnel
+            .dns_monitor
+            .reset()
+            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+        tunnel
+            .firewall
+            .reset_policy()
+            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
 
         result
     }
@@ -356,6 +352,14 @@ pub enum NymVpnCtrlMessage {
 pub enum NymVpnExitError {
     #[error("{reason}")]
     Generic { reason: String },
+}
+
+impl NymVpnExitError {
+    fn generic(err: &dyn std::error::Error) -> Self {
+        NymVpnExitError::Generic {
+            reason: err.to_string(),
+        }
+    }
 }
 
 #[derive(Debug)]
