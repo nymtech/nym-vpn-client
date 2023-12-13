@@ -1,8 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::error::*;
-use futures::channel::oneshot;
+use crate::{error::*, NymVpnCtrlMessage};
+use futures::{channel::{mpsc, oneshot}, StreamExt};
 use log::*;
 use talpid_routing::RouteManager;
 #[cfg(target_os = "linux")]
@@ -12,6 +12,35 @@ pub(crate) async fn wait_for_interrupt(task_manager: nym_task::TaskManager) {
     if let Err(e) = task_manager.catch_interrupt().await {
         error!("Could not wait for interrupts anymore - {e}. Shutting down the tunnel.");
     }
+}
+
+pub(crate) async fn wait_for_interrupt2(
+    mut task_manager: nym_task::TaskManager,
+    mut vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
+) {
+    let res = tokio::select! {
+        biased;
+        message = vpn_ctrl_rx.next() => {
+            log::debug!("Received message: {:?}", message);
+            match message {
+                Some(NymVpnCtrlMessage::Stop) => {
+                    log::info!("Received stop message");
+                }
+                None => {
+                    log::info!("Channel closed, stopping");
+                }
+            }
+            Ok(())
+        }
+        Some(msg) = task_manager.wait_for_error() => {
+            log::info!("Task error: {:?}", msg);
+            Err(msg)
+        }
+        _ = tokio::signal::ctrl_c() => {
+            log::info!("Received SIGINT");
+            Ok(())
+        },
+    };
 }
 
 pub(crate) async fn handle_interrupt(

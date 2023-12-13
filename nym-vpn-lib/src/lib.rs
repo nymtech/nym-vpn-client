@@ -7,7 +7,7 @@ use crate::gateway_client::{Config, GatewayClient};
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
-use crate::util::{handle_interrupt, wait_for_interrupt};
+use crate::util::{handle_interrupt, wait_for_interrupt, wait_for_interrupt2};
 use futures::channel::{mpsc, oneshot};
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
@@ -96,14 +96,6 @@ impl NymVPN {
             enable_two_hop: false,
             enable_poisson_rate: false,
         }
-    }
-
-    pub async fn run_and_listen(
-        &self,
-        _vpn_status_tx: mpsc::Sender<NymVpnStatusMessage>,
-        vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
-    ) -> Result<()> {
-        self.run(vpn_ctrl_rx).await
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -206,7 +198,15 @@ impl NymVPN {
         Ok(())
     }
 
-    pub async fn run(&self, vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage> ) -> Result<()> {
+    pub async fn run_start(
+        &self,
+    ) -> Result<(
+        Tunnel,
+        TaskManager,
+        RouteManager,
+        Option<(oneshot::Receiver<()>, tokio::task::JoinHandle<Result<()>>)>,
+        oneshot::Sender<()>,
+    )> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
@@ -282,8 +282,39 @@ impl NymVPN {
             return Err(err);
         }
 
+        Ok((
+            tunnel,
+            task_manager,
+            route_manager,
+            wireguard_waiting,
+            tunnel_close_tx,
+        ))
+    }
+
+    pub async fn run(&self) -> Result<()> {
+        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
+            self.run_start().await?;
+
         // Finished starting everything, now wait for shutdown
         wait_for_interrupt(task_manager).await;
+        handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
+
+        tunnel.dns_monitor.reset()?;
+        tunnel.firewall.reset_policy()?;
+
+        Ok(())
+    }
+
+    pub async fn run_and_listen(
+        &self,
+        _vpn_statux_tx: mpsc::Sender<NymVpnStatusMessage>,
+        vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
+    ) -> Result<()> {
+        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
+            self.run_start().await?;
+
+        // Finished starting everything, now wait for shutdown
+        wait_for_interrupt2(task_manager, vpn_ctrl_rx).await;
         handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
 
         tunnel.dns_monitor.reset()?;
