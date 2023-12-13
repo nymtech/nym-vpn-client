@@ -9,10 +9,12 @@ use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use futures::channel::{mpsc, oneshot};
-use log::*;
+use log::{debug, error, info};
+use mixnet_connect::SharedMixnetClient;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
+use talpid_routing::RouteManager;
 
 pub use nym_config;
 
@@ -104,6 +106,106 @@ impl NymVPN {
         self.run().await
     }
 
+    #[allow(clippy::too_many_arguments)]
+    async fn setup_post_mixnet(
+        &self,
+        mixnet_client: SharedMixnetClient,
+        route_manager: &mut RouteManager,
+        exit_router: &IpPacketRouterAddress,
+        task_manager: &TaskManager,
+        gateway_client: &GatewayClient,
+        default_lan_gateway_ip: routing::LanGatewayIp,
+        tunnel_gateway_ip: routing::TunnelGatewayIp,
+    ) -> Result<()> {
+        info!("Connecting to IP packet router");
+        let ip = mixnet_connect::connect_to_ip_packet_router(
+            mixnet_client.clone(),
+            exit_router,
+            self.ip,
+            self.enable_two_hop,
+        )
+        .await?;
+        info!("Sucessfully connected to IP packet router on the exit gateway!");
+        info!("Using IP address: {ip}");
+
+        // We need the IP of the gateway to correctly configure the routing table
+        let mixnet_client_address = mixnet_client.nym_address().await;
+        let gateway_used = mixnet_client_address.gateway().to_base58_string();
+        info!("Using gateway: {gateway_used}");
+        let entry_mixnet_gateway_ip: IpAddr =
+            gateway_client.lookup_gateway_ip(&gateway_used).await?;
+        debug!("Gateway ip resolves to: {entry_mixnet_gateway_ip}");
+
+        info!("Setting up routing");
+        let routing_config = routing::RoutingConfig::new(
+            ip,
+            entry_mixnet_gateway_ip,
+            default_lan_gateway_ip,
+            tunnel_gateway_ip,
+            self.mtu,
+        );
+        debug!("Routing config: {:#?}", routing_config);
+        let mixnet_tun_dev = routing::setup_routing(
+            route_manager,
+            routing_config,
+            self.enable_wireguard,
+            self.disable_routing,
+        )
+        .await?;
+
+        info!("Setting up mixnet processor");
+        let processor_config = mixnet_processor::Config::new(*exit_router);
+        debug!("Mixnet processor config: {:#?}", processor_config);
+        mixnet_processor::start_processor(
+            processor_config,
+            mixnet_tun_dev,
+            mixnet_client,
+            task_manager,
+            self.enable_two_hop,
+        )
+        .await
+    }
+
+    async fn setup_tunnel_services(
+        &self,
+        route_manager: &mut RouteManager,
+        exit_router: &IpPacketRouterAddress,
+        task_manager: &TaskManager,
+        gateway_client: &GatewayClient,
+        default_lan_gateway_ip: routing::LanGatewayIp,
+        tunnel_gateway_ip: routing::TunnelGatewayIp,
+    ) -> Result<()> {
+        info!("Setting up mixnet client");
+        let mixnet_client = setup_mixnet_client(
+            &self.entry_gateway,
+            &self.mixnet_client_path,
+            task_manager.subscribe_named("mixnet_client_main"),
+            self.enable_wireguard,
+            self.enable_two_hop,
+            self.enable_poisson_rate,
+        )
+        .await?;
+
+        if let Err(err) = self
+            .setup_post_mixnet(
+                mixnet_client.clone(),
+                route_manager,
+                exit_router,
+                task_manager,
+                gateway_client,
+                default_lan_gateway_ip,
+                tunnel_gateway_ip,
+            )
+            .await
+        {
+            error!("Failed to setup post mixnet: {err}");
+            debug!("{err:?}");
+            mixnet_client.disconnect().await;
+            return Err(err);
+        };
+        Ok(())
+    }
+
     pub async fn run(&self) -> Result<()> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
@@ -155,104 +257,30 @@ impl NymVPN {
             None
         };
 
-        info!("Setting up mixnet client");
-        let mut mixnet_client = match setup_mixnet_client(
-            &self.entry_gateway,
-            &self.mixnet_client_path,
-            task_manager.subscribe_named("mixnet_client_main"),
-            self.enable_wireguard,
-            self.enable_two_hop,
-            self.enable_poisson_rate,
-        )
-        .await
+        // Now it's time start all the stuff that needs running inside the tunnel, and that we need
+        // correctly unwind if it fails
+        // - Sets up mixnet client, and connects
+        // - Sets up routing
+        // - Starts processing packets
+        if let Err(err) = self
+            .setup_tunnel_services(
+                &mut route_manager,
+                &exit_router,
+                &task_manager,
+                &gateway_client,
+                default_lan_gateway_ip,
+                tunnel_gateway_ip,
+            )
+            .await
         {
-            Ok(client) => {
-                info!("Mixnet client setup successfully");
-                client
-            }
-            Err(err) => {
-                // TODO: we should handle shutdown gracefully in all cases, not just this one.
-                error!("Failed to setup mixnet client: {err}");
-                debug!("{err:?}");
-                wait_for_interrupt(task_manager).await;
-                handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
-                return Err(err);
-            }
-        };
-
-        info!("Connecting to IP packet router");
-        let ip = match mixnet_connect::connect_to_ip_packet_router(
-            &mut mixnet_client,
-            exit_router,
-            self.ip,
-            self.enable_two_hop,
-        )
-        .await
-        {
-            Ok(ip) => {
-                info!("Connected to IP packet router on the exit gateway!");
-                info!("Using IP address: {ip}");
-                ip
-            }
-            Err(err) => {
-                // TODO: we should handle shutdown gracefully in all cases, not just this one.
-                error!("Failed to connect to IP packet router: {err}");
-                debug!("{err:?}");
-                mixnet_client.disconnect().await;
-                wait_for_interrupt(task_manager).await;
-                handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
-                return Err(err);
-            }
-        };
-        info!("Connected to IP packet router on the exit gateway!");
-
-        // We need the IP of the gateway to correctly configure the routing table
-        let gateway_used = mixnet_client.nym_address().gateway().to_base58_string();
-        info!("Using gateway: {gateway_used}");
-        let entry_mixnet_gateway_ip: IpAddr =
-            gateway_client.lookup_gateway_ip(&gateway_used).await?;
-        debug!("Gateway ip resolves to: {entry_mixnet_gateway_ip}");
-
-        info!("Setting up routing");
-        let routing_config = routing::RoutingConfig::new(
-            ip,
-            entry_mixnet_gateway_ip,
-            default_lan_gateway_ip,
-            tunnel_gateway_ip,
-            self.mtu,
-        );
-        debug!("Routing config: {:#?}", routing_config);
-        let mixnet_tun_dev = match routing::setup_routing(
-            &mut route_manager,
-            routing_config,
-            self.enable_wireguard,
-            self.disable_routing,
-        )
-        .await
-        {
-            Ok(dev) => dev,
-            Err(err) => {
-                // TODO: we should handle shutdown gracefully in all cases, not just this one.
-                error!("Failed to setup TUN virtual network device: {err}");
-                debug!("{err:?}");
-                mixnet_client.disconnect().await;
-                wait_for_interrupt(task_manager).await;
-                handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
-                return Err(err);
-            }
-        };
-
-        info!("Setting up mixnet processor");
-        let processor_config = mixnet_processor::Config::new(exit_router);
-        debug!("Mixnet processor config: {:#?}", processor_config);
-        mixnet_processor::start_processor(
-            processor_config,
-            mixnet_tun_dev,
-            mixnet_client,
-            &task_manager,
-            self.enable_two_hop,
-        )
-        .await?;
+            error!("Failed to setup tunnel services: {err}");
+            debug!("{err:?}");
+            wait_for_interrupt(task_manager).await;
+            handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
+            tunnel.dns_monitor.reset()?;
+            tunnel.firewall.reset_policy()?;
+            return Err(err);
+        }
 
         // Finished starting everything, now wait for shutdown
         wait_for_interrupt(task_manager).await;

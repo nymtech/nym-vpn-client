@@ -3,6 +3,7 @@
 
 use nym_config::defaults::NymNetworkDetails;
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::{
     net::{IpAddr, Ipv4Addr},
     time::Duration,
@@ -12,7 +13,9 @@ use nym_ip_packet_requests::{
     DynamicConnectResponse, IpPacketRequest, IpPacketResponse, IpPacketResponseData,
     StaticConnectResponse,
 };
-use nym_sdk::mixnet::{MixnetClient, MixnetClientBuilder, MixnetMessageSender, StoragePaths};
+use nym_sdk::mixnet::{
+    MixnetClient, MixnetClientBuilder, MixnetMessageSender, Recipient, StoragePaths,
+};
 use tracing::{debug, error, info};
 
 use crate::{
@@ -20,24 +23,48 @@ use crate::{
     mixnet_processor::IpPacketRouterAddress,
 };
 
+#[derive(Clone)]
+pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
+
+impl SharedMixnetClient {
+    pub fn new(mixnet_client: MixnetClient) -> Self {
+        Self(Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))))
+    }
+
+    pub async fn lock(&self) -> tokio::sync::MutexGuard<'_, Option<MixnetClient>> {
+        self.0.lock().await
+    }
+
+    pub async fn nym_address(&self) -> Recipient {
+        *self.lock().await.as_ref().unwrap().nym_address()
+    }
+
+    pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
+        self.lock().await.as_mut().unwrap().send(msg).await?;
+        Ok(())
+    }
+
+    pub async fn disconnect(self) -> Self {
+        let handle = self.lock().await.take().unwrap();
+        handle.disconnect().await;
+        self
+    }
+}
+
 async fn send_connect_to_ip_packet_router(
-    mixnet_client: &mut MixnetClient,
-    ip_packet_router_address: IpPacketRouterAddress,
+    mixnet_client: &SharedMixnetClient,
+    ip_packet_router_address: &IpPacketRouterAddress,
     ip: Option<Ipv4Addr>,
     enable_two_hop: bool,
 ) -> Result<u64> {
     let hops = enable_two_hop.then_some(0);
+    let mixnet_client_address = mixnet_client.nym_address().await;
     let (request, request_id) = if let Some(ip) = ip {
         debug!("Sending static connect request with ip: {ip}");
-        IpPacketRequest::new_static_connect_request(
-            ip.into(),
-            *mixnet_client.nym_address(),
-            hops,
-            None,
-        )
+        IpPacketRequest::new_static_connect_request(ip.into(), mixnet_client_address, hops, None)
     } else {
         debug!("Sending dynamic connect request");
-        IpPacketRequest::new_dynamic_connect_request(*mixnet_client.nym_address(), hops, None)
+        IpPacketRequest::new_dynamic_connect_request(mixnet_client_address, hops, None)
     };
 
     mixnet_client
@@ -54,11 +81,16 @@ async fn send_connect_to_ip_packet_router(
 }
 
 async fn wait_for_connect_response(
-    mixnet_client: &mut MixnetClient,
+    mixnet_client: &SharedMixnetClient,
     request_id: u64,
 ) -> Result<IpPacketResponse> {
     let timeout = tokio::time::sleep(Duration::from_secs(5));
     tokio::pin!(timeout);
+
+    // Connecting is basically synchronous from the perspective of the mixnet client, so it's safe
+    // to just grab ahold of the mutex and keep it until we get the response.
+    let mut mixnet_client_handle = mixnet_client.lock().await;
+    let mixnet_client = mixnet_client_handle.as_mut().unwrap();
 
     loop {
         tokio::select! {
@@ -88,11 +120,11 @@ async fn wait_for_connect_response(
 }
 
 async fn handle_static_connect_response(
-    mixnet_client: &mut MixnetClient,
+    mixnet_client_address: &Recipient,
     response: StaticConnectResponse,
 ) -> Result<()> {
     debug!("Handling static connect response");
-    if response.reply_to != *mixnet_client.nym_address() {
+    if response.reply_to != *mixnet_client_address {
         error!("Got reply intended for wrong address");
         return Err(Error::GotReplyIntendedForWrongAddress);
     }
@@ -105,11 +137,11 @@ async fn handle_static_connect_response(
 }
 
 async fn handle_dynamic_connect_response(
-    mixnet_client: &mut MixnetClient,
+    mixnet_client_address: &Recipient,
     response: DynamicConnectResponse,
 ) -> Result<IpAddr> {
     debug!("Handling dynamic connect response");
-    if response.reply_to != *mixnet_client.nym_address() {
+    if response.reply_to != *mixnet_client_address {
         error!("Got reply intended for wrong address");
         return Err(Error::GotReplyIntendedForWrongAddress);
     }
@@ -122,14 +154,14 @@ async fn handle_dynamic_connect_response(
 }
 
 pub async fn connect_to_ip_packet_router(
-    mixnet_client: &mut MixnetClient,
-    ip_packet_router_address: IpPacketRouterAddress,
+    mixnet_client: SharedMixnetClient,
+    ip_packet_router_address: &IpPacketRouterAddress,
     ip: Option<Ipv4Addr>,
     enable_two_hop: bool,
 ) -> Result<IpAddr> {
     info!("Sending connect request");
     let request_id = send_connect_to_ip_packet_router(
-        mixnet_client,
+        &mixnet_client,
         ip_packet_router_address,
         ip,
         enable_two_hop,
@@ -137,15 +169,16 @@ pub async fn connect_to_ip_packet_router(
     .await?;
 
     info!("Waiting for reply...");
-    let response = wait_for_connect_response(mixnet_client, request_id).await?;
+    let response = wait_for_connect_response(&mixnet_client, request_id).await?;
 
+    let mixnet_client_address = mixnet_client.nym_address().await;
     match response.data {
         IpPacketResponseData::StaticConnect(resp) if ip.is_some() => {
-            handle_static_connect_response(mixnet_client, resp).await?;
+            handle_static_connect_response(&mixnet_client_address, resp).await?;
             Ok(ip.unwrap().into())
         }
         IpPacketResponseData::DynamicConnect(resp) if ip.is_none() => {
-            handle_dynamic_connect_response(mixnet_client, resp).await
+            handle_dynamic_connect_response(&mixnet_client_address, resp).await
         }
         response => {
             error!("Unexpected response: {:?}", response);
@@ -161,7 +194,7 @@ pub(crate) async fn setup_mixnet_client(
     enable_wireguard: bool,
     enable_two_hop: bool,
     enable_poisson_rate: bool,
-) -> Result<MixnetClient> {
+) -> Result<SharedMixnetClient> {
     // Disable Poisson rate limiter by default
     let mut debug_config = nym_client_core::config::DebugConfig::default();
 
@@ -201,5 +234,5 @@ pub(crate) async fn setup_mixnet_client(
             .await?
     };
 
-    Ok(mixnet_client)
+    Ok(SharedMixnetClient::new(mixnet_client))
 }
