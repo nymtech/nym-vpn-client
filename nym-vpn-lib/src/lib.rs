@@ -199,7 +199,7 @@ impl NymVPN {
         Ok(())
     }
 
-    async fn run_start(
+    async fn setup_tunnel(
         &self,
     ) -> Result<(
         Tunnel,
@@ -294,7 +294,7 @@ impl NymVPN {
 
     pub async fn run(&self) -> Result<()> {
         let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
-            self.run_start().await?;
+            self.setup_tunnel().await?;
 
         // Finished starting everything, now wait for shutdown
         wait_for_interrupt(task_manager).await;
@@ -312,7 +312,7 @@ impl NymVPN {
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
-            self.run_start().await?;
+            self.setup_tunnel().await?;
 
         // Finished starting everything, now wait for mixnet client shutdown
         let res = wait_for_interrupt_and_signal(task_manager, vpn_ctrl_rx).await;
