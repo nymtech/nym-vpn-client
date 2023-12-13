@@ -3,7 +3,7 @@
 
 use crate::config::WireguardConfig;
 use crate::error::Result;
-use crate::gateway_client::{Config, GatewayClient};
+use crate::gateway_client::{Config, GatewayClient, GatewayCriteria};
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
@@ -51,10 +51,10 @@ pub struct NymVPN {
     pub mixnet_client_path: Option<PathBuf>,
 
     /// Mixnet public ID of the entry gateway.
-    pub entry_gateway: String,
+    pub entry_gateway: GatewayCriteria,
 
     /// Mixnet recipient address.
-    pub exit_router: String,
+    pub exit_router: GatewayCriteria,
 
     /// Enable the wireguard traffic between the client and the entry gateway.
     pub enable_wireguard: bool,
@@ -80,12 +80,12 @@ pub struct NymVPN {
 }
 
 impl NymVPN {
-    pub fn new(entry_gateway: &str, exit_router: &str) -> Self {
+    pub fn new(entry_gateway: GatewayCriteria, exit_router: GatewayCriteria) -> Self {
         Self {
             gateway_config: gateway_client::Config::default(),
             mixnet_client_path: None,
-            entry_gateway: entry_gateway.to_string(),
-            exit_router: exit_router.to_string(),
+            entry_gateway,
+            exit_router,
             enable_wireguard: false,
             private_key: None,
             ip: None,
@@ -108,6 +108,15 @@ impl NymVPN {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
+        let entry_gateway_id = match &self.entry_gateway {
+            GatewayCriteria::Identity(identity) => identity,
+            GatewayCriteria::Location(location) => gateway_client.lookup_gateway_by_location(location).await?.gateway.identity_key
+        };
+
+        let exit_router_ip = match &self.exit_router {
+            GatewayCriteria::Identity(identity) => gateway_client.lookup_gateway_ip(identity).await?.to_string(),
+            GatewayCriteria::Location(location) => gateway_client.lookup_gateway_by_location(location).await?.gateway.host
+        };
 
         let wireguard_config = if self.enable_wireguard {
             let private_key = self
@@ -115,7 +124,7 @@ impl NymVPN {
                 .as_ref()
                 .expect("clap should enforce value when wireguard enabled");
             let wireguard_config =
-                init_wireguard_config(&gateway_client, &self.entry_gateway, private_key).await?;
+                init_wireguard_config(&gateway_client, entry_gateway_id, private_key).await?;
             Some(wireguard_config)
         } else {
             None
@@ -131,7 +140,7 @@ impl NymVPN {
         info!("default_lane_gateway: {default_lan_gateway_ip}");
 
         // The address of the ip packet router running on the exit gateway
-        let exit_router = IpPacketRouterAddress::try_from_base58_string(&self.exit_router)?;
+        let exit_router = IpPacketRouterAddress::try_from_base58_string(exit_router_ip.as_str())?;
         info!("exit_router: {exit_router}");
 
         let task_manager = TaskManager::new(10);
@@ -157,7 +166,7 @@ impl NymVPN {
 
         info!("Setting up mixnet client");
         let mut mixnet_client = match setup_mixnet_client(
-            &self.entry_gateway,
+            entry_gateway_id,
             &self.mixnet_client_path,
             task_manager.subscribe_named("mixnet_client_main"),
             self.enable_wireguard,

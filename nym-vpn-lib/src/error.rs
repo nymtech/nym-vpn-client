@@ -53,6 +53,9 @@ pub enum Error {
     #[error("invalid Gateway ID")]
     InvalidGatewayID,
 
+    #[error("invalid Gateway location")]
+    InvalidGatewayLocation,
+
     #[error("{0}")]
     KeyRecoveryError(#[from] nym_crypto::asymmetric::encryption::KeyRecoveryError),
 

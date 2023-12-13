@@ -11,6 +11,7 @@ use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
 use nym_validator_client::NymApiClient;
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
+use nym_validator_client::client::GatewayBond;
 use talpid_types::net::wireguard::PublicKey;
 use tracing::{debug, info};
 use url::Url;
@@ -46,6 +47,11 @@ impl Config {
     }
 }
 
+pub enum GatewayCriteria {
+    Location(String),
+    Identity(String)
+}
+
 pub struct GatewayClient {
     api_client: NymApiClient,
     keypair: Option<encryption::KeyPair>,
@@ -79,6 +85,26 @@ impl GatewayClient {
             api_client,
             keypair,
         })
+    }
+
+    //just grab first gateway we find fow now
+    pub async fn lookup_gateway_by_location(&self, location: &str) -> Result<GatewayBond> {
+        self.api_client
+            .get_cached_gateways()
+            .await?
+            .iter()
+            .find_map(|gateway_bond| {
+                if gateway_bond.gateway.location == location {
+                    Some(gateway_bond.gateway().clone())
+                } else {
+                    None
+                }
+            })
+            .ok_or(crate::error::Error::InvalidGatewayLocation)
+            .and_then(|ip| {
+                ip.parse()
+                    .map_err(|_| crate::error::Error::InvalidGatewayLocation)
+            })
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
