@@ -5,7 +5,7 @@ mod commands;
 
 use nym_vpn_lib::error::*;
 use nym_vpn_lib::gateway_client::Config as GatewayConfig;
-use nym_vpn_lib::NymVPN;
+use nym_vpn_lib::NymVpn;
 
 use crate::commands::override_from_env;
 use clap::Parser;
@@ -35,7 +35,7 @@ async fn run() -> Result<()> {
     let gateway_config = override_from_env(&args, GatewayConfig::default());
     info!("nym-api: {}", gateway_config.api_url());
 
-    let nym_vpn = NymVPN {
+    let nym_vpn = NymVpn {
         gateway_config,
         mixnet_client_path: args.mixnet_client_path,
         entry_gateway: args.entry_gateway,

@@ -46,7 +46,7 @@ async fn init_wireguard_config(
 }
 
 #[derive(Clone)]
-pub struct NymVPN {
+pub struct NymVpn {
     /// Gateway configuration
     pub gateway_config: Config,
 
@@ -82,7 +82,7 @@ pub struct NymVPN {
     pub enable_poisson_rate: bool,
 }
 
-impl NymVPN {
+impl NymVpn {
     pub fn new(entry_gateway: &str, exit_router: &str) -> Self {
         Self {
             gateway_config: gateway_client::Config::default(),
@@ -387,7 +387,7 @@ pub enum NymVpnExitStatusMessage {
 /// vpn_config.enable_two_hop = true;
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
 /// ```
-pub fn spawn_nym_vpn(nym_vpn: NymVPN) -> Result<NymVpnHandle> {
+pub fn spawn_nym_vpn(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
 
     let (vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
