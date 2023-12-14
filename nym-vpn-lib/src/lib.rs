@@ -292,6 +292,9 @@ impl NymVPN {
         ))
     }
 
+    // Start the Nym VPN client, and wait for it to shutdown. The use case is in simple console
+    // applications where the main way to interact with the running process is to send SIGINT
+    // (ctrl-c)
     pub async fn run(&self) -> Result<()> {
         let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
             self.setup_tunnel().await?;
@@ -306,15 +309,22 @@ impl NymVPN {
         Ok(())
     }
 
+    // Start the Nym VPN client, but also listen for external messages to e.g. disconnect as well
+    // as reporting it's status on the provided channel. The usecase when the VPN is embedded in
+    // another application, or running as a background process with a graphical interface remote
+    // controlling it.
     pub async fn run_and_listen(
         &self,
-        _vpn_status_tx: mpsc::Sender<NymVpnStatusMessage>,
+        vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) = self
-            .setup_tunnel()
-            .await
-            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+        let (mut tunnel, mut task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
+            self.setup_tunnel()
+                .await
+                .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+
+        // Signal back that we are ready and up with all cylinders firing
+        task_manager.start_status_listener(vpn_status_tx).await;
 
         // Finished starting everything, now wait for mixnet client shutdown
         let result = wait_for_interrupt_and_signal(task_manager, vpn_ctrl_rx).await;
@@ -412,6 +422,6 @@ pub fn spawn_nym_vpn(nym_vpn: NymVPN) -> Result<NymVpnHandle> {
 
 pub struct NymVpnHandle {
     pub vpn_ctrl_tx: mpsc::UnboundedSender<NymVpnCtrlMessage>,
-    pub vpn_status_rx: mpsc::Receiver<NymVpnStatusMessage>,
+    pub vpn_status_rx: nym_task::StatusReceiver,
     pub vpn_exit_rx: oneshot::Receiver<NymVpnExitStatusMessage>,
 }
