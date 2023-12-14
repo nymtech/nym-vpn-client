@@ -85,7 +85,7 @@ pub struct NymVpn {
     pub enable_poisson_rate: bool,
 }
 
-impl NymVPN {
+impl NymVpn {
     pub fn new(entry_gateway: GatewayCriteria, exit_router: GatewayCriteria) -> Self {
         Self {
             gateway_config: gateway_client::Config::default(),
@@ -219,22 +219,24 @@ impl NymVPN {
             GatewayCriteria::Identity(identity) => identity.to_string(),
             GatewayCriteria::Location(location) => {
                 gateway_client
-                    .lookup_gateway_by_location(location)
+                    .lookup_gateway_by_location(location.as_str())
                     .await?
                     .gateway
                     .identity_key
             }
         };
 
-        //TODO placeholder for now, change when API/static list is ready
         let exit_router_address = match &self.exit_router {
             GatewayCriteria::Identity(identity) => identity.to_string(),
             GatewayCriteria::Location(location) => {
                 gateway_client
-                    .lookup_gateway_by_location(location)
+                    .lookup_described_gateway_by_location(location.as_str())
                     .await?
-                    .gateway
-                    .host
+                    .self_described
+                    .unwrap()
+                    .ip_packet_router
+                    .unwrap()
+                    .address
             }
         };
 

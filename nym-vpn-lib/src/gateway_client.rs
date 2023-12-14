@@ -1,8 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::error::Result;
-use futures::TryFutureExt;
+use crate::error::{Error, Result};
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_crypto::asymmetric::encryption;
 use nym_node_requests::api::client::NymNodeApiClientExt;
@@ -10,6 +9,7 @@ use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
 use nym_validator_client::client::GatewayBond;
+use nym_validator_client::models::DescribedGateway;
 use nym_validator_client::NymApiClient;
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
@@ -89,6 +89,25 @@ impl GatewayClient {
         })
     }
 
+    pub async fn lookup_described_gateway_by_location(
+        &self,
+        location: &str,
+    ) -> Result<DescribedGateway> {
+        log::info!("Lookup described gateway for location: {location}");
+        self.api_client
+            .get_cached_described_gateways()
+            .await?
+            .iter()
+            .find_map(|described_gateway| {
+                if described_gateway.bond.gateway.location == location {
+                    Some(described_gateway.clone())
+                } else {
+                    None
+                }
+            })
+            .ok_or(Error::InvalidGatewayLocation)
+    }
+
     pub async fn lookup_gateway_by_location(&self, location: &str) -> Result<GatewayBond> {
         log::info!("Lookup gateway for location: {location}");
         self.api_client
@@ -102,7 +121,7 @@ impl GatewayClient {
                     None
                 }
             })
-            .ok_or(crate::error::Error::InvalidGatewayLocation)
+            .ok_or(Error::InvalidGatewayLocation)
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
@@ -118,10 +137,7 @@ impl GatewayClient {
                 }
             })
             .ok_or(crate::error::Error::InvalidGatewayID)
-            .and_then(|ip| {
-                ip.parse()
-                    .map_err(|_| crate::error::Error::InvalidGatewayID)
-            })
+            .and_then(|ip| ip.parse().map_err(|_| Error::InvalidGatewayID))
     }
 
     pub async fn register_wireguard(&self, gateway_identity: &str) -> Result<GatewayData> {
