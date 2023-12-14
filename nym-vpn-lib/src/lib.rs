@@ -217,27 +217,42 @@ impl NymVpn {
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
         let entry_gateway_id = match &self.entry_gateway {
             GatewayCriteria::Identity(identity) => identity.to_string(),
-            GatewayCriteria::Location(location) => {
-                gateway_client
-                    .lookup_gateway_by_location(location.as_str())
-                    .await?
-                    .gateway
-                    .identity_key
-            }
+            GatewayCriteria::Location(location) => gateway_client
+                .lookup_described_gateways()
+                .await?
+                .iter()
+                .find_map(|described_gateway| {
+                    if described_gateway.bond.gateway.location == *location {
+                        Some(described_gateway.clone().bond.gateway.identity_key)
+                    } else {
+                        None
+                    }
+                })
+                .ok_or(error::Error::InvalidGatewayLocation)?,
         };
 
         let exit_router_address = match &self.exit_router {
             GatewayCriteria::Identity(identity) => identity.to_string(),
-            GatewayCriteria::Location(location) => {
-                gateway_client
-                    .lookup_described_gateway_by_location(location.as_str())
-                    .await?
-                    .self_described
-                    .unwrap()
-                    .ip_packet_router
-                    .unwrap()
-                    .address
-            }
+            GatewayCriteria::Location(location) => gateway_client
+                .lookup_described_gateways()
+                .await?
+                .iter()
+                .find_map(|described_gateway| {
+                    if described_gateway.bond.gateway.location == *location {
+                        Some(
+                            described_gateway
+                                .clone()
+                                .self_described
+                                .unwrap()
+                                .ip_packet_router
+                                .unwrap()
+                                .address,
+                        )
+                    } else {
+                        None
+                    }
+                })
+                .ok_or(error::Error::InvalidGatewayLocation)?,
         };
 
         info!("Determined criteria for location {entry_gateway_id}");

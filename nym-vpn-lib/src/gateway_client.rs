@@ -8,7 +8,6 @@ use nym_node_requests::api::client::NymNodeApiClientExt;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
-use nym_validator_client::client::GatewayBond;
 use nym_validator_client::models::DescribedGateway;
 use nym_validator_client::NymApiClient;
 use std::net::{IpAddr, SocketAddr};
@@ -89,38 +88,12 @@ impl GatewayClient {
         })
     }
 
-    pub async fn lookup_described_gateway_by_location(
-        &self,
-        location: &str,
-    ) -> Result<DescribedGateway> {
-        log::info!("Lookup described gateway for location: {location}");
+    pub async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {
+        log::info!("Lookup described gateways");
         self.api_client
             .get_cached_described_gateways()
-            .await?
-            .iter()
-            .find_map(|described_gateway| {
-                if described_gateway.bond.gateway.location == location {
-                    Some(described_gateway.clone())
-                } else {
-                    None
-                }
-            })
-            .ok_or(Error::InvalidGatewayLocation)
-    }
-
-    pub async fn lookup_gateway_by_location(&self, location: &str) -> Result<GatewayBond> {
-        log::info!("Lookup gateway for location: {location}");
-        self.api_client
-            .get_cached_gateways()
-            .await?
-            .iter()
-            .find_map(|gateway_bond| {
-                if gateway_bond.gateway.location == location {
-                    Some(gateway_bond.clone())
-                } else {
-                    None
-                }
-            })
+            .await
+            .ok()
             .ok_or(Error::InvalidGatewayLocation)
     }
 
