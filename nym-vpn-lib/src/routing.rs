@@ -1,6 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::process::Command;
 use std::{collections::HashSet, net::IpAddr};
 
 use default_net::interface::get_default_interface;
@@ -168,6 +169,23 @@ pub async fn setup_routing(
         device_destination = dev.get_ref().destination(),
         device_mtu = dev.get_ref().mtu(),
     );
+
+    #[cfg(target_os = "linux")]
+    Command::new("ip")
+        .args([
+            "-6",
+            "addr",
+            "add",
+            "fda7:576d:ac1a::1/48",
+            "dev",
+            &device_name,
+        ])
+        .spawn()?;
+
+    #[cfg(target_os = "macos")]
+    Command::new("ifconfig")
+        .args([&device_name, "inet6", "add", "fda7:576d:ac1a::1/48"])
+        .spawn()?;
 
     if disable_routing {
         info!("Routing is disabled, skipping adding routes");

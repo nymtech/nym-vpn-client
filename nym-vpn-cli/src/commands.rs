@@ -14,7 +14,7 @@ const TUN_IP_SUBNET: &str = "10.0.0.0/24";
 #[clap(author = "Nymtech", version, about)]
 pub(crate) struct CliArgs {
     /// Path pointing to an env file describing the network.
-    #[arg(short, long)]
+    #[arg(short, long, value_parser = check_path)]
     pub(crate) config_env_file: Option<PathBuf>,
 
     /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
@@ -77,4 +77,15 @@ pub fn override_from_env(args: &CliArgs, config: Config) -> Config {
         config = config.with_local_private_key(private_key.clone());
     }
     config
+}
+
+fn check_path(path: &str) -> Result<PathBuf, String> {
+    let path = PathBuf::from(path);
+    if !path.exists() {
+        return Err(format!("Path {:?} does not exist", path));
+    }
+    if !path.is_file() {
+        return Err(format!("Path {:?} is not a file", path));
+    }
+    Ok(path)
 }

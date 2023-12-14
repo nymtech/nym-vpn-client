@@ -15,6 +15,7 @@ use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 use talpid_routing::RouteManager;
+use util::wait_for_interrupt_and_signal;
 
 pub use nym_config;
 
@@ -45,7 +46,7 @@ async fn init_wireguard_config(
 }
 
 #[derive(Clone)]
-pub struct NymVPN {
+pub struct NymVpn {
     /// Gateway configuration
     pub gateway_config: Config,
 
@@ -96,14 +97,6 @@ impl NymVPN {
             enable_two_hop: false,
             enable_poisson_rate: false,
         }
-    }
-
-    pub async fn run_and_listen(
-        &self,
-        _vpn_status_tx: mpsc::Sender<NymVpnStatusMessage>,
-        _vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
-    ) -> Result<()> {
-        self.run().await
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -207,7 +200,15 @@ impl NymVPN {
         Ok(())
     }
 
-    pub async fn run(&self) -> Result<()> {
+    async fn setup_tunnel(
+        &self,
+    ) -> Result<(
+        Tunnel,
+        TaskManager,
+        RouteManager,
+        Option<(oneshot::Receiver<()>, tokio::task::JoinHandle<Result<()>>)>,
+        oneshot::Sender<()>,
+    )> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
@@ -293,6 +294,22 @@ impl NymVPN {
             return Err(err);
         }
 
+        Ok((
+            tunnel,
+            task_manager,
+            route_manager,
+            wireguard_waiting,
+            tunnel_close_tx,
+        ))
+    }
+
+    // Start the Nym VPN client, and wait for it to shutdown. The use case is in simple console
+    // applications where the main way to interact with the running process is to send SIGINT
+    // (ctrl-c)
+    pub async fn run(&self) -> Result<()> {
+        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
+            self.setup_tunnel().await?;
+
         // Finished starting everything, now wait for shutdown
         wait_for_interrupt(task_manager).await;
         handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
@@ -301,6 +318,41 @@ impl NymVPN {
         tunnel.firewall.reset_policy()?;
 
         Ok(())
+    }
+
+    // Start the Nym VPN client, but also listen for external messages to e.g. disconnect as well
+    // as reporting it's status on the provided channel. The usecase when the VPN is embedded in
+    // another application, or running as a background process with a graphical interface remote
+    // controlling it.
+    pub async fn run_and_listen(
+        &self,
+        vpn_status_tx: nym_task::StatusSender,
+        vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
+    ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+        let (mut tunnel, mut task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
+            self.setup_tunnel()
+                .await
+                .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+
+        // Signal back that we are ready and up with all cylinders firing
+        task_manager.start_status_listener(vpn_status_tx).await;
+
+        // Finished starting everything, now wait for mixnet client shutdown
+        let result = wait_for_interrupt_and_signal(task_manager, vpn_ctrl_rx).await;
+
+        handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
+            .await
+            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+        tunnel
+            .dns_monitor
+            .reset()
+            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+        tunnel
+            .firewall
+            .reset_policy()
+            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+
+        result
     }
 }
 
@@ -314,10 +366,27 @@ pub enum NymVpnCtrlMessage {
     Stop,
 }
 
+// We are mapping all errors to a generic error since I ran into issues with the error type
+// on a platform (mac) that I wasn't able to troubleshoot on in time. Basically it seemed like
+// not all error cases satisfied the Sync marker trait.
+#[derive(thiserror::Error, Debug)]
+pub enum NymVpnExitError {
+    #[error("{reason}")]
+    Generic { reason: String },
+}
+
+impl NymVpnExitError {
+    fn generic(err: &dyn std::error::Error) -> Self {
+        NymVpnExitError::Generic {
+            reason: err.to_string(),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum NymVpnExitStatusMessage {
     Stopped,
-    Failed,
+    Failed(Box<dyn std::error::Error + Send + Sync + 'static>),
 }
 
 /// Starts the Nym VPN client.
@@ -325,11 +394,11 @@ pub enum NymVpnExitStatusMessage {
 /// Examples
 ///
 /// ```no_run
-/// let mut vpn_config = nym_vpn_lib::NymVPN::new("Qwertyuiopasdfghjklzxcvbnm1234567890", "Qwertyuiopasdfghjklzxcvbnm1234567890");
+/// let mut vpn_config = nym_vpn_lib::NymVpn::new("Qwertyuiopasdfghjklzxcvbnm1234567890", "Qwertyuiopasdfghjklzxcvbnm1234567890");
 /// vpn_config.enable_two_hop = true;
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
 /// ```
-pub fn spawn_nym_vpn(nym_vpn: NymVPN) -> Result<NymVpnHandle> {
+pub fn spawn_nym_vpn(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
 
     let (vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
@@ -343,6 +412,10 @@ pub fn spawn_nym_vpn(nym_vpn: NymVPN) -> Result<NymVpnHandle> {
 
         if let Err(err) = result {
             log::error!("Nym VPN returned error: {err}");
+            vpn_exit_tx
+                .send(NymVpnExitStatusMessage::Failed(err))
+                .expect("Failed to send exit status");
+            return;
         }
 
         log::info!("Nym VPN has shut down");
@@ -360,6 +433,6 @@ pub fn spawn_nym_vpn(nym_vpn: NymVPN) -> Result<NymVpnHandle> {
 
 pub struct NymVpnHandle {
     pub vpn_ctrl_tx: mpsc::UnboundedSender<NymVpnCtrlMessage>,
-    pub vpn_status_rx: mpsc::Receiver<NymVpnStatusMessage>,
+    pub vpn_status_rx: nym_task::StatusReceiver,
     pub vpn_exit_rx: oneshot::Receiver<NymVpnExitStatusMessage>,
 }
