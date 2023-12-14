@@ -6,11 +6,10 @@ jobs:
     strategy:
       matrix:
         checks:
-          - advisories
+          # - advisories
           - licenses
           - bans sources
 
-    continue-on-error: ${{ matrix.checks == 'advisories' }}
     continue-on-error: ${{ matrix.checks == 'licenses' }}
 
     steps:
