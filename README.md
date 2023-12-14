@@ -41,7 +41,7 @@ in the root directory should if all things went well, produce a binary `bin/nym-
 Build the wireguard-go static library:
 
 ```sh
-$ ./wireguard/build-wireguard.go.sh
+$ ./wireguard/build-wireguard-go.sh
 ```
 
 This should create a local `build` directory with a static library `libwg.a` that wraps the wireguard-go implementation in a FFI.
