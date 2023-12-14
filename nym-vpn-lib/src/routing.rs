@@ -172,8 +172,7 @@ pub async fn setup_routing(
 
     Command::new("ifconfig")
         .args([&device_name, "inet6", "add", "fda7:576d:ac1a::1/48"])
-        .spawn()
-        .unwrap();
+        .spawn()?;
 
     if disable_routing {
         info!("Routing is disabled, skipping adding routes");
