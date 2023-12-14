@@ -417,7 +417,8 @@ pub enum NymVpnExitStatusMessage {
 /// Examples
 ///
 /// ```no_run
-/// let mut vpn_config = nym_vpn_lib::NymVpn::new("Qwertyuiopasdfghjklzxcvbnm1234567890", "Qwertyuiopasdfghjklzxcvbnm1234567890");
+/// use nym_vpn_lib::gateway_client::GatewayCriteria;
+/// let mut vpn_config = nym_vpn_lib::NymVpn::new(GatewayCriteria::Identity("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()), GatewayCriteria::Identity("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()));
 /// vpn_config.enable_two_hop = true;
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
 /// ```
