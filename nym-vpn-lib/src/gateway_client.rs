@@ -12,6 +12,7 @@ use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use nym_validator_client::models::DescribedGateway;
 use nym_validator_client::NymApiClient;
+use rand::seq::IteratorRandom;
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::PublicKey;
@@ -114,6 +115,54 @@ impl ExitPoint {
                 IpPacketRouterAddress::try_from_described_gateway(described_gateway)
             }
         }
+impl GatewayCriteria {
+    pub fn get_id(&self, gateways: &[DescribedGateway]) -> Option<String> {
+        return match &self {
+            GatewayCriteria::Identity(identity) | GatewayCriteria::Address(identity) => {
+                Some(identity.to_string())
+            }
+            GatewayCriteria::Location(location) => {
+                let filtered_gateways: Vec<&DescribedGateway> = gateways
+                    .iter()
+                    .filter(|described_gateway| {
+                        described_gateway.bond.gateway.location == *location
+                    })
+                    .collect();
+                let gateway: &DescribedGateway =
+                    filtered_gateways.iter().choose(&mut rand::thread_rng())?;
+                return Some(gateway.clone().bond.gateway.identity_key);
+            }
+        };
+    }
+
+    pub fn get_address(&self, gateways: &[DescribedGateway]) -> Option<String> {
+        return match &self {
+            GatewayCriteria::Address(address) => Some(address.to_string()),
+            GatewayCriteria::Identity(identity) => gateways.iter().find_map(|described_gateway| {
+                if described_gateway.bond.gateway.identity_key == *identity {
+                    Some(
+                        described_gateway
+                            .clone()
+                            .self_described?
+                            .ip_packet_router?
+                            .address,
+                    )
+                } else {
+                    None
+                }
+            }),
+            GatewayCriteria::Location(location) => {
+                let filtered_gateways: Vec<&DescribedGateway> = gateways
+                    .iter()
+                    .filter(|described_gateway| {
+                        described_gateway.bond.gateway.location == *location
+                    })
+                    .collect();
+                let gateway: &DescribedGateway =
+                    filtered_gateways.iter().choose(&mut rand::thread_rng())?;
+                return Some(gateway.clone().self_described?.ip_packet_router?.address);
+            }
+        };
     }
 }
 
