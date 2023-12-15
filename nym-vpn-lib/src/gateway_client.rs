@@ -78,10 +78,8 @@ impl GatewayCriteria {
                     Some(
                         described_gateway
                             .clone()
-                            .self_described
-                            .unwrap()
-                            .ip_packet_router
-                            .unwrap()
+                            .self_described?
+                            .ip_packet_router?
                             .address,
                     )
                 } else {
@@ -93,10 +91,8 @@ impl GatewayCriteria {
                     Some(
                         described_gateway
                             .clone()
-                            .self_described
-                            .unwrap()
-                            .ip_packet_router
-                            .unwrap()
+                            .self_described?
+                            .ip_packet_router?
                             .address,
                     )
                 } else {
