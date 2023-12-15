@@ -28,7 +28,7 @@ pub(crate) struct CliArgs {
     pub(crate) mixnet_client_path: Option<PathBuf>,
 
     /// Mixnet public ID of the entry gateway.
-    #[clap(long, conflicts_with = "entry_gateway_country")]
+    #[clap(long, conflicts_with = "entry_gateway_country", alias = "entry-id")]
     pub(crate) entry_gateway_id: Option<String>,
 
     /// Auto-select entry gateway by country ISO.
@@ -38,14 +38,27 @@ pub(crate) struct CliArgs {
     /// Mixnet recipient address.
     #[arg(
         long,
-        alias = "recipient-address",
-        alias = "exit-address",
-        conflicts_with = "exit_router_country"
+        conflicts_with = "exit_router_country",
+        conflicts_with = "exit_gateway_id",
+        alias = "exit-address"
     )]
     pub(crate) exit_router_address: Option<String>,
 
+    #[clap(
+        long,
+        conflicts_with = "exit_router_country",
+        conflicts_with = "exit_router_address",
+        alias = "exit-id"
+    )]
+    pub(crate) exit_gateway_id: Option<String>,
+
     /// Mixnet recipient address.
-    #[arg(long, alias = "exit-country", conflicts_with = "exit_router_address")]
+    #[arg(
+        long,
+        alias = "exit-country",
+        conflicts_with = "exit_router_address",
+        conflicts_with = "exit_gateway_id"
+    )]
     pub(crate) exit_router_country: Option<String>,
 
     /// Enable the wireguard traffic between the client and the entry gateway.

@@ -41,9 +41,14 @@ async fn run() -> Result<()> {
         None => GatewayCriteria::Location(args.entry_gateway_country.unwrap()),
     };
 
-    let exit_router = match args.exit_router_address {
-        Some(id) => GatewayCriteria::Identity(id),
-        None => GatewayCriteria::Location(args.exit_router_country.unwrap()),
+    let exit_router = if args.exit_router_address.is_some() {
+        info!("Using exit address");
+        GatewayCriteria::Address(args.exit_router_address.unwrap())
+    } else {
+        match args.exit_gateway_id {
+            Some(id) => GatewayCriteria::Identity(id),
+            None => GatewayCriteria::Location(args.exit_router_country.unwrap()),
+        }
     };
 
     let nym_vpn = NymVpn {

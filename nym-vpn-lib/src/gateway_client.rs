@@ -51,6 +51,7 @@ impl Config {
 pub enum GatewayCriteria {
     Location(String),
     Identity(String),
+    Address(String),
 }
 
 pub struct GatewayClient {
@@ -94,7 +95,7 @@ impl GatewayClient {
             .get_cached_described_gateways()
             .await
             .ok()
-            .ok_or(Error::InvalidGatewayLocation)
+            .ok_or(Error::InvalidGatewayAPIResponse)
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
