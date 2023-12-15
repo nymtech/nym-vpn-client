@@ -10,6 +10,9 @@ use talpid_types::net::wireguard::{
 };
 use talpid_types::net::GenericTunnelOptions;
 
+#[cfg(target_os = "linux")]
+pub const TUNNEL_FWMARK: u32 = 0x6d6f6c65;
+
 #[derive(Clone)]
 pub struct WireguardConfig(pub talpid_wireguard::config::Config);
 
@@ -53,7 +56,7 @@ impl WireguardConfig {
             ipv4_gateway: Ipv4Addr::from_str(&gateway_data.private_ip.to_string())?,
             ipv6_gateway: None,
             #[cfg(target_os = "linux")]
-            fwmark: None,
+            fwmark: Some(TUNNEL_FWMARK),
         };
         let generic_options = GenericTunnelOptions { enable_ipv6: false };
         let wg_options = TunnelOptions::default();
