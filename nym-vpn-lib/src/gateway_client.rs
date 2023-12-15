@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::error::{Error, Result};
+use crate::mixnet_processor::IpPacketRouterAddress;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_crypto::asymmetric::encryption;
 use nym_node_requests::api::client::NymNodeApiClientExt;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
+use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use nym_validator_client::models::DescribedGateway;
 use nym_validator_client::NymApiClient;
 use std::net::{IpAddr, SocketAddr};
@@ -47,59 +49,71 @@ impl Config {
     }
 }
 
+// The entry point is always a gateway identity, or some other entry that can be resolved to a
+// gateway identity.
 #[derive(Clone)]
-pub enum GatewayCriteria {
+pub enum EntryPoint {
+    Gateway(NodeIdentity),
+    // NOTE: Consider using a crate with strongly typed country codes instead of strings
     Location(String),
-    Identity(String),
-    Address(String),
 }
 
-impl GatewayCriteria {
-    pub fn get_id(&self, gateways: &[DescribedGateway]) -> Option<String> {
-        return match &self {
-            GatewayCriteria::Identity(identity) | GatewayCriteria::Address(identity) => {
-                Some(identity.to_string())
-            }
-            GatewayCriteria::Location(location) => gateways.iter().find_map(|described_gateway| {
-                if described_gateway.bond.gateway.location == *location {
-                    Some(described_gateway.clone().bond.gateway.identity_key)
-                } else {
-                    None
-                }
-            }),
-        };
-    }
+// The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
+// gateway, we can refer to it by the gateway identity.
+#[derive(Clone)]
+pub enum ExitPoint {
+    // An explicit exit address. This is useful when the exit ip-packet-router is running as a
+    // standalone entity (private).
+    Address(Box<Recipient>),
+    // An explicit exit gateway identity. This is useful when the exit ip-packet-router is running
+    // embedded on a gateway.
+    Gateway(NodeIdentity),
+    // NOTE: Consider using a crate with strongly typed country codes instead of strings
+    Location(String),
+}
 
-    pub fn get_address(&self, gateways: &[DescribedGateway]) -> Option<String> {
-        return match &self {
-            GatewayCriteria::Address(address) => Some(address.to_string()),
-            GatewayCriteria::Identity(identity) => gateways.iter().find_map(|described_gateway| {
-                if described_gateway.bond.gateway.identity_key == *identity {
-                    Some(
-                        described_gateway
-                            .clone()
-                            .self_described?
-                            .ip_packet_router?
-                            .address,
-                    )
-                } else {
-                    None
-                }
-            }),
-            GatewayCriteria::Location(location) => gateways.iter().find_map(|described_gateway| {
-                if described_gateway.bond.gateway.location == *location {
-                    Some(
-                        described_gateway
-                            .clone()
-                            .self_described?
-                            .ip_packet_router?
-                            .address,
-                    )
-                } else {
-                    None
-                }
-            }),
-        };
+impl EntryPoint {
+    pub fn lookup_gateway_identity(&self, gateways: &[DescribedGateway]) -> Result<NodeIdentity> {
+        match &self {
+            EntryPoint::Gateway(gateway_identity) => Ok(gateway_identity.clone()),
+            EntryPoint::Location(location) => {
+                let described_gateway = gateways
+                    .iter()
+                    .find(|described_gateway| described_gateway.bond.gateway.location == *location)
+                    .ok_or(Error::NoMatchingGateway)?;
+                Ok(NodeIdentity::from_base58_string(
+                    described_gateway.clone().bond.gateway.identity_key,
+                )
+                .map_err(|_| Error::NodeIdentityFormattingError)?)
+            }
+        }
+    }
+}
+
+impl ExitPoint {
+    pub fn lookup_router_address(
+        &self,
+        gateways: &[DescribedGateway],
+    ) -> Result<IpPacketRouterAddress> {
+        match &self {
+            ExitPoint::Address(address) => Ok(IpPacketRouterAddress(*address.clone())),
+            ExitPoint::Gateway(gateway_identity) => {
+                let described_gateway = gateways
+                    .iter()
+                    .find(|described_gateway| {
+                        described_gateway.bond.gateway.identity_key == *gateway_identity.to_string()
+                    })
+                    .ok_or(Error::NoMatchingGateway)?;
+                IpPacketRouterAddress::try_from_described_gateway(described_gateway)
+            }
+            ExitPoint::Location(location) => {
+                let described_gateway = gateways
+                    .iter()
+                    .find(|described_gateway| described_gateway.bond.gateway.location == *location)
+                    .ok_or(Error::NoMatchingGateway)?;
+                IpPacketRouterAddress::try_from_described_gateway(described_gateway)
+            }
+        }
     }
 }
 

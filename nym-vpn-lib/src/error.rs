@@ -38,6 +38,9 @@ pub enum Error {
     #[error("{0}")]
     SDKError(#[from] nym_sdk::Error),
 
+    #[error("identity not formatted correctly")]
+    NodeIdentityFormattingError,
+
     #[error("recipient is not formatted correctly")]
     RecipientFormattingError,
 
@@ -100,6 +103,12 @@ pub enum Error {
 
     #[error("connect request denied: {reason}")]
     DynamicConnectRequestDenied { reason: DynamicConnectFailureReason },
+
+    #[error("missing ip packet router address for gateway")]
+    MissingIpPacketRouterAddress,
+
+    #[error("no matching gateway found")]
+    NoMatchingGateway,
 }
 
 // Result type based on our error type

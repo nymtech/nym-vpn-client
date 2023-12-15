@@ -3,12 +3,13 @@
 
 use crate::config::WireguardConfig;
 use crate::error::Result;
-use crate::gateway_client::{Config, GatewayClient, GatewayCriteria};
+use crate::gateway_client::{Config, GatewayClient};
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use futures::channel::{mpsc, oneshot};
+use gateway_client::{EntryPoint, ExitPoint};
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_task::TaskManager;
@@ -17,6 +18,7 @@ use std::path::PathBuf;
 use talpid_routing::RouteManager;
 use util::wait_for_interrupt_and_signal;
 
+pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
 pub use nym_task::{manager::SentStatus, StatusReceiver};
 
 pub use nym_bin_common;
@@ -57,10 +59,10 @@ pub struct NymVpn {
     pub mixnet_client_path: Option<PathBuf>,
 
     /// Mixnet public ID of the entry gateway.
-    pub entry_gateway: GatewayCriteria,
+    pub entry_point: EntryPoint,
 
     /// Mixnet recipient address.
-    pub exit_router: GatewayCriteria,
+    pub exit_point: ExitPoint,
 
     /// Enable the wireguard traffic between the client and the entry gateway.
     pub enable_wireguard: bool,
@@ -86,12 +88,12 @@ pub struct NymVpn {
 }
 
 impl NymVpn {
-    pub fn new(entry_gateway: GatewayCriteria, exit_router: GatewayCriteria) -> Self {
+    pub fn new(entry_gateway: EntryPoint, exit_router: ExitPoint) -> Self {
         Self {
             gateway_config: gateway_client::Config::default(),
             mixnet_client_path: None,
-            entry_gateway,
-            exit_router,
+            entry_point: entry_gateway,
+            exit_point: exit_router,
             enable_wireguard: false,
             private_key: None,
             ip: None,
@@ -165,7 +167,7 @@ impl NymVpn {
     async fn setup_tunnel_services(
         &self,
         route_manager: &mut RouteManager,
-        entry_gateway: &str,
+        entry_gateway: &NodeIdentity,
         exit_router: &IpPacketRouterAddress,
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
@@ -216,10 +218,8 @@ impl NymVpn {
         // handle wireguard registration
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
         let gateways = &gateway_client.lookup_described_gateways().await?;
-        let entry_gateway_id = GatewayCriteria::get_id(&self.entry_gateway, gateways)
-            .ok_or(error::Error::MissingEntryGatewayCriteria)?;
-        let exit_router_address = GatewayCriteria::get_address(&self.exit_router, gateways)
-            .ok_or(error::Error::MissingExitGatewayCriteria)?;
+        let entry_gateway_id = self.entry_point.lookup_gateway_identity(gateways)?;
+        let exit_router_address = self.exit_point.lookup_router_address(gateways)?;
 
         info!("Determined criteria for location {entry_gateway_id}");
         info!("Exit router address {exit_router_address}");
@@ -229,9 +229,12 @@ impl NymVpn {
                 .private_key
                 .as_ref()
                 .expect("clap should enforce value when wireguard enabled");
-            let wireguard_config =
-                init_wireguard_config(&gateway_client, entry_gateway_id.as_str(), private_key)
-                    .await?;
+            let wireguard_config = init_wireguard_config(
+                &gateway_client,
+                &entry_gateway_id.to_base58_string(),
+                private_key,
+            )
+            .await?;
             Some(wireguard_config)
         } else {
             None
@@ -245,11 +248,6 @@ impl NymVpn {
         // Get the IP address of the local LAN gateway
         let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
         info!("default_lane_gateway: {default_lan_gateway_ip}");
-
-        // The address of the ip packet router running on the exit gateway
-        let exit_router =
-            IpPacketRouterAddress::try_from_base58_string(exit_router_address.as_str())?;
-        info!("exit_router: {exit_router}");
 
         let task_manager = TaskManager::new(10);
 
@@ -280,8 +278,8 @@ impl NymVpn {
         if let Err(err) = self
             .setup_tunnel_services(
                 &mut route_manager,
-                entry_gateway_id.as_str(),
-                &exit_router,
+                &entry_gateway_id,
+                &exit_router_address,
                 &task_manager,
                 &gateway_client,
                 default_lan_gateway_ip,

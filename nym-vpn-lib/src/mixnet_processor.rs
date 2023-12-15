@@ -5,6 +5,7 @@ use futures::{SinkExt, StreamExt};
 use nym_ip_packet_requests::{IpPacketRequest, IpPacketResponse, IpPacketResponseData};
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
+use nym_validator_client::models::DescribedGateway;
 use tracing::{debug, error, info, trace, warn};
 use tun::{AsyncDevice, Device, TunPacket};
 
@@ -33,6 +34,19 @@ impl IpPacketRouterAddress {
     pub fn try_from_base58_string(ip_packet_router_nym_address: &str) -> Result<Self> {
         Ok(Self(
             Recipient::try_from_base58_string(ip_packet_router_nym_address)
+                .map_err(|_| Error::RecipientFormattingError)?,
+        ))
+    }
+
+    pub fn try_from_described_gateway(gateway: &DescribedGateway) -> Result<Self> {
+        let address = gateway
+            .self_described
+            .clone()
+            .and_then(|described_gateway| described_gateway.ip_packet_router)
+            .map(|ipr| ipr.address)
+            .ok_or(Error::MissingIpPacketRouterAddress)?;
+        Ok(Self(
+            Recipient::try_from_base58_string(address)
                 .map_err(|_| Error::RecipientFormattingError)?,
         ))
     }
