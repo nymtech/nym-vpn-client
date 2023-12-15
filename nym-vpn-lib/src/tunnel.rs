@@ -99,7 +99,7 @@ pub fn start_tunnel(
         } else {
             finished_shutdown_tx
                 .send(())
-                .map_err(|_| crate::error::Error::OneshotSendError)?;
+                .map_err(|_| crate::error::Error::FailedToSendWireguardShutdown)?;
             debug!("Sent shutdown message");
         }
         Ok(())

@@ -15,6 +15,8 @@ use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 use talpid_routing::RouteManager;
+use tap::TapFallible;
+use tracing::warn;
 use util::wait_for_interrupt_and_signal;
 
 pub use nym_task::{manager::SentStatus, StatusReceiver};
@@ -280,9 +282,27 @@ impl NymVpn {
             error!("Failed to setup tunnel services: {err}");
             debug!("{err:?}");
             wait_for_interrupt(task_manager).await;
-            handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
-            tunnel.dns_monitor.reset()?;
-            tunnel.firewall.reset_policy()?;
+            // Ignore if these fail since we're interesting in the original error anyway
+            handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
+                .await
+                .tap_err(|err| {
+                    warn!("Failed to handle interrupt: {err}");
+                })
+                .ok();
+            tunnel
+                .dns_monitor
+                .reset()
+                .tap_err(|err| {
+                    warn!("Failed to reset dns monitor: {err}");
+                })
+                .ok();
+            tunnel
+                .firewall
+                .reset_policy()
+                .tap_err(|err| {
+                    warn!("Failed to reset firewall policy: {err}");
+                })
+                .ok();
             return Err(err);
         }
 
@@ -304,10 +324,18 @@ impl NymVpn {
 
         // Finished starting everything, now wait for shutdown
         wait_for_interrupt(task_manager).await;
-        handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx).await?;
+        handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
+            .await
+            .tap_err(|err| {
+                error!("Failed to handle interrupt: {err}");
+            })?;
 
-        tunnel.dns_monitor.reset()?;
-        tunnel.firewall.reset_policy()?;
+        tunnel.dns_monitor.reset().tap_err(|err| {
+            error!("Failed to reset dns monitor: {err}");
+        })?;
+        tunnel.firewall.reset_policy().tap_err(|err| {
+            error!("Failed to reset firewall policy: {err}");
+        })?;
 
         Ok(())
     }
@@ -334,15 +362,22 @@ impl NymVpn {
 
         handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
             .await
-            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
-        tunnel
-            .dns_monitor
-            .reset()
-            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
-        tunnel
-            .firewall
-            .reset_policy()
-            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+            .map_err(|err| {
+                error!("Failed to handle interrupt: {err}");
+                Box::new(NymVpnExitError::generic(&err))
+            })?;
+        tunnel.dns_monitor.reset().map_err(|err| {
+            error!("Failed to reset dns monitor: {err}");
+            Box::new(NymVpnExitError::FailedToResetDnsMonitor {
+                reason: err.to_string(),
+            })
+        })?;
+        tunnel.firewall.reset_policy().map_err(|err| {
+            error!("Failed to reset firewall policy: {err}");
+            Box::new(NymVpnExitError::FailedToResetFirewallPolicy {
+                reason: err.to_string(),
+            })
+        })?;
 
         result
     }
@@ -365,6 +400,13 @@ pub enum NymVpnCtrlMessage {
 pub enum NymVpnExitError {
     #[error("{reason}")]
     Generic { reason: String },
+
+    // TODO: capture the concrete error type once we have time to investigate on Mac
+    #[error("failed to reset firewall policy: {reason}")]
+    FailedToResetFirewallPolicy { reason: String },
+
+    #[error("failed to reset dns monitor: {reason}")]
+    FailedToResetDnsMonitor { reason: String },
 }
 
 impl NymVpnExitError {
@@ -403,7 +445,8 @@ pub fn spawn_nym_vpn(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
             .block_on(async move { nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await });
 
         if let Err(err) = result {
-            log::error!("Nym VPN returned error: {err}");
+            error!("Nym VPN returned error: {err}");
+            debug!("{err:?}");
             vpn_exit_tx
                 .send(NymVpnExitStatusMessage::Failed(err))
                 .expect("Failed to send exit status");

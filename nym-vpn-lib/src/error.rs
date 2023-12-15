@@ -32,8 +32,11 @@ pub enum Error {
     #[error("{0}")]
     CanceledError(#[from] futures::channel::oneshot::Canceled),
 
-    #[error("oneshot send error")]
-    OneshotSendError,
+    #[error("failed to send close message to wireguard tunnel")]
+    FailedToSendWireguardTunnelClose,
+
+    #[error("failed to send shutdown message to wireguard tunnel")]
+    FailedToSendWireguardShutdown,
 
     #[error("{0}")]
     SDKError(#[from] nym_sdk::Error),

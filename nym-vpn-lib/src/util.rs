@@ -60,6 +60,8 @@ pub(crate) async fn handle_interrupt(
     wireguard_waiting: Option<(oneshot::Receiver<()>, tokio::task::JoinHandle<Result<()>>)>,
     tunnel_close_tx: oneshot::Sender<()>,
 ) -> Result<()> {
+    let is_wireguard_waiting = wireguard_waiting.is_some();
+
     let sig_handle = tokio::task::spawn_blocking(move || -> Result<()> {
         debug!("Received interrupt signal");
         route_manager.clear_routes()?;
@@ -72,9 +74,11 @@ pub(crate) async fn handle_interrupt(
                 error.display_chain_with_msg("Failed to clear routing rules")
             );
         }
-        tunnel_close_tx
-            .send(())
-            .map_err(|_| Error::OneshotSendError)?;
+        if is_wireguard_waiting {
+            tunnel_close_tx
+                .send(())
+                .map_err(|_| Error::FailedToSendWireguardTunnelClose)?;
+        }
         Ok(())
     });
 
