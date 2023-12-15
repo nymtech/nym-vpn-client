@@ -29,6 +29,7 @@ pub fn setup_logging() {
 async fn run() -> Result<()> {
     setup_logging();
     let args = commands::CliArgs::parse();
+    debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
     setup_env(args.config_env_file.as_ref());
 
     // Setup gateway configuration

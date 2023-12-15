@@ -55,7 +55,7 @@ impl WireguardConfig {
             #[cfg(target_os = "linux")]
             fwmark: None,
         };
-        let generic_options = GenericTunnelOptions { enable_ipv6: true };
+        let generic_options = GenericTunnelOptions { enable_ipv6: false };
         let wg_options = TunnelOptions::default();
         let config = Self::new(
             tunnel,
