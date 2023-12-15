@@ -60,7 +60,7 @@ pub(crate) struct CliArgs {
     #[arg(long)]
     pub(crate) enable_two_hop: bool,
 
-    /// Enable Poission process rate limiting of outbound traffic.
+    /// Enable Poisson process rate limiting of outbound traffic.
     #[arg(long)]
     pub(crate) enable_poisson_rate: bool,
 }
