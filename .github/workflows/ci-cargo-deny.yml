@@ -1,5 +1,5 @@
 name: ci-cargo-deny
-on: [push, pull_request]
+on: [pull_request]
 jobs:
   cargo-deny:
     runs-on: ubuntu-22.04
