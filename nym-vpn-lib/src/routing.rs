@@ -208,7 +208,7 @@ pub async fn setup_routing(
 
     // If wireguard is not enabled, and we are not tunneling the connection to the gateway through
     // it, we need to add an exception route for the gateway to the routing table.
-    if !enable_wireguard {
+    if !enable_wireguard || cfg!(target_os = "linux") {
         let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
         let default_node = Node::address(config.lan_gateway_ip.0);
         info!(
