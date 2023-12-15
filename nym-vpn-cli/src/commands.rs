@@ -3,15 +3,21 @@
 
 use clap::Parser;
 use ipnetwork::Ipv4Network;
-use nym_vpn_lib::gateway_client::Config;
 use nym_vpn_lib::nym_config::defaults::var_names::NYM_API;
 use nym_vpn_lib::nym_config::OptionalSet;
-use std::{net::Ipv4Addr, path::PathBuf, str::FromStr};
+use nym_vpn_lib::{gateway_client::Config, nym_bin_common::bin_info};
+use std::{net::Ipv4Addr, path::PathBuf, str::FromStr, sync::OnceLock};
 
 const TUN_IP_SUBNET: &str = "10.0.0.0/24";
 
+// Helper for passing LONG_VERSION to clap
+fn pretty_build_info_static() -> &'static str {
+    static PRETTY_BUILD_INFORMATION: OnceLock<String> = OnceLock::new();
+    PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info!().pretty_print())
+}
+
 #[derive(Parser)]
-#[clap(author = "Nymtech", version, about)]
+#[clap(author = "Nymtech", version, about, long_version = pretty_build_info_static())]
 pub(crate) struct CliArgs {
     /// Path pointing to an env file describing the network.
     #[arg(short, long, value_parser = check_path)]

@@ -17,8 +17,8 @@ use std::path::PathBuf;
 use talpid_routing::RouteManager;
 use util::wait_for_interrupt_and_signal;
 
-pub use nym_config;
 pub use nym_bin_common;
+pub use nym_config;
 
 pub mod config;
 pub mod error;
