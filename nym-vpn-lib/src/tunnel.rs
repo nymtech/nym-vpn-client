@@ -33,7 +33,9 @@ impl Tunnel {
             let (command_tx, _) = mpsc::unbounded();
             let command_tx = Arc::new(command_tx);
             let weak_command_tx = Arc::downgrade(&command_tx);
+            debug!("Starting firewall");
             let firewall = Firewall::new()?;
+            debug!("Starting dns monitor");
             let dns_monitor = DnsMonitor::new(weak_command_tx)?;
             (firewall, dns_monitor)
         };
@@ -41,7 +43,9 @@ impl Tunnel {
         #[cfg(target_os = "linux")]
         let (firewall, dns_monitor) = {
             let fwmark = 0; // ?
+            debug!("Starting firewall");
             let firewall = Firewall::new(fwmark)?;
+            debug!("Starting dns monitor");
             let dns_monitor = DnsMonitor::new(
                 tokio::runtime::Handle::current(),
                 route_manager_handle.clone(),
@@ -77,6 +81,7 @@ pub fn start_tunnel(
                 })
             };
         let resource_dir = std::env::temp_dir().join("nym-wg");
+        debug!("Tunnel resource dir: {:?}", resource_dir);
         let args = TunnelArgs {
             runtime: tokio::runtime::Handle::current(),
             resource_dir: &resource_dir,
@@ -86,8 +91,9 @@ pub fn start_tunnel(
             retry_attempt: 3,
             route_manager,
         };
-        let monitor = WireguardMonitor::start(config, None, None, args)?;
         info!("Starting wireguard monitor");
+        let monitor = WireguardMonitor::start(config, None, None, args)?;
+        debug!("Wireguard monitor started, blocking current thread until shutdown");
         if let Err(e) = monitor.wait() {
             error!("Tunnel disconnected with error {:?}", e);
         } else {
