@@ -251,7 +251,21 @@ impl NymVpn {
         let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
 
         info!("Creating tunnel");
-        let mut tunnel = Tunnel::new(wireguard_config.clone(), route_manager.handle()?)?;
+        let mut tunnel = match Tunnel::new(wireguard_config.clone(), route_manager.handle()?) {
+            Ok(tunnel) => tunnel,
+            Err(err) => {
+                error!("Failed to create tunnel: {err}");
+                debug!("{err:?}");
+                // Ignore if these fail since we're interesting in the original error anyway
+                handle_interrupt(route_manager, None, tunnel_close_tx)
+                    .await
+                    .tap_err(|err| {
+                        warn!("Failed to handle interrupt: {err}");
+                    })
+                    .ok();
+                return Err(err);
+            }
+        };
 
         let wireguard_waiting = if self.enable_wireguard {
             info!("Starting wireguard tunnel");
