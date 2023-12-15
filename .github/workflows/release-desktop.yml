@@ -16,7 +16,6 @@ jobs:
         os: [ubuntu-22.04]
     runs-on: ${{ matrix.os }}
     env:
-      APP_CARGOTOML_PATH: ./nym/nym-vpn/ui/src-tauri/Cargo.toml
       # TODO use repo secrets instead
       TAURI_PRIVATE_KEY: "1234"
       TAURI_KEY_PASSWORD: "1234"
