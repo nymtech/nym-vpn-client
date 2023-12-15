@@ -93,11 +93,8 @@ jobs:
         run: yarn
 
       - name: Build desktop client
-        uses: actions-rs/cargo@v1
-        working-directory: nym/nym-vpn/ui
-        with:
-          command: build
-          args: --manifest-path src-tauri/Cargo.toml --features custom-protocol
+        working-directory: nym/nym-vpn/ui/src-tauri
+        run: TAURI_PRIVATE_KEY=${{ env.TAURI_PRIVATE_KEY }} TAURI_KEY_PASSWORD=${{ env.TAURI_PRIVATE_PASSWORD }} cargo tauri build
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -107,4 +104,3 @@ jobs:
           path: |
             src-tauri/target/release/bundle/deb/nym-vpn-ui_0.0.0_amd64.deb
             src-tauri/target/release/bundle/deb/nym-vpn-ui_0.0.0_amd64.AppImage
-
