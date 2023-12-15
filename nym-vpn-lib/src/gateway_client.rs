@@ -76,14 +76,20 @@ pub enum ExitPoint {
 impl EntryPoint {
     pub fn lookup_gateway_identity(&self, gateways: &[DescribedGateway]) -> Result<NodeIdentity> {
         match &self {
-            EntryPoint::Gateway(gateway_identity) => Ok(gateway_identity.clone()),
+            EntryPoint::Gateway(gateway_identity) => Ok(*gateway_identity),
             EntryPoint::Location(location) => {
-                let described_gateway = gateways
+                let described_gateways: Vec<&DescribedGateway> = gateways
                     .iter()
-                    .find(|described_gateway| described_gateway.bond.gateway.location == *location)
+                    .filter(|described_gateway| {
+                        described_gateway.bond.gateway.location == *location
+                    })
+                    .collect();
+                let random_gateway: &DescribedGateway = described_gateways
+                    .iter()
+                    .choose(&mut rand::thread_rng())
                     .ok_or(Error::NoMatchingGateway)?;
                 Ok(NodeIdentity::from_base58_string(
-                    described_gateway.clone().bond.gateway.identity_key,
+                    random_gateway.clone().bond.gateway.identity_key,
                 )
                 .map_err(|_| Error::NodeIdentityFormattingError)?)
             }
@@ -108,61 +114,19 @@ impl ExitPoint {
                 IpPacketRouterAddress::try_from_described_gateway(described_gateway)
             }
             ExitPoint::Location(location) => {
-                let described_gateway = gateways
+                let described_gateways: Vec<&DescribedGateway> = gateways
                     .iter()
-                    .find(|described_gateway| described_gateway.bond.gateway.location == *location)
+                    .filter(|described_gateway| {
+                        described_gateway.bond.gateway.location == *location
+                    })
+                    .collect();
+                let random_gateway: &DescribedGateway = described_gateways
+                    .iter()
+                    .choose(&mut rand::thread_rng())
                     .ok_or(Error::NoMatchingGateway)?;
-                IpPacketRouterAddress::try_from_described_gateway(described_gateway)
+                IpPacketRouterAddress::try_from_described_gateway(random_gateway)
             }
         }
-impl GatewayCriteria {
-    pub fn get_id(&self, gateways: &[DescribedGateway]) -> Option<String> {
-        return match &self {
-            GatewayCriteria::Identity(identity) | GatewayCriteria::Address(identity) => {
-                Some(identity.to_string())
-            }
-            GatewayCriteria::Location(location) => {
-                let filtered_gateways: Vec<&DescribedGateway> = gateways
-                    .iter()
-                    .filter(|described_gateway| {
-                        described_gateway.bond.gateway.location == *location
-                    })
-                    .collect();
-                let gateway: &DescribedGateway =
-                    filtered_gateways.iter().choose(&mut rand::thread_rng())?;
-                return Some(gateway.clone().bond.gateway.identity_key);
-            }
-        };
-    }
-
-    pub fn get_address(&self, gateways: &[DescribedGateway]) -> Option<String> {
-        return match &self {
-            GatewayCriteria::Address(address) => Some(address.to_string()),
-            GatewayCriteria::Identity(identity) => gateways.iter().find_map(|described_gateway| {
-                if described_gateway.bond.gateway.identity_key == *identity {
-                    Some(
-                        described_gateway
-                            .clone()
-                            .self_described?
-                            .ip_packet_router?
-                            .address,
-                    )
-                } else {
-                    None
-                }
-            }),
-            GatewayCriteria::Location(location) => {
-                let filtered_gateways: Vec<&DescribedGateway> = gateways
-                    .iter()
-                    .filter(|described_gateway| {
-                        described_gateway.bond.gateway.location == *location
-                    })
-                    .collect();
-                let gateway: &DescribedGateway =
-                    filtered_gateways.iter().choose(&mut rand::thread_rng())?;
-                return Some(gateway.clone().self_described?.ip_packet_router?.address);
-            }
-        };
     }
 }
 
