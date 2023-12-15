@@ -1,6 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::error;
 use crate::error::{Error, Result};
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_crypto::asymmetric::encryption;
@@ -52,6 +53,74 @@ pub enum GatewayCriteria {
     Location(String),
     Identity(String),
     Address(String),
+}
+
+impl GatewayCriteria {
+    pub async fn get_id(&self, gateway_client: &GatewayClient) -> String {
+        return match &self {
+            GatewayCriteria::Identity(identity) | GatewayCriteria::Address(identity) => {
+                identity.to_string()
+            }
+            GatewayCriteria::Location(location) => gateway_client
+                .lookup_described_gateways()
+                .await?
+                .iter()
+                .find_map(|described_gateway| {
+                    if described_gateway.bond.gateway.location == *location {
+                        Some(described_gateway.clone().bond.gateway.identity_key)
+                    } else {
+                        None
+                    }
+                })
+                .ok_or(error::Error::InvalidGatewayLocation)?,
+        };
+    }
+
+    pub async fn get_address(&self, gateway_client: &GatewayClient) -> String {
+        return match &self {
+            GatewayCriteria::Address(address) => address.to_string(),
+            GatewayCriteria::Identity(identity) => gateway_client
+                .lookup_described_gateways()
+                .await?
+                .iter()
+                .find_map(|described_gateway| {
+                    if described_gateway.bond.gateway.identity_key == *identity {
+                        Some(
+                            described_gateway
+                                .clone()
+                                .self_described
+                                .unwrap()
+                                .ip_packet_router
+                                .unwrap()
+                                .address,
+                        )
+                    } else {
+                        None
+                    }
+                })
+                .ok_or(error::Error::InvalidGatewayLocation)?,
+            GatewayCriteria::Location(location) => gateway_client
+                .lookup_described_gateways()
+                .await?
+                .iter()
+                .find_map(|described_gateway| {
+                    if described_gateway.bond.gateway.location == *location {
+                        Some(
+                            described_gateway
+                                .clone()
+                                .self_described
+                                .unwrap()
+                                .ip_packet_router
+                                .unwrap()
+                                .address,
+                        )
+                    } else {
+                        None
+                    }
+                })
+                .ok_or(error::Error::InvalidGatewayLocation)?,
+        };
+    }
 }
 
 pub struct GatewayClient {

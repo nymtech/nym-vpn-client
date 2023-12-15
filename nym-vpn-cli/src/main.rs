@@ -5,7 +5,7 @@ mod commands;
 
 use nym_vpn_lib::error::*;
 use nym_vpn_lib::gateway_client::{Config as GatewayConfig, GatewayCriteria};
-use nym_vpn_lib::NymVpn;
+use nym_vpn_lib::{error, NymVpn};
 
 use crate::commands::override_from_env;
 use clap::Parser;
@@ -38,16 +38,25 @@ async fn run() -> Result<()> {
 
     let entry_gateway = match args.entry_gateway_id {
         Some(id) => GatewayCriteria::Identity(id),
-        None => GatewayCriteria::Location(args.entry_gateway_country.unwrap()),
+        None => GatewayCriteria::Location(
+            args.entry_gateway_country
+                .ok_or(error::Error::MissingEntryGatewayCriteria)?,
+        ),
     };
 
     let exit_router = if args.exit_router_address.is_some() {
         info!("Using exit address");
-        GatewayCriteria::Address(args.exit_router_address.unwrap())
+        GatewayCriteria::Address(
+            args.exit_router_address
+                .ok_or(error::Error::InvalidGatewayAddress)?,
+        )
     } else {
         match args.exit_gateway_id {
             Some(id) => GatewayCriteria::Identity(id),
-            None => GatewayCriteria::Location(args.exit_router_country.unwrap()),
+            None => GatewayCriteria::Location(
+                args.exit_router_country
+                    .ok_or(error::Error::MissingEntryGatewayCriteria)?,
+            ),
         }
     };
 

@@ -215,67 +215,9 @@ impl NymVpn {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
-        let entry_gateway_id = match &self.entry_gateway {
-            GatewayCriteria::Identity(identity) | GatewayCriteria::Address(identity) => {
-                identity.to_string()
-            }
-            GatewayCriteria::Location(location) => gateway_client
-                .lookup_described_gateways()
-                .await?
-                .iter()
-                .find_map(|described_gateway| {
-                    if described_gateway.bond.gateway.location == *location {
-                        Some(described_gateway.clone().bond.gateway.identity_key)
-                    } else {
-                        None
-                    }
-                })
-                .ok_or(error::Error::InvalidGatewayLocation)?,
-        };
-
-        let exit_router_address = match &self.exit_router {
-            GatewayCriteria::Address(address) => address.to_string(),
-            GatewayCriteria::Identity(identity) => gateway_client
-                .lookup_described_gateways()
-                .await?
-                .iter()
-                .find_map(|described_gateway| {
-                    if described_gateway.bond.gateway.identity_key == *identity {
-                        Some(
-                            described_gateway
-                                .clone()
-                                .self_described
-                                .unwrap()
-                                .ip_packet_router
-                                .unwrap()
-                                .address,
-                        )
-                    } else {
-                        None
-                    }
-                })
-                .ok_or(error::Error::InvalidGatewayLocation)?,
-            GatewayCriteria::Location(location) => gateway_client
-                .lookup_described_gateways()
-                .await?
-                .iter()
-                .find_map(|described_gateway| {
-                    if described_gateway.bond.gateway.location == *location {
-                        Some(
-                            described_gateway
-                                .clone()
-                                .self_described
-                                .unwrap()
-                                .ip_packet_router
-                                .unwrap()
-                                .address,
-                        )
-                    } else {
-                        None
-                    }
-                })
-                .ok_or(error::Error::InvalidGatewayLocation)?,
-        };
+        let entry_gateway_id = GatewayCriteria::get_id(&self.entry_gateway, &gateway_client).await;
+        let exit_router_address =
+            GatewayCriteria::get_address(&self.exit_router, &gateway_client).await;
 
         info!("Determined criteria for location {entry_gateway_id}");
         info!("Exit router address {exit_router_address}");

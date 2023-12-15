@@ -53,6 +53,15 @@ pub enum Error {
     #[error("invalid Gateway ID")]
     InvalidGatewayID,
 
+    #[error("missing Gateway exit criteria")]
+    MissingExitGatewayCriteria,
+
+    #[error("missing Gateway entry criteria")]
+    MissingEntryGatewayCriteria,
+
+    #[error("invalid Gateway address")]
+    InvalidGatewayAddress,
+
     #[error("invalid Gateway location")]
     InvalidGatewayLocation,
 
