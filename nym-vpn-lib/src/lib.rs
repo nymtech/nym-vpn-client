@@ -215,9 +215,11 @@ impl NymVpn {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
-        let entry_gateway_id = GatewayCriteria::get_id(&self.entry_gateway, &gateway_client).await;
-        let exit_router_address =
-            GatewayCriteria::get_address(&self.exit_router, &gateway_client).await;
+        let gateways = &gateway_client.lookup_described_gateways().await?;
+        let entry_gateway_id = GatewayCriteria::get_id(&self.entry_gateway, gateways)
+            .ok_or(error::Error::MissingEntryGatewayCriteria)?;
+        let exit_router_address = GatewayCriteria::get_address(&self.exit_router, gateways)
+            .ok_or(error::Error::MissingExitGatewayCriteria)?;
 
         info!("Determined criteria for location {entry_gateway_id}");
         info!("Exit router address {exit_router_address}");
