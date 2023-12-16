@@ -3,11 +3,9 @@
 
 mod commands;
 
-use nym_vpn_lib::gateway_client::{
-    Config as GatewayConfig, EntryPoint, ExitPoint,
-};
-use nym_vpn_lib::{NymVpn, Recipient};
+use nym_vpn_lib::gateway_client::{Config as GatewayConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::{error::*, NodeIdentity};
+use nym_vpn_lib::{NymVpn, Recipient};
 
 use crate::commands::override_from_env;
 use clap::Parser;
@@ -37,7 +35,7 @@ fn parse_entry_point(args: &commands::CliArgs) -> Result<EntryPoint> {
     } else if let Some(ref entry_gateway_country) = args.entry_gateway_country {
         Ok(EntryPoint::Location(entry_gateway_country.clone()))
     } else {
-        Err(Error::MissingEntryGatewayCriteria)
+        Err(Error::MissingEntryPointInformation)
     }
 }
 
@@ -55,7 +53,7 @@ fn parse_exit_point(args: &commands::CliArgs) -> Result<ExitPoint> {
     } else if let Some(ref exit_router_country) = args.exit_router_country {
         Ok(ExitPoint::Location(exit_router_country.clone()))
     } else {
-        Err(Error::MissingExitGatewayCriteria)
+        Err(Error::MissingExitPointInformation)
     }
 }
 
