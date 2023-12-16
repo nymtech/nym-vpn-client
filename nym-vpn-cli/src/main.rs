@@ -3,9 +3,9 @@
 
 mod commands;
 
-use nym_vpn_lib::error::*;
-use nym_vpn_lib::gateway_client::Config as GatewayConfig;
-use nym_vpn_lib::NymVpn;
+use nym_vpn_lib::gateway_client::{Config as GatewayConfig, EntryPoint, ExitPoint};
+use nym_vpn_lib::{error::*, NodeIdentity};
+use nym_vpn_lib::{NymVpn, Recipient};
 
 use crate::commands::override_from_env;
 use clap::Parser;
@@ -26,6 +26,37 @@ pub fn setup_logging() {
         .init();
 }
 
+fn parse_entry_point(args: &commands::CliArgs) -> Result<EntryPoint> {
+    if let Some(ref entry_gateway_id) = args.entry_gateway_id {
+        Ok(EntryPoint::Gateway(
+            NodeIdentity::from_base58_string(entry_gateway_id.clone())
+                .map_err(|_| Error::NodeIdentityFormattingError)?,
+        ))
+    } else if let Some(ref entry_gateway_country) = args.entry_gateway_country {
+        Ok(EntryPoint::Location(entry_gateway_country.clone()))
+    } else {
+        Err(Error::MissingEntryPointInformation)
+    }
+}
+
+fn parse_exit_point(args: &commands::CliArgs) -> Result<ExitPoint> {
+    if let Some(ref exit_router_address) = args.exit_router_address {
+        Ok(ExitPoint::Address(Box::new(
+            Recipient::try_from_base58_string(exit_router_address.clone())
+                .map_err(|_| Error::RecipientFormattingError)?,
+        )))
+    } else if let Some(ref exit_router_id) = args.exit_gateway_id {
+        Ok(ExitPoint::Gateway(
+            NodeIdentity::from_base58_string(exit_router_id.clone())
+                .map_err(|_| Error::NodeIdentityFormattingError)?,
+        ))
+    } else if let Some(ref exit_router_country) = args.exit_router_country {
+        Ok(ExitPoint::Location(exit_router_country.clone()))
+    } else {
+        Err(Error::MissingExitPointInformation)
+    }
+}
+
 async fn run() -> Result<()> {
     setup_logging();
     let args = commands::CliArgs::parse();
@@ -36,11 +67,14 @@ async fn run() -> Result<()> {
     let gateway_config = override_from_env(&args, GatewayConfig::default());
     info!("nym-api: {}", gateway_config.api_url());
 
+    let entry_point = parse_entry_point(&args)?;
+    let exit_point = parse_exit_point(&args)?;
+
     let nym_vpn = NymVpn {
         gateway_config,
         mixnet_client_path: args.mixnet_client_path,
-        entry_gateway: args.entry_gateway,
-        exit_router: args.exit_router,
+        entry_point,
+        exit_point,
         enable_wireguard: args.enable_wireguard,
         private_key: args.private_key,
         ip: args.ip,

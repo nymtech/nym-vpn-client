@@ -38,3 +38,4 @@ nym-sdk = { git = "https://github.com/nymtech/nym", rev = "e8956603d76fb12be7f70
 nym-task = { git = "https://github.com/nymtech/nym", rev = "e8956603d76fb12be7f70052981dce32367e0405" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "e8956603d76fb12be7f70052981dce32367e0405" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "e8956603d76fb12be7f70052981dce32367e0405" }
+rand = "0.7.3"

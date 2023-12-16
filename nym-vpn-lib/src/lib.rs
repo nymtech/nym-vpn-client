@@ -9,6 +9,7 @@ use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use futures::channel::{mpsc, oneshot};
+use gateway_client::{EntryPoint, ExitPoint};
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_task::TaskManager;
@@ -19,6 +20,7 @@ use tap::TapFallible;
 use tracing::warn;
 use util::wait_for_interrupt_and_signal;
 
+pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
 pub use nym_task::{manager::SentStatus, StatusReceiver};
 
 pub use nym_bin_common;
@@ -59,10 +61,10 @@ pub struct NymVpn {
     pub mixnet_client_path: Option<PathBuf>,
 
     /// Mixnet public ID of the entry gateway.
-    pub entry_gateway: String,
+    pub entry_point: EntryPoint,
 
     /// Mixnet recipient address.
-    pub exit_router: String,
+    pub exit_point: ExitPoint,
 
     /// Enable the wireguard traffic between the client and the entry gateway.
     pub enable_wireguard: bool,
@@ -88,12 +90,12 @@ pub struct NymVpn {
 }
 
 impl NymVpn {
-    pub fn new(entry_gateway: &str, exit_router: &str) -> Self {
+    pub fn new(entry_gateway: EntryPoint, exit_router: ExitPoint) -> Self {
         Self {
             gateway_config: gateway_client::Config::default(),
             mixnet_client_path: None,
-            entry_gateway: entry_gateway.to_string(),
-            exit_router: exit_router.to_string(),
+            entry_point: entry_gateway,
+            exit_point: exit_router,
             enable_wireguard: false,
             private_key: None,
             ip: None,
@@ -123,7 +125,7 @@ impl NymVpn {
             self.enable_two_hop,
         )
         .await?;
-        info!("Sucessfully connected to IP packet router on the exit gateway!");
+        info!("Successfully connected to IP packet router on the exit gateway!");
         info!("Using IP address: {ip}");
 
         // We need the IP of the gateway to correctly configure the routing table
@@ -164,9 +166,11 @@ impl NymVpn {
         .await
     }
 
+    #[allow(clippy::too_many_arguments)]
     async fn setup_tunnel_services(
         &self,
         route_manager: &mut RouteManager,
+        entry_gateway: &NodeIdentity,
         exit_router: &IpPacketRouterAddress,
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
@@ -175,7 +179,7 @@ impl NymVpn {
     ) -> Result<()> {
         info!("Setting up mixnet client");
         let mixnet_client = setup_mixnet_client(
-            &self.entry_gateway,
+            entry_gateway,
             &self.mixnet_client_path,
             task_manager.subscribe_named("mixnet_client_main"),
             self.enable_wireguard,
@@ -216,14 +220,24 @@ impl NymVpn {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
+        let gateways = &gateway_client.lookup_described_gateways().await?;
+        let entry_gateway_id = self.entry_point.lookup_gateway_identity(gateways)?;
+        let exit_router_address = self.exit_point.lookup_router_address(gateways)?;
+
+        info!("Determined criteria for location {entry_gateway_id}");
+        info!("Exit router address {exit_router_address}");
 
         let wireguard_config = if self.enable_wireguard {
             let private_key = self
                 .private_key
                 .as_ref()
                 .expect("clap should enforce value when wireguard enabled");
-            let wireguard_config =
-                init_wireguard_config(&gateway_client, &self.entry_gateway, private_key).await?;
+            let wireguard_config = init_wireguard_config(
+                &gateway_client,
+                &entry_gateway_id.to_base58_string(),
+                private_key,
+            )
+            .await?;
             Some(wireguard_config)
         } else {
             None
@@ -237,10 +251,6 @@ impl NymVpn {
         // Get the IP address of the local LAN gateway
         let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
         info!("default_lane_gateway: {default_lan_gateway_ip}");
-
-        // The address of the ip packet router running on the exit gateway
-        let exit_router = IpPacketRouterAddress::try_from_base58_string(&self.exit_router)?;
-        info!("exit_router: {exit_router}");
 
         let task_manager = TaskManager::new(10);
 
@@ -285,7 +295,8 @@ impl NymVpn {
         if let Err(err) = self
             .setup_tunnel_services(
                 &mut route_manager,
-                &exit_router,
+                &entry_gateway_id,
+                &exit_router_address,
                 &task_manager,
                 &gateway_client,
                 default_lan_gateway_ip,
@@ -442,7 +453,11 @@ pub enum NymVpnExitStatusMessage {
 /// Examples
 ///
 /// ```no_run
-/// let mut vpn_config = nym_vpn_lib::NymVpn::new("Qwertyuiopasdfghjklzxcvbnm1234567890", "Qwertyuiopasdfghjklzxcvbnm1234567890");
+/// use nym_vpn_lib::gateway_client::{EntryPoint, ExitPoint};
+/// use nym_vpn_lib::NodeIdentity;
+///
+/// let mut vpn_config = nym_vpn_lib::NymVpn::new(EntryPoint::Gateway(NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()),
+/// ExitPoint::Gateway(NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()).unwrap()));
 /// vpn_config.enable_two_hop = true;
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
 /// ```

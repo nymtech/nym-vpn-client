@@ -1,14 +1,18 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::error::Result;
+use crate::error::{Error, Result};
+use crate::mixnet_processor::IpPacketRouterAddress;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_crypto::asymmetric::encryption;
 use nym_node_requests::api::client::NymNodeApiClientExt;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
+use nym_sdk::mixnet::{NodeIdentity, Recipient};
+use nym_validator_client::models::DescribedGateway;
 use nym_validator_client::NymApiClient;
+use rand::seq::IteratorRandom;
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::PublicKey;
@@ -43,6 +47,86 @@ impl Config {
     pub fn with_local_private_key(mut self, local_private_key: String) -> Self {
         self.local_private_key = Some(local_private_key);
         self
+    }
+}
+
+// The entry point is always a gateway identity, or some other entry that can be resolved to a
+// gateway identity.
+#[derive(Clone)]
+pub enum EntryPoint {
+    Gateway(NodeIdentity),
+    // NOTE: Consider using a crate with strongly typed country codes instead of strings
+    Location(String),
+}
+
+// The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
+// gateway, we can refer to it by the gateway identity.
+#[derive(Clone)]
+pub enum ExitPoint {
+    // An explicit exit address. This is useful when the exit ip-packet-router is running as a
+    // standalone entity (private).
+    Address(Box<Recipient>),
+    // An explicit exit gateway identity. This is useful when the exit ip-packet-router is running
+    // embedded on a gateway.
+    Gateway(NodeIdentity),
+    // NOTE: Consider using a crate with strongly typed country codes instead of strings
+    Location(String),
+}
+
+impl EntryPoint {
+    pub fn lookup_gateway_identity(&self, gateways: &[DescribedGateway]) -> Result<NodeIdentity> {
+        match &self {
+            EntryPoint::Gateway(gateway_identity) => Ok(*gateway_identity),
+            EntryPoint::Location(location) => {
+                let described_gateways: Vec<&DescribedGateway> = gateways
+                    .iter()
+                    .filter(|described_gateway| {
+                        described_gateway.bond.gateway.location == *location
+                    })
+                    .collect();
+                let random_gateway: &DescribedGateway = described_gateways
+                    .iter()
+                    .choose(&mut rand::thread_rng())
+                    .ok_or(Error::NoMatchingGateway)?;
+                Ok(NodeIdentity::from_base58_string(
+                    random_gateway.clone().bond.gateway.identity_key,
+                )
+                .map_err(|_| Error::NodeIdentityFormattingError)?)
+            }
+        }
+    }
+}
+
+impl ExitPoint {
+    pub fn lookup_router_address(
+        &self,
+        gateways: &[DescribedGateway],
+    ) -> Result<IpPacketRouterAddress> {
+        match &self {
+            ExitPoint::Address(address) => Ok(IpPacketRouterAddress(*address.clone())),
+            ExitPoint::Gateway(gateway_identity) => {
+                let described_gateway = gateways
+                    .iter()
+                    .find(|described_gateway| {
+                        described_gateway.bond.gateway.identity_key == *gateway_identity.to_string()
+                    })
+                    .ok_or(Error::NoMatchingGateway)?;
+                IpPacketRouterAddress::try_from_described_gateway(described_gateway)
+            }
+            ExitPoint::Location(location) => {
+                let described_gateways: Vec<&DescribedGateway> = gateways
+                    .iter()
+                    .filter(|described_gateway| {
+                        described_gateway.bond.gateway.location == *location
+                    })
+                    .collect();
+                let random_gateway: &DescribedGateway = described_gateways
+                    .iter()
+                    .choose(&mut rand::thread_rng())
+                    .ok_or(Error::NoMatchingGateway)?;
+                IpPacketRouterAddress::try_from_described_gateway(random_gateway)
+            }
+        }
     }
 }
 
@@ -81,6 +165,15 @@ impl GatewayClient {
         })
     }
 
+    pub async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {
+        log::info!("Lookup described gateways");
+        self.api_client
+            .get_cached_described_gateways()
+            .await
+            .ok()
+            .ok_or(Error::InvalidGatewayAPIResponse)
+    }
+
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
         self.api_client
             .get_cached_gateways()
@@ -94,10 +187,7 @@ impl GatewayClient {
                 }
             })
             .ok_or(crate::error::Error::InvalidGatewayID)
-            .and_then(|ip| {
-                ip.parse()
-                    .map_err(|_| crate::error::Error::InvalidGatewayID)
-            })
+            .and_then(|ip| ip.parse().map_err(|_| Error::InvalidGatewayID))
     }
 
     pub async fn register_wireguard(&self, gateway_identity: &str) -> Result<GatewayData> {

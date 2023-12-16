@@ -14,7 +14,7 @@ use nym_ip_packet_requests::{
     StaticConnectResponse,
 };
 use nym_sdk::mixnet::{
-    MixnetClient, MixnetClientBuilder, MixnetMessageSender, Recipient, StoragePaths,
+    MixnetClient, MixnetClientBuilder, MixnetMessageSender, NodeIdentity, Recipient, StoragePaths,
 };
 use tracing::{debug, error, info};
 
@@ -188,7 +188,7 @@ pub async fn connect_to_ip_packet_router(
 }
 
 pub(crate) async fn setup_mixnet_client(
-    mixnet_entry_gateway: &str,
+    mixnet_entry_gateway: &NodeIdentity,
     mixnet_client_key_storage_path: &Option<PathBuf>,
     task_client: nym_task::TaskClient,
     enable_wireguard: bool,
