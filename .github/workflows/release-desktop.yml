@@ -26,7 +26,7 @@ jobs:
         with:
           path: nym-vpn-client
 
-      - name: Checkout nym monorepo
+      - name: Checkout nym-vpn-ui
         uses: actions/checkout@v4
         with:
           repository: nymtech/nym
