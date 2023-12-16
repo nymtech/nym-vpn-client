@@ -93,7 +93,11 @@ jobs:
 
       - name: Build desktop client
         working-directory: nym/nym-vpn/ui/src-tauri
-        run: TAURI_PRIVATE_KEY=${{ env.TAURI_PRIVATE_KEY }} TAURI_KEY_PASSWORD=${{ env.TAURI_PRIVATE_PASSWORD }} yarn tauri build
+        env:
+          RUSTFLAGS: '-L nym-vpn-client/build/lib/x86_64-unknown-linux-gnu/'
+          TAURI_PRIVATE_KEY: ${{ env.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ env.TAURI_PRIVATE_PASSWORD }}
+        run: yarn tauri build
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
