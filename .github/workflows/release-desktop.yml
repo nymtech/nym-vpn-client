@@ -97,9 +97,8 @@ jobs:
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
-        working-directory: nym/nym-vpn/ui
         with:
           name: nym-vpn-ui-${{ matrix.os }}
           path: |
-            src-tauri/target/release/bundle/deb/nym-vpn-ui_0.0.0_amd64.deb
-            src-tauri/target/release/bundle/deb/nym-vpn-ui_0.0.0_amd64.AppImage
+            nym/nym-vpn/ui/src-tauri/target/release/bundle/deb/nym-vpn-ui_0.0.0_amd64.deb
+            nym/nym-vpn/ui/src-tauri/target/release/bundle/deb/nym-vpn-ui_0.0.0_amd64.AppImage
