@@ -11,8 +11,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO lets try to build only for linux first
-        # os: [ubuntu-22.04, macos-latest]
         os: [ubuntu-22.04, macos-latest]
     runs-on: ${{ matrix.os }}
     env:
