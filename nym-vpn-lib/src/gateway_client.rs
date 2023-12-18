@@ -52,7 +52,7 @@ impl Config {
 
 // The entry point is always a gateway identity, or some other entry that can be resolved to a
 // gateway identity.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum EntryPoint {
     Gateway(NodeIdentity),
     // NOTE: Consider using a crate with strongly typed country codes instead of strings
@@ -61,7 +61,7 @@ pub enum EntryPoint {
 
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
 // gateway, we can refer to it by the gateway identity.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum ExitPoint {
     // An explicit exit address. This is useful when the exit ip-packet-router is running as a
     // standalone entity (private).
