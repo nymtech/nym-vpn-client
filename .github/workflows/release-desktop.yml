@@ -13,7 +13,7 @@ jobs:
       matrix:
         # TODO lets try to build only for linux first
         # os: [ubuntu-22.04, macos-latest]
-        os: [ubuntu-22.04]
+        os: [ubuntu-22.04, macos-latest]
     runs-on: ${{ matrix.os }}
     env:
       # TODO use repo secrets instead
@@ -94,17 +94,28 @@ jobs:
       - name: Build desktop client
         working-directory: nym/nym-vpn/ui/src-tauri
         env:
-          RUSTFLAGS: "-L ${{ github.workspace }}/nym-vpn-client/build/lib/x86_64-unknown-linux-gnu/"
+          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
           TAURI_PRIVATE_KEY: ${{ env.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ env.TAURI_PRIVATE_PASSWORD }}
         run: yarn tauri build
         # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
         continue-on-error: true
 
-      - name: Upload artifacts
+      - name: Upload artifacts (Linux build)
         uses: actions/upload-artifact@v4
+        if: matrix.os == 'ubuntu-22.04'
         with:
           name: nym-vpn-ui-${{ matrix.os }}
           path: |
             nym/nym-vpn/ui/src-tauri/target/release/bundle/deb/nym-vpn-ui_0.0.0_amd64.deb
             nym/nym-vpn/ui/src-tauri/target/release/bundle/appimage/nym-vpn-ui_0.0.0_amd64.AppImage
+
+      - name: Upload artifacts (macos build)
+        uses: actions/upload-artifact@v4
+        if: matrix.os == 'macos-latest'
+        with:
+          name: nym-vpn-ui-${{ matrix.os }}
+          # TODO fix artifact paths
+          path: |
+            nym/nym-vpn/ui/src-tauri/target/release/bundle/dmg/nym-vpn-ui_0.0.0_aarch64.dmg
+
