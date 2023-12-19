@@ -105,8 +105,8 @@ jobs:
         with:
           name: nym-vpn-ui-${{ matrix.os }}
           path: |
-            nym/nym-vpn/ui/src-tauri/target/release/bundle/deb/nym-vpn-ui_0.0.0_amd64.deb
-            nym/nym-vpn/ui/src-tauri/target/release/bundle/appimage/nym-vpn-ui_0.0.0_amd64.AppImage
+            nym/nym-vpn/ui/src-tauri/target/release/bundle/deb/nym-vpn_0.0.0_amd64.deb
+            nym/nym-vpn/ui/src-tauri/target/release/bundle/appimage/nym-vpn_0.0.0_amd64.AppImage
 
       - name: Upload artifacts (macos build)
         uses: actions/upload-artifact@v4
@@ -115,5 +115,5 @@ jobs:
           name: nym-vpn-ui-${{ matrix.os }}
           # TODO fix artifact paths
           path: |
-            nym/nym-vpn/ui/src-tauri/target/release/bundle/dmg/nym-vpn-ui_0.0.0_aarch64.dmg
+            nym/nym-vpn/ui/src-tauri/target/release/bundle/dmg/nym-vpn_0.0.0_aarch64.dmg
 
