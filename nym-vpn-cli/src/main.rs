@@ -77,6 +77,7 @@ async fn run() -> Result<()> {
         exit_point,
         enable_wireguard: args.enable_wireguard,
         private_key: args.private_key,
+        wg_ip: args.wg_ip,
         ip: args.ip,
         mtu: args.mtu,
         disable_routing: args.disable_routing,

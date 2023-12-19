@@ -190,7 +190,11 @@ impl GatewayClient {
             .and_then(|ip| ip.parse().map_err(|_| Error::InvalidGatewayID))
     }
 
-    pub async fn register_wireguard(&self, gateway_identity: &str) -> Result<GatewayData> {
+    pub async fn register_wireguard(
+        &self,
+        gateway_identity: &str,
+        wg_ip: IpAddr,
+    ) -> Result<GatewayData> {
         info!("Lookup ip for {}", gateway_identity);
         let gateway_host = self.lookup_gateway_ip(gateway_identity).await?;
         info!("Received wg gateway ip: {}", gateway_host);
@@ -237,7 +241,8 @@ impl GatewayClient {
         let gateway_data = GatewayData {
             public_key: PublicKey::from(gateway_data.pub_key().to_bytes()),
             endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, wg_port))?,
-            private_ip: "10.1.0.2".parse().unwrap(), // placeholder value for now
+            private_ip: wg_ip,
+            // private_ip: "10.1.0.2".parse().unwrap(), // placeholder value for now
         };
 
         Ok(gateway_data)

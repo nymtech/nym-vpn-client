@@ -8,6 +8,7 @@ use nym_vpn_lib::nym_config::OptionalSet;
 use nym_vpn_lib::{gateway_client::Config, nym_bin_common::bin_info};
 use std::{net::Ipv4Addr, path::PathBuf, str::FromStr, sync::OnceLock};
 
+const WG_IP_SUBNET: &str = "10.1.0.0/16";
 const TUN_IP_SUBNET: &str = "10.0.0.0/24";
 
 // Helper for passing LONG_VERSION to clap
@@ -62,12 +63,21 @@ pub(crate) struct CliArgs {
     pub(crate) exit_router_country: Option<String>,
 
     /// Enable the wireguard traffic between the client and the entry gateway.
-    #[arg(long, default_value_t = false, requires = "private_key")]
+    #[arg(
+        long,
+        default_value_t = false,
+        requires = "private_key",
+        requires = "wg_ip"
+    )]
     pub(crate) enable_wireguard: bool,
 
     /// Associated private key.
-    #[arg(long, requires = "enable_wireguard")]
+    #[arg(long, requires = "enable_wireguard", requires = "wg_ip")]
     pub(crate) private_key: Option<String>,
+
+    /// The IP address of the wireguard interface.
+    #[arg(long, value_parser = validate_wg_ip, requires = "enable_wireguard")]
+    pub(crate) wg_ip: Option<Ipv4Addr>,
 
     /// The IP address of the TUN device.
     #[arg(long, value_parser = validate_ip)]
@@ -89,6 +99,18 @@ pub(crate) struct CliArgs {
     /// Enable Poisson process rate limiting of outbound traffic.
     #[arg(long)]
     pub(crate) enable_poisson_rate: bool,
+}
+
+fn validate_wg_ip(ip: &str) -> Result<Ipv4Addr, String> {
+    let ip = Ipv4Addr::from_str(ip).map_err(|err| err.to_string())?;
+    let network = Ipv4Network::from_str(WG_IP_SUBNET).unwrap();
+    if !network.contains(ip) {
+        return Err(format!("IP address must be in the range {}", network));
+    }
+    if ip == Ipv4Addr::new(10, 1, 0, 1) {
+        return Err("IP address cannot be 10.1.0.1".to_string());
+    }
+    Ok(ip)
 }
 
 fn validate_ip(ip: &str) -> Result<Ipv4Addr, String> {
