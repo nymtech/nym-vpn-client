@@ -1,6 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use default_net::Interface;
 use std::process::Command;
 use std::{collections::HashSet, net::IpAddr};
 
@@ -78,7 +79,7 @@ impl std::fmt::Display for TunnelGatewayIp {
 }
 
 #[derive(Debug)]
-pub struct LanGatewayIp(pub IpAddr);
+pub struct LanGatewayIp(pub Interface);
 
 impl LanGatewayIp {
     pub fn get_default_interface() -> Result<Self> {
@@ -89,24 +90,23 @@ impl LanGatewayIp {
         })?;
         info!("Default interface: {}", default_interface.name);
         debug!("Default interface: {:?}", default_interface);
-        Ok(Self(default_interface.gateway.map_or_else(
-            || {
-                error!(
-                    "The default interface `{}` reports no gateway",
-                    default_interface.name
-                );
-                Err(crate::error::Error::DefaultInterfaceGatewayError(
-                    default_interface.name,
-                ))
-            },
-            |g| Ok(g.ip_addr),
-        )?))
+        if default_interface.gateway.is_none() {
+            error!(
+                "The default interface `{}` reports no gateway",
+                default_interface.name
+            );
+            Err(crate::error::Error::DefaultInterfaceGatewayError(
+                default_interface.name,
+            ))
+        } else {
+            Ok(LanGatewayIp(default_interface))
+        }
     }
 }
 
 impl std::fmt::Display for LanGatewayIp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{:?}", self.0)
     }
 }
 
@@ -210,7 +210,15 @@ pub async fn setup_routing(
     // it, we need to add an exception route for the gateway to the routing table.
     if !enable_wireguard || cfg!(target_os = "linux") {
         let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
-        let default_node = Node::address(config.lan_gateway_ip.0);
+        let default_node = Node::new(
+            config
+                .lan_gateway_ip
+                .0
+                .gateway
+                .expect("This value was already checked to exist")
+                .ip_addr,
+            config.lan_gateway_ip.0.name,
+        );
         info!(
             "Add extra route: [{:?}, {:?}]",
             entry_mixnet_gateway_ip,
