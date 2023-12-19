@@ -112,6 +112,9 @@ pub enum Error {
 
     #[error("no matching gateway found")]
     NoMatchingGateway,
+
+    #[error("timeout waiting for mixnet client to start")]
+    StartMixnetTimeout,
 }
 
 // Result type based on our error type
