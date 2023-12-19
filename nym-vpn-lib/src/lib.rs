@@ -39,11 +39,12 @@ async fn init_wireguard_config(
     gateway_client: &GatewayClient,
     entry_gateway_identity: &str,
     wireguard_private_key: &str,
+    wireguard_ip: IpAddr,
 ) -> Result<WireguardConfig> {
     // First we need to register with the gateway to setup keys and IP assignment
     info!("Registering with wireguard gateway");
     let wg_gateway_data = gateway_client
-        .register_wireguard(entry_gateway_identity)
+        .register_wireguard(entry_gateway_identity, wireguard_ip)
         .await?;
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
@@ -72,6 +73,9 @@ pub struct NymVpn {
     /// Associated private key.
     pub private_key: Option<String>,
 
+    /// The IP address of the wireguard interface.
+    pub wg_ip: Option<Ipv4Addr>,
+
     /// The IP address of the TUN device.
     pub ip: Option<Ipv4Addr>,
 
@@ -98,6 +102,7 @@ impl NymVpn {
             exit_point: exit_router,
             enable_wireguard: false,
             private_key: None,
+            wg_ip: None,
             ip: None,
             mtu: None,
             disable_routing: false,
@@ -232,10 +237,14 @@ impl NymVpn {
                 .private_key
                 .as_ref()
                 .expect("clap should enforce value when wireguard enabled");
+            let wg_ip = self
+                .wg_ip
+                .expect("clap should enforce value when wireguard enabled");
             let wireguard_config = init_wireguard_config(
                 &gateway_client,
                 &entry_gateway_id.to_base58_string(),
                 private_key,
+                wg_ip.into(),
             )
             .await?;
             Some(wireguard_config)
