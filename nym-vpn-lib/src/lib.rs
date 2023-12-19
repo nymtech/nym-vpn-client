@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::config::WireguardConfig;
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::gateway_client::{Config, GatewayClient};
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::mixnet_processor::IpPacketRouterAddress;
@@ -15,8 +15,10 @@ use mixnet_connect::SharedMixnetClient;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
+use std::time::Duration;
 use talpid_routing::RouteManager;
 use tap::TapFallible;
+use tokio::time::timeout;
 use tracing::warn;
 use util::wait_for_interrupt_and_signal;
 
@@ -183,15 +185,19 @@ impl NymVpn {
         tunnel_gateway_ip: routing::TunnelGatewayIp,
     ) -> Result<()> {
         info!("Setting up mixnet client");
-        let mixnet_client = setup_mixnet_client(
-            entry_gateway,
-            &self.mixnet_client_path,
-            task_manager.subscribe_named("mixnet_client_main"),
-            self.enable_wireguard,
-            self.enable_two_hop,
-            self.enable_poisson_rate,
+        let mixnet_client = timeout(
+            Duration::from_secs(10),
+            setup_mixnet_client(
+                entry_gateway,
+                &self.mixnet_client_path,
+                task_manager.subscribe_named("mixnet_client_main"),
+                self.enable_wireguard,
+                self.enable_two_hop,
+                self.enable_poisson_rate,
+            ),
         )
-        .await?;
+        .await
+        .map_err(|_| Error::StartMixnetTimeout)??;
 
         if let Err(err) = self
             .setup_post_mixnet(
