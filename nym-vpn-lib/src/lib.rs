@@ -181,7 +181,7 @@ impl NymVpn {
     ) -> Result<()> {
         info!("Setting up mixnet client");
         let mixnet_client = timeout(
-            Duration::from_secs(5),
+            Duration::from_secs(10),
             setup_mixnet_client(
                 entry_gateway,
                 &self.mixnet_client_path,
