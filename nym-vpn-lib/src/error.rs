@@ -56,14 +56,14 @@ pub enum Error {
     #[error("{0}")]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 
-    #[error("invalid Gateway ID")]
-    InvalidGatewayID,
-
     #[error("missing Gateway exit information")]
     MissingExitPointInformation,
 
     #[error("missing Gateway entry information")]
     MissingEntryPointInformation,
+
+    #[error("invalid Gateway ip: {0}")]
+    InvalidGatewayIp(String),
 
     #[error("invalid Gateway address")]
     InvalidGatewayAddress,
@@ -76,6 +76,14 @@ pub enum Error {
 
     #[error("{0}")]
     NymNodeApiClientError(#[from] nym_node_requests::api::client::NymNodeApiClientError),
+
+    #[error("failed to lookup described gateways: {source}")]
+    FailedToLookupDescribedGateways {
+        source: nym_validator_client::ValidatorClientError,
+    },
+
+    #[error("requested gateway not found in the remote list: {0}")]
+    RequestedGatewayIdNotFound(String),
 
     #[error("invalid Gateway API response")]
     InvalidGatewayAPIResponse,
