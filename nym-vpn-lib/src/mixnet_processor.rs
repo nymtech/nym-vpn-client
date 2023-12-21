@@ -1,11 +1,14 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::time::Duration;
+
 use futures::{SinkExt, StreamExt};
 use nym_ip_packet_requests::{IpPacketRequest, IpPacketResponse, IpPacketResponseData};
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use nym_validator_client::models::DescribedGateway;
+use tokio::time::timeout;
 use tracing::{debug, error, info, trace, warn};
 use tun::{AsyncDevice, Device, TunPacket};
 
@@ -81,20 +84,27 @@ impl MixnetProcessor {
         }
     }
 
-    pub async fn run(self, mut shutdown: TaskClient) {
+    pub async fn run(self, mut shutdown: TaskClient) -> Result<()> {
         info!(
             "Opened mixnet processor on tun device {}",
             self.device.get_ref().name()
         );
+
+        debug!("Splitting tun device into sink and stream");
         let (mut sink, mut stream) = self.device.into_framed().split();
 
         // We are the exclusive owner of the mixnet client, so we can unwrap it here
-        let mut mixnet_handle = self.mixnet_client.lock().await;
+        debug!("Acquiring mixnet client");
+        let mut mixnet_handle = timeout(Duration::from_secs(2), self.mixnet_client.lock())
+            .await
+            .map_err(|_| Error::MixnetClientDeadlock)?;
         let mixnet_client = mixnet_handle.as_mut().unwrap();
 
+        debug!("Split mixnet sender");
         let sender = mixnet_client.split_sender();
         let recipient = self.ip_packet_router_address;
 
+        debug!("Setting up mixnet stream");
         let mixnet_stream = mixnet_client
             .filter_map(|reconstructed_message| async move {
                 match IpPacketResponse::from_reconstructed_message(&reconstructed_message) {
@@ -119,6 +129,7 @@ impl MixnetProcessor {
             });
         tokio::pin!(mixnet_stream);
 
+        info!("Mixnet processor is running");
         while !shutdown.is_shutdown() {
             tokio::select! {
                 _ = shutdown.recv_with_delay() => {
@@ -157,6 +168,7 @@ impl MixnetProcessor {
             }
         }
         debug!("MixnetProcessor: Exiting");
+        Ok(())
     }
 }
 
@@ -175,6 +187,10 @@ pub async fn start_processor(
         enable_two_hop,
     );
     let shutdown_listener = task_manager.subscribe();
-    tokio::spawn(processor.run(shutdown_listener));
+    tokio::spawn(async move {
+        if let Err(err) = processor.run(shutdown_listener).await {
+            error!("Mixnet processor error: {err}");
+        }
+    });
     Ok(())
 }

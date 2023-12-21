@@ -113,6 +113,9 @@ pub enum Error {
     #[error("no matching gateway found")]
     NoMatchingGateway,
 
+    #[error("deadlock when trying to aquire mixnet client mutes")]
+    MixnetClientDeadlock,
+
     #[error("timeout waiting for mixnet client to start")]
     StartMixnetTimeout,
 }
