@@ -198,12 +198,30 @@ pub(crate) async fn setup_mixnet_client(
     // Disable Poisson rate limiter by default
     let mut debug_config = nym_client_core::config::DebugConfig::default();
 
-    info!("mixnet client has Poisson rate limiting enabled: {enable_poisson_rate}");
+    info!(
+        "mixnet client poisson rate limiting: {}",
+        enable_poisson_rate
+            .then_some("enabled")
+            .unwrap_or("disabled")
+    );
     debug_config
         .traffic
         .disable_main_poisson_packet_distribution = !enable_poisson_rate;
 
-    info!("mixnet client setup to send with two hops: {enable_two_hop}");
+    let disable_loop_cover_traffic_stream = true;
+    info!(
+        "mixnet client background loop cover traffic stream: {}",
+        disable_loop_cover_traffic_stream
+            .then_some("disabled")
+            .unwrap_or("enabled")
+    );
+    debug_config.cover_traffic.disable_loop_cover_traffic_stream =
+        disable_loop_cover_traffic_stream;
+
+    info!(
+        "mixnet client two hop traffic: {}",
+        enable_two_hop.then_some("enabled").unwrap_or("disabled")
+    );
     // TODO: add support for two-hop mixnet traffic as a setting on the mixnet_client.
     // For now it's something we explicitly set on each set InputMessage.
 

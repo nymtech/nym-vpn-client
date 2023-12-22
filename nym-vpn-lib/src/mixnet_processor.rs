@@ -131,12 +131,17 @@ impl MixnetProcessor {
         tokio::pin!(mixnet_stream);
 
         info!("Mixnet processor is running");
+        let mut tun_read_packets = 0;
+
         while !shutdown.is_shutdown() {
             tokio::select! {
                 _ = shutdown.recv_with_delay() => {
                     trace!("MixnetProcessor: Received shutdown");
                 }
                 Some(Ok(packet)) = stream.next() => {
+                    tun_read_packets += 1;
+                    println!("TUN packet read: {}", tun_read_packets);
+
                     // TODO: properly investigate the binary format here and the overheard
                     let Ok(packet) = IpPacketRequest::new_ip_packet(packet.into_bytes()).to_bytes() else {
                         error!("Failed to serialize packet");
