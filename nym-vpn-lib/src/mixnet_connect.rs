@@ -187,6 +187,22 @@ pub async fn connect_to_ip_packet_router(
     }
 }
 
+fn true_to_enabled(val: bool) -> &'static str {
+    if val {
+        "enabled"
+    } else {
+        "disabled"
+    }
+}
+
+fn true_to_disabled(val: bool) -> &'static str {
+    if val {
+        "disabled"
+    } else {
+        "enabled"
+    }
+}
+
 pub(crate) async fn setup_mixnet_client(
     mixnet_entry_gateway: &NodeIdentity,
     mixnet_client_key_storage_path: &Option<PathBuf>,
@@ -194,16 +210,29 @@ pub(crate) async fn setup_mixnet_client(
     enable_wireguard: bool,
     enable_two_hop: bool,
     enable_poisson_rate: bool,
+    disable_background_cover_traffic: bool,
 ) -> Result<SharedMixnetClient> {
     // Disable Poisson rate limiter by default
     let mut debug_config = nym_client_core::config::DebugConfig::default();
 
-    info!("mixnet client has Poisson rate limiting enabled: {enable_poisson_rate}");
+    info!(
+        "mixnet client poisson rate limiting: {}",
+        true_to_enabled(enable_poisson_rate)
+    );
     debug_config
         .traffic
         .disable_main_poisson_packet_distribution = !enable_poisson_rate;
 
-    info!("mixnet client setup to send with two hops: {enable_two_hop}");
+    info!(
+        "mixnet client background loop cover traffic stream: {}",
+        true_to_disabled(disable_background_cover_traffic)
+    );
+    debug_config.cover_traffic.disable_loop_cover_traffic_stream = disable_background_cover_traffic;
+
+    info!(
+        "mixnet client two hop traffic: {}",
+        true_to_enabled(enable_two_hop)
+    );
     // TODO: add support for two-hop mixnet traffic as a setting on the mixnet_client.
     // For now it's something we explicitly set on each set InputMessage.
 

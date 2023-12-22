@@ -161,7 +161,16 @@ pub async fn setup_routing(
     let dev = tun::create_as_async(&config.mixnet_tun_config)
         .tap_err(|err| error!("Failed to create tun device: {}", err))?;
     let device_name = dev.get_ref().name().to_string();
-    info!("Created tun device {device_name}: ip={device_ip:?}, broadcast={device_broadcast:?}, netmask={device_netmask:?}, destination={device_destination:?}, mtu={device_mtu:?}",
+    info!(
+        "Created tun device {device_name} with ip={device_ip:?}",
+        device_name = device_name,
+        device_ip = dev
+            .get_ref()
+            .address()
+            .map(|ip| ip.to_string())
+            .unwrap_or("None".to_string())
+    );
+    debug!("Created tun device {device_name}: ip={device_ip:?}, broadcast={device_broadcast:?}, netmask={device_netmask:?}, destination={device_destination:?}, mtu={device_mtu:?}",
         device_name = device_name,
         device_ip = dev.get_ref().address(),
         device_broadcast = dev.get_ref().broadcast(),

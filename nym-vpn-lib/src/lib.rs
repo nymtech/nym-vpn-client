@@ -95,6 +95,9 @@ pub struct NymVpn {
     /// Enable Poission process rate limiting of outbound traffic.
     pub enable_poisson_rate: bool,
 
+    /// Disable constant rate background loop cover traffic
+    pub disable_background_cover_traffic: bool,
+
     // Necessary so that the device doesn't get closed before cleanup has taken place
     shadow_handle: Option<JoinHandle<Result<AsyncDevice>>>,
 }
@@ -114,6 +117,7 @@ impl NymVpn {
             disable_routing: false,
             enable_two_hop: false,
             enable_poisson_rate: false,
+            disable_background_cover_traffic: false,
             shadow_handle: None,
         }
     }
@@ -206,6 +210,7 @@ impl NymVpn {
                 self.enable_wireguard,
                 self.enable_two_hop,
                 self.enable_poisson_rate,
+                self.disable_background_cover_traffic,
             ),
         )
         .await
@@ -277,7 +282,7 @@ impl NymVpn {
 
         // Get the IP address of the local LAN gateway
         let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
-        info!("default_lane_gateway: {default_lan_gateway_ip}");
+        info!("default_lan_gateway_ip: {default_lan_gateway_ip}");
 
         let task_manager = TaskManager::new(10);
 
