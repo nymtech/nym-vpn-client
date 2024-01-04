@@ -6,6 +6,7 @@ use nym_ip_packet_requests::{IpPacketRequest, IpPacketResponse, IpPacketResponse
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use nym_validator_client::models::DescribedGateway;
+use tokio::task::JoinHandle;
 use tracing::{debug, error, info, trace, warn};
 use tun::{AsyncDevice, Device, TunPacket};
 
@@ -81,7 +82,7 @@ impl MixnetProcessor {
         }
     }
 
-    pub async fn run(self, mut shutdown: TaskClient) {
+    pub async fn run(self, mut shutdown: TaskClient) -> AsyncDevice {
         info!(
             "Opened mixnet processor on tun device {}",
             self.device.get_ref().name()
@@ -157,6 +158,9 @@ impl MixnetProcessor {
             }
         }
         debug!("MixnetProcessor: Exiting");
+        sink.reunite(stream)
+            .expect("reunite should work because of same device split")
+            .into_inner()
     }
 }
 
@@ -166,7 +170,7 @@ pub async fn start_processor(
     mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,
     enable_two_hop: bool,
-) -> Result<()> {
+) -> JoinHandle<AsyncDevice> {
     info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(
         dev,
@@ -175,6 +179,5 @@ pub async fn start_processor(
         enable_two_hop,
     );
     let shutdown_listener = task_manager.subscribe();
-    tokio::spawn(processor.run(shutdown_listener));
-    Ok(())
+    tokio::spawn(processor.run(shutdown_listener))
 }
