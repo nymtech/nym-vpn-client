@@ -209,7 +209,7 @@ impl GatewayClient {
 
         debug!("Registering with the wg gateway...");
         let init_message = ClientMessage::Initial(InitMessage {
-            pub_key: PeerPublicKey::new(keypair.public_key().to_bytes().try_into().unwrap()),
+            pub_key: PeerPublicKey::new(keypair.public_key().to_bytes().into()),
         });
         let ClientRegistrationResponse::PendingRegistration {
             nonce,
