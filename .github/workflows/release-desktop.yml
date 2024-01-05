@@ -99,14 +99,20 @@ jobs:
         # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
         continue-on-error: true
 
+      - name: Get version
+        working-directory: nym/nym-vpn/ui/src-tauri
+        run: |
+          version=$(jq '.package.version' --raw-output tauri.conf.json)
+          echo "APP_VERSION=$version" >> $GITHUB_ENV
+
       - name: Upload artifacts (Linux build)
         uses: actions/upload-artifact@v4
         if: matrix.os == 'ubuntu-20.04'
         with:
           name: nym-vpn-ui-${{ matrix.os }}
           path: |
-            nym/nym-vpn/ui/src-tauri/target/release/bundle/deb/nym-vpn_0.0.0_amd64.deb
-            nym/nym-vpn/ui/src-tauri/target/release/bundle/appimage/nym-vpn_0.0.0_amd64.AppImage
+            nym/nym-vpn/ui/src-tauri/target/release/bundle/deb/nym-vpn_${{ env.APP_VERSION }}_amd64.deb
+            nym/nym-vpn/ui/src-tauri/target/release/bundle/appimage/nym-vpn_${{ env.APP_VERSION }}_amd64.AppImage
 
       - name: Upload artifacts (macos build)
         uses: actions/upload-artifact@v4
@@ -115,5 +121,5 @@ jobs:
           name: nym-vpn-ui-${{ matrix.os }}
           # TODO fix artifact paths
           path: |
-            nym/nym-vpn/ui/src-tauri/target/release/bundle/dmg/nym-vpn_0.0.0_x64.dmg
+            nym/nym-vpn/ui/src-tauri/target/release/bundle/dmg/nym-vpn_${{ env.APP_VERSION }}_x64.dmg
             nym/nym-vpn/ui/src-tauri/target/release/bundle/macos/nym-vpn.app
