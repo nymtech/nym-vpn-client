@@ -15,7 +15,7 @@ ifeq ($(OS),Darwin)
   ifeq ($(ARCH),x86_64)
     ARCH := x86_64-apple-darwin
   else ifeq ($(ARCH),arm64)
-    ARCH := arm64-apple-darwin
+    ARCH := aarch64-apple-darwin
   # Add more architectures as needed
   endif
 endif
