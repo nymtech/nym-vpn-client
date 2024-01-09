@@ -38,6 +38,7 @@ jobs:
 
       - name: Get version
         working-directory: nym/nym-vpn/ui/src-tauri
+        shell: bash
         run: |
           version=$(jq '.package.version' --raw-output tauri.conf.json)
           echo "✓ App version: $version"
