@@ -80,7 +80,7 @@ jobs:
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
-        if: contains(fromJSON('["macos", "windows"]'), matrix.os)
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
