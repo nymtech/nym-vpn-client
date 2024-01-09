@@ -75,19 +75,21 @@ pub(crate) struct CliArgs {
     #[arg(long, requires = "enable_wireguard", requires = "wg_ip")]
     pub(crate) private_key: Option<String>,
 
-    /// The IP address of the wireguard interface.
+    /// The IP address of the wireguard interface used for the first hop to the entry gateway.
     #[arg(long, value_parser = validate_wg_ip, requires = "enable_wireguard")]
     pub(crate) wg_ip: Option<Ipv4Addr>,
 
-    /// The IP address of the TUN device.
-    #[arg(long, value_parser = validate_ip)]
-    pub(crate) ip: Option<Ipv4Addr>,
+    /// The IP address of the nym TUN device that wraps IP packets in sphinx packets.
+    #[arg(long, alias = "ip", value_parser = validate_ip)]
+    pub(crate) nym_ip: Option<Ipv4Addr>,
 
-    /// The MTU of the TUN device.
-    #[arg(long)]
-    pub(crate) mtu: Option<i32>,
+    /// The MTU of the nym TUN device that wraps IP packets in sphinx packets.
+    #[arg(long, alias = "mtu")]
+    pub(crate) nym_mtu: Option<i32>,
 
-    /// Disable routing all traffic through the VPN TUN device.
+    /// Disable routing all traffic through the nym TUN device. When the flag is set, the nym TUN
+    /// device will be created, but to route traffic through it you will need to do it manually,
+    /// e.g. ping -Itun0.
     #[arg(long)]
     pub(crate) disable_routing: bool,
 
