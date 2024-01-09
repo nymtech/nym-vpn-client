@@ -12,7 +12,8 @@ jobs:
       fail-fast: false
       matrix:
         # os: [ubuntu-20.04, macos-latest]
-        os: [ubuntu-20.04-16-core, macos-latest-large, windows-latest-8-core]
+        # os: [ubuntu-20.04-16-core, macos-latest-large, windows-latest-8-core]
+        os: [macos-latest-large, windows-latest-8-core]
     runs-on: ${{ matrix.os }}
     env:
       # TODO use repo secrets instead
