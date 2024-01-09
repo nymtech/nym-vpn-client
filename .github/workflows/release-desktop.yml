@@ -70,6 +70,7 @@ jobs:
 
       - name: Set LIBRARY_PATH
         working-directory: nym-vpn-client
+        shell: bash
         run: |
           if ${{ contains(matrix.os, 'ubuntu') }}; then
             echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
@@ -92,12 +93,14 @@ jobs:
 
       - name: Build wireguard
         working-directory: nym-vpn-client
+        shell: bash
         run: |
           ./wireguard/build-wireguard-go.sh
           ls -la ${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/
 
       - name: Build nym-vpn-lib
         working-directory: nym-vpn-client/nym-vpn-lib
+        shell: bash
         run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo build --release --verbose
 
       - name: Prepare desktop build
@@ -114,6 +117,7 @@ jobs:
           RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
           TAURI_PRIVATE_KEY: ${{ env.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ env.TAURI_PRIVATE_PASSWORD }}
+        shell: bash
         run: |
           yarn tauri build
           ls -la target/release/bundle
