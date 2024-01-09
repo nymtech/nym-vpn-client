@@ -76,8 +76,8 @@ async fn run() -> Result<()> {
     nym_vpn.enable_wireguard = args.enable_wireguard;
     nym_vpn.private_key = args.private_key;
     nym_vpn.wg_ip = args.wg_ip;
-    nym_vpn.ip = args.ip;
-    nym_vpn.mtu = args.mtu;
+    nym_vpn.nym_ip = args.nym_ip;
+    nym_vpn.nym_mtu = args.nym_mtu;
     nym_vpn.disable_routing = args.disable_routing;
     nym_vpn.enable_two_hop = args.enable_two_hop;
     nym_vpn.enable_poisson_rate = args.enable_poisson_rate;

@@ -80,10 +80,10 @@ pub struct NymVpn {
     pub wg_ip: Option<Ipv4Addr>,
 
     /// The IP address of the TUN device.
-    pub ip: Option<Ipv4Addr>,
+    pub nym_ip: Option<Ipv4Addr>,
 
     /// The MTU of the TUN device.
-    pub mtu: Option<i32>,
+    pub nym_mtu: Option<i32>,
 
     /// Disable routing all traffic through the VPN TUN device.
     pub disable_routing: bool,
@@ -96,7 +96,7 @@ pub struct NymVpn {
     pub enable_poisson_rate: bool,
 
     // Necessary so that the device doesn't get closed before cleanup has taken place
-    shadow_handle: Option<JoinHandle<AsyncDevice>>,
+    shadow_handle: Option<JoinHandle<Result<AsyncDevice>>>,
 }
 
 impl NymVpn {
@@ -109,8 +109,8 @@ impl NymVpn {
             enable_wireguard: false,
             private_key: None,
             wg_ip: None,
-            ip: None,
-            mtu: None,
+            nym_ip: None,
+            nym_mtu: None,
             disable_routing: false,
             enable_two_hop: false,
             enable_poisson_rate: false,
@@ -118,7 +118,7 @@ impl NymVpn {
         }
     }
 
-    pub(crate) fn set_shadow_handle(&mut self, shadow_handle: JoinHandle<AsyncDevice>) {
+    pub(crate) fn set_shadow_handle(&mut self, shadow_handle: JoinHandle<Result<AsyncDevice>>) {
         self.shadow_handle = Some(shadow_handle);
     }
 
@@ -137,7 +137,7 @@ impl NymVpn {
         let ip = mixnet_connect::connect_to_ip_packet_router(
             mixnet_client.clone(),
             exit_router,
-            self.ip,
+            self.nym_ip,
             self.enable_two_hop,
         )
         .await?;
@@ -158,7 +158,7 @@ impl NymVpn {
             entry_mixnet_gateway_ip,
             default_lan_gateway_ip,
             tunnel_gateway_ip,
-            self.mtu,
+            self.nym_mtu,
         );
         debug!("Routing config: {:#?}", routing_config);
         let mixnet_tun_dev = routing::setup_routing(

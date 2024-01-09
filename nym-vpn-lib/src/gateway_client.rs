@@ -170,8 +170,7 @@ impl GatewayClient {
         self.api_client
             .get_cached_described_gateways()
             .await
-            .ok()
-            .ok_or(Error::InvalidGatewayAPIResponse)
+            .map_err(|source| Error::FailedToLookupDescribedGateways { source })
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
@@ -186,8 +185,10 @@ impl GatewayClient {
                     None
                 }
             })
-            .ok_or(crate::error::Error::InvalidGatewayID)
-            .and_then(|ip| ip.parse().map_err(|_| Error::InvalidGatewayID))
+            .ok_or(Error::RequestedGatewayIdNotFound(
+                gateway_identity.to_string(),
+            ))
+            .and_then(|ip| ip.parse().map_err(|_| Error::InvalidGatewayIp(ip)))
     }
 
     pub async fn register_wireguard(
