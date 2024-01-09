@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         # os: [ubuntu-20.04, macos-latest]
-        os: [custom-debian-12, custom-runner-mac-m1]
+        os: [ubuntu-20.04-16-core, macos-latest-large]
     runs-on: ${{ matrix.os }}
     env:
       # TODO use repo secrets instead
@@ -48,7 +48,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
             libgtk-3-dev squashfs-tools libayatana-appindicator3-dev
-        if: matrix.os == 'custom-debian-12'
+        if: matrix.os == 'ubuntu-20.04-16-core'
 
       - name: Install rust toolchain
         uses: actions-rs/toolchain@v1
@@ -69,15 +69,15 @@ jobs:
       - name: Set LIBRARY_PATH
         working-directory: nym-vpn-client
         run: |
-          if [ "${{ matrix.os }}" = "custom-debian-12" ]; then
+          if [ "${{ matrix.os }}" = "ubuntu-20.04-16-core" ]; then
             echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
-          elif [ "${{ matrix.os }}" = "custom-runner-mac-m1" ]; then
+          elif [ "${{ matrix.os }}" = "macos-latest-large" ]; then
             echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
           fi
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
-        if: matrix.os == 'custom-runner-mac-m1' || matrix.os == 'windows-latest'
+        if: matrix.os == 'macos-latest-large' || matrix.os == 'windows-latest'
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -109,7 +109,7 @@ jobs:
 
       - name: Upload artifacts (Linux build)
         uses: actions/upload-artifact@v4
-        if: matrix.os == 'custom-debian-12'
+        if: matrix.os == 'ubuntu-20.04-16-core'
         with:
           name: nym-vpn-ui-${{ matrix.os }}
           path: |
@@ -118,7 +118,7 @@ jobs:
 
       - name: Upload artifacts (macos build)
         uses: actions/upload-artifact@v4
-        if: matrix.os == 'custom-runner-mac-m1'
+        if: matrix.os == 'macos-latest-large'
         with:
           name: nym-vpn-ui-${{ matrix.os }}
           # TODO fix artifact paths
