@@ -81,6 +81,11 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 'stable'
+
       - name: Build wireguard
         working-directory: nym-vpn-client
         run: ./wireguard/build-wireguard-go.sh
