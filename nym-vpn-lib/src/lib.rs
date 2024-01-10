@@ -27,6 +27,8 @@ pub use nym_task::{manager::SentStatus, StatusReceiver};
 
 pub use nym_bin_common;
 pub use nym_config;
+use tokio::task::JoinHandle;
+use tun::AsyncDevice;
 
 pub mod config;
 pub mod error;
@@ -55,7 +57,6 @@ async fn init_wireguard_config(
     Ok(wireguard_config)
 }
 
-#[derive(Clone)]
 pub struct NymVpn {
     /// Gateway configuration
     pub gateway_config: Config,
@@ -79,10 +80,10 @@ pub struct NymVpn {
     pub wg_ip: Option<Ipv4Addr>,
 
     /// The IP address of the TUN device.
-    pub ip: Option<Ipv4Addr>,
+    pub nym_ip: Option<Ipv4Addr>,
 
     /// The MTU of the TUN device.
-    pub mtu: Option<i32>,
+    pub nym_mtu: Option<i32>,
 
     /// Disable routing all traffic through the VPN TUN device.
     pub disable_routing: bool,
@@ -93,6 +94,9 @@ pub struct NymVpn {
 
     /// Enable Poission process rate limiting of outbound traffic.
     pub enable_poisson_rate: bool,
+
+    // Necessary so that the device doesn't get closed before cleanup has taken place
+    shadow_handle: Option<JoinHandle<Result<AsyncDevice>>>,
 }
 
 impl NymVpn {
@@ -105,17 +109,22 @@ impl NymVpn {
             enable_wireguard: false,
             private_key: None,
             wg_ip: None,
-            ip: None,
-            mtu: None,
+            nym_ip: None,
+            nym_mtu: None,
             disable_routing: false,
             enable_two_hop: false,
             enable_poisson_rate: false,
+            shadow_handle: None,
         }
+    }
+
+    pub(crate) fn set_shadow_handle(&mut self, shadow_handle: JoinHandle<Result<AsyncDevice>>) {
+        self.shadow_handle = Some(shadow_handle);
     }
 
     #[allow(clippy::too_many_arguments)]
     async fn setup_post_mixnet(
-        &self,
+        &mut self,
         mixnet_client: SharedMixnetClient,
         route_manager: &mut RouteManager,
         exit_router: &IpPacketRouterAddress,
@@ -128,7 +137,7 @@ impl NymVpn {
         let ip = mixnet_connect::connect_to_ip_packet_router(
             mixnet_client.clone(),
             exit_router,
-            self.ip,
+            self.nym_ip,
             self.enable_two_hop,
         )
         .await?;
@@ -149,7 +158,7 @@ impl NymVpn {
             entry_mixnet_gateway_ip,
             default_lan_gateway_ip,
             tunnel_gateway_ip,
-            self.mtu,
+            self.nym_mtu,
         );
         debug!("Routing config: {:#?}", routing_config);
         let mixnet_tun_dev = routing::setup_routing(
@@ -163,19 +172,22 @@ impl NymVpn {
         info!("Setting up mixnet processor");
         let processor_config = mixnet_processor::Config::new(*exit_router);
         debug!("Mixnet processor config: {:#?}", processor_config);
-        mixnet_processor::start_processor(
+        let shadow_handle = mixnet_processor::start_processor(
             processor_config,
             mixnet_tun_dev,
             mixnet_client,
             task_manager,
             self.enable_two_hop,
         )
-        .await
+        .await;
+        self.set_shadow_handle(shadow_handle);
+
+        Ok(())
     }
 
     #[allow(clippy::too_many_arguments)]
     async fn setup_tunnel_services(
-        &self,
+        &mut self,
         route_manager: &mut RouteManager,
         entry_gateway: &NodeIdentity,
         exit_router: &IpPacketRouterAddress,
@@ -220,7 +232,7 @@ impl NymVpn {
     }
 
     async fn setup_tunnel(
-        &self,
+        &mut self,
     ) -> Result<(
         Tunnel,
         TaskManager,
@@ -358,7 +370,7 @@ impl NymVpn {
     // Start the Nym VPN client, and wait for it to shutdown. The use case is in simple console
     // applications where the main way to interact with the running process is to send SIGINT
     // (ctrl-c)
-    pub async fn run(&self) -> Result<()> {
+    pub async fn run(&mut self) -> Result<()> {
         let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
             self.setup_tunnel().await?;
 
@@ -385,7 +397,7 @@ impl NymVpn {
     // another application, or running as a background process with a graphical interface remote
     // controlling it.
     pub async fn run_and_listen(
-        &self,
+        &mut self,
         vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -476,7 +488,7 @@ pub enum NymVpnExitStatusMessage {
 /// vpn_config.enable_two_hop = true;
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
 /// ```
-pub fn spawn_nym_vpn(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
+pub fn spawn_nym_vpn(mut nym_vpn: NymVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
 
     let (vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
