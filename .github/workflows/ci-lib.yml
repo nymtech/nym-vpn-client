@@ -57,7 +57,11 @@ jobs:
         working-directory: nym-vpn-client
         run: ./wireguard/build-wireguard-go.sh
 
-      - name: Build nym-vpn-lib
+      - name: Clippy check
+        working-directory: nym-vpn-client/nym-vpn-lib
+        run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo clippy
+
+      - name: Build
         working-directory: nym-vpn-client/nym-vpn-lib
         run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo build --release --verbose
 
