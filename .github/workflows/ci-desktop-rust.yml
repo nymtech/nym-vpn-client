@@ -7,10 +7,15 @@ on:
       - "nym-vpn-desktop/src-tauri/**"
 
 jobs:
-  # TODO need to build nym-vpn-lib first
-  # use a dedicated shareable job for it
+  build-lib:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, macos-latest]
+    uses: ./.github/workflows/ci-lib.yml
+    with:
+      os: ${{ matrix.os }}
 
-  build:
+  build-desktop:
     runs-on: custom-linux
     env:
       CARGO_TERM_COLOR: always
