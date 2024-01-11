@@ -128,7 +128,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: matrix.os == 'macos-latest'
         with:
-          name: nym-vpn-ui-${{ matrix.os }}
+          name: nym-vpn-ui-macos-x86_64
           # TODO fix artifact paths
           path: |
             nym/nym-vpn/ui/src-tauri/target/release/bundle/dmg/nym-vpn_${{ env.APP_VERSION }}_x64.dmg
