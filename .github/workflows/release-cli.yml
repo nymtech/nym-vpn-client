@@ -58,30 +58,28 @@ jobs:
       run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo test --release --verbose
 
     - name: Get package name
-      id: cargo-get
+      id: packge-version
       uses: nicolaiunrein/cargo-get@master
       with:
         subcommand: package.version --entry="nym-vpn-cli"
-
-    # TODO: add version to filenames, and use the convention the-packet-name_version_arch
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       if: matrix.os == 'ubuntu-22.04'
       with:
-        name: nym-vpn-cli-${{ matrix.os }}
+        name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_ubuntu-22.04_amd64
         path: target/release/nym-vpn-cli
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       if: matrix.os == 'macos-latest'
       with:
-        name: nym-vpn-cli-macos-x86_64
+        name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_macos_x86_64
         path: target/release/nym-vpn-cli
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       if: matrix.os == 'custom-runner-mac-m1'
       with:
-        name: nym-vpn-cli-macos-aarch64
+        name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_macos_aarch64
         path: target/release/nym-vpn-cli
