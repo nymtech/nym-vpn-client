@@ -13,10 +13,27 @@ Desktop client application of NymVPN.
 Some system libraries are required depending on the host platform.
 Follow the instructions for your specific OS [here](https://tauri.app/v1/guides/getting-started/prerequisites)
 
-To install:
+#### To install run
 
 ```
 npm i
+```
+
+#### Optional
+
+Tauri CLI (`tauri-cli`) is provided as a local project package. To
+run tauri commands you can use
+
+```
+npm run tauri help
+```
+
+If you want to run tauri through cargo you can install it on your
+system, then you can run tauri commands via `cargo`
+
+```
+cargo install tauri-cli
+cargo tauri help
 ```
 
 ## Required config
@@ -47,7 +64,7 @@ env_config_file = "/home/<USER>/.config/nym-vpn/qa.env"
 npm run dev:app
 ```
 
-or
+or via `cargo`
 
 ```
 cd src-tauri
@@ -68,6 +85,12 @@ Rust logging (standard output) is controlled by the `RUST_LOG`
 env variable
 
 Example:
+
+```
+RUST_LOG=nym_vpn_ui=trace,nym_client_core=warn,nym_vpn_lib=info npm run dev:app
+```
+
+or
 
 ```
 cd src-tauri
