@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-latest]
+        os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -37,6 +37,8 @@ jobs:
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
         elif [ "${{ matrix.os }}" = "macos-latest" ]; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
+        elif [ "${{ matrix.os }}" = "custom-runner-mac-m1" ]; then
+          echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/aarch64-apple-darwin" >> $GITHUB_ENV
         fi
 
     - name: Install Protoc
@@ -54,8 +56,29 @@ jobs:
     - name: Run tests
       run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo test --release --verbose
 
+    - name: Get package name
+      id: package-version
+      uses: nicolaiunrein/cargo-get@master
+      with:
+        subcommand: package.version --entry="nym-vpn-cli"
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
+      if: matrix.os == 'ubuntu-22.04'
       with:
-        name: nym-vpn-cli-${{ matrix.os }}
+        name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_ubuntu-22.04_amd64
+        path: target/release/nym-vpn-cli
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      if: matrix.os == 'macos-latest'
+      with:
+        name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_macos_x86_64
+        path: target/release/nym-vpn-cli
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      if: matrix.os == 'custom-runner-mac-m1'
+      with:
+        name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_macos_aarch64
         path: target/release/nym-vpn-cli
