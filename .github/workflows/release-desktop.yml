@@ -11,8 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [ubuntu-22.04, macos-latest]
-        os: [custom-runner-mac-m1]
+        os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
     env:
       # TODO use repo secrets instead
@@ -20,8 +19,6 @@ jobs:
       TAURI_KEY_PASSWORD: "1234"
 
     steps:
-      - run: ls -al
-
       - name: 'Cleanup build folder'
         run: |
           ls -la ./
@@ -44,8 +41,6 @@ jobs:
           sparse-checkout: |
             nym-vpn/ui
           sparse-checkout-cone-mode: false
-
-      - run: ls -al
 
       - name: Get version
         working-directory: nym/nym-vpn/ui/src-tauri
@@ -119,11 +114,6 @@ jobs:
         run: yarn tauri build
         # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
         continue-on-error: true
-
-      - run: ls -al nym/nym-vpn/ui/src-tauri/target/release/
-      - run: ls -al nym/nym-vpn/ui/src-tauri/target/release/bundle
-      - run: ls -al nym/nym-vpn/ui/src-tauri/target/release/bundle/dmg
-      - run: ls -al nym/nym-vpn/ui/src-tauri/target/release/bundle/macos
 
       - name: Upload artifacts (Linux build)
         uses: actions/upload-artifact@v4
