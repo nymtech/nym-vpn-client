@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+uniffi::include_scaffolding!("nym_vpn_lib");
+
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
 use crate::gateway_client::{Config, GatewayClient};
@@ -15,6 +17,7 @@ use mixnet_connect::SharedMixnetClient;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::Duration;
 use talpid_routing::RouteManager;
 use tap::TapFallible;
@@ -27,6 +30,7 @@ pub use nym_task::{manager::SentStatus, StatusReceiver};
 
 pub use nym_bin_common;
 pub use nym_config;
+use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tun::AsyncDevice;
 
@@ -55,6 +59,10 @@ async fn init_wireguard_config(
     let wireguard_config = WireguardConfig::init(wireguard_private_key, &wg_gateway_data)?;
     info!("Wireguard config: \n{wireguard_config}");
     Ok(wireguard_config)
+}
+
+struct ShadowHandle {
+    _inner: Option<JoinHandle<Result<AsyncDevice>>>,
 }
 
 pub struct NymVpn {
@@ -99,9 +107,8 @@ pub struct NymVpn {
     pub disable_background_cover_traffic: bool,
 
     // Necessary so that the device doesn't get closed before cleanup has taken place
-    shadow_handle: Option<JoinHandle<Result<AsyncDevice>>>,
+    shadow_handle: ShadowHandle,
 }
-
 impl NymVpn {
     pub fn new(entry_gateway: EntryPoint, exit_router: ExitPoint) -> Self {
         Self {
@@ -118,12 +125,14 @@ impl NymVpn {
             enable_two_hop: false,
             enable_poisson_rate: false,
             disable_background_cover_traffic: false,
-            shadow_handle: None,
+            shadow_handle: ShadowHandle { _inner: None },
         }
     }
 
     pub(crate) fn set_shadow_handle(&mut self, shadow_handle: JoinHandle<Result<AsyncDevice>>) {
-        self.shadow_handle = Some(shadow_handle);
+        self.shadow_handle = ShadowHandle {
+            _inner: Some(shadow_handle),
+        }
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -437,6 +446,24 @@ impl NymVpn {
         })?;
 
         result
+    }
+}
+
+struct UniffiNymVpn {
+    inner: Arc<RwLock<NymVpn>>,
+}
+
+impl UniffiNymVpn {
+    pub fn new(entry_gateway: EntryPoint, exit_router: ExitPoint) -> Self {
+        UniffiNymVpn {
+            inner: Arc::new(RwLock::new(NymVpn::new(entry_gateway, exit_router))),
+        }
+    }
+
+    pub async fn run(&self) {
+        if let Err(err) = self.inner.write().await.run().await {
+            log::error!("{err}");
+        }
     }
 }
 

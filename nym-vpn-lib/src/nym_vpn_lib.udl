@@ -1,0 +1,27 @@
+[Custom]
+typedef string NodeIdentity;
+
+[Custom]
+typedef string Recipient;
+
+[Enum]
+interface EntryPoint {
+  Gateway(NodeIdentity identity);
+  Location(string location);
+};
+
+[Enum]
+interface ExitPoint {
+  Address(Recipient address);
+  Gateway(NodeIdentity identity);
+  Location(string location);
+};
+
+namespace nym_vpn_lib {
+};
+
+interface UniffiNymVpn {
+    constructor(EntryPoint entry_gateway, ExitPoint exit_router);
+    [Async]
+    void run();
+};

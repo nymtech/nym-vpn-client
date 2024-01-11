@@ -28,12 +28,14 @@ pub fn setup_logging() {
 
 fn parse_entry_point(args: &commands::CliArgs) -> Result<EntryPoint> {
     if let Some(ref entry_gateway_id) = args.entry_gateway_id {
-        Ok(EntryPoint::Gateway(
-            NodeIdentity::from_base58_string(entry_gateway_id.clone())
+        Ok(EntryPoint::Gateway {
+            identity: NodeIdentity::from_base58_string(entry_gateway_id.clone())
                 .map_err(|_| Error::NodeIdentityFormattingError)?,
-        ))
+        })
     } else if let Some(ref entry_gateway_country) = args.entry_gateway_country {
-        Ok(EntryPoint::Location(entry_gateway_country.clone()))
+        Ok(EntryPoint::Location {
+            location: entry_gateway_country.clone(),
+        })
     } else {
         Err(Error::MissingEntryPointInformation)
     }
@@ -41,17 +43,19 @@ fn parse_entry_point(args: &commands::CliArgs) -> Result<EntryPoint> {
 
 fn parse_exit_point(args: &commands::CliArgs) -> Result<ExitPoint> {
     if let Some(ref exit_router_address) = args.exit_router_address {
-        Ok(ExitPoint::Address(Box::new(
-            Recipient::try_from_base58_string(exit_router_address.clone())
+        Ok(ExitPoint::Address {
+            address: Recipient::try_from_base58_string(exit_router_address.clone())
                 .map_err(|_| Error::RecipientFormattingError)?,
-        )))
+        })
     } else if let Some(ref exit_router_id) = args.exit_gateway_id {
-        Ok(ExitPoint::Gateway(
-            NodeIdentity::from_base58_string(exit_router_id.clone())
+        Ok(ExitPoint::Gateway {
+            identity: NodeIdentity::from_base58_string(exit_router_id.clone())
                 .map_err(|_| Error::NodeIdentityFormattingError)?,
-        ))
+        })
     } else if let Some(ref exit_router_country) = args.exit_router_country {
-        Ok(ExitPoint::Location(exit_router_country.clone()))
+        Ok(ExitPoint::Location {
+            location: exit_router_country.clone(),
+        })
     } else {
         Err(Error::MissingExitPointInformation)
     }
