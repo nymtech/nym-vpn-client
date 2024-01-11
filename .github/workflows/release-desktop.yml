@@ -32,9 +32,9 @@ jobs:
           path: nym
           ref: develop
           # fetch only nym-vpn/ui directory
-          sparse-checkout: |
-            nym-vpn/ui
-          sparse-checkout-cone-mode: false
+          # sparse-checkout: |
+          #   nym-vpn/ui
+          # sparse-checkout-cone-mode: false
 
       - name: Get version
         working-directory: nym/nym-vpn/ui/src-tauri
