@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-latest]
+        os: [ubuntu-22.04-16-core, macos-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -21,14 +21,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: nym-vpn-client
-          # fetch only needed directories and files
+          # fetch only the root files and these dirs
           sparse-checkout: |
             nym-vpn-lib
             wireguard
-            Cargo.toml
-            Cargo.lock
-            Makefile
-          sparse-checkout-cone-mode: false
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -38,19 +34,24 @@ jobs:
       - name: Set LIBRARY_PATH
         working-directory: nym-vpn-client
         run: |
-          if [ "${{ matrix.os }}" = "ubuntu-22.04" ]; then
+          if ${{ contains(matrix.os, 'ubuntu') }}; then
             echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
-          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
-          elif [ "${{ matrix.os }}" = "custom-runner-mac-m1" ]; then
+          elif ${{ contains(matrix.os, 'mac-m1') }}; then
             echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/aarch64-apple-darwin" >> $GITHUB_ENV
+          elif ${{ contains(matrix.os, 'macos') }}; then
+            echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
           fi
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
-        if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest'
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') || contains(matrix.os, 'windows')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 'stable'
 
       - name: Build wireguard
         working-directory: nym-vpn-client
@@ -62,17 +63,17 @@ jobs:
 
       - name: Upload artifacts (Linux build)
         uses: actions/upload-artifact@v4
-        if: matrix.os == 'ubuntu-22.04'
+        if: contains(matrix.os, 'ubuntu')
         with:
-          name: nym-vpn-lib_ubuntu-22.04_amd64
+          name: nym-vpn-lib_ubuntu-22.04
           path: |
             nym-vpn-client/target/release/libnym_vpn_lib.d
             nym-vpn-client/target/release/libnym_vpn_lib.rlib
             nym-vpn-client/build/lib/x86_64-unknown-linux-gnu
 
-      - name: Upload artifacts (macos build)
+      - name: Upload artifacts (macos amd64 build)
         uses: actions/upload-artifact@v4
-        if: matrix.os == 'macos-latest'
+        if: contains(matrix.os, 'macos')
         with:
           name: nym-vpn-lib_macos_x86_64
           # TODO fix artifact paths
@@ -80,3 +81,14 @@ jobs:
             nym-vpn-client/target/release/libnym_vpn_lib.d
             nym-vpn-client/target/release/libnym_vpn_lib.rlib
             nym-vpn-client/build/lib/x86_64-apple-darwin
+
+      - name: Upload artifacts (macos arm build)
+        uses: actions/upload-artifact@v4
+        if: contains(matrix.os, 'mac-m1')
+        with:
+          name: nym-vpn-lib_macos-m1
+          # TODO fix artifact paths
+          path: |
+            nym-vpn-client/target/release/libnym_vpn_lib.d
+            nym-vpn-client/target/release/libnym_vpn_lib.rlib
+            nym-vpn-client/build/lib/aarch64-apple-darwin
