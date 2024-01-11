@@ -11,7 +11,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-latest]
+        # os: [ubuntu-22.04, macos-latest]
+        os: [custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
     env:
       # TODO use repo secrets instead
@@ -72,6 +73,8 @@ jobs:
             echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
             echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
+          elif [ "${{ matrix.os }}" = "custom-runner-mac-m1" ]; then
+            echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/aarch64-apple-darwin" >> $GITHUB_ENV
           fi
 
       - name: Install Protoc
@@ -106,6 +109,11 @@ jobs:
         # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
         continue-on-error: true
 
+      - run: ls -al nym/nym-vpn/ui/src-tauri/target/release/
+      - run: ls -al nym/nym-vpn/ui/src-tauri/target/release/bundle
+      - run: ls -al nym/nym-vpn/ui/src-tauri/target/release/bundle/dmg
+      - run: ls -al nym/nym-vpn/ui/src-tauri/target/release/bundle/macos
+
       - name: Upload artifacts (Linux build)
         uses: actions/upload-artifact@v4
         if: matrix.os == 'ubuntu-22.04'
@@ -123,4 +131,14 @@ jobs:
           # TODO fix artifact paths
           path: |
             nym/nym-vpn/ui/src-tauri/target/release/bundle/dmg/nym-vpn_${{ env.APP_VERSION }}_x64.dmg
+            nym/nym-vpn/ui/src-tauri/target/release/bundle/macos/nym-vpn.app
+
+      - name: Upload artifacts (macos m1 build)
+        uses: actions/upload-artifact@v4
+        if: matrix.os == 'custom-runner-mac-m1'
+        with:
+          name: nym-vpn-ui-macos-aarch64
+          # TODO fix artifact paths
+          path: |
+            nym/nym-vpn/ui/src-tauri/target/release/bundle/dmg/nym-vpn_${{ env.APP_VERSION }}_aarch64.dmg
             nym/nym-vpn/ui/src-tauri/target/release/bundle/macos/nym-vpn.app
