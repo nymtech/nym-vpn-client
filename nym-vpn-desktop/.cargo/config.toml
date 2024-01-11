@@ -1,0 +1,2 @@
+[build]
+rustflags = ['-L', '../../build/lib/x86_64-unknown-linux-gnu/']
