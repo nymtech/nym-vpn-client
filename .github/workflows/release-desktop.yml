@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-latest]
+        os: [ubuntu-22.04, macos-latest]
     runs-on: ${{ matrix.os }}
     env:
       # TODO use repo secrets instead
@@ -47,7 +47,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
             libgtk-3-dev squashfs-tools libayatana-appindicator3-dev
-        if: matrix.os == 'ubuntu-20.04'
+        if: matrix.os == 'ubuntu-22.04'
 
       - name: Install rust toolchain
         uses: actions-rs/toolchain@v1
@@ -68,7 +68,7 @@ jobs:
       - name: Set LIBRARY_PATH
         working-directory: nym-vpn-client
         run: |
-          if [ "${{ matrix.os }}" = "ubuntu-20.04" ]; then
+          if [ "${{ matrix.os }}" = "ubuntu-22.04" ]; then
             echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
             echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
@@ -108,7 +108,7 @@ jobs:
 
       - name: Upload artifacts (Linux build)
         uses: actions/upload-artifact@v4
-        if: matrix.os == 'ubuntu-20.04'
+        if: matrix.os == 'ubuntu-22.04'
         with:
           name: nym-vpn-ui-${{ matrix.os }}
           path: |
