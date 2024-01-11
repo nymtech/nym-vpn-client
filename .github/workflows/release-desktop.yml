@@ -22,6 +22,13 @@ jobs:
     steps:
       - run: ls -al
 
+      - name: 'Cleanup build folder'
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
         with:
@@ -34,9 +41,9 @@ jobs:
           path: nym
           ref: develop
           # fetch only nym-vpn/ui directory
-          # sparse-checkout: |
-          #   nym-vpn/ui
-          # sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            nym-vpn/ui
+          sparse-checkout-cone-mode: false
 
       - run: ls -al
 
