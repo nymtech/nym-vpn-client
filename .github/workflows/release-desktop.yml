@@ -20,6 +20,8 @@ jobs:
       TAURI_KEY_PASSWORD: "1234"
 
     steps:
+      - run: ls -al
+
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
         with:
@@ -35,6 +37,8 @@ jobs:
           # sparse-checkout: |
           #   nym-vpn/ui
           # sparse-checkout-cone-mode: false
+
+      - run: ls -al
 
       - name: Get version
         working-directory: nym/nym-vpn/ui/src-tauri
