@@ -1,6 +1,6 @@
-# NymVPN UI app for desktop clients
+# NymVPN desktop client app
 
-This is the application UI layer for the next NymVPN clients.
+Desktop client application of NymVPN.
 
 ## Install
 

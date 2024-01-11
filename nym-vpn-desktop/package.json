@@ -8,7 +8,7 @@
     "dev:app": "tauri dev",
     "dev:browser": "vite --mode dev-browser",
     "build": "tsc && vite build",
-    "build:app": "yarn tauri build",
+    "build:app": "npm run tauri build",
     "preview": "vite preview",
     "lint": "eslint --ext .ts,.tsx src/",
     "lint:fix": "eslint --ext .js,.ts --fix src/",
