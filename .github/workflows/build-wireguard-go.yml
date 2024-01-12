@@ -1,4 +1,4 @@
-name: ci-wireguard-go
+name: build-wireguard-go
 
 on:
   workflow_dispatch:
