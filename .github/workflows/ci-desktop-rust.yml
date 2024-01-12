@@ -22,7 +22,6 @@ jobs:
     runs-on: custom-linux
     env:
       CARGO_TERM_COLOR: always
-      CARGOTOML_PATH: ./nym-vpn-desktop/src-tauri/Cargo.toml
     steps:
       - name: 'Cleanup working directory'
         if: contains(matrix.os, 'custom')
