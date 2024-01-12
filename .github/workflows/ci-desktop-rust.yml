@@ -90,7 +90,7 @@ jobs:
 
       - name: Clippy check
         working-directory: nym-vpn-client/nym-vpn-desktop/src-tauri
-        run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo clippy
+        run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo clippy -- -Dwarnings
 
       - name: Build
         working-directory: nym-vpn-client/nym-vpn-desktop/src-tauri
