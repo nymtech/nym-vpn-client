@@ -92,7 +92,7 @@ jobs:
           fi
 
       - name: Get version
-        working-directory: nym/nym-vpn/ui/src-tauri
+        working-directory: nym-vpn-client/nym-vpn-desktop/src-tauri
         shell: bash
         run: |
           version=$(jq '.package.version' --raw-output tauri.conf.json)
@@ -174,11 +174,3 @@ jobs:
             nym-vpn-client/nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn_${{ env.APP_VERSION }}_x64.dmg
             nym-vpn-client/nym-vpn-desktop/src-tauri/target/release/bundle/macos/nym-vpn.app
 
-      # - name: Upload artifacts (Windows build)
-      #   uses: actions/upload-artifact@v4
-      #   if: contains(matrix.os, 'windows')
-      #   with:
-      #     name: nym-vpn-desktop-windows
-      #     path: |
-      #       nym/nym-vpn/ui/src-tauri/target/release/bundle/deb/nym-vpn_${{ env.APP_VERSION }}_amd64.deb
-      #       nym/nym-vpn/ui/src-tauri/target/release/bundle/appimage/nym-vpn_${{ env.APP_VERSION }}_amd64.AppImage
