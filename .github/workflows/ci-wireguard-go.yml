@@ -17,14 +17,6 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout nym-vpn-client
-        uses: actions/checkout@v4
-        with:
-          path: nym-vpn-client
-          # fetch only the root files and wireguard dir
-          sparse-checkout: |
-            wireguard
-
       - name: 'Cleanup working directory'
         if: contains(matrix.os, 'custom')
         run: |
@@ -32,6 +24,14 @@ jobs:
           rm -rf ./* || true
           rm -rf ./.??* || true
           ls -la ./
+
+      - name: Checkout nym-vpn-client
+        uses: actions/checkout@v4
+        with:
+          path: nym-vpn-client
+          # fetch only the root files and wireguard dir
+          sparse-checkout: |
+            wireguard
 
       - name: Set LIBRARY_PATH
         working-directory: nym-vpn-client
