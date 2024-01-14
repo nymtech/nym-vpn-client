@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
+        os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -33,17 +33,7 @@ jobs:
           sparse-checkout: |
             wireguard
 
-      - name: Set LIBRARY_PATH
-        working-directory: nym-vpn-client
-        run: |
-          if ${{ contains(matrix.os, 'ubuntu') }}; then
-            echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
-          elif ${{ contains(matrix.os, 'mac-m1') }}; then
-            echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/aarch64-apple-darwin" >> $GITHUB_ENV
-          elif ${{ contains(matrix.os, 'macos') }}; then
-            echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/nym-vpn-client/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
-          fi
-
+      # TODO: check that this is actually used
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') || contains(matrix.os, 'windows')
@@ -59,11 +49,11 @@ jobs:
         working-directory: nym-vpn-client
         run: ./wireguard/build-wireguard-go.sh
 
-      - name: Upload artifacts (linux x86_64)
+      - name: Upload artifacts (ubuntu 22.04 x86_64)
         uses: actions/upload-artifact@v4
         if: contains(matrix.os, 'ubuntu')
         with:
-          name: wireguard-go_linux-x86_64
+          name: wireguard-go_ubuntu-22.04_x86_64
           path: |
             nym-vpn-client/build/lib/x86_64-unknown-linux-gnu
 
@@ -71,7 +61,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: contains(matrix.os, 'macos')
         with:
-          name: wireguard-go_macos-x86_64
+          name: wireguard-go_macos_x86_64
           path: |
             nym-vpn-client/build/lib/x86_64-apple-darwin
 
@@ -79,6 +69,6 @@ jobs:
         uses: actions/upload-artifact@v4
         if: contains(matrix.os, 'mac-m1')
         with:
-          name: wireguard-go_macos-aarch64
+          name: wireguard-go_macos_aarch64
           path: |
             nym-vpn-client/build/lib/aarch64-apple-darwin
