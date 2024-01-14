@@ -1,0 +1,74 @@
+name: build-wireguard-go
+
+on:
+  workflow_dispatch:
+  # reusable workflow
+  workflow_call:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: 'Cleanup working directory'
+        if: contains(matrix.os, 'custom')
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Checkout nym-vpn-client
+        uses: actions/checkout@v4
+        with:
+          path: nym-vpn-client
+          # fetch only the root files and wireguard dir
+          sparse-checkout: |
+            wireguard
+
+      # TODO: check that this is actually used
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v2
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') || contains(matrix.os, 'windows')
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 'stable'
+
+      - name: Build wireguard
+        working-directory: nym-vpn-client
+        run: ./wireguard/build-wireguard-go.sh
+
+      - name: Upload artifacts (ubuntu 22.04 x86_64)
+        uses: actions/upload-artifact@v4
+        if: contains(matrix.os, 'ubuntu')
+        with:
+          name: wireguard-go_ubuntu-22.04_x86_64
+          path: |
+            nym-vpn-client/build/lib/x86_64-unknown-linux-gnu
+
+      - name: Upload artifacts (macos x86_64)
+        uses: actions/upload-artifact@v4
+        if: contains(matrix.os, 'macos')
+        with:
+          name: wireguard-go_macos_x86_64
+          path: |
+            nym-vpn-client/build/lib/x86_64-apple-darwin
+
+      - name: Upload artifacts (macos aarch64)
+        uses: actions/upload-artifact@v4
+        if: contains(matrix.os, 'mac-m1')
+        with:
+          name: wireguard-go_macos_aarch64
+          path: |
+            nym-vpn-client/build/lib/aarch64-apple-darwin

@@ -1,0 +1,41 @@
+name: ci-desktop-js
+
+on:
+  workflow_dispatch:
+  # Enable once ready
+  # pull_request:
+  #   paths:
+  #     - "nym-vpn-desktop/src/**"
+  #     - "nym-vpn-desktop/package.json"
+  #     - "nym-vpn-desktop/index.html"
+  #     - "nym-vpn-desktop/.eslintrc.cjs"
+  #     - "nym-vpn-desktop/vite.config.ts"
+
+jobs:
+  check:
+    runs-on: custom-linux
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install dependencies
+        working-directory: nym-vpn-desktop
+        run: npm i
+      - name: Type-check
+        working-directory: nym-vpn-desktop
+        run: npm run typecheck
+      - name: Check lint
+        working-directory: nym-vpn-desktop
+        run: npm run lint
+      - name: Check formatting
+        working-directory: nym-vpn-desktop
+        run: npm run fmt:check
+      #      - name: Run tests
+      #        working-directory: nym-vpn-desktop
+      #        run: npm run test
+      - name: Check build
+        working-directory: nym-vpn-desktop
+        run: npm run build

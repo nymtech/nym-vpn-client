@@ -1,0 +1,98 @@
+name: ci-desktop-rust
+
+on:
+  workflow_dispatch:
+  # Disabled until it's ready
+  # pull_request:
+  #   paths:
+  #     - "nym-vpn-desktop/src-tauri/**"
+  #     # also trigger the jobs on upstream dependencies changes
+  #     - "wireguard/**"
+  #     - "nym-vpn-lib/**"
+
+jobs:
+  build-wireguard-go:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, custom-runner-mac-m1]
+    uses: ./.github/workflows/build-wireguard-go.yml
+    with:
+      os: ${{ matrix.os }}
+
+  build-desktop:
+    runs-on: custom-linux
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - name: 'Cleanup working directory'
+        if: contains(matrix.os, 'custom')
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            nym-vpn-desktop
+            nym-vpn-lib
+
+      - name: Download wireguard-go artifacts (linux x86_64)
+        uses: actions/download-artifact@v3
+        if: contains(matrix.os, 'ubuntu')
+        with:
+          name: wireguard-go_ubuntu-22.04-x86_64
+          path: lib
+
+      - name: Download wireguard-go artifacts (macos aarch64)
+        uses: actions/download-artifact@v3
+        if: contains(matrix.os, 'mac-m1')
+        with:
+          name: wireguard-go_macos-aarch64
+          path: lib
+
+      - name: Set LIBRARY_PATH
+        run: |
+          if ${{ contains(matrix.os, 'ubuntu') }}; then
+            echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/lib/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
+          elif ${{ contains(matrix.os, 'mac-m1') }}; then
+            echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/lib/build/lib/aarch64-apple-darwin" >> $GITHUB_ENV
+          fi
+
+      - name: Get version
+        working-directory: nym-vpn-desktop/src-tauri
+        run: |
+          version=$(jq '.package.version' --raw-output tauri.conf.json)
+          echo "✓ App version: $version"
+          echo "APP_VERSION=$version" >> $GITHUB_ENV
+
+      - name: Install system dependencies
+        if: contains(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
+            protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Prepare build
+        working-directory: nym-vpn-client/nym-vpn-desktop
+        run: mkdir dist
+
+      - name: Fmt check
+        working-directory: nym-vpn-client/nym-vpn-desktop/src-tauri
+        run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo fmt --check
+
+      - name: Clippy check
+        working-directory: nym-vpn-client/nym-vpn-desktop/src-tauri
+        run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo clippy -- -Dwarnings
+
+      - name: Build
+        working-directory: nym-vpn-client/nym-vpn-desktop/src-tauri
+        run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo build --verbose
+
