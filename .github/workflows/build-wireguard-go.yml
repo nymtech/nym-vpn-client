@@ -2,23 +2,35 @@ name: build-wireguard-go
 
 on:
   workflow_dispatch:
+    inputs:
+      os:
+        required: true
+        description: 'Runner'
+        default: 'ubuntu-22.04'
+        type: choice
+        options:
+        - ubuntu-20.04
+        - ubuntu-22.04
+        - macos-latest
+        - custom-runner-mac-m1
+
   # reusable workflow
   workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ inputs.os }}
 
     steps:
       - name: 'Cleanup working directory'
-        if: contains(matrix.os, 'custom')
+        if: contains(inputs.os, 'custom')
         run: |
           ls -la ./
           rm -rf ./* || true
@@ -36,7 +48,7 @@ jobs:
       # TODO: check that this is actually used
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
-        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') || contains(matrix.os, 'windows')
+        if: contains(inputs.os, 'macos') || contains(inputs.os, 'mac-m1') || contains(inputs.os, 'windows')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -51,15 +63,15 @@ jobs:
 
       - name: Upload artifacts (ubuntu 22.04 x86_64)
         uses: actions/upload-artifact@v4
-        if: contains(matrix.os, 'ubuntu')
+        if: contains(inputs.os, 'ubuntu')
         with:
-          name: wireguard-go_ubuntu-22.04_x86_64
+          name: wireguard-go_${{ inputs.os }}_x86_64
           path: |
             nym-vpn-client/build/lib/x86_64-unknown-linux-gnu
 
       - name: Upload artifacts (macos x86_64)
         uses: actions/upload-artifact@v4
-        if: contains(matrix.os, 'macos')
+        if: contains(inputs.os, 'macos')
         with:
           name: wireguard-go_macos_x86_64
           path: |
@@ -67,7 +79,7 @@ jobs:
 
       - name: Upload artifacts (macos aarch64)
         uses: actions/upload-artifact@v4
-        if: contains(matrix.os, 'mac-m1')
+        if: contains(inputs.os, 'mac-m1')
         with:
           name: wireguard-go_macos_aarch64
           path: |
