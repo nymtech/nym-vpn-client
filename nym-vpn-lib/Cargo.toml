@@ -48,5 +48,9 @@ nym-task = { git = "https://github.com/nymtech/nym", rev = "67132161f4ab761a8141
 nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "67132161f4ab761a814165d38516de21bc1e462e" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "67132161f4ab761a814165d38516de21bc1e462e" }
 
+
+[target.'cfg(target_os = "android")'.dependencies]
+jnix = { version = "0.5", features = ["derive"] }
+
 [build-dependencies]
 uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "f5fc9d7e9aa08889aedc45dd81ae9b4d3ec4cbe8", features = ["build"] }

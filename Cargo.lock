@@ -4222,6 +4222,7 @@ dependencies = [
  "default-net",
  "futures",
  "ipnetwork",
+ "jnix",
  "log",
  "nym-bin-common",
  "nym-client-core",
