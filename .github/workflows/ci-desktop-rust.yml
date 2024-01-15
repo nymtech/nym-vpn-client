@@ -49,21 +49,21 @@ jobs:
         uses: actions/download-artifact@v3
         if: contains(matrix.os, 'ubuntu-22.04')
         with:
-          name: wireguard-go_ubuntu-22.04-x86_64
+          name: wireguard-go_ubuntu-22.04_x86_64
           path: lib
 
       - name: Download wireguard-go artifacts (ubuntu-20.04 x86_64)
         uses: actions/download-artifact@v3
         if: contains(matrix.os, 'ubuntu-20.04')
         with:
-          name: wireguard-go_ubuntu-20.04-x86_64
+          name: wireguard-go_ubuntu-20.04_x86_64
           path: lib
 
       - name: Download wireguard-go artifacts (macos aarch64)
         uses: actions/download-artifact@v3
         if: contains(matrix.os, 'mac-m1')
         with:
-          name: wireguard-go_macos-aarch64
+          name: wireguard-go_macos_aarch64
           path: lib
 
       - name: Download wireguard-go artifacts (macos x86_64)
