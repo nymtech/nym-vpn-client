@@ -21,6 +21,7 @@ jobs:
       os: ${{ matrix.os }}
 
   build-desktop:
+    needs: build-wireguard-go
     strategy:
       fail-fast: false
       matrix:
