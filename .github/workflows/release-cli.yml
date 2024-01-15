@@ -84,12 +84,12 @@ jobs:
 
       - name: Build
         env:
-          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo build --release --verbose
 
       - name: Run tests
         env:
-          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo test --release --verbose
 
       - name: Get package name

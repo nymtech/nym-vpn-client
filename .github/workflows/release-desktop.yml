@@ -94,7 +94,7 @@ jobs:
         shell: bash
         run: |
           version=$(jq '.package.version' --raw-output tauri.conf.json)
-          echo "✓ App version: $version"
+          echo " ✓ App version: $version"
           echo "APP_VERSION=$version" >> $GITHUB_ENV
 
       - name: Install rust toolchain
