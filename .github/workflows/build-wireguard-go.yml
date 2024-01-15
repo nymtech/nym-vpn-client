@@ -40,7 +40,6 @@ jobs:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
         with:
-          path: nym-vpn-client
           # fetch only the root files and wireguard dir
           sparse-checkout: |
             wireguard
@@ -58,7 +57,6 @@ jobs:
           go-version: 'stable'
 
       - name: Build wireguard
-        working-directory: nym-vpn-client
         run: ./wireguard/build-wireguard-go.sh
 
       - name: Upload artifacts (ubuntu 22.04 x86_64)
@@ -67,7 +65,7 @@ jobs:
         with:
           name: wireguard-go_ubuntu-22.04_x86_64
           path: |
-            nym-vpn-client/build/lib/x86_64-unknown-linux-gnu
+            build/lib/x86_64-unknown-linux-gnu
 
       - name: Upload artifacts (ubuntu 20.04 x86_64)
         uses: actions/upload-artifact@v4
@@ -75,7 +73,7 @@ jobs:
         with:
           name: wireguard-go_ubuntu-20.04_x86_64
           path: |
-            nym-vpn-client/build/lib/x86_64-unknown-linux-gnu
+            build/lib/x86_64-unknown-linux-gnu
 
       - name: Upload artifacts (macos x86_64)
         uses: actions/upload-artifact@v4
@@ -83,7 +81,7 @@ jobs:
         with:
           name: wireguard-go_macos_x86_64
           path: |
-            nym-vpn-client/build/lib/x86_64-apple-darwin
+            build/lib/x86_64-apple-darwin
 
       - name: Upload artifacts (macos aarch64)
         uses: actions/upload-artifact@v4
@@ -91,4 +89,4 @@ jobs:
         with:
           name: wireguard-go_macos_aarch64
           path: |
-            nym-vpn-client/build/lib/aarch64-apple-darwin
+            build/lib/aarch64-apple-darwin
