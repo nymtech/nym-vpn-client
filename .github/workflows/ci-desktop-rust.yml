@@ -13,8 +13,7 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        # os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
-        os: [ubuntu-22.04-16-core]
+        os: [custom-ubuntu-20.04, custom-runner-mac-m1]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -24,8 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
-        os: [ubuntu-22.04-16-core]
+        os: [custom-ubuntu-20.04, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
     env:
       CARGO_TERM_COLOR: always
@@ -103,8 +101,4 @@ jobs:
       - name: Clippy check
         working-directory: nym-vpn-desktop/src-tauri
         run: RUSTFLAGS="-L ${{ env.LIBRARY_PATH }}" cargo clippy -- -Dwarnings
-
-      - name: Build
-        working-directory: nym-vpn-desktop/src-tauri
-        run: RUSTFLAGS="-L ${{ env.LIBRARY_PATH }}" cargo build --verbose
 
