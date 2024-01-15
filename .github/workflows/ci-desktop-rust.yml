@@ -14,13 +14,19 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        os: [ubuntu-22.04, custom-runner-mac-m1]
+        # os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
+        os: [ubuntu-22.04-16-core]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
 
   build-desktop:
-    runs-on: custom-linux
+    strategy:
+      fail-fast: false
+      matrix:
+        # os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
+        os: [ubuntu-22.04-16-core]
+    runs-on: ${{ matrix.os }}
     env:
       CARGO_TERM_COLOR: always
     steps:
@@ -55,11 +61,13 @@ jobs:
 
       - name: Set LIBRARY_PATH
         run: |
+          ls -la
           if ${{ contains(matrix.os, 'ubuntu') }}; then
             echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/lib/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
           elif ${{ contains(matrix.os, 'mac-m1') }}; then
             echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/lib/build/lib/aarch64-apple-darwin" >> $GITHUB_ENV
           fi
+          echo $LIBRARY_PATH
 
       - name: Get version
         working-directory: nym-vpn-desktop/src-tauri
@@ -81,7 +89,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Prepare build
-        working-directory: nym-vpn-client/nym-vpn-desktop
+        working-directory: nym-vpn-desktop
         run: mkdir dist
 
       - name: Fmt check
