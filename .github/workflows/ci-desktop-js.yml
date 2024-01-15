@@ -2,14 +2,13 @@ name: ci-desktop-js
 
 on:
   workflow_dispatch:
-  # Enable once ready
-  # pull_request:
-  #   paths:
-  #     - "nym-vpn-desktop/src/**"
-  #     - "nym-vpn-desktop/package.json"
-  #     - "nym-vpn-desktop/index.html"
-  #     - "nym-vpn-desktop/.eslintrc.cjs"
-  #     - "nym-vpn-desktop/vite.config.ts"
+  pull_request:
+    paths:
+      - "nym-vpn-desktop/src/**"
+      - "nym-vpn-desktop/package.json"
+      - "nym-vpn-desktop/index.html"
+      - "nym-vpn-desktop/.eslintrc.cjs"
+      - "nym-vpn-desktop/vite.config.ts"
 
 jobs:
   check:
@@ -17,6 +16,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            nym-vpn-desktop
       - name: Install Node
         uses: actions/setup-node@v3
         with:
@@ -24,7 +26,7 @@ jobs:
       - name: Install dependencies
         working-directory: nym-vpn-desktop
         run: npm i
-      - name: Type-check
+      - name: Typecheck
         working-directory: nym-vpn-desktop
         run: npm run typecheck
       - name: Check lint
