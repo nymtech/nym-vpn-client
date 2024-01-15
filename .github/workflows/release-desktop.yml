@@ -136,5 +136,5 @@ jobs:
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
         with:
-          name: nym-vpn-cli_${{ env.APP_VERSION }}_${{ env.PLATFORM_ARCH }}
+          name: nym-vpn-desktop_${{ env.APP_VERSION }}_${{ env.PLATFORM_ARCH }}
           path: nym-vpn-desktop/src-tauri/target/release/bundle
