@@ -109,13 +109,13 @@ jobs:
 
       - name: Fmt check
         working-directory: nym-vpn-desktop/src-tauri
-        run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo fmt --check
+        run: RUSTFLAGS="-L ${{ env.LIBRARY_PATH }}" cargo fmt --check
 
       - name: Clippy check
         working-directory: nym-vpn-desktop/src-tauri
-        run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo clippy -- -Dwarnings
+        run: RUSTFLAGS="-L ${{ env.LIBRARY_PATH }}" cargo clippy -- -Dwarnings
 
       - name: Build
         working-directory: nym-vpn-desktop/src-tauri
-        run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo build --verbose
+        run: RUSTFLAGS="-L ${{ env.LIBRARY_PATH }}" cargo build --verbose
 
