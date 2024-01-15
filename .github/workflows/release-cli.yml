@@ -10,7 +10,7 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        os: [ubuntu-22.04-16-core, macos-latest-large, custom-runner-mac-m1]
+        os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -63,14 +63,14 @@ jobs:
           path: lib
 
       - name: Download wireguard-go artifacts (macos aarch64)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         if: contains(matrix.os, 'mac-m1')
         with:
           name: wireguard-go_macos_aarch64
           path: lib
 
       - name: Download wireguard-go artifacts (macos x86_64)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         if: contains(matrix.os, 'macos')
         with:
           name: wireguard-go_macos_x86_64
@@ -82,15 +82,19 @@ jobs:
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
-        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') || contains(matrix.os, 'windows')
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build
-        run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo build --release --verbose
+        env:
+          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+        run: cargo build --release --verbose
 
       - name: Run tests
-        run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo test --release --verbose
+        env:
+          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+        run: cargo test --release --verbose
 
       - name: Get package name
         id: package-version
@@ -99,21 +103,21 @@ jobs:
           subcommand: package.version --entry="nym-vpn-cli"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: matrix.os == 'ubuntu-22.04'
         with:
           name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_ubuntu-22.04_amd64
           path: target/release/nym-vpn-cli
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: matrix.os == 'macos-latest'
         with:
           name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_macos_x86_64
           path: target/release/nym-vpn-cli
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         if: matrix.os == 'custom-runner-mac-m1'
         with:
           name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_macos_aarch64
