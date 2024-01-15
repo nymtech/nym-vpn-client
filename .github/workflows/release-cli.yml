@@ -102,23 +102,23 @@ jobs:
         with:
           subcommand: package.version --entry="nym-vpn-cli"
 
-      - name: Upload artifacts
+      - name: Upload artifacts (ubuntu-22.04 x86_64)
         uses: actions/upload-artifact@v4
-        if: matrix.os == 'ubuntu-22.04'
+        if: contains(matrix.os, 'ubuntu-22.04')
         with:
           name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_ubuntu-22.04_amd64
           path: target/release/nym-vpn-cli
 
-      - name: Upload artifacts
+      - name: Upload artifacts (macos x86_64)
         uses: actions/upload-artifact@v4
-        if: matrix.os == 'macos-latest'
+        if: contains(matrix.os, 'macos')
         with:
           name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_macos_x86_64
           path: target/release/nym-vpn-cli
 
-      - name: Upload artifacts
+      - name: Upload artifacts (macos aarch64)
         uses: actions/upload-artifact@v4
-        if: matrix.os == 'custom-runner-mac-m1'
+        if: contains(matrix.os, 'mac-m1')
         with:
           name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_macos_aarch64
           path: target/release/nym-vpn-cli
