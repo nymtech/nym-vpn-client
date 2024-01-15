@@ -45,11 +45,18 @@ jobs:
             nym-vpn-desktop
             nym-vpn-lib
 
-      - name: Download wireguard-go artifacts (linux x86_64)
+      - name: Download wireguard-go artifacts (ubuntu-22.04 x86_64)
         uses: actions/download-artifact@v3
-        if: contains(matrix.os, 'ubuntu')
+        if: contains(matrix.os, 'ubuntu-22.04')
         with:
           name: wireguard-go_ubuntu-22.04-x86_64
+          path: lib
+
+      - name: Download wireguard-go artifacts (ubuntu-20.04 x86_64)
+        uses: actions/download-artifact@v3
+        if: contains(matrix.os, 'ubuntu-20.04')
+        with:
+          name: wireguard-go_ubuntu-20.04-x86_64
           path: lib
 
       - name: Download wireguard-go artifacts (macos aarch64)
@@ -57,6 +64,13 @@ jobs:
         if: contains(matrix.os, 'mac-m1')
         with:
           name: wireguard-go_macos-aarch64
+          path: lib
+
+      - name: Download wireguard-go artifacts (macos x86_64)
+        uses: actions/download-artifact@v3
+        if: contains(matrix.os, 'macos')
+        with:
+          name: wireguard-go_macos_x86_64
           path: lib
 
       - name: Set LIBRARY_PATH
