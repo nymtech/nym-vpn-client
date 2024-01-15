@@ -78,14 +78,14 @@ jobs:
           path: lib
 
       - name: Download wireguard-go artifacts (macos aarch64)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         if: contains(matrix.os, 'mac-m1')
         with:
           name: wireguard-go_macos_aarch64
           path: lib
 
       - name: Download wireguard-go artifacts (macos x86_64)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         if: contains(matrix.os, 'macos')
         with:
           name: wireguard-go_macos_x86_64
