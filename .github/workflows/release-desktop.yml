@@ -14,7 +14,7 @@ jobs:
           [
             ubuntu-22.04-16-core,
             ubuntu-20.04-16-core,
-            macos-latest-large,
+            macos-latest,
             custom-runner-mac-m1,
           ]
     uses: ./.github/workflows/build-wireguard-go.yml
@@ -30,7 +30,7 @@ jobs:
           [
             ubuntu-22.04-16-core,
             ubuntu-20.04-16-core,
-            macos-latest-large,
+            macos-latest,
             custom-runner-mac-m1,
           ]
     runs-on: ${{ matrix.os }}
