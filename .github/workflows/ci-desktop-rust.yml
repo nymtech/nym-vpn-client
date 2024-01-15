@@ -76,13 +76,11 @@ jobs:
 
       - name: Set LIBRARY_PATH
         run: |
-          ls -la
           if ${{ contains(matrix.os, 'ubuntu') }}; then
             echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/lib/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
           elif ${{ contains(matrix.os, 'mac-m1') }}; then
             echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/lib/build/lib/aarch64-apple-darwin" >> $GITHUB_ENV
           fi
-          echo $LIBRARY_PATH
 
       - name: Get version
         working-directory: nym-vpn-desktop/src-tauri
@@ -108,14 +106,14 @@ jobs:
         run: mkdir dist
 
       - name: Fmt check
-        working-directory: nym-vpn-client/nym-vpn-desktop/src-tauri
+        working-directory: nym-vpn-desktop/src-tauri
         run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo fmt --check
 
       - name: Clippy check
-        working-directory: nym-vpn-client/nym-vpn-desktop/src-tauri
+        working-directory: nym-vpn-desktop/src-tauri
         run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo clippy -- -Dwarnings
 
       - name: Build
-        working-directory: nym-vpn-client/nym-vpn-desktop/src-tauri
+        working-directory: nym-vpn-desktop/src-tauri
         run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo build --verbose
 
