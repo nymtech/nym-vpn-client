@@ -38,6 +38,7 @@ jobs:
       # TODO use repo secrets instead
       TAURI_PRIVATE_KEY: "1234"
       TAURI_KEY_PASSWORD: "1234"
+      WG_GO_LIB_PATH: ${{ github.workspace }}/lib
 
     steps:
       - name: "Cleanup working directory"
@@ -62,38 +63,34 @@ jobs:
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
             libgtk-3-dev squashfs-tools libayatana-appindicator3-dev
 
-      # TODO add a step for windows runner
-      - name: Download wireguard-go artifacts (ubuntu-22.04 x86_64)
-        uses: actions/download-artifact@v4
-        if: contains(matrix.os, 'ubuntu-22.04')
-        with:
-          name: wireguard-go_ubuntu-22.04_x86_64
-          path: lib
-
-      - name: Download wireguard-go artifacts (ubuntu-20.04 x86_64)
-        uses: actions/download-artifact@v4
-        if: contains(matrix.os, 'ubuntu-20.04')
-        with:
-          name: wireguard-go_ubuntu-20.04_x86_64
-          path: lib
-
-      - name: Download wireguard-go artifacts (macos aarch64)
-        uses: actions/download-artifact@v4
-        if: contains(matrix.os, 'mac-m1')
-        with:
-          name: wireguard-go_macos_aarch64
-          path: lib
-
-      - name: Download wireguard-go artifacts (macos x86_64)
-        uses: actions/download-artifact@v4
-        if: contains(matrix.os, 'macos')
-        with:
-          name: wireguard-go_macos_x86_64
-          path: lib
-
-      - name: Set LIBRARY_PATH
+      - name: Set env
         run: |
-          echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/lib" >> $GITHUB_ENV
+          if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
+            platform_arch=ubuntu-22.04_x86_64
+            wg_go_lib_name=wireguard-go_ubuntu-22.04_x86_64
+          elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
+            platform_arch=ubuntu-20.04_x86_64
+            wg_go_lib_name=wireguard-go_ubuntu-20.04_x86_64
+          elif ${{ contains(matrix.os, 'mac-m1') }}; then
+            platform_arch=macos_aarch
+            wg_go_lib_name=wireguard-go_macos_aarch
+          elif ${{ contains(matrix.os, 'macos') }}; then
+            platform_arch=macos_x86_64
+            wg_go_lib_name=wireguard-go_macos_x86_64
+          fi
+          # debug
+          echo " ✓ PLATFORM_ARCH: $platform_arch"
+          echo " ✓ WG_GO_LIB_NAME: $wg_go_lib_name"
+          echo " ✓ WG_GO_LIB_PATH: ${{ env.WG_GO_LIB_PATH }}"
+          # set github env
+          echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
+          echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
+
+      - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WG_GO_LIB_NAME }}
+          path: ${{ env.WG_GO_LIB_PATH }}
 
       - name: Get version
         working-directory: nym-vpn-desktop/src-tauri
@@ -129,7 +126,7 @@ jobs:
       - name: Build desktop client
         working-directory: nym-vpn-desktop/src-tauri
         env:
-          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
           TAURI_PRIVATE_KEY: ${{ env.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ env.TAURI_PRIVATE_PASSWORD }}
         shell: bash
@@ -139,40 +136,8 @@ jobs:
         # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
         continue-on-error: true
 
-      - name: Upload artifacts (ubuntu-22.04 x86_64)
+      - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
-        if: contains(matrix.os, 'ubuntu-22.04')
         with:
-          name: nym-vpn-desktop_${{ env.APP_VERSION }}_ubuntu-22.04_x86_64
-          path: |
-            nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn_${{ env.APP_VERSION }}_amd64.deb
-            nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_${{ env.APP_VERSION }}_amd64.AppImage
-
-      - name: Upload artifacts (ubuntu-20.04 x86_64)
-        uses: actions/upload-artifact@v4
-        if: contains(matrix.os, 'ubuntu-20.04')
-        with:
-          name: nym-vpn-desktop_${{ env.APP_VERSION }}_ubuntu-20.04_x86_64
-          path: |
-            nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn_${{ env.APP_VERSION }}_amd64.deb
-            nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_${{ env.APP_VERSION }}_amd64.AppImage
-
-      - name: Upload artifacts (macos aarch64)
-        uses: actions/upload-artifact@v4
-        if: contains(matrix.os, 'mac-m1')
-        with:
-          name: nym-vpn-desktop_${{ env.APP_VERSION }}_macos_aarch64
-          # TODO fix artifact paths
-          path: |
-            nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn_${{ env.APP_VERSION }}_aarch64.dmg
-            nym-vpn-desktop/src-tauri/target/release/bundle/macos/nym-vpn.app
-
-      - name: Upload artifacts (macos x86_64)
-        uses: actions/upload-artifact@v4
-        if: contains(matrix.os, 'macos')
-        with:
-          name: nym-vpn-desktop_${{ env.APP_VERSION }}_macos_x86_64
-          # TODO fix artifact paths
-          path: |
-            nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn_${{ env.APP_VERSION }}_x64.dmg
-            nym-vpn-desktop/src-tauri/target/release/bundle/macos/nym-vpn.app
+          name: nym-vpn-cli_${{ env.APP_VERSION }}_${{ env.PLATFORM_ARCH }}
+          path: nym-vpn-desktop/src-tauri/target/release/bundle
