@@ -18,7 +18,7 @@ jobs:
     with:
       os: ${{ matrix.os }}
 
-  build-desktop:
+  check:
     needs: build-wireguard-go
     strategy:
       fail-fast: false
@@ -88,9 +88,13 @@ jobs:
 
       - name: Fmt check
         working-directory: nym-vpn-desktop/src-tauri
-        run: RUSTFLAGS="-L ${{ env.LIBRARY_PATH }}" cargo fmt --check
+        env:
+          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+        run: cargo fmt --check
 
       - name: Clippy check
         working-directory: nym-vpn-desktop/src-tauri
-        run: RUSTFLAGS="-L ${{ env.LIBRARY_PATH }}" cargo clippy -- -Dwarnings
+        env:
+          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+        run: cargo clippy -- -Dwarnings
 

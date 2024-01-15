@@ -10,7 +10,13 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        os: [ubuntu-22.04-16-core, macos-latest-large, custom-runner-mac-m1]
+        os:
+          [
+            ubuntu-22.04-16-core,
+            ubuntu-20.04-16-core,
+            macos-latest-large,
+            custom-runner-mac-m1,
+          ]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -22,8 +28,8 @@ jobs:
       matrix:
         os:
           [
-            ubuntu-20.04-16-core,
             ubuntu-22.04-16-core,
+            ubuntu-20.04-16-core,
             macos-latest-large,
             custom-runner-mac-m1,
           ]
@@ -90,7 +96,7 @@ jobs:
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/lib" >> $GITHUB_ENV
 
       - name: Get version
-        working-directory: nym-vpn-client/nym-vpn-desktop/src-tauri
+        working-directory: nym-vpn-desktop/src-tauri
         shell: bash
         run: |
           version=$(jq '.package.version' --raw-output tauri.conf.json)
@@ -109,20 +115,19 @@ jobs:
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
-        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') || contains(matrix.os, 'windows')
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prepare desktop build
-        working-directory: nym
-        run: mkdir nym-vpn-client/nym-vpn-desktop/dist
+        run: mkdir nym-vpn-desktop/dist
 
       - name: Install node dependencies
-        working-directory: nym-vpn-client/nym-vpn-desktop
+        working-directory: nym-vpn-desktop
         run: npm i
 
       - name: Build desktop client
-        working-directory: nym-vpn-client/nym-vpn-desktop/src-tauri
+        working-directory: nym-vpn-desktop/src-tauri
         env:
           RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
           TAURI_PRIVATE_KEY: ${{ env.TAURI_PRIVATE_KEY }}
@@ -138,37 +143,36 @@ jobs:
         uses: actions/upload-artifact@v4
         if: contains(matrix.os, 'ubuntu-20.04')
         with:
-          name: nym-vpn-desktop_ubuntu-20.04
+          name: nym-vpn-desktop_ubuntu-20.04_x86_64
           path: |
-            nym-vpn-client/nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn_${{ env.APP_VERSION }}_amd64.deb
-            nym-vpn-client/nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_${{ env.APP_VERSION }}_amd64.AppImage
+            nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn_${{ env.APP_VERSION }}_amd64.deb
+            nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_${{ env.APP_VERSION }}_amd64.AppImage
 
       - name: Upload artifacts (ubuntu-22.04 build)
         uses: actions/upload-artifact@v4
         if: contains(matrix.os, 'ubuntu-22.04')
         with:
-          name: nym-vpn-desktop_ubuntu-22.04
+          name: nym-vpn-desktop_ubuntu-22.04_x86_64
           path: |
-            nym-vpn-client/nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn_${{ env.APP_VERSION }}_amd64.deb
-            nym-vpn-client/nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_${{ env.APP_VERSION }}_amd64.AppImage
+            nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn_${{ env.APP_VERSION }}_amd64.deb
+            nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_${{ env.APP_VERSION }}_amd64.AppImage
 
       - name: Upload artifacts (macos aarch64 build)
         uses: actions/upload-artifact@v4
         if: contains(matrix.os, 'mac-m1')
         with:
-          name: nym-vpn-desktop_macos-aarch64
+          name: nym-vpn-desktop_macos_aarch64
           # TODO fix artifact paths
           path: |
-            nym-vpn-client/nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn_${{ env.APP_VERSION }}_aarch64.dmg
-            nym-vpn-client/nym-vpn-desktop/src-tauri/target/release/bundle/macos/nym-vpn.app
+            nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn_${{ env.APP_VERSION }}_aarch64.dmg
+            nym-vpn-desktop/src-tauri/target/release/bundle/macos/nym-vpn.app
 
       - name: Upload artifacts (macos x86_64 build)
         uses: actions/upload-artifact@v4
         if: contains(matrix.os, 'macos')
         with:
-          name: nym-vpn-desktop_macos-x86_64
+          name: nym-vpn-desktop_macos_x86_64
           # TODO fix artifact paths
           path: |
-            nym-vpn-client/nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn_${{ env.APP_VERSION }}_x64.dmg
-            nym-vpn-client/nym-vpn-desktop/src-tauri/target/release/bundle/macos/nym-vpn.app
-
+            nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn_${{ env.APP_VERSION }}_x64.dmg
+            nym-vpn-desktop/src-tauri/target/release/bundle/macos/nym-vpn.app
