@@ -2,13 +2,12 @@ name: ci-desktop-rust
 
 on:
   workflow_dispatch:
-  # Disabled until it's ready
-  # pull_request:
-  #   paths:
-  #     - "nym-vpn-desktop/src-tauri/**"
-  #     # also trigger the jobs on upstream dependencies changes
-  #     - "wireguard/**"
-  #     - "nym-vpn-lib/**"
+  pull_request:
+    paths:
+      - "nym-vpn-desktop/src-tauri/**"
+      # also trigger the jobs on upstream dependencies changes
+      - "wireguard/**"
+      - "nym-vpn-lib/**"
 
 jobs:
   build-wireguard-go:
