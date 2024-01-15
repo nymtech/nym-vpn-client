@@ -1,0 +1,4 @@
+[build]
+pre-build = [
+  "apt-get install -y protobuf-compiler libssl-dev libgit2-dev"
+]

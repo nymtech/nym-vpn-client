@@ -34,6 +34,8 @@ use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tun::AsyncDevice;
 
+#[cfg(target_os = "android")]
+pub mod android;
 pub mod config;
 pub mod error;
 pub mod gateway_client;
@@ -247,6 +249,7 @@ impl NymVpn {
 
     async fn setup_tunnel(
         &mut self,
+        #[cfg(target_os = "android")] context: talpid_types::android::AndroidContext,
     ) -> Result<(
         Tunnel,
         TaskManager,
@@ -302,7 +305,12 @@ impl NymVpn {
         let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
 
         info!("Creating tunnel");
-        let mut tunnel = match Tunnel::new(wireguard_config.clone(), route_manager.handle()?) {
+        let mut tunnel = match Tunnel::new(
+            wireguard_config.clone(),
+            route_manager.handle()?,
+            #[cfg(target_os = "android")]
+            context,
+        ) {
             Ok(tunnel) => tunnel,
             Err(err) => {
                 error!("Failed to create tunnel: {err}");
@@ -384,9 +392,16 @@ impl NymVpn {
     // Start the Nym VPN client, and wait for it to shutdown. The use case is in simple console
     // applications where the main way to interact with the running process is to send SIGINT
     // (ctrl-c)
-    pub async fn run(&mut self) -> Result<()> {
-        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
-            self.setup_tunnel().await?;
+    pub async fn run(
+        &mut self,
+        #[cfg(target_os = "android")] context: talpid_types::android::AndroidContext,
+    ) -> Result<()> {
+        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) = self
+            .setup_tunnel(
+                #[cfg(target_os = "android")]
+                context,
+            )
+            .await?;
 
         // Finished starting everything, now wait for shutdown
         wait_for_interrupt(task_manager).await;
@@ -414,11 +429,15 @@ impl NymVpn {
         &mut self,
         vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
+        #[cfg(target_os = "android")] context: talpid_types::android::AndroidContext,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let (mut tunnel, mut task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
-            self.setup_tunnel()
-                .await
-                .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+            self.setup_tunnel(
+                #[cfg(target_os = "android")]
+                context,
+            )
+            .await
+            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
 
         // Signal back that we are ready and up with all cylinders firing
         task_manager.start_status_listener(vpn_status_tx).await;
