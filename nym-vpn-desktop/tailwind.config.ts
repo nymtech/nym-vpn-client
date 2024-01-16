@@ -32,6 +32,8 @@ export default {
       comet: '#625B71',
       // [DL] "Connected" status text
       'vert-menthe': '#2BC761',
+      // [DL] "Connected" status bg (combined with 10% opacity)
+      'vert-prasin': '#47C45D',
       // [D] main titles text
       // [D] connection timer text
       // [D] "Connecting" status text
@@ -69,8 +71,6 @@ export default {
       'wind-chime': '#DEDEE1',
       // [D] connection status bg (combined with 15% opacity)
       oil: '#313033',
-      // [DL] "Connected" status bg (combined with 10% opacity)
-      'vert-prasin': '#47C45D',
     },
     extend: {
       fontFamily: {
