@@ -73,6 +73,9 @@ jobs:
             platform_arch=macos_aarch64
           elif ${{ contains(matrix.os, 'macos') }}; then
             platform_arch=macos_x86_64
+          else
+            echo " ✗ unknown platform/arch [${{ matrix.os }}]"
+            exit 1
           fi
           wg_go_lib_name="wireguard-go_$platform_arch"
           # debug
