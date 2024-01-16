@@ -3,6 +3,13 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  "authors": [
+    "pierre <dommerc.pierre@gmail.com>",
+    "zane <zanecschepke@gmail.com>",
+    "nym"
+  ],
+  "description": "Nym VPN Desktop Client",
+  "license": "GPL-3.0-only",
   "scripts": {
     "dev": "vite",
     "dev:app": "tauri dev",
