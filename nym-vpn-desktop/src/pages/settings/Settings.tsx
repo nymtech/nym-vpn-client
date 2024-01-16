@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api';
-import { Switch } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { routes } from '../../constants';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { StateDispatch } from '../../types';
+import { Switch } from '../../ui';
 import SettingsGroup from './SettingsGroup';
 
 function Settings() {
@@ -64,21 +63,8 @@ function Settings() {
               <Switch
                 checked={autoConnect}
                 onChange={handleAutoConnectChanged}
-                className={clsx([
-                  autoConnect
-                    ? 'bg-melon'
-                    : 'bg-mercury-pinkish dark:bg-gun-powder',
-                  'relative inline-flex h-6 w-11 items-center rounded-full',
-                ])}
                 disabled
-              >
-                <span
-                  className={clsx([
-                    autoConnect ? 'translate-x-6' : 'translate-x-1',
-                    'inline-block h-4 w-4 transform rounded-full bg-cement-feet dark:bg-white transition',
-                  ])}
-                />
-              </Switch>
+              />
             ),
           },
           {
@@ -89,20 +75,7 @@ function Settings() {
               <Switch
                 checked={entrySelector}
                 onChange={handleEntrySelectorChange}
-                className={clsx([
-                  entrySelector
-                    ? 'bg-melon'
-                    : 'bg-mercury-pinkish dark:bg-gun-powder',
-                  'relative inline-flex h-6 w-11 items-center rounded-full',
-                ])}
-              >
-                <span
-                  className={clsx([
-                    entrySelector ? 'translate-x-6' : 'translate-x-1',
-                    'inline-block h-4 w-4 transform rounded-full bg-cement-feet dark:bg-white transition',
-                  ])}
-                />
-              </Switch>
+              />
             ),
           },
         ]}
@@ -164,21 +137,8 @@ function Settings() {
               <Switch
                 checked={monitoring}
                 onChange={handleMonitoringChanged}
-                className={clsx([
-                  monitoring
-                    ? 'bg-melon'
-                    : 'bg-mercury-pinkish dark:bg-gun-powder',
-                  'relative inline-flex h-6 w-11 items-center rounded-full',
-                ])}
                 disabled
-              >
-                <span
-                  className={clsx([
-                    monitoring ? 'translate-x-6' : 'translate-x-1',
-                    'inline-block h-4 w-4 transform rounded-full bg-cement-feet dark:bg-white transition',
-                  ])}
-                />
-              </Switch>
+              />
             ),
           },
           {
