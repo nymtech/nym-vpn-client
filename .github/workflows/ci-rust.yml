@@ -1,8 +1,13 @@
-name: ci-rust
+name: ci-rust (cli and lib)
 
 on:
   # push:
   pull_request:
+    paths:
+      - "nym-vpn-cli/**"
+      - "nym-vpn-lib/**"
+      - "wireguard/**"
+      - "Cargo.toml"
   workflow_dispatch:
 
 env:
