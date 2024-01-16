@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api';
-import { Switch } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { useMainDispatch, useMainState } from '../../../contexts';
 import { StateDispatch } from '../../../types';
+import { Switch } from '../../../ui';
 import UiScaler from './UiScaler';
 
 function Display() {
@@ -45,24 +45,7 @@ function Display() {
         <p className="text-base text-baltic-sea dark:text-mercury-pinkish select-none">
           {t('ui-mode.dark')}
         </p>
-        <Switch
-          checked={darkModeEnabled}
-          onChange={handleThemeChange}
-          className={clsx([
-            darkModeEnabled
-              ? 'bg-melon'
-              : 'bg-mercury-pinkish dark:bg-gun-powder',
-            'relative inline-flex h-6 w-11 items-center rounded-full',
-          ])}
-        >
-          <span className="sr-only">Dark mode</span>
-          <span
-            className={clsx([
-              darkModeEnabled ? 'translate-x-6' : 'translate-x-1',
-              'inline-block h-4 w-4 transform rounded-full bg-cement-feet dark:bg-white transition',
-            ])}
-          />
-        </Switch>
+        <Switch checked={darkModeEnabled} onChange={handleThemeChange} />
       </div>
       <UiScaler />
     </div>

@@ -28,10 +28,10 @@ function SettingsGroup({ settings }: Props) {
             index === 0 && 'rounded-t-lg',
             index === settings.length - 1 &&
               settings.length === 2 &&
-              'border-t border-mercury-mist',
+              'border-t border-mercury-pinkish dark:border-gun-powder',
             index !== 0 &&
               index !== settings.length - 1 &&
-              'border-y border-mercury-mist',
+              'border-y border-mercury-pinkish dark:border-gun-powder',
             index === settings.length - 1 && 'rounded-b-lg',
             setting.desc === undefined && 'py-4',
             setting.disabled && 'opacity-50 pointer-events-none',
