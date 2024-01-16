@@ -51,6 +51,8 @@ jobs:
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
             platform_arch=ubuntu-22.04_x86_64
+          elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
+            platform_arch=ubuntu-20.04_x86_64
           elif ${{ contains(matrix.os, 'macos') }}; then
             platform_arch=macos_x86_64
           else
