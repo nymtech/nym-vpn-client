@@ -1,8 +1,8 @@
 [package]
-name = "nym-vpn-ui"
-version = "0.0.2"
-description = "Application UI for Nym VPN desktop clients"
-authors = ["you"]
+name = "nym-vpn-desktop"
+version = "0.0.3"
+description = "Client desktop application for Nym VPN"
+authors = ["pierre <dommerc.pierre@gmail.com>", "zane <zanecschepke@gmail.com>", "nym"]
 license = ""
 repository = ""
 edition = "2021"
