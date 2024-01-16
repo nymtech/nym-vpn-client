@@ -147,15 +147,12 @@ pub async fn connect(
     if let VpnMode::TwoHop = app_state.vpn_mode {
         info!("2-hop mode enabled");
         vpn_config.enable_two_hop = true;
-        info!("wireguard enabled");
-        vpn_config.enable_wireguard = true;
-        vpn_config.private_key = Some(wg_private_key);
     } else {
         info!("5-hop mode enabled");
-        info!("wireguard enabled");
-        vpn_config.enable_wireguard = true;
-        vpn_config.private_key = Some(wg_private_key);
     }
+    info!("wireguard enabled");
+    vpn_config.enable_wireguard = true;
+    vpn_config.private_key = Some(wg_private_key);
     // !! release app_state mutex
     drop(app_state);
 
