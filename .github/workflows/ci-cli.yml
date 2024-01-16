@@ -1,4 +1,4 @@
-name: ci-rust (cli and lib)
+name: ci-cli (and lib)
 
 on:
   # push:
