@@ -13,7 +13,8 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-latest]
+        # os: [ubuntu-22.04, macos-latest]
+        os: [custom-ubuntu-20.04, macos-latest]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -23,7 +24,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-latest]
+        # os: [ubuntu-22.04, macos-latest]
+        os: [custom-ubuntu-20.04, macos-latest]
     runs-on: ${{ matrix.os }}
     env:
       CARGO_TERM_COLOR: always
