@@ -10,13 +10,14 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        os:
-          [
-            ubuntu-22.04-16-core,
-            ubuntu-20.04-16-core,
-            macos-latest,
-            custom-runner-mac-m1,
-          ]
+        # os:
+        #   [
+        #     ubuntu-22.04-16-core,
+        #     ubuntu-20.04-16-core,
+        #     macos-latest,
+        #     custom-runner-mac-m1,
+        #   ]
+        os: [windows-latest]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -26,13 +27,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          [
-            ubuntu-22.04-16-core,
-            ubuntu-20.04-16-core,
-            macos-latest,
-            custom-runner-mac-m1,
-          ]
+        # os:
+        #   [
+        #     ubuntu-22.04-16-core,
+        #     ubuntu-20.04-16-core,
+        #     macos-latest,
+        #     custom-runner-mac-m1,
+        #   ]
+        os: [windows-latest]
+
     runs-on: ${{ matrix.os }}
     env:
       # TODO use repo secrets instead
@@ -43,6 +46,7 @@ jobs:
     steps:
       - name: "Cleanup working directory"
         if: contains(matrix.os, 'custom')
+        shell: bash
         run: |
           ls -la ./
           rm -rf ./* || true
@@ -64,6 +68,7 @@ jobs:
             libgtk-3-dev squashfs-tools libayatana-appindicator3-dev
 
       - name: Set env
+        shell: bash
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
             platform_arch=ubuntu-22.04_x86_64
@@ -73,6 +78,8 @@ jobs:
             platform_arch=macos_aarch64
           elif ${{ contains(matrix.os, 'macos') }}; then
             platform_arch=macos_x86_64
+          elif ${{ contains(matrix.os, 'windows') }}; then
+            platform_arch=windows_x86_64
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
@@ -112,11 +119,12 @@ jobs:
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
-        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') || contains(matrix.os, 'windows')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prepare desktop build
+        shell: bash
         run: mkdir nym-vpn-desktop/dist
 
       - name: Install node dependencies
