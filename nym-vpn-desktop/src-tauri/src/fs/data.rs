@@ -25,4 +25,5 @@ pub struct AppData {
     pub exit_node: Option<NodeConfig>,
     pub entry_node_location: Option<Country>,
     pub exit_node_location: Option<Country>,
+    pub enable_wireguard: Option<bool>,
 }

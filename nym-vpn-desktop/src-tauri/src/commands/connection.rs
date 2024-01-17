@@ -31,9 +31,9 @@ pub async fn get_connection_state(
 }
 
 async fn get_wg_key_from_config(
-    config_store: &State<'_, SharedAppConfig>,
+    shared_app_config: &State<'_, SharedAppConfig>,
 ) -> Result<String, CmdError> {
-    let app_config_store = config_store.lock().await;
+    let app_config_store = shared_app_config.lock().await;
     let app_config = app_config_store.read().await.map_err(|e| {
         CmdError::new(
             CmdErrorSource::InternalError,
@@ -48,12 +48,26 @@ async fn get_wg_key_from_config(
     })
 }
 
+async fn get_wg_flag_from_app_data(
+    shared_app_data: &State<'_, SharedAppData>,
+) -> Result<bool, CmdError> {
+    let app_data_store = shared_app_data.lock().await;
+    let app_data = app_data_store.read().await.map_err(|e| {
+        CmdError::new(
+            CmdErrorSource::InternalError,
+            format!("fail to read app data: {}", e),
+        )
+    })?;
+    Ok(app_data.enable_wireguard.unwrap_or(false))
+}
+
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
-    config_store: State<'_, SharedAppConfig>,
+    shared_app_config: State<'_, SharedAppConfig>,
+    shared_app_data: State<'_, SharedAppData>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("connect");
     {
@@ -77,9 +91,9 @@ pub async fn connect(
     )
     .ok();
 
-    // retrieve WireGuard private key from app config
-    let wg_private_key = match get_wg_key_from_config(&config_store).await {
-        Ok(key) => key,
+    // retrieve WireGuard enabled flag from app data
+    let enable_wireguard = match get_wg_flag_from_app_data(&shared_app_data).await {
+        Ok(enabled) => enabled,
         Err(e) => {
             error!(e.message);
             trace!("update connection state [Disconnected]");
@@ -98,6 +112,34 @@ pub async fn connect(
             return Err(e);
         }
     };
+    let mut wg_private_key = None;
+    if enable_wireguard {
+        info!("wireguard enabled");
+
+        // retrieve WireGuard private key from app config
+        wg_private_key = match get_wg_key_from_config(&shared_app_config).await {
+            Ok(key) => Some(key),
+            Err(e) => {
+                error!(e.message);
+                trace!("update connection state [Disconnected]");
+                let mut app_state = state.lock().await;
+                app_state.state = ConnectionState::Disconnected;
+                debug!("sending event [{}]: Disconnected", EVENT_CONNECTION_STATE);
+                app.emit_all(
+                    EVENT_CONNECTION_STATE,
+                    ConnectionEventPayload::new(
+                        ConnectionState::Disconnected,
+                        Some(e.message.clone()),
+                        None,
+                    ),
+                )
+                .ok();
+                return Err(e);
+            }
+        };
+    } else {
+        info!("wireguard disabled");
+    }
 
     trace!(
         "sending event [{}]: Initializing",
@@ -150,11 +192,13 @@ pub async fn connect(
     } else {
         info!("5-hop mode enabled");
     }
-    info!("wireguard enabled");
-    vpn_config.enable_wireguard = true;
-    vpn_config.private_key = Some(wg_private_key);
     // !! release app_state mutex
     drop(app_state);
+
+    if enable_wireguard {
+        vpn_config.enable_wireguard = true;
+        vpn_config.private_key = wg_private_key;
+    }
 
     // spawn the VPN client and start a new connection
     let NymVpnHandle {
