@@ -21,6 +21,7 @@ export interface AppDataFromBackend {
   ui_theme: UiTheme | null;
   ui_root_font_size: number | null;
   vpn_mode: VpnMode | null;
+  enable_wireguard: boolean | null;
   entry_node: NodeConfig | null;
   exit_node: NodeConfig | null;
   entry_node_location: Country | null;

@@ -15,11 +15,13 @@ function Settings() {
   const { t } = useTranslation('settings');
 
   const [entrySelector, setEntrySelector] = useState(state.entrySelector);
+  const [wgEnabled, setWgEnabled] = useState(state.wgEnabled);
   const [autoConnect, setAutoConnect] = useState(state.autoConnect);
   const [monitoring, setMonitoring] = useState(state.monitoring);
 
   useEffect(() => {
     setEntrySelector(state.entrySelector);
+    setWgEnabled(state.wgEnabled);
     setAutoConnect(state.autoConnect);
     setMonitoring(state.monitoring);
   }, [state]);
@@ -50,6 +52,15 @@ function Settings() {
     });
   };
 
+  const handleWgEnabledChange = async () => {
+    dispatch({ type: 'set-wg-enabled', enabled: !state.wgEnabled });
+    invoke<void>('enable_wireguard', {
+      enabled: !state.wgEnabled,
+    }).catch((e) => {
+      console.log(e);
+    });
+  };
+
   return (
     <div className="h-full flex flex-col mt-2 gap-6">
       <SettingsGroup
@@ -76,6 +87,14 @@ function Settings() {
                 checked={entrySelector}
                 onChange={handleEntrySelectorChange}
               />
+            ),
+          },
+          {
+            title: t('enable-wireguard.title'),
+            desc: t('enable-wireguard.desc'),
+            leadingIcon: 'vpn_key',
+            trailing: (
+              <Switch checked={wgEnabled} onChange={handleWgEnabledChange} />
             ),
           },
         ]}

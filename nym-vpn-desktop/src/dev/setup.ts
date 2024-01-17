@@ -79,6 +79,7 @@ export function mockTauriIPC() {
           ui_theme: 'Dark',
           ui_root_font_size: 12,
           vpn_mode: 'TwoHop',
+          enable_wireguard: false,
           entry_node: {
             country: {
               name: 'France',

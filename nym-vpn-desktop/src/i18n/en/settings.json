@@ -7,6 +7,10 @@
     "title": "Entry location selector",
     "desc": "Manually select your entry hop"
   },
+  "enable-wireguard": {
+    "title": "Enable WireGuard",
+    "desc": "Enable WireGuard encapsulation"
+  },
   "feedback": "Feedback",
   "error-reporting": {
     "title": "Error reporting",

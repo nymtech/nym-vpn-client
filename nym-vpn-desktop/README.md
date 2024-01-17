@@ -95,7 +95,7 @@ env variable
 Example:
 
 ```
-RUST_LOG=nym_vpn_ui=trace,nym_client_core=warn,nym_vpn_lib=info npm run dev:app
+RUST_LOG=nym_vpn_desktop=trace,nym_client_core=warn,nym_vpn_lib=info npm run dev:app
 ```
 
 or
@@ -120,8 +120,8 @@ Then press `o` to open the app in the browser.
 
 Browser mode requires all tauri [commands](https://tauri.app/v1/guides/features/command) (IPC calls) to be mocked.
 When creating new tauri command, be sure to add the corresponding
-mock definition into `nym-vpn/ui/src/dev/tauri-cmd-mocks/` and
-update `nym-vpn/ui/src/dev/setup.ts` accordingly.
+mock definition into `src/dev/tauri-cmd-mocks/` and
+update `src/dev/setup.ts` accordingly.
 
 ## Type bindings
 

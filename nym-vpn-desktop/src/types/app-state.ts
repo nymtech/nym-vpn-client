@@ -25,6 +25,7 @@ export type AppState = {
   progressMessages: ConnectProgressMsg[];
   sessionStartDate?: Dayjs | null;
   vpnMode: VpnMode;
+  wgEnabled: boolean;
   tunnel: TunnelConfig;
   uiTheme: 'Light' | 'Dark';
   entrySelector: boolean;

@@ -111,6 +111,7 @@ export function MainStateProvider({ children }: Props) {
           entrySelector: data.entry_location_selector || false,
           uiTheme: data.ui_theme || 'Light',
           vpnMode: data.vpn_mode || 'TwoHop',
+          wgEnabled: data.enable_wireguard || false,
           autoConnect: data.autoconnect || false,
           monitoring: data.monitoring || false,
           rootFontSize: data.ui_root_font_size || DefaultRootFontSize,

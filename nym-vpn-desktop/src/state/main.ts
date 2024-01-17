@@ -13,6 +13,7 @@ export type StateAction =
   | { type: 'set-partial-state'; partialState: Partial<AppState> }
   | { type: 'change-connection-state'; state: ConnectionState }
   | { type: 'set-vpn-mode'; mode: VpnMode }
+  | { type: 'set-wg-enabled'; enabled: boolean }
   | { type: 'set-entry-selector'; entrySelector: boolean }
   | { type: 'set-error'; error: string }
   | { type: 'reset-error' }
@@ -37,6 +38,7 @@ export const initialState: AppState = {
   version: null,
   loading: false,
   vpnMode: 'TwoHop',
+  wgEnabled: false,
   entrySelector: false,
   tunnel: { name: 'nym', id: 'nym' },
   uiTheme: 'Light',
@@ -70,6 +72,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         vpnMode: action.mode,
+      };
+    case 'set-wg-enabled':
+      return {
+        ...state,
+        wgEnabled: action.enabled,
       };
     case 'set-entry-selector':
       return {
