@@ -13,6 +13,7 @@ on:
         - ubuntu-22.04
         - macos-latest
         - custom-runner-mac-m1
+        - windows-latest
 
   # reusable workflow
   workflow_call:
@@ -51,12 +52,17 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup msbuild
+        if: contains(inputs.os, 'windows')
+        uses: microsoft/setup-msbuild@v1.1
+
       - name: Install Go
         uses: actions/setup-go@v4
         with:
           go-version: 'stable'
 
       - name: Build wireguard
+        shell: bash
         run: ./wireguard/build-wireguard-go.sh
 
       - name: Upload artifacts (ubuntu-22.04 x86_64)
@@ -93,4 +99,13 @@ jobs:
           name: wireguard-go_macos_aarch64
           path: |
             build/lib/aarch64-apple-darwin
+          retention-days: 1
+
+      - name: Upload artifacts (windows x86_64)
+        uses: actions/upload-artifact@v4
+        if: contains(inputs.os, 'windows')
+        with:
+          name: wireguard-go_windows_x86_64
+          path: |
+            build/lib/x86_64-pc-windows-msvc
           retention-days: 1
