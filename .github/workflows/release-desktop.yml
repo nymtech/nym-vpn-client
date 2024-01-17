@@ -131,6 +131,10 @@ jobs:
         working-directory: nym-vpn-desktop
         run: npm i
 
+      - name: Enable git long-paths
+        if: contains(matrix.os, 'windows')
+        run: git config --system core.longpaths true
+
       - name: Build desktop client
         working-directory: nym-vpn-desktop/src-tauri
         env:
