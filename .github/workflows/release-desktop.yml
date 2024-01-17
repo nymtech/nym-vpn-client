@@ -135,6 +135,13 @@ jobs:
         if: contains(matrix.os, 'windows')
         run: git config --system core.longpaths true
 
+      - name: Setup Perl
+        uses: shogo82148/actions-setup-perl@v1
+        if: contains(matrix.os, 'windows')
+        with:
+          perl-version: '5.38'
+          distribution: strawberry
+
       - name: Build desktop client
         working-directory: nym-vpn-desktop/src-tauri
         env:
