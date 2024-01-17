@@ -4,6 +4,7 @@ use nym_vpn_lib::{NymVpnCtrlMessage, NymVpnHandle};
 use tauri::{Manager, State};
 use tracing::{debug, error, info, instrument, trace};
 
+use crate::states::SharedAppConfig;
 use crate::{
     error::{CmdError, CmdErrorSource},
     states::{
@@ -29,11 +30,30 @@ pub async fn get_connection_state(
     Ok(app_state.state)
 }
 
+async fn get_wg_key_from_config(
+    config_store: &State<'_, SharedAppConfig>,
+) -> Result<String, CmdError> {
+    let app_config_store = config_store.lock().await;
+    let app_config = app_config_store.read().await.map_err(|e| {
+        CmdError::new(
+            CmdErrorSource::InternalError,
+            format!("fail to read app config: {}", e),
+        )
+    })?;
+    app_config.wg_private_key.ok_or_else(|| {
+        CmdError::new(
+            CmdErrorSource::InternalError,
+            "wireguard private key not found in app config file".into(),
+        )
+    })
+}
+
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
+    config_store: State<'_, SharedAppConfig>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("connect");
     {
@@ -56,6 +76,28 @@ pub async fn connect(
         ConnectionEventPayload::new(ConnectionState::Connecting, None, None),
     )
     .ok();
+
+    // retrieve WireGuard private key from app config
+    let wg_private_key = match get_wg_key_from_config(&config_store).await {
+        Ok(key) => key,
+        Err(e) => {
+            error!(e.message);
+            trace!("update connection state [Disconnected]");
+            let mut app_state = state.lock().await;
+            app_state.state = ConnectionState::Disconnected;
+            debug!("sending event [{}]: Disconnected", EVENT_CONNECTION_STATE);
+            app.emit_all(
+                EVENT_CONNECTION_STATE,
+                ConnectionEventPayload::new(
+                    ConnectionState::Disconnected,
+                    Some(e.message.clone()),
+                    None,
+                ),
+            )
+            .ok();
+            return Err(e);
+        }
+    };
 
     trace!(
         "sending event [{}]: Initializing",
@@ -108,7 +150,9 @@ pub async fn connect(
     } else {
         info!("5-hop mode enabled");
     }
-    // vpn_config.disable_routing = true;
+    info!("wireguard enabled");
+    vpn_config.enable_wireguard = true;
+    vpn_config.private_key = Some(wg_private_key);
     // !! release app_state mutex
     drop(app_state);
 
@@ -117,21 +161,31 @@ pub async fn connect(
         vpn_ctrl_tx,
         vpn_status_rx,
         vpn_exit_rx,
-    } = nym_vpn_lib::spawn_nym_vpn(vpn_config).map_err(|e| {
-        let err_message = format!("fail to initialize Nym VPN client: {}", e);
-        error!(err_message);
-        debug!("sending event [{}]: Disconnected", EVENT_CONNECTION_STATE);
-        app.emit_all(
-            EVENT_CONNECTION_STATE,
-            ConnectionEventPayload::new(
-                ConnectionState::Disconnected,
-                Some(err_message.clone()),
-                None,
-            ),
+    } = match nym_vpn_lib::spawn_nym_vpn(vpn_config).map_err(|e| {
+        CmdError::new(
+            CmdErrorSource::InternalError,
+            format!("fail to initialize Nym VPN client: {}", e),
         )
-        .ok();
-        CmdError::new(CmdErrorSource::InternalError, err_message)
-    })?;
+    }) {
+        Ok(handle) => handle,
+        Err(e) => {
+            error!(e.message);
+            trace!("update connection state [Disconnected]");
+            let mut app_state = state.lock().await;
+            app_state.state = ConnectionState::Disconnected;
+            debug!("sending event [{}]: Disconnected", EVENT_CONNECTION_STATE);
+            app.emit_all(
+                EVENT_CONNECTION_STATE,
+                ConnectionEventPayload::new(
+                    ConnectionState::Disconnected,
+                    Some(e.message.clone()),
+                    None,
+                ),
+            )
+            .ok();
+            return Err(e);
+        }
+    };
     info!("nym vpn client spawned");
     trace!("sending event [{}]: InitDone", EVENT_CONNECTION_PROGRESS);
     app.emit_all(

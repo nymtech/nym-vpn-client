@@ -36,27 +36,35 @@ cargo install tauri-cli
 cargo tauri help
 ```
 
-## Required config
+## App config
 
-First you can provide a network configuration using en env file,
-pick the relevant one [here](https://github.com/nymtech/nym/tree/develop/envs).
-The mainnet config will be used by default if not provided.
-
-Then create the main app config file `config.toml` under `nym-vpn`
+The app looks for the config file `config.toml` under `nym-vpn`
 directory, full path is platform specific:
 
-- Linux: Resolves to `$XDG_CONFIG_HOME` or `$HOME/.config`
-- macOS: Resolves to `$HOME/Library/Application Support`
-- Windows: Resolves to `{FOLDERID_RoamingAppData}`
+- Linux: `$XDG_CONFIG_HOME/nym-vpn/` or `$HOME/.config/nym-vpn/`
+- macOS: `$HOME/Library/Application Support/nym-vpn/`
+- Windows: `{FOLDERID_RoamingAppData}\nym-vpn\`
 
-For example on Linux the path would be `~/.config/nym-vpn/config.toml`
+For example on Linux the full path would be
+`~/.config/nym-vpn/config.toml`.
+
+Two properties need to be provided:
 
 ```toml
 # example config on Linux
 
-# path to the env config file if you provide one
+# path to the env config file
 env_config_file = "/home/<USER>/.config/nym-vpn/qa.env"
+# wireguard private key
+wg_private_key = "1234"
 ```
+
+`env_config_file` is the absolute path to a network configuration
+file, pick the relevant one
+[here](https://github.com/nymtech/nym/tree/develop/envs).
+The mainnet config will be used by default if not provided.
+
+⚠ The Wireguard private key is required.
 
 ## Dev
 
