@@ -64,7 +64,7 @@ file, pick the relevant one
 [here](https://github.com/nymtech/nym/tree/develop/envs).
 The mainnet config will be used by default if not provided.
 
-⚠ The Wireguard private key is required.
+The WireGuard private key is required if you enable WireGuard in app settings.
 
 ## Dev
 
