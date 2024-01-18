@@ -1,3 +1,5 @@
+/// <reference types="vite-plugin-svgr/client" />
+
 import { useEffect, useState } from 'react';
 import { RadioGroup } from '@headlessui/react';
 import { invoke } from '@tauri-apps/api';
@@ -5,6 +7,7 @@ import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { StateDispatch, VpnMode } from '../../types';
+import MixnetIcon from '../../assets/icons/mixnet.svg?react';
 
 type VpnModeOption = { name: VpnMode; title: string; desc: string };
 
@@ -92,6 +95,15 @@ function NetworkModeSelect() {
                         radio_button_unchecked
                       </span>
                     )}
+                    <div className="w-7 flex justify-center items-center">
+                      {mode.name === 'Mixnet' ? (
+                        <MixnetIcon className="w-7 h-7 fill-baltic-sea dark:fill-mercury-pinkish" />
+                      ) : (
+                        <span className="font-icon text-3xl text-baltic-sea dark:text-mercury-pinkish">
+                          security
+                        </span>
+                      )}
+                    </div>
                     <div className="flex flex-1 items-center">
                       <div className="text-sm">
                         <RadioGroup.Label
