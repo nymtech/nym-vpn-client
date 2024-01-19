@@ -73,7 +73,7 @@ The mainnet config will be used by default if not provided.
 From the repo root run
 
 ```
-./wireguard/build-wireguard-go.sh`
+./wireguard/build-wireguard-go.sh
 ```
 
 Then you need to provide the lib path to the rust library search
