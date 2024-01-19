@@ -173,7 +173,7 @@ Generated TS types will be located in `src-tauri/bindings/`
 ## Build
 
 First build `wireguard-go` lib and set `RUSTFLAGS` accordingly,
-see [here](<#build-wireguard-go-(required)>)
+see [here](#build-wireguard-go-required)
 
 Then run the following commands
 
