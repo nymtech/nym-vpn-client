@@ -68,6 +68,37 @@ The mainnet config will be used by default if not provided.
 
 ## Dev
 
+#### build wireguard-go (required)
+
+From the repo root run
+
+```
+./wireguard/build-wireguard-go.sh
+```
+
+Then you need to provide the lib path to the rust library search
+path. Create the file `.cargo/config.toml` from repo root
+
+```config.toml
+rustflags = ['-L', '/<ABSOLUTE_PATH_TO>/nym-vpn-client/build/lib/<PLATFORM_ARCH>']
+```
+
+or provide the env variable in each commands
+
+```
+RUSTFLAGS="-L /<ABSOLUTE_PATH_TO>/nym-vpn-client/build/lib/<PLATFORM_ARCH>" npm run dev:app
+```
+
+Replace `<ABSOLUTE_PATH_TO>` accordingly.
+Replace `<PLATFORM_ARCH>` by your host specific platform and arch:
+
+- Linux: `x86_64-unknown-linux-gnu`
+- Mac x86_64: `x86_64-apple-darwin`
+- Mac M1/M2/M3: `aarch64-apple-darwin`
+- Windows: `x86_64-pc-windows-msvc`
+
+To start the app in dev mode run:
+
 ```
 npm run dev:app
 ```
@@ -120,8 +151,8 @@ Then press `o` to open the app in the browser.
 
 Browser mode requires all tauri [commands](https://tauri.app/v1/guides/features/command) (IPC calls) to be mocked.
 When creating new tauri command, be sure to add the corresponding
-mock definition into `nym-vpn/ui/src/dev/tauri-cmd-mocks/` and
-update `nym-vpn/ui/src/dev/setup.ts` accordingly.
+mock definition into `src/dev/tauri-cmd-mocks/` and update
+`src/dev/setup.ts` accordingly.
 
 ## Type bindings
 
@@ -141,6 +172,15 @@ Generated TS types will be located in `src-tauri/bindings/`
 
 ## Build
 
+First build `wireguard-go` lib and set `RUSTFLAGS` accordingly,
+see [here](#build-wireguard-go-required)
+
+Then run the following commands
+
 ```
-npm run build:app
+cd nym-vpn-desktop
+npm i
+mkdir dist
+
+TAURI_PRIVATE_KEY=1234 TAURI_KEY_PASSWORD=1234 npm run tauri build
 ```
