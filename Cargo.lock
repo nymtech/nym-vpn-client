@@ -1810,21 +1810,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
-name = "foreign-types"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6f339eb8adc052cd2ca78910fda869aefa38d22d5cb648e6485e4d3fc06f3b1"
-dependencies = [
- "foreign-types-shared",
-]
-
-[[package]]
-name = "foreign-types-shared"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
-
-[[package]]
 name = "form_urlencoded"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2255,7 +2240,7 @@ dependencies = [
 [[package]]
 name = "http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "async-trait",
  "reqwest",
@@ -2373,19 +2358,6 @@ dependencies = [
  "pin-project-lite",
  "tokio",
  "tokio-io-timeout",
-]
-
-[[package]]
-name = "hyper-tls"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6183ddfa99b85da61a140bea0efc93fdf56ceaa041b37d553518030827f9905"
-dependencies = [
- "bytes",
- "hyper",
- "native-tls",
- "tokio",
- "tokio-native-tls",
 ]
 
 [[package]]
@@ -2959,24 +2931,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5ce46fe64a9d73be07dcbe690a38ce1b293be448fd8ce1e6c1b8062c9f72c6a"
 
 [[package]]
-name = "native-tls"
-version = "0.2.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07226173c32f2926027b63cce4bcd8076c3552846cbe7925f3aaffeac0a3b92e"
-dependencies = [
- "lazy_static",
- "libc",
- "log",
- "openssl",
- "openssl-probe",
- "openssl-sys",
- "schannel",
- "security-framework",
- "security-framework-sys",
- "tempfile",
-]
-
-[[package]]
 name = "netlink-packet-core"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3204,7 +3158,7 @@ dependencies = [
 [[package]]
 name = "nym-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bs58 0.4.0",
  "cosmrs",
@@ -3222,7 +3176,7 @@ dependencies = [
 [[package]]
 name = "nym-bandwidth-controller"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bip39",
  "nym-coconut-interface",
@@ -3240,7 +3194,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "atty",
  "clap",
@@ -3258,7 +3212,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core"
 version = "1.1.15"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "async-trait",
  "base64 0.21.6",
@@ -3308,7 +3262,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut"
 version = "0.5.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bls12_381",
  "bs58 0.4.0",
@@ -3329,7 +3283,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-bandwidth-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3339,7 +3293,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-dkg-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3351,7 +3305,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-interface"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bs58 0.4.0",
  "getset",
@@ -3363,7 +3317,7 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "dirs 5.0.1",
  "handlebars",
@@ -3377,7 +3331,7 @@ dependencies = [
 [[package]]
 name = "nym-contracts-common"
 version = "0.5.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bs58 0.4.0",
  "cosmwasm-schema",
@@ -3390,7 +3344,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "async-trait",
  "log",
@@ -3402,7 +3356,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "log",
  "nym-bandwidth-controller",
@@ -3418,7 +3372,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bls12_381",
  "cosmrs",
@@ -3434,7 +3388,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "aes 0.8.3",
  "blake3",
@@ -3460,7 +3414,7 @@ dependencies = [
 [[package]]
 name = "nym-dkg"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bitvec",
  "bls12_381",
@@ -3482,7 +3436,7 @@ dependencies = [
 [[package]]
 name = "nym-ephemera-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3493,7 +3447,7 @@ dependencies = [
 [[package]]
 name = "nym-exit-policy"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "serde",
  "thiserror",
@@ -3503,7 +3457,7 @@ dependencies = [
 [[package]]
 name = "nym-explorer-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "nym-api-requests",
  "nym-contracts-common",
@@ -3515,7 +3469,7 @@ dependencies = [
 [[package]]
 name = "nym-explorer-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "log",
  "nym-explorer-api-requests",
@@ -3528,7 +3482,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "futures",
  "getrandom 0.2.12",
@@ -3561,7 +3515,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bs58 0.4.0",
  "futures",
@@ -3583,7 +3537,7 @@ dependencies = [
 [[package]]
 name = "nym-group-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -3595,7 +3549,7 @@ dependencies = [
 [[package]]
 name = "nym-ip-packet-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bincode",
  "bytes",
@@ -3608,7 +3562,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-contract-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bs58 0.4.0",
  "cosmwasm-schema",
@@ -3627,7 +3581,7 @@ dependencies = [
 [[package]]
 name = "nym-multisig-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3643,7 +3597,7 @@ dependencies = [
 [[package]]
 name = "nym-name-service-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3657,7 +3611,7 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "cfg-if",
  "dotenvy",
@@ -3672,7 +3626,7 @@ dependencies = [
 [[package]]
 name = "nym-node-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "async-trait",
  "base64 0.21.6",
@@ -3690,7 +3644,7 @@ dependencies = [
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -3701,7 +3655,7 @@ dependencies = [
 [[package]]
 name = "nym-ordered-buffer"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "log",
  "thiserror",
@@ -3710,7 +3664,7 @@ dependencies = [
 [[package]]
 name = "nym-outfox"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "blake3",
  "chacha20 0.9.1",
@@ -3728,7 +3682,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "pem",
 ]
@@ -3736,7 +3690,7 @@ dependencies = [
 [[package]]
 name = "nym-sdk"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "async-trait",
  "bip39",
@@ -3772,7 +3726,7 @@ dependencies = [
 [[package]]
 name = "nym-service-provider-directory-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3785,7 +3739,7 @@ dependencies = [
 [[package]]
 name = "nym-service-providers-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "async-trait",
  "log",
@@ -3799,7 +3753,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-client-core"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "anyhow",
  "dirs 4.0.0",
@@ -3832,7 +3786,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-proxy-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bytes",
  "futures",
@@ -3847,7 +3801,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bincode",
  "log",
@@ -3863,7 +3817,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "log",
  "nym-crypto",
@@ -3887,7 +3841,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-acknowledgements"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -3904,7 +3858,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-addressing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -3915,7 +3869,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-anonymous-replies"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bs58 0.4.0",
  "nym-crypto",
@@ -3933,7 +3887,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-chunking"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "log",
  "nym-sphinx-addressing",
@@ -3946,7 +3900,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-cover"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -3964,7 +3918,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-forwarding"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "nym-outfox",
  "nym-sphinx-addressing",
@@ -3976,7 +3930,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-framing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "bytes",
  "nym-sphinx-params",
@@ -3988,7 +3942,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-params"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -3999,7 +3953,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-routing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -4009,7 +3963,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "nym-outfox",
  "sphinx-packet",
@@ -4019,7 +3973,7 @@ dependencies = [
 [[package]]
 name = "nym-task"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "futures",
  "log",
@@ -4033,7 +3987,7 @@ dependencies = [
 [[package]]
 name = "nym-topology"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "async-trait",
  "bs58 0.4.0",
@@ -4056,7 +4010,7 @@ dependencies = [
 [[package]]
 name = "nym-validator-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "async-trait",
  "base64 0.13.1",
@@ -4090,7 +4044,6 @@ dependencies = [
  "nym-network-defaults",
  "nym-service-provider-directory-common",
  "nym-vesting-contract-common",
- "openssl",
  "prost 0.12.3",
  "reqwest",
  "serde",
@@ -4107,7 +4060,7 @@ dependencies = [
 [[package]]
 name = "nym-vesting-contract-common"
 version = "0.7.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4174,7 +4127,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "base64 0.21.6",
  "dashmap",
@@ -4215,58 +4168,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
-name = "openssl"
-version = "0.10.62"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8cde4d2d9200ad5909f8dac647e29482e07c3a35de8a13fce7c9c7747ad9f671"
-dependencies = [
- "bitflags 2.4.1",
- "cfg-if",
- "foreign-types",
- "libc",
- "once_cell",
- "openssl-macros",
- "openssl-sys",
-]
-
-[[package]]
-name = "openssl-macros"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a948666b637a0f465e8564c73e89d4dde00d72d4d473cc972f390fc3dcee7d9c"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.48",
-]
-
-[[package]]
 name = "openssl-probe"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff011a302c396a5197692431fc1948019154afc178baf7d8e37367442a4601cf"
-
-[[package]]
-name = "openssl-src"
-version = "300.2.1+3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fe476c29791a5ca0d1273c697e96085bbabbbea2ef7afd5617e78a4b40332d3"
-dependencies = [
- "cc",
-]
-
-[[package]]
-name = "openssl-sys"
-version = "0.9.98"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1665caf8ab2dc9aef43d1c0023bd904633a6a05cb30b0ad59bec2ae986e57a7"
-dependencies = [
- "cc",
- "libc",
- "openssl-src",
- "pkg-config",
- "vcpkg",
-]
 
 [[package]]
 name = "option-ext"
@@ -4988,12 +4893,10 @@ dependencies = [
  "http-body",
  "hyper",
  "hyper-rustls",
- "hyper-tls",
  "ipnet",
  "js-sys",
  "log",
  "mime",
- "native-tls",
  "once_cell",
  "percent-encoding",
  "pin-project-lite",
@@ -5005,13 +4908,13 @@ dependencies = [
  "serde_urlencoded",
  "system-configuration",
  "tokio",
- "tokio-native-tls",
  "tokio-rustls 0.24.1",
  "tower-service",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+ "webpki-roots 0.25.3",
  "winreg 0.50.0",
 ]
 
@@ -5786,7 +5689,7 @@ dependencies = [
  "thiserror",
  "tokio-stream",
  "url",
- "webpki-roots",
+ "webpki-roots 0.22.6",
 ]
 
 [[package]]
@@ -6444,16 +6347,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokio-native-tls"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbae76ab933c85776efabc971569dd6119c580d8f5d448769dec1764bf796ef2"
-dependencies = [
- "native-tls",
- "tokio",
-]
-
-[[package]]
 name = "tokio-rustls"
 version = "0.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6511,9 +6404,8 @@ checksum = "212d5dcb2a1ce06d81107c3d0ffa3121fe974b73f068c8282cb1c32328113b6c"
 dependencies = [
  "futures-util",
  "log",
- "native-tls",
+ "rustls 0.21.10",
  "tokio",
- "tokio-native-tls",
  "tungstenite",
 ]
 
@@ -6897,8 +6789,8 @@ dependencies = [
  "http",
  "httparse",
  "log",
- "native-tls",
  "rand 0.8.5",
+ "rustls 0.21.10",
  "sha1",
  "thiserror",
  "url",
@@ -7176,7 +7068,7 @@ checksum = "7ab9b36309365056cd639da3134bf87fa8f3d86008abf99e612384a6eecd459f"
 [[package]]
 name = "wasm-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0#0f9bd648a1c12af6582c4fb8984e0ab9e7cb3aa0"
+source = "git+https://github.com/nymtech/nym?branch=jon/feat/test-rustls#22dcad989bb7f26b0a7d3704198cb609d5177407"
 dependencies = [
  "futures",
  "getrandom 0.2.12",
@@ -7231,6 +7123,12 @@ checksum = "b6c71e40d7d2c34a5106301fb632274ca37242cd0c9d3e64dbece371a40a2d87"
 dependencies = [
  "webpki",
 ]
+
+[[package]]
+name = "webpki-roots"
+version = "0.25.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1778a42e8b3b90bff8d0f5032bf22250792889a5cdc752aa0020c84abe3aaf10"
 
 [[package]]
 name = "which"
