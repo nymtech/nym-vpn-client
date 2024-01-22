@@ -101,6 +101,10 @@ pub(crate) struct CliArgs {
     /// Enable Poisson process rate limiting of outbound traffic.
     #[arg(long)]
     pub(crate) enable_poisson_rate: bool,
+
+    /// Disable constant rate background loop cover traffic
+    #[arg(long)]
+    pub(crate) disable_background_cover_traffic: bool,
 }
 
 fn validate_wg_ip(ip: &str) -> Result<Ipv4Addr, String> {

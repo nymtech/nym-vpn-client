@@ -81,6 +81,7 @@ async fn run() -> Result<()> {
     nym_vpn.disable_routing = args.disable_routing;
     nym_vpn.enable_two_hop = args.enable_two_hop;
     nym_vpn.enable_poisson_rate = args.enable_poisson_rate;
+    nym_vpn.disable_background_cover_traffic = args.disable_background_cover_traffic;
 
     nym_vpn.run().await?;
 
