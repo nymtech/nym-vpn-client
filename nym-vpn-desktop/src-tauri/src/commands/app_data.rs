@@ -17,14 +17,14 @@ pub fn get_node_countries() -> Result<Vec<Country>, CmdError> {
     Ok(COUNTRIES.clone())
 }
 
-#[instrument(skip(state))]
+#[instrument(skip(shared_app_data))]
 #[tauri::command]
 pub async fn set_app_data(
-    state: State<'_, SharedAppData>,
+    shared_app_data: State<'_, SharedAppData>,
     data: Option<AppData>,
 ) -> Result<(), CmdError> {
     debug!("set_app_data");
-    let mut app_data_store = state.lock().await;
+    let mut app_data_store = shared_app_data.lock().await;
     if let Some(data) = data {
         app_data_store.data = data;
     }
@@ -39,11 +39,11 @@ pub async fn set_app_data(
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn get_app_data(
-    state: State<'_, SharedAppData>,
+    shared_app_data: State<'_, SharedAppData>,
     data: Option<AppData>,
 ) -> Result<AppData, CmdError> {
     debug!("get_app_data");
-    let mut app_data_store = state.lock().await;
+    let mut app_data_store = shared_app_data.lock().await;
     if let Some(data) = data {
         app_data_store.data = data;
     }
@@ -55,16 +55,16 @@ pub async fn get_app_data(
     Ok(data)
 }
 
-#[instrument(skip(data_state))]
+#[instrument(skip(shared_app_data))]
 #[tauri::command]
 pub async fn set_ui_theme(
-    data_state: State<'_, SharedAppData>,
+    shared_app_data: State<'_, SharedAppData>,
     theme: UiTheme,
 ) -> Result<(), CmdError> {
     debug!("set_ui_theme");
 
     // save the selected UI theme to disk
-    let mut app_data_store = data_state.lock().await;
+    let mut app_data_store = shared_app_data.lock().await;
     let mut app_data = app_data_store
         .read()
         .await
@@ -78,15 +78,15 @@ pub async fn set_ui_theme(
     Ok(())
 }
 
-#[instrument(skip(data_state))]
+#[instrument(skip(shared_app_data))]
 #[tauri::command]
 pub async fn set_root_font_size(
-    data_state: State<'_, SharedAppData>,
+    shared_app_data: State<'_, SharedAppData>,
     size: u32,
 ) -> Result<(), CmdError> {
     debug!("set_root_font_size");
 
-    let mut app_data_store = data_state.lock().await;
+    let mut app_data_store = shared_app_data.lock().await;
     let mut app_data = app_data_store
         .read()
         .await
@@ -100,15 +100,15 @@ pub async fn set_root_font_size(
     Ok(())
 }
 
-#[instrument(skip(data_state))]
+#[instrument(skip(shared_app_data))]
 #[tauri::command]
 pub async fn set_entry_location_selector(
-    data_state: State<'_, SharedAppData>,
+    shared_app_data: State<'_, SharedAppData>,
     entry_selector: bool,
 ) -> Result<(), CmdError> {
     debug!("set_entry_location_selector");
 
-    let mut app_data_store = data_state.lock().await;
+    let mut app_data_store = shared_app_data.lock().await;
     let mut app_data = app_data_store
         .read()
         .await
@@ -122,15 +122,15 @@ pub async fn set_entry_location_selector(
     Ok(())
 }
 
-#[instrument(skip(data_state))]
+#[instrument(skip(shared_app_data))]
 #[tauri::command]
 pub async fn set_auto_connect(
-    data_state: State<'_, SharedAppData>,
+    shared_app_data: State<'_, SharedAppData>,
     entry_selector: bool,
 ) -> Result<(), CmdError> {
     debug!("set_auto_connect");
 
-    let mut app_data_store = data_state.lock().await;
+    let mut app_data_store = shared_app_data.lock().await;
     let mut app_data = app_data_store
         .read()
         .await
@@ -144,15 +144,15 @@ pub async fn set_auto_connect(
     Ok(())
 }
 
-#[instrument(skip(data_state))]
+#[instrument(skip(shared_app_data))]
 #[tauri::command]
 pub async fn set_monitoring(
-    data_state: State<'_, SharedAppData>,
+    shared_app_data: State<'_, SharedAppData>,
     entry_selector: bool,
 ) -> Result<(), CmdError> {
     debug!("set_monitoring");
 
-    let mut app_data_store = data_state.lock().await;
+    let mut app_data_store = shared_app_data.lock().await;
     let mut app_data = app_data_store
         .read()
         .await
