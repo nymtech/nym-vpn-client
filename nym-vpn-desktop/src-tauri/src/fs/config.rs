@@ -6,5 +6,4 @@ use serde::{Deserialize, Serialize};
 pub struct AppConfig {
     /// Path pointing to an env configuration file describing the network
     pub env_config_file: Option<PathBuf>,
-    pub wg_private_key: Option<String>,
 }
