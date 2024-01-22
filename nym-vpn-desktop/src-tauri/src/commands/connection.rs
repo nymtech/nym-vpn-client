@@ -111,6 +111,7 @@ pub async fn connect(
     info!("wireguard 1st hop disabled");
     vpn_config.enable_wireguard = false;
     // !! release app_state mutex
+    // TODO: replace with automatic drop through scope
     drop(app_state);
 
     // spawn the VPN client and start a new connection
