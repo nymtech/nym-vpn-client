@@ -35,6 +35,7 @@ jobs:
     steps:
       - name: 'Cleanup working directory'
         if: contains(matrix.os, 'custom')
+        shell: bash
         run: |
           ls -la ./
           rm -rf ./* || true
@@ -49,6 +50,7 @@ jobs:
             nym-vpn-lib
 
       - name: Set env
+        shell: bash
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
             platform_arch=ubuntu-22.04_x86_64
