@@ -12,9 +12,9 @@ jobs:
       matrix:
         os:
           [
-            ubuntu-22.04-16-core,
-            ubuntu-20.04-16-core,
-            macos-latest,
+            # ubuntu-22.04-16-core,
+            # ubuntu-20.04-16-core,
+            # macos-latest,
             custom-runner-mac-m1,
           ]
     uses: ./.github/workflows/build-wireguard-go.yml
@@ -28,9 +28,9 @@ jobs:
       matrix:
         os:
           [
-            ubuntu-22.04-16-core,
-            ubuntu-20.04-16-core,
-            macos-latest,
+            # ubuntu-22.04-16-core,
+            # ubuntu-20.04-16-core,
+            # macos-latest,
             custom-runner-mac-m1,
           ]
     runs-on: ${{ matrix.os }}
@@ -131,8 +131,7 @@ jobs:
           TAURI_KEY_PASSWORD: ${{ env.TAURI_PRIVATE_PASSWORD }}
         shell: bash
         run: |
-          npm run tauri build
-          ls -la target/release/bundle
+          npm run tauri build -- --target aarch64-apple-darwin
         # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
         continue-on-error: true
 
