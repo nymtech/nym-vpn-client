@@ -48,23 +48,18 @@ directory, full path is platform specific:
 For example on Linux the full path would be
 `~/.config/nym-vpn/config.toml`.
 
-Two properties need to be provided:
+Only one property need to be provided:
 
 ```toml
 # example config on Linux
 
-# path to the env config file
 env_config_file = "/home/<USER>/.config/nym-vpn/qa.env"
-# wireguard private key
-wg_private_key = "1234"
 ```
 
 `env_config_file` is the absolute path to a network configuration
 file, pick the relevant one
 [here](https://github.com/nymtech/nym/tree/develop/envs).
 The mainnet config will be used by default if not provided.
-
-⚠ The Wireguard private key is required.
 
 ## Dev
 

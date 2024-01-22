@@ -4,7 +4,6 @@ use nym_vpn_lib::{NymVpnCtrlMessage, NymVpnHandle};
 use tauri::{Manager, State};
 use tracing::{debug, error, info, instrument, trace};
 
-use crate::states::SharedAppConfig;
 use crate::{
     error::{CmdError, CmdErrorSource},
     states::{
@@ -30,30 +29,11 @@ pub async fn get_connection_state(
     Ok(app_state.state)
 }
 
-async fn get_wg_key_from_config(
-    config_store: &State<'_, SharedAppConfig>,
-) -> Result<String, CmdError> {
-    let app_config_store = config_store.lock().await;
-    let app_config = app_config_store.read().await.map_err(|e| {
-        CmdError::new(
-            CmdErrorSource::InternalError,
-            format!("fail to read app config: {}", e),
-        )
-    })?;
-    app_config.wg_private_key.ok_or_else(|| {
-        CmdError::new(
-            CmdErrorSource::InternalError,
-            "wireguard private key not found in app config file".into(),
-        )
-    })
-}
-
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
-    config_store: State<'_, SharedAppConfig>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("connect");
     {
@@ -76,28 +56,6 @@ pub async fn connect(
         ConnectionEventPayload::new(ConnectionState::Connecting, None, None),
     )
     .ok();
-
-    // retrieve WireGuard private key from app config
-    let wg_private_key = match get_wg_key_from_config(&config_store).await {
-        Ok(key) => key,
-        Err(e) => {
-            error!(e.message);
-            trace!("update connection state [Disconnected]");
-            let mut app_state = state.lock().await;
-            app_state.state = ConnectionState::Disconnected;
-            debug!("sending event [{}]: Disconnected", EVENT_CONNECTION_STATE);
-            app.emit_all(
-                EVENT_CONNECTION_STATE,
-                ConnectionEventPayload::new(
-                    ConnectionState::Disconnected,
-                    Some(e.message.clone()),
-                    None,
-                ),
-            )
-            .ok();
-            return Err(e);
-        }
-    };
 
     trace!(
         "sending event [{}]: Initializing",
@@ -150,10 +108,10 @@ pub async fn connect(
     } else {
         info!("5-hop mode enabled");
     }
-    info!("wireguard enabled");
-    vpn_config.enable_wireguard = true;
-    vpn_config.private_key = Some(wg_private_key);
+    info!("wireguard 1st hop disabled");
+    vpn_config.enable_wireguard = false;
     // !! release app_state mutex
+    // TODO: replace with automatic drop through scope
     drop(app_state);
 
     // spawn the VPN client and start a new connection
