@@ -4,7 +4,8 @@ name: Android CI Tag Deployment
 on:
   push:
     tags:
-      - v*.*.*
+      - 'v*.*.*'
+      - '!v*.*.*-**'
 
 jobs:
   build:

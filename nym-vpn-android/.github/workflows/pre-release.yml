@@ -4,7 +4,7 @@ name: Android CI Tag Deployment
 on:
   push:
     tags:
-      - v*.*.*-**
+      - 'v*.*.*-**'
 
 jobs:
   build:
@@ -16,6 +16,8 @@ jobs:
       SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
       SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
       SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+      KEY_STORE_FILE: 'android_keystore.jks'
+      KEY_STORE_LOCATION: ${{ github.workspace }}/app/keystore/
 
     steps:
       - uses: actions/checkout@v4
