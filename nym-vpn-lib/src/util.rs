@@ -11,7 +11,7 @@ use talpid_routing::RouteManager;
 #[cfg(target_os = "linux")]
 use talpid_types::ErrorExt;
 
-pub(crate) async fn wait_for_interrupt(task_manager: nym_task::TaskManager) {
+pub(crate) async fn wait_for_interrupt(mut task_manager: nym_task::TaskManager) {
     if let Err(e) = task_manager.catch_interrupt().await {
         error!("Could not wait for interrupts anymore - {e}. Shutting down the tunnel.");
     }
