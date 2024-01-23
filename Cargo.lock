@@ -4082,7 +4082,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-cli"
-version = "0.0.1"
+version = "0.0.2-dev"
 dependencies = [
  "clap",
  "ipnetwork",
