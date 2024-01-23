@@ -1,0 +1,37 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="512dp"
+    android:height="512dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+  <group>
+    <clip-path
+        android:pathData="M256,256m-256,0a256,256 0,1 1,512 0a256,256 0,1 1,-512 0"/>
+    <path
+        android:pathData="M0,0h208l48,32 48,-32h208v208l-32,48 32,48v208H304l-48,-32 -48,32H0V304l32,-48 -32,-48Z"
+        android:fillColor="#496e2d"/>
+    <path
+        android:pathData="M512,240v32l-256,32L0,272v-32l256,-32z"
+        android:fillColor="#333"/>
+    <path
+        android:pathData="M512,208v32H0v-32z"
+        android:fillColor="#ffda44"/>
+    <path
+        android:pathData="M240,0h32l32,256 -32,256h-32l-32,-256Z"
+        android:fillColor="#333"/>
+    <path
+        android:pathData="M208,0h32v512h-32z"
+        android:fillColor="#ffda44"/>
+    <path
+        android:pathData="M272,0h32v512h-32z"
+        android:fillColor="#eee"/>
+    <path
+        android:pathData="M512,272v32H0v-32z"
+        android:fillColor="#eee"/>
+    <path
+        android:pathData="M256,256m-122.4,0a122.4,122.4 0,1 1,244.8 0a122.4,122.4 0,1 1,-244.8 0"
+        android:fillColor="#d80027"/>
+    <path
+        android:pathData="M284,270c-9,-19 -21,-37 -21,-37v-13a14,14 0,0 0,-27 -2,11 11,0 0,0 -4,21 16,16 0,0 1,9 -9,14 14,0 0,0 2,2h2s-7,19 -7,29c0,27 19,36 19,36l-10,9h19v-18l9,9s17,-11 9,-27zM256,156 L260,169h14l-11,8 4,12 -11,-8 -11,8 4,-12 -11,-8h14ZM197,175 L208,183 219,175 215,188 226,196h-14l-4,12 -4,-12h-14l11,-8zM161,225h13l4,-13 4,13h14l-11,8 4,13 -11,-8 -11,8 5,-13zM161,287 L172,279 167,266 178,274 189,266 185,279 196,287h-14l-4,13 -4,-13ZM197,337 L201,324 190,316h14l4,-12 4,12h13l-10,8 4,13 -11,-8zM256,356 L252,343h-14l11,-8 -4,-12 11,8 11,-8 -4,12 11,9h-14ZM315,337 L304,329 293,337 297,324 287,316h13l4,-12 4,12h14l-11,8zM351,287h-13l-4,13 -4,-13h-14l11,-8 -4,-13 11,8 11,-8 -5,13zM351,225 L340,233 345,246 334,238 323,246 327,233 316,225h14l4,-13 4,13zM315,175 L311,188 322,196h-14l-4,12 -4,-12h-14l11,-8 -4,-13 11,8z"
+        android:fillColor="#496e2d"/>
+  </group>
+</vector>
