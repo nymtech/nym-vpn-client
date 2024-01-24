@@ -166,4 +166,4 @@ jobs:
           # if [ "$TAG_NAME" != "nightly" ]; then
           #   gh release create stable $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nvim-macos/* nvim-linux64/* appimage/* nvim-win64/*
           # fi
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*
