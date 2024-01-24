@@ -222,7 +222,10 @@ jobs:
           ls -al nym-vpn-cli_*
           ls -al build-info
           # echo "BUILD_INFO=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
-          BUILD_INFO=$(cat build-info/build-info.txt)
+          # BUILD_INFO=$(cat build-info/build-info.txt)
+          echo 'BUILD_INFO<<END' >> $GITHUB_ENV
+          cat build-info/build-info.txt >> $GITHUB_ENV
+          echo 'END' >> $GITHUB_ENV
           echo $BUILD_INFO
           SHA256_CHECKSUMS=$(cat nym-vpn-cli_*.tar.gz/*.sha256sum)
           echo $SHA256_CHECKSUMS
