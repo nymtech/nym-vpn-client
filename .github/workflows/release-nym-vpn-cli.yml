@@ -17,7 +17,8 @@ jobs:
     strategy:
       matrix:
         # os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
-        os: [custom-runner-mac-m1]
+        # os: [custom-runner-mac-m1]
+        os: [ubuntu-22.04-16-core, custom-runner-mac-m1]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -28,7 +29,8 @@ jobs:
       fail-fast: false
       matrix:
         # os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
-        os: [custom-runner-mac-m1]
+        # os: [custom-runner-mac-m1]
+        os: [ubuntu-22.04-16-core, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -116,7 +118,7 @@ jobs:
       #     RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
       #   run: cargo test --release --verbose
 
-      - name: Compress
+      - name: Create archive
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
           cp target/debug/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
