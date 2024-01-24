@@ -116,15 +116,16 @@ jobs:
           name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_${{ env.PLATFORM_ARCH }}
           # path: target/release/nym-vpn-cli
           path: target/debug/nym-vpn-cli
+          retention-days: 2
 
   publish:
     needs: build
     runs-on: ubuntu-latest
-    # env:
-    #   GH_REPO: ${{ github.repository }}
-    #   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    # permissions:
-    #   contents: write
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
