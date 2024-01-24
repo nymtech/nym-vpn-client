@@ -114,7 +114,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_${{ env.PLATFORM_ARCH }}
-          path: target/release/nym-vpn-cli
+          # path: target/release/nym-vpn-cli
+          path: target/debug/nym-vpn-cli
 
   publish:
     needs: build
