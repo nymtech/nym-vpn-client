@@ -212,22 +212,32 @@ jobs:
           ls -al build-info
           for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
 
+      - name: Build info
+        run: |
+          echo 'BUILD_INFO<<END' >> $GITHUB_ENV
+          cat build-info/build-info.txt >> $GITHUB_ENV
+          echo 'END' >> $GITHUB_ENV
+
       - name: Publish release
         # if: env.TAG_NAME == 'nightly' && inputs.publish == true
         # env:
           # DEBUG: api
           # BIN_VERSION: ${{ needs.build.steps.build-info.outputs.version }}
+        # env:
+          # BUILD_INFO: ${{ env.BUILD_INFO }}
         run: |
           ls -al
           ls -al nym-vpn-cli_*
           ls -al build-info
           # echo "BUILD_INFO=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
           # BUILD_INFO=$(cat build-info/build-info.txt)
-          echo 'BUILD_INFO<<END' >> $GITHUB_ENV
-          cat build-info/build-info.txt >> $GITHUB_ENV
-          echo 'END' >> $GITHUB_ENV
+          # echo 'BUILD_INFO<<END' >> $GITHUB_ENV
+          # cat build-info/build-info.txt >> $GITHUB_ENV
+          # echo 'END' >> $GITHUB_ENV
+          echo "build info"
           echo $BUILD_INFO
           SHA256_CHECKSUMS=$(cat nym-vpn-cli_*.tar.gz/*.sha256sum)
+          echo "checksums"
           echo $SHA256_CHECKSUMS
           echo "Creating release nodes"
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/release-notes.md" > "$RUNNER_TEMP/release-notes.md"
