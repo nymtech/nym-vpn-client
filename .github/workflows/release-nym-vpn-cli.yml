@@ -147,13 +147,13 @@ jobs:
           path: ${{ env.ARTIFACT_ARCHIVE }}
           retention-days: 2
 
-      - name: Export version
-        if: contains(matrix.os, 'ubuntu-22.04')
-        id: build-info
-        run: |
-          printf 'version<<END\n' >> $GITHUB_OUTPUT
-          ./target/debug/nym-vpn-cli --version >> $GITHUB_OUTPUT
-          printf 'END\n' >> $GITHUB_OUTPUT
+      # - name: Export version
+      #   if: contains(matrix.os, 'ubuntu-22.04')
+      #   id: build-info
+      #   run: |
+      #     printf 'version<<END\n' >> $GITHUB_OUTPUT
+      #     ./target/debug/nym-vpn-cli --version >> $GITHUB_OUTPUT
+      #     printf 'END\n' >> $GITHUB_OUTPUT
 
       - name: Generate build info
         if: contains(matrix.os, 'ubuntu-22.04')
@@ -170,6 +170,7 @@ jobs:
           retention-days: 2
 
   publish:
+    if: inputs.publish == true
     needs: build
     runs-on: ubuntu-latest
     env:
@@ -212,10 +213,10 @@ jobs:
           for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
 
       - name: Publish release
-        if: env.TAG_NAME == 'nightly' && inputs.publish == true
-        env:
+        # if: env.TAG_NAME == 'nightly' && inputs.publish == true
+        # env:
           # DEBUG: api
-          BIN_VERSION: ${{ needs.build.steps.build-info.outputs.version }}
+          # BIN_VERSION: ${{ needs.build.steps.build-info.outputs.version }}
         run: |
           ls -al
           ls -al nym-vpn-cli_*
@@ -229,4 +230,4 @@ jobs:
           # if [ "$TAG_NAME" != "nightly" ]; then
           #   gh release create stable $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nvim-macos/* nvim-linux64/* appimage/* nvim-win64/*
           # fi
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz/*
