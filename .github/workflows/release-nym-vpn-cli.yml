@@ -143,8 +143,8 @@ jobs:
         run: |
           (echo 'SUBJECT=nym-vpn-cli nightly dev build';
            echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
-          # gh release delete nightly --yes || true
-          # git push origin :nightly || true
+          gh release delete nightly --yes || true
+          git push origin :nightly || true
       # - if: env.TAG_NAME != 'nightly'
       #   run: |
       #     (echo 'SUBJECT=nym-vpn-cli release build';
