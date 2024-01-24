@@ -131,11 +131,11 @@ jobs:
           cp target/debug/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
-      - name: Generate checksums
-        if: contains(matrix.os, 'ubuntu-22.04')
-        run: |
-          sha256sum ${{ env.ARTIFACT_ARCHIVE }} > ${{ env.ARTIFACT_CHECKSUM }}
-          echo "SHA_256_${{ env.PLATFORM_ARCH }}=$(cat ${{ env.ARTIFACT_CHECKSUM }}) >> $GITHUB_ENV
+      # - name: Generate checksums
+      #   if: contains(matrix.os, 'ubuntu-22.04')
+      #   run: |
+      #     sha256sum ${{ env.ARTIFACT_ARCHIVE }} > ${{ env.ARTIFACT_CHECKSUM }}
+      #     echo "SHA_256_${{ env.PLATFORM_ARCH }}=$(cat ${{ env.ARTIFACT_CHECKSUM }}) >> $GITHUB_ENV
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
