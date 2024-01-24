@@ -170,7 +170,7 @@ jobs:
           retention-days: 2
 
   publish:
-    if: inputs.publish == true
+    if: github.event_name != 'workflow_dispatch' || inputs.publish == true
     needs: build
     runs-on: ubuntu-latest
     env:
