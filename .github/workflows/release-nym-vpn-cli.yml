@@ -223,8 +223,8 @@ jobs:
 
       - name: Publish release
         # if: env.TAG_NAME == 'nightly' && inputs.publish == true
-        # env:
-          # DEBUG: api
+        env:
+          DEBUG: api
           # BIN_VERSION: ${{ needs.build.steps.build-info.outputs.version }}
         # env:
           # BUILD_INFO: ${{ env.BUILD_INFO }}
