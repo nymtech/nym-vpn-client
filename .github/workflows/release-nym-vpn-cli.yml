@@ -78,6 +78,7 @@ jobs:
           wg_go_lib_name="wireguard-go_$platform_arch"
           artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
           artifact_archive="$artifact_dir.tar.gz"
+          artifact_checksum="$artifact_archive.sha256sum"
           # debug
           echo " ✓ PLATFORM_ARCH: $platform_arch"
           echo " ✓ WG_GO_LIB_NAME: $wg_go_lib_name"
@@ -89,6 +90,7 @@ jobs:
           echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
           echo "ARTIFACT_DIR=$artifact_dir" >> $GITHUB_ENV
           echo "ARTIFACT_ARCHIVE=$artifact_archive" >> $GITHUB_ENV
+          echo "ARTIFACT_CHECKSUM=$artifact_checksum" >> $GITHUB_ENV
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -123,6 +125,12 @@ jobs:
           mkdir ${{ env.ARTIFACT_DIR }}
           cp target/debug/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
+
+      - name: Generate checksums
+        if: contains(matrix.os, 'ubuntu-22.04')
+        run: |
+          sha256sum ${{ env.ARTIFACT_ARCHIVE }} > ${{ env.ARTIFACT_CHECKSUM }}
+          echo "SHA_256_${{ env.PLATFORM_ARCH }}=$(cat ${{ env.ARTIFACT_CHECKSUM }}) >> $GITHUB_ENV
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
@@ -190,8 +198,9 @@ jobs:
       #     gh release delete stable --yes || true
       #     git push origin :stable || true
 
-      # TODO: create checksums
-      # -name: Generate checksums
+      - name: Generate checksums
+        run: |
+          for file in nym-vpn-cli_*; do sha256sum "$file" > "${file}.sha256sum"; done
 
       - name: Publish release
         if: env.TAG_NAME == 'nightly'
@@ -204,8 +213,10 @@ jobs:
           ls -al build-info
           echo "BUILD_INFO=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
           echo $BUILD_INFO
+          echo "SHA256_CHECKSUMS=$(cat nym-vpn-cli_*.sha256sum)" >> $GITHUB_ENV
+          echo $SHA256_CHECKSUMS
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/release-notes.md" > "$RUNNER_TEMP/release-notes.md"
           # if [ "$TAG_NAME" != "nightly" ]; then
           #   gh release create stable $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nvim-macos/* nvim-linux64/* appimage/* nvim-win64/*
           # fi
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz

@@ -4,6 +4,8 @@
 ${BUILD_INFO}
 ```
 
-## Checksums
+## SHA256 Checksums
 
-...
+```
+${SHA256_CHECKSUMS}
+```
