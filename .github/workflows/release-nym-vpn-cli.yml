@@ -203,9 +203,13 @@ jobs:
       #     gh release delete stable --yes || true
       #     git push origin :stable || true
 
+      # Recall that download-artifact will extract into a directory that includes the tar.gz suffix
       - name: Generate checksums
         run: |
-          for file in nym-vpn-cli_*; do sha256sum "$file" > "${file}.sha256sum"; done
+          ls -al
+          ls -al nym-vpn-cli_*
+          ls -al build-info
+          for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
 
       - name: Publish release
         if: env.TAG_NAME == 'nightly' && inputs.publish == true
@@ -218,7 +222,7 @@ jobs:
           ls -al build-info
           echo "BUILD_INFO=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
           echo $BUILD_INFO
-          echo "SHA256_CHECKSUMS=$(cat nym-vpn-cli_*.sha256sum)" >> $GITHUB_ENV
+          echo "SHA256_CHECKSUMS=$(cat nym-vpn-cli_*.tar.gz/*.sha256sum)" >> $GITHUB_ENV
           echo $SHA256_CHECKSUMS
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/release-notes.md" > "$RUNNER_TEMP/release-notes.md"
           # if [ "$TAG_NAME" != "nightly" ]; then
