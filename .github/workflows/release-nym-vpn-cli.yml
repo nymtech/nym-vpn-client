@@ -27,7 +27,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
+        # os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
+        os: [custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
