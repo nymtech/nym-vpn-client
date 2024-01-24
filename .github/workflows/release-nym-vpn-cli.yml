@@ -8,6 +8,11 @@ on:
         description: 'Tag name for release'
         required: false
         default: nightly
+      publish:
+        type: boolean
+        description: Publish Release
+        required: true
+        default: false
   # push:
   #   tags:
   #     - nym-vpn-cli-v[0-9]+.[0-9]+.[0-9]+
@@ -203,7 +208,7 @@ jobs:
           for file in nym-vpn-cli_*; do sha256sum "$file" > "${file}.sha256sum"; done
 
       - name: Publish release
-        if: env.TAG_NAME == 'nightly'
+        if: env.TAG_NAME == 'nightly' && inputs.publish == true
         env:
           # DEBUG: api
           BIN_VERSION: ${{ needs.build.steps.build-info.outputs.version }}
