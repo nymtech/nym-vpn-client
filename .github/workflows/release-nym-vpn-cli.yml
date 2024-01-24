@@ -75,15 +75,18 @@ jobs:
           fi
           wg_go_lib_name="wireguard-go_$platform_arch"
           artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
+          artifact_archive="$artifact_dir.tar.gz"
           # debug
           echo " ✓ PLATFORM_ARCH: $platform_arch"
           echo " ✓ WG_GO_LIB_NAME: $wg_go_lib_name"
           echo " ✓ WG_GO_LIB_PATH: ${{ env.WG_GO_LIB_PATH }}"
           echo " ✓ ARTIFACT_DIR: $artifact_dir"
+          echo " ✓ ARTIFACT_ARCHIVE: $artifact_archive"
           # set github env
           echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
           echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
           echo "ARTIFACT_DIR=$artifact_dir" >> $GITHUB_ENV
+          echo "ARTIFACT_ARCHIVE=$artifact_archive" >> $GITHUB_ENV
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -115,18 +118,18 @@ jobs:
 
       - name: Compress
         run: |
-          mkdir $ARTIFACT_DIR
-          cp target/debug/nym-vpn-cli $ARTIFACT_DIR
-          tar -cvzf $ARTIFACT_DIR.tar.gz $ARTIFACT_DIR
+          mkdir ${{ env.ARTIFACT_DIR }}
+          cp target/debug/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
+          tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
         with:
           # name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_${{ env.PLATFORM_ARCH }}
-          name: $ARTIFACT_DIR.tar.gz
+          name: ${{ ARTIFACT_ARCHIVE }}
           # path: target/release/nym-vpn-cli
           # path: target/debug/nym-vpn-cli
-          path: $ARTIFACT_DIR.tar.gz
+          path: ${{ ARTIFACT_ARCHIVE }}
           retention-days: 2
 
   publish:
