@@ -181,8 +181,8 @@ jobs:
         run: |
           (echo 'SUBJECT=nym-vpn-cli nightly dev build';
            echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
-          # gh release delete nightly --yes || true
-          # git push origin :nightly || true
+          gh release delete nightly --yes || true
+          git push origin :nightly || true
       # - if: env.TAG_NAME != 'nightly'
       #   run: |
       #     (echo 'SUBJECT=nym-vpn-cli release build';
@@ -201,10 +201,11 @@ jobs:
         run: |
           ls -al
           ls -al nym-vpn-cli_*
-          echo "BUILD_INFO=$(cat build-info.txt)" >> $GITHUB_ENV
+          ls -al build-info
+          echo "BUILD_INFO=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
           echo $BUILD_INFO
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/release-notes.md" > "$RUNNER_TEMP/release-notes.md"
           # if [ "$TAG_NAME" != "nightly" ]; then
           #   gh release create stable $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nvim-macos/* nvim-linux64/* appimage/* nvim-win64/*
           # fi
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz
