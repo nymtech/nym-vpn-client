@@ -21,9 +21,7 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        # os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
-        # os: [custom-runner-mac-m1]
-        os: [ubuntu-22.04-16-core, custom-runner-mac-m1]
+        os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -33,9 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
-        # os: [custom-runner-mac-m1]
-        os: [ubuntu-22.04-16-core, custom-runner-mac-m1]
+        os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -117,13 +113,12 @@ jobs:
       - name: Build
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
-        # run: cargo build --release --verbose
-        run: cargo build --verbose
+        run: cargo build --release --verbose
 
-      # - name: Run tests
-      #   env:
-      #     RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
-      #   run: cargo test --release --verbose
+      - name: Run tests
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: cargo test --release --verbose
 
       - name: Create archive
         run: |
@@ -131,31 +126,14 @@ jobs:
           cp target/debug/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
-      # - name: Generate checksums
-      #   if: contains(matrix.os, 'ubuntu-22.04')
-      #   run: |
-      #     sha256sum ${{ env.ARTIFACT_ARCHIVE }} > ${{ env.ARTIFACT_CHECKSUM }}
-      #     echo "SHA_256_${{ env.PLATFORM_ARCH }}=$(cat ${{ env.ARTIFACT_CHECKSUM }}) >> $GITHUB_ENV
-
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
         with:
-          # name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_${{ env.PLATFORM_ARCH }}
           name: ${{ env.ARTIFACT_ARCHIVE }}
-          # path: target/release/nym-vpn-cli
-          # path: target/debug/nym-vpn-cli
           path: ${{ env.ARTIFACT_ARCHIVE }}
           retention-days: 2
 
-      # - name: Export version
-      #   if: contains(matrix.os, 'ubuntu-22.04')
-      #   id: build-info
-      #   run: |
-      #     printf 'version<<END\n' >> $GITHUB_OUTPUT
-      #     ./target/debug/nym-vpn-cli --version >> $GITHUB_OUTPUT
-      #     printf 'END\n' >> $GITHUB_OUTPUT
-
-      - name: Generate build info
+      - name: Generate build info (${{ env.PLATFORM_ARCH }})
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
           ./target/debug/nym-vpn-cli --version > build-info.txt
@@ -207,9 +185,6 @@ jobs:
       # Recall that download-artifact will extract into a directory that includes the tar.gz suffix
       - name: Generate checksums
         run: |
-          ls -al
-          ls -al nym-vpn-cli_*
-          ls -al build-info
           for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-cli_*.tar.gz/*.sha256sum >> $GITHUB_ENV
@@ -222,24 +197,11 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
-        # if: env.TAG_NAME == 'nightly' && inputs.publish == true
         env:
           DEBUG: api
-          # BIN_VERSION: ${{ needs.build.steps.build-info.outputs.version }}
-        # env:
-          # BUILD_INFO: ${{ env.BUILD_INFO }}
         run: |
-          ls -al
-          ls -al nym-vpn-cli_*
-          ls -al build-info
-          # echo "BUILD_INFO=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
-          # BUILD_INFO=$(cat build-info/build-info.txt)
-          # echo 'BUILD_INFO<<END' >> $GITHUB_ENV
-          # cat build-info/build-info.txt >> $GITHUB_ENV
-          # echo 'END' >> $GITHUB_ENV
           echo "build info"
           echo "$BUILD_INFO"
-          # SHA256_CHECKSUMS=$(cat nym-vpn-cli_*.tar.gz/*.sha256sum)
           echo "checksums"
           echo "$SHA256_CHECKSUMS"
           echo "Creating release nodes"
