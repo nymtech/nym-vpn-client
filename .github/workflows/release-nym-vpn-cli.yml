@@ -126,10 +126,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           # name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_${{ env.PLATFORM_ARCH }}
-          name: ${{ ARTIFACT_ARCHIVE }}
+          name: ${{ env.ARTIFACT_ARCHIVE }}
           # path: target/release/nym-vpn-cli
           # path: target/debug/nym-vpn-cli
-          path: ${{ ARTIFACT_ARCHIVE }}
+          path: ${{ env.ARTIFACT_ARCHIVE }}
           retention-days: 2
 
   publish:
