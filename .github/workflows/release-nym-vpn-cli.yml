@@ -174,9 +174,16 @@ jobs:
         run: echo 'TAG_NAME=nightly' >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - run: |
+          BIN_VERSION=grep "Build Version" build_info/build_info.txt | cut -d ':' -f 2 | tr -d ' '
+          echo BIN_VERSION=$BIN_VERSION
+          echo $BIN_VERSION >> $GITHUB_ENV
+
+      # TODO: insert the cargo version so that the subject is nym-vpn-cli-v1.2.3 nightly ...
       - if: env.TAG_NAME == 'nightly'
         run: |
-          (echo "SUBJECT=$TAG_NAME nightly prerelease build";
+          (echo "SUBJECT=nym-vpn-cli-v$BIN_VERSION nightly prerelease build";
            echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
           gh release delete nightly --yes || true
           git push origin :nightly || true
