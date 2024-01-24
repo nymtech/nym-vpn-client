@@ -2,7 +2,8 @@ name: release-desktop
 
 on:
   workflow_dispatch:
-
+concurrency:
+  group: "release-desktop"
 env:
   CARGO_TERM_COLOR: always
 
@@ -12,9 +13,10 @@ jobs:
       matrix:
         os:
           [
-            ubuntu-22.04-16-core,
-            ubuntu-20.04-16-core,
-            custom-runner-mac-m1
+#            ubuntu-22.04-16-core,
+#            ubuntu-20.04-16-core,
+#            custom-runner-mac-m1
+            macos-latest
           ]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
@@ -27,9 +29,10 @@ jobs:
       matrix:
         os:
           [
-            ubuntu-22.04-16-core,
-            ubuntu-20.04-16-core,
-            custom-runner-mac-m1
+#            ubuntu-22.04-16-core,
+#            ubuntu-20.04-16-core,
+#            custom-runner-mac-m1
+            macos-latest
           ]
     runs-on: ${{ matrix.os }}
     env:
@@ -69,15 +72,17 @@ jobs:
             platform_arch=ubuntu-20.04_x86_64
           elif ${{ contains(matrix.os, 'mac-m1') }}; then
             platform_arch=macos_aarch64
-            platform_arch_amd64=macos_x86_64
+            platform_arch_x86=macos_x86_64
             platform_arch_universal=macos_universal
-            wg_go_lib_name_amd64="wireguard-go_$platform_arch_amd64"
+            wg_go_lib_name_x86="wireguard-go_$platform_arch_x86"
             wg_go_lib_name_universal="wireguard-go_$platform_arch_universal"
             
-            echo "platform_arch_amd64=$platform_arch_amd64" >> $GITHUB_ENV
-            echo "platform_arch_universal=platform_arch_universal" >> $GITHUB_ENV
-            echo "wg_go_lib_name_amd64=$wg_go_lib_name_amd64" >> $GITHUB_ENV
-            echo "wg_go_lib_name_universal=wg_go_lib_name_universal" >> $GITHUB_ENV
+            echo "platform_arch_x86=$platform_arch_x86" >> $GITHUB_ENV
+            echo "platform_arch_universal=$platform_arch_universal" >> $GITHUB_ENV
+            echo "wg_go_lib_name_x86=$wg_go_lib_name_x86" >> $GITHUB_ENV
+            echo "wg_go_lib_name_universal=$wg_go_lib_name_universal" >> $GITHUB_ENV
+           elif ${{ contains(matrix.os, 'macos') }}; then
+            platform_arch=macos_x86_64
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
@@ -101,10 +106,10 @@ jobs:
         uses: actions/download-artifact@v4
         if: contains(matrix.os, 'mac-m1')
         with:
-          name: ${{ env.wg_go_lib_name_amd64 }}
+          name: ${{ env.wg_go_lib_name_x86 }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
-      - name: Download wireguard-go artifacts for macOS unviersal
+      - name: Download wireguard-go artifacts for macOS universal
         uses: actions/download-artifact@v4
         if: contains(matrix.os, 'mac-m1')
         with:
@@ -124,6 +129,11 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - name: Install extra architectures macOS
+        if: contains(matrix.os, 'mac-m1')
+        run: |
+          rustup target add x86_64-apple-darwin
+
       - name: Install Node
         uses: actions/setup-node@v3
         with:
@@ -131,7 +141,8 @@ jobs:
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
-        if: contains(matrix.os, 'mac-m1')
+#        if: contains(matrix.os, 'mac-m1')
+        if: contains(matrix.os, 'macos-latest')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -142,67 +153,124 @@ jobs:
         working-directory: nym-vpn-desktop
         run: npm i
 
+#      - name: Install the Apple developer certificate for code signing
+#        if: contains(matrix.os, 'mac-m1')
+#        env:
+#          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+#          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+#          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+#          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+#        run: |
+#          # create variables
+#          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+#          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+#
+#          # import certificate and provisioning profile from secrets
+#          echo $APPLE_CERTIFICATE | base64 --decode > $CERTIFICATE_PATH
+#
+#          # create temporary keychain
+#          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+#          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+#          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+#
+#          # import certificate to keychain
+#          security import $CERTIFICATE_PATH -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+#          security list-keychain -d user -s $KEYCHAIN_PATH
+
       - name: Build desktop client
         working-directory: nym-vpn-desktop/src-tauri
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
           TAURI_PRIVATE_KEY: ${{ env.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ env.TAURI_PRIVATE_PASSWORD }}
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          ENABLE_CODE_SIGNING: ${{ secrets.APPLE_CERTIFICATE }}
+#          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+#          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+#          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+#          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_IDENTITY_ID }}
+#          APPLE_ID: ${{ secrets.APPLE_ID }}
+#          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
         shell: bash
         run: |
           npm run tauri build
-          ls -la target/release/bundle
-          tar -cvf bundle.tar target/release/bundle
         # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
         continue-on-error: true
+
+#      - name: tar artifacts (${{ env.PLATFORM_ARCH }})
+#        working-directory: nym-vpn-desktop/src-tauri
+#        shell: bash
+#        run: |
+#          ls -la target/release/bundle
+#          tar -cvf bundle.tar target/release/bundle
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
         with:
           name: nym-vpn-desktop_${{ env.APP_VERSION }}_${{ env.PLATFORM_ARCH }}
-          path: nym-vpn-desktop/src-tauri/bundle.tar
+#          path: nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn_${{ env.APP_VERSION }}_aarch64.dmg
+          path: nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn_${{ env.APP_VERSION }}_x64.dmg
           retention-days: 10
 
-      - name: Build desktop client macOS x64_86
-        if: contains(matrix.os, 'mac-m1')
-        working-directory: nym-vpn-desktop/src-tauri
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
-          TAURI_PRIVATE_KEY: ${{ env.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ env.TAURI_PRIVATE_PASSWORD }}
-        shell: bash
-        run: |
-          npm run tauri build -- --target x86_64-apple-darwin  
-          ls -la target/release/bundle
-          tar -cvf bundle.tar target/release/bundle
-        # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
-        continue-on-error: true
+#      - name: Clean up keychain
+#        if: contains(matrix.os, 'mac-m1')
+#        run: |
+#          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
 
-      - name: Upload artifacts (${{ env.platform_arch_amd64 }})
-        uses: actions/upload-artifact@v4
-        with:
-          name: nym-vpn-desktop_${{ env.APP_VERSION }}_${{ env.platform_arch_amd64 }}
-          path: nym-vpn-desktop/src-tauri/bundle.tar
-          retention-days: 10
+#      - name: Build desktop client macOS x64_86
+#        if: contains(matrix.os, 'mac-m1')
+#        working-directory: nym-vpn-desktop/src-tauri
+#        env:
+#          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+#          TAURI_PRIVATE_KEY: ${{ env.TAURI_PRIVATE_KEY }}
+#          TAURI_KEY_PASSWORD: ${{ env.TAURI_PRIVATE_PASSWORD }}
+#        shell: bash
+#        run: |
+#          npm run tauri build -- --target x86_64-apple-darwin
+#        # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
+#        continue-on-error: true
 
-      - name: Build desktop client macOS universal
-        if: contains(matrix.os, 'mac-m1')
-        working-directory: nym-vpn-desktop/src-tauri
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
-          TAURI_PRIVATE_KEY: ${{ env.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ env.TAURI_PRIVATE_PASSWORD }}
-        shell: bash
-        run: |
-          npm run tauri build -- --target universal-apple-darwin 
-          ls -la target/release/bundle
-          tar -cvf bundle.tar target/release/bundle
-        # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
-        continue-on-error: true
-
-      - name: Upload artifacts (${{ env.platform_arch_universal }})
-        uses: actions/upload-artifact@v4
-        with:
-          name: nym-vpn-desktop_${{ env.APP_VERSION }}_${{ env.platform_arch_universal }}
-          path: nym-vpn-desktop/src-tauri/bundle.tar
-          retention-days: 10
+#      - name: tar artifacts macOS x64_86
+#        if: contains(matrix.os, 'mac-m1')
+#        working-directory: nym-vpn-desktop/src-tauri
+#        shell: bash
+#        run: |
+#          ls -la target/release/bundle
+#          tar -cvf bundle.tar target/release/bundle
+#
+#      - name: Upload artifacts (${{ env.platform_arch_x86 }})
+#        if: contains(matrix.os, 'mac-m1')
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: nym-vpn-desktop_${{ env.APP_VERSION }}_${{ env.platform_arch_x86 }}
+#          path: nym-vpn-desktop/src-tauri/bundle.tar
+#          retention-days: 10
+#
+#      - name: Build desktop client macOS universal
+#        if: contains(matrix.os, 'mac-m1')
+#        working-directory: nym-vpn-desktop/src-tauri
+#        env:
+#          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+#          TAURI_PRIVATE_KEY: ${{ env.TAURI_PRIVATE_KEY }}
+#          TAURI_KEY_PASSWORD: ${{ env.TAURI_PRIVATE_PASSWORD }}
+#        shell: bash
+#        run: |
+#          npm run tauri build -- --target universal-apple-darwin
+#        # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
+#        continue-on-error: true
+#
+#      - name: tar artifacts macOS universal
+#        if: contains(matrix.os, 'mac-m1')
+#        working-directory: nym-vpn-desktop/src-tauri
+#        shell: bash
+#        run: |
+#          ls -la target/release/bundle
+#          tar -cvf bundle.tar target/release/bundle
+#
+#      - name: Upload artifacts (${{ env.platform_arch_universal }})
+#        uses: actions/upload-artifact@v4
+#        if: contains(matrix.os, 'mac-m1')
+#        with:
+#          name: nym-vpn-desktop_${{ env.APP_VERSION }}_${{ env.platform_arch_universal }}
+#          path: nym-vpn-desktop/src-tauri/bundle.tar
+#          retention-days: 10

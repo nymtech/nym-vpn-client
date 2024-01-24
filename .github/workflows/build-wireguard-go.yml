@@ -12,6 +12,8 @@ on:
         - ubuntu-20.04
         - ubuntu-22.04
         - custom-runner-mac-m1
+    concurrency:
+      group: "build-wireguard"
 
   # reusable workflow
   workflow_call:
@@ -56,12 +58,7 @@ jobs:
           go-version: 'stable'
 
       - name: Build wireguard
-        if: contains(inputs.os, 'ubuntu')
         run: ./wireguard/build-wireguard-go.sh
-
-      - name: Build wireguard macOS universal
-        if: contains(inputs.os, 'mac-m1')
-        run: ./wireguard/build-wireguard-go.sh --universal
 
       - name: Upload artifacts (ubuntu-22.04 x86_64)
         uses: actions/upload-artifact@v4
@@ -83,11 +80,12 @@ jobs:
 
       - name: Upload artifacts (macOS x86_64)
         uses: actions/upload-artifact@v4
-        if: contains(inputs.os, 'mac-m1')
+#        if: contains(inputs.os, 'mac-m1')
+        if: contains(inputs.os, 'macos-latest')
         with:
           name: wireguard-go_macos_x86_64
           path: |
-            build/lib/amd64-apple-darwin
+            build/lib/x86_64-apple-darwin
           retention-days: 1
 
 

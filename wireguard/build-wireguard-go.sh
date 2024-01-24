@@ -26,17 +26,6 @@ function is_docker_build {
     return 0
 }
 
-function is_macos_universal_build {
-    for arg in "$0"
-    do
-        case "$arg" in
-            "--universal")
-                return 0
-        esac
-    done
-    return 0
-}
-
 function win_deduce_lib_executable_path {
     msbuild_path="$(which msbuild.exe)"
     msbuild_dir=$(dirname "$msbuild_path")
@@ -93,7 +82,6 @@ function unix_target_triple {
         return 1
     fi
 }
-
 
 function build_unix {
     echo "Building wireguard-go for $1"
@@ -157,29 +145,31 @@ function build_macos_universal {
     echo "🍎 Building for x86_64"
     export GOOS=darwin
     export GOARCH=amd64
-    create_folder_and_build "amd64-apple-darwin"
+    create_folder_and_build "x86_64-apple-darwin"
 
     echo "🍎 Creating universal framework"
         mkdir -p "../../build/lib/universal-apple-darwin/"
-        lipo -create -output "../../build/lib/universal-apple-darwin/libwg.a"  "../../build/lib/amd64-apple-darwin/libwg.a" "../../build/lib/aarch64-apple-darwin/libwg.a"
+        lipo -create -output "../../build/lib/universal-apple-darwin/libwg.a"  "../../build/lib/x86_64-apple-darwin/libwg.a" "../../build/lib/aarch64-apple-darwin/libwg.a"
         cp "../../build/lib/aarch64-apple-darwin/libwg.h" "../../build/lib/universal-apple-darwin/libwg.h"
     popd
 }
 
 function build_wireguard_go {
     if is_android_build $@; then
-         build_android $@
-         return
-    fi
-
-    if is_macos_universal_build $@; then
-        build_macos_universal
+        build_android $@
         return
     fi
 
+    local platformArch=="$(uname -m)";
     local platform="$(uname -s)";
     case  "$platform" in
-        Linux*|Darwin*) build_unix ${1:-$(unix_target_triple)};;
+        Darwin*)
+#            if [[ "$platformArch" == "=arm64" ]]; then
+                build_macos_universal;;
+#            else
+#                build_unix ${1:-$(unix_target_triple)}
+#            fi;;
+        Linux*) build_unix ${1:-$(unix_target_triple)};;
         MINGW*|MSYS_NT*) build_windows;;
     esac
 }
