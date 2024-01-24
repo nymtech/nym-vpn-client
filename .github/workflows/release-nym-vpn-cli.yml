@@ -53,6 +53,12 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
 
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry="nym-vpn-cli"
+
       - name: Set env
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
@@ -68,13 +74,16 @@ jobs:
             exit 1
           fi
           wg_go_lib_name="wireguard-go_$platform_arch"
+          artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_${{ env.PLATFORM_ARCH }}"
           # debug
           echo " ✓ PLATFORM_ARCH: $platform_arch"
           echo " ✓ WG_GO_LIB_NAME: $wg_go_lib_name"
           echo " ✓ WG_GO_LIB_PATH: ${{ env.WG_GO_LIB_PATH }}"
+          echo " ✓ ARTIFACT_DIR: $artifact_dir"
           # set github env
           echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
           echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
+          echo "ARTIFACT_DIR=$artifact_dir" >> $GITHUB_ENV
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -104,18 +113,20 @@ jobs:
       #     RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
       #   run: cargo test --release --verbose
 
-      - name: Get package name
-        id: package-version
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: package.version --entry="nym-vpn-cli"
+      - name: Compress
+        run: |
+          mkdir $ARTIFACT_DIR
+          cp target/debug/nym-vpn-cli $ARTIFACT_DIR
+          tar -cvzf $ARTIFACT_DIR.tar.gz $ARTIFACT_DIR
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
         with:
-          name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_${{ env.PLATFORM_ARCH }}
+          # name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_${{ env.PLATFORM_ARCH }}
+          name: $ARTIFACT_DIR.tar.gz
           # path: target/release/nym-vpn-cli
-          path: target/debug/nym-vpn-cli
+          # path: target/debug/nym-vpn-cli
+          path: $ARTIFACT_DIR.tar.gz
           retention-days: 2
 
   publish:
@@ -143,8 +154,8 @@ jobs:
         run: |
           (echo 'SUBJECT=nym-vpn-cli nightly dev build';
            echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
-          gh release delete nightly --yes || true
-          git push origin :nightly || true
+          # gh release delete nightly --yes || true
+          # git push origin :nightly || true
       # - if: env.TAG_NAME != 'nightly'
       #   run: |
       #     (echo 'SUBJECT=nym-vpn-cli release build';
@@ -166,4 +177,4 @@ jobs:
           # if [ "$TAG_NAME" != "nightly" ]; then
           #   gh release create stable $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nvim-macos/* nvim-linux64/* appimage/* nvim-win64/*
           # fi
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz
