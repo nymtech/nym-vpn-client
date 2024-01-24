@@ -211,9 +211,9 @@ jobs:
           ls -al nym-vpn-cli_*
           ls -al build-info
           for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
-          echo 'SHA256_CHECKSUMS<<EOF'
+          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-cli_*.tar.gz/*.sha256sum >> $GITHUB_ENV
-          echo 'EOF'
+          echo 'EOF' >> $GITHUB_ENV
 
       - name: Build info
         run: |
