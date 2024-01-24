@@ -134,6 +134,27 @@ jobs:
           path: ${{ env.ARTIFACT_ARCHIVE }}
           retention-days: 2
 
+      - name: Export version
+        if: contains(matrix.os, 'ubuntu-22.04')
+        id: build-info
+        run: |
+          printf 'version<<END\n' >> $GITHUB_OUTPUT
+          ./target/debug/nym-vpn-cli --version >> $GITHUB_OUTPUT
+          printf 'END\n' >> $GITHUB_OUTPUT
+
+      - name: Build version
+        if: contains(matrix.os, 'ubuntu-22.04')
+        run: |
+          ./target/debug/nym-vpn-cli --version > build-info.txt
+
+      - name: Upload build-info (${{ env.PLATFORM_ARCH }})
+        if: contains(matrix.os, 'ubuntu-22.04')
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-info.txt
+          path: build-info.txt
+          retention-days: 2
+
   publish:
     needs: build
     runs-on: ubuntu-latest
@@ -174,10 +195,13 @@ jobs:
       - name: Publish release
         if: env.TAG_NAME == 'nightly'
         env:
-          DEBUG: api
+          # DEBUG: api
+          BIN_VERSION: ${{ needs.build.steps.build-info.outputs.version }}
         run: |
           ls -al
           ls -al nym-vpn-cli_*
+          echo "BUILD_INFO=$(cat build-info.txt)" >> $GITHUB_ENV
+          echo $BUILD_INFO
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/release-notes.md" > "$RUNNER_TEMP/release-notes.md"
           # if [ "$TAG_NAME" != "nightly" ]; then
           #   gh release create stable $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nvim-macos/* nvim-linux64/* appimage/* nvim-win64/*
