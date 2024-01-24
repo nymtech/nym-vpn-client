@@ -158,8 +158,10 @@ jobs:
         env:
           DEBUG: api
         run: |
+          ls -al
+          ls -al nym-vpn-cli_*
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/release-notes.md" > "$RUNNER_TEMP/notes.md"
           # if [ "$TAG_NAME" != "nightly" ]; then
           #   gh release create stable $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nvim-macos/* nvim-linux64/* appimage/* nvim-win64/*
           # fi
-          # gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*/*
