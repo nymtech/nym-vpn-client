@@ -14,8 +14,7 @@ jobs:
           [
             ubuntu-22.04-16-core,
             ubuntu-20.04-16-core,
-            macos-latest,
-            custom-runner-mac-m1,
+            custom-runner-mac-m1
           ]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
@@ -30,8 +29,7 @@ jobs:
           [
             ubuntu-22.04-16-core,
             ubuntu-20.04-16-core,
-            macos-latest,
-            custom-runner-mac-m1,
+            custom-runner-mac-m1
           ]
     runs-on: ${{ matrix.os }}
     env:
@@ -71,8 +69,15 @@ jobs:
             platform_arch=ubuntu-20.04_x86_64
           elif ${{ contains(matrix.os, 'mac-m1') }}; then
             platform_arch=macos_aarch64
-          elif ${{ contains(matrix.os, 'macos') }}; then
-            platform_arch=macos_x86_64
+            platform_arch_amd64=macos_x86_64
+            platform_arch_universal=macos_universal
+            wg_go_lib_name_amd64="wireguard-go_$platform_arch_amd64"
+            wg_go_lib_name_universal="wireguard-go_$platform_arch_universal"
+            
+            echo "platform_arch_amd64=$platform_arch_amd64" >> $GITHUB_ENV
+            echo "platform_arch_universal=platform_arch_universal" >> $GITHUB_ENV
+            echo "wg_go_lib_name_amd64=$wg_go_lib_name_amd64" >> $GITHUB_ENV
+            echo "wg_go_lib_name_universal=wg_go_lib_name_universal" >> $GITHUB_ENV
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
@@ -90,6 +95,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.WG_GO_LIB_NAME }}
+          path: ${{ env.WG_GO_LIB_PATH }}
+
+      - name: Download wireguard-go artifacts for macOS x86
+        uses: actions/download-artifact@v4
+        if: contains(matrix.os, 'mac-m1')
+        with:
+          name: ${{ env.wg_go_lib_name_amd64 }}
+          path: ${{ env.WG_GO_LIB_PATH }}
+
+      - name: Download wireguard-go artifacts for macOS unviersal
+        uses: actions/download-artifact@v4
+        if: contains(matrix.os, 'mac-m1')
+        with:
+          name: ${{ env.wg_go_lib_name_universal }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
       - name: Get version
@@ -112,7 +131,7 @@ jobs:
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
-        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        if: contains(matrix.os, 'mac-m1')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -141,5 +160,49 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nym-vpn-desktop_${{ env.APP_VERSION }}_${{ env.PLATFORM_ARCH }}
+          path: nym-vpn-desktop/src-tauri/bundle.tar
+          retention-days: 10
+
+      - name: Build desktop client macOS x64_86
+        if: contains(matrix.os, 'mac-m1')
+        working-directory: nym-vpn-desktop/src-tauri
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+          TAURI_PRIVATE_KEY: ${{ env.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ env.TAURI_PRIVATE_PASSWORD }}
+        shell: bash
+        run: |
+          npm run tauri build -- --target x86_64-apple-darwin  
+          ls -la target/release/bundle
+          tar -cvf bundle.tar target/release/bundle
+        # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
+        continue-on-error: true
+
+      - name: Upload artifacts (${{ env.platform_arch_amd64 }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: nym-vpn-desktop_${{ env.APP_VERSION }}_${{ env.platform_arch_amd64 }}
+          path: nym-vpn-desktop/src-tauri/bundle.tar
+          retention-days: 10
+
+      - name: Build desktop client macOS universal
+        if: contains(matrix.os, 'mac-m1')
+        working-directory: nym-vpn-desktop/src-tauri
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+          TAURI_PRIVATE_KEY: ${{ env.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ env.TAURI_PRIVATE_PASSWORD }}
+        shell: bash
+        run: |
+          npm run tauri build -- --target universal-apple-darwin 
+          ls -la target/release/bundle
+          tar -cvf bundle.tar target/release/bundle
+        # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
+        continue-on-error: true
+
+      - name: Upload artifacts (${{ env.platform_arch_universal }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: nym-vpn-desktop_${{ env.APP_VERSION }}_${{ env.platform_arch_universal }}
           path: nym-vpn-desktop/src-tauri/bundle.tar
           retention-days: 10

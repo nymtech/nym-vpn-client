@@ -11,7 +11,6 @@ on:
         options:
         - ubuntu-20.04
         - ubuntu-22.04
-        - macos-latest
         - custom-runner-mac-m1
 
   # reusable workflow
@@ -47,7 +46,7 @@ jobs:
       # TODO: check that this is actually used
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
-        if: contains(inputs.os, 'macos') || contains(inputs.os, 'mac-m1') || contains(inputs.os, 'windows')
+        if: contains(inputs.os, 'mac-m1') || contains(inputs.os, 'windows')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -57,7 +56,12 @@ jobs:
           go-version: 'stable'
 
       - name: Build wireguard
+        if: contains(inputs.os, 'ubuntu')
         run: ./wireguard/build-wireguard-go.sh
+
+      - name: Build wireguard macOS universal
+        if: contains(inputs.os, 'mac-m1')
+        run: ./wireguard/build-wireguard-go.sh --universal
 
       - name: Upload artifacts (ubuntu-22.04 x86_64)
         uses: actions/upload-artifact@v4
@@ -77,20 +81,31 @@ jobs:
             build/lib/x86_64-unknown-linux-gnu
           retention-days: 1
 
-      - name: Upload artifacts (macos x86_64)
+      - name: Upload artifacts (macOS x86_64)
         uses: actions/upload-artifact@v4
-        if: contains(inputs.os, 'macos')
+        if: contains(inputs.os, 'mac-m1')
         with:
           name: wireguard-go_macos_x86_64
           path: |
-            build/lib/x86_64-apple-darwin
+            build/lib/amd64-apple-darwin
           retention-days: 1
 
-      - name: Upload artifacts (macos aarch64)
+
+      - name: Upload artifacts (macOS aarch64)
         uses: actions/upload-artifact@v4
         if: contains(inputs.os, 'mac-m1')
         with:
           name: wireguard-go_macos_aarch64
           path: |
             build/lib/aarch64-apple-darwin
+          retention-days: 1
+
+
+      - name: Upload artifacts (macOS universal)
+        uses: actions/upload-artifact@v4
+        if: contains(inputs.os, 'mac-m1')
+        with:
+          name: wireguard-go_macos_universal
+          path: |
+            build/lib/universal-apple-darwin
           retention-days: 1
