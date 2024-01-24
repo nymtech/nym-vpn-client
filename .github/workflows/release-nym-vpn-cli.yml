@@ -13,9 +13,9 @@ on:
         description: Publish Release
         required: true
         default: false
-  # push:
-  #   tags:
-  #     - nym-vpn-cli-v[0-9]+.[0-9]+.[0-9]+
+  push:
+    tags:
+      - nym-vpn-cli-v[0-9]+.[0-9]+.[0-9]+*
 
 jobs:
   build-wireguard-go:
@@ -61,6 +61,13 @@ jobs:
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: package.version --entry="nym-vpn-cli"
+
+      - name: Check tag name consistency
+        if: github.event_name == 'push'
+        run: |
+          if [[ nym-vpn-cli-${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
+            exit 1
+          fi
 
       - name: Set env
         run: |
@@ -123,7 +130,7 @@ jobs:
       - name: Create archive
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          cp target/debug/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
+          cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
@@ -136,7 +143,7 @@ jobs:
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
-          ./target/debug/nym-vpn-cli --version > build-info.txt
+          ./target/release/nym-vpn-cli --version > build-info.txt
           cat build-info.txt
 
       - name: Upload build-info (${{ env.PLATFORM_ARCH }})
@@ -166,23 +173,22 @@ jobs:
       - if: github.event_name == 'schedule'
         run: echo 'TAG_NAME=nightly' >> $GITHUB_ENV
       - if: github.event_name == 'push'
-        run: |
-          TAG_NAME=${{ github.ref }}
-          echo "TAG_NAME=${TAG_NAME#refs/tags/}" >> $GITHUB_ENV
+        run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
       - if: env.TAG_NAME == 'nightly'
         run: |
-          (echo 'SUBJECT=nym-vpn-cli nightly dev build';
+          (echo "SUBJECT=$TAG_NAME nightly prerelease build";
            echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
           gh release delete nightly --yes || true
           git push origin :nightly || true
-      # - if: env.TAG_NAME != 'nightly'
-      #   run: |
-      #     (echo 'SUBJECT=nym-vpn-cli release build';
-      #      echo 'PRERELEASE=') >> $GITHUB_ENV
-      #     gh release delete stable --yes || true
-      #     git push origin :stable || true
+      # Once we consider these actually release builds, remove --prerelease
+      # from PRERELEASE here
+      - if: env.TAG_NAME != 'nightly'
+        run: |
+          (echo "SUBJECT=$TAG_NAME"
+           echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
 
-      # Recall that download-artifact will extract into a directory that includes the tar.gz suffix
+      # Recall that download-artifact will extract into a directory that
+      # includes the tar.gz suffix
       - name: Generate checksums
         run: |
           for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
@@ -204,13 +210,10 @@ jobs:
           echo "$BUILD_INFO"
           echo "checksums"
           echo "$SHA256_CHECKSUMS"
-          echo "Creating release nodes"
+          echo "Creating release notes"
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/release-notes.md" > "$RUNNER_TEMP/release-notes.md"
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          # if [ "$TAG_NAME" != "nightly" ]; then
-          #   gh release create stable $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nvim-macos/* nvim-linux64/* appimage/* nvim-win64/*
-          # fi
           echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz/*
           gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz/*
