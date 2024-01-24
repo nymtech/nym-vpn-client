@@ -223,7 +223,7 @@ jobs:
           # echo "BUILD_INFO=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
           BUILD_INFO=$(cat build-info/build-info.txt)
           echo $BUILD_INFO
-          echo "SHA256_CHECKSUMS=$(cat nym-vpn-cli_*.tar.gz/*.sha256sum)" >> $GITHUB_ENV
+          SHA256_CHECKSUMS=$(cat nym-vpn-cli_*.tar.gz/*.sha256sum)
           echo $SHA256_CHECKSUMS
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/release-notes.md" > "$RUNNER_TEMP/release-notes.md"
           # if [ "$TAG_NAME" != "nightly" ]; then
