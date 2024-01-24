@@ -142,3 +142,4 @@ jobs:
         with:
           name: nym-vpn-desktop_${{ env.APP_VERSION }}_${{ env.PLATFORM_ARCH }}
           path: nym-vpn-desktop/src-tauri/bundle.tar
+          retention-days: 10

@@ -106,3 +106,4 @@ jobs:
         with:
           name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_${{ env.PLATFORM_ARCH }}
           path: target/release/nym-vpn-cli
+          retention-days: 10
