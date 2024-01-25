@@ -93,7 +93,7 @@ jobs:
             exit 1
           fi
 
-      - name: Check  name consistency
+      - name: Check name consistency
         if: github.events.inputs.tag_name == 'nightly-desktop'
         run: exit 1
 
