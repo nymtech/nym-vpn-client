@@ -219,7 +219,7 @@ jobs:
 
       - name: App version
         run: |
-          APP_VERSION=$(cat app-version/app-verseion.txt)
+          APP_VERSION=$(cat app-version/app-version.txt)
           echo APP_VERSION=$APP_VERSION
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
           echo "BUILD_INFO=$APP_VERSION" >> $GITHUB_ENV
