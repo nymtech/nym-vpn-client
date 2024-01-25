@@ -172,7 +172,7 @@ jobs:
         shell: bash
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          cp -vpr target/release/bundle/* ${{ env.ARTIFACT_DIR }}
+          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/* ${{ env.ARTIFACT_DIR }}
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
