@@ -72,6 +72,10 @@ jobs:
             exit 1
           fi
 
+      - name: Check name consistency
+        if: inputs.tag_name == 'nightly-desktop'
+        run: exit 1
+
       - name: Set env
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then

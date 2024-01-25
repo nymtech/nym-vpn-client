@@ -94,7 +94,7 @@ jobs:
           fi
 
       - name: Check name consistency
-        if: inputs.tag_name == 'nightly-desktop'
+        if: inputs.tag_name == 'nightly'
         run: exit 1
 
       - name: Set env
