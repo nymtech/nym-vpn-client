@@ -1,7 +1,7 @@
 name: release-nym-vpn-cli
 on:
-  # schedule:
-  #   - cron: '5 5 * * *'
+  schedule:
+    - cron: '5 4 * * *'
   workflow_dispatch:
     inputs:
       tag_name:
@@ -21,7 +21,7 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
+        os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
+        os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
