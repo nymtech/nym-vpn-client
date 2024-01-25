@@ -176,7 +176,7 @@ jobs:
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
       - run: |
-          BIN_VERSION=$(grep "Build Version" build_info/build_info.txt | cut -d ':' -f 2 | tr -d ' ')
+          BIN_VERSION=$(grep "Build Version" build-info/build-info.txt | cut -d ':' -f 2 | tr -d ' ')
           echo BIN_VERSION=$BIN_VERSION
           echo $BIN_VERSION >> $GITHUB_ENV
 
