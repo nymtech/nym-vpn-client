@@ -1,4 +1,4 @@
-name: release-desktop
+name: release-nym-vpn-desktop
 on:
   # schedule:
   #   - cron: '4 4 * * *'
