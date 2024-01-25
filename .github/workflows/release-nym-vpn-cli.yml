@@ -1,23 +1,27 @@
 name: release-nym-vpn-cli
 on:
-  # schedule:
-  #   - cron: '5 5 * * *'
+  schedule:
+    - cron: '5 4 * * *'
   workflow_dispatch:
     inputs:
       tag_name:
         description: 'Tag name for release'
         required: false
         default: nightly
-  # push:
-  #   tags:
-  #     - nym-vpn-cli-v[0-9]+.[0-9]+.[0-9]+
+      publish:
+        type: boolean
+        description: Publish Release
+        required: true
+        default: false
+  push:
+    tags:
+      - nym-vpn-cli-v[0-9]+.[0-9]+.[0-9]+*
 
 jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        # os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
-        os: [custom-runner-mac-m1]
+        os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -27,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04-16-core, macos-latest, custom-runner-mac-m1]
+        os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -52,6 +56,19 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
 
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry="nym-vpn-cli"
+
+      - name: Check tag name consistency
+        if: github.event_name == 'push'
+        run: |
+          if [[ nym-vpn-cli-${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
+            exit 1
+          fi
+
       - name: Set env
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
@@ -67,13 +84,21 @@ jobs:
             exit 1
           fi
           wg_go_lib_name="wireguard-go_$platform_arch"
+          artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
+          artifact_archive="$artifact_dir.tar.gz"
+          artifact_checksum="$artifact_archive.sha256sum"
           # debug
           echo " ✓ PLATFORM_ARCH: $platform_arch"
           echo " ✓ WG_GO_LIB_NAME: $wg_go_lib_name"
           echo " ✓ WG_GO_LIB_PATH: ${{ env.WG_GO_LIB_PATH }}"
+          echo " ✓ ARTIFACT_DIR: $artifact_dir"
+          echo " ✓ ARTIFACT_ARCHIVE: $artifact_archive"
           # set github env
           echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
           echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
+          echo "ARTIFACT_DIR=$artifact_dir" >> $GITHUB_ENV
+          echo "ARTIFACT_ARCHIVE=$artifact_archive" >> $GITHUB_ENV
+          echo "ARTIFACT_CHECKSUM=$artifact_checksum" >> $GITHUB_ENV
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -102,62 +127,98 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo test --release --verbose
 
-      - name: Get package name
-        id: package-version
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: package.version --entry="nym-vpn-cli"
+      - name: Create archive
+        run: |
+          mkdir ${{ env.ARTIFACT_DIR }}
+          cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
+          tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
         with:
-          name: nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_${{ env.PLATFORM_ARCH }}
-          path: target/release/nym-vpn-cli
+          name: ${{ env.ARTIFACT_ARCHIVE }}
+          path: ${{ env.ARTIFACT_ARCHIVE }}
+          retention-days: 2
+
+      - name: Generate build info (${{ env.PLATFORM_ARCH }})
+        if: contains(matrix.os, 'ubuntu-22.04')
+        run: |
+          ./target/release/nym-vpn-cli --version > build-info.txt
+          cat build-info.txt
+
+      - name: Upload build-info (${{ env.PLATFORM_ARCH }})
+        if: contains(matrix.os, 'ubuntu-22.04')
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-info
+          path: build-info.txt
+          retention-days: 2
 
   publish:
+    if: github.event_name != 'workflow_dispatch' || inputs.publish == true
     needs: build
     runs-on: ubuntu-latest
-    # env:
-    #   GH_REPO: ${{ github.repository }}
-    #   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    # permissions:
-    #   contents: write
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/download-artifact@v4
 
+      # Setup TAG_NAME, which is used general "name"
       - if: github.event_name == 'workflow_dispatch'
         run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
       - if: github.event_name == 'schedule'
         run: echo 'TAG_NAME=nightly' >> $GITHUB_ENV
       - if: github.event_name == 'push'
+        run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Build info
         run: |
-          TAG_NAME=${{ github.ref }}
-          echo "TAG_NAME=${TAG_NAME#refs/tags/}" >> $GITHUB_ENV
+          BUILD_VERSION=$(grep "Build Version" build-info/build-info.txt | cut -d ':' -f 2 | tr -d ' ')
+          echo BUILD_VERSION=$BUILD_VERSION
+          echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
+          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
+          cat build-info/build-info.txt >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
       - if: env.TAG_NAME == 'nightly'
         run: |
-          (echo 'SUBJECT=nym-vpn-cli nightly dev build';
+          (echo "SUBJECT=nym-vpn-cli-v$BUILD_VERSION nightly prerelease build";
            echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
-          # gh release delete nightly --yes || true
-          # git push origin :nightly || true
-      # - if: env.TAG_NAME != 'nightly'
-      #   run: |
-      #     (echo 'SUBJECT=nym-vpn-cli release build';
-      #      echo 'PRERELEASE=') >> $GITHUB_ENV
-      #     gh release delete stable --yes || true
-      #     git push origin :stable || true
+          gh release delete nightly --yes || true
+          git push origin :nightly || true
+      # Once we consider these actually release builds, remove --prerelease
+      # from PRERELEASE here
+      - if: env.TAG_NAME != 'nightly'
+        run: |
+          (echo "SUBJECT=$TAG_NAME"
+           echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
 
-      # TODO: create checksums
-      # -name: Generate checksums
+      # Recall that download-artifact will extract into a directory that
+      # includes the tar.gz suffix
+      - name: Generate checksums
+        run: |
+          for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
+          cat nym-vpn-cli_*.tar.gz/*.sha256sum >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
-        if: env.TAG_NAME == 'nightly'
         env:
           DEBUG: api
         run: |
-          envsubst < "$GITHUB_WORKSPACE/.github/workflows/release-notes.md" > "$RUNNER_TEMP/notes.md"
-          # if [ "$TAG_NAME" != "nightly" ]; then
-          #   gh release create stable $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nvim-macos/* nvim-linux64/* appimage/* nvim-win64/*
-          # fi
-          # gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*/*
+          echo "build info"
+          echo "$BUILD_INFO"
+          echo "checksums"
+          echo "$SHA256_CHECKSUMS"
+          echo "Creating release notes"
+          envsubst < "$GITHUB_WORKSPACE/.github/workflows/release-notes.md" > "$RUNNER_TEMP/release-notes.md"
+          echo "Creating release nodes: output"
+          cat $RUNNER_TEMP/release-notes.md
+          echo "Creating release"
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz/*
