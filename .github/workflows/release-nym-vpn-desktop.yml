@@ -1,13 +1,13 @@
 name: release-nym-vpn-desktop
 on:
-  # schedule:
-  #   - cron: '4 4 * * *'
+  schedule:
+    - cron: '4 4 * * *'
   workflow_dispatch:
     inputs:
       tag_name:
         description: 'Tag name for release'
         required: false
-        default: nightly
+        default: nightly-desktop
       publish:
         type: boolean
         description: Publish Release
@@ -27,8 +27,7 @@ jobs:
         os:
           [
             ubuntu-22.04-16-core,
-            # ubuntu-20.04-16-core,
-            # macos-latest,
+            macos-latest,
             custom-runner-mac-m1,
           ]
     uses: ./.github/workflows/build-wireguard-go.yml
@@ -43,8 +42,7 @@ jobs:
         os:
           [
             ubuntu-22.04-16-core,
-            # ubuntu-20.04-16-core,
-            # macos-latest,
+            macos-latest,
             custom-runner-mac-m1,
           ]
     runs-on: ${{ matrix.os }}
@@ -84,6 +82,7 @@ jobs:
           version=$(jq '.package.version' --raw-output tauri.conf.json)
           echo " ✓ App version: $version"
           echo "APP_VERSION=$version" >> $GITHUB_ENV
+          echo $version > ../../app-version.txt
 
       - name: Check tag name consistency
         if: github.event_name == 'push'
@@ -91,6 +90,10 @@ jobs:
           if [[ nym-vpn-desktop-v${{ env.APP_VERSION }} != ${{ github.ref_name }} ]]; then
             exit 1
           fi
+
+      - name: Check name consistency
+        if: inputs.tag_name == 'nightly'
+        run: exit 1
 
       - name: Set env
         run: |
@@ -164,7 +167,6 @@ jobs:
           ls -la target/release/
           ls -la target/release/bundle
           ls -la target/release/bundle/*
-          # tar -cvf bundle.tar target/release/bundle
         # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
         continue-on-error: true
 
@@ -172,7 +174,7 @@ jobs:
         shell: bash
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          cp -vpr target/release/bundle/* ${{ env.ARTIFACT_DIR }}
+          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/* ${{ env.ARTIFACT_DIR }}
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
@@ -180,4 +182,77 @@ jobs:
         with:
           name: ${{ env.ARTIFACT_ARCHIVE }}
           path: ${{ env.ARTIFACT_ARCHIVE }}
-          retention-days: 10
+          retention-days: 2
+
+      - name: Upload app-version (${{ env.PLATFORM_ARCH }})
+        if: contains(matrix.os, 'ubuntu-22.04')
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-version
+          path: app-version.txt
+          retention-days: 2
+
+  publish:
+    if: github.event_name != 'workflow_dispatch' || inputs.publish == true
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+
+      # Setup TAG_NAME, which is used as a general "name"
+      - if: github.event_name == 'workflow_dispatch'
+        run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+      - if: github.event_name == 'schedule'
+        run: echo 'TAG_NAME=nightly-desktop' >> $GITHUB_ENV
+      - if: github.event_name == 'push'
+        run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: App version
+        run: |
+          APP_VERSION=$(cat app-version/app-version.txt)
+          echo APP_VERSION=$APP_VERSION
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+          echo "BUILD_INFO=$APP_VERSION" >> $GITHUB_ENV
+
+      - if: env.TAG_NAME == 'nightly-desktop'
+        run: |
+          (echo "SUBJECT=nym-vpn-desktop-v$APP_VERSION nightly prerelease build";
+           echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
+          gh release delete nightly-desktop --yes || true
+          git push origin :nightly-desktop || true
+      # Once we consider these actually release builds, remove --prerelease
+      # from PRERELEASE here
+      - if: env.TAG_NAME != 'nightly-desktop'
+        run: |
+          (echo "SUBJECT=$TAG_NAME"
+           echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
+
+      # Recall that download-artifact will extract into a directory that
+      # includes the tar.gz suffix
+      - name: Generate checksums
+        run: |
+          for file in nym-vpn-desktop_*tar.gz; do pushd $file; for f in nym-vpn-desktop_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
+          cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - name: Publish release
+        run: |
+          echo "app version"
+          echo "$APP_VERSION"
+          echo "checksums"
+          echo "$SHA256_CHECKSUMS"
+          echo "Creating release notes"
+          envsubst < "$GITHUB_WORKSPACE/.github/workflows/release-notes.md" > "$RUNNER_TEMP/release-notes.md"
+          echo "Creating release nodes: output"
+          cat $RUNNER_TEMP/release-notes.md
+          echo "Creating release"
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/*

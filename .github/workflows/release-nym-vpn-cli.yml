@@ -72,6 +72,10 @@ jobs:
             exit 1
           fi
 
+      - name: Check name consistency
+        if: inputs.tag_name == 'nightly-desktop'
+        run: exit 1
+
       - name: Set env
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
@@ -171,7 +175,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
 
-      # Setup TAG_NAME, which is used general "name"
+      # Setup TAG_NAME, which is used as a general "name"
       - if: github.event_name == 'workflow_dispatch'
         run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
       - if: github.event_name == 'schedule'
@@ -211,8 +215,6 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
-        env:
-          DEBUG: api
         run: |
           echo "build info"
           echo "$BUILD_INFO"
