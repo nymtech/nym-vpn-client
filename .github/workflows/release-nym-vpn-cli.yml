@@ -215,8 +215,6 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
-        env:
-          DEBUG: api
         run: |
           echo "build info"
           echo "$BUILD_INFO"
