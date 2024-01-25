@@ -84,7 +84,7 @@ jobs:
           version=$(jq '.package.version' --raw-output tauri.conf.json)
           echo " ✓ App version: $version"
           echo "APP_VERSION=$version" >> $GITHUB_ENV
-          cat $APP_VERSION > ../../app-version.txt
+          echo $version > ../../app-version.txt
 
       - name: Check tag name consistency
         if: github.event_name == 'push'
