@@ -17,6 +17,9 @@ on:
     tags:
       - nym-vpn-cli-v[0-9]+.[0-9]+.[0-9]+*
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   build-wireguard-go:
     strategy:
@@ -65,7 +68,7 @@ jobs:
       - name: Check tag name consistency
         if: github.event_name == 'push'
         run: |
-          if [[ nym-vpn-cli-${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
+          if [[ nym-vpn-cli-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
             exit 1
           fi
 
