@@ -194,7 +194,6 @@ jobs:
           path: app-version.txt
           retention-days: 2
 
-
   publish:
     if: github.event_name != 'workflow_dispatch' || inputs.publish == true
     needs: build
