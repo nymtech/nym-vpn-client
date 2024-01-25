@@ -4,7 +4,7 @@ ${BUILD_INFO}
 
 ## Notes
 
-Build of commandline nym-vpn client.
+Build of nym-vpn client.
 
 ## SHA256 Checksums
 
