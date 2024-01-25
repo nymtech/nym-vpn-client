@@ -222,6 +222,7 @@ jobs:
           APP_VERSION=$(cat app-version/app-verseion.txt)
           echo APP_VERSION=$APP_VERSION
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+          echo "BUILD_INFO=$APP_VERSION" >> $GITHUB_ENV
 
       - if: env.TAG_NAME == 'nightly-desktop'
         run: |
@@ -231,7 +232,7 @@ jobs:
           git push origin :nightly-desktop || true
       # Once we consider these actually release builds, remove --prerelease
       # from PRERELEASE here
-      - if: env.TAG_NAME != 'nightly'
+      - if: env.TAG_NAME != 'nightly-desktop'
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
@@ -246,8 +247,8 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
-        env:
-          DEBUG: api
+        # env:
+          # DEBUG: api
         run: |
           echo "app version"
           echo "$APP_VERSION"
