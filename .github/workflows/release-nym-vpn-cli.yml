@@ -168,6 +168,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
 
+      # Setup TAG_NAME, which is used general "name"
       - if: github.event_name == 'workflow_dispatch'
         run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
       - if: github.event_name == 'schedule'
@@ -175,15 +176,18 @@ jobs:
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
-      - run: |
-          BIN_VERSION=$(grep "Build Version" build-info/build-info.txt | cut -d ':' -f 2 | tr -d ' ')
-          echo BIN_VERSION=$BIN_VERSION
-          echo $BIN_VERSION >> $GITHUB_ENV
+      - name: Build info
+        run: |
+          BUILD_VERSION=$(grep "Build Version" build-info/build-info.txt | cut -d ':' -f 2 | tr -d ' ')
+          echo BUILD_VERSION=$BUILD_VERSION
+          echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
+          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
+          cat build-info/build-info.txt >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
-      # TODO: insert the cargo version so that the subject is nym-vpn-cli-v1.2.3 nightly ...
       - if: env.TAG_NAME == 'nightly'
         run: |
-          (echo "SUBJECT=nym-vpn-cli-v$BIN_VERSION nightly prerelease build";
+          (echo "SUBJECT=nym-vpn-cli-v$BUILD_VERSION nightly prerelease build";
            echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
           gh release delete nightly --yes || true
           git push origin :nightly || true
@@ -201,12 +205,6 @@ jobs:
           for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-cli_*.tar.gz/*.sha256sum >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
-
-      - name: Build info
-        run: |
-          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
-          cat build-info/build-info.txt >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
