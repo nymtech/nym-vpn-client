@@ -174,7 +174,9 @@ jobs:
         shell: bash
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/* ${{ env.ARTIFACT_DIR }}
+          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn*.AppImage ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn*.deb ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
