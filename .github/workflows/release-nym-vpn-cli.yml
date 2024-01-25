@@ -171,7 +171,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
 
-      # Setup TAG_NAME, which is used general "name"
+      # Setup TAG_NAME, which is used as a general "name"
       - if: github.event_name == 'workflow_dispatch'
         run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
       - if: github.event_name == 'schedule'
