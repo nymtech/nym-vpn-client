@@ -118,11 +118,11 @@ fn get_tunnel_nodes(
 ) -> (Node, Node) {
     #[cfg(windows)]
     {
-        let v4 = routing::Node::new(ipv4_gateway.clone().into(), iface_name.to_string());
+        let v4 = Node::new(ipv4_gateway.clone().into(), iface_name.to_string());
         let v6 = if let Some(ipv6_gateway) = ipv6_gateway.as_ref() {
-            routing::Node::new(ipv6_gateway.clone().into(), iface_name.to_string())
+            Node::new(ipv6_gateway.clone().into(), iface_name.to_string())
         } else {
-            routing::Node::device(iface_name.to_string())
+            Node::device(iface_name.to_string())
         };
         (v4, v6)
     }
