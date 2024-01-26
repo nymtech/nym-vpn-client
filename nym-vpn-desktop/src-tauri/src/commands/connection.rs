@@ -77,27 +77,35 @@ pub async fn connect(
                 "entry node location set, using: {}",
                 entry_node_location.code
             );
-            EntryPoint::Location(entry_node_location.code.clone())
+            EntryPoint::Location {
+                location: entry_node_location.code.clone(),
+            }
         }
         _ => {
             debug!(
                 "entry node location not set, using default: {}",
                 DEFAULT_NODE_LOCATION
             );
-            EntryPoint::Location(DEFAULT_NODE_LOCATION.into())
+            EntryPoint::Location {
+                location: DEFAULT_NODE_LOCATION.into(),
+            }
         }
     };
     let exit_point = match app_state.exit_node_location {
         Some(ref exit_node_location) => {
             debug!("exit node location set, using: {}", exit_node_location.code);
-            ExitPoint::Location(exit_node_location.code.clone())
+            ExitPoint::Location {
+                location: exit_node_location.code.clone(),
+            }
         }
         _ => {
             debug!(
                 "exit node location not set, using default: {}",
                 DEFAULT_NODE_LOCATION
             );
-            ExitPoint::Location(DEFAULT_NODE_LOCATION.into())
+            ExitPoint::Location {
+                location: DEFAULT_NODE_LOCATION.into(),
+            }
         }
     };
 
