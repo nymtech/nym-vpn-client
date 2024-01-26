@@ -3,6 +3,7 @@
 
 use crate::error::{Error, Result};
 use crate::mixnet_processor::IpPacketRouterAddress;
+#[cfg(not(target_os = "android"))]
 use crate::UniffiCustomTypeConverter;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_crypto::asymmetric::encryption;
@@ -14,6 +15,7 @@ use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use nym_validator_client::models::DescribedGateway;
 use nym_validator_client::NymApiClient;
 use rand::seq::IteratorRandom;
+use serde::{Deserialize, Serialize};
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::PublicKey;
@@ -53,7 +55,7 @@ impl Config {
 
 // The entry point is always a gateway identity, or some other entry that can be resolved to a
 // gateway identity.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum EntryPoint {
     Gateway { identity: NodeIdentity },
     // NOTE: Consider using a crate with strongly typed country codes instead of strings
@@ -62,7 +64,7 @@ pub enum EntryPoint {
 
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
 // gateway, we can refer to it by the gateway identity.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum ExitPoint {
     // An explicit exit address. This is useful when the exit ip-packet-router is running as a
     // standalone entity (private).
@@ -74,6 +76,7 @@ pub enum ExitPoint {
     Location { location: String },
 }
 
+#[cfg(not(target_os = "android"))]
 impl UniffiCustomTypeConverter for Recipient {
     type Builtin = String;
 
@@ -86,6 +89,7 @@ impl UniffiCustomTypeConverter for Recipient {
     }
 }
 
+#[cfg(not(target_os = "android"))]
 impl UniffiCustomTypeConverter for NodeIdentity {
     type Builtin = String;
 

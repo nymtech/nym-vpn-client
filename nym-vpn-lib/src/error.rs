@@ -126,14 +126,6 @@ pub enum Error {
 
     #[error("timeout waiting for mixnet client to start")]
     StartMixnetTimeout,
-
-    #[cfg(target_os = "android")]
-    #[error("Get JVM instance")]
-    GetJvmInstance,
-
-    #[cfg(target_os = "android")]
-    #[error("Create global reference")]
-    CreateGlobalReference,
 }
 
 // Result type based on our error type

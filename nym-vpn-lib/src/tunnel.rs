@@ -58,8 +58,8 @@ impl Tunnel {
 
         #[cfg(all(not(target_os = "macos"), not(target_os = "linux")))]
         let (firewall, dns_monitor) = {
-            let firewall = Firewall::new();
-            let dns_monitor = DnsMonitor::new();
+            let firewall = Firewall::new()?;
+            let dns_monitor = DnsMonitor::new()?;
             (firewall, dns_monitor)
         };
 
@@ -68,6 +68,8 @@ impl Tunnel {
             firewall,
             dns_monitor,
             route_manager_handle,
+            #[cfg(target_os = "android")]
+            context,
         })
     }
 }

@@ -1,6 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(not(target_os = "android"))]
 uniffi::include_scaffolding!("nym_vpn_lib");
 
 use crate::config::WireguardConfig;
@@ -470,17 +471,34 @@ impl NymVpn {
 
 struct UniffiNymVpn {
     inner: Arc<RwLock<NymVpn>>,
+    #[cfg(target_os = "android")]
+    context: talpid_types::android::AndroidContext,
 }
 
 impl UniffiNymVpn {
-    pub fn new(entry_gateway: EntryPoint, exit_router: ExitPoint) -> Self {
+    pub fn new(
+        entry_gateway: EntryPoint,
+        exit_router: ExitPoint,
+        #[cfg(target_os = "android")] context: talpid_types::android::AndroidContext,
+    ) -> Self {
         UniffiNymVpn {
             inner: Arc::new(RwLock::new(NymVpn::new(entry_gateway, exit_router))),
+            #[cfg(target_os = "android")]
+            context,
         }
     }
 
     pub async fn run(&self) {
-        if let Err(err) = self.inner.write().await.run().await {
+        if let Err(err) = self
+            .inner
+            .write()
+            .await
+            .run(
+                #[cfg(target_os = "android")]
+                self.context.clone(),
+            )
+            .await
+        {
             log::error!("{err}");
         }
     }
@@ -539,6 +557,7 @@ pub enum NymVpnExitStatusMessage {
 /// vpn_config.enable_two_hop = true;
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
 /// ```
+#[cfg(not(target_os = "android"))]
 pub fn spawn_nym_vpn(mut nym_vpn: NymVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
 

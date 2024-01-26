@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use default_net::Interface;
-use std::process::Command;
 use std::{collections::HashSet, net::IpAddr};
 
 use default_net::interface::get_default_interface;
@@ -180,7 +179,7 @@ pub async fn setup_routing(
     );
 
     #[cfg(target_os = "linux")]
-    Command::new("ip")
+    std::process::Command::new("ip")
         .args([
             "-6",
             "addr",
@@ -192,7 +191,7 @@ pub async fn setup_routing(
         .output()?;
 
     #[cfg(target_os = "macos")]
-    Command::new("ifconfig")
+    std::process::Command::new("ifconfig")
         .args([&device_name, "inet6", "add", "fda7:576d:ac1a::1/48"])
         .output()?;
 
