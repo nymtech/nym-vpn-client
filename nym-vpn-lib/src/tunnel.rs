@@ -28,7 +28,7 @@ impl Tunnel {
         config: Option<WireguardConfig>,
         route_manager_handle: RouteManagerHandle,
     ) -> Result<Self, crate::error::Error> {
-        #[cfg(target_os = "darwin")]
+        #[cfg(target_os = "macos")]
         let (firewall, dns_monitor) = {
             let (command_tx, _) = mpsc::unbounded();
             let command_tx = Arc::new(command_tx);
