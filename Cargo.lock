@@ -542,6 +542,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "c2rust-bitfields"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b43c3f07ab0ef604fa6f595aa46ec2f8a22172c975e186f6f5bf9829a3b72c41"
+dependencies = [
+ "c2rust-bitfields-derive",
+]
+
+[[package]]
+name = "c2rust-bitfields-derive"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d3cbc102e2597c9744c8bd8c15915d554300601c91a079430d309816b0912545"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
+
+[[package]]
 name = "cc"
 version = "1.0.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1266,7 +1286,7 @@ dependencies = [
  "netlink-sys",
  "once_cell",
  "system-configuration",
- "windows",
+ "windows 0.48.0",
 ]
 
 [[package]]
@@ -2081,7 +2101,7 @@ dependencies = [
  "indexmap 2.1.0",
  "slab",
  "tokio",
- "tokio-util 0.7.10",
+ "tokio-util",
  "tracing",
 ]
 
@@ -2379,7 +2399,7 @@ dependencies = [
  "iana-time-zone-haiku",
  "js-sys",
  "wasm-bindgen",
- "windows-core",
+ "windows-core 0.52.0",
 ]
 
 [[package]]
@@ -2507,6 +2527,12 @@ name = "ioctl-sys"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c429fffa658f288669529fc26565f728489a2e39bc7b24a428aaaf51355182e"
+
+[[package]]
+name = "ioctl-sys"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bd11f3a29434026f5ff98c730b668ba74b1033637b8817940b54d040696133c"
 
 [[package]]
 name = "ipconfig"
@@ -2709,6 +2735,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06085512b750d640299b79be4bad3d2fa90a9c00b1fd9e1b46364f66f0485c72"
 dependencies = [
  "pkg-config",
+]
+
+[[package]]
+name = "libloading"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c571b676ddfc9a8c12f1f3d3085a7b163966a8fd8098a90640953ce5f6170161"
+dependencies = [
+ "cfg-if",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -3657,7 +3693,7 @@ source = "git+https://github.com/nymtech/nym?rev=67132161f4ab761a814165d38516de2
 dependencies = [
  "tokio",
  "tokio-stream",
- "tokio-util 0.7.10",
+ "tokio-util",
  "wasmtimer",
 ]
 
@@ -3804,7 +3840,7 @@ dependencies = [
  "nym-socks5-requests",
  "nym-task",
  "tokio",
- "tokio-util 0.7.10",
+ "tokio-util",
 ]
 
 [[package]]
@@ -3945,7 +3981,7 @@ dependencies = [
  "nym-sphinx-params",
  "nym-sphinx-types",
  "thiserror",
- "tokio-util 0.7.10",
+ "tokio-util",
 ]
 
 [[package]]
@@ -4130,7 +4166,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
- "tun",
+ "tun 0.6.1",
  "url",
 ]
 
@@ -4480,7 +4516,7 @@ dependencies = [
  "derive_builder",
  "errno 0.2.8",
  "error-chain",
- "ioctl-sys",
+ "ioctl-sys 0.6.0",
  "ipnetwork",
  "libc",
 ]
@@ -5953,7 +5989,7 @@ dependencies = [
  "tonic-build",
  "triggered",
  "trust-dns-server",
- "tun",
+ "tun 0.5.5",
  "uuid",
  "which",
  "widestring",
@@ -6072,7 +6108,7 @@ dependencies = [
  "talpid-types",
  "talpid-windows-net",
  "tokio",
- "tun",
+ "tun 0.5.5",
  "windows-sys 0.42.0",
 ]
 
@@ -6440,7 +6476,7 @@ dependencies = [
  "futures-core",
  "pin-project-lite",
  "tokio",
- "tokio-util 0.7.10",
+ "tokio-util",
 ]
 
 [[package]]
@@ -6472,20 +6508,6 @@ dependencies = [
  "tokio",
  "tokio-native-tls",
  "tungstenite",
-]
-
-[[package]]
-name = "tokio-util"
-version = "0.6.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36943ee01a6d67977dd3f84a5a1d2efeb4ada3a1ae771cadfaa535d9d9fc6507"
-dependencies = [
- "bytes",
- "futures-core",
- "futures-sink",
- "log",
- "pin-project-lite",
- "tokio",
 ]
 
 [[package]]
@@ -6570,7 +6592,7 @@ dependencies = [
  "prost-derive 0.11.9",
  "tokio",
  "tokio-stream",
- "tokio-util 0.7.10",
+ "tokio-util",
  "tower",
  "tower-layer",
  "tower-service",
@@ -6605,7 +6627,7 @@ dependencies = [
  "rand 0.8.5",
  "slab",
  "tokio",
- "tokio-util 0.7.10",
+ "tokio-util",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -6833,14 +6855,27 @@ version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cbc25e23adc6cac7dd895ce2780f255902290fc39b00e1ae3c33e89f3d20fa66"
 dependencies = [
+ "ioctl-sys 0.6.0",
+ "libc",
+ "thiserror",
+]
+
+[[package]]
+name = "tun"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0adb9992bbd5ca76f3847ed579ad4ee8defb2ec2eea918cceef17ccc66fa4fd4"
+dependencies = [
  "byteorder",
  "bytes",
  "futures-core",
- "ioctl-sys",
+ "ioctl-sys 0.8.0",
  "libc",
+ "log",
  "thiserror",
  "tokio",
- "tokio-util 0.6.10",
+ "tokio-util",
+ "wintun",
 ]
 
 [[package]]
@@ -7249,6 +7284,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "windows"
+version = "0.51.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca229916c5ee38c2f2bc1e9d8f04df975b4bd93f9955dc69fabb5d91270045c9"
+dependencies = [
+ "windows-core 0.51.1",
+ "windows-targets 0.48.5",
+]
+
+[[package]]
+name = "windows-core"
+version = "0.51.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f1f8cf84f35d2db49a46868f947758c7a1138116f7fac3bc844f43ade1292e64"
+dependencies = [
+ "windows-targets 0.48.5",
+]
+
+[[package]]
 name = "windows-core"
 version = "0.52.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7551,6 +7605,19 @@ checksum = "524e57b2c537c0f9b1e69f1965311ec12182b4122e45035b1508cd24d2adadb1"
 dependencies = [
  "cfg-if",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "wintun"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "29b83b0eca06dd125dbcd48a45327c708a6da8aada3d95a3f06db0ce4b17e0d4"
+dependencies = [
+ "c2rust-bitfields",
+ "libloading",
+ "log",
+ "thiserror",
+ "windows 0.51.1",
 ]
 
 [[package]]
