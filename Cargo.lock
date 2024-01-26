@@ -4120,6 +4120,7 @@ dependencies = [
  "serde_json",
  "signature 1.4.0",
  "talpid-core",
+ "talpid-platform-metadata",
  "talpid-routing",
  "talpid-tunnel",
  "talpid-types",
@@ -5051,6 +5052,12 @@ checksum = "bd124222d17ad93a644ed9d011a40f4fb64aa54275c08cc216524a9ea82fb09f"
 dependencies = [
  "digest 0.10.7",
 ]
+
+[[package]]
+name = "rs-release"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "21efba391745f92fc14a5cccb008e711a1a3708d8dacd2e69d88d5de513c117a"
 
 [[package]]
 name = "rtnetlink"
@@ -6004,6 +6011,16 @@ dependencies = [
  "widestring",
  "windows-sys 0.42.0",
  "winreg 0.7.0",
+]
+
+[[package]]
+name = "talpid-platform-metadata"
+version = "0.0.0"
+source = "git+https://github.com/mullvad/mullvadvpn-app?tag=2023.2#ccfbaa279d04b4f93dff489880e3fb3ae67025bd"
+dependencies = [
+ "rs-release",
+ "talpid-dbus",
+ "windows-sys 0.42.0",
 ]
 
 [[package]]
