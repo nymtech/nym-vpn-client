@@ -1,4 +1,4 @@
-name: ci-desktop-rust
+name: ci-nym-vpn-desktop-rust
 
 on:
   workflow_dispatch:

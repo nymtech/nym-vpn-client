@@ -1,4 +1,4 @@
-name: ci-cli (and lib)
+name: ci-nym-vpn-cli
 
 on:
   # push:

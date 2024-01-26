@@ -1,4 +1,4 @@
-name: ci-desktop-js
+name: ci-nym-vpn-desktop-js
 
 on:
   workflow_dispatch:
