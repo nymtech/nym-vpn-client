@@ -28,7 +28,7 @@ impl Tunnel {
         config: Option<WireguardConfig>,
         route_manager_handle: RouteManagerHandle,
     ) -> Result<Self, crate::error::Error> {
-        #[cfg(not(target_os = "linux"))]
+        #[cfg(target_os = "darwin")]
         let (firewall, dns_monitor) = {
             let (command_tx, _) = mpsc::unbounded();
             let command_tx = Arc::new(command_tx);
@@ -37,6 +37,15 @@ impl Tunnel {
             let firewall = Firewall::new()?;
             debug!("Starting dns monitor");
             let dns_monitor = DnsMonitor::new(weak_command_tx)?;
+            (firewall, dns_monitor)
+        };
+
+        #[cfg(target_os = "windows")]
+        let (firewall, dns_monitor) = {
+            debug!("Starting firewall");
+            let firewall = Firewall::new()?;
+            debug!("Starting dns monitor");
+            let dns_monitor = DnsMonitor::new()?;
             (firewall, dns_monitor)
         };
 

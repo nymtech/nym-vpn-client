@@ -160,7 +160,7 @@ pub async fn setup_routing(
     info!("Creating tun device");
     let dev = tun::create_as_async(&config.mixnet_tun_config)
         .tap_err(|err| error!("Failed to create tun device: {}", err))?;
-    let device_name = dev.get_ref().name().to_string();
+    let device_name = dev.get_ref().name().unwrap().to_string();
     info!(
         "Created tun device {device_name} with ip={device_ip:?}",
         device_name = device_name,
