@@ -57,6 +57,10 @@ jobs:
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc" >> $GITHUB_ENV
         fi
 
+    - name: Setup msbuild
+      if: contains(matrix.os, 'windows')
+      uses: microsoft/setup-msbuild@v1.1
+
     - name: Install Protoc
       uses: arduino/setup-protoc@v2
       if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')
