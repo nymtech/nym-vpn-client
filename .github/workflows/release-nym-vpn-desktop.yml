@@ -220,6 +220,7 @@ jobs:
       - name: Build info
         run: |
           echo "BUILD_VERSION=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
+          echo "BUILD_INFO=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
 
       - if: env.TAG_NAME == 'nightly-desktop'
         run: |
@@ -247,8 +248,8 @@ jobs:
 
       - name: Publish release
         run: |
-          echo "build version"
-          echo "$BUILD_VERSION"
+          echo "build info"
+          echo "$BUILD_INFO"
           echo "checksums"
           echo "$SHA256_CHECKSUMS"
           echo "Creating release notes"
