@@ -47,9 +47,6 @@ jobs:
           ]
     runs-on: ${{ matrix.os }}
     env:
-      # TODO use repo secrets instead
-      TAURI_PRIVATE_KEY: "1234"
-      TAURI_KEY_PASSWORD: "1234"
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
 
     steps:
