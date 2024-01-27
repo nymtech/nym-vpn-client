@@ -65,10 +65,16 @@ jobs:
       run: ./wireguard/build-wireguard-go.sh
 
     - name: Build
-      run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo build --verbose
+      run: cargo build --verbose
+      env:
+        RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
 
     - name: Run tests
-      run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo test --verbose
+      run: cargo test --verbose
+      env:
+        RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
 
     - name: Clippy
-      run: RUSTFLAGS="-L ${LIBRARY_PATH}" cargo clippy -- -Dwarnings
+      run: cargo clippy -- -Dwarnings
+      env:
+        RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
