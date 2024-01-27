@@ -21,7 +21,8 @@ jobs:
       fail-fast: false
       matrix:
         # windows-2022 is incredibly slow right now https://github.com/actions/runner-images/issues/7320
-        os: [ubuntu-22.04, macos-latest, windows-2019]
+        # os: [ubuntu-22.04, macos-latest, windows-2019]
+        os: [windows-2019]
     continue-on-error: ${{ matrix.os == 'windows-2019' }}
     runs-on: ${{ matrix.os }}
 
@@ -67,6 +68,11 @@ jobs:
 
     - name: Build wireguard
       run: ./wireguard/build-wireguard-go.sh
+
+    - name: Build windows modules
+      if: contains(matrix.os, 'windows')
+      shell: bash
+      run: ./build-windows-modules.sh
 
     - name: Build
       run: cargo build --verbose
