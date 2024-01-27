@@ -22,6 +22,7 @@ jobs:
       matrix:
         # os: [ubuntu-22.04, macos-latest, windows-latest]
         os: [windows-latest]
+    # continue-on-error: ${{ matrix.os == 'windows-latest' }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -41,6 +42,7 @@ jobs:
         components: rustfmt, clippy
 
     - name: Set LIBRARY_PATH
+      shell: bash
       run: |
         if [ "${{ matrix.os }}" = "ubuntu-22.04" ]; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
