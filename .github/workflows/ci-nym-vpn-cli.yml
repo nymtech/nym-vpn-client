@@ -21,7 +21,10 @@ jobs:
       fail-fast: false
       matrix:
         # os: [ubuntu-22.04, macos-latest, windows-latest]
-        os: [windows-latest]
+        # os: [windows-latest]
+        # windows-2022 is incredibly slow right now
+        # https://github.com/actions/runner-images/issues/7320
+        os: [windows-2019]
     # continue-on-error: ${{ matrix.os == 'windows-latest' }}
     runs-on: ${{ matrix.os }}
 
@@ -30,7 +33,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Support longpaths on windows
-      if: matrix.os == 'windows-latest'
+      if: contains(matrix.os, 'windows')
       run: git config --system core.longpaths true
 
     - name: Install system dependencies
@@ -52,13 +55,15 @@ jobs:
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
         elif [ "${{ matrix.os }}" = "macos-latest" ]; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
-        elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+        # elif [ "${{ matrix.os }}" = "windows-latest" ]; then
+        elif ${{ contains(matrix.os, 'windows') }}; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc" >> $GITHUB_ENV
         fi
 
     - name: Install Protoc
       uses: arduino/setup-protoc@v2
-      if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest'
+      # if: matrix.os == 'macos-latest' || matrix.os == 'windows-latest'
+      if: matrix.os == 'macos-latest' || contains(matrix.os, 'windows')
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
 
