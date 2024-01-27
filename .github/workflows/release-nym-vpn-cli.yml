@@ -1,7 +1,7 @@
 name: release-nym-vpn-cli
 on:
   schedule:
-    - cron: '5 4 * * *'
+    - cron: '4 3 * * *'
   workflow_dispatch:
     inputs:
       tag_name:

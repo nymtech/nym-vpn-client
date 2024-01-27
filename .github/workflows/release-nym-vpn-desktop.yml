@@ -75,19 +75,17 @@ jobs:
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
             libgtk-3-dev squashfs-tools libayatana-appindicator3-dev
 
-      - name: Get version
+      - name: Get package version
+        id: package-version
         working-directory: nym-vpn-desktop/src-tauri
-        shell: bash
-        run: |
-          version=$(jq '.package.version' --raw-output tauri.conf.json)
-          echo " ✓ App version: $version"
-          echo "APP_VERSION=$version" >> $GITHUB_ENV
-          echo $version > ../../app-version.txt
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version
 
       - name: Check tag name consistency
         if: github.event_name == 'push'
         run: |
-          if [[ nym-vpn-desktop-v${{ env.APP_VERSION }} != ${{ github.ref_name }} ]]; then
+          if [[ nym-vpn-desktop-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
             exit 1
           fi
 
@@ -110,7 +108,7 @@ jobs:
             exit 1
           fi
           wg_go_lib_name="wireguard-go_$platform_arch"
-          artifact_dir="nym-vpn-desktop_${{ env.APP_VERSION }}_$platform_arch"
+          artifact_dir="nym-vpn-desktop_${{ steps.package-version.outputs.metadata }}_$platform_arch"
           artifact_archive="$artifact_dir.tar.gz"
           artifact_checksum="$artifact_archive.sha256sum"
           # debug
@@ -186,12 +184,19 @@ jobs:
           path: ${{ env.ARTIFACT_ARCHIVE }}
           retention-days: 2
 
-      - name: Upload app-version (${{ env.PLATFORM_ARCH }})
+      # Build info, but for now it's just the version
+      - name: Generate build info (${{ env.PLATFORM_ARCH }})
+        if: contains(matrix.os, 'ubuntu-22.04')
+        run: |
+          echo ${{ steps.package-version.outputs.metadata }} > build-info.txt
+          cat build-info.txt
+
+      - name: Upload build-info (${{ env.PLATFORM_ARCH }})
         if: contains(matrix.os, 'ubuntu-22.04')
         uses: actions/upload-artifact@v4
         with:
-          name: app-version
-          path: app-version.txt
+          name: build-info
+          path: build-info.txt
           retention-days: 2
 
   publish:
@@ -216,16 +221,20 @@ jobs:
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
-      - name: App version
+      - name: Build info
         run: |
-          APP_VERSION=$(cat app-version/app-version.txt)
-          echo APP_VERSION=$APP_VERSION
-          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
-          echo "BUILD_INFO=$APP_VERSION" >> $GITHUB_ENV
+          echo "BUILD_VERSION=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
+
+      # - name: App version
+      #   run: |
+      #     APP_VERSION=$(cat app-version/app-version.txt)
+      #     echo APP_VERSION=$APP_VERSION
+      #     echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+      #     echo "BUILD_INFO=$APP_VERSION" >> $GITHUB_ENV
 
       - if: env.TAG_NAME == 'nightly-desktop'
         run: |
-          (echo "SUBJECT=nym-vpn-desktop-v$APP_VERSION nightly prerelease build";
+          (echo "SUBJECT=nym-vpn-desktop-v$BUILD_VERSION nightly prerelease build";
            echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
           gh release delete nightly-desktop --yes || true
           git push origin :nightly-desktop || true
@@ -247,8 +256,8 @@ jobs:
 
       - name: Publish release
         run: |
-          echo "app version"
-          echo "$APP_VERSION"
+          echo "build version"
+          echo "$BUILD_VERSION"
           echo "checksums"
           echo "$SHA256_CHECKSUMS"
           echo "Creating release notes"
