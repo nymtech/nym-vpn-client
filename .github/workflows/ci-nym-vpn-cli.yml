@@ -29,6 +29,10 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v3
 
+    - name: Support longpaths on windows
+      if: matrix.os == 'windows-latest'
+      run: git config --system core.longpaths true
+
     - name: Install system dependencies
       run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
       if: matrix.os == 'ubuntu-22.04'
