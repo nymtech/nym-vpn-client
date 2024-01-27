@@ -8,6 +8,7 @@ on:
       # also trigger the jobs on upstream dependencies changes
       - "wireguard/**"
       - "nym-vpn-lib/**"
+      - ".github/workflows/ci-nym-vpn-desktop-rust.yml"
 
 jobs:
   build-wireguard-go:
