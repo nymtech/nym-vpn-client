@@ -74,10 +74,9 @@ jobs:
 
       - name: Get package version
         id: package-version
-        working-directory: nym-vpn-desktop/src-tauri
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version
+          subcommand: package.version --entry nym-vpn-desktop/src-tauri
 
       - name: Check tag name consistency
         if: github.event_name == 'push'
