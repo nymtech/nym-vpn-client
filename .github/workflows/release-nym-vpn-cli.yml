@@ -195,7 +195,8 @@ jobs:
       - if: env.TAG_NAME == 'nightly'
         run: |
           (echo "SUBJECT=nym-vpn-cli-v$BUILD_VERSION nightly prerelease build";
-           echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
+           echo 'PRERELEASE=--prerelease';
+           echo 'NOTES_FILE=release-notes-nightly.md') >> $GITHUB_ENV
           gh release delete nightly --yes || true
           git push origin :nightly || true
       # Once we consider these actually release builds, remove --prerelease
@@ -203,7 +204,8 @@ jobs:
       - if: env.TAG_NAME != 'nightly'
         run: |
           (echo "SUBJECT=$TAG_NAME"
-           echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
+           echo 'PRERELEASE=--prerelease'
+           echo 'NOTES_FILE=release-notes.md') >> $GITHUB_ENV
 
       # Recall that download-artifact will extract into a directory that
       # includes the tar.gz suffix
@@ -221,7 +223,7 @@ jobs:
           echo "checksums"
           echo "$SHA256_CHECKSUMS"
           echo "Creating release notes"
-          envsubst < "$GITHUB_WORKSPACE/.github/workflows/release-notes.md" > "$RUNNER_TEMP/release-notes.md"
+          envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"

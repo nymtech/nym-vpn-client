@@ -222,17 +222,11 @@ jobs:
         run: |
           echo "BUILD_VERSION=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
 
-      # - name: App version
-      #   run: |
-      #     APP_VERSION=$(cat app-version/app-version.txt)
-      #     echo APP_VERSION=$APP_VERSION
-      #     echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
-      #     echo "BUILD_INFO=$APP_VERSION" >> $GITHUB_ENV
-
       - if: env.TAG_NAME == 'nightly-desktop'
         run: |
           (echo "SUBJECT=nym-vpn-desktop-v$BUILD_VERSION nightly prerelease build";
-           echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
+           echo 'PRERELEASE=--prerelease';
+           echo 'NOTES_FILE=release-notes-nightly.md') >> $GITHUB_ENV
           gh release delete nightly-desktop --yes || true
           git push origin :nightly-desktop || true
       # Once we consider these actually release builds, remove --prerelease
@@ -240,7 +234,8 @@ jobs:
       - if: env.TAG_NAME != 'nightly-desktop'
         run: |
           (echo "SUBJECT=$TAG_NAME"
-           echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
+           echo 'PRERELEASE=--prerelease'
+           ehco 'NOTES_FILE=release-notes.md') >> $GITHUB_ENV
 
       # Recall that download-artifact will extract into a directory that
       # includes the tar.gz suffix
@@ -258,7 +253,7 @@ jobs:
           echo "checksums"
           echo "$SHA256_CHECKSUMS"
           echo "Creating release notes"
-          envsubst < "$GITHUB_WORKSPACE/.github/workflows/release-notes.md" > "$RUNNER_TEMP/release-notes.md"
+          envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
