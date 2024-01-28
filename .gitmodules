@@ -1,0 +1,3 @@
+[submodule "windows/windows-libraries"]
+	path = windows/windows-libraries
+	url = https://github.com/mullvad/windows-libraries
