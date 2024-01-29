@@ -19,9 +19,3 @@ interface ExitPoint {
 
 namespace nym_vpn_lib {
 };
-
-interface UniffiNymVpn {
-    constructor(EntryPoint entry_gateway, ExitPoint exit_router);
-    [Async]
-    void run();
-};

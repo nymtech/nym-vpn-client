@@ -4260,6 +4260,7 @@ dependencies = [
  "futures",
  "ipnetwork",
  "jnix",
+ "lazy_static",
  "log",
  "nym-bin-common",
  "nym-client-core",

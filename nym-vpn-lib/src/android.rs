@@ -2,12 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::gateway_client::{EntryPoint, ExitPoint};
-use crate::UniffiNymVpn;
+use crate::{spawn_nym_vpn, NymVpn};
 use jnix::jni::objects::{JObject, JString};
 use jnix::jni::JNIEnv;
 use jnix::{FromJava, JnixEnv};
+use lazy_static::lazy_static;
 use std::sync::Arc;
 use talpid_types::android::AndroidContext;
+use tokio::runtime::Runtime;
+
+lazy_static! {
+    static ref RUNTIME: Runtime = Runtime::new().unwrap();
+}
 
 #[no_mangle]
 #[allow(non_snake_case)]
@@ -29,5 +35,12 @@ pub extern "system" fn Java_runVPN(
     let exit_router: ExitPoint =
         serde_json::from_str(&String::from_java(&env, exit_router)).expect("Invalid exit router");
 
-    let _vpn = UniffiNymVpn::new(entry_gateway, exit_router, context);
+    let vpn = NymVpn::new(entry_gateway, exit_router, context);
+
+    match spawn_nym_vpn(vpn) {
+        Ok(handle) => {}
+        Err(e) => {
+            log::error!("{:?}", e)
+        }
+    }
 }

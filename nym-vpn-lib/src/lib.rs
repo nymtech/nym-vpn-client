@@ -18,7 +18,6 @@ use mixnet_connect::SharedMixnetClient;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
-use std::sync::Arc;
 use std::time::Duration;
 use talpid_routing::RouteManager;
 use tap::TapFallible;
@@ -31,7 +30,6 @@ pub use nym_task::{manager::SentStatus, StatusReceiver};
 
 pub use nym_bin_common;
 pub use nym_config;
-use tokio::sync::RwLock;
 use tokio::task::JoinHandle;
 use tun::AsyncDevice;
 
@@ -109,11 +107,18 @@ pub struct NymVpn {
     /// Disable constant rate background loop cover traffic
     pub disable_background_cover_traffic: bool,
 
+    #[cfg(target_os = "android")]
+    android_context: talpid_types::android::AndroidContext,
+
     // Necessary so that the device doesn't get closed before cleanup has taken place
     shadow_handle: ShadowHandle,
 }
 impl NymVpn {
-    pub fn new(entry_gateway: EntryPoint, exit_router: ExitPoint) -> Self {
+    pub fn new(
+        entry_gateway: EntryPoint,
+        exit_router: ExitPoint,
+        #[cfg(target_os = "android")] android_context: talpid_types::android::AndroidContext,
+    ) -> Self {
         Self {
             gateway_config: gateway_client::Config::default(),
             mixnet_client_path: None,
@@ -128,6 +133,8 @@ impl NymVpn {
             enable_two_hop: false,
             enable_poisson_rate: false,
             disable_background_cover_traffic: false,
+            #[cfg(target_os = "android")]
+            android_context,
             shadow_handle: ShadowHandle { _inner: None },
         }
     }
@@ -250,7 +257,6 @@ impl NymVpn {
 
     async fn setup_tunnel(
         &mut self,
-        #[cfg(target_os = "android")] context: talpid_types::android::AndroidContext,
     ) -> Result<(
         Tunnel,
         TaskManager,
@@ -310,7 +316,7 @@ impl NymVpn {
             wireguard_config.clone(),
             route_manager.handle()?,
             #[cfg(target_os = "android")]
-            context,
+            self.android_context.clone(),
         ) {
             Ok(tunnel) => tunnel,
             Err(err) => {
@@ -393,16 +399,9 @@ impl NymVpn {
     // Start the Nym VPN client, and wait for it to shutdown. The use case is in simple console
     // applications where the main way to interact with the running process is to send SIGINT
     // (ctrl-c)
-    pub async fn run(
-        &mut self,
-        #[cfg(target_os = "android")] context: talpid_types::android::AndroidContext,
-    ) -> Result<()> {
-        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) = self
-            .setup_tunnel(
-                #[cfg(target_os = "android")]
-                context,
-            )
-            .await?;
+    pub async fn run(&mut self) -> Result<()> {
+        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
+            self.setup_tunnel().await?;
 
         // Finished starting everything, now wait for shutdown
         wait_for_interrupt(task_manager).await;
@@ -430,15 +429,11 @@ impl NymVpn {
         &mut self,
         vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
-        #[cfg(target_os = "android")] context: talpid_types::android::AndroidContext,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let (mut tunnel, mut task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
-            self.setup_tunnel(
-                #[cfg(target_os = "android")]
-                context,
-            )
-            .await
-            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+            self.setup_tunnel()
+                .await
+                .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
 
         // Signal back that we are ready and up with all cylinders firing
         task_manager.start_status_listener(vpn_status_tx).await;
@@ -466,41 +461,6 @@ impl NymVpn {
         })?;
 
         result
-    }
-}
-
-struct UniffiNymVpn {
-    inner: Arc<RwLock<NymVpn>>,
-    #[cfg(target_os = "android")]
-    context: talpid_types::android::AndroidContext,
-}
-
-impl UniffiNymVpn {
-    pub fn new(
-        entry_gateway: EntryPoint,
-        exit_router: ExitPoint,
-        #[cfg(target_os = "android")] context: talpid_types::android::AndroidContext,
-    ) -> Self {
-        UniffiNymVpn {
-            inner: Arc::new(RwLock::new(NymVpn::new(entry_gateway, exit_router))),
-            #[cfg(target_os = "android")]
-            context,
-        }
-    }
-
-    pub async fn run(&self) {
-        if let Err(err) = self
-            .inner
-            .write()
-            .await
-            .run(
-                #[cfg(target_os = "android")]
-                self.context.clone(),
-            )
-            .await
-        {
-            log::error!("{err}");
-        }
     }
 }
 
@@ -557,7 +517,6 @@ pub enum NymVpnExitStatusMessage {
 /// vpn_config.enable_two_hop = true;
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
 /// ```
-#[cfg(not(target_os = "android"))]
 pub fn spawn_nym_vpn(mut nym_vpn: NymVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
 
