@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use default_net::Interface;
+use std::net::{Ipv4Addr, Ipv6Addr};
 use std::{collections::HashSet, net::IpAddr};
 
 use default_net::interface::get_default_interface;
@@ -49,19 +50,19 @@ impl RoutingConfig {
 
 #[derive(Debug)]
 pub struct TunnelGatewayIp {
-    pub ipv4: String,
-    pub ipv6: Option<String>,
+    pub ipv4: Ipv4Addr,
+    pub ipv6: Option<Ipv6Addr>,
 }
 
 impl TunnelGatewayIp {
     pub fn new(wireguard_config: Option<WireguardConfig>) -> Self {
         let ipv4 = wireguard_config
             .as_ref()
-            .map(|c| c.0.ipv4_gateway.to_string())
-            .unwrap_or("10.1.0.1".to_string());
+            .map(|c| c.0.ipv4_gateway)
+            .unwrap_or(Ipv4Addr::new(10, 1, 0, 1));
         let ipv6 = wireguard_config
             .as_ref()
-            .map(|c| c.0.ipv6_gateway.map(|ip| ip.to_string()))
+            .map(|c| c.0.ipv6_gateway)
             .unwrap_or(None);
         Self { ipv4, ipv6 }
     }
@@ -112,16 +113,16 @@ impl std::fmt::Display for LanGatewayIp {
 #[cfg_attr(not(target_os = "windows"), allow(unused_variables))]
 fn get_tunnel_nodes(
     iface_name: &str,
-    ipv4_gateway: String,
-    ipv6_gateway: Option<String>,
+    ipv4_gateway: Ipv4Addr,
+    ipv6_gateway: Option<Ipv6Addr>,
 ) -> (Node, Node) {
     #[cfg(windows)]
     {
-        let v4 = routing::Node::new(ipv4_gateway.clone().into(), iface_name.to_string());
+        let v4 = Node::new(ipv4_gateway.into(), iface_name.to_string());
         let v6 = if let Some(ipv6_gateway) = ipv6_gateway.as_ref() {
-            routing::Node::new(ipv6_gateway.clone().into(), iface_name.to_string())
+            Node::new((*ipv6_gateway).into(), iface_name.to_string())
         } else {
-            routing::Node::device(iface_name.to_string())
+            Node::device(iface_name.to_string())
         };
         (v4, v6)
     }
@@ -159,7 +160,7 @@ pub async fn setup_routing(
     info!("Creating tun device");
     let dev = tun::create_as_async(&config.mixnet_tun_config)
         .tap_err(|err| error!("Failed to create tun device: {}", err))?;
-    let device_name = dev.get_ref().name().to_string();
+    let device_name = dev.get_ref().name().unwrap().to_string();
     info!(
         "Created tun device {device_name} with ip={device_ip:?}",
         device_name = device_name,
@@ -202,8 +203,8 @@ pub async fn setup_routing(
 
     let (node_v4, node_v6) = get_tunnel_nodes(
         &device_name,
-        config.tunnel_gateway_ip.ipv4.clone(),
-        config.tunnel_gateway_ip.ipv6.clone(),
+        config.tunnel_gateway_ip.ipv4,
+        config.tunnel_gateway_ip.ipv6,
     );
     info!("Using node_v4: {:?}", node_v4);
     info!("Using node_v6: {:?}", node_v6);

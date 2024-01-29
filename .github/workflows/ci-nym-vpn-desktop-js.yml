@@ -1,4 +1,4 @@
-name: ci-desktop-js
+name: ci-nym-vpn-desktop-js
 
 on:
   workflow_dispatch:
@@ -9,6 +9,7 @@ on:
       - "nym-vpn-desktop/index.html"
       - "nym-vpn-desktop/.eslintrc.cjs"
       - "nym-vpn-desktop/vite.config.ts"
+      - ".github/workflows/ci-nym-vpn-desktop-js.yml"
 
 jobs:
   check:

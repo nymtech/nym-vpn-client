@@ -4,7 +4,7 @@ ${BUILD_INFO}
 
 ## Notes
 
-Release build.
+Nightly build of the latest development version.
 
 ## SHA256 Checksums
 

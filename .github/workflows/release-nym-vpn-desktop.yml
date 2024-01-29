@@ -1,13 +1,13 @@
-name: release-nym-vpn-cli
+name: release-nym-vpn-desktop
 on:
   schedule:
-    - cron: '4 3 * * *'
+    - cron: '4 4 * * *'
   workflow_dispatch:
     inputs:
       tag_name:
         description: 'Tag name for release'
         required: false
-        default: nightly
+        default: nightly-desktop
       publish:
         type: boolean
         description: Publish Release
@@ -15,7 +15,7 @@ on:
         default: false
   push:
     tags:
-      - nym-vpn-cli-v[0-9]+.[0-9]+.[0-9]+*
+      - nym-vpn-desktop-v[0-9]+.[0-9]+.[0-9]+*
 
 env:
   CARGO_TERM_COLOR: always
@@ -24,7 +24,12 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
+        os:
+          [
+            ubuntu-22.04-16-core,
+            macos-latest,
+            custom-runner-mac-m1,
+          ]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -34,7 +39,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-latest, custom-runner-mac-m1]
+        os:
+          [
+            ubuntu-22.04-16-core,
+            macos-latest,
+            custom-runner-mac-m1,
+          ]
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -52,28 +62,31 @@ jobs:
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            nym-vpn-cli
+            nym-vpn-desktop
             nym-vpn-lib
 
       - name: Install system dependencies
         if: contains(matrix.os, 'ubuntu')
-        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
+        run: |
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
+            protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev
 
       - name: Get package version
         id: package-version
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry="nym-vpn-cli"
+          subcommand: package.version --entry nym-vpn-desktop/src-tauri
 
       - name: Check tag name consistency
         if: github.event_name == 'push'
         run: |
-          if [[ nym-vpn-cli-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
+          if [[ nym-vpn-desktop-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
             exit 1
           fi
 
       - name: Check name consistency
-        if: inputs.tag_name == 'nightly-desktop'
+        if: inputs.tag_name == 'nightly'
         run: exit 1
 
       - name: Set env
@@ -91,7 +104,7 @@ jobs:
             exit 1
           fi
           wg_go_lib_name="wireguard-go_$platform_arch"
-          artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
+          artifact_dir="nym-vpn-desktop_${{ steps.package-version.outputs.metadata }}_$platform_arch"
           artifact_archive="$artifact_dir.tar.gz"
           artifact_checksum="$artifact_archive.sha256sum"
           # debug
@@ -118,26 +131,46 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
-        run: cargo build --release --verbose
+      - name: Prepare desktop build
+        run: mkdir nym-vpn-desktop/dist
 
-      - name: Run tests
+      - name: Install node dependencies
+        working-directory: nym-vpn-desktop
+        run: npm i
+
+      - name: Build desktop client
+        working-directory: nym-vpn-desktop/src-tauri
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
-        run: cargo test --release --verbose
+          TAURI_PRIVATE_KEY: ${{ env.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ env.TAURI_PRIVATE_PASSWORD }}
+        shell: bash
+        run: |
+          npm run tauri build
+          ls -la target/release/
+          ls -la target/release/bundle
+          ls -la target/release/bundle/*
+        # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
+        continue-on-error: true
 
       - name: Create archive
+        shell: bash
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
+          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn*.AppImage ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn*.deb ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
@@ -147,10 +180,11 @@ jobs:
           path: ${{ env.ARTIFACT_ARCHIVE }}
           retention-days: 2
 
+      # Build info, but for now it's just the version
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
-          ./target/release/nym-vpn-cli --version > build-info.txt
+          echo ${{ steps.package-version.outputs.metadata }} > build-info.txt
           cat build-info.txt
 
       - name: Upload build-info (${{ env.PLATFORM_ARCH }})
@@ -179,41 +213,37 @@ jobs:
       - if: github.event_name == 'workflow_dispatch'
         run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
       - if: github.event_name == 'schedule'
-        run: echo 'TAG_NAME=nightly' >> $GITHUB_ENV
+        run: echo 'TAG_NAME=nightly-desktop' >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
       - name: Build info
         run: |
-          BUILD_VERSION=$(grep "Build Version" build-info/build-info.txt | cut -d ':' -f 2 | tr -d ' ')
-          echo BUILD_VERSION=$BUILD_VERSION
-          echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
-          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
-          cat build-info/build-info.txt >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
+          echo "BUILD_VERSION=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
+          echo "BUILD_INFO=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
 
-      - if: env.TAG_NAME == 'nightly'
+      - if: env.TAG_NAME == 'nightly-desktop'
         run: |
-          (echo "SUBJECT=nym-vpn-cli-v$BUILD_VERSION nightly prerelease build";
+          (echo "SUBJECT=nym-vpn-desktop-v$BUILD_VERSION nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
            echo 'NOTES_FILE=release-notes-nightly.md') >> $GITHUB_ENV
-          gh release delete nightly --yes || true
-          git push origin :nightly || true
+          gh release delete nightly-desktop --yes || true
+          git push origin :nightly-desktop || true
       # Once we consider these actually release builds, remove --prerelease
       # from PRERELEASE here
-      - if: env.TAG_NAME != 'nightly'
+      - if: env.TAG_NAME != 'nightly-desktop'
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE=--prerelease'
-           echo 'NOTES_FILE=release-notes.md') >> $GITHUB_ENV
+           ehco 'NOTES_FILE=release-notes.md') >> $GITHUB_ENV
 
       # Recall that download-artifact will extract into a directory that
       # includes the tar.gz suffix
       - name: Generate checksums
         run: |
-          for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          for file in nym-vpn-desktop_*tar.gz; do pushd $file; for f in nym-vpn-desktop_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          cat nym-vpn-cli_*.tar.gz/*.sha256sum >> $GITHUB_ENV
+          cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
@@ -227,5 +257,5 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/*
