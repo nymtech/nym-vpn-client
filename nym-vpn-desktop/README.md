@@ -104,9 +104,10 @@ cd src-tauri
 cargo tauri dev
 ```
 
-**NOTE** Starting a VPN connection requires root privileges as it will set up a link interface.
-If you want to connect during development, you need to run the app as root,
-likely using `sudo` (or equivalent)
+**NOTE** Starting a VPN connection requires root privileges as it 
+will set up a link interface.
+If you want to connect during development, you need to run the app 
+as root, likely using `sudo` (or equivalent)
 
 ```shell
 sudo -E RUST_LOG=debug cargo tauri dev
@@ -122,14 +123,17 @@ the current target directory is), copy the needed libraries:
 - `libwg.dll` (wireguard-go lib)
 - `libwg.lib`
 - `winfw.dll` (`windows\winfw\bin\x64-Debug\winfw.dll`)
+- `wintun.dll` (https://www.wintun.net/)
 
-Add the library path to `winfw` to rustflags, for example
-in the `.cargo\config.toml`:
+Add the library path to `winfw` to rustflags, for example in the
+`.cargo\config.toml`:
 
 ```
 [target.x86_64-pc-windows-msvc]
 rustflags = ['-L', 'C:\Users\<USER>\dev\nym-vpn-client\wg-go', '-L', 'C:\Users\<USER>\dev\nym-vpn-client\windows\winfw\bin\x64-Debug']
 ```
+
+**NOTE** VPN connection requires running the app as Administrator
 
 #### Logging
 
