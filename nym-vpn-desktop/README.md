@@ -43,7 +43,7 @@ directory, full path is platform specific:
 
 - Linux: `$XDG_CONFIG_HOME/nym-vpn/` or `$HOME/.config/nym-vpn/`
 - macOS: `$HOME/Library/Application Support/nym-vpn/`
-- Windows: `{FOLDERID_RoamingAppData}\nym-vpn\`
+- Windows: `C:\Users\<USER>\AppData\Roaming\nym-vpn\`
 
 For example on Linux the full path would be
 `~/.config/nym-vpn/config.toml`.
@@ -53,13 +53,12 @@ Only one property need to be provided:
 ```toml
 # example config on Linux
 
-env_config_file = "/home/<USER>/.config/nym-vpn/qa.env"
+env_config_file = "/home/<USER>/.config/nym-vpn/sandbox.env"
 ```
 
 `env_config_file` is the absolute path to a network configuration
 file, pick the relevant one
 [here](https://github.com/nymtech/nym/tree/develop/envs).
-The mainnet config will be used by default if not provided.
 
 ## Dev
 
@@ -113,6 +112,25 @@ likely using `sudo` (or equivalent)
 sudo -E RUST_LOG=debug cargo tauri dev
 ```
 
+#### dev on Windows
+
+First you need to build required libraries, follow the
+[doc](https://github.com/nymtech/nym-vpn-client/tree/main/windows#windows-dependencies)
+
+Inside `nym-vpn-desktop\src-tauri\target\debug\` (or whatever
+the current target directory is), copy the needed libraries:
+- `libwg.dll` (wireguard-go lib)
+- `libwg.lib`
+- `winfw.dll` (`windows\winfw\bin\x64-Debug\winfw.dll`)
+
+Add the library path to `winfw` to rustflags, for example
+in the `.cargo\config.toml`:
+
+```
+[target.x86_64-pc-windows-msvc]
+rustflags = ['-L', 'C:\Users\<USER>\dev\nym-vpn-client\wg-go', '-L', 'C:\Users\<USER>\dev\nym-vpn-client\windows\winfw\bin\x64-Debug']
+```
+
 #### Logging
 
 Rust logging (standard output) is controlled by the `RUST_LOG`
@@ -121,7 +139,7 @@ env variable
 Example:
 
 ```
-RUST_LOG=nym_vpn_ui=trace,nym_client_core=warn,nym_vpn_lib=info npm run dev:app
+RUST_LOG=nym_vpn_desktop=trace,nym_client_core=warn,nym_vpn_lib=info npm run dev:app
 ```
 
 or
