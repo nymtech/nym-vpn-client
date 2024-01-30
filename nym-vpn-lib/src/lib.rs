@@ -524,10 +524,8 @@ pub fn spawn_nym_vpn(mut nym_vpn: NymVpn) -> Result<NymVpnHandle> {
 
     let (vpn_exit_tx, vpn_exit_rx) = oneshot::channel();
 
-    std::thread::spawn(|| {
-        let result = tokio::runtime::Runtime::new()
-            .expect("Failed to create Tokio run time")
-            .block_on(async move { nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await });
+    tokio::spawn(async move {
+        let result = nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await;
 
         if let Err(err) = result {
             error!("Nym VPN returned error: {err}");

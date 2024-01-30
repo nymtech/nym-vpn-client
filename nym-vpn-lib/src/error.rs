@@ -126,6 +126,9 @@ pub enum Error {
 
     #[error("timeout waiting for mixnet client to start")]
     StartMixnetTimeout,
+
+    #[error("vpn could not be started")]
+    VPNNotStarted,
 }
 
 // Result type based on our error type
