@@ -75,13 +75,6 @@ function get_solution_output_path {
     esac
 }
 
-function build_nsis_plugins {
-    local nsis_root_path="./windows/nsis-plugins"
-
-    clean_solution "$nsis_root_path"
-    build_solution_config "$nsis_root_path/nsis-plugins.sln" "Release" "x86"
-}
-
 function clean_libraries {
     clean_solution "./windows/libshared"
     clean_solution "./windows/windows-libraries"
@@ -92,10 +85,6 @@ function main {
     clean_libraries
 
     build_solution "./windows/winfw" "winfw.sln"
-
-    build_solution "./windows/driverlogic" "driverlogic.sln"
-
-    build_nsis_plugins
 }
 
 main
