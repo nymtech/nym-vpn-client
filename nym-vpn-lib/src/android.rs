@@ -10,10 +10,12 @@ use jnix::{FromJava, JnixEnv};
 use lazy_static::lazy_static;
 use log::{debug, warn};
 use nym_task::manager::TaskStatus;
+use std::str::FromStr;
 use std::sync::Arc;
 use talpid_types::android::AndroidContext;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
+use url::Url;
 
 lazy_static! {
     static ref VPN_SHUTDOWN_HANDLE: Mutex<Option<Arc<Notify>>> = Mutex::new(None);
@@ -32,7 +34,7 @@ async fn _async_run_vpn(vpn: NymVpn) -> anyhow::Result<()> {
     let stop_handle = Arc::new(Notify::new());
     set_shutdown_handle(stop_handle.clone()).await;
 
-    let handle = spawn_nym_vpn(vpn)?;
+    let mut handle = spawn_nym_vpn(vpn)?;
 
     match handle
         .vpn_status_rx
@@ -73,6 +75,7 @@ fn init_jni_logger() {
 pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_runVPN(
     env: JNIEnv<'_>,
     _this: JObject<'_>,
+    api_url: JString<'_>,
     entry_gateway: JString<'_>,
     exit_router: JString<'_>,
     vpn_service: JObject<'_>,
@@ -86,12 +89,14 @@ pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_runVPN(
             .new_global_ref(vpn_service)
             .expect("Create global reference"),
     };
+    let api_url = Url::from_str(&String::from_java(&env, api_url)).expect("Invalid url");
     let entry_gateway: EntryPoint = serde_json::from_str(&String::from_java(&env, entry_gateway))
         .expect("Invalid entry gateway");
     let exit_router: ExitPoint =
         serde_json::from_str(&String::from_java(&env, exit_router)).expect("Invalid exit router");
 
-    let vpn = NymVpn::new(entry_gateway, exit_router, context);
+    let mut vpn = NymVpn::new(entry_gateway, exit_router, context);
+    vpn.gateway_config.api_url = api_url;
 
     RUNTIME.spawn(async move {
         _async_run_vpn(vpn)

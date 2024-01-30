@@ -10,10 +10,13 @@ class NymVPN {
 
     // this is a blocking call as `runVPN` is blocking and will releases when
     // the socks5 connection has been terminated
-    fun start(serviceProvider: String) {
+    fun start(api_url: String,
+              entry_gateway: String,
+              exit_router: String,
+              vpn_service: Any) {
         Log.d(tag, "calling $nymVPNLib:runVPN")
         try {
-            runVPN(serviceProvider)
+            runVPN(api_url, entry_gateway, exit_router, vpn_service)
         } catch (e: Throwable) {
             Log.e(tag, "$nymVPNLib:runVPN internal error: $e")
             Sentry.captureException(e)
@@ -21,6 +24,7 @@ class NymVPN {
     }
 
     private external fun runVPN(
+            api_url: String,
             entry_gateway: String,
             exit_router: String,
             vpn_service: Any
