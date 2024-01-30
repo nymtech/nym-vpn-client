@@ -1,0 +1,8 @@
+/bin/
+.vs/
+*.suo
+*.db
+*.db-shm
+*.db-wal
+*.ipch
+*.user

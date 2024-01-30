@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="conditions">
+      <UniqueIdentifier>{ad7718b2-1e11-482d-b604-612f7a31f7dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="internal">
+      <UniqueIdentifier>{11b46d71-26c0-45bf-b963-d28c86b9e6eb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="objectdeleter.cpp" />
+    <ClCompile Include="objectenumerator.cpp" />
+    <ClCompile Include="objectexplorer.cpp" />
+    <ClCompile Include="objectinstaller.cpp" />
+    <ClCompile Include="providerbuilder.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="sublayerbuilder.cpp" />
+    <ClCompile Include="transaction.cpp" />
+    <ClCompile Include="internal\conditionassembler.cpp">
+      <Filter>internal</Filter>
+    </ClCompile>
+    <ClCompile Include="conditions\conditionapplication.cpp">
+      <Filter>conditions</Filter>
+    </ClCompile>
+    <ClCompile Include="conditionbuilder.cpp" />
+    <ClCompile Include="filterbuilder.cpp" />
+    <ClCompile Include="filterengine.cpp" />
+    <ClCompile Include="layerconditions.cpp" />
+    <ClCompile Include="objectmonitor.cpp" />
+    <ClCompile Include="conditions\conditionprotocol.cpp">
+      <Filter>conditions</Filter>
+    </ClCompile>
+    <ClCompile Include="conditions\conditioninterface.cpp">
+      <Filter>conditions</Filter>
+    </ClCompile>
+    <ClCompile Include="conditions\conditionloopback.cpp">
+      <Filter>conditions</Filter>
+    </ClCompile>
+    <ClCompile Include="conditions\conditiondirection.cpp">
+      <Filter>conditions</Filter>
+    </ClCompile>
+    <ClCompile Include="ipaddress.cpp" />
+    <ClCompile Include="conditions\conditionip.cpp">
+      <Filter>conditions</Filter>
+    </ClCompile>
+    <ClCompile Include="conditions\conditionport.cpp">
+      <Filter>conditions</Filter>
+    </ClCompile>
+    <ClCompile Include="conditions\conditionportrange.cpp">
+      <Filter>conditions</Filter>
+    </ClCompile>
+    <ClCompile Include="ipnetwork.cpp" />
+    <ClCompile Include="conditions\conditionicmp.cpp">
+      <Filter>conditions</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="objectdeleter.h" />
+    <ClInclude Include="objectenumerator.h" />
+    <ClInclude Include="objectexplorer.h" />
+    <ClInclude Include="objectinstaller.h" />
+    <ClInclude Include="providerbuilder.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="sublayerbuilder.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="transaction.h" />
+    <ClInclude Include="internal\conditionassembler.h">
+      <Filter>internal</Filter>
+    </ClInclude>
+    <ClInclude Include="conditions\conditionapplication.h">
+      <Filter>conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="conditionbuilder.h" />
+    <ClInclude Include="filterbuilder.h" />
+    <ClInclude Include="filterengine.h" />
+    <ClInclude Include="layerconditions.h" />
+    <ClInclude Include="objectmonitor.h" />
+    <ClInclude Include="conditions\conditionprotocol.h">
+      <Filter>conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="conditions\conditioninterface.h">
+      <Filter>conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="conditions\conditionloopback.h">
+      <Filter>conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="conditions\ifiltercondition.h">
+      <Filter>conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="conditions\icomparisonoperator.h">
+      <Filter>conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="conditions\comparison.h">
+      <Filter>conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="conditions\conditiondirection.h">
+      <Filter>conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="ipaddress.h" />
+    <ClInclude Include="iconditionbuilder.h" />
+    <ClInclude Include="nullconditionbuilder.h" />
+    <ClInclude Include="conditions\conditionip.h">
+      <Filter>conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="conditions\conditionport.h">
+      <Filter>conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="conditions\conditionportrange.h">
+      <Filter>conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="iidentifiable.h" />
+    <ClInclude Include="ipnetwork.h" />
+    <ClInclude Include="conditions\conditionicmp.h">
+      <Filter>conditions</Filter>
+    </ClInclude>
+    <ClInclude Include="buildervalidation.h" />
+  </ItemGroup>
+</Project>
