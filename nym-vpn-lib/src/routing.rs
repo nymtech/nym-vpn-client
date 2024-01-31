@@ -90,17 +90,7 @@ impl LanGatewayIp {
         })?;
         info!("Default interface: {}", default_interface.name);
         debug!("Default interface: {:?}", default_interface);
-        if default_interface.gateway.is_none() {
-            error!(
-                "The default interface `{}` reports no gateway",
-                default_interface.name
-            );
-            Err(crate::error::Error::DefaultInterfaceGatewayError(
-                default_interface.name,
-            ))
-        } else {
-            Ok(LanGatewayIp(default_interface))
-        }
+        Ok(LanGatewayIp(default_interface))
     }
 }
 
@@ -219,15 +209,11 @@ pub async fn setup_routing(
     // it, we need to add an exception route for the gateway to the routing table.
     if !enable_wireguard || cfg!(target_os = "linux") {
         let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
-        let default_node = Node::new(
-            config
-                .lan_gateway_ip
-                .0
-                .gateway
-                .expect("This value was already checked to exist")
-                .ip_addr,
-            config.lan_gateway_ip.0.name,
-        );
+        let default_node = if let Some(gateway) = config.lan_gateway_ip.0.gateway {
+            Node::new(gateway.ip_addr, config.lan_gateway_ip.0.name)
+        } else {
+            Node::device(config.lan_gateway_ip.0.name)
+        };
         info!(
             "Add extra route: [{:?}, {:?}]",
             entry_mixnet_gateway_ip,
