@@ -3,6 +3,7 @@
 
 use default_net::Interface;
 use std::net::{Ipv4Addr, Ipv6Addr};
+use std::os::fd::RawFd;
 use std::{collections::HashSet, net::IpAddr};
 
 use default_net::interface::get_default_interface;
@@ -25,8 +26,32 @@ pub struct RoutingConfig {
     tunnel_gateway_ip: TunnelGatewayIp,
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct Fd {
+    #[cfg(unix)]
+    pub(crate) inner: RawFd,
+
+    #[cfg(not(unix))]
+    pub(crate) inner: i32,
+}
+
+#[cfg(unix)]
+impl From<RawFd> for Fd {
+    fn from(value: RawFd) -> Self {
+        Self { inner: value }
+    }
+}
+
+#[cfg(not(unix))]
+impl From<i32> for Fd {
+    fn from(value: i32) -> Self {
+        Self { inner: value }
+    }
+}
+
 impl RoutingConfig {
     pub fn new(
+        tun_fd: Option<Fd>,
         tun_ip: IpAddr,
         entry_mixnet_gateway_ip: IpAddr,
         lan_gateway_ip: LanGatewayIp,
@@ -35,6 +60,9 @@ impl RoutingConfig {
     ) -> Self {
         debug!("TUN device IP: {}", tun_ip);
         let mut mixnet_tun_config = tun2::Configuration::default();
+        if let Some(fd) = tun_fd {
+            mixnet_tun_config.raw_fd(fd.inner);
+        }
         mixnet_tun_config.address(tun_ip);
         mixnet_tun_config.mtu(mtu.unwrap_or(DEFAULT_TUN_MTU));
         mixnet_tun_config.up();

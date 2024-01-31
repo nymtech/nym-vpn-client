@@ -28,6 +28,7 @@ use util::wait_for_interrupt_and_signal;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
 pub use nym_task::{manager::SentStatus, StatusReceiver};
 
+use crate::routing::Fd;
 pub use nym_bin_common;
 pub use nym_config;
 use tokio::task::JoinHandle;
@@ -88,6 +89,9 @@ pub struct NymVpn {
     /// The IP address of the wireguard interface.
     pub wg_ip: Option<Ipv4Addr>,
 
+    /// File descriptor of nym TUN device, in case it was created outside of the library.
+    pub nym_tun_fd: Option<Fd>,
+
     /// The IP address of the TUN device.
     pub nym_ip: Option<Ipv4Addr>,
 
@@ -127,6 +131,7 @@ impl NymVpn {
             enable_wireguard: false,
             private_key: None,
             wg_ip: None,
+            nym_tun_fd: None,
             nym_ip: None,
             nym_mtu: None,
             disable_routing: false,
@@ -177,6 +182,7 @@ impl NymVpn {
 
         info!("Setting up routing");
         let routing_config = routing::RoutingConfig::new(
+            self.nym_tun_fd,
             ip,
             entry_mixnet_gateway_ip,
             default_lan_gateway_ip,
