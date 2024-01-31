@@ -83,6 +83,16 @@ async fn main() -> Result<()> {
             error!(err_message);
             return Err(anyhow!(err_message));
         }
+    } else {
+        // In the future, the absence of a config file should enable mainnet.
+        // For now we error out, since this a common issue people face
+        return Err(anyhow!(format!(
+            "{}: env_config_file not provided",
+            app_config_store.full_path.display(),
+        )));
+
+        // TODO: there is a bug here, if there is no env_config_file it appars nym-api is
+        // incorrectly set to 127.0.0.1
     }
 
     // Read the env variables in the provided file and export them all to the local environment.
