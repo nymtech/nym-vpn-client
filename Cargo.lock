@@ -4165,6 +4165,7 @@ dependencies = [
  "tap",
  "thiserror",
  "tokio",
+ "tokio-util",
  "tracing",
  "tracing-subscriber",
  "tun 0.6.1",

@@ -3,6 +3,8 @@
 
 use std::time::Duration;
 
+use bytes::BytesMut;
+use bytes::{Bytes, Buf};
 use futures::{SinkExt, StreamExt};
 use nym_ip_packet_requests::{IpPacketRequest, IpPacketResponse, IpPacketResponseData};
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
@@ -10,6 +12,8 @@ use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use nym_validator_client::models::DescribedGateway;
 use tokio::task::JoinHandle;
 use tokio::time::timeout;
+use tokio_util::codec::Decoder;
+use tokio_util::codec::Encoder;
 use tracing::{debug, error, info, trace, warn};
 use tun::{AsyncDevice, Device, TunPacket};
 
@@ -61,6 +65,68 @@ impl std::fmt::Display for IpPacketRouterAddress {
         write!(f, "{}", self.0)
     }
 }
+
+// Tokio codec for bundling multiple IP packets into one buffer that is at most 1500 bytes long.
+// These packets are separated by a 2 byte length prefix.
+struct BundledIpPacketCodec {
+    buffer: BytesMut,
+}
+
+impl BundledIpPacketCodec {
+    fn new() -> Self {
+        BundledIpPacketCodec {
+            buffer: BytesMut::new(),
+        }
+    }
+}
+
+impl Encoder<Bytes> for BundledIpPacketCodec {
+    type Error = Error;
+
+    fn encode(&mut self, packet: Bytes, dst: &mut BytesMut) -> Result<()> {
+        let packet_size = packet.len();
+
+        if self.buffer.len() + packet_size + 2 > 1500 {
+            // If the packet doesn't fit in the buffer, send the buffer and then add it to the buffer
+            dst.extend_from_slice(&self.buffer);
+            self.buffer = BytesMut::new();
+        }
+
+        // Add the packet to the buffer
+        self.buffer.extend_from_slice(&(packet_size as u16).to_be_bytes());
+        self.buffer.extend_from_slice(&packet);
+
+        Ok(())
+    }
+}
+
+impl Decoder for BundledIpPacketCodec {
+    type Item = Bytes;
+    type Error = Error;
+
+    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>> {
+        if src.len() < 2 {
+            // Not enough bytes to read the length prefix
+            return Ok(None);
+        }
+
+        let packet_size = u16::from_be_bytes([src[0], src[1]]) as usize;
+
+        if src.len() < packet_size + 2 {
+            // Not enough bytes to read the packet
+            return Ok(None);
+        }
+
+        // Remove the length prefix
+        src.advance(2);
+
+        // Read the packet
+        let packet = src.split_to(packet_size);
+
+        Ok(Some(packet.freeze()))
+    }
+}
+
 
 pub struct MixnetProcessor {
     device: AsyncDevice,
@@ -129,6 +195,11 @@ impl MixnetProcessor {
                 }
             });
         tokio::pin!(mixnet_stream);
+        // buffer to accumulate packets before sending them to the mixnet
+        let mut buffer_used = 0;
+        let mut packets_in_buffer = 0;
+
+        let mut bundled_packet_codec = BundledIpPacketCodec::new();
 
         info!("Mixnet processor is running");
         while !shutdown.is_shutdown() {
@@ -138,7 +209,22 @@ impl MixnetProcessor {
                 }
                 Some(Ok(packet)) = stream.next() => {
                     // TODO: properly investigate the binary format here and the overheard
-                    let Ok(packet) = IpPacketRequest::new_ip_packet(packet.into_bytes()).to_bytes() else {
+                    // dbg!(&packet.get_bytes().len());
+                    let packet_size = packet.get_bytes().len();
+                    dbg!(packet_size);
+
+                    let packet = packet.into_bytes();
+                    // TODO: static buffer
+                    let mut bundled_packets = BytesMut::new();
+
+                    bundled_packet_codec.encode(packet, &mut bundled_packets).unwrap();
+                    if bundled_packets.is_empty() {
+                        continue;
+                    }
+                    let bundled_packets = bundled_packets.freeze();
+
+                    // let Ok(packet) = IpPacketRequest::new_ip_packet(packet.into_bytes()).to_bytes() else {
+                    let Ok(packet) = IpPacketRequest::new_ip_packet(bundled_packets).to_bytes() else {
                         error!("Failed to serialize packet");
                         continue;
                     };
