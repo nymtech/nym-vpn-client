@@ -20,7 +20,7 @@ thiserror = "1.0.38"
 tokio = { version = "1.8", features = ["process", "rt-multi-thread", "fs", "sync"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tun = { version = "0.6.1", features = ["async"] }
+tun2 = { version = "1.0.1", features = ["async"] }
 url = "2.4"
 
 talpid-core = { git = "https://github.com/mullvad/mullvadvpn-app", tag = "2023.2" }
