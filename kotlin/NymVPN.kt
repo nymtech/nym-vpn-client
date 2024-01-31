@@ -12,7 +12,7 @@ class NymVPN {
               entry_gateway: String,
               exit_router: String,
               vpn_service: Any) {
-        Log.d(tag, "calling $nymVPNLib:runVPN")
+        Log.d(tag, "calling $nymVPNLib:initVPN")
         try {
             initVPN(api_url, entry_gateway, exit_router, vpn_service)
         } catch (e: Throwable) {
