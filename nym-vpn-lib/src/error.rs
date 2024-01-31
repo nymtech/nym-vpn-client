@@ -128,7 +128,10 @@ pub enum Error {
     StartMixnetTimeout,
 
     #[error("vpn could not be started")]
-    VPNNotStarted,
+    NotStarted,
+
+    #[error("vpn errored on stop")]
+    StopError,
 }
 
 // Result type based on our error type

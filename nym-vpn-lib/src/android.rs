@@ -2,16 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::gateway_client::{EntryPoint, ExitPoint};
-use crate::{spawn_nym_vpn, NymVpn};
+use crate::{spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage};
 use futures::StreamExt;
-use jnix::jni::objects::{JObject, JString};
+use jnix::jni::objects::{JClass, JObject, JString};
 use jnix::jni::JNIEnv;
 use jnix::{FromJava, JnixEnv};
 use lazy_static::lazy_static;
-use log::{debug, warn};
+use log::{debug, error, warn};
 use nym_task::manager::TaskStatus;
 use std::str::FromStr;
 use std::sync::Arc;
+use talpid_core::mpsc::Sender;
 use talpid_types::android::AndroidContext;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
@@ -19,7 +20,47 @@ use url::Url;
 
 lazy_static! {
     static ref VPN_SHUTDOWN_HANDLE: Mutex<Option<Arc<Notify>>> = Mutex::new(None);
+    static ref VPN: Mutex<Option<NymVpn>> = Mutex::new(None);
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
+}
+
+#[derive(Eq, PartialEq, Debug)]
+pub enum ClientState {
+    Uninitialised,
+    Connected,
+    Disconnected,
+}
+
+async fn is_vpn_inited() -> bool {
+    let guard = VPN.lock().await;
+    guard.is_some()
+}
+
+async fn take_vpn() -> Option<NymVpn> {
+    let mut guard = VPN.lock().await;
+    guard.take()
+}
+
+async fn is_shutdown_handle_set() -> bool {
+    VPN_SHUTDOWN_HANDLE.lock().await.is_some()
+}
+
+pub fn get_vpn_state() -> ClientState {
+    if !RUNTIME.block_on(is_vpn_inited()) {
+        ClientState::Uninitialised
+    } else if RUNTIME.block_on(is_shutdown_handle_set()) {
+        ClientState::Connected
+    } else {
+        ClientState::Disconnected
+    }
+}
+
+async fn set_inited_vpn(vpn: NymVpn) {
+    let mut guard = VPN.lock().await;
+    if guard.is_some() {
+        panic!("vpn was already inited");
+    }
+    *guard = Some(vpn)
 }
 
 async fn set_shutdown_handle(handle: Arc<Notify>) {
@@ -28,6 +69,17 @@ async fn set_shutdown_handle(handle: Arc<Notify>) {
         panic!("vpn wasn't properly stopped")
     }
     *guard = Some(handle)
+}
+
+async fn stop_and_reset_shutdown_handle() {
+    let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
+    if let Some(sh) = &*guard {
+        sh.notify_waiters()
+    } else {
+        panic!("client wasn't properly started")
+    }
+
+    *guard = None
 }
 
 async fn _async_run_vpn(vpn: NymVpn) -> anyhow::Result<()> {
@@ -40,15 +92,27 @@ async fn _async_run_vpn(vpn: NymVpn) -> anyhow::Result<()> {
         .vpn_status_rx
         .next()
         .await
-        .ok_or(crate::Error::VPNNotStarted)?
+        .ok_or(crate::Error::NotStarted)?
         .downcast_ref::<TaskStatus>()
-        .ok_or(crate::Error::VPNNotStarted)?
+        .ok_or(crate::Error::NotStarted)?
     {
         TaskStatus::Ready => debug!("Started Nym VPN"),
     }
 
     // wait for notify to be set...
     stop_handle.notified().await;
+    handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
+    match handle.vpn_exit_rx.await? {
+        NymVpnExitStatusMessage::Failed(error) => {
+            error!(
+                "{:?}",
+                error
+                    .downcast_ref::<NymVpnExitError>()
+                    .ok_or(crate::Error::StopError)?
+            );
+        }
+        NymVpnExitStatusMessage::Stopped => debug!("Stopped Nym VPN"),
+    }
 
     Ok(())
 }
@@ -72,7 +136,7 @@ fn init_jni_logger() {
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_runVPN(
+pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_initVPN(
     env: JNIEnv<'_>,
     _this: JObject<'_>,
     api_url: JString<'_>,
@@ -80,6 +144,11 @@ pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_runVPN(
     exit_router: JString<'_>,
     vpn_service: JObject<'_>,
 ) {
+    if get_vpn_state() != ClientState::Uninitialised {
+        warn!("VPN was already inited. Try starting it");
+        return;
+    }
+
     init_jni_logger();
 
     let env = JnixEnv::from(env);
@@ -98,6 +167,22 @@ pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_runVPN(
     let mut vpn = NymVpn::new(entry_gateway, exit_router, context);
     vpn.gateway_config.api_url = api_url;
 
+    RUNTIME.block_on(set_inited_vpn(vpn));
+}
+
+#[no_mangle]
+#[allow(non_snake_case)]
+pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_runVPN(_env: JNIEnv, _class: JClass) {
+    let state = get_vpn_state();
+    if state != ClientState::Disconnected {
+        warn!("Invalid vpn state: {:?}", state);
+        return;
+    }
+
+    let vpn = RUNTIME
+        .block_on(take_vpn())
+        .expect("VPN configuration was cleared before it could be used");
+
     RUNTIME.spawn(async move {
         _async_run_vpn(vpn)
             .await
@@ -106,4 +191,14 @@ pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_runVPN(
             })
             .ok();
     });
+}
+
+#[allow(non_snake_case)]
+#[no_mangle]
+pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_stopVPN(_env: JNIEnv, _class: JClass) {
+    if get_vpn_state() != ClientState::Connected {
+        warn!("could not stop the vpn as it's not running");
+        return;
+    }
+    RUNTIME.block_on(stop_and_reset_shutdown_handle());
 }
