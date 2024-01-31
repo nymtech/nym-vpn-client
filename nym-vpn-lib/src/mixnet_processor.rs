@@ -11,7 +11,7 @@ use nym_validator_client::models::DescribedGateway;
 use tokio::task::JoinHandle;
 use tokio::time::timeout;
 use tracing::{debug, error, info, trace, warn};
-use tun::{AsyncDevice, Device, TunPacket};
+use tun2::{AbstractDevice, AsyncDevice};
 
 use crate::{
     error::{Error, Result},
@@ -88,7 +88,7 @@ impl MixnetProcessor {
     pub async fn run(self, mut shutdown: TaskClient) -> Result<AsyncDevice> {
         info!(
             "Opened mixnet processor on tun device {}",
-            self.device.get_ref().name().unwrap(),
+            self.device.as_ref().name().unwrap(),
         );
 
         debug!("Splitting tun device into sink and stream");
@@ -119,7 +119,7 @@ impl MixnetProcessor {
                             None
                         },
                         IpPacketResponseData::Data(data_response) => {
-                            Some(Ok(TunPacket::new(data_response.ip_packet.into())))
+                            Some(Ok(data_response.ip_packet.into()))
                         }
                     },
                     Err(err) => {
@@ -138,7 +138,7 @@ impl MixnetProcessor {
                 }
                 Some(Ok(packet)) = stream.next() => {
                     // TODO: properly investigate the binary format here and the overheard
-                    let Ok(packet) = IpPacketRequest::new_ip_packet(packet.into_bytes()).to_bytes() else {
+                    let Ok(packet) = IpPacketRequest::new_ip_packet(packet.into()).to_bytes() else {
                         error!("Failed to serialize packet");
                         continue;
                     };
@@ -178,7 +178,7 @@ impl MixnetProcessor {
 
 pub async fn start_processor(
     config: Config,
-    dev: tun::AsyncDevice,
+    dev: AsyncDevice,
     mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,
     enable_two_hop: bool,

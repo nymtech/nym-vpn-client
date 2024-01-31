@@ -48,7 +48,7 @@ pub enum Error {
     RecipientFormattingError,
 
     #[error("{0}")]
-    TunError(#[from] tun::Error),
+    TunError(#[from] tun2::Error),
 
     #[error("{0}")]
     WireguardConfigError(#[from] talpid_wireguard::config::Error),

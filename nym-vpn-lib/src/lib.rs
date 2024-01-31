@@ -31,7 +31,7 @@ pub use nym_task::{manager::SentStatus, StatusReceiver};
 pub use nym_bin_common;
 pub use nym_config;
 use tokio::task::JoinHandle;
-use tun::AsyncDevice;
+use tun2::AsyncDevice;
 
 #[cfg(target_os = "android")]
 pub mod android;
@@ -92,7 +92,7 @@ pub struct NymVpn {
     pub nym_ip: Option<Ipv4Addr>,
 
     /// The MTU of the TUN device.
-    pub nym_mtu: Option<i32>,
+    pub nym_mtu: Option<usize>,
 
     /// Disable routing all traffic through the VPN TUN device.
     pub disable_routing: bool,
