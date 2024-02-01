@@ -5,7 +5,8 @@ import Theme
 import UIComponents
 
 public struct AppearanceView: View {
-    private let viewModel: AppearanceViewModel
+    @ObservedObject
+    private var viewModel: AppearanceViewModel
 
     public init(viewModel: AppearanceViewModel) {
         self.viewModel = viewModel
@@ -39,17 +40,17 @@ private extension AppearanceView {
 
     @ViewBuilder
     func themeOptions() -> some View {
-        ForEach(viewModel.themes, id: \.self) { theme in
+        ForEach(viewModel.themes, id: \.self) { appearance in
             SettingButton(
                 viewModel:
                     SettingButtonViewModel(
-                        title: viewModel.themeTitle(for: theme),
-                        subtitle: viewModel.themeSubtitle(for: theme),
-                        isSelected: viewModel.isSelected(for: theme)
+                        title: viewModel.appearanceTitle(for: appearance),
+                        subtitle: viewModel.appearanceSubtitle(for: appearance),
+                        isSelected: viewModel.currentAppearance == appearance
                     )
             )
             .onTapGesture {
-                viewModel.setCurrentTheme(with: theme)
+                viewModel.updateAppearance(with: appearance)
             }
             .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
         }

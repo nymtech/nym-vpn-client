@@ -2,33 +2,32 @@ import SwiftUI
 import AppSettings
 import Theme
 
-public struct AppearanceViewModel {
-    private let appSettings: AppSettings
+public final class AppearanceViewModel: ObservableObject {
+    @ObservedObject private var appSettings: AppSettings
 
     let title = "displayTheme".localizedString
 
+    @Published var currentAppearance: AppSetting.Appearance
     @Binding var path: NavigationPath
 
     var themes: [AppSetting.Appearance] {
         AppSetting.Appearance.allCases
     }
 
-    var currentTheme: AppSetting.Appearance {
-        appSettings.currentTheme
-    }
-
     public init(path: Binding<NavigationPath>, appSettings: AppSettings) {
         _path = path
         self.appSettings = appSettings
+        currentAppearance = appSettings.currentAppearance
     }
 
-    func setCurrentTheme(with theme: AppSetting.Appearance) {
-        appSettings.currentTheme = theme
+    func updateAppearance(with appearance: AppSetting.Appearance) {
+        appSettings.currentAppearance = appearance
+        currentAppearance = appearance
     }
 }
 
 extension AppearanceViewModel {
-    func themeTitle(for theme: AppSetting.Appearance) -> String {
+    func appearanceTitle(for theme: AppSetting.Appearance) -> String {
         switch theme {
         case .light:
             return "lightThemeTitle".localizedString
@@ -39,17 +38,13 @@ extension AppearanceViewModel {
         }
     }
 
-    func themeSubtitle(for theme: AppSetting.Appearance) -> String? {
+    func appearanceSubtitle(for theme: AppSetting.Appearance) -> String? {
         switch theme {
         case .light, .dark:
             return nil
         case .automatic:
             return "automaticThemeSubtitle".localizedString
         }
-    }
-
-    func isSelected(for theme: AppSetting.Appearance) -> Bool {
-        appSettings.currentTheme == theme
     }
 }
 
