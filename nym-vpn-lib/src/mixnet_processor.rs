@@ -4,7 +4,7 @@
 use std::time::Duration;
 
 use bytes::BytesMut;
-use bytes::{Bytes, Buf};
+use bytes::{Buf, Bytes};
 use futures::{SinkExt, StreamExt};
 use nym_ip_packet_requests::{IpPacketRequest, IpPacketResponse, IpPacketResponseData};
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
@@ -93,7 +93,8 @@ impl Encoder<Bytes> for BundledIpPacketCodec {
         }
 
         // Add the packet to the buffer
-        self.buffer.extend_from_slice(&(packet_size as u16).to_be_bytes());
+        self.buffer
+            .extend_from_slice(&(packet_size as u16).to_be_bytes());
         self.buffer.extend_from_slice(&packet);
 
         Ok(())
@@ -126,7 +127,6 @@ impl Decoder for BundledIpPacketCodec {
         Ok(Some(packet.freeze()))
     }
 }
-
 
 pub struct MixnetProcessor {
     device: AsyncDevice,
@@ -171,30 +171,41 @@ impl MixnetProcessor {
         let sender = mixnet_client.split_sender();
         let recipient = self.ip_packet_router_address;
 
-        debug!("Setting up mixnet stream");
-        let mixnet_stream = mixnet_client
-            .filter_map(|reconstructed_message| async move {
-                match IpPacketResponse::from_reconstructed_message(&reconstructed_message) {
-                    Ok(response) => match response.data {
-                        IpPacketResponseData::StaticConnect(_) => {
-                            info!("Received static connect response when already connected - ignoring");
-                            None
-                        },
-                        IpPacketResponseData::DynamicConnect(_) => {
-                            info!("Received dynamic connect response when already connected - ignoring");
-                            None
-                        },
-                        IpPacketResponseData::Data(data_response) => {
-                            Some(Ok(TunPacket::new(data_response.ip_packet.into())))
-                        }
-                    },
-                    Err(err) => {
-                        error!("failed to deserialize reconstructed message: {err}");
-                        None
-                    }
-                }
-            });
-        tokio::pin!(mixnet_stream);
+        // debug!("Setting up mixnet stream");
+        // let mixnet_stream = mixnet_client
+        //     .filter_map(|reconstructed_message| async move {
+        //         match IpPacketResponse::from_reconstructed_message(&reconstructed_message) {
+        //             Ok(response) => match response.data {
+        //                 IpPacketResponseData::StaticConnect(_) => {
+        //                     info!("Received static connect response when already connected - ignoring");
+        //                     None
+        //                 },
+        //                 IpPacketResponseData::DynamicConnect(_) => {
+        //                     info!("Received dynamic connect response when already connected - ignoring");
+        //                     None
+        //                 },
+        //                 IpPacketResponseData::Data(data_response) => {
+        //                     // Un-bunch
+        //                     let mut codec = BundledIpPacketCodec::new();
+        //                     let mut bytes = BytesMut::new();
+        //                     bytes.extend_from_slice(&data_response.ip_packet);
+        //                     while let Ok(Some(packet)) = codec.decode(&mut bytes) {
+        //                         // Handle packet
+        //                         let tun_packet = TunPacket::new(packet.into());
+        //                     }
+        //
+        //
+        //                     Some(Ok(TunPacket::new(data_response.ip_packet.into())))
+        //                 }
+        //             },
+        //             Err(err) => {
+        //                 error!("failed to deserialize reconstructed message: {err}");
+        //                 None
+        //             }
+        //         }
+        //     });
+        // tokio::pin!(mixnet_stream);
+
         // buffer to accumulate packets before sending them to the mixnet
         let mut buffer_used = 0;
         let mut packets_in_buffer = 0;
@@ -211,7 +222,7 @@ impl MixnetProcessor {
                     // TODO: properly investigate the binary format here and the overheard
                     // dbg!(&packet.get_bytes().len());
                     let packet_size = packet.get_bytes().len();
-                    dbg!(packet_size);
+                    // dbg!(packet_size);
 
                     let packet = packet.into_bytes();
                     // TODO: static buffer
@@ -245,13 +256,39 @@ impl MixnetProcessor {
                         error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
                     }
                 }
-                res = sink.send_all(&mut mixnet_stream) => {
-                    warn!("Mixnet stream finished. This may mean that the gateway was shut down");
-                    if let Err(e) = res {
-                        error!("Could not forward mixnet traffic to the client - {:?}", e);
-                    }
-                    break;
+                Some(packet) = mixnet_client.next() => {
+                    match IpPacketResponse::from_reconstructed_message(&packet) {
+                        Ok(response) => match response.data {
+                            IpPacketResponseData::StaticConnect(_) => {
+                                info!("Received static connect response when already connected - ignoring");
+                            },
+                            IpPacketResponseData::DynamicConnect(_) => {
+                                info!("Received dynamic connect response when already connected - ignoring");
+                            },
+                            IpPacketResponseData::Data(data_response) => {
+                                // Un-bunch
+                                let mut codec = BundledIpPacketCodec::new();
+                                let mut bytes = BytesMut::new();
+                                bytes.extend_from_slice(&data_response.ip_packet);
+                                while let Ok(Some(packet)) = codec.decode(&mut bytes) {
+                                    // Handle packet
+                                    let tun_packet = TunPacket::new(packet.into());
+                                    sink.send(tun_packet).await?;
+                                }
+                            }
+                        },
+                        Err(err) => {
+                            error!("failed to deserialize reconstructed message: {err}");
+                        }
+                    };
                 }
+                // res = sink.send_all(&mut mixnet_stream) => {
+                //     warn!("Mixnet stream finished. This may mean that the gateway was shut down");
+                //     if let Err(e) = res {
+                //         error!("Could not forward mixnet traffic to the client - {:?}", e);
+                //     }
+                //     break;
+                // }
             }
         }
         debug!("MixnetProcessor: Exiting");
