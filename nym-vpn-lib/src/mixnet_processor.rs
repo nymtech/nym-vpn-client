@@ -78,6 +78,14 @@ impl BundledIpPacketCodec {
             buffer: BytesMut::new(),
         }
     }
+
+    fn flush_current_buffer(&mut self) -> Bytes {
+        let mut buffer_so_far = BytesMut::new();
+        // TODO: is it possible to move the buffer instead of copying it?
+        buffer_so_far.extend_from_slice(&self.buffer);
+        self.buffer = BytesMut::new();
+        buffer_so_far.freeze()
+    }
 }
 
 impl Encoder<Bytes> for BundledIpPacketCodec {
@@ -212,11 +220,40 @@ impl MixnetProcessor {
 
         let mut bundled_packet_codec = BundledIpPacketCodec::new();
 
+        // tokio timer for flushing the buffer
+        let mut bundle_timer = tokio::time::interval(Duration::from_millis(100));
+
         info!("Mixnet processor is running");
         while !shutdown.is_shutdown() {
             tokio::select! {
                 _ = shutdown.recv_with_delay() => {
                     trace!("MixnetProcessor: Received shutdown");
+                }
+                _ = bundle_timer.tick() => {
+                    log::info!("Sending packet before filled up");
+                    let bundled_packets = bundled_packet_codec.flush_current_buffer();
+                    if !bundled_packets.is_empty() {
+                        let Ok(packet) = IpPacketRequest::new_ip_packet(bundled_packets).to_bytes() else {
+                            error!("Failed to serialize packet");
+                            continue;
+                        };
+
+                        let lane = TransmissionLane::General;
+                        let packet_type = None;
+                        let hops = self.enable_two_hop.then_some(0);
+                        let input_message = InputMessage::new_regular_with_custom_hops(
+                            recipient.0,
+                            packet,
+                            lane,
+                            packet_type,
+                            hops,
+                        );
+
+                        let ret = sender.send(input_message).await;
+                        if ret.is_err() && !shutdown.is_shutdown_poll() {
+                            error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                        }
+                    }
                 }
                 Some(Ok(packet)) = stream.next() => {
                     // TODO: properly investigate the binary format here and the overheard
@@ -233,6 +270,7 @@ impl MixnetProcessor {
                         continue;
                     }
                     let bundled_packets = bundled_packets.freeze();
+                    bundle_timer.reset();
 
                     // let Ok(packet) = IpPacketRequest::new_ip_packet(packet.into_bytes()).to_bytes() else {
                     let Ok(packet) = IpPacketRequest::new_ip_packet(bundled_packets).to_bytes() else {
