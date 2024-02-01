@@ -41,6 +41,7 @@ jobs:
           fileDir: ${{ env.KEY_STORE_LOCATION }}
           encodedString: ${{ secrets.KEYSTORE }}
 
+      # create keystore path for gradle to read
       - name: Create keystore path env var
         run: |
           store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
@@ -86,12 +87,12 @@ jobs:
           prerelease: false
           files: ${{ github.workspace }}/${{ steps.apk-path.outputs.path }}
           # disable fastlane deploy for now
-#      - name: Deploy with fastlane
-#        uses: ruby/setup-ruby@v1
-#        with:
-#          ruby-version: '3.2' # Not needed with a .ruby-version file
-#          bundler-cache: true
-#          # deploy to google open beta
-#      - name: Distribute app to Beta track 🚀
-#        run: (cd ${{ github.workspace }} && bundle install && bundle exec fastlane beta)
+      - name: Deploy with fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2' # Not needed with a .ruby-version file
+          bundler-cache: true
+          # deploy to google open alpha, for now
+      - name: Distribute app to Alpha track 🚀
+        run: (cd ${{ github.workspace }} && bundle install && bundle exec fastlane alpha)
 

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.ui.text.buildAnnotatedString
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.model.Country
+import timber.log.Timber
 
 object StringUtils {
     fun buildCountryNameString(country : Country, context : Context) : String {
@@ -16,7 +17,8 @@ object StringUtils {
             else append(country.name)
         }.text
     }
-    fun getImageVectorByName(context: Context, name: String): Int {
-        return context.resources.getIdentifier(name, "drawable", context.packageName)
+    fun getFlagImageVectorByName(context: Context, name: String): Int {
+        val flagAssetName = String.format("flag_%S", name).lowercase()
+        return context.resources.getIdentifier(flagAssetName, "drawable", context.packageName)
     }
 }

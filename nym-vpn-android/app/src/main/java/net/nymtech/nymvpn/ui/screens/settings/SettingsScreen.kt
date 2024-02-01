@@ -33,20 +33,13 @@ import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.theme.screenPadding
 import timber.log.Timber
 
 @Composable
 fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = hiltViewModel()) {
 
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  val padding =
-      when (MainActivity.windowHeightSizeClass) {
-        WindowHeightSizeClass.MEDIUM,
-        WindowHeightSizeClass.COMPACT -> 16.dp
-        else -> {
-          24.dp
-        }
-      }
   val context = LocalContext.current
 
   fun openWebPage(url: String) {
@@ -65,8 +58,8 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
       modifier =
           Modifier.verticalScroll(rememberScrollState())
               .fillMaxSize()
-              .padding(top = padding)
-              .padding(horizontal = padding)) {
+              .padding(top = screenPadding)
+              .padding(horizontal = screenPadding)) {
         SurfaceSelectionGroupButton(
             listOf(
                 SelectionItem(
@@ -123,6 +116,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
                           "link",
                           modifier =
                               Modifier.clickable {
+                                  //TODO open real FAQ later
                                 openWebPage(context.getString(R.string.faq_link))
                               })
                     })))
@@ -131,8 +125,9 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
                 SelectionItem(
                     title = stringResource(R.string.legal),
                     onClick = { navController.navigate(NavItem.Settings.Legal.route) })))
+      Box(contentAlignment =  Alignment.BottomStart, modifier = Modifier.fillMaxSize().padding(
+          screenPadding)) {
+          Text("Version: ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium)
       }
-    Box(contentAlignment =  Alignment.BottomStart, modifier = Modifier.fillMaxSize().padding(padding)) {
-        Text("Version: ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium)
-    }
+  }
 }

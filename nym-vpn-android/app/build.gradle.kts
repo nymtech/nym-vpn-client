@@ -88,9 +88,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            //signingConfig = signingConfigs.getByName(Constants.RELEASE)
+            signingConfig = signingConfigs.getByName(Constants.RELEASE)
         }
-        debug { isDebuggable = true }
+        debug {
+            isDebuggable = true
+        }
     }
     flavorDimensions.add(Constants.TYPE)
     productFlavors {
@@ -168,3 +170,4 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
 }
+

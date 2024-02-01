@@ -2,8 +2,8 @@ package net.nymtech.nymvpn.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import net.nymtech.nymvpn.ui.screens.hop.Countries
 
+typealias Countries = List<Country>
 @Serializable
 data class Country(
     val isoCode: String = "DE",

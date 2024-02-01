@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.hop
 
+import net.nymtech.nymvpn.model.Countries
 import net.nymtech.nymvpn.model.Country
 
 data class HopUiState(

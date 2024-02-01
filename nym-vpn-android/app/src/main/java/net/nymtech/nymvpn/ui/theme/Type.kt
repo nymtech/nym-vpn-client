@@ -62,10 +62,10 @@ val Typography =
             ))
 
 @Composable
-fun DescriptionTypography() {
-  when (MainActivity.windowHeightSizeClass) {
+fun descriptionTypography() : TextStyle {
+  return when (MainActivity.windowHeightSizeClass) {
     WindowHeightSizeClass.MEDIUM,
-    WindowHeightSizeClass.COMPACT -> MaterialTheme.typography.bodySmall
+    WindowHeightSizeClass.COMPACT -> MaterialTheme.typography.bodyMedium
     else -> {
       MaterialTheme.typography.bodyMedium
     }

@@ -40,4 +40,8 @@
     <string name="faq">FAQ</string>
     <string name="legal">Legal</string>
     <string name="faq_link">https://nymtech.net</string>
+    <string name="privacy_link">https://nymtech.net/privacy-policy</string>
+    <string name="terms_of_use">Terms of use</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="licenses">Licenses</string>
 </resources>

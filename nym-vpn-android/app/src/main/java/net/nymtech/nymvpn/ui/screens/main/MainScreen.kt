@@ -36,6 +36,7 @@ import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.screenPadding
 import net.nymtech.nymvpn.util.StringUtils
 
 @Composable
@@ -43,15 +44,12 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel = hiltView
 
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val context = LocalContext.current
-  val padding = when(MainActivity.windowHeightSizeClass) {
-      WindowHeightSizeClass.MEDIUM, WindowHeightSizeClass.COMPACT -> 16.dp
-      else -> { 24.dp }}
 
   @Composable
   fun determineCountryIcon(country: Country): @Composable () -> Unit {
     val image =
         if (country.isFastest) ImageVector.vectorResource(R.drawable.bolt)
-        else ImageVector.vectorResource(StringUtils.getImageVectorByName(context, country.isoCode.lowercase()))
+        else ImageVector.vectorResource(StringUtils.getFlagImageVectorByName(context, country.isoCode.lowercase()))
     return {
       Image(
           image,
@@ -64,7 +62,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel = hiltView
   }
 
   Column(
-      verticalArrangement = Arrangement.spacedBy(padding, Alignment.Top),
+      verticalArrangement = Arrangement.spacedBy(screenPadding, Alignment.Top),
       horizontalAlignment = Alignment.CenterHorizontally,
       modifier = Modifier.fillMaxSize()) {
       val snackAreaPadding = when(MainActivity.windowHeightSizeClass) {
@@ -99,13 +97,13 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel = hiltView
         Column(
             verticalArrangement = Arrangement.spacedBy(spacePaddingMain, Alignment.Bottom),
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().padding(bottom = padding)) {
+            modifier = Modifier.fillMaxSize().padding(bottom = screenPadding)) {
             val spacePaddingNetwork = when(MainActivity.windowHeightSizeClass) {
                 WindowHeightSizeClass.MEDIUM, WindowHeightSizeClass.COMPACT -> 12.dp
                 else -> { 24.dp }}
                 Column(
                   verticalArrangement = Arrangement.spacedBy(spacePaddingNetwork, Alignment.Bottom),
-                  modifier = Modifier.padding(horizontal = padding)) {
+                  modifier = Modifier.padding(horizontal = screenPadding)) {
                     GroupLabel(title = stringResource(R.string.select_network))
                     RadioSurfaceButton(
                         leadingIcon = ImageVector.vectorResource(R.drawable.mixnet),
@@ -131,7 +129,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel = hiltView
                   else -> { 24.dp } }
               Column(
                   verticalArrangement = Arrangement.spacedBy(countrySelectionSpacing, Alignment.Bottom),
-                  modifier = Modifier.padding(horizontal = padding)) {
+                  modifier = Modifier.padding(horizontal = screenPadding)) {
                     GroupLabel(title = stringResource(R.string.connect_to))
                     if (uiState.firstHopEnabled) {
                       ListOptionSelectionButton(
@@ -146,7 +144,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel = hiltView
                         onClick = { navController.navigate(NavItem.Hop.Exit.route) },
                         leadingIcon = lastHopIcon)
                   }
-              Box(modifier = Modifier.padding(horizontal = padding)) {
+              Box(modifier = Modifier.padding(horizontal = screenPadding)) {
                 when (uiState.connectionState) {
                   is ConnectionState.Disconnected ->
                       MainStyledButton(

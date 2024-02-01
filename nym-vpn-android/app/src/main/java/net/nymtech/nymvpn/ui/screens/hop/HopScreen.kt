@@ -27,6 +27,7 @@ import net.nymtech.nymvpn.ui.HopType
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.SearchBar
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
+import net.nymtech.nymvpn.ui.theme.screenPadding
 import net.nymtech.nymvpn.util.StringUtils
 
 @Composable
@@ -43,11 +44,10 @@ fun HopScreen(
       viewModel.init(hopType)
   }
 
-  val padding = 24.dp
   LazyColumn(
      horizontalAlignment = Alignment.CenterHorizontally,
       verticalArrangement = Arrangement.Top,
-      modifier = Modifier.fillMaxSize().padding(padding)) {
+      modifier = Modifier.fillMaxSize().padding(screenPadding)) {
         item {
           Column(
               verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -86,7 +86,7 @@ fun HopScreen(
         items(uiState.queriedCountries) {
           if (it.isFastest) return@items
           val icon =
-              ImageVector.vectorResource(StringUtils.getImageVectorByName(context, it.isoCode.lowercase()))
+              ImageVector.vectorResource(StringUtils.getFlagImageVectorByName(context, it.isoCode.lowercase()))
           SelectionItemButton(
               { Image(icon, icon.name, modifier = Modifier.padding(16.dp)) },
               buttonText = it.name,
