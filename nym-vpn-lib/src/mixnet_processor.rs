@@ -86,6 +86,10 @@ impl BundledIpPacketCodec {
         self.buffer = BytesMut::new();
         buffer_so_far.freeze()
     }
+
+    fn is_empty(&self) -> bool {
+        self.buffer.is_empty()
+    }
 }
 
 impl Encoder<Bytes> for BundledIpPacketCodec {
@@ -256,6 +260,11 @@ impl MixnetProcessor {
                     }
                 }
                 Some(Ok(packet)) = stream.next() => {
+                    // If we are the first packet, start the timer
+                    if bundled_packet_codec.is_empty() {
+                        bundle_timer.reset();
+                    }
+
                     // TODO: properly investigate the binary format here and the overheard
                     // dbg!(&packet.get_bytes().len());
                     let packet_size = packet.get_bytes().len();
