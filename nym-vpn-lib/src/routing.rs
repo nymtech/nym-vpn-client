@@ -11,16 +11,16 @@ use ipnetwork::IpNetwork;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 use tap::TapFallible;
 use tracing::{debug, error, info, trace};
-use tun::Device;
+use tun2::AbstractDevice;
 
 use crate::config::WireguardConfig;
 use crate::error::Result;
 
-const DEFAULT_TUN_MTU: i32 = 1500;
+const DEFAULT_TUN_MTU: usize = 1500;
 
 #[derive(Debug)]
 pub struct RoutingConfig {
-    mixnet_tun_config: tun::Configuration,
+    mixnet_tun_config: tun2::Configuration,
     entry_mixnet_gateway_ip: IpAddr,
     lan_gateway_ip: LanGatewayIp,
     tunnel_gateway_ip: TunnelGatewayIp,
@@ -32,10 +32,10 @@ impl RoutingConfig {
         entry_mixnet_gateway_ip: IpAddr,
         lan_gateway_ip: LanGatewayIp,
         tunnel_gateway_ip: TunnelGatewayIp,
-        mtu: Option<i32>,
+        mtu: Option<usize>,
     ) -> Self {
         debug!("TUN device IP: {}", tun_ip);
-        let mut mixnet_tun_config = tun::Configuration::default();
+        let mut mixnet_tun_config = tun2::Configuration::default();
         mixnet_tun_config.address(tun_ip);
         mixnet_tun_config.mtu(mtu.unwrap_or(DEFAULT_TUN_MTU));
         mixnet_tun_config.up();
@@ -157,27 +157,27 @@ pub async fn setup_routing(
     config: RoutingConfig,
     enable_wireguard: bool,
     disable_routing: bool,
-) -> Result<tun::AsyncDevice> {
+) -> Result<tun2::AsyncDevice> {
     info!("Creating tun device");
-    let dev = tun::create_as_async(&config.mixnet_tun_config)
+    let dev = tun2::create_as_async(&config.mixnet_tun_config)
         .tap_err(|err| error!("Failed to create tun device: {}", err))?;
-    let device_name = dev.get_ref().name().unwrap().to_string();
+    let device_name = dev.as_ref().name().unwrap().to_string();
     info!(
         "Created tun device {device_name} with ip={device_ip:?}",
         device_name = device_name,
         device_ip = dev
-            .get_ref()
+            .as_ref()
             .address()
             .map(|ip| ip.to_string())
             .unwrap_or("None".to_string())
     );
     debug!("Created tun device {device_name}: ip={device_ip:?}, broadcast={device_broadcast:?}, netmask={device_netmask:?}, destination={device_destination:?}, mtu={device_mtu:?}",
         device_name = device_name,
-        device_ip = dev.get_ref().address(),
-        device_broadcast = dev.get_ref().broadcast(),
-        device_netmask = dev.get_ref().netmask(),
-        device_destination = dev.get_ref().destination(),
-        device_mtu = dev.get_ref().mtu(),
+        device_ip = dev.as_ref().address(),
+        device_broadcast = dev.as_ref().broadcast(),
+        device_netmask = dev.as_ref().netmask(),
+        device_destination = dev.as_ref().destination(),
+        device_mtu = dev.as_ref().mtu(),
     );
 
     #[cfg(target_os = "linux")]
