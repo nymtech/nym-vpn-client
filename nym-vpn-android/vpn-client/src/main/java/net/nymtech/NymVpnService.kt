@@ -15,7 +15,6 @@ class NymVpnService : VpnService() {
 
     private var vpnClient : VpnClient = NymVpnClient()
     private lateinit var vpnThread: Thread
-    private lateinit var vpnInterface: ParcelFileDescriptor
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Timber.d("On start received")
         return if (intent?.action == Action.START.name) {
@@ -33,39 +32,7 @@ class NymVpnService : VpnService() {
     private fun startVpn() {
         vpnThread = Thread {
             try {
-                // Create a new VPN Builder
-                val builder = Builder()
-
-                // Set the VPN parameters
-                builder.setSession("nymtun")
-                    .addAddress("10.0.0.1", 24)
-                    .addRoute("0.0.0.0", 1)
-                    .addRoute("128.0.0.0", 1)
-                    .addRoute("8000::", 1)
-                    .addRoute("::", 1)
-//                    .addDnsServer("8.8.8.8")
-//                    .addRoute("0.0.0.0", 0)
-//                    .setMtu(1500)
-
-
-                // Establish the VPN connection
-                builder.establish()?.let {
-                    vpnInterface = it
-                    Timber.d("Interface created")
-                    start(vpnInterface.fd)
-                }
-
-                // Redirect network traffic through the VPN interface
-//                val vpnInput = FileInputStream(vpnInterface.fileDescriptor)
-//                val vpnOutput = FileOutputStream(vpnInterface.fileDescriptor)
-
-//                while (true) {
-//                    // Read incoming network traffic from vpnInput
-//                    // Process the traffic as needed
-//
-//                    // Write outgoing network traffic to vpnOutput
-//                    // Send the traffic through the VPN interface
-//                }
+                start()
             } catch (e: Exception) {
                 // Handle VPN connection errors
                 e.printStackTrace()
@@ -79,7 +46,6 @@ class NymVpnService : VpnService() {
 
     private fun stopVpn() {
         try {
-            vpnInterface.close()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -90,8 +56,8 @@ class NymVpnService : VpnService() {
         stopVpn()
     }
 
-    private fun start(interfaceFd : Int) {
-        vpnClient.connect("FR", "FR", this, interfaceFd)
+    private fun start() {
+        vpnClient.connect("FR", "FR", this)
     }
 
     private fun stop() {

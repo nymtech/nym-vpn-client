@@ -23,11 +23,10 @@ class NymVPN {
     fun init(api_url: String,
              entry_gateway: String,
              exit_router: String,
-             vpn_service: Any,
-             interface_fd: Int) {
+             vpn_service: Any) {
         Timber.d("calling $nymVPNLib:initVPN")
         try {
-            initVPN(api_url, entry_gateway, exit_router, vpn_service, interface_fd)
+            initVPN(api_url, entry_gateway, exit_router, vpn_service)
         } catch (e: Throwable) {
             Timber.i("$nymVPNLib:initVPN internal error: $e")
             //Sentry.captureException(e)
@@ -57,8 +56,7 @@ class NymVPN {
         api_url: String,
         entry_gateway: String,
         exit_router: String,
-        vpn_service: Any,
-        interface_fd: Int
+        vpn_service: Any
     )
     private external fun runVPN()
     private external fun stopVPN()

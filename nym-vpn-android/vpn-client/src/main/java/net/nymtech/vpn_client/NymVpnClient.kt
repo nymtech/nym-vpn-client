@@ -33,12 +33,12 @@ class NymVpnClient : VpnClient {
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    override fun connect(entryIso: String, exitIso: String, vpnService: NymVpnService, interfaceFd : Int) {
+    override fun connect(entryIso: String, exitIso: String, vpnService: NymVpnService) {
         Timber.d("Starting job")
         val entry = "{ \"Location\": { \"location\": \"FR\" }}"
         val exit = "{ \"Location\": { \"location\": \"FR\" }}"
         GlobalScope.launch(Dispatchers.IO) {
-            nymVPN.init("https://sandbox-nym-api1.nymtech.net/api",entry,exit,vpnService,interfaceFd)
+            nymVPN.init("https://sandbox-nym-api1.nymtech.net/api",entry,exit,vpnService)
             delay(1000)
             nymVPN.run()
         }
