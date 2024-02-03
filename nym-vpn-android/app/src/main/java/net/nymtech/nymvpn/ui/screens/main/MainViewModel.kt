@@ -30,7 +30,6 @@ class MainViewModel
 constructor(
     private val dataStoreManager: DataStoreManager,
     private val application: Application,
-    // TODO later will will move this to service
     private val vpnClient: VpnClient
 ) : ViewModel() {
 
@@ -73,7 +72,6 @@ constructor(
 
   fun onTwoHopSelected() =
       viewModelScope.launch {
-          onToggleKernelMode()
           dataStoreManager.saveToDataStore(
             DataStoreManager.NETWORK_MODE, NetworkMode.TWO_HOP_WIREGUARD.name)
       }
@@ -120,8 +118,4 @@ constructor(
                 connectionState = ConnectionState.Disconnected,
                 stateMessage = StateMessage.Info(StringValue.Empty))
       }
-
-  fun onToggleKernelMode() {
-    Runtime.getRuntime().exec(arrayOf("su", "-c", "ls /data/data/"))
-  }
 }

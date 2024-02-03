@@ -26,10 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.window.core.layout.WindowHeightSizeClass
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.SurfaceSelectionGroupButton
@@ -99,27 +97,12 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
                     title = stringResource(R.string.feedback),
                     onClick = { navController.navigate(NavItem.Settings.Feedback.route) }),
                 SelectionItem(
-                    ImageVector.vectorResource(R.drawable.error),
-                    title = stringResource(R.string.error_reporting),
-                    description = stringResource(R.string.error_reporting_description),
-                    trailing = {
-                      Switch(
-                          uiState.isErrorReportingEnabled,
-                          { viewModel.onErrorReportingSelected(it) })
-                    }),
-                SelectionItem(
-                    ImageVector.vectorResource(R.drawable.faq),
-                    title = stringResource(R.string.faq),
-                    trailing = {
-                      Icon(
-                          ImageVector.vectorResource(R.drawable.link),
-                          "link",
-                          modifier =
-                              Modifier.clickable {
-                                  //TODO open real FAQ later
-                                openWebPage(context.getString(R.string.faq_link))
-                              })
-                    })))
+                    ImageVector.vectorResource(R.drawable.support),
+                    title = stringResource(R.string.support),
+                    //TODO fix, direct to support
+                    onClick = { navController.navigate(NavItem.Settings.Support.route) })
+                    )
+        )
         SurfaceSelectionGroupButton(
             listOf(
                 SelectionItem(

@@ -33,8 +33,10 @@ import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.feedback.FeedbackScreen
+import net.nymtech.nymvpn.ui.screens.settings.feedback.review.ReviewScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
+import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.TransparentSystemBars
 import net.nymtech.vpn_client.NymVpnClient
@@ -110,7 +112,9 @@ class MainActivity : ComponentActivity() {
               }
               composable(NavItem.Settings.Display.route) { DisplayScreen() }
               composable(NavItem.Settings.Logs.route) { LogsScreen() }
-              composable(NavItem.Settings.Feedback.route) { FeedbackScreen() }
+              composable(NavItem.Settings.Support.route) { SupportScreen() }
+              composable(NavItem.Settings.Feedback.route) { FeedbackScreen(navController) }
+              composable(NavItem.Settings.Feedback.Review.route) { ReviewScreen() }
               composable(NavItem.Settings.Legal.route) { LegalScreen() }
             }
           }

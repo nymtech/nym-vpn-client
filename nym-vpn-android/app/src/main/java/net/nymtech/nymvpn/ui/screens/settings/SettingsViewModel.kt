@@ -20,8 +20,7 @@ class SettingsViewModel @Inject constructor(
     val uiState = dataStoreManager.preferencesFlow.map {
         val firstHopSelection : Boolean = (it?.get(DataStoreManager.FIRST_HOP_SELECTION) ?: false)
         val autoConnect : Boolean = (it?.get(DataStoreManager.AUTO_CONNECT) ?: false)
-        val errorReporting : Boolean = (it?.get(DataStoreManager.ERROR_REPORTING) ?: false)
-        SettingsUiState(false, firstHopSelection, autoConnect, errorReporting)
+        SettingsUiState(false, firstHopSelection, autoConnect)
     }.stateIn(viewModelScope,
         SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
         SettingsUiState()
@@ -39,9 +38,5 @@ class SettingsViewModel @Inject constructor(
 
     fun onAutoConnectSelected(selected: Boolean) = viewModelScope.launch {
         dataStoreManager.saveToDataStore(DataStoreManager.AUTO_CONNECT, selected)
-    }
-
-    fun onErrorReportingSelected(selected: Boolean) = viewModelScope.launch {
-        dataStoreManager.saveToDataStore(DataStoreManager.ERROR_REPORTING, selected)
     }
 }

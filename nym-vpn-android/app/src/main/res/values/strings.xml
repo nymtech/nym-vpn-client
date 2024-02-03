@@ -35,13 +35,26 @@
     <string name="entry_location_description">Manually select your entry hop</string>
     <string name="logs">Logs</string>
     <string name="feedback">Feedback</string>
+    <string name="support">Support</string>
     <string name="error_reporting">Error reporting</string>
     <string name="error_reporting_description">Help us improve NymVPN</string>
-    <string name="faq">FAQ</string>
     <string name="legal">Legal</string>
     <string name="faq_link">https://nymtech.net</string>
     <string name="privacy_link">https://nymtech.net/privacy-policy</string>
     <string name="terms_of_use">Terms of use</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="licenses">Licenses</string>
+    <string name="open_github">Open a GitHub issue</string>
+    <string name="send_feedback">Send us feedback</string>
+    <string name="send_email">Send us an email</string>
+    <string name="check_faq">Check the FAQ</string>
+    <string name="join_matrix">Join us on Matrix</string>
+    <string name="join_discord">Join us on Discord</string>
+    <string name="matrix_url">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
+    <string name="discord_url">https://discord.com/invite/nym</string>
+    <string name="faq_url">https://nymvpn.com/en/support</string>
+    <string name="support_email">support@nymvpn.com</string>
+    <string name="github_issues_url">https://github.com/nymtech/nymvpn-android/issues/new/choose</string>
+    <string name="email_subject">NymVPN Support</string>
+    <string name="email_chooser">Send an email…</string>
 </resources>

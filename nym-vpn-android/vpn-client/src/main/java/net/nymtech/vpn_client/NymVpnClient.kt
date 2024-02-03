@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import net.mullvad.talpid.TalpidVpnService
 import net.nymtech.NymVpnService
 
 import timber.log.Timber
@@ -33,7 +34,7 @@ class NymVpnClient : VpnClient {
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    override fun connect(entryIso: String, exitIso: String, vpnService: NymVpnService) {
+    override fun connect(entryIso: String, exitIso: String, vpnService: TalpidVpnService) {
         Timber.d("Starting job")
         val entry = "{ \"Location\": { \"location\": \"FR\" }}"
         val exit = "{ \"Location\": { \"location\": \"FR\" }}"
