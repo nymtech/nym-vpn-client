@@ -289,6 +289,7 @@ impl MixnetProcessor {
         // let mut packets_in_buffer = 0;
 
         let mut bundled_packet_codec = BundledIpPacketCodec::new();
+        let mut bundled_packet_decoder = BundledIpPacketCodec::new();
 
         let message_creator = MessageCreator::new(recipient.0, self.enable_two_hop);
 
@@ -393,13 +394,15 @@ impl MixnetProcessor {
                             },
                             IpPacketResponseData::Data(data_response) => {
                                 // Un-bunch
-                                let mut codec = BundledIpPacketCodec::new();
-                                let mut bytes = BytesMut::new();
-                                bytes.extend_from_slice(&data_response.ip_packet);
-                                while let Ok(Some(packet)) = codec.decode(&mut bytes) {
-                                    // Handle packet
-                                    let tun_packet = TunPacket::new(packet.into());
-                                    sink.send(tun_packet).await?;
+                                // let mut codec = BundledIpPacketCodec::new();
+                                // let mut bytes = {
+                                //     let mut bytes = BytesMut::new();
+                                //     bytes.extend_from_slice(&data_response.ip_packet);
+                                //     bytes
+                                // };
+                                let mut bytes = BytesMut::from(&*data_response.ip_packet);
+                                while let Ok(Some(packet)) = bundled_packet_decoder.decode(&mut bytes) {
+                                    sink.send(TunPacket::new(packet.into())).await?;
                                 }
                             }
                         },
