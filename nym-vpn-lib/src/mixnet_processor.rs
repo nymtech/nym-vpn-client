@@ -70,12 +70,14 @@ impl std::fmt::Display for IpPacketRouterAddress {
 // These packets are separated by a 2 byte length prefix.
 struct BundledIpPacketCodec {
     buffer: BytesMut,
+    timer: tokio::time::Interval,
 }
 
 impl BundledIpPacketCodec {
     fn new() -> Self {
         BundledIpPacketCodec {
             buffer: BytesMut::new(),
+            timer: tokio::time::interval(Duration::from_millis(100)),
         }
     }
 
@@ -84,24 +86,29 @@ impl BundledIpPacketCodec {
         // TODO: is it possible to move the buffer instead of copying it?
         buffer_so_far.extend_from_slice(&self.buffer);
         self.buffer = BytesMut::new();
+        self.timer.reset();
         buffer_so_far.freeze()
     }
 
-    fn is_empty(&self) -> bool {
-        self.buffer.is_empty()
-    }
+    // fn is_empty(&self) -> bool {
+    //     self.buffer.is_empty()
+    // }
 }
 
 impl Encoder<Bytes> for BundledIpPacketCodec {
     type Error = Error;
 
     fn encode(&mut self, packet: Bytes, dst: &mut BytesMut) -> Result<()> {
+        if self.buffer.is_empty() {
+            self.timer.reset();
+        }
         let packet_size = packet.len();
 
         if self.buffer.len() + packet_size + 2 > 1500 {
             // If the packet doesn't fit in the buffer, send the buffer and then add it to the buffer
             dst.extend_from_slice(&self.buffer);
             self.buffer = BytesMut::new();
+            self.timer.reset();
         }
 
         // Add the packet to the buffer
@@ -219,8 +226,8 @@ impl MixnetProcessor {
         // tokio::pin!(mixnet_stream);
 
         // buffer to accumulate packets before sending them to the mixnet
-        let mut buffer_used = 0;
-        let mut packets_in_buffer = 0;
+        // let mut buffer_used = 0;
+        // let mut packets_in_buffer = 0;
 
         let mut bundled_packet_codec = BundledIpPacketCodec::new();
 
@@ -233,7 +240,8 @@ impl MixnetProcessor {
                 _ = shutdown.recv_with_delay() => {
                     trace!("MixnetProcessor: Received shutdown");
                 }
-                _ = bundle_timer.tick() => {
+                // _ = bundle_timer.tick() => {
+                _ = bundled_packet_codec.timer.tick() => {
                     log::info!("Sending packet before filled up");
                     let bundled_packets = bundled_packet_codec.flush_current_buffer();
                     if !bundled_packets.is_empty() {
@@ -261,13 +269,13 @@ impl MixnetProcessor {
                 }
                 Some(Ok(packet)) = stream.next() => {
                     // If we are the first packet, start the timer
-                    if bundled_packet_codec.is_empty() {
-                        bundle_timer.reset();
-                    }
+                    // if bundled_packet_codec.is_empty() {
+                    //     bundle_timer.reset();
+                    // }
 
                     // TODO: properly investigate the binary format here and the overheard
                     // dbg!(&packet.get_bytes().len());
-                    let packet_size = packet.get_bytes().len();
+                    // let packet_size = packet.get_bytes().len();
                     // dbg!(packet_size);
 
                     let packet = packet.into_bytes();
@@ -279,7 +287,7 @@ impl MixnetProcessor {
                         continue;
                     }
                     let bundled_packets = bundled_packets.freeze();
-                    bundle_timer.reset();
+                    // bundle_timer.reset();
 
                     // let Ok(packet) = IpPacketRequest::new_ip_packet(packet.into_bytes()).to_bytes() else {
                     let Ok(packet) = IpPacketRequest::new_ip_packet(bundled_packets).to_bytes() else {
