@@ -94,6 +94,16 @@ impl BundledIpPacketCodec {
         output_buffer.freeze()
     }
 
+    async fn bundle_timeout(&mut self) -> Option<Bytes> {
+        let _a = self.timer.tick().await;
+        let b = self.flush_current_buffer();
+        if b.is_empty() {
+            None
+        } else {
+            Some(b)
+        }
+    }
+
     // fn is_empty(&self) -> bool {
     //     self.buffer.is_empty()
     // }
@@ -237,7 +247,7 @@ impl MixnetProcessor {
         let mut bundled_packet_codec = BundledIpPacketCodec::new();
 
         // tokio timer for flushing the buffer
-        let mut bundle_timer = tokio::time::interval(Duration::from_millis(100));
+        // let mut bundle_timer = tokio::time::interval(Duration::from_millis(100));
 
         info!("Mixnet processor is running");
         while !shutdown.is_shutdown() {
@@ -246,31 +256,34 @@ impl MixnetProcessor {
                     trace!("MixnetProcessor: Received shutdown");
                 }
                 // _ = bundle_timer.tick() => {
-                _ = bundled_packet_codec.timer.tick() => {
+                // _ = bundled_packet_codec.timer.tick() => {
+                Some(bundled_packets) = bundled_packet_codec.bundle_timeout() => {
+                    assert!(!bundled_packets.is_empty());
+
                     log::info!("Sending packet before filled up");
-                    let bundled_packets = bundled_packet_codec.flush_current_buffer();
-                    if !bundled_packets.is_empty() {
-                        let Ok(packet) = IpPacketRequest::new_ip_packet(bundled_packets).to_bytes() else {
-                            error!("Failed to serialize packet");
-                            continue;
-                        };
+                    // let bundled_packets = bundled_packet_codec.flush_current_buffer();
+                    // if !bundled_packets.is_empty() {
+                    let Ok(packet) = IpPacketRequest::new_ip_packet(bundled_packets).to_bytes() else {
+                        error!("Failed to serialize packet");
+                        continue;
+                    };
 
-                        let lane = TransmissionLane::General;
-                        let packet_type = None;
-                        let hops = self.enable_two_hop.then_some(0);
-                        let input_message = InputMessage::new_regular_with_custom_hops(
-                            recipient.0,
-                            packet,
-                            lane,
-                            packet_type,
-                            hops,
-                        );
+                    let lane = TransmissionLane::General;
+                    let packet_type = None;
+                    let hops = self.enable_two_hop.then_some(0);
+                    let input_message = InputMessage::new_regular_with_custom_hops(
+                        recipient.0,
+                        packet,
+                        lane,
+                        packet_type,
+                        hops,
+                    );
 
-                        let ret = sender.send(input_message).await;
-                        if ret.is_err() && !shutdown.is_shutdown_poll() {
-                            error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
-                        }
+                    let ret = sender.send(input_message).await;
+                    if ret.is_err() && !shutdown.is_shutdown_poll() {
+                        error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
                     }
+                    // }
                 }
                 Some(Ok(packet)) = stream.next() => {
                     // If we are the first packet, start the timer
