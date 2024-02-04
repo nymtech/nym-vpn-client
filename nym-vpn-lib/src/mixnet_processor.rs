@@ -82,12 +82,16 @@ impl BundledIpPacketCodec {
     }
 
     fn flush_current_buffer(&mut self) -> Bytes {
-        let mut buffer_so_far = BytesMut::new();
-        // TODO: is it possible to move the buffer instead of copying it?
-        buffer_so_far.extend_from_slice(&self.buffer);
-        self.buffer = BytesMut::new();
-        self.timer.reset();
-        buffer_so_far.freeze()
+        // let mut buffer_so_far = BytesMut::new();
+        // // TODO: is it possible to move the buffer instead of copying it?
+        // buffer_so_far.extend_from_slice(&self.buffer);
+        // self.buffer = BytesMut::new();
+        // self.timer.reset();
+        // buffer_so_far.freeze();
+
+        let mut output_buffer = BytesMut::new();
+        std::mem::swap(&mut output_buffer, &mut self.buffer);
+        output_buffer.freeze()
     }
 
     // fn is_empty(&self) -> bool {
@@ -111,9 +115,10 @@ impl Encoder<Bytes> for BundledIpPacketCodec {
             self.timer.reset();
         }
 
-        // Add the packet to the buffer
+        // Add the packet size
         self.buffer
             .extend_from_slice(&(packet_size as u16).to_be_bytes());
+        // Add the packet to the buffer
         self.buffer.extend_from_slice(&packet);
 
         Ok(())
