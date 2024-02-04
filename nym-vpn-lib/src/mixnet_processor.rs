@@ -307,15 +307,12 @@ impl MixnetProcessor {
                     assert!(!bundled_packets.is_empty());
                     log::info!("Sending packet before filled up");
 
-                    let Some(input_message) = message_creator.create_input_message(bundled_packets) else {
-                        continue;
+                    if let Some(input_message) = message_creator.create_input_message(bundled_packets) {
+                        let ret = sender.send(input_message).await;
+                        if ret.is_err() && !shutdown.is_shutdown_poll() {
+                            error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                        }
                     };
-
-                    let ret = sender.send(input_message).await;
-
-                    if ret.is_err() && !shutdown.is_shutdown_poll() {
-                        error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
-                    }
                 }
                 Some(Ok(packet)) = stream.next() => {
                     // If we are the first packet, start the timer
@@ -338,9 +335,25 @@ impl MixnetProcessor {
                     //     }
                     //     bundled_packets.freeze()
                     // };
-                    let Some(bundled_packets) = bundled_packet_codec.append_packet(packet.into_bytes()) else {
-                        continue;
-                    };
+
+                    // if let Some(bundled_packets) = bundled_packet_codec.append_packet(packet.into_bytes()) {
+                    //     if let Some(input_message) = message_creator.create_input_message(bundled_packets) {
+                    //         let ret = sender.send(input_message).await;
+                    //         if ret.is_err() && !shutdown.is_shutdown_poll() {
+                    //             error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                    //         }
+                    //     }
+                    // }
+
+                    if let Some(input_message) = bundled_packet_codec
+                        .append_packet(packet.into_bytes())
+                        .and_then(|bundled_packets| message_creator.create_input_message(bundled_packets))
+                    {
+                        let ret = sender.send(input_message).await;
+                        if ret.is_err() && !shutdown.is_shutdown_poll() {
+                            error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                        }
+                    }
                     // bundle_timer.reset();
 
                     // let Ok(packet) = IpPacketRequest::new_ip_packet(packet.into_bytes()).to_bytes() else {
@@ -360,14 +373,14 @@ impl MixnetProcessor {
                     //        hops,
                     //    );
 
-                    let Some(input_message) = message_creator.create_input_message(bundled_packets) else {
-                        continue;
-                    };
+                    // let Some(input_message) = message_creator.create_input_message(bundled_packets) else {
+                    //     continue;
+                    // };
 
-                    let ret = sender.send(input_message).await;
-                    if ret.is_err() && !shutdown.is_shutdown_poll() {
-                        error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
-                    }
+                    // let ret = sender.send(input_message).await;
+                    // if ret.is_err() && !shutdown.is_shutdown_poll() {
+                    //     error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                    // }
                 }
                 Some(packet) = mixnet_client.next() => {
                     match IpPacketResponse::from_reconstructed_message(&packet) {
