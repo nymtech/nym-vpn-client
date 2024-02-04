@@ -81,6 +81,16 @@ impl BundledIpPacketCodec {
         }
     }
 
+    fn append_packet(&mut self, packet: Bytes) -> Option<Bytes> {
+        let mut bundled_packets = BytesMut::new();
+        self.encode(packet, &mut bundled_packets).unwrap();
+        if bundled_packets.is_empty() {
+            None
+        } else {
+            Some(bundled_packets.freeze())
+        }
+    }
+
     fn flush_current_buffer(&mut self) -> Bytes {
         // let mut buffer_so_far = BytesMut::new();
         // // TODO: is it possible to move the buffer instead of copying it?
@@ -170,6 +180,40 @@ pub struct MixnetProcessor {
     enable_two_hop: bool,
 }
 
+struct MessageCreator {
+    recipient: Recipient,
+    enable_two_hop: bool,
+}
+
+impl MessageCreator {
+    fn new(recipient: Recipient, enable_two_hop: bool) -> Self {
+        Self {
+            recipient,
+            enable_two_hop,
+        }
+    }
+
+    fn create_input_message(&self, bundled_packets: Bytes) -> Option<InputMessage> {
+        let Ok(packet) = IpPacketRequest::new_ip_packet(bundled_packets).to_bytes() else {
+            error!("Failed to serialize packet");
+            // continue;
+            return None;
+        };
+
+        let lane = TransmissionLane::General;
+        let packet_type = None;
+        let hops = self.enable_two_hop.then_some(0);
+        let input_message = InputMessage::new_regular_with_custom_hops(
+            self.recipient,
+            packet,
+            lane,
+            packet_type,
+            hops,
+        );
+        Some(input_message)
+    }
+}
+
 impl MixnetProcessor {
     pub fn new(
         device: AsyncDevice,
@@ -246,6 +290,8 @@ impl MixnetProcessor {
 
         let mut bundled_packet_codec = BundledIpPacketCodec::new();
 
+        let message_creator = MessageCreator::new(recipient.0, self.enable_two_hop);
+
         // tokio timer for flushing the buffer
         // let mut bundle_timer = tokio::time::interval(Duration::from_millis(100));
 
@@ -259,31 +305,17 @@ impl MixnetProcessor {
                 // _ = bundled_packet_codec.timer.tick() => {
                 Some(bundled_packets) = bundled_packet_codec.bundle_timeout() => {
                     assert!(!bundled_packets.is_empty());
-
                     log::info!("Sending packet before filled up");
-                    // let bundled_packets = bundled_packet_codec.flush_current_buffer();
-                    // if !bundled_packets.is_empty() {
-                    let Ok(packet) = IpPacketRequest::new_ip_packet(bundled_packets).to_bytes() else {
-                        error!("Failed to serialize packet");
+
+                    let Some(input_message) = message_creator.create_input_message(bundled_packets) else {
                         continue;
                     };
 
-                    let lane = TransmissionLane::General;
-                    let packet_type = None;
-                    let hops = self.enable_two_hop.then_some(0);
-                    let input_message = InputMessage::new_regular_with_custom_hops(
-                        recipient.0,
-                        packet,
-                        lane,
-                        packet_type,
-                        hops,
-                    );
-
                     let ret = sender.send(input_message).await;
+
                     if ret.is_err() && !shutdown.is_shutdown_poll() {
                         error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
                     }
-                    // }
                 }
                 Some(Ok(packet)) = stream.next() => {
                     // If we are the first packet, start the timer
@@ -296,33 +328,41 @@ impl MixnetProcessor {
                     // let packet_size = packet.get_bytes().len();
                     // dbg!(packet_size);
 
-                    let packet = packet.into_bytes();
+                    // let packet = packet.into_bytes();
                     // TODO: static buffer
-                    let mut bundled_packets = BytesMut::new();
-
-                    bundled_packet_codec.encode(packet, &mut bundled_packets).unwrap();
-                    if bundled_packets.is_empty() {
+                    // let bundled_packets = {
+                    //     let mut bundled_packets = BytesMut::new();
+                    //     bundled_packet_codec.encode(packet.into_bytes(), &mut bundled_packets).unwrap();
+                    //     if bundled_packets.is_empty() {
+                    //         continue;
+                    //     }
+                    //     bundled_packets.freeze()
+                    // };
+                    let Some(bundled_packets) = bundled_packet_codec.append_packet(packet.into_bytes()) else {
                         continue;
-                    }
-                    let bundled_packets = bundled_packets.freeze();
+                    };
                     // bundle_timer.reset();
 
                     // let Ok(packet) = IpPacketRequest::new_ip_packet(packet.into_bytes()).to_bytes() else {
-                    let Ok(packet) = IpPacketRequest::new_ip_packet(bundled_packets).to_bytes() else {
-                        error!("Failed to serialize packet");
+                    //let Ok(packet) = IpPacketRequest::new_ip_packet(bundled_packets).to_bytes() else {
+                    //    error!("Failed to serialize packet");
+                    //    continue;
+                    //};
+
+                    //let lane = TransmissionLane::General;
+                    //let packet_type = None;
+                    //let hops = self.enable_two_hop.then_some(0);
+                    //let input_message = InputMessage::new_regular_with_custom_hops(
+                    //        recipient.0,
+                    //        packet,
+                    //        lane,
+                    //        packet_type,
+                    //        hops,
+                    //    );
+
+                    let Some(input_message) = message_creator.create_input_message(bundled_packets) else {
                         continue;
                     };
-
-                    let lane = TransmissionLane::General;
-                    let packet_type = None;
-                    let hops = self.enable_two_hop.then_some(0);
-                    let input_message = InputMessage::new_regular_with_custom_hops(
-                            recipient.0,
-                            packet,
-                            lane,
-                            packet_type,
-                            hops,
-                        );
 
                     let ret = sender.send(input_message).await;
                     if ret.is_err() && !shutdown.is_shutdown_poll() {
