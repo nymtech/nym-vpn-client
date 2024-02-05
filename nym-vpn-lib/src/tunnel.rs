@@ -21,15 +21,14 @@ pub struct Tunnel {
     pub firewall: Firewall,
     pub dns_monitor: DnsMonitor,
     pub route_manager_handle: RouteManagerHandle,
-    #[cfg(target_os = "android")]
-    pub context: talpid_types::android::AndroidContext,
+    pub tun_provider: Arc<Mutex<TunProvider>>,
 }
 
 impl Tunnel {
     pub fn new(
         config: Option<WireguardConfig>,
         route_manager_handle: RouteManagerHandle,
-        #[cfg(target_os = "android")] context: talpid_types::android::AndroidContext,
+        tun_provider: Arc<Mutex<TunProvider>>,
     ) -> Result<Self, crate::error::Error> {
         #[cfg(target_os = "macos")]
         let (firewall, dns_monitor) = {
@@ -77,8 +76,7 @@ impl Tunnel {
             firewall,
             dns_monitor,
             route_manager_handle,
-            #[cfg(target_os = "android")]
-            context,
+            tun_provider,
         })
     }
 }
@@ -91,8 +89,7 @@ pub fn start_tunnel(
     let route_manager = tunnel.route_manager_handle.clone();
     // We only start the tunnel when we have wireguard enabled, and then we have the config
     let config = tunnel.config.as_ref().unwrap().clone();
-    #[cfg(target_os = "android")]
-    let context = tunnel.context.clone();
+    let tun_provider = Arc::clone(&tunnel.tun_provider);
     let handle = tokio::task::spawn_blocking(move || -> Result<(), crate::error::Error> {
         let (event_tx, _) = mpsc::unbounded();
         let on_tunnel_event =
@@ -105,22 +102,12 @@ pub fn start_tunnel(
             };
         let resource_dir = std::env::temp_dir().join("nym-wg");
         debug!("Tunnel resource dir: {:?}", resource_dir);
-        let tun_provider = TunProvider::new(
-            #[cfg(target_os = "android")]
-            context,
-            #[cfg(target_os = "android")]
-            false,
-            #[cfg(target_os = "android")]
-            None,
-            #[cfg(target_os = "android")]
-            vec![],
-        );
         let args = TunnelArgs {
             runtime: tokio::runtime::Handle::current(),
             resource_dir: &resource_dir,
             on_event: on_tunnel_event,
             tunnel_close_rx,
-            tun_provider: Arc::new(Mutex::new(tun_provider)),
+            tun_provider,
             retry_attempt: 3,
             route_manager,
         };

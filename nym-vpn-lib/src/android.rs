@@ -5,13 +5,11 @@ use crate::gateway_client::{EntryPoint, ExitPoint};
 use crate::{spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage};
 use futures::StreamExt;
 use jnix::jni::objects::{JClass, JObject, JString};
-use jnix::jni::sys::jint;
 use jnix::jni::JNIEnv;
 use jnix::{FromJava, JnixEnv};
 use lazy_static::lazy_static;
 use log::{debug, error, warn};
 use nym_task::manager::TaskStatus;
-use std::os::fd::RawFd;
 use std::str::FromStr;
 use std::sync::Arc;
 use talpid_core::mpsc::Sender;
@@ -145,7 +143,6 @@ pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_initVPN(
     entry_gateway: JString<'_>,
     exit_router: JString<'_>,
     vpn_service: JObject<'_>,
-    interface_fd: jint,
 ) {
     if get_vpn_state() != ClientState::Uninitialised {
         warn!("VPN was already inited. Try starting it");
@@ -169,7 +166,6 @@ pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_initVPN(
 
     let mut vpn = NymVpn::new(entry_gateway, exit_router, context);
     vpn.gateway_config.api_url = api_url;
-    vpn.nym_tun_fd = Some(RawFd::from(interface_fd).into());
 
     RUNTIME.block_on(set_inited_vpn(vpn));
 }

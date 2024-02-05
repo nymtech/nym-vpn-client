@@ -3,12 +3,15 @@
 
 use default_net::Interface;
 use std::net::{Ipv4Addr, Ipv6Addr};
-use std::os::fd::RawFd;
+use std::sync::{Arc, Mutex};
 use std::{collections::HashSet, net::IpAddr};
 
 use default_net::interface::get_default_interface;
 use ipnetwork::IpNetwork;
+#[cfg(target_os = "android")]
+use std::os::fd::AsRawFd;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
+use talpid_tunnel::tun_provider::TunProvider;
 use tap::TapFallible;
 use tracing::{debug, error, info, trace};
 use tun2::AbstractDevice;
@@ -21,37 +24,15 @@ const DEFAULT_TUN_MTU: usize = 1500;
 #[derive(Debug)]
 pub struct RoutingConfig {
     mixnet_tun_config: tun2::Configuration,
+    // In case we need it, as it's not read-accessible in the tun2 config
+    tun_ip: IpAddr,
     entry_mixnet_gateway_ip: IpAddr,
     lan_gateway_ip: LanGatewayIp,
     tunnel_gateway_ip: TunnelGatewayIp,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct Fd {
-    #[cfg(unix)]
-    pub(crate) inner: RawFd,
-
-    #[cfg(not(unix))]
-    pub(crate) inner: i32,
-}
-
-#[cfg(unix)]
-impl From<RawFd> for Fd {
-    fn from(value: RawFd) -> Self {
-        Self { inner: value }
-    }
-}
-
-#[cfg(not(unix))]
-impl From<i32> for Fd {
-    fn from(value: i32) -> Self {
-        Self { inner: value }
-    }
-}
-
 impl RoutingConfig {
     pub fn new(
-        tun_fd: Option<Fd>,
         tun_ip: IpAddr,
         entry_mixnet_gateway_ip: IpAddr,
         lan_gateway_ip: LanGatewayIp,
@@ -60,19 +41,21 @@ impl RoutingConfig {
     ) -> Self {
         debug!("TUN device IP: {}", tun_ip);
         let mut mixnet_tun_config = tun2::Configuration::default();
-        if let Some(fd) = tun_fd {
-            mixnet_tun_config.raw_fd(fd.inner);
-        }
         mixnet_tun_config.address(tun_ip);
         mixnet_tun_config.mtu(mtu.unwrap_or(DEFAULT_TUN_MTU));
         mixnet_tun_config.up();
 
         Self {
             mixnet_tun_config,
+            tun_ip,
             entry_mixnet_gateway_ip,
             lan_gateway_ip,
             tunnel_gateway_ip,
         }
+    }
+
+    pub fn tun_ip(&self) -> IpAddr {
+        self.tun_ip
     }
 }
 
@@ -170,13 +153,27 @@ fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
 }
 
 pub async fn setup_routing(
+    _tun_provider: Arc<Mutex<TunProvider>>,
     route_manager: &mut RouteManager,
     config: RoutingConfig,
     enable_wireguard: bool,
     disable_routing: bool,
 ) -> Result<tun2::AsyncDevice> {
     info!("Creating tun device");
-    let dev = tun2::create_as_async(&config.mixnet_tun_config)
+    let mixnet_tun_config = config.mixnet_tun_config.clone();
+    #[cfg(target_os = "android")]
+    {
+        let mut tun_config = talpid_tunnel::tun_provider::TunConfig::default();
+        tun_config.addresses = vec![config.tun_ip()];
+        let fd = _tun_provider
+            .lock()
+            .expect("access should not be passed to mullvad yet")
+            .get_tun(tun_config)?
+            .as_raw_fd();
+        let mut mixnet_tun_config = mixnet_tun_config.clone();
+        mixnet_tun_config.raw_fd(fd);
+    }
+    let dev = tun2::create_as_async(&mixnet_tun_config)
         .tap_err(|err| error!("Failed to create tun device: {}", err))?;
     let device_name = dev.as_ref().name().unwrap().to_string();
     info!(

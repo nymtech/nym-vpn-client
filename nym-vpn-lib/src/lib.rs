@@ -18,6 +18,7 @@ use mixnet_connect::SharedMixnetClient;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use talpid_routing::RouteManager;
 use tap::TapFallible;
@@ -28,9 +29,9 @@ use util::wait_for_interrupt_and_signal;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
 pub use nym_task::{manager::SentStatus, StatusReceiver};
 
-use crate::routing::Fd;
 pub use nym_bin_common;
 pub use nym_config;
+use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
 
@@ -89,9 +90,6 @@ pub struct NymVpn {
     /// The IP address of the wireguard interface.
     pub wg_ip: Option<Ipv4Addr>,
 
-    /// File descriptor of nym TUN device, in case it was created outside of the library.
-    pub nym_tun_fd: Option<Fd>,
-
     /// The IP address of the TUN device.
     pub nym_ip: Option<Ipv4Addr>,
 
@@ -111,8 +109,7 @@ pub struct NymVpn {
     /// Disable constant rate background loop cover traffic
     pub disable_background_cover_traffic: bool,
 
-    #[cfg(target_os = "android")]
-    android_context: talpid_types::android::AndroidContext,
+    tun_provider: Arc<Mutex<TunProvider>>,
 
     // Necessary so that the device doesn't get closed before cleanup has taken place
     shadow_handle: ShadowHandle,
@@ -123,6 +120,16 @@ impl NymVpn {
         exit_router: ExitPoint,
         #[cfg(target_os = "android")] android_context: talpid_types::android::AndroidContext,
     ) -> Self {
+        let tun_provider = Arc::new(Mutex::new(TunProvider::new(
+            #[cfg(target_os = "android")]
+            android_context,
+            #[cfg(target_os = "android")]
+            false,
+            #[cfg(target_os = "android")]
+            None,
+            #[cfg(target_os = "android")]
+            vec![],
+        )));
         Self {
             gateway_config: gateway_client::Config::default(),
             mixnet_client_path: None,
@@ -131,15 +138,13 @@ impl NymVpn {
             enable_wireguard: false,
             private_key: None,
             wg_ip: None,
-            nym_tun_fd: None,
             nym_ip: None,
             nym_mtu: None,
             disable_routing: false,
             enable_two_hop: false,
             enable_poisson_rate: false,
             disable_background_cover_traffic: false,
-            #[cfg(target_os = "android")]
-            android_context,
+            tun_provider,
             shadow_handle: ShadowHandle { _inner: None },
         }
     }
@@ -182,7 +187,6 @@ impl NymVpn {
 
         info!("Setting up routing");
         let routing_config = routing::RoutingConfig::new(
-            self.nym_tun_fd,
             ip,
             entry_mixnet_gateway_ip,
             default_lan_gateway_ip,
@@ -191,6 +195,7 @@ impl NymVpn {
         );
         debug!("Routing config: {:#?}", routing_config);
         let mixnet_tun_dev = routing::setup_routing(
+            self.tun_provider.clone(),
             route_manager,
             routing_config,
             self.enable_wireguard,
@@ -321,8 +326,7 @@ impl NymVpn {
         let mut tunnel = match Tunnel::new(
             wireguard_config.clone(),
             route_manager.handle()?,
-            #[cfg(target_os = "android")]
-            self.android_context.clone(),
+            self.tun_provider.clone(),
         ) {
             Ok(tunnel) => tunnel,
             Err(err) => {

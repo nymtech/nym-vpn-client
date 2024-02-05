@@ -129,6 +129,9 @@ pub enum Error {
 
     #[error("vpn errored on stop")]
     StopError,
+
+    #[error("{0}")]
+    TunProvider(#[from] talpid_tunnel::tun_provider::Error),
 }
 
 // Result type based on our error type
