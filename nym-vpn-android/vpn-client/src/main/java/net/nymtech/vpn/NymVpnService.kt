@@ -1,5 +1,6 @@
 package net.nymtech.vpn
 
+import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -8,6 +9,7 @@ import java.net.Inet6Address
 import java.net.InetAddress
 import kotlin.properties.Delegates.observable
 import net.nymtech.vpn.tun_provider.TunConfig
+import timber.log.Timber
 
 open class NymVpnService : VpnService() {
 
@@ -15,10 +17,7 @@ open class NymVpnService : VpnService() {
 
     private var activeTunStatus by observable<CreateTunResult?>(null) { _, oldTunStatus, _ ->
         val oldTunFd = when (oldTunStatus) {
-            is CreateTunResult.Success -> {
-                nymVpnClient.connect("FR", "FR", this)
-                oldTunStatus.tunFd
-            }
+            is CreateTunResult.Success -> oldTunStatus.tunFd
             is CreateTunResult.InvalidDnsServers -> oldTunStatus.tunFd
             else -> null
         }
@@ -37,6 +36,18 @@ open class NymVpnService : VpnService() {
     protected var disallowedApps: List<String>? = null
 
     val connectivityListener = ConnectivityListener()
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Timber.d("new vpn action")
+        return if (intent?.action == Action.START.name) {
+            Timber.d("VPN start")
+            nymVpnClient.connect("FR", "FR", this)
+            START_STICKY
+        } else {
+            Timber.d("VPN stop")
+            START_NOT_STICKY
+        }
+    }
 
     override fun onCreate() {
         connectivityListener.register(this)
