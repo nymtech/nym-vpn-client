@@ -87,6 +87,7 @@ impl BundledIpPacketCodec {
         if bundled_packets.is_empty() {
             None
         } else {
+            log::info!("Sphinx packet utilization: {:.2}", self.buffer.len() as f64 / 1500.0);
             Some(bundled_packets.freeze())
         }
     }
