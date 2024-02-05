@@ -73,22 +73,22 @@ class MainActivity : ComponentActivity() {
     setContent {
 
       //TODO refactor when vpn permission request is called
-      var vpnIntent by remember { mutableStateOf(NymVpnClient().prepare(this)) }
-      val vpnActivityResultState =
-        rememberLauncherForActivityResult(
-          ActivityResultContracts.StartActivityForResult(),
-          onResult = {
-            val accepted = (it.resultCode == RESULT_OK)
-            if (accepted) {
-              vpnIntent = null
-            }
-          },
-        )
-      LaunchedEffect(vpnIntent) {
-        if (vpnIntent != null) {
-          vpnActivityResultState.launch(vpnIntent)
-        }
-      }
+//      var vpnIntent by remember { mutableStateOf(NymVpnClient().prepare(this)) }
+//      val vpnActivityResultState =
+//        rememberLauncherForActivityResult(
+//          ActivityResultContracts.StartActivityForResult(),
+//          onResult = {
+//            val accepted = (it.resultCode == RESULT_OK)
+//            if (accepted) {
+//              vpnIntent = null
+//            }
+//          },
+//        )
+//      LaunchedEffect(vpnIntent) {
+//        if (vpnIntent != null) {
+//          vpnActivityResultState.launch(vpnIntent)
+//        }
+//      }
 
 
       val mainViewModel = hiltViewModel<AppViewModel>()

@@ -33,6 +33,7 @@ class NymVpnService : TalpidVpnService() {
     }
 
     private fun startVpn() {
+        super.createTun()
         vpnThread = Thread {
             try {
                 // Create a new VPN Builder

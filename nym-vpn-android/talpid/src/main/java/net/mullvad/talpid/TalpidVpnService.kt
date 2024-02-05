@@ -25,7 +25,7 @@ open class TalpidVpnService : VpnService() {
     private val tunIsOpen
         get() = activeTunStatus?.isOpen ?: false
 
-    private var currentTunConfig = defaultTunConfig()
+    var currentTunConfig = defaultTunConfig()
     private var tunIsStale = false
 
     protected var disallowedApps: List<String>? = null
@@ -127,7 +127,7 @@ open class TalpidVpnService : VpnService() {
 
         waitForTunnelUp(tunFd, config.routes.any { route -> route.isIpv6 })
 
-        if (!invalidDnsServerAddresses.isEmpty()) {
+        if (invalidDnsServerAddresses.isNotEmpty()) {
             return CreateTunResult.InvalidDnsServers(invalidDnsServerAddresses, tunFd)
         }
 
