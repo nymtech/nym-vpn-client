@@ -4,7 +4,9 @@
 use std::time::Duration;
 
 use futures::{SinkExt, StreamExt};
-use nym_ip_packet_requests::{IpPacketRequest, IpPacketResponse, IpPacketResponseData};
+use nym_ip_packet_requests::{
+    request::IpPacketRequest, response::IpPacketResponse, response::IpPacketResponseData,
+};
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use nym_validator_client::models::DescribedGateway;
@@ -129,6 +131,10 @@ impl MixnetProcessor {
                         },
                         IpPacketResponseData::Data(data_response) => {
                             Some(Ok(data_response.ip_packet.into()))
+                        }
+                        IpPacketResponseData::Error(error) => {
+                            error!("Received error response from the mixnet: {}", error.reply);
+                            None
                         }
                     },
                     Err(err) => {
