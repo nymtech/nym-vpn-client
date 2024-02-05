@@ -12,7 +12,6 @@ class NymVpnService : TalpidVpnService() {
 
     private var vpnClient : VpnClient = NymVpnClient()
     private lateinit var vpnThread: Thread
-    private lateinit var vpnInterface: ParcelFileDescriptor
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Timber.d("On start received")
@@ -41,33 +40,13 @@ class NymVpnService : TalpidVpnService() {
 
                 // Set the VPN parameters
                 builder.setSession("nymtun")
-                    .addAddress("10.0.0.1", 24)
-                    .addRoute("0.0.0.0", 1)
-                    .addRoute("128.0.0.0", 1)
-                    .addRoute("8000::", 1)
-                    .addRoute("::", 1)
-//                    .addDnsServer("8.8.8.8")
-//                    .addRoute("0.0.0.0", 0)
-//                    .setMtu(1500)
 
 
                 // Establish the VPN connection
                 builder.establish()?.let {
-                    vpnInterface = it
                     Timber.d("Interface created")
-                    start(vpnInterface.fd)
+                    start()
                 }
-
-                // Redirect network traffic through the VPN interface
-//                val vpnInput = FileInputStream(vpnInterface.fileDescriptor)
-//                val vpnOutput = FileOutputStream(vpnInterface.fileDescriptor)
-
-//                while (true) {
-//                    // Read incoming network traffic from vpnInput
-//                    // Process the traffic as needed
-//
-//                    // Write outgoing network traffic to vpnOutput
-//                    // Send the traffic through the VPN interface
 //                }
             } catch (e: Exception) {
                 // Handle VPN connection errors
@@ -82,7 +61,6 @@ class NymVpnService : TalpidVpnService() {
 
     private fun stopVpn() {
         try {
-            vpnInterface.close()
             stopSelf()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -95,7 +73,7 @@ class NymVpnService : TalpidVpnService() {
         stopVpn()
     }
 
-    private fun start(interfaceFd : Int) {
+    private fun start() {
         vpnClient.connect("FR", "FR", this)
     }
 }
