@@ -6,6 +6,7 @@ use crate::{spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExi
 use futures::StreamExt;
 use jnix::jni::objects::{JClass, JObject, JString};
 use jnix::jni::JNIEnv;
+use jnix::IntoJava;
 use jnix::{FromJava, JnixEnv};
 use lazy_static::lazy_static;
 use log::{debug, error, warn};
@@ -13,6 +14,7 @@ use nym_task::manager::TaskStatus;
 use std::str::FromStr;
 use std::sync::Arc;
 use talpid_core::mpsc::Sender;
+use talpid_tunnel::tun_provider::TunConfig;
 use talpid_types::android::AndroidContext;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
@@ -201,4 +203,15 @@ pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_stopVPN(_env: JNIEnv, 
         return;
     }
     RUNTIME.block_on(stop_and_reset_shutdown_handle());
+}
+
+#[no_mangle]
+#[allow(non_snake_case)]
+pub extern "system" fn Java_net_mullvad_talpid_TalpidVpnService_defaultTunConfig<'env>(
+    env: JNIEnv<'env>,
+    _this: JObject<'_>,
+) -> JObject<'env> {
+    let env = JnixEnv::from(env);
+
+    TunConfig::default().into_java(&env).forget()
 }
