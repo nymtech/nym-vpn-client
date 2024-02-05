@@ -11,4 +11,3 @@ bin
 .env.dev
 /.vscode/settings.json
 **/.DS_Store
-.cargo

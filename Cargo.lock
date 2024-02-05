@@ -5942,7 +5942,7 @@ dependencies = [
 [[package]]
 name = "talpid-core"
 version = "0.0.0"
-source = "git+https://github.com/mullvad/mullvadvpn-app?tag=2023.2#ccfbaa279d04b4f93dff489880e3fb3ae67025bd"
+source = "git+ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git?rev=a3d81b306020dd3f2373595bddc4de78df974040#a3d81b306020dd3f2373595bddc4de78df974040"
 dependencies = [
  "async-trait",
  "atty",
@@ -6009,7 +6009,7 @@ dependencies = [
 [[package]]
 name = "talpid-dbus"
 version = "0.0.0"
-source = "git+https://github.com/mullvad/mullvadvpn-app?tag=2023.2#ccfbaa279d04b4f93dff489880e3fb3ae67025bd"
+source = "git+ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git?rev=a3d81b306020dd3f2373595bddc4de78df974040#a3d81b306020dd3f2373595bddc4de78df974040"
 dependencies = [
  "dbus",
  "err-derive",
@@ -6022,7 +6022,7 @@ dependencies = [
 [[package]]
 name = "talpid-openvpn"
 version = "0.0.0"
-source = "git+https://github.com/mullvad/mullvadvpn-app?tag=2023.2#ccfbaa279d04b4f93dff489880e3fb3ae67025bd"
+source = "git+ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git?rev=a3d81b306020dd3f2373595bddc4de78df974040#a3d81b306020dd3f2373595bddc4de78df974040"
 dependencies = [
  "async-trait",
  "atty",
@@ -6059,7 +6059,7 @@ dependencies = [
 [[package]]
 name = "talpid-platform-metadata"
 version = "0.0.0"
-source = "git+https://github.com/mullvad/mullvadvpn-app?tag=2023.2#ccfbaa279d04b4f93dff489880e3fb3ae67025bd"
+source = "git+ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git?rev=a3d81b306020dd3f2373595bddc4de78df974040#a3d81b306020dd3f2373595bddc4de78df974040"
 dependencies = [
  "rs-release",
  "talpid-dbus",
@@ -6069,7 +6069,7 @@ dependencies = [
 [[package]]
 name = "talpid-routing"
 version = "0.0.0"
-source = "git+https://github.com/mullvad/mullvadvpn-app?tag=2023.2#ccfbaa279d04b4f93dff489880e3fb3ae67025bd"
+source = "git+ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git?rev=a3d81b306020dd3f2373595bddc4de78df974040#a3d81b306020dd3f2373595bddc4de78df974040"
 dependencies = [
  "err-derive",
  "futures",
@@ -6092,7 +6092,7 @@ dependencies = [
 [[package]]
 name = "talpid-time"
 version = "0.0.0"
-source = "git+https://github.com/mullvad/mullvadvpn-app?tag=2023.2#ccfbaa279d04b4f93dff489880e3fb3ae67025bd"
+source = "git+ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git?rev=a3d81b306020dd3f2373595bddc4de78df974040#a3d81b306020dd3f2373595bddc4de78df974040"
 dependencies = [
  "libc",
  "tokio",
@@ -6101,7 +6101,7 @@ dependencies = [
 [[package]]
 name = "talpid-tunnel"
 version = "0.0.0"
-source = "git+https://github.com/mullvad/mullvadvpn-app?tag=2023.2#ccfbaa279d04b4f93dff489880e3fb3ae67025bd"
+source = "git+ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git?rev=a3d81b306020dd3f2373595bddc4de78df974040#a3d81b306020dd3f2373595bddc4de78df974040"
 dependencies = [
  "cfg-if",
  "duct",
@@ -6122,7 +6122,7 @@ dependencies = [
 [[package]]
 name = "talpid-tunnel-config-client"
 version = "0.0.0"
-source = "git+https://github.com/mullvad/mullvadvpn-app?tag=2023.2#ccfbaa279d04b4f93dff489880e3fb3ae67025bd"
+source = "git+ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git?rev=a3d81b306020dd3f2373595bddc4de78df974040#a3d81b306020dd3f2373595bddc4de78df974040"
 dependencies = [
  "classic-mceliece-rust",
  "log",
@@ -6138,7 +6138,7 @@ dependencies = [
 [[package]]
 name = "talpid-types"
 version = "0.0.0"
-source = "git+https://github.com/mullvad/mullvadvpn-app?tag=2023.2#ccfbaa279d04b4f93dff489880e3fb3ae67025bd"
+source = "git+ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git?rev=a3d81b306020dd3f2373595bddc4de78df974040#a3d81b306020dd3f2373595bddc4de78df974040"
 dependencies = [
  "base64 0.13.1",
  "err-derive",
@@ -6153,7 +6153,7 @@ dependencies = [
 [[package]]
 name = "talpid-windows-net"
 version = "0.0.0"
-source = "git+https://github.com/mullvad/mullvadvpn-app?tag=2023.2#ccfbaa279d04b4f93dff489880e3fb3ae67025bd"
+source = "git+ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git?rev=a3d81b306020dd3f2373595bddc4de78df974040#a3d81b306020dd3f2373595bddc4de78df974040"
 dependencies = [
  "err-derive",
  "futures",
@@ -6166,7 +6166,7 @@ dependencies = [
 [[package]]
 name = "talpid-wireguard"
 version = "0.0.0"
-source = "git+https://github.com/mullvad/mullvadvpn-app?tag=2023.2#ccfbaa279d04b4f93dff489880e3fb3ae67025bd"
+source = "git+ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git?rev=a3d81b306020dd3f2373595bddc4de78df974040#a3d81b306020dd3f2373595bddc4de78df974040"
 dependencies = [
  "bitflags 1.3.2",
  "byteorder",
@@ -6907,7 +6907,7 @@ dependencies = [
 [[package]]
 name = "tunnel-obfuscation"
 version = "0.0.0"
-source = "git+https://github.com/mullvad/mullvadvpn-app?tag=2023.2#ccfbaa279d04b4f93dff489880e3fb3ae67025bd"
+source = "git+ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git?rev=a3d81b306020dd3f2373595bddc4de78df974040#a3d81b306020dd3f2373595bddc4de78df974040"
 dependencies = [
  "async-trait",
  "err-derive",
