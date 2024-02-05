@@ -7,7 +7,7 @@
         android:hardwareAccelerated="true"
         >
         <service
-            android:name="net.nymtech.NymVpnService"
+            android:name="net.nymtech.vpn_client.NymVpnService"
             android:permission="android.permission.BIND_VPN_SERVICE"
             android:exported="false">
             <intent-filter>

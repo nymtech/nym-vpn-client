@@ -1,4 +1,4 @@
-package net.mullvad.talpid.tunnel
+package net.nymtech.vpn_client.tunnel
 
 import android.os.Parcelable
 import java.net.InetAddress

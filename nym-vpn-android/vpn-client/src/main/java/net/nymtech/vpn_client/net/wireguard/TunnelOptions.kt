@@ -1,4 +1,4 @@
-package net.mullvad.talpid.net.wireguard
+package net.nymtech.vpn_client.net.wireguard
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

@@ -1,4 +1,4 @@
-package net.mullvad.talpid.util
+package net.nymtech.vpn_client.util
 
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow

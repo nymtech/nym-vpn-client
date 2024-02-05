@@ -4,7 +4,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import net.nymtech.NymVpnService
 import timber.log.Timber
 
 

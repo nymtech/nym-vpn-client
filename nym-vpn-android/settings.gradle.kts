@@ -22,4 +22,3 @@ dependencyResolutionManagement {
 rootProject.name = "NymVPN"
 include(":app")
 include(":vpn-client")
-include(":talpid")

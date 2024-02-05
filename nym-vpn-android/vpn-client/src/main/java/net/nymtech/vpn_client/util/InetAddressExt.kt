@@ -1,4 +1,4 @@
-package net.mullvad.talpid.util
+package net.nymtech.vpn_client.util
 
 import java.net.InetAddress
 

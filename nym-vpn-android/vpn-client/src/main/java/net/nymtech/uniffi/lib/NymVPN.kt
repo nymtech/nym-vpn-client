@@ -1,14 +1,5 @@
 package net.nymtech.uniffi.lib
 
-import android.net.VpnService
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.actor
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import net.nymtech.NymVpnService
 import timber.log.Timber
 
 const val nymVPNLib = "nym_vpn_lib"

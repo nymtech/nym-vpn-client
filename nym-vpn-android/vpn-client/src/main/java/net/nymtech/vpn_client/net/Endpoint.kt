@@ -1,4 +1,4 @@
-package net.mullvad.talpid.net
+package net.nymtech.vpn_client.net
 
 import android.os.Parcelable
 import java.net.InetSocketAddress

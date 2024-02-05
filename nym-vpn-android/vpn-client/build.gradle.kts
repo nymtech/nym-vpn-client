@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -39,8 +40,6 @@ android {
 }
 
 dependencies {
-
-    implementation(project(":talpid"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.jna.v5140)

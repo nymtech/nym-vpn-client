@@ -1,4 +1,4 @@
-package net.mullvad.talpid
+package net.nymtech.vpn_client
 
 import android.net.VpnService
 import android.os.Build
@@ -7,12 +7,18 @@ import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
 import kotlin.properties.Delegates.observable
-import net.mullvad.talpid.tun_provider.TunConfig
+import net.nymtech.vpn_client.tun_provider.TunConfig
 
-open class TalpidVpnService : VpnService() {
+open class NymVpnService : VpnService() {
+
+    private val nymVpnClient = NymVpnClient()
+
     private var activeTunStatus by observable<CreateTunResult?>(null) { _, oldTunStatus, _ ->
         val oldTunFd = when (oldTunStatus) {
-            is CreateTunResult.Success -> oldTunStatus.tunFd
+            is CreateTunResult.Success -> {
+                nymVpnClient.connect("FR", "FR", this)
+                oldTunStatus.tunFd
+            }
             is CreateTunResult.InvalidDnsServers -> oldTunStatus.tunFd
             else -> null
         }
