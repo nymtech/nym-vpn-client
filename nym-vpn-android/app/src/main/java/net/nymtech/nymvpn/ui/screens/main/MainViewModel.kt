@@ -21,8 +21,8 @@ import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.NumberUtils
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpn_client.ServiceManager
-import net.nymtech.vpn_client.VpnClient
+import net.nymtech.vpn.ServiceManager
+import net.nymtech.vpn.VpnClient
 
 @HiltViewModel
 class MainViewModel

@@ -1,4 +1,4 @@
-package net.nymtech.vpn_client.tunnel
+package net.nymtech.vpn.tunnel
 
 import android.os.Parcelable
 import java.net.InetAddress

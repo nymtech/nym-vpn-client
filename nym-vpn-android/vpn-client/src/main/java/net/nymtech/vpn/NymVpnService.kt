@@ -1,4 +1,4 @@
-package net.nymtech.vpn_client
+package net.nymtech.vpn
 
 import android.net.VpnService
 import android.os.Build
@@ -7,7 +7,7 @@ import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
 import kotlin.properties.Delegates.observable
-import net.nymtech.vpn_client.tun_provider.TunConfig
+import net.nymtech.vpn.tun_provider.TunConfig
 
 open class NymVpnService : VpnService() {
 

@@ -1,4 +1,4 @@
-package net.nymtech.vpn_client.tun_provider
+package net.nymtech.vpn.tun_provider
 
 import java.net.InetAddress
 

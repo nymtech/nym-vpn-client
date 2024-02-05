@@ -1,4 +1,4 @@
-package net.nymtech.vpn_client
+package net.nymtech.vpn
 
 import android.content.Context
 import android.net.ConnectivityManager
@@ -7,7 +7,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import kotlin.properties.Delegates.observable
-import net.nymtech.vpn_client.util.EventNotifier
+import net.nymtech.vpn.util.EventNotifier
 
 class ConnectivityListener {
     private val availableNetworks = HashSet<Network>()

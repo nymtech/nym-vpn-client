@@ -1,4 +1,4 @@
-package net.nymtech.vpn_client.net
+package net.nymtech.vpn.net
 
 import android.os.Parcelable
 import java.net.InetSocketAddress

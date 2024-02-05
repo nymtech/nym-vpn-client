@@ -1,4 +1,4 @@
-package net.nymtech.vpn_client
+package net.nymtech.vpn
 
 import android.content.Context
 import android.content.Intent

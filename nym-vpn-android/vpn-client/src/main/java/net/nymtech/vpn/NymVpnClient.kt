@@ -1,4 +1,4 @@
-package net.nymtech.vpn_client
+package net.nymtech.vpn
 
 import net.nymtech.uniffi.lib.NymVPN
 import android.content.Context

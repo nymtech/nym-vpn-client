@@ -4,8 +4,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import net.nymtech.vpn_client.NymVpnClient
-import net.nymtech.vpn_client.VpnClient
+import net.nymtech.vpn.NymVpnClient
+import net.nymtech.vpn.VpnClient
 import javax.inject.Singleton
 
 @Module

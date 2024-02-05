@@ -1,4 +1,4 @@
-package net.nymtech.vpn_client
+package net.nymtech.vpn
 
 import org.junit.Assert.*
 import org.junit.Test

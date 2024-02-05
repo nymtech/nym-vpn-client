@@ -1,4 +1,4 @@
-package net.nymtech.vpn_client.util
+package net.nymtech.vpn.util
 
 import java.net.InetAddress
 

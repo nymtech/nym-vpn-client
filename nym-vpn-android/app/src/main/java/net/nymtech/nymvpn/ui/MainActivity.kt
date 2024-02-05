@@ -2,17 +2,11 @@ package net.nymtech.nymvpn.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,7 +33,6 @@ import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.TransparentSystemBars
-import net.nymtech.vpn_client.NymVpnClient
 import javax.inject.Inject
 
 @AndroidEntryPoint
