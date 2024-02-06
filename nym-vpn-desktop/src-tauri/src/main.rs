@@ -91,8 +91,8 @@ async fn main() -> Result<()> {
             app_config_store.full_path.display(),
         )));
 
-        // TODO: there is a bug here, if there is no env_config_file it appars nym-api is
-        // incorrectly set to 127.0.0.1
+        // TODO: until we run on mainnet, we should bundle sandbox.env and use it by default so
+        // that users don't have to worry about it.
     }
 
     // Read the env variables in the provided file and export them all to the local environment.
