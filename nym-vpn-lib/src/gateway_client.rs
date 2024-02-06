@@ -32,7 +32,8 @@ impl Default for Config {
             .endpoints
             .first()
             .expect("rust sdk mainnet default incorrectly configured")
-            .api_url.clone()
+            .api_url
+            .clone()
             .expect("rust sdk mainnet default missing api_url")
             .parse()
             .expect("rust sdk mainnet default api_url not parseable");
