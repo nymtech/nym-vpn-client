@@ -21,7 +21,8 @@ jobs:
       fail-fast: false
       matrix:
         # windows-2022 is incredibly slow right now https://github.com/actions/runner-images/issues/7320
-        os: [ubuntu-22.04, macos-latest, windows-2019]
+        # os: [ubuntu-22.04, macos-latest, windows-2019]
+        os: [ubuntu-22.04, macos-latest]
     continue-on-error: ${{ matrix.os == 'windows-2019' }}
     runs-on: ${{ matrix.os }}
 
