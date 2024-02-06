@@ -97,6 +97,9 @@ pub enum Error {
     #[error("could not obtain the LAN gateway from default interface: {0}")]
     DefaultInterfaceGatewayError(String),
 
+    #[error("received response with invalid version, expected v{expected}, got v{received}")]
+    InvalidVersion { expected: u8, received: u8 },
+
     #[error("got reply for connect request, but it appears intended for the wrong address?")]
     GotReplyIntendedForWrongAddress,
 
