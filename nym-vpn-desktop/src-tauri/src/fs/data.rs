@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::states::app::{Country, NodeConfig, VpnMode};
+use crate::states::app::{NodeLocation, VpnMode};
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export)]
@@ -21,8 +21,6 @@ pub struct AppData {
     pub ui_theme: Option<UiTheme>,
     pub ui_root_font_size: Option<u32>,
     pub vpn_mode: Option<VpnMode>,
-    pub entry_node: Option<NodeConfig>,
-    pub exit_node: Option<NodeConfig>,
-    pub entry_node_location: Option<Country>,
-    pub exit_node_location: Option<Country>,
+    pub entry_node_location: Option<NodeLocation>,
+    pub exit_node_location: Option<NodeLocation>,
 }

@@ -4,9 +4,12 @@ use tracing::{debug, instrument};
 use ts_rs::TS;
 
 use crate::{
-    country::DEFAULT_NODE_LOCATION,
+    country::FASTEST_NODE_LOCATION,
     error::{CmdError, CmdErrorSource},
-    states::{app::Country, SharedAppData, SharedAppState},
+    states::{
+        app::{Country, NodeLocation},
+        SharedAppData, SharedAppState,
+    },
 };
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
@@ -21,16 +24,16 @@ pub async fn set_node_location(
     app_state: State<'_, SharedAppState>,
     data_state: State<'_, SharedAppData>,
     node_type: NodeType,
-    country: Country,
+    location: NodeLocation,
 ) -> Result<(), CmdError> {
     debug!("set_node_location");
     let mut state = app_state.lock().await;
     match node_type {
         NodeType::Entry => {
-            state.entry_node_location = Some(country.clone());
+            state.entry_node_location = location.clone();
         }
         NodeType::Exit => {
-            state.exit_node_location = Some(country.clone());
+            state.exit_node_location = location.clone();
         }
     }
 
@@ -43,10 +46,10 @@ pub async fn set_node_location(
 
     match node_type {
         NodeType::Entry => {
-            app_data.entry_node_location = Some(country);
+            app_data.entry_node_location = Some(location);
         }
         NodeType::Exit => {
-            app_data.exit_node_location = Some(country);
+            app_data.exit_node_location = Some(location);
         }
     }
     app_data_store.data = app_data;
@@ -60,7 +63,7 @@ pub async fn set_node_location(
 
 #[instrument]
 #[tauri::command]
-pub async fn get_default_node_location() -> Result<Country, CmdError> {
-    debug!("get_default_node_location");
-    Ok(DEFAULT_NODE_LOCATION.clone())
+pub async fn get_fastest_node_location() -> Result<Country, CmdError> {
+    debug!("get_fastest_node_location");
+    Ok(FASTEST_NODE_LOCATION.clone())
 }
