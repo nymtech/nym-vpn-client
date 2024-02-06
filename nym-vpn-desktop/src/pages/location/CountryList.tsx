@@ -31,9 +31,6 @@ export default function CountryList({
                 'hover:bg-gun-powder hover:bg-opacity-10',
                 'dark:hover:bg-laughing-jack dark:hover:bg-opacity-10',
                 'rounded-lg cursor-pointer px-3 py-1',
-                isSelected(uiCountry) &&
-                  !uiCountry.isFastest &&
-                  'bg-gun-powder dark:bg-laughing-jack bg-opacity-15 dark:bg-opacity-15',
               ])}
               onClick={() => onSelect(uiCountry)}
             >
