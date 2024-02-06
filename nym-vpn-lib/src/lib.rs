@@ -29,19 +29,22 @@ use util::wait_for_interrupt_and_signal;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
 pub use nym_task::{manager::SentStatus, StatusReceiver};
 
+#[cfg(target_os = "macos")]
+use crate::platform::macos::{initVPN, runVPN, stopVPN};
 pub use nym_bin_common;
 pub use nym_config;
 use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
+#[cfg(target_os = "macos")]
+use url::Url;
 
-#[cfg(target_os = "android")]
-pub mod android;
 pub mod config;
 pub mod error;
 pub mod gateway_client;
 pub mod mixnet_connect;
 pub mod mixnet_processor;
+mod platform;
 pub mod routing;
 pub mod tunnel;
 mod util;

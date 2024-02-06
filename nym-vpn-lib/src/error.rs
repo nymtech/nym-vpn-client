@@ -132,6 +132,9 @@ pub enum Error {
 
     #[error("{0}")]
     TunProvider(#[from] talpid_tunnel::tun_provider::Error),
+
+    #[error("{0}")]
+    TalpidCoreMpsc(#[from] talpid_core::mpsc::Error),
 }
 
 // Result type based on our error type

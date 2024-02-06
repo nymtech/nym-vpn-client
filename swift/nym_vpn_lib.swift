@@ -335,104 +335,6 @@ fileprivate struct FfiConverterString: FfiConverter {
     }
 }
 
-
-
-
-public protocol UniffiNymVpnProtocol : AnyObject {
-    
-    func run() async 
-    
-}
-public class UniffiNymVpn:
-    UniffiNymVpnProtocol {
-    fileprivate let pointer: UnsafeMutableRawPointer
-
-    // TODO: We'd like this to be `private` but for Swifty reasons,
-    // we can't implement `FfiConverter` without making this `required` and we can't
-    // make it `required` without making it `public`.
-    required init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
-        self.pointer = pointer
-    }
-
-    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
-        return try! rustCall { uniffi_nym_vpn_lib_fn_clone_uniffinymvpn(self.pointer, $0) }
-    }
-    public convenience init(entryGateway: EntryPoint, exitRouter: ExitPoint)  {
-        self.init(unsafeFromRawPointer: try! rustCall() {
-    uniffi_nym_vpn_lib_fn_constructor_uniffinymvpn_new(
-        FfiConverterTypeEntryPoint.lower(entryGateway),
-        FfiConverterTypeExitPoint.lower(exitRouter),$0)
-})
-    }
-
-    deinit {
-        try! rustCall { uniffi_nym_vpn_lib_fn_free_uniffinymvpn(pointer, $0) }
-    }
-
-    
-
-    
-    
-    public func run() async  {
-        return try!  await uniffiRustCallAsync(
-            rustFutureFunc: {
-                uniffi_nym_vpn_lib_fn_method_uniffinymvpn_run(
-                    self.uniffiClonePointer()
-                )
-            },
-            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
-            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
-            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
-            liftFunc: { $0 },
-            errorHandler: nil
-            
-        )
-    }
-
-    
-
-}
-
-public struct FfiConverterTypeUniffiNymVpn: FfiConverter {
-
-    typealias FfiType = UnsafeMutableRawPointer
-    typealias SwiftType = UniffiNymVpn
-
-    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> UniffiNymVpn {
-        return UniffiNymVpn(unsafeFromRawPointer: pointer)
-    }
-
-    public static func lower(_ value: UniffiNymVpn) -> UnsafeMutableRawPointer {
-        return value.uniffiClonePointer()
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UniffiNymVpn {
-        let v: UInt64 = try readInt(&buf)
-        // The Rust code won't compile if a pointer won't fit in a UInt64.
-        // We have to go via `UInt` because that's the thing that's the size of a pointer.
-        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
-        if (ptr == nil) {
-            throw UniffiInternalError.unexpectedNullPointer
-        }
-        return try lift(ptr!)
-    }
-
-    public static func write(_ value: UniffiNymVpn, into buf: inout [UInt8]) {
-        // This fiddling is because `Int` is the thing that's the same size as a pointer.
-        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
-        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
-    }
-}
-
-
-public func FfiConverterTypeUniffiNymVpn_lift(_ pointer: UnsafeMutableRawPointer) throws -> UniffiNymVpn {
-    return try FfiConverterTypeUniffiNymVpn.lift(pointer)
-}
-
-public func FfiConverterTypeUniffiNymVpn_lower(_ value: UniffiNymVpn) -> UnsafeMutableRawPointer {
-    return FfiConverterTypeUniffiNymVpn.lower(value)
-}
-
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 public enum EntryPoint {
@@ -634,6 +536,39 @@ public func FfiConverterTypeRecipient_lift(_ value: RustBuffer) throws -> Recipi
 public func FfiConverterTypeRecipient_lower(_ value: Recipient) -> RustBuffer {
     return FfiConverterTypeRecipient.lower(value)
 }
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ */
+public typealias Url = String
+public struct FfiConverterTypeUrl: FfiConverter {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Url {
+        return try FfiConverterString.read(from: &buf)
+    }
+
+    public static func write(_ value: Url, into buf: inout [UInt8]) {
+        return FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func lift(_ value: RustBuffer) throws -> Url {
+        return try FfiConverterString.lift(value)
+    }
+
+    public static func lower(_ value: Url) -> RustBuffer {
+        return FfiConverterString.lower(value)
+    }
+}
+
+
+public func FfiConverterTypeUrl_lift(_ value: RustBuffer) throws -> Url {
+    return try FfiConverterTypeUrl.lift(value)
+}
+
+public func FfiConverterTypeUrl_lower(_ value: Url) -> RustBuffer {
+    return FfiConverterTypeUrl.lower(value)
+}
 private let UNIFFI_RUST_FUTURE_POLL_READY: Int8 = 0
 private let UNIFFI_RUST_FUTURE_POLL_MAYBE_READY: Int8 = 1
 
@@ -692,6 +627,57 @@ fileprivate class ContinuationHolder {
         return Unmanaged<ContinuationHolder>.fromOpaque(ptr).takeRetainedValue()
     }
 }
+public func initVpn(apiUrl: Url, entryGateway: EntryPoint, exitRouter: ExitPoint) async  {
+    return try!  await uniffiRustCallAsync(
+        rustFutureFunc: {
+            uniffi_nym_vpn_lib_fn_func_initvpn(
+                FfiConverterTypeUrl.lower(apiUrl),
+                FfiConverterTypeEntryPoint.lower(entryGateway),
+                FfiConverterTypeExitPoint.lower(exitRouter)
+            )
+        },
+        pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
+        completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
+        freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
+        liftFunc: { $0 },
+        errorHandler: nil
+        
+    )
+}
+
+
+public func runVpn() async  {
+    return try!  await uniffiRustCallAsync(
+        rustFutureFunc: {
+            uniffi_nym_vpn_lib_fn_func_runvpn(
+            )
+        },
+        pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
+        completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
+        freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
+        liftFunc: { $0 },
+        errorHandler: nil
+        
+    )
+}
+
+
+public func stopVpn() async  {
+    return try!  await uniffiRustCallAsync(
+        rustFutureFunc: {
+            uniffi_nym_vpn_lib_fn_func_stopvpn(
+            )
+        },
+        pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
+        completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
+        freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
+        liftFunc: { $0 },
+        errorHandler: nil
+        
+    )
+}
+
+
 
 private enum InitializationResult {
     case ok
@@ -708,10 +694,13 @@ private var initializationResult: InitializationResult {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_method_uniffinymvpn_run() != 28457) {
+    if (uniffi_nym_vpn_lib_checksum_func_initvpn() != 8324) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_constructor_uniffinymvpn_new() != 29856) {
+    if (uniffi_nym_vpn_lib_checksum_func_runvpn() != 6558) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_stopvpn() != 12016) {
         return InitializationResult.apiChecksumMismatch
     }
 

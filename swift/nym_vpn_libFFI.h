@@ -51,13 +51,13 @@ typedef struct RustCallStatus {
 typedef void (*UniFfiRustFutureContinuation)(void * _Nonnull, int8_t);
 
 // Scaffolding functions
-void*_Nonnull uniffi_nym_vpn_lib_fn_clone_uniffinymvpn(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+void* _Nonnull uniffi_nym_vpn_lib_fn_func_initvpn(RustBuffer api_url, RustBuffer entry_gateway, RustBuffer exit_router
 );
-void uniffi_nym_vpn_lib_fn_free_uniffinymvpn(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+void* _Nonnull uniffi_nym_vpn_lib_fn_func_runvpn(void
+    
 );
-void*_Nonnull uniffi_nym_vpn_lib_fn_constructor_uniffinymvpn_new(RustBuffer entry_gateway, RustBuffer exit_router, RustCallStatus *_Nonnull out_status
-);
-void* _Nonnull uniffi_nym_vpn_lib_fn_method_uniffinymvpn_run(void*_Nonnull ptr
+void* _Nonnull uniffi_nym_vpn_lib_fn_func_stopvpn(void
+    
 );
 RustBuffer ffi_nym_vpn_lib_rustbuffer_alloc(int32_t size, RustCallStatus *_Nonnull out_status
 );
@@ -171,10 +171,13 @@ void ffi_nym_vpn_lib_rust_future_free_void(void* _Nonnull handle
 );
 void ffi_nym_vpn_lib_rust_future_complete_void(void* _Nonnull handle, RustCallStatus *_Nonnull out_status
 );
-uint16_t uniffi_nym_vpn_lib_checksum_method_uniffinymvpn_run(void
+uint16_t uniffi_nym_vpn_lib_checksum_func_initvpn(void
     
 );
-uint16_t uniffi_nym_vpn_lib_checksum_constructor_uniffinymvpn_new(void
+uint16_t uniffi_nym_vpn_lib_checksum_func_runvpn(void
+    
+);
+uint16_t uniffi_nym_vpn_lib_checksum_func_stopvpn(void
     
 );
 uint32_t ffi_nym_vpn_lib_uniffi_contract_version(void
