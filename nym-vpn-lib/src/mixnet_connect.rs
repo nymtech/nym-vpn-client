@@ -101,6 +101,18 @@ async fn wait_for_connect_response(
             msgs = mixnet_client.wait_for_messages() => {
                 if let Some(msgs) = msgs {
                     for msg in msgs {
+
+                        // Handle if the response is from an IPR running an older or newer version
+                        if let Some(version) = msg.message.first() {
+                            if *version != nym_ip_packet_requests::CURRENT_VERSION {
+                                log::error!("Received packet with invalid version: v{version}, is your client up to date?");
+                                return Err(Error::InvalidVersion {
+                                    expected: nym_ip_packet_requests::CURRENT_VERSION,
+                                    received: *version,
+                                });
+                            }
+                        }
+
                         debug!("MixnetProcessor: Got message while waiting for connect response");
                         let Ok(response) = IpPacketResponse::from_reconstructed_message(&msg) else {
                             error!("Failed to deserialize reconstructed message");

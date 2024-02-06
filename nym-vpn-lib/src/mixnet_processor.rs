@@ -108,6 +108,15 @@ impl MixnetProcessor {
         debug!("Setting up mixnet stream");
         let mixnet_stream = mixnet_client
             .filter_map(|reconstructed_message| async move {
+
+                // Check version of request
+                if let Some(version) = reconstructed_message.message.first() {
+                    if *version != nym_ip_packet_requests::CURRENT_VERSION {
+                        log::error!("Received packet with invalid version: v{version}, is your client up to date?");
+                        return None;
+                    }
+                }
+
                 match IpPacketResponse::from_reconstructed_message(&reconstructed_message) {
                     Ok(response) => match response.data {
                         IpPacketResponseData::StaticConnect(_) => {
