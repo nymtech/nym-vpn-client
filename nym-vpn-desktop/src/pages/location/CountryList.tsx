@@ -72,7 +72,9 @@ export default function CountryList({
           </li>
         ))
       ) : (
-        <p className="flex justify-center">{t('none-found')}</p>
+        <p className="flex justify-center dark:text-mercury-pinkish">
+          {t('none-found')}
+        </p>
       )}
     </ul>
   );
