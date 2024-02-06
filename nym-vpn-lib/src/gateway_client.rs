@@ -19,9 +19,7 @@ use talpid_types::net::wireguard::PublicKey;
 use tracing::{debug, info};
 use url::Url;
 
-const DEFAULT_API_URL: &str = "http://127.0.0.1:8000";
-
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Config {
     pub(crate) api_url: Url,
     pub(crate) local_private_key: Option<String>,
@@ -29,8 +27,19 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
+        let network_defaults = nym_sdk::NymNetworkDetails::default();
+        let default_api_url = network_defaults
+            .endpoints
+            .first()
+            .expect("rust sdk mainnet default incorrectly configured")
+            .api_url
+            .clone()
+            .expect("rust sdk mainnet default missing api_url")
+            .parse()
+            .expect("rust sdk mainnet default api_url not parseable");
+
         Config {
-            api_url: DEFAULT_API_URL.parse().unwrap(),
+            api_url: default_api_url,
             local_private_key: Default::default(),
         }
     }
