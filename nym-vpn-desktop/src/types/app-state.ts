@@ -1,7 +1,7 @@
 import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
-import { Country } from './app-data';
+import { Country, NodeLocation } from './common';
 
 export type ConnectionState =
   | 'Connected'
@@ -30,10 +30,10 @@ export type AppState = {
   entrySelector: boolean;
   autoConnect: boolean;
   monitoring: boolean;
-  entryNodeLocation: Country | null;
-  exitNodeLocation: Country | null;
-  defaultNodeLocation: Country;
-  countries: Country[];
+  entryNodeLocation: NodeLocation;
+  exitNodeLocation: NodeLocation;
+  fastestNodeLocation: Country;
+  countryList: Country[];
   rootFontSize: number;
 };
 

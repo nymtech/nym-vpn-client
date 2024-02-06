@@ -38,8 +38,8 @@ export function MainStateProvider({ children }: Props) {
     };
 
     // init default node location
-    const getDefaultNodeLocation = async () => {
-      return await invoke<Country>('get_default_node_location');
+    const getFastestNodeLocation = async () => {
+      return await invoke<Country>('get_fastest_node_location');
     };
 
     getVersion()
@@ -73,7 +73,10 @@ export function MainStateProvider({ children }: Props) {
 
     getCountries()
       .then((countries) => {
-        dispatch({ type: 'set-countries', countries });
+        dispatch({
+          type: 'set-country-list',
+          countries,
+        });
       })
       .catch((e: CmdError) => {
         console.warn(
@@ -81,13 +84,13 @@ export function MainStateProvider({ children }: Props) {
         );
       });
 
-    getDefaultNodeLocation()
+    getFastestNodeLocation()
       .then((country) => {
-        dispatch({ type: 'set-default-node-location', country });
+        dispatch({ type: 'set-fastest-node-location', country });
       })
       .catch((e: CmdError) => {
         console.warn(
-          `command [get_default_node_location] returned an error: ${e.source} - ${e.message}`,
+          `command [get_fastest_node_location] returned an error: ${e.source} - ${e.message}`,
         );
       });
   }, []);
@@ -116,10 +119,16 @@ export function MainStateProvider({ children }: Props) {
           rootFontSize: data.ui_root_font_size || DefaultRootFontSize,
         };
         if (data.entry_node_location) {
-          partialState.entryNodeLocation = data.entry_node_location;
+          partialState.entryNodeLocation =
+            data.entry_node_location === 'Fastest'
+              ? 'Fastest'
+              : data.entry_node_location.Country;
         }
         if (data.exit_node_location) {
-          partialState.exitNodeLocation = data.exit_node_location;
+          partialState.exitNodeLocation =
+            data.exit_node_location === 'Fastest'
+              ? 'Fastest'
+              : data.exit_node_location.Country;
         }
         dispatch({
           type: 'set-partial-state',

@@ -12,14 +12,8 @@ import ConnectionStatus from './ConnectionStatus';
 import HopSelect from './HopSelect';
 
 function Home() {
-  const {
-    state,
-    loading,
-    entryNodeLocation,
-    exitNodeLocation,
-    entrySelector,
-    defaultNodeLocation,
-  } = useMainState();
+  const { state, loading, entryNodeLocation, exitNodeLocation, entrySelector } =
+    useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
   const { t } = useTranslation('home');
@@ -80,7 +74,7 @@ function Home() {
             <div className="flex flex-col gap-5">
               {entrySelector && (
                 <HopSelect
-                  country={entryNodeLocation || defaultNodeLocation}
+                  nodeLocation={entryNodeLocation}
                   onClick={() => {
                     if (state === 'Disconnected') {
                       navigate(routes.entryNodeLocation);
@@ -90,7 +84,7 @@ function Home() {
                 />
               )}
               <HopSelect
-                country={exitNodeLocation || defaultNodeLocation}
+                nodeLocation={exitNodeLocation}
                 onClick={() => {
                   if (state === 'Disconnected') {
                     navigate(routes.exitNodeLocation);

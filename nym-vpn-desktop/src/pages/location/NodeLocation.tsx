@@ -3,61 +3,117 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api';
 import { useMainDispatch, useMainState } from '../../contexts';
-import { Country, InputEvent, NodeHop, StateDispatch } from '../../types';
+import {
+  CmdError,
+  Country,
+  InputEvent,
+  NodeHop,
+  NodeLocation,
+  StateDispatch,
+  isCountry,
+} from '../../types';
 import { routes } from '../../constants';
 import SearchBox from './SearchBox';
 import CountryList from './CountryList';
-import QuickConnect from './QuickConnect';
+
+export type UiCountry = {
+  country: Country;
+  isFastest: boolean;
+};
 
 function NodeLocation({ node }: { node: NodeHop }) {
   const { t } = useTranslation('nodeLocation');
-  const { entryNodeLocation, exitNodeLocation, countries } = useMainState();
+  const {
+    entryNodeLocation,
+    exitNodeLocation,
+    countryList,
+    fastestNodeLocation,
+  } = useMainState();
+
+  // the countries list used for UI rendering, Fastest country is at first position
+  const [uiCountryList, setUiCountryList] = useState<UiCountry[]>([
+    { country: fastestNodeLocation, isFastest: true },
+  ]);
+
   const [search, setSearch] = useState('');
-  const [foundCountries, setFoundCountries] = useState<Country[]>(countries);
+  const [filteredCountries, setFilteredCountries] =
+    useState<UiCountry[]>(uiCountryList);
 
   const dispatch = useMainDispatch() as StateDispatch;
 
   const navigate = useNavigate();
 
-  //request backend to update countries cache
+  // request backend to refresh cache
   useEffect(() => {
-    const getNodeCountries = async () => {
-      const countries = await invoke<Country[]>('get_node_countries');
-      dispatch({ type: 'set-countries', countries });
-    };
-    getNodeCountries().catch(console.error);
+    invoke<Country[]>('get_node_countries')
+      .then((countries) => {
+        dispatch({
+          type: 'set-country-list',
+          countries,
+        });
+      })
+      .catch((e: CmdError) => console.error(e));
+    invoke<Country>('get_fastest_node_location')
+      .then((country) => {
+        dispatch({ type: 'set-fastest-node-location', country });
+      })
+      .catch((e: CmdError) => console.error(e));
   }, [dispatch]);
+
+  // update the UI country list whenever the country list or
+  // fastest country change (likely from the backend)
+  useEffect(() => {
+    const list = [
+      // put fastest country at the first position
+      { country: fastestNodeLocation, isFastest: true },
+      ...countryList.map((country) => ({ country, isFastest: false })),
+    ];
+    setUiCountryList(list);
+    setFilteredCountries(list);
+  }, [countryList, fastestNodeLocation]);
 
   const filter = (e: InputEvent) => {
     const keyword = e.target.value;
     if (keyword !== '') {
-      const results = countries.filter((country) => {
-        return country.name.toLowerCase().startsWith(keyword.toLowerCase());
+      const list = uiCountryList.filter((uiCountry) => {
+        return uiCountry.country.name
+          .toLowerCase()
+          .startsWith(keyword.toLowerCase());
         // Use the toLowerCase() method to make it case-insensitive
       });
-      setFoundCountries(results);
+      setFilteredCountries(list);
     } else {
-      setFoundCountries(countries);
-      // If the text field is empty, show all users
+      setFilteredCountries(uiCountryList);
     }
     setSearch(keyword);
   };
 
-  const isCountrySelected = (code: string): boolean => {
-    return node === 'entry'
-      ? entryNodeLocation?.code === code
-      : exitNodeLocation?.code === code;
+  const isCountrySelected = (
+    selectedNode: NodeLocation,
+    country: UiCountry,
+  ): boolean => {
+    if (selectedNode === 'Fastest' && country.isFastest) {
+      return true;
+    }
+    return (
+      selectedNode !== 'Fastest' && selectedNode.code === country.country.code
+    );
   };
 
-  const handleCountrySelection = async (name: string, code: string) => {
+  const handleCountrySelection = async (country: UiCountry) => {
+    console.log(country);
+    const location: NodeLocation = country.isFastest
+      ? 'Fastest'
+      : country.country;
+
     try {
       await invoke<void>('set_node_location', {
         nodeType: node === 'entry' ? 'Entry' : 'Exit',
-        country: { name, code },
+        location: isCountry(location) ? { Country: location } : 'Fastest',
       });
       dispatch({
         type: 'set-node-location',
-        payload: { hop: node, country: { name, code } },
+        payload: { hop: node, location },
       });
     } catch (e) {
       console.log(e);
@@ -67,8 +123,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="h-70 flex flex-col justify-center items-center gap-y-2">
-        <QuickConnect onClick={handleCountrySelection} />
+      <div className="h-70 flex flex-col justify-center items-center gap-y-2 pt-3">
         <SearchBox
           value={search}
           onChange={filter}
@@ -76,9 +131,14 @@ function NodeLocation({ node }: { node: NodeHop }) {
         />
         <span className="mt-2" />
         <CountryList
-          countries={foundCountries}
-          onClick={handleCountrySelection}
-          isSelected={isCountrySelected}
+          countries={filteredCountries}
+          onSelect={handleCountrySelection}
+          isSelected={(country: UiCountry) => {
+            return isCountrySelected(
+              node === 'entry' ? entryNodeLocation : exitNodeLocation,
+              country,
+            );
+          }}
         />
       </div>
     </div>
