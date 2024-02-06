@@ -19,6 +19,7 @@ mod commands;
 mod country;
 mod error;
 mod fs;
+mod network;
 mod states;
 mod vpn_client;
 
@@ -84,15 +85,9 @@ async fn main() -> Result<()> {
             return Err(anyhow!(err_message));
         }
     } else {
-        // In the future, the absence of a config file should enable mainnet.
-        // For now we error out, since this a common issue people face
-        return Err(anyhow!(format!(
-            "{}: env_config_file not provided",
-            app_config_store.full_path.display(),
-        )));
-
-        // TODO: there is a bug here, if there is no env_config_file it appars nym-api is
-        // incorrectly set to 127.0.0.1
+        // If no env_config_file is provided, setup the sandbox environment
+        // This is tempory until we switch to mainnet
+        network::setup_sandbox_environment();
     }
 
     // Read the env variables in the provided file and export them all to the local environment.
