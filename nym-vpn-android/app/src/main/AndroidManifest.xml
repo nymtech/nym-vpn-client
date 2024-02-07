@@ -27,7 +27,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".service.NymVpnService"
+        <service android:name="net.nymtech.vpn.NymVpnService"
             android:permission="android.permission.BIND_VPN_SERVICE"
             android:exported="false"
             android:enabled="true">

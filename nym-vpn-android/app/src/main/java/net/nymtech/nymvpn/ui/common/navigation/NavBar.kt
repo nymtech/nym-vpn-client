@@ -43,10 +43,6 @@ fun NavBar(navController: NavController) {
               }
         }
       },
-      modifier = when(MainActivity.windowHeightSizeClass) {
-          WindowHeightSizeClass.MEDIUM, WindowHeightSizeClass.COMPACT -> Modifier.height(48.dp)
-          else -> { Modifier }
-      },
       navigationIcon = {
           navItem.leading?.let {
           IconButton(

@@ -1,20 +1,22 @@
 package net.nymtech.vpn
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import net.nymtech.vpn.tun_provider.TunConfig
+import timber.log.Timber
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
 import kotlin.properties.Delegates.observable
-import net.nymtech.vpn.tun_provider.TunConfig
-import timber.log.Timber
 
 
 open class NymVpnService : VpnService() {
@@ -49,30 +51,58 @@ open class NymVpnService : VpnService() {
 
     val connectivityListener = ConnectivityListener()
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Timber.d("new vpn action")
         return if (intent?.action == Action.START.name) {
+
             currentTunConfig = defaultTunConfig()
             Timber.d("VPN start")
             try {
-                val entry = "{ \"Location\": { \"location\": \"FR\" }}"
-                val exit = "{ \"Location\": { \"location\": \"FR\" }}"
-                GlobalScope.launch(Dispatchers.IO) {
+                if(prepare(this) == null) {
+                    val entry = "{ \"Location\": { \"location\": \"FR\" }}"
+                    val exit = "{ \"Location\": { \"location\": \"FR\" }}"
+                    val channelId =
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            createNotificationChannel()
+                        } else {
+                            // If earlier version channel ID is not used
+                            // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
+                            ""
+                        }
+                    val notificationBuilder = NotificationCompat.Builder(this, channelId)
+                    val notification = notificationBuilder.setOngoing(true)
+                        .setSmallIcon(androidx.core.R.drawable.notification_bg)
+                        .setCategory(Notification.CATEGORY_SERVICE)
+                        .build()
+                    startForeground(123, notification)
                     initVPN("https://sandbox-nym-api1.nymtech.net/api",entry,exit,this)
-                    delay(1000)
                     runVPN()
                 }
             } catch (e : Exception) {
                 Timber.e(e.message)
             }
-
             START_STICKY
         } else {
             Timber.d("VPN stop")
             stopVPN()
+            closeTun()
+            stopSelf()
             START_NOT_STICKY
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createNotificationChannel(): String{
+        val channelId = "my_service"
+        val channelName = "My Background Service"
+        val chan = NotificationChannel(channelId,
+            channelName, NotificationManager.IMPORTANCE_HIGH)
+        chan.lightColor = Color.BLUE
+        chan.importance = NotificationManager.IMPORTANCE_NONE
+        chan.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+        val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        service.createNotificationChannel(chan)
+        return channelId
     }
 
     override fun onCreate() {
@@ -85,14 +115,16 @@ open class NymVpnService : VpnService() {
     }
 
     fun getTun(config: TunConfig): CreateTunResult {
+        Timber.d("Calling get tun")
         synchronized(this) {
             val tunStatus = activeTunStatus
-
+            Timber.d("got tun status")
             if (config == currentTunConfig && tunIsOpen && !tunIsStale) {
+                Timber.d("Tunnel already open")
                 return tunStatus!!
             } else {
+                Timber.d("Creating new tunnel with config : $config")
                 val newTunStatus = createTun(config)
-
                 currentTunConfig = config
                 activeTunStatus = newTunStatus
                 tunIsStale = false
