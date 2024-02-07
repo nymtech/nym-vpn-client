@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { DefaultRootFontSize } from '../constants';
 import {
   AppState,
   ConnectProgressMsg,
@@ -50,7 +51,7 @@ export const initialState: AppState = {
     code: 'FR',
   },
   countries: [],
-  rootFontSize: 12,
+  rootFontSize: DefaultRootFontSize,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
