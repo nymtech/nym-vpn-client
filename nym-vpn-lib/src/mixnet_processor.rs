@@ -129,6 +129,11 @@ impl MixnetProcessor {
                             info!("Received dynamic connect response when already connected - ignoring");
                             None
                         },
+                        IpPacketResponseData::Disconnect(_) => {
+                            // Disconnect is not yet handled on the IPR side anyway
+                            info!("Received disconnect response, ignoring for now");
+                            None
+                        },
                         IpPacketResponseData::Data(data_response) => {
                             Some(Ok(data_response.ip_packet.into()))
                         }
