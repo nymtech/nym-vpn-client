@@ -70,11 +70,11 @@ function Home() {
       <div className="grow">
         <ConnectionStatus />
       </div>
-      <div className="flex flex-col justify-between gap-y-8">
+      <div className="flex flex-col justify-between gap-y-8 select-none">
         <div className="flex flex-col justify-between gap-y-4">
           <NetworkModeSelect />
           <div className="flex flex-col gap-6">
-            <div className="mt-3 text-base font-semibold">
+            <div className="mt-3 text-base font-semibold cursor-default">
               {t('select-node-title')}
             </div>
             <div className="flex flex-col gap-5">

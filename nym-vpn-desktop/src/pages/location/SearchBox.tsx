@@ -23,7 +23,7 @@ export default function SearchBox({
           'w-full flex flex-row justify-between items-center py-3 px-4 pl-11',
           'text-baltic-sea dark:text-mercury-pinkish',
           'placeholder:text-cement-feet placeholder:dark:text-mercury-mist',
-          'border-cement-feet dark:border-gun-powder border-2 rounded-lg',
+          'border-cement-feet dark:border-gun-powder border rounded-lg',
           'relative text-base',
         ])}
         placeholder={placeholder}

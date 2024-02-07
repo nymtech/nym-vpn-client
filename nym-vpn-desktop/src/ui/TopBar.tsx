@@ -100,7 +100,7 @@ export default function TopBar() {
       className={clsx([
         'flex flex-row flex-nowrap justify-between items-center shrink-0',
         'bg-white text-baltic-sea dark:bg-baltic-sea-jaguar dark:text-mercury-pinkish',
-        'h-16 text-xl shadow z-50',
+        'h-16 text-xl shadow z-50 select-none cursor-default',
       ])}
     >
       {currentNavLocation?.leftIcon ? (
