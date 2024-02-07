@@ -20,6 +20,7 @@ jobs:
       os: ${{ matrix.os }}
 
   check:
+    environment: BUILD
     needs: build-wireguard-go
     strategy:
       fail-fast: false
@@ -38,6 +39,10 @@ jobs:
           rm -rf ./* || true
           rm -rf ./.??* || true
           ls -la ./
+
+      - name: Reconfigure git
+        run: |
+          git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
 
       - name: Checkout
         uses: actions/checkout@v4

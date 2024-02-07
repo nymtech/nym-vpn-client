@@ -2,6 +2,7 @@ name: ci-cargo-deny
 on: [pull_request]
 jobs:
   cargo-deny:
+    environment: BUILD
     runs-on: ubuntu-22.04
     strategy:
       matrix:
@@ -19,3 +20,4 @@ jobs:
         log-level: warn
         command: check ${{ matrix.checks }}
         argument: --all-features
+        credentials: https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com
