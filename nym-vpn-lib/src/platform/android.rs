@@ -32,7 +32,7 @@ fn init_jni_logger() {
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_initVPN(
+pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     env: JNIEnv<'_>,
     _this: JObject<'_>,
     api_url: JString<'_>,
@@ -68,7 +68,7 @@ pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_initVPN(
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_runVPN(_env: JNIEnv, _class: JClass) {
+pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_runVPN(_env: JNIEnv, _class: JClass) {
     let state = RUNTIME.block_on(get_vpn_state());
     if state != ClientState::Disconnected {
         warn!("Invalid vpn state: {:?}", state);
@@ -91,7 +91,7 @@ pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_runVPN(_env: JNIEnv, _
 
 #[allow(non_snake_case)]
 #[no_mangle]
-pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_stopVPN(_env: JNIEnv, _class: JClass) {
+pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_stopVPN(_env: JNIEnv, _class: JClass) {
     if RUNTIME.block_on(get_vpn_state()) != ClientState::Connected {
         warn!("could not stop the vpn as it's not running");
         return;
@@ -101,7 +101,7 @@ pub extern "system" fn Java_net_nymtech_uniffi_lib_NymVPN_stopVPN(_env: JNIEnv, 
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "system" fn Java_net_mullvad_talpid_TalpidVpnService_defaultTunConfig<'env>(
+pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_defaultTunConfig<'env>(
     env: JNIEnv<'env>,
     _this: JObject<'_>,
 ) -> JObject<'env> {
