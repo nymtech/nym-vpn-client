@@ -4,6 +4,11 @@ import android.content.Intent
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -11,9 +16,16 @@ import kotlin.properties.Delegates.observable
 import net.nymtech.vpn.tun_provider.TunConfig
 import timber.log.Timber
 
+
 open class NymVpnService : VpnService() {
 
-    private val nymVpnClient = NymVpnClient()
+    companion object {
+        init {
+            val nymVPNLib = "nym_vpn_lib"
+            System.loadLibrary(nymVPNLib)
+            Timber.i( "loaded native library $nymVPNLib")
+        }
+    }
 
     private var activeTunStatus by observable<CreateTunResult?>(null) { _, oldTunStatus, _ ->
         val oldTunFd = when (oldTunStatus) {
@@ -21,7 +33,6 @@ open class NymVpnService : VpnService() {
             is CreateTunResult.InvalidDnsServers -> oldTunStatus.tunFd
             else -> null
         }
-
         if (oldTunFd != null) {
             ParcelFileDescriptor.adoptFd(oldTunFd).close()
         }
@@ -30,21 +41,36 @@ open class NymVpnService : VpnService() {
     private val tunIsOpen
         get() = activeTunStatus?.isOpen ?: false
 
-    var currentTunConfig = defaultTunConfig()
+    private var currentTunConfig : TunConfig? = null
+
     private var tunIsStale = false
 
     protected var disallowedApps: List<String>? = null
 
     val connectivityListener = ConnectivityListener()
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Timber.d("new vpn action")
         return if (intent?.action == Action.START.name) {
+            currentTunConfig = defaultTunConfig()
             Timber.d("VPN start")
-            nymVpnClient.connect("FR", "FR", this)
+            try {
+                val entry = "{ \"Location\": { \"location\": \"FR\" }}"
+                val exit = "{ \"Location\": { \"location\": \"FR\" }}"
+                GlobalScope.launch(Dispatchers.IO) {
+                    initVPN("https://sandbox-nym-api1.nymtech.net/api",entry,exit,this)
+                    delay(1000)
+                    runVPN()
+                }
+            } catch (e : Exception) {
+                Timber.e(e.message)
+            }
+
             START_STICKY
         } else {
             Timber.d("VPN stop")
+            stopVPN()
             START_NOT_STICKY
         }
     }
@@ -54,6 +80,7 @@ open class NymVpnService : VpnService() {
     }
 
     override fun onDestroy() {
+        stopVPN()
         connectivityListener.unregister()
     }
 
@@ -77,7 +104,9 @@ open class NymVpnService : VpnService() {
 
     fun createTun() {
         synchronized(this) {
-            activeTunStatus = createTun(currentTunConfig)
+            activeTunStatus = currentTunConfig?.let {
+                createTun(it)
+            }
         }
     }
 
@@ -162,6 +191,15 @@ open class NymVpnService : VpnService() {
             else -> throw RuntimeException("Invalid IP address (not IPv4 nor IPv6)")
         }
     }
+
+    private external fun initVPN(
+        api_url: String,
+        entry_gateway: String,
+        exit_router: String,
+        vpn_service: Any
+    )
+    private external fun runVPN()
+    private external fun stopVPN()
 
     private external fun defaultTunConfig(): TunConfig
     private external fun waitForTunnelUp(tunFd: Int, isIpv6Enabled: Boolean)

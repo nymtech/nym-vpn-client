@@ -15,7 +15,6 @@ enum class Screen {
     LOGS,
     FEEDBACK,
     LEGAL,
-    REVIEW,
     SUPPORT
 }
 
@@ -35,9 +34,7 @@ sealed class NavItem(val route: String, val title : StringValue, val leading : I
     data object Settings : NavItem(Screen.SETTINGS.name, StringValue.StringResource(R.string.settings), backIcon) {
         data object Display : NavItem("${Screen.SETTINGS.name}/${Screen.DISPLAY.name}", StringValue.StringResource(R.string.display_theme), backIcon)
         data object Logs : NavItem("${Screen.SETTINGS.name}/${Screen.LOGS.name}", StringValue.StringResource(R.string.logs), backIcon)
-        data object Feedback : NavItem("${Screen.SETTINGS.name}/${Screen.FEEDBACK.name}", StringValue.StringResource(R.string.feedback), backIcon) {
-            data object Review : NavItem("${Screen.SETTINGS.name}/${Screen.FEEDBACK.name}/${Screen.REVIEW.name}", StringValue.StringResource(R.string.feedback), backIcon)
-        }
+        data object Feedback : NavItem("${Screen.SETTINGS.name}/${Screen.FEEDBACK.name}", StringValue.StringResource(R.string.feedback), backIcon)
         data object Support : NavItem("${Screen.SETTINGS.name}/${Screen.SUPPORT.name}", StringValue.StringResource(R.string.support), backIcon)
         data object Legal : NavItem("${Screen.SETTINGS.name}/${Screen.LEGAL.name}", StringValue.StringResource(R.string.legal), backIcon)
     }
@@ -59,7 +56,6 @@ sealed class NavItem(val route: String, val title : StringValue, val leading : I
                 Settings.Logs.route -> Settings.Logs
                 Settings.Support.route -> Settings.Support
                 Settings.Feedback.route -> Settings.Feedback
-                Settings.Feedback.Review.route -> Settings.Feedback.Review
                 Settings.Legal.route -> Settings.Legal
                 else -> Main
             }

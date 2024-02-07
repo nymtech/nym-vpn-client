@@ -29,7 +29,7 @@ import net.nymtech.nymvpn.ui.theme.screenPadding
 import timber.log.Timber
 
 @Composable
-fun FeedbackScreen(navController: NavController, viewModel: FeedbackViewModel = hiltViewModel()) {
+fun FeedbackScreen(viewModel: FeedbackViewModel = hiltViewModel()) {
 
   val isErrorReportingEnabled by viewModel.isErrorReportingEnabled.collectAsStateWithLifecycle()
 
@@ -64,7 +64,8 @@ fun FeedbackScreen(navController: NavController, viewModel: FeedbackViewModel = 
                 SelectionItem(
                     leadingIcon = ImageVector.vectorResource(R.drawable.send),
                     title = stringResource(R.string.send_feedback),
-                    onClick = { navController.navigate(NavItem.Settings.Feedback.Review.route) })
+                    //TODO update with form url
+                    onClick = { openWebPage(context.getString(R.string.faq_url)) })
             ))
         SurfaceSelectionGroupButton(
             listOf(

@@ -1,5 +1,4 @@
 package net.nymtech.nymvpn.ui
-
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -8,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -27,7 +27,6 @@ import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.feedback.FeedbackScreen
-import net.nymtech.nymvpn.ui.screens.settings.feedback.review.ReviewScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
@@ -63,27 +62,9 @@ class MainActivity : ComponentActivity() {
       dataStoreManager.saveToDataStore(DataStoreManager.NODE_COUNTRIES, countries.toString())
     }
 
+    installSplashScreen()
+
     setContent {
-
-      //TODO refactor when vpn permission request is called
-//      var vpnIntent by remember { mutableStateOf(NymVpnClient().prepare(this)) }
-//      val vpnActivityResultState =
-//        rememberLauncherForActivityResult(
-//          ActivityResultContracts.StartActivityForResult(),
-//          onResult = {
-//            val accepted = (it.resultCode == RESULT_OK)
-//            if (accepted) {
-//              vpnIntent = null
-//            }
-//          },
-//        )
-//      LaunchedEffect(vpnIntent) {
-//        if (vpnIntent != null) {
-//          vpnActivityResultState.launch(vpnIntent)
-//        }
-//      }
-
-
       val mainViewModel = hiltViewModel<AppViewModel>()
       val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
       val navController = rememberNavController()
@@ -106,8 +87,7 @@ class MainActivity : ComponentActivity() {
               composable(NavItem.Settings.Display.route) { DisplayScreen() }
               composable(NavItem.Settings.Logs.route) { LogsScreen() }
               composable(NavItem.Settings.Support.route) { SupportScreen() }
-              composable(NavItem.Settings.Feedback.route) { FeedbackScreen(navController) }
-              composable(NavItem.Settings.Feedback.Review.route) { ReviewScreen() }
+              composable(NavItem.Settings.Feedback.route) { FeedbackScreen() }
               composable(NavItem.Settings.Legal.route) { LegalScreen() }
             }
           }

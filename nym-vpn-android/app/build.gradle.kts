@@ -169,5 +169,8 @@ dependencies {
     //storage
     implementation(libs.androidx.datastore.preferences)
 
+    //splash
+    implementation(libs.androidx.core.splashscreen)
+
 }
 
