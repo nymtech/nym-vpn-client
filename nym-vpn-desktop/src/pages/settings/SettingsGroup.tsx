@@ -42,7 +42,7 @@ function SettingsGroup({ settings }: Props) {
             className="flex flex-1 items-center justify-between gap-4"
           >
             {setting.leadingIcon && (
-              <span className="font-icon text-2xl select-none">
+              <span className="font-icon text-2xl select-none dark:text-mercury-pinkish">
                 {setting.leadingIcon}
               </span>
             )}
@@ -62,7 +62,9 @@ function SettingsGroup({ settings }: Props) {
                 </RadioGroup.Description>
               </div>
             </div>
-            <div className="select-none">{setting.trailing}</div>
+            <div className="select-none dark:text-mercury-pinkish">
+              {setting.trailing}
+            </div>
           </div>
         </RadioGroup.Option>
       ))}
