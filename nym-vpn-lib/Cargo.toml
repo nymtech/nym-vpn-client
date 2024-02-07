@@ -53,8 +53,11 @@ nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "0f9bd648a
 
 
 [target.'cfg(target_os = "android")'.dependencies]
-jnix = { version = "0.5", features = ["derive"] }
 android_logger = "0.13.1"
+err-derive = "0.3.1"
+jnix = { version = "0.5", features = ["derive"] }
+nix = "0.23"
+rand = "0.8.5"
 
 [build-dependencies]
 uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "f5fc9d7e9aa08889aedc45dd81ae9b4d3ec4cbe8", features = ["build"] }
