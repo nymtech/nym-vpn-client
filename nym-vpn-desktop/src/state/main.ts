@@ -1,10 +1,11 @@
 import dayjs from 'dayjs';
-import { DefaultRootFontSize } from '../constants';
+import { DefaultNodeCountry, DefaultRootFontSize } from '../constants';
 import {
   AppState,
   ConnectProgressMsg,
   ConnectionState,
   Country,
+  FeatureFlag,
   NodeHop,
   NodeLocation,
   UiTheme,
@@ -12,6 +13,7 @@ import {
 } from '../types';
 
 export type StateAction =
+  | { type: 'set-feature-flags'; flags: FeatureFlag[] }
   | { type: 'set-partial-state'; partialState: Partial<AppState> }
   | { type: 'change-connection-state'; state: ConnectionState }
   | { type: 'set-vpn-mode'; mode: VpnMode }
@@ -40,6 +42,7 @@ export type StateAction =
 export const initialState: AppState = {
   state: 'Disconnected',
   version: null,
+  featureFlags: ['DefaultNodeLocation'],
   loading: false,
   vpnMode: 'TwoHop',
   entrySelector: false,
@@ -48,18 +51,22 @@ export const initialState: AppState = {
   progressMessages: [],
   autoConnect: false,
   monitoring: false,
-  entryNodeLocation: 'Fastest',
-  exitNodeLocation: 'Fastest',
-  fastestNodeLocation: {
-    name: 'France',
-    code: 'FR',
-  },
+  // TODO ⚠ these should be set to 'Fastest' when the backend is ready
+  entryNodeLocation: DefaultNodeCountry,
+  // TODO ⚠ these should be set to 'Fastest' when the backend is ready
+  exitNodeLocation: DefaultNodeCountry,
+  fastestNodeLocation: DefaultNodeCountry,
   countryList: [],
   rootFontSize: DefaultRootFontSize,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
   switch (action.type) {
+    case 'set-feature-flags':
+      return {
+        ...state,
+        featureFlags: action.flags,
+      };
     case 'set-node-location':
       if (action.payload.hop === 'entry') {
         return {

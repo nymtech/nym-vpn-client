@@ -7,6 +7,8 @@ import {
   CmdError,
   ConnectionState,
   Country,
+  FeatureFlag,
+  NodeLocationBackend,
 } from '../types';
 import { DefaultRootFontSize } from '../constants';
 import { initialState, reducer } from './main';
@@ -23,6 +25,10 @@ export function MainStateProvider({ children }: Props) {
 
   // initialize connection state
   useEffect(() => {
+    const getFeatureFlags = async () => {
+      return await invoke<FeatureFlag[]>('feature_flags');
+    };
+
     const getInitialConnectionState = async () => {
       return await invoke<ConnectionState>('get_connection_state');
     };
@@ -37,10 +43,32 @@ export function MainStateProvider({ children }: Props) {
       return await invoke<Country[]>('get_node_countries');
     };
 
-    // init default node location
+    // init node locations
+    const getNodeLocations = async () => {
+      const entryNode = await invoke<NodeLocationBackend>('get_node_location', {
+        nodeType: 'Entry',
+      });
+      const exitNode = await invoke<NodeLocationBackend>('get_node_location', {
+        nodeType: 'Exit',
+      });
+      return { entryNode, exitNode };
+    };
+
+    // init fastest node location
     const getFastestNodeLocation = async () => {
       return await invoke<Country>('get_fastest_node_location');
     };
+
+    getFeatureFlags()
+      .then((flags) =>
+        dispatch({
+          type: 'set-feature-flags',
+          flags,
+        }),
+      )
+      .catch((e) => {
+        console.warn(`command [feature_flags] returned an error: ${e}`);
+      });
 
     getVersion()
       .then((version) =>
@@ -93,6 +121,29 @@ export function MainStateProvider({ children }: Props) {
           `command [get_fastest_node_location] returned an error: ${e.source} - ${e.message}`,
         );
       });
+
+    getNodeLocations()
+      .then(({ entryNode, exitNode }) => {
+        dispatch({
+          type: 'set-node-location',
+          payload: {
+            hop: 'entry',
+            location: entryNode === 'Fastest' ? 'Fastest' : entryNode.Country,
+          },
+        });
+        dispatch({
+          type: 'set-node-location',
+          payload: {
+            hop: 'exit',
+            location: exitNode === 'Fastest' ? 'Fastest' : exitNode.Country,
+          },
+        });
+      })
+      .catch((e: CmdError) => {
+        console.warn(
+          `command [get_node_location] returned an error: ${e.source} - ${e.message}`,
+        );
+      });
   }, []);
 
   // get saved on disk app data and restore state from it
@@ -118,18 +169,6 @@ export function MainStateProvider({ children }: Props) {
           monitoring: data.monitoring || false,
           rootFontSize: data.ui_root_font_size || DefaultRootFontSize,
         };
-        if (data.entry_node_location) {
-          partialState.entryNodeLocation =
-            data.entry_node_location === 'Fastest'
-              ? 'Fastest'
-              : data.entry_node_location.Country;
-        }
-        if (data.exit_node_location) {
-          partialState.exitNodeLocation =
-            data.exit_node_location === 'Fastest'
-              ? 'Fastest'
-              : data.exit_node_location.Country;
-        }
         dispatch({
           type: 'set-partial-state',
           partialState,

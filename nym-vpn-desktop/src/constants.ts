@@ -1,3 +1,5 @@
+import { Country } from './types';
+
 export const routes = {
   root: '/',
   settings: '/settings',
@@ -14,3 +16,7 @@ export const ConnectionEvent = 'connection-state';
 export const ProgressEvent = 'connection-progress';
 // TODO ⚠ keep this value in sync with the one declared in `index.html`
 export const DefaultRootFontSize = 14; // in px
+export const DefaultNodeCountry: Country = {
+  name: 'France',
+  code: 'FR',
+};
