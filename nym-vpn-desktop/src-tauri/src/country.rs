@@ -28,7 +28,7 @@ pub static COUNTRIES: Lazy<Vec<Country>> = Lazy::new(|| {
     ]
 });
 
-pub static DEFAULT_NODE_LOCATION: Lazy<Country> = Lazy::new(|| Country {
-    code: "FR".to_string(),
-    name: "France".to_string(),
+pub static FASTEST_NODE_LOCATION: Lazy<Country> = Lazy::new(|| Country {
+    code: "DE".to_string(),
+    name: "Germany".to_string(),
 });

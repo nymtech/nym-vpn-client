@@ -1,16 +1,7 @@
 import { VpnMode } from './app-state';
+import { Country, UiTheme } from './common';
 
-export type UiTheme = 'Dark' | 'Light';
-
-export interface NodeConfig {
-  id: string;
-  country: Country;
-}
-
-export type Country = {
-  name: string;
-  code: string;
-};
+export type NodeLocationBackend = 'Fastest' | { Country: Country };
 
 // tauri type, hence the use of snake_case
 export interface AppDataFromBackend {
@@ -21,8 +12,6 @@ export interface AppDataFromBackend {
   ui_theme: UiTheme | null;
   ui_root_font_size: number | null;
   vpn_mode: VpnMode | null;
-  entry_node: NodeConfig | null;
-  exit_node: NodeConfig | null;
-  entry_node_location: Country | null;
-  exit_node_location: Country | null;
+  entry_node_location: NodeLocationBackend | null;
+  exit_node_location: NodeLocationBackend | null;
 }

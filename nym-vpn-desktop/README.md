@@ -43,7 +43,7 @@ directory, full path is platform specific:
 
 - Linux: `$XDG_CONFIG_HOME/nym-vpn/` or `$HOME/.config/nym-vpn/`
 - macOS: `$HOME/Library/Application Support/nym-vpn/`
-- Windows: `{FOLDERID_RoamingAppData}\nym-vpn\`
+- Windows: `C:\Users\<USER>\AppData\Roaming\nym-vpn\`
 
 For example on Linux the full path would be
 `~/.config/nym-vpn/config.toml`.
@@ -53,13 +53,14 @@ Only one property need to be provided:
 ```toml
 # example config on Linux
 
-env_config_file = "/home/<USER>/.config/nym-vpn/qa.env"
+env_config_file = "/home/<USER>/.config/nym-vpn/sandbox.env"
 ```
 
 `env_config_file` is the absolute path to a network configuration
 file, pick the relevant one
 [here](https://github.com/nymtech/nym/tree/develop/envs).
-The mainnet config will be used by default if not provided.
+
+**NOTE** The sandbox config will be used by default if no config is provided.
 
 ## Dev
 
@@ -105,9 +106,10 @@ cd src-tauri
 cargo tauri dev
 ```
 
-**NOTE** Starting a VPN connection requires root privileges as it will set up a link interface.
-If you want to connect during development, you need to run the app as root,
-likely using `sudo` (or equivalent)
+**NOTE** Starting a VPN connection requires root privileges as it
+will set up a link interface.
+If you want to connect during development, you need to run the app
+as root, likely using `sudo` (or equivalent)
 
 ```shell
 sudo -E RUST_LOG=debug cargo tauri dev
@@ -121,7 +123,7 @@ env variable
 Example:
 
 ```
-RUST_LOG=nym_vpn_ui=trace,nym_client_core=warn,nym_vpn_lib=info npm run dev:app
+RUST_LOG=nym_vpn_desktop=trace,nym_client_core=warn,nym_vpn_lib=info npm run dev:app
 ```
 
 or
