@@ -10,8 +10,10 @@ use std::{
 };
 
 use nym_ip_packet_requests::{
-    DynamicConnectResponse, IpPacketRequest, IpPacketResponse, IpPacketResponseData,
-    StaticConnectResponse,
+    request::IpPacketRequest,
+    response::{
+        DynamicConnectResponse, IpPacketResponse, IpPacketResponseData, StaticConnectResponse,
+    },
 };
 use nym_sdk::mixnet::{
     MixnetClient, MixnetClientBuilder, MixnetMessageSender, NodeIdentity, Recipient, StoragePaths,
@@ -141,8 +143,8 @@ async fn handle_static_connect_response(
         return Err(Error::GotReplyIntendedForWrongAddress);
     }
     match response.reply {
-        nym_ip_packet_requests::StaticConnectResponseReply::Success => Ok(()),
-        nym_ip_packet_requests::StaticConnectResponseReply::Failure(reason) => {
+        nym_ip_packet_requests::response::StaticConnectResponseReply::Success => Ok(()),
+        nym_ip_packet_requests::response::StaticConnectResponseReply::Failure(reason) => {
             Err(Error::StaticConnectRequestDenied { reason })
         }
     }
@@ -158,8 +160,8 @@ async fn handle_dynamic_connect_response(
         return Err(Error::GotReplyIntendedForWrongAddress);
     }
     match response.reply {
-        nym_ip_packet_requests::DynamicConnectResponseReply::Success(r) => Ok(r.ip),
-        nym_ip_packet_requests::DynamicConnectResponseReply::Failure(reason) => {
+        nym_ip_packet_requests::response::DynamicConnectResponseReply::Success(r) => Ok(r.ip),
+        nym_ip_packet_requests::response::DynamicConnectResponseReply::Failure(reason) => {
             Err(Error::DynamicConnectRequestDenied { reason })
         }
     }

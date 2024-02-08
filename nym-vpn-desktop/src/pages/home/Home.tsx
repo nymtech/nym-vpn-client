@@ -12,14 +12,8 @@ import ConnectionStatus from './ConnectionStatus';
 import HopSelect from './HopSelect';
 
 function Home() {
-  const {
-    state,
-    loading,
-    entryNodeLocation,
-    exitNodeLocation,
-    entrySelector,
-    defaultNodeLocation,
-  } = useMainState();
+  const { state, loading, entryNodeLocation, exitNodeLocation, entrySelector } =
+    useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
   const { t } = useTranslation('home');
@@ -70,17 +64,17 @@ function Home() {
       <div className="grow">
         <ConnectionStatus />
       </div>
-      <div className="flex flex-col justify-between gap-y-8">
+      <div className="flex flex-col justify-between gap-y-8 select-none">
         <div className="flex flex-col justify-between gap-y-4">
           <NetworkModeSelect />
           <div className="flex flex-col gap-6">
-            <div className="mt-3 text-base font-semibold">
+            <div className="mt-3 text-base font-semibold cursor-default">
               {t('select-node-title')}
             </div>
             <div className="flex flex-col gap-5">
               {entrySelector && (
                 <HopSelect
-                  country={entryNodeLocation || defaultNodeLocation}
+                  nodeLocation={entryNodeLocation}
                   onClick={() => {
                     if (state === 'Disconnected') {
                       navigate(routes.entryNodeLocation);
@@ -90,7 +84,7 @@ function Home() {
                 />
               )}
               <HopSelect
-                country={exitNodeLocation || defaultNodeLocation}
+                nodeLocation={exitNodeLocation}
                 onClick={() => {
                   if (state === 'Disconnected') {
                     navigate(routes.exitNodeLocation);

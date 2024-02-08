@@ -4,6 +4,8 @@ use nym_vpn_lib::{NymVpnCtrlMessage, NymVpnHandle};
 use tauri::{Manager, State};
 use tracing::{debug, error, info, instrument, trace};
 
+use crate::country::FASTEST_NODE_LOCATION;
+use crate::states::app::NodeLocation;
 use crate::{
     error::{CmdError, CmdErrorSource},
     states::{
@@ -16,8 +18,6 @@ use crate::{
         EVENT_CONNECTION_STATE,
     },
 };
-
-const DEFAULT_NODE_LOCATION: &str = "DE";
 
 #[instrument(skip_all)]
 #[tauri::command]
@@ -71,41 +71,30 @@ pub async fn connect(
 
     let app_state = state.lock().await;
 
-    let entry_point = match app_state.entry_node_location {
-        Some(ref entry_node_location) => {
-            debug!(
-                "entry node location set, using: {}",
-                entry_node_location.code
-            );
-            EntryPoint::Location {
-                location: entry_node_location.code.clone(),
-            }
+    let entry_point = match &app_state.entry_node_location {
+        NodeLocation::Country(country) => {
+            debug!("entry node location set, using: {}", country);
+            EntryPoint::Location(country.code.clone())
         }
-        _ => {
+        NodeLocation::Fastest => {
             debug!(
-                "entry node location not set, using default: {}",
-                DEFAULT_NODE_LOCATION
+                "entry node location set to `Fastest`, using: {}",
+                FASTEST_NODE_LOCATION.clone()
             );
-            EntryPoint::Location {
-                location: DEFAULT_NODE_LOCATION.into(),
-            }
+            EntryPoint::Location(FASTEST_NODE_LOCATION.code.clone())
         }
     };
-    let exit_point = match app_state.exit_node_location {
-        Some(ref exit_node_location) => {
-            debug!("exit node location set, using: {}", exit_node_location.code);
-            ExitPoint::Location {
-                location: exit_node_location.code.clone(),
-            }
+    let exit_point = match &app_state.exit_node_location {
+        NodeLocation::Country(country) => {
+            debug!("exit node location set, using: {}", country);
+            ExitPoint::Location(country.code.clone())
         }
-        _ => {
+        NodeLocation::Fastest => {
             debug!(
-                "exit node location not set, using default: {}",
-                DEFAULT_NODE_LOCATION
+                "exit node location set to `Fastest`, using: {}",
+                FASTEST_NODE_LOCATION.clone()
             );
-            ExitPoint::Location {
-                location: DEFAULT_NODE_LOCATION.into(),
-            }
+            ExitPoint::Location(FASTEST_NODE_LOCATION.code.clone())
         }
     };
 

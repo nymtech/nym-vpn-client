@@ -2,11 +2,12 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
+import { DefaultRootFontSize } from '../../../constants';
 import { useMainDispatch, useMainState } from '../../../contexts';
 import { CmdError, StateDispatch } from '../../../types';
 
 function UiScaler() {
-  const [slideValue, setSlideValue] = useState(12);
+  const [slideValue, setSlideValue] = useState(DefaultRootFontSize);
   const dispatch = useMainDispatch() as StateDispatch;
   const { rootFontSize } = useMainState();
   const { t } = useTranslation('settings');

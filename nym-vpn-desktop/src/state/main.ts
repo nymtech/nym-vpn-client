@@ -1,10 +1,12 @@
 import dayjs from 'dayjs';
+import { DefaultRootFontSize } from '../constants';
 import {
   AppState,
   ConnectProgressMsg,
   ConnectionState,
   Country,
   NodeHop,
+  NodeLocation,
   UiTheme,
   VpnMode,
 } from '../types';
@@ -27,9 +29,12 @@ export type StateAction =
   | { type: 'set-monitoring'; monitoring: boolean }
   | { type: 'reset' }
   | { type: 'set-ui-theme'; theme: UiTheme }
-  | { type: 'set-countries'; countries: Country[] }
-  | { type: 'set-node-location'; payload: { hop: NodeHop; country: Country } }
-  | { type: 'set-default-node-location'; country: Country }
+  | { type: 'set-country-list'; countries: Country[] }
+  | {
+      type: 'set-node-location';
+      payload: { hop: NodeHop; location: NodeLocation };
+    }
+  | { type: 'set-fastest-node-location'; country: Country }
   | { type: 'set-root-font-size'; size: number };
 
 export const initialState: AppState = {
@@ -43,14 +48,14 @@ export const initialState: AppState = {
   progressMessages: [],
   autoConnect: false,
   monitoring: false,
-  entryNodeLocation: null,
-  exitNodeLocation: null,
-  defaultNodeLocation: {
+  entryNodeLocation: 'Fastest',
+  exitNodeLocation: 'Fastest',
+  fastestNodeLocation: {
     name: 'France',
     code: 'FR',
   },
-  countries: [],
-  rootFontSize: 12,
+  countryList: [],
+  rootFontSize: DefaultRootFontSize,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -59,12 +64,12 @@ export function reducer(state: AppState, action: StateAction): AppState {
       if (action.payload.hop === 'entry') {
         return {
           ...state,
-          entryNodeLocation: action.payload.country,
+          entryNodeLocation: action.payload.location,
         };
       }
       return {
         ...state,
-        exitNodeLocation: action.payload.country,
+        exitNodeLocation: action.payload.location,
       };
     case 'set-vpn-mode':
       return {
@@ -86,10 +91,10 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ...state,
         monitoring: action.monitoring,
       };
-    case 'set-countries':
+    case 'set-country-list':
       return {
         ...state,
-        countries: action.countries,
+        countryList: action.countries,
       };
     case 'set-partial-state': {
       return { ...state, ...action.partialState };
@@ -163,10 +168,10 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ...state,
         uiTheme: action.theme,
       };
-    case 'set-default-node-location':
+    case 'set-fastest-node-location':
       return {
         ...state,
-        defaultNodeLocation: action.country,
+        fastestNodeLocation: action.country,
       };
     case 'set-root-font-size':
       return {

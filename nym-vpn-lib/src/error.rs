@@ -1,7 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_ip_packet_requests::{DynamicConnectFailureReason, StaticConnectFailureReason};
+use nym_ip_packet_requests::{
+    response::DynamicConnectFailureReason, response::StaticConnectFailureReason,
+};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
