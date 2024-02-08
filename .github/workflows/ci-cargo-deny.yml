@@ -19,3 +19,4 @@ jobs:
         log-level: warn
         command: check ${{ matrix.checks }}
         argument: --all-features
+        credentials: https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com

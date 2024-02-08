@@ -23,12 +23,12 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tun2 = { version = "1.0.1", features = ["async"] }
 url = "2.4"
 
-talpid-core = { git = "https://github.com/mullvad/mullvadvpn-app", tag = "2023.2" }
-talpid-platform-metadata = { git = "https://github.com/mullvad/mullvadvpn-app", tag = "2023.2" }
-talpid-routing = { git = "https://github.com/mullvad/mullvadvpn-app", tag = "2023.2" }
-talpid-tunnel = { git = "https://github.com/mullvad/mullvadvpn-app", tag = "2023.2" }
-talpid-types = { git = "https://github.com/mullvad/mullvadvpn-app", tag = "2023.2" }
-talpid-wireguard = { git = "https://github.com/mullvad/mullvadvpn-app", tag = "2023.2" }
+talpid-core = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "a3d81b306020dd3f2373595bddc4de78df974040" }
+talpid-platform-metadata = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "a3d81b306020dd3f2373595bddc4de78df974040" }
+talpid-routing = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "a3d81b306020dd3f2373595bddc4de78df974040" }
+talpid-tunnel = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "a3d81b306020dd3f2373595bddc4de78df974040" }
+talpid-types = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "a3d81b306020dd3f2373595bddc4de78df974040" }
+talpid-wireguard = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "a3d81b306020dd3f2373595bddc4de78df974040" }
 
 nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "a8dc703399f8ff8662a99b94bdcf884425b3a9d3" }
 nym-client-core = { git = "https://github.com/nymtech/nym", rev = "a8dc703399f8ff8662a99b94bdcf884425b3a9d3" }

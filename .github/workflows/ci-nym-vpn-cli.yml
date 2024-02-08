@@ -16,7 +16,6 @@ env:
 
 jobs:
   build:
-
     strategy:
       fail-fast: false
       matrix:
@@ -27,6 +26,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+    - name: Reconfigure git
+      run: |
+        git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
+
     - name: Checkout repo
       uses: actions/checkout@v3
 
