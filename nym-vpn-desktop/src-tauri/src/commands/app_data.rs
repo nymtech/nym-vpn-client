@@ -1,8 +1,7 @@
 use tauri::State;
 use tracing::{debug, instrument};
 
-use crate::country::COUNTRIES;
-use crate::states::app::Country;
+use crate::country::{Country, COUNTRIES};
 use crate::{
     error::{CmdError, CmdErrorSource},
     fs::data::{AppData, UiTheme},

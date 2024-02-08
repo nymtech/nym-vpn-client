@@ -4,12 +4,9 @@ use tracing::{debug, instrument};
 use ts_rs::TS;
 
 use crate::{
-    country::FASTEST_NODE_LOCATION,
+    country::{Country, FASTEST_NODE_LOCATION},
     error::{CmdError, CmdErrorSource},
-    states::{
-        app::{Country, NodeLocation},
-        SharedAppData, SharedAppState,
-    },
+    states::{app::NodeLocation, SharedAppData, SharedAppState},
 };
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
@@ -66,4 +63,17 @@ pub async fn set_node_location(
 pub async fn get_fastest_node_location() -> Result<Country, CmdError> {
     debug!("get_fastest_node_location");
     Ok(FASTEST_NODE_LOCATION.clone())
+}
+
+#[instrument]
+#[tauri::command]
+pub async fn get_node_location(
+    app_state: State<'_, SharedAppState>,
+    node_type: NodeType,
+) -> Result<NodeLocation, CmdError> {
+    debug!("get_node_location");
+    Ok(match node_type {
+        NodeType::Entry => app_state.lock().await.entry_node_location.clone(),
+        NodeType::Exit => app_state.lock().await.exit_node_location.clone(),
+    })
 }
