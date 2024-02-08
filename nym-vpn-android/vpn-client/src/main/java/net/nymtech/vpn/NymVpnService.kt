@@ -11,6 +11,11 @@ import android.os.Build
 import android.os.ParcelFileDescriptor
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import net.nymtech.vpn.tun_provider.TunConfig
 import timber.log.Timber
 import java.net.Inet4Address
@@ -51,32 +56,35 @@ open class NymVpnService : VpnService() {
 
     val connectivityListener = ConnectivityListener()
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val channelId =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                createNotificationChannel()
+            } else {
+                // If earlier version channel ID is not used
+                // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
+                ""
+            }
+        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+        val notification = notificationBuilder.setOngoing(true)
+            .setSmallIcon(androidx.core.R.drawable.notification_bg)
+            .setCategory(Notification.CATEGORY_SERVICE)
+            .build()
+
+        startForeground(123, notification)
         Timber.d("new vpn action")
         return if (intent?.action == Action.START.name) {
-
             currentTunConfig = defaultTunConfig()
             Timber.d("VPN start")
             try {
                 if(prepare(this) == null) {
                     val entry = "{ \"Location\": { \"location\": \"FR\" }}"
                     val exit = "{ \"Location\": { \"location\": \"FR\" }}"
-                    val channelId =
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            createNotificationChannel()
-                        } else {
-                            // If earlier version channel ID is not used
-                            // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
-                            ""
-                        }
-                    val notificationBuilder = NotificationCompat.Builder(this, channelId)
-                    val notification = notificationBuilder.setOngoing(true)
-                        .setSmallIcon(androidx.core.R.drawable.notification_bg)
-                        .setCategory(Notification.CATEGORY_SERVICE)
-                        .build()
-                    startForeground(123, notification)
                     initVPN("https://sandbox-nym-api1.nymtech.net/api",entry,exit,this)
-                    runVPN()
+                   // GlobalScope.launch(Dispatchers.Unconfined) {
+                        runVPN()
+                    //}
                 }
             } catch (e : Exception) {
                 Timber.e(e.message)
@@ -106,10 +114,26 @@ open class NymVpnService : VpnService() {
     }
 
     override fun onCreate() {
+        val channelId =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                createNotificationChannel()
+            } else {
+                // If earlier version channel ID is not used
+                // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
+                ""
+            }
+        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+        val notification = notificationBuilder.setOngoing(true)
+            .setSmallIcon(androidx.core.R.drawable.notification_bg)
+            .setCategory(Notification.CATEGORY_SERVICE)
+            .build()
+
+        startForeground(123, notification)
         connectivityListener.register(this)
     }
 
     override fun onDestroy() {
+        Timber.d("On Destroy")
         stopVPN()
         connectivityListener.unregister()
     }
@@ -137,6 +161,7 @@ open class NymVpnService : VpnService() {
     fun createTun() {
         synchronized(this) {
             activeTunStatus = currentTunConfig?.let {
+                Timber.d("Creating tun from config")
                 createTun(it)
             }
         }
@@ -165,16 +190,18 @@ open class NymVpnService : VpnService() {
 
     private fun createTun(config: TunConfig): CreateTunResult {
         if (VpnService.prepare(this) != null) {
+            Timber.d("VPN permission denied")
             // VPN permission wasn't granted
             return CreateTunResult.PermissionDenied
         }
 
         var invalidDnsServerAddresses = ArrayList<InetAddress>()
-
+        Timber.d("Starting interface builder")
         val builder = Builder().apply {
             for (address in config.addresses) {
                 addAddress(address, prefixForAddress(address))
             }
+            Timber.d("Added addresses")
 
             for (dnsServer in config.dnsServers) {
                 try {
@@ -183,32 +210,41 @@ open class NymVpnService : VpnService() {
                     invalidDnsServerAddresses.add(dnsServer)
                 }
             }
+            Timber.d("Added DNS")
 
             for (route in config.routes) {
                 addRoute(route.address, route.prefixLength.toInt())
             }
+            Timber.d("Added routes")
 
             disallowedApps?.let { apps ->
                 for (app in apps) {
                     addDisallowedApplication(app)
                 }
             }
+            Timber.d("Added disallowed")
             setMtu(config.mtu)
+            Timber.d("Added mtu")
             setBlocking(false)
+            Timber.d("Set blocking")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 setMetered(false)
             }
         }
-
+        Timber.d("Creating interface")
         val vpnInterface = builder.establish()
+        Timber.d("Interface created")
         val tunFd = vpnInterface?.detachFd() ?: return CreateTunResult.TunnelDeviceError
 
+        Timber.d("Calling wait for tunnel up")
         waitForTunnelUp(tunFd, config.routes.any { route -> route.isIpv6 })
 
         if (invalidDnsServerAddresses.isNotEmpty()) {
+            Timber.d("Invalid dns server addresses")
             return CreateTunResult.InvalidDnsServers(invalidDnsServerAddresses, tunFd)
         }
 
+        Timber.d("Success")
         return CreateTunResult.Success(tunFd)
     }
 
