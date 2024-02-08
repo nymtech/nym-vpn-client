@@ -16,7 +16,6 @@ env:
 
 jobs:
   build:
-    environment: BUILD
     strategy:
       fail-fast: false
       matrix:
