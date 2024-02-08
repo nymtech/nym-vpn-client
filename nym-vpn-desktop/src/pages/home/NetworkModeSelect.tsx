@@ -58,11 +58,11 @@ function NetworkModeSelect() {
   };
 
   return (
-    <div>
+    <div className="select-none">
       <RadioGroup value={selected} onChange={handleSelect}>
         <RadioGroup.Label
           as="div"
-          className="font-semibold text-base text-baltic-sea dark:text-white mb-6"
+          className="font-semibold text-base text-baltic-sea dark:text-white mb-6 cursor-default"
         >
           {t('select-network-label')}
         </RadioGroup.Label>
@@ -76,8 +76,9 @@ function NetworkModeSelect() {
                   'bg-white dark:bg-baltic-sea-jaguar relative flex rounded-lg px-5 py-2 focus:outline-none',
                   (state.state !== 'Disconnected' || loading) &&
                     'cursor-not-allowed',
-                  checked &&
-                    'ring-0 ring-melon ring-offset-2 ring-offset-melon',
+                  checked && 'border border-melon',
+                  !checked &&
+                    'border border-white dark:border-baltic-sea-jaguar',
                   state.state === 'Disconnected' && 'cursor-pointer',
                 ])
               }

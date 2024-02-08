@@ -23,7 +23,7 @@ export default function HopSelect({
         state === 'Disconnected' ? 'cursor-pointer' : 'cursor-not-allowed',
         'w-full flex flex-row justify-between items-center py-3 px-4',
         'text-baltic-sea dark:text-mercury-pinkish',
-        'border-cement-feet dark:border-gun-powder border-2 rounded-lg',
+        'border border-cement-feet dark:border-gun-powder rounded-lg',
         'relative',
       ])}
       onKeyDown={onClick}
