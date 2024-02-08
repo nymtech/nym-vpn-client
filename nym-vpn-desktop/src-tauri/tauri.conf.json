@@ -20,6 +20,9 @@
     },
     "allowlist": {
       "all": false,
+      "process": {
+        "all": true
+      },
       "shell": {
         "all": false,
         "open": true
