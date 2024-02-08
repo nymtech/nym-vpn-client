@@ -4,7 +4,7 @@ import {
   AppDataFromBackend,
   ConnectionState,
   FeatureFlag,
-  NodeLocation,
+  NodeLocationBackend,
 } from '../types';
 import { ConnectionEvent, DefaultNodeCountry } from '../constants';
 import { Country } from '../types';
@@ -63,11 +63,13 @@ export function mockTauriIPC() {
     }
 
     if (cmd === 'get_node_location') {
-      return new Promise<NodeLocation>((resolve) =>
+      return new Promise<NodeLocationBackend>((resolve) =>
         // resolve('Fastest')
         resolve({
-          name: 'France',
-          code: 'FR',
+          Country: {
+            name: 'France',
+            code: 'FR',
+          },
         }),
       );
     }
