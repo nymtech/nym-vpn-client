@@ -8,6 +8,4 @@ pub enum FeatureFlag {
     FastestNodeLocation,
 }
 
-pub const FEATURE_FLAGS: [FeatureFlag; 1] = [
-    FeatureFlag::DefaultNodeLocation,
-];
+pub const FEATURE_FLAGS: [FeatureFlag; 1] = [FeatureFlag::DefaultNodeLocation];
