@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api';
+import { exit } from '@tauri-apps/api/process';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { routes } from '../../constants';
 import { useMainDispatch, useMainState } from '../../contexts';
-import { StateDispatch } from '../../types';
+import { CmdError, StateDispatch } from '../../types';
 import { Switch } from '../../ui';
 import SettingsGroup from './SettingsGroup';
 
@@ -50,6 +51,26 @@ function Settings() {
     });
   };
 
+  const handleQuit = async () => {
+    if (state.state === 'Connected') {
+      // TODO add a timeout to prevent the app from hanging
+      // in bad disconnect scenarios
+      dispatch({ type: 'disconnect' });
+      invoke('disconnect')
+        .then(async (result) => {
+          console.log('disconnect result');
+          console.log(result);
+          await exit(0);
+        })
+        .catch(async (e: CmdError) => {
+          console.warn(`backend error: ${e.source} - ${e.message}`);
+          await exit(1);
+        });
+    } else {
+      await exit(0);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col mt-2 gap-6">
       <SettingsGroup
@@ -85,7 +106,7 @@ function Settings() {
           {
             title: t('display-theme'),
             leadingIcon: 'contrast',
-            onClick: () => {
+            onClick: async () => {
               navigate(routes.display);
             },
             trailing: (
@@ -101,7 +122,7 @@ function Settings() {
           {
             title: t('logs'),
             leadingIcon: 'sort',
-            onClick: () => {
+            onClick: async () => {
               navigate(routes.logs);
             },
             trailing: (
@@ -118,7 +139,7 @@ function Settings() {
           {
             title: t('feedback'),
             leadingIcon: 'question_answer',
-            onClick: () => {
+            onClick: async () => {
               navigate(routes.feedback);
             },
             trailing: (
@@ -155,7 +176,7 @@ function Settings() {
         settings={[
           {
             title: t('legal'),
-            onClick: () => {
+            onClick: async () => {
               navigate(routes.legal);
             },
             disabled: true,
@@ -171,10 +192,7 @@ function Settings() {
         settings={[
           {
             title: t('quit'),
-            onClick: () => {
-              //TODO shutdown gracefully
-            },
-            disabled: true,
+            onClick: handleQuit,
           },
         ]}
       />

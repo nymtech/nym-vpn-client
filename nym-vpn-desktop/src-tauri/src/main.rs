@@ -75,7 +75,7 @@ async fn main() -> Result<()> {
         debug!("provided env_config_file: {}", env_config_file.display());
         if !(try_exists(env_config_file)
             .await
-            .context("an error happened while trying to read env_config_file `{}`")?)
+            .context("an error happened while reading env_config_file `{}`")?)
         {
             let err_message = format!(
                 "app config, env_config_file `{}`: file not found",
@@ -91,12 +91,17 @@ async fn main() -> Result<()> {
     }
 
     // Read the env variables in the provided file and export them all to the local environment.
-    nym_config::defaults::setup_env(app_config.env_config_file);
+    nym_config::defaults::setup_env(app_config.env_config_file.clone());
+
+    let app_state = AppState::try_from((&app_data, &app_config)).map_err(|e| {
+        error!("failed to create app state from saved app data and config: {e}");
+        e
+    })?;
 
     info!("Starting tauri app");
 
     tauri::Builder::default()
-        .manage(Arc::new(Mutex::new(AppState::from(&app_data))))
+        .manage(Arc::new(Mutex::new(app_state)))
         .manage(Arc::new(Mutex::new(app_data_store)))
         .manage(Arc::new(Mutex::new(app_config_store)))
         .setup(|_app| {
@@ -117,6 +122,7 @@ async fn main() -> Result<()> {
             app_data::set_auto_connect,
             app_data::get_node_countries,
             app_data::set_root_font_size,
+            node_location::get_node_location,
             node_location::set_node_location,
             node_location::get_fastest_node_location,
         ])

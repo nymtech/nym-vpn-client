@@ -12,7 +12,7 @@ import {
   StateDispatch,
   isCountry,
 } from '../../types';
-import { routes } from '../../constants';
+import { FastestFeatureEnabled, routes } from '../../constants';
 import SearchBox from './SearchBox';
 import CountryList from './CountryList';
 
@@ -31,9 +31,11 @@ function NodeLocation({ node }: { node: NodeHop }) {
   } = useMainState();
 
   // the countries list used for UI rendering, Fastest country is at first position
-  const [uiCountryList, setUiCountryList] = useState<UiCountry[]>([
-    { country: fastestNodeLocation, isFastest: true },
-  ]);
+  const [uiCountryList, setUiCountryList] = useState<UiCountry[]>(
+    FastestFeatureEnabled
+      ? [{ country: fastestNodeLocation, isFastest: true }]
+      : [],
+  );
 
   const [search, setSearch] = useState('');
   const [filteredCountries, setFilteredCountries] =
@@ -53,23 +55,28 @@ function NodeLocation({ node }: { node: NodeHop }) {
         });
       })
       .catch((e: CmdError) => console.error(e));
-    invoke<Country>('get_fastest_node_location')
-      .then((country) => {
-        dispatch({ type: 'set-fastest-node-location', country });
-      })
-      .catch((e: CmdError) => console.error(e));
+    if (FastestFeatureEnabled) {
+      invoke<Country>('get_fastest_node_location')
+        .then((country) => {
+          dispatch({ type: 'set-fastest-node-location', country });
+        })
+        .catch((e: CmdError) => console.error(e));
+    }
   }, [dispatch]);
 
   // update the UI country list whenever the country list or
   // fastest country change (likely from the backend)
   useEffect(() => {
     const list = [
-      // put fastest country at the first position
-      { country: fastestNodeLocation, isFastest: true },
       ...countryList.map((country) => ({ country, isFastest: false })),
     ];
+    if (FastestFeatureEnabled) {
+      // put fastest country at the first position
+      list.unshift({ country: fastestNodeLocation, isFastest: true });
+    }
     setUiCountryList(list);
     setFilteredCountries(list);
+    setSearch('');
   }, [countryList, fastestNodeLocation]);
 
   const filter = (e: InputEvent) => {
