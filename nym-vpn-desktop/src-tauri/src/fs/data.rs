@@ -9,6 +9,7 @@ pub enum UiTheme {
     Dark,
     #[default]
     Light,
+    System,
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, TS)]

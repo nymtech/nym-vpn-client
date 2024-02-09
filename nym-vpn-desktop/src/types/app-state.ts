@@ -1,7 +1,7 @@
 import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
-import { Country, NodeLocation, UiTheme } from './common';
+import { Country, NodeLocation, ThemeMode, UiTheme } from './common';
 
 export type ConnectionState =
   | 'Connected'
@@ -26,7 +26,11 @@ export type AppState = {
   sessionStartDate?: Dayjs | null;
   vpnMode: VpnMode;
   tunnel: TunnelConfig;
+  // `UiTheme` is the current applied theme to the UI, that is either `Dark` or `Light`
   uiTheme: UiTheme;
+  // `themeMode` is the current user selected mode, could be `System`, `Dark` or `Light`
+  //  if `System` is selected, the app will follow the system theme
+  themeMode: ThemeMode;
   entrySelector: boolean;
   autoConnect: boolean;
   monitoring: boolean;

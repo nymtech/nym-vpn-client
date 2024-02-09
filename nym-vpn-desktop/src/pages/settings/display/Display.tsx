@@ -1,40 +1,38 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { invoke } from '@tauri-apps/api';
 import { useTranslation } from 'react-i18next';
-import { appWindow } from '@tauri-apps/api/window';
 import { useMainDispatch, useMainState } from '../../../contexts';
-import { StateDispatch, UiTheme } from '../../../types';
+import { useSystemTheme } from '../../../state';
+import { StateDispatch, ThemeMode } from '../../../types';
 import { RadioGroup, RadioGroupOption } from '../../../ui';
 import UiScaler from './UiScaler';
-
-type ThemeModes = UiTheme | 'System';
 
 function Display() {
   const state = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('display');
 
-  const handleThemeChange = async (mode: ThemeModes) => {
-    let newMode: UiTheme = 'Light';
-    if (mode === 'System') {
-      const systemTheme = await appWindow.theme();
-      systemTheme === 'dark' ? (newMode = 'Dark') : (newMode = 'Light');
-    } else if (mode === 'Dark') {
-      newMode = 'Dark';
-    } else if (mode === 'Light') {
-      newMode = 'Light';
-    }
-    if (newMode !== state.uiTheme) {
-      dispatch({ type: 'set-ui-theme', theme: newMode });
+  const { theme: systemTheme } = useSystemTheme();
+
+  const handleThemeChange = async (mode: ThemeMode) => {
+    if (mode !== state.themeMode) {
+      dispatch({
+        type: 'set-ui-theme',
+        theme: mode === 'System' ? systemTheme : mode,
+      });
+      dispatch({
+        type: 'set-theme-mode',
+        mode,
+      });
       invoke<void>('set_ui_theme', {
-        theme: newMode,
+        theme: mode,
       }).catch((e) => {
         console.log(e);
       });
     }
   };
 
-  const options = useMemo<RadioGroupOption<ThemeModes>[]>(() => {
+  const options = useMemo<RadioGroupOption<ThemeMode>[]>(() => {
     return [
       {
         key: 'System',
@@ -60,7 +58,7 @@ function Display() {
   return (
     <div className="h-full flex flex-col py-6 gap-6">
       <RadioGroup
-        defaultValue={state.uiTheme}
+        defaultValue={state.themeMode}
         options={options}
         onChange={handleThemeChange}
         rootLabel={t('theme-section-title')}

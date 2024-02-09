@@ -8,9 +8,11 @@ import {
   ConnectionState,
   Country,
   NodeLocationBackend,
+  UiTheme,
 } from '../types';
-import { DefaultRootFontSize } from '../constants';
+import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
 import { initialState, reducer } from './main';
+import { useSystemTheme } from './useSystemTheme';
 import { useTauriEvents } from './useTauriEvents';
 
 type Props = {
@@ -20,6 +22,7 @@ type Props = {
 export function MainStateProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
+  const { theme: systemTheme } = useSystemTheme();
   useTauriEvents(dispatch);
 
   // initialize connection state
@@ -145,9 +148,18 @@ export function MainStateProvider({ children }: Props) {
           document.documentElement.style.fontSize = `${data.ui_root_font_size}px`;
         }
 
+        let uiTheme: UiTheme = 'Light';
+        if (data.ui_theme === 'System') {
+          uiTheme = systemTheme;
+        } else {
+          // if no theme has been saved, fallback to system theme
+          uiTheme = data.ui_theme || systemTheme;
+        }
+
         const partialState: Partial<typeof initialState> = {
           entrySelector: data.entry_location_selector || false,
-          uiTheme: data.ui_theme || 'Light',
+          uiTheme,
+          themeMode: data.ui_theme || DefaultThemeMode,
           vpnMode: data.vpn_mode || 'TwoHop',
           autoConnect: data.autoconnect || false,
           monitoring: data.monitoring || false,
@@ -163,7 +175,7 @@ export function MainStateProvider({ children }: Props) {
           `command [get_app_data] returned an error: ${e.source} - ${e.message}`,
         );
       });
-  }, []);
+  }, [systemTheme]);
 
   return (
     <MainStateContext.Provider value={state}>
