@@ -21,12 +21,44 @@ use std::io;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, UdpSocket};
 use std::os::fd::RawFd;
 use std::str::FromStr;
-use std::sync::Arc;
+use std::sync::{Arc, Once};
 use std::time::{Duration, Instant};
 use talpid_tunnel::tun_provider::TunConfig;
 use talpid_types::android::AndroidContext;
 use talpid_types::ErrorExt;
 use url::Url;
+
+static LOAD_CLASSES: Once = Once::new();
+
+pub const CLASSES: &[&str] = &[
+    "java/lang/Boolean",
+    "java/net/InetAddress",
+    "java/net/InetSocketAddress",
+    "java/util/ArrayList",
+    "net/nymtech/vpn/net/Endpoint",
+    "net/nymtech/vpn/net/TransportProtocol",
+    "net/nymtech/vpn/net/TunnelEndpoint",
+    "net/nymtech/vpn/tun_provider/InetNetwork",
+    "net/nymtech/vpn/tun_provider/TunConfig",
+    "net/nymtech/vpn/tunnel/ActionAfterDisconnect",
+    "net/nymtech/vpn/tunnel/ErrorState",
+    "net/nymtech/vpn/tunnel/ErrorStateCause$AuthFailed",
+    "net/nymtech/vpn/tunnel/ErrorStateCause$Ipv6Unavailable",
+    "net/nymtech/vpn/tunnel/ErrorStateCause$SetFirewallPolicyError",
+    "net/nymtech/vpn/tunnel/ErrorStateCause$SetDnsError",
+    "net/nymtech/vpn/tunnel/ErrorStateCause$StartTunnelError",
+    "net/nymtech/vpn/tunnel/ErrorStateCause$TunnelParameterError",
+    "net/nymtech/vpn/tunnel/ErrorStateCause$IsOffline",
+    "net/nymtech/vpn/tunnel/ErrorStateCause$InvalidDnsServers",
+    "net/nymtech/vpn/tunnel/ErrorStateCause$VpnPermissionDenied",
+    "net/nymtech/vpn/tunnel/ParameterGenerationError",
+    "net/nymtech/vpn/ConnectivityListener",
+    "net/nymtech/vpn/CreateTunResult$Success",
+    "net/nymtech/vpn/CreateTunResult$InvalidDnsServers",
+    "net/nymtech/vpn/CreateTunResult$PermissionDenied",
+    "net/nymtech/vpn/CreateTunResult$TunnelDeviceError",
+    "net/nymtech/vpn/NymVpnService",
+];
 
 fn init_jni_logger() {
     use android_logger::{Config, FilterBuilder};
@@ -62,6 +94,9 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     init_jni_logger();
 
     let env = JnixEnv::from(env);
+
+    LOAD_CLASSES.call_once(|| env.preload_classes(CLASSES.iter().cloned()));
+
     let context = AndroidContext {
         jvm: Arc::new(env.get_java_vm().expect("Get JVM instance")),
         vpn_service: env

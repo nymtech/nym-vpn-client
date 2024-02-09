@@ -162,7 +162,7 @@ pub async fn setup_routing(
     info!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
     #[cfg(target_os = "android")]
-    {
+    let mixnet_tun_config = {
         let mut tun_config = talpid_tunnel::tun_provider::TunConfig::default();
         tun_config.addresses = vec![config.tun_ip()];
         let fd = _tun_provider
@@ -170,9 +170,11 @@ pub async fn setup_routing(
             .expect("access should not be passed to mullvad yet")
             .get_tun(tun_config)?
             .as_raw_fd();
+        info!("Created android tun device");
         let mut mixnet_tun_config = mixnet_tun_config.clone();
         mixnet_tun_config.raw_fd(fd);
-    }
+        mixnet_tun_config
+    };
     let dev = tun2::create_as_async(&mixnet_tun_config)
         .tap_err(|err| error!("Failed to create tun device: {}", err))?;
     let device_name = dev.as_ref().name().unwrap().to_string();
