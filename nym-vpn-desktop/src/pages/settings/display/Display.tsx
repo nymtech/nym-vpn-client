@@ -1,51 +1,72 @@
-import { useEffect, useState } from 'react';
-import clsx from 'clsx';
+import { useEffect, useMemo } from 'react';
 import { invoke } from '@tauri-apps/api';
 import { useTranslation } from 'react-i18next';
+import { appWindow } from '@tauri-apps/api/window';
 import { useMainDispatch, useMainState } from '../../../contexts';
-import { StateDispatch } from '../../../types';
-import { Switch } from '../../../ui';
+import { StateDispatch, UiTheme } from '../../../types';
+import { RadioGroup, RadioGroupOption } from '../../../ui';
 import UiScaler from './UiScaler';
+
+type ThemeModes = UiTheme | 'System';
 
 function Display() {
   const state = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
-  const { t } = useTranslation();
+  const { t } = useTranslation('display');
 
-  const [darkModeEnabled, setDarkModeEnabled] = useState(
-    state.uiTheme === 'Dark',
-  );
-
-  useEffect(() => {
-    setDarkModeEnabled(state.uiTheme === 'Dark');
-  }, [state]);
-
-  const handleThemeChange = async (darkMode: boolean) => {
-    if (darkMode && state.uiTheme === 'Light') {
-      dispatch({ type: 'set-ui-theme', theme: 'Dark' });
-    } else if (!darkMode && state.uiTheme === 'Dark') {
-      dispatch({ type: 'set-ui-theme', theme: 'Light' });
+  const handleThemeChange = async (mode: ThemeModes) => {
+    let newMode: UiTheme = 'Light';
+    if (mode === 'System') {
+      const systemTheme = await appWindow.theme();
+      systemTheme === 'dark' ? (newMode = 'Dark') : (newMode = 'Light');
+    } else if (mode === 'Dark') {
+      newMode = 'Dark';
+    } else if (mode === 'Light') {
+      newMode = 'Light';
     }
-    invoke<void>('set_ui_theme', { theme: darkMode ? 'Dark' : 'Light' }).catch(
-      (e) => {
+    if (newMode !== state.uiTheme) {
+      dispatch({ type: 'set-ui-theme', theme: newMode });
+      invoke<void>('set_ui_theme', {
+        theme: newMode,
+      }).catch((e) => {
         console.log(e);
-      },
-    );
+      });
+    }
   };
+
+  const options = useMemo<RadioGroupOption<ThemeModes>[]>(() => {
+    return [
+      {
+        key: 'System',
+        label: t('options.system'),
+        desc: t('system-desc'),
+        cursor: 'pointer',
+      },
+      {
+        key: 'Light',
+        label: t('options.light'),
+        cursor: 'pointer',
+        style: 'min-h-11',
+      },
+      {
+        key: 'Dark',
+        label: t('options.dark'),
+        cursor: 'pointer',
+        style: 'min-h-11',
+      },
+    ];
+  }, [t]);
 
   return (
     <div className="h-full flex flex-col py-6 gap-6">
-      <div
-        className={clsx([
-          'flex flex-row justify-between items-center',
-          'bg-white dark:bg-baltic-sea-jaguar',
-          'px-6 py-4 rounded-lg',
-        ])}
-      >
-        <p className="text-base text-baltic-sea dark:text-mercury-pinkish select-none">
-          {t('ui-mode.dark')}
-        </p>
-        <Switch checked={darkModeEnabled} onChange={handleThemeChange} />
+      <RadioGroup
+        defaultValue={state.uiTheme}
+        options={options}
+        onChange={handleThemeChange}
+        rootLabel={t('theme-section-title')}
+      />
+      <div className="mt-3 text-base font-semibold cursor-default">
+        {t('zoom-section-title')}
       </div>
       <UiScaler />
     </div>

@@ -1,7 +1,7 @@
 import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
-import { Country, NodeLocation } from './common';
+import { Country, NodeLocation, UiTheme } from './common';
 
 export type ConnectionState =
   | 'Connected'
@@ -26,7 +26,7 @@ export type AppState = {
   sessionStartDate?: Dayjs | null;
   vpnMode: VpnMode;
   tunnel: TunnelConfig;
-  uiTheme: 'Light' | 'Dark';
+  uiTheme: UiTheme;
   entrySelector: boolean;
   autoConnect: boolean;
   monitoring: boolean;

@@ -1,2 +1,5 @@
+[build]
+rustflags = ['-L', '/home/pierre/Documents/nym/nym-vpn-client/build/lib/x86_64-unknown-linux-gnu']
+
 [net]
 git-fetch-with-cli = true
