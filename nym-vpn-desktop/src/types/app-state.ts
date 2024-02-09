@@ -1,7 +1,7 @@
 import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
-import { Country, FeatureFlag, NodeLocation } from './common';
+import { Country, NodeLocation } from './common';
 
 export type ConnectionState =
   | 'Connected'
@@ -20,7 +20,6 @@ export interface TunnelConfig {
 export type AppState = {
   state: ConnectionState;
   version: string | null;
-  featureFlags: FeatureFlag[];
   loading: boolean;
   error?: string | null;
   progressMessages: ConnectProgressMsg[];

@@ -5,7 +5,6 @@ import {
   ConnectProgressMsg,
   ConnectionState,
   Country,
-  FeatureFlag,
   NodeHop,
   NodeLocation,
   UiTheme,
@@ -13,7 +12,6 @@ import {
 } from '../types';
 
 export type StateAction =
-  | { type: 'set-feature-flags'; flags: FeatureFlag[] }
   | { type: 'set-partial-state'; partialState: Partial<AppState> }
   | { type: 'change-connection-state'; state: ConnectionState }
   | { type: 'set-vpn-mode'; mode: VpnMode }
@@ -42,7 +40,6 @@ export type StateAction =
 export const initialState: AppState = {
   state: 'Disconnected',
   version: null,
-  featureFlags: ['DefaultNodeLocation'],
   loading: false,
   vpnMode: 'TwoHop',
   entrySelector: false,
@@ -62,11 +59,6 @@ export const initialState: AppState = {
 
 export function reducer(state: AppState, action: StateAction): AppState {
   switch (action.type) {
-    case 'set-feature-flags':
-      return {
-        ...state,
-        featureFlags: action.flags,
-      };
     case 'set-node-location':
       if (action.payload.hop === 'entry') {
         return {

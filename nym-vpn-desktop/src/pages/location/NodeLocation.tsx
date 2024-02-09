@@ -12,7 +12,7 @@ import {
   StateDispatch,
   isCountry,
 } from '../../types';
-import { routes } from '../../constants';
+import { FastestFeatureEnabled, routes } from '../../constants';
 import SearchBox from './SearchBox';
 import CountryList from './CountryList';
 
@@ -28,14 +28,11 @@ function NodeLocation({ node }: { node: NodeHop }) {
     exitNodeLocation,
     countryList,
     fastestNodeLocation,
-    featureFlags,
   } = useMainState();
-
-  const enableFastestFeature = featureFlags.includes('FastestNodeLocation');
 
   // the countries list used for UI rendering, Fastest country is at first position
   const [uiCountryList, setUiCountryList] = useState<UiCountry[]>(
-    enableFastestFeature
+    FastestFeatureEnabled
       ? [{ country: fastestNodeLocation, isFastest: true }]
       : [],
   );
@@ -58,14 +55,14 @@ function NodeLocation({ node }: { node: NodeHop }) {
         });
       })
       .catch((e: CmdError) => console.error(e));
-    if (enableFastestFeature) {
+    if (FastestFeatureEnabled) {
       invoke<Country>('get_fastest_node_location')
         .then((country) => {
           dispatch({ type: 'set-fastest-node-location', country });
         })
         .catch((e: CmdError) => console.error(e));
     }
-  }, [dispatch, enableFastestFeature]);
+  }, [dispatch]);
 
   // update the UI country list whenever the country list or
   // fastest country change (likely from the backend)
@@ -73,14 +70,14 @@ function NodeLocation({ node }: { node: NodeHop }) {
     const list = [
       ...countryList.map((country) => ({ country, isFastest: false })),
     ];
-    if (enableFastestFeature) {
+    if (FastestFeatureEnabled) {
       // put fastest country at the first position
       list.unshift({ country: fastestNodeLocation, isFastest: true });
     }
     setUiCountryList(list);
     setFilteredCountries(list);
     setSearch('');
-  }, [countryList, fastestNodeLocation, enableFastestFeature]);
+  }, [countryList, fastestNodeLocation]);
 
   const filter = (e: InputEvent) => {
     const keyword = e.target.value;

@@ -7,7 +7,6 @@ import {
   CmdError,
   ConnectionState,
   Country,
-  FeatureFlag,
   NodeLocationBackend,
 } from '../types';
 import { DefaultRootFontSize } from '../constants';
@@ -25,10 +24,6 @@ export function MainStateProvider({ children }: Props) {
 
   // initialize connection state
   useEffect(() => {
-    const getFeatureFlags = async () => {
-      return await invoke<FeatureFlag[]>('feature_flags');
-    };
-
     const getInitialConnectionState = async () => {
       return await invoke<ConnectionState>('get_connection_state');
     };
@@ -58,17 +53,6 @@ export function MainStateProvider({ children }: Props) {
     const getFastestNodeLocation = async () => {
       return await invoke<Country>('get_fastest_node_location');
     };
-
-    getFeatureFlags()
-      .then((flags) =>
-        dispatch({
-          type: 'set-feature-flags',
-          flags,
-        }),
-      )
-      .catch((e) => {
-        console.warn(`command [feature_flags] returned an error: ${e}`);
-      });
 
     getVersion()
       .then((version) =>

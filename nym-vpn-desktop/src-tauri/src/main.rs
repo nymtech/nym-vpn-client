@@ -18,7 +18,6 @@ use crate::fs::{config::AppConfig, data::AppData, storage::AppStorage};
 mod commands;
 mod country;
 mod error;
-mod features;
 mod fs;
 mod network;
 mod states;
@@ -110,7 +109,6 @@ async fn main() -> Result<()> {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            feature_flag::feature_flags,
             connection::set_vpn_mode,
             connection::get_connection_state,
             connection::connect,

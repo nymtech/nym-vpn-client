@@ -3,7 +3,6 @@ import { emit } from '@tauri-apps/api/event';
 import {
   AppDataFromBackend,
   ConnectionState,
-  FeatureFlag,
   NodeLocationBackend,
 } from '../types';
 import { ConnectionEvent, DefaultNodeCountry } from '../constants';
@@ -80,13 +79,6 @@ export function mockTauriIPC() {
           name: 'France',
           code: 'FR',
         }),
-      );
-    }
-
-    if (cmd === 'feature_flags') {
-      return new Promise<FeatureFlag[]>((resolve) =>
-        // resolve(['FastestNodeLocation']),
-        resolve(['DefaultNodeLocation']),
       );
     }
 

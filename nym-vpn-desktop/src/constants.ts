@@ -20,3 +20,5 @@ export const DefaultNodeCountry: Country = {
   name: 'France',
   code: 'FR',
 };
+// TODO disabled Fastest location until the backend is ready
+export const FastestFeatureEnabled = false;
