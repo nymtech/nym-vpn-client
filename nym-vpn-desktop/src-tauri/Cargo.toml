@@ -37,5 +37,3 @@ shadowsocks-service = { version = "~1.14.3" }
 # this feature is used for production builds or when `devPath` points to the filesystem
 # DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]
-# enable Fastest node location feature
-fastest-location = []

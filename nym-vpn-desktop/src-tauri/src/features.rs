@@ -9,8 +9,5 @@ pub enum FeatureFlag {
 }
 
 pub const FEATURE_FLAGS: [FeatureFlag; 1] = [
-    #[cfg(feature = "fastest-location")]
-    FeatureFlag::FastestNodeLocation,
-    #[cfg(not(feature = "fastest-location"))]
     FeatureFlag::DefaultNodeLocation,
 ];
