@@ -198,7 +198,12 @@ jobs:
           retention-days: 2
 
   publish:
-    if: always() && (github.event_name != 'workflow_dispatch' || inputs.publish == true)
+    # We need this workaround to make the publish step run even if one of the
+    # builds fail. We can't use always() since that creates an uncancellable
+    # job
+    #if: github.event_name != 'workflow_dispatch' || inputs.publish == true
+    #if: always() && (github.event_name != 'workflow_dispatch' || inputs.publish == true)
+    if: ${{ !cancelled() && (success() || failure() || needs.build.result == 'skipped') && (github.event_name != 'workflow_dispatch' || inputs.publish == true) }}
     needs: build
     runs-on: ubuntu-latest
     env:
@@ -244,9 +249,13 @@ jobs:
            ehco 'NOTES_FILE=release-notes-desktop.md') >> $GITHUB_ENV
 
       # Recall that download-artifact will extract into a directory that
-      # includes the tar.gz suffix
+      # includes the tar.gz suffix.
+      # We rm all the empty directories first so since that signifies a failed
+      # build where we continue-on-error and should not have their artifacts
+      # published, which would just be an empty archive.
       - name: Generate checksums
         run: |
+          rmdir nym-vpn-desktop_*tar.gz
           for file in nym-vpn-desktop_*tar.gz; do pushd $file; for f in nym-vpn-desktop_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
