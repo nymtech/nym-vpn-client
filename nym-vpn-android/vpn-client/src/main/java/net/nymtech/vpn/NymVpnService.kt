@@ -79,12 +79,12 @@ open class NymVpnService : VpnService() {
             Timber.d("VPN start")
             try {
                 if(prepare(this) == null) {
-                    val entry = "{ \"Location\": { \"location\": \"FR\" }}"
-                    val exit = "{ \"Location\": { \"location\": \"FR\" }}"
+                    val entry = "{ \"Location\": { \"location\": \"DE\" }}"
+                    val exit = "{ \"Location\": { \"location\": \"DE\" }}"
                     initVPN("https://sandbox-nym-api1.nymtech.net/api",entry,exit,this)
-                   // GlobalScope.launch(Dispatchers.Unconfined) {
+                   GlobalScope.launch(Dispatchers.IO) {
                         runVPN()
-                    //}
+                    }
                 }
             } catch (e : Exception) {
                 Timber.e(e.message)

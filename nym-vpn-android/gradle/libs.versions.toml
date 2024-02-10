@@ -1,6 +1,6 @@
 [versions]
 accompanist = "0.34.0"
-agp = "8.3.0-beta02"
+agp = "8.3.0-rc01"
 coreSplashscreen = "1.0.1"
 jna = "5.14.0"
 jnaVersion = "5.14.0"

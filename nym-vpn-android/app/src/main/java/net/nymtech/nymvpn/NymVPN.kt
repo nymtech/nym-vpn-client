@@ -2,6 +2,7 @@ package net.nymtech.nymvpn
 
 import android.app.Application
 import android.system.Os
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 

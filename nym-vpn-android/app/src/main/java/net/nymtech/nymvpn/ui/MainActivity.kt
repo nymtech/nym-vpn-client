@@ -49,6 +49,9 @@ class MainActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+
+    installSplashScreen()
+
     // load into memory, init data here
     val countries = listOf(
       Country("DE", "Germany", true),
@@ -69,8 +72,6 @@ class MainActivity : ComponentActivity() {
       dataStoreManager.init()
       dataStoreManager.saveToDataStore(DataStoreManager.NODE_COUNTRIES, countries.toString())
     }
-
-    installSplashScreen()
 
     setContent {
       val mainViewModel = hiltViewModel<AppViewModel>()
