@@ -215,6 +215,7 @@ jobs:
       # includes the tar.gz suffix
       - name: Generate checksums
         run: |
+          rmdir nym-vpn-desktop_*tar.gz
           for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-cli_*.tar.gz/*.sha256sum >> $GITHUB_ENV
