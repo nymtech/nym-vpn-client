@@ -198,7 +198,7 @@ jobs:
           retention-days: 2
 
   publish:
-    if: github.event_name != 'workflow_dispatch' || inputs.publish == true
+    if: always() && (github.event_name != 'workflow_dispatch' || inputs.publish == true)
     needs: build
     runs-on: ubuntu-latest
     env:
@@ -219,6 +219,10 @@ jobs:
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
+      # We don't bother publishing if not the build info is available
+      - name: Check if build-info present
+        run: test -f build-info/build-info.txt
+
       - name: Build info
         run: |
           echo "BUILD_VERSION=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
@@ -228,7 +232,7 @@ jobs:
         run: |
           (echo "SUBJECT=nym-vpn-desktop-v$BUILD_VERSION nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
-           echo 'NOTES_FILE=release-notes-nightly.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes-desktop-nightly.md') >> $GITHUB_ENV
           gh release delete nightly-desktop --yes || true
           git push origin :nightly-desktop || true
       # Once we consider these actually release builds, remove --prerelease
@@ -237,7 +241,7 @@ jobs:
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE=--prerelease'
-           ehco 'NOTES_FILE=release-notes.md') >> $GITHUB_ENV
+           ehco 'NOTES_FILE=release-notes-desktop.md') >> $GITHUB_ENV
 
       # Recall that download-artifact will extract into a directory that
       # includes the tar.gz suffix
