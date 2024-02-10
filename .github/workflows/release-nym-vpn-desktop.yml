@@ -165,8 +165,6 @@ jobs:
           ls -la target/release/
           ls -la target/release/bundle
           ls -la target/release/bundle/*
-        # TODO ignore `Error invalid utf-8 sequence of 1 bytes from index X` error
-        continue-on-error: true
 
       - name: Create archive
         shell: bash
