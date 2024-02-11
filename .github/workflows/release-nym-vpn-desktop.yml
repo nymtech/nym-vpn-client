@@ -29,7 +29,7 @@ jobs:
             # ubuntu-22.04-16-core,
             # macos-latest,
             # custom-runner-mac-m1,
-            macos-latest-xlarge,
+            macos-13-xlarge,
           ]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
@@ -45,7 +45,7 @@ jobs:
             # ubuntu-22.04-16-core,
             # macos-latest,
             # custom-runner-mac-m1,
-            macos-latest-xlarge,
+            macos-13-xlarge,
           ]
     runs-on: ${{ matrix.os }}
     env:
@@ -101,9 +101,9 @@ jobs:
             platform_arch=ubuntu-22.04_x86_64
           elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
             platform_arch=ubuntu-20.04_x86_64
-          elif ${{ contains(matrix.os, 'mac-m1') || contains(matrix.os, 'macos-latest-xlarge') }}; then
+          elif ${{ matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-13-xlarge' }}; then
             platform_arch=macos_aarch64
-          elif ${{ contains(matrix.os, 'macos') }}; then
+          elif ${{ matrix.os == 'macos-13' }}; then
             platform_arch=macos_x86_64
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
@@ -161,8 +161,8 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT_PASS }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}

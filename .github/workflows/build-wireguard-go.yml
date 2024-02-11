@@ -11,9 +11,9 @@ on:
         options:
         - ubuntu-20.04
         - ubuntu-22.04
-        - macos-latest
+        - macos-13
+        - macos-13-xlarge
         - custom-runner-mac-m1
-        - macos-latest-xlarge
 
   # reusable workflow
   workflow_call:
@@ -81,7 +81,7 @@ jobs:
       - name: Upload artifacts (macos x86_64)
         uses: actions/upload-artifact@v4
         # if: contains(inputs.os, 'macos')
-        if: inputs.os == 'macos-latest'
+        if: inputs.os == 'macos-13'
         with:
           name: wireguard-go_macos_x86_64
           path: |
@@ -90,7 +90,7 @@ jobs:
 
       - name: Upload artifacts (macos aarch64)
         uses: actions/upload-artifact@v4
-        if: inputs.os == 'mac-m1' || inputs.os == 'macos-latest-xlarge'
+        if: inputs.os == 'custom-runner-mac-m1' || inputs.os == 'macos-13-xlarge'
         with:
           name: wireguard-go_macos_aarch64
           path: |
