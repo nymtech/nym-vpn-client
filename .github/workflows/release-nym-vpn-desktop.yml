@@ -26,8 +26,8 @@ jobs:
       matrix:
         os:
           [
-            ubuntu-22.04-16-core,
-            macos-latest,
+            # ubuntu-22.04-16-core,
+            # macos-latest,
             custom-runner-mac-m1,
           ]
     uses: ./.github/workflows/build-wireguard-go.yml
@@ -41,8 +41,8 @@ jobs:
       matrix:
         os:
           [
-            ubuntu-22.04-16-core,
-            macos-latest,
+            # ubuntu-22.04-16-core,
+            # macos-latest,
             custom-runner-mac-m1,
           ]
     runs-on: ${{ matrix.os }}
