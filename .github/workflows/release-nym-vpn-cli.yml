@@ -212,10 +212,11 @@ jobs:
            echo 'NOTES_FILE=release-notes.md') >> $GITHUB_ENV
 
       # Recall that download-artifact will extract into a directory that
-      # includes the tar.gz suffix
+      # includes the tar.gz suffix.
+      # Remove any empty artifact directories.
       - name: Generate checksums
         run: |
-          rmdir nym-vpn-desktop_*tar.gz
+          rmdir nym-vpn-cli_*tar.gz || true
           for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-cli_*.tar.gz/*.sha256sum >> $GITHUB_ENV

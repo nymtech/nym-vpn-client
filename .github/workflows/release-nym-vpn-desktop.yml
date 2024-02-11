@@ -255,7 +255,7 @@ jobs:
       # published, which would just be an empty archive.
       - name: Generate checksums
         run: |
-          rmdir nym-vpn-desktop_*tar.gz
+          rmdir nym-vpn-desktop_*tar.gz || true
           for file in nym-vpn-desktop_*tar.gz; do pushd $file; for f in nym-vpn-desktop_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
