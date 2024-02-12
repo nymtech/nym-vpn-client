@@ -17,5 +17,3 @@ export type NodeLocation = Country | 'Fastest';
 export function isCountry(location: NodeLocation): location is Country {
   return (location as Country).code !== undefined;
 }
-
-export type FeatureFlag = 'DefaultNodeLocation' | 'FastestNodeLocation';

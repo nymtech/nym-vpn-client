@@ -35,6 +35,7 @@ export type StateAction =
   | { type: 'reset' }
   | { type: 'set-ui-theme'; theme: UiTheme }
   | { type: 'set-theme-mode'; mode: ThemeMode }
+  | { type: 'system-theme-changed'; theme: UiTheme }
   | { type: 'set-country-list'; countries: Country[] }
   | {
       type: 'set-node-location';
@@ -179,6 +180,14 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ...state,
         themeMode: action.mode,
       };
+    case 'system-theme-changed':
+      if (state.themeMode === 'System' && state.uiTheme !== action.theme) {
+        return {
+          ...state,
+          uiTheme: action.theme,
+        };
+      }
+      return state;
     case 'set-fastest-node-location':
       return {
         ...state,
