@@ -48,6 +48,10 @@ jobs:
           rm -rf ./.??* || true
           ls -la ./
 
+      - name: Reconfigure git
+        run: |
+          git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
+
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
@@ -208,9 +212,11 @@ jobs:
            echo 'NOTES_FILE=release-notes.md') >> $GITHUB_ENV
 
       # Recall that download-artifact will extract into a directory that
-      # includes the tar.gz suffix
+      # includes the tar.gz suffix.
+      # Remove any empty artifact directories.
       - name: Generate checksums
         run: |
+          rmdir nym-vpn-cli_*tar.gz || true
           for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-cli_*.tar.gz/*.sha256sum >> $GITHUB_ENV

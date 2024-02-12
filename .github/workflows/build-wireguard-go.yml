@@ -11,7 +11,10 @@ on:
         options:
         - ubuntu-20.04
         - ubuntu-22.04
-        - macos-latest
+        - macos-12
+        - macos-13
+        - macos-13-xlarge
+        - macos-14
         - custom-runner-mac-m1
 
   # reusable workflow
@@ -59,15 +62,6 @@ jobs:
       - name: Build wireguard
         run: ./wireguard/build-wireguard-go.sh
 
-      - name: Upload artifacts (ubuntu-22.04 x86_64)
-        uses: actions/upload-artifact@v4
-        if: contains(inputs.os, 'ubuntu-22.04')
-        with:
-          name: wireguard-go_ubuntu-22.04_x86_64
-          path: |
-            build/lib/x86_64-unknown-linux-gnu
-          retention-days: 1
-
       - name: Upload artifacts (ubuntu-20.04 x86_64)
         uses: actions/upload-artifact@v4
         if: contains(inputs.os, 'ubuntu-20.04')
@@ -77,9 +71,18 @@ jobs:
             build/lib/x86_64-unknown-linux-gnu
           retention-days: 1
 
+      - name: Upload artifacts (ubuntu-22.04 x86_64)
+        uses: actions/upload-artifact@v4
+        if: contains(inputs.os, 'ubuntu-22.04')
+        with:
+          name: wireguard-go_ubuntu-22.04_x86_64
+          path: |
+            build/lib/x86_64-unknown-linux-gnu
+          retention-days: 1
+
       - name: Upload artifacts (macos x86_64)
         uses: actions/upload-artifact@v4
-        if: contains(inputs.os, 'macos')
+        if: inputs.os == 'macos-12' || inputs.os == 'macos-13'
         with:
           name: wireguard-go_macos_x86_64
           path: |
@@ -88,7 +91,7 @@ jobs:
 
       - name: Upload artifacts (macos aarch64)
         uses: actions/upload-artifact@v4
-        if: contains(inputs.os, 'mac-m1')
+        if: inputs.os == 'custom-runner-mac-m1' || inputs.os == 'macos-13-xlarge' || inputs.os == 'macos-14'
         with:
           name: wireguard-go_macos_aarch64
           path: |

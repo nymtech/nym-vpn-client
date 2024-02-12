@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { DefaultRootFontSize } from '../constants';
+import { DefaultNodeCountry, DefaultRootFontSize } from '../constants';
 import {
   AppState,
   ConnectProgressMsg,
@@ -48,12 +48,11 @@ export const initialState: AppState = {
   progressMessages: [],
   autoConnect: false,
   monitoring: false,
-  entryNodeLocation: 'Fastest',
-  exitNodeLocation: 'Fastest',
-  fastestNodeLocation: {
-    name: 'France',
-    code: 'FR',
-  },
+  // TODO ⚠ these should be set to 'Fastest' when the backend is ready
+  entryNodeLocation: DefaultNodeCountry,
+  // TODO ⚠ these should be set to 'Fastest' when the backend is ready
+  exitNodeLocation: DefaultNodeCountry,
+  fastestNodeLocation: DefaultNodeCountry,
   countryList: [],
   rootFontSize: DefaultRootFontSize,
 };

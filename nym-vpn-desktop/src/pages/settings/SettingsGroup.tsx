@@ -6,7 +6,7 @@ type Setting = {
   title: string;
   leadingIcon?: string;
   desc?: string;
-  onClick?: () => void;
+  onClick?: () => Promise<void>;
   trailing?: ReactNode;
   disabled?: boolean;
 };

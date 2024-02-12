@@ -7,6 +7,7 @@ interface SearchProps {
   placeholder: string;
 }
 
+/* eslint-disable jsx-a11y/no-autofocus */
 export default function SearchBox({
   value,
   onChange,
@@ -28,6 +29,7 @@ export default function SearchBox({
         ])}
         placeholder={placeholder}
         onChange={onChange}
+        autoFocus
       />
       <div
         className={clsx([
