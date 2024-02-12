@@ -1,29 +1,19 @@
 /// <reference types="vite-plugin-svgr/client" />
 
-import { useEffect, useState } from 'react';
-import { RadioGroup } from '@headlessui/react';
+import { useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api';
-import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { StateDispatch, VpnMode } from '../../types';
 import MixnetIcon from '../../assets/icons/mixnet.svg?react';
-
-type VpnModeOption = { name: VpnMode; title: string; desc: string };
+import { RadioGroup, RadioGroupOption, RadioGroupOptionCursor } from '../../ui';
 
 function NetworkModeSelect() {
   const state = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
-  const [selected, setSelected] = useState(state.vpnMode);
   const [loading, setLoading] = useState(false);
 
   const { t } = useTranslation('home');
-
-  useEffect(() => {
-    if (state.vpnMode !== selected) {
-      setSelected(state.vpnMode);
-    }
-  }, [state.vpnMode, selected]);
 
   const handleNetworkModeChange = async (value: VpnMode) => {
     if (state.state === 'Disconnected' && value !== state.vpnMode) {
@@ -39,98 +29,48 @@ function NetworkModeSelect() {
     }
   };
 
-  const vpnModes: VpnModeOption[] = [
-    {
-      name: 'Mixnet',
-      title: t('mixnet-mode.title'),
-      desc: t('mixnet-mode.desc'),
-    },
-    {
-      name: 'TwoHop',
-      title: t('twohop-mode.title'),
-      desc: t('twohop-mode.desc'),
-    },
-  ];
+  const vpnModes = useMemo<RadioGroupOption<VpnMode>[]>(() => {
+    const getCursorMode = (): RadioGroupOptionCursor => {
+      if (state.state !== 'Disconnected' || loading) {
+        return 'not-allowed';
+      }
+      return state.state === 'Disconnected' ? 'pointer' : 'default';
+    };
 
-  const handleSelect = (value: VpnMode) => {
-    setSelected(value);
-    handleNetworkModeChange(value);
-  };
+    return [
+      {
+        key: 'Mixnet',
+        label: t('mixnet-mode.title'),
+        desc: t('mixnet-mode.desc'),
+        cursor: getCursorMode(),
+        disabled: state.state !== 'Disconnected' || loading,
+        icon: (
+          <MixnetIcon className="w-7 h-7 fill-baltic-sea dark:fill-mercury-pinkish" />
+        ),
+      },
+      {
+        key: 'TwoHop',
+        label: t('twohop-mode.title'),
+        desc: t('twohop-mode.desc'),
+        cursor: getCursorMode(),
+        disabled: state.state !== 'Disconnected' || loading,
+        icon: (
+          <span className="font-icon text-3xl text-baltic-sea dark:text-mercury-pinkish">
+            security
+          </span>
+        ),
+      },
+    ];
+  }, [loading, state.state, t]);
 
   return (
     <div className="select-none">
-      <RadioGroup value={selected} onChange={handleSelect}>
-        <RadioGroup.Label
-          as="div"
-          className="font-semibold text-base text-baltic-sea dark:text-white mb-6 cursor-default"
-        >
-          {t('select-network-label')}
-        </RadioGroup.Label>
-        <div className="space-y-4">
-          {vpnModes.map((mode) => (
-            <RadioGroup.Option
-              key={mode.name}
-              value={mode.name}
-              className={({ checked }) =>
-                clsx([
-                  'bg-white dark:bg-baltic-sea-jaguar relative flex rounded-lg px-5 py-2 focus:outline-none',
-                  (state.state !== 'Disconnected' || loading) &&
-                    'cursor-not-allowed',
-                  checked && 'border border-melon',
-                  !checked &&
-                    'border border-white dark:border-baltic-sea-jaguar',
-                  state.state === 'Disconnected' && 'cursor-pointer',
-                ])
-              }
-              disabled={state.state !== 'Disconnected' || loading}
-            >
-              {({ checked }) => {
-                return (
-                  <div className="flex flex-1 items-center justify-between gap-4">
-                    {checked ? (
-                      <span className="font-icon text-2xl text-melon">
-                        radio_button_checked
-                      </span>
-                    ) : (
-                      <span className="font-icon text-2xl text-cement-feet dark:laughing-jack">
-                        radio_button_unchecked
-                      </span>
-                    )}
-                    <div className="w-7 flex justify-center items-center">
-                      {mode.name === 'Mixnet' ? (
-                        <MixnetIcon className="w-7 h-7 fill-baltic-sea dark:fill-mercury-pinkish" />
-                      ) : (
-                        <span className="font-icon text-3xl text-baltic-sea dark:text-mercury-pinkish">
-                          security
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-1 items-center">
-                      <div className="text-sm">
-                        <RadioGroup.Label
-                          as="p"
-                          className={clsx([
-                            'text-base text-baltic-sea dark:text-mercury-pinkish',
-                            checked && 'font-semibold',
-                          ])}
-                        >
-                          {mode.title}
-                        </RadioGroup.Label>
-                        <RadioGroup.Description
-                          as="span"
-                          className="text-sm text-cement-feet dark:text-mercury-mist"
-                        >
-                          <span>{mode.desc}</span>
-                        </RadioGroup.Description>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }}
-            </RadioGroup.Option>
-          ))}
-        </div>
-      </RadioGroup>
+      <RadioGroup
+        defaultValue={state.vpnMode}
+        options={vpnModes}
+        onChange={handleNetworkModeChange}
+        rootLabel={t('select-network-label')}
+      />
     </div>
   );
 }

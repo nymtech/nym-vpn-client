@@ -74,6 +74,7 @@ async fn send_connect_to_ip_packet_router(
         debug!("Sending dynamic connect request");
         IpPacketRequest::new_dynamic_connect_request(mixnet_client_address, hops, None, None)
     };
+    debug!("Sent connect request with version v{}", request.version);
 
     mixnet_client
         .send(nym_sdk::mixnet::InputMessage::new_regular_with_custom_hops(

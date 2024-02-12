@@ -22,3 +22,4 @@ export const DefaultNodeCountry: Country = {
 };
 // TODO disabled Fastest location until the backend is ready
 export const FastestFeatureEnabled = false;
+export const DefaultThemeMode = 'System';

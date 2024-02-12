@@ -258,7 +258,7 @@ jobs:
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE=--prerelease'
-           ehco 'NOTES_FILE=release-notes-desktop.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes-desktop.md') >> $GITHUB_ENV
 
       # Recall that download-artifact will extract into a directory that
       # includes the tar.gz suffix.

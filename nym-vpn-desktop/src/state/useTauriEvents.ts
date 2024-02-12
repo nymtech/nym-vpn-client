@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
+import { appWindow } from '@tauri-apps/api/window';
 import dayjs from 'dayjs';
 import {
   ConnectionEventPayload,
@@ -63,14 +64,30 @@ export function useTauriEvents(dispatch: StateDispatch) {
     });
   }, [dispatch]);
 
+  const registerThemeChangedListener = useCallback(() => {
+    return appWindow.onThemeChanged(({ payload }) => {
+      console.log(`system theme changed: ${payload}`);
+      dispatch({
+        type: 'system-theme-changed',
+        theme: payload === 'dark' ? 'Dark' : 'Light',
+      });
+    });
+  }, [dispatch]);
+
   // register/unregister event listener
   useEffect(() => {
     const unlistenState = registerStateListener();
     const unlistenProgress = registerProgressListener();
+    const unlistenThemeChanges = registerThemeChangedListener();
 
     return () => {
       unlistenState.then((f) => f());
       unlistenProgress.then((f) => f());
+      unlistenThemeChanges.then((f) => f());
     };
-  }, [registerStateListener, registerProgressListener]);
+  }, [
+    registerStateListener,
+    registerProgressListener,
+    registerThemeChangedListener,
+  ]);
 }
