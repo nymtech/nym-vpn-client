@@ -74,27 +74,35 @@ pub async fn connect(
     let entry_point = match &app_state.entry_node_location {
         NodeLocation::Country(country) => {
             debug!("entry node location set, using: {}", country);
-            EntryPoint::Location(country.code.clone())
+            EntryPoint::Location {
+                locations: country.code.clone(),
+            }
         }
         NodeLocation::Fastest => {
             debug!(
                 "entry node location set to `Fastest`, using: {}",
                 FASTEST_NODE_LOCATION.clone()
             );
-            EntryPoint::Location(FASTEST_NODE_LOCATION.code.clone())
+            EntryPoint::Location {
+                location: FASTEST_NODE_LOCATION.code.clone(),
+            }
         }
     };
     let exit_point = match &app_state.exit_node_location {
         NodeLocation::Country(country) => {
             debug!("exit node location set, using: {}", country);
-            ExitPoint::Location(country.code.clone())
+            ExitPoint::Location {
+                location: country.code.clone(),
+            }
         }
         NodeLocation::Fastest => {
             debug!(
                 "exit node location set to `Fastest`, using: {}",
                 FASTEST_NODE_LOCATION.clone()
             );
-            ExitPoint::Location(FASTEST_NODE_LOCATION.code.clone())
+            ExitPoint::Location {
+                location: FASTEST_NODE_LOCATION.code.clone(),
+            }
         }
     };
 

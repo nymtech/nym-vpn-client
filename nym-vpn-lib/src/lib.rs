@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(not(target_os = "android"))]
+#[cfg(target_os = "macos")]
 uniffi::include_scaffolding!("nym_vpn_lib");
 
 use crate::config::WireguardConfig;

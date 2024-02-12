@@ -74,6 +74,7 @@ pub enum EntryPoint {
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
 // gateway, we can refer to it by the gateway identity.
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[allow(clippy::large_enum_variant)]
 pub enum ExitPoint {
     // An explicit exit address. This is useful when the exit ip-packet-router is running as a
     // standalone entity (private).
