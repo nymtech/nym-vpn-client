@@ -27,8 +27,11 @@ jobs:
         os:
           [
             ubuntu-22.04-16-core,
-            macos-latest,
-            custom-runner-mac-m1,
+            macos-12,
+            # macos-13,
+            # macos-13-xlarge, # ARM
+            macos-14,        # ARM
+            # custom-runner-mac-m1,
           ]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
@@ -42,8 +45,11 @@ jobs:
         os:
           [
             ubuntu-22.04-16-core,
-            macos-latest,
-            custom-runner-mac-m1,
+            macos-12,
+            # macos-13,
+            # macos-13-xlarge, # ARM
+            macos-14,        # ARM
+            # custom-runner-mac-m1,
           ]
     runs-on: ${{ matrix.os }}
     env:
@@ -99,9 +105,9 @@ jobs:
             platform_arch=ubuntu-22.04_x86_64
           elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
             platform_arch=ubuntu-20.04_x86_64
-          elif ${{ contains(matrix.os, 'mac-m1') }}; then
+          elif ${{ matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-13-xlarge' || matrix.os == 'macos-14' }}; then
             platform_arch=macos_aarch64
-          elif ${{ contains(matrix.os, 'macos') }}; then
+          elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
             platform_arch=macos_x86_64
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
@@ -159,6 +165,12 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         shell: bash
         run: |
           npm run tauri build
