@@ -1,15 +1,15 @@
 import clsx from 'clsx';
-import { Switch as HeadlessUiSwitch } from '@headlessui/react';
+import { Switch as HuSwitch } from '@headlessui/react';
 
-export type Props = {
+export type SwitchProps = {
   checked: boolean;
   onChange: (value: boolean) => void;
   disabled?: boolean;
 };
 
-function Switch({ checked, onChange, disabled }: Props) {
+function Switch({ checked, onChange, disabled }: SwitchProps) {
   return (
-    <HeadlessUiSwitch
+    <HuSwitch
       checked={checked}
       onChange={onChange}
       className={clsx([
@@ -27,7 +27,7 @@ function Switch({ checked, onChange, disabled }: Props) {
           'inline-block transform rounded-full transition',
         ])}
       />
-    </HeadlessUiSwitch>
+    </HuSwitch>
   );
 }
 

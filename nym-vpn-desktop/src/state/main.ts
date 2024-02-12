@@ -1,5 +1,9 @@
 import dayjs from 'dayjs';
-import { DefaultNodeCountry, DefaultRootFontSize } from '../constants';
+import {
+  DefaultNodeCountry,
+  DefaultRootFontSize,
+  DefaultThemeMode,
+} from '../constants';
 import {
   AppState,
   ConnectProgressMsg,
@@ -7,6 +11,7 @@ import {
   Country,
   NodeHop,
   NodeLocation,
+  ThemeMode,
   UiTheme,
   VpnMode,
 } from '../types';
@@ -29,6 +34,8 @@ export type StateAction =
   | { type: 'set-monitoring'; monitoring: boolean }
   | { type: 'reset' }
   | { type: 'set-ui-theme'; theme: UiTheme }
+  | { type: 'set-theme-mode'; mode: ThemeMode }
+  | { type: 'system-theme-changed'; theme: UiTheme }
   | { type: 'set-country-list'; countries: Country[] }
   | {
       type: 'set-node-location';
@@ -45,6 +52,7 @@ export const initialState: AppState = {
   entrySelector: false,
   tunnel: { name: 'nym', id: 'nym' },
   uiTheme: 'Light',
+  themeMode: DefaultThemeMode,
   progressMessages: [],
   autoConnect: false,
   monitoring: false,
@@ -167,6 +175,19 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ...state,
         uiTheme: action.theme,
       };
+    case 'set-theme-mode':
+      return {
+        ...state,
+        themeMode: action.mode,
+      };
+    case 'system-theme-changed':
+      if (state.themeMode === 'System' && state.uiTheme !== action.theme) {
+        return {
+          ...state,
+          uiTheme: action.theme,
+        };
+      }
+      return state;
     case 'set-fastest-node-location':
       return {
         ...state,

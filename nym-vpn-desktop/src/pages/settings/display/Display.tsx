@@ -1,51 +1,70 @@
-import { useEffect, useState } from 'react';
-import clsx from 'clsx';
+import { useMemo } from 'react';
 import { invoke } from '@tauri-apps/api';
 import { useTranslation } from 'react-i18next';
 import { useMainDispatch, useMainState } from '../../../contexts';
-import { StateDispatch } from '../../../types';
-import { Switch } from '../../../ui';
+import { useSystemTheme } from '../../../state';
+import { StateDispatch, ThemeMode } from '../../../types';
+import { RadioGroup, RadioGroupOption } from '../../../ui';
 import UiScaler from './UiScaler';
 
 function Display() {
   const state = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
-  const { t } = useTranslation();
+  const { t } = useTranslation('display');
 
-  const [darkModeEnabled, setDarkModeEnabled] = useState(
-    state.uiTheme === 'Dark',
-  );
+  const { theme: systemTheme } = useSystemTheme();
 
-  useEffect(() => {
-    setDarkModeEnabled(state.uiTheme === 'Dark');
-  }, [state]);
-
-  const handleThemeChange = async (darkMode: boolean) => {
-    if (darkMode && state.uiTheme === 'Light') {
-      dispatch({ type: 'set-ui-theme', theme: 'Dark' });
-    } else if (!darkMode && state.uiTheme === 'Dark') {
-      dispatch({ type: 'set-ui-theme', theme: 'Light' });
-    }
-    invoke<void>('set_ui_theme', { theme: darkMode ? 'Dark' : 'Light' }).catch(
-      (e) => {
+  const handleThemeChange = async (mode: ThemeMode) => {
+    if (mode !== state.themeMode) {
+      dispatch({
+        type: 'set-ui-theme',
+        theme: mode === 'System' ? systemTheme : mode,
+      });
+      dispatch({
+        type: 'set-theme-mode',
+        mode,
+      });
+      invoke<void>('set_ui_theme', {
+        theme: mode,
+      }).catch((e) => {
         console.log(e);
-      },
-    );
+      });
+    }
   };
+
+  const options = useMemo<RadioGroupOption<ThemeMode>[]>(() => {
+    return [
+      {
+        key: 'System',
+        label: t('options.system'),
+        desc: t('system-desc'),
+        cursor: 'pointer',
+      },
+      {
+        key: 'Light',
+        label: t('options.light'),
+        cursor: 'pointer',
+        style: 'min-h-11',
+      },
+      {
+        key: 'Dark',
+        label: t('options.dark'),
+        cursor: 'pointer',
+        style: 'min-h-11',
+      },
+    ];
+  }, [t]);
 
   return (
     <div className="h-full flex flex-col py-6 gap-6">
-      <div
-        className={clsx([
-          'flex flex-row justify-between items-center',
-          'bg-white dark:bg-baltic-sea-jaguar',
-          'px-6 py-4 rounded-lg',
-        ])}
-      >
-        <p className="text-base text-baltic-sea dark:text-mercury-pinkish select-none">
-          {t('ui-mode.dark')}
-        </p>
-        <Switch checked={darkModeEnabled} onChange={handleThemeChange} />
+      <RadioGroup
+        defaultValue={state.themeMode}
+        options={options}
+        onChange={handleThemeChange}
+        rootLabel={t('theme-section-title')}
+      />
+      <div className="mt-3 text-base font-semibold cursor-default">
+        {t('zoom-section-title')}
       </div>
       <UiScaler />
     </div>
