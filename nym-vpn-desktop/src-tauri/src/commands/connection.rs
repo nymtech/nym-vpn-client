@@ -75,7 +75,7 @@ pub async fn connect(
         NodeLocation::Country(country) => {
             debug!("entry node location set, using: {}", country);
             EntryPoint::Location {
-                locations: country.code.clone(),
+                location: country.code.clone(),
             }
         }
         NodeLocation::Fastest => {

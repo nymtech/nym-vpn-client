@@ -3,7 +3,7 @@
 
 use crate::error::{Error, Result};
 use crate::mixnet_processor::IpPacketRouterAddress;
-#[cfg(not(target_os = "android"))]
+#[cfg(target_os = "macos")]
 use crate::UniffiCustomTypeConverter;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_crypto::asymmetric::encryption;
