@@ -63,10 +63,16 @@ async fn send_connect_to_ip_packet_router(
     let mixnet_client_address = mixnet_client.nym_address().await;
     let (request, request_id) = if let Some(ip) = ip {
         debug!("Sending static connect request with ip: {ip}");
-        IpPacketRequest::new_static_connect_request(ip.into(), mixnet_client_address, hops, None)
+        IpPacketRequest::new_static_connect_request(
+            ip.into(),
+            mixnet_client_address,
+            hops,
+            None,
+            None,
+        )
     } else {
         debug!("Sending dynamic connect request");
-        IpPacketRequest::new_dynamic_connect_request(mixnet_client_address, hops, None)
+        IpPacketRequest::new_dynamic_connect_request(mixnet_client_address, hops, None, None)
     };
 
     mixnet_client

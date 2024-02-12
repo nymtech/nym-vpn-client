@@ -3,16 +3,19 @@
 
 use std::time::Duration;
 
+use bytes::{Bytes, BytesMut};
 use futures::{SinkExt, StreamExt};
 use nym_ip_packet_requests::{
-    request::IpPacketRequest, response::IpPacketResponse, response::IpPacketResponseData,
+    codec::MultiIpPacketCodec, request::IpPacketRequest, response::IpPacketResponse,
+    response::IpPacketResponseData,
 };
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use nym_validator_client::models::DescribedGateway;
 use tokio::task::JoinHandle;
 use tokio::time::timeout;
-use tracing::{debug, error, info, trace, warn};
+use tokio_util::codec::Decoder;
+use tracing::{debug, error, info, trace};
 use tun2::{AbstractDevice, AsyncDevice};
 
 use crate::{
@@ -64,6 +67,39 @@ impl std::fmt::Display for IpPacketRouterAddress {
     }
 }
 
+struct MessageCreator {
+    recipient: Recipient,
+    enable_two_hop: bool,
+}
+
+impl MessageCreator {
+    fn new(recipient: Recipient, enable_two_hop: bool) -> Self {
+        Self {
+            recipient,
+            enable_two_hop,
+        }
+    }
+
+    fn create_input_message(&self, bundled_packets: Bytes) -> Option<InputMessage> {
+        let Ok(packet) = IpPacketRequest::new_data_request(bundled_packets).to_bytes() else {
+            error!("Failed to serialize packet");
+            return None;
+        };
+
+        let lane = TransmissionLane::General;
+        let packet_type = None;
+        let hops = self.enable_two_hop.then_some(0);
+        let input_message = InputMessage::new_regular_with_custom_hops(
+            self.recipient,
+            packet,
+            lane,
+            packet_type,
+            hops,
+        );
+        Some(input_message)
+    }
+}
+
 pub struct MixnetProcessor {
     device: AsyncDevice,
     mixnet_client: SharedMixnetClient,
@@ -94,7 +130,7 @@ impl MixnetProcessor {
         );
 
         debug!("Splitting tun device into sink and stream");
-        let (mut sink, mut stream) = self.device.into_framed().split();
+        let (mut tun_device_sink, mut tun_device_stream) = self.device.into_framed().split();
 
         // We are the exclusive owner of the mixnet client, so we can unwrap it here
         debug!("Acquiring mixnet client");
@@ -107,48 +143,12 @@ impl MixnetProcessor {
         let sender = mixnet_client.split_sender();
         let recipient = self.ip_packet_router_address;
 
-        debug!("Setting up mixnet stream");
-        let mixnet_stream = mixnet_client
-            .filter_map(|reconstructed_message| async move {
+        let mut multi_ip_packet_encoder =
+            MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
+        let mut multi_ip_packet_decoder =
+            MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
 
-                // Check version of request
-                if let Some(version) = reconstructed_message.message.first() {
-                    if *version != nym_ip_packet_requests::CURRENT_VERSION {
-                        log::error!("Received packet with invalid version: v{version}, is your client up to date?");
-                        return None;
-                    }
-                }
-
-                match IpPacketResponse::from_reconstructed_message(&reconstructed_message) {
-                    Ok(response) => match response.data {
-                        IpPacketResponseData::StaticConnect(_) => {
-                            info!("Received static connect response when already connected - ignoring");
-                            None
-                        },
-                        IpPacketResponseData::DynamicConnect(_) => {
-                            info!("Received dynamic connect response when already connected - ignoring");
-                            None
-                        },
-                        IpPacketResponseData::Disconnect(_) => {
-                            // Disconnect is not yet handled on the IPR side anyway
-                            info!("Received disconnect response, ignoring for now");
-                            None
-                        },
-                        IpPacketResponseData::Data(data_response) => {
-                            Some(Ok(data_response.ip_packet.into()))
-                        }
-                        IpPacketResponseData::Error(error) => {
-                            error!("Received error response from the mixnet: {}", error.reply);
-                            None
-                        }
-                    },
-                    Err(err) => {
-                        error!("failed to deserialize reconstructed message: {err}");
-                        None
-                    }
-                }
-            });
-        tokio::pin!(mixnet_stream);
+        let message_creator = MessageCreator::new(recipient.0, self.enable_two_hop);
 
         info!("Mixnet processor is running");
         while !shutdown.is_shutdown() {
@@ -156,41 +156,82 @@ impl MixnetProcessor {
                 _ = shutdown.recv_with_delay() => {
                     trace!("MixnetProcessor: Received shutdown");
                 }
-                Some(Ok(packet)) = stream.next() => {
-                    // TODO: properly investigate the binary format here and the overheard
-                    let Ok(packet) = IpPacketRequest::new_ip_packet(packet.into()).to_bytes() else {
-                        error!("Failed to serialize packet");
-                        continue;
+                // To make sure we don't wait too long before filling up the buffer, which destroys
+                // latency, cap the time waiting for the buffer to fill
+                Some(bundled_packets) = multi_ip_packet_encoder.buffer_timeout() => {
+                    assert!(!bundled_packets.is_empty());
+
+                    if let Some(input_message) = message_creator.create_input_message(bundled_packets) {
+                        let ret = sender.send(input_message).await;
+                        if ret.is_err() && !shutdown.is_shutdown_poll() {
+                            error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                        }
                     };
-
-                    let lane = TransmissionLane::General;
-                    let packet_type = None;
-                    let hops = self.enable_two_hop.then_some(0);
-                    let input_message = InputMessage::new_regular_with_custom_hops(
-                            recipient.0,
-                            packet,
-                            lane,
-                            packet_type,
-                            hops,
-                        );
-
-                    let ret = sender.send(input_message).await;
-                    if ret.is_err() && !shutdown.is_shutdown_poll() {
-                        error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                }
+                Some(Ok(packet)) = tun_device_stream.next() => {
+                    // Bundle up IP packets into a single mixnet message
+                    if let Some(input_message) = multi_ip_packet_encoder
+                        .append_packet(packet.into())
+                        .and_then(|bundled_packets| message_creator.create_input_message(bundled_packets))
+                    {
+                        let ret = sender.send(input_message).await;
+                        if ret.is_err() && !shutdown.is_shutdown_poll() {
+                            error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                        }
                     }
                 }
-                res = sink.send_all(&mut mixnet_stream) => {
-                    warn!("Mixnet stream finished. This may mean that the gateway was shut down");
-                    if let Err(e) = res {
-                        error!("Could not forward mixnet traffic to the client - {:?}", e);
+                Some(reconstructed_message) = mixnet_client.next() => {
+                    // Check version of request
+                    if let Some(version) = reconstructed_message.message.first() {
+                        if *version != nym_ip_packet_requests::CURRENT_VERSION {
+                            log::error!("Received packet with invalid version: v{version}, is your client up to date?");
+                            continue;
+                        }
                     }
-                    break;
+
+                    match IpPacketResponse::from_reconstructed_message(&reconstructed_message) {
+                        Ok(response) => match response.data {
+                            IpPacketResponseData::StaticConnect(_) => {
+                                info!("Received static connect response when already connected - ignoring");
+                            },
+                            IpPacketResponseData::DynamicConnect(_) => {
+                                info!("Received dynamic connect response when already connected - ignoring");
+                            },
+                            IpPacketResponseData::Disconnect(_) => {
+                                // Disconnect is not yet handled on the IPR side anyway
+                                info!("Received disconnect response, ignoring for now");
+                            },
+                            IpPacketResponseData::UnrequestedDisconnect(_) => {
+                                info!("Received unrequested disconnect response, ignoring for now");
+                            },
+                            IpPacketResponseData::Data(data_response) => {
+                                // Un-bundle the mixnet message and send the individual IP packets
+                                // to the tun device
+                                let mut bytes = BytesMut::from(&*data_response.ip_packet);
+                                while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
+                                    tun_device_sink.send(packet.into()).await?;
+                                }
+                            }
+                            IpPacketResponseData::Pong(_) => {
+                                info!("Received pong response, ignoring for now");
+                            }
+                            IpPacketResponseData::Health(_) => {
+                                info!("Received health response, ignoring for now");
+                            }
+                            IpPacketResponseData::Error(error) => {
+                                error!("Received error response from the mixnet: {}", error.reply);
+                            }
+                        },
+                        Err(err) => {
+                            error!("failed to deserialize reconstructed message: {err}");
+                        }
+                    }
                 }
             }
         }
         debug!("MixnetProcessor: Exiting");
-        Ok(sink
-            .reunite(stream)
+        Ok(tun_device_sink
+            .reunite(tun_device_stream)
             .expect("reunite should work because of same device split")
             .into_inner())
     }
