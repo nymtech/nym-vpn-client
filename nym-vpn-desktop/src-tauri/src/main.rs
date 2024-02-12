@@ -19,10 +19,10 @@ mod commands;
 mod country;
 mod error;
 mod fs;
+mod http;
 mod network;
 mod states;
 mod vpn_client;
-mod http;
 
 const APP_DIR: &str = "nym-vpn";
 const APP_DATA_FILE: &str = "app-data.toml";
