@@ -54,7 +54,9 @@ function NodeLocation({ node }: { node: NodeHop }) {
           countries,
         });
       })
-      .catch((e: CmdError) => console.error(e));
+      .catch((e: CmdError) =>
+        console.warn(`Failed to fetch countries: ${e.source} - ${e.message}`),
+      );
     if (FastestFeatureEnabled) {
       invoke<Country>('get_fastest_node_location')
         .then((country) => {
