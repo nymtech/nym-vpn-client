@@ -4125,7 +4125,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-cli"
-version = "0.0.2"
+version = "0.0.3-dev"
 dependencies = [
  "clap",
  "ipnetwork",
