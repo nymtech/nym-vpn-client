@@ -1,11 +1,16 @@
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use tauri::State;
-use tracing::{debug, instrument};
+use tracing::{debug, error, instrument, trace};
 use ts_rs::TS;
 
 use crate::{
     country::{Country, FASTEST_NODE_LOCATION},
     error::{CmdError, CmdErrorSource},
+    http::{
+        client::HTTP_CLIENT,
+        explorer_api::{JsonGateway, EXPLORER_API_URL, GATEWAYS_ENDPOINT},
+    },
     states::{app::NodeLocation, SharedAppData, SharedAppState},
 };
 
@@ -65,7 +70,7 @@ pub async fn get_fastest_node_location() -> Result<Country, CmdError> {
     Ok(FASTEST_NODE_LOCATION.clone())
 }
 
-#[instrument]
+#[instrument(skip(app_state))]
 #[tauri::command]
 pub async fn get_node_location(
     app_state: State<'_, SharedAppState>,
@@ -76,4 +81,56 @@ pub async fn get_node_location(
         NodeType::Entry => app_state.lock().await.entry_node_location.clone(),
         NodeType::Exit => app_state.lock().await.exit_node_location.clone(),
     })
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_node_countries() -> Result<Vec<Country>, CmdError> {
+    debug!("get_node_countries");
+    let url = format!("{}/{}", EXPLORER_API_URL, GATEWAYS_ENDPOINT);
+
+    debug!("fetching countries from explorer API [{url}]");
+    let res = HTTP_CLIENT.get(url).send().await.map_err(|e| {
+        error!("HTTP request GET /gateways failed: {e}");
+        CmdError::new(
+            CmdErrorSource::InternalError,
+            "failed to fetch node locations".to_string(),
+        )
+    })?;
+
+    debug!("deserializing json response");
+    let json: Vec<JsonGateway> = res.json().await.map_err(|e| {
+        error!("HTTP request GET /gateways failed to deserialize json response: {e}");
+        CmdError::new(
+            CmdErrorSource::InternalError,
+            "failed to fetch node locations".to_string(),
+        )
+    })?;
+
+    debug!("parsing json list");
+    let list = json
+        .into_iter()
+        .filter_map(|gateway| gateway.location)
+        .unique_by(|location| location.two_letter_iso_country_code.clone())
+        .map(|location| {
+            let mut name = location.country_name;
+            // TODO yes this is what we get from the API for UK
+            // let's use something more friendly
+            if name == "United Kingdom of Great Britain and Northern Ireland" {
+                name = "United Kingdom".to_string();
+            }
+
+            Country {
+                name,
+                code: location.two_letter_iso_country_code,
+            }
+        })
+        // sort countries by name
+        .sorted_by(|a, b| a.name.cmp(&b.name))
+        .collect::<Vec<_>>();
+
+    debug!("fetched countries count [{}]", list.len());
+    trace!("fetched countries {list:#?}");
+
+    Ok(list)
 }

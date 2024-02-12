@@ -27,6 +27,8 @@ time = "0.3.9"
 # TODO use the crate once it's published, for now use local path
 nym-vpn-lib = { path = "../../nym-vpn-lib" }
 futures = "0.3.15"
+reqwest = { version = "0.11", features = ["json"] }
+itertools = "0.12"
 
 # TODO Ugly workaround to force a working setup for nym-vpn-lib
 # We should get rid of this ASAP

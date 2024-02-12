@@ -79,6 +79,7 @@ Then you need to provide the lib path to the rust library search
 path. Create the file `.cargo/config.toml` from repo root
 
 ```config.toml
+[build]
 rustflags = ['-L', '/<ABSOLUTE_PATH_TO>/nym-vpn-client/build/lib/<PLATFORM_ARCH>']
 ```
 
