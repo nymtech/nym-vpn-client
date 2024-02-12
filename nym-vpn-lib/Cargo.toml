@@ -33,12 +33,12 @@ uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "f5fc9d7e9aa08889
 tun2 = { version = "1.0.1", features = ["async"] }
 url = "2.4"
 
-talpid-core = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fd9d42bbb1928e4e932abc5be6ea5682e5ee1387" }
-talpid-platform-metadata = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fd9d42bbb1928e4e932abc5be6ea5682e5ee1387" }
-talpid-routing = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fd9d42bbb1928e4e932abc5be6ea5682e5ee1387" }
-talpid-tunnel = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fd9d42bbb1928e4e932abc5be6ea5682e5ee1387" }
-talpid-types = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fd9d42bbb1928e4e932abc5be6ea5682e5ee1387" }
-talpid-wireguard = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fd9d42bbb1928e4e932abc5be6ea5682e5ee1387" }
+talpid-core = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fde37701018191d16bc66c37616588aa120b9549" }
+talpid-platform-metadata = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fde37701018191d16bc66c37616588aa120b9549" }
+talpid-routing = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fde37701018191d16bc66c37616588aa120b9549" }
+talpid-tunnel = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fde37701018191d16bc66c37616588aa120b9549" }
+talpid-types = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fde37701018191d16bc66c37616588aa120b9549" }
+talpid-wireguard = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fde37701018191d16bc66c37616588aa120b9549" }
 
 nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "a8dc703399f8ff8662a99b94bdcf884425b3a9d3" }
 nym-client-core = { git = "https://github.com/nymtech/nym", rev = "a8dc703399f8ff8662a99b94bdcf884425b3a9d3" }
