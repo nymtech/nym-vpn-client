@@ -86,7 +86,7 @@ pub enum ExitPoint {
     Location { location: String },
 }
 
-#[cfg(not(target_os = "android"))]
+#[cfg(target_os = "macos")]
 impl UniffiCustomTypeConverter for Recipient {
     type Builtin = String;
 
@@ -99,7 +99,7 @@ impl UniffiCustomTypeConverter for Recipient {
     }
 }
 
-#[cfg(not(target_os = "android"))]
+#[cfg(target_os = "macos")]
 impl UniffiCustomTypeConverter for NodeIdentity {
     type Builtin = String;
 
