@@ -48,10 +48,16 @@ directory, full path is platform specific:
 For example on Linux the full path would be
 `~/.config/nym-vpn/config.toml`.
 
+**NOTE** All properties are optional
+
 ```toml
+# absolute path to a network configuration file
 env_config_file = "/home/<USER>/.config/nym-vpn/sandbox.env"
+# 2-letter country code for the default entry and exit node location
 default_entry_node_location_code = "FR"
 default_exit_node_location_code = "DE"
+# URL endpoint (root) for the explorer API
+explorer_api_url = "https://sandbox-explorer.nymtech.net/api/v1"
 ```
 
 `env_config_file` is the absolute path to a network configuration
@@ -59,11 +65,6 @@ file, pick the relevant one
 [here](https://github.com/nymtech/nym/tree/develop/envs).
 
 **NOTE** The sandbox config will be used by default if no config is provided.
-
-`default_entry_node_location_code` and `default_exit_node_location_code` are the
-default country codes for the entry and exit nodes respectively.
-Available location codes can be found
-[here](nym-vpn-desktop/src-tauri/src/country.rs).
 
 ## Dev
 

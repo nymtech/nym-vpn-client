@@ -104,7 +104,7 @@ async fn main() -> Result<()> {
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(app_state)))
         .manage(Arc::new(Mutex::new(app_data_store)))
-        .manage(Arc::new(Mutex::new(app_config_store)))
+        .manage(Arc::new(app_config))
         .setup(|_app| {
             info!("app setup");
             Ok(())

@@ -11,7 +11,7 @@ use crate::{
         client::HTTP_CLIENT,
         explorer_api::{JsonGateway, EXPLORER_API_URL, GATEWAYS_ENDPOINT},
     },
-    states::{app::NodeLocation, SharedAppData, SharedAppState},
+    states::{app::NodeLocation, SharedAppConfig, SharedAppData, SharedAppState},
 };
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
@@ -85,9 +85,15 @@ pub async fn get_node_location(
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn get_node_countries() -> Result<Vec<Country>, CmdError> {
+pub async fn get_node_countries(
+    app_config: State<'_, SharedAppConfig>,
+) -> Result<Vec<Country>, CmdError> {
     debug!("get_node_countries");
-    let url = format!("{}/{}", EXPLORER_API_URL, GATEWAYS_ENDPOINT);
+    let explorer_api = app_config
+        .explorer_api_url
+        .clone()
+        .unwrap_or_else(|| EXPLORER_API_URL.to_string());
+    let url = format!("{}/{}", explorer_api, GATEWAYS_ENDPOINT);
 
     debug!("fetching countries from explorer API [{url}]");
     let res = HTTP_CLIENT.get(url).send().await.map_err(|e| {
