@@ -52,17 +52,6 @@ nym-task = { git = "https://github.com/nymtech/nym", rev = "707bad6999e59ea78748
 nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "707bad6999e59ea78748e4acef577911c5064d1e" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "707bad6999e59ea78748e4acef577911c5064d1e" }
 
-#nym-bin-common = { path = "../../nym/common/bin-common" }
-#nym-client-core = { path = "../../nym/common/client-core" }
-#nym-config = { path = "../../nym/common/config" }
-#nym-crypto = { path = "../../nym/common/crypto" }
-#nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
-#nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
-#nym-sdk = { path = "../../nym/sdk/rust/nym-sdk" }
-#nym-task = { path = "../../nym/common/task" }
-#nym-validator-client = { path = "../../nym/common/client-libs/validator-client" }
-#nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
-
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.13.1"
 err-derive = "0.3.1"
