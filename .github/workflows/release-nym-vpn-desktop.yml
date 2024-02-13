@@ -160,6 +160,7 @@ jobs:
         run: npm i
 
       - name: Install the Apple developer certificate for code signing
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
@@ -201,7 +202,7 @@ jobs:
           ls -la target/release/bundle/*
 
       - name: Clean up keychain
-        if: ${{ always() }}
+        if: ${{ always() }} && (contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1'))
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
 
