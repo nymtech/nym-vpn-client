@@ -131,6 +131,18 @@ pub enum Error {
 
     #[error("timeout waiting for mixnet client to start")]
     StartMixnetTimeout,
+
+    #[error("vpn could not be started")]
+    NotStarted,
+
+    #[error("vpn errored on stop")]
+    StopError,
+
+    #[error("{0}")]
+    TunProvider(#[from] talpid_tunnel::tun_provider::Error),
+
+    #[error("{0}")]
+    TalpidCoreMpsc(#[from] talpid_core::mpsc::Error),
 }
 
 // Result type based on our error type

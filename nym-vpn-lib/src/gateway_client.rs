@@ -3,6 +3,8 @@
 
 use crate::error::{Error, Result};
 use crate::mixnet_processor::IpPacketRouterAddress;
+#[cfg(target_os = "macos")]
+use crate::UniffiCustomTypeConverter;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_crypto::asymmetric::encryption;
 use nym_node_requests::api::client::NymNodeApiClientExt;
@@ -13,6 +15,7 @@ use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use nym_validator_client::models::DescribedGateway;
 use nym_validator_client::NymApiClient;
 use rand::seq::IteratorRandom;
+use serde::{Deserialize, Serialize};
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::PublicKey;
@@ -61,32 +64,59 @@ impl Config {
 
 // The entry point is always a gateway identity, or some other entry that can be resolved to a
 // gateway identity.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum EntryPoint {
-    Gateway(NodeIdentity),
+    Gateway { identity: NodeIdentity },
     // NOTE: Consider using a crate with strongly typed country codes instead of strings
-    Location(String),
+    Location { location: String },
 }
 
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
 // gateway, we can refer to it by the gateway identity.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[allow(clippy::large_enum_variant)]
 pub enum ExitPoint {
     // An explicit exit address. This is useful when the exit ip-packet-router is running as a
     // standalone entity (private).
-    Address(Box<Recipient>),
+    Address { address: Recipient },
     // An explicit exit gateway identity. This is useful when the exit ip-packet-router is running
     // embedded on a gateway.
-    Gateway(NodeIdentity),
+    Gateway { identity: NodeIdentity },
     // NOTE: Consider using a crate with strongly typed country codes instead of strings
-    Location(String),
+    Location { location: String },
+}
+
+#[cfg(target_os = "macos")]
+impl UniffiCustomTypeConverter for Recipient {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(Recipient::try_from_base58_string(val)?)
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.to_string()
+    }
+}
+
+#[cfg(target_os = "macos")]
+impl UniffiCustomTypeConverter for NodeIdentity {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(NodeIdentity::from_base58_string(val)?)
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.to_base58_string()
+    }
 }
 
 impl EntryPoint {
     pub fn lookup_gateway_identity(&self, gateways: &[DescribedGateway]) -> Result<NodeIdentity> {
         match &self {
-            EntryPoint::Gateway(gateway_identity) => Ok(*gateway_identity),
-            EntryPoint::Location(location) => {
+            EntryPoint::Gateway { identity } => Ok(*identity),
+            EntryPoint::Location { location } => {
                 let described_gateways: Vec<&DescribedGateway> = gateways
                     .iter()
                     .filter(|described_gateway| {
@@ -112,17 +142,17 @@ impl ExitPoint {
         gateways: &[DescribedGateway],
     ) -> Result<IpPacketRouterAddress> {
         match &self {
-            ExitPoint::Address(address) => Ok(IpPacketRouterAddress(*address.clone())),
-            ExitPoint::Gateway(gateway_identity) => {
+            ExitPoint::Address { address } => Ok(IpPacketRouterAddress(*address)),
+            ExitPoint::Gateway { identity } => {
                 let described_gateway = gateways
                     .iter()
                     .find(|described_gateway| {
-                        described_gateway.bond.gateway.identity_key == *gateway_identity.to_string()
+                        described_gateway.bond.gateway.identity_key == *identity.to_string()
                     })
                     .ok_or(Error::NoMatchingGateway)?;
                 IpPacketRouterAddress::try_from_described_gateway(described_gateway)
             }
-            ExitPoint::Location(location) => {
+            ExitPoint::Location { location } => {
                 let described_gateways: Vec<&DescribedGateway> = gateways
                     .iter()
                     .filter(|described_gateway| {

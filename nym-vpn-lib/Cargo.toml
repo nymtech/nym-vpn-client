@@ -4,12 +4,21 @@ version = "0.1.0"
 edition = "2021"
 license = "GPL-3.0-only"
 
+[lib]
+crate-type = ["cdylib", "lib", "staticlib"]
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
+
 [dependencies]
+anyhow = "1.0.71"
 bincode = "1.3.3"
 bytes = "1.0"
 default-net = "0.21.0"
 futures = "0.3.15"
 ipnetwork = "0.16"
+lazy_static = "1.4.0"
 log = "0.4.20"
 rand = "0.7.3"
 serde = "1.0.192"
@@ -21,6 +30,7 @@ tokio = { version = "1.8", features = ["process", "rt-multi-thread", "fs", "sync
 tokio-util = { version = "0.7.10", features = ["codec"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "f5fc9d7e9aa08889aedc45dd81ae9b4d3ec4cbe8", features = ["cli"] }
 tun2 = { version = "1.0.1", features = ["async"] }
 url = "2.4"
 
@@ -41,3 +51,13 @@ nym-sdk = { git = "https://github.com/nymtech/nym", rev = "cec05a99f4e71d6c719b2
 nym-task = { git = "https://github.com/nymtech/nym", rev = "cec05a99f4e71d6c719b2dd16f61a9d6085d658f" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "cec05a99f4e71d6c719b2dd16f61a9d6085d658f" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "cec05a99f4e71d6c719b2dd16f61a9d6085d658f" }
+
+[target.'cfg(target_os = "android")'.dependencies]
+android_logger = "0.13.1"
+err-derive = "0.3.1"
+jnix = { version = "=0.5.0", features = ["derive"] }
+nix = "0.23"
+rand = "0.8.5"
+
+[build-dependencies]
+uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "f5fc9d7e9aa08889aedc45dd81ae9b4d3ec4cbe8", features = ["build"] }

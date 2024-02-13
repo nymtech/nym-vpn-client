@@ -1,6 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "macos")]
+uniffi::include_scaffolding!("nym_vpn_lib");
+
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
 use crate::gateway_client::{Config, GatewayClient};
@@ -15,6 +18,7 @@ use mixnet_connect::SharedMixnetClient;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use talpid_routing::RouteManager;
 use tap::TapFallible;
@@ -25,16 +29,22 @@ use util::wait_for_interrupt_and_signal;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
 pub use nym_task::{manager::SentStatus, StatusReceiver};
 
+#[cfg(target_os = "macos")]
+use crate::platform::macos::{initVPN, runVPN, stopVPN};
 pub use nym_bin_common;
 pub use nym_config;
+use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
+#[cfg(target_os = "macos")]
+use url::Url;
 
 pub mod config;
 pub mod error;
 pub mod gateway_client;
 pub mod mixnet_connect;
 pub mod mixnet_processor;
+mod platform;
 pub mod routing;
 pub mod tunnel;
 mod util;
@@ -55,6 +65,10 @@ async fn init_wireguard_config(
     let wireguard_config = WireguardConfig::init(wireguard_private_key, &wg_gateway_data)?;
     info!("Wireguard config: \n{wireguard_config}");
     Ok(wireguard_config)
+}
+
+struct ShadowHandle {
+    _inner: Option<JoinHandle<Result<AsyncDevice>>>,
 }
 
 pub struct NymVpn {
@@ -98,12 +112,27 @@ pub struct NymVpn {
     /// Disable constant rate background loop cover traffic
     pub disable_background_cover_traffic: bool,
 
-    // Necessary so that the device doesn't get closed before cleanup has taken place
-    shadow_handle: Option<JoinHandle<Result<AsyncDevice>>>,
-}
+    tun_provider: Arc<Mutex<TunProvider>>,
 
+    // Necessary so that the device doesn't get closed before cleanup has taken place
+    shadow_handle: ShadowHandle,
+}
 impl NymVpn {
-    pub fn new(entry_gateway: EntryPoint, exit_router: ExitPoint) -> Self {
+    pub fn new(
+        entry_gateway: EntryPoint,
+        exit_router: ExitPoint,
+        #[cfg(target_os = "android")] android_context: talpid_types::android::AndroidContext,
+    ) -> Self {
+        let tun_provider = Arc::new(Mutex::new(TunProvider::new(
+            #[cfg(target_os = "android")]
+            android_context,
+            #[cfg(target_os = "android")]
+            false,
+            #[cfg(target_os = "android")]
+            None,
+            #[cfg(target_os = "android")]
+            vec![],
+        )));
         Self {
             gateway_config: gateway_client::Config::default(),
             mixnet_client_path: None,
@@ -118,12 +147,15 @@ impl NymVpn {
             enable_two_hop: false,
             enable_poisson_rate: false,
             disable_background_cover_traffic: false,
-            shadow_handle: None,
+            tun_provider,
+            shadow_handle: ShadowHandle { _inner: None },
         }
     }
 
     pub(crate) fn set_shadow_handle(&mut self, shadow_handle: JoinHandle<Result<AsyncDevice>>) {
-        self.shadow_handle = Some(shadow_handle);
+        self.shadow_handle = ShadowHandle {
+            _inner: Some(shadow_handle),
+        }
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -166,6 +198,7 @@ impl NymVpn {
         );
         debug!("Routing config: {:#?}", routing_config);
         let mixnet_tun_dev = routing::setup_routing(
+            self.tun_provider.clone(),
             route_manager,
             routing_config,
             self.enable_wireguard,
@@ -293,7 +326,11 @@ impl NymVpn {
         let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
 
         info!("Creating tunnel");
-        let mut tunnel = match Tunnel::new(wireguard_config.clone(), route_manager.handle()?) {
+        let mut tunnel = match Tunnel::new(
+            wireguard_config.clone(),
+            route_manager.handle()?,
+            self.tun_provider.clone(),
+        ) {
             Ok(tunnel) => tunnel,
             Err(err) => {
                 error!("Failed to create tunnel: {err}");
@@ -488,8 +525,8 @@ pub enum NymVpnExitStatusMessage {
 /// use nym_vpn_lib::gateway_client::{EntryPoint, ExitPoint};
 /// use nym_vpn_lib::NodeIdentity;
 ///
-/// let mut vpn_config = nym_vpn_lib::NymVpn::new(EntryPoint::Gateway(NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()),
-/// ExitPoint::Gateway(NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()).unwrap()));
+/// let mut vpn_config = nym_vpn_lib::NymVpn::new(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
+/// ExitPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()).unwrap()});
 /// vpn_config.enable_two_hop = true;
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
 /// ```
@@ -500,10 +537,8 @@ pub fn spawn_nym_vpn(mut nym_vpn: NymVpn) -> Result<NymVpnHandle> {
 
     let (vpn_exit_tx, vpn_exit_rx) = oneshot::channel();
 
-    std::thread::spawn(|| {
-        let result = tokio::runtime::Runtime::new()
-            .expect("Failed to create Tokio run time")
-            .block_on(async move { nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await });
+    tokio::spawn(async move {
+        let result = nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await;
 
         if let Err(err) = result {
             error!("Nym VPN returned error: {err}");

@@ -3,12 +3,15 @@
 
 use default_net::Interface;
 use std::net::{Ipv4Addr, Ipv6Addr};
-use std::process::Command;
+use std::sync::{Arc, Mutex};
 use std::{collections::HashSet, net::IpAddr};
 
 use default_net::interface::get_default_interface;
 use ipnetwork::IpNetwork;
+#[cfg(target_os = "android")]
+use std::os::fd::AsRawFd;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
+use talpid_tunnel::tun_provider::TunProvider;
 use tap::TapFallible;
 use tracing::{debug, error, info, trace};
 use tun2::AbstractDevice;
@@ -21,6 +24,8 @@ const DEFAULT_TUN_MTU: usize = 1500;
 #[derive(Debug)]
 pub struct RoutingConfig {
     mixnet_tun_config: tun2::Configuration,
+    // In case we need it, as it's not read-accessible in the tun2 config
+    tun_ip: IpAddr,
     entry_mixnet_gateway_ip: IpAddr,
     lan_gateway_ip: LanGatewayIp,
     tunnel_gateway_ip: TunnelGatewayIp,
@@ -42,10 +47,15 @@ impl RoutingConfig {
 
         Self {
             mixnet_tun_config,
+            tun_ip,
             entry_mixnet_gateway_ip,
             lan_gateway_ip,
             tunnel_gateway_ip,
         }
+    }
+
+    pub fn tun_ip(&self) -> IpAddr {
+        self.tun_ip
     }
 }
 
@@ -91,17 +101,7 @@ impl LanGatewayIp {
         })?;
         info!("Default interface: {}", default_interface.name);
         debug!("Default interface: {:?}", default_interface);
-        if default_interface.gateway.is_none() {
-            error!(
-                "The default interface `{}` reports no gateway",
-                default_interface.name
-            );
-            Err(crate::error::Error::DefaultInterfaceGatewayError(
-                default_interface.name,
-            ))
-        } else {
-            Ok(LanGatewayIp(default_interface))
-        }
+        Ok(LanGatewayIp(default_interface))
     }
 }
 
@@ -153,13 +153,29 @@ fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
 }
 
 pub async fn setup_routing(
+    _tun_provider: Arc<Mutex<TunProvider>>,
     route_manager: &mut RouteManager,
     config: RoutingConfig,
     enable_wireguard: bool,
     disable_routing: bool,
 ) -> Result<tun2::AsyncDevice> {
     info!("Creating tun device");
-    let dev = tun2::create_as_async(&config.mixnet_tun_config)
+    let mixnet_tun_config = config.mixnet_tun_config.clone();
+    #[cfg(target_os = "android")]
+    let mixnet_tun_config = {
+        let mut tun_config = talpid_tunnel::tun_provider::TunConfig::default();
+        tun_config.addresses = vec![config.tun_ip()];
+        let fd = _tun_provider
+            .lock()
+            .expect("access should not be passed to mullvad yet")
+            .get_tun(tun_config)?
+            .as_raw_fd();
+        info!("Created android tun device");
+        let mut mixnet_tun_config = mixnet_tun_config.clone();
+        mixnet_tun_config.raw_fd(fd);
+        mixnet_tun_config
+    };
+    let dev = tun2::create_as_async(&mixnet_tun_config)
         .tap_err(|err| error!("Failed to create tun device: {}", err))?;
     let device_name = dev.as_ref().name().unwrap().to_string();
     info!(
@@ -181,7 +197,7 @@ pub async fn setup_routing(
     );
 
     #[cfg(target_os = "linux")]
-    Command::new("ip")
+    std::process::Command::new("ip")
         .args([
             "-6",
             "addr",
@@ -193,7 +209,7 @@ pub async fn setup_routing(
         .output()?;
 
     #[cfg(target_os = "macos")]
-    Command::new("ifconfig")
+    std::process::Command::new("ifconfig")
         .args([&device_name, "inet6", "add", "fda7:576d:ac1a::1/48"])
         .output()?;
 
@@ -220,15 +236,11 @@ pub async fn setup_routing(
     // it, we need to add an exception route for the gateway to the routing table.
     if !enable_wireguard || cfg!(target_os = "linux") {
         let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
-        let default_node = Node::new(
-            config
-                .lan_gateway_ip
-                .0
-                .gateway
-                .expect("This value was already checked to exist")
-                .ip_addr,
-            config.lan_gateway_ip.0.name,
-        );
+        let default_node = if let Some(gateway) = config.lan_gateway_ip.0.gateway {
+            Node::new(gateway.ip_addr, config.lan_gateway_ip.0.name)
+        } else {
+            Node::device(config.lan_gateway_ip.0.name)
+        };
         info!(
             "Add extra route: [{:?}, {:?}]",
             entry_mixnet_gateway_ip,

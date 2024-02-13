@@ -21,12 +21,14 @@ pub struct Tunnel {
     pub firewall: Firewall,
     pub dns_monitor: DnsMonitor,
     pub route_manager_handle: RouteManagerHandle,
+    pub tun_provider: Arc<Mutex<TunProvider>>,
 }
 
 impl Tunnel {
     pub fn new(
         config: Option<WireguardConfig>,
         route_manager_handle: RouteManagerHandle,
+        tun_provider: Arc<Mutex<TunProvider>>,
     ) -> Result<Self, crate::error::Error> {
         #[cfg(target_os = "macos")]
         let (firewall, dns_monitor) = {
@@ -62,11 +64,19 @@ impl Tunnel {
             (firewall, dns_monitor)
         };
 
+        #[cfg(all(not(target_os = "macos"), not(target_os = "linux")))]
+        let (firewall, dns_monitor) = {
+            let firewall = Firewall::new()?;
+            let dns_monitor = DnsMonitor::new()?;
+            (firewall, dns_monitor)
+        };
+
         Ok(Tunnel {
             config: config.map(|c| c.0),
             firewall,
             dns_monitor,
             route_manager_handle,
+            tun_provider,
         })
     }
 }
@@ -79,6 +89,7 @@ pub fn start_tunnel(
     let route_manager = tunnel.route_manager_handle.clone();
     // We only start the tunnel when we have wireguard enabled, and then we have the config
     let config = tunnel.config.as_ref().unwrap().clone();
+    let tun_provider = Arc::clone(&tunnel.tun_provider);
     let handle = tokio::task::spawn_blocking(move || -> Result<(), crate::error::Error> {
         let (event_tx, _) = mpsc::unbounded();
         let on_tunnel_event =
@@ -96,7 +107,7 @@ pub fn start_tunnel(
             resource_dir: &resource_dir,
             on_event: on_tunnel_event,
             tunnel_close_rx,
-            tun_provider: Arc::new(Mutex::new(TunProvider::new())),
+            tun_provider,
             retry_attempt: 3,
             route_manager,
         };
