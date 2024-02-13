@@ -38,7 +38,7 @@ jobs:
   #     os: ${{ matrix.os }}
 
   build:
-    needs: build-wireguard-go
+    # needs: build-wireguard-go
     strategy:
       fail-fast: false
       matrix:
