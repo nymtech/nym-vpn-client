@@ -5092,6 +5092,7 @@ dependencies = [
  "dotenvy",
  "futures",
  "itertools 0.12.0",
+ "nym-explorer-api-requests",
  "nym-vpn-lib",
  "once_cell",
  "reqwest",
