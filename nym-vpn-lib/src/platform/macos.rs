@@ -43,12 +43,14 @@ pub async fn runVPN() {
 
     let vpn = take_vpn().await.expect("VPN was not inited");
 
-    _async_run_vpn(vpn)
-        .await
-        .map_err(|err| {
-            warn!("failed to run vpn: {}", err);
-        })
-        .ok();
+    RUNTIME.spawn(async move {
+        _async_run_vpn(vpn)
+            .await
+            .map_err(|err| {
+                warn!("failed to run vpn: {}", err);
+            })
+            .ok();
+    });
 }
 
 #[allow(non_snake_case)]
