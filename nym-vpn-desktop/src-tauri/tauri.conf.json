@@ -38,14 +38,7 @@
         "icons/128x128@2x.png",
         "icons/icon.icns",
         "icons/icon.ico"
-      ],
-      "macOS": {
-        "frameworks": [],
-        "minimumSystemVersion": "",
-        "exceptionDomain": "",
-        "signingIdentity": "Developer ID Application: Nym Technologies SA (VW5DZLFHM5)",
-        "entitlements": null
-      }
+      ]
     },
     "security": {
       "csp": null
