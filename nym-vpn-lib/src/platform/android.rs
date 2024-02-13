@@ -23,7 +23,7 @@ use std::os::fd::RawFd;
 use std::str::FromStr;
 use std::sync::{Arc, Once};
 use std::time::{Duration, Instant};
-use talpid_tunnel::tun_provider::TunConfig;
+use talpid_tunnel::tun_provider::{TunConfig, TunProvider};
 use talpid_types::android::AndroidContext;
 use talpid_types::ErrorExt;
 use url::Url;
@@ -59,6 +59,11 @@ pub const CLASSES: &[&str] = &[
     "net/nymtech/vpn/CreateTunResult$TunnelDeviceError",
     "net/nymtech/vpn/NymVpnService",
 ];
+
+pub(crate) struct TunnelConfiguration {
+    pub(crate) tun_provider: Arc<std::sync::Mutex<TunProvider>>,
+    pub(crate) gateway_fd: Option<RawFd>,
+}
 
 fn init_jni_logger() {
     use android_logger::{Config, FilterBuilder};
