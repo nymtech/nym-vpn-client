@@ -143,7 +143,6 @@ jobs:
           echo "CARGO_TARGET=--target universal-apple-darwin" >> $GITHUB_ENV
           echo "ARCH_TARGET=universal-apple-darwin" >> $GITHUB_ENV
 
-
       - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/download-artifact@v4
         with:
@@ -194,9 +193,6 @@ jobs:
         shell: bash
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn*.AppImage ${{ env.ARTIFACT_DIR }} || true
-          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn*.deb ${{ env.ARTIFACT_DIR }} || true
-          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
           cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/appimage/nym-vpn*.AppImage ${{ env.ARTIFACT_DIR }} || true
           cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/deb/nym-vpn*.deb ${{ env.ARTIFACT_DIR }} || true
           cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
