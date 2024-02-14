@@ -56,7 +56,7 @@ jobs:
       run: |
         if ${{ contains(matrix.os, 'ubuntu') || matrix.os == 'arc-runner-set' }}; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
-        elif ${{ matrix.os == 'macos-12' || matrix.os = 'macos-13' }}; then
+        elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
         elif ${{ matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-13-xlarge' || matrix.os == 'macos-14' }}; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/universal-apple-darwin" >> $GITHUB_ENV
