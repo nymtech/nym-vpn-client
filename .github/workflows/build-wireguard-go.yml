@@ -47,13 +47,6 @@ jobs:
           sparse-checkout: |
             wireguard
 
-      # TODO: check that this is actually used
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v2
-        if: contains(inputs.os, 'macos') || contains(inputs.os, 'mac-m1') || contains(inputs.os, 'windows')
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install Go
         uses: actions/setup-go@v4
         with:
@@ -89,11 +82,22 @@ jobs:
             build/lib/x86_64-apple-darwin
           retention-days: 1
 
-      - name: Upload artifacts (macos aarch64)
+      # On ARM we always build universal binaries now
+
+      # - name: Upload artifacts (macos aarch64)
+      #   uses: actions/upload-artifact@v4
+      #   if: inputs.os == 'custom-runner-mac-m1' || inputs.os == 'macos-13-xlarge' || inputs.os == 'macos-14'
+      #   with:
+      #     name: wireguard-go_macos_aarch64
+      #     path: |
+      #       build/lib/aarch64-apple-darwin
+      #     retention-days: 1
+
+      - name: Upload artifacts (macos universal)
         uses: actions/upload-artifact@v4
         if: inputs.os == 'custom-runner-mac-m1' || inputs.os == 'macos-13-xlarge' || inputs.os == 'macos-14'
         with:
-          name: wireguard-go_macos_aarch64
+          name: wireguard-go_macos_universal
           path: |
-            build/lib/aarch64-apple-darwin
+            build/lib/universal-apple-darwin
           retention-days: 1

@@ -27,7 +27,7 @@ jobs:
         os:
           [
             ubuntu-22.04-16-core,
-            macos-12,
+            # macos-12,
             # macos-13,
             # macos-13-xlarge, # ARM
             macos-14,        # ARM
@@ -45,7 +45,7 @@ jobs:
         os:
           [
             ubuntu-22.04-16-core,
-            macos-12,
+            # macos-12,
             # macos-13,
             # macos-13-xlarge, # ARM
             macos-14,        # ARM
@@ -106,7 +106,8 @@ jobs:
           elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
             platform_arch=ubuntu-20.04_x86_64
           elif ${{ matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-13-xlarge' || matrix.os == 'macos-14' }}; then
-            platform_arch=macos_aarch64
+            # platform_arch=macos_aarch64
+            platform_arch=macos_universal
           elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
             platform_arch=macos_x86_64
           else
@@ -134,6 +135,13 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+
+      - name: Install extra arch macos
+        if: env.PLATFORM_ARCH == 'macos_universal'
+        run: |
+          rustup target add x86_64-apple-darwin
+          echo "CARGO_TARGET=--target universal-apple-darwin" >> $GITHUB_ENV
+          echo "ARCH_TARGET=universal-apple-darwin" >> $GITHUB_ENV
 
       - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/download-artifact@v4
@@ -173,18 +181,21 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         shell: bash
         run: |
-          npm run tauri build
-          ls -la target/release/
-          ls -la target/release/bundle
-          ls -la target/release/bundle/*
+          npm run tauri build -- ${{ env.CARGO_TARGET }}
+          ls -la target/release/ || true
+          ls -la target/release/bundle || true
+          ls -la target/release/bundle/* || true
+          ls -la target/${{ env.ARCH_TARGET }}/release/ || true
+          ls -la target/${{ env.ARCH_TARGET }}/release/bundle || true
+          ls -la target/${{ env.ARCH_TARGET }}/release/bundle/* || true
 
       - name: Create archive
         shell: bash
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn*.AppImage ${{ env.ARTIFACT_DIR }} || true
-          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn*.deb ${{ env.ARTIFACT_DIR }} || true
-          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/appimage/nym-vpn*.AppImage ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/deb/nym-vpn*.deb ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
