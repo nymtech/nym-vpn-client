@@ -4,9 +4,6 @@ typedef string NodeIdentity;
 [Custom]
 typedef string Recipient;
 
-[Custom]
-typedef string Url;
-
 [Enum]
 interface EntryPoint {
   Gateway(NodeIdentity identity);
@@ -20,7 +17,10 @@ interface ExitPoint {
   Location(string location);
 };
 
-namespace nym_vpn_lib {
+[Custom]
+typedef string Url;
+
+namespace nym_vpn_lib_macos {
     [Async]
     void initVPN(Url api_url, EntryPoint entry_gateway, ExitPoint exit_router);
     [Async]
