@@ -56,8 +56,6 @@ env_config_file = "/home/<USER>/.config/nym-vpn/sandbox.env"
 # 2-letter country code for the default entry and exit node location
 default_entry_node_location_code = "FR"
 default_exit_node_location_code = "DE"
-# URL endpoint (root) for the explorer API
-explorer_api_url = "https://sandbox-explorer.nymtech.net/api/v1"
 ```
 
 `env_config_file` is the absolute path to a network configuration

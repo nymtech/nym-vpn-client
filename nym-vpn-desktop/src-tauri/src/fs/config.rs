@@ -10,6 +10,4 @@ pub struct AppConfig {
     pub default_entry_node_location_code: Option<String>,
     /// 2-letter country code for the default exit node location
     pub default_exit_node_location_code: Option<String>,
-    /// URL endpoint (root) for the explorer API
-    pub explorer_api_url: Option<String>,
 }
