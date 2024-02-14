@@ -183,9 +183,12 @@ jobs:
         shell: bash
         run: |
           npm run tauri build -- ${{ env.CARGO_TARGET }}
-          ls -la target/release/
-          ls -la target/release/bundle
-          ls -la target/release/bundle/*
+          ls -la target/release/ || true
+          ls -la target/release/bundle || true
+          ls -la target/release/bundle/* || true
+          ls -la target/${{ env.PLATFORM_ARCH }}/release/ || true
+          ls -la target/${{ env.PLATFORM_ARCH }}/release/bundle || true
+          ls -la target/${{ env.PLATFORM_ARCH }}/release/bundle/* || true
 
       - name: Create archive
         shell: bash
@@ -194,6 +197,9 @@ jobs:
           cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn*.AppImage ${{ env.ARTIFACT_DIR }} || true
           cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn*.deb ${{ env.ARTIFACT_DIR }} || true
           cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.PLATFORM_ARCH }}/release/bundle/appimage/nym-vpn*.AppImage ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.PLATFORM_ARCH }}/release/bundle/deb/nym-vpn*.deb ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.PLATFORM_ARCH }}/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
