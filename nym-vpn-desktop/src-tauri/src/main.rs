@@ -19,6 +19,7 @@ mod commands;
 mod country;
 mod error;
 mod fs;
+mod http;
 mod network;
 mod states;
 mod vpn_client;
@@ -103,7 +104,7 @@ async fn main() -> Result<()> {
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(app_state)))
         .manage(Arc::new(Mutex::new(app_data_store)))
-        .manage(Arc::new(Mutex::new(app_config_store)))
+        .manage(Arc::new(app_config))
         .setup(|_app| {
             info!("app setup");
             Ok(())
@@ -120,11 +121,11 @@ async fn main() -> Result<()> {
             app_data::set_entry_location_selector,
             app_data::set_monitoring,
             app_data::set_auto_connect,
-            app_data::get_node_countries,
             app_data::set_root_font_size,
             node_location::get_node_location,
             node_location::set_node_location,
             node_location::get_fastest_node_location,
+            node_location::get_node_countries,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

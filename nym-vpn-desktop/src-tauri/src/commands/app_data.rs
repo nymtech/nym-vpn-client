@@ -1,20 +1,11 @@
 use tauri::State;
 use tracing::{debug, instrument};
 
-use crate::country::{Country, COUNTRIES};
 use crate::{
     error::{CmdError, CmdErrorSource},
     fs::data::{AppData, UiTheme},
     states::SharedAppData,
 };
-
-#[instrument]
-#[tauri::command]
-pub fn get_node_countries() -> Result<Vec<Country>, CmdError> {
-    debug!("get_node_countries");
-    // TODO fetch the list of countries from some API
-    Ok(COUNTRIES.clone())
-}
 
 #[instrument(skip(shared_app_data))]
 #[tauri::command]
