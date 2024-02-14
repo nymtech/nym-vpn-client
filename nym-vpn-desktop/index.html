@@ -11,8 +11,9 @@
   <!-- overflow-hidden is needed during splash-screen to avoid scrollbar to shows up
    when root font size is restored from user saved preferences -->
   <body class="h-screen overflow-hidden">
-    <!-- Node used for the splashscreen, it is automatically removed from DOM
-    once the initial loading phase is done -->
+    <!-- ----------- SPLASH SCREEN ----------- -->
+    <!-- It is automatically removed from DOM
+     once the initial loading phase is done -->
     <div
       id="splash"
       class="h-full w-full absolute z-[100] font-sans flex justify-center items-center text-[32px] tracking-widest bg-baltic-sea overflow-hidden transition-opacity duration-150"
@@ -21,10 +22,27 @@
         id="splash-logo"
         class="flex justify-center items-center opacity-0 transition-opacity duration-75 ease-in"
       >
-        <h1 class="text-wind-chime">NYM</h1>
-        <h1 class="text-melon">VPN</h1>
+        <div class="flex flex-col justify-center items-center gap-4">
+          <svg
+            width="140"
+            height="140"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3.7229 29.9997C-0.460546 26.7617 -1.23766 20.7391 2.0003 16.5557C5.23826 12.3722 11.2609 11.5951 15.4443 14.8331C19.6278 18.0711 20.4049 24.0937 17.1669 28.2771C13.9289 32.4605 7.90634 33.2377 3.7229 29.9997ZM28.0076 23.2647C33.3308 17.9415 33.3308 9.31561 28.0076 3.9924C22.6844 -1.3308 14.0455 -1.3308 8.73526 3.9924C3.42501 9.31561 3.41205 17.9415 8.73526 23.2647C14.0585 28.5879 22.6844 28.5879 28.0076 23.2647Z"
+              fill="#F36D4E"
+            />
+          </svg>
+          <div class="flex justify-center items-center">
+            <h1 class="text-wind-chime">NYM</h1>
+            <h1 class="text-melon">VPN</h1>
+          </div>
+        </div>
       </div>
     </div>
+    <!-- ----------- SPLASH SCREEN ----------- -->
 
     <div id="root" class="h-full font-sans"></div>
     <script type="module" src="/src/main.tsx"></script>
