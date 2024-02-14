@@ -141,6 +141,7 @@ jobs:
         run: |
           rustup target add x86_64-apple-darwin
           echo "CARGO_TARGET=--target universal-apple-darwin" >> $GITHUB_ENV
+          # echo "TAURI_BUILD_TARGET=universal-apple-darwin" >> $GITHUB_ENV
 
 
       - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
@@ -181,8 +182,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         shell: bash
         run: |
-          # npm run tauri build
-          cargo tauri build ${{ env.CARGO_TARGET }}
+          npm run tauri build -- ${{ env.CARGO_TARGET }}
           ls -la target/release/
           ls -la target/release/bundle
           ls -la target/release/bundle/*
