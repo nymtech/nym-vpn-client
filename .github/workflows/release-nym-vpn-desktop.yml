@@ -137,7 +137,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install extra arch macos
-        if: ${{ env.PLATFORM_ARCH == "macos_universal" }}
+        if: env.PLATFORM_ARCH == 'macos_universal'
         run: |
           rustup target add x86_64-apple-darwin
           echo "CARGO_TARGET=--target universal-apple-darwin" >> $GITHUB_ENV
