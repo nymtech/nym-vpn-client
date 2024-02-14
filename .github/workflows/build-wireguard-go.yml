@@ -47,13 +47,6 @@ jobs:
           sparse-checkout: |
             wireguard
 
-      # TODO: check that this is actually used
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v2
-        if: contains(inputs.os, 'macos') || contains(inputs.os, 'mac-m1') || contains(inputs.os, 'windows')
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install Go
         uses: actions/setup-go@v4
         with:
@@ -88,6 +81,8 @@ jobs:
           path: |
             build/lib/x86_64-apple-darwin
           retention-days: 1
+
+      # On ARM we always build universal binaries now
 
       # - name: Upload artifacts (macos aarch64)
       #   uses: actions/upload-artifact@v4
