@@ -5,9 +5,23 @@
     <link rel="icon" type="image/svg+xml" href="/nym.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NymVPN</title>
+    <link href="/src/styles.css" rel="stylesheet" />
   </head>
 
-  <body class="h-screen">
+  <!-- overflow-hidden is needed during splash-screen to avoid scrollbar to shows up
+   when root font size is restored from user saved preferences -->
+  <body class="h-screen overflow-hidden">
+    <!-- Node used for the splashscreen, it is automatically removed from DOM
+    once the initial loading phase is done
+     Keep it "static" to not be impacted by root font size changes -->
+    <div
+      id="splash"
+      class="h-full w-full font-sans flex justify-center items-center text-[32px] tracking-widest bg-baltic-sea absolute z-[100] overflow-hidden"
+    >
+      <h1 class="text-wind-chime">NYM</h1>
+      <h1 class="text-melon">VPN</h1>
+    </div>
+
     <div id="root" class="h-full font-sans"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
