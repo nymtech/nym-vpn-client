@@ -10,6 +10,9 @@ on:
       - "nym-vpn-lib/**"
       - ".github/workflows/ci-nym-vpn-desktop-rust.yml"
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   build-wireguard-go:
     strategy:
@@ -27,7 +30,6 @@ jobs:
         os: [ubuntu-22.04, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
     env:
-      CARGO_TERM_COLOR: always
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
 
     steps:
