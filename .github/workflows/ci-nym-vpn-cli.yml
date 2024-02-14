@@ -21,7 +21,8 @@ jobs:
       matrix:
         # windows-2022 is incredibly slow right now https://github.com/actions/runner-images/issues/7320
         # os: [ubuntu-22.04, macos-latest, windows-2019]
-        os: [arc-runner-set, macos-14]
+        # os: [arc-runner-set, macos-14]
+        os: [arc-runner-set, custom-runner-mac-m1]
     continue-on-error: ${{ matrix.os == 'windows-2019' }}
     runs-on: ${{ matrix.os }}
 

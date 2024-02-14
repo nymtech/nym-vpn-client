@@ -17,7 +17,8 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        os: [ubuntu-22.04, custom-runner-mac-m1]
+        # os: [ubuntu-22.04, custom-runner-mac-m1]
+        os: [arc-runner-set, custom-runner-mac-m1]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -27,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, custom-runner-mac-m1]
+        os: [arc-runner-set, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -55,6 +56,8 @@ jobs:
       - name: Set env
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
+            platform_arch=ubuntu-22.04_x86_64
+          elif ${{ contains(matrix.os, 'arc-runner-set') }}; then
             platform_arch=ubuntu-22.04_x86_64
           elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
             platform_arch=ubuntu-20.04_x86_64
@@ -90,7 +93,7 @@ jobs:
           echo "APP_VERSION=$version" >> $GITHUB_ENV
 
       - name: Install system dependencies
-        if: contains(matrix.os, 'ubuntu')
+        if: contains(matrix.os, 'ubuntu') || matrix.os == 'arc-runner-set'
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
