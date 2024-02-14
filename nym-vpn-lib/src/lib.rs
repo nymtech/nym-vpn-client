@@ -32,7 +32,8 @@ pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
 pub use nym_task::{manager::SentStatus, StatusReceiver};
 
 #[cfg(target_os = "macos")]
-use crate::platform::{macos::initVPN, runVPN, stopVPN};
+use crate::platform::macos::initVPN;
+use crate::platform::{runVPN, stopVPN};
 pub use nym_bin_common;
 pub use nym_config;
 use talpid_tunnel::tun_provider::TunProvider;

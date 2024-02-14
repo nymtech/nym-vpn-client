@@ -6,7 +6,7 @@ use crate::gateway_client::{EntryPoint, ExitPoint};
 use crate::NymVpn;
 use ipnetwork::IpNetwork;
 use jnix::jni::{
-    objects::{JClass, JObject, JString},
+    objects::{JObject, JString},
     sys::{jboolean, jint, JNI_FALSE},
     JNIEnv,
 };
