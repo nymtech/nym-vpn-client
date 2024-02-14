@@ -72,6 +72,11 @@ jobs:
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc" >> $GITHUB_ENV
         fi
 
+    - name: Install Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 'stable'
+
     - name: Install Protoc
       uses: arduino/setup-protoc@v2
       if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')
