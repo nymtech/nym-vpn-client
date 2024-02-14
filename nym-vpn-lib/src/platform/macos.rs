@@ -5,6 +5,7 @@ use super::*;
 use crate::gateway_client::{EntryPoint, ExitPoint};
 use crate::{NymVpn, UniffiCustomTypeConverter};
 use log::warn;
+use nym_bin_common::logging::setup_logging;
 use std::str::FromStr;
 use url::Url;
 
@@ -22,6 +23,8 @@ impl UniffiCustomTypeConverter for Url {
 
 #[allow(non_snake_case)]
 pub async fn initVPN(api_url: Url, entry_gateway: EntryPoint, exit_router: ExitPoint) {
+    setup_logging();
+
     if get_vpn_state().await != ClientState::Uninitialised {
         warn!("VPN was already inited. Try starting it");
         return;
