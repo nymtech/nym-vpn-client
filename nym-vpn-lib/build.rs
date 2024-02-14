@@ -2,5 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 fn main() {
-    uniffi::generate_scaffolding("src/nym_vpn_lib.udl").unwrap();
+    uniffi::generate_scaffolding("src/nym_vpn_lib_common.udl").unwrap();
+    uniffi::generate_scaffolding("src/nym_vpn_lib_macos.udl").unwrap();
 }

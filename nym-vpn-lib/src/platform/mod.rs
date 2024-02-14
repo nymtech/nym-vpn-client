@@ -115,3 +115,32 @@ async fn _async_run_vpn(vpn: NymVpn) -> crate::error::Result<()> {
 
     Ok(())
 }
+
+#[allow(non_snake_case)]
+pub async fn runVPN() {
+    let state = get_vpn_state().await;
+    if state != ClientState::Disconnected {
+        warn!("Invalid vpn state: {:?}", state);
+        return;
+    }
+
+    let vpn = take_vpn().await.expect("VPN was not inited");
+
+    RUNTIME.spawn(async move {
+        _async_run_vpn(vpn)
+            .await
+            .map_err(|err| {
+                warn!("failed to run vpn: {}", err);
+            })
+            .ok();
+    });
+}
+
+#[allow(non_snake_case)]
+pub async fn stopVPN() {
+    if get_vpn_state().await != ClientState::Connected {
+        warn!("could not stop the vpn as it's not running");
+        return;
+    }
+    stop_and_reset_shutdown_handle().await;
+}

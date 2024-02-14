@@ -1,0 +1,6 @@
+namespace nym_vpn_lib_common {
+    [Async]
+    void runVPN();
+    [Async]
+    void stopVPN();
+};
