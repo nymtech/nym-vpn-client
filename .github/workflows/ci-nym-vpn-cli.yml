@@ -28,7 +28,7 @@ jobs:
 
     steps:
     - name: Install system dependencies
-      run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git
+      run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl
       # if: matrix.os == 'ubuntu-22.04'
       if: matrix.os == 'arc-runner-set'
 
@@ -50,6 +50,14 @@ jobs:
         toolchain: stable
         override: true
         components: rustfmt, clippy
+
+    - name: Install extra arch macos
+      # if: env.PLATFORM_ARCH == 'macos_universal'
+      if: matrix.os == 'custom-runner-mac-m1'
+      run: |
+        rustup target add x86_64-apple-darwin
+        echo "CARGO_TARGET=--target universal-apple-darwin" >> $GITHUB_ENV
+        echo "ARCH_TARGET=universal-apple-darwin" >> $GITHUB_ENV
 
     - name: Set LIBRARY_PATH
       shell: bash
