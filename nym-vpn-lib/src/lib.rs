@@ -33,6 +33,7 @@ pub use nym_task::{manager::SentStatus, StatusReceiver};
 
 #[cfg(target_os = "macos")]
 use crate::platform::macos::initVPN;
+#[cfg(any(target_os = "macos", target_os = "android"))]
 use crate::platform::{runVPN, stopVPN};
 pub use nym_bin_common;
 pub use nym_config;
