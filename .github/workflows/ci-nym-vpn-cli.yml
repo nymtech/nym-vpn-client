@@ -58,7 +58,7 @@ jobs:
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
         elif ${{ matrix.os == 'macos-12' || matrix.os = 'macos-13' }}; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
-        elif ${{ matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-13-xlarge' || matrix.os = 'macos-14' }}; then
+        elif ${{ matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-13-xlarge' || matrix.os == 'macos-14' }}; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/universal-apple-darwin" >> $GITHUB_ENV
         elif ${{ contains(matrix.os, 'windows') }}; then
           echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc" >> $GITHUB_ENV
