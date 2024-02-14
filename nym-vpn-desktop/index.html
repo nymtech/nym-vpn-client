@@ -12,14 +12,18 @@
    when root font size is restored from user saved preferences -->
   <body class="h-screen overflow-hidden">
     <!-- Node used for the splashscreen, it is automatically removed from DOM
-    once the initial loading phase is done
-     Keep it "static" to not be impacted by root font size changes -->
+    once the initial loading phase is done -->
     <div
       id="splash"
-      class="h-full w-full font-sans flex justify-center items-center text-[32px] tracking-widest bg-baltic-sea absolute z-[100] overflow-hidden"
+      class="h-full w-full absolute z-[100] font-sans flex justify-center items-center text-[32px] tracking-widest bg-baltic-sea overflow-hidden transition-opacity duration-150"
     >
-      <h1 class="text-wind-chime">NYM</h1>
-      <h1 class="text-melon">VPN</h1>
+      <div
+        id="splash-logo"
+        class="flex justify-center items-center opacity-0 transition-opacity duration-75 ease-in"
+      >
+        <h1 class="text-wind-chime">NYM</h1>
+        <h1 class="text-melon">VPN</h1>
+      </div>
     </div>
 
     <div id="root" class="h-full font-sans"></div>

@@ -54,6 +54,8 @@
       {
         "fullscreen": false,
         "resizable": true,
+        "visible": false,
+        "center": true,
         "title": "NymVPN",
         "width": 456,
         "height": 987,

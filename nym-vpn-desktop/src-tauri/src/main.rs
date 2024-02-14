@@ -126,6 +126,7 @@ async fn main() -> Result<()> {
             node_location::set_node_location,
             node_location::get_fastest_node_location,
             node_location::get_node_countries,
+            window::show_main_window,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,5 +1,6 @@
 import React, { useEffect, useReducer } from 'react';
 import { MainDispatchContext, MainStateContext } from '../contexts';
+import { sleep } from '../helpers';
 import init from './init';
 import { initialState, reducer } from './main';
 import { useTauriEvents } from './useTauriEvents';
@@ -7,10 +8,6 @@ import { useTauriEvents } from './useTauriEvents';
 type Props = {
   children?: React.ReactNode;
 };
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 export function MainStateProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -21,9 +18,18 @@ export function MainStateProvider({ children }: Props) {
   useEffect(() => {
     init(dispatch).then(async () => {
       dispatch({ type: 'init-done' });
-      await sleep(600);
+      // wait for the splash screen to be visible for a short time as
+      // init phase is very fast, avoiding flashing the splash screen
+      // note: the real duration of splashscreen is this value minus the one
+      // declared in `App.tsx`, that is 500 - 100 → 400ms
+      await sleep(500);
       const splash = document.getElementById('splash');
       if (splash) {
+        // starts the fade out animation
+        splash.style.opacity = '0';
+        // fade out animation duration is set to 150ms, so we wait 300ms
+        // to ensure it's done before removing the splash screen
+        await sleep(300);
         splash.remove();
       }
     });
