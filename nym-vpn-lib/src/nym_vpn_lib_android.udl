@@ -1,6 +1,12 @@
+dictionary Country {
+    string code;
+};
+
 namespace nym_vpn_lib_android {
     [Async]
     void runVPN();
     [Async]
     void stopVPN();
+    [Async]
+    sequence<Country> countries();
 };

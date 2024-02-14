@@ -144,3 +144,11 @@ pub async fn stopVPN() {
     }
     stop_and_reset_shutdown_handle().await;
 }
+
+pub struct Country {
+    pub(crate) code: String,
+}
+
+pub async fn countries() -> Vec<Country> {
+    vec![]
+}

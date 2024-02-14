@@ -20,6 +20,10 @@ interface ExitPoint {
 [Custom]
 typedef string Url;
 
+dictionary Country {
+    string code;
+};
+
 namespace nym_vpn_lib_macos {
     [Async]
     void initVPN(Url api_url, EntryPoint entry_gateway, ExitPoint exit_router);
@@ -27,4 +31,6 @@ namespace nym_vpn_lib_macos {
     void runVPN();
     [Async]
     void stopVPN();
+    [Async]
+    sequence<Country> countries();
 };
