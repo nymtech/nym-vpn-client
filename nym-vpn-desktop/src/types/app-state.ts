@@ -18,6 +18,8 @@ export interface TunnelConfig {
 }
 
 export type AppState = {
+  // initial loading phase when the app is starting and fetching data from the backend
+  initialized: boolean;
   state: ConnectionState;
   version: string | null;
   loading: boolean;

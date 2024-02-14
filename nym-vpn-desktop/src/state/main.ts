@@ -17,6 +17,7 @@ import {
 } from '../types';
 
 export type StateAction =
+  | { type: 'init-done' }
   | { type: 'set-partial-state'; partialState: Partial<AppState> }
   | { type: 'change-connection-state'; state: ConnectionState }
   | { type: 'set-vpn-mode'; mode: VpnMode }
@@ -45,6 +46,7 @@ export type StateAction =
   | { type: 'set-root-font-size'; size: number };
 
 export const initialState: AppState = {
+  initialized: false,
   state: 'Disconnected',
   version: null,
   loading: false,
@@ -67,6 +69,11 @@ export const initialState: AppState = {
 
 export function reducer(state: AppState, action: StateAction): AppState {
   switch (action.type) {
+    case 'init-done':
+      return {
+        ...state,
+        initialized: true,
+      };
     case 'set-node-location':
       if (action.payload.hop === 'entry') {
         return {
