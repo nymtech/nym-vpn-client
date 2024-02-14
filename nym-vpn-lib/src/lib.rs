@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(target_os = "macos")]
-uniffi::include_scaffolding!("nym_vpn_lib");
+uniffi::include_scaffolding!("nym_vpn_lib_macos");
+#[cfg(target_os = "android")]
+uniffi::include_scaffolding!("nym_vpn_lib_android");
 
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};

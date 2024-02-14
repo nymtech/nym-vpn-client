@@ -22,4 +22,9 @@ typedef string Url;
 
 namespace nym_vpn_lib_macos {
     [Async]
-    void initVPN(Url api_url, EntryPoint entry_gateway, ExitPoint exit_router);};
+    void initVPN(Url api_url, EntryPoint entry_gateway, ExitPoint exit_router);
+    [Async]
+    void runVPN();
+    [Async]
+    void stopVPN();
+};
