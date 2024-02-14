@@ -5,7 +5,7 @@ use super::*;
 use crate::gateway_client::{EntryPoint, ExitPoint};
 use crate::{NymVpn, UniffiCustomTypeConverter};
 use log::warn;
-use nym_bin_common::logging::setup_logging;
+use oslog::OsLogger;
 use std::str::FromStr;
 use url::Url;
 
@@ -21,9 +21,26 @@ impl UniffiCustomTypeConverter for Url {
     }
 }
 
+fn init_logs() {
+    OsLogger::new("net.nymtech.vpn.agent")
+        .level_filter(LevelFilter::Debug)
+        .category_level_filter("hyper", log::LevelFilter::Warn)
+        .category_level_filter("tokio_reactor", log::LevelFilter::Warn)
+        .category_level_filter("reqwest", log::LevelFilter::Warn)
+        .category_level_filter("mio", log::LevelFilter::Warn)
+        .category_level_filter("want", log::LevelFilter::Warn)
+        .category_level_filter("tungstenite", log::LevelFilter::Warn)
+        .category_level_filter("tokio_tungstenite", log::LevelFilter::Warn)
+        .category_level_filter("handlebars", log::LevelFilter::Warn)
+        .category_level_filter("sled", log::LevelFilter::Warn)
+        .init()
+        .expect("Could not init logs");
+    debug!("Logger initialized");
+}
+
 #[allow(non_snake_case)]
 pub async fn initVPN(api_url: Url, entry_gateway: EntryPoint, exit_router: ExitPoint) {
-    setup_logging();
+    init_logs();
 
     if get_vpn_state().await != ClientState::Uninitialised {
         warn!("VPN was already inited. Try starting it");
