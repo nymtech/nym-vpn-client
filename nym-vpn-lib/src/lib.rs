@@ -534,29 +534,30 @@ pub enum NymVpnExitStatusMessage {
 /// vpn_config.enable_two_hop = true;
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
 /// ```
-pub fn spawn_nym_vpn(mut nym_vpn: NymVpn) -> Result<NymVpnHandle> {
+pub fn spawn_nym_vpn(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
 
     let (vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
 
     let (vpn_exit_tx, vpn_exit_rx) = oneshot::channel();
 
-    tokio::spawn(async move {
-        let result = nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await;
+    #[cfg(target_os = "android")]
+    tokio::spawn(run_nym_vpn(
+        nym_vpn,
+        vpn_status_tx,
+        vpn_ctrl_rx,
+        vpn_exit_tx,
+    ));
 
-        if let Err(err) = result {
-            error!("Nym VPN returned error: {err}");
-            debug!("{err:?}");
-            vpn_exit_tx
-                .send(NymVpnExitStatusMessage::Failed(err))
-                .expect("Failed to send exit status");
-            return;
-        }
-
-        log::info!("Nym VPN has shut down");
-        vpn_exit_tx
-            .send(NymVpnExitStatusMessage::Stopped)
-            .expect("Failed to send exit status");
+    #[cfg(not(target_os = "android"))]
+    std::thread::spawn(|| {
+        let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio run time");
+        rt.block_on(run_nym_vpn(
+            nym_vpn,
+            vpn_status_tx,
+            vpn_ctrl_rx,
+            vpn_exit_tx,
+        ));
     });
 
     Ok(NymVpnHandle {
@@ -564,6 +565,28 @@ pub fn spawn_nym_vpn(mut nym_vpn: NymVpn) -> Result<NymVpnHandle> {
         vpn_status_rx,
         vpn_exit_rx,
     })
+}
+
+async fn run_nym_vpn(
+    mut nym_vpn: NymVpn,
+    vpn_status_tx: nym_task::StatusSender,
+    vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
+    vpn_exit_tx: oneshot::Sender<NymVpnExitStatusMessage>,
+) {
+    let result = nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await;
+    if let Err(err) = result {
+        error!("Nym VPN returned error: {err}");
+        debug!("{err:?}");
+        vpn_exit_tx
+            .send(NymVpnExitStatusMessage::Failed(err))
+            .expect("Failed to send exit status");
+        return;
+    }
+
+    log::info!("Nym VPN has shut down");
+    vpn_exit_tx
+        .send(NymVpnExitStatusMessage::Stopped)
+        .expect("Failed to send exit status");
 }
 
 pub struct NymVpnHandle {
