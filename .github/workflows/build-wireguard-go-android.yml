@@ -34,5 +34,5 @@ jobs:
         with:
           name: wireguard-go_aarch64-linux-android
           path: |
-            build/lib/aarch64-linux-android
+            workspace/build/lib/aarch64-linux-android
           retention-days: 1
