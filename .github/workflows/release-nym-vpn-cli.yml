@@ -30,7 +30,7 @@ jobs:
       os: ${{ matrix.os }}
 
   build-wireguard-go-android:
-    uses: ./.github/workflows/build-wireguard-g-android.yml
+    uses: ./.github/workflows/build-wireguard-go-android.yml
 
   build:
     needs: [build-wireguard-go, build-wireguard-go-android]
