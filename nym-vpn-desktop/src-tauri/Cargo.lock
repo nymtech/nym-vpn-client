@@ -5277,6 +5277,7 @@ dependencies = [
  "nym-task",
  "nym-validator-client",
  "nym-wireguard-types",
+ "oslog",
  "rand 0.7.3",
  "rand 0.8.5",
  "serde",
@@ -5464,6 +5465,17 @@ checksum = "57119c3b893986491ec9aa85056780d3a0f3cf4da7cc09dd3650dbd6c6738fb9"
 dependencies = [
  "libc",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "oslog"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "80d2043d1f61d77cb2f4b1f7b7b2295f40507f5f8e9d1c8bf10a1ca5f97a3969"
+dependencies = [
+ "cc",
+ "dashmap",
+ "log",
 ]
 
 [[package]]

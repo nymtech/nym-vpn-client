@@ -17,12 +17,10 @@ function Settings() {
 
   const [entrySelector, setEntrySelector] = useState(state.entrySelector);
   const [autoConnect, setAutoConnect] = useState(state.autoConnect);
-  const [monitoring, setMonitoring] = useState(state.monitoring);
 
   useEffect(() => {
     setEntrySelector(state.entrySelector);
     setAutoConnect(state.autoConnect);
-    setMonitoring(state.monitoring);
   }, [state]);
 
   const handleEntrySelectorChange = async () => {
@@ -39,14 +37,6 @@ function Settings() {
     const isSelected = !state.autoConnect;
     dispatch({ type: 'set-auto-connect', autoConnect: isSelected });
     invoke<void>('set_auto_connect', { autoConnect: isSelected }).catch((e) => {
-      console.log(e);
-    });
-  };
-
-  const handleMonitoringChanged = async () => {
-    const isSelected = !state.monitoring;
-    dispatch({ type: 'set-monitoring', monitoring: isSelected });
-    invoke<void>('set_monitoring', { monitoring: isSelected }).catch((e) => {
       console.log(e);
     });
   };
@@ -137,8 +127,8 @@ function Settings() {
       <SettingsGroup
         settings={[
           {
-            title: t('feedback'),
-            leadingIcon: 'question_answer',
+            title: t('feedback.title'),
+            leadingIcon: 'edit_note',
             onClick: async () => {
               navigate(routes.feedback);
             },
@@ -147,27 +137,17 @@ function Settings() {
                 arrow_right
               </div>
             ),
-            disabled: true,
           },
           {
-            title: t('error-reporting.title'),
-            desc: t('error-reporting.desc'),
-            leadingIcon: 'error',
-            disabled: true,
+            title: t('support.title'),
+            leadingIcon: 'question_answer',
+            onClick: async () => {
+              navigate(routes.support);
+            },
             trailing: (
-              <Switch
-                checked={monitoring}
-                onChange={handleMonitoringChanged}
-                disabled
-              />
-            ),
-          },
-          {
-            title: t('faq'),
-            leadingIcon: 'help',
-            disabled: true,
-            trailing: (
-              <div className="font-icon text-2xl cursor-pointer">launch</div>
+              <div className="font-icon text-2xl cursor-pointer">
+                arrow_right
+              </div>
             ),
           },
         ]}

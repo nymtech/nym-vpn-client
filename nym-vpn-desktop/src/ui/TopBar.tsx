@@ -67,8 +67,22 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/feedback/send': {
+        title: t('feedback'),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
       '/settings/legal': {
         title: t('legal'),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
+      '/settings/support': {
+        title: t('support'),
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);

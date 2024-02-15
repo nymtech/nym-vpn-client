@@ -3,3 +3,4 @@ export { default as SettingsLayout } from './SettingsLayout';
 export * from './display';
 export * from './feedback';
 export * from './legal';
+export * from './support';
