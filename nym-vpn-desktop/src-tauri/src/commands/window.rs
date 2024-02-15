@@ -7,7 +7,10 @@ use crate::error::{CmdError, CmdErrorSource};
 #[tauri::command]
 pub fn show_main_window(window: tauri::Window) -> Result<(), CmdError> {
     debug!("show_window");
-    let main_window = window.get_window("main").unwrap();
+    let main_window = window.get_window("main").ok_or(CmdError::new(
+        CmdErrorSource::InternalError,
+        "Failed to get the app window".to_string(),
+    ))?;
     let is_visible = main_window.is_visible().map_err(|e| {
         error!("Failed to get `main` window visibility: {}", e);
         CmdError::new(
@@ -22,7 +25,7 @@ pub fn show_main_window(window: tauri::Window) -> Result<(), CmdError> {
     }
 
     info!("showing `main` window");
-    window.get_window("main").unwrap().show().map_err(|e| {
+    main_window.show().map_err(|e| {
         error!("Failed to show `main` window: {}", e);
         CmdError::new(
             CmdErrorSource::InternalError,
