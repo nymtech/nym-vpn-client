@@ -14,23 +14,23 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-wireguard-go:
-    strategy:
-      matrix:
-        os: [arc-runner-set, custom-runner-mac-m1]
-    uses: ./.github/workflows/build-wireguard-go.yml
-    with:
-      os: ${{ matrix.os }}
-
+  # build-wireguard-go:
+  #   strategy:
+  #     matrix:
+  #       os: [arc-runner-set, custom-runner-mac-m1]
+  #   uses: ./.github/workflows/build-wireguard-go.yml
+  #   with:
+  #     os: ${{ matrix.os }}
+  #
   check:
-    needs: build-wireguard-go
+    # needs: build-wireguard-go
     strategy:
       fail-fast: false
       matrix:
         os: [arc-runner-set, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
-    env:
-      WG_GO_LIB_PATH: ${{ github.workspace }}/lib
+    # env:
+    #   WG_GO_LIB_PATH: ${{ github.workspace }}/lib
 
     steps:
       - name: 'Cleanup working directory'
@@ -54,10 +54,10 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            nym-vpn-desktop
-            nym-vpn-lib
+        # with:
+        #   sparse-checkout: |
+        #     nym-vpn-desktop
+        #     nym-vpn-lib
 
       - name: Set env
         run: |
@@ -78,22 +78,33 @@ jobs:
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
           fi
-          wg_go_lib_name="wireguard-go_$platform_arch"
+          # wg_go_lib_name="wireguard-go_$platform_arch"
           # debug
           echo " ✓ PLATFORM_ARCH: $platform_arch"
           echo " ✓ TRIPLET: $triplet"
-          echo " ✓ WG_GO_LIB_NAME: $wg_go_lib_name"
-          echo " ✓ WG_GO_LIB_PATH: ${{ env.WG_GO_LIB_PATH }}"
+          # echo " ✓ WG_GO_LIB_NAME: $wg_go_lib_name"
+          # echo " ✓ WG_GO_LIB_PATH: ${{ env.WG_GO_LIB_PATH }}"
           # set github env
           echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
           echo "TRIPLET=$triplet" >> $GITHUB_ENV
-          echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
+          # echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
+          echo "RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
 
-      - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
-        uses: actions/download-artifact@v4
+      # - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ${{ env.WG_GO_LIB_NAME }}
+      #     path: ${{ env.WG_GO_LIB_PATH }}
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
-          name: ${{ env.WG_GO_LIB_NAME }}
-          path: ${{ env.WG_GO_LIB_PATH }}
+          components: rustfmt, clippy
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 'stable'
 
       - name: Install protoc
         uses: arduino/setup-protoc@v2
@@ -101,20 +112,14 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
+      - name: Build wireguard
+        run: ./wireguard/build-wireguard-go.sh
 
       - name: rustfmt check
         working-directory: nym-vpn-desktop/src-tauri
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo fmt --check
 
       - name: clippy check
         working-directory: nym-vpn-desktop/src-tauri
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo clippy -- -Dwarnings
 
