@@ -44,6 +44,8 @@ pub fn setup_logging() {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    tauri::async_runtime::set(tokio::runtime::Handle::current());
+
     dotenvy::dotenv().ok();
     setup_logging();
 
