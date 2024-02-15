@@ -13,7 +13,7 @@ on:
 
 jobs:
   check:
-    runs-on: custom-linux
+    # runs-on: custom-linux
     runs-on: arc-runner-set
     steps:
       - name: Checkout
