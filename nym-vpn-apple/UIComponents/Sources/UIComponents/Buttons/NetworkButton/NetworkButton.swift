@@ -25,13 +25,13 @@ public struct NetworkButton: View {
                         .textStyle(.Body.Large.primary)
                     Text(viewModel.type.subtitle)
                         .foregroundStyle(NymColor.sysOutline)
-                        .textStyle(.Body.Medium.primary)
+                        .textStyle(viewModel.isSmallScreen ? .Body.Small.primary : .Body.Medium.primary)
                 }
                 .padding(.leading, 8)
                 Spacer()
             }
         }
-        .frame(maxWidth: .infinity, minHeight: 64, maxHeight: 64)
+        .frame(height: viewModel.isSmallScreen ? 56 : 64)
         .background(NymColor.navigationBarBackground)
         .cornerRadius(8)
         .overlay(

@@ -4,15 +4,18 @@ import Tunnels
 
 public class HomeViewModel: HomeFlowState {
     private let tunnelsManager: TunnelsManager
+    private let screenSize: CGSize
 
     @Published var selectedNetwork: NetworkButtonViewModel.ButtonType
 
     public init(
+        screenSize: CGSize,
         selectedNetwork: NetworkButtonViewModel.ButtonType,
         tunnelsManager: TunnelsManager = TunnelsManager.shared
     ) {
         self.selectedNetwork = selectedNetwork
         self.tunnelsManager = tunnelsManager
+        self.screenSize = screenSize
 
         tunnelsManager.loadConfigurations()
     }
@@ -31,6 +34,14 @@ public extension HomeViewModel {
 
     func navigateToLastHopSelection() {
         path.append(HomeLink.lastHop)
+    }
+}
+
+// MARK: - Helpers -
+
+public extension HomeViewModel {
+    func isSmallScreen() -> Bool {
+        screenSize.width <= 375 && screenSize.height <= 647
     }
 }
 

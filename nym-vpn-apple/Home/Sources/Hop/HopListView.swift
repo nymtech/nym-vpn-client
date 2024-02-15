@@ -43,7 +43,8 @@ private extension HopListView {
     func navbar() -> some View {
         CustomNavBar(
             title: viewModel.type.selectHopLocalizedTitle,
-            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateHome() })
+            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateHome() }),
+            isSmallScreen: viewModel.isSmallScreen
         )
     }
 

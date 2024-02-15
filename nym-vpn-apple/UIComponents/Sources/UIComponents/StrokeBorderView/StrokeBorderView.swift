@@ -19,7 +19,7 @@ public struct StrokeBorderView<Content: View>: View {
                 .inset(by: 0.5)
         )
         .padding(0)
-        .frame(maxWidth: .infinity, minHeight: 56, maxHeight: 56)
+        .frame(height: 56)
         .cornerRadius(8)
         .overlay {
             RoundedRectangle(cornerRadius: 8)

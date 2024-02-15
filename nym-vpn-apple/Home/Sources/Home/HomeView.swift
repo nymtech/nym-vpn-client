@@ -12,7 +12,7 @@ public struct HomeView: View {
     }
 
     public var body: some View {
-        HomeFlowCoordinator(state: viewModel, content: content)
+        HomeFlowCoordinator(state: viewModel, isSmallScreen: viewModel.isSmallScreen(), content: content)
     }
 }
 
@@ -40,21 +40,18 @@ private extension HomeView {
     func navbar() -> some View {
         CustomNavBar(
             title: "NymVPN".localizedString,
-            rightButton: CustomNavBarButton(type: .settings, action: { viewModel.navigateToSettings() })
+            rightButton: CustomNavBarButton(type: .settings, action: { viewModel.navigateToSettings() }),
+            isSmallScreen: viewModel.isSmallScreen()
         )
-        Spacer()
-            .frame(height: 50)
     }
 
     @ViewBuilder
     func statusAreaSection() -> some View {
-        StatusButton(config: .disconnected)
+        StatusButton(config: .disconnected, isSmallScreen: viewModel.isSmallScreen())
         Spacer()
             .frame(height: 8)
 
-        StatusInfoView()
-        Spacer()
-            .frame(height: 24)
+        StatusInfoView(isSmallScreen: viewModel.isSmallScreen())
     }
 
     @ViewBuilder
@@ -66,21 +63,33 @@ private extension HomeView {
         }
         .padding(.horizontal, 16)
         Spacer()
-            .frame(height: 24)
+            .frame(height: viewModel.isSmallScreen() ? 16 : 24)
 
-        NetworkButton(viewModel: NetworkButtonViewModel(type: .mixnet, selectedNetwork: $viewModel.selectedNetwork))
-            .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16))
-            .onTapGesture {
-                viewModel.selectedNetwork = .mixnet
-            }
+        NetworkButton(
+            viewModel: NetworkButtonViewModel(
+                type: .mixnet,
+                selectedNetwork: $viewModel.selectedNetwork,
+                isSmallScreen: viewModel.isSmallScreen()
+            )
+        )
+        .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16))
+        .onTapGesture {
+            viewModel.selectedNetwork = .mixnet
+        }
 
-        NetworkButton(viewModel: NetworkButtonViewModel(type: .wireguard, selectedNetwork: $viewModel.selectedNetwork))
-            .padding(.horizontal, 16)
-            .onTapGesture {
-                viewModel.selectedNetwork = .wireguard
-            }
+        NetworkButton(
+            viewModel: NetworkButtonViewModel(
+                type: .wireguard,
+                selectedNetwork: $viewModel.selectedNetwork,
+                isSmallScreen: viewModel.isSmallScreen()
+            )
+        )
+        .padding(.horizontal, 16)
+        .onTapGesture {
+            viewModel.selectedNetwork = .wireguard
+        }
         Spacer()
-            .frame(height: 32)
+            .frame(height: viewModel.isSmallScreen() ? 24 : 32)
     }
 
     @ViewBuilder
@@ -111,7 +120,7 @@ private extension HomeView {
         .padding(.horizontal, 16)
 
         Spacer()
-            .frame(height: 32)
+            .frame(height: viewModel.isSmallScreen() ? 24 : 32)
     }
 
     @ViewBuilder
@@ -121,5 +130,9 @@ private extension HomeView {
             .onTapGesture {
                 viewModel.connect()
             }
+        if viewModel.isSmallScreen() {
+            Spacer()
+                .frame(height: 24)
+        }
     }
 }

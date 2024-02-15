@@ -36,11 +36,13 @@ public struct NetworkButtonViewModel {
 
     let type: ButtonType
 
+    var isSmallScreen: Bool
     @Binding var selectedNetwork: ButtonType
 
-    public init(type: ButtonType, selectedNetwork: Binding<ButtonType>) {
+    public init(type: ButtonType, selectedNetwork: Binding<ButtonType>, isSmallScreen: Bool = false) {
         self.type = type
         self._selectedNetwork = selectedNetwork
+        self.isSmallScreen = isSmallScreen
     }
 
     private var isSelected: Bool {

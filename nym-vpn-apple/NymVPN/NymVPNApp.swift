@@ -13,8 +13,10 @@ struct NymVPNApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                HomeView(viewModel: HomeViewModel(selectedNetwork: .mixnet))
+            GeometryReader { proxy in
+                NavigationStack {
+                    HomeView(viewModel: HomeViewModel(screenSize: proxy.size, selectedNetwork: .mixnet))
+                }
             }
             .environmentObject(AppSettings.shared)
             .environmentObject(TunnelsManager.shared)
