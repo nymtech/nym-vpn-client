@@ -29,12 +29,15 @@ jobs:
     with:
       os: ${{ matrix.os }}
 
+  build-wireguard-go-android:
+    uses: ./.github/workflows/build-wireguard-g-android.yml
+
   build:
-    needs: build-wireguard-go
+    needs: [build-wireguard-go, build-wireguard-go-android]
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-12, custom-runner-mac-m1]
+        os: [ubuntu-20.04, ubuntu-22.04, macos-12, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -85,7 +88,7 @@ jobs:
           if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
             platform_arch=ubuntu-22.04_x86_64
           elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
-            platform_arch=ubuntu-20.04_x86_64
+            platform_arch=aarch64-linux-android
           elif ${{ matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-13-xlarge' || matrix.os == 'macos-14' }}; then
             platform_arch=macos_aarch64
           elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
@@ -95,7 +98,11 @@ jobs:
             exit 1
           fi
           wg_go_lib_name="wireguard-go_$platform_arch"
-          artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
+          if ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
+            artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
+          else
+            artifact_dir="nym-vpn-lib_${{ steps.package-version.outputs.metadata }}_$platform_arch"
+          fi
           artifact_archive="$artifact_dir.tar.gz"
           artifact_checksum="$artifact_archive.sha256sum"
           # debug
@@ -113,6 +120,7 @@ jobs:
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        if: !contains(matrix.os, 'ubuntu-20.04')
         with:
           components: rustfmt, clippy
 
@@ -128,12 +136,24 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build
+      - name: Build native
+        if: !contains(matrix.os, 'ubuntu-20.04')
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo build --release --verbose
 
+      - name: Build Android
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        uses: actions-rs/cargo@v1
+        if: contains(matrix.os, 'ubuntu-20.04')
+        with:
+          use-cross: true
+          command: build
+          args: --target aarch64-linux-android --release -p nym-vpn-lib
+
       - name: Run tests
+        if: !contains(matrix.os, 'ubuntu-20.04')
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo test --release --verbose
@@ -141,7 +161,11 @@ jobs:
       - name: Create archive
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
+          if ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
+            cp target/aarch64-linux-android/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}
+          else
+            cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
+          fi
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
@@ -233,5 +257,5 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/*
