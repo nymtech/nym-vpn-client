@@ -43,6 +43,12 @@ extension NymTextStyle {
             }
         }
 
+        public struct Medium {
+            public static var primary: NymTextStyle {
+                NymTextStyle(nymFont: .lato(size: 12, weight: .medium), kerning: 0.5)
+            }
+        }
+
         public struct Small {
             public static var primary: NymTextStyle {
                 NymTextStyle(nymFont: .lato(size: 11, weight: .medium), kerning: 0.5)

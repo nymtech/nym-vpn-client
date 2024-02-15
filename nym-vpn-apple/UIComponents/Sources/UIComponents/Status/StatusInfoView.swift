@@ -2,22 +2,25 @@ import SwiftUI
 import Theme
 
 public struct StatusInfoView: View {
+    private let isSmallScreen: Bool
     private let timer = Timer.publish(every: 0.3, on: .main, in: .common).autoconnect()
     @State private var timeConnected = "00:00:00"
     @State private var startDate = Date.now
 
-    public init() {}
+    public init(isSmallScreen: Bool) {
+        self.isSmallScreen = isSmallScreen
+    }
 
     public var body: some View {
         // TODO: missing states
         Text("Initializing client...")
             .foregroundStyle(NymColor.statusInfoText)
-            .textStyle(.Label.Large.primary)
+            .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.primary)
         Spacer()
             .frame(height: 8)
         Text("\(timeConnected)")
             .foregroundStyle(NymColor.statusTimer)
-            .textStyle(.Label.Large.primary)
+            .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.primary)
             .onReceive(timer) { _ in
                 timeConnected = differenceBetweenDates(startDate: startDate, currentDate: Date.now)
             }

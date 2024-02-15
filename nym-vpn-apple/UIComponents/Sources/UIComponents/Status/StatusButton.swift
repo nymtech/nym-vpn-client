@@ -2,20 +2,22 @@ import SwiftUI
 import Theme
 
 public struct StatusButton: View {
-    private var config: StatusButtonConfig
+    private let config: StatusButtonConfig
+    private let isSmallScreen: Bool
 
-    public init(config: StatusButtonConfig) {
+    public init(config: StatusButtonConfig, isSmallScreen: Bool = false) {
         self.config = config
+        self.isSmallScreen = isSmallScreen
     }
 
     public var body: some View {
         HStack(alignment: .center, spacing: 10) {
             Text(config.title)
                 .foregroundStyle(config.textColor)
-                .textStyle(.Label.Huge.primary)
+                .textStyle(isSmallScreen ? .Label.Large.primary : .Label.Huge.primary)
         }
         .padding(.horizontal, 24)
-        .padding(.vertical, 16)
+        .padding(.vertical, isSmallScreen ? 8 : 16)
         .background(config.backgroundColor)
         .cornerRadius(50)
     }
