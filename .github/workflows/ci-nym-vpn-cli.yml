@@ -79,10 +79,10 @@ jobs:
     - name: Build wireguard
       run: ./wireguard/build-wireguard-go.sh
 
-    - name: Build
-      run: cargo build --verbose
-      env:
-        RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+    # - name: Build
+    #   run: cargo build --verbose
+    #   env:
+    #     RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
 
     - name: Run tests
       run: cargo test --verbose
