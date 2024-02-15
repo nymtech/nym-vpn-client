@@ -41,6 +41,10 @@ jobs:
           rm -rf ./.??* || true
           ls -la ./
 
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y git curl gcc g++ make
+        if: matrix.os == 'arc-runner-set'
+
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
         with:
