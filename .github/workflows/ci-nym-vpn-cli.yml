@@ -77,7 +77,9 @@ jobs:
       run: cargo fmt --all -- --check
 
     - name: Build wireguard
-      run: ./wireguard/build-wireguard-go.sh
+      run: |
+        go version
+        ./wireguard/build-wireguard-go.sh
 
     # - name: Build
     #   run: cargo build --verbose
