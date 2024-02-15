@@ -88,7 +88,7 @@ jobs:
           echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
           echo "TRIPLET=$triplet" >> $GITHUB_ENV
           # echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
-          echo "RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
+          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
 
       # - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
       #   uses: actions/download-artifact@v4
