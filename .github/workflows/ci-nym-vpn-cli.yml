@@ -79,6 +79,9 @@ jobs:
     - name: Build wireguard
       run: |
         go version
+        go env
+        cc -v
+        gcc -v
         ./wireguard/build-wireguard-go.sh
 
     # - name: Build

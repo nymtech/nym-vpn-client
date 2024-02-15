@@ -2,8 +2,7 @@ name: ci-cargo-deny
 on: [pull_request]
 jobs:
   cargo-deny:
-    # runs-on: ubuntu-22.04
-    runs-on: arc-runner-set
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         checks:
