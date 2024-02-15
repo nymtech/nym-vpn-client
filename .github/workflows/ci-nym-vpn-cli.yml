@@ -88,6 +88,7 @@ jobs:
 
     - name: Build wireguard
       run: |
+        ls -al
         go version
         go env
         cc -v
