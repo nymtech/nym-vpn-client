@@ -42,6 +42,13 @@ jobs:
           rm -rf ./.??* || true
           ls -la ./
 
+      - name: Install system dependencies
+        if: contains(matrix.os, 'ubuntu') || matrix.os == 'arc-runner-set'
+        run: |
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
+            protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev
+
       - name: Reconfigure git
         run: |
           git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
@@ -91,13 +98,6 @@ jobs:
           version=$(jq '.package.version' --raw-output tauri.conf.json)
           echo " ✓ App version: $version"
           echo "APP_VERSION=$version" >> $GITHUB_ENV
-
-      - name: Install system dependencies
-        if: contains(matrix.os, 'ubuntu') || matrix.os == 'arc-runner-set'
-        run: |
-          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
-            protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
-            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
