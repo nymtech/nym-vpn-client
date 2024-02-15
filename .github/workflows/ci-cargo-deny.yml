@@ -6,7 +6,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - run: |
-        sudo apt-get update && sudo apt-get install -y curl gcc
+        sudo apt-get update && sudo apt-get install -y curl gcc git
     - uses: dtolnay/rust-toolchain@stable
     - run: cargo install cargo-deny
     - run: cargo deny --all-features check licenses bans sources
