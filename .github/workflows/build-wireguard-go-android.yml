@@ -1,0 +1,32 @@
+name: build-wireguard-go-android
+
+env:
+  CARGO_TERM_COLOR: always
+
+on: [workflow_dispatch, workflow_call]
+
+jobs:
+  build:
+    runs-on: 'ubuntu-22.04'
+
+    steps:
+      - name: Checkout nym-vpn-client
+        uses: actions/checkout@v4
+        with:
+          # fetch only the root files and wireguard dir
+          sparse-checkout: |
+            wireguard
+
+      - name: Build wireguard with docker
+        uses: addnab/docker-run-action@v3
+        with:
+          image: quay.io/mullvad/mullvad-android-app-build@sha256:afa84a78b428163b4585d04259fad801df2ebf5ab079f53b3a90892afd18dd9f
+          options: --rm -v ${{ github.workspace }}:/workspace --entrypoint "/workspace/wireguard/libwg/build-android.sh" --env ANDROID_NDK_HOME="/opt/android/android-ndk-r20b"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wireguard-go_aarch64-linux-android
+          path: |
+            build/lib/aarch64-linux-android
+          retention-days: 1
