@@ -16,6 +16,7 @@ on:
         - macos-13-xlarge
         - macos-14
         - custom-runner-mac-m1
+        - arc-runner-set
 
   # reusable workflow
   workflow_call:
@@ -39,6 +40,10 @@ jobs:
           rm -rf ./* || true
           rm -rf ./.??* || true
           ls -la ./
+
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y git curl gcc g++ make
+        if: inputs.os == 'arc-runner-set'
 
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
@@ -66,7 +71,7 @@ jobs:
 
       - name: Upload artifacts (ubuntu-22.04 x86_64)
         uses: actions/upload-artifact@v4
-        if: contains(inputs.os, 'ubuntu-22.04')
+        if: contains(inputs.os, 'ubuntu-22.04') || inputs.os == 'arc-runner-set'
         with:
           name: wireguard-go_ubuntu-22.04_x86_64
           path: |
