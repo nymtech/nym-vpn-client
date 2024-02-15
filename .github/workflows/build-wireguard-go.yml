@@ -67,7 +67,7 @@ jobs:
 
       - name: Upload artifacts (ubuntu-22.04 x86_64)
         uses: actions/upload-artifact@v4
-        if: contains(inputs.os, 'ubuntu-22.04') || input.os == 'arc-runner-set'
+        if: contains(inputs.os, 'ubuntu-22.04') || inputs.os == 'arc-runner-set'
         with:
           name: wireguard-go_ubuntu-22.04_x86_64
           path: |
