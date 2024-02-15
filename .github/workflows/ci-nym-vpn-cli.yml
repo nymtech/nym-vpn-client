@@ -28,7 +28,7 @@ jobs:
 
     steps:
     - name: Install system dependencies
-      run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl
+      run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++
       # if: matrix.os == 'ubuntu-22.04'
       if: matrix.os == 'arc-runner-set'
 
