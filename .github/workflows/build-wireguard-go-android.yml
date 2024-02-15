@@ -11,17 +11,22 @@ jobs:
 
     steps:
       - name: Checkout nym-vpn-client
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # fetch only the root files and wireguard dir
           sparse-checkout: |
             wireguard
 
+      - name: Moving directories
+        run: |
+          mkdir workspace
+          mv wireguard workspace
+
       - name: Build wireguard with docker
         uses: addnab/docker-run-action@v3
         with:
           image: quay.io/mullvad/mullvad-android-app-build@sha256:afa84a78b428163b4585d04259fad801df2ebf5ab079f53b3a90892afd18dd9f
-          options: --rm -v ${{ github.workspace }}:/workspace --env ANDROID_NDK_HOME="/opt/android/android-ndk-r20b"
+          options: --rm -v ${{ github.workspace }}/workspace:/workspace --env ANDROID_NDK_HOME="/opt/android/android-ndk-r20b"
           run: /workspace/wireguard/libwg/build-android.sh
 
       - name: Upload artifacts
