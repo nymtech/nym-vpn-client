@@ -27,87 +27,95 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Install system dependencies
-      run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make
-      if: matrix.os == 'arc-runner-set'
+      - name: 'Cleanup working directory'
+        if: contains(matrix.os, 'custom')
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
 
-    # To clone sub depedencies in private repos. Can remove once they are all made public (soon)
-    - name: Reconfigure git
-      run: |
-        git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make
+        if: matrix.os == 'arc-runner-set'
 
-    - name: Support longpaths on windows
-      if: contains(matrix.os, 'windows')
-      run: git config --system core.longpaths true
+      # To clone sub depedencies in private repos. Can remove once they are all made public (soon)
+      - name: Reconfigure git
+        run: |
+          git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
 
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Support longpaths on windows
+        if: contains(matrix.os, 'windows')
+        run: git config --system core.longpaths true
 
-    - name: Install rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
-        components: rustfmt, clippy
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Set LIBRARY_PATH
-      shell: bash
-      run: |
-        if ${{ contains(matrix.os, 'ubuntu') || matrix.os == 'arc-runner-set' }}; then
-          triplet=x86_64-unknown-linux-gnu
-        elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
-          triplet=x86_64-apple-darwin
-        elif ${{ contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') }}; then
-          triplet=universal-apple-darwin
-        elif ${{ contains(matrix.os, 'windows') }}; then
-          triplet=x86_64-pc-windows-msvc
-        else
-          echo " ✗ unknown platform/arch [${{ matrix.os }}]"
-          exit 1
-        fi
-        echo "TRIPLET=$triplet" >> $GITHUB_ENV
-        echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
+      - name: Install rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
 
-    - name: Install Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: 'stable'
+      - name: Set LIBRARY_PATH
+        shell: bash
+        run: |
+          if ${{ contains(matrix.os, 'ubuntu') || matrix.os == 'arc-runner-set' }}; then
+            triplet=x86_64-unknown-linux-gnu
+          elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
+            triplet=x86_64-apple-darwin
+          elif ${{ contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') }}; then
+            triplet=universal-apple-darwin
+          elif ${{ contains(matrix.os, 'windows') }}; then
+            triplet=x86_64-pc-windows-msvc
+          else
+            echo " ✗ unknown platform/arch [${{ matrix.os }}]"
+            exit 1
+          fi
+          echo "TRIPLET=$triplet" >> $GITHUB_ENV
+          echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
 
-    - name: Install Protoc
-      uses: arduino/setup-protoc@v2
-      if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 'stable'
 
-    - name: rustfmt check
-      working-directory: nym-vpn-desktop/src-tauri
-      env:
-        RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
-      run: cargo fmt --check
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v2
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build wireguard
-      run: |
-        ls -al
-        go version
-        go env
-        cc -v
-        gcc -v
-        make -v
-        perl -v
-        ./wireguard/build-wireguard-go.sh
+      - name: rustfmt check
+        working-directory: nym-vpn-desktop/src-tauri
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: cargo fmt --check
 
-    # - name: Build
-    #   run: cargo build --verbose
-    #   env:
-    #     RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+      - name: Build wireguard
+        run: |
+          ls -al
+          go version
+          go env
+          cc -v
+          gcc -v
+          make -v
+          perl -v
+          ./wireguard/build-wireguard-go.sh
 
-    - name: Run tests
-      run: cargo test --verbose
-      env:
-        RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+      # - name: Build
+      #   run: cargo build --verbose
+      #   env:
+      #     RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
 
-    - name: Clippy
-      run: cargo clippy -- -Dwarnings
-      env:
-        RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+      - name: Run tests
+        run: cargo test --verbose
+        env:
+          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+
+      - name: Clippy
+        run: cargo clippy -- -Dwarnings
+        env:
+          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
