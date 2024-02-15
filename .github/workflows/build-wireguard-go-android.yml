@@ -7,11 +7,11 @@ on: [workflow_dispatch, workflow_call, pull_request]
 
 jobs:
   build:
-    runs-on: 'ubuntu-20.04'
+    runs-on: 'ubuntu-22.04'
 
     steps:
       - name: Checkout nym-vpn-client
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
           # fetch only the root files and wireguard dir
           sparse-checkout: |
