@@ -58,14 +58,7 @@ jobs:
           go-version: 'stable'
 
       - name: Build wireguard
-        run: |
-          go version
-          go env
-          cc -v
-          gcc -v
-          make -v
-          perl -v
-          ./wireguard/build-wireguard-go.sh
+        run: ./wireguard/build-wireguard-go.sh
 
       - name: Upload artifacts (ubuntu-20.04 x86_64)
         uses: actions/upload-artifact@v4
