@@ -71,8 +71,7 @@ jobs:
             exit 1
           fi
           echo "TRIPLET=$triplet" >> $GITHUB_ENV
-          echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
-          echo "RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
+          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
 
       - name: Install Go
         uses: actions/setup-go@v4
