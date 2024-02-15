@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { NodeHop, NodeLocation, isCountry } from '../../types';
 import { useMainState } from '../../contexts';
+import { MsIcon } from '../../ui';
 
 interface HopSelectProps {
   nodeLocation: NodeLocation;
@@ -53,16 +54,14 @@ export default function HopSelect({
       {nodeLocation === 'Fastest' && (
         <div className="flex flex-row items-center gap-3">
           <div className="w-7 flex justify-center items-center">
-            <span className="font-icon text-2xl">bolt</span>
+            <MsIcon icon="bolt" />
           </div>
           <div className="text-base">{`${t('fastest', { ns: 'common' })} (${
             fastestNodeLocation.name
           })`}</div>
         </div>
       )}
-      <span className="font-icon text-2xl pointer-events-none">
-        arrow_right
-      </span>
+      <MsIcon icon="arrow_right" style="pointer-events-none" />
     </div>
   );
 }

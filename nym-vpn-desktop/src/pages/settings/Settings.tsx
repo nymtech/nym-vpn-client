@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { routes } from '../../constants';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { CmdError, StateDispatch } from '../../types';
-import { Switch } from '../../ui';
+import { MsIcon, Switch } from '../../ui';
 import SettingsGroup from './SettingsGroup';
 
 function Settings() {
@@ -99,11 +99,7 @@ function Settings() {
             onClick: async () => {
               navigate(routes.display);
             },
-            trailing: (
-              <div className="font-icon text-2xl cursor-pointer">
-                arrow_right
-              </div>
-            ),
+            trailing: <MsIcon icon="arrow_right" />,
           },
         ]}
       />
@@ -115,11 +111,7 @@ function Settings() {
             onClick: async () => {
               navigate(routes.logs);
             },
-            trailing: (
-              <div className="font-icon text-2xl cursor-pointer">
-                arrow_right
-              </div>
-            ),
+            trailing: <MsIcon icon="arrow_right" />,
             disabled: true,
           },
         ]}
@@ -132,11 +124,7 @@ function Settings() {
             onClick: async () => {
               navigate(routes.feedback);
             },
-            trailing: (
-              <div className="font-icon text-2xl cursor-pointer">
-                arrow_right
-              </div>
-            ),
+            trailing: <MsIcon icon="arrow_right" />,
           },
           {
             title: t('support.title'),
@@ -144,11 +132,7 @@ function Settings() {
             onClick: async () => {
               navigate(routes.support);
             },
-            trailing: (
-              <div className="font-icon text-2xl cursor-pointer">
-                arrow_right
-              </div>
-            ),
+            trailing: <MsIcon icon="arrow_right" />,
           },
         ]}
       />
@@ -159,12 +143,8 @@ function Settings() {
             onClick: async () => {
               navigate(routes.legal);
             },
+            trailing: <MsIcon icon="arrow_right" />,
             disabled: true,
-            trailing: (
-              <div className="font-icon text-2xl cursor-pointer">
-                arrow_right
-              </div>
-            ),
           },
         ]}
       />
