@@ -57,7 +57,9 @@ jobs:
       run: |
         if ${{ contains(matrix.os, 'ubuntu') || matrix.os == 'arc-runner-set' }}; then
           triplet=x86_64-unknown-linux-gnu
-        elif ${{ contains(matrix.os, 'macos') }}; then
+        elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
+          triplet=x86_64-apple-darwin
+        elif ${{ contains(matrix.os, 'macos') | contains(matrix.os, 'mac-m1') }}; then
           triplet=universal-apple-darwin
         elif ${{ contains(matrix.os, 'windows') }}; then
           triplet=x86_64-pc-windows-msvc
