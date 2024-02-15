@@ -108,8 +108,6 @@ jobs:
 
       - name: rustfmt check
         working-directory: nym-vpn-desktop/src-tauri
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo fmt --check
 
       - name: clippy check
