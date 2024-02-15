@@ -536,12 +536,9 @@ pub enum NymVpnExitStatusMessage {
 /// ```
 pub fn spawn_nym_vpn(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
-
     let (vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
-
     let (vpn_exit_tx, vpn_exit_rx) = oneshot::channel();
 
-    #[cfg(target_os = "android")]
     tokio::spawn(run_nym_vpn(
         nym_vpn,
         vpn_status_tx,
@@ -549,7 +546,31 @@ pub fn spawn_nym_vpn(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
         vpn_exit_tx,
     ));
 
-    #[cfg(not(target_os = "android"))]
+    Ok(NymVpnHandle {
+        vpn_ctrl_tx,
+        vpn_status_rx,
+        vpn_exit_rx,
+    })
+}
+
+/// Starts the Nym VPN client, in a separate tokio runtime.
+///
+/// Examples
+///
+/// ```no_run
+/// use nym_vpn_lib::gateway_client::{EntryPoint, ExitPoint};
+/// use nym_vpn_lib::NodeIdentity;
+///
+/// let mut vpn_config = nym_vpn_lib::NymVpn::new(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
+/// ExitPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()).unwrap()});
+/// vpn_config.enable_two_hop = true;
+/// let vpn_handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config);
+/// ```
+pub fn spawn_nym_vpn_with_new_runtime(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
+    let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
+    let (vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
+    let (vpn_exit_tx, vpn_exit_rx) = oneshot::channel();
+
     std::thread::spawn(|| {
         let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio run time");
         rt.block_on(run_nym_vpn(
