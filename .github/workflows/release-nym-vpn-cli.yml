@@ -99,9 +99,9 @@ jobs:
           fi
           wg_go_lib_name="wireguard-go_$platform_arch"
           if ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
-            artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
-          else
             artifact_dir="nym-vpn-lib_${{ steps.package-version.outputs.metadata }}_$platform_arch"
+          else
+            artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
           fi
           artifact_archive="$artifact_dir.tar.gz"
           artifact_checksum="$artifact_archive.sha256sum"
@@ -120,7 +120,7 @@ jobs:
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
-        if: !contains(matrix.os, 'ubuntu-20.04')
+        if: ${{ !contains(matrix.os, 'ubuntu-20.04') }}
         with:
           components: rustfmt, clippy
 
@@ -137,7 +137,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build native
-        if: !contains(matrix.os, 'ubuntu-20.04')
+        if: ${{ !contains(matrix.os, 'ubuntu-20.04') }}
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo build --release --verbose
@@ -153,7 +153,7 @@ jobs:
           args: --target aarch64-linux-android --release -p nym-vpn-lib
 
       - name: Run tests
-        if: !contains(matrix.os, 'ubuntu-20.04')
+        if: ${{ !contains(matrix.os, 'ubuntu-20.04') }}
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo test --release --verbose
