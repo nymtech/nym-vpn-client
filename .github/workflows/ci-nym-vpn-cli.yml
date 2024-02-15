@@ -19,11 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # windows-2022 is incredibly slow right now https://github.com/actions/runner-images/issues/7320
-        # os: [ubuntu-22.04, macos-latest, windows-2019]
-        # os: [arc-runner-set, macos-14]
         os: [arc-runner-set, custom-runner-mac-m1]
-    continue-on-error: ${{ matrix.os == 'windows-2019' }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -95,20 +91,12 @@ jobs:
         run: cargo fmt --check
 
       - name: Build wireguard
-        run: |
-          ls -al
-          go version
-          go env
-          cc -v
-          gcc -v
-          make -v
-          perl -v
-          ./wireguard/build-wireguard-go.sh
+        run: ./wireguard/build-wireguard-go.sh
 
-      # - name: Build
-      #   run: cargo build --verbose
-      #   env:
-      #     RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+      - name: Build
+        run: cargo build --verbose
+        env:
+          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
 
       - name: Run tests
         run: cargo test --verbose
