@@ -14,23 +14,12 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # build-wireguard-go:
-  #   strategy:
-  #     matrix:
-  #       os: [arc-runner-set, custom-runner-mac-m1]
-  #   uses: ./.github/workflows/build-wireguard-go.yml
-  #   with:
-  #     os: ${{ matrix.os }}
-  #
   check:
-    # needs: build-wireguard-go
     strategy:
       fail-fast: false
       matrix:
         os: [arc-runner-set, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
-    # env:
-    #   WG_GO_LIB_PATH: ${{ github.workspace }}/lib
 
     steps:
       - name: 'Cleanup working directory'
@@ -48,16 +37,13 @@ jobs:
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
             libgtk-3-dev squashfs-tools libayatana-appindicator3-dev git curl gcc g++ make
 
+      # To clone sub depedencies in private repos. Can remove once they are all made public (soon)
       - name: Reconfigure git
         run: |
           git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
 
       - name: Checkout
         uses: actions/checkout@v4
-        # with:
-        #   sparse-checkout: |
-        #     nym-vpn-desktop
-        #     nym-vpn-lib
 
       - name: Set env
         run: |
@@ -78,23 +64,11 @@ jobs:
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
           fi
-          # wg_go_lib_name="wireguard-go_$platform_arch"
-          # debug
           echo " ✓ PLATFORM_ARCH: $platform_arch"
           echo " ✓ TRIPLET: $triplet"
-          # echo " ✓ WG_GO_LIB_NAME: $wg_go_lib_name"
-          # echo " ✓ WG_GO_LIB_PATH: ${{ env.WG_GO_LIB_PATH }}"
-          # set github env
           echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
           echo "TRIPLET=$triplet" >> $GITHUB_ENV
-          # echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
           echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
-
-      # - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: ${{ env.WG_GO_LIB_NAME }}
-      #     path: ${{ env.WG_GO_LIB_PATH }}
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
