@@ -43,7 +43,7 @@ jobs:
 
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y git curl gcc g++ make
-        if: matrix.os == 'arc-runner-set'
+        if: inputs.os == 'arc-runner-set'
 
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
@@ -58,7 +58,14 @@ jobs:
           go-version: 'stable'
 
       - name: Build wireguard
-        run: ./wireguard/build-wireguard-go.sh
+        run: |
+          go version
+          go env
+          cc -v
+          gcc -v
+          make -v
+          perl -v
+          ./wireguard/build-wireguard-go.sh
 
       - name: Upload artifacts (ubuntu-20.04 x86_64)
         uses: actions/upload-artifact@v4
