@@ -23,9 +23,13 @@
     "faq": "Check the FAQ",
     "email": "Send us and e-mail"
   },
+  "legal": {
+    "title": "Legal",
+    "policy": "Privacy policy",
+    "tos": "Terms of use"
+  },
   "faq": "FAQ",
   "display-theme": "Display theme",
   "logs": "Logs",
-  "legal": "Legal",
   "quit": "Quit NymVPN"
 }

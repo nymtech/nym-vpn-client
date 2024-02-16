@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api';
-import { exit } from '@tauri-apps/api/process';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { routes } from '../../constants';
 import { useMainDispatch, useMainState } from '../../contexts';
-import { CmdError, StateDispatch } from '../../types';
-import { MsIcon, Switch } from '../../ui';
+import { useExit } from '../../state';
+import { StateDispatch } from '../../types';
+import { MsIcon, SettingsMenuCard, Switch } from '../../ui';
 import SettingsGroup from './SettingsGroup';
 
 function Settings() {
@@ -17,6 +17,7 @@ function Settings() {
 
   const [entrySelector, setEntrySelector] = useState(state.entrySelector);
   const [autoConnect, setAutoConnect] = useState(state.autoConnect);
+  const { exit } = useExit();
 
   useEffect(() => {
     setEntrySelector(state.entrySelector);
@@ -39,26 +40,6 @@ function Settings() {
     invoke<void>('set_auto_connect', { autoConnect: isSelected }).catch((e) => {
       console.log(e);
     });
-  };
-
-  const handleQuit = async () => {
-    if (state.state === 'Connected') {
-      // TODO add a timeout to prevent the app from hanging
-      // in bad disconnect scenarios
-      dispatch({ type: 'disconnect' });
-      invoke('disconnect')
-        .then(async (result) => {
-          console.log('disconnect result');
-          console.log(result);
-          await exit(0);
-        })
-        .catch(async (e: CmdError) => {
-          console.warn(`backend error: ${e.source} - ${e.message}`);
-          await exit(1);
-        });
-    } else {
-      await exit(0);
-    }
   };
 
   return (
@@ -91,30 +72,22 @@ function Settings() {
           },
         ]}
       />
-      <SettingsGroup
-        settings={[
-          {
-            title: t('display-theme'),
-            leadingIcon: 'contrast',
-            onClick: async () => {
-              navigate(routes.display);
-            },
-            trailing: <MsIcon icon="arrow_right" />,
-          },
-        ]}
+      <SettingsMenuCard
+        title={t('display-theme')}
+        onClick={async () => {
+          navigate(routes.display);
+        }}
+        leadingIcon="contrast"
+        trailingIcon="arrow_right"
       />
-      <SettingsGroup
-        settings={[
-          {
-            title: t('logs'),
-            leadingIcon: 'sort',
-            onClick: async () => {
-              navigate(routes.logs);
-            },
-            trailing: <MsIcon icon="arrow_right" />,
-            disabled: true,
-          },
-        ]}
+      <SettingsMenuCard
+        title={t('logs')}
+        onClick={async () => {
+          navigate(routes.logs);
+        }}
+        leadingIcon="sort"
+        trailingIcon="arrow_right"
+        disabled
       />
       <SettingsGroup
         settings={[
@@ -136,26 +109,14 @@ function Settings() {
           },
         ]}
       />
-      <SettingsGroup
-        settings={[
-          {
-            title: t('legal'),
-            onClick: async () => {
-              navigate(routes.legal);
-            },
-            trailing: <MsIcon icon="arrow_right" />,
-            disabled: true,
-          },
-        ]}
+      <SettingsMenuCard
+        title={t('legal.title')}
+        onClick={async () => {
+          navigate(routes.legal);
+        }}
+        trailingIcon="arrow_right"
       />
-      <SettingsGroup
-        settings={[
-          {
-            title: t('quit'),
-            onClick: handleQuit,
-          },
-        ]}
-      />
+      <SettingsMenuCard title={t('quit')} onClick={exit} />
       <div className="flex grow flex-col justify-end text-comet text-sm tracking-tight leading-tight mb-4">
         Version {state.version}
       </div>
