@@ -1,4 +1,4 @@
-private = { ignore = true }
+# private = { ignore = true }
 
 accepted = [
     "0BSD",
@@ -6,11 +6,14 @@ accepted = [
     "BSD-2-Clause",
     "BSD-3-Clause",
     "CC0-1.0",
+    "GPL-3.0",
     "ISC",
     "MIT",
     "MPL-2.0",
-    "Unicode-DFS-2016",
+    "NOASSERTION",
     "OpenSSL",
+    "Unicode-DFS-2016",
+    "WTFPL",
 ]
 
 workarounds = [
