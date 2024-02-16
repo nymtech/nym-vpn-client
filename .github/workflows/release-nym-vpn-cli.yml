@@ -159,7 +159,7 @@ jobs:
 
       - name: Build Android
         env:
-          RUSTFLAGS: "-L ${{ env.l }}"
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         uses: actions-rs/cargo@v1
         if: contains(matrix.target, 'android')
         with:
