@@ -40,7 +40,7 @@ jobs:
         os: [ubuntu-22.04, custom-runner-mac-m1]
         target: [native]
         include:
-          - os: ubuntu-20.04
+          - os: custom-runner-mac-m1
             target: android
     runs-on: ${{ matrix.os }}
     env:
