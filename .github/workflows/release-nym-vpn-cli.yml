@@ -91,7 +91,7 @@ jobs:
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native') }}; then
             platform_arch=ubuntu-22.04_x86_64
-          elif ${{ contains(matrix.os, 'ubuntu-22.04' && contains(matrix.target, 'android')) }}; then
+          elif ${{ contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'android') }}; then
             platform_arch=aarch64-linux-android
           elif ${{ matrix.os == 'custom-runner-mac-m1' }}; then
             platform_arch=macos_universal
