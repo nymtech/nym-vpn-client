@@ -31,8 +31,8 @@ function SettingMenuCard({
     <div
       className={clsx([
         'flex flex-row justify-between items-center gap-4 select-none',
-        'bg-white dark:bg-baltic-sea-jaguar px-5 py-4 rounded-lg',
-        desc === undefined && 'py-4',
+        'bg-white dark:bg-baltic-sea-jaguar px-5 py-4 rounded-lg min-h-16',
+        desc ? 'py-2' : 'py-4',
         disabled && 'opacity-50 pointer-events-none',
         cursor === 'default' && 'cursor-default',
         cursor === 'pointer' && 'cursor-pointer',

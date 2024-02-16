@@ -97,7 +97,9 @@ function Settings() {
             onClick: async () => {
               navigate(routes.feedback);
             },
-            trailing: <MsIcon icon="arrow_right" />,
+            trailing: (
+              <MsIcon icon="arrow_right" style="dark:text-mercury-pinkish" />
+            ),
           },
           {
             title: t('support.title'),
@@ -105,7 +107,9 @@ function Settings() {
             onClick: async () => {
               navigate(routes.support);
             },
-            trailing: <MsIcon icon="arrow_right" />,
+            trailing: (
+              <MsIcon icon="arrow_right" style="dark:text-mercury-pinkish" />
+            ),
           },
         ]}
       />
