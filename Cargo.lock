@@ -4276,6 +4276,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-vpn-daemon"
+version = "0.1.0"
+
+[[package]]
 name = "nym-vpn-lib"
 version = "0.1.0"
 dependencies = [
