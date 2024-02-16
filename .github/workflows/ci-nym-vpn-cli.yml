@@ -55,7 +55,7 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - name: Set LIBRARY_PATH
+      - name: Set env
         shell: bash
         run: |
           if ${{ contains(matrix.os, 'ubuntu') || matrix.os == 'arc-runner-set' }}; then
@@ -71,7 +71,7 @@ jobs:
             exit 1
           fi
           echo "TRIPLET=$triplet" >> $GITHUB_ENV
-          echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
+          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
 
       - name: Install Go
         uses: actions/setup-go@v4
@@ -86,8 +86,6 @@ jobs:
 
       - name: rustfmt check
         working-directory: nym-vpn-desktop/src-tauri
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo fmt --check
 
       - name: Build wireguard
@@ -95,15 +93,9 @@ jobs:
 
       - name: Build
         run: cargo build --verbose
-        env:
-          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
 
       - name: Run tests
         run: cargo test --verbose
-        env:
-          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
 
       - name: Clippy
         run: cargo clippy -- -Dwarnings
-        env:
-          RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"

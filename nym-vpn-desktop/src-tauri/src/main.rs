@@ -44,6 +44,8 @@ pub fn setup_logging() {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    tauri::async_runtime::set(tokio::runtime::Handle::current());
+
     dotenvy::dotenv().ok();
     setup_logging();
 
@@ -126,6 +128,7 @@ async fn main() -> Result<()> {
             node_location::set_node_location,
             node_location::get_fastest_node_location,
             node_location::get_node_countries,
+            window::show_main_window,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
