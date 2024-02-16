@@ -27,11 +27,7 @@ jobs:
         os:
           [
             ubuntu-22.04-16-core,
-            # macos-12,
-            # macos-13,
-            # macos-13-xlarge, # ARM
-            macos-14,        # ARM
-            # custom-runner-mac-m1,
+            custom-runner-mac-m1,
           ]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
@@ -45,11 +41,7 @@ jobs:
         os:
           [
             ubuntu-22.04-16-core,
-            # macos-12,
-            # macos-13,
-            # macos-13-xlarge, # ARM
-            macos-14,        # ARM
-            # custom-runner-mac-m1,
+            custom-runner-mac-m1,
           ]
     runs-on: ${{ matrix.os }}
     env:
@@ -105,11 +97,8 @@ jobs:
             platform_arch=ubuntu-22.04_x86_64
           elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
             platform_arch=ubuntu-20.04_x86_64
-          elif ${{ matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-13-xlarge' || matrix.os == 'macos-14' }}; then
-            # platform_arch=macos_aarch64
+          elif ${{ matrix.os == 'custom-runner-mac-m1' }}; then
             platform_arch=macos_universal
-          elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
-            platform_arch=macos_x86_64
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1

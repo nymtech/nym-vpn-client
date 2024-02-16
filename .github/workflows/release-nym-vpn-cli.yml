@@ -24,7 +24,7 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-12, custom-runner-mac-m1]
+        os: [ubuntu-22.04, custom-runner-mac-m1]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04, macos-12, custom-runner-mac-m1]
+        os: [ubuntu-20.04, ubuntu-22.04, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -97,10 +97,8 @@ jobs:
             platform_arch=ubuntu-22.04_x86_64
           elif ${{ contains(env.TARGET_OS, 'android') }}; then
             platform_arch=aarch64-linux-android
-          elif ${{ env.TARGET_OS == 'custom-runner-mac-m1' || env.TARGET_OS == 'macos-13-xlarge' || env.TARGET_OS == 'macos-14' }}; then
+          elif ${{ env.TARGET_OS == 'custom-runner-mac-m1' }}; then
             platform_arch=macos_universal
-          elif ${{ env.TARGET_OS == 'macos-12' || env.TARGET_OS == 'macos-13' }}; then
-            platform_arch=macos_x86_64
           else
             echo " ✗ unknown platform/arch [${{ env.TARGET_OS }}]"
             exit 1
@@ -157,9 +155,15 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo build --release --verbose
 
-      - name: Build Android
+      - name: Build universal (macos)
+        if: ${{ contains(env.TARGET_OS, 'custom-runner-mac-m1') }}
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: cargo build --release --verbose --target x86_64-apple-darwin
+
+      - name: Build Android
+        env:
+          RUSTFLAGS: "-L ${{ env.l }}"
         uses: actions-rs/cargo@v1
         if: contains(env.TARGET_OS, 'android')
         with:
@@ -178,6 +182,8 @@ jobs:
           mkdir ${{ env.ARTIFACT_DIR }}
           if ${{ contains(env.TARGET_OS, 'android') }}; then
             cp target/aarch64-linux-android/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}
+          elif ${{ contains(env.TARGET_OS, 'custom-runner-mac-m1') }}; then
+            lipo -create -output ${{ env.ARTIFACT_DIR }}/nym-vpn-cli target/release/nym-vpn-cli target/x86_64-apple-darwin/release/nym-vpn-cli
           else
             cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
           fi
