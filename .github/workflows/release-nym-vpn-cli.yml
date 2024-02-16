@@ -43,8 +43,16 @@ jobs:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
 
     steps:
+      - name: Define targeted OS
+        run: |
+          if [[ ${{ matrix.os }} == ubuntu-20.04 ]]; then
+            echo "TARGET_OS=android" >> "$GITHUB_ENV"
+          else
+            echo "TARGET_OS=${{ matrix.os }}" >> "$GITHUB_ENV"
+          fi
+
       - name: "Cleanup working directory"
-        if: contains(matrix.os, 'custom')
+        if: contains(env.TARGET_OS, 'custom')
         run: |
           ls -la ./
           rm -rf ./* || true
@@ -63,7 +71,7 @@ jobs:
             nym-vpn-lib
 
       - name: Install system dependencies
-        if: contains(matrix.os, 'ubuntu')
+        if: contains(env.TARGET_OS, 'ubuntu')
         run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
 
       - name: Get package version
@@ -85,20 +93,20 @@ jobs:
 
       - name: Set env
         run: |
-          if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
+          if ${{ contains(env.TARGET_OS, 'ubuntu-22.04') }}; then
             platform_arch=ubuntu-22.04_x86_64
-          elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
+          elif ${{ contains(env.TARGET_OS, 'android') }}; then
             platform_arch=aarch64-linux-android
-          elif ${{ matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-13-xlarge' || matrix.os == 'macos-14' }}; then
+          elif ${{ env.TARGET_OS == 'custom-runner-mac-m1' || env.TARGET_OS == 'macos-13-xlarge' || env.TARGET_OS == 'macos-14' }}; then
             platform_arch=macos_universal
-          elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
+          elif ${{ env.TARGET_OS == 'macos-12' || env.TARGET_OS == 'macos-13' }}; then
             platform_arch=macos_x86_64
           else
-            echo " ✗ unknown platform/arch [${{ matrix.os }}]"
+            echo " ✗ unknown platform/arch [${{ env.TARGET_OS }}]"
             exit 1
           fi
           wg_go_lib_name="wireguard-go_$platform_arch"
-          if ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
+          if ${{ contains(env.TARGET_OS, 'android') }}; then
             artifact_dir="nym-vpn-lib_${{ steps.package-version.outputs.metadata }}_$platform_arch"
           else
             artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
@@ -120,13 +128,13 @@ jobs:
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
-        if: ${{ !contains(matrix.os, 'ubuntu-20.04') }}
+        if: ${{ !contains(env.TARGET_OS, 'android') }}
         with:
           components: rustfmt, clippy
 
       - name: Install cross
         uses: actions-rs/cargo@v1
-        if: contains(matrix.os, 'ubuntu-20.04')
+        if: contains(env.TARGET_OS, 'android')
         with:
           command: install
           args: cross --git https://github.com/cross-rs/cross
@@ -139,12 +147,12 @@ jobs:
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
-        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        if: contains(env.TARGET_OS, 'macos') || contains(env.TARGET_OS, 'mac-m1')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build native
-        if: ${{ !contains(matrix.os, 'ubuntu-20.04') }}
+        if: ${{ !contains(env.TARGET_OS, 'android') }}
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo build --release --verbose
@@ -153,14 +161,14 @@ jobs:
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         uses: actions-rs/cargo@v1
-        if: contains(matrix.os, 'ubuntu-20.04')
+        if: contains(env.TARGET_OS, 'android')
         with:
           use-cross: true
           command: build
           args: --target aarch64-linux-android --release -p nym-vpn-lib
 
       - name: Run tests
-        if: ${{ !contains(matrix.os, 'ubuntu-20.04') }}
+        if: ${{ !contains(env.TARGET_OS, 'android') }}
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo test --release --verbose
@@ -168,7 +176,7 @@ jobs:
       - name: Create archive
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          if ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
+          if ${{ contains(env.TARGET_OS, 'android') }}; then
             cp target/aarch64-linux-android/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}
           else
             cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
@@ -183,13 +191,13 @@ jobs:
           retention-days: 2
 
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
-        if: contains(matrix.os, 'ubuntu-22.04')
+        if: contains(env.TARGET_OS, 'ubuntu-22.04')
         run: |
           ./target/release/nym-vpn-cli --version > build-info.txt
           cat build-info.txt
 
       - name: Upload build-info (${{ env.PLATFORM_ARCH }})
-        if: contains(matrix.os, 'ubuntu-22.04')
+        if: contains(env.TARGET_OS, 'ubuntu-22.04')
         uses: actions/upload-artifact@v4
         with:
           name: build-info
