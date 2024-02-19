@@ -45,10 +45,10 @@ async fn is_shutdown_handle_set() -> bool {
 }
 
 pub async fn get_vpn_state() -> ClientState {
-    if !is_vpn_inited().await {
-        ClientState::Uninitialised
-    } else if is_shutdown_handle_set().await {
+    if is_shutdown_handle_set().await {
         ClientState::Connected
+    } else if !is_vpn_inited().await {
+        ClientState::Uninitialised
     } else {
         ClientState::Disconnected
     }
