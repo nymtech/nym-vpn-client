@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		D9264E262B3DA062004594A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D9264E252B3DA062004594A8 /* Assets.xcassets */; };
+		D9538E2E2B7E3F28002FA8B5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D9538E2D2B7E3F28002FA8B5 /* LaunchScreen.storyboard */; };
 		D954C0B92B51C1CA00C6BAAC /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */; };
 		D954C0BC2B51C1CA00C6BAAC /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D954C0BB2B51C1CA00C6BAAC /* PacketTunnelProvider.swift */; };
 		D954C0C12B51C1CA00C6BAAC /* NymMixnetTunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -47,6 +48,7 @@
 
 /* Begin PBXFileReference section */
 		D9264E252B3DA062004594A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D9538E2D2B7E3F28002FA8B5 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Resources/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NymMixnetTunnel.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D954C0BB2B51C1CA00C6BAAC /* PacketTunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelProvider.swift; sourceTree = "<group>"; };
@@ -130,6 +132,7 @@
 				D99A14792B357E9900F2728B /* NymVPNApp.swift */,
 				D9264E252B3DA062004594A8 /* Assets.xcassets */,
 				D967402C2B56CA1A001F6891 /* Resources */,
+				D9538E2D2B7E3F28002FA8B5 /* LaunchScreen.storyboard */,
 			);
 			path = NymVPN;
 			sourceTree = "<group>";
@@ -240,6 +243,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9538E2E2B7E3F28002FA8B5 /* LaunchScreen.storyboard in Resources */,
 				D9264E262B3DA062004594A8 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -487,6 +491,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -525,6 +530,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
