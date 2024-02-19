@@ -7,14 +7,29 @@
     "title": "Entry location selector",
     "desc": "Manually select your entry hop"
   },
-  "feedback": "Feedback",
-  "error-reporting": {
-    "title": "Error reporting",
-    "desc": "Help us improve NymVPN"
+  "feedback": {
+    "title": "Feedback",
+    "github": "Open a GitHub issue",
+    "send": "Send us feedback",
+    "matrix": "Join us on Matrix",
+    "discord": "Join us on Discord",
+    "error-report": {
+      "title": "Turn on error reporting",
+      "desc": "Help us improve NymVPN"
+    }
+  },
+  "support": {
+    "title": "Support",
+    "faq": "Check the FAQ",
+    "email": "Send us and e-mail"
+  },
+  "legal": {
+    "title": "Legal",
+    "policy": "Privacy policy",
+    "tos": "Terms of use"
   },
   "faq": "FAQ",
   "display-theme": "Display theme",
   "logs": "Logs",
-  "legal": "Legal",
   "quit": "Quit NymVPN"
 }

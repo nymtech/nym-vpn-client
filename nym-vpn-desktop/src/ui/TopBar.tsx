@@ -4,12 +4,13 @@ import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { routes } from '../constants';
 import { Routes } from '../types';
+import MsIcon from './MsIcon';
 
 type NavLocation = {
   title: string;
-  leftIcon?: React.ReactNode;
+  leftIcon?: string;
   handleLeftNav?: () => void;
-  rightIcon?: React.ReactNode;
+  rightIcon?: string;
   handleRightNav?: () => void;
 };
 
@@ -67,8 +68,22 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/feedback/send': {
+        title: t('feedback'),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
       '/settings/legal': {
         title: t('legal'),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
+      '/settings/support': {
+        title: t('support'),
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
@@ -105,9 +120,10 @@ export default function TopBar() {
     >
       {currentNavLocation?.leftIcon ? (
         <button className="w-6 mx-4" onClick={currentNavLocation.handleLeftNav}>
-          <span className="font-icon dark:text-laughing-jack text-2xl">
-            {currentNavLocation.leftIcon}
-          </span>
+          <MsIcon
+            icon={currentNavLocation.leftIcon}
+            style="dark:text-laughing-jack"
+          />
         </button>
       ) : (
         <div className="w-6 mx-4" />
@@ -118,9 +134,10 @@ export default function TopBar() {
           className="w-6 mx-4"
           onClick={currentNavLocation.handleRightNav}
         >
-          <span className="font-icon dark:text-laughing-jack text-2xl">
-            {currentNavLocation.rightIcon}
-          </span>
+          <MsIcon
+            icon={currentNavLocation.rightIcon}
+            style="dark:text-laughing-jack"
+          />
         </button>
       ) : (
         <div className="w-6 mx-4" />
