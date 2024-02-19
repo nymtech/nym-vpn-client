@@ -4,7 +4,7 @@ import MsIcon from './MsIcon';
 
 export type SettingMenuCardCursor = 'default' | 'pointer' | 'not-allowed';
 
-type SettingMenuCardProps = {
+export type SettingsMenuCardProps = {
   title: string;
   leadingIcon?: string;
   leadingComponent?: ReactNode;
@@ -16,7 +16,7 @@ type SettingMenuCardProps = {
   cursor?: SettingMenuCardCursor;
 };
 
-function SettingMenuCard({
+function SettingsMenuCard({
   title,
   leadingIcon,
   leadingComponent,
@@ -26,7 +26,7 @@ function SettingMenuCard({
   trailingComponent,
   disabled,
   cursor,
-}: SettingMenuCardProps) {
+}: SettingsMenuCardProps) {
   return (
     <div
       className={clsx([
@@ -67,4 +67,4 @@ function SettingMenuCard({
   );
 }
 
-export default SettingMenuCard;
+export default SettingsMenuCard;
