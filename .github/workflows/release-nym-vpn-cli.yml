@@ -152,7 +152,7 @@ jobs:
         run: cargo build --release --verbose
 
       - name: Build universal (macos)
-        if: ${{ contains(matrix.os, 'custom-runner-mac-m1') && contains(matrix.target, 'native') }}
+        if: ${{ contains(matrix.os, 'custom-runner-mac-m1') }}
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo build --release --verbose --target x86_64-apple-darwin
@@ -178,7 +178,7 @@ jobs:
           mkdir ${{ env.ARTIFACT_DIR }}
           if ${{ contains(matrix.target, 'android') }}; then
             cp target/aarch64-linux-android/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}
-          elif ${{ contains(matrix.os, 'custom-runner-mac-m1') && contains(matrix.target, 'native') }}; then
+          elif ${{ contains(matrix.os, 'custom-runner-mac-m1') }}; then
             lipo -create -output ${{ env.ARTIFACT_DIR }}/nym-vpn-cli target/release/nym-vpn-cli target/x86_64-apple-darwin/release/nym-vpn-cli
           else
             cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
