@@ -2,7 +2,7 @@ name: ci-cargo-deny
 on: [pull_request]
 jobs:
   cargo-deny:
-    runs-on: arc-runner-set
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - run: |
@@ -13,6 +13,6 @@ jobs:
           git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
       - uses: dtolnay/rust-toolchain@stable
       # The cargo-deny action uses docker which we currently can't run on
-      # arc-runner-set, so we have to build manually for now
+      # ubuntu-22.04, so we have to build manually for now
       - run: cargo install cargo-deny
       - run: cargo deny --all-features check licenses bans sources
