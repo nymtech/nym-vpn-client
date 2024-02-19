@@ -78,29 +78,9 @@ jobs:
             build/lib/x86_64-unknown-linux-gnu
           retention-days: 1
 
-      - name: Upload artifacts (macos x86_64)
-        uses: actions/upload-artifact@v4
-        if: inputs.os == 'macos-12' || inputs.os == 'macos-13'
-        with:
-          name: wireguard-go_macos_x86_64
-          path: |
-            build/lib/x86_64-apple-darwin
-          retention-days: 1
-
-      # On ARM we always build universal binaries now
-
-      # - name: Upload artifacts (macos aarch64)
-      #   uses: actions/upload-artifact@v4
-      #   if: inputs.os == 'custom-runner-mac-m1' || inputs.os == 'macos-13-xlarge' || inputs.os == 'macos-14'
-      #   with:
-      #     name: wireguard-go_macos_aarch64
-      #     path: |
-      #       build/lib/aarch64-apple-darwin
-      #     retention-days: 1
-
       - name: Upload artifacts (macos universal)
         uses: actions/upload-artifact@v4
-        if: inputs.os == 'custom-runner-mac-m1' || inputs.os == 'macos-13-xlarge' || inputs.os == 'macos-14'
+        if: inputs.os == 'custom-runner-mac-m1'
         with:
           name: wireguard-go_macos_universal
           path: |
