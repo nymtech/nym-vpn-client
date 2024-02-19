@@ -4,17 +4,25 @@
 use std::{env, sync::Arc};
 
 use anyhow::{anyhow, Context, Result};
-use tauri::api::path::{config_dir, data_dir};
+use clap::Parser;
+use tauri::{
+    api::path::{config_dir, data_dir},
+    Manager,
+};
 use tokio::{fs::try_exists, sync::Mutex};
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, trace};
 
 use commands::*;
 use states::app::AppState;
 
 use nym_vpn_lib::nym_config;
 
-use crate::fs::{config::AppConfig, data::AppData, storage::AppStorage};
+use crate::{
+    cli::Cli,
+    fs::{config::AppConfig, data::AppData, storage::AppStorage},
+};
 
+mod cli;
 mod commands;
 mod country;
 mod error;
@@ -27,6 +35,7 @@ mod vpn_client;
 const APP_DIR: &str = "nym-vpn";
 const APP_DATA_FILE: &str = "app-data.toml";
 const APP_CONFIG_FILE: &str = "config.toml";
+const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -48,6 +57,10 @@ async fn main() -> Result<()> {
 
     dotenvy::dotenv().ok();
     setup_logging();
+
+    // parse the command line arguments
+    let cli = Cli::parse();
+    trace!("cli args: {:#?}", cli);
 
     let app_data_store = {
         let mut app_data_path =
@@ -107,8 +120,23 @@ async fn main() -> Result<()> {
         .manage(Arc::new(Mutex::new(app_state)))
         .manage(Arc::new(Mutex::new(app_data_store)))
         .manage(Arc::new(app_config))
-        .setup(|_app| {
+        .manage(Arc::new(cli))
+        .setup(move |app| {
             info!("app setup");
+            let env_nosplash = env::var(ENV_APP_NOSPLASH).map(|_| true).unwrap_or(false);
+            trace!("env APP_NOSPLASH: {}", env_nosplash);
+
+            // if splash-screen is disabled, remove it and show
+            // the main window without waiting for frontend signal
+            if cli.nosplash || env_nosplash {
+                debug!("splash screen disabled, showing main window");
+                let main_win = app.get_window("main").expect("failed to get main window");
+                main_win
+                    .eval("document.getElementById('splash').remove();")
+                    .expect("failed to remove splash screen");
+
+                main_win.show().expect("failed to show main window");
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -129,6 +157,7 @@ async fn main() -> Result<()> {
             node_location::get_fastest_node_location,
             node_location::get_node_countries,
             window::show_main_window,
+            commands::cli::cli_args,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
