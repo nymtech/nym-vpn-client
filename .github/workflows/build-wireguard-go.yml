@@ -11,6 +11,10 @@ on:
         options:
         - ubuntu-20.04
         - ubuntu-22.04
+        - macos-12
+        - macos-13
+        - macos-13-xlarge
+        - macos-14
         - custom-runner-mac-m1
         - arc-runner-set
 
