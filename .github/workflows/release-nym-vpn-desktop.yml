@@ -212,9 +212,9 @@ jobs:
   publish:
     # We can't use always() since that creates an uncancellable
     # job
-    #if: github.event_name != 'workflow_dispatch' || inputs.publish == true
     #if: always() && (github.event_name != 'workflow_dispatch' || inputs.publish == true)
-    if: ${{ !cancelled() && (github.event_name != 'workflow_dispatch' || inputs.publish == true) }}
+    #if: ${{ !cancelled() && (success() || failure() || needs.build.result == 'skipped') && (github.event_name != 'workflow_dispatch' || inputs.publish == true) }}
+    if: github.event_name != 'workflow_dispatch' || inputs.publish == true
     needs: build
     runs-on: ubuntu-latest
     env:
