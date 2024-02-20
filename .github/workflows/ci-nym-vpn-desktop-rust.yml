@@ -37,11 +37,6 @@ jobs:
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
             libgtk-3-dev squashfs-tools libayatana-appindicator3-dev git curl gcc g++ make
 
-      # To clone sub depedencies in private repos. Can remove once they are all made public (soon)
-      - name: Reconfigure git
-        run: |
-          git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
-
       - name: Checkout
         uses: actions/checkout@v4
 

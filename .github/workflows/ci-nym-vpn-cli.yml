@@ -35,11 +35,6 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make
         if: matrix.os == 'ubuntu-22.04'
 
-      # To clone sub depedencies in private repos. Can remove once they are all made public (soon)
-      - name: Reconfigure git
-        run: |
-          git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
-
       - name: Support longpaths on windows
         if: contains(matrix.os, 'windows')
         run: git config --system core.longpaths true
