@@ -18,7 +18,7 @@ use states::app::AppState;
 use nym_vpn_lib::nym_config;
 
 use crate::{
-    cli::Cli,
+    cli::{print_build_info, Cli},
     fs::{config::AppConfig, data::AppData, storage::AppStorage},
 };
 
@@ -61,6 +61,11 @@ async fn main() -> Result<()> {
     // parse the command line arguments
     let cli = Cli::parse();
     trace!("cli args: {:#?}", cli);
+
+    if cli.build_info {
+        print_build_info();
+        return Ok(());
+    }
 
     let app_data_store = {
         let mut app_data_path =
