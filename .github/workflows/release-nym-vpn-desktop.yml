@@ -210,12 +210,11 @@ jobs:
           retention-days: 2
 
   publish:
-    # We need this workaround to make the publish step run even if one of the
-    # builds fail. We can't use always() since that creates an uncancellable
+    # We can't use always() since that creates an uncancellable
     # job
     #if: github.event_name != 'workflow_dispatch' || inputs.publish == true
     #if: always() && (github.event_name != 'workflow_dispatch' || inputs.publish == true)
-    if: ${{ !cancelled() && (success() || failure() || needs.build.result == 'skipped') && (github.event_name != 'workflow_dispatch' || inputs.publish == true) }}
+    if: ${{ !cancelled() && (github.event_name != 'workflow_dispatch' || inputs.publish == true) }}
     needs: build
     runs-on: ubuntu-latest
     env:
