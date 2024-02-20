@@ -136,6 +136,17 @@ cd src-tauri
 RUST_LOG=trace cargo tauri dev
 ```
 
+#### Disabling the splash-screen
+
+While developing, you might want to disable the splash-screen
+to speedup app loading time.
+Either set the `APP_NOSPLASH` env variable to `true` or pass the
+`--nosplash` flag to the app
+
+```shell
+npm run dev:app -- -- -- --nosplash
+```
+
 ## Dev in the browser
 
 For convenience and better development experience, we can run the
@@ -153,6 +164,18 @@ Browser mode requires all tauri [commands](https://tauri.app/v1/guides/features/
 When creating new tauri command, be sure to add the corresponding
 mock definition into `src/dev/tauri-cmd-mocks/` and update
 `src/dev/setup.ts` accordingly.
+
+## CLI
+
+We are using [clap](https://docs.rs/clap/latest/clap/) to handle CLI for the app.
+
+In dev mode, you can pass CLI arguments and flags with the `--` separator
+
+```shell
+npm run dev:app -- -- -- --help
+# or
+cargo tauri dev -- -- --help
+```
 
 ## Type bindings
 

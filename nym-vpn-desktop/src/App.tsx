@@ -7,6 +7,7 @@ import router from './router';
 import { sleep } from './helpers';
 import { MainStateProvider } from './state';
 import './i18n/config';
+import { Cli } from './types';
 import { ThemeSetter } from './ui';
 
 function App() {
@@ -14,7 +15,17 @@ function App() {
   dayjs.locale(i18n.language);
 
   useEffect(() => {
-    const showAppWindow = async () => {
+    const showSplashAnimation = async () => {
+      const args = await invoke<Cli>(`cli_args`);
+      // if NOSPLASH is set, skip the splash-screen animation
+      if (import.meta.env.APP_NOSPLASH || args?.nosplash) {
+        console.log('splash-screen disabled');
+        const splash = document.getElementById('splash');
+        if (splash) {
+          splash.remove();
+        }
+        return;
+      }
       // allow more time to the app window to be fully ready
       // avoiding the initial "white flash"
       await sleep(100);
@@ -29,7 +40,7 @@ function App() {
         })
         .catch((e) => console.error(e));
     };
-    showAppWindow();
+    showSplashAnimation();
   }, []);
 
   return (
