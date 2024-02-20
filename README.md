@@ -2,7 +2,11 @@
 
 VPN client that uses the [Nym mixnet](https://nymtech.net). 
 
-By default it will do 5-hops (incl entry and exit gateways).
+- 5-hops (incl entry and exit gateways), 
+- optional: 2-hop straight from entry to exit gateway.
+- optional: tunnel the connection to the entry gateway through wireguard
+
+Makes use of the fantastic [Mullvad open source libraries](https://github.com/mullvad/mullvadvpn-app/) to handle setting up local routing and wrapping wireguard-go.
 
 ```
                       ┌─►mix──┐  mix     mix
@@ -13,8 +17,6 @@ client ───► gateway ──┘  mix  │  mix  ┌─►mix ───► 
                               │       │
                          mix  └─►mix──┘  mix
 ```
-
-It can optionally do the first connection to the entry gateway using wireguard, and it uses Mullvad libraries for wrapping wireguard-go and to setup local routing rules to route all traffic to the TUN virtual network device.
 
 ## CLI client
 
