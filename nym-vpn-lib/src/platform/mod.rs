@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
-use crate::{spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage};
+use crate::{
+    spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
+    NymVpnHandle,
+};
 use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
@@ -81,7 +84,7 @@ async fn stop_and_reset_shutdown_handle() {
     *guard = None
 }
 
-async fn _async_run_vpn(vpn: NymVpn) -> crate::error::Result<()> {
+async fn _async_run_vpn(vpn: NymVpn) -> crate::error::Result<(Arc<Notify>, NymVpnHandle)> {
     let stop_handle = Arc::new(Notify::new());
     set_shutdown_handle(stop_handle.clone()).await;
 
@@ -98,6 +101,13 @@ async fn _async_run_vpn(vpn: NymVpn) -> crate::error::Result<()> {
         TaskStatus::Ready => debug!("Started Nym VPN"),
     }
 
+    Ok((stop_handle, handle))
+}
+
+async fn wait_for_shutdown(
+    stop_handle: Arc<Notify>,
+    handle: NymVpnHandle,
+) -> crate::error::Result<()> {
     // wait for notify to be set...
     stop_handle.notified().await;
     handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
@@ -125,15 +135,19 @@ pub async fn runVPN() {
     }
 
     let vpn = take_vpn().await.expect("VPN was not inited");
-
-    RUNTIME.spawn(async move {
-        _async_run_vpn(vpn)
-            .await
-            .map_err(|err| {
-                warn!("failed to run vpn: {}", err);
-            })
-            .ok();
-    });
+    match _async_run_vpn(vpn).await {
+        Err(err) => error!("Could not start the VPN: {:?}", err),
+        Ok((stop_handle, handle)) => {
+            RUNTIME.spawn(async move {
+                wait_for_shutdown(stop_handle, handle)
+                    .await
+                    .map_err(|err| {
+                        warn!("error during vpn run: {}", err);
+                    })
+                    .ok();
+            });
+        }
+    }
 }
 
 #[allow(non_snake_case)]
