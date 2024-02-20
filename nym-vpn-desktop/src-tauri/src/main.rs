@@ -62,8 +62,10 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
     trace!("cli args: {:#?}", cli);
 
+    let context = tauri::generate_context!();
+
     if cli.build_info {
-        print_build_info();
+        print_build_info(context.package_info());
         return Ok(());
     }
 
@@ -164,7 +166,7 @@ async fn main() -> Result<()> {
             window::show_main_window,
             commands::cli::cli_args,
         ])
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("error while running tauri application");
 
     Ok(())

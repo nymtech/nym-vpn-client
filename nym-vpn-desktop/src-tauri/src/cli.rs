@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use clap::Parser;
 use serde::{Deserialize, Serialize};
+use tauri::PackageInfo;
 
 pub type ManagedCli = Arc<Cli>;
 
@@ -22,33 +23,37 @@ pub struct Cli {
     pub build_info: bool,
 }
 
-pub fn print_build_info() {
+pub fn print_build_info(package_info: &PackageInfo) {
     let info = build_info();
 
     print!(
-        r"binary:        {}
-version:       {}
-target:        {}
-profile:       {}
-build date:    {}
-tauri version: {}
-rustc version: {}
-rustc channel: {}
+        r"crate name:      {}
+version:         {}
+tauri version:   {}
+package name:    {}
+package version: {}
+target:          {}
+profile:         {}
+build date:      {}
+rustc version:   {}
+rustc channel:   {}
 ",
         info.crate_info.name,
         info.crate_info.version,
+        tauri::VERSION,
+        package_info.name,
+        package_info.version,
         info.target.triple,
         info.profile,
         info.timestamp,
-        tauri::VERSION,
         info.compiler.version,
         info.compiler.channel,
     );
     if let Some(git) = info.version_control.as_ref().unwrap().git() {
         println!(
-            r"commit sha:    {}
-commit date:   {}
-git branch:    {}
+            r"commit sha:      {}
+commit date:     {}
+git branch:      {}
 ",
             git.commit_id,
             git.commit_timestamp,
