@@ -31,6 +31,7 @@ version:       {}
 target:        {}
 profile:       {}
 build date:    {}
+tauri version: {}
 rustc version: {}
 rustc channel: {}
 ",
@@ -39,6 +40,7 @@ rustc channel: {}
         info.target.triple,
         info.profile,
         info.timestamp,
+        tauri::VERSION,
         info.compiler.version,
         info.compiler.channel,
     );
