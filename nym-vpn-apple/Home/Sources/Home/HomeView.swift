@@ -63,7 +63,7 @@ private extension HomeView {
         }
         .padding(.horizontal, 16)
         Spacer()
-            .frame(height: viewModel.isSmallScreen() ? 16 : 24)
+            .frame(height: viewModel.isSmallScreen() ? 12 : 24)
 
         NetworkButton(
             viewModel: NetworkButtonViewModel(
@@ -72,7 +72,7 @@ private extension HomeView {
                 isSmallScreen: viewModel.isSmallScreen()
             )
         )
-        .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16))
+        .padding(EdgeInsets(top: 0, leading: 16, bottom: 12, trailing: 16))
         .onTapGesture {
             viewModel.selectedNetwork = .mixnet
         }
@@ -89,7 +89,7 @@ private extension HomeView {
             viewModel.selectedNetwork = .wireguard
         }
         Spacer()
-            .frame(height: viewModel.isSmallScreen() ? 24 : 32)
+            .frame(height: viewModel.isSmallScreen() ? 20 : 32)
     }
 
     @ViewBuilder
@@ -103,7 +103,7 @@ private extension HomeView {
         .padding(.horizontal, 16)
 
         Spacer()
-            .frame(height: 24)
+            .frame(height: 20)
 
         VStack {
             HopButton(hopType: .first, country: Country(name: "Germany", code: "de"))
@@ -111,7 +111,7 @@ private extension HomeView {
                     viewModel.navigateToFirstHopSelection()
                 }
             Spacer()
-                .frame(height: 24)
+                .frame(height: 20)
             HopButton(hopType: .last, country: Country(name: "Switzerland", code: "ch"))
                 .onTapGesture {
                     viewModel.navigateToLastHopSelection()
@@ -120,7 +120,7 @@ private extension HomeView {
         .padding(.horizontal, 16)
 
         Spacer()
-            .frame(height: viewModel.isSmallScreen() ? 24 : 32)
+            .frame(height: viewModel.isSmallScreen() ? 20 : 32)
     }
 
     @ViewBuilder
