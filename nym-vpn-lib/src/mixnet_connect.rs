@@ -43,7 +43,12 @@ impl SharedMixnetClient {
     }
 
     pub async fn gateway_ws_fd(&self) -> Option<RawFd> {
-        self.lock().await.as_ref().unwrap().gateway_ws_fd()
+        self.lock()
+            .await
+            .as_ref()
+            .unwrap()
+            .gateway_connection()
+            .gateway_ws_fd
     }
 
     pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
