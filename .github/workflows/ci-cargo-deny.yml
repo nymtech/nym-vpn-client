@@ -7,10 +7,6 @@ jobs:
       - uses: actions/checkout@v3
       - run: |
           sudo apt-get update && sudo apt-get install -y curl gcc git
-      # To clone sub depedencies in private repos. Can remove once they are all made public (soon)
-      - name: Reconfigure git
-        run: |
-          git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
       - uses: dtolnay/rust-toolchain@stable
       # The cargo-deny action uses docker which we currently can't run on
       # ubuntu-22.04, so we have to build manually for now
