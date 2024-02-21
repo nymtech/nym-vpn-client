@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { InputEvent } from '../../types';
+import { MsIcon } from '../../ui';
 
 interface SearchProps {
   value: string;
@@ -40,14 +41,10 @@ export default function SearchBox({
       >
         Search
       </div>
-      <span
-        className={clsx([
-          'font-icon text-2xl absolute left-7',
-          'text-baltic-sea dark:text-laughing-jack',
-        ])}
-      >
-        search
-      </span>
+      <MsIcon
+        icon="search"
+        style="absolute left-7 text-baltic-sea dark:text-laughing-jack"
+      />
     </div>
   );
 }

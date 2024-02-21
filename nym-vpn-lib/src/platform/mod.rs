@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
-use crate::{spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage};
+use crate::{
+    spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
+    NymVpnHandle,
+};
 use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
@@ -45,10 +48,10 @@ async fn is_shutdown_handle_set() -> bool {
 }
 
 pub async fn get_vpn_state() -> ClientState {
-    if !is_vpn_inited().await {
-        ClientState::Uninitialised
-    } else if is_shutdown_handle_set().await {
+    if is_shutdown_handle_set().await {
         ClientState::Connected
+    } else if !is_vpn_inited().await {
+        ClientState::Uninitialised
     } else {
         ClientState::Disconnected
     }
@@ -81,7 +84,7 @@ async fn stop_and_reset_shutdown_handle() {
     *guard = None
 }
 
-async fn _async_run_vpn(vpn: NymVpn) -> crate::error::Result<()> {
+async fn _async_run_vpn(vpn: NymVpn) -> crate::error::Result<(Arc<Notify>, NymVpnHandle)> {
     let stop_handle = Arc::new(Notify::new());
     set_shutdown_handle(stop_handle.clone()).await;
 
@@ -98,6 +101,13 @@ async fn _async_run_vpn(vpn: NymVpn) -> crate::error::Result<()> {
         TaskStatus::Ready => debug!("Started Nym VPN"),
     }
 
+    Ok((stop_handle, handle))
+}
+
+async fn wait_for_shutdown(
+    stop_handle: Arc<Notify>,
+    handle: NymVpnHandle,
+) -> crate::error::Result<()> {
     // wait for notify to be set...
     stop_handle.notified().await;
     handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
@@ -114,4 +124,37 @@ async fn _async_run_vpn(vpn: NymVpn) -> crate::error::Result<()> {
     }
 
     Ok(())
+}
+
+#[allow(non_snake_case)]
+pub async fn runVPN() {
+    let state = get_vpn_state().await;
+    if state != ClientState::Disconnected {
+        warn!("Invalid vpn state: {:?}", state);
+        return;
+    }
+
+    let vpn = take_vpn().await.expect("VPN was not inited");
+    match _async_run_vpn(vpn).await {
+        Err(err) => error!("Could not start the VPN: {:?}", err),
+        Ok((stop_handle, handle)) => {
+            RUNTIME.spawn(async move {
+                wait_for_shutdown(stop_handle, handle)
+                    .await
+                    .map_err(|err| {
+                        warn!("error during vpn run: {}", err);
+                    })
+                    .ok();
+            });
+        }
+    }
+}
+
+#[allow(non_snake_case)]
+pub async fn stopVPN() {
+    if get_vpn_state().await != ClientState::Connected {
+        warn!("could not stop the vpn as it's not running");
+        return;
+    }
+    stop_and_reset_shutdown_handle().await;
 }

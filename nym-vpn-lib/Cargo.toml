@@ -34,12 +34,12 @@ uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "f5fc9d7e9aa08889
 tun2 = { version = "1.0.1", features = ["async"] }
 url = "2.4"
 
-talpid-core = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fde37701018191d16bc66c37616588aa120b9549" }
-talpid-platform-metadata = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fde37701018191d16bc66c37616588aa120b9549" }
-talpid-routing = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fde37701018191d16bc66c37616588aa120b9549" }
-talpid-tunnel = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fde37701018191d16bc66c37616588aa120b9549" }
-talpid-types = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fde37701018191d16bc66c37616588aa120b9549" }
-talpid-wireguard = { git = "ssh://git@github.com/nymtech/nym-vpn-mullvad-libs.git", rev = "fde37701018191d16bc66c37616588aa120b9549" }
+talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
+talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
+talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
+talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
+talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
+talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
 
 nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "697327a53ec75c8099557ee5d3c9ff303cd7bce8" }
 nym-client-core = { git = "https://github.com/nymtech/nym", rev = "697327a53ec75c8099557ee5d3c9ff303cd7bce8" }
@@ -58,6 +58,9 @@ err-derive = "0.3.1"
 jnix = { version = "=0.5.0", features = ["derive"] }
 nix = "0.23"
 rand = "0.8.5"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+oslog = "0.2.0"
 
 [build-dependencies]
 uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "f5fc9d7e9aa08889aedc45dd81ae9b4d3ec4cbe8", features = ["build"] }

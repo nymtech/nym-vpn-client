@@ -48,8 +48,12 @@ directory, full path is platform specific:
 For example on Linux the full path would be
 `~/.config/nym-vpn/config.toml`.
 
+**NOTE** All properties are optional
+
 ```toml
+# absolute path to a network configuration file
 env_config_file = "/home/<USER>/.config/nym-vpn/sandbox.env"
+# 2-letter country code for the default entry and exit node location
 default_entry_node_location_code = "FR"
 default_exit_node_location_code = "DE"
 ```
@@ -59,11 +63,6 @@ file, pick the relevant one
 [here](https://github.com/nymtech/nym/tree/develop/envs).
 
 **NOTE** The sandbox config will be used by default if no config is provided.
-
-`default_entry_node_location_code` and `default_exit_node_location_code` are the
-default country codes for the entry and exit nodes respectively.
-Available location codes can be found
-[here](nym-vpn-desktop/src-tauri/src/country.rs).
 
 ## Dev
 
@@ -79,6 +78,7 @@ Then you need to provide the lib path to the rust library search
 path. Create the file `.cargo/config.toml` from repo root
 
 ```config.toml
+[build]
 rustflags = ['-L', '/<ABSOLUTE_PATH_TO>/nym-vpn-client/build/lib/<PLATFORM_ARCH>']
 ```
 
@@ -136,6 +136,17 @@ cd src-tauri
 RUST_LOG=trace cargo tauri dev
 ```
 
+#### Disabling the splash-screen
+
+While developing, you might want to disable the splash-screen
+to speedup app loading time.
+Either set the `APP_NOSPLASH` env variable to `true` or pass the
+`--nosplash` flag to the app
+
+```shell
+npm run dev:app -- -- -- --nosplash
+```
+
 ## Dev in the browser
 
 For convenience and better development experience, we can run the
@@ -153,6 +164,18 @@ Browser mode requires all tauri [commands](https://tauri.app/v1/guides/features/
 When creating new tauri command, be sure to add the corresponding
 mock definition into `src/dev/tauri-cmd-mocks/` and update
 `src/dev/setup.ts` accordingly.
+
+## CLI
+
+We are using [clap](https://docs.rs/clap/latest/clap/) to handle CLI for the app.
+
+In dev mode, you can pass CLI arguments and flags with the `--` separator
+
+```shell
+npm run dev:app -- -- -- --help
+# or
+cargo tauri dev -- -- --help
+```
 
 ## Type bindings
 

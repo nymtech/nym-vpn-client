@@ -24,17 +24,24 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-12, custom-runner-mac-m1]
+        os: [ubuntu-22.04, custom-runner-mac-m1]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
 
+  build-wireguard-go-android:
+    uses: ./.github/workflows/build-wireguard-go-android.yml
+
   build:
-    needs: build-wireguard-go
+    needs: [build-wireguard-go, build-wireguard-go-android]
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-12, custom-runner-mac-m1]
+        os: [ubuntu-22.04, custom-runner-mac-m1]
+        target: [native]
+        include:
+          - os: ubuntu-20.04
+            target: android
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -47,10 +54,6 @@ jobs:
           rm -rf ./* || true
           rm -rf ./.??* || true
           ls -la ./
-
-      - name: Reconfigure git
-        run: |
-          git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
 
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -82,20 +85,22 @@ jobs:
 
       - name: Set env
         run: |
-          if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
+          if ${{ contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native') }}; then
             platform_arch=ubuntu-22.04_x86_64
-          elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
-            platform_arch=ubuntu-20.04_x86_64
-          elif ${{ matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-13-xlarge' || matrix.os == 'macos-14' }}; then
-            platform_arch=macos_aarch64
-          elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
-            platform_arch=macos_x86_64
+          elif ${{ contains(matrix.target, 'android') }}; then
+            platform_arch=aarch64-linux-android
+          elif ${{ matrix.os == 'custom-runner-mac-m1' }}; then
+            platform_arch=macos_universal
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
           fi
           wg_go_lib_name="wireguard-go_$platform_arch"
-          artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
+          if ${{ contains(matrix.target, 'android') }}; then
+            artifact_dir="nym-vpn-lib_${{ steps.package-version.outputs.metadata }}_$platform_arch"
+          else
+            artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
+          fi
           artifact_archive="$artifact_dir.tar.gz"
           artifact_checksum="$artifact_archive.sha256sum"
           # debug
@@ -113,8 +118,16 @@ jobs:
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        if: ${{ contains(matrix.target, 'native') }}
         with:
           components: rustfmt, clippy
+
+      - name: Install cross
+        uses: actions-rs/cargo@v1
+        if: contains(matrix.target, 'android')
+        with:
+          command: install
+          args: cross --git https://github.com/cross-rs/cross
 
       - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/download-artifact@v4
@@ -128,12 +141,30 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build
+      - name: Build native
+        if: ${{ contains(matrix.target, 'native') }}
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo build --release --verbose
 
+      - name: Build universal (macos)
+        if: ${{ contains(matrix.os, 'custom-runner-mac-m1') }}
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: cargo build --release --verbose --target x86_64-apple-darwin
+
+      - name: Build Android
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        uses: actions-rs/cargo@v1
+        if: contains(matrix.target, 'android')
+        with:
+          use-cross: true
+          command: build
+          args: --target aarch64-linux-android --release -p nym-vpn-lib
+
       - name: Run tests
+        if: ${{ contains(matrix.os, 'native') }}
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo test --release --verbose
@@ -141,7 +172,13 @@ jobs:
       - name: Create archive
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
+          if ${{ contains(matrix.target, 'android') }}; then
+            cp target/aarch64-linux-android/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}
+          elif ${{ contains(matrix.os, 'custom-runner-mac-m1') }}; then
+            lipo -create -output ${{ env.ARTIFACT_DIR }}/nym-vpn-cli target/release/nym-vpn-cli target/x86_64-apple-darwin/release/nym-vpn-cli
+          else
+            cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
+          fi
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
@@ -152,13 +189,13 @@ jobs:
           retention-days: 2
 
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
-        if: contains(matrix.os, 'ubuntu-22.04')
+        if: ${{ contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native') }}
         run: |
           ./target/release/nym-vpn-cli --version > build-info.txt
           cat build-info.txt
 
       - name: Upload build-info (${{ env.PLATFORM_ARCH }})
-        if: contains(matrix.os, 'ubuntu-22.04')
+        if: ${{ contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native') }}
         uses: actions/upload-artifact@v4
         with:
           name: build-info
@@ -233,5 +270,5 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-cli_*.tar.gz/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/*

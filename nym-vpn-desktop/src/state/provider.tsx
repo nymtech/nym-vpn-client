@@ -1,18 +1,10 @@
-import React, { useEffect, useReducer } from 'react';
 import { invoke } from '@tauri-apps/api';
-import { getVersion } from '@tauri-apps/api/app';
+import React, { useEffect, useReducer } from 'react';
 import { MainDispatchContext, MainStateContext } from '../contexts';
-import {
-  AppDataFromBackend,
-  CmdError,
-  ConnectionState,
-  Country,
-  NodeLocationBackend,
-  UiTheme,
-} from '../types';
-import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
+import { sleep } from '../helpers';
+import { Cli } from '../types';
+import init from './init';
 import { initialState, reducer } from './main';
-import { useSystemTheme } from './useSystemTheme';
 import { useTauriEvents } from './useTauriEvents';
 
 type Props = {
@@ -22,160 +14,33 @@ type Props = {
 export function MainStateProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const { theme: systemTheme } = useSystemTheme();
   useTauriEvents(dispatch);
 
-  // initialize connection state
+  // initialize app state
   useEffect(() => {
-    const getInitialConnectionState = async () => {
-      return await invoke<ConnectionState>('get_connection_state');
-    };
-
-    // initialize session start time
-    const getSessionStartTime = async () => {
-      return await invoke<number | undefined>('get_connection_start_time');
-    };
-
-    // init country list
-    const getCountries = async () => {
-      return await invoke<Country[]>('get_node_countries');
-    };
-
-    // init node locations
-    const getNodeLocations = async () => {
-      const entryNode = await invoke<NodeLocationBackend>('get_node_location', {
-        nodeType: 'Entry',
-      });
-      const exitNode = await invoke<NodeLocationBackend>('get_node_location', {
-        nodeType: 'Exit',
-      });
-      return { entryNode, exitNode };
-    };
-
-    // init fastest node location
-    const getFastestNodeLocation = async () => {
-      return await invoke<Country>('get_fastest_node_location');
-    };
-
-    getVersion()
-      .then((version) =>
-        dispatch({
-          type: 'set-version',
-          version,
-        }),
-      )
-      .catch((e) => {
-        console.warn(`command [set-version] returned an error: ${e}`);
-      });
-
-    getInitialConnectionState()
-      .then((state) => dispatch({ type: 'change-connection-state', state }))
-      .catch((e: CmdError) => {
-        console.warn(
-          `command [get_connection_state] returned an error: ${e.source} - ${e.message}`,
-        );
-      });
-
-    getSessionStartTime()
-      .then((startTime) =>
-        dispatch({ type: 'set-connection-start-time', startTime }),
-      )
-      .catch((e: CmdError) => {
-        console.warn(
-          `command [get_connection_start_time] returned an error: ${e.source} - ${e.message}`,
-        );
-      });
-
-    getCountries()
-      .then((countries) => {
-        dispatch({
-          type: 'set-country-list',
-          countries,
-        });
-      })
-      .catch((e: CmdError) => {
-        console.warn(
-          `command [get_node_countries] returned an error: ${e.source} - ${e.message}`,
-        );
-      });
-
-    getFastestNodeLocation()
-      .then((country) => {
-        dispatch({ type: 'set-fastest-node-location', country });
-      })
-      .catch((e: CmdError) => {
-        console.warn(
-          `command [get_fastest_node_location] returned an error: ${e.source} - ${e.message}`,
-        );
-      });
-
-    getNodeLocations()
-      .then(({ entryNode, exitNode }) => {
-        dispatch({
-          type: 'set-node-location',
-          payload: {
-            hop: 'entry',
-            location: entryNode === 'Fastest' ? 'Fastest' : entryNode.Country,
-          },
-        });
-        dispatch({
-          type: 'set-node-location',
-          payload: {
-            hop: 'exit',
-            location: exitNode === 'Fastest' ? 'Fastest' : exitNode.Country,
-          },
-        });
-      })
-      .catch((e: CmdError) => {
-        console.warn(
-          `command [get_node_location] returned an error: ${e.source} - ${e.message}`,
-        );
-      });
+    init(dispatch).then(async () => {
+      dispatch({ type: 'init-done' });
+      const args = await invoke<Cli>(`cli_args`);
+      // skip the animation if NOSPLASH is set
+      if (import.meta.env.APP_NOSPLASH || args?.nosplash) {
+        return;
+      }
+      // wait for the splash screen to be visible for a short time as
+      // init phase is very fast, avoiding flashing the splash screen
+      // note: the real duration of splashscreen is this value minus the one
+      // declared in `App.tsx`, that is 500 - 100 → 400ms
+      await sleep(500);
+      const splash = document.getElementById('splash');
+      if (splash) {
+        // starts the fade out animation
+        splash.style.opacity = '0';
+        // fade out animation duration is set to 150ms, so we wait 300ms
+        // to ensure it's done before removing the splash screen
+        await sleep(300);
+        splash.remove();
+      }
+    });
   }, []);
-
-  // get saved on disk app data and restore state from it
-  useEffect(() => {
-    const getAppData = async () => {
-      return await invoke<AppDataFromBackend>('get_app_data');
-    };
-
-    getAppData()
-      .then((data) => {
-        console.log('app data read from disk:');
-        console.log(data);
-
-        if (data.ui_root_font_size) {
-          document.documentElement.style.fontSize = `${data.ui_root_font_size}px`;
-        }
-
-        let uiTheme: UiTheme = 'Light';
-        if (data.ui_theme === 'System') {
-          uiTheme = systemTheme;
-        } else {
-          // if no theme has been saved, fallback to system theme
-          uiTheme = data.ui_theme || systemTheme;
-        }
-
-        const partialState: Partial<typeof initialState> = {
-          entrySelector: data.entry_location_selector || false,
-          uiTheme,
-          themeMode: data.ui_theme || DefaultThemeMode,
-          vpnMode: data.vpn_mode || 'TwoHop',
-          autoConnect: data.autoconnect || false,
-          monitoring: data.monitoring || false,
-          rootFontSize: data.ui_root_font_size || DefaultRootFontSize,
-        };
-        dispatch({
-          type: 'set-partial-state',
-          partialState,
-        });
-      })
-      .catch((e: CmdError) => {
-        console.warn(
-          `command [get_app_data] returned an error: ${e.source} - ${e.message}`,
-        );
-      });
-  }, [systemTheme]);
 
   return (
     <MainStateContext.Provider value={state}>

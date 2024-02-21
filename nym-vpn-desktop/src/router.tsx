@@ -9,6 +9,7 @@ import {
   NodeLocation,
   Settings,
   SettingsLayout,
+  Support,
 } from './pages';
 import { routes } from './constants';
 
@@ -40,6 +41,19 @@ const router = createBrowserRouter([
           {
             path: routes.feedback,
             element: <Feedback />,
+            errorElement: <Error />,
+            children: [
+              {
+                path: routes.feedbackSend,
+                // To be implemented
+                element: <div />,
+                errorElement: <Error />,
+              },
+            ],
+          },
+          {
+            path: routes.support,
+            element: <Support />,
             errorElement: <Error />,
           },
           {

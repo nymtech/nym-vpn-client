@@ -20,7 +20,7 @@ export function mockTauriIPC() {
         setTimeout(async () => {
           await emit(ConnectionEvent, { state: 'Connected' });
           resolve('Connected');
-        }, 2000),
+        }, 1),
       );
     }
     if (cmd === 'disconnect') {
@@ -29,13 +29,11 @@ export function mockTauriIPC() {
         setTimeout(async () => {
           await emit(ConnectionEvent, { state: 'Disconnected' });
           resolve('Disconnected');
-        }, 2000),
+        }, 1),
       );
     }
     if (cmd === 'get_connection_state') {
-      return new Promise<ConnectionState>((resolve) =>
-        setTimeout(() => resolve('Disconnected'), 2000),
-      );
+      return 'Disconnected';
     }
 
     if (cmd === 'get_node_countries') {

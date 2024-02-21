@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
+import { MsIcon } from '../../ui';
 import { UiCountry } from './NodeLocation';
 
 interface CountryListProps {
@@ -51,9 +52,7 @@ export default function CountryList({
               {uiCountry.isFastest && (
                 <div className="flex flex-row items-center m-1 gap-3 p-1 cursor-pointer">
                   <div className="w-7 max-h-6 flex justify-center items-center">
-                    <span className="font-icon text-2xl cursor-pointer">
-                      bolt
-                    </span>
+                    <MsIcon icon="bolt" />
                   </div>
                   <div className="cursor-pointer text-base">{`${t('fastest', {
                     ns: 'common',

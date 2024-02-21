@@ -24,7 +24,7 @@ function SettingsGroup({ settings }: Props) {
           value={setting.title}
           onClick={setting.onClick}
           className={clsx([
-            'bg-white dark:bg-baltic-sea-jaguar relative flex px-5 py-2 focus:outline-none',
+            'bg-white dark:bg-baltic-sea-jaguar relative flex px-5 py-2 focus:outline-none min-h-16',
             index === 0 && 'rounded-t-lg',
             index === settings.length - 1 &&
               settings.length === 2 &&
@@ -33,7 +33,7 @@ function SettingsGroup({ settings }: Props) {
               index !== settings.length - 1 &&
               'border-y border-mercury-pinkish dark:border-gun-powder',
             index === settings.length - 1 && 'rounded-b-lg',
-            setting.desc === undefined && 'py-4',
+            setting.desc ? 'py-2' : 'py-4',
             setting.disabled && 'opacity-50 pointer-events-none',
           ])}
         >
@@ -62,9 +62,7 @@ function SettingsGroup({ settings }: Props) {
                 </RadioGroup.Description>
               </div>
             </div>
-            <div className="select-none dark:text-mercury-pinkish">
-              {setting.trailing}
-            </div>
+            {setting.trailing}
           </div>
         </RadioGroup.Option>
       ))}
