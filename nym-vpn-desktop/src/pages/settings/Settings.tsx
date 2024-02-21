@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { routes } from '../../constants';
+import { routes } from '../../router';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
-import { MsIcon, SettingsMenuCard, Switch } from '../../ui';
+import { Button, MsIcon, SettingsMenuCard, Switch } from '../../ui';
 import SettingsGroup from './SettingsGroup';
 
 function Settings() {
@@ -44,6 +44,11 @@ function Settings() {
 
   return (
     <div className="h-full flex flex-col mt-2 gap-6">
+      {import.meta.env.APP_LOGIN_ENABLED && (
+        <Button onClick={async () => navigate('/login')}>
+          {t('login-button')}
+        </Button>
+      )}
       <SettingsGroup
         settings={[
           {
