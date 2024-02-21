@@ -51,16 +51,25 @@ function ConnectionStatus() {
         return t('status.unknown');
     }
   };
+
   return (
     <div className="h-full min-h-52 flex flex-col justify-center items-center gap-y-2">
       <div className="flex flex-1 items-end select-none hover:cursor-default">
         <div
           className={clsx([
+            'flex justify-center items-center tracking-normal gap-4',
             ...statusBadgeDynStyles[state.state],
             'text-lg font-bold py-3 px-6 rounded-full tracking-normal',
           ])}
         >
           {getStatusText(state.state)}
+          {(state.state === 'Connecting' ||
+            state.state === 'Disconnecting') && (
+            <div className="relative flex h-3 w-3">
+              <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cornflower opacity-75" />
+              <div className="relative inline-flex dot h-3 w-3 bg-cornflower" />
+            </div>
+          )}
         </div>
       </div>
       <div className="w-full flex flex-col flex-1 items-center overflow-hidden">

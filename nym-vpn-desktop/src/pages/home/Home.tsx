@@ -104,7 +104,7 @@ function Home() {
               'bg-melon text-white dark:text-baltic-sea',
             (state === 'Connected' || state === 'Disconnecting') &&
               'bg-cornflower text-white dark:text-baltic-sea',
-            loading && 'cursor-progress',
+            loading && 'cursor-default',
           ])}
           onClick={handleClick}
           disabled={loading}

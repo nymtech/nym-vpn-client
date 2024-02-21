@@ -44,7 +44,7 @@ function Settings() {
 
   return (
     <div className="h-full flex flex-col mt-2 gap-6">
-      {import.meta.env.APP_LOGIN_ENABLED && (
+      {import.meta.env.APP_LOGIN_ENABLED === 'true' && (
         <Button onClick={async () => navigate('/login')}>
           {t('login-button')}
         </Button>
