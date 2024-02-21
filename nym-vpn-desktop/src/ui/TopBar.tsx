@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { AppName } from '../constants.ts';
+import { AppName } from '../constants';
 import { routes } from '../router';
 import { Routes } from '../types';
 import MsIcon from './MsIcon';
