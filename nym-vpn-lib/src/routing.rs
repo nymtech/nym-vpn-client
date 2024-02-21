@@ -2,15 +2,18 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use default_net::Interface;
+use std::fmt::{Display, Formatter};
 use std::net::{Ipv4Addr, Ipv6Addr};
+#[cfg(target_os = "android")]
+use std::os::fd::{AsRawFd, RawFd};
+#[cfg(target_os = "android")]
 use std::sync::{Arc, Mutex};
 use std::{collections::HashSet, net::IpAddr};
 
 use default_net::interface::get_default_interface;
 use ipnetwork::IpNetwork;
-#[cfg(target_os = "android")]
-use std::os::fd::AsRawFd;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
+#[cfg(target_os = "android")]
 use talpid_tunnel::tun_provider::TunProvider;
 use tap::TapFallible;
 use tracing::{debug, error, info, trace};
@@ -18,31 +21,54 @@ use tun2::AbstractDevice;
 
 use crate::config::WireguardConfig;
 use crate::error::Result;
+use crate::NymVpn;
 
 const DEFAULT_TUN_MTU: usize = 1500;
 
-#[derive(Debug)]
 pub struct RoutingConfig {
-    mixnet_tun_config: tun2::Configuration,
+    pub(crate) mixnet_tun_config: tun2::Configuration,
     // In case we need it, as it's not read-accessible in the tun2 config
-    tun_ip: IpAddr,
-    entry_mixnet_gateway_ip: IpAddr,
-    lan_gateway_ip: LanGatewayIp,
-    tunnel_gateway_ip: TunnelGatewayIp,
+    pub(crate) tun_ip: IpAddr,
+    pub(crate) entry_mixnet_gateway_ip: IpAddr,
+    pub(crate) lan_gateway_ip: LanGatewayIp,
+    pub(crate) tunnel_gateway_ip: TunnelGatewayIp,
+    pub(crate) enable_wireguard: bool,
+    pub(crate) disable_routing: bool,
+    #[cfg(target_os = "android")]
+    pub(crate) gateway_ws_fd: Option<RawFd>,
+    #[cfg(target_os = "android")]
+    pub(crate) tun_provider: Arc<Mutex<TunProvider>>,
+}
+
+impl Display for RoutingConfig {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "mixnet_tun_config: {:?}\ntun_ip: {:?}\nentry_mixnet_gateway_ip: {:?}\nlan_gateway_ip: {:?}\ntunnel_gateway_ip: {:?}\nenable_wireguard: {:?}\ndisable_routing: {:?}",
+            self.mixnet_tun_config,
+            self.tun_ip,
+            self.entry_mixnet_gateway_ip,
+            self.lan_gateway_ip,
+            self.tunnel_gateway_ip,
+            self.enable_wireguard,
+            self.disable_routing
+        )
+    }
 }
 
 impl RoutingConfig {
     pub fn new(
+        vpn: &NymVpn,
         tun_ip: IpAddr,
         entry_mixnet_gateway_ip: IpAddr,
         lan_gateway_ip: LanGatewayIp,
         tunnel_gateway_ip: TunnelGatewayIp,
-        mtu: Option<usize>,
+        #[cfg(target_os = "android")] gateway_ws_fd: Option<RawFd>,
     ) -> Self {
         debug!("TUN device IP: {}", tun_ip);
         let mut mixnet_tun_config = tun2::Configuration::default();
         mixnet_tun_config.address(tun_ip);
-        mixnet_tun_config.mtu(mtu.unwrap_or(DEFAULT_TUN_MTU));
+        mixnet_tun_config.mtu(vpn.nym_mtu.unwrap_or(DEFAULT_TUN_MTU));
         mixnet_tun_config.up();
 
         Self {
@@ -51,6 +77,12 @@ impl RoutingConfig {
             entry_mixnet_gateway_ip,
             lan_gateway_ip,
             tunnel_gateway_ip,
+            enable_wireguard: vpn.enable_wireguard,
+            disable_routing: vpn.disable_routing,
+            #[cfg(target_os = "android")]
+            gateway_ws_fd,
+            #[cfg(target_os = "android")]
+            tun_provider: vpn.tun_provider.clone(),
         }
     }
 
@@ -153,11 +185,8 @@ fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
 }
 
 pub async fn setup_routing(
-    _tun_provider: Arc<Mutex<TunProvider>>,
     route_manager: &mut RouteManager,
     config: RoutingConfig,
-    enable_wireguard: bool,
-    disable_routing: bool,
 ) -> Result<tun2::AsyncDevice> {
     info!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
@@ -165,12 +194,20 @@ pub async fn setup_routing(
     let mixnet_tun_config = {
         let mut tun_config = talpid_tunnel::tun_provider::TunConfig::default();
         tun_config.addresses = vec![config.tun_ip()];
-        let fd = _tun_provider
-            .lock()
-            .expect("access should not be passed to mullvad yet")
-            .get_tun(tun_config)?
-            .as_raw_fd();
-        info!("Created android tun device");
+        let fd = {
+            let mut tun_provider = config
+                .tun_provider
+                .lock()
+                .expect("access should not be passed to mullvad yet");
+
+            let fd = tun_provider.get_tun(tun_config)?.as_raw_fd();
+            if !config.enable_wireguard {
+                if let Some(raw_fd) = config.gateway_ws_fd {
+                    tun_provider.bypass(raw_fd)?;
+                }
+            }
+            fd
+        };
         let mut mixnet_tun_config = mixnet_tun_config.clone();
         mixnet_tun_config.raw_fd(fd);
         mixnet_tun_config
@@ -213,7 +250,7 @@ pub async fn setup_routing(
         .args([&device_name, "inet6", "add", "fda7:576d:ac1a::1/48"])
         .output()?;
 
-    if disable_routing {
+    if config.disable_routing {
         info!("Routing is disabled, skipping adding routes");
         return Ok(dev);
     }
@@ -234,7 +271,7 @@ pub async fn setup_routing(
 
     // If wireguard is not enabled, and we are not tunneling the connection to the gateway through
     // it, we need to add an exception route for the gateway to the routing table.
-    if !enable_wireguard || cfg!(target_os = "linux") {
+    if !config.enable_wireguard || cfg!(target_os = "linux") {
         let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
         let default_node = if let Some(gateway) = config.lan_gateway_ip.0.gateway {
             Node::new(gateway.ip_addr, config.lan_gateway_ip.0.name)

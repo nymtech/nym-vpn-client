@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_config::defaults::NymNetworkDetails;
+use std::os::fd::RawFd;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::{
@@ -39,6 +40,15 @@ impl SharedMixnetClient {
 
     pub async fn nym_address(&self) -> Recipient {
         *self.lock().await.as_ref().unwrap().nym_address()
+    }
+
+    pub async fn gateway_ws_fd(&self) -> Option<RawFd> {
+        self.lock()
+            .await
+            .as_ref()
+            .unwrap()
+            .gateway_connection()
+            .gateway_ws_fd
     }
 
     pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {

@@ -194,21 +194,16 @@ impl NymVpn {
 
         info!("Setting up routing");
         let routing_config = routing::RoutingConfig::new(
+            self,
             ip,
             entry_mixnet_gateway_ip,
             default_lan_gateway_ip,
             tunnel_gateway_ip,
-            self.nym_mtu,
+            #[cfg(target_os = "android")]
+            mixnet_client.gateway_ws_fd().await,
         );
-        debug!("Routing config: {:#?}", routing_config);
-        let mixnet_tun_dev = routing::setup_routing(
-            self.tun_provider.clone(),
-            route_manager,
-            routing_config,
-            self.enable_wireguard,
-            self.disable_routing,
-        )
-        .await?;
+        debug!("Routing config: {}", routing_config);
+        let mixnet_tun_dev = routing::setup_routing(route_manager, routing_config).await?;
 
         info!("Setting up mixnet processor");
         let processor_config = mixnet_processor::Config::new(*exit_router);
