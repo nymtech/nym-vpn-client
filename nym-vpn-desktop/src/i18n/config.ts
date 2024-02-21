@@ -6,6 +6,7 @@ import settings from './en/settings.json';
 import nodeLocation from './en/node-location.json';
 import backendMessages from './en/backend-messages.json';
 import display from './en/display.json';
+import login from './en/login.json';
 
 const defaultNS = 'common';
 
@@ -20,6 +21,7 @@ i18n.use(initReactI18next).init({
       nodeLocation,
       backendMessages,
       display,
+      login,
     },
   },
   ns: [
@@ -29,6 +31,7 @@ i18n.use(initReactI18next).init({
     'nodeLocation',
     'backendMessages',
     'display',
+    'login',
   ],
   defaultNS,
 
