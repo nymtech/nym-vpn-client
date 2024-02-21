@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "vite",
     "dev:app": "tauri dev",
-    "dev:browser": "APP_NOSPLASH=true vite --mode dev-browser",
+    "dev:browser": "vite --mode dev-browser",
     "build": "tsc && vite build",
     "build:app": "npm run tauri build",
     "preview": "vite preview",
