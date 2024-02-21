@@ -6,7 +6,7 @@ import { Button } from '@mui/base';
 import { useNavigate } from 'react-router-dom';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { CmdError, StateDispatch } from '../../types';
-import { routes } from '../../constants';
+import { routes } from '../../router';
 import NetworkModeSelect from './NetworkModeSelect';
 import ConnectionStatus from './ConnectionStatus';
 import HopSelect from './HopSelect';

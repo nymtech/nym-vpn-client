@@ -5,13 +5,27 @@ import {
   Feedback,
   Home,
   Legal,
+  LogIn,
   MainLayout,
   NodeLocation,
   Settings,
   SettingsLayout,
   Support,
 } from './pages';
-import { routes } from './constants';
+
+export const routes = {
+  root: '/',
+  login: '/login',
+  settings: '/settings',
+  display: '/settings/display',
+  logs: '/settings/logs',
+  feedback: '/settings/feedback',
+  feedbackSend: '/settings/feedback/send',
+  support: '/settings/support',
+  legal: '/settings/legal',
+  entryNodeLocation: '/entry-node-location',
+  exitNodeLocation: '/exit-node-location',
+} as const;
 
 const router = createBrowserRouter([
   {
@@ -22,6 +36,11 @@ const router = createBrowserRouter([
         element: <Home />,
         errorElement: <Error />,
         index: true,
+      },
+      {
+        path: routes.login,
+        element: <LogIn />,
+        errorElement: <Error />,
       },
       {
         path: routes.settings,

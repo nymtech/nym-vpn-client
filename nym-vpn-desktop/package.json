@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "vite",
     "dev:app": "tauri dev",
-    "dev:browser": "vite --mode dev-browser",
+    "dev:browser": "APP_NOSPLASH=true vite --mode dev-browser",
     "build": "tsc && vite build",
     "build:app": "npm run tauri build",
     "preview": "vite preview",
@@ -21,7 +21,7 @@
     "lint:fix": "eslint --ext .js,.ts --fix src/",
     "fmt": "prettier --write --ignore-unknown \"**/*\"",
     "fmt:check": "prettier --check --ignore-unknown \"**/*\"",
-    "typecheck": "tsc --noEmit",
+    "tscheck": "tsc --noEmit",
     "tauri": "tauri"
   },
   "dependencies": {
