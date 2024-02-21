@@ -97,7 +97,7 @@ function Home() {
         </div>
         <Button
           className={clsx([
-            'flex justify-center items-center',
+            'flex justify-center items-center tracking-normal',
             'rounded-lg text-lg font-bold py-3 px-6',
             'focus:outline-none focus:ring-4 focus:ring-black focus:dark:ring-white shadow',
             (state === 'Disconnected' || state === 'Connecting') &&

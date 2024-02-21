@@ -14,7 +14,7 @@ function Button({ onClick, children, disabled }: ButtonProps) {
         'flex justify-center items-center w-full',
         'rounded-lg text-lg font-bold py-3 px-6',
         'focus:outline-none focus:ring-4 focus:ring-black focus:dark:ring-white',
-        'bg-melon text-white dark:text-baltic-sea shadow',
+        'bg-melon text-white dark:text-baltic-sea shadow tracking-normal',
       ])}
       onClick={onClick}
       disabled={disabled}

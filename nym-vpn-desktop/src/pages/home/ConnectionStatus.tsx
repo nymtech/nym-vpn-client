@@ -57,7 +57,7 @@ function ConnectionStatus() {
         <div
           className={clsx([
             ...statusBadgeDynStyles[state.state],
-            'text-lg font-bold py-3 px-6 rounded-full',
+            'text-lg font-bold py-3 px-6 rounded-full tracking-normal',
           ])}
         >
           {getStatusText(state.state)}

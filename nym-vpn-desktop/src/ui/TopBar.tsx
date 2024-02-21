@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
+import { AppName } from '../constants.ts';
 import { routes } from '../router';
 import { Routes } from '../types';
 import MsIcon from './MsIcon';
@@ -35,7 +36,7 @@ export default function TopBar() {
   const navBarData = useMemo<NavBarData>(() => {
     return {
       '/': {
-        title: '',
+        title: AppName,
         rightIcon: 'settings',
         handleRightNav: () => {
           navigate(routes.settings);
@@ -144,7 +145,9 @@ export default function TopBar() {
         <div className="w-6 mx-4" />
       )}
       {currentNavLocation.title && (
-        <p className="justify-self-center">{currentNavLocation.title}</p>
+        <p className="justify-self-center tracking-normal">
+          {currentNavLocation.title}
+        </p>
       )}
       {currentNavLocation?.rightIcon ? (
         <button
