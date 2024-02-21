@@ -71,6 +71,8 @@ export default {
       'wind-chime': '#DEDEE1',
       // [D] connection status bg (combined with 15% opacity)
       oil: '#313033',
+      // [L] Login screen color of nym logo
+      ghost: '#C7C7D1',
     },
     extend: {
       fontFamily: {
