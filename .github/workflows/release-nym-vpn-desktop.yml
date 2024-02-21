@@ -41,7 +41,7 @@ jobs:
         os:
           [
             ubuntu-22.04-16-core,
-            custom-runner-mac-m1,
+            macos-14,
           ]
     runs-on: ${{ matrix.os }}
     env:
@@ -49,7 +49,7 @@ jobs:
 
     steps:
       - name: "Cleanup working directory"
-        if: contains(matrix.os, 'custom')
+        if: contains(matrix.os, 'macos')
         run: |
           ls -la ./
           rm -rf ./* || true
@@ -93,7 +93,7 @@ jobs:
             platform_arch=ubuntu-22.04_x86_64
           elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
             platform_arch=ubuntu-20.04_x86_64
-          elif ${{ matrix.os == 'custom-runner-mac-m1' }}; then
+          elif ${{ matrix.os == 'macos-14' }}; then
             platform_arch=macos_universal
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
