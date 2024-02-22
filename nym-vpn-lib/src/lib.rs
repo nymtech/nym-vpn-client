@@ -29,7 +29,10 @@ use tracing::warn;
 use util::wait_for_interrupt_and_signal;
 
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
-pub use nym_task::{manager::SentStatus, StatusReceiver};
+pub use nym_task::{
+    manager::{SentStatus, TaskStatus},
+    StatusReceiver,
+};
 
 #[cfg(target_os = "macos")]
 use crate::platform::macos::initVPN;
