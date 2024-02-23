@@ -43,13 +43,11 @@ jobs:
             armv7-linux-androideabi \
             x86_64-linux-android \
             i686-linux-android
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
       - name: Add cargo-ndk
         run: |
           cargo install cargo-ndk
-      - name: Setup Android NDK
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r23c
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
       - name: Decode Keystore

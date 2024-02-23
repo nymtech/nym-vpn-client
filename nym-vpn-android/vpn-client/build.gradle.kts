@@ -12,9 +12,6 @@ android {
 
     project.tasks.preBuild.dependsOn(Constants.BUILD_LIB_TASK)
 
-    //TODO maybe we don't need this specific version but it is working
-    ndkVersion = "23.0.7599858"
-
     namespace = "${Constants.NAMESPACE}.${Constants.VPN_LIB_NAME}"
     compileSdk = 34
 

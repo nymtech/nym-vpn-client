@@ -11,7 +11,6 @@ plugins {
 android {
     namespace = "${Constants.NAMESPACE}.${Constants.APP_NAME}"
     compileSdk = Constants.COMPILE_SDK
-    ndkVersion = Constants.NDK_VERSION
 
     defaultConfig {
         applicationId = "${Constants.NAMESPACE}.${Constants.APP_NAME}"
