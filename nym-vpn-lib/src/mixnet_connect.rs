@@ -5,11 +5,9 @@ use nym_config::defaults::NymNetworkDetails;
 use std::os::fd::RawFd;
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::{
-    net::{IpAddr, Ipv4Addr},
-    time::Duration,
-};
+use std::time::Duration;
 
+use nym_ip_packet_requests::IPPair;
 use nym_ip_packet_requests::{
     request::IpPacketRequest,
     response::{
@@ -66,20 +64,14 @@ impl SharedMixnetClient {
 async fn send_connect_to_ip_packet_router(
     mixnet_client: &SharedMixnetClient,
     ip_packet_router_address: &IpPacketRouterAddress,
-    ip: Option<Ipv4Addr>,
+    ips: Option<IPPair>,
     enable_two_hop: bool,
 ) -> Result<u64> {
     let hops = enable_two_hop.then_some(0);
     let mixnet_client_address = mixnet_client.nym_address().await;
-    let (request, request_id) = if let Some(ip) = ip {
-        debug!("Sending static connect request with ip: {ip}");
-        IpPacketRequest::new_static_connect_request(
-            ip.into(),
-            mixnet_client_address,
-            hops,
-            None,
-            None,
-        )
+    let (request, request_id) = if let Some(ips) = ips {
+        debug!("Sending static connect request with ips: {ips}");
+        IpPacketRequest::new_static_connect_request(ips, mixnet_client_address, hops, None, None)
     } else {
         debug!("Sending dynamic connect request");
         IpPacketRequest::new_dynamic_connect_request(mixnet_client_address, hops, None, None)
@@ -170,14 +162,14 @@ async fn handle_static_connect_response(
 async fn handle_dynamic_connect_response(
     mixnet_client_address: &Recipient,
     response: DynamicConnectResponse,
-) -> Result<IpAddr> {
+) -> Result<IPPair> {
     debug!("Handling dynamic connect response");
     if response.reply_to != *mixnet_client_address {
         error!("Got reply intended for wrong address");
         return Err(Error::GotReplyIntendedForWrongAddress);
     }
     match response.reply {
-        nym_ip_packet_requests::response::DynamicConnectResponseReply::Success(r) => Ok(r.ip),
+        nym_ip_packet_requests::response::DynamicConnectResponseReply::Success(r) => Ok(r.ips),
         nym_ip_packet_requests::response::DynamicConnectResponseReply::Failure(reason) => {
             Err(Error::DynamicConnectRequestDenied { reason })
         }
@@ -187,14 +179,14 @@ async fn handle_dynamic_connect_response(
 pub async fn connect_to_ip_packet_router(
     mixnet_client: SharedMixnetClient,
     ip_packet_router_address: &IpPacketRouterAddress,
-    ip: Option<Ipv4Addr>,
+    ips: Option<IPPair>,
     enable_two_hop: bool,
-) -> Result<IpAddr> {
+) -> Result<IPPair> {
     info!("Sending connect request");
     let request_id = send_connect_to_ip_packet_router(
         &mixnet_client,
         ip_packet_router_address,
-        ip,
+        ips,
         enable_two_hop,
     )
     .await?;
@@ -204,11 +196,11 @@ pub async fn connect_to_ip_packet_router(
 
     let mixnet_client_address = mixnet_client.nym_address().await;
     match response.data {
-        IpPacketResponseData::StaticConnect(resp) if ip.is_some() => {
+        IpPacketResponseData::StaticConnect(resp) if ips.is_some() => {
             handle_static_connect_response(&mixnet_client_address, resp).await?;
-            Ok(ip.unwrap().into())
+            Ok(ips.unwrap().into())
         }
-        IpPacketResponseData::DynamicConnect(resp) if ip.is_none() => {
+        IpPacketResponseData::DynamicConnect(resp) if ips.is_none() => {
             handle_dynamic_connect_response(&mixnet_client_address, resp).await
         }
         response => {

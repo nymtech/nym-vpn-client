@@ -41,16 +41,16 @@ talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev =
 talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
 talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
 
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "9ff37d2f9f27762d8900e353306029ed13abfb6c" }
-nym-client-core = { git = "https://github.com/nymtech/nym", rev = "9ff37d2f9f27762d8900e353306029ed13abfb6c" }
-nym-config = { git = "https://github.com/nymtech/nym", rev = "9ff37d2f9f27762d8900e353306029ed13abfb6c" }
-nym-crypto = { git = "https://github.com/nymtech/nym", rev = "9ff37d2f9f27762d8900e353306029ed13abfb6c" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "9ff37d2f9f27762d8900e353306029ed13abfb6c" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "9ff37d2f9f27762d8900e353306029ed13abfb6c" }
-nym-sdk = { git = "https://github.com/nymtech/nym", rev = "9ff37d2f9f27762d8900e353306029ed13abfb6c" }
-nym-task = { git = "https://github.com/nymtech/nym", rev = "9ff37d2f9f27762d8900e353306029ed13abfb6c" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "9ff37d2f9f27762d8900e353306029ed13abfb6c" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "9ff37d2f9f27762d8900e353306029ed13abfb6c" }
+nym-bin-common = { path = "../../nym/common/bin-common" }
+nym-client-core = { path = "../../nym/common/client-core" }
+nym-config = { path = "../../nym/common/config" }
+nym-crypto = { path = "../../nym/common/crypto" }
+nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
+nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
+nym-sdk = { path = "../../nym/sdk/rust/nym-sdk" }
+nym-task = { path = "../../nym/common/task" }
+nym-validator-client = { path = "../../nym/common/client-libs/validator-client" }
+nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.13.1"

@@ -28,6 +28,7 @@ use tokio::time::timeout;
 use tracing::warn;
 use util::wait_for_interrupt_and_signal;
 
+pub use nym_ip_packet_requests::IPPair;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
 pub use nym_task::{manager::SentStatus, StatusReceiver};
 
@@ -97,8 +98,8 @@ pub struct NymVpn {
     /// The IP address of the wireguard interface.
     pub wg_ip: Option<Ipv4Addr>,
 
-    /// The IP address of the TUN device.
-    pub nym_ip: Option<Ipv4Addr>,
+    /// The IP addresses of the TUN device.
+    pub nym_ips: Option<IPPair>,
 
     /// The MTU of the TUN device.
     pub nym_mtu: Option<usize>,
@@ -121,6 +122,7 @@ pub struct NymVpn {
     // Necessary so that the device doesn't get closed before cleanup has taken place
     shadow_handle: ShadowHandle,
 }
+
 impl NymVpn {
     pub fn new(
         entry_gateway: EntryPoint,
@@ -129,11 +131,11 @@ impl NymVpn {
     ) -> Self {
         let tun_provider = Arc::new(Mutex::new(TunProvider::new(
             #[cfg(target_os = "android")]
-            android_context,
+                android_context,
             #[cfg(target_os = "android")]
-            false,
+                false,
             #[cfg(target_os = "android")]
-            None,
+                None,
             #[cfg(target_os = "android")]
             vec![],
         )));
@@ -145,7 +147,7 @@ impl NymVpn {
             enable_wireguard: false,
             private_key: None,
             wg_ip: None,
-            nym_ip: None,
+            nym_ips: None,
             nym_mtu: None,
             disable_routing: false,
             enable_two_hop: false,
@@ -174,15 +176,15 @@ impl NymVpn {
         tunnel_gateway_ip: routing::TunnelGatewayIp,
     ) -> Result<()> {
         info!("Connecting to IP packet router");
-        let ip = mixnet_connect::connect_to_ip_packet_router(
+        let ips = mixnet_connect::connect_to_ip_packet_router(
             mixnet_client.clone(),
             exit_router,
-            self.nym_ip,
+            self.nym_ips,
             self.enable_two_hop,
         )
-        .await?;
+            .await?;
         info!("Successfully connected to IP packet router on the exit gateway!");
-        info!("Using IP address: {ip}");
+        info!("Using IP addresses: {ips}");
 
         // We need the IP of the gateway to correctly configure the routing table
         let mixnet_client_address = mixnet_client.nym_address().await;
@@ -195,12 +197,12 @@ impl NymVpn {
         info!("Setting up routing");
         let routing_config = routing::RoutingConfig::new(
             self,
-            ip,
+            ips,
             entry_mixnet_gateway_ip,
             default_lan_gateway_ip,
             tunnel_gateway_ip,
             #[cfg(target_os = "android")]
-            mixnet_client.gateway_ws_fd().await,
+                mixnet_client.gateway_ws_fd().await,
         );
         debug!("Routing config: {}", routing_config);
         let mixnet_tun_dev = routing::setup_routing(route_manager, routing_config).await?;
@@ -215,7 +217,7 @@ impl NymVpn {
             task_manager,
             self.enable_two_hop,
         )
-        .await;
+            .await;
         self.set_shadow_handle(shadow_handle);
 
         Ok(())
@@ -245,8 +247,8 @@ impl NymVpn {
                 self.disable_background_cover_traffic,
             ),
         )
-        .await
-        .map_err(|_| Error::StartMixnetTimeout)??;
+            .await
+            .map_err(|_| Error::StartMixnetTimeout)??;
 
         if let Err(err) = self
             .setup_post_mixnet(
@@ -301,7 +303,7 @@ impl NymVpn {
                 private_key,
                 wg_ip.into(),
             )
-            .await?;
+                .await?;
             Some(wireguard_config)
         } else {
             None
