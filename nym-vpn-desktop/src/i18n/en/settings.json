@@ -31,5 +31,6 @@
   "faq": "FAQ",
   "display-theme": "Display theme",
   "logs": "Logs",
-  "quit": "Quit NymVPN"
+  "quit": "Quit NymVPN",
+  "login-button": "Log in to view your account"
 }

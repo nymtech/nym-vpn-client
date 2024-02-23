@@ -21,7 +21,7 @@
     "lint:fix": "eslint --ext .js,.ts --fix src/",
     "fmt": "prettier --write --ignore-unknown \"**/*\"",
     "fmt:check": "prettier --check --ignore-unknown \"**/*\"",
-    "typecheck": "tsc --noEmit",
+    "tscheck": "tsc --noEmit",
     "tauri": "tauri"
   },
   "dependencies": {

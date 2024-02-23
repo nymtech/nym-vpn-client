@@ -6,14 +6,14 @@ import { useMainDispatch, useMainState } from '../../contexts';
 import {
   CmdError,
   Country,
-  InputEvent,
   NodeHop,
   NodeLocation,
   StateDispatch,
   isCountry,
 } from '../../types';
-import { FastestFeatureEnabled, routes } from '../../constants';
-import SearchBox from './SearchBox';
+import { FastestFeatureEnabled } from '../../constants';
+import { routes } from '../../router';
+import { TextInput } from '../../ui';
 import CountryList from './CountryList';
 
 export type UiCountry = {
@@ -81,20 +81,19 @@ function NodeLocation({ node }: { node: NodeHop }) {
     setSearch('');
   }, [countryList, fastestNodeLocation]);
 
-  const filter = (e: InputEvent) => {
-    const keyword = e.target.value;
-    if (keyword !== '') {
+  const filter = (value: string) => {
+    if (value !== '') {
       const list = uiCountryList.filter((uiCountry) => {
         return uiCountry.country.name
           .toLowerCase()
-          .startsWith(keyword.toLowerCase());
+          .startsWith(value.toLowerCase());
         // Use the toLowerCase() method to make it case-insensitive
       });
       setFilteredCountries(list);
     } else {
       setFilteredCountries(uiCountryList);
     }
-    setSearch(keyword);
+    setSearch(value);
   };
 
   const isCountrySelected = (
@@ -133,11 +132,15 @@ function NodeLocation({ node }: { node: NodeHop }) {
   return (
     <div className="h-full flex flex-col">
       <div className="h-70 flex flex-col justify-center items-center gap-y-2 pt-3">
-        <SearchBox
-          value={search}
-          onChange={filter}
-          placeholder={t('search-country')}
-        />
+        <div className="w-full flex flex-row items-center px-4 mb-2">
+          <TextInput
+            value={search}
+            onChange={filter}
+            placeholder={t('search-country')}
+            leftIcon="search"
+            label={t('input-label')}
+          />
+        </div>
         <span className="mt-2" />
         <CountryList
           countries={filteredCountries}

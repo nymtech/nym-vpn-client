@@ -29,7 +29,7 @@ jobs:
         run: npm i
       - name: Typecheck
         working-directory: nym-vpn-desktop
-        run: npm run typecheck
+        run: npm run tscheck
       - name: Check lint
         working-directory: nym-vpn-desktop
         run: npm run lint
