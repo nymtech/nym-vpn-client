@@ -73,6 +73,12 @@ export default {
       oil: '#313033',
       // [L] Login screen color of nym logo
       ghost: '#C7C7D1',
+      // [D] Button bg 'Stop' state
+      'dusty-grey': '#CECCD1',
+      // [D] Radio-group bg hover
+      onyx: '#3A373F',
+      // [L] Radio-group bg hover
+      platinum: '#E2E8EC',
     },
     extend: {
       fontFamily: {
