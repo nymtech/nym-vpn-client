@@ -6,8 +6,9 @@ echo "NDK_HOME: $1"
 #fix to work with different OS
 archDir=$(basename $1/toolchains/llvm/prebuilt/*/)
 echo "archdir: ${archDir}"
-export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir[0]}/bin"
-sh $PWD/src/tools/nym-vpn-client/wireguard/libwg/build-android.sh
+export ANDROID_NDK_HOME="$1"
+export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin"
+bash $PWD/src/tools/nym-vpn-client/wireguard/libwg/build-android.sh
 echo "Building nym-vpn-lib dep"
 (cd $PWD/src/tools/nym-vpn-client/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release)
 #mv wireguard

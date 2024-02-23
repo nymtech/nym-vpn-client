@@ -1,5 +1,5 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
-import java.util.Locale
+import org.gradle.kotlin.dsl.support.listFilesOrdered
 
 plugins {
     alias(libs.plugins.android.library)
@@ -9,6 +9,10 @@ plugins {
 }
 
 android {
+
+    android {
+        ndkVersion = sdkDirectory.resolve("ndk").listFilesOrdered().last().name
+    }
 
     project.tasks.preBuild.dependsOn(Constants.BUILD_LIB_TASK)
 
@@ -60,11 +64,12 @@ dependencies {
 
 
 tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
-    val ndkPath = android.ndkDirectory.path ?: error("No NDK install found")
+    val ndkPath = android.sdkDirectory.resolve("ndk").listFilesOrdered().last().path ?: System.getenv("ANDROID_NDK_HOME")
+    commandLine("echo", "NDK HOME: $ndkPath")
     val script = "${projectDir.path}/src/main/scripts/build-libs.sh"
     //TODO find a better way to limit builds
     if(file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so").exists() &&
         file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libwg.so").exists()) {
         commandLine("echo", "Libs already compiled")
-    } else commandLine("sh").args(script, ndkPath)
+    } else commandLine("bash").args(script, ndkPath)
 }

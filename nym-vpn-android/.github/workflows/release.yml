@@ -45,10 +45,14 @@ jobs:
             x86_64-linux-android \
             i686-linux-android
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25c
       - name: Add cargo-ndk
         run: |
           cargo install cargo-ndk
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
       - name: Decode Keystore
@@ -70,7 +74,9 @@ jobs:
 
       # Build and sign APK ("-x test" argument is used to skip tests)
       - name: Build Release APK
-        run: ./gradlew :app:assembleRelease -x test
+        run: ./gradlew :app:assembleRelease -x test --stacktrace
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       # get release apk path
       # can be fdroid or general, general for now
