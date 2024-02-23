@@ -46,21 +46,22 @@ for arch in ${ARCHITECTURES:-armv7 aarch64 x86_64 i686}; do
     echo $(pwd)
     make -f Android.mk clean
 
+#    this is determined by the NDK
 #    export CFLAGS="-D__ANDROID_API__=21"
 
     make -f Android.mk
 
     # Strip and copy the libray to `android/build/extraJni/$ANDROID_ABI` to be able to build the APK
     UNSTRIPPED_LIB_PATH="../../build/lib/$RUST_TARGET_TRIPLE/libwg.so"
-    STRIPPED_LIB_PATH="../../../../main/jniLibs/$ANDROID_ABI/libwg.so"
+    STRIPPED_LIB_PATH="../../build/lib/extraJni/$ANDROID_ABI/libwg.so"
 
     # Create the directories with RWX permissions for all users so that the build server can clean
     # the directories afterwards
     mkdir -m 777 -p "$(dirname "$STRIPPED_LIB_PATH")"
 
-
     mv "$UNSTRIPPED_LIB_PATH" "$STRIPPED_LIB_PATH"
 
+#    this is not available in the newer NDK
 #    $ANDROID_STRIP_TOOL --strip-unneeded --strip-debug -o "$STRIPPED_LIB_PATH" "$UNSTRIPPED_LIB_PATH"
 
     # Set permissions so that the build server can clean the outputs afterwards
