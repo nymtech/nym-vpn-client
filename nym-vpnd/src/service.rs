@@ -3,8 +3,7 @@ use std::sync::Arc;
 use futures::SinkExt;
 use futures::{channel::mpsc::UnboundedSender, StreamExt};
 use tokio::sync::mpsc::Receiver;
-
-use crate::command_interface;
+use tokio::sync::oneshot;
 
 #[derive(Debug, Clone)]
 pub enum VpnState {
@@ -14,14 +13,59 @@ pub enum VpnState {
     Disconnecting,
 }
 
+#[derive(Debug)]
+pub enum VpnServiceCommand {
+    Connect(oneshot::Sender<VpnServiceConnectResult>),
+    Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
+    Status(oneshot::Sender<VpnServiceStatusResult>),
+}
+
+#[derive(Debug)]
+pub enum VpnServiceConnectResult {
+    Success,
+    #[allow(unused)]
+    Fail(String),
+}
+
+#[derive(Debug)]
+pub enum VpnServiceDisconnectResult {
+    Success,
+    NotRunning,
+    #[allow(unused)]
+    Fail(String),
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum VpnServiceStatusResult {
+    NotConnected,
+    Connecting,
+    Connected,
+    Disconnecting,
+}
+
+pub fn start_vpn_service(
+    vpn_command_rx: Receiver<VpnServiceCommand>,
+) -> std::thread::JoinHandle<()> {
+    println!("Starting VPN handler");
+    std::thread::spawn(move || {
+        let vpn_rt = tokio::runtime::Runtime::new().unwrap();
+        vpn_rt.block_on(async {
+            // Listen to the command channel
+            println!("VPN: Listening for commands");
+            let vpn_service = NymVpnService::new(vpn_command_rx);
+            vpn_service.run().await;
+        });
+    })
+}
+
 struct NymVpnService {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
-    vpn_command_rx: Receiver<command_interface::VpnCommand>,
+    vpn_command_rx: Receiver<VpnServiceCommand>,
     vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
 }
 
 impl NymVpnService {
-    fn new(vpn_command_rx: Receiver<command_interface::VpnCommand>) -> Self {
+    fn new(vpn_command_rx: Receiver<VpnServiceCommand>) -> Self {
         Self {
             shared_vpn_state: Arc::new(std::sync::Mutex::new(VpnState::NotConnected)),
             vpn_command_rx,
@@ -29,7 +73,7 @@ impl NymVpnService {
         }
     }
 
-    async fn handle_connect(&mut self) -> command_interface::VpnConnectResult {
+    async fn handle_connect(&mut self) -> VpnServiceConnectResult {
         // Start the VPN
         // TODO: all of this is hardcoded for now
         self.set_shared_state(VpnState::Connecting);
@@ -68,14 +112,14 @@ impl NymVpnService {
             .start(vpn_exit_rx)
             .await;
 
-        command_interface::VpnConnectResult::Success
+        VpnServiceConnectResult::Success
     }
 
     fn set_shared_state(&self, state: VpnState) {
         *self.shared_vpn_state.lock().unwrap() = state;
     }
 
-    async fn handle_disconnect(&mut self) -> command_interface::VpnDisconnectResult {
+    async fn handle_disconnect(&mut self) -> VpnServiceDisconnectResult {
         // To handle the mutable borrow we set the state separate from the sending the stop
         // message, including the logical check for the ctrl sender twice.
         let is_running = self.vpn_ctrl_sender.is_some();
@@ -88,18 +132,18 @@ impl NymVpnService {
             let _ = vpn_ctrl_sender
                 .send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
                 .await;
-            command_interface::VpnDisconnectResult::Success
+            VpnServiceDisconnectResult::Success
         } else {
-            command_interface::VpnDisconnectResult::NotRunning
+            VpnServiceDisconnectResult::NotRunning
         }
     }
 
-    async fn handle_status(&self) -> command_interface::VpnStatusResult {
+    async fn handle_status(&self) -> VpnServiceStatusResult {
         match *self.shared_vpn_state.lock().unwrap() {
-            VpnState::NotConnected => command_interface::VpnStatusResult::NotConnected,
-            VpnState::Connecting => command_interface::VpnStatusResult::Connecting,
-            VpnState::Connected => command_interface::VpnStatusResult::Connected,
-            VpnState::Disconnecting => command_interface::VpnStatusResult::Disconnecting,
+            VpnState::NotConnected => VpnServiceStatusResult::NotConnected,
+            VpnState::Connecting => VpnServiceStatusResult::Connecting,
+            VpnState::Connected => VpnServiceStatusResult::Connected,
+            VpnState::Disconnecting => VpnServiceStatusResult::Disconnecting,
         }
     }
 
@@ -107,15 +151,15 @@ impl NymVpnService {
         while let Some(command) = self.vpn_command_rx.recv().await {
             println!("VPN: Received command: {:?}", command);
             match command {
-                command_interface::VpnCommand::Connect(tx) => {
+                VpnServiceCommand::Connect(tx) => {
                     let result = self.handle_connect().await;
                     tx.send(result).unwrap();
                 }
-                command_interface::VpnCommand::Disconnect(tx) => {
+                VpnServiceCommand::Disconnect(tx) => {
                     let result = self.handle_disconnect().await;
                     tx.send(result).unwrap();
                 }
-                command_interface::VpnCommand::Status(tx) => {
+                VpnServiceCommand::Status(tx) => {
                     let result = self.handle_status().await;
                     tx.send(result).unwrap();
                 }
@@ -191,19 +235,4 @@ impl VpnServiceExitListener {
     fn set_shared_state(&self, state: VpnState) {
         *self.shared_vpn_state.lock().unwrap() = state;
     }
-}
-
-pub fn start_vpn_service(
-    vpn_command_rx: Receiver<command_interface::VpnCommand>,
-) -> std::thread::JoinHandle<()> {
-    println!("Starting VPN handler");
-    std::thread::spawn(move || {
-        let vpn_rt = tokio::runtime::Runtime::new().unwrap();
-        vpn_rt.block_on(async {
-            // Listen to the command channel
-            println!("VPN: Listening for commands");
-            let vpn_service = NymVpnService::new(vpn_command_rx);
-            vpn_service.run().await;
-        });
-    })
 }

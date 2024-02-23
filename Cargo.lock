@@ -4276,18 +4276,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nym-vpn-daemon"
-version = "0.1.0"
-dependencies = [
- "futures",
- "nym-vpn-lib",
- "reqwest",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "nym-vpn-lib"
 version = "0.1.0"
 dependencies = [
@@ -4334,6 +4322,18 @@ dependencies = [
  "tun2",
  "uniffi",
  "url",
+]
+
+[[package]]
+name = "nym-vpnd"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "nym-vpn-lib",
+ "reqwest",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

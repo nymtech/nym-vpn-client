@@ -9,37 +9,11 @@ use tokio::{
     },
 };
 
-#[derive(Debug)]
-pub enum VpnCommand {
-    Connect(oneshot::Sender<VpnConnectResult>),
-    Disconnect(oneshot::Sender<VpnDisconnectResult>),
-    Status(oneshot::Sender<VpnStatusResult>),
-}
+use crate::service::{
+    VpnServiceCommand, VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceStatusResult,
+};
 
-#[derive(Debug)]
-pub enum VpnConnectResult {
-    Success,
-    #[allow(unused)]
-    Fail(String),
-}
-
-#[derive(Debug)]
-pub enum VpnDisconnectResult {
-    Success,
-    NotRunning,
-    #[allow(unused)]
-    Fail(String),
-}
-
-#[derive(Copy, Clone, Debug)]
-pub enum VpnStatusResult {
-    NotConnected,
-    Connecting,
-    Connected,
-    Disconnecting,
-}
-
-pub fn start_command_interface() -> (std::thread::JoinHandle<()>, Receiver<VpnCommand>) {
+pub fn start_command_interface() -> (std::thread::JoinHandle<()>, Receiver<VpnServiceCommand>) {
     // Channel to send commands to the vpn service
     let (vpn_command_tx, vpn_command_rx) = tokio::sync::mpsc::channel(32);
 
@@ -47,7 +21,8 @@ pub fn start_command_interface() -> (std::thread::JoinHandle<()>, Receiver<VpnCo
         let command_rt = tokio::runtime::Runtime::new().unwrap();
         command_rt.block_on(async {
             CommandInterface::new(vpn_command_tx)
-                .listen(Path::new("/var/run/nym-vpn.socket")).await
+                .listen(Path::new("/var/run/nym-vpn.socket"))
+                .await
         });
     });
 
@@ -55,11 +30,11 @@ pub fn start_command_interface() -> (std::thread::JoinHandle<()>, Receiver<VpnCo
 }
 
 struct CommandInterface {
-    vpn_command_tx: Sender<VpnCommand>,
+    vpn_command_tx: Sender<VpnServiceCommand>,
 }
 
 impl CommandInterface {
-    fn new(vpn_command_tx: Sender<VpnCommand>) -> Self {
+    fn new(vpn_command_tx: Sender<VpnServiceCommand>) -> Self {
         Self { vpn_command_tx }
     }
 
@@ -74,25 +49,28 @@ impl CommandInterface {
 }
 
 struct CommandInterfaceConnectionHandler {
-    vpn_command_tx: Sender<VpnCommand>,
+    vpn_command_tx: Sender<VpnServiceCommand>,
 }
 
 impl CommandInterfaceConnectionHandler {
-    fn new(vpn_command_tx: Sender<VpnCommand>) -> Self {
+    fn new(vpn_command_tx: Sender<VpnServiceCommand>) -> Self {
         Self { vpn_command_tx }
     }
 
     async fn handle_connect(&self) {
         println!("Starting VPN");
         let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx.send(VpnCommand::Connect(tx)).await.unwrap();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::Connect(tx))
+            .await
+            .unwrap();
         println!("Sent start command to VPN");
         println!("Waiting for response");
         match rx.await.unwrap() {
-            VpnConnectResult::Success => {
+            VpnServiceConnectResult::Success => {
                 println!("VPN started successfully");
             }
-            VpnConnectResult::Fail(err) => {
+            VpnServiceConnectResult::Fail(err) => {
                 println!("VPN failed to start: {err}");
             }
         };
@@ -100,25 +78,31 @@ impl CommandInterfaceConnectionHandler {
 
     async fn handle_disconnect(&self) {
         let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx.send(VpnCommand::Disconnect(tx)).await.unwrap();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::Disconnect(tx))
+            .await
+            .unwrap();
         println!("Sent stop command to VPN");
         println!("Waiting for response");
         match rx.await.unwrap() {
-            VpnDisconnectResult::Success => {
+            VpnServiceDisconnectResult::Success => {
                 println!("VPN stopped successfully");
             }
-            VpnDisconnectResult::NotRunning => {
+            VpnServiceDisconnectResult::NotRunning => {
                 println!("VPN can't stop - it's not running");
             }
-            VpnDisconnectResult::Fail(err) => {
+            VpnServiceDisconnectResult::Fail(err) => {
                 println!("VPN failed to stop: {err}");
             }
         };
     }
 
-    async fn handle_status(&self) -> VpnStatusResult {
+    async fn handle_status(&self) -> VpnServiceStatusResult {
         let (tx, rx) = oneshot::channel();
-        self.vpn_command_tx.send(VpnCommand::Status(tx)).await.unwrap();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::Status(tx))
+            .await
+            .unwrap();
         println!("Sent status command to VPN");
         println!("Waiting for response");
         let status = rx.await.unwrap();
@@ -138,17 +122,17 @@ impl CommandInterfaceConnectionHandler {
                     match command {
                         "connect" => {
                             self.handle_connect().await;
-                        },
+                        }
                         "disconnect" => {
                             self.handle_disconnect().await;
-                        },
+                        }
                         "status" => {
                             let status = self.handle_status().await;
                             socket
                                 .write_all(format!("{:?}", status).as_bytes())
                                 .await
                                 .unwrap();
-                        },
+                        }
                         command => println!("Unknown command: {}", command),
                     }
                 }
