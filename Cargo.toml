@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["nym-vpn-lib", "nym-vpn-cli", "nym-vpn-daemon"]
+members = ["nym-vpn-lib", "nym-vpn-cli", "nym-vpnd"]
 exclude = ["nym-vpn-desktop/src-tauri"]
 
 # For local development
