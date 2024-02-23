@@ -11,22 +11,23 @@ use tokio::{
 
 #[derive(Debug)]
 pub enum VpnCommand {
-    Start(oneshot::Sender<VpnStartResult>),
-    Stop(oneshot::Sender<VpnStopResult>),
-    Restart,
+    Connect(oneshot::Sender<VpnConnectResult>),
+    Disconnect(oneshot::Sender<VpnDisconnectResult>),
     Status(oneshot::Sender<VpnStatusResult>),
 }
 
 #[derive(Debug)]
-pub enum VpnStartResult {
+pub enum VpnConnectResult {
     Success,
+    #[allow(unused)]
     Fail(String),
 }
 
 #[derive(Debug)]
-pub enum VpnStopResult {
+pub enum VpnDisconnectResult {
     Success,
     NotRunning,
+    #[allow(unused)]
     Fail(String),
 }
 
@@ -69,31 +70,34 @@ async fn listen_for_commands(socket_path: &Path, vpn_command_tx: Sender<VpnComma
                         "connect" => {
                             println!("Starting VPN");
                             let (tx, rx) = oneshot::channel();
-                            vpn_command_tx.send(VpnCommand::Start(tx)).await.unwrap();
+                            vpn_command_tx.send(VpnCommand::Connect(tx)).await.unwrap();
                             println!("Sent start command to VPN");
                             println!("Waiting for response");
                             match rx.await.unwrap() {
-                                VpnStartResult::Success => {
+                                VpnConnectResult::Success => {
                                     println!("VPN started successfully");
                                 }
-                                VpnStartResult::Fail(err) => {
+                                VpnConnectResult::Fail(err) => {
                                     println!("VPN failed to start: {err}");
                                 }
                             }
                         }
                         "disconnect" => {
                             let (tx, rx) = oneshot::channel();
-                            vpn_command_tx.send(VpnCommand::Stop(tx)).await.unwrap();
+                            vpn_command_tx
+                                .send(VpnCommand::Disconnect(tx))
+                                .await
+                                .unwrap();
                             println!("Sent stop command to VPN");
                             println!("Waiting for response");
                             match rx.await.unwrap() {
-                                VpnStopResult::Success => {
+                                VpnDisconnectResult::Success => {
                                     println!("VPN stopped successfully");
                                 }
-                                VpnStopResult::NotRunning => {
+                                VpnDisconnectResult::NotRunning => {
                                     println!("VPN can't stop - it's not running");
                                 }
-                                VpnStopResult::Fail(err) => {
+                                VpnDisconnectResult::Fail(err) => {
                                     println!("VPN failed to stop: {err}");
                                 }
                             }
