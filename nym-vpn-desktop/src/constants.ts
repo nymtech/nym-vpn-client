@@ -21,4 +21,4 @@ export const DiscordInviteUrl = 'https://discord.com/invite/nym';
 export const FaqUrl = 'https://nymvpn.com/en/support';
 export const EmailSupportUrl = 'mailto:support@nymvpn.com';
 export const ToSUrl = 'https://nymvpn.com/en/terms';
-export const PrivacyPolicyUrl = 'https://nymvpn.com/en/privacy';
+export const PrivacyPolicyUrl = 'https://nymvpn.com/en/privacy?type=apps';
