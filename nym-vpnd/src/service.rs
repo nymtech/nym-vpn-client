@@ -60,26 +60,31 @@ impl NymVpnService {
 
         self.vpn_ctrl_sender = Some(vpn_ctrl_tx);
 
-        VpnStatusListener::new(self.shared_vpn_state.clone())
+        VpnServiceStatusListener::new(self.shared_vpn_state.clone())
             .start(vpn_status_rx)
             .await;
 
-        VpnExitListener::new(self.shared_vpn_state.clone())
+        VpnServiceExitListener::new(self.shared_vpn_state.clone())
             .start(vpn_exit_rx)
             .await;
 
         command_interface::VpnConnectResult::Success
     }
 
-    fn set_shared_state(&mut self, state: VpnState) {
+    fn set_shared_state(&self, state: VpnState) {
         *self.shared_vpn_state.lock().unwrap() = state;
     }
 
     async fn handle_disconnect(&mut self) -> command_interface::VpnDisconnectResult {
+        // To handle the mutable borrow we set the state separate from the sending the stop
+        // message, including the logical check for the ctrl sender twice.
+        let is_running = self.vpn_ctrl_sender.is_some();
+
+        if is_running {
+            self.set_shared_state(VpnState::Disconnecting);
+        }
+
         if let Some(ref mut vpn_ctrl_sender) = self.vpn_ctrl_sender {
-            {
-                *self.shared_vpn_state.lock().unwrap() = VpnState::Disconnecting;
-            }
             let _ = vpn_ctrl_sender
                 .send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
                 .await;
@@ -90,9 +95,7 @@ impl NymVpnService {
     }
 
     async fn handle_status(&self) -> command_interface::VpnStatusResult {
-        // Current status of the vpn
-        let state = { self.shared_vpn_state.lock().unwrap().clone() };
-        match state {
+        match *self.shared_vpn_state.lock().unwrap() {
             VpnState::NotConnected => command_interface::VpnStatusResult::NotConnected,
             VpnState::Connecting => command_interface::VpnStatusResult::Connecting,
             VpnState::Connected => command_interface::VpnStatusResult::Connected,
@@ -121,11 +124,11 @@ impl NymVpnService {
     }
 }
 
-struct VpnStatusListener {
+struct VpnServiceStatusListener {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
 }
 
-impl VpnStatusListener {
+impl VpnServiceStatusListener {
     fn new(shared_vpn_state: Arc<std::sync::Mutex<VpnState>>) -> Self {
         Self { shared_vpn_state }
     }
@@ -142,23 +145,23 @@ impl VpnStatusListener {
                 match msg.downcast_ref::<nym_vpn_lib::TaskStatus>().unwrap() {
                     nym_vpn_lib::TaskStatus::Ready => {
                         println!("VPN status: connected");
-                        self.set_state(VpnState::Connected);
+                        self.set_shared_state(VpnState::Connected);
                     }
                 }
             }
         });
     }
 
-    fn set_state(&self, state: VpnState) {
+    fn set_shared_state(&self, state: VpnState) {
         *self.shared_vpn_state.lock().unwrap() = state;
     }
 }
 
-struct VpnExitListener {
+struct VpnServiceExitListener {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
 }
 
-impl VpnExitListener {
+impl VpnServiceExitListener {
     fn new(shared_vpn_state: Arc<std::sync::Mutex<VpnState>>) -> Self {
         Self { shared_vpn_state }
     }
@@ -172,7 +175,7 @@ impl VpnExitListener {
                 Ok(exit_res) => match exit_res {
                     nym_vpn_lib::NymVpnExitStatusMessage::Stopped => {
                         println!("VPN exit: stopped");
-                        self.set_state(VpnState::NotConnected);
+                        self.set_shared_state(VpnState::NotConnected);
                     }
                     nym_vpn_lib::NymVpnExitStatusMessage::Failed(err) => {
                         println!("VPN exit: fail: {err}");
@@ -185,7 +188,7 @@ impl VpnExitListener {
         });
     }
 
-    fn set_state(&self, state: VpnState) {
+    fn set_shared_state(&self, state: VpnState) {
         *self.shared_vpn_state.lock().unwrap() = state;
     }
 }
