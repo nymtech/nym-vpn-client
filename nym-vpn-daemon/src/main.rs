@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use futures::SinkExt;
 use futures::{channel::mpsc::UnboundedSender, StreamExt};
+use tokio::io::AsyncWriteExt;
 use tokio::{
     io::AsyncReadExt,
     sync::{
@@ -32,10 +33,12 @@ enum VpnStopResult {
     Fail(String),
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 enum VpnStatusResult {
-    Running,
-    NotRunning,
+    NotConnected,
+    Connecting,
+    Connected,
+    Disconnecting,
 }
 
 fn start_command_interface() -> (std::thread::JoinHandle<()>, Receiver<VpnCommand>) {
@@ -66,7 +69,7 @@ async fn listen_for_commands(socket_path: &Path, vpn_command_tx: Sender<VpnComma
                     let command = std::str::from_utf8(&buffer[..n]).unwrap().trim();
                     println!("Command: Received command: {:?}", command);
                     match command {
-                        "start" => {
+                        "connect" => {
                             println!("Starting VPN");
                             let (tx, rx) = oneshot::channel();
                             vpn_command_tx.send(VpnCommand::Start(tx)).await.unwrap();
@@ -81,7 +84,7 @@ async fn listen_for_commands(socket_path: &Path, vpn_command_tx: Sender<VpnComma
                                 }
                             }
                         }
-                        "stop" => {
+                        "disconnect" => {
                             let (tx, rx) = oneshot::channel();
                             vpn_command_tx.send(VpnCommand::Stop(tx)).await.unwrap();
                             println!("Sent stop command to VPN");
@@ -98,11 +101,14 @@ async fn listen_for_commands(socket_path: &Path, vpn_command_tx: Sender<VpnComma
                                 }
                             }
                         }
-                        "restart" => {
-                            vpn_command_tx.send(VpnCommand::Restart).await.unwrap();
-                        }
                         "status" => {
-                            vpn_command_tx.send(VpnCommand::Restart).await.unwrap();
+                            let (tx, rx) = oneshot::channel();
+                            vpn_command_tx.send(VpnCommand::Status(tx)).await.unwrap();
+                            println!("Sent status command to VPN");
+                            println!("Waiting for response");
+                            let status = rx.await.unwrap();
+                            println!("VPN status: {:?}", status);
+                            socket.write_all(format!("{:?}", status).as_bytes()).await.unwrap();
                         }
                         command => println!("Unknown command: {}", command),
                     }
@@ -113,6 +119,7 @@ async fn listen_for_commands(socket_path: &Path, vpn_command_tx: Sender<VpnComma
     }
 }
 
+#[derive(Debug, Clone)]
 enum VpnState {
     NotConnected,
     Connecting,
@@ -128,7 +135,7 @@ fn start_vpn_handler(mut vpn_command_rx: Receiver<VpnCommand>) -> std::thread::J
             // Listen to the command channel
             println!("VPN: Listening for commands");
             let mut vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>> = None;
-            let mut vpn_state = Arc::new(std::sync::Mutex::new(VpnState::NotConnected));
+            let vpn_state = Arc::new(std::sync::Mutex::new(VpnState::NotConnected));
             while let Some(command) = vpn_command_rx.recv().await {
                 println!("VPN: Received command: {:?}", command);
                 match command {
@@ -164,25 +171,31 @@ fn start_vpn_handler(mut vpn_command_rx: Receiver<VpnCommand>) -> std::thread::J
 
                         vpn_ctrl_sender = Some(vpn_ctrl_tx);
 
+                        let vpn_state_1 = vpn_state.clone();
                         tokio::spawn(async move {
                             while let Some(msg) = vpn_status_rx.next().await {
                                 println!("Received status: {msg}");
                                 match msg.downcast_ref::<nym_vpn_lib::TaskStatus>().unwrap() {
                                     nym_vpn_lib::TaskStatus::Ready => {
-                                        vpn_state = VpnState::Connected;
+                                        println!("VPN status: connected");
+                                        *vpn_state_1.lock().unwrap() = VpnState::Connected;
                                     }
                                 }
                             }
                         });
 
+                        let vpn_state_2 = vpn_state.clone();
                         tokio::spawn(async move {
                             match vpn_exit_rx.await {
                                 Ok(exit_res) => match exit_res {
                                     nym_vpn_lib::NymVpnExitStatusMessage::Stopped => {
-                                        println!("VPN reports stopped");
+                                        println!("VPN exit: stopped");
+                                        {
+                                            *vpn_state_2.lock().unwrap() = VpnState::NotConnected;
+                                        }
                                     }
                                     nym_vpn_lib::NymVpnExitStatusMessage::Failed(err) => {
-                                        println!("VPN reports exit fail: {err}");
+                                        println!("VPN exit: fail: {err}");
                                     }
                                 },
                                 Err(err) => {
@@ -196,6 +209,9 @@ fn start_vpn_handler(mut vpn_command_rx: Receiver<VpnCommand>) -> std::thread::J
                     VpnCommand::Stop(tx) => {
                         // Stop the VPN
                         if let Some(ref mut vpn_ctrl_sender) = vpn_ctrl_sender {
+                            {
+                                *vpn_state.lock().unwrap() = VpnState::Disconnecting;
+                            }
                             let _ = vpn_ctrl_sender
                                 .send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
                                 .await;
@@ -207,8 +223,16 @@ fn start_vpn_handler(mut vpn_command_rx: Receiver<VpnCommand>) -> std::thread::J
                     VpnCommand::Restart => {
                         // Restart the VPN
                     }
-                    VpnCommand::Status(_) => {
-                        // Status
+                    VpnCommand::Status(tx) => {
+                        // Current status of the vpn
+                        let state = { vpn_state.lock().unwrap().clone() };
+                        let vpn_status_result = match state {
+                            VpnState::NotConnected => VpnStatusResult::NotConnected,
+                            VpnState::Connecting => VpnStatusResult::Connecting,
+                            VpnState::Connected => VpnStatusResult::Connected,
+                            VpnState::Disconnecting => VpnStatusResult::Disconnecting,
+                        };
+                        tx.send(vpn_status_result).unwrap();
                     }
                 }
             }
@@ -216,7 +240,24 @@ fn start_vpn_handler(mut vpn_command_rx: Receiver<VpnCommand>) -> std::thread::J
     })
 }
 
+pub fn setup_logging() {
+    let filter = tracing_subscriber::EnvFilter::builder()
+        .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
+        .from_env()
+        .unwrap()
+        .add_directive("hyper::proto=info".parse().unwrap())
+        .add_directive("netlink_proto=info".parse().unwrap());
+
+    tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .compact()
+        .init();
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    setup_logging();
+    nym_vpn_lib::nym_config::defaults::setup_env(Some("/home/jon/src/nym/nym/envs/sandbox.env"));
+
     // The idea here for explicly starting two separate runtimes is to make sure they are properly
     // separated. Looking ahead a little ideally it would be nice to be able for the command
     // interface to be able to forcefully terminate the vpn if needed.

@@ -4283,6 +4283,8 @@ dependencies = [
  "nym-vpn-lib",
  "reqwest",
  "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
