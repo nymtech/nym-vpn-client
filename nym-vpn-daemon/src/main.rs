@@ -158,7 +158,7 @@ fn start_vpn_handler(mut vpn_command_rx: Receiver<VpnCommand>) -> std::thread::J
                         );
                         nym_vpn.gateway_config = config;
 
-                        let handle = nym_vpn_lib::spawn_nym_vpn(nym_vpn).unwrap();
+                        let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn).unwrap();
                         {
                             *vpn_state.lock().unwrap() = VpnState::Connecting;
                         }
