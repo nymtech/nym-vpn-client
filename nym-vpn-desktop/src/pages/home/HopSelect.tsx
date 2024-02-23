@@ -25,7 +25,9 @@ export default function HopSelect({
         'w-full flex flex-row justify-between items-center py-3 px-4',
         'text-baltic-sea dark:text-mercury-pinkish',
         'border border-cement-feet dark:border-gun-powder rounded-lg',
-        'relative',
+        'hover:ring-4 ring-aluminium ring-opacity-35',
+        'dark:ring-onyx dark:ring-opacity-65',
+        'relative transition',
       ])}
       onKeyDown={onClick}
       role="presentation"

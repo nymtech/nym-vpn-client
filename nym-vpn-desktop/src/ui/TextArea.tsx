@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { inputStates } from './common-styles';
 
 type TextAreaProps = {
   value: string;
@@ -51,13 +52,10 @@ function TextArea({
         aria-multiline={true}
         className={clsx([
           'text-base bg-blanc-nacre dark:bg-baltic-sea transition',
-          'border-cement-feet dark:border-gun-powder border rounded-lg',
-          'hover:ring-1 hover:border-black hover:dark:border-white',
-          'focus:border-black focus:dark:border-white',
-          'focus:outline-none focus:ring-2 ring-black dark:ring-white',
           'w-full flex flex-row justify-between items-center py-4 px-4',
           'text-baltic-sea dark:text-mercury-pinkish',
           'placeholder:text-cement-feet placeholder:dark:text-mercury-mist',
+          ...inputStates,
           resize && getResizeClass(resize),
           label && 'relative',
         ])}
