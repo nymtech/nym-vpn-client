@@ -1,5 +1,7 @@
 package net.nymtech.nymvpn.ui
+import android.Manifest
 import android.net.VpnService
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -8,6 +10,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarData
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,25 +28,29 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.window.core.layout.WindowHeightSizeClass
-import androidx.window.core.layout.WindowSizeClass
-import androidx.window.layout.WindowMetricsCalculator
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.model.Country
+import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
+import net.nymtech.nymvpn.ui.screens.settings.account.AccountScreen
 import net.nymtech.nymvpn.ui.screens.settings.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.feedback.FeedbackScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
+import net.nymtech.nymvpn.ui.screens.settings.login.LoginScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.TransparentSystemBars
-import net.nymtech.vpn.NymVpnService
+import net.nymtech.nymvpn.util.StringValue
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -47,69 +58,78 @@ class MainActivity : ComponentActivity() {
 
   @Inject lateinit var dataStoreManager: DataStoreManager
 
+  @OptIn(ExperimentalPermissionsApi::class)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
     installSplashScreen()
 
-    // load into memory, init data here
-    val countries = listOf(
-      Country("DE", "Germany", true),
-      Country("DE", "Germany"),
-      Country("FR", "France"),
-      Country("US", "United States")
-    )
-
-    //determine window height
-    val metrics = WindowMetricsCalculator.getOrCreate().computeCurrentWindowMetrics(this)
-    val width = metrics.bounds.width()
-    val height = metrics.bounds.height()
-    val density = resources.displayMetrics.density
-    val windowSize = WindowSizeClass.compute(width/density, height/density)
-    windowHeightSizeClass = windowSize.windowHeightSizeClass
-
     lifecycleScope.launch {
       dataStoreManager.init()
-      dataStoreManager.saveToDataStore(DataStoreManager.NODE_COUNTRIES, countries.toString())
     }
 
     setContent {
+
       val mainViewModel = hiltViewModel<AppViewModel>()
       val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
       val navController = rememberNavController()
+      val snackbarHostState = remember { SnackbarHostState() }
 
-      var vpnIntent by remember { mutableStateOf(VpnService.prepare(this)) }
-      val vpnActivityResultState =
-        rememberLauncherForActivityResult(
-          ActivityResultContracts.StartActivityForResult(),
-          onResult = {
-            if (true) {
-              vpnIntent = null
-            }
-          },
-        )
+      val notificationPermissionState = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+        rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS) else null
+
+      fun requestNotificationPermission() {
+        if (notificationPermissionState != null && !notificationPermissionState.status.isGranted
+        ) {
+          notificationPermissionState.launchPermissionRequest()
+        }
+      }
 
       LaunchedEffect(Unit) {
-        if(vpnIntent != null) {
-          vpnActivityResultState.launch(vpnIntent)
+        requestNotificationPermission()
+      }
+
+      LaunchedEffect(Unit) {
+        mainViewModel.updateCountryListCache()
+      }
+
+      fun showSnackBarMessage(message: StringValue) {
+        lifecycleScope.launch(Dispatchers.Main) {
+          val result =
+            snackbarHostState.showSnackbar(
+              message = message.asString(this@MainActivity),
+              duration = SnackbarDuration.Short,
+            )
+          when (result) {
+            SnackbarResult.ActionPerformed,
+            SnackbarResult.Dismissed -> {
+              snackbarHostState.currentSnackbarData?.dismiss()
+            }
+          }
         }
       }
 
       NymVPNTheme(theme = uiState.theme) {
-
         // A surface container using the 'background' color from the theme
         TransparentSystemBars()
         Scaffold(
             topBar = { NavBar(navController) },
+            snackbarHost = {
+              SnackbarHost(snackbarHostState) { snackbarData: SnackbarData ->
+                CustomSnackBar(message = snackbarData.visuals.message)
+              }
+            }
         ) {
           Column(modifier = Modifier.padding(it)) {
             NavHost(navController, startDestination = NavItem.Main.route) {
-              composable(NavItem.Main.route) { MainScreen(navController) }
-              composable(NavItem.Settings.route) { SettingsScreen(navController) }
+              composable(NavItem.Main.route) { MainScreen(navController, uiState) }
+              composable(NavItem.Settings.route) { SettingsScreen(navController, uiState) }
               composable(NavItem.Hop.Entry.route) {
+                mainViewModel.updateCountryListCache()
                 HopScreen(navController =  navController, hopType =  HopType.FIRST)
               }
               composable(NavItem.Hop.Exit.route) {
+                mainViewModel.updateCountryListCache()
                 HopScreen(navController =  navController, hopType = HopType.LAST)
               }
               composable(NavItem.Settings.Display.route) { DisplayScreen() }
@@ -117,15 +137,13 @@ class MainActivity : ComponentActivity() {
               composable(NavItem.Settings.Support.route) { SupportScreen() }
               composable(NavItem.Settings.Feedback.route) { FeedbackScreen() }
               composable(NavItem.Settings.Legal.route) { LegalScreen() }
+              composable(NavItem.Settings.Login.route) { LoginScreen(navController, showSnackbarMessage = { message -> showSnackBarMessage(message) } ) }
+              composable(NavItem.Settings.Account.route) { AccountScreen() }
             }
           }
         }
       }
     }
-  }
-  companion object {
-    lateinit var windowHeightSizeClass: WindowHeightSizeClass
-      private set
   }
 }
 

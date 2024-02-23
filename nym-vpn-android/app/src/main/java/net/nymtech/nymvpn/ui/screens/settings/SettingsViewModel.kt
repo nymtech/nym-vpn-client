@@ -39,4 +39,8 @@ class SettingsViewModel @Inject constructor(
     fun onAutoConnectSelected(selected: Boolean) = viewModelScope.launch {
         dataStoreManager.saveToDataStore(DataStoreManager.AUTO_CONNECT, selected)
     }
+
+    fun onLogOutSelected() = viewModelScope.launch {
+        dataStoreManager.saveToDataStore(DataStoreManager.LOGGED_IN, false)
+    }
 }

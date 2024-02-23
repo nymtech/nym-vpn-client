@@ -9,12 +9,12 @@ plugins {
 }
 
 android {
-    namespace = Constants.APP_ID
+    namespace = "${Constants.NAMESPACE}.${Constants.APP_NAME}"
     compileSdk = Constants.COMPILE_SDK
     ndkVersion = Constants.NDK_VERSION
 
     defaultConfig {
-        applicationId = Constants.APP_ID
+        applicationId = "${Constants.NAMESPACE}.${Constants.APP_NAME}"
         minSdk = Constants.MIN_SDK
         targetSdk = Constants.TARGET_SDK
         versionCode = Constants.VERSION_CODE
@@ -107,8 +107,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = Constants.JAVA_VERSION
+        targetCompatibility = Constants.JAVA_VERSION
     }
     kotlinOptions {
         jvmTarget = Constants.JVM_TARGET
@@ -153,6 +153,7 @@ dependencies {
 
     // util
     implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.accompanist.permissions)
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.window)
@@ -174,5 +175,13 @@ dependencies {
     //splash
     implementation(libs.androidx.core.splashscreen)
 
+    //coroutines
+    implementation(libs.retrofit)
+    implementation(libs.converter.moshi)
+
+    //moshi
+    implementation(libs.moshi)
+    implementation(libs.moshi.kotlin)
+    ksp(libs.moshi.kotlin.codegen)
 }
 

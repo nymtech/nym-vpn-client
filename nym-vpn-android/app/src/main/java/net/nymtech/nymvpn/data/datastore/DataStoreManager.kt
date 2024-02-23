@@ -20,6 +20,7 @@ class DataStoreManager(private val context: Context) {
         val NODE_COUNTRIES = stringPreferencesKey("NODE_COUNTRIES")
         val ERROR_REPORTING = booleanPreferencesKey("ERROR_REPORTING")
         val AUTO_CONNECT = booleanPreferencesKey("AUTO_CONNECT")
+        val LOGGED_IN = booleanPreferencesKey("LOGGED_IN")
     }
 
     // preferences

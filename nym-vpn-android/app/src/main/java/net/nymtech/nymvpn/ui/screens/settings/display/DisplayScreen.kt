@@ -15,7 +15,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.RadioSurfaceButton
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.screenPadding
+import net.nymtech.nymvpn.util.scaledHeight
+import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
 fun DisplayScreen(viewModel: DisplayViewModel = hiltViewModel()) {
@@ -24,12 +25,14 @@ fun DisplayScreen(viewModel: DisplayViewModel = hiltViewModel()) {
 
     Column(
         horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(screenPadding, Alignment.Top),
-        modifier = Modifier.fillMaxSize().padding(top = screenPadding).padding(horizontal = screenPadding)) {
+        verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
+        modifier = Modifier.fillMaxSize().padding(top = 24.dp.scaledHeight()).padding(horizontal = 24.dp.scaledWidth())) {
         RadioSurfaceButton(
             title = stringResource(R.string.automatic),
             description = stringResource(R.string.device_theme),
-            onClick = { viewModel.onThemeChange(Theme.AUTOMATIC) },
+            onClick = {
+                viewModel.onThemeChange(Theme.AUTOMATIC)
+                      },
             selected = uiState.theme == Theme.AUTOMATIC)
         RadioSurfaceButton(
             title = stringResource(R.string.light_theme),

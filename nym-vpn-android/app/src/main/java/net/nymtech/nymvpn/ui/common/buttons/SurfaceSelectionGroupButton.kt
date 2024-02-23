@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,11 +27,14 @@ import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowHeightSizeClass
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.MainActivity
+import net.nymtech.nymvpn.ui.theme.iconSize
+import net.nymtech.nymvpn.util.scaledHeight
+import net.nymtech.nymvpn.util.scaledWidth
 
 data class SelectionItem(
     val leadingIcon: ImageVector? = null,
     val trailing: (@Composable () -> Unit)? = {
-      Icon(ImageVector.vectorResource(R.drawable.link_arrow_right), "arrow")
+      Icon(ImageVector.vectorResource(R.drawable.link_arrow_right), "arrow", Modifier.size(iconSize))
     },
     val title: String = "",
     val description: String? = null,
@@ -39,9 +44,6 @@ data class SelectionItem(
 @Composable
 fun SurfaceSelectionGroupButton(items: List<SelectionItem>) {
   val interactionSource = remember { MutableInteractionSource() }
-  val endPadding = when(MainActivity.windowHeightSizeClass) {
-      WindowHeightSizeClass.MEDIUM, WindowHeightSizeClass.COMPACT -> 16.dp
-      else -> { 24.dp } }
   Card(
       modifier = Modifier.fillMaxWidth(),
       colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
@@ -54,24 +56,23 @@ fun SurfaceSelectionGroupButton(items: List<SelectionItem>) {
                         it.onClick()
                       },
           ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.height(64.dp).padding(top = 4.dp, bottom = 4.dp, end = endPadding)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.height(64.dp.scaledHeight()).padding(top = 4.dp.scaledHeight(), bottom = 4.dp.scaledHeight(), end = 24.dp.scaledWidth())) {
               it.leadingIcon?.let { icon ->
-                Icon(icon, icon.name, modifier = Modifier.padding(start = 16.dp))
+                Icon(icon, icon.name, modifier = Modifier.padding(start = 16.dp.scaledWidth()).size(
+                    iconSize))
               }
               Row(
-                  horizontalArrangement = Arrangement.spacedBy(16.dp),
+                  horizontalArrangement = Arrangement.spacedBy(16.dp.scaledHeight()),
                   verticalAlignment = Alignment.CenterVertically) {
                     Column {
-                      Text(it.title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 16.dp))
+                      Text(it.title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 16.dp.scaledWidth()))
                       it.description?.let { description ->
-                          val descriptionTypography = when(MainActivity.windowHeightSizeClass) {
-                              WindowHeightSizeClass.MEDIUM, WindowHeightSizeClass.COMPACT -> MaterialTheme.typography.bodySmall
-                              else -> { MaterialTheme.typography.bodyMedium }}
+                          val descriptionTypography = MaterialTheme.typography.bodyMedium
                         Text(
                             description,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = descriptionTypography,
-                            modifier = Modifier.padding(start = 16.dp))
+                            modifier = Modifier.padding(start = 16.dp.scaledWidth()))
                       }
                     }
                   }
@@ -82,7 +83,7 @@ fun SurfaceSelectionGroupButton(items: List<SelectionItem>) {
               }
             }
           }
-          if (index + 1 != items.size) Divider()
+          if (index + 1 != items.size) HorizontalDivider()
         }
       }
 }

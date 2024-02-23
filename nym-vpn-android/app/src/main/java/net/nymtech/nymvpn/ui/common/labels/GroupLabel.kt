@@ -13,8 +13,7 @@ import androidx.compose.ui.Modifier
 fun GroupLabel(title: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start,
-        modifier = Modifier.fillMaxWidth()) {
+        horizontalArrangement = Arrangement.Start) {
         Text(
             title,
             style = MaterialTheme.typography.titleMedium)

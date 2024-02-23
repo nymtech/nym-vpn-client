@@ -1,8 +1,0 @@
-
-<style name="Theme.AppSplashScreen" parent="Theme.SplashScreen">
-<!--<item name="windowSplashScreenBackground">@color/white</item>-->
-    <item name="android:windowSplashScreenAnimatedIcon">@drawable/welcome</item>
-    <item name="android:windowSplashScreenAnimationDuration">500</item>
-    <item name="android:postSplashScreenTheme">@style/Theme.NymVPN</item>
-    <item name="android:windowSplashScreenBehavior">icon_preferred</item>
-</style>

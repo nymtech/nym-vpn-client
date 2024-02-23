@@ -10,12 +10,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import net.nymtech.nymvpn.util.scaledHeight
 
 @Composable
 fun MainStyledButton(onClick: () -> Unit, content: @Composable () -> Unit, color: Color = MaterialTheme.colorScheme.primary) {
     Button(onClick = { onClick() }, colors = ButtonDefaults.buttonColors(
         containerColor = color
-    ), modifier = Modifier.height(56.dp).fillMaxWidth(), shape =
+    ), modifier = Modifier.height(56.dp.scaledHeight()).fillMaxWidth(), shape =
     ShapeDefaults.Small) {
         content()
     }

@@ -5,7 +5,9 @@ import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
@@ -20,12 +22,11 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.SurfaceSelectionGroupButton
-import net.nymtech.nymvpn.ui.theme.screenPadding
+import net.nymtech.nymvpn.util.scaledHeight
+import net.nymtech.nymvpn.util.scaledWidth
 import timber.log.Timber
 
 @Composable
@@ -50,8 +51,8 @@ fun FeedbackScreen(viewModel: FeedbackViewModel = hiltViewModel()) {
       modifier =
           Modifier.verticalScroll(rememberScrollState())
               .fillMaxSize()
-              .padding(top = screenPadding)
-              .padding(horizontal = screenPadding)) {
+              .padding(top = 24.dp.scaledHeight())
+              .padding(horizontal = 24.dp.scaledWidth())) {
         SurfaceSelectionGroupButton(
             listOf(
                 SelectionItem(
@@ -92,7 +93,7 @@ fun FeedbackScreen(viewModel: FeedbackViewModel = hiltViewModel()) {
                     title = stringResource(R.string.error_reporting),
                     description = stringResource(R.string.error_reporting_description),
                     trailing = {
-                      Switch(isErrorReportingEnabled, { viewModel.onErrorReportingSelected(it) })
+                      Switch(isErrorReportingEnabled, { viewModel.onErrorReportingSelected(it) }, modifier = Modifier.height(32.dp.scaledHeight()).width(52.dp.scaledWidth()))
                     })))
       }
 }

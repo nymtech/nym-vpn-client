@@ -1,16 +1,19 @@
 package net.nymtech.nymvpn.ui.screens.settings
 
-import android.content.Intent
-import android.net.Uri
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -19,51 +22,72 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.NavItem
+import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.SurfaceSelectionGroupButton
-import net.nymtech.nymvpn.ui.theme.screenPadding
-import timber.log.Timber
+import net.nymtech.nymvpn.util.scaledHeight
+import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(navController: NavController, appUiState: AppUiState, viewModel: SettingsViewModel = hiltViewModel()) {
 
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  val context = LocalContext.current
-
-  fun openWebPage(url: String) {
-    try {
-      val webpage: Uri = Uri.parse(url)
-      val intent = Intent(Intent.ACTION_VIEW, webpage)
-      context.startActivity(intent)
-    } catch (e: Exception) {
-      Timber.e("Failed to launch webpage")
-    }
-  }
 
   Column(
       horizontalAlignment = Alignment.Start,
       verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
       modifier =
-          Modifier.verticalScroll(rememberScrollState())
-              .fillMaxSize()
-              .padding(top = screenPadding)
-              .padding(horizontal = screenPadding)) {
+      Modifier
+          .verticalScroll(rememberScrollState())
+          .fillMaxSize()
+          .padding(top = 24.dp)
+          .padding(horizontal = 24.dp.scaledWidth())) {
+      if(!appUiState.loggedIn) {
+          MainStyledButton(
+              onClick = { navController.navigate(NavItem.Settings.Login.route) },
+              content = {
+                  Text(
+                      stringResource(id = R.string.login_view_account),
+                      style = MaterialTheme.typography.labelLarge)
+              },
+              color = MaterialTheme.colorScheme.primary)
+      } else {
+          //TODO get real account numbers, mock for now
+          val accountDescription = buildAnnotatedString {
+              append("20")
+              append(" ")
+              append(stringResource(id = R.string.of))
+              append(" ")
+              append("31")
+              append(" ")
+              append(stringResource(id = R.string.days_left))
+          }
+          SurfaceSelectionGroupButton(listOf(
+              SelectionItem(
+                  Icons.Filled.AccountCircle,
+                  onClick = { navController.navigate(NavItem.Settings.Account.route) },
+                  title = stringResource(R.string.account),
+                  description = accountDescription.text)
+          ))
+      }
         SurfaceSelectionGroupButton(
             listOf(
                 SelectionItem(
                     ImageVector.vectorResource(R.drawable.auto),
                     {
-                      Switch(uiState.isAutoConnectEnabled, { viewModel.onAutoConnectSelected(it) })
+                      Switch(uiState.isAutoConnectEnabled, { viewModel.onAutoConnectSelected(it) },
+                          modifier = Modifier.height(32.dp.scaledHeight()).width(52.dp.scaledWidth()))
                     },
                     stringResource(R.string.auto_connect),
                     stringResource(R.string.auto_connect_description),
@@ -73,7 +97,7 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
                     {
                       Switch(
                           uiState.isFirstHopSelectionEnabled,
-                          { viewModel.onEntryLocationSelected(it) })
+                          { viewModel.onEntryLocationSelected(it) }, modifier = Modifier.height(32.dp.scaledHeight()).width(52.dp.scaledWidth()))
                     },
                     stringResource(R.string.entry_location),
                     stringResource(R.string.entry_location_description),
@@ -108,9 +132,22 @@ fun SettingsScreen(navController: NavController, viewModel: SettingsViewModel = 
                 SelectionItem(
                     title = stringResource(R.string.legal),
                     onClick = { navController.navigate(NavItem.Settings.Legal.route) })))
-      Box(contentAlignment =  Alignment.BottomStart, modifier = Modifier.fillMaxSize().padding(
-          screenPadding)) {
-          Text("Version: ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium)
+      if(appUiState.loggedIn) {
+          SurfaceSelectionGroupButton(
+              listOf(
+                  SelectionItem(
+                      title = stringResource(R.string.log_out),
+                      onClick = {
+                          navController.navigate(NavItem.Main.route)
+                          viewModel.onLogOutSelected()
+                      }, trailing = {})))
+      }
+      Column(
+          verticalArrangement = Arrangement.Bottom,
+          horizontalAlignment = Alignment.Start,
+          modifier = Modifier
+          .fillMaxSize().padding(bottom = 20.dp)) {
+          Text("Version: ${BuildConfig.VERSION_NAME}",  style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
       }
   }
 }

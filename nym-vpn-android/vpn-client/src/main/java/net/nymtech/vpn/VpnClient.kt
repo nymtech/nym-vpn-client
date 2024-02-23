@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface VpnClient {
     fun prepare(context : Context) : Intent?
-    fun connect(entryIso: String, exitIso: String, vpnService: NymVpnService)
+    fun connect()
     fun disconnect()
     val statistics : Flow<VpnStatistics>
 }

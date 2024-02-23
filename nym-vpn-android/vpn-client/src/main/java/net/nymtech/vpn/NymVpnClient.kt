@@ -3,6 +3,7 @@ package net.nymtech.vpn
 import android.content.Context
 import android.content.Intent
 import android.net.VpnService
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -19,6 +20,7 @@ class NymVpnClient : VpnClient {
 
     private val _statistics = MutableStateFlow(VpnStatistics())
     override val statistics: StateFlow<VpnStatistics> = _statistics.asStateFlow()
+    val scope = CoroutineScope(Dispatchers.IO)
 
 
     private var job : Job? = null
@@ -26,16 +28,17 @@ class NymVpnClient : VpnClient {
         return VpnService.prepare(context)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    override fun connect(entryIso: String, exitIso: String, vpnService: NymVpnService) {
-//        Timber.d("Starting job")
-//        val entry = "{ \"Location\": { \"location\": \"FR\" }}"
-//        val exit = "{ \"Location\": { \"location\": \"FR\" }}"
-//        GlobalScope.launch(Dispatchers.IO) {
-//            nymVPN.init("https://sandbox-nym-api1.nymtech.net/api",entry,exit,vpnService)
-//            delay(1000)
-//            nymVPN.run()
-//        }
+    override fun connect() {
+        job = scope.launch {
+            var seconds = 0L
+            do {
+                _statistics.value = _statistics.value.copy(
+                    connectionSeconds = seconds
+                )
+                delay(1000)
+                seconds++
+            } while (true)
+        }
     }
 
     override fun disconnect() {

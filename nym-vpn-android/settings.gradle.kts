@@ -20,5 +20,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "NymVPN"
+
 include(":app")
 include(":vpn-client")

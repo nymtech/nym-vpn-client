@@ -22,8 +22,9 @@ import androidx.core.content.ContextCompat
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.SurfaceSelectionGroupButton
-import net.nymtech.nymvpn.ui.theme.screenPadding
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.scaledHeight
+import net.nymtech.nymvpn.util.scaledWidth
 import timber.log.Timber
 
 @Composable
@@ -63,8 +64,8 @@ fun SupportScreen() {
         modifier =
         Modifier.verticalScroll(rememberScrollState())
             .fillMaxSize()
-            .padding(top = screenPadding)
-            .padding(horizontal = screenPadding)) {
+            .padding(top = 24.dp.scaledHeight())
+            .padding(horizontal = 24.dp.scaledWidth())) {
         SurfaceSelectionGroupButton(
             listOf(
                 SelectionItem(

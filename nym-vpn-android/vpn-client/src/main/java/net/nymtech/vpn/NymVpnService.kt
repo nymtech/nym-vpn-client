@@ -11,7 +11,6 @@ import android.os.Build
 import android.os.ParcelFileDescriptor
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -94,7 +93,6 @@ open class NymVpnService : VpnService() {
             Timber.d("VPN stop")
             stopVPN()
             closeTun()
-            stopSelf()
             START_NOT_STICKY
         }
     }
@@ -253,9 +251,9 @@ open class NymVpnService : VpnService() {
     }
 
     private fun prefixForAddress(address: InetAddress): Int {
-        when (address) {
-            is Inet4Address -> return 32
-            is Inet6Address -> return 128
+        return when (address) {
+            is Inet4Address -> 32
+            is Inet6Address -> 128
             else -> throw RuntimeException("Invalid IP address (not IPv4 nor IPv6)")
         }
     }

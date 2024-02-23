@@ -1,15 +1,23 @@
 package net.nymtech.nymvpn.ui.screens.main
 
+import android.net.VpnService
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -25,6 +33,7 @@ import androidx.window.core.layout.WindowHeightSizeClass
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.model.Country
 import net.nymtech.nymvpn.model.NetworkMode
+import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
@@ -36,14 +45,25 @@ import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.theme.CustomColors
-import net.nymtech.nymvpn.ui.theme.screenPadding
+import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.StringUtils
+import net.nymtech.nymvpn.util.scaledHeight
+import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun MainScreen(navController: NavController, viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: MainViewModel = hiltViewModel()) {
 
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val context = LocalContext.current
+
+    var vpnIntent by remember { mutableStateOf(VpnService.prepare(context)) }
+    val vpnActivityResultState =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.StartActivityForResult(),
+            onResult = {
+                vpnIntent = null
+            },
+        )
 
   @Composable
   fun determineCountryIcon(country: Country): @Composable () -> Unit {
@@ -54,7 +74,8 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel = hiltView
       Image(
           image,
           image.name,
-          modifier = Modifier.padding(16.dp),
+          modifier = Modifier.padding(horizontal = 16.dp.scaledWidth(), vertical = 16.dp.scaledHeight()).size(
+              iconSize),
           colorFilter =
               if (country.isFastest) ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
               else null)
@@ -62,15 +83,12 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel = hiltView
   }
 
   Column(
-      verticalArrangement = Arrangement.spacedBy(screenPadding, Alignment.Top),
+      verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
       horizontalAlignment = Alignment.CenterHorizontally,
       modifier = Modifier.fillMaxSize()) {
-      val snackAreaPadding = when(MainActivity.windowHeightSizeClass) {
-      WindowHeightSizeClass.MEDIUM, WindowHeightSizeClass.COMPACT -> 24.dp
-      else -> { 96.dp } }
         Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = snackAreaPadding)) {
+            verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight()),
+            horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 68.dp.scaledHeight())) {
               ConnectionStateDisplay(connectionState = uiState.connectionState)
               uiState.stateMessage.let {
                 when (it) {
@@ -91,19 +109,13 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel = hiltView
         val lastHopName = StringUtils.buildCountryNameString(uiState.lastHopCountry, context)
         val firstHopIcon = determineCountryIcon(uiState.firstHopCounty)
         val lastHopIcon = determineCountryIcon(uiState.lastHopCountry)
-        val spacePaddingMain = when(MainActivity.windowHeightSizeClass) {
-          WindowHeightSizeClass.MEDIUM, WindowHeightSizeClass.COMPACT -> 16.dp
-          else -> { 36.dp }}
         Column(
-            verticalArrangement = Arrangement.spacedBy(spacePaddingMain, Alignment.Bottom),
+            verticalArrangement = Arrangement.spacedBy(36.dp.scaledHeight(), Alignment.Bottom),
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().padding(bottom = screenPadding)) {
-            val spacePaddingNetwork = when(MainActivity.windowHeightSizeClass) {
-                WindowHeightSizeClass.MEDIUM, WindowHeightSizeClass.COMPACT -> 12.dp
-                else -> { 24.dp }}
+            modifier = Modifier.fillMaxSize().padding(bottom = 24.dp.scaledHeight())) {
                 Column(
-                  verticalArrangement = Arrangement.spacedBy(spacePaddingNetwork, Alignment.Bottom),
-                  modifier = Modifier.padding(horizontal = screenPadding)) {
+                  verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Bottom),
+                  modifier = Modifier.padding(horizontal = 24.dp.scaledWidth())) {
                     GroupLabel(title = stringResource(R.string.select_network))
                     RadioSurfaceButton(
                         leadingIcon = ImageVector.vectorResource(R.drawable.mixnet),
@@ -124,12 +136,9 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel = hiltView
                         },
                         selected = uiState.networkMode == NetworkMode.TWO_HOP_WIREGUARD)
                   }
-              val countrySelectionSpacing = when(MainActivity.windowHeightSizeClass) {
-                  WindowHeightSizeClass.MEDIUM, WindowHeightSizeClass.COMPACT -> 12.dp
-                  else -> { 24.dp } }
               Column(
-                  verticalArrangement = Arrangement.spacedBy(countrySelectionSpacing, Alignment.Bottom),
-                  modifier = Modifier.padding(horizontal = screenPadding)) {
+                  verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Bottom),
+                  modifier = Modifier.padding(horizontal = 24.dp.scaledWidth())) {
                     GroupLabel(title = stringResource(R.string.connect_to))
                     if (uiState.firstHopEnabled) {
                       ListOptionSelectionButton(
@@ -144,11 +153,17 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel = hiltView
                         onClick = { navController.navigate(NavItem.Hop.Exit.route) },
                         leadingIcon = lastHopIcon)
                   }
-              Box(modifier = Modifier.padding(horizontal = screenPadding)) {
+              Box(modifier = Modifier.padding(horizontal = 24.dp.scaledWidth())) {
                 when (uiState.connectionState) {
                   is ConnectionState.Disconnected ->
                       MainStyledButton(
-                          onClick = { viewModel.onConnect() },
+                          onClick = {
+                              if(appUiState.loggedIn) {
+                                  if(vpnIntent != null)
+                                  vpnActivityResultState.launch(vpnIntent)
+                                  else viewModel.onConnect()
+                              } else
+                                  navController.navigate(NavItem.Settings.Login.route) },
                           content = {
                             Text(
                                 stringResource(id = R.string.connect),
@@ -167,7 +182,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel = hiltView
                                 stringResource(id = R.string.disconnect),
                                 style = MaterialTheme.typography.labelLarge)
                           },
-                          color = MaterialTheme.colorScheme.secondary)
+                          color = CustomColors.disconnect)
                 }
               }
             }

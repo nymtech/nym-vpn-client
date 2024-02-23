@@ -37,14 +37,17 @@ sealed class ThemeColors(
     )
 }
 val primary = Color(0xFFFB6E4E)
-val secondary = Color(0xFF7075FF)
+val secondary = Color(0XFF625B71)
 
 object CustomColors {
     val confirm = Color(0xFF2BC761)
     val statusGreen = Color(0x1A47C45D)
     val statusDefaultDark = Color(0x31303329)
     val statusDefaultLight = Color(0xFF625B71).copy(alpha = 0.16f)
+    val disconnect = Color(0xFF7075FF)
     val error = Color(0xFFE33B5A)
+    val snackBarBackgroundColor = Color(0xFF484649)
+    val snackbarTextColor = Color(0xFFE7E7E7)
 }
 
 

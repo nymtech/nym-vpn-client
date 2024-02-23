@@ -1,14 +1,12 @@
 package net.nymtech.nymvpn.ui.theme
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import androidx.window.core.layout.WindowHeightSizeClass
-import net.nymtech.nymvpn.ui.MainActivity
+import net.nymtech.nymvpn.util.scaled
 
 // Set of Material typography styles to start with
 val Typography =
@@ -17,57 +15,55 @@ val Typography =
             TextStyle(
                 fontFamily = FontFamily.Default,
                 fontWeight = FontWeight.Normal,
-                fontSize = 16.sp,
-                lineHeight = 24.sp,
-                letterSpacing = 0.5.sp),
+                fontSize = 16.sp.scaled(),
+                lineHeight = 24.sp.scaled(),
+                letterSpacing = 0.5.sp.scaled()),
         bodySmall =
             TextStyle(
-                fontSize = 12.sp,
-                lineHeight = 16.sp,
+                fontSize = 12.sp.scaled(),
+                lineHeight = 16.sp.scaled(),
                 fontWeight = FontWeight(400),
-                letterSpacing = 0.4.sp,
+                letterSpacing = 0.4.sp.scaled(),
             ),
         titleLarge =
             TextStyle(
-                fontSize = 22.sp,
-                lineHeight = 28.sp,
+                fontSize = 22.sp.scaled(),
+                lineHeight = 28.sp.scaled(),
                 fontWeight = FontWeight(400),
             ),
         titleMedium =
             TextStyle(
-                fontSize = 16.sp,
-                lineHeight = 24.sp,
+                fontSize = 16.sp.scaled(),
+                lineHeight = 24.sp.scaled(),
                 fontWeight = FontWeight(600),
-                letterSpacing = 0.15.sp,
+                letterSpacing = 0.15.sp.scaled(),
             ),
         bodyMedium =
             TextStyle(
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
+                fontSize = 14.sp.scaled(),
+                lineHeight = 20.sp.scaled(),
                 fontWeight = FontWeight(400),
-                letterSpacing = 0.25.sp,
+                letterSpacing = 0.25.sp.scaled(),
             ),
         labelSmall =
             TextStyle(
-                fontSize = 11.sp,
-                lineHeight = 16.sp,
+                fontSize = 11.sp.scaled(),
+                lineHeight = 16.sp.scaled(),
                 fontWeight = FontWeight(500),
-                letterSpacing = 0.5.sp,
+                letterSpacing = 0.5.sp.scaled(),
             ),
+        headlineSmall = TextStyle(
+            fontSize = 24.sp.scaled(),
+            lineHeight = 32.sp.scaled(),
+            fontWeight = FontWeight(400),
+            textAlign = TextAlign.Center,
+        ),
         labelLarge =
-            TextStyle(
-                fontSize = 18.sp,
-                lineHeight = 24.sp,
-                fontWeight = FontWeight(700),
-            ))
-
-@Composable
-fun descriptionTypography() : TextStyle {
-  return when (MainActivity.windowHeightSizeClass) {
-    WindowHeightSizeClass.MEDIUM,
-    WindowHeightSizeClass.COMPACT -> MaterialTheme.typography.bodyMedium
-    else -> {
-      MaterialTheme.typography.bodyMedium
-    }
-  }
-}
+        TextStyle(
+            fontSize = 14.sp.scaled(),
+            lineHeight = 20.sp.scaled(),
+            fontWeight = FontWeight(700),
+            textAlign = TextAlign.Center,
+            letterSpacing = 0.1.sp.scaled(),
+        )
+    )

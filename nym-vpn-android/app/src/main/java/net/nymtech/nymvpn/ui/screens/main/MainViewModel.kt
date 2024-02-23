@@ -21,6 +21,7 @@ import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.NumberUtils
 import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.vpn.NymVpnClient
 import net.nymtech.vpn.ServiceManager
 import net.nymtech.vpn.VpnClient
 
@@ -84,7 +85,7 @@ constructor(
 
   fun onConnect() =
       viewModelScope.launch(Dispatchers.IO) {
-        // TODO implement real connection
+          ServiceManager.startVpnService(application.applicationContext)
         _uiState.value =
             _uiState.value.copy(
                 connectionState = ConnectionState.Connecting,
@@ -101,12 +102,13 @@ constructor(
                 connectionState = ConnectionState.Connected,
                 stateMessage =
                     StateMessage.Info(StringValue.StringResource(R.string.connection_time)))
-        ServiceManager.startVpnService(application.applicationContext)
+          vpnClient.connect()
       }
 
   fun onDisconnect() =
       viewModelScope.launch {
         ServiceManager.stopVpnService(application)
+          vpnClient.disconnect()
         _uiState.value =
             _uiState.value.copy(
                 connectionState = ConnectionState.Disconnecting,

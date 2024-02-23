@@ -11,15 +11,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.theme.screenPadding
+import net.nymtech.nymvpn.util.scaledHeight
+import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
 fun LogsScreen() {
 
   Column(
       horizontalAlignment = Alignment.Start,
-      verticalArrangement = Arrangement.spacedBy(screenPadding, Alignment.Top),
-      modifier = Modifier.fillMaxSize().padding(top = screenPadding).padding(horizontal = screenPadding)) {
+      verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
+      modifier = Modifier.fillMaxSize().padding(top = 24.dp.scaledHeight()).padding(horizontal = 24.dp.scaledWidth())) {
         Text(stringResource(id = R.string.logs))
       }
 }

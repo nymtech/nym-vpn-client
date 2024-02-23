@@ -1,16 +1,26 @@
 package net.nymtech.nymvpn.ui.common
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,62 +31,78 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.theme.iconSize
+import net.nymtech.nymvpn.util.scaledHeight
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBar(onQuery: (queryString: String) -> Unit, placeholder: String, horizontalPadding : Dp) {
+fun SearchBar(onQuery: (queryString: String) -> Unit, placeholder : (@Composable () -> Unit)) {
     // Immediately update and keep track of query from text field changes.
+    val space = " "
     var query: String by rememberSaveable { mutableStateOf("") }
-    var showClearIcon by rememberSaveable { mutableStateOf(false) }
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
+    val interactionSource = remember { MutableInteractionSource() }
 
-    if (query.isEmpty()) {
-        showClearIcon = false
-    } else if (query.isNotEmpty()) {
-        showClearIcon = true
-    }
-    OutlinedTextField(
-        label = { Text(stringResource(R.string.search)) },
-        value = query,
-        onValueChange = { onQueryChanged ->
-            // If user makes changes to text, immediately updated it.
-            query = onQueryChanged
-            onQuery(onQueryChanged)
-        },
-        leadingIcon = {
-            val icon = Icons.Rounded.Search
-            Icon(
-                imageVector = icon,
-                tint = MaterialTheme.colorScheme.onBackground,
-                contentDescription = icon.name,
-            )
-        },
-        maxLines = 1,
-        colors = OutlinedTextFieldDefaults.colors(
+    val colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = MaterialTheme.colorScheme.onSurface,
-            focusedContainerColor = Color.Transparent,
             focusedBorderColor = MaterialTheme.colorScheme.outline,
             focusedLeadingIconColor = MaterialTheme.colorScheme.onSurface,
             focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
             focusedLabelColor = MaterialTheme.colorScheme.onSurface,
+            cursorColor = MaterialTheme.colorScheme.onSurface,
             focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface,
             focusedSupportingTextColor = MaterialTheme.colorScheme.onSurface,
             unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
             focusedPrefixColor = MaterialTheme.colorScheme.onSurface,
             focusedSuffixColor = MaterialTheme.colorScheme.onSurface
-        ),
-        placeholder = { Text(text = placeholder) },
-        textStyle = MaterialTheme.typography.bodySmall,
+        )
+    BasicTextField(
+        value = query,
+        onValueChange = { onQueryChanged : String ->
+            // If user makes changes to text, immediately updated it.
+            query = onQueryChanged
+            onQuery(onQueryChanged)
+        },
         singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
         modifier =
-            Modifier.fillMaxWidth()
-                .background(color = Color.Transparent, RoundedCornerShape(30.dp)).padding(horizontal = horizontalPadding),
-    )
+        Modifier
+            .fillMaxWidth()
+            .background(color = Color.Transparent, RoundedCornerShape(30.dp))
+    ) { innerTextField ->
+        OutlinedTextFieldDefaults.DecorationBox(
+            value = space + query,
+            leadingIcon = {
+            val icon = Icons.Rounded.Search
+            Icon(
+                imageVector = icon,
+                modifier = Modifier.size(iconSize),
+                tint = MaterialTheme.colorScheme.onBackground,
+                contentDescription = icon.name)
+            },
+            label = { Text(stringResource(R.string.search), modifier = Modifier.padding(start = 8.dp)) },
+            singleLine = true,
+            enabled = true,
+            innerTextField = {
+                if(query.isEmpty()) {
+                    placeholder()
+                }
+                innerTextField.invoke()
+             },
+            visualTransformation = VisualTransformation.None,
+            colors = colors,
+            interactionSource = interactionSource,
+            container = {
+                OutlinedTextFieldDefaults.ContainerBox(enabled = true, isError = false, colors = colors, interactionSource = interactionSource, focusedBorderThickness = 1.dp, unfocusedBorderThickness = 1.dp, shape = ShapeDefaults.Small)
+            },
+        )
+    }
 }

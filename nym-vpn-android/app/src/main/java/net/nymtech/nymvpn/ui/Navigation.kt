@@ -1,7 +1,7 @@
 package net.nymtech.nymvpn.ui
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import net.nymtech.nymvpn.R
@@ -15,7 +15,9 @@ enum class Screen {
     LOGS,
     FEEDBACK,
     LEGAL,
-    SUPPORT
+    SUPPORT,
+    LOGIN,
+    ACCOUNT
 }
 
 enum class HopType {
@@ -37,6 +39,8 @@ sealed class NavItem(val route: String, val title : StringValue, val leading : I
         data object Feedback : NavItem("${Screen.SETTINGS.name}/${Screen.FEEDBACK.name}", StringValue.StringResource(R.string.feedback), backIcon)
         data object Support : NavItem("${Screen.SETTINGS.name}/${Screen.SUPPORT.name}", StringValue.StringResource(R.string.support), backIcon)
         data object Legal : NavItem("${Screen.SETTINGS.name}/${Screen.LEGAL.name}", StringValue.StringResource(R.string.legal), backIcon)
+        data object Login : NavItem("${Screen.SETTINGS.name}/${Screen.LOGIN.name}", StringValue.StringResource(R.string.login), backIcon)
+        data object Account : NavItem("${Screen.SETTINGS.name}/${Screen.ACCOUNT.name}", StringValue.StringResource(R.string.account), backIcon)
     }
     sealed class Hop {
         data object Entry : NavItem("${Screen.HOP.name}/${HopType.FIRST.name}", HopType.FIRST.hopTitle(), backIcon)
@@ -45,7 +49,7 @@ sealed class NavItem(val route: String, val title : StringValue, val leading : I
 
     companion object {
         val settingsIcon = Icons.Outlined.Settings
-        val backIcon = Icons.Filled.ArrowBack
+        val backIcon = Icons.AutoMirrored.Filled.ArrowBack
         fun from(route: String?) : NavItem {
             return when (route) {
                 Main.route -> Main
@@ -57,6 +61,8 @@ sealed class NavItem(val route: String, val title : StringValue, val leading : I
                 Settings.Support.route -> Settings.Support
                 Settings.Feedback.route -> Settings.Feedback
                 Settings.Legal.route -> Settings.Legal
+                Settings.Login.route -> Settings.Login
+                Settings.Account.route -> Settings.Account
                 else -> Main
             }
         }

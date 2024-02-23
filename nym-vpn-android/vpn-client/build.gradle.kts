@@ -1,3 +1,6 @@
+import com.android.build.gradle.internal.tasks.factory.dependsOn
+import java.util.Locale
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrainsKotlinAndroid)
@@ -6,7 +9,13 @@ plugins {
 }
 
 android {
-    namespace = "net.nymtech.vpn_client"
+
+    project.tasks.preBuild.dependsOn(Constants.BUILD_LIB_TASK)
+
+    //TODO maybe we don't need this specific version but it is working
+    ndkVersion = "23.0.7599858"
+
+    namespace = "${Constants.NAMESPACE}.${Constants.VPN_LIB_NAME}"
     compileSdk = 34
 
     defaultConfig {
@@ -30,13 +39,15 @@ android {
             isShrinkResources = false
             isMinifyEnabled = false
         }
+        create("applicationVariants") {
+        }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = Constants.JAVA_VERSION
+        targetCompatibility = Constants.JAVA_VERSION
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = Constants.JVM_TARGET
     }
 }
 
@@ -50,3 +61,13 @@ dependencies {
     implementation(libs.timber)
 }
 
+
+tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
+    val ndkPath = android.ndkDirectory.path ?: error("No NDK install found")
+    val script = "${projectDir.path}/src/main/scripts/build-libs.sh"
+    //TODO find a better way to limit builds
+    if(file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so").exists() &&
+        file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libwg.so").exists()) {
+        commandLine("echo", "Libs already compiled")
+    } else commandLine("sh").args(script, ndkPath)
+}

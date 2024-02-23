@@ -17,6 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import net.nymtech.nymvpn.util.scaledHeight
+import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
 fun SelectionItemButton(
@@ -32,7 +34,7 @@ fun SelectionItemButton(
                   indication = null,
                   interactionSource = remember { MutableInteractionSource() },
                   onClick = { onClick() })
-              .height(56.dp),
+              .height(56.dp.scaledHeight()),
       shape = RoundedCornerShape(10.dp),
       colors = CardDefaults.cardColors(containerColor = if(!selected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.16f))) {
         Row(
@@ -47,7 +49,7 @@ fun SelectionItemButton(
             trailingText?.let {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically){
-                    Text(it, modifier = Modifier.padding(16.dp), color =
+                    Text(it, modifier = Modifier.padding(horizontal = 16.dp.scaledWidth(), vertical = 16.dp.scaledHeight()), color =
                     MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelSmall)
                 }
             }

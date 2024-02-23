@@ -2,8 +2,6 @@ package net.nymtech.nymvpn.ui.screens.settings.legal
 
 import android.content.Intent
 import android.net.Uri
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,13 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.window.core.layout.WindowHeightSizeClass
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.SurfaceSelectionGroupButton
-import net.nymtech.nymvpn.ui.theme.screenPadding
+import net.nymtech.nymvpn.util.scaledHeight
+import net.nymtech.nymvpn.util.scaledWidth
 import timber.log.Timber
 
 @Composable
@@ -45,8 +41,8 @@ fun LegalScreen() {
       modifier =
           Modifier.verticalScroll(rememberScrollState())
               .fillMaxSize()
-              .padding(top = screenPadding)
-              .padding(horizontal = screenPadding)) {
+              .padding(top = 24.dp.scaledHeight())
+              .padding(horizontal = 24.dp.scaledWidth())) {
         SurfaceSelectionGroupButton(
             listOf(
                 SelectionItem(title = stringResource(R.string.terms_of_use), onClick = {}),

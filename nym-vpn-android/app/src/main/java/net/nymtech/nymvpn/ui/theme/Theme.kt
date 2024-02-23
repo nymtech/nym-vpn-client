@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 
 enum class Theme {
@@ -54,19 +55,22 @@ fun NymVPNTheme(
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
+
     val darkTheme = when(theme) {
         Theme.AUTOMATIC -> isSystemInDarkTheme()
         Theme.DARK_MODE -> true
         Theme.LIGHT_MODE -> false
     }
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -78,6 +82,7 @@ fun NymVPNTheme(
                 !darkTheme
         }
     }
+
 
     MaterialTheme(
         colorScheme = colorScheme,

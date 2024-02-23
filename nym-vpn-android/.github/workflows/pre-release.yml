@@ -1,5 +1,5 @@
 # name of the workflow
-name: Android CI Tag Deployment
+name: Android CI Tag Deployment - Pre
 
 on:
   push:
@@ -21,6 +21,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -29,7 +31,25 @@ jobs:
           cache: gradle
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-
+      # Native build dependencies
+      - name: Setup Go
+        uses: actions/setup-go@v5
+      - name: Add rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Add all targets
+        run: |
+          rustup target add \
+            aarch64-linux-android \
+            armv7-linux-androideabi \
+            x86_64-linux-android \
+            i686-linux-android
+      - name: Add cargo-ndk
+        run: |
+          cargo install cargo-ndk
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r23c
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
       - name: Decode Keystore
