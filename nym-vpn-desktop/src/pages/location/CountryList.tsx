@@ -31,7 +31,7 @@ export default function CountryList({
                 'flex flex-row justify-between',
                 'hover:bg-gun-powder hover:bg-opacity-10',
                 'dark:hover:bg-laughing-jack dark:hover:bg-opacity-10',
-                'rounded-lg cursor-pointer px-3 py-1',
+                'rounded-lg cursor-pointer px-3 py-1 transition duration-75',
               ])}
               onClick={() => onSelect(uiCountry)}
             >

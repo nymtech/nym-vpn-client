@@ -50,7 +50,7 @@ function TextArea({
         value={value}
         aria-multiline={true}
         className={clsx([
-          'text-base bg-blanc-nacre dark:bg-baltic-sea',
+          'text-base bg-blanc-nacre dark:bg-baltic-sea transition',
           'border-cement-feet dark:border-gun-powder border rounded-lg',
           'hover:ring-1 hover:border-black hover:dark:border-white',
           'focus:border-black focus:dark:border-white',
