@@ -11,10 +11,10 @@ pub const GATEWAYS_ENDPOINT: &str = "/gateways/described";
 pub type NymApiJsonGateway = nym_api_requests::models::DescribedGateway;
 
 pub async fn get_gateways() -> Result<Vec<NymApiJsonGateway>, HttpError> {
-    let explorer_api_url = env::var("EXPLORER_API")
+    let nym_api_url = env::var("NYM_API")
         .map(|url| format!("{}/v1", url))
         .unwrap_or_else(|_| NYM_API_URL.to_string());
-    let url = format!("{}{}", explorer_api_url, GATEWAYS_ENDPOINT);
+    let url = format!("{}{}", nym_api_url, GATEWAYS_ENDPOINT);
 
     info!("fetching countries from Nym API [{url}]");
     let res = HTTP_CLIENT.get(url).send().await.map_err(|e| {

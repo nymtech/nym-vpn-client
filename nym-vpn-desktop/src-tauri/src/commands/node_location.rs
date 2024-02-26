@@ -11,7 +11,7 @@ use crate::{
     states::{app::NodeLocation, SharedAppData, SharedAppState},
 };
 
-#[derive(Debug, Serialize, Deserialize, TS, Clone)]
+#[derive(Debug, Serialize, Deserialize, TS, Clone, Eq, PartialEq)]
 pub enum NodeType {
     Entry,
     Exit,
@@ -80,8 +80,18 @@ pub async fn get_node_location(
     })
 }
 
-#[instrument(skip_all)]
+#[instrument]
 #[tauri::command]
+pub async fn get_countries(node_type: NodeType) -> Result<Vec<Country>, CmdError> {
+    debug!("get_countries");
+    if node_type == NodeType::Entry {
+        get_entry_countries().await
+    } else {
+        get_exit_countries().await
+    }
+}
+
+#[instrument(skip_all)]
 pub async fn get_entry_countries() -> Result<Vec<Country>, CmdError> {
     debug!("get_entry_countries");
     let json = explorer_api::get_gateways().await.map_err(|_| {
@@ -122,7 +132,6 @@ pub async fn get_entry_countries() -> Result<Vec<Country>, CmdError> {
 }
 
 #[instrument(skip_all)]
-#[tauri::command]
 pub async fn get_exit_countries() -> Result<Vec<Country>, CmdError> {
     debug!("get_exit_countries");
     let explorer_response = explorer_api::get_gateways().await.map_err(|_| {

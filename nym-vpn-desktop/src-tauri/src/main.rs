@@ -162,8 +162,7 @@ async fn main() -> Result<()> {
             node_location::get_node_location,
             node_location::set_node_location,
             node_location::get_fastest_node_location,
-            node_location::get_entry_countries,
-            node_location::get_exit_countries,
+            node_location::get_countries,
             window::show_main_window,
             commands::cli::cli_args,
         ])
