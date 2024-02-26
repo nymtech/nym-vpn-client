@@ -48,7 +48,9 @@ function NodeLocation({ node }: { node: NodeHop }) {
 
   // request backend to refresh cache
   useEffect(() => {
-    invoke<Country[]>('get_countries')
+    invoke<Country[]>('get_countries', {
+      nodeType: node === 'entry' ? 'Entry' : 'Exit',
+    })
       .then((countries) => {
         dispatch({
           type: 'set-country-list',

@@ -1,13 +1,17 @@
+use futures::future;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use tauri::State;
-use tracing::{debug, instrument, trace};
+use tracing::{debug, error, instrument, trace};
 use ts_rs::TS;
 
 use crate::{
     country::{Country, FASTEST_NODE_LOCATION},
     error::{CmdError, CmdErrorSource},
-    http::{explorer_api, nym_api},
+    http::{
+        client::{HttpError, HTTP_CLIENT},
+        explorer_api, nym_api,
+    },
     states::{app::NodeLocation, SharedAppData, SharedAppState},
 };
 
@@ -94,12 +98,21 @@ pub async fn get_countries(node_type: NodeType) -> Result<Vec<Country>, CmdError
 #[instrument(skip_all)]
 pub async fn get_entry_countries() -> Result<Vec<Country>, CmdError> {
     debug!("get_entry_countries");
-    let json = explorer_api::get_gateways().await.map_err(|_| {
+    let response = explorer_api::get_gateways().await.map_err(|_| {
         CmdError::new(
             CmdErrorSource::InternalError,
             "failed to fetch node locations".to_string(),
         )
     })?;
+
+    let json = explorer_api::deserialize_json(response)
+        .await
+        .map_err(|_| {
+            CmdError::new(
+                CmdErrorSource::InternalError,
+                "failed to fetch node locations".to_string(),
+            )
+        })?;
 
     debug!("parsing json list");
     let list = json
@@ -134,22 +147,62 @@ pub async fn get_entry_countries() -> Result<Vec<Country>, CmdError> {
 #[instrument(skip_all)]
 pub async fn get_exit_countries() -> Result<Vec<Country>, CmdError> {
     debug!("get_exit_countries");
-    let explorer_response = explorer_api::get_gateways().await.map_err(|_| {
-        CmdError::new(
+
+    // future::join_all will collects the responses in the same
+    // order
+    let urls = vec![explorer_api::get_url(), nym_api::get_url()];
+
+    debug!("fetching countries from Explorer and Nym api");
+    // concurrently fetch both explorer and nym APIs
+    let responses = future::join_all(urls.into_iter().map(|url| {
+        let client = &HTTP_CLIENT;
+        async move {
+            client.get(&url).send().await.map_err(|e| {
+                error!("HTTP request GET {url} failed: {e}");
+                HttpError::RequestError(e.status())
+            })
+        }
+    }))
+    .await;
+    trace!("fetching done");
+
+    // filter out any failed requests
+    let mut responses = responses
+        .into_iter()
+        .filter_map(|res| res.ok())
+        .collect::<Vec<_>>();
+
+    // if one of the requests failed, return an error
+    if responses.len() != 2 {
+        return Err(CmdError::new(
             CmdErrorSource::InternalError,
             "failed to fetch node locations".to_string(),
-        )
-    })?;
+        ));
+    }
+    let explorer_response = responses.remove(0);
+    let nym_api_response = responses.remove(0);
 
-    let nym_api_response = nym_api::get_gateways().await.map_err(|_| {
-        CmdError::new(
-            CmdErrorSource::InternalError,
-            "failed to fetch node locations".to_string(),
-        )
-    })?;
+    debug!("deserializing json responses");
+    let explorer_json = explorer_api::deserialize_json(explorer_response)
+        .await
+        .map_err(|_| {
+            CmdError::new(
+                CmdErrorSource::InternalError,
+                "failed to fetch node locations".to_string(),
+            )
+        })?;
 
-    debug!("parsing json list");
-    let list = nym_api_response
+    let nym_api_json = nym_api::deserialize_json(nym_api_response)
+        .await
+        .map_err(|_| {
+            CmdError::new(
+                CmdErrorSource::InternalError,
+                "failed to fetch node locations".to_string(),
+            )
+        })?;
+
+    debug!("parsing responses");
+    let list = nym_api_json
         .into_iter()
         // only retain gateways with IP packet router
         // mapping to a list of identity keys
@@ -165,7 +218,7 @@ pub async fn get_exit_countries() -> Result<Vec<Country>, CmdError> {
         // for each identity key
         // mapping to a list of locations
         .filter_map(|identity_key| {
-            let location = explorer_response
+            let location = explorer_json
                 .iter()
                 .find(|gateway| gateway.gateway.identity_key == identity_key)
                 .map(|gateway| gateway.location.clone());
