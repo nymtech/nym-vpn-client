@@ -81,7 +81,7 @@ open class NymVpnService : VpnService() {
                     val entry = "{ \"Location\": { \"location\": \"DE\" }}"
                     val exit = "{ \"Location\": { \"location\": \"DE\" }}"
                     initVPN("https://sandbox-nym-api1.nymtech.net/api",entry,exit,this)
-                   GlobalScope.launch(Dispatchers.IO) {
+                    GlobalScope.launch(Dispatchers.IO) {
                         runVPN()
                     }
                 }
@@ -92,7 +92,6 @@ open class NymVpnService : VpnService() {
         } else {
             Timber.d("VPN stop")
             stopVPN()
-            closeTun()
             START_NOT_STICKY
         }
     }
@@ -125,14 +124,12 @@ open class NymVpnService : VpnService() {
             .setSmallIcon(androidx.core.R.drawable.notification_bg)
             .setCategory(Notification.CATEGORY_SERVICE)
             .build()
-
         startForeground(123, notification)
         connectivityListener.register(this)
     }
 
     override fun onDestroy() {
         Timber.d("On Destroy")
-        stopVPN()
         connectivityListener.unregister()
     }
 

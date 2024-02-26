@@ -12,7 +12,7 @@ bash $PWD/src/tools/nym-vpn-client/wireguard/libwg/build-android.sh
 echo "Building nym-vpn-lib dep"
 (cd $PWD/src/tools/nym-vpn-client/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release)
 #mv wireguard
-mv $PWD/src/tools/nym-vpn-client/build/lib/extraJni/arm64-v8a/libwg.so $PWD/src/main/jniLibs/arm64-v8a/
-mv $PWD/src/tools/nym-vpn-client/build/lib/extraJni/armeabi-v7a/libwg.so $PWD/src/main/jniLibs/armeabi-v7a/
-mv $PWD/src/tools/nym-vpn-client/build/lib/extraJni/x86/libwg.so $PWD/src/main/jniLibs/x86/
-mv $PWD/src/tools/nym-vpn-client/build/lib/extraJni/x86_64/libwg.so $PWD/src/main/jniLibs/x86_64/
+mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/arm64-v8a/libwg.so $PWD/src/main/jniLibs/arm64-v8a/
+mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/armeabi-v7a/libwg.so $PWD/src/main/jniLibs/armeabi-v7a/
+mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/x86/libwg.so $PWD/src/main/jniLibs/x86/
+mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/x86_64/libwg.so $PWD/src/main/jniLibs/x86_64/
