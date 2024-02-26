@@ -36,7 +36,7 @@ export function mockTauriIPC() {
       return 'Disconnected';
     }
 
-    if (cmd === 'get_node_countries') {
+    if (cmd === 'get_countries') {
       return new Promise<Country[]>((resolve) =>
         resolve([
           {

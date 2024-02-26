@@ -37,7 +37,10 @@ export type StateAction =
   | { type: 'set-ui-theme'; theme: UiTheme }
   | { type: 'set-theme-mode'; mode: ThemeMode }
   | { type: 'system-theme-changed'; theme: UiTheme }
-  | { type: 'set-country-list'; countries: Country[] }
+  | {
+      type: 'set-country-list';
+      payload: { hop: NodeHop; countries: Country[] };
+    }
   | {
       type: 'set-node-location';
       payload: { hop: NodeHop; location: NodeLocation };
@@ -63,7 +66,8 @@ export const initialState: AppState = {
   // TODO ⚠ these should be set to 'Fastest' when the backend is ready
   exitNodeLocation: DefaultNodeCountry,
   fastestNodeLocation: DefaultNodeCountry,
-  countryList: [],
+  entryCountryList: [],
+  exitCountryList: [],
   rootFontSize: DefaultRootFontSize,
 };
 
@@ -106,9 +110,15 @@ export function reducer(state: AppState, action: StateAction): AppState {
         monitoring: action.monitoring,
       };
     case 'set-country-list':
+      if (action.payload.hop === 'entry') {
+        return {
+          ...state,
+          entryCountryList: action.payload.countries,
+        };
+      }
       return {
         ...state,
-        countryList: action.countries,
+        exitCountryList: action.payload.countries,
       };
     case 'set-partial-state': {
       return { ...state, ...action.partialState };
