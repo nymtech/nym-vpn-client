@@ -97,6 +97,7 @@ pub async fn get_entry_countries() -> Result<Vec<Country>, CmdError> {
         .filter_map(|gateway| gateway.location)
         // remove any duplicate two letter country code
         .unique_by(|location| location.two_letter_iso_country_code.clone())
+        // mapping to a list of Country
         .map(|location| {
             let mut name = location.country_name;
             // TODO yes this is what we get from the API for UK
@@ -166,6 +167,7 @@ pub async fn get_exit_countries() -> Result<Vec<Country>, CmdError> {
         })
         // remove any duplicate two letter country code
         .unique_by(|location| location.two_letter_iso_country_code.clone())
+        // mapping to a list of Country
         .map(|location| {
             let mut name = location.country_name;
             // TODO yes this is what we get from the API for UK
