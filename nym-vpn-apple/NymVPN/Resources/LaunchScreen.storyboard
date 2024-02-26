@@ -38,8 +38,12 @@
                         <color key="backgroundColor" name="sysOnSurface"/>
                         <constraints>
                             <constraint firstAttribute="centerX" secondItem="obG-Y5-kRd" secondAttribute="centerX" id="5cz-MP-9tL"/>
+                            <constraint firstItem="hdh-9n-Chw" firstAttribute="leading" secondItem="1Re-Ec-JFX" secondAttribute="leading" id="NwM-ts-XGB"/>
                             <constraint firstItem="obG-Y5-kRd" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leading" constant="20" symbolic="YES" id="SfN-ll-jLj"/>
+                            <constraint firstItem="hdh-9n-Chw" firstAttribute="trailing" secondItem="1Re-Ec-JFX" secondAttribute="trailing" id="W2H-Jf-1xg"/>
                             <constraint firstAttribute="bottom" secondItem="obG-Y5-kRd" secondAttribute="bottom" constant="20" id="Y44-ml-fuU"/>
+                            <constraint firstAttribute="bottom" secondItem="hdh-9n-Chw" secondAttribute="bottom" id="bid-mV-fgs"/>
+                            <constraint firstItem="hdh-9n-Chw" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="cwg-Jv-Q8l"/>
                             <constraint firstItem="Xnx-p4-sDD" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="h1m-hj-GQH"/>
                             <constraint firstItem="hdh-9n-Chw" firstAttribute="bottom" secondItem="Ze5-6b-2t3" secondAttribute="bottom" id="iIP-f6-P77"/>
                             <constraint firstItem="hdh-9n-Chw" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="top" id="ish-y7-55B"/>
