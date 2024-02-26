@@ -92,6 +92,7 @@ open class NymVpnService : VpnService() {
         } else {
             Timber.d("VPN stop")
             stopVPN()
+            stopSelf()
             START_NOT_STICKY
         }
     }
@@ -111,6 +112,7 @@ open class NymVpnService : VpnService() {
     }
 
     override fun onCreate() {
+        connectivityListener.register(this)
         val channelId =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 createNotificationChannel()
@@ -125,12 +127,13 @@ open class NymVpnService : VpnService() {
             .setCategory(Notification.CATEGORY_SERVICE)
             .build()
         startForeground(123, notification)
-        connectivityListener.register(this)
     }
 
     override fun onDestroy() {
-        Timber.d("On Destroy")
         connectivityListener.unregister()
+        stopVPN()
+        stopSelf()
+        Timber.d("On Destroy")
     }
 
     fun getTun(config: TunConfig): CreateTunResult {
