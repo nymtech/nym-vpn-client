@@ -28,8 +28,8 @@ export function MainStateProvider({ children }: Props) {
       // wait for the splash screen to be visible for a short time as
       // init phase is very fast, avoiding flashing the splash screen
       // note: the real duration of splashscreen is this value minus the one
-      // declared in `App.tsx`, that is 500 - 100 → 400ms
-      await sleep(500);
+      // declared in `App.tsx`, that is 700 - 100 → 600ms
+      await sleep(700);
       const splash = document.getElementById('splash');
       if (splash) {
         // starts the fade out animation

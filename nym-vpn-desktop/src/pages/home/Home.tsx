@@ -1,12 +1,11 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api';
-import clsx from 'clsx';
-import { Button } from '@mui/base';
 import { useNavigate } from 'react-router-dom';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { CmdError, StateDispatch } from '../../types';
 import { routes } from '../../router';
+import { Button } from '../../ui';
 import NetworkModeSelect from './NetworkModeSelect';
 import ConnectionStatus from './ConnectionStatus';
 import HopSelect from './HopSelect';
@@ -59,6 +58,14 @@ function Home() {
     }
   }, [state, t]);
 
+  const getButtonColor = () => {
+    if (state === 'Disconnected' || state === 'Connecting') {
+      return 'melon';
+    } else if (state === 'Connected' || state === 'Disconnecting') {
+      return 'cornflower';
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
       <div className="grow">
@@ -96,17 +103,8 @@ function Home() {
           </div>
         </div>
         <Button
-          className={clsx([
-            'flex justify-center items-center tracking-normal',
-            'rounded-lg text-lg font-bold py-3 px-6',
-            'focus:outline-none focus:ring-4 focus:ring-black focus:dark:ring-white shadow',
-            (state === 'Disconnected' || state === 'Connecting') &&
-              'bg-melon text-white dark:text-baltic-sea',
-            (state === 'Connected' || state === 'Disconnecting') &&
-              'bg-cornflower text-white dark:text-baltic-sea',
-            loading && 'cursor-default',
-          ])}
           onClick={handleClick}
+          color={getButtonColor()}
           disabled={loading}
         >
           {getButtonText()}

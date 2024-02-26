@@ -71,8 +71,16 @@ export default {
       'wind-chime': '#DEDEE1',
       // [D] connection status bg (combined with 15% opacity)
       oil: '#313033',
-      // [L] Login screen color of nym logo
+      // [L] login screen color of nym logo
       ghost: '#C7C7D1',
+      // [D] button bg 'Stop' state
+      'dusty-grey': '#CECCD1',
+      // [D] radio-group bg hover
+      onyx: '#3A373F',
+      // [L] radio-group bg hover
+      platinum: '#E2E8EC',
+      // [L] input border ring hover
+      aluminium: '#8DA3B1',
     },
     extend: {
       fontFamily: {
