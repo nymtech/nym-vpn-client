@@ -1,18 +1,13 @@
-use std::env;
-
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use tauri::State;
-use tracing::{debug, error, instrument, trace};
+use tracing::{debug, instrument, trace};
 use ts_rs::TS;
 
 use crate::{
     country::{Country, FASTEST_NODE_LOCATION},
     error::{CmdError, CmdErrorSource},
-    http::{
-        client::HTTP_CLIENT,
-        explorer_api::{JsonGateway, EXPLORER_API_URL, GATEWAYS_ENDPOINT},
-    },
+    http::{explorer_api, nym_api},
     states::{app::NodeLocation, SharedAppData, SharedAppState},
 };
 
@@ -87,25 +82,9 @@ pub async fn get_node_location(
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn get_node_countries() -> Result<Vec<Country>, CmdError> {
-    debug!("get_node_countries");
-    let explorer_api_url = env::var("EXPLORER_API")
-        .map(|url| format!("{}/v1", url))
-        .unwrap_or_else(|_| EXPLORER_API_URL.to_string());
-    let url = format!("{}{}", explorer_api_url, GATEWAYS_ENDPOINT);
-
-    debug!("fetching countries from explorer API [{url}]");
-    let res = HTTP_CLIENT.get(url).send().await.map_err(|e| {
-        error!("HTTP request GET /gateways failed: {e}");
-        CmdError::new(
-            CmdErrorSource::InternalError,
-            "failed to fetch node locations".to_string(),
-        )
-    })?;
-
-    debug!("deserializing json response");
-    let json: Vec<JsonGateway> = res.json().await.map_err(|e| {
-        error!("HTTP request GET /gateways failed to deserialize json response: {e}");
+pub async fn get_entry_countries() -> Result<Vec<Country>, CmdError> {
+    debug!("get_entry_countries");
+    let json = explorer_api::get_gateways().await.map_err(|_| {
         CmdError::new(
             CmdErrorSource::InternalError,
             "failed to fetch node locations".to_string(),
@@ -116,6 +95,76 @@ pub async fn get_node_countries() -> Result<Vec<Country>, CmdError> {
     let list = json
         .into_iter()
         .filter_map(|gateway| gateway.location)
+        // remove any duplicate two letter country code
+        .unique_by(|location| location.two_letter_iso_country_code.clone())
+        .map(|location| {
+            let mut name = location.country_name;
+            // TODO yes this is what we get from the API for UK
+            // let's use something more friendly
+            if name == "United Kingdom of Great Britain and Northern Ireland" {
+                name = "United Kingdom".to_string();
+            }
+
+            Country {
+                name,
+                code: location.two_letter_iso_country_code,
+            }
+        })
+        // sort countries by name
+        .sorted_by(|a, b| a.name.cmp(&b.name))
+        .collect::<Vec<_>>();
+
+    debug!("fetched countries count [{}]", list.len());
+    trace!("fetched countries {list:#?}");
+
+    Ok(list)
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_exit_countries() -> Result<Vec<Country>, CmdError> {
+    debug!("get_exit_countries");
+    let explorer_response = explorer_api::get_gateways().await.map_err(|_| {
+        CmdError::new(
+            CmdErrorSource::InternalError,
+            "failed to fetch node locations".to_string(),
+        )
+    })?;
+
+    let nym_api_response = nym_api::get_gateways().await.map_err(|_| {
+        CmdError::new(
+            CmdErrorSource::InternalError,
+            "failed to fetch node locations".to_string(),
+        )
+    })?;
+
+    debug!("parsing json list");
+    let list = nym_api_response
+        .into_iter()
+        // only retain gateways with IP packet router
+        // mapping to a list of identity keys
+        .filter_map(|gateway| {
+            gateway
+                .self_described
+                .and_then(|desc| desc.ip_packet_router)
+                .map(|_| gateway.bond.gateway().identity_key.clone())
+        })
+        // remove any duplicate identity key
+        .unique()
+        // find the corresponding country code in the explorer response
+        // for each identity key
+        // mapping to a list of locations
+        .filter_map(|identity_key| {
+            let location = explorer_response
+                .iter()
+                .find(|gateway| gateway.gateway.identity_key == identity_key)
+                .map(|gateway| gateway.location.clone());
+            match location {
+                Some(Some(location)) => Some(location),
+                _ => None,
+            }
+        })
+        // remove any duplicate two letter country code
         .unique_by(|location| location.two_letter_iso_country_code.clone())
         .map(|location| {
             let mut name = location.country_name;

@@ -40,6 +40,7 @@ shadowsocks-service = { version = "~1.14.3" }
 
 # TODO keep the rev in sync with the one used in nym-vpn-lib
 nym-explorer-api-requests = { git = "https://github.com/nymtech/nym", rev = "cec05a99f4e71d6c719b2dd16f61a9d6085d658f" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", rev = "cec05a99f4e71d6c719b2dd16f61a9d6085d658f" }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
