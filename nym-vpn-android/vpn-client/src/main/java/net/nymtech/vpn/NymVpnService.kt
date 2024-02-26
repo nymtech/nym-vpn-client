@@ -80,7 +80,7 @@ open class NymVpnService : VpnService() {
                 if(prepare(this) == null) {
                     val entry = "{ \"Location\": { \"location\": \"DE\" }}"
                     val exit = "{ \"Location\": { \"location\": \"DE\" }}"
-                    initVPN("https://sandbox-nym-api1.nymtech.net/api",entry,exit,this)
+                    initVPN(false, "https://sandbox-nym-api1.nymtech.net/api",entry,exit,this)
                     GlobalScope.launch(Dispatchers.IO) {
                         runVPN()
                     }
@@ -259,6 +259,7 @@ open class NymVpnService : VpnService() {
     }
 
     private external fun initVPN(
+        enable_two_hop: Boolean,
         api_url: String,
         entry_gateway: String,
         exit_router: String,
