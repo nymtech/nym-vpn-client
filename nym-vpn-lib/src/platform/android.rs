@@ -86,6 +86,7 @@ fn init_jni_logger() {
 pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     env: JNIEnv<'_>,
     _this: JObject<'_>,
+    enable_two_hop: jboolean,
     api_url: JString<'_>,
     entry_gateway: JString<'_>,
     exit_router: JString<'_>,
@@ -116,6 +117,7 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
 
     let mut vpn = NymVpn::new(entry_gateway, exit_router, context);
     vpn.gateway_config.api_url = api_url;
+    vpn.enable_two_hop = enable_two_hop != JNI_FALSE;
 
     RUNTIME.block_on(set_inited_vpn(vpn));
 }
