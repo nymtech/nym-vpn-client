@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api';
 import { exit as processExit } from '@tauri-apps/api/process';
 import { useMainDispatch, useMainState } from '../contexts';
+import { kvFlush } from '../kvStore';
 import { CmdError, StateDispatch } from '../types';
 
 // Hook to exit the app
@@ -14,7 +15,7 @@ export function useExit() {
       // in bad disconnect scenarios
       dispatch({ type: 'disconnect' });
       // flush the database to save the current state
-      invoke('db_flush').catch((e: CmdError) => {
+      await kvFlush().catch((e: CmdError) => {
         console.warn(`backend error: ${e.source} - ${e.message}`);
       });
       // disconnect from the backend and then exit

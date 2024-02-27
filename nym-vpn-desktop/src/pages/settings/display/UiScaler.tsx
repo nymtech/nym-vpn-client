@@ -1,8 +1,8 @@
 import { ChangeEvent, useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api';
 import clsx from 'clsx';
 import { DefaultRootFontSize } from '../../../constants';
 import { useMainDispatch, useMainState } from '../../../contexts';
+import { kvSet } from '../../../kvStore';
 import { StateDispatch } from '../../../types';
 
 function UiScaler() {
@@ -22,10 +22,7 @@ function UiScaler() {
   const setNewFontSize = () => {
     document.documentElement.style.fontSize = `${slideValue}px`;
     dispatch({ type: 'set-root-font-size', size: slideValue });
-    invoke<void>('db_set', {
-      key: 'UiRootFontSize',
-      value: slideValue,
-    }).catch((e) => {
+    kvSet('UiRootFontSize', slideValue).catch((e) => {
       console.warn(e);
     });
   };

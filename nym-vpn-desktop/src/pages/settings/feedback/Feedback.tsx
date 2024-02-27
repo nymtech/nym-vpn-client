@@ -1,4 +1,3 @@
-import { invoke } from '@tauri-apps/api';
 import { open } from '@tauri-apps/api/shell';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +8,7 @@ import {
   MatrixRoomUrl,
 } from '../../../constants';
 import { useMainDispatch, useMainState } from '../../../contexts';
+import { kvSet } from '../../../kvStore';
 import { StateDispatch } from '../../../types';
 import { SettingsMenuCard, Switch } from '../../../ui';
 import { DiscordIcon, ElementIcon, GitHubIcon } from '../../../assets/icons';
@@ -27,10 +27,7 @@ function Feedback() {
   const handleMonitoringChanged = async () => {
     const isSelected = !state.monitoring;
     dispatch({ type: 'set-monitoring', monitoring: isSelected });
-    invoke<void>('db_set', {
-      key: 'Monitoring',
-      value: isSelected,
-    }).catch((e) => {
+    kvSet('Monitoring', isSelected).catch((e) => {
       console.warn(e);
     });
   };
