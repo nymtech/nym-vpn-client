@@ -1,18 +1,5 @@
 import { Country } from './types';
 
-export const routes = {
-  root: '/',
-  settings: '/settings',
-  display: '/settings/display',
-  logs: '/settings/logs',
-  feedback: '/settings/feedback',
-  feedbackSend: '/settings/feedback/send',
-  support: '/settings/support',
-  legal: '/settings/legal',
-  entryNodeLocation: '/entry-node-location',
-  exitNodeLocation: '/exit-node-location',
-} as const;
-
 export const AppName = 'NymVPN';
 export const ConnectionEvent = 'connection-state';
 export const ProgressEvent = 'connection-progress';
@@ -34,4 +21,4 @@ export const DiscordInviteUrl = 'https://discord.com/invite/nym';
 export const FaqUrl = 'https://nymvpn.com/en/support';
 export const EmailSupportUrl = 'mailto:support@nymvpn.com';
 export const ToSUrl = 'https://nymvpn.com/en/terms';
-export const PrivacyPolicyUrl = 'https://nymvpn.com/en/privacy';
+export const PrivacyPolicyUrl = 'https://nymvpn.com/en/privacy?type=apps';

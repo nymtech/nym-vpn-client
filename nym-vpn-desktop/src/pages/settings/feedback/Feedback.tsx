@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   DiscordInviteUrl,
+  EmailSupportUrl,
   GitHubIssuesUrl,
   MatrixRoomUrl,
 } from '../../../constants';
@@ -45,7 +46,7 @@ function Feedback() {
         title={t('feedback.send')}
         leadingIcon="send"
         trailingIcon="arrow_right"
-        disabled
+        onClick={async () => open(EmailSupportUrl)}
       />
       <SettingsMenuCard
         title={t('feedback.matrix')}

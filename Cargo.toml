@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["nym-vpn-lib", "nym-vpn-cli"]
+members = ["nym-vpn-lib", "nym-vpn-cli", "nym-vpnd"]
 exclude = ["nym-vpn-desktop/src-tauri"]
 
 # For local development
@@ -15,3 +15,7 @@ exclude = ["nym-vpn-desktop/src-tauri"]
 # nym-task = { path = "../nym/common/task" }
 # nym-validator-client = { path = "../nym/common/client-libs/validator-client" }
 # nym-wireguard-types = { path = "../nym/common/wireguard-types" }
+
+[workspace.dependencies]
+tokio = { version = "1.8" }
+

@@ -2,16 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { routes } from '../constants';
+import { AppName } from '../constants';
+import { routes } from '../router';
 import { Routes } from '../types';
 import MsIcon from './MsIcon';
 
 type NavLocation = {
-  title: string;
+  title?: string;
   leftIcon?: string;
   handleLeftNav?: () => void;
   rightIcon?: string;
   handleRightNav?: () => void;
+  hidden?: boolean;
 };
 
 type NavBarData = {
@@ -34,11 +36,18 @@ export default function TopBar() {
   const navBarData = useMemo<NavBarData>(() => {
     return {
       '/': {
-        title: '',
+        title: AppName,
         rightIcon: 'settings',
         handleRightNav: () => {
           navigate(routes.settings);
         },
+      },
+      '/login': {
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+        hidden: true,
       },
       '/settings': {
         title: t('settings'),
@@ -114,12 +123,19 @@ export default function TopBar() {
     <nav
       className={clsx([
         'flex flex-row flex-nowrap justify-between items-center shrink-0',
-        'bg-white text-baltic-sea dark:bg-baltic-sea-jaguar dark:text-mercury-pinkish',
+        'text-baltic-sea dark:text-mercury-pinkish',
         'h-16 text-xl shadow z-50 select-none cursor-default',
+        // hide the Topbar on login page
+        currentNavLocation.hidden
+          ? 'shadow-none dark:bg-baltic-sea bg-blanc-nacre'
+          : 'dark:bg-baltic-sea-jaguar bg-white',
       ])}
     >
       {currentNavLocation?.leftIcon ? (
-        <button className="w-6 mx-4" onClick={currentNavLocation.handleLeftNav}>
+        <button
+          className="w-6 mx-4 focus:outline-none"
+          onClick={currentNavLocation.handleLeftNav}
+        >
           <MsIcon
             icon={currentNavLocation.leftIcon}
             style="dark:text-laughing-jack"
@@ -128,10 +144,14 @@ export default function TopBar() {
       ) : (
         <div className="w-6 mx-4" />
       )}
-      <p className="justify-self-center">{currentNavLocation.title}</p>
+      {currentNavLocation.title && (
+        <p className="justify-self-center tracking-normal">
+          {currentNavLocation.title}
+        </p>
+      )}
       {currentNavLocation?.rightIcon ? (
         <button
-          className="w-6 mx-4"
+          className="w-6 mx-4 focus:outline-none"
           onClick={currentNavLocation.handleRightNav}
         >
           <MsIcon

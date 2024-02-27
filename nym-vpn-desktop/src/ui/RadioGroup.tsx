@@ -58,9 +58,11 @@ function RadioGroup<K extends Key>({
               className={({ checked }) =>
                 clsx([
                   'bg-white dark:bg-baltic-sea-jaguar relative flex rounded-lg px-5 py-2 focus:outline-none',
-                  checked && 'border border-melon',
+                  checked && 'border border-melon hover:border-melon',
                   !checked &&
-                    'border border-white dark:border-baltic-sea-jaguar',
+                    'border border-white dark:border-baltic-sea-jaguar hover:border-platinum dark:hover:border-baltic-sea-jaguar',
+                  'hover:bg-platinum dark:hover:bg-onyx',
+                  'transition',
                   option.cursor === 'default' && 'cursor-default',
                   option.cursor === 'pointer' && 'cursor-pointer',
                   option.cursor === 'not-allowed' && 'cursor-not-allowed',

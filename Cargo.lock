@@ -4289,6 +4289,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-vpnd"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "nym-vpn-lib",
+ "reqwest",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "nym-wireguard-types"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=37f937901c8c632e052babe36c250047877ab164#37f937901c8c632e052babe36c250047877ab164"
