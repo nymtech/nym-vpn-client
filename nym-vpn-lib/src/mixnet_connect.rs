@@ -189,7 +189,7 @@ pub async fn connect_to_ip_packet_router(
         ips,
         enable_two_hop,
     )
-    .await?;
+        .await?;
 
     info!("Waiting for reply...");
     let response = wait_for_connect_response(&mixnet_client, request_id).await?;
@@ -198,7 +198,7 @@ pub async fn connect_to_ip_packet_router(
     match response.data {
         IpPacketResponseData::StaticConnect(resp) if ips.is_some() => {
             handle_static_connect_response(&mixnet_client_address, resp).await?;
-            Ok(ips.unwrap().into())
+            Ok(ips.unwrap())
         }
         IpPacketResponseData::DynamicConnect(resp) if ips.is_none() => {
             handle_dynamic_connect_response(&mixnet_client_address, resp).await
