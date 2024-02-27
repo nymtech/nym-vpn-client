@@ -27,18 +27,22 @@ function Settings() {
   const handleEntrySelectorChange = async () => {
     const isSelected = !state.entrySelector;
     dispatch({ type: 'set-entry-selector', entrySelector: isSelected });
-    invoke<void>('set_entry_location_selector', {
-      entrySelector: isSelected,
+    invoke<void>('db_set', {
+      key: 'EntryLocationEnabled',
+      value: isSelected,
     }).catch((e) => {
-      console.log(e);
+      console.warn(e);
     });
   };
 
   const handleAutoConnectChanged = async () => {
     const isSelected = !state.autoConnect;
     dispatch({ type: 'set-auto-connect', autoConnect: isSelected });
-    invoke<void>('set_auto_connect', { autoConnect: isSelected }).catch((e) => {
-      console.log(e);
+    invoke<void>('db_set', {
+      key: 'Autoconnect',
+      value: isSelected,
+    }).catch((e) => {
+      console.warn(e);
     });
   };
 

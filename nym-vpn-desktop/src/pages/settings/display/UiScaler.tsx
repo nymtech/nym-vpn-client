@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api';
 import clsx from 'clsx';
 import { DefaultRootFontSize } from '../../../constants';
 import { useMainDispatch, useMainState } from '../../../contexts';
-import { CmdError, StateDispatch } from '../../../types';
+import { StateDispatch } from '../../../types';
 
 function UiScaler() {
   const [slideValue, setSlideValue] = useState(DefaultRootFontSize);
@@ -22,8 +22,11 @@ function UiScaler() {
   const setNewFontSize = () => {
     document.documentElement.style.fontSize = `${slideValue}px`;
     dispatch({ type: 'set-root-font-size', size: slideValue });
-    invoke('set_root_font_size', { size: slideValue }).catch((e: CmdError) => {
-      console.warn(`backend error: ${e.source} - ${e.message}`);
+    invoke<void>('db_set', {
+      key: 'UiRootFontSize',
+      value: slideValue,
+    }).catch((e) => {
+      console.warn(e);
     });
   };
 

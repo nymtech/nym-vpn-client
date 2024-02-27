@@ -13,6 +13,11 @@ export function useExit() {
       // TODO add a timeout to prevent the app from hanging
       // in bad disconnect scenarios
       dispatch({ type: 'disconnect' });
+      // flush the database to save the current state
+      invoke('db_flush').catch((e: CmdError) => {
+        console.warn(`backend error: ${e.source} - ${e.message}`);
+      });
+      // disconnect from the backend and then exit
       invoke('disconnect')
         .then(async (result) => {
           console.log('disconnect result');

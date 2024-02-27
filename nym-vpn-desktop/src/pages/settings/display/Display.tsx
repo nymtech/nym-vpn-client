@@ -24,10 +24,11 @@ function Display() {
         type: 'set-theme-mode',
         mode,
       });
-      invoke<void>('set_ui_theme', {
-        theme: mode,
+      invoke<void>('db_set', {
+        key: 'UiTheme',
+        value: mode,
       }).catch((e) => {
-        console.log(e);
+        console.warn(e);
       });
     }
   };

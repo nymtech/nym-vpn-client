@@ -84,13 +84,12 @@ export function mockTauriIPC() {
       return new Promise<void>((resolve) => resolve());
     }
 
-    if (cmd === 'get_app_data') {
+    if (cmd === 'db_get_batch') {
       return new Promise<AppDataFromBackend>((resolve) =>
         resolve({
           monitoring: false,
           autoconnect: false,
-          killswitch: false,
-          entry_location_selector: false,
+          entry_location_enabled: false,
           ui_theme: 'Dark',
           ui_root_font_size: 12,
           vpn_mode: 'TwoHop',

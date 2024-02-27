@@ -27,8 +27,11 @@ function Feedback() {
   const handleMonitoringChanged = async () => {
     const isSelected = !state.monitoring;
     dispatch({ type: 'set-monitoring', monitoring: isSelected });
-    invoke<void>('set_monitoring', { monitoring: isSelected }).catch((e) => {
-      console.log(e);
+    invoke<void>('db_set', {
+      key: 'Monitoring',
+      value: isSelected,
+    }).catch((e) => {
+      console.warn(e);
     });
   };
 
