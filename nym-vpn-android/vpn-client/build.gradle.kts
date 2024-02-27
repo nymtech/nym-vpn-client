@@ -26,6 +26,8 @@ android {
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
         }
+        //TODO change this later to sandbox and mainnet switch depending on build
+        buildConfigField("String", "API_URL", "\"${Constants.SANDBOX_URL}\"")
     }
 
     buildTypes {
@@ -49,6 +51,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = Constants.JVM_TARGET
+    }
+    buildFeatures {
+        buildConfig = true
     }
 }
 

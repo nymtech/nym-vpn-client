@@ -1,4 +1,4 @@
-package net.nymtech.vpn
+package net.nymtech.vpn.model
 
 data class VpnStatistics(
     val connectionSeconds: Long? = null,

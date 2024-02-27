@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,12 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.window.core.layout.WindowHeightSizeClass
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.model.Country
 import net.nymtech.nymvpn.model.NetworkMode
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.ListOptionSelectionButton

@@ -27,4 +27,6 @@ object Constants {
     const val FDROID = "fdroid"
     const val GENERAL = "general"
     const val BUILD_LIB_TASK = "buildDeps"
+
+    const val SANDBOX_URL = "https://sandbox-nym-api1.nymtech.net/api"
 }

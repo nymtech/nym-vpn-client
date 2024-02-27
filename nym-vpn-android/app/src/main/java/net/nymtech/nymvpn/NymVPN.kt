@@ -1,9 +1,6 @@
 package net.nymtech.nymvpn
 
-import android.annotation.SuppressLint
 import android.app.Application
-import android.content.res.Configuration
-import android.system.Os
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import dagger.hilt.android.HiltAndroidApp

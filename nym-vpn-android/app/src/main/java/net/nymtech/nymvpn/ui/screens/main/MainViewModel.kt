@@ -4,26 +4,22 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.model.Country
 import net.nymtech.nymvpn.model.NetworkMode
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.NumberUtils
-import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpn.NymVpnClient
-import net.nymtech.vpn.ServiceManager
-import net.nymtech.vpn.VpnClient
+import net.nymtech.vpn.NymVpn
+import net.nymtech.vpn.model.EntryPoint
+import net.nymtech.vpn.model.ExitPoint
+import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel
@@ -31,40 +27,41 @@ class MainViewModel
 constructor(
     private val dataStoreManager: DataStoreManager,
     private val application: Application,
-    private val vpnClient: VpnClient
 ) : ViewModel() {
 
   private val _uiState = MutableStateFlow(MainUiState())
 
   val uiState =
-      combine(dataStoreManager.preferencesFlow, _uiState, vpnClient.statistics) {
+      combine(dataStoreManager.preferencesFlow, _uiState, NymVpn.stateFlow, NymVpn.statistics) {
               prefs,
-              state,
+              uiState,
+              vpnState,
               stats ->
             val lastHopCountry =
                 Country.from(
                     prefs?.get(DataStoreManager.LAST_HOP_COUNTRY)
-                        ?: state.lastHopCountry.toString())
+                        ?: uiState.lastHopCountry.toString())
             val firstHopCountry =
                 Country.from(
                     prefs?.get(DataStoreManager.FIRST_HOP_COUNTRY)
-                        ?: state.firstHopCounty.toString())
+                        ?: uiState.firstHopCounty.toString())
             val connectionTime =
                 stats.connectionSeconds?.let { NumberUtils.convertSecondsToTimeString(it) }
             val networkMode =
                 NetworkMode.valueOf(
-                    prefs?.get(DataStoreManager.NETWORK_MODE) ?: state.networkMode.name)
+                    prefs?.get(DataStoreManager.NETWORK_MODE) ?: uiState.networkMode.name)
             val firstHopEnabled: Boolean =
                 (prefs?.get(DataStoreManager.FIRST_HOP_SELECTION) ?: false)
+            val connectionState = ConnectionState.from(vpnState)
             MainUiState(
                 false,
                 lastHopCountry = lastHopCountry,
                 firstHopCounty = firstHopCountry,
                 connectionTime = connectionTime ?: "",
                 networkMode = networkMode,
-                connectionState = state.connectionState,
+                connectionState = connectionState,
                 firstHopEnabled = firstHopEnabled,
-                stateMessage = state.stateMessage)
+                stateMessage = connectionState.stateMessage)
           }
           .stateIn(
               viewModelScope,
@@ -85,39 +82,14 @@ constructor(
 
   fun onConnect() =
       viewModelScope.launch(Dispatchers.IO) {
-          ServiceManager.startVpnService(application.applicationContext)
-        _uiState.value =
-            _uiState.value.copy(
-                connectionState = ConnectionState.Connecting,
-                stateMessage = StateMessage.Info(StringValue.StringResource(R.string.init_client)))
-        delay(1000)
-        _uiState.value =
-            _uiState.value.copy(
-                connectionState = ConnectionState.Connecting,
-                stateMessage =
-                    StateMessage.Info(StringValue.StringResource(R.string.establishing_connection)))
-        delay(1000)
-        _uiState.value =
-            _uiState.value.copy(
-                connectionState = ConnectionState.Connected,
-                stateMessage =
-                    StateMessage.Info(StringValue.StringResource(R.string.connection_time)))
-          vpnClient.connect()
-      }
+        NymVpn.connect(application,EntryPoint.Location(uiState.value.firstHopCounty.isoCode),
+          ExitPoint.Location(uiState.value.lastHopCountry.isoCode),
+          isTwoHop = (uiState.value.networkMode == NetworkMode.TWO_HOP_WIREGUARD))
+  }
+
 
   fun onDisconnect() =
       viewModelScope.launch {
-        ServiceManager.stopVpnService(application)
-          vpnClient.disconnect()
-        _uiState.value =
-            _uiState.value.copy(
-                connectionState = ConnectionState.Disconnecting,
-                stateMessage = StateMessage.Info(StringValue.Empty),
-            )
-        delay(1000)
-        _uiState.value =
-            _uiState.value.copy(
-                connectionState = ConnectionState.Disconnected,
-                stateMessage = StateMessage.Info(StringValue.Empty))
+        NymVpn.disconnect(application)
       }
 }

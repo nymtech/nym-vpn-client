@@ -6,8 +6,8 @@ import android.net.ConnectivityManager.NetworkCallback
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import kotlin.properties.Delegates.observable
 import net.nymtech.vpn.util.EventNotifier
+import kotlin.properties.Delegates.observable
 
 class ConnectivityListener {
     private val availableNetworks = HashSet<Network>()

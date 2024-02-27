@@ -2,7 +2,6 @@ package net.nymtech.nymvpn.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.squareup.moshi.Json
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -14,8 +13,8 @@ import net.nymtech.nymvpn.model.Country
 import net.nymtech.nymvpn.service.gateway.GatewayApiService
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
+import timber.log.Timber
 import java.util.Locale
-import java.util.Locale.IsoCountryCode
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,12 +33,16 @@ class AppViewModel @Inject constructor(
 
     fun updateCountryListCache() {
         viewModelScope.launch(Dispatchers.IO) {
-            val gateways = gatewayApiService.getDescribedGateways()
-            val countries = gateways.map {
-                val countryIso = it.bond.gateway.location
-                Country(countryIso, Locale(countryIso.lowercase(), countryIso).displayCountry)
-            }.toSet()
-            dataStoreManager.saveToDataStore(DataStoreManager.NODE_COUNTRIES, countries.toString())
+            try {
+                val gateways = gatewayApiService.getDescribedGateways()
+                val countries = gateways.map {
+                    val countryIso = it.bond.gateway.location
+                    Country(countryIso, Locale(countryIso.lowercase(), countryIso).displayCountry)
+                }.toSet()
+                dataStoreManager.saveToDataStore(DataStoreManager.NODE_COUNTRIES, countries.toString())
+            } catch (e : Exception) {
+                Timber.e(e.message)
+            }
         }
     }
 }

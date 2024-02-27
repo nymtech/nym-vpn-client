@@ -15,7 +15,11 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.tun_provider.TunConfig
+import net.nymtech.vpn.util.Action
+import net.nymtech.vpn_client.BuildConfig
+import net.nymtech.vpn_client.R
 import timber.log.Timber
 import java.net.Inet4Address
 import java.net.Inet6Address
@@ -23,7 +27,7 @@ import java.net.InetAddress
 import kotlin.properties.Delegates.observable
 
 
-open class NymVpnService : VpnService() {
+class NymVpnService : VpnService() {
 
     companion object {
         init {
@@ -67,22 +71,32 @@ open class NymVpnService : VpnService() {
             }
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
         val notification = notificationBuilder.setOngoing(true)
-            .setSmallIcon(androidx.core.R.drawable.notification_bg)
+            .setContentTitle("NymVpn")
+            .setContentText("Running")
+            .setSmallIcon(R.drawable.ic_stat_name)
             .setCategory(Notification.CATEGORY_SERVICE)
             .build()
 
         startForeground(123, notification)
         Timber.d("new vpn action")
         return if (intent?.action == Action.START.name) {
+            NymVpn.setState(VpnState.CONNECTING)
             currentTunConfig = defaultTunConfig()
             Timber.d("VPN start")
             try {
                 if(prepare(this) == null) {
-                    val entry = "{ \"Location\": { \"location\": \"DE\" }}"
-                    val exit = "{ \"Location\": { \"location\": \"DE\" }}"
-                    initVPN(false, "https://sandbox-nym-api1.nymtech.net/api",entry,exit,this)
-                    GlobalScope.launch(Dispatchers.IO) {
-                        runVPN()
+                    val isTwoHop = intent.extras?.getString(NymVpn.TWO_HOP_EXTRA_KEY).toBoolean()
+                    val entry = intent.extras?.getString(NymVpn.ENTRY_POINT_EXTRA_KEY)
+                    val exit = intent.extras?.getString(NymVpn.EXIT_POINT_EXTRA_KEY)
+                    if(!entry.isNullOrBlank() && !exit.isNullOrBlank()) {
+                        initVPN(isTwoHop, BuildConfig.API_URL, entry, exit,this)
+                        GlobalScope.launch(Dispatchers.IO) {
+                            launch {
+                                runVPN()
+                            }
+                            //TODO fix to where we know if it is actually up
+                            NymVpn.setState(VpnState.UP)
+                        }
                     }
                 }
             } catch (e : Exception) {
@@ -90,9 +104,11 @@ open class NymVpnService : VpnService() {
             }
             START_STICKY
         } else {
+            NymVpn.setState(VpnState.DISCONNECTING)
             Timber.d("VPN stop")
             stopVPN()
             stopSelf()
+            NymVpn.setState(VpnState.DOWN)
             START_NOT_STICKY
         }
     }
@@ -113,20 +129,20 @@ open class NymVpnService : VpnService() {
 
     override fun onCreate() {
         connectivityListener.register(this)
-        val channelId =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                createNotificationChannel()
-            } else {
-                // If earlier version channel ID is not used
-                // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
-                ""
-            }
-        val notificationBuilder = NotificationCompat.Builder(this, channelId)
-        val notification = notificationBuilder.setOngoing(true)
-            .setSmallIcon(androidx.core.R.drawable.notification_bg)
-            .setCategory(Notification.CATEGORY_SERVICE)
-            .build()
-        startForeground(123, notification)
+//        val channelId =
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                createNotificationChannel()
+//            } else {
+//                // If earlier version channel ID is not used
+//                // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
+//                ""
+//            }
+//        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+//        val notification = notificationBuilder.setOngoing(true)
+//            .setSmallIcon(R.drawable.ic_stat_name)
+//            .setCategory(Notification.CATEGORY_SERVICE)
+//            .build()
+//        startForeground(123, notification)
     }
 
     override fun onDestroy() {

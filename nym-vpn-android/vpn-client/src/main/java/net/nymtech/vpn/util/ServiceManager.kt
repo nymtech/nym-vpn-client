@@ -1,9 +1,10 @@
-package net.nymtech.vpn
+package net.nymtech.vpn.util
 
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import net.nymtech.vpn.NymVpnService
 import timber.log.Timber
 
 
@@ -39,12 +40,13 @@ object ServiceManager {
     }
   }
 
-    fun startVpnService(context: Context) {
+    fun startVpnService(context: Context, extras : Map<String, String>?) {
         Timber.d("Called start vpn service")
         actionOnService(
             Action.START,
             context,
             NymVpnService::class.java,
+            extras = extras
         )
     }
 

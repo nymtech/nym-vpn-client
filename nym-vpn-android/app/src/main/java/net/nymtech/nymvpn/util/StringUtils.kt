@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.compose.ui.text.buildAnnotatedString
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.model.Country
-import timber.log.Timber
 
 object StringUtils {
     fun buildCountryNameString(country : Country, context : Context) : String {

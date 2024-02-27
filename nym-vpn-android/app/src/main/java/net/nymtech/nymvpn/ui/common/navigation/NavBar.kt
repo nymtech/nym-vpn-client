@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui.common.navigation
 
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,12 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.window.core.layout.WindowHeightSizeClass
-import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.theme.iconSize
 

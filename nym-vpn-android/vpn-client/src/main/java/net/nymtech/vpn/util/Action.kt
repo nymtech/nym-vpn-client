@@ -1,4 +1,4 @@
-package net.nymtech.vpn
+package net.nymtech.vpn.util
 
 enum class Action {
     START,

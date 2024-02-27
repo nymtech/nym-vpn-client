@@ -1,8 +1,8 @@
 package net.nymtech.vpn.tunnel
 
 import android.os.Parcelable
-import java.net.InetAddress
 import kotlinx.parcelize.Parcelize
+import java.net.InetAddress
 
 private const val AUTH_FAILED_REASON_EXPIRED_ACCOUNT = "[EXPIRED_ACCOUNT]"
 
