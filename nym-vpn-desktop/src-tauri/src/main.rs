@@ -5,13 +5,11 @@ use std::{env, sync::Arc};
 
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
-use tauri::{
-    api::path::{config_dir, data_dir},
-    Manager,
-};
+use tauri::{api::path::config_dir, Manager};
 use tokio::{fs::try_exists, sync::Mutex};
 use tracing::{debug, error, info, trace};
 
+use commands::db as cmd_db;
 use commands::*;
 use states::app::AppState;
 
@@ -19,12 +17,14 @@ use nym_vpn_lib::nym_config;
 
 use crate::{
     cli::{print_build_info, Cli},
-    fs::{config::AppConfig, data::AppData, storage::AppStorage},
+    db::Db,
+    fs::{config::AppConfig, storage::AppStorage},
 };
 
 mod cli;
 mod commands;
 mod country;
+mod db;
 mod error;
 mod fs;
 mod http;
@@ -32,8 +32,7 @@ mod network;
 mod states;
 mod vpn_client;
 
-const APP_DIR: &str = "nym-vpn";
-const APP_DATA_FILE: &str = "app-data.toml";
+pub const APP_DIR: &str = "nym-vpn";
 const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 
@@ -69,14 +68,6 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
-    let app_data_store = {
-        let mut app_data_path =
-            data_dir().ok_or(anyhow!("Failed to retrieve data directory path"))?;
-        app_data_path.push(APP_DIR);
-        AppStorage::<AppData>::new(app_data_path, APP_DATA_FILE, None)
-    };
-    debug!("app_data_store: {}", app_data_store.full_path.display());
-
     let app_config_store = {
         let mut app_config_path =
             config_dir().ok_or(anyhow!("Failed to retrieve config directory path"))?;
@@ -88,8 +79,6 @@ async fn main() -> Result<()> {
         &app_config_store.full_path.display()
     );
 
-    let app_data = app_data_store.read().await?;
-    debug!("app_data: {app_data:?}");
     let app_config = app_config_store.read().await?;
     debug!("app_config: {app_config:?}");
 
@@ -116,7 +105,10 @@ async fn main() -> Result<()> {
     // Read the env variables in the provided file and export them all to the local environment.
     nym_config::defaults::setup_env(app_config.env_config_file.clone());
 
-    let app_state = AppState::try_from((&app_data, &app_config)).map_err(|e| {
+    info!("Creating k/v embedded db");
+    let db = Db::new()?;
+
+    let app_state = AppState::try_from((&db, &app_config)).map_err(|e| {
         error!("failed to create app state from saved app data and config: {e}");
         e
     })?;
@@ -125,9 +117,9 @@ async fn main() -> Result<()> {
 
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(app_state)))
-        .manage(Arc::new(Mutex::new(app_data_store)))
         .manage(Arc::new(app_config))
         .manage(Arc::new(cli))
+        .manage(db)
         .setup(move |app| {
             info!("app setup");
             let env_nosplash = env::var(ENV_APP_NOSPLASH).map(|_| true).unwrap_or(false);
@@ -152,13 +144,10 @@ async fn main() -> Result<()> {
             connection::connect,
             connection::disconnect,
             connection::get_connection_start_time,
-            app_data::get_app_data,
-            app_data::set_app_data,
-            app_data::set_ui_theme,
-            app_data::set_entry_location_selector,
-            app_data::set_monitoring,
-            app_data::set_auto_connect,
-            app_data::set_root_font_size,
+            cmd_db::db_set,
+            cmd_db::db_get,
+            cmd_db::db_flush,
+            cmd_db::db_get_batch,
             node_location::get_node_location,
             node_location::set_node_location,
             node_location::get_fastest_node_location,

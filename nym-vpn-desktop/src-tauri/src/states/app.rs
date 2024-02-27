@@ -9,7 +9,8 @@ use ts_rs::TS;
 
 use crate::{
     country::{Country, DEFAULT_COUNTRY_CODE},
-    fs::{config::AppConfig, data::AppData},
+    db::{Db, Key},
+    fs::config::AppConfig,
 };
 
 #[derive(Default, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, TS)]
@@ -50,14 +51,14 @@ pub struct AppState {
     pub vpn_ctrl_tx: Option<UnboundedSender<NymVpnCtrlMessage>>,
 }
 
-impl TryFrom<(&AppData, &AppConfig)> for AppState {
+impl TryFrom<(&Db, &AppConfig)> for AppState {
     type Error = anyhow::Error;
 
-    fn try_from(saved_data: (&AppData, &AppConfig)) -> Result<Self, Self::Error> {
+    fn try_from(store: (&Db, &AppConfig)) -> Result<Self, Self::Error> {
         // retrieve default entry and exit node locations set from
         // the config file
         let default_entry_node_location = Country::try_from(
-            saved_data
+            store
                 .1
                 .default_entry_node_location_code
                 .as_deref()
@@ -66,7 +67,7 @@ impl TryFrom<(&AppData, &AppConfig)> for AppState {
         .map_err(|e| anyhow!("failed to retrieve default entry node location: {e}"))?;
 
         let default_exit_node_location = Country::try_from(
-            saved_data
+            store
                 .1
                 .default_exit_node_location_code
                 .as_deref()
@@ -74,22 +75,22 @@ impl TryFrom<(&AppData, &AppConfig)> for AppState {
         )
         .map_err(|e| anyhow!("failed to retrieve default exit node location: {e}"))?;
 
+        // retrieve the saved app data from the embedded db
+        // TODO handle db deserialization errors, eg. remove any
+        // bad data from the db to clean it up and fallback
+        // to default values
+        let entry_node_location = store.0.get_typed::<NodeLocation>(Key::EntryNodeLocation)?;
+        let exit_node_location = store.0.get_typed::<NodeLocation>(Key::ExitNodeLocation)?;
+        let vpn_mode = store.0.get_typed::<VpnMode>(Key::VpnMode)?;
+
         // restore any state from the saved app data (previous user session)
         // fallback to config file for locations if not present
         Ok(AppState {
-            entry_node_location: saved_data.0.entry_node_location.clone().unwrap_or_else(|| {
-                #[cfg(not(feature = "fastest-location"))]
-                return NodeLocation::Country(default_entry_node_location);
-                #[cfg(feature = "fastest-location")]
-                return NodeLocation::Fastest;
-            }),
-            exit_node_location: saved_data.0.exit_node_location.clone().unwrap_or_else(|| {
-                #[cfg(not(feature = "fastest-location"))]
-                return NodeLocation::Country(default_exit_node_location);
-                #[cfg(feature = "fastest-location")]
-                return NodeLocation::Fastest;
-            }),
-            vpn_mode: saved_data.0.vpn_mode.clone().unwrap_or_default(),
+            entry_node_location: entry_node_location
+                .unwrap_or(NodeLocation::Country(default_entry_node_location)),
+            exit_node_location: exit_node_location
+                .unwrap_or(NodeLocation::Country(default_exit_node_location)),
+            vpn_mode: vpn_mode.unwrap_or_default(),
             ..Default::default()
         })
     }
