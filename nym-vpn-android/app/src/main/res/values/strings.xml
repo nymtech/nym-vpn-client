@@ -78,4 +78,8 @@
     <string name="ios">iOS</string>
     <string name="log_out">Log out</string>
     <string name="login_successful">Login successful</string>
+    <string name="no_browser_detected">No browser detected</string>
+    <string name="no_email_detected">No email app detected</string>
+    <string name="unknown">Unknown</string>
+    <string name="no_scm_found">Source code url not found</string>
 </resources>

@@ -1,8 +1,8 @@
 import org.gradle.api.JavaVersion
 
 object Constants {
-    const val VERSION_NAME = "v0.0.4-test"
-    const val VERSION_CODE = 4
+    const val VERSION_NAME = "v0.0.5-alpha"
+    const val VERSION_CODE = 5
     const val TARGET_SDK = 34
     const val COMPILE_SDK = 34
     const val MIN_SDK = 24
@@ -10,7 +10,7 @@ object Constants {
     const val JVM_TARGET = "17"
     val JAVA_VERSION = JavaVersion.VERSION_17
 
-    const val COMPOSE_COMPILER_EXTENSION_VERSION = "1.5.8"
+    const val COMPOSE_COMPILER_EXTENSION_VERSION = "1.5.10"
     const val NAMESPACE = "net.nymtech"
 
     const val APP_NAME = "nymvpn"
@@ -29,4 +29,8 @@ object Constants {
     const val BUILD_LIB_TASK = "buildDeps"
 
     const val SANDBOX_URL = "https://sandbox-nym-api1.nymtech.net/api"
+
+    //licensee
+    val allowedLicenses = listOf("MIT", "Apache-2.0", "BSD-3-Clause")
+    const val ANDROID_TERMS_URL = "https://developer.android.com/studio/terms.html"
 }

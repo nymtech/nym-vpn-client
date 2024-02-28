@@ -17,7 +17,8 @@ enum class Screen {
     LEGAL,
     SUPPORT,
     LOGIN,
-    ACCOUNT
+    ACCOUNT,
+    LICENSES,
 }
 
 enum class HopType {
@@ -38,7 +39,9 @@ sealed class NavItem(val route: String, val title : StringValue, val leading : I
         data object Logs : NavItem("${Screen.SETTINGS.name}/${Screen.LOGS.name}", StringValue.StringResource(R.string.logs), backIcon)
         data object Feedback : NavItem("${Screen.SETTINGS.name}/${Screen.FEEDBACK.name}", StringValue.StringResource(R.string.feedback), backIcon)
         data object Support : NavItem("${Screen.SETTINGS.name}/${Screen.SUPPORT.name}", StringValue.StringResource(R.string.support), backIcon)
-        data object Legal : NavItem("${Screen.SETTINGS.name}/${Screen.LEGAL.name}", StringValue.StringResource(R.string.legal), backIcon)
+        data object Legal : NavItem("${Screen.SETTINGS.name}/${Screen.LEGAL.name}", StringValue.StringResource(R.string.legal), backIcon) {
+            data object Licenses : NavItem("${Screen.SETTINGS.name}/${Screen.LEGAL.name}/${Screen.LICENSES.name}", StringValue.StringResource(R.string.licenses), backIcon)
+        }
         data object Login : NavItem("${Screen.SETTINGS.name}/${Screen.LOGIN.name}", StringValue.StringResource(R.string.login), backIcon)
         data object Account : NavItem("${Screen.SETTINGS.name}/${Screen.ACCOUNT.name}", StringValue.StringResource(R.string.account), backIcon)
     }
@@ -63,6 +66,7 @@ sealed class NavItem(val route: String, val title : StringValue, val leading : I
                 Settings.Legal.route -> Settings.Legal
                 Settings.Login.route -> Settings.Login
                 Settings.Account.route -> Settings.Account
+                Settings.Legal.Licenses.route -> Settings.Legal.Licenses
                 else -> Main
             }
         }

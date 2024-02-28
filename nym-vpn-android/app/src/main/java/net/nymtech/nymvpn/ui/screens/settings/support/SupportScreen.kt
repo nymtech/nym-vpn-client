@@ -1,7 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.settings.support
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,45 +16,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.common.buttons.SelectionItem
-import net.nymtech.nymvpn.ui.common.buttons.SurfaceSelectionGroupButton
-import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.ui.AppViewModel
+import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
+import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
-import timber.log.Timber
 
 @Composable
-fun SupportScreen() {
+fun SupportScreen(appViewModel: AppViewModel) {
     val context = LocalContext.current
-    fun openWebPage(url: String) {
-        try {
-            val webpage: Uri = Uri.parse(url)
-            val intent = Intent(Intent.ACTION_VIEW, webpage)
-            context.startActivity(intent)
-        } catch (e: Exception) {
-            Timber.e("Failed to launch webpage")
-        }
-    }
-
-    fun launchEmail() {
-        try {
-            val intent =
-                Intent(Intent.ACTION_SENDTO).apply {
-                    type = Constants.EMAIL_MIME_TYPE
-                    putExtra(Intent.EXTRA_EMAIL, arrayOf(context.getString(R.string.support_email)))
-                    putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.email_subject))
-                }
-            ContextCompat.startActivity(
-                context,
-                Intent.createChooser(intent, context.getString(R.string.email_chooser)),
-                null,
-            )
-        } catch (e: Exception) {
-            //TODO handle exception like no email client
-        }
-    }
 
     Column(
         horizontalAlignment = Alignment.Start,
@@ -71,7 +40,7 @@ fun SupportScreen() {
                 SelectionItem(
                     leadingIcon = ImageVector.vectorResource(R.drawable.faq),
                     title = stringResource(R.string.check_faq),
-                    onClick = { openWebPage(context.getString(R.string.faq_link)) }),
+                    onClick = { appViewModel.openWebPage(context.getString(R.string.faq_link)) }),
             ))
         SurfaceSelectionGroupButton(
             listOf(
@@ -79,7 +48,7 @@ fun SupportScreen() {
                     leadingIcon = Icons.Outlined.Email,
                     title = stringResource(R.string.send_email),
                     onClick = {
-                        launchEmail()
+                        appViewModel.launchEmail()
                     }),
             ))
         SurfaceSelectionGroupButton(
@@ -88,7 +57,7 @@ fun SupportScreen() {
                     leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
                     title = stringResource(R.string.join_matrix),
                     onClick = {
-                        openWebPage(context.getString(R.string.matrix_url))
+                        appViewModel.openWebPage(context.getString(R.string.matrix_url))
                     }),
             ))
         SurfaceSelectionGroupButton(
@@ -97,7 +66,7 @@ fun SupportScreen() {
                     leadingIcon = ImageVector.vectorResource(R.drawable.discord),
                     title = stringResource(R.string.join_discord),
                     onClick = {
-                        openWebPage(context.getString(R.string.discord_url))
+                        appViewModel.openWebPage(context.getString(R.string.discord_url))
                     }),
             ))
     }

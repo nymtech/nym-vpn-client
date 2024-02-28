@@ -5,7 +5,10 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
-    id("org.jetbrains.kotlin.plugin.serialization")
+    alias(libs.plugins.licensee)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.gross)
 }
 
 android {
@@ -106,12 +109,31 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = Constants.JAVA_VERSION
         targetCompatibility = Constants.JAVA_VERSION
     }
+
     kotlinOptions {
         jvmTarget = Constants.JVM_TARGET
     }
+
+    kotlin {
+        sourceSets {
+            all {
+                languageSettings.optIn("kotlin.RequiresOptIn")
+                languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
+            }
+        }
+    }
+
+    licensee {
+        Constants.allowedLicenses.forEach { allow(it) }
+        allowUrl(Constants.ANDROID_TERMS_URL)
+    }
+
+    gross { enableAndroidAssetGeneration.set(true) }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -119,6 +141,13 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = Constants.COMPOSE_COMPILER_EXTENSION_VERSION
     }
+
+    detekt {
+        source.setFrom(files("src/main/java", "src/main/kotlin"))
+        config.setFrom(rootProject.files("config/detekt.yml"))
+        buildUponDefaultConfig = true
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -129,6 +158,7 @@ android {
 dependencies {
 
     implementation(project(":vpn-client"))
+    coreLibraryDesugaring(libs.com.android.tools.desugar)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -147,14 +177,13 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    //uniffi
     implementation(libs.jna)
 
     // util
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.permissions)
     implementation(libs.lifecycle.runtime.compose)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.serialization)
     implementation(libs.androidx.window)
 
     // logging
@@ -181,6 +210,9 @@ dependencies {
     //moshi
     implementation(libs.moshi)
     implementation(libs.moshi.kotlin)
+
+    //warning here https://github.com/square/moshi/discussions/1752
     ksp(libs.moshi.kotlin.codegen)
 }
+
 

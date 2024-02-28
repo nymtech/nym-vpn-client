@@ -71,7 +71,7 @@ class NymVpnService : VpnService() {
             }
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
         val notification = notificationBuilder.setOngoing(true)
-            .setContentTitle("NymVpn")
+            .setContentTitle("NymVPN")
             .setContentText("Running")
             .setSmallIcon(R.drawable.ic_stat_name)
             .setCategory(Notification.CATEGORY_SERVICE)
@@ -129,20 +129,6 @@ class NymVpnService : VpnService() {
 
     override fun onCreate() {
         connectivityListener.register(this)
-//        val channelId =
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                createNotificationChannel()
-//            } else {
-//                // If earlier version channel ID is not used
-//                // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
-//                ""
-//            }
-//        val notificationBuilder = NotificationCompat.Builder(this, channelId)
-//        val notification = notificationBuilder.setOngoing(true)
-//            .setSmallIcon(R.drawable.ic_stat_name)
-//            .setCategory(Notification.CATEGORY_SERVICE)
-//            .build()
-//        startForeground(123, notification)
     }
 
     override fun onDestroy() {

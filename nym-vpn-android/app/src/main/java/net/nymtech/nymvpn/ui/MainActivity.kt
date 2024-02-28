@@ -39,6 +39,7 @@ import net.nymtech.nymvpn.ui.screens.settings.account.AccountScreen
 import net.nymtech.nymvpn.ui.screens.settings.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.feedback.FeedbackScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
+import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
 import net.nymtech.nymvpn.ui.screens.settings.login.LoginScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
@@ -64,8 +65,8 @@ class MainActivity : ComponentActivity() {
 
     setContent {
 
-      val mainViewModel = hiltViewModel<AppViewModel>()
-      val uiState by mainViewModel.uiState.collectAsStateWithLifecycle()
+      val appViewModel = hiltViewModel<AppViewModel>()
+      val uiState by appViewModel.uiState.collectAsStateWithLifecycle()
       val navController = rememberNavController()
       val snackbarHostState = remember { SnackbarHostState() }
 
@@ -80,11 +81,8 @@ class MainActivity : ComponentActivity() {
       }
 
       LaunchedEffect(Unit) {
+        appViewModel.updateCountryListCache()
         requestNotificationPermission()
-      }
-
-      LaunchedEffect(Unit) {
-        mainViewModel.updateCountryListCache()
       }
 
       fun showSnackBarMessage(message: StringValue) {
@@ -100,6 +98,13 @@ class MainActivity : ComponentActivity() {
               snackbarHostState.currentSnackbarData?.dismiss()
             }
           }
+        }
+      }
+
+      LaunchedEffect(uiState.snackbarMessageConsumed) {
+        if(!uiState.snackbarMessageConsumed) {
+          showSnackBarMessage(StringValue.DynamicString(uiState.snackbarMessage))
+          appViewModel.snackbarMessageConsumed()
         }
       }
 
@@ -119,20 +124,21 @@ class MainActivity : ComponentActivity() {
               composable(NavItem.Main.route) { MainScreen(navController, uiState) }
               composable(NavItem.Settings.route) { SettingsScreen(navController, uiState) }
               composable(NavItem.Hop.Entry.route) {
-                mainViewModel.updateCountryListCache()
+                appViewModel.updateCountryListCache()
                 HopScreen(navController =  navController, hopType =  HopType.FIRST)
               }
               composable(NavItem.Hop.Exit.route) {
-                mainViewModel.updateCountryListCache()
+                appViewModel.updateCountryListCache()
                 HopScreen(navController =  navController, hopType = HopType.LAST)
               }
               composable(NavItem.Settings.Display.route) { DisplayScreen() }
               composable(NavItem.Settings.Logs.route) { LogsScreen() }
-              composable(NavItem.Settings.Support.route) { SupportScreen() }
-              composable(NavItem.Settings.Feedback.route) { FeedbackScreen() }
-              composable(NavItem.Settings.Legal.route) { LegalScreen() }
-              composable(NavItem.Settings.Login.route) { LoginScreen(navController, showSnackbarMessage = { message -> showSnackBarMessage(message) } ) }
+              composable(NavItem.Settings.Support.route) { SupportScreen(appViewModel) }
+              composable(NavItem.Settings.Feedback.route) { FeedbackScreen(appViewModel) }
+              composable(NavItem.Settings.Legal.route) { LegalScreen(appViewModel,navController) }
+              composable(NavItem.Settings.Login.route) { LoginScreen(navController, appViewModel) }
               composable(NavItem.Settings.Account.route) { AccountScreen() }
+              composable(NavItem.Settings.Legal.Licenses.route){ LicensesScreen(appViewModel) }
             }
           }
         }

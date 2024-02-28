@@ -1,7 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.settings.feedback
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,27 +21,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.common.buttons.SelectionItem
-import net.nymtech.nymvpn.ui.common.buttons.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.AppViewModel
+import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
+import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
-import timber.log.Timber
 
 @Composable
-fun FeedbackScreen(viewModel: FeedbackViewModel = hiltViewModel()) {
+fun FeedbackScreen(appViewModel: AppViewModel, viewModel: FeedbackViewModel = hiltViewModel()) {
 
   val isErrorReportingEnabled by viewModel.isErrorReportingEnabled.collectAsStateWithLifecycle()
 
   val context = LocalContext.current
-  fun openWebPage(url: String) {
-    try {
-      val webpage: Uri = Uri.parse(url)
-      val intent = Intent(Intent.ACTION_VIEW, webpage)
-      context.startActivity(intent)
-    } catch (e: Exception) {
-      Timber.e("Failed to launch webpage")
-    }
-  }
 
   Column(
       horizontalAlignment = Alignment.Start,
@@ -58,15 +47,16 @@ fun FeedbackScreen(viewModel: FeedbackViewModel = hiltViewModel()) {
                 SelectionItem(
                     leadingIcon = ImageVector.vectorResource(R.drawable.github),
                     title = stringResource(R.string.open_github),
-                    onClick = { openWebPage(context.getString(R.string.github_issues_url)) }),
+                    onClick = { appViewModel.openWebPage(context.getString(R.string.github_issues_url)) }),
             ))
        SurfaceSelectionGroupButton(
             listOf(
                 SelectionItem(
                     leadingIcon = ImageVector.vectorResource(R.drawable.send),
                     title = stringResource(R.string.send_feedback),
-                    //TODO update with form url
-                    onClick = { openWebPage(context.getString(R.string.faq_url)) })
+                    onClick = {
+                        appViewModel.launchEmail()
+                    })
             ))
         SurfaceSelectionGroupButton(
             listOf(
@@ -74,7 +64,7 @@ fun FeedbackScreen(viewModel: FeedbackViewModel = hiltViewModel()) {
                     leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
                     title = stringResource(R.string.join_matrix),
                     onClick = {
-                        openWebPage(context.getString(R.string.matrix_url))
+                        appViewModel.openWebPage(context.getString(R.string.matrix_url))
                     }),
             ))
         SurfaceSelectionGroupButton(
@@ -83,7 +73,7 @@ fun FeedbackScreen(viewModel: FeedbackViewModel = hiltViewModel()) {
                     leadingIcon = ImageVector.vectorResource(R.drawable.discord),
                     title = stringResource(R.string.join_discord),
                     onClick = {
-                        openWebPage(context.getString(R.string.discord_url))
+                        appViewModel.openWebPage(context.getString(R.string.discord_url))
                     }),
             ))
         SurfaceSelectionGroupButton(

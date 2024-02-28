@@ -32,8 +32,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
-import net.nymtech.nymvpn.ui.common.buttons.SelectionItem
-import net.nymtech.nymvpn.ui.common.buttons.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
+import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.util.scaledHeight
 

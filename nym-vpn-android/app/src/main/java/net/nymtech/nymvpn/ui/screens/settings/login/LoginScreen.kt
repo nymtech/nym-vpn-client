@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.util.Event
@@ -38,7 +39,7 @@ import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun LoginScreen(navController: NavController, showSnackbarMessage: (StringValue) -> Unit, viewModel: LoginViewModel = hiltViewModel()) {
+fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewModel: LoginViewModel = hiltViewModel()) {
 
     val context = LocalContext.current
 
@@ -110,7 +111,7 @@ fun LoginScreen(navController: NavController, showSnackbarMessage: (StringValue)
                         when(it){
                             is Result.Success -> {
                                 navController.navigate(NavItem.Main.route)
-                                showSnackbarMessage(StringValue.StringResource(R.string.login_successful))
+                                appViewModel.showSnackbarMessage(context.getString(R.string.login_successful))
                             }
                             is Result.Error -> error = it.error
                         }

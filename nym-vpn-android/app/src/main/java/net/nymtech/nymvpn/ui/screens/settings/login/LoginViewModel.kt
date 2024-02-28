@@ -16,7 +16,7 @@ class LoginViewModel @Inject constructor(
 
     fun onLogin(recoveryPhrase : String) : Result<Event> {
         //TODO handle real login, mock for now
-        return if(recoveryPhrase == "123") {
+        return if(recoveryPhrase == "") {
             saveLogin()
             Result.Success(Event.Message.None)
         } else {

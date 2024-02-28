@@ -115,6 +115,6 @@ jobs:
           ruby-version: '3.2' # Not needed with a .ruby-version file
           bundler-cache: true
           # deploy to google internal track
-      - name: Distribute app to Beta track 🚀
-        run: (cd ${{ github.workspace }} && bundle install && bundle exec fastlane internal)
+      - name: Distribute app to Alpha track 🚀
+        run: (cd ${{ github.workspace }} && bundle install && bundle exec fastlane alpha)
 

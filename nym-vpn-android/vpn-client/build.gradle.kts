@@ -4,7 +4,7 @@ import org.gradle.kotlin.dsl.support.listFilesOrdered
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrainsKotlinAndroid)
-    id("org.jetbrains.kotlin.plugin.serialization")
+    alias(libs.plugins.kotlinxSerialization)
     id("kotlin-parcelize")
 }
 
@@ -63,7 +63,7 @@ dependencies {
     implementation(libs.jna.v5140)
     implementation(libs.kotlinx.coroutines.core)
 
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.serialization)
     implementation(libs.timber)
 }
 

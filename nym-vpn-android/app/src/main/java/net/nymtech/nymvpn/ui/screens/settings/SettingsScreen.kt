@@ -30,8 +30,8 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
-import net.nymtech.nymvpn.ui.common.buttons.SelectionItem
-import net.nymtech.nymvpn.ui.common.buttons.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
+import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
