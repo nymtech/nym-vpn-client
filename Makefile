@@ -50,7 +50,7 @@ generate-licenses-cli-json:
 	cargo about generate --all-features --format json -o all_licenses_cli.json
 
 generate-licenses-desktop:
-	cargo about generate --all-features -m $(DESKTOP_DIR)/Cargo.toml $(DESKTOP_DIR)/about.hbs -o all_licenses_desktop.html
+	cargo about generate --all-features -m $(DESKTOP_DIR)/Cargo.toml $(DESKTOP_DIR)/about.hbs -o nym-vpn-desktop/public/licenses.html
 
 generate-licenses-desktop-json:
 	cargo about generate --all-features -m $(DESKTOP_DIR)/Cargo.toml --format json -o all_licenses_desktop.json
