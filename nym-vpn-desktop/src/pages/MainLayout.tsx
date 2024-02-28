@@ -1,8 +1,10 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { TopBar } from '../ui';
 
 function MainLayout() {
+  const location = useLocation();
+
   return (
     <div
       className={clsx([
@@ -12,7 +14,12 @@ function MainLayout() {
       ])}
     >
       <TopBar />
-      <div className="h-full flex flex-col overflow-auto overscroll-auto p-4">
+      <div
+        className={clsx([
+          'h-full flex flex-col overflow-auto overscroll-auto p-4',
+          location.pathname === '/settings/legal/licenses' && '!p-0',
+        ])}
+      >
         <div className="grow">
           <Outlet />
         </div>

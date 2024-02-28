@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 
-function SettingsLayout() {
+function SettingsRouteIndex() {
   return <Outlet />;
 }
 
-export default SettingsLayout;
+export default SettingsRouteIndex;

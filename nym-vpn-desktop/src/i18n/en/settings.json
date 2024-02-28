@@ -26,7 +26,8 @@
   "legal": {
     "title": "Legal",
     "policy": "Privacy policy",
-    "tos": "Terms of use"
+    "tos": "Terms of use",
+    "licenses": "Licenses"
   },
   "faq": "FAQ",
   "display-theme": "Display theme",
