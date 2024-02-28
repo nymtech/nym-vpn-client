@@ -15,7 +15,7 @@ use crate::{
     states::{app::NodeLocation, SharedAppData, SharedAppState},
 };
 
-#[derive(Debug, Serialize, Deserialize, TS, Clone, Eq, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, TS, Clone)]
 pub enum NodeType {
     Entry,
     Exit,
@@ -88,10 +88,9 @@ pub async fn get_node_location(
 #[tauri::command]
 pub async fn get_countries(node_type: NodeType) -> Result<Vec<Country>, CmdError> {
     debug!("get_countries");
-    if node_type == NodeType::Entry {
-        get_entry_countries().await
-    } else {
-        get_exit_countries().await
+    match node_type {
+        NodeType::Entry => get_entry_countries().await,
+        NodeType::Exit => get_exit_countries().await,
     }
 }
 
@@ -218,14 +217,13 @@ pub async fn get_exit_countries() -> Result<Vec<Country>, CmdError> {
         // for each identity key
         // mapping to a list of locations
         .filter_map(|identity_key| {
-            let location = explorer_json
-                .iter()
-                .find(|gateway| gateway.gateway.identity_key == identity_key)
-                .map(|gateway| gateway.location.clone());
-            match location {
-                Some(Some(location)) => Some(location),
-                _ => None,
-            }
+            explorer_json.iter().find_map(|gateway| {
+                if gateway.gateway.identity_key == identity_key {
+                    gateway.location.clone()
+                } else {
+                    None
+                }
+            })
         })
         // remove any duplicate two letter country code
         .unique_by(|location| location.two_letter_iso_country_code.clone())
