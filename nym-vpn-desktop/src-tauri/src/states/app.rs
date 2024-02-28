@@ -76,9 +76,6 @@ impl TryFrom<(&Db, &AppConfig)> for AppState {
         .map_err(|e| anyhow!("failed to retrieve default exit node location: {e}"))?;
 
         // retrieve the saved app data from the embedded db
-        // TODO handle db deserialization errors, eg. remove any
-        // bad data from the db to clean it up and fallback
-        // to default values
         let entry_node_location = store.0.get_typed::<NodeLocation>(Key::EntryNodeLocation)?;
         let exit_node_location = store.0.get_typed::<NodeLocation>(Key::ExitNodeLocation)?;
         let vpn_mode = store.0.get_typed::<VpnMode>(Key::VpnMode)?;

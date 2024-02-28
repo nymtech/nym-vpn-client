@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use sled::IVec;
 use std::{
@@ -12,7 +12,7 @@ use strum::AsRefStr;
 use tap::TapFallible;
 use tauri::api::path::data_dir;
 use thiserror::Error;
-use tracing::{error, info, instrument};
+use tracing::{error, info, instrument, warn};
 use ts_rs::TS;
 
 use crate::APP_DIR;
@@ -94,6 +94,23 @@ impl Db {
         Ok(Self { db, path })
     }
 
+    /// Discard deserialization errors by removing the key
+    fn discard_deserialize<T>(
+        &self,
+        key: Key,
+        result: Result<Option<T>, DbError>,
+    ) -> Result<Option<T>, DbError>
+    where
+        T: DeserializeOwned + fmt::Debug,
+    {
+        if let Err(DbError::Deserialize(e)) = result {
+            warn!("removing key [{key}] due to deserialization error: {e}");
+            self.remove_raw(key)?;
+            return Ok(None);
+        }
+        result
+    }
+
     /// Get the value for a key as raw bytes
     #[instrument(skip(self))]
     pub fn get_raw(&self, key: Key) -> Result<Option<IVec>, DbError> {
@@ -107,27 +124,33 @@ impl Db {
     #[instrument(skip(self))]
     pub fn get_typed<T>(&self, key: Key) -> Result<Option<T>, DbError>
     where
-        T: serde::de::DeserializeOwned,
+        T: DeserializeOwned + fmt::Debug,
     {
-        self.get_raw(key)?
+        let res = self
+            .get_raw(key)?
             .map(|v| serde_json::from_slice::<T>(&v))
             .transpose()
             .map_err(|e| {
                 error!("failed to deserialize value for key [{key}]: {e}");
                 DbError::Deserialize(e)
-            })
+            });
+
+        self.discard_deserialize(key, res)
     }
 
     /// Get the value for a key as a deserialized JSON value
     #[instrument(skip(self))]
     pub fn get(&self, key: Key) -> Result<Option<JsonValue>, DbError> {
-        self.get_raw(key)?
+        let res = self
+            .get_raw(key)?
             .map(|v| serde_json::from_slice::<Value>(&v))
             .transpose()
             .map_err(|e| {
                 error!("failed to deserialize value for key [{key}]: {e}");
                 DbError::Deserialize(e)
-            })
+            });
+
+        self.discard_deserialize(key, res)
     }
 
     /// Insert a key to a new JSON value returning the previous value if any
@@ -140,27 +163,41 @@ impl Db {
             error!("failed to serialize value for [{key}]: {e}");
             DbError::Serialize(format!("failed to serialize value for [{key}]: {e}"))
         })?;
-        self.db
+        let res = self
+            .db
             .insert(key.as_ref(), json_value)?
             .map(|v| serde_json::from_slice::<Value>(&v))
             .transpose()
             .map_err(|e| {
                 error!("failed to deserialize value for key [{key}]: {e}");
                 DbError::Deserialize(e)
-            })
+            });
+
+        self.discard_deserialize(key, res)
+    }
+
+    /// Remove a key returning the previous value if any
+    #[instrument(skip(self))]
+    pub fn remove_raw(&self, key: Key) -> Result<Option<IVec>, DbError> {
+        self.db.remove(key.as_ref()).map_err(|e| {
+            error!("failed to remove key [{key}]: {e}");
+            DbError::Db(e)
+        })
     }
 
     /// Remove a key returning the previous value if any
     #[instrument(skip(self))]
     pub fn remove(&self, key: Key) -> Result<Option<JsonValue>, DbError> {
-        self.db
+        let res = self
+            .db
             .remove(key.as_ref())?
             .map(|v| serde_json::from_slice::<Value>(&v))
             .transpose()
             .map_err(|e| {
                 error!("failed to deserialize value for key [{key}]: {e}");
                 DbError::Deserialize(e)
-            })
+            });
+        self.discard_deserialize(key, res)
     }
 
     /// Asynchronously flushes all dirty IO buffers and calls fsync
