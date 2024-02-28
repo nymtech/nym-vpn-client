@@ -5580,6 +5580,7 @@ dependencies = [
  "dotenvy",
  "futures",
  "itertools 0.12.0",
+ "nym-api-requests 0.1.0 (git+https://github.com/nymtech/nym?rev=cec05a99f4e71d6c719b2dd16f61a9d6085d658f)",
  "nym-explorer-api-requests 0.1.0 (git+https://github.com/nymtech/nym?rev=cec05a99f4e71d6c719b2dd16f61a9d6085d658f)",
  "nym-vpn-lib",
  "once_cell",

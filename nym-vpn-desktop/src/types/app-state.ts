@@ -39,7 +39,8 @@ export type AppState = {
   entryNodeLocation: NodeLocation;
   exitNodeLocation: NodeLocation;
   fastestNodeLocation: Country;
-  countryList: Country[];
+  entryCountryList: Country[];
+  exitCountryList: Country[];
   rootFontSize: number;
 };
 

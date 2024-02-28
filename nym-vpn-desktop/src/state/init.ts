@@ -24,8 +24,15 @@ const getSessionStartTime = async () => {
 };
 
 // init country list
-const getCountries = async () => {
-  return await invoke<Country[]>('get_node_countries');
+const getEntryCountries = async () => {
+  return await invoke<Country[]>('get_countries', {
+    nodeType: 'Entry',
+  });
+};
+const getExitCountries = async () => {
+  return await invoke<Country[]>('get_countries', {
+    nodeType: 'Exit',
+  });
 };
 
 // init node locations
@@ -70,11 +77,31 @@ async function init(dispatch: StateDispatch) {
     },
   };
 
-  const getCountriesRq: TauriReq<typeof getCountries> = {
-    name: 'get_node_countries',
-    request: () => getCountries(),
+  const getEntryCountriesRq: TauriReq<typeof getEntryCountries> = {
+    name: 'get_countries',
+    request: () => getEntryCountries(),
     onFulfilled: (countries) => {
-      dispatch({ type: 'set-country-list', countries });
+      dispatch({
+        type: 'set-country-list',
+        payload: {
+          hop: 'entry',
+          countries,
+        },
+      });
+    },
+  };
+
+  const getExitCountriesRq: TauriReq<typeof getExitCountries> = {
+    name: 'get_countries',
+    request: () => getExitCountries(),
+    onFulfilled: (countries) => {
+      dispatch({
+        type: 'set-country-list',
+        payload: {
+          hop: 'exit',
+          countries,
+        },
+      });
     },
   };
 
@@ -107,7 +134,7 @@ async function init(dispatch: StateDispatch) {
   };
 
   const getFastestLocationRq: TauriReq<typeof getFastestNodeLocation> = {
-    name: 'get_node_countries',
+    name: 'get_fastest_node_location',
     request: () => getFastestNodeLocation(),
     onFulfilled: (country) => {
       dispatch({ type: 'set-fastest-node-location', country });
@@ -161,7 +188,8 @@ async function init(dispatch: StateDispatch) {
   await fireRequests([
     initStateRq,
     syncConTimeRq,
-    getCountriesRq,
+    getEntryCountriesRq,
+    getExitCountriesRq,
     getEntryLocationRq,
     getExitLocationRq,
     getFastestLocationRq,

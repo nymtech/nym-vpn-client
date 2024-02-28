@@ -26,7 +26,8 @@ function NodeLocation({ node }: { node: NodeHop }) {
   const {
     entryNodeLocation,
     exitNodeLocation,
-    countryList,
+    entryCountryList,
+    exitCountryList,
     fastestNodeLocation,
   } = useMainState();
 
@@ -47,11 +48,16 @@ function NodeLocation({ node }: { node: NodeHop }) {
 
   // request backend to refresh cache
   useEffect(() => {
-    invoke<Country[]>('get_node_countries')
+    invoke<Country[]>('get_countries', {
+      nodeType: node === 'entry' ? 'Entry' : 'Exit',
+    })
       .then((countries) => {
         dispatch({
           type: 'set-country-list',
-          countries,
+          payload: {
+            hop: node,
+            countries,
+          },
         });
       })
       .catch((e: CmdError) =>
@@ -64,11 +70,12 @@ function NodeLocation({ node }: { node: NodeHop }) {
         })
         .catch((e: CmdError) => console.error(e));
     }
-  }, [dispatch]);
+  }, [node, dispatch]);
 
   // update the UI country list whenever the country list or
   // fastest country change (likely from the backend)
   useEffect(() => {
+    const countryList = node === 'entry' ? entryCountryList : exitCountryList;
     const list = [
       ...countryList.map((country) => ({ country, isFastest: false })),
     ];
@@ -79,7 +86,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
     setUiCountryList(list);
     setFilteredCountries(list);
     setSearch('');
-  }, [countryList, fastestNodeLocation]);
+  }, [node, entryCountryList, exitCountryList, fastestNodeLocation]);
 
   const filter = (value: string) => {
     if (value !== '') {
