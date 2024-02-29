@@ -1,11 +1,11 @@
 name: release-nym-vpn-desktop
 on:
   schedule:
-    - cron: '4 4 * * *'
+    - cron: "4 4 * * *"
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag name for release'
+        description: "Tag name for release"
         required: false
         default: nightly-desktop
       publish:
@@ -24,11 +24,7 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        os:
-          [
-            ubuntu-22.04-16-core,
-            custom-runner-mac-m1,
-          ]
+        os: [ubuntu-22.04-16-core, custom-runner-mac-m1]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -38,11 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          [
-            ubuntu-22.04-16-core,
-            macos-14,
-          ]
+        os: [ubuntu-22.04-16-core, macos-14]
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -121,6 +113,9 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - name: Install cargo-about
+        run: cargo install --locked cargo-about
+
       - name: Install extra arch macos
         if: env.PLATFORM_ARCH == 'macos_universal'
         run: |
@@ -147,6 +142,14 @@ jobs:
 
       - name: Prepare desktop build
         run: mkdir nym-vpn-desktop/dist
+
+      - name: Generate licenses file (Rust)
+        env:
+          DESKTOP_DIR: nym-vpn-desktop/src-tauri
+          PUBLIC_DIR: nym-vpn-desktop/public
+        run: |
+          rm $PUBLIC_DIR/licenses.html || true
+          cargo about generate --all-features -m $DESKTOP_DIR/Cargo.toml $DESKTOP_DIR/about.hbs -o $PUBLIC_DIR/licenses.html
 
       - name: Install node dependencies
         working-directory: nym-vpn-desktop
