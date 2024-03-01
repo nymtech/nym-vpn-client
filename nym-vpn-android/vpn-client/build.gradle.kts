@@ -32,7 +32,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -51,6 +51,10 @@ android {
     }
     kotlinOptions {
         jvmTarget = Constants.JVM_TARGET
+        //R8 kotlinx.serialization
+        freeCompilerArgs = listOf(
+            "-Xstring-concat=inline"
+        )
     }
     buildFeatures {
         buildConfig = true

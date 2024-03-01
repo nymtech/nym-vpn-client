@@ -26,7 +26,6 @@ import java.net.Inet6Address
 import java.net.InetAddress
 import kotlin.properties.Delegates.observable
 
-
 class NymVpnService : VpnService() {
 
     companion object {
@@ -81,10 +80,13 @@ class NymVpnService : VpnService() {
         Timber.d("new vpn action")
         return if (intent?.action == Action.START.name) {
             NymVpn.setState(VpnState.CONNECTING)
+            Timber.d("Setting state connecting")
             currentTunConfig = defaultTunConfig()
             Timber.d("VPN start")
             try {
+
                 if(prepare(this) == null) {
+                    Timber.d("VPN permissions accepted")
                     val isTwoHop = intent.extras?.getString(NymVpn.TWO_HOP_EXTRA_KEY).toBoolean()
                     val entry = intent.extras?.getString(NymVpn.ENTRY_POINT_EXTRA_KEY)
                     val exit = intent.extras?.getString(NymVpn.EXIT_POINT_EXTRA_KEY)

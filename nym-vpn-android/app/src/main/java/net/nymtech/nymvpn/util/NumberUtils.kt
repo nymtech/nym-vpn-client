@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.util
 
-import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 

@@ -34,7 +34,6 @@ import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.util.Event
 import net.nymtech.nymvpn.util.Result
-import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 

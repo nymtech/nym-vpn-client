@@ -2,8 +2,6 @@ package net.nymtech.nymvpn.util
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Point
-import android.os.Build
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.compose.ui.unit.Dp
