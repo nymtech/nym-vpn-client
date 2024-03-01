@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.util
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.ui.text.buildAnnotatedString
 import net.nymtech.nymvpn.R
@@ -16,8 +17,9 @@ object StringUtils {
             else append(country.name)
         }.text
     }
+    @SuppressLint("DiscouragedApi")
     fun getFlagImageVectorByName(context: Context, name: String): Int {
-        val flagAssetName = String.format("flag_%S", name).lowercase()
+        val flagAssetName = "flag_%S".format(name).lowercase()
         return context.resources.getIdentifier(flagAssetName, "drawable", context.packageName)
     }
 }

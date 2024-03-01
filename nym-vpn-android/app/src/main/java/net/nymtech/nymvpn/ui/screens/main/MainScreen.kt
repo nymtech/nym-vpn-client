@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,10 +40,10 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.RadioSurfaceButton
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
+import net.nymtech.nymvpn.ui.common.labels.countryIcon
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.theme.CustomColors
-import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
@@ -53,7 +54,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: 
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val context = LocalContext.current
 
-    var vpnIntent by remember { mutableStateOf(VpnService.prepare(context)) }
+    var vpnIntent by rememberSaveable { mutableStateOf(VpnService.prepare(context)) }
     val vpnActivityResultState =
         rememberLauncherForActivityResult(
             ActivityResultContracts.StartActivityForResult(),
@@ -62,22 +63,6 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: 
             },
         )
 
-  @Composable
-  fun determineCountryIcon(country: Country): @Composable () -> Unit {
-    val image =
-        if (country.isFastest) ImageVector.vectorResource(R.drawable.bolt)
-        else ImageVector.vectorResource(StringUtils.getFlagImageVectorByName(context, country.isoCode.lowercase()))
-    return {
-      Image(
-          image,
-          image.name,
-          modifier = Modifier.padding(horizontal = 16.dp.scaledWidth(), vertical = 16.dp.scaledHeight()).size(
-              iconSize),
-          colorFilter =
-              if (country.isFastest) ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
-              else null)
-    }
-  }
 
   Column(
       verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
@@ -104,12 +89,14 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: 
 
         val firstHopName = StringUtils.buildCountryNameString(uiState.firstHopCounty, context)
         val lastHopName = StringUtils.buildCountryNameString(uiState.lastHopCountry, context)
-        val firstHopIcon = determineCountryIcon(uiState.firstHopCounty)
-        val lastHopIcon = determineCountryIcon(uiState.lastHopCountry)
+        val firstHopIcon = countryIcon(uiState.firstHopCounty)
+        val lastHopIcon = countryIcon(uiState.lastHopCountry)
         Column(
             verticalArrangement = Arrangement.spacedBy(36.dp.scaledHeight(), Alignment.Bottom),
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().padding(bottom = 24.dp.scaledHeight())) {
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 24.dp.scaledHeight())) {
                 Column(
                   verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Bottom),
                   modifier = Modifier.padding(horizontal = 24.dp.scaledWidth())) {

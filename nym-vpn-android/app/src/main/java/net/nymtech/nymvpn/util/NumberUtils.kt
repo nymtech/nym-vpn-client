@@ -1,14 +1,14 @@
 package net.nymtech.nymvpn.util
 
 import java.util.concurrent.TimeUnit
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 object NumberUtils {
     fun convertSecondsToTimeString(seconds : Long) : String {
-        return String.format("%02d:%02d:%02d",
-            TimeUnit.SECONDS.toHours(seconds),
-            TimeUnit.SECONDS.toMinutes(seconds) -
-                    TimeUnit.HOURS.toMinutes(TimeUnit.SECONDS.toHours(seconds)),
-            TimeUnit.SECONDS.toSeconds(seconds) -
-                    TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(seconds)))
+        val duration: Duration = seconds.seconds
+        return duration.toComponents { hour, minute, second, _ ->
+            "%02d:%02d:%02d".format(hour, minute, second)
+        }
     }
 }

@@ -28,7 +28,7 @@ import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun RadioSurfaceButton(leadingIcon: ImageVector? = null, title : String, description: String? = null, onClick: () -> Unit, selected: Boolean) {
+fun RadioSurfaceButton(title : String, onClick: () -> Unit, selected: Boolean, leadingIcon: ImageVector? = null, description: String? = null) {
     val border: BorderStroke? = if(selected) BorderStroke(1.dp,MaterialTheme.colorScheme.primary) else null
     val interactionSource = remember { MutableInteractionSource() }
     Card(

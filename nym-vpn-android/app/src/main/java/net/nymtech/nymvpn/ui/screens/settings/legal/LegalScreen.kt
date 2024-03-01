@@ -39,8 +39,7 @@ fun LegalScreen(appViewModel: AppViewModel, navController: NavController) {
         SurfaceSelectionGroupButton(
             listOf(
                 SelectionItem(title = stringResource(R.string.terms_of_use), onClick = {
-                    //TODO where should this link?
-                    appViewModel.openWebPage(context.getString(R.string.privacy_link))
+                    appViewModel.openWebPage(context.getString(R.string.terms_link))
                 }),
                 SelectionItem(
                     title = stringResource(R.string.privacy_policy),

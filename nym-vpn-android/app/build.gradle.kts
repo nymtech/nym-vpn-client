@@ -83,9 +83,9 @@ android {
                 }
         }
         release {
-            isDebuggable = false
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isDebuggable = true
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -213,6 +213,8 @@ dependencies {
 
     //warning here https://github.com/square/moshi/discussions/1752
     ksp(libs.moshi.kotlin.codegen)
+
+    detektPlugins(libs.detekt.rules.compose)
 }
 
 

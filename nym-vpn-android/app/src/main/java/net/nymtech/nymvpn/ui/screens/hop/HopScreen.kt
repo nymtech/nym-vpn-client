@@ -38,9 +38,9 @@ import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
 fun HopScreen(
-    viewModel: HopViewModel = hiltViewModel(),
     navController: NavController,
-    hopType: HopType
+    hopType: HopType,
+    viewModel: HopViewModel = hiltViewModel(),
 ) {
 
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()

@@ -40,7 +40,7 @@
     <string name="error_reporting_description">Help us improve NymVPN</string>
     <string name="legal">Legal</string>
     <string name="faq_link">https://nymtech.net</string>
-    <string name="privacy_link">https://nymtech.net/privacy-policy</string>
+    <string name="privacy_link">https://nymvpn.com/en/privacy?type=apps</string>
     <string name="terms_of_use">Terms of use</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="licenses">Licenses</string>
@@ -82,4 +82,5 @@
     <string name="no_email_detected">No email app detected</string>
     <string name="unknown">Unknown</string>
     <string name="no_scm_found">Source code url not found</string>
+    <string name="terms_link">https://nymvpn.com/en/terms</string>
 </resources>

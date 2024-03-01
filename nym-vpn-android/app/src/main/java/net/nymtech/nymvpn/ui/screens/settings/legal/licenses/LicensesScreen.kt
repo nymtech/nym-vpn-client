@@ -44,7 +44,9 @@ fun LicensesScreen(
             SurfaceSelectionGroupButton(items =
                 listOf(
                     SelectionItem(
-                    title = (if(it.name?.length!! > 32) it.name.substring(0,29).plus("...") else it.name) ?: stringResource(id = R.string.unknown),
+                        //TODO refactor
+                    title = (if(it.name != null && it.name.length > 32) it.name.substring(0,29).plus("...") else it.name
+                        ?: stringResource(id = R.string.unknown)) ,
                     description = it.spdxLicenses?.joinToString(postfix = " ") { it.name } + if(it.unknownLicenses != null)
                         it.unknownLicenses.joinToString { it.name } else "",
                     onClick ={ if(it.scm != null) appViewModel.openWebPage(it.scm.url)
