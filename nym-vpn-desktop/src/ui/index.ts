@@ -7,6 +7,7 @@ export { default as TextArea } from './TextArea';
 export { default as TextInput } from './TextInput';
 export { default as ThemeSetter } from './ThemeSetter';
 export { default as TopBar } from './TopBar';
+export { default as AnimateIn } from './AnimateIn';
 export * from './Button';
 export * from './MsIcon';
 export * from './RadioGroup';
