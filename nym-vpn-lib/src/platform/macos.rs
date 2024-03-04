@@ -38,13 +38,19 @@ pub struct WgConfig {
     pub mtu: u16,
 }
 
+pub struct VPNConfig {
+    pub api_url: Url,
+    pub entry_gateway: EntryPoint,
+    pub exit_router: ExitPoint,
+}
+
 pub trait OSTunProvider: Send + Sync + Debug {
     fn configure_wg(&self, config: WgConfig) -> Result<(), FFIError>;
     fn configure_nym(&self) -> Result<(), FFIError>;
 }
 
 #[allow(non_snake_case)]
-pub async fn initVPN(api_url: Url, entry_gateway: EntryPoint, exit_router: ExitPoint) {
+pub async fn initVPN(config: VPNConfig) {
     init_logs();
 
     if get_vpn_state().await != ClientState::Uninitialised {
@@ -52,8 +58,8 @@ pub async fn initVPN(api_url: Url, entry_gateway: EntryPoint, exit_router: ExitP
         return;
     }
 
-    let mut vpn = NymVpn::new(entry_gateway, exit_router);
-    vpn.gateway_config.api_url = api_url;
+    let mut vpn = NymVpn::new(config.entry_gateway, config.exit_router);
+    vpn.gateway_config.api_url = config.api_url;
 
     set_inited_vpn(vpn).await
 }

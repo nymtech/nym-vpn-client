@@ -56,6 +56,12 @@ dictionary WgConfig {
     u16 mtu;
 };
 
+dictionary VPNConfig {
+    Url api_url;
+    EntryPoint entry_gateway;
+    ExitPoint exit_router;
+};
+
 [Enum]
 interface EntryPoint {
   Gateway(NodeIdentity identity);
@@ -81,7 +87,7 @@ interface OSTunProvider {
 
 namespace nym_vpn_lib_macos {
     [Async]
-    void initVPN(Url api_url, EntryPoint entry_gateway, ExitPoint exit_router);
+    void initVPN(VPNConfig config);
     [Async]
     void runVPN();
     [Async]
