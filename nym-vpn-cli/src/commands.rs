@@ -2,14 +2,20 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use clap::Parser;
-use ipnetwork::Ipv4Network;
+use ipnetwork::{Ipv4Network, Ipv6Network};
 use nym_vpn_lib::nym_config::defaults::var_names::NYM_API;
 use nym_vpn_lib::nym_config::OptionalSet;
 use nym_vpn_lib::{gateway_client::Config, nym_bin_common::bin_info};
-use std::{net::Ipv4Addr, path::PathBuf, str::FromStr, sync::OnceLock};
+use std::{
+    net::{Ipv4Addr, Ipv6Addr},
+    path::PathBuf,
+    str::FromStr,
+    sync::OnceLock,
+};
 
 const WG_IP_SUBNET: &str = "10.1.0.0/16";
-const TUN_IP_SUBNET: &str = "10.0.0.0/24";
+const TUN_IP4_SUBNET: &str = "10.0.0.0/24";
+const TUN_IP6_SUBNET: &str = "2001:db8:a160::0/120";
 
 // Helper for passing LONG_VERSION to clap
 fn pretty_build_info_static() -> &'static str {
@@ -79,9 +85,13 @@ pub(crate) struct CliArgs {
     #[arg(long, value_parser = validate_wg_ip, requires = "enable_wireguard")]
     pub(crate) wg_ip: Option<Ipv4Addr>,
 
-    /// The IP address of the nym TUN device that wraps IP packets in sphinx packets.
-    #[arg(long, alias = "ip", value_parser = validate_ip)]
-    pub(crate) nym_ip: Option<Ipv4Addr>,
+    /// The IPv4 address of the nym TUN device that wraps IP packets in sphinx packets.
+    #[arg(long, alias = "ipv4", value_parser = validate_ipv4, requires = "nym_ipv6")]
+    pub(crate) nym_ipv4: Option<Ipv4Addr>,
+
+    /// The IPv6 address of the nym TUN device that wraps IP packets in sphinx packets.
+    #[arg(long, alias = "ipv6", value_parser = validate_ipv6, requires = "nym_ipv4")]
+    pub(crate) nym_ipv6: Option<Ipv6Addr>,
 
     /// The MTU of the nym TUN device that wraps IP packets in sphinx packets.
     #[arg(long, alias = "mtu")]
@@ -119,14 +129,26 @@ fn validate_wg_ip(ip: &str) -> Result<Ipv4Addr, String> {
     Ok(ip)
 }
 
-fn validate_ip(ip: &str) -> Result<Ipv4Addr, String> {
+fn validate_ipv4(ip: &str) -> Result<Ipv4Addr, String> {
     let ip = Ipv4Addr::from_str(ip).map_err(|err| err.to_string())?;
-    let network = Ipv4Network::from_str(TUN_IP_SUBNET).unwrap();
+    let network = Ipv4Network::from_str(TUN_IP4_SUBNET).unwrap();
     if !network.contains(ip) {
-        return Err(format!("IP address must be in the range {}", network));
+        return Err(format!("IPv4 address must be in the range {}", network));
     }
     if ip == Ipv4Addr::new(10, 0, 0, 1) {
-        return Err("IP address cannot be 10.0.0.1".to_string());
+        return Err("IPv4 address cannot be 10.0.0.1".to_string());
+    }
+    Ok(ip)
+}
+
+fn validate_ipv6(ip: &str) -> Result<Ipv6Addr, String> {
+    let ip = Ipv6Addr::from_str(ip).map_err(|err| err.to_string())?;
+    let network = Ipv6Network::from_str(TUN_IP6_SUBNET).unwrap();
+    if !network.contains(ip) {
+        return Err(format!("IPv6 address must be in the range {}", network));
+    }
+    if ip == Ipv6Addr::from_str("2001:db8:a160::1").unwrap() {
+        return Err("IPv6 address cannot be 2001:db8:a160::1".to_string());
     }
     Ok(ip)
 }

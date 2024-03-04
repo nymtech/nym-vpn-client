@@ -28,6 +28,7 @@ use tokio::time::timeout;
 use tracing::warn;
 use util::wait_for_interrupt_and_signal;
 
+pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
 pub use nym_task::{
     manager::{SentStatus, TaskStatus},
@@ -100,8 +101,8 @@ pub struct NymVpn {
     /// The IP address of the wireguard interface.
     pub wg_ip: Option<Ipv4Addr>,
 
-    /// The IP address of the TUN device.
-    pub nym_ip: Option<Ipv4Addr>,
+    /// The IP addresses of the TUN device.
+    pub nym_ips: Option<IpPair>,
 
     /// The MTU of the TUN device.
     pub nym_mtu: Option<usize>,
@@ -124,6 +125,7 @@ pub struct NymVpn {
     // Necessary so that the device doesn't get closed before cleanup has taken place
     shadow_handle: ShadowHandle,
 }
+
 impl NymVpn {
     pub fn new(
         entry_gateway: EntryPoint,
@@ -148,7 +150,7 @@ impl NymVpn {
             enable_wireguard: false,
             private_key: None,
             wg_ip: None,
-            nym_ip: None,
+            nym_ips: None,
             nym_mtu: None,
             disable_routing: false,
             enable_two_hop: false,
@@ -177,15 +179,15 @@ impl NymVpn {
         tunnel_gateway_ip: routing::TunnelGatewayIp,
     ) -> Result<()> {
         info!("Connecting to IP packet router");
-        let ip = mixnet_connect::connect_to_ip_packet_router(
+        let ips = mixnet_connect::connect_to_ip_packet_router(
             mixnet_client.clone(),
             exit_router,
-            self.nym_ip,
+            self.nym_ips,
             self.enable_two_hop,
         )
         .await?;
         info!("Successfully connected to IP packet router on the exit gateway!");
-        info!("Using IP address: {ip}");
+        info!("Using IP addresses: {ips}");
 
         // We need the IP of the gateway to correctly configure the routing table
         let mixnet_client_address = mixnet_client.nym_address().await;
@@ -198,7 +200,7 @@ impl NymVpn {
         info!("Setting up routing");
         let routing_config = routing::RoutingConfig::new(
             self,
-            ip,
+            ips,
             entry_mixnet_gateway_ip,
             default_lan_gateway_ip,
             tunnel_gateway_ip,

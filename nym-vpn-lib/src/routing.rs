@@ -12,6 +12,7 @@ use std::{collections::HashSet, net::IpAddr};
 
 use default_net::interface::get_default_interface;
 use ipnetwork::IpNetwork;
+use nym_ip_packet_requests::IpPair;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 #[cfg(target_os = "android")]
 use talpid_tunnel::tun_provider::TunProvider;
@@ -28,7 +29,7 @@ const DEFAULT_TUN_MTU: usize = 1500;
 pub struct RoutingConfig {
     pub(crate) mixnet_tun_config: tun2::Configuration,
     // In case we need it, as it's not read-accessible in the tun2 config
-    pub(crate) tun_ip: IpAddr,
+    pub(crate) tun_ips: IpPair,
     pub(crate) entry_mixnet_gateway_ip: IpAddr,
     pub(crate) lan_gateway_ip: LanGatewayIp,
     pub(crate) tunnel_gateway_ip: TunnelGatewayIp,
@@ -44,9 +45,9 @@ impl Display for RoutingConfig {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "mixnet_tun_config: {:?}\ntun_ip: {:?}\nentry_mixnet_gateway_ip: {:?}\nlan_gateway_ip: {:?}\ntunnel_gateway_ip: {:?}\nenable_wireguard: {:?}\ndisable_routing: {:?}",
+            "mixnet_tun_config: {:?}\ntun_ips: {:?}\nentry_mixnet_gateway_ip: {:?}\nlan_gateway_ip: {:?}\ntunnel_gateway_ip: {:?}\nenable_wireguard: {:?}\ndisable_routing: {:?}",
             self.mixnet_tun_config,
-            self.tun_ip,
+            self.tun_ips,
             self.entry_mixnet_gateway_ip,
             self.lan_gateway_ip,
             self.tunnel_gateway_ip,
@@ -59,21 +60,22 @@ impl Display for RoutingConfig {
 impl RoutingConfig {
     pub fn new(
         vpn: &NymVpn,
-        tun_ip: IpAddr,
+        tun_ips: IpPair,
         entry_mixnet_gateway_ip: IpAddr,
         lan_gateway_ip: LanGatewayIp,
         tunnel_gateway_ip: TunnelGatewayIp,
         #[cfg(target_os = "android")] gateway_ws_fd: Option<RawFd>,
     ) -> Self {
-        debug!("TUN device IP: {}", tun_ip);
+        debug!("TUN device IPs: {}", tun_ips);
         let mut mixnet_tun_config = tun2::Configuration::default();
-        mixnet_tun_config.address(tun_ip);
+        // only IPv4 is supported by tun2 for now
+        mixnet_tun_config.address(tun_ips.ipv4);
         mixnet_tun_config.mtu(vpn.nym_mtu.unwrap_or(DEFAULT_TUN_MTU));
         mixnet_tun_config.up();
 
         Self {
             mixnet_tun_config,
-            tun_ip,
+            tun_ips,
             entry_mixnet_gateway_ip,
             lan_gateway_ip,
             tunnel_gateway_ip,
@@ -86,8 +88,8 @@ impl RoutingConfig {
         }
     }
 
-    pub fn tun_ip(&self) -> IpAddr {
-        self.tun_ip
+    pub fn tun_ips(&self) -> IpPair {
+        self.tun_ips
     }
 }
 
@@ -193,7 +195,8 @@ pub async fn setup_routing(
     #[cfg(target_os = "android")]
     let mixnet_tun_config = {
         let mut tun_config = talpid_tunnel::tun_provider::TunConfig::default();
-        tun_config.addresses = vec![config.tun_ip()];
+        let tun_ips = config.tun_ips();
+        tun_config.addresses = vec![tun_ips.ipv4.into(), tun_ips.ipv6.into()];
         let fd = {
             let mut tun_provider = config
                 .tun_provider
@@ -233,21 +236,15 @@ pub async fn setup_routing(
         device_mtu = dev.as_ref().mtu(),
     );
 
+    let _ipv6_addr = config.tun_ips.ipv6.to_string();
     #[cfg(target_os = "linux")]
     std::process::Command::new("ip")
-        .args([
-            "-6",
-            "addr",
-            "add",
-            "fda7:576d:ac1a::1/48",
-            "dev",
-            &device_name,
-        ])
+        .args(["-6", "addr", "add", &_ipv6_addr, "dev", &device_name])
         .output()?;
 
     #[cfg(target_os = "macos")]
     std::process::Command::new("ifconfig")
-        .args([&device_name, "inet6", "add", "fda7:576d:ac1a::1/48"])
+        .args([&device_name, "inet6", "add", &_ipv6_addr])
         .output()?;
 
     if config.disable_routing {
