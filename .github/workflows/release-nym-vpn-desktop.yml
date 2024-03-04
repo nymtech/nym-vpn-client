@@ -60,7 +60,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
-            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make
 
       - name: Get package version
         id: package-version
@@ -144,12 +144,9 @@ jobs:
         run: mkdir nym-vpn-desktop/dist
 
       - name: Generate licenses file (Rust)
-        env:
-          DESKTOP_DIR: nym-vpn-desktop/src-tauri
-          PUBLIC_DIR: nym-vpn-desktop/public
         run: |
-          rm $PUBLIC_DIR/licenses-rust.html || true
-          cargo about generate --all-features -m $DESKTOP_DIR/Cargo.toml $DESKTOP_DIR/about.hbs -o $PUBLIC_DIR/licenses-rust.html
+          rm nym-vpn-desktop/public/licenses-rust.html || true
+          make generate-licenses-desktop
 
       - name: Install node dependencies
         working-directory: nym-vpn-desktop
