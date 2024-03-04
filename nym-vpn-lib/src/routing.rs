@@ -193,7 +193,7 @@ pub async fn setup_routing(
     info!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
     #[cfg(target_os = "android")]
-        let mixnet_tun_config = {
+    let mixnet_tun_config = {
         let mut tun_config = talpid_tunnel::tun_provider::TunConfig::default();
         let tun_ips = config.tun_ips();
         tun_config.addresses = vec![tun_ips.ipv4.into(), tun_ips.ipv6.into()];
@@ -264,7 +264,7 @@ pub async fn setup_routing(
         ("0.0.0.0/0".to_string(), node_v4),
         ("::/0".to_string(), node_v6),
     ]
-        .to_vec();
+    .to_vec();
 
     // If wireguard is not enabled, and we are not tunneling the connection to the gateway through
     // it, we need to add an exception route for the gateway to the routing table.
@@ -289,7 +289,7 @@ pub async fn setup_routing(
             .map(move |ip| RequiredRoute::new(ip, node.clone()))
     });
     #[cfg(target_os = "linux")]
-        let routes = routes.map(|route| route.use_main_table(false));
+    let routes = routes.map(|route| route.use_main_table(false));
 
     info!("Adding routes to route manager");
     debug!("Routes: {:#?}", routes.clone().collect::<HashSet<_>>());

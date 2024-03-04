@@ -44,36 +44,36 @@ pub(crate) struct CliArgs {
 
     /// Mixnet recipient address.
     #[arg(
-    long,
-    conflicts_with = "exit_router_country",
-    conflicts_with = "exit_gateway_id",
-    alias = "exit-address"
+        long,
+        conflicts_with = "exit_router_country",
+        conflicts_with = "exit_gateway_id",
+        alias = "exit-address"
     )]
     pub(crate) exit_router_address: Option<String>,
 
     #[clap(
-    long,
-    conflicts_with = "exit_router_country",
-    conflicts_with = "exit_router_address",
-    alias = "exit-id"
+        long,
+        conflicts_with = "exit_router_country",
+        conflicts_with = "exit_router_address",
+        alias = "exit-id"
     )]
     pub(crate) exit_gateway_id: Option<String>,
 
     /// Mixnet recipient address.
     #[arg(
-    long,
-    alias = "exit-country",
-    conflicts_with = "exit_router_address",
-    conflicts_with = "exit_gateway_id"
+        long,
+        alias = "exit-country",
+        conflicts_with = "exit_router_address",
+        conflicts_with = "exit_gateway_id"
     )]
     pub(crate) exit_router_country: Option<String>,
 
     /// Enable the wireguard traffic between the client and the entry gateway.
     #[arg(
-    long,
-    default_value_t = false,
-    requires = "private_key",
-    requires = "wg_ip"
+        long,
+        default_value_t = false,
+        requires = "private_key",
+        requires = "wg_ip"
     )]
     pub(crate) enable_wireguard: bool,
 
