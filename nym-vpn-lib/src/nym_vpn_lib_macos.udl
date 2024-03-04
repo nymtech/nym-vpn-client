@@ -4,6 +4,58 @@ typedef string NodeIdentity;
 [Custom]
 typedef string Recipient;
 
+[Custom]
+typedef string Url;
+
+[Custom]
+typedef string PrivateKey;
+
+[Custom]
+typedef string PublicKey;
+
+[Custom]
+typedef string IpAddr;
+
+[Custom]
+typedef string Ipv4Addr;
+
+[Custom]
+typedef string Ipv6Addr;
+
+[Custom]
+typedef string IpNetwork;
+
+[Custom]
+typedef string SocketAddr;
+
+[Custom]
+typedef string PresharedKey;
+
+[Error]
+interface FFIError {
+    InvalidValueUniffi();
+};
+
+dictionary TunnelConfig {
+    PrivateKey private_key;
+    sequence<IpAddr> addresses;
+};
+
+dictionary PeerConfig {
+    PublicKey public_key;
+    sequence<IpNetwork> allowed_ips;
+    SocketAddr endpoint;
+    PresharedKey? psk;
+};
+
+dictionary WgConfig {
+    TunnelConfig tunnel;
+    sequence<PeerConfig> peers;
+    Ipv4Addr ipv4_gateway;
+    Ipv6Addr? ipv6_gateway;
+    u16 mtu;
+};
+
 [Enum]
 interface EntryPoint {
   Gateway(NodeIdentity identity);
@@ -19,8 +71,13 @@ interface ExitPoint {
   Location(string location);
 };
 
-[Custom]
-typedef string Url;
+[Trait]
+interface OSTunProvider {
+    [Throws=FFIError]
+    void configure_wg(WgConfig config);
+    [Throws=FFIError]
+    void configure_nym();
+};
 
 namespace nym_vpn_lib_macos {
     [Async]

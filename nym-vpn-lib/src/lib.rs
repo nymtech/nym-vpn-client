@@ -11,18 +11,21 @@ use crate::error::{Error, Result};
 use crate::gateway_client::{Config, GatewayClient};
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::mixnet_processor::IpPacketRouterAddress;
+use crate::platform::error::FFIError;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use futures::channel::{mpsc, oneshot};
 use gateway_client::{EntryPoint, ExitPoint};
+use ipnetwork::IpNetwork;
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_task::TaskManager;
-use std::net::{IpAddr, Ipv4Addr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use talpid_routing::RouteManager;
+use talpid_types::net::wireguard::{PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig};
 use tap::TapFallible;
 use tokio::time::timeout;
 use tracing::warn;
@@ -36,7 +39,7 @@ pub use nym_task::{
 };
 
 #[cfg(target_os = "macos")]
-use crate::platform::macos::initVPN;
+use crate::platform::macos::{initVPN, OSTunProvider, WgConfig};
 #[cfg(any(target_os = "macos", target_os = "android"))]
 use crate::platform::{runVPN, stopVPN};
 pub use nym_bin_common;
@@ -55,6 +58,8 @@ pub mod mixnet_processor;
 mod platform;
 pub mod routing;
 pub mod tunnel;
+#[cfg(target_os = "macos")]
+mod uniffi_custom_impls;
 mod util;
 
 async fn init_wireguard_config(

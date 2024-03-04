@@ -3,23 +3,14 @@
 
 use super::*;
 use crate::gateway_client::{EntryPoint, ExitPoint};
-use crate::{NymVpn, UniffiCustomTypeConverter};
+use crate::NymVpn;
+use error::FFIError;
 use log::warn;
 use oslog::OsLogger;
-use std::str::FromStr;
+use std::fmt::Debug;
+use std::net::{Ipv4Addr, Ipv6Addr};
+use talpid_types::net::wireguard::{PeerConfig, TunnelConfig};
 use url::Url;
-
-impl UniffiCustomTypeConverter for Url {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(Url::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
 
 fn init_logs() {
     OsLogger::new("net.nymtech.vpn.agent")
@@ -36,6 +27,20 @@ fn init_logs() {
         .init()
         .expect("Could not init logs");
     debug!("Logger initialized");
+}
+
+#[derive(Clone)]
+pub struct WgConfig {
+    pub tunnel: TunnelConfig,
+    pub peers: Vec<PeerConfig>,
+    pub ipv4_gateway: Ipv4Addr,
+    pub ipv6_gateway: Option<Ipv6Addr>,
+    pub mtu: u16,
+}
+
+pub trait OSTunProvider: Send + Sync + Debug {
+    fn configure_wg(&self, config: WgConfig) -> Result<(), FFIError>;
+    fn configure_nym(&self) -> Result<(), FFIError>;
 }
 
 #[allow(non_snake_case)]

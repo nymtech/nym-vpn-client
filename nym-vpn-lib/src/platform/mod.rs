@@ -17,6 +17,7 @@ use tokio::sync::{Mutex, Notify};
 
 #[cfg(target_os = "android")]
 pub mod android;
+pub(crate) mod error;
 #[cfg(target_os = "macos")]
 pub mod macos;
 
