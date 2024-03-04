@@ -9,7 +9,6 @@ use std::{
     path::PathBuf,
 };
 use strum::AsRefStr;
-use tap::TapFallible;
 use tauri::api::path::data_dir;
 use thiserror::Error;
 use tracing::{error, info, instrument, warn};
@@ -75,7 +74,7 @@ impl Db {
     pub fn new() -> Result<Self, DbError> {
         let mut path = data_dir()
             .ok_or(anyhow!("failed to retrieve data directory path"))
-            .tap_err(|e| error!("failed to retrieve data directory path: {e}"))?;
+            .inspect_err(|e| error!("failed to retrieve data directory path: {e}"))?;
         path.push(APP_DIR);
         path.push(DB_DIR);
         info!("opening sled db at {}", path.display());
@@ -85,7 +84,7 @@ impl Db {
         })?;
         // TODO handle db recovery
         let db = sled::open(&path)
-            .tap_err(|e| error!("failed to open sled db from path {}: {e}", path.display()))?;
+            .inspect_err(|e| error!("failed to open sled db from path {}: {e}", path.display()))?;
         if db.was_recovered() {
             info!("sled db recovered");
         } else {
@@ -95,6 +94,7 @@ impl Db {
     }
 
     /// Discard deserialization errors by removing the key
+    #[instrument(skip(self))]
     fn discard_deserialize<T>(
         &self,
         key: Key,

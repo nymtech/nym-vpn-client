@@ -5601,7 +5601,6 @@ dependencies = [
  "shadowsocks-service",
  "sled",
  "strum",
- "tap",
  "tauri",
  "tauri-build",
  "thiserror",
