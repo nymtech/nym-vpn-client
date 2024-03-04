@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 
-use nym_ip_packet_requests::IPPair;
+use nym_ip_packet_requests::IpPair;
 use nym_ip_packet_requests::{
     request::IpPacketRequest,
     response::{
@@ -64,7 +64,7 @@ impl SharedMixnetClient {
 async fn send_connect_to_ip_packet_router(
     mixnet_client: &SharedMixnetClient,
     ip_packet_router_address: &IpPacketRouterAddress,
-    ips: Option<IPPair>,
+    ips: Option<IpPair>,
     enable_two_hop: bool,
 ) -> Result<u64> {
     let hops = enable_two_hop.then_some(0);
@@ -162,7 +162,7 @@ async fn handle_static_connect_response(
 async fn handle_dynamic_connect_response(
     mixnet_client_address: &Recipient,
     response: DynamicConnectResponse,
-) -> Result<IPPair> {
+) -> Result<IpPair> {
     debug!("Handling dynamic connect response");
     if response.reply_to != *mixnet_client_address {
         error!("Got reply intended for wrong address");
@@ -179,9 +179,9 @@ async fn handle_dynamic_connect_response(
 pub async fn connect_to_ip_packet_router(
     mixnet_client: SharedMixnetClient,
     ip_packet_router_address: &IpPacketRouterAddress,
-    ips: Option<IPPair>,
+    ips: Option<IpPair>,
     enable_two_hop: bool,
-) -> Result<IPPair> {
+) -> Result<IpPair> {
     info!("Sending connect request");
     let request_id = send_connect_to_ip_packet_router(
         &mixnet_client,
@@ -189,7 +189,7 @@ pub async fn connect_to_ip_packet_router(
         ips,
         enable_two_hop,
     )
-    .await?;
+        .await?;
 
     info!("Waiting for reply...");
     let response = wait_for_connect_response(&mixnet_client, request_id).await?;

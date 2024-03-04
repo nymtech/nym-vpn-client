@@ -12,7 +12,7 @@ use std::{collections::HashSet, net::IpAddr};
 
 use default_net::interface::get_default_interface;
 use ipnetwork::IpNetwork;
-use nym_ip_packet_requests::IPPair;
+use nym_ip_packet_requests::IpPair;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 #[cfg(target_os = "android")]
 use talpid_tunnel::tun_provider::TunProvider;
@@ -29,7 +29,7 @@ const DEFAULT_TUN_MTU: usize = 1500;
 pub struct RoutingConfig {
     pub(crate) mixnet_tun_config: tun2::Configuration,
     // In case we need it, as it's not read-accessible in the tun2 config
-    pub(crate) tun_ips: IPPair,
+    pub(crate) tun_ips: IpPair,
     pub(crate) entry_mixnet_gateway_ip: IpAddr,
     pub(crate) lan_gateway_ip: LanGatewayIp,
     pub(crate) tunnel_gateway_ip: TunnelGatewayIp,
@@ -60,7 +60,7 @@ impl Display for RoutingConfig {
 impl RoutingConfig {
     pub fn new(
         vpn: &NymVpn,
-        tun_ips: IPPair,
+        tun_ips: IpPair,
         entry_mixnet_gateway_ip: IpAddr,
         lan_gateway_ip: LanGatewayIp,
         tunnel_gateway_ip: TunnelGatewayIp,
@@ -88,7 +88,7 @@ impl RoutingConfig {
         }
     }
 
-    pub fn tun_ips(&self) -> IPPair {
+    pub fn tun_ips(&self) -> IpPair {
         self.tun_ips
     }
 }
@@ -193,7 +193,7 @@ pub async fn setup_routing(
     info!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
     #[cfg(target_os = "android")]
-    let mixnet_tun_config = {
+        let mixnet_tun_config = {
         let mut tun_config = talpid_tunnel::tun_provider::TunConfig::default();
         let tun_ips = config.tun_ips();
         tun_config.addresses = vec![tun_ips.ipv4.into(), tun_ips.ipv6.into()];
@@ -264,7 +264,7 @@ pub async fn setup_routing(
         ("0.0.0.0/0".to_string(), node_v4),
         ("::/0".to_string(), node_v6),
     ]
-    .to_vec();
+        .to_vec();
 
     // If wireguard is not enabled, and we are not tunneling the connection to the gateway through
     // it, we need to add an exception route for the gateway to the routing table.
@@ -289,7 +289,7 @@ pub async fn setup_routing(
             .map(move |ip| RequiredRoute::new(ip, node.clone()))
     });
     #[cfg(target_os = "linux")]
-    let routes = routes.map(|route| route.use_main_table(false));
+        let routes = routes.map(|route| route.use_main_table(false));
 
     info!("Adding routes to route manager");
     debug!("Routes: {:#?}", routes.clone().collect::<HashSet<_>>());

@@ -2380,7 +2380,7 @@ dependencies = [
 [[package]]
 name = "http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "async-trait",
  "reqwest",
@@ -3299,7 +3299,7 @@ dependencies = [
 [[package]]
 name = "nym-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bs58 0.5.0",
  "cosmrs",
@@ -3318,7 +3318,7 @@ dependencies = [
 [[package]]
 name = "nym-bandwidth-controller"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bip39",
  "log",
@@ -3338,7 +3338,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "atty",
  "clap",
@@ -3356,7 +3356,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core"
 version = "1.1.15"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "async-trait",
  "base64 0.21.7",
@@ -3406,7 +3406,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut"
 version = "0.5.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bls12_381",
  "bs58 0.5.0",
@@ -3427,7 +3427,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-bandwidth-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3437,7 +3437,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-dkg-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3451,7 +3451,7 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "dirs 5.0.1",
  "handlebars",
@@ -3465,7 +3465,7 @@ dependencies = [
 [[package]]
 name = "nym-contracts-common"
 version = "0.5.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bs58 0.5.0",
  "cosmwasm-schema",
@@ -3478,7 +3478,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "async-trait",
  "log",
@@ -3491,7 +3491,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "log",
  "nym-bandwidth-controller",
@@ -3508,7 +3508,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -3527,7 +3527,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials-interface"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bls12_381",
  "nym-coconut",
@@ -3538,7 +3538,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "aes 0.8.3",
  "blake3",
@@ -3564,7 +3564,7 @@ dependencies = [
 [[package]]
 name = "nym-dkg"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bitvec",
  "bls12_381",
@@ -3586,7 +3586,7 @@ dependencies = [
 [[package]]
 name = "nym-ephemera-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3597,7 +3597,7 @@ dependencies = [
 [[package]]
 name = "nym-exit-policy"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "serde",
  "thiserror",
@@ -3607,7 +3607,7 @@ dependencies = [
 [[package]]
 name = "nym-explorer-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "nym-api-requests",
  "nym-contracts-common",
@@ -3619,7 +3619,7 @@ dependencies = [
 [[package]]
 name = "nym-explorer-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "log",
  "nym-explorer-api-requests",
@@ -3632,7 +3632,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "futures",
  "getrandom 0.2.12",
@@ -3665,7 +3665,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bs58 0.5.0",
  "futures",
@@ -3687,7 +3687,7 @@ dependencies = [
 [[package]]
 name = "nym-group-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -3699,7 +3699,7 @@ dependencies = [
 [[package]]
 name = "nym-ip-packet-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bincode",
  "bytes",
@@ -3715,7 +3715,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-contract-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bs58 0.4.0",
  "cosmwasm-schema",
@@ -3734,7 +3734,7 @@ dependencies = [
 [[package]]
 name = "nym-multisig-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3750,7 +3750,7 @@ dependencies = [
 [[package]]
 name = "nym-name-service-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3764,7 +3764,7 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "cfg-if",
  "dotenvy",
@@ -3780,7 +3780,7 @@ dependencies = [
 [[package]]
 name = "nym-node-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "async-trait",
  "base64 0.21.7",
@@ -3798,7 +3798,7 @@ dependencies = [
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -3809,7 +3809,7 @@ dependencies = [
 [[package]]
 name = "nym-ordered-buffer"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "log",
  "thiserror",
@@ -3818,7 +3818,7 @@ dependencies = [
 [[package]]
 name = "nym-outfox"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "blake3",
  "chacha20 0.9.1",
@@ -3836,7 +3836,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "pem",
 ]
@@ -3844,7 +3844,7 @@ dependencies = [
 [[package]]
 name = "nym-sdk"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "async-trait",
  "bip39",
@@ -3880,7 +3880,7 @@ dependencies = [
 [[package]]
 name = "nym-service-provider-directory-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3893,7 +3893,7 @@ dependencies = [
 [[package]]
 name = "nym-service-providers-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "async-trait",
  "log",
@@ -3907,7 +3907,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-client-core"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "anyhow",
  "dirs 4.0.0",
@@ -3940,7 +3940,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-proxy-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bytes",
  "futures",
@@ -3955,7 +3955,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bincode",
  "log",
@@ -3971,7 +3971,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "log",
  "nym-crypto",
@@ -3995,7 +3995,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-acknowledgements"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -4012,7 +4012,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-addressing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4023,7 +4023,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-anonymous-replies"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bs58 0.5.0",
  "nym-crypto",
@@ -4041,7 +4041,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-chunking"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "log",
  "nym-sphinx-addressing",
@@ -4054,7 +4054,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-cover"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -4072,7 +4072,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-forwarding"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "nym-outfox",
  "nym-sphinx-addressing",
@@ -4084,7 +4084,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-framing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "bytes",
  "nym-sphinx-params",
@@ -4096,7 +4096,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-params"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4107,7 +4107,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-routing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -4117,7 +4117,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "nym-outfox",
  "sphinx-packet",
@@ -4127,7 +4127,7 @@ dependencies = [
 [[package]]
 name = "nym-task"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "futures",
  "log",
@@ -4141,7 +4141,7 @@ dependencies = [
 [[package]]
 name = "nym-topology"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "async-trait",
  "bs58 0.5.0",
@@ -4164,7 +4164,7 @@ dependencies = [
 [[package]]
 name = "nym-validator-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "async-trait",
  "base64 0.13.1",
@@ -4214,7 +4214,7 @@ dependencies = [
 [[package]]
 name = "nym-vesting-contract-common"
 version = "0.7.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4303,7 +4303,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "base64 0.21.7",
  "dashmap",
@@ -7473,7 +7473,7 @@ checksum = "7ab9b36309365056cd639da3134bf87fa8f3d86008abf99e612384a6eecd459f"
 [[package]]
 name = "wasm-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=aebd386382e0bfdc66680ae1d6c895ffed68429a#aebd386382e0bfdc66680ae1d6c895ffed68429a"
+source = "git+https://github.com/nymtech/nym?rev=d3ba008b88131124f458f603a60a8351848cec9b#d3ba008b88131124f458f603a60a8351848cec9b"
 dependencies = [
  "futures",
  "getrandom 0.2.12",

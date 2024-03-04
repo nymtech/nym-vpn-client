@@ -4,7 +4,7 @@
 mod commands;
 
 use nym_vpn_lib::gateway_client::{Config as GatewayConfig, EntryPoint, ExitPoint};
-use nym_vpn_lib::{error::*, IPPair, NodeIdentity};
+use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
 use nym_vpn_lib::{NymVpn, Recipient};
 
 use crate::commands::override_from_env;
@@ -74,7 +74,7 @@ async fn run() -> Result<()> {
     let entry_point = parse_entry_point(&args)?;
     let exit_point = parse_exit_point(&args)?;
     let nym_ips = if let (Some(ipv4), Some(ipv6)) = (args.nym_ipv4, args.nym_ipv6) {
-        Some(IPPair { ipv4, ipv6 })
+        Some(IpPair::new(ipv4, ipv6))
     } else {
         None
     };
