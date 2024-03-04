@@ -148,6 +148,12 @@ jobs:
           rm nym-vpn-desktop/public/licenses-rust.html || true
           make generate-licenses-desktop
 
+      - name: Generate licenses file (Js)
+        working-directory: nym-vpn-desktop
+        run: |
+          rm public/licenses-js.json || true
+          npm run gen:licenses
+
       - name: Install node dependencies
         working-directory: nym-vpn-desktop
         run: npm i

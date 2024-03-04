@@ -22,7 +22,8 @@
     "fmt": "prettier --write --ignore-unknown \"**/*\"",
     "fmt:check": "prettier --check --ignore-unknown \"**/*\"",
     "tscheck": "tsc --noEmit",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "gen:licenses": "npx license-checker-rseidelsohn --json --customPath license-fmt.json > public/licenses-js.json"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.17",

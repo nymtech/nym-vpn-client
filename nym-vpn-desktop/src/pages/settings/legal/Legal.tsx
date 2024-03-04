@@ -26,9 +26,18 @@ function Legal() {
             onClick: async () => open(PrivacyPolicyUrl),
             trailing: <MsIcon icon="arrow_right" />,
           },
+        ]}
+      />
+      <SettingsGroup
+        settings={[
           {
-            title: t('legal.licenses'),
-            onClick: async () => navigate(routes.licenses),
+            title: t('legal.licenses-rust'),
+            onClick: async () => navigate(routes.licensesRust),
+            trailing: <MsIcon icon="arrow_right" />,
+          },
+          {
+            title: t('legal.licenses-js'),
+            onClick: async () => navigate(routes.licensesJs),
             trailing: <MsIcon icon="arrow_right" />,
           },
         ]}
