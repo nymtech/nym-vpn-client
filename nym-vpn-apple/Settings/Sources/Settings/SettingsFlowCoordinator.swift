@@ -14,6 +14,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
         switch link {
         case .theme:
             AppearanceView(viewModel: AppearanceViewModel(path: $state.path, appSettings: AppSettings.shared))
+        case .support:
+            SupportView(viewModel: SupportViewModel(path: $state.path))
         }
     }
 }

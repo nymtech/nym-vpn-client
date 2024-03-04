@@ -89,6 +89,17 @@
         }
       }
     },
+    "checkFAQ" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the FAQ"
+          }
+        }
+      }
+    },
     "connect" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -243,6 +254,28 @@
         }
       }
     },
+    "joinDiscord" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "join us on Discord"
+          }
+        }
+      }
+    },
+    "joinMatrix" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Join us on Matrix"
+          }
+        }
+      }
+    },
     "lastHop" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -349,6 +382,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Select network"
+          }
+        }
+      }
+    },
+    "sendEmail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send us an e-mail"
           }
         }
       }

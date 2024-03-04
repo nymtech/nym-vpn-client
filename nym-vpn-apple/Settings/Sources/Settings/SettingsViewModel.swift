@@ -28,6 +28,10 @@ private extension SettingsViewModel {
     func navigateToTheme() {
         path.append(SettingsLink.theme)
     }
+
+    func navigateToSupport() {
+        path.append(SettingsLink.support)
+    }
 }
 
 private extension SettingsViewModel {
@@ -93,7 +97,9 @@ private extension SettingsViewModel {
                     accessory: .arrow,
                     title: "support".localizedString,
                     imageName: "support",
-                    action: {}
+                    action: { [weak self] in
+                        self?.navigateToSupport()
+                    }
                 )
             ]
         )
