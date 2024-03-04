@@ -4,7 +4,7 @@ function Licenses() {
       <iframe
         className="w-full h-full bg-white"
         title="licenses"
-        src="/licenses.html"
+        src="/licenses-rust.html"
       />
     </div>
   );

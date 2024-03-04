@@ -148,8 +148,8 @@ jobs:
           DESKTOP_DIR: nym-vpn-desktop/src-tauri
           PUBLIC_DIR: nym-vpn-desktop/public
         run: |
-          rm $PUBLIC_DIR/licenses.html || true
-          cargo about generate --all-features -m $DESKTOP_DIR/Cargo.toml $DESKTOP_DIR/about.hbs -o $PUBLIC_DIR/licenses.html
+          rm $PUBLIC_DIR/licenses-rust.html || true
+          cargo about generate --all-features -m $DESKTOP_DIR/Cargo.toml $DESKTOP_DIR/about.hbs -o $PUBLIC_DIR/licenses-rust.html
 
       - name: Install node dependencies
         working-directory: nym-vpn-desktop
