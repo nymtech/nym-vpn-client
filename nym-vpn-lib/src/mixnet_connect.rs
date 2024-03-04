@@ -189,7 +189,7 @@ pub async fn connect_to_ip_packet_router(
         ips,
         enable_two_hop,
     )
-        .await?;
+    .await?;
 
     info!("Waiting for reply...");
     let response = wait_for_connect_response(&mixnet_client, request_id).await?;
