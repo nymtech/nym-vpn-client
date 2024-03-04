@@ -123,9 +123,15 @@ async fn wait_for_connect_response(
 
                         // Handle if the response is from an IPR running an older or newer version
                         if let Some(version) = msg.message.first() {
-                            if *version != nym_ip_packet_requests::CURRENT_VERSION {
-                                log::error!("Received packet with invalid version: v{version}, is your client up to date?");
-                                return Err(Error::InvalidVersion {
+                            if *version > nym_ip_packet_requests::CURRENT_VERSION {
+                                log::error!("Received packet with newer version: v{version}, is your client up to date?");
+                                return Err(Error::ReceivedResponseWithNewVersion {
+                                    expected: nym_ip_packet_requests::CURRENT_VERSION,
+                                    received: *version,
+                                });
+                            } else {
+                                log::error!("Received packet with older version: v{version}, you client appears to be too new for the exit gateway or exit ip-packet-router?");
+                                return Err(Error::ReceivedResponseWithOldVersion {
                                     expected: nym_ip_packet_requests::CURRENT_VERSION,
                                     received: *version,
                                 });
