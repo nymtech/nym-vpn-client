@@ -80,7 +80,6 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: rustfmt check
-        working-directory: nym-vpn-desktop/src-tauri
         run: cargo fmt --check
 
       - name: Build wireguard
