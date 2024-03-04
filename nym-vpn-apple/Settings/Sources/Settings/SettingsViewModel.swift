@@ -32,6 +32,10 @@ private extension SettingsViewModel {
     func navigateToSupport() {
         path.append(SettingsLink.support)
     }
+
+    func navigateToLegal() {
+        path.append(SettingsLink.legal)
+    }
 }
 
 private extension SettingsViewModel {
@@ -111,7 +115,9 @@ private extension SettingsViewModel {
                 SettingsListItemViewModel(
                     accessory: .arrow,
                     title: "legal".localizedString,
-                    action: {}
+                    action: { [weak self] in
+                        self?.navigateToLegal()
+                    }
                 )
             ]
         )

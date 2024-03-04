@@ -16,6 +16,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             AppearanceView(viewModel: AppearanceViewModel(path: $state.path, appSettings: AppSettings.shared))
         case .support:
             SupportView(viewModel: SupportViewModel(path: $state.path))
+        case .legal:
+            LegalView(viewModel: LegalViewModel(path: $state.path))
         }
     }
 }

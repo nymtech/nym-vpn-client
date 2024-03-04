@@ -3,10 +3,10 @@ import Modifiers
 import Theme
 import UIComponents
 
-struct SupportView: View {
-    @State private var viewModel: SupportViewModel
+struct LegalView: View {
+    @State private var viewModel: LegalViewModel
 
-    init(viewModel: SupportViewModel) {
+    init(viewModel: LegalViewModel) {
         _viewModel = State(initialValue: viewModel)
     }
 
@@ -15,7 +15,7 @@ struct SupportView: View {
             navbar()
             Spacer()
                 .frame(height: 24)
-            sections()
+            section()
             Spacer()
         }
         .navigationBarBackButtonHidden(true)
@@ -28,7 +28,7 @@ struct SupportView: View {
     }
 }
 
-private extension SupportView {
+private extension LegalView {
     @ViewBuilder
     func navbar() -> some View {
         CustomNavBar(
@@ -38,11 +38,11 @@ private extension SupportView {
     }
 
     @ViewBuilder
-    func sections() -> some View {
-        ForEach(viewModel.sections, id: \.self) { viewModel in
-            SettingsListItem(viewModel: viewModel)
-            Spacer()
-                .frame(height: 24)
+    func section() -> some View {
+        VStack(spacing: 0) {
+            ForEach(viewModel.viewModels, id: \.self) { viewModel in
+                SettingsListItem(viewModel: viewModel)
+            }
         }
     }
 }
