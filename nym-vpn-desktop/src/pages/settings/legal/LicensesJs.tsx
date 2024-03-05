@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { CSSProperties, useEffect, useState } from 'react';
+import clsx from 'clsx';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import licensesUrl from '/licenses-js.json?url';
@@ -34,13 +35,16 @@ const Row = ({
     copyright,
   },
 }: {
-  style: React.CSSProperties;
+  style: CSSProperties;
   license: License;
 }) => {
   return (
     <article
       key={name}
-      className="flex flex-col gap-2 overflow-y-hidden mb-4 py-4 border-b pl-4 border-mercury-pinkish dark:border-gun-powder"
+      className={clsx([
+        'flex flex-col gap-2 overflow-y-hidden mb-4 py-4 border-b pl-4',
+        'border-mercury-pinkish dark:border-gun-powder',
+      ])}
       style={style}
     >
       <h2 className="text-lg font-bold overflow-ellipsis">{name}</h2>
@@ -69,12 +73,21 @@ const Row = ({
         </a>
       )}
       {licenseText && (
-        <div className="text-sm break-words mr-6 my-2 overflow-scroll text-gun-powder dark:text-mercury-mist">
+        <div
+          className={clsx([
+            'text-sm break-words mr-6 my-2 overflow-scroll',
+            'text-gun-powder dark:text-mercury-mist',
+          ])}
+        >
           {licenseText}
         </div>
       )}
       {copyright && (
-        <div className="text-sm italic break-words pr-4 text-gun-powder dark:text-mercury-mist">
+        <div
+          className={clsx([
+            'text-sm italic break-words pr-4 text-gun-powder dark:text-mercury-mist',
+          ])}
+        >
           {copyright}
         </div>
       )}
