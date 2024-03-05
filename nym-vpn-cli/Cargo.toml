@@ -18,3 +18,12 @@ nym-vpn-lib = { path = "../nym-vpn-lib" }
 # of this ASAP
 shadowsocks = { version = "~1.14.2" }
 shadowsocks-service = { version = "~1.14.3" }
+
+[build-dependencies]
+vergen = { version = "=8.2.6", default-features = false, features = [
+    "build",
+    "git",
+    "gitcl",
+    "rustc",
+    "cargo",
+] }

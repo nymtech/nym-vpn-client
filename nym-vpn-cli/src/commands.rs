@@ -5,7 +5,7 @@ use clap::Parser;
 use ipnetwork::{Ipv4Network, Ipv6Network};
 use nym_vpn_lib::nym_config::defaults::var_names::NYM_API;
 use nym_vpn_lib::nym_config::OptionalSet;
-use nym_vpn_lib::{gateway_client::Config, nym_bin_common::bin_info};
+use nym_vpn_lib::{gateway_client::Config, nym_bin_common::bin_info_local_vergen};
 use std::{
     net::{Ipv4Addr, Ipv6Addr},
     path::PathBuf,
@@ -20,7 +20,7 @@ const TUN_IP6_SUBNET: &str = "2001:db8:a160::0/120";
 // Helper for passing LONG_VERSION to clap
 fn pretty_build_info_static() -> &'static str {
     static PRETTY_BUILD_INFORMATION: OnceLock<String> = OnceLock::new();
-    PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info!().pretty_print())
+    PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info_local_vergen!().pretty_print())
 }
 
 #[derive(Parser)]
