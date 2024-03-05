@@ -5,11 +5,13 @@ import {
   Feedback,
   Home,
   Legal,
+  LegalRouteIndex,
+  Licenses,
   LogIn,
   MainLayout,
   NodeLocation,
   Settings,
-  SettingsLayout,
+  SettingsRouteIndex,
   Support,
 } from './pages';
 
@@ -23,6 +25,7 @@ export const routes = {
   feedbackSend: '/settings/feedback/send',
   support: '/settings/support',
   legal: '/settings/legal',
+  licenses: '/settings/legal/licenses',
   entryNodeLocation: '/entry-node-location',
   exitNodeLocation: '/exit-node-location',
 } as const;
@@ -44,7 +47,7 @@ const router = createBrowserRouter([
       },
       {
         path: routes.settings,
-        element: <SettingsLayout />,
+        element: <SettingsRouteIndex />,
         errorElement: <Error />,
         children: [
           {
@@ -77,8 +80,20 @@ const router = createBrowserRouter([
           },
           {
             path: routes.legal,
-            element: <Legal />,
+            element: <LegalRouteIndex />,
             errorElement: <Error />,
+            children: [
+              {
+                element: <Legal />,
+                errorElement: <Error />,
+                index: true,
+              },
+              {
+                path: routes.licenses,
+                element: <Licenses />,
+                errorElement: <Error />,
+              },
+            ],
           },
         ],
       },
