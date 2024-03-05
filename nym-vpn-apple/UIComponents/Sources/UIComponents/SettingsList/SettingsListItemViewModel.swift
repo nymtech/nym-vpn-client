@@ -1,16 +1,16 @@
 import Foundation
 
 public final class SettingsListItemViewModel: Hashable {
-    public enum Accessory: String {
-        case toggle
+    public enum Accessory: Hashable {
         case arrow
+        case toggle(viewModel: ToggleViewModel)
         case empty
 
         var imageName: String? {
             switch self {
             case .arrow:
                 return "arrowRight"
-            default:
+            case .toggle, .empty:
                 return nil
             }
         }

@@ -106,12 +106,15 @@ private extension HomeView {
             .frame(height: 20)
 
         VStack {
-            HopButton(hopType: .first, country: Country(name: "Germany", code: "de"))
-                .onTapGesture {
-                    viewModel.navigateToFirstHopSelection()
-                }
-            Spacer()
-                .frame(height: 20)
+            if viewModel.shouldShowEntryHop() {
+                HopButton(hopType: .first, country: Country(name: "Germany", code: "de"))
+                    .onTapGesture {
+                        viewModel.navigateToFirstHopSelection()
+                    }
+                Spacer()
+                    .frame(height: 20)
+            }
+
             HopButton(hopType: .last, country: Country(name: "Switzerland", code: "ch"))
                 .onTapGesture {
                     viewModel.navigateToLastHopSelection()

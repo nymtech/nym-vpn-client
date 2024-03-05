@@ -1,8 +1,10 @@
 import SwiftUI
+import AppSettings
 import UIComponents
 import Tunnels
 
 public class HomeViewModel: HomeFlowState {
+    private let appSettings: AppSettings
     private let tunnelsManager: TunnelsManager
     private let screenSize: CGSize
 
@@ -11,9 +13,11 @@ public class HomeViewModel: HomeFlowState {
     public init(
         screenSize: CGSize,
         selectedNetwork: NetworkButtonViewModel.ButtonType,
+        appSettings: AppSettings = AppSettings.shared,
         tunnelsManager: TunnelsManager = TunnelsManager.shared
     ) {
         self.selectedNetwork = selectedNetwork
+        self.appSettings = appSettings
         self.tunnelsManager = tunnelsManager
         self.screenSize = screenSize
 
@@ -42,6 +46,10 @@ public extension HomeViewModel {
 public extension HomeViewModel {
     func isSmallScreen() -> Bool {
         screenSize.width <= 375 && screenSize.height <= 647
+    }
+
+    func shouldShowEntryHop() -> Bool {
+        appSettings.entryLocationSelectionIsOn
     }
 }
 

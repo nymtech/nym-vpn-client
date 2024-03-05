@@ -1,8 +1,11 @@
-import Foundation
+import SwiftUI
+import AppSettings
 import AppVersionProvider
 import UIComponents
 
 public class SettingsViewModel: SettingsFlowState {
+    @ObservedObject private var appSettings: AppSettings
+
     let settingsTitle = "settings".localizedString
 
     var sections: [SettingsSection] {
@@ -13,6 +16,11 @@ public class SettingsViewModel: SettingsFlowState {
             feedbackSection(),
             legalSection()
         ]
+    }
+
+    public init(path: Binding<NavigationPath>, appSettings: AppSettings = AppSettings.shared) {
+        self.appSettings = appSettings
+        super.init(path: path)
     }
 
     func navigateHome() {
@@ -50,7 +58,11 @@ private extension SettingsViewModel {
                     action: {}
                 ),
                 SettingsListItemViewModel(
-                    accessory: .toggle,
+                    accessory: .toggle(
+                        viewModel: ToggleViewModel(isOn: appSettings.entryLocationSelectionIsOn) { [weak self] isOn in
+                            self?.appSettings.entryLocationSelectionIsOn = isOn
+                        }
+                    ),
                     title: "entryLocationTitle".localizedString,
                     subtitle: "entryLocationSubtitle".localizedString,
                     imageName: "entryHop",

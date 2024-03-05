@@ -59,7 +59,7 @@ private extension LegalViewModel {
             title: "legal.licences".localizedString,
             position: SettingsListItemPosition(isFirst: false, isLast: true),
             action: {
-                 openExternalURL(urlString: licencesLink)
+                openExternalURL(urlString: licencesLink)
             }
         )
     }

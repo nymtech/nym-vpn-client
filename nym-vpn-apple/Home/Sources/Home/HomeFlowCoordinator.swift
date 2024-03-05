@@ -1,4 +1,5 @@
 import SwiftUI
+import AppSettings
 import Settings
 
 struct HomeFlowCoordinator<Content: View>: View {

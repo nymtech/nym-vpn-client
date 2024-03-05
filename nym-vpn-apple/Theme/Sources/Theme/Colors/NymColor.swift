@@ -23,6 +23,7 @@ public struct NymColor {
     public static let background = Color(.background)
 
     // MARK: - Sys -
+    public static let sysOnPrimary = Color(.sysOnPrimary)
     public static let sysOnSecondary = Color(.sysOnSecondary)
     public static let sysOnSurface = Color(.sysOnSurface)
     public static let sysOutline = Color(.sysOutline)
@@ -37,4 +38,8 @@ public struct NymColor {
     // MARK: - Settings -
     public static let settingsSeparator = Color(.settingsSeparator)
     public static let settingsVersion = Color(.settingsVersion)
+
+    // MARK: - Toggle -
+    public static let toggleBackground = Color(.toggleBackground)
+    public static let toggleStroke = Color(.toggleStroke)
 }

@@ -1,4 +1,5 @@
 import SwiftUI
+import Modifiers
 import Theme
 
 public struct SettingsListItem: View {
@@ -18,7 +19,8 @@ public struct SettingsListItem: View {
                 titleSubtitle()
                 Spacer()
 
-                accessoryImage()
+                optionalAccessoryImage()
+                optionalToggleView()
             }
             Spacer()
             optionalDivider()
@@ -75,11 +77,20 @@ private extension SettingsListItem {
     }
 
     @ViewBuilder
-    func accessoryImage() -> some View {
+    func optionalAccessoryImage() -> some View {
         if let imageName = viewModel.accessory.imageName {
             Image(imageName, bundle: .module)
                 .foregroundStyle(NymColor.sysOnSurface)
                 .padding(.trailing, 24)
+        }
+    }
+
+    @ViewBuilder
+    func optionalToggleView() -> some View {
+        if case let .toggle(viewModel: viewModel) = viewModel.accessory {
+            ToggleView(viewModel: viewModel)
+                .padding(.trailing, 24)
+                .appearanceUpdate()
         }
     }
 }

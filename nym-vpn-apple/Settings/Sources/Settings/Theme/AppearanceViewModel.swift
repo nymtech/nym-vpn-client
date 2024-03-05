@@ -14,7 +14,7 @@ public final class AppearanceViewModel: ObservableObject {
         AppSetting.Appearance.allCases
     }
 
-    public init(path: Binding<NavigationPath>, appSettings: AppSettings) {
+    public init(path: Binding<NavigationPath>, appSettings: AppSettings = AppSettings.shared) {
         _path = path
         self.appSettings = appSettings
         currentAppearance = appSettings.currentAppearance
