@@ -7,12 +7,13 @@ use ts_rs::TS;
 
 use crate::{
     country::{Country, FASTEST_NODE_LOCATION},
+    db::{Db, Key},
     error::{CmdError, CmdErrorSource},
     http::{
         client::{HttpError, HTTP_CLIENT},
         explorer_api, nym_api,
     },
-    states::{app::NodeLocation, SharedAppData, SharedAppState},
+    states::{app::NodeLocation, SharedAppState},
 };
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
@@ -21,11 +22,11 @@ pub enum NodeType {
     Exit,
 }
 
-#[instrument(skip(app_state, data_state))]
+#[instrument(skip(app_state, db))]
 #[tauri::command]
 pub async fn set_node_location(
     app_state: State<'_, SharedAppState>,
-    data_state: State<'_, SharedAppData>,
+    db: State<'_, Db>,
     node_type: NodeType,
     location: NodeLocation,
 ) -> Result<(), CmdError> {
@@ -40,26 +41,25 @@ pub async fn set_node_location(
         }
     }
 
-    // save the location on disk
-    let mut app_data_store = data_state.lock().await;
-    let mut app_data = app_data_store
-        .read()
-        .await
-        .map_err(|e| CmdError::new(CmdErrorSource::InternalError, e.to_string()))?;
-
+    debug!("saving new location in db");
     match node_type {
         NodeType::Entry => {
-            app_data.entry_node_location = Some(location);
+            db.insert(Key::EntryNodeLocation, &location).map_err(|_| {
+                CmdError::new(
+                    CmdErrorSource::InternalError,
+                    "Failed to save location in db".to_string(),
+                )
+            })?;
         }
         NodeType::Exit => {
-            app_data.exit_node_location = Some(location);
+            db.insert(Key::ExitNodeLocation, &location).map_err(|_| {
+                CmdError::new(
+                    CmdErrorSource::InternalError,
+                    "Failed to save location in db".to_string(),
+                )
+            })?;
         }
     }
-    app_data_store.data = app_data;
-    app_data_store
-        .write()
-        .await
-        .map_err(|e| CmdError::new(CmdErrorSource::InternalError, e.to_string()))?;
 
     Ok(())
 }

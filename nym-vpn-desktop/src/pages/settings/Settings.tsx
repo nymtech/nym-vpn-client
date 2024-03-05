@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { invoke } from '@tauri-apps/api';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
@@ -27,18 +27,16 @@ function Settings() {
   const handleEntrySelectorChange = async () => {
     const isSelected = !state.entrySelector;
     dispatch({ type: 'set-entry-selector', entrySelector: isSelected });
-    invoke<void>('set_entry_location_selector', {
-      entrySelector: isSelected,
-    }).catch((e) => {
-      console.log(e);
+    kvSet('EntryLocationEnabled', isSelected).catch((e) => {
+      console.warn(e);
     });
   };
 
   const handleAutoConnectChanged = async () => {
     const isSelected = !state.autoConnect;
     dispatch({ type: 'set-auto-connect', autoConnect: isSelected });
-    invoke<void>('set_auto_connect', { autoConnect: isSelected }).catch((e) => {
-      console.log(e);
+    kvSet('Autoconnect', isSelected).catch((e) => {
+      console.warn(e);
     });
   };
 

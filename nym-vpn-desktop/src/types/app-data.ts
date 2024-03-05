@@ -8,8 +8,7 @@ export type UiThemeBackend = 'System' | 'Dark' | 'Light';
 export interface AppDataFromBackend {
   monitoring: boolean | null;
   autoconnect: boolean | null;
-  killswitch: boolean | null;
-  entry_location_selector: boolean | null;
+  entry_location_enabled: boolean | null;
   ui_theme: UiThemeBackend | null;
   ui_root_font_size: number | null;
   vpn_mode: VpnMode | null;

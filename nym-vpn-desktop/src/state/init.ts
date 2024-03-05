@@ -56,7 +56,7 @@ const getFastestNodeLocation = async () => {
 const getAppData = async () => {
   const theme = await appWindow.theme();
   const winTheme: UiTheme = theme === 'dark' ? 'Dark' : 'Light';
-  const appData = await invoke<AppDataFromBackend>('get_app_data');
+  const appData = await invoke<AppDataFromBackend>('db_get_batch');
   return { winTheme, data: appData };
 };
 
@@ -169,7 +169,7 @@ async function init(dispatch: StateDispatch) {
       }
 
       const partialState: Partial<typeof initialState> = {
-        entrySelector: data.entry_location_selector || false,
+        entrySelector: data.entry_location_enabled || false,
         uiTheme,
         themeMode: data.ui_theme || DefaultThemeMode,
         vpnMode: data.vpn_mode || 'TwoHop',

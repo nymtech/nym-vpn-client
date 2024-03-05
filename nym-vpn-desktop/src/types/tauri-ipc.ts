@@ -8,3 +8,13 @@ export interface CmdError {
 export interface Cli {
   nosplash: boolean;
 }
+
+export type DbKey =
+  | 'Monitoring'
+  | 'Autoconnect'
+  | 'EntryLocationEnabled'
+  | 'UiTheme'
+  | 'UiRootFontSize'
+  | 'VpnMode'
+  | 'EntryNodeLocation'
+  | 'ExitNodeLocation';

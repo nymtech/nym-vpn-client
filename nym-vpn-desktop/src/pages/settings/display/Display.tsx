@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { invoke } from '@tauri-apps/api';
 import { useTranslation } from 'react-i18next';
 import { useMainDispatch, useMainState } from '../../../contexts';
+import { kvSet } from '../../../kvStore';
 import { useSystemTheme } from '../../../state';
 import { StateDispatch, ThemeMode } from '../../../types';
 import { RadioGroup, RadioGroupOption } from '../../../ui';
@@ -24,10 +24,8 @@ function Display() {
         type: 'set-theme-mode',
         mode,
       });
-      invoke<void>('set_ui_theme', {
-        theme: mode,
-      }).catch((e) => {
-        console.log(e);
+      kvSet('UiTheme', mode).catch((e) => {
+        console.warn(e);
       });
     }
   };

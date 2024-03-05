@@ -32,6 +32,8 @@ reqwest = { version = "0.11", features = ["json"] }
 itertools = "0.12"
 clap = { version = "4.5", features = ["derive"] }
 build-info = "0.0.34"
+sled = "0.34.7"
+strum = { version = "0.26", features = ["derive"] }
 
 # TODO Ugly workaround to force a working setup for nym-vpn-lib
 # We should get rid of this ASAP

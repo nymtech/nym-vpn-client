@@ -5,12 +5,13 @@ use tauri::{Manager, State};
 use tracing::{debug, error, info, instrument, trace};
 
 use crate::country::FASTEST_NODE_LOCATION;
+use crate::db::{Db, Key};
 use crate::states::app::NodeLocation;
 use crate::{
     error::{CmdError, CmdErrorSource},
     states::{
         app::{ConnectionState, VpnMode},
-        SharedAppData, SharedAppState,
+        SharedAppState,
     },
     vpn_client::{
         create_vpn_config, spawn_exit_listener, spawn_status_listener, ConnectProgressMsg,
@@ -260,11 +261,11 @@ pub async fn get_connection_start_time(
     Ok(app_state.connection_start_time.map(|t| t.unix_timestamp()))
 }
 
-#[instrument(skip(app_state, data_state))]
+#[instrument(skip(app_state, db))]
 #[tauri::command]
 pub async fn set_vpn_mode(
     app_state: State<'_, SharedAppState>,
-    data_state: State<'_, SharedAppData>,
+    db: State<'_, Db>,
     mode: VpnMode,
 ) -> Result<(), CmdError> {
     debug!("set_vpn_mode");
@@ -279,17 +280,12 @@ pub async fn set_vpn_mode(
     }
     state.vpn_mode = mode.clone();
 
-    // save the selected mode to disk
-    let mut app_data_store = data_state.lock().await;
-    let mut app_data = app_data_store
-        .read()
-        .await
-        .map_err(|e| CmdError::new(CmdErrorSource::InternalError, e.to_string()))?;
-    app_data.vpn_mode = Some(mode);
-    app_data_store.data = app_data;
-    app_data_store
-        .write()
-        .await
-        .map_err(|e| CmdError::new(CmdErrorSource::InternalError, e.to_string()))?;
+    debug!("saving vpn mode in db");
+    db.insert(Key::VpnMode, &mode).map_err(|_| {
+        CmdError::new(
+            CmdErrorSource::InternalError,
+            "Failed to save vpn mode in db".to_string(),
+        )
+    })?;
     Ok(())
 }
