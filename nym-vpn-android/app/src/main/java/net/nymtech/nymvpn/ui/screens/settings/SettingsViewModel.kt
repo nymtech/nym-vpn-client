@@ -19,7 +19,7 @@ class SettingsViewModel @Inject constructor(
 
     val uiState = dataStoreManager.preferencesFlow.map {
         val firstHopSelection : Boolean = (it?.get(DataStoreManager.FIRST_HOP_SELECTION) ?: false)
-        val autoConnect : Boolean = (it?.get(DataStoreManager.AUTO_CONNECT) ?: false)
+        val autoConnect : Boolean = (it?.get(DataStoreManager.AUTO_START) ?: false)
         SettingsUiState(false, firstHopSelection, autoConnect)
     }.stateIn(viewModelScope,
         SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
@@ -33,11 +33,11 @@ class SettingsViewModel @Inject constructor(
 
     private suspend fun setFirstHopToDefault() {
         //TODO how we determine default will change
-        dataStoreManager.saveToDataStore(DataStoreManager.FIRST_HOP_COUNTRY, Country(isFastest = true).toString())
+        dataStoreManager.saveToDataStore(DataStoreManager.FIRST_HOP_COUNTRY_ISO, Country(isFastest = true).toString())
     }
 
     fun onAutoConnectSelected(selected: Boolean) = viewModelScope.launch {
-        dataStoreManager.saveToDataStore(DataStoreManager.AUTO_CONNECT, selected)
+        dataStoreManager.saveToDataStore(DataStoreManager.AUTO_START, selected)
     }
 
     fun onLogOutSelected() = viewModelScope.launch {

@@ -3,13 +3,24 @@ package net.nymtech.nymvpn.util
 import android.system.Os
 
 object Constants {
+
+    const val DEFAULT_COUNTRY_ISO = "DE"
+
     const val SUBSCRIPTION_TIMEOUT = 5_000L
+    const val LOG_BUFFER_DELAY = 3_000L
+    const val LOG_BUFFER_SIZE = 5_000L
 
     const val EMAIL_MIME_TYPE = "message/rfc822"
-
     //must end in /
     const val SANDBOX_URL = "https://sandbox-nym-api1.nymtech.net/api/v1/"
 
+    const val SENTRY_DEV_ENV = "development"
+    const val SENTRY_PROD_ENV = "production"
+
+    const val NYM_VPN_LIB_TAG = "libnymvpn"
+
+
+    //Add Rust environment vars for lib
     fun setupEnvironment() {
         Os.setenv("CONFIGURED","true", true)
         Os.setenv("RUST_LOG","info", true)

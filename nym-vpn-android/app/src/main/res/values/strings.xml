@@ -5,9 +5,9 @@
     <string name="disconnected">Disconnected</string>
     <string name="disconnecting">Disconnecting…</string>
     <string name="connecting">Connecting…</string>
-    <string name="five_hop">5-hop mixnet</string>
+    <string name="five_hop_mixnet">5-hop mixnet</string>
     <string name="five_hop_description">Best for payments, emails, messages</string>
-    <string name="two_hop">2-hop WireGuard</string>
+    <string name="two_hop_mixnet">2-hop mixnet</string>
     <string name="two_hop_description">Best for browsing, streaming, sharing</string>
     <string name="first_hop">First hop</string>
     <string name="last_hop">Last hop</string>
@@ -30,7 +30,7 @@
     <string name="is_selected">Selected</string>
     <string name="fastest">Fastest</string>
     <string name="auto_connect">Auto-connect</string>
-    <string name="auto_connect_description">Auto connect at app startup</string>
+    <string name="auto_connect_description">Auto connect on reboot</string>
     <string name="entry_location">Entry location selector</string>
     <string name="entry_location_description">Manually select your entry hop</string>
     <string name="logs">Logs</string>
@@ -83,4 +83,7 @@
     <string name="unknown">Unknown</string>
     <string name="no_scm_found">Source code url not found</string>
     <string name="terms_link">https://nymvpn.com/en/terms</string>
+    <string name="two_hop">2-hop</string>
+    <string name="five_hop">5-hop</string>
+    <string name="mode">Mode</string>
 </resources>

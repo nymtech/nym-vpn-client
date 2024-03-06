@@ -25,7 +25,7 @@ fun ConnectionStateDisplay(connectionState: ConnectionState) {
                 if (isSystemInDarkTheme()) CustomColors.statusDefaultDark
                 else CustomColors.statusDefaultLight,
             textColor = MaterialTheme.colorScheme.onSecondary)
-    ConnectionState.Connecting ->
+    is ConnectionState.Connecting ->
         PillLabel(
             text = text,
             backgroundColor =

@@ -63,6 +63,8 @@ android {
 
 dependencies {
 
+    implementation(project(":logcat-helper"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.jna.v5140)
     implementation(libs.kotlinx.coroutines.core)

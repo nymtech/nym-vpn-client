@@ -11,3 +11,10 @@ fun Project.getLocalProperty(key: String, file: String = "local.properties"): St
     } else return null
     return properties.getProperty(key)
 }
+
+fun Project.isReleaseBuild() : Boolean {
+    return (gradle.startParameter.taskNames.size > 0 &&
+            gradle.startParameter.taskNames[0].contains(
+                "Release",
+            ))
+}

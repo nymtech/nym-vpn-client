@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.gross)
+    alias(libs.plugins.sentry)
 }
 
 android {
@@ -26,6 +27,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField("String", "SENTRY_DSN", "\"${(System.getenv("SENTRY_DSN") ?: getLocalProperty("sentry.dsn")) ?: ""}\"")
     }
 
     signingConfigs {
@@ -77,8 +79,10 @@ android {
             variant.outputs
                 .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
                 .forEach { output ->
+                    val fullName = "${Constants.APP_NAME}-${variant.flavorName}-${variant.buildType.name}-${variant.versionName}"
+                    variant.resValue("string", "fullVersionName", fullName)
                     val outputFileName =
-                        "${Constants.APP_NAME}-${variant.flavorName}-${variant.buildType.name}-${variant.versionName}.apk"
+                        "$fullName.apk"
                     output.outputFileName = outputFileName
                 }
         }
@@ -134,6 +138,14 @@ android {
 
     gross { enableAndroidAssetGeneration.set(true) }
 
+    sentry {
+        tracingInstrumentation {
+            org.set("nymtech")
+            projectName.set("nym-vpn-android")
+            autoUploadProguardMapping.set(false)
+        }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -158,6 +170,7 @@ android {
 dependencies {
 
     implementation(project(":vpn-client"))
+    implementation(project(":logcat-helper"))
     coreLibraryDesugaring(libs.com.android.tools.desugar)
 
     implementation(libs.androidx.core.ktx)

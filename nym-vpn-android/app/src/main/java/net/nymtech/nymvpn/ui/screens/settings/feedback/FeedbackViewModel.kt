@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FeedbackViewModel @Inject constructor(
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,
 ) : ViewModel() {
 
     val isErrorReportingEnabled = dataStoreManager.preferencesFlow.map {
@@ -23,8 +23,8 @@ class FeedbackViewModel @Inject constructor(
         false
     )
 
-    //TODO enable Sentry
     fun onErrorReportingSelected(selected: Boolean) = viewModelScope.launch {
         dataStoreManager.saveToDataStore(DataStoreManager.ERROR_REPORTING, selected)
+        //TODO prompt user to restart app
     }
 }

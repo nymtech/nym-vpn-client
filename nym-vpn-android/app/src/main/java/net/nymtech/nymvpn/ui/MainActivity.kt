@@ -27,8 +27,10 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import dagger.hilt.android.AndroidEntryPoint
+import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
@@ -45,6 +47,7 @@ import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.TransparentSystemBars
+import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
 import javax.inject.Inject
 
@@ -61,6 +64,20 @@ class MainActivity : ComponentActivity() {
 
     lifecycleScope.launch {
       dataStoreManager.init()
+      val reportingEnabled = dataStoreManager.getFromStore(DataStoreManager.ERROR_REPORTING)
+      if(reportingEnabled == true) {
+        SentryAndroid.init(this@MainActivity) { options ->
+          options.enableTracing = true
+          options.enableAllAutoBreadcrumbs(true)
+          options.isEnableUserInteractionTracing = true
+          options.isEnableUserInteractionBreadcrumbs = true
+          options.dsn = BuildConfig.SENTRY_DSN
+          options.sampleRate = 1.0
+          options.tracesSampleRate = 1.0
+          options.profilesSampleRate = 1.0
+          options.environment = if(BuildConfig.DEBUG) Constants.SENTRY_DEV_ENV else Constants.SENTRY_PROD_ENV
+        }
+      }
     }
 
     setContent {
@@ -82,6 +99,7 @@ class MainActivity : ComponentActivity() {
 
       LaunchedEffect(Unit) {
         appViewModel.updateCountryListCache()
+        appViewModel.logCatOutput()
         requestNotificationPermission()
       }
 
@@ -132,7 +150,7 @@ class MainActivity : ComponentActivity() {
                 HopScreen(navController =  navController, hopType = HopType.LAST)
               }
               composable(NavItem.Settings.Display.route) { DisplayScreen() }
-              composable(NavItem.Settings.Logs.route) { LogsScreen() }
+              composable(NavItem.Settings.Logs.route) { LogsScreen(appViewModel) }
               composable(NavItem.Settings.Support.route) { SupportScreen(appViewModel) }
               composable(NavItem.Settings.Feedback.route) { FeedbackScreen(appViewModel) }
               composable(NavItem.Settings.Legal.route) { LegalScreen(appViewModel,navController) }

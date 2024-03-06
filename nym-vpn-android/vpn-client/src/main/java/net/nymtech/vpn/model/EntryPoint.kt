@@ -2,11 +2,11 @@ package net.nymtech.vpn.model
 
 sealed class EntryPoint {
     //TODO enforce only two char countryISO
-    data class Location(private val location: String) : EntryPoint() {
+    data class Location(private val countryIso: String) : EntryPoint() {
 
         //TODO make this serialize later
         override fun toString(): String {
-            return "{ \"Location\": { \"location\": \"${location}\" }}"
+            return "{ \"Location\": { \"location\": \"${countryIso}\" }}"
         }
     }
     private sealed class Gateway() : EntryPoint() {

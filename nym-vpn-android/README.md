@@ -29,6 +29,11 @@ cargo install cargo-ndk
 brew install go
 ```
 
+### Install JDK 17
+```
+brew install openjdk@17
+```
+
 ### Install protobuf
 ```
 brew install protobuf

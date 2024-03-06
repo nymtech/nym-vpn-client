@@ -48,8 +48,8 @@ class HopViewModel @Inject constructor(
 
     private fun setSelectedCountry() = viewModelScope.launch {
         val selectedCountryString = when (hopType) {
-            HopType.FIRST -> dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY)
-            HopType.LAST -> dataStoreManager.getFromStore(DataStoreManager.LAST_HOP_COUNTRY)
+            HopType.FIRST -> dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY_ISO)
+            HopType.LAST -> dataStoreManager.getFromStore(DataStoreManager.LAST_HOP_COUNTRY_ISO)
         }
         selectedCountryString?.let {
             _uiState.value = _uiState.value.copy(
@@ -61,8 +61,8 @@ class HopViewModel @Inject constructor(
 
     fun onSelected(country: Country) = viewModelScope.launch {
         when(hopType) {
-            HopType.FIRST -> dataStoreManager.saveToDataStore(DataStoreManager.FIRST_HOP_COUNTRY, country.toString())
-            HopType.LAST -> dataStoreManager.saveToDataStore(DataStoreManager.LAST_HOP_COUNTRY, country.toString())
+            HopType.FIRST -> dataStoreManager.saveToDataStore(DataStoreManager.FIRST_HOP_COUNTRY_ISO, country.toString())
+            HopType.LAST -> dataStoreManager.saveToDataStore(DataStoreManager.LAST_HOP_COUNTRY_ISO, country.toString())
         }
     }
 }

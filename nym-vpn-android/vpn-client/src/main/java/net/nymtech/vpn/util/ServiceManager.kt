@@ -50,6 +50,16 @@ object ServiceManager {
         )
     }
 
+    fun startVpnServiceForeground(context: Context, extras : Map<String, String>?) {
+        Timber.d("Called start vpn service foreground")
+        actionOnService(
+            Action.START_FOREGROUND,
+            context,
+            NymVpnService::class.java,
+            extras = extras
+        )
+    }
+
     fun stopVpnService(context: Context) {
         actionOnService(
             Action.STOP,
