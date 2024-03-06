@@ -14,10 +14,13 @@ import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.model.Country
 import net.nymtech.nymvpn.model.NetworkMode
 import net.nymtech.nymvpn.ui.model.ConnectionState
+import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.NumberUtils
+import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.NymVpn
 import net.nymtech.vpn.model.EntryPoint
+import net.nymtech.vpn.model.ErrorState
 import net.nymtech.vpn.model.ExitPoint
 import javax.inject.Inject
 
@@ -32,27 +35,34 @@ constructor(
   private val _uiState = MutableStateFlow(MainUiState())
 
   val uiState =
-      combine(dataStoreManager.preferencesFlow, _uiState, NymVpn.stateFlow, NymVpn.statistics) {
+      combine(dataStoreManager.preferencesFlow, _uiState, NymVpn.stateFlow) {
               prefs,
               uiState,
-              vpnState,
-              stats ->
+              clientState ->
             val lastHopCountry =
                 Country.from(
-                    prefs?.get(DataStoreManager.LAST_HOP_COUNTRY)
+                    prefs?.get(DataStoreManager.LAST_HOP_COUNTRY_ISO)
                         ?: uiState.lastHopCountry.toString())
             val firstHopCountry =
                 Country.from(
-                    prefs?.get(DataStoreManager.FIRST_HOP_COUNTRY)
+                    prefs?.get(DataStoreManager.FIRST_HOP_COUNTRY_ISO)
                         ?: uiState.firstHopCounty.toString())
             val connectionTime =
-                stats.connectionSeconds?.let { NumberUtils.convertSecondsToTimeString(it) }
+                clientState.statistics.connectionSeconds?.let { NumberUtils.convertSecondsToTimeString(it) }
             val networkMode =
                 NetworkMode.valueOf(
                     prefs?.get(DataStoreManager.NETWORK_MODE) ?: uiState.networkMode.name)
             val firstHopEnabled: Boolean =
                 (prefs?.get(DataStoreManager.FIRST_HOP_SELECTION) ?: false)
-            val connectionState = ConnectionState.from(vpnState)
+            val connectionState = ConnectionState.from(clientState.vpnState)
+            val stateMessage = clientState.errorState.let {
+                when(it) {
+                    is ErrorState.LibraryError -> StateMessage.Error(StringValue.DynamicString(it.message))
+                    ErrorState.None -> connectionState.stateMessage
+                }
+
+            }
+
             MainUiState(
                 false,
                 lastHopCountry = lastHopCountry,
@@ -61,7 +71,7 @@ constructor(
                 networkMode = networkMode,
                 connectionState = connectionState,
                 firstHopEnabled = firstHopEnabled,
-                stateMessage = connectionState.stateMessage)
+                stateMessage = stateMessage)
           }
           .stateIn(
               viewModelScope,

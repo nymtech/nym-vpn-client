@@ -2,12 +2,14 @@ package net.nymtech.nymvpn.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import net.nymtech.nymvpn.util.Constants
+import java.util.Locale
 
 typealias Countries = List<Country>
 @Serializable
 data class Country(
-    val isoCode: String = "DE",
-    val name: String = "Germany",
+    val isoCode: String = Constants.DEFAULT_COUNTRY_ISO,
+    val name: String = Locale(isoCode.lowercase(), isoCode).displayCountry,
     val isFastest: Boolean = false
 ) {
     override fun toString(): String {

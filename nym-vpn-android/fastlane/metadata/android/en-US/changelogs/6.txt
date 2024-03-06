@@ -1,0 +1,2 @@
+What's new:
+- Add start on boot logic

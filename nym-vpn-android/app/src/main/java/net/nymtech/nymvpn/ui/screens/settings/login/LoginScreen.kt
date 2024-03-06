@@ -61,7 +61,7 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
             contentDescription = stringResource(id = R.string.login),
             contentScale = ContentScale.None,
             modifier = Modifier
-                .padding(1.dp)
+                .padding(5.dp.scaledHeight())
                 .width(120.dp)
                 .height(120.dp)
         )
@@ -101,9 +101,7 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
                 .height(152.dp)
         )
         Box(modifier = Modifier
-            .padding(top = 4.dp, bottom = 44.dp)
-            .height(IntrinsicSize.Min)) {
-            //TODO make keyboard open below this
+            .padding(bottom = 24.dp.scaledHeight())) {
             MainStyledButton(
                 onClick = {
                     viewModel.onLogin(recoveryPhrase).let {

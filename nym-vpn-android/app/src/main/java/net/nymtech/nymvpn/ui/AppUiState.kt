@@ -7,5 +7,5 @@ data class AppUiState(
     val theme: Theme = Theme.AUTOMATIC,
     val loggedIn: Boolean = false,
     val snackbarMessage: String = "",
-    val snackbarMessageConsumed: Boolean = true
+    val snackbarMessageConsumed: Boolean = true,
 )

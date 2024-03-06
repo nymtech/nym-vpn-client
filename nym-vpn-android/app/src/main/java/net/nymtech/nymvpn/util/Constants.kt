@@ -3,12 +3,16 @@ package net.nymtech.nymvpn.util
 import android.system.Os
 
 object Constants {
+
+    const val DEFAULT_COUNTRY_ISO = "DE"
+
     const val SUBSCRIPTION_TIMEOUT = 5_000L
 
     const val EMAIL_MIME_TYPE = "message/rfc822"
-
     //must end in /
     const val SANDBOX_URL = "https://sandbox-nym-api1.nymtech.net/api/v1/"
+
+    const val SENTRY_DSN = "https://cf027ef57330e976438c2cbbe1903868@o967446.ingest.us.sentry.io/4506859434082304"
 
     fun setupEnvironment() {
         Os.setenv("CONFIGURED","true", true)

@@ -30,7 +30,7 @@
     <string name="is_selected">Selected</string>
     <string name="fastest">Fastest</string>
     <string name="auto_connect">Auto-connect</string>
-    <string name="auto_connect_description">Auto connect at app startup</string>
+    <string name="auto_connect_description">Auto connect on reboot</string>
     <string name="entry_location">Entry location selector</string>
     <string name="entry_location_description">Manually select your entry hop</string>
     <string name="logs">Logs</string>

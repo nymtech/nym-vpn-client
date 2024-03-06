@@ -1,4 +1,5 @@
 import java.util.Properties
+import io.sentry.android.gradle.instrumentation.logcat.LogcatLevel
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -9,6 +10,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.gross)
+    alias(libs.plugins.sentry)
 }
 
 android {
@@ -134,6 +136,19 @@ android {
 
     gross { enableAndroidAssetGeneration.set(true) }
 
+    sentry {
+        tracingInstrumentation {
+            enabled.set(false)
+            org.set("nymtech")
+            projectName.set("nym-vpn-android")
+            autoUploadProguardMapping.set(false)
+            logcat {
+                enabled.set(false)
+                minLevel.set(LogcatLevel.WARNING)
+            }
+        }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -158,6 +173,7 @@ android {
 dependencies {
 
     implementation(project(":vpn-client"))
+    implementation(project(":logcat-helper"))
     coreLibraryDesugaring(libs.com.android.tools.desugar)
 
     implementation(libs.androidx.core.ktx)

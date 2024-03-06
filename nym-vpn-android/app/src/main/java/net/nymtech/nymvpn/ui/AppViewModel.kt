@@ -4,16 +4,23 @@ import android.app.Application
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.runtime.mutableStateListOf
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.sentry.Sentry
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.nymtech.logcat_helper.LogcatHelper
+import net.nymtech.logcat_helper.model.LogMessage
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.model.Country
@@ -33,6 +40,8 @@ class AppViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(AppUiState())
 
+    val logs = mutableStateListOf<LogMessage>()
+
     val uiState = combine(_uiState, dataStoreManager.preferencesFlow) {
         state, preferences ->
         val theme : String = (preferences?.get(DataStoreManager.THEME)?.uppercase() ?: Theme.AUTOMATIC.name)
@@ -42,6 +51,10 @@ class AppViewModel @Inject constructor(
         SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
         AppUiState()
     )
+
+    fun logCatOutput() = viewModelScope.launch(viewModelScope.coroutineContext + Dispatchers.IO) {
+        LogcatHelper.logs { logs.add(it) }
+    }
 
     fun updateCountryListCache() {
         viewModelScope.launch(Dispatchers.IO) {
