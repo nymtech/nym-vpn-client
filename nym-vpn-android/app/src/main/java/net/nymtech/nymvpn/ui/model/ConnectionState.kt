@@ -11,9 +11,10 @@ sealed class ConnectionState(val status: StringValue) {
         override val stateMessage: StateMessage
             get() = StateMessage.Info(StringValue.StringResource(R.string.connection_time))
     }
-    data object Connecting : ConnectionState(StringValue.StringResource(R.string.connecting)) {
+    data class Connecting(private val message : StateMessage) : ConnectionState(StringValue.StringResource(R.string.connecting)) {
+
         override val stateMessage: StateMessage
-            get() = StateMessage.Info(StringValue.StringResource(R.string.init_client))
+            get() = message
     }
     data object Disconnecting : ConnectionState(StringValue.StringResource(R.string.disconnecting)) {
         override val stateMessage: StateMessage
@@ -28,10 +29,11 @@ sealed class ConnectionState(val status: StringValue) {
     companion object {
         fun from(vpnState: VpnState) : ConnectionState {
             return when(vpnState) {
-                VpnState.DOWN -> Disconnected
-                VpnState.UP -> Connected
-                VpnState.CONNECTING -> Connecting
-                VpnState.DISCONNECTING -> Disconnecting
+                VpnState.Down -> Disconnected
+                VpnState.Up -> Connected
+                VpnState.Connecting.InitializingClient-> Connecting(StateMessage.Info(StringValue.StringResource(R.string.init_client)))
+                VpnState.Connecting.EstablishingConnection -> Connecting(StateMessage.Info(StringValue.StringResource(R.string.establishing_connection)))
+                VpnState.Disconnecting -> Disconnecting
             }
         }
     }

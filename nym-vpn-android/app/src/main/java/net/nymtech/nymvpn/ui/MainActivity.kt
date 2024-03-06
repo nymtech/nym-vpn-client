@@ -27,7 +27,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import dagger.hilt.android.AndroidEntryPoint
-import io.sentry.Sentry
+import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.BuildConfig
@@ -64,11 +64,18 @@ class MainActivity : ComponentActivity() {
 
     lifecycleScope.launch {
       dataStoreManager.init()
-        val reportingEnabled = dataStoreManager.getFromStore(DataStoreManager.ERROR_REPORTING)
-        if(!BuildConfig.DEBUG) {
-          Sentry.init { options ->
-            options.isEnabled = reportingEnabled ?: false
-            options.dsn = Constants.SENTRY_DSN
+      val reportingEnabled = dataStoreManager.getFromStore(DataStoreManager.ERROR_REPORTING)
+      if(reportingEnabled == true) {
+        SentryAndroid.init(this@MainActivity) { options ->
+          options.enableTracing = true
+          options.enableAllAutoBreadcrumbs(true)
+          options.isEnableUserInteractionTracing = true
+          options.isEnableUserInteractionBreadcrumbs = true
+          options.dsn = BuildConfig.SENTRY_DSN
+          options.sampleRate = 1.0
+          options.tracesSampleRate = 1.0
+          options.profilesSampleRate = 1.0
+          options.environment = if(BuildConfig.DEBUG) Constants.SENTRY_DEV_ENV else Constants.SENTRY_PROD_ENV
         }
       }
     }

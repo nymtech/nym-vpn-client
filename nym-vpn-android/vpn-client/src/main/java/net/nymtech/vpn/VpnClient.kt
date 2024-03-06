@@ -15,4 +15,5 @@ interface VpnClient {
     fun connectForeground(context: Context, entryPoint: EntryPoint, exitPoint: ExitPoint, isTwoHop: Boolean)
     fun disconnect(context: Context)
     val stateFlow : Flow<ClientState>
+    fun getState() : ClientState
 }

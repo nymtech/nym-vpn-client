@@ -17,6 +17,7 @@ jobs:
       SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
       SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
       SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
       KEY_STORE_FILE: 'android_keystore.jks'
       KEY_STORE_LOCATION: ${{ github.workspace }}/app/keystore/
 

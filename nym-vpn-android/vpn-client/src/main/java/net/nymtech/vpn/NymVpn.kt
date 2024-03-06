@@ -16,18 +16,22 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import net.nymtech.logcat_helper.LogcatHelper
 import net.nymtech.logcat_helper.model.LogLevel
-import net.nymtech.logcat_helper.model.LogMessage
 import net.nymtech.vpn.model.ClientState
 import net.nymtech.vpn.model.EntryPoint
 import net.nymtech.vpn.model.ErrorState
 import net.nymtech.vpn.model.ExitPoint
+import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.util.ServiceManager
+import net.nymtech.vpn.util.safeCollect
 
 object NymVpn : VpnClient {
 
     private val _state = MutableStateFlow(ClientState())
     override val stateFlow: Flow<ClientState> = _state.asStateFlow()
+    override fun getState(): ClientState {
+        return _state.value
+    }
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -43,6 +47,8 @@ object NymVpn : VpnClient {
             EXIT_POINT_EXTRA_KEY to exitPoint.toString(),
             TWO_HOP_EXTRA_KEY to isTwoHop.toString()
         )
+        //TODO fix logic for more modes later
+        if(isTwoHop) setMode(VpnMode.TWO_HOP_MIXNET) else setMode(VpnMode.FIVE_HOP_MIXNET)
         statusJob = collectLogStatus(context)
         ServiceManager.startVpnService(context, extras)
     }
@@ -70,10 +76,11 @@ object NymVpn : VpnClient {
                     trySend(it)
                 }
                 awaitClose { cancel() }
-            }.collect {
+            }.safeCollect {
                 when(it.level) {
                     LogLevel.ERROR -> {
                         //TODO probably don't want to handle all errors this way
+                        cancel()
                         setErrorState(it.message)
                         disconnect(context)
                         statusJob?.cancel()
@@ -88,7 +95,7 @@ object NymVpn : VpnClient {
         launch {
             var seconds = 0L
             do {
-                if(_state.value.vpnState == VpnState.UP) {
+                if(_state.value.vpnState == VpnState.Up) {
                     _state.value = _state.value.copy(
                         statistics = _state.value.statistics.copy(
                             connectionSeconds = seconds
@@ -102,12 +109,25 @@ object NymVpn : VpnClient {
     }
 
     private fun parseLibInfo(message : String) {
-        //TODO handle parsing important info messages to state
+        //TODO make this more robust in the future
+        with(message){
+            when {
+                contains("Mixnet processor is running") -> setVPNState(VpnState.Up)
+                contains("Nym VPN has shut down") -> setVPNState(VpnState.Down)
+                contains("Connecting to IP packet router") -> setVPNState(VpnState.Connecting.EstablishingConnection)
+            }
+        }
     }
 
     private fun clearErrorStatus() {
         _state.value = _state.value.copy(
             errorState = ErrorState.None
+        )
+    }
+
+    private fun setMode(mode : VpnMode) {
+        _state.value = _state.value.copy(
+            mode = mode
         )
     }
 

@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.model.Country
-import net.nymtech.nymvpn.model.NetworkMode
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.Constants
@@ -22,6 +21,7 @@ import net.nymtech.vpn.NymVpn
 import net.nymtech.vpn.model.EntryPoint
 import net.nymtech.vpn.model.ErrorState
 import net.nymtech.vpn.model.ExitPoint
+import net.nymtech.vpn.model.VpnMode
 import javax.inject.Inject
 
 @HiltViewModel
@@ -50,7 +50,7 @@ constructor(
             val connectionTime =
                 clientState.statistics.connectionSeconds?.let { NumberUtils.convertSecondsToTimeString(it) }
             val networkMode =
-                NetworkMode.valueOf(
+                VpnMode.valueOf(
                     prefs?.get(DataStoreManager.NETWORK_MODE) ?: uiState.networkMode.name)
             val firstHopEnabled: Boolean =
                 (prefs?.get(DataStoreManager.FIRST_HOP_SELECTION) ?: false)
@@ -81,20 +81,20 @@ constructor(
   fun onTwoHopSelected() =
       viewModelScope.launch {
           dataStoreManager.saveToDataStore(
-            DataStoreManager.NETWORK_MODE, NetworkMode.TWO_HOP_WIREGUARD.name)
+            DataStoreManager.NETWORK_MODE, VpnMode.TWO_HOP_MIXNET.name)
       }
 
   fun onFiveHopSelected() =
       viewModelScope.launch {
         dataStoreManager.saveToDataStore(
-            DataStoreManager.NETWORK_MODE, NetworkMode.FIVE_HOP_MIXNET.name)
+            DataStoreManager.NETWORK_MODE, VpnMode.FIVE_HOP_MIXNET.name)
       }
 
   fun onConnect() =
       viewModelScope.launch(Dispatchers.IO) {
         NymVpn.connect(application,EntryPoint.Location(uiState.value.firstHopCounty.isoCode),
           ExitPoint.Location(uiState.value.lastHopCountry.isoCode),
-          isTwoHop = (uiState.value.networkMode == NetworkMode.TWO_HOP_WIREGUARD))
+          isTwoHop = (uiState.value.networkMode == VpnMode.TWO_HOP_MIXNET))
   }
 
 

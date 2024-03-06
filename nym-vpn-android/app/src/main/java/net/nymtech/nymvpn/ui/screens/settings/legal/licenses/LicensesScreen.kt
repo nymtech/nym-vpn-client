@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.settings.legal.licenses
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,7 +40,10 @@ fun LicensesScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp.scaledWidth(), vertical = 24.dp.scaledHeight())) {
+            .padding(horizontal = 24.dp.scaledWidth())) {
+        item {
+            Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())){}
+        }
         items(licenses) { it ->
             SurfaceSelectionGroupButton(items =
                 listOf(
@@ -53,6 +57,9 @@ fun LicensesScreen(
                     else appViewModel.showSnackbarMessage(context.getString(R.string.no_scm_found)) }
                 )
             ))
+        }
+        item {
+            Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())){}
         }
     }
 }

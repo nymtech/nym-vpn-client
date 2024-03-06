@@ -3,19 +3,17 @@ package net.nymtech.nymvpn.ui.screens.settings.feedback
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.sentry.Sentry
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
 
 @HiltViewModel
 class FeedbackViewModel @Inject constructor(
-    private val dataStoreManager: DataStoreManager
+    private val dataStoreManager: DataStoreManager,
 ) : ViewModel() {
 
     val isErrorReportingEnabled = dataStoreManager.preferencesFlow.map {
@@ -27,11 +25,6 @@ class FeedbackViewModel @Inject constructor(
 
     fun onErrorReportingSelected(selected: Boolean) = viewModelScope.launch {
         dataStoreManager.saveToDataStore(DataStoreManager.ERROR_REPORTING, selected)
-        if(!BuildConfig.DEBUG) {
-            Sentry.init { options ->
-                options.isEnabled = selected
-                options.dsn = Constants.SENTRY_DSN
-            }
-        }
+        //TODO prompt user to restart app
     }
 }

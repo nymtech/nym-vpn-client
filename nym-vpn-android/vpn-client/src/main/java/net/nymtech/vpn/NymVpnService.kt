@@ -58,7 +58,7 @@ class NymVpnService : VpnService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return if (intent?.action == Action.START.name) {
-            NymVpn.setVPNState(VpnState.CONNECTING)
+            NymVpn.setVPNState(VpnState.Connecting.InitializingClient)
             currentTunConfig = defaultTunConfig()
             Timber.i("VPN start")
             try {
@@ -81,11 +81,10 @@ class NymVpnService : VpnService() {
             }
             START_STICKY
         } else {
-            NymVpn.setVPNState(VpnState.DISCONNECTING)
             Timber.d("VPN stop")
+            NymVpn.setVPNState(VpnState.Disconnecting)
             stopVPN()
             stopSelf()
-            NymVpn.setVPNState(VpnState.DOWN)
             START_NOT_STICKY
         }
     }
@@ -129,7 +128,7 @@ class NymVpnService : VpnService() {
 
     override fun onDestroy() {
         Timber.i("VpnService destroyed")
-        NymVpn.setVPNState(VpnState.DOWN)
+        NymVpn.setVPNState(VpnState.Down)
         connectivityListener.unregister()
         stopVPN()
         stopSelf()
@@ -216,7 +215,6 @@ class NymVpnService : VpnService() {
             }
         }
         val vpnInterface = builder.establish()
-        Timber.d("Interface created")
         val tunFd = vpnInterface?.detachFd() ?: return CreateTunResult.TunnelDeviceError
         waitForTunnelUp(tunFd, config.routes.any { route -> route.isIpv6 })
 

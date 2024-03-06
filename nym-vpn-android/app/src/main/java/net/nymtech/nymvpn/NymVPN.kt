@@ -1,12 +1,15 @@
 package net.nymtech.nymvpn
 
 import android.app.Application
+import android.content.ComponentName
+import android.service.quicksettings.TileService
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import dagger.hilt.android.HiltAndroidApp
-import io.sentry.Sentry
-import io.sentry.SentryOptions
+import net.nymtech.nymvpn.service.tile.QuickTile
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.log.DebugTree
+import net.nymtech.nymvpn.util.log.ReleaseTree
 import net.nymtech.nymvpn.util.navigationBarHeight
 import timber.log.Timber
 
@@ -17,7 +20,7 @@ class NymVPN : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        if (BuildConfig.DEBUG) Timber.plant(Timber.DebugTree())
+        if (BuildConfig.DEBUG) Timber.plant(DebugTree()) else Timber.plant(ReleaseTree())
         //set lib env vars
         Constants.setupEnvironment()
     }
@@ -51,6 +54,13 @@ class NymVPN : Application() {
             val width = displayMetrics.widthPixels
             val resizeWidthPercentage = (width.toFloat() / BASELINE_WIDTH) * (BASELINE_DENSITY.toFloat() / density)
             return dp * resizeWidthPercentage
+        }
+
+        fun requestTileServiceStateUpdate() {
+            TileService.requestListeningState(
+                instance,
+                ComponentName(instance, QuickTile::class.java),
+            )
         }
     }
 }

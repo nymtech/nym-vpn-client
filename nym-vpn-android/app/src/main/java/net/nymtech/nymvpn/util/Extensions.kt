@@ -6,15 +6,16 @@ import android.content.Context
 import android.content.res.Resources
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
-import io.sentry.Sentry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVPN
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.coroutineContext
 
 
 fun Dp.scaledHeight() : Dp {
@@ -41,6 +42,13 @@ fun BroadcastReceiver.goAsync(
         } finally {
             pendingResult.finish()
         }
+    }
+}
+
+suspend inline fun <T> Flow<T>.safeCollect(crossinline action: suspend (T) -> Unit) {
+    collect {
+        coroutineContext.ensureActive()
+        action(it)
     }
 }
 

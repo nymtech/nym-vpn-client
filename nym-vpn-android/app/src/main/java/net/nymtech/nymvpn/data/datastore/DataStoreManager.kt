@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.map
 class DataStoreManager(private val context: Context) {
     companion object {
         val THEME = stringPreferencesKey("THEME")
-        val NETWORK_MODE = stringPreferencesKey("NETWORK_MODE")
+        val NETWORK_MODE = stringPreferencesKey("VPN_MODE")
         val FIRST_HOP_SELECTION = booleanPreferencesKey("FIRST_HOP_SELECTION")
         val FIRST_HOP_COUNTRY_ISO = stringPreferencesKey("FIRST_HOP_COUNTRY_ISO")
         val LAST_HOP_COUNTRY_ISO = stringPreferencesKey("LAST_HOP_COUNTRY_ISO")

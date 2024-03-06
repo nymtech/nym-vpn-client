@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui.screens.main
 import android.net.VpnService
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,7 +27,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.model.NetworkMode
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
@@ -42,6 +42,7 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.vpn.model.VpnMode
 
 @Composable
 fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: MainViewModel = hiltViewModel()) {
@@ -78,10 +79,11 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: 
                           message = it.message.asString(context), textColor = CustomColors.error)
                 }
               }
-              StatusInfoLabel(
-                  message = uiState.connectionTime, textColor = MaterialTheme.colorScheme.onSurface)
+            AnimatedVisibility(visible = uiState.connectionTime != "") {
+                StatusInfoLabel(
+                    message = uiState.connectionTime, textColor = MaterialTheme.colorScheme.onSurface)
             }
-
+        }
         val firstHopName = StringUtils.buildCountryNameString(uiState.firstHopCounty, context)
         val lastHopName = StringUtils.buildCountryNameString(uiState.lastHopCountry, context)
         val firstHopIcon = countryIcon(uiState.firstHopCounty)
@@ -98,22 +100,22 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: 
                     GroupLabel(title = stringResource(R.string.select_network))
                     RadioSurfaceButton(
                         leadingIcon = ImageVector.vectorResource(R.drawable.mixnet),
-                        title = stringResource(R.string.five_hop),
+                        title = stringResource(R.string.five_hop_mixnet),
                         description = stringResource(R.string.five_hop_description),
                         onClick = {
                           if (uiState.connectionState == ConnectionState.Disconnected)
                               viewModel.onFiveHopSelected()
                         },
-                        selected = uiState.networkMode == NetworkMode.FIVE_HOP_MIXNET)
+                        selected = uiState.networkMode == VpnMode.FIVE_HOP_MIXNET)
                     RadioSurfaceButton(
                         leadingIcon = ImageVector.vectorResource(R.drawable.shield),
-                        title = stringResource(R.string.two_hop),
+                        title = stringResource(R.string.two_hop_mixnet),
                         description = stringResource(R.string.two_hop_description),
                         onClick = {
                           if (uiState.connectionState == ConnectionState.Disconnected)
                               viewModel.onTwoHopSelected()
                         },
-                        selected = uiState.networkMode == NetworkMode.TWO_HOP_WIREGUARD)
+                        selected = uiState.networkMode == VpnMode.TWO_HOP_MIXNET)
                   }
               Column(
                   verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Bottom),
@@ -149,7 +151,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: 
                                 style = MaterialTheme.typography.labelLarge)
                           })
                   is ConnectionState.Disconnecting,
-                  ConnectionState.Connecting -> {
+                  is ConnectionState.Connecting -> {
                     val loading = ImageVector.vectorResource(R.drawable.loading)
                     MainStyledButton(onClick = {}, content = { SpinningIcon(icon = loading) })
                   }

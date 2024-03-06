@@ -1,5 +1,4 @@
 import java.util.Properties
-import io.sentry.android.gradle.instrumentation.logcat.LogcatLevel
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -28,6 +27,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        buildConfigField("String", "SENTRY_DSN", "\"${(System.getenv("SENTRY_DSN") ?: getLocalProperty("sentry.dsn")) ?: ""}\"")
     }
 
     signingConfigs {
@@ -79,8 +79,10 @@ android {
             variant.outputs
                 .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
                 .forEach { output ->
+                    val fullName = "${Constants.APP_NAME}-${variant.flavorName}-${variant.buildType.name}-${variant.versionName}"
+                    variant.resValue("string", "fullVersionName", fullName)
                     val outputFileName =
-                        "${Constants.APP_NAME}-${variant.flavorName}-${variant.buildType.name}-${variant.versionName}.apk"
+                        "$fullName.apk"
                     output.outputFileName = outputFileName
                 }
         }
@@ -138,14 +140,9 @@ android {
 
     sentry {
         tracingInstrumentation {
-            enabled.set(false)
             org.set("nymtech")
             projectName.set("nym-vpn-android")
             autoUploadProguardMapping.set(false)
-            logcat {
-                enabled.set(false)
-                minLevel.set(LogcatLevel.WARNING)
-            }
         }
     }
 

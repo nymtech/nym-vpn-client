@@ -1,2 +1,4 @@
 What's new:
-- Add start on boot logic
+- Add logs screen
+- Improve VPN status display
+- Add Sentry

@@ -7,8 +7,6 @@ import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asFlow
-import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.sentry.Sentry
@@ -20,6 +18,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.nymtech.logcat_helper.LogcatHelper
+import net.nymtech.logcat_helper.model.LogLevel
 import net.nymtech.logcat_helper.model.LogMessage
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
@@ -27,6 +26,7 @@ import net.nymtech.nymvpn.model.Country
 import net.nymtech.nymvpn.service.gateway.GatewayApiService
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.log.NymLibException
 import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
@@ -41,6 +41,7 @@ class AppViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AppUiState())
 
     val logs = mutableStateListOf<LogMessage>()
+    private val logsBuffer = mutableListOf<LogMessage>()
 
     val uiState = combine(_uiState, dataStoreManager.preferencesFlow) {
         state, preferences ->
@@ -53,9 +54,29 @@ class AppViewModel @Inject constructor(
     )
 
     fun logCatOutput() = viewModelScope.launch(viewModelScope.coroutineContext + Dispatchers.IO) {
-        LogcatHelper.logs { logs.add(it) }
+        launch {
+            LogcatHelper.logs {
+                logsBuffer.add(it)
+                when(it.level){
+                    LogLevel.ERROR -> {
+                        if(it.tag.contains(Constants.NYM_VPN_LIB_TAG))
+                            Sentry.captureException(NymLibException("${it.time} - ${it.tag} ${it.message}"))
+                    }
+                    else -> Unit
+                }
+            }
+        }
+        launch {
+            do {
+                logs.addAll(logsBuffer)
+                logsBuffer.clear()
+                if(logs.size > Constants.LOG_BUFFER_SIZE) {
+                    logs.removeRange(0, (logs.size - Constants.LOG_BUFFER_SIZE).toInt())
+                }
+                delay(Constants.LOG_BUFFER_DELAY)
+            } while (true)
+        }
     }
-
     fun updateCountryListCache() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
