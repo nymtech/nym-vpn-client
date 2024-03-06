@@ -3,7 +3,7 @@
 
 use clap::{Args, Parser};
 use ipnetwork::{Ipv4Network, Ipv6Network};
-use nym_vpn_lib::nym_config::defaults::var_names::NYM_API;
+use nym_vpn_lib::nym_config::defaults::var_names::{EXPLORER_API, NYM_API};
 use nym_vpn_lib::nym_config::OptionalSet;
 use nym_vpn_lib::{gateway_client::Config, nym_bin_common::bin_info_local_vergen};
 use std::{
@@ -153,7 +153,9 @@ fn validate_ipv6(ip: &str) -> Result<Ipv6Addr, String> {
 }
 
 pub fn override_from_env(args: &CliArgs, config: Config) -> Config {
-    let mut config = config.with_optional_env(Config::with_custom_api_url, None, NYM_API);
+    let mut config = config
+        .with_optional_env(Config::with_custom_api_url, None, NYM_API)
+        .with_optional_env(Config::with_custom_explorer_url, None, EXPLORER_API);
     if let Some(ref private_key) = args.private_key {
         config = config.with_local_private_key(private_key.clone());
     }

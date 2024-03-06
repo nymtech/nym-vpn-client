@@ -7,6 +7,7 @@ use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::UniffiCustomTypeConverter;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_crypto::asymmetric::encryption;
+use nym_explorer_client::{ExplorerClient, Location, PrettyDetailedGatewayBond};
 use nym_node_requests::api::client::NymNodeApiClientExt;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
@@ -25,6 +26,7 @@ use url::Url;
 #[derive(Clone, Debug)]
 pub struct Config {
     pub(crate) api_url: Url,
+    pub(crate) explorer_url: Option<Url>,
     pub(crate) local_private_key: Option<String>,
 }
 
@@ -40,9 +42,14 @@ impl Default for Config {
             .expect("rust sdk mainnet default missing api_url")
             .parse()
             .expect("rust sdk mainnet default api_url not parseable");
+        let default_explorer_url = network_defaults.explorer_api.clone().map(|url| {
+            url.parse()
+                .expect("rust sdk mainnet default explorer url not parseable")
+        });
 
         Config {
             api_url: default_api_url,
+            explorer_url: default_explorer_url,
             local_private_key: Default::default(),
         }
     }
@@ -52,10 +59,17 @@ impl Config {
     pub fn api_url(&self) -> &Url {
         &self.api_url
     }
+
     pub fn with_custom_api_url(mut self, api_url: Url) -> Self {
         self.api_url = api_url;
         self
     }
+
+    pub fn with_custom_explorer_url(mut self, explorer_url: Url) -> Self {
+        self.explorer_url = Some(explorer_url);
+        self
+    }
+
     pub fn with_local_private_key(mut self, local_private_key: String) -> Self {
         self.local_private_key = Some(local_private_key);
         self
@@ -113,17 +127,24 @@ impl UniffiCustomTypeConverter for NodeIdentity {
 }
 
 impl EntryPoint {
-    pub fn lookup_gateway_identity(&self, gateways: &[DescribedGateway]) -> Result<NodeIdentity> {
+    pub fn lookup_gateway_identity(
+        &self,
+        gateways: &[DescribedGatewayWithLocation],
+    ) -> Result<NodeIdentity> {
         match &self {
             EntryPoint::Gateway { identity } => Ok(*identity),
             EntryPoint::Location { location } => {
-                let described_gateways: Vec<&DescribedGateway> = gateways
+                let gateways_with_specified_location: Vec<&DescribedGateway> = gateways
                     .iter()
-                    .filter(|described_gateway| {
-                        described_gateway.bond.gateway.location == *location
+                    .filter(|gateway| {
+                        gateway
+                            .location
+                            .as_ref()
+                            .map_or(false, |l| &l.two_letter_iso_country_code == location)
                     })
+                    .map(|described_gateway| &described_gateway.gateway)
                     .collect();
-                let random_gateway: &DescribedGateway = described_gateways
+                let random_gateway: &DescribedGateway = gateways_with_specified_location
                     .iter()
                     .choose(&mut rand::thread_rng())
                     .ok_or(Error::NoMatchingGateway)?;
@@ -139,27 +160,32 @@ impl EntryPoint {
 impl ExitPoint {
     pub fn lookup_router_address(
         &self,
-        gateways: &[DescribedGateway],
+        gateways: &[DescribedGatewayWithLocation],
     ) -> Result<IpPacketRouterAddress> {
         match &self {
             ExitPoint::Address { address } => Ok(IpPacketRouterAddress(*address)),
             ExitPoint::Gateway { identity } => {
-                let described_gateway = gateways
+                let gateway = gateways
                     .iter()
-                    .find(|described_gateway| {
-                        described_gateway.bond.gateway.identity_key == *identity.to_string()
+                    .find(|gateway| {
+                        // sing with me: gateway gateway gateway mushroom mushroom
+                        gateway.gateway.bond.gateway.identity_key == *identity.to_string()
                     })
                     .ok_or(Error::NoMatchingGateway)?;
-                IpPacketRouterAddress::try_from_described_gateway(described_gateway)
+                IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)
             }
             ExitPoint::Location { location } => {
-                let described_gateways: Vec<&DescribedGateway> = gateways
+                let gateways_with_specified_location: Vec<&DescribedGateway> = gateways
                     .iter()
-                    .filter(|described_gateway| {
-                        described_gateway.bond.gateway.location == *location
+                    .filter(|gateway| {
+                        gateway
+                            .location
+                            .as_ref()
+                            .map_or(false, |l| &l.two_letter_iso_country_code == location)
                     })
+                    .map(|described_gateway| &described_gateway.gateway)
                     .collect();
-                let random_gateway: &DescribedGateway = described_gateways
+                let random_gateway = gateways_with_specified_location
                     .iter()
                     .choose(&mut rand::thread_rng())
                     .ok_or(Error::NoMatchingGateway)?;
@@ -169,8 +195,14 @@ impl ExitPoint {
     }
 }
 
+pub struct DescribedGatewayWithLocation {
+    pub gateway: DescribedGateway,
+    pub location: Option<Location>,
+}
+
 pub struct GatewayClient {
     api_client: NymApiClient,
+    explorer_client: Option<ExplorerClient>,
     keypair: Option<encryption::KeyPair>,
 }
 #[derive(Clone, Debug)]
@@ -183,6 +215,11 @@ pub struct GatewayData {
 impl GatewayClient {
     pub fn new(config: Config) -> Result<Self> {
         let api_client = NymApiClient::new(config.api_url);
+        let explorer_client = if let Some(url) = config.explorer_url {
+            Some(ExplorerClient::new(url)?)
+        } else {
+            None
+        };
 
         let keypair = if let Some(local_private_key) = config.local_private_key {
             let private_key_intermediate = PublicKey::from_base64(&local_private_key)
@@ -200,6 +237,7 @@ impl GatewayClient {
 
         Ok(GatewayClient {
             api_client,
+            explorer_client,
             keypair,
         })
     }
@@ -210,6 +248,33 @@ impl GatewayClient {
             .get_cached_described_gateways()
             .await
             .map_err(|source| Error::FailedToLookupDescribedGateways { source })
+    }
+
+    pub async fn lookup_gateways_in_explorer(&self) -> Result<Vec<PrettyDetailedGatewayBond>> {
+        if let Some(explorer_client) = &self.explorer_client {
+            explorer_client.get_gateways().await.map_err(Into::into)
+        } else {
+            todo!("Explorer client not found");
+        }
+    }
+
+    pub async fn lookup_described_gateways_with_location(
+        &self,
+    ) -> Result<Vec<DescribedGatewayWithLocation>> {
+        let described_gateways = self.lookup_described_gateways().await?;
+        let gateway_locations = self.lookup_gateways_in_explorer().await?;
+        described_gateways
+            .into_iter()
+            .map(|gateway| {
+                let location = gateway_locations
+                    .iter()
+                    .find(|gateway_location| {
+                        gateway_location.gateway.identity_key == gateway.bond.gateway.identity_key
+                    })
+                    .and_then(|gateway_location| gateway_location.location.clone());
+                Ok(DescribedGatewayWithLocation { gateway, location })
+            })
+            .collect()
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {

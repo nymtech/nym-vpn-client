@@ -72,9 +72,7 @@ async fn run() -> Result<()> {
     info!("nym-api: {}", gateway_config.api_url());
 
     let entry_point = parse_entry_point(&args)?;
-    dbg!(&entry_point);
     let exit_point = parse_exit_point(&args)?;
-    dbg!(&exit_point);
     let nym_ips = if let (Some(ipv4), Some(ipv6)) = (args.nym_ipv4, args.nym_ipv6) {
         Some(IpPair::new(ipv4, ipv6))
     } else {

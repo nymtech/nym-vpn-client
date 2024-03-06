@@ -4260,6 +4260,7 @@ dependencies = [
  "nym-client-core",
  "nym-config",
  "nym-crypto",
+ "nym-explorer-client",
  "nym-ip-packet-requests",
  "nym-node-requests",
  "nym-sdk",

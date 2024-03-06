@@ -58,6 +58,9 @@ pub enum Error {
     #[error("{0}")]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 
+    #[error(transparent)]
+    ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
+
     #[error("missing Gateway exit information")]
     MissingExitPointInformation,
 
