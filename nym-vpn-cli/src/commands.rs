@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use clap::Parser;
+use clap::{Args, Parser};
 use ipnetwork::{Ipv4Network, Ipv6Network};
 use nym_vpn_lib::nym_config::defaults::var_names::NYM_API;
 use nym_vpn_lib::nym_config::OptionalSet;
@@ -34,39 +34,11 @@ pub(crate) struct CliArgs {
     #[arg(long)]
     pub(crate) mixnet_client_path: Option<PathBuf>,
 
-    /// Mixnet public ID of the entry gateway.
-    #[clap(long, conflicts_with = "entry_gateway_country", alias = "entry-id")]
-    pub(crate) entry_gateway_id: Option<String>,
+    #[command(flatten)]
+    pub(crate) entry: CliEntry,
 
-    /// Auto-select entry gateway by country ISO.
-    #[clap(long, conflicts_with = "entry_gateway_id", alias = "entry-country")]
-    pub(crate) entry_gateway_country: Option<String>,
-
-    /// Mixnet recipient address.
-    #[arg(
-        long,
-        conflicts_with = "exit_router_country",
-        conflicts_with = "exit_gateway_id",
-        alias = "exit-address"
-    )]
-    pub(crate) exit_router_address: Option<String>,
-
-    #[clap(
-        long,
-        conflicts_with = "exit_router_country",
-        conflicts_with = "exit_router_address",
-        alias = "exit-id"
-    )]
-    pub(crate) exit_gateway_id: Option<String>,
-
-    /// Mixnet recipient address.
-    #[arg(
-        long,
-        alias = "exit-country",
-        conflicts_with = "exit_router_address",
-        conflicts_with = "exit_gateway_id"
-    )]
-    pub(crate) exit_router_country: Option<String>,
+    #[command(flatten)]
+    pub(crate) exit: CliExit,
 
     /// Enable the wireguard traffic between the client and the entry gateway.
     #[arg(
@@ -115,6 +87,33 @@ pub(crate) struct CliArgs {
     /// Disable constant rate background loop cover traffic
     #[arg(long)]
     pub(crate) disable_background_cover_traffic: bool,
+}
+
+#[derive(Args)]
+#[group(required = true, multiple = false)]
+pub(crate) struct CliEntry {
+    /// Mixnet public ID of the entry gateway.
+    #[clap(long, alias = "entry-id")]
+    pub(crate) entry_gateway_id: Option<String>,
+
+    /// Auto-select entry gateway by country ISO.
+    #[clap(long, alias = "entry-country")]
+    pub(crate) entry_gateway_country: Option<String>,
+}
+
+#[derive(Args)]
+#[group(required = true, multiple = false)]
+pub(crate) struct CliExit {
+    /// Mixnet recipient address.
+    #[clap(long, alias = "exit-address")]
+    pub(crate) exit_router_address: Option<String>,
+
+    #[clap(long, alias = "exit-id")]
+    pub(crate) exit_gateway_id: Option<String>,
+
+    /// Mixnet recipient address.
+    #[clap(long, alias = "exit-country")]
+    pub(crate) exit_gateway_country: Option<String>,
 }
 
 fn validate_wg_ip(ip: &str) -> Result<Ipv4Addr, String> {
