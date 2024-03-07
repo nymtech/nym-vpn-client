@@ -285,9 +285,6 @@ impl NymVpn {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
-        // let gateways = &gateway_client.lookup_described_gateways().await?;
-        // let gateways_from_explorer = gateway_client.lookup_gateways_in_explorer().await?;
-        // dbg!(&gateways_from_explorer);
         let gateways = gateway_client
             .lookup_described_gateways_with_location()
             .await?;
