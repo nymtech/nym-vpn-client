@@ -288,7 +288,9 @@ impl NymVpn {
         // let gateways = &gateway_client.lookup_described_gateways().await?;
         // let gateways_from_explorer = gateway_client.lookup_gateways_in_explorer().await?;
         // dbg!(&gateways_from_explorer);
-        let gateways = gateway_client.lookup_described_gateways_with_location().await?;
+        let gateways = gateway_client
+            .lookup_described_gateways_with_location()
+            .await?;
         let entry_gateway_id = self.entry_point.lookup_gateway_identity(&gateways)?;
         let exit_router_address = self.exit_point.lookup_router_address(&gateways)?;
 
