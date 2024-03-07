@@ -192,12 +192,22 @@ jobs:
           ls -la target/${{ env.ARCH_TARGET }}/release/bundle || true
           ls -la target/${{ env.ARCH_TARGET }}/release/bundle/* || true
 
-      - name: Move update bundle artifacts
+      - name: Move update bundle artifacts (Linux)
+        if: contains(matrix.os, 'ubuntu')
+        shell: bash
+        # ja on ubuntu `fd` is specifically named `fdfind` …
+        run: |
+          echo "moving update bundle's archive and signature into ${{ env.UPDATE_BUNDLE_DIR }}"
+          mkdir ${{ env.UPDATE_BUNDLE_DIR }}
+          fdfind -I 'nym-vpn.*.AppImage.tar.gz(.sig)?' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/{/}'
+          ls -la ${{ env.UPDATE_BUNDLE_DIR }}
+
+      - name: Move update bundle artifacts (Mac)
+        if: contains(matrix.os, 'mac')
         shell: bash
         run: |
           echo "moving update bundle's archive and signature into ${{ env.UPDATE_BUNDLE_DIR }}"
           mkdir ${{ env.UPDATE_BUNDLE_DIR }}
-          fd -I 'nym-vpn.*.AppImage.tar.gz(.sig)?' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/{/}'
           fd -I 'nym-vpn.*.app.tar.gz(.sig)?' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/{/}'
           ls -la ${{ env.UPDATE_BUNDLE_DIR }}
 
