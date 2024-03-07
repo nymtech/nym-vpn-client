@@ -38,6 +38,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
+      UPDATE_BUNDLE_DIR: update_bundle
     outputs:
       update_bundle_name: ${{ steps.set_env.outputs.update_bundle_name }}
 
@@ -94,11 +95,12 @@ jobs:
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
           fi
+          version=${{ steps.package-version.outputs.metadata }}
           wg_go_lib_name="wireguard-go_$platform_arch"
-          artifact_dir="nym-vpn-desktop_${{ steps.package-version.outputs.metadata }}_$platform_arch"
+          artifact_dir="nym-vpn-desktop_${version}_$platform_arch"
           artifact_archive="$artifact_dir.tar.gz"
           artifact_checksum="$artifact_archive.sha256sum"
-          update_bundle_name="$artifact_dir"_bundle
+          update_bundle_name="update-bundle_${version}_$platform_arch"
           # debug
           echo " ✓ PLATFORM_ARCH: $platform_arch"
           echo " ✓ WG_GO_LIB_NAME: $wg_go_lib_name"
@@ -106,6 +108,7 @@ jobs:
           echo " ✓ ARTIFACT_DIR: $artifact_dir"
           echo " ✓ ARTIFACT_ARCHIVE: $artifact_archive"
           echo " ✓ UPDATE_BUNDLE_NAME: $update_bundle_name"
+          echo " ✓ UPDATE_BUNDLE_DIR: ${{ env.UPDATE_BUNDLE_DIR }}"
           # set github env
           echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
           echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
@@ -182,6 +185,15 @@ jobs:
           ls -la target/${{ env.ARCH_TARGET }}/release/bundle || true
           ls -la target/${{ env.ARCH_TARGET }}/release/bundle/* || true
 
+      - name: Move update bundle artifacts
+        shell: bash
+        run: |
+          echo "moving update bundle's archive and signature into ${{ env.UPDATE_BUNDLE_DIR }}"
+          mkdir ${{ env.UPDATE_BUNDLE_DIR }}
+          mv nym-vpn-desktop/src-tauri/target/**/release/bundle/appimage/nym-vpn*.AppImage.tar.gz* ${{ env.UPDATE_BUNDLE_DIR }} || true
+          mv nym-vpn-desktop/src-tauri/target/**/release/bundle/macos/nym-vpn*.app.tar.gz* ${{ env.UPDATE_BUNDLE_DIR }} || true
+          ls -la ${{ env.UPDATE_BUNDLE_DIR }}
+
       - name: Create archive
         shell: bash
         run: |
@@ -203,11 +215,9 @@ jobs:
         with:
           name: ${{ env.UPDATE_BUNDLE_NAME }}
           # upload both the update bundle and its signature
-          # - nymvpn.*.tar.gz
-          # - nymvpn.*.tar.gz.sig
-          path: |
-            nym-vpn-desktop/src-tauri/target/**/release/bundle/appimage/nym-vpn*.AppImage.tar.gz*
-            nym-vpn-desktop/src-tauri/target/**/release/bundle/macos/nym-vpn*.app.tar.gz*
+          # - nym-vpn.*.tar.gz
+          # - nym-vpn.*.tar.gz.sig
+          path: ${{ env.UPDATE_BUNDLE_DIR }}
           retention-days: 2
 
       # Build info, but for now it's just the version
@@ -236,6 +246,7 @@ jobs:
     env:
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      UPDATE_BUNDLE_DIR: update_bundle
     permissions:
       contents: write
     steps:
@@ -250,7 +261,7 @@ jobs:
           UPDATE_BUNDLE_NAME: ${{ needs.build.outputs.update_bundle_name }}
         with:
           name: ${{ env.UPDATE_BUNDLE_NAME }}
-          path: update_bundle
+          path: ${{ env.UPDATE_BUNDLE_DIR }}
 
       # Setup TAG_NAME, which is used as a general "name"
       - if: github.event_name == 'workflow_dispatch'
@@ -308,5 +319,5 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* update_bundle/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* update_bundle/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* "${{ env.UPDATE_BUNDLE_DIR }}/*"
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* "${{ env.UPDATE_BUNDLE_DIR }}/*"
