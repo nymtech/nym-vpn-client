@@ -193,10 +193,7 @@ impl ExitPoint {
                 IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)
             }
             ExitPoint::Location { location } => {
-                // let exit_gateways = filter_on_ipr_available(gateways);
                 let exit_gateways = gateways.iter().filter(|g| g.has_ip_packet_router());
-                // let gateways_with_specified_location =
-                //     filter_on_country_code(exit_gateways, location);
                 let gateways_with_specified_location = exit_gateways
                     .filter(|gateway| gateway.is_two_letter_iso_country_code(location));
                 let random_gateway = gateways_with_specified_location
