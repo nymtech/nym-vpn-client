@@ -243,6 +243,15 @@ impl DescribedGatewayWithLocation {
     }
 }
 
+impl From<DescribedGateway> for DescribedGatewayWithLocation {
+    fn from(gateway: DescribedGateway) -> Self {
+        DescribedGatewayWithLocation {
+            gateway,
+            location: None,
+        }
+    }
+}
+
 pub struct GatewayClient {
     api_client: NymApiClient,
     explorer_client: Option<ExplorerClient>,
@@ -293,12 +302,19 @@ impl GatewayClient {
             .map_err(|source| Error::FailedToLookupDescribedGateways { source })
     }
 
-    pub async fn lookup_gateways_in_explorer(&self) -> Result<Vec<PrettyDetailedGatewayBond>> {
+    pub async fn lookup_gateways_in_explorer(
+        &self,
+    ) -> Option<Result<Vec<PrettyDetailedGatewayBond>>> {
         log::info!("Fetching gateway geo-locations from nym-explorer...");
         if let Some(explorer_client) = &self.explorer_client {
-            explorer_client.get_gateways().await.map_err(Into::into)
+            Some(
+                explorer_client
+                    .get_gateways()
+                    .await
+                    .map_err(|error| Error::FailedFetchLocationData { error }),
+            )
         } else {
-            todo!("Explorer client not found");
+            None
         }
     }
 
@@ -306,19 +322,35 @@ impl GatewayClient {
         &self,
     ) -> Result<Vec<DescribedGatewayWithLocation>> {
         let described_gateways = self.lookup_described_gateways().await?;
-        let gateway_locations = self.lookup_gateways_in_explorer().await?;
-        described_gateways
-            .into_iter()
-            .map(|gateway| {
-                let location = gateway_locations
-                    .iter()
-                    .find(|gateway_location| {
-                        gateway_location.gateway.identity_key == gateway.bond.gateway.identity_key
-                    })
-                    .and_then(|gateway_location| gateway_location.location.clone());
-                Ok(DescribedGatewayWithLocation { gateway, location })
-            })
-            .collect()
+        match self.lookup_gateways_in_explorer().await {
+            Some(Ok(gateway_locations)) => described_gateways
+                .into_iter()
+                .map(|gateway| {
+                    let location = gateway_locations
+                        .iter()
+                        .find(|gateway_location| {
+                            gateway_location.gateway.identity_key
+                                == gateway.bond.gateway.identity_key
+                        })
+                        .and_then(|gateway_location| gateway_location.location.clone());
+                    Ok(DescribedGatewayWithLocation { gateway, location })
+                })
+                .collect(),
+            Some(Err(error)) => {
+                // If there was an error fetching the location data, log it and keep on going
+                // without location data. This is not a fatal error since we can still refer to the
+                // gateways by identity.
+                log::warn!("{error}");
+                Ok(described_gateways
+                    .into_iter()
+                    .map(DescribedGatewayWithLocation::from)
+                    .collect())
+            }
+            None => Ok(described_gateways
+                .into_iter()
+                .map(DescribedGatewayWithLocation::from)
+                .collect()),
+        }
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {

@@ -61,6 +61,11 @@ pub enum Error {
     #[error(transparent)]
     ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
 
+    #[error("failed to fetch location data from explorer-api: {error}")]
+    FailedFetchLocationData {
+        error: nym_explorer_client::ExplorerApiError,
+    },
+
     #[error("missing Gateway exit information")]
     MissingExitPointInformation,
 
