@@ -155,6 +155,9 @@ fn validate_ipv6(ip: &str) -> Result<Ipv6Addr, String> {
 pub fn override_from_env(args: &CliArgs, config: Config) -> Config {
     let mut config = config
         .with_optional_env(Config::with_custom_api_url, None, NYM_API)
+        // TODO: there is a landmine here, if the user sets non-mainnet nym-api, but doesn't
+        // specify explorer-api, it will default to mainnet explorer-api and location lookup will
+        // implicitly fail instead of explicitly fail.
         .with_optional_env(Config::with_custom_explorer_url, None, EXPLORER_API);
     if let Some(ref private_key) = args.private_key {
         config = config.with_local_private_key(private_key.clone());

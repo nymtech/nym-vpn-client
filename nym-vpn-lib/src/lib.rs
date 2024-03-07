@@ -288,11 +288,21 @@ impl NymVpn {
         let gateways = gateway_client
             .lookup_described_gateways_with_location()
             .await?;
+
+        // If the entry or exit point relies on location, do a basic defensive consistency check on
+        // the fetched location data. If none of the gateways have location data, we can't proceed
+        // and it's likely the explorer-api isn't set correctly.
+        if (self.entry_point.is_location() || self.exit_point.is_location())
+            && gateways.iter().filter(|g| g.has_location()).count() == 0
+        {
+            return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
+        }
+
         let entry_gateway_id = self.entry_point.lookup_gateway_identity(&gateways)?;
         let exit_router_address = self.exit_point.lookup_router_address(&gateways)?;
 
-        info!("Determined criteria for location {entry_gateway_id}");
-        info!("Exit router address {exit_router_address}");
+        info!("Using entry gateway: {entry_gateway_id}");
+        info!("Using exit router address {exit_router_address}");
 
         let wireguard_config = if self.enable_wireguard {
             let private_key = self

@@ -87,6 +87,9 @@ pub enum Error {
         source: nym_validator_client::ValidatorClientError,
     },
 
+    #[error("gateway was requested by location, but we don't have any location data - is the explorer-api set correctly?")]
+    RequestedGatewayByLocationWithoutLocationDataAvailable,
+
     #[error("requested gateway not found in the remote list: {0}")]
     RequestedGatewayIdNotFound(String),
 
@@ -131,6 +134,9 @@ pub enum Error {
 
     #[error("no matching gateway found")]
     NoMatchingGateway,
+
+    #[error("no gateway available for location {0}")]
+    NoMatchingGatewayForLocation(String),
 
     #[error("deadlock when trying to aquire mixnet client mutes")]
     MixnetClientDeadlock,

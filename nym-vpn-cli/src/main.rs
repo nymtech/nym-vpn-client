@@ -70,6 +70,13 @@ async fn run() -> Result<()> {
     // Setup gateway configuration
     let gateway_config = override_from_env(&args, GatewayConfig::default());
     info!("nym-api: {}", gateway_config.api_url());
+    info!(
+        "explorer-api: {}",
+        gateway_config
+            .explorer_url()
+            .map(|url| url.to_string())
+            .unwrap_or("unavailable".to_string())
+    );
 
     let entry_point = parse_entry_point(&args)?;
     let exit_point = parse_exit_point(&args)?;

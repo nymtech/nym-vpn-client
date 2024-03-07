@@ -13,6 +13,7 @@ use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
+use nym_validator_client::client::IdentityKey;
 use nym_validator_client::models::DescribedGateway;
 use nym_validator_client::NymApiClient;
 use rand::seq::IteratorRandom;
@@ -65,6 +66,10 @@ impl Config {
         self
     }
 
+    pub fn explorer_url(&self) -> Option<&Url> {
+        self.explorer_url.as_ref()
+    }
+
     pub fn with_custom_explorer_url(mut self, explorer_url: Url) -> Self {
         self.explorer_url = Some(explorer_url);
         self
@@ -85,6 +90,12 @@ pub enum EntryPoint {
     Location { location: String },
 }
 
+impl EntryPoint {
+    pub fn is_location(&self) -> bool {
+        matches!(self, EntryPoint::Location { .. })
+    }
+}
+
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
 // gateway, we can refer to it by the gateway identity.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -98,6 +109,12 @@ pub enum ExitPoint {
     Gateway { identity: NodeIdentity },
     // NOTE: Consider using a crate with strongly typed country codes instead of strings
     Location { location: String },
+}
+
+impl ExitPoint {
+    pub fn is_location(&self) -> bool {
+        matches!(self, ExitPoint::Location { .. })
+    }
 }
 
 #[cfg(target_os = "macos")]
@@ -126,39 +143,32 @@ impl UniffiCustomTypeConverter for NodeIdentity {
     }
 }
 
-fn filter_on_country_code<'a>(
-    gateways: &'a [DescribedGatewayWithLocation],
-    location: &str,
-) -> Vec<&'a DescribedGateway> {
-    gateways
-        .iter()
-        .filter(|gateway| {
-            gateway
-                .location
-                .as_ref()
-                .map_or(false, |l| l.two_letter_iso_country_code == location)
-        })
-        .map(|described_gateway| &described_gateway.gateway)
-        .collect()
-}
-
 impl EntryPoint {
     pub fn lookup_gateway_identity(
         &self,
         gateways: &[DescribedGatewayWithLocation],
     ) -> Result<NodeIdentity> {
         match &self {
-            EntryPoint::Gateway { identity } => Ok(*identity),
-            EntryPoint::Location { location } => {
-                let gateways_with_specified_location = filter_on_country_code(gateways, location);
-                let random_gateway: &DescribedGateway = gateways_with_specified_location
+            EntryPoint::Gateway { identity } => {
+                // Confirm up front that the gateway identity is in the list of gateways from the
+                // directory.
+                gateways
                     .iter()
-                    .choose(&mut rand::thread_rng())
+                    .find(|gateway| gateway.identity_key() == &identity.to_string())
                     .ok_or(Error::NoMatchingGateway)?;
-                Ok(NodeIdentity::from_base58_string(
-                    random_gateway.clone().bond.gateway.identity_key,
-                )
-                .map_err(|_| Error::NodeIdentityFormattingError)?)
+                Ok(*identity)
+            }
+            EntryPoint::Location { location } => {
+                // If an explorer-api for a different network was specified, then none of the
+                // gateways will have an associated location.
+                let gateways_with_specified_location = gateways
+                    .iter()
+                    .filter(|g| g.is_two_letter_iso_country_code(location));
+                let random_gateway = gateways_with_specified_location
+                    .choose(&mut rand::thread_rng())
+                    .ok_or(Error::NoMatchingGatewayForLocation(location.to_string()))?;
+                NodeIdentity::from_base58_string(random_gateway.identity_key())
+                    .map_err(|_| Error::NodeIdentityFormattingError)
             }
         }
     }
@@ -170,32 +180,67 @@ impl ExitPoint {
         gateways: &[DescribedGatewayWithLocation],
     ) -> Result<IpPacketRouterAddress> {
         match &self {
-            ExitPoint::Address { address } => Ok(IpPacketRouterAddress(*address)),
+            ExitPoint::Address { address } => {
+                // There is no validation done when a ip packet router is specified by address
+                // since it might be private and not available in any directory.
+                Ok(IpPacketRouterAddress(*address))
+            }
             ExitPoint::Gateway { identity } => {
                 let gateway = gateways
                     .iter()
-                    .find(|gateway| {
-                        // sing with me: gateway gateway gateway mushroom mushroom
-                        gateway.gateway.bond.gateway.identity_key == *identity.to_string()
-                    })
+                    .find(|gateway| gateway.identity_key() == &identity.to_string())
                     .ok_or(Error::NoMatchingGateway)?;
                 IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)
             }
             ExitPoint::Location { location } => {
-                let gateways_with_specified_location = filter_on_country_code(gateways, location);
+                // let exit_gateways = filter_on_ipr_available(gateways);
+                let exit_gateways = gateways.iter().filter(|g| g.has_ip_packet_router());
+                // let gateways_with_specified_location =
+                //     filter_on_country_code(exit_gateways, location);
+                let gateways_with_specified_location = exit_gateways
+                    .filter(|gateway| gateway.is_two_letter_iso_country_code(location));
                 let random_gateway = gateways_with_specified_location
-                    .iter()
                     .choose(&mut rand::thread_rng())
-                    .ok_or(Error::NoMatchingGateway)?;
-                IpPacketRouterAddress::try_from_described_gateway(random_gateway)
+                    .ok_or(Error::NoMatchingGatewayForLocation(location.to_string()))?;
+                IpPacketRouterAddress::try_from_described_gateway(&random_gateway.gateway)
             }
         }
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct DescribedGatewayWithLocation {
     pub gateway: DescribedGateway,
     pub location: Option<Location>,
+}
+
+impl DescribedGatewayWithLocation {
+    pub fn identity_key(&self) -> &IdentityKey {
+        &self.gateway.bond.gateway.identity_key
+    }
+
+    pub fn has_ip_packet_router(&self) -> bool {
+        self.gateway
+            .self_described
+            .as_ref()
+            .and_then(|d| d.ip_packet_router.as_ref())
+            .is_some()
+    }
+
+    pub fn has_location(&self) -> bool {
+        self.location.is_some()
+    }
+
+    pub fn two_letter_iso_country_code(&self) -> Option<String> {
+        self.location
+            .as_ref()
+            .map(|l| l.two_letter_iso_country_code.clone())
+    }
+
+    pub fn is_two_letter_iso_country_code(&self, code: &str) -> bool {
+        self.two_letter_iso_country_code()
+            .map_or(false, |gateway_iso_code| gateway_iso_code == code)
+    }
 }
 
 pub struct GatewayClient {
@@ -241,7 +286,7 @@ impl GatewayClient {
     }
 
     pub async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {
-        log::info!("Lookup described gateways");
+        log::info!("Fetching gateways from nym-api...");
         self.api_client
             .get_cached_described_gateways()
             .await
@@ -249,6 +294,7 @@ impl GatewayClient {
     }
 
     pub async fn lookup_gateways_in_explorer(&self) -> Result<Vec<PrettyDetailedGatewayBond>> {
+        log::info!("Fetching gateway geo-locations from nym-explorer...");
         if let Some(explorer_client) = &self.explorer_client {
             explorer_client.get_gateways().await.map_err(Into::into)
         } else {
