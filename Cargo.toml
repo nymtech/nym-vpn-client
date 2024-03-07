@@ -15,6 +15,7 @@ exclude = ["nym-vpn-desktop/src-tauri"]
 # nym-task = { path = "../nym/common/task" }
 # nym-validator-client = { path = "../nym/common/client-libs/validator-client" }
 # nym-wireguard-types = { path = "../nym/common/wireguard-types" }
+# nym-explorer-client = { path = "../nym/explorer-api/explorer-client" }
 
 [workspace.dependencies]
 tokio = { version = "1.8" }

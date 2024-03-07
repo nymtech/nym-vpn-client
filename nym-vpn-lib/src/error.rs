@@ -58,6 +58,14 @@ pub enum Error {
     #[error("{0}")]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 
+    #[error(transparent)]
+    ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
+
+    #[error("failed to fetch location data from explorer-api: {error}")]
+    FailedFetchLocationData {
+        error: nym_explorer_client::ExplorerApiError,
+    },
+
     #[error("missing Gateway exit information")]
     MissingExitPointInformation,
 
@@ -83,6 +91,9 @@ pub enum Error {
     FailedToLookupDescribedGateways {
         source: nym_validator_client::ValidatorClientError,
     },
+
+    #[error("gateway was requested by location, but we don't have any location data - is the explorer-api set correctly?")]
+    RequestedGatewayByLocationWithoutLocationDataAvailable,
 
     #[error("requested gateway not found in the remote list: {0}")]
     RequestedGatewayIdNotFound(String),
@@ -128,6 +139,9 @@ pub enum Error {
 
     #[error("no matching gateway found")]
     NoMatchingGateway,
+
+    #[error("no gateway available for location {0}")]
+    NoMatchingGatewayForLocation(String),
 
     #[error("deadlock when trying to aquire mixnet client mutes")]
     MixnetClientDeadlock,
