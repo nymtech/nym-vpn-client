@@ -126,6 +126,22 @@ impl UniffiCustomTypeConverter for NodeIdentity {
     }
 }
 
+fn filter_on_country_code<'a>(
+    gateways: &'a [DescribedGatewayWithLocation],
+    location: &str,
+) -> Vec<&'a DescribedGateway> {
+    gateways
+        .iter()
+        .filter(|gateway| {
+            gateway
+                .location
+                .as_ref()
+                .map_or(false, |l| l.two_letter_iso_country_code == location)
+        })
+        .map(|described_gateway| &described_gateway.gateway)
+        .collect()
+}
+
 impl EntryPoint {
     pub fn lookup_gateway_identity(
         &self,
@@ -134,16 +150,7 @@ impl EntryPoint {
         match &self {
             EntryPoint::Gateway { identity } => Ok(*identity),
             EntryPoint::Location { location } => {
-                let gateways_with_specified_location: Vec<&DescribedGateway> = gateways
-                    .iter()
-                    .filter(|gateway| {
-                        gateway
-                            .location
-                            .as_ref()
-                            .map_or(false, |l| &l.two_letter_iso_country_code == location)
-                    })
-                    .map(|described_gateway| &described_gateway.gateway)
-                    .collect();
+                let gateways_with_specified_location = filter_on_country_code(gateways, location);
                 let random_gateway: &DescribedGateway = gateways_with_specified_location
                     .iter()
                     .choose(&mut rand::thread_rng())
@@ -175,16 +182,7 @@ impl ExitPoint {
                 IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)
             }
             ExitPoint::Location { location } => {
-                let gateways_with_specified_location: Vec<&DescribedGateway> = gateways
-                    .iter()
-                    .filter(|gateway| {
-                        gateway
-                            .location
-                            .as_ref()
-                            .map_or(false, |l| &l.two_letter_iso_country_code == location)
-                    })
-                    .map(|described_gateway| &described_gateway.gateway)
-                    .collect();
+                let gateways_with_specified_location = filter_on_country_code(gateways, location);
                 let random_gateway = gateways_with_specified_location
                     .iter()
                     .choose(&mut rand::thread_rng())
