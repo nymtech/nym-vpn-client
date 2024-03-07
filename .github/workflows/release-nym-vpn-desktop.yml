@@ -192,8 +192,8 @@ jobs:
         run: |
           echo "moving update bundle's archive and signature into ${{ env.UPDATE_BUNDLE_DIR }}"
           mkdir ${{ env.UPDATE_BUNDLE_DIR }}
-          mv nym-vpn-desktop/src-tauri/target/**/release/bundle/appimage/nym-vpn*.AppImage.tar.gz* ${{ env.UPDATE_BUNDLE_DIR }} || true
-          mv nym-vpn-desktop/src-tauri/target/**/release/bundle/macos/nym-vpn*.app.tar.gz* ${{ env.UPDATE_BUNDLE_DIR }} || true
+          fd -I 'nym-vpn.*.AppImage.tar.gz(.sig)?' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/{/}'
+          fd -I 'nym-vpn.*.app.tar.gz(.sig)?' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/{/}'
           ls -la ${{ env.UPDATE_BUNDLE_DIR }}
 
       - name: Create archive
