@@ -3,6 +3,7 @@ use anyhow::Result;
 use futures::channel::oneshot::Receiver as OneshotReceiver;
 use futures::StreamExt;
 use nym_vpn_lib::gateway_client::{Config as GatewayClientConfig, EntryPoint, ExitPoint};
+use nym_vpn_lib::nym_config::defaults::var_names::{EXPLORER_API, NYM_API};
 use nym_vpn_lib::nym_config::OptionalSet;
 use nym_vpn_lib::{NymVpn, NymVpnExitError, NymVpnExitStatusMessage, StatusReceiver};
 use tauri::Manager;
@@ -155,7 +156,12 @@ pub async fn spawn_status_listener(
 fn setup_gateway_client_config(private_key: Option<&str>) -> GatewayClientConfig {
     let mut config = GatewayClientConfig::default()
         // Read in the environment variable NYM_API if it exists
-        .with_optional_env(GatewayClientConfig::with_custom_api_url, None, "NYM_API");
+        .with_optional_env(GatewayClientConfig::with_custom_api_url, None, NYM_API)
+        .with_optional_env(
+            GatewayClientConfig::with_custom_explorer_url,
+            None,
+            EXPLORER_API,
+        );
     info!("Using nym-api: {}", config.api_url());
 
     if let Some(key) = private_key {
