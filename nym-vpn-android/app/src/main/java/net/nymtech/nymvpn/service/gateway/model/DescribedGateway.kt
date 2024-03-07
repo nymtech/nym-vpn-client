@@ -7,5 +7,6 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class DescribedGateway(
     @Json(name = "bond") val bond: Bond,
-    @Json(name = "self_described") val selfDescribed: SelfDescribed
+    @Json(name = "self_described") val selfDescribed: SelfDescribed,
+    @Json(name = "network_requester") val networkRequester : String?,
 )
