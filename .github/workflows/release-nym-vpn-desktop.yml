@@ -276,7 +276,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
-      - name: Download tauri update bundle
+      - name: Download update bundle
         uses: actions/download-artifact@v4
         env:
           UPDATE_BUNDLE_NAME: ${{ needs.build.outputs.update_bundle_name }}
@@ -341,4 +341,4 @@ jobs:
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
           echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* "${{ env.UPDATE_BUNDLE_DIR }}/*"
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* "${{ env.UPDATE_BUNDLE_DIR }}/*"
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* ${{ env.UPDATE_BUNDLE_DIR }}/*
