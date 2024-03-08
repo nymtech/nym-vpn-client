@@ -80,7 +80,7 @@ jobs:
 
       - name: Upload artifacts (macos universal)
         uses: actions/upload-artifact@v4
-        if: inputs.os == 'custom-runner-mac-m1'
+        if: contains(inputs.os, 'mac')
         with:
           name: wireguard-go_macos_universal
           path: |
