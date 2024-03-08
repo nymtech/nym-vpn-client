@@ -39,8 +39,6 @@ jobs:
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
       UPDATE_BUNDLE_DIR: update_bundle
-    outputs:
-      update_bundle_name: ${{ steps.set_env.outputs.update_bundle_name }}
 
     steps:
       - name: "Cleanup working directory"
@@ -116,8 +114,6 @@ jobs:
           echo "ARTIFACT_ARCHIVE=$artifact_archive" >> $GITHUB_ENV
           echo "ARTIFACT_CHECKSUM=$artifact_checksum" >> $GITHUB_ENV
           echo "UPDATE_BUNDLE_NAME=$update_bundle_name" >> $GITHUB_ENV
-          # set job outputs
-          echo "update_bundle_name=$update_bundle_name" >> "$GITHUB_OUTPUT"
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -322,8 +318,6 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
-        env:
-          UPDATE_BUNDLE_DIR: ${{ needs.build.outputs.update_bundle_name }}
         run: |
           echo "build info"
           echo "$BUILD_INFO"
@@ -331,10 +325,9 @@ jobs:
           echo "$SHA256_CHECKSUMS"
           echo "Creating release notes"
           echo "Update bundle dir"
-          echo $UPDATE_BUNDLE_DIR
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* $UPDATE_BUNDLE_DIR/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* $UPDATE_BUNDLE_DIR/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* update-bundle_*/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* update-bundle_*/*
