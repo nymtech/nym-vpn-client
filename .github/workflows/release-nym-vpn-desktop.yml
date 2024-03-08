@@ -336,9 +336,11 @@ jobs:
           echo "checksums"
           echo "$SHA256_CHECKSUMS"
           echo "Creating release notes"
+          echo "Update bundle dir"
+          echo $UPDATE_BUNDLE_DIR
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* "${{ env.UPDATE_BUNDLE_DIR }}/*"
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* ${{ env.UPDATE_BUNDLE_DIR }}/*
           gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* ${{ env.UPDATE_BUNDLE_DIR }}/*
