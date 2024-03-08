@@ -199,8 +199,8 @@ jobs:
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
           mkdir $UPDATER_BUNDLE_DIR
-          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}
-          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig
+          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
+          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
           ls -la $UPDATER_BUNDLE_DIR
 
       - name: Move updater bundle artifacts (Macos)
@@ -213,8 +213,8 @@ jobs:
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
           mkdir $UPDATER_BUNDLE_DIR
-          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}
-          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig
+          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
+          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
           ls -la $UPDATER_BUNDLE_DIR
 
       - name: Upload updater bundle (${{ env.PLATFORM_ARCH }})
