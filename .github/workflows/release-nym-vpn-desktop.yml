@@ -183,30 +183,32 @@ jobs:
           ls -la target/${{ env.ARCH_TARGET }}/release/bundle || true
           ls -la target/${{ env.ARCH_TARGET }}/release/bundle/* || true
 
-      - name: Move updater bundle artifacts
+      - name: Move updater bundle artifacts (Linux)
+        if: contains(matrix.os, 'ubuntu')
         shell: bash
         env:
-          # this should translate to
-          # - nym-vpn-desktop/src-tauri/target/release/bundle/appimage/ - Linux
-          # - nym-vpn-desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/ - Mac
-          BUNDLE_PATH: nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/${{ contains(matrix.os, 'mac') && 'macos' || 'appimage' }}
-          # source bundle name
-          # - nym-vpn*.AppImage.tar.gz(.sig) - Linux
-          # - nym-vpn.app.tar.gz(.sig) - Mac
-          SOURCE_BUNDLE_NAME: ${{ contains(matrix.os, 'mac') && 'nym-vpn.app.tar.gz' || 'nym-vpn*.AppImage.tar.gz' }}
-          # target bundle name
-          # - updater_amd64.AppImage.tar.gz(.sig) - Linux
-          # - updater_universal.app.tar.gz(.sig) - Mac
-          TARGET_BUNDLE_NAME: ${{ contains(matrix.os, 'mac') && 'updater_universal.app.tar.gz' || 'updater_amd64.AppImage.tar.gz' }}
+          SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn*.AppImage.tar.gz
+          TARGET_BUNDLE: updater_amd64.AppImage.tar.gz
         run: |
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
-          echo " ✓ BUNDLE_PATH: ${{ env.BUNDLE_PATH }}"
-          echo " ✓ SOURCE_BUNDLE_NAME: ${{ env.SOURCE_BUNDLE_NAME }}"
-          echo " ✓ TARGET_BUNDLE_NAME: ${{ env.TARGET_BUNDLE_NAME }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
           mkdir $UPDATER_BUNDLE_DIR
-          mv ${{ env.BUNDLE_PATH }}/${{ env.SOURCE_BUNDLE_NAME }}     ${{ env.UPDATER_BUNDLE_DIR }}/${{ env.TARGET_BUNDLE_NAME }}
-          mv ${{ env.BUNDLE_PATH }}/${{ env.SOURCE_BUNDLE_NAME }}.sig ${{ env.UPDATER_BUNDLE_DIR }}/${{ env.TARGET_BUNDLE_NAME }}.sig
+          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}
+          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig
+          ls -la $UPDATER_BUNDLE_DIR
+
+      - name: Move updater bundle artifacts (Macos)
+        if: contains(matrix.os, 'mac')
+        shell: bash
+        env:
+          SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/nym-vpn.app.tar.gz
+          TARGET_BUNDLE: updater_universal.app.tar.gz
+        run: |
+          echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
+          rm -rf $UPDATER_BUNDLE_DIR || true
+          mkdir $UPDATER_BUNDLE_DIR
+          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}
+          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig
           ls -la $UPDATER_BUNDLE_DIR
 
       - name: Upload updater bundle (${{ env.PLATFORM_ARCH }})
