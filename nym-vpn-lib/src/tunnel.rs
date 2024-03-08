@@ -31,7 +31,7 @@ impl Tunnel {
         tun_provider: Arc<Mutex<TunProvider>>,
     ) -> Result<Self, crate::error::Error> {
         #[cfg(target_os = "macos")]
-        let (firewall, dns_monitor) = {
+            let (firewall, dns_monitor) = {
             let (command_tx, _) = mpsc::unbounded();
             let command_tx = Arc::new(command_tx);
             let weak_command_tx = Arc::downgrade(&command_tx);
@@ -42,18 +42,10 @@ impl Tunnel {
             (firewall, dns_monitor)
         };
 
-        #[cfg(target_os = "windows")]
-        let (firewall, dns_monitor) = {
-            debug!("Starting firewall");
-            let firewall = Firewall::new()?;
-            debug!("Starting dns monitor");
-            let dns_monitor = DnsMonitor::new()?;
-            (firewall, dns_monitor)
-        };
-
         #[cfg(target_os = "linux")]
-        let (firewall, dns_monitor) = {
-            let fwmark = 0; // ?
+            let (firewall, dns_monitor) = {
+            let fwmark = 0;
+            // ?
             debug!("Starting firewall");
             let firewall = Firewall::new(fwmark)?;
             debug!("Starting dns monitor");
@@ -65,8 +57,10 @@ impl Tunnel {
         };
 
         #[cfg(all(not(target_os = "macos"), not(target_os = "linux")))]
-        let (firewall, dns_monitor) = {
+            let (firewall, dns_monitor) = {
+            debug!("Starting firewall");
             let firewall = Firewall::new()?;
+            debug!("Starting dns monitor");
             let dns_monitor = DnsMonitor::new()?;
             (firewall, dns_monitor)
         };
@@ -93,7 +87,7 @@ pub fn start_tunnel(
     let handle = tokio::task::spawn_blocking(move || -> Result<(), crate::error::Error> {
         let (event_tx, _) = mpsc::unbounded();
         let on_tunnel_event =
-            move |event| -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> {
+            move |event| -> std::pin::Pin<Box<dyn std::future::Future<Output=()> + Send>> {
                 let (tx, rx) = oneshot::channel::<()>();
                 let _ = event_tx.unbounded_send((event, tx));
                 Box::pin(async move {
@@ -130,14 +124,14 @@ pub fn start_tunnel(
 
 pub async fn setup_route_manager() -> crate::error::Result<RouteManager> {
     #[cfg(target_os = "linux")]
-    let route_manager = {
+        let route_manager = {
         let fwmark = 0;
         let table_id = 0;
         RouteManager::new(HashSet::new(), fwmark, table_id).await?
     };
 
     #[cfg(not(target_os = "linux"))]
-    let route_manager = RouteManager::new(HashSet::new()).await?;
+        let route_manager = RouteManager::new(HashSet::new()).await?;
 
     Ok(route_manager)
 }
