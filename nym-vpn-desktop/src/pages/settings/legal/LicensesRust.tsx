@@ -1,4 +1,4 @@
-function Licenses() {
+function LicensesRust() {
   return (
     <div className="h-full flex">
       <iframe
@@ -10,4 +10,4 @@ function Licenses() {
   );
 }
 
-export default Licenses;
+export default LicensesRust;

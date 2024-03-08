@@ -91,8 +91,15 @@ export default function TopBar() {
           navigate(-1);
         },
       },
-      '/settings/legal/licenses': {
-        title: t('legal.licenses', { ns: 'settings' }),
+      '/settings/legal/licenses-rust': {
+        title: t('legal.licenses-rust', { ns: 'settings' }),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
+      '/settings/legal/licenses-js': {
+        title: t('legal.licenses-js', { ns: 'settings' }),
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
