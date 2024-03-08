@@ -267,22 +267,16 @@ jobs:
     env:
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      UPDATE_BUNDLE_DIR: update_bundle
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
 
+      # Downloads *all* artifacts produced by the `build` job
+      # Each individual artifact will be located in a directory
+      # named with the same name of the artifact (upload)
       - name: Download artifacts
         uses: actions/download-artifact@v4
-
-      - name: Download update bundle
-        uses: actions/download-artifact@v4
-        env:
-          UPDATE_BUNDLE_NAME: ${{ needs.build.outputs.update_bundle_name }}
-        with:
-          name: ${{ env.UPDATE_BUNDLE_NAME }}
-          path: ${{ env.UPDATE_BUNDLE_DIR }}
 
       # Setup TAG_NAME, which is used as a general "name"
       - if: github.event_name == 'workflow_dispatch'
@@ -330,6 +324,8 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
+        env:
+          UPDATE_BUNDLE_DIR: ${{ needs.build.outputs.update_bundle_name }}
         run: |
           echo "build info"
           echo "$BUILD_INFO"
@@ -342,5 +338,5 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* ${{ env.UPDATE_BUNDLE_DIR }}/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* ${{ env.UPDATE_BUNDLE_DIR }}/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* $UPDATE_BUNDLE_DIR/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* $UPDATE_BUNDLE_DIR/*
