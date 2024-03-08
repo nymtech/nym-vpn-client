@@ -2,7 +2,9 @@ use clap::Parser;
 use nym_vpn_lib::nym_bin_common::bin_info_local_vergen;
 use std::{path::PathBuf, sync::OnceLock};
 
+#[cfg(unix)]
 mod command_interface;
+#[cfg(unix)]
 mod service;
 
 // Helper for passing LONG_VERSION to clap
@@ -45,22 +47,28 @@ pub fn setup_logging() {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    setup_logging();
-    let args = CliArgs::parse();
-    nym_vpn_lib::nym_config::defaults::setup_env(args.config_env_file.as_ref());
+    if !cfg!(unix) {
+        unimplemented!("Daemon not implemented for non-unix platforms");
+    }
+    #[cfg(unix)]
+    {
+        setup_logging();
+        let args = CliArgs::parse();
+        nym_vpn_lib::nym_config::defaults::setup_env(args.config_env_file.as_ref());
 
-    // The idea here for explicly starting two separate runtimes is to make sure they are properly
-    // separated. Looking ahead a little ideally it would be nice to be able for the command
-    // interface to be able to forcefully terminate the vpn if needed.
+        // The idea here for explicly starting two separate runtimes is to make sure they are properly
+        // separated. Looking ahead a little ideally it would be nice to be able for the command
+        // interface to be able to forcefully terminate the vpn if needed.
 
-    println!("main: starting command handler");
-    let (command_handle, vpn_command_rx) = command_interface::start_command_interface();
+        println!("main: starting command handler");
+        let (command_handle, vpn_command_rx) = command_interface::start_command_interface();
 
-    println!("main: starting VPN handler");
-    let vpn_handle = service::start_vpn_service(vpn_command_rx);
+        println!("main: starting VPN handler");
+        let vpn_handle = service::start_vpn_service(vpn_command_rx);
 
-    vpn_handle.join().unwrap();
-    command_handle.join().unwrap();
+        vpn_handle.join().unwrap();
+        command_handle.join().unwrap();
+    }
 
     Ok(())
 }
