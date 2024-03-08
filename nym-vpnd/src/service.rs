@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use futures::SinkExt;
 use futures::{channel::mpsc::UnboundedSender, StreamExt};
+use nym_vpn_lib::SentStatus;
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::oneshot;
 
@@ -180,13 +181,14 @@ impl VpnServiceStatusListener {
     async fn start(
         self,
         mut vpn_status_rx: futures::channel::mpsc::Receiver<
-            Box<dyn std::error::Error + Send + Sync>,
+            // Box<dyn std::error::Error + Send + Sync>,
+            SentStatus,
         >,
     ) {
         tokio::spawn(async move {
             while let Some(msg) = vpn_status_rx.next().await {
                 println!("Received status: {msg}");
-                match msg.downcast_ref::<nym_vpn_lib::TaskStatus>().unwrap() {
+                match msg.as_any().downcast_ref::<nym_vpn_lib::TaskStatus>().unwrap() {
                     nym_vpn_lib::TaskStatus::Ready => {
                         println!("VPN status: connected");
                         self.set_shared_state(VpnState::Connected);

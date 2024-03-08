@@ -127,26 +127,27 @@ pub async fn spawn_status_listener(
     tokio::spawn(async move {
         while let Some(msg) = status_rx.next().await {
             info!("received vpn status message: {msg:?}");
-            if "Ready" == msg.to_string().as_str() {
-                info!("vpn connection has been established");
-                let now = OffsetDateTime::now_utc();
-                {
-                    let mut state = app_state.lock().await;
-                    trace!("update connection state [Connected]");
-                    state.state = ConnectionState::Connected;
-                    state.connection_start_time = Some(now);
-                }
-                debug!("sending event [{}]: Connected", EVENT_CONNECTION_STATE);
-                app.emit_all(
-                    EVENT_CONNECTION_STATE,
-                    ConnectionEventPayload::new(
-                        ConnectionState::Connected,
-                        None,
-                        Some(now.unix_timestamp()),
-                    ),
-                )
-                .ok();
-            }
+            let a = msg.downcast_ref::<TaskStatus>();
+            // if "Ready" == msg.to_string().as_str() {
+            //     info!("vpn connection has been established");
+            //     let now = OffsetDateTime::now_utc();
+            //     {
+            //         let mut state = app_state.lock().await;
+            //         trace!("update connection state [Connected]");
+            //         state.state = ConnectionState::Connected;
+            //         state.connection_start_time = Some(now);
+            //     }
+            //     debug!("sending event [{}]: Connected", EVENT_CONNECTION_STATE);
+            //     app.emit_all(
+            //         EVENT_CONNECTION_STATE,
+            //         ConnectionEventPayload::new(
+            //             ConnectionState::Connected,
+            //             None,
+            //             Some(now.unix_timestamp()),
+            //         ),
+            //     )
+            //     .ok();
+            // }
         }
         info!("vpn status listener has exited");
     });

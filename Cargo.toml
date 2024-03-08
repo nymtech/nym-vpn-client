@@ -4,18 +4,18 @@ members = ["nym-vpn-lib", "nym-vpn-cli", "nym-vpnd"]
 exclude = ["nym-vpn-desktop/src-tauri"]
 
 # For local development
-# [patch."https://github.com/nymtech/nym"]
-# nym-bin-common = { path = "../nym/common/bin-common" }
-# nym-client-core = { path = "../nym/common/client-core" }
-# nym-config = { path = "../nym/common/config" }
-# nym-crypto = { path = "../nym/common/crypto" }
-# nym-ip-packet-requests = { path = "../nym/common/ip-packet-requests" }
-# nym-node-requests = { path = "../nym/nym-node/nym-node-requests" }
-# nym-sdk = { path = "../nym/sdk/rust/nym-sdk" }
-# nym-task = { path = "../nym/common/task" }
-# nym-validator-client = { path = "../nym/common/client-libs/validator-client" }
-# nym-wireguard-types = { path = "../nym/common/wireguard-types" }
-# nym-explorer-client = { path = "../nym/explorer-api/explorer-client" }
+[patch."https://github.com/nymtech/nym"]
+nym-bin-common = { path = "../nym/common/bin-common" }
+nym-client-core = { path = "../nym/common/client-core" }
+nym-config = { path = "../nym/common/config" }
+nym-crypto = { path = "../nym/common/crypto" }
+nym-ip-packet-requests = { path = "../nym/common/ip-packet-requests" }
+nym-node-requests = { path = "../nym/nym-node/nym-node-requests" }
+nym-sdk = { path = "../nym/sdk/rust/nym-sdk" }
+nym-task = { path = "../nym/common/task" }
+nym-validator-client = { path = "../nym/common/client-libs/validator-client" }
+nym-wireguard-types = { path = "../nym/common/wireguard-types" }
+nym-explorer-client = { path = "../nym/explorer-api/explorer-client" }
 
 [workspace.dependencies]
 tokio = { version = "1.8" }
