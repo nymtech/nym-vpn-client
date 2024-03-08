@@ -63,12 +63,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
-            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make fd-find
-
-      - name: Install system dependencies (Mac)
-        if: contains(matrix.os, 'macos')
-        run: |
-          brew install fd
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make
 
       - name: Get package version
         id: package-version
@@ -192,28 +187,31 @@ jobs:
           ls -la target/${{ env.ARCH_TARGET }}/release/bundle || true
           ls -la target/${{ env.ARCH_TARGET }}/release/bundle/* || true
 
-      - name: Move update bundle artifacts (Linux)
-        if: contains(matrix.os, 'ubuntu')
+      - name: Move update bundle artifacts
         shell: bash
-        # ja on ubuntu `fd` is specifically named `fdfind` …
+        env:
+          # this should translate to
+          # - nym-vpn-desktop/src-tauri/target/release/bundle/appimage/ - Linux
+          # - nym-vpn-desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/ - Mac
+          BUNDLE_PATH: nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/${{ contains(matrix.os, 'mac') && 'macos' || 'appimage' }}
+          # source bundle name
+          # - nym-vpn*.AppImage.tar.gz(.sig) - Linux
+          # - nym-vpn.app.tar.gz(.sig) - Mac
+          SOURCE_BUNDLE_NAME: ${{ contains(matrix.os, 'mac') && 'nym-vpn.app.tar.gz' || 'nym-vpn*.AppImage.tar.gz' }}
+          # target bundle name
+          # - update_amd64.AppImage.tar.gz(.sig) - Linux
+          # - update_universal.app.tar.gz(.sig) - Mac
+          TARGET_BUNDLE_NAME: ${{ contains(matrix.os, 'mac') && 'update_universal.app.tar.gz' || 'update_amd64.AppImage.tar.gz' }}
         run: |
           echo "moving update bundle and signature into ${{ env.UPDATE_BUNDLE_DIR }}"
-          rm -rf ${{ env.UPDATE_BUNDLE_DIR }} || true
-          mkdir ${{ env.UPDATE_BUNDLE_DIR }}
-          fdfind -I 'nym-vpn.*.AppImage.tar.gz$' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/update_x86_64.AppImage.tar.gz'
-          fdfind -I 'nym-vpn.*.AppImage.tar.gz.sig$' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/update_x86_64.AppImage.tar.gz.sig'
-          ls -la ${{ env.UPDATE_BUNDLE_DIR }}
-
-      - name: Move update bundle artifacts (Mac)
-        if: contains(matrix.os, 'mac')
-        shell: bash
-        run: |
-          echo "moving update bundle and signature into ${{ env.UPDATE_BUNDLE_DIR }}"
-          rm -rf ${{ env.UPDATE_BUNDLE_DIR }} || true
-          mkdir ${{ env.UPDATE_BUNDLE_DIR }}
-          fd -I 'nym-vpn.*.app.tar.gz$' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/update_universal.app.tar.gz'
-          fd -I 'nym-vpn.*.app.tar.gz.sig$' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/update_universal.app.tar.gz.sig'
-          ls -la ${{ env.UPDATE_BUNDLE_DIR }}
+          echo " ✓ BUNDLE_PATH: ${{ env.BUNDLE_PATH }}"
+          echo " ✓ SOURCE_BUNDLE_NAME: ${{ env.SOURCE_BUNDLE_NAME }}"
+          echo " ✓ TARGET_BUNDLE_NAME: ${{ env.TARGET_BUNDLE_NAME }}"
+          rm -rf $UPDATE_BUNDLE_DIR || true
+          mkdir $UPDATE_BUNDLE_DIR
+          mv ${{ env.BUNDLE_PATH }}/${{ env.SOURCE_BUNDLE_NAME }}     ${{ env.UPDATE_BUNDLE_DIR }}/${{ env.TARGET_BUNDLE_NAME }}
+          mv ${{ env.BUNDLE_PATH }}/${{ env.SOURCE_BUNDLE_NAME }}.sig ${{ env.UPDATE_BUNDLE_DIR }}/${{ env.TARGET_BUNDLE_NAME }}.sig
+          ls -la $UPDATE_BUNDLE_DIR
 
       - name: Upload update bundle (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
