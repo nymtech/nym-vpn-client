@@ -55,7 +55,7 @@ pub(crate) async fn wait_for_interrupt_and_signal(
     res
 }
 
-#[cfg_attr(not(target_os = "windows"), allow(unused_mut))]
+#[cfg_attr(target_os = "windows", allow(unused_mut))]
 pub(crate) async fn handle_interrupt(
     mut route_manager: RouteManager,
     wireguard_waiting: Option<(oneshot::Receiver<()>, tokio::task::JoinHandle<Result<()>>)>,
