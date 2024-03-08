@@ -42,10 +42,10 @@ pub(crate) struct CliArgs {
 
     /// Enable the wireguard traffic between the client and the entry gateway.
     #[arg(
-    long,
-    default_value_t = false,
-    requires = "private_key",
-    requires = "wg_ip"
+        long,
+        default_value_t = false,
+        requires = "private_key",
+        requires = "wg_ip"
     )]
     pub(crate) enable_wireguard: bool,
 
