@@ -197,21 +197,33 @@ jobs:
         shell: bash
         # ja on ubuntu `fd` is specifically named `fdfind` …
         run: |
-          echo "moving update bundle's archive and signature into ${{ env.UPDATE_BUNDLE_DIR }}"
+          echo "moving update bundle and signature into ${{ env.UPDATE_BUNDLE_DIR }}"
           rm -rf ${{ env.UPDATE_BUNDLE_DIR }} || true
           mkdir ${{ env.UPDATE_BUNDLE_DIR }}
-          fdfind -I 'nym-vpn.*.AppImage.tar.gz(.sig)?' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/{/}'
+          fdfind -I 'nym-vpn.*.AppImage.tar.gz$' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/update_x86_64.AppImage.tar.gz'
+          fdfind -I 'nym-vpn.*.AppImage.tar.gz.sig$' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/update_x86_64.AppImage.tar.gz.sig'
           ls -la ${{ env.UPDATE_BUNDLE_DIR }}
 
       - name: Move update bundle artifacts (Mac)
         if: contains(matrix.os, 'mac')
         shell: bash
         run: |
-          echo "moving update bundle's archive and signature into ${{ env.UPDATE_BUNDLE_DIR }}"
+          echo "moving update bundle and signature into ${{ env.UPDATE_BUNDLE_DIR }}"
           rm -rf ${{ env.UPDATE_BUNDLE_DIR }} || true
           mkdir ${{ env.UPDATE_BUNDLE_DIR }}
-          fd -I 'nym-vpn.*.app.tar.gz(.sig)?' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/{/}'
+          fd -I 'nym-vpn.*.app.tar.gz$' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/update_universal.app.tar.gz'
+          fd -I 'nym-vpn.*.app.tar.gz.sig$' -x mv '{}' '${{ env.UPDATE_BUNDLE_DIR }}/update_universal.app.tar.gz.sig'
           ls -la ${{ env.UPDATE_BUNDLE_DIR }}
+
+      - name: Upload update bundle (${{ env.PLATFORM_ARCH }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPDATE_BUNDLE_NAME }}
+          # upload both the update bundle and its signature
+          # - nym-vpn.*.tar.gz
+          # - nym-vpn.*.tar.gz.sig
+          path: ${{ env.UPDATE_BUNDLE_DIR }}
+          retention-days: 2
 
       - name: Create archive
         shell: bash
@@ -227,16 +239,6 @@ jobs:
         with:
           name: ${{ env.ARTIFACT_ARCHIVE }}
           path: ${{ env.ARTIFACT_ARCHIVE }}
-          retention-days: 2
-
-      - name: Upload tauri update bundle (${{ env.PLATFORM_ARCH }})
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.UPDATE_BUNDLE_NAME }}
-          # upload both the update bundle and its signature
-          # - nym-vpn.*.tar.gz
-          # - nym-vpn.*.tar.gz.sig
-          path: ${{ env.UPDATE_BUNDLE_DIR }}
           retention-days: 2
 
       # Build info, but for now it's just the version
