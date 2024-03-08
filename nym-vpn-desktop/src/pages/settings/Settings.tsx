@@ -42,9 +42,9 @@ function Settings() {
 
   return (
     <div className="h-full flex flex-col mt-2 gap-6">
-      {import.meta.env.APP_LOGIN_ENABLED === 'true' && (
-        <Button onClick={async () => navigate('/login')}>
-          {t('login-button')}
+      {import.meta.env.APP_CREDENTIAL === 'true' && (
+        <Button onClick={async () => navigate(routes.credential)}>
+          {t('add-credential-button')}
         </Button>
       )}
       <SettingsGroup

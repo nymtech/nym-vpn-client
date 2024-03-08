@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import {
+  AddCredential,
   Display,
   Error,
   Feedback,
@@ -8,7 +9,6 @@ import {
   LegalRouteIndex,
   LicensesJs,
   LicensesRust,
-  LogIn,
   MainLayout,
   NodeLocation,
   Settings,
@@ -18,7 +18,7 @@ import {
 
 export const routes = {
   root: '/',
-  login: '/login',
+  credential: '/credential',
   settings: '/settings',
   display: '/settings/display',
   logs: '/settings/logs',
@@ -43,8 +43,8 @@ const router = createBrowserRouter([
         index: true,
       },
       {
-        path: routes.login,
-        element: <LogIn />,
+        path: routes.credential,
+        element: <AddCredential />,
         errorElement: <Error />,
       },
       {
