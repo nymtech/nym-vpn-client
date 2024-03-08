@@ -2,7 +2,7 @@ import SwiftUI
 import AppSettings
 
 struct SettingsFlowCoordinator<Content: View>: View {
-    @ObservedObject var state: SettingsFlowState
+    @ObservedObject var flowState: SettingsFlowState
     let content: () -> Content
 
     var body: some View {
@@ -13,11 +13,15 @@ struct SettingsFlowCoordinator<Content: View>: View {
     @ViewBuilder private func linkDestination(link: SettingsLink) -> some View {
         switch link {
         case .theme:
-            AppearanceView(viewModel: AppearanceViewModel(path: $state.path, appSettings: AppSettings.shared))
+            AppearanceView(viewModel: AppearanceViewModel(path: $flowState.path, appSettings: AppSettings.shared))
+        case .feedback:
+            FeedbackView(viewModel: FeedbackViewModel(path: $flowState.path))
         case .support:
-            SupportView(viewModel: SupportViewModel(path: $state.path))
+            SupportView(viewModel: SupportViewModel(path: $flowState.path))
         case .legal:
-            LegalView(viewModel: LegalViewModel(path: $state.path))
+            LegalView(viewModel: LegalViewModel(path: $flowState.path))
+        case .survey:
+            SurveyView(viewModel: SurveyViewModel(path: $flowState.path))
         }
     }
 }

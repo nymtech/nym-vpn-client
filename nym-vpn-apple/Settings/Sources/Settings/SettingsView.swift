@@ -12,7 +12,7 @@ public struct SettingsView: View {
     }
 
     public var body: some View {
-        SettingsFlowCoordinator(state: viewModel, content: content)
+        SettingsFlowCoordinator(flowState: viewModel, content: content)
     }
 }
 

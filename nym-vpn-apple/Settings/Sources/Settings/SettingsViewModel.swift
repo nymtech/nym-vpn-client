@@ -37,6 +37,10 @@ private extension SettingsViewModel {
         path.append(SettingsLink.theme)
     }
 
+    func navigateToFeedback() {
+        path.append(SettingsLink.feedback)
+    }
+
     func navigateToSupport() {
         path.append(SettingsLink.support)
     }
@@ -107,7 +111,9 @@ private extension SettingsViewModel {
                     accessory: .arrow,
                     title: "feedback".localizedString,
                     imageName: "feedback",
-                    action: {}
+                    action: { [weak self] in
+                        self?.navigateToFeedback()
+                    }
                 ),
                 SettingsListItemViewModel(
                     accessory: .arrow,
