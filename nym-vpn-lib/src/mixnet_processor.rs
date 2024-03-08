@@ -6,8 +6,10 @@ use std::time::Duration;
 use bytes::{Bytes, BytesMut};
 use futures::{SinkExt, StreamExt};
 use nym_ip_packet_requests::{
-    codec::MultiIpPacketCodec, request::IpPacketRequest, response::IpPacketResponse,
+    codec::MultiIpPacketCodec,
+    request::IpPacketRequest,
     response::IpPacketResponseData,
+    response::{InfoLevel, IpPacketResponse},
 };
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
@@ -218,8 +220,13 @@ impl MixnetProcessor {
                             IpPacketResponseData::Health(_) => {
                                 info!("Received health response, ignoring for now");
                             }
-                            IpPacketResponseData::Error(error) => {
-                                error!("Received error response from the mixnet: {}", error.reply);
+                            IpPacketResponseData::Info(info) => {
+                                let msg = format!("Received info response from the mixnet: {}", info.reply);
+                                match info.level {
+                                    InfoLevel::Info => log::info!("{msg}"),
+                                    InfoLevel::Warn => log::warn!("{msg}"),
+                                    InfoLevel::Error => log::error!("{msg}"),
+                                }
                             }
                         },
                         Err(err) => {
