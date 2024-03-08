@@ -126,6 +126,11 @@ pub struct NymVpn {
     shadow_handle: ShadowHandle,
 }
 
+pub struct MixnetConnetionInfo {
+    pub nym_address: Recipient,
+    pub entry_gateway: String,
+}
+
 impl NymVpn {
     pub fn new(
         entry_point: EntryPoint,
@@ -236,7 +241,7 @@ impl NymVpn {
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         tunnel_gateway_ip: routing::TunnelGatewayIp,
-    ) -> Result<()> {
+    ) -> Result<MixnetConnetionInfo> {
         info!("Setting up mixnet client");
         let mixnet_client = timeout(
             Duration::from_secs(10),
@@ -252,6 +257,14 @@ impl NymVpn {
         )
         .await
         .map_err(|_| Error::StartMixnetTimeout)??;
+
+        // Now that we have a connection, collection some info about that and return
+        let nym_address = mixnet_client.nym_address().await;
+        let entry_gateway = nym_address.gateway().to_base58_string();
+        let our_mixnet_connection = MixnetConnetionInfo {
+            nym_address,
+            entry_gateway,
+        };
 
         if let Err(err) = self
             .setup_post_mixnet(
@@ -270,7 +283,7 @@ impl NymVpn {
             mixnet_client.disconnect().await;
             return Err(err);
         };
-        Ok(())
+        Ok(our_mixnet_connection)
     }
 
     async fn setup_tunnel(
@@ -281,6 +294,7 @@ impl NymVpn {
         RouteManager,
         Option<(oneshot::Receiver<()>, tokio::task::JoinHandle<Result<()>>)>,
         oneshot::Sender<()>,
+        MixnetConnetionInfo,
     )> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
@@ -377,7 +391,7 @@ impl NymVpn {
         // - Sets up mixnet client, and connects
         // - Sets up routing
         // - Starts processing packets
-        if let Err(err) = self
+        let mixnet_connection_info = match self
             .setup_tunnel_services(
                 &mut route_manager,
                 &entry_gateway_id,
@@ -389,32 +403,35 @@ impl NymVpn {
             )
             .await
         {
-            error!("Failed to setup tunnel services: {err}");
-            debug!("{err:?}");
-            wait_for_interrupt(task_manager).await;
-            // Ignore if these fail since we're interesting in the original error anyway
-            handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
-                .await
-                .tap_err(|err| {
-                    warn!("Failed to handle interrupt: {err}");
-                })
-                .ok();
-            tunnel
-                .dns_monitor
-                .reset()
-                .tap_err(|err| {
-                    warn!("Failed to reset dns monitor: {err}");
-                })
-                .ok();
-            tunnel
-                .firewall
-                .reset_policy()
-                .tap_err(|err| {
-                    warn!("Failed to reset firewall policy: {err}");
-                })
-                .ok();
-            return Err(err);
-        }
+            Ok(mixnet_connection_info) => mixnet_connection_info,
+            Err(err) => {
+                error!("Failed to setup tunnel services: {err}");
+                debug!("{err:?}");
+                wait_for_interrupt(task_manager).await;
+                // Ignore if these fail since we're interesting in the original error anyway
+                handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
+                    .await
+                    .tap_err(|err| {
+                        warn!("Failed to handle interrupt: {err}");
+                    })
+                    .ok();
+                tunnel
+                    .dns_monitor
+                    .reset()
+                    .tap_err(|err| {
+                        warn!("Failed to reset dns monitor: {err}");
+                    })
+                    .ok();
+                tunnel
+                    .firewall
+                    .reset_policy()
+                    .tap_err(|err| {
+                        warn!("Failed to reset firewall policy: {err}");
+                    })
+                    .ok();
+                return Err(err);
+            }
+        };
 
         Ok((
             tunnel,
@@ -422,6 +439,7 @@ impl NymVpn {
             route_manager,
             wireguard_waiting,
             tunnel_close_tx,
+            mixnet_connection_info,
         ))
     }
 
@@ -429,8 +447,14 @@ impl NymVpn {
     // applications where the main way to interact with the running process is to send SIGINT
     // (ctrl-c)
     pub async fn run(&mut self) -> Result<()> {
-        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
-            self.setup_tunnel().await?;
+        let (
+            mut tunnel,
+            task_manager,
+            route_manager,
+            wireguard_waiting,
+            tunnel_close_tx,
+            _mixnet_connection_info,
+        ) = self.setup_tunnel().await?;
 
         // Finished starting everything, now wait for shutdown
         wait_for_interrupt(task_manager).await;
@@ -459,14 +483,22 @@ impl NymVpn {
         vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let (mut tunnel, mut task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
-            self.setup_tunnel()
-                .await
-                .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+        let (
+            mut tunnel,
+            mut task_manager,
+            route_manager,
+            wireguard_waiting,
+            tunnel_close_tx,
+            mixnet_connection_info,
+        ) = self
+            .setup_tunnel()
+            .await
+            .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
 
         // Signal back that we are ready and up with all cylinders firing
+        let start_status = TaskStatus::ReadyWithGateway(mixnet_connection_info.entry_gateway);
         task_manager
-            .start_status_listener(vpn_status_tx, TaskStatus::Ready)
+            .start_status_listener(vpn_status_tx, start_status)
             .await;
 
         // Finished starting everything, now wait for mixnet client shutdown

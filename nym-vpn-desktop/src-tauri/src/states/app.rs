@@ -5,6 +5,7 @@ use futures::channel::mpsc::UnboundedSender;
 use nym_vpn_lib::NymVpnCtrlMessage;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+use tracing::trace;
 use ts_rs::TS;
 
 use crate::{
@@ -13,15 +14,21 @@ use crate::{
     fs::config::AppConfig,
 };
 
-#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 #[ts(export)]
 pub enum ConnectionState {
-    Connected,
+    Connected(ConnectionInfo),
     #[default]
     Disconnected,
     Connecting,
     Disconnecting,
     Unknown,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[ts(export)]
+pub struct ConnectionInfo {
+    pub gateway: String,
 }
 
 #[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq)]
@@ -49,6 +56,14 @@ pub struct AppState {
     pub tunnel: Option<TunnelConfig>,
     pub connection_start_time: Option<OffsetDateTime>,
     pub vpn_ctrl_tx: Option<UnboundedSender<NymVpnCtrlMessage>>,
+}
+
+impl AppState {
+    pub fn set_connected(&mut self, start_time: OffsetDateTime, gateway: String) {
+        trace!("update connection state [Connected]");
+        self.state = ConnectionState::Connected(ConnectionInfo { gateway });
+        self.connection_start_time = Some(start_time);
+    }
 }
 
 impl TryFrom<(&Db, &AppConfig)> for AppState {

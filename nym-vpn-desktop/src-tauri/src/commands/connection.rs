@@ -9,15 +9,15 @@ use crate::db::{Db, Key};
 use crate::states::app::NodeLocation;
 use crate::{
     error::{CmdError, CmdErrorSource},
+    events::{
+        ConnectProgressMsg, ConnectionEventPayload, ProgressEventPayload,
+        EVENT_CONNECTION_PROGRESS, EVENT_CONNECTION_STATE,
+    },
     states::{
         app::{ConnectionState, VpnMode},
         SharedAppState,
     },
-    vpn_client::{
-        create_vpn_config, spawn_exit_listener, spawn_status_listener, ConnectProgressMsg,
-        ConnectionEventPayload, ProgressEventPayload, EVENT_CONNECTION_PROGRESS,
-        EVENT_CONNECTION_STATE,
-    },
+    vpn_client::{create_vpn_config, spawn_exit_listener, spawn_status_listener},
 };
 
 #[instrument(skip_all)]
@@ -27,7 +27,7 @@ pub async fn get_connection_state(
 ) -> Result<ConnectionState, CmdError> {
     debug!("get_connection_state");
     let app_state = state.lock().await;
-    Ok(app_state.state)
+    Ok(app_state.state.clone())
 }
 
 #[instrument(skip_all)]
@@ -180,7 +180,7 @@ pub async fn connect(
     let mut state = state.lock().await;
     state.vpn_ctrl_tx = Some(vpn_ctrl_tx);
 
-    Ok(state.state)
+    Ok(state.state.clone())
 }
 
 #[instrument(skip_all)]
@@ -191,7 +191,7 @@ pub async fn disconnect(
 ) -> Result<ConnectionState, CmdError> {
     debug!("disconnect");
     let mut app_state = state.lock().await;
-    if app_state.state != ConnectionState::Connected {
+    if !matches!(app_state.state, ConnectionState::Connected(_)) {
         return Err(CmdError::new(
             CmdErrorSource::CallerError,
             format!("cannot disconnect from state {:?}", app_state.state),
@@ -248,7 +248,7 @@ pub async fn disconnect(
     })?;
     debug!("Stop message sent");
 
-    Ok(app_state.state)
+    Ok(app_state.state.clone())
 }
 
 #[instrument(skip_all)]
