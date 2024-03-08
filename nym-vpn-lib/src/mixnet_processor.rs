@@ -126,7 +126,7 @@ impl MixnetProcessor {
     pub async fn run(self, mut shutdown: TaskClient) -> Result<AsyncDevice> {
         info!(
             "Opened mixnet processor on tun device {}",
-            self.device.as_ref().name().unwrap(),
+            self.device.as_ref().tun_name().unwrap(),
         );
 
         debug!("Splitting tun device into sink and stream");

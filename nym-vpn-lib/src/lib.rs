@@ -105,7 +105,7 @@ pub struct NymVpn {
     pub nym_ips: Option<IpPair>,
 
     /// The MTU of the TUN device.
-    pub nym_mtu: Option<usize>,
+    pub nym_mtu: Option<u16>,
 
     /// Disable routing all traffic through the VPN TUN device.
     pub disable_routing: bool,
@@ -134,11 +134,11 @@ impl NymVpn {
     ) -> Self {
         let tun_provider = Arc::new(Mutex::new(TunProvider::new(
             #[cfg(target_os = "android")]
-            android_context,
+                android_context,
             #[cfg(target_os = "android")]
-            false,
+                false,
             #[cfg(target_os = "android")]
-            None,
+                None,
             #[cfg(target_os = "android")]
             vec![],
         )));
@@ -185,7 +185,7 @@ impl NymVpn {
             self.nym_ips,
             self.enable_two_hop,
         )
-        .await?;
+            .await?;
         info!("Successfully connected to IP packet router on the exit gateway!");
         info!("Using IP addresses: {ips}");
 
@@ -205,7 +205,7 @@ impl NymVpn {
             default_lan_gateway_ip,
             tunnel_gateway_ip,
             #[cfg(target_os = "android")]
-            mixnet_client.gateway_ws_fd().await,
+                mixnet_client.gateway_ws_fd().await,
         );
         debug!("Routing config: {}", routing_config);
         let mixnet_tun_dev = routing::setup_routing(route_manager, routing_config).await?;
@@ -220,7 +220,7 @@ impl NymVpn {
             task_manager,
             self.enable_two_hop,
         )
-        .await;
+            .await;
         self.set_shadow_handle(shadow_handle);
 
         Ok(())
@@ -250,8 +250,8 @@ impl NymVpn {
                 self.disable_background_cover_traffic,
             ),
         )
-        .await
-        .map_err(|_| Error::StartMixnetTimeout)??;
+            .await
+            .map_err(|_| Error::StartMixnetTimeout)??;
 
         if let Err(err) = self
             .setup_post_mixnet(
@@ -318,7 +318,7 @@ impl NymVpn {
                 private_key,
                 wg_ip.into(),
             )
-            .await?;
+                .await?;
             Some(wireguard_config)
         } else {
             None
