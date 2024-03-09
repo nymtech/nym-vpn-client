@@ -116,9 +116,18 @@ jobs:
           echo "UPDATER_BUNDLE_NAME=$updater_bundle_name" >> $GITHUB_ENV
 
       - name: Install rust toolchain
+        id: rust-toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ steps.rust-toolchain.outputs.cachekey }}
+          workspaces: |
+            nym-vpn-desktop/src-tauri
+          cache-directories: |
+            nym-vpn-desktop/src-tauri/icons
 
       - name: Install cargo-about
         run: cargo install --locked cargo-about
@@ -137,9 +146,11 @@ jobs:
           path: ${{ env.WG_GO_LIB_PATH }}
 
       - name: Install Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
+          cache: npm
+          cache-dependency-path: nym-vpn-desktop/package-lock.json
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
@@ -161,9 +172,9 @@ jobs:
           rm public/licenses-js.json || true
           npm run gen:licenses
 
-      - name: Install node dependencies
+      - name: Install JS dependencies
         working-directory: nym-vpn-desktop
-        run: npm i
+        run: npm ci
 
       - name: Build desktop client
         working-directory: nym-vpn-desktop/src-tauri
