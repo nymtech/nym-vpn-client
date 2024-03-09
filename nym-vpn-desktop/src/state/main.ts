@@ -18,7 +18,6 @@ import {
 
 export type StateAction =
   | { type: 'init-done' }
-  | { type: 'set-partial-state'; partialState: Partial<AppState> }
   | { type: 'change-connection-state'; state: ConnectionState }
   | { type: 'set-vpn-mode'; mode: VpnMode }
   | { type: 'set-entry-selector'; entrySelector: boolean }
@@ -120,9 +119,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ...state,
         exitCountryList: action.payload.countries,
       };
-    case 'set-partial-state': {
-      return { ...state, ...action.partialState };
-    }
     case 'change-connection-state': {
       console.log(
         `__REDUCER [change-connection-state] changing connection state to ${action.state}`,

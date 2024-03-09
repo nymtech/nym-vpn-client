@@ -135,6 +135,7 @@ impl Db {
                 DbError::Deserialize(e)
             });
 
+        info!("get key [{key}] with value {res:?}");
         self.discard_deserialize(key, res)
     }
 
@@ -150,6 +151,7 @@ impl Db {
                 DbError::Deserialize(e)
             });
 
+        info!("get key [{key}] with value {res:?}");
         self.discard_deserialize(key, res)
     }
 
