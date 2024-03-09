@@ -4,8 +4,8 @@ import android.app.Application
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.runtime.mutableStateListOf
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,10 +26,13 @@ import net.nymtech.nymvpn.model.Country
 import net.nymtech.nymvpn.service.gateway.GatewayApiService
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.FileUtils
 import net.nymtech.nymvpn.util.log.NymLibException
 import timber.log.Timber
+import java.time.Instant
 import java.util.Locale
 import javax.inject.Inject
+
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
@@ -53,7 +56,7 @@ class AppViewModel @Inject constructor(
         AppUiState()
     )
 
-    fun logCatOutput() = viewModelScope.launch(viewModelScope.coroutineContext + Dispatchers.IO) {
+    fun readLogCatOutput() = viewModelScope.launch(viewModelScope.coroutineContext + Dispatchers.IO) {
         launch {
             LogcatHelper.logs {
                 logsBuffer.add(it)
@@ -76,6 +79,19 @@ class AppViewModel @Inject constructor(
                 delay(Constants.LOG_BUFFER_DELAY)
             } while (true)
         }
+    }
+
+    fun clearLogs() {
+        logs.clear()
+        logsBuffer.clear()
+        LogcatHelper.clear()
+    }
+
+    fun saveLogsToFile() {
+        val fileName = "${Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.txt"
+        val content = logs.joinToString(separator = "\n")
+        FileUtils.saveFileToDownloads(application.applicationContext, content, fileName)
+        showSnackbarMessage(application.getString(R.string.logs_saved))
     }
     fun updateCountryListCache() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -114,11 +130,10 @@ class AppViewModel @Inject constructor(
                     putExtra(Intent.EXTRA_SUBJECT, application.getString(R.string.email_subject))
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
-            ContextCompat.startActivity(
-                application,
-                Intent.createChooser(intent, application.getString(R.string.email_chooser)),
-                null,
-            )
+            application.startActivity(
+                Intent.createChooser(intent, application.getString(R.string.email_chooser)).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                })
         } catch (e: ActivityNotFoundException) {
             Timber.e(e)
             showSnackbarMessage(application.getString(R.string.no_email_detected))
@@ -137,5 +152,9 @@ class AppViewModel @Inject constructor(
             snackbarMessage = "",
             snackbarMessageConsumed = true
         )
+    }
+
+    fun showFeatureInProgressMessage() {
+        Toast.makeText(application.applicationContext, application.getString(R.string.feature_in_progress), Toast.LENGTH_LONG).show()
     }
 }

@@ -13,12 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.theme.iconSize
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NavBar(navController: NavController) {
+fun NavBar(appViewModel: AppViewModel, navController: NavController) {
   val navBackStackEntry by navController.currentBackStackEntryAsState()
   val navItem = NavItem.from(navBackStackEntry?.destination?.route)
   val context = LocalContext.current
@@ -32,9 +33,10 @@ fun NavBar(navController: NavController) {
         navItem.trailing?.let {
           IconButton(
               onClick = {
-                when {
-                  it == NavItem.settingsIcon -> navController.navigate(NavItem.Settings.route)
-                }
+                  when (it) {
+                      NavItem.settingsIcon -> navController.navigate(NavItem.Settings.route)
+                      NavItem.clearLogsIcon -> appViewModel.clearLogs()
+                  }
               }) {
                 Icon(imageVector = it, contentDescription = it.name, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(
                     iconSize))

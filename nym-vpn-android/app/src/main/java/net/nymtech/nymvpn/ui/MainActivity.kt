@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
 
       LaunchedEffect(Unit) {
         appViewModel.updateCountryListCache()
-        appViewModel.logCatOutput()
+        appViewModel.readLogCatOutput()
         requestNotificationPermission()
       }
 
@@ -130,7 +130,7 @@ class MainActivity : ComponentActivity() {
         // A surface container using the 'background' color from the theme
         TransparentSystemBars()
         Scaffold(
-            topBar = { NavBar(navController) },
+            topBar = { NavBar(appViewModel,navController) },
             snackbarHost = {
               SnackbarHost(snackbarHostState) { snackbarData: SnackbarData ->
                 CustomSnackBar(message = snackbarData.visuals.message)
@@ -155,7 +155,7 @@ class MainActivity : ComponentActivity() {
               composable(NavItem.Settings.Feedback.route) { FeedbackScreen(appViewModel) }
               composable(NavItem.Settings.Legal.route) { LegalScreen(appViewModel,navController) }
               composable(NavItem.Settings.Login.route) { LoginScreen(navController, appViewModel) }
-              composable(NavItem.Settings.Account.route) { AccountScreen() }
+              composable(NavItem.Settings.Account.route) { AccountScreen(appViewModel) }
               composable(NavItem.Settings.Legal.Licenses.route){ LicensesScreen(appViewModel) }
             }
           }

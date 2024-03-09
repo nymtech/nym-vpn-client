@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
@@ -39,7 +40,7 @@ import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.util.scaledHeight
 
 @Composable
-fun AccountScreen(viewModel: AccountViewModel = hiltViewModel()) {
+fun AccountScreen(appViewModel: AppViewModel, viewModel: AccountViewModel = hiltViewModel()) {
 
     val context = LocalContext.current
 
@@ -91,14 +92,14 @@ fun AccountScreen(viewModel: AccountViewModel = hiltViewModel()) {
                         .fillMaxWidth()
                 ) {
                     Text(
-                        stringResource(id = R.string.top_up_account),
+                        stringResource(id = R.string.top_up_credential),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(end = 24.dp)
                     )
                     Box(modifier = Modifier.width(91.dp)) {
                         MainStyledButton(
-                            onClick = { /*TODO handle top up*/ },
+                            onClick = { appViewModel.showFeatureInProgressMessage() },
                             content = {
                                 Text(
                                     stringResource(id = R.string.top_up),
@@ -121,7 +122,9 @@ fun AccountScreen(viewModel: AccountViewModel = hiltViewModel()) {
                     .fillMaxWidth()
             ) {
                 GroupLabel(title = stringResource(R.string.devices))
-                IconButton(onClick = { /*TODO*/ }, modifier = Modifier.padding(start =  24.dp)) {
+                IconButton(onClick = {
+                   appViewModel.showFeatureInProgressMessage()
+                }, modifier = Modifier.padding(start =  24.dp)) {
                     Icon(Icons.Filled.Add, Icons.Filled.Add.name, tint = MaterialTheme.colorScheme.onSurface)
                 }
             }

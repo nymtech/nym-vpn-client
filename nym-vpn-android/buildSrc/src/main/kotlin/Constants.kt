@@ -1,8 +1,8 @@
 import org.gradle.api.JavaVersion
 
 object Constants {
-    const val VERSION_NAME = "v0.0.7-alpha"
-    const val VERSION_CODE = 7
+    const val VERSION_NAME = "v0.0.8-alpha"
+    const val VERSION_CODE = 8
     const val TARGET_SDK = 34
     const val COMPILE_SDK = 34
     const val MIN_SDK = 24
@@ -28,7 +28,8 @@ object Constants {
     const val GENERAL = "general"
     const val BUILD_LIB_TASK = "buildDeps"
 
-    const val SANDBOX_URL = "https://sandbox-nym-api1.nymtech.net/api"
+    const val SANDBOX_API_URL = "https://sandbox-nym-api1.nymtech.net/api"
+    const val SANDBOX_EXPLORER_URL = "https://sandbox-explorer.nymtech.net/api"
 
     //licensee
     val allowedLicenses = listOf("MIT", "Apache-2.0", "BSD-3-Clause")

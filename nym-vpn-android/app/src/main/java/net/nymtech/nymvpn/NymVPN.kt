@@ -7,7 +7,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import dagger.hilt.android.HiltAndroidApp
 import net.nymtech.nymvpn.service.tile.QuickTile
-import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.log.DebugTree
 import net.nymtech.nymvpn.util.log.ReleaseTree
 import net.nymtech.nymvpn.util.navigationBarHeight
@@ -21,8 +20,6 @@ class NymVPN : Application() {
         super.onCreate()
         instance = this
         if (BuildConfig.DEBUG) Timber.plant(DebugTree()) else Timber.plant(ReleaseTree())
-        //set lib env vars
-        Constants.setupEnvironment()
     }
 
     companion object {

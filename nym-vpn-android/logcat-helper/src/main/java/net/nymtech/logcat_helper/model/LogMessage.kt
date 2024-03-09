@@ -10,7 +10,9 @@ data class LogMessage(
     val tag: String,
     val message: String
 ) {
-
+    override fun toString(): String {
+        return "$time $pid $tid $level $tag message= $message"
+    }
     companion object {
         fun from(logcatLine : String) : LogMessage {
             return if(logcatLine.contains("---------")) LogMessage(Instant.now(), "0","0",LogLevel.VERBOSE,"System", logcatLine)

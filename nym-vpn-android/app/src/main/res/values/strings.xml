@@ -65,10 +65,10 @@
     <string name="recovery_phrase_label">Recovery phrase</string>
     <string name="login_failed_message">Incorect recovery phrase</string>
     <string name="unknown_error">An unknown error occurred</string>
-    <string name="account">Account</string>
+    <string name="credential">Credential</string>
     <string name="of">of</string>
     <string name="days_left">days left</string>
-    <string name="top_up_account">Top up your account</string>
+    <string name="top_up_credential">Top up your credential</string>
     <string name="top_up">Top up</string>
     <string name="devices">Devices</string>
     <string name="android">Android</string>
@@ -86,4 +86,9 @@
     <string name="two_hop">2-hop</string>
     <string name="five_hop">5-hop</string>
     <string name="mode">Mode</string>
+    <string name="cancel">Cancel</string>
+    <string name="okay">Okay</string>
+    <string name="error_reporting_alert">Changes to error reporting will not fully take effect until the app has been restarted.</string>
+    <string name="feature_in_progress">This feature is still in progress.</string>
+    <string name="logs_saved">Logs saved to downloads folder</string>
 </resources>

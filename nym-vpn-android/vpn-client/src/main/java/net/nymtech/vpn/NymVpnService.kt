@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.tun_provider.TunConfig
 import net.nymtech.vpn.util.Action
+import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn_client.BuildConfig
 import net.nymtech.vpn_client.R
 import timber.log.Timber
@@ -29,6 +30,7 @@ class NymVpnService : VpnService() {
     companion object {
         init {
             val nymVPNLib = "nym_vpn_lib"
+            Constants.setupEnvironment()
             System.loadLibrary(nymVPNLib)
             Timber.i( "loaded native library $nymVPNLib")
         }
@@ -68,7 +70,7 @@ class NymVpnService : VpnService() {
                     val entry = intent.extras?.getString(NymVpn.ENTRY_POINT_EXTRA_KEY)
                     val exit = intent.extras?.getString(NymVpn.EXIT_POINT_EXTRA_KEY)
                     if(!entry.isNullOrBlank() && !exit.isNullOrBlank()) {
-                        initVPN(isTwoHop, BuildConfig.API_URL, entry, exit,this)
+                        initVPN(isTwoHop, BuildConfig.API_URL, BuildConfig.EXPLORER_URL, entry, exit,this)
                         CoroutineScope(Dispatchers.IO).launch {
                             launch {
                                 runVPN()
@@ -239,6 +241,7 @@ class NymVpnService : VpnService() {
     private external fun initVPN(
         enable_two_hop: Boolean,
         api_url: String,
+        explorer_url: String,
         entry_gateway: String,
         exit_router: String,
         vpn_service: Any

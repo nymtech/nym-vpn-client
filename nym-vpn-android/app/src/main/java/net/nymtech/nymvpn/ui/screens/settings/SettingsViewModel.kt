@@ -33,7 +33,7 @@ class SettingsViewModel @Inject constructor(
 
     private suspend fun setFirstHopToDefault() {
         //TODO how we determine default will change
-        dataStoreManager.saveToDataStore(DataStoreManager.FIRST_HOP_COUNTRY_ISO, Country(isFastest = true).toString())
+        dataStoreManager.saveToDataStore(DataStoreManager.FIRST_HOP_COUNTRY_ISO, Country().toString())
     }
 
     fun onAutoConnectSelected(selected: Boolean) = viewModelScope.launch {

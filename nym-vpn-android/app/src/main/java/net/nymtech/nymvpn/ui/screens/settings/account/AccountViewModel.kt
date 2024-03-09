@@ -7,8 +7,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
-import net.nymtech.nymvpn.ui.screens.settings.account.model.Device
-import net.nymtech.nymvpn.ui.screens.settings.account.model.DeviceType
 import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
 
@@ -18,11 +16,11 @@ class AccountViewModel @Inject constructor(
 ) : ViewModel() {
 
     val uiState = dataStoreManager.preferencesFlow.map {
-        //TODO mock for now
+        //TODO mocked for now
         AccountUiState(
             loading = false,
-            devices = listOf(Device("Sparrow", DeviceType.MAC_OS), Device("Falcon 1", DeviceType.ANDROID)),
-            subscriptionDaysRemaining = 21,
+            devices = emptyList(),
+            subscriptionDaysRemaining = 31,
             subscriptionTotalDays = 31
         )
     }.stateIn(viewModelScope,

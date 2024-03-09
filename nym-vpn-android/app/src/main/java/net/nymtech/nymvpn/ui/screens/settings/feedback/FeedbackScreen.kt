@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings.feedback
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,9 +9,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -24,6 +31,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
@@ -31,8 +39,34 @@ import net.nymtech.nymvpn.util.scaledWidth
 fun FeedbackScreen(appViewModel: AppViewModel, viewModel: FeedbackViewModel = hiltViewModel()) {
 
   val isErrorReportingEnabled by viewModel.isErrorReportingEnabled.collectAsStateWithLifecycle()
+  var showErrorReportingDialog by remember { mutableStateOf(false) }
 
-  val context = LocalContext.current
+
+    val context = LocalContext.current
+
+    AnimatedVisibility(showErrorReportingDialog) {
+        AlertDialog(
+            containerColor = CustomColors.snackBarBackgroundColor,
+            onDismissRequest = { showErrorReportingDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showErrorReportingDialog = false
+                        viewModel.onErrorReportingSelected(!isErrorReportingEnabled)
+                    },
+                ) {
+                    Text(text = stringResource(R.string.okay))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showErrorReportingDialog = false }) {
+                    Text(text = stringResource(R.string.cancel))
+                }
+            },
+            title = { Text(text = stringResource(R.string.error_reporting), color = CustomColors.snackbarTextColor) },
+            text = { Text(text = stringResource(R.string.error_reporting_alert), color = CustomColors.snackbarTextColor) },
+        )
+    }
 
   Column(
       horizontalAlignment = Alignment.Start,
@@ -83,7 +117,7 @@ fun FeedbackScreen(appViewModel: AppViewModel, viewModel: FeedbackViewModel = hi
                     title = stringResource(R.string.error_reporting),
                     description = stringResource(R.string.error_reporting_description),
                     trailing = {
-                      Switch(isErrorReportingEnabled, { viewModel.onErrorReportingSelected(it) }, modifier = Modifier.height(32.dp.scaledHeight()).width(52.dp.scaledWidth()))
+                      Switch(isErrorReportingEnabled, { showErrorReportingDialog = true }, modifier = Modifier.height(32.dp.scaledHeight()).width(52.dp.scaledWidth()))
                     })))
       }
 }

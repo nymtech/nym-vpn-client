@@ -5,6 +5,6 @@ import okio.BufferedSource
 
 object LicenseParser {
     fun decode(source: BufferedSource): List<Artifact> {
-        return Json.decodeFromString(source.readString(Charsets.UTF_8))
+        return Json.decodeFromString<List<Artifact>>(source.readString(Charsets.UTF_8)).distinctBy { it.name }
     }
 }

@@ -73,7 +73,7 @@ fun SettingsScreen(navController: NavController, appUiState: AppUiState, viewMod
               SelectionItem(
                   Icons.Filled.AccountCircle,
                   onClick = { navController.navigate(NavItem.Settings.Account.route) },
-                  title = stringResource(R.string.account),
+                  title = stringResource(R.string.credential),
                   description = accountDescription.text)
           ))
       }
