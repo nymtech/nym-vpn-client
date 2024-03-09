@@ -28,7 +28,7 @@ jobs:
           cache-dependency-path: nym-vpn-desktop/package-lock.json
       - name: Install dependencies
         working-directory: nym-vpn-desktop
-        run: npm i
+        run: npm ci
       - name: Typecheck
         working-directory: nym-vpn-desktop
         run: npm run tscheck
