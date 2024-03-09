@@ -147,7 +147,6 @@ async fn main() -> Result<()> {
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_flush,
-            cmd_db::db_get_batch,
             node_location::get_node_location,
             node_location::set_node_location,
             node_location::get_fastest_node_location,
