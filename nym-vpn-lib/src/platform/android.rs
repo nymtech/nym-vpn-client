@@ -88,6 +88,7 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     _this: JObject<'_>,
     enable_two_hop: jboolean,
     api_url: JString<'_>,
+    explorer_url: JString<'_>,
     entry_gateway: JString<'_>,
     exit_router: JString<'_>,
     vpn_service: JObject<'_>,
@@ -109,14 +110,18 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
             .new_global_ref(vpn_service)
             .expect("Create global reference"),
     };
-    let api_url = Url::from_str(&String::from_java(&env, api_url)).expect("Invalid url");
+    let api_url = Url::from_str(&String::from_java(&env, api_url)).expect("Invalid api url");
+    let explorer_url =
+        Url::from_str(&String::from_java(&env, explorer_url)).expect("Invalid explorer url");
     let entry_gateway: EntryPoint = serde_json::from_str(&String::from_java(&env, entry_gateway))
         .expect("Invalid entry gateway");
     let exit_router: ExitPoint =
         serde_json::from_str(&String::from_java(&env, exit_router)).expect("Invalid exit router");
 
     let mut vpn = NymVpn::new(entry_gateway, exit_router, context);
+
     vpn.gateway_config.api_url = api_url;
+    vpn.gateway_config.explorer_url = Some(explorer_url);
     vpn.enable_two_hop = enable_two_hop != JNI_FALSE;
 
     RUNTIME.block_on(set_inited_vpn(vpn));
