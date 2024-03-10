@@ -178,7 +178,7 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           # TODO try fixing `error running bundle_dmg.sh` (macos build)
-          NO_STRIP: ${{ contains(matrix.os, 'mac') && 'true' }}
+          # NO_STRIP: ${{ contains(matrix.os, 'mac') && 'true' }}
         shell: bash
         run: |
           npm run tauri build -- ${{ env.CARGO_TARGET }}
