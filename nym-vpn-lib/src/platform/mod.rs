@@ -98,7 +98,7 @@ async fn _async_run_vpn(vpn: NymVpn) -> crate::error::Result<(Arc<Notify>, NymVp
         .downcast_ref::<TaskStatus>()
         .ok_or(crate::Error::NotStarted)?
     {
-        TaskStatus::Ready => debug!("Started Nym VPN"),
+        TaskStatus::Ready | TaskStatus::ReadyWithGateway(_) => debug!("Started Nym VPN"),
     }
 
     Ok((stop_handle, handle))

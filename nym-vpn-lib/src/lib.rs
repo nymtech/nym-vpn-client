@@ -465,7 +465,9 @@ impl NymVpn {
                 .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
 
         // Signal back that we are ready and up with all cylinders firing
-        task_manager.start_status_listener(vpn_status_tx).await;
+        task_manager
+            .start_status_listener(vpn_status_tx, TaskStatus::Ready)
+            .await;
 
         // Finished starting everything, now wait for mixnet client shutdown
         let result = wait_for_interrupt_and_signal(task_manager, vpn_ctrl_rx).await;
