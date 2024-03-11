@@ -477,15 +477,15 @@ impl NymVpn {
             })?;
         tunnel.dns_monitor.reset().map_err(|err| {
             error!("Failed to reset dns monitor: {err}");
-            Box::new(NymVpnExitError::FailedToResetDnsMonitor {
+            NymVpnExitError::FailedToResetDnsMonitor {
                 reason: err.to_string(),
-            })
+            }
         })?;
         tunnel.firewall.reset_policy().map_err(|err| {
             error!("Failed to reset firewall policy: {err}");
-            Box::new(NymVpnExitError::FailedToResetFirewallPolicy {
+            NymVpnExitError::FailedToResetFirewallPolicy {
                 reason: err.to_string(),
-            })
+            }
         })?;
 
         result
