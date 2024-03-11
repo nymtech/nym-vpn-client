@@ -443,8 +443,9 @@ impl NymVpn {
         tunnel.dns_monitor.reset().tap_err(|err| {
             error!("Failed to reset dns monitor: {err}");
         })?;
-        tunnel.firewall.reset_policy().tap_err(|err| {
+        tunnel.firewall.reset_policy().map_err(|err| {
             error!("Failed to reset firewall policy: {err}");
+            Error::FirewallError(err.to_string())
         })?;
 
         Ok(())

@@ -23,7 +23,8 @@ pub enum Error {
     DNSError(#[from] talpid_core::dns::Error),
 
     #[error("{0}")]
-    FirewallError(#[from] talpid_core::firewall::Error),
+    // FirewallError(#[from] talpid_core::firewall::Error),
+    FirewallError(String),
 
     #[error("{0}")]
     WireguardError(#[from] talpid_wireguard::Error),
