@@ -352,7 +352,8 @@ jobs:
   create-hashes-json:
     if: ${{ (startsWith(github.ref, 'refs/tags/nym-vpn-desktop-') && github.event_name == 'release') || github.event_name == 'workflow_dispatch' }}
 
-    uses: nymtech/nym/.github/workflows/release-calculate-hash.yml@bugfix/action-release
+    # uses: nymtech/nym/.github/workflows/release-calculate-hash.yml@bugfix/action-release
+    uses: ./.github/workflows/create-hashes-json.yml
     needs: publish
     with:
       release_tag: ${{ github.ref_name }}
