@@ -192,7 +192,7 @@ impl NymVpn {
         // We need the IP of the gateway to correctly configure the routing table
         let mixnet_client_address = mixnet_client.nym_address().await;
         let gateway_used = mixnet_client_address.gateway().to_base58_string();
-        info!("Using gateway: {gateway_used}");
+        debug!("Entry gateway used for setting up routing table: {gateway_used}");
         let entry_mixnet_gateway_ip: IpAddr =
             gateway_client.lookup_gateway_ip(&gateway_used).await?;
         debug!("Gateway ip resolves to: {entry_mixnet_gateway_ip}");
