@@ -507,7 +507,6 @@ pub enum NymVpnCtrlMessage {
 // not all error cases satisfied the Sync marker trait.
 #[derive(thiserror::Error, Debug)]
 pub enum NymVpnExitError {
-    // Generic { reason: String },
     #[error("{reason}")]
     Generic { reason: Error },
 
@@ -518,14 +517,6 @@ pub enum NymVpnExitError {
     #[error("failed to reset dns monitor: {reason}")]
     FailedToResetDnsMonitor { reason: String },
 }
-
-// impl NymVpnExitError {
-//     fn generic(err: &dyn std::error::Error) -> Self {
-//         NymVpnExitError::Generic {
-//             reason: err.to_string(),
-//         }
-//     }
-// }
 
 #[derive(Debug)]
 pub enum NymVpnExitStatusMessage {
