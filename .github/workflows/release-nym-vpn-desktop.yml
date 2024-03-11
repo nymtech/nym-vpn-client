@@ -137,9 +137,9 @@ jobs:
           path: ${{ env.WG_GO_LIB_PATH }}
 
       - name: Install Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
@@ -161,9 +161,9 @@ jobs:
           rm public/licenses-js.json || true
           npm run gen:licenses
 
-      - name: Install node dependencies
+      - name: Install JS dependencies
         working-directory: nym-vpn-desktop
-        run: npm i
+        run: npm ci
 
       - name: Build desktop client
         working-directory: nym-vpn-desktop/src-tauri

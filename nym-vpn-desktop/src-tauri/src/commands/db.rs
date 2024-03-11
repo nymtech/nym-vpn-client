@@ -1,21 +1,10 @@
-use serde::{Deserialize, Serialize};
 use tauri::State;
 use tracing::{debug, instrument};
-use ts_rs::TS;
 
 use crate::{
     db::{Db, DbError, JsonValue, Key},
     error::{CmdError, CmdErrorSource},
 };
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, TS)]
-#[ts(export)]
-pub enum UiTheme {
-    Dark,
-    #[default]
-    Light,
-    System,
-}
 
 #[instrument(skip(db))]
 #[tauri::command]
