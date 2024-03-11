@@ -294,8 +294,12 @@ jobs:
 
       - name: Build info
         run: |
-          echo "BUILD_VERSION=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
-          echo "BUILD_INFO=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
+          BUILD_VERSION=$(grep "package version" build-info/build-info.txt | cut -d ':' -f 2 | tr -d ' ')
+          echo BUILD_VERSION=$BUILD_VERSION
+          echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
+          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
+          cat build-info/build-info.txt >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
       - if: env.TAG_NAME == 'nightly-desktop'
         run: |
