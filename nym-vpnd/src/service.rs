@@ -187,7 +187,8 @@ impl VpnServiceStatusListener {
             while let Some(msg) = vpn_status_rx.next().await {
                 println!("Received status: {msg}");
                 match msg.downcast_ref::<nym_vpn_lib::TaskStatus>().unwrap() {
-                    nym_vpn_lib::TaskStatus::Ready => {
+                    nym_vpn_lib::TaskStatus::Ready
+                    | nym_vpn_lib::TaskStatus::ReadyWithGateway(_) => {
                         println!("VPN status: connected");
                         self.set_shared_state(VpnState::Connected);
                     }
