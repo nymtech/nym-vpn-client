@@ -133,8 +133,8 @@ impl LanGatewayIp {
             error!("Failed to get default interface: {}", err);
             crate::error::Error::DefaultInterfaceError
         })?;
-        info!("Default interface: {}", default_interface.name);
-        debug!("Default interface: {:?}", default_interface);
+        info!("Default network interface: {}", default_interface.name);
+        debug!("Default network interface: {:?}", default_interface);
         Ok(LanGatewayIp(default_interface))
     }
 }

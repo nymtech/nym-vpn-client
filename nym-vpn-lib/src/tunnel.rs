@@ -36,7 +36,6 @@ impl Tunnel {
             let command_tx = Arc::new(command_tx);
             let weak_command_tx = Arc::downgrade(&command_tx);
             debug!("Starting firewall");
-            // let firewall = Firewall::new()?;
             let firewall = Firewall::new()
                 .map_err(|err| crate::error::Error::FirewallError(err.to_string()))?;
             debug!("Starting dns monitor");
@@ -61,7 +60,6 @@ impl Tunnel {
         #[cfg(all(not(target_os = "macos"), not(target_os = "linux")))]
         let (firewall, dns_monitor) = {
             debug!("Starting firewall");
-            // let firewall = Firewall::new()?;
             let firewall = Firewall::new()
                 .map_err(|err| crate::error::Error::FirewallError(err.to_string()))?;
             debug!("Starting dns monitor");

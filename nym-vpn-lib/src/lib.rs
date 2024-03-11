@@ -186,8 +186,8 @@ impl NymVpn {
             self.enable_two_hop,
         )
         .await?;
-        info!("Successfully connected to IP packet router on the exit gateway!");
-        info!("Using IP addresses: {ips}");
+        info!("Successfully connected to IP packet router!");
+        info!("Using mixnet VPN IP addresses: {ips}");
 
         // We need the IP of the gateway to correctly configure the routing table
         let mixnet_client_address = mixnet_client.nym_address().await;
@@ -327,11 +327,13 @@ impl NymVpn {
         // The IP address of the gateway inside the tunnel. This will depend on if wireguard is
         // enabled
         let tunnel_gateway_ip = routing::TunnelGatewayIp::new(wireguard_config.clone());
-        info!("tunnel_gateway_ip: {tunnel_gateway_ip}");
+        if self.enable_wireguard {
+            info!("Wireguard tunnel gateway ip: {tunnel_gateway_ip}");
+        }
 
         // Get the IP address of the local LAN gateway
         let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
-        info!("default_lan_gateway_ip: {default_lan_gateway_ip}");
+        debug!("default_lan_gateway_ip: {default_lan_gateway_ip}");
 
         let task_manager = TaskManager::new(10);
 
