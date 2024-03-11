@@ -473,7 +473,7 @@ impl NymVpn {
             .await
             .map_err(|err| {
                 error!("Failed to handle interrupt: {err}");
-                Box::new(NymVpnExitError::generic(&err))
+                Box::new(NymVpnExitError::Generic { reason: err })
             })?;
         tunnel.dns_monitor.reset().map_err(|err| {
             error!("Failed to reset dns monitor: {err}");
@@ -507,8 +507,9 @@ pub enum NymVpnCtrlMessage {
 // not all error cases satisfied the Sync marker trait.
 #[derive(thiserror::Error, Debug)]
 pub enum NymVpnExitError {
+    // Generic { reason: String },
     #[error("{reason}")]
-    Generic { reason: String },
+    Generic { reason: Error },
 
     // TODO: capture the concrete error type once we have time to investigate on Mac
     #[error("failed to reset firewall policy: {reason}")]
@@ -518,13 +519,13 @@ pub enum NymVpnExitError {
     FailedToResetDnsMonitor { reason: String },
 }
 
-impl NymVpnExitError {
-    fn generic(err: &dyn std::error::Error) -> Self {
-        NymVpnExitError::Generic {
-            reason: err.to_string(),
-        }
-    }
-}
+// impl NymVpnExitError {
+//     fn generic(err: &dyn std::error::Error) -> Self {
+//         NymVpnExitError::Generic {
+//             reason: err.to_string(),
+//         }
+//     }
+// }
 
 #[derive(Debug)]
 pub enum NymVpnExitStatusMessage {

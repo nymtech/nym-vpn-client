@@ -22,8 +22,10 @@ pub enum Error {
     #[error("{0}")]
     DNSError(#[from] talpid_core::dns::Error),
 
+    // We are not returning the underlying talpid_core::firewall:Error error as I ran into issues
+    // with the Send marker trait not being implemented when building on Mac. Possibly we can fix
+    // this in the future.
     #[error("{0}")]
-    // FirewallError(#[from] talpid_core::firewall::Error),
     FirewallError(String),
 
     #[error("{0}")]
