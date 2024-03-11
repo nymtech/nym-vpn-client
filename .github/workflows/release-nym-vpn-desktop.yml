@@ -116,18 +116,9 @@ jobs:
           echo "UPDATER_BUNDLE_NAME=$updater_bundle_name" >> $GITHUB_ENV
 
       - name: Install rust toolchain
-        id: rust-toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ steps.rust-toolchain.outputs.cachekey }}
-          workspaces: |
-            nym-vpn-desktop/src-tauri
-          cache-directories: |
-            nym-vpn-desktop/src-tauri/icons
 
       - name: Install cargo-about
         run: cargo install --locked cargo-about
