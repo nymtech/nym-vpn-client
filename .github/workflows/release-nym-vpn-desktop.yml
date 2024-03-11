@@ -247,7 +247,7 @@ jobs:
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
-          ./src-tauri/target/release/bundle/appimage/nym-vpn_*-dev_amd64.AppImage --build-info > build-info.txt
+          ./nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*-dev_amd64.AppImage --build-info > build-info.txt
           cat build-info.txt
 
       - name: Upload build-info (${{ env.PLATFORM_ARCH }})
