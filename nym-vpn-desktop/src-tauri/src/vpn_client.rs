@@ -41,20 +41,6 @@ impl ConnectionEventPayload {
     }
 }
 
-fn handle_vpn_exit_error(e: Box<dyn std::error::Error + Send + Sync>) -> String {
-    match e.downcast::<Box<NymVpnExitError>>() {
-        Ok(e) => {
-            // TODO The double boxing here is unexpected, we should look into that
-            match **e {
-                NymVpnExitError::Generic { reason } => reason.to_string(),
-                NymVpnExitError::FailedToResetFirewallPolicy { reason } => reason.to_string(),
-                NymVpnExitError::FailedToResetDnsMonitor { reason } => reason.to_string(),
-            }
-        }
-        Err(e) => format!("unknown error: {e}"),
-    }
-}
-
 #[instrument(skip_all)]
 pub async fn spawn_exit_listener(
     app: tauri::AppHandle,
@@ -79,7 +65,9 @@ pub async fn spawn_exit_listener(
                         .ok();
                     }
                     NymVpnExitStatusMessage::Failed(e) => {
-                        let error = handle_vpn_exit_error(e);
+                        let error = e
+                            .downcast::<nym_vpn_lib::error::Error>()
+                            .unwrap_or(Box::new(nym_vpn_lib::error::Error::StopError));
                         debug!(
                             "vpn failed, sending event [{}]: disconnected",
                             EVENT_CONNECTION_STATE
@@ -88,7 +76,7 @@ pub async fn spawn_exit_listener(
                             EVENT_CONNECTION_STATE,
                             ConnectionEventPayload::new(
                                 ConnectionState::Disconnected,
-                                Some(error),
+                                Some(error.to_string()),
                                 None,
                             ),
                         )

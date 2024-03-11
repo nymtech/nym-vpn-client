@@ -49,7 +49,7 @@ pub enum Error {
     #[error("recipient is not formatted correctly")]
     RecipientFormattingError,
 
-    #[error("{0}")]
+    #[error("failed setting up local TUN network device: {0}")]
     TunError(#[from] tun2::Error),
 
     #[error("{0}")]
