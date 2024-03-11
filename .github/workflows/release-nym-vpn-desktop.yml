@@ -309,7 +309,7 @@ jobs:
       - if: env.TAG_NAME != 'nightly-desktop'
         run: |
           (echo "SUBJECT=$TAG_NAME"
-           echo 'PRERELEASE=--prerelease'
+           echo 'PRERELEASE='
            echo 'NOTES_FILE=release-notes-desktop.md') >> $GITHUB_ENV
 
       # Recall that download-artifact will extract into a directory that
