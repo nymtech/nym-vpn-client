@@ -46,7 +46,8 @@ impl Tunnel {
         let (firewall, dns_monitor) = {
             let fwmark = 0; // ?
             debug!("Starting firewall");
-            let firewall = Firewall::new(fwmark).map_err(|err| crate::error::Error::FirewallError(err.to_string()))?;
+            let firewall = Firewall::new(fwmark)
+                .map_err(|err| crate::error::Error::FirewallError(err.to_string()))?;
             debug!("Starting dns monitor");
             let dns_monitor = DnsMonitor::new(
                 tokio::runtime::Handle::current(),
