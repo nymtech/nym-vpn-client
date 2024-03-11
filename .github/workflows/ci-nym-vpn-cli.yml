@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, custom-runner-mac-m1]
+        os: [ ubuntu-22.04, custom-runner-mac-m1, windows-2022 ]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -90,9 +90,11 @@ jobs:
         run: ./wireguard/build-wireguard-go.sh
 
       - name: Build
+        if: "!contains(matrix.os, 'windows')"
         run: cargo build --verbose
 
       - name: Run tests
+        if: "!contains(matrix.os, 'windows')"
         run: cargo test --verbose
 
       - name: Clippy

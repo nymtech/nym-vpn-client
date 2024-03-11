@@ -3,7 +3,10 @@
 
 use nym_config::defaults::NymNetworkDetails;
 use std::cmp::Ordering;
+#[cfg(target_os = "unix")]
 use std::os::fd::RawFd;
+#[cfg(not(target_os = "unix"))]
+use std::os::raw::c_int as RawFd;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;

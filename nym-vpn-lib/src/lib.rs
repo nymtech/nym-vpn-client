@@ -105,7 +105,7 @@ pub struct NymVpn {
     pub nym_ips: Option<IpPair>,
 
     /// The MTU of the TUN device.
-    pub nym_mtu: Option<usize>,
+    pub nym_mtu: Option<u16>,
 
     /// Disable routing all traffic through the VPN TUN device.
     pub disable_routing: bool,

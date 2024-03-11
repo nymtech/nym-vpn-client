@@ -1,8 +1,12 @@
+#![cfg_attr(not(unix), allow(dead_code))]
+
 use clap::Parser;
 use nym_vpn_lib::nym_bin_common::bin_info_local_vergen;
 use std::{path::PathBuf, sync::OnceLock};
 
+#[cfg(unix)]
 mod command_interface;
+#[cfg(unix)]
 mod service;
 
 // Helper for passing LONG_VERSION to clap
@@ -44,6 +48,7 @@ pub fn setup_logging() {
         .init();
 }
 
+#[cfg(unix)]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     setup_logging();
     let args = CliArgs::parse();
@@ -63,4 +68,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     command_handle.join().unwrap();
 
     Ok(())
+}
+
+#[cfg(not(unix))]
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    unimplemented!("Daemon not implemented for non-unix platforms");
 }

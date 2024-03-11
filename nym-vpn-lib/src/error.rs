@@ -155,6 +155,7 @@ pub enum Error {
     #[error("vpn errored on stop")]
     StopError,
 
+    #[cfg(any(unix, target_os = "android"))]
     #[error("{0}")]
     TunProvider(#[from] talpid_tunnel::tun_provider::Error),
 

@@ -24,7 +24,7 @@ use crate::config::WireguardConfig;
 use crate::error::Result;
 use crate::NymVpn;
 
-const DEFAULT_TUN_MTU: usize = 1500;
+const DEFAULT_TUN_MTU: u16 = 1500;
 
 pub struct RoutingConfig {
     pub(crate) mixnet_tun_config: tun2::Configuration,
@@ -217,7 +217,7 @@ pub async fn setup_routing(
     };
     let dev = tun2::create_as_async(&mixnet_tun_config)
         .tap_err(|err| error!("Failed to create tun device: {}", err))?;
-    let device_name = dev.as_ref().name().unwrap().to_string();
+    let device_name = dev.as_ref().tun_name().unwrap().to_string();
     info!(
         "Created tun device {device_name} with ip={device_ip:?}",
         device_name = device_name,

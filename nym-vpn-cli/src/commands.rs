@@ -67,7 +67,7 @@ pub(crate) struct CliArgs {
 
     /// The MTU of the nym TUN device that wraps IP packets in sphinx packets.
     #[arg(long, alias = "mtu")]
-    pub(crate) nym_mtu: Option<usize>,
+    pub(crate) nym_mtu: Option<u16>,
 
     /// Disable routing all traffic through the nym TUN device. When the flag is set, the nym TUN
     /// device will be created, but to route traffic through it you will need to do it manually,

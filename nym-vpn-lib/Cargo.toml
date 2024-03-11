@@ -31,7 +31,7 @@ tokio-util = { version = "0.7.10", features = ["codec"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "f5fc9d7e9aa08889aedc45dd81ae9b4d3ec4cbe8", features = ["cli"] }
-tun2 = { version = "1.0.1", features = ["async"] }
+tun2 = { version = "1.2.3", features = ["async"] }
 url = "2.4"
 
 # Used in order to correctly import rustls for sub-dependencies
