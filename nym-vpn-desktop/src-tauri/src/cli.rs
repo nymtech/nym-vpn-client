@@ -49,7 +49,7 @@ rustc channel:   {}
         info.compiler.version,
         info.compiler.channel,
     );
-    if let Some(git) = info.version_control.as_ref().unwrap().git() {
+    if let Some(git) = info.version_control.as_ref().and_then(|vc| vc.git()) {
         println!(
             r"commit sha:      {}
 commit date:     {}

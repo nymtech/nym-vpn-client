@@ -61,7 +61,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
-            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make libfuse2
 
       - name: Get package version
         id: package-version
@@ -247,7 +247,7 @@ jobs:
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
-          echo ${{ steps.package-version.outputs.metadata }} > build-info.txt
+          ./nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*_amd64.AppImage --build-info > build-info.txt
           cat build-info.txt
 
       - name: Upload build-info (${{ env.PLATFORM_ARCH }})
@@ -309,7 +309,7 @@ jobs:
       - if: env.TAG_NAME != 'nightly-desktop'
         run: |
           (echo "SUBJECT=$TAG_NAME"
-           echo 'PRERELEASE=--prerelease'
+           echo 'PRERELEASE='
            echo 'NOTES_FILE=release-notes-desktop.md') >> $GITHUB_ENV
 
       # Recall that download-artifact will extract into a directory that
