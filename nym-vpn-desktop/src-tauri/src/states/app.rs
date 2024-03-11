@@ -17,7 +17,10 @@ use crate::{
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 #[ts(export)]
 pub enum ConnectionState {
-    Connected(ConnectionInfo),
+    // TODO: once the frontend can handle it, include the connection info as part of the connection
+    // state.
+    //Connected(ConnectionInfo),
+    Connected,
     #[default]
     Disconnected,
     Connecting,
@@ -25,6 +28,7 @@ pub enum ConnectionState {
     Unknown,
 }
 
+#[allow(unused)]
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 #[ts(export)]
 pub struct ConnectionInfo {
@@ -59,9 +63,11 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn set_connected(&mut self, start_time: OffsetDateTime, gateway: String) {
+    pub fn set_connected(&mut self, start_time: OffsetDateTime, _gateway: String) {
         trace!("update connection state [Connected]");
-        self.state = ConnectionState::Connected(ConnectionInfo { gateway });
+        // TODO: once the frontend can handle it, set the gateway as part of the connection state
+        //self.state = ConnectionState::Connected(ConnectionInfo { gateway });
+        self.state = ConnectionState::Connected;
         self.connection_start_time = Some(start_time);
     }
 }

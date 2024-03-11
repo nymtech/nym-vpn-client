@@ -2,7 +2,7 @@ use tauri::Manager;
 use time::OffsetDateTime;
 use tracing::debug;
 
-use crate::states::app::{ConnectionInfo, ConnectionState};
+use crate::states::app::ConnectionState;
 
 pub const EVENT_CONNECTION_STATE: &str = "connection-state";
 pub const EVENT_CONNECTION_PROGRESS: &str = "connection-progress";
@@ -50,12 +50,15 @@ impl AppHandleEventEmitter for tauri::AppHandle {
         .ok();
     }
 
-    fn emit_connected(&self, now: OffsetDateTime, gateway: String) {
+    fn emit_connected(&self, now: OffsetDateTime, _gateway: String) {
         debug!("sending event [{}]: Connected", EVENT_CONNECTION_STATE);
         self.emit_all(
             EVENT_CONNECTION_STATE,
             ConnectionEventPayload::new(
-                ConnectionState::Connected(ConnectionInfo { gateway }),
+                // TODO: once the frontend can handle it, send the connection info as part of the
+                // connection state
+                //ConnectionState::Connected(ConnectionInfo { gateway }),
+                ConnectionState::Connected,
                 None,
                 Some(now.unix_timestamp()),
             ),
