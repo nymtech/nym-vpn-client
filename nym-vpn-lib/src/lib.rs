@@ -460,10 +460,7 @@ impl NymVpn {
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let (mut tunnel, mut task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
-            self.setup_tunnel()
-                .await?;
-                // .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
-                // .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+            self.setup_tunnel().await?;
 
         // Signal back that we are ready and up with all cylinders firing
         task_manager.start_status_listener(vpn_status_tx).await;
