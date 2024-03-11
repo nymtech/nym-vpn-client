@@ -83,7 +83,7 @@ pub async fn spawn_status_listener(
                         panic!("received unexpected Ready status message");
                     }
                     TaskStatus::ReadyWithGateway(gateway) => {
-                        info!("vpn connection has been established to gatway: {gateway}");
+                        info!("vpn connection has been established using entry gateway: {gateway}");
                         app_state.lock().await.set_connected(now, gateway.clone());
                         app.emit_connected(now, gateway.clone());
                     }
