@@ -270,6 +270,8 @@ jobs:
     if: github.event_name != 'workflow_dispatch' || inputs.publish == true
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.set_tag.outputs.tag }}
     env:
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -291,6 +293,10 @@ jobs:
         run: echo 'TAG_NAME=nightly-desktop' >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Set tag
+        id: set_tag
+        run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
       # We don't bother publishing if not the build info is available
       - name: Check if build-info present
@@ -356,6 +362,6 @@ jobs:
     uses: ./.github/workflows/create-hashes-json.yml
     needs: publish
     with:
-      release_tag: ${{ github.ref_name }}
+      release_tag: ${{ needs.publish.outputs.tag }}
     secrets: inherit
 
