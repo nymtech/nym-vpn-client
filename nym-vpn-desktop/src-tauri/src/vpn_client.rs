@@ -80,7 +80,10 @@ pub async fn spawn_status_listener(
                 let now = OffsetDateTime::now_utc();
                 match task_status {
                     TaskStatus::Ready => {
-                        panic!("received unexpected Ready status message");
+                        info!("vpn connection has been established");
+                        let gateway = "PLACEHOLDER".to_string();
+                        app_state.lock().await.set_connected(now, gateway.clone());
+                        app.emit_connected(now, gateway.clone());
                     }
                     TaskStatus::ReadyWithGateway(gateway) => {
                         info!("vpn connection has been established using entry gateway: {gateway}");
