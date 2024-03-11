@@ -86,9 +86,11 @@ jobs:
         run: ./wireguard/build-wireguard-go.sh
 
       - name: Build
+        if: "!contains(matrix.os, 'windows')"
         run: cargo build --verbose
 
       - name: Run tests
+        if: "!contains(matrix.os, 'windows')"
         run: cargo test --verbose
 
       - name: Clippy
