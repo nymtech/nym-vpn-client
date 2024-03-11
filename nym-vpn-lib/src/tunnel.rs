@@ -44,8 +44,7 @@ impl Tunnel {
 
         #[cfg(target_os = "linux")]
         let (firewall, dns_monitor) = {
-            let fwmark = 0;
-            // ?
+            let fwmark = 0; // ?
             debug!("Starting firewall");
             let firewall = Firewall::new(fwmark)?;
             debug!("Starting dns monitor");
