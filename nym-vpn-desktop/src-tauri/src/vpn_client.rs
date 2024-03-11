@@ -5,7 +5,7 @@ use futures::StreamExt;
 use nym_vpn_lib::gateway_client::{Config as GatewayClientConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::nym_config::defaults::var_names::{EXPLORER_API, NYM_API};
 use nym_vpn_lib::nym_config::OptionalSet;
-use nym_vpn_lib::{NymVpn, NymVpnExitError, NymVpnExitStatusMessage, StatusReceiver};
+use nym_vpn_lib::{NymVpn, NymVpnExitStatusMessage, StatusReceiver};
 use tauri::Manager;
 use time::OffsetDateTime;
 use tracing::{debug, error, info, instrument, trace};
