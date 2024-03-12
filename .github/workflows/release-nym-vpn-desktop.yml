@@ -346,10 +346,8 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          # TODO when updater is ready add `updater-bundle_*/*`
-          # to the artifacts list
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml

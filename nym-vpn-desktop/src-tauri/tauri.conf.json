@@ -11,7 +11,7 @@
   },
   "tauri": {
     "updater": {
-      "active": false,
+      "active": true,
       "dialog": false,
       "endpoints": [
         "https://releases.myapp.com/{{target}}/{{arch}}/{{current_version}}"
