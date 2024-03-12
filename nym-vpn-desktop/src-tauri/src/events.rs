@@ -40,6 +40,8 @@ pub trait AppHandleEventEmitter {
     fn emit_connected(&self, now: OffsetDateTime, gateway: String);
     fn emit_disconnecting(&self);
     fn emit_disconnected(&self, error: Option<String>);
+
+    fn emit_connection_progress(&self, key: ConnectProgressMsg);
 }
 
 impl AppHandleEventEmitter for tauri::AppHandle {
@@ -84,5 +86,10 @@ impl AppHandleEventEmitter for tauri::AppHandle {
             ConnectionEventPayload::new(ConnectionState::Disconnected, error, None),
         )
         .ok();
+    }
+
+    fn emit_connection_progress(&self, key: ConnectProgressMsg) {
+        trace!("sending event [{}]: {:?}", EVENT_CONNECTION_PROGRESS, key);
+        self.emit_all(EVENT_CONNECTION_PROGRESS, ProgressEventPayload { key }).ok();
     }
 }

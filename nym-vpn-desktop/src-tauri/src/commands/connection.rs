@@ -51,18 +51,7 @@ pub async fn connect(
         app_state.state = ConnectionState::Connecting;
     }
     app.emit_connecting();
-
-    trace!(
-        "sending event [{}]: Initializing",
-        EVENT_CONNECTION_PROGRESS
-    );
-    app.emit_all(
-        EVENT_CONNECTION_PROGRESS,
-        ProgressEventPayload {
-            key: ConnectProgressMsg::Initializing,
-        },
-    )
-    .ok();
+    app.emit_connection_progress(ConnectProgressMsg::Initializing);
 
     let app_state = state.lock().await;
 
@@ -136,14 +125,7 @@ pub async fn connect(
         }
     };
     info!("nym vpn client spawned");
-    trace!("sending event [{}]: InitDone", EVENT_CONNECTION_PROGRESS);
-    app.emit_all(
-        EVENT_CONNECTION_PROGRESS,
-        ProgressEventPayload {
-            key: ConnectProgressMsg::InitDone,
-        },
-    )
-    .ok();
+    app.emot_connection_progress(ConnectProgressMsg::InitDone);
 
     // Start exit message listener
     // This will listen for the (single) exit message from the VPN client and update the UI accordingly
@@ -204,16 +186,7 @@ pub async fn disconnect(
     vpn_tx.send(NymVpnCtrlMessage::Stop).await.map_err(|e| {
         let err_message = format!("failed to send Stop message to VPN client: {}", e);
         error!(err_message);
-        debug!("sending event [{}]: Disconnected", EVENT_CONNECTION_STATE);
-        app.emit_all(
-            EVENT_CONNECTION_STATE,
-            ConnectionEventPayload::new(
-                ConnectionState::Disconnected,
-                Some(err_message.clone()),
-                None,
-            ),
-        )
-        .ok();
+        app.emit_disconnected(Some(err_message.clone()));
         CmdError::new(CmdErrorSource::InternalError, err_message)
     })?;
     debug!("Stop message sent");

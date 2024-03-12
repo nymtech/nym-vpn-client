@@ -493,9 +493,7 @@ impl NymVpn {
             wireguard_waiting,
             tunnel_close_tx,
             mixnet_connection_info,
-        ) = self
-            .setup_tunnel()
-            .await?;
+        ) = self.setup_tunnel().await?;
 
         // Signal back that we are ready and up with all cylinders firing
         let start_status = TaskStatus::ReadyWithGateway(mixnet_connection_info.entry_gateway);
