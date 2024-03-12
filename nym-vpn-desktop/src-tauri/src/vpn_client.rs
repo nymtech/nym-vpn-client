@@ -6,23 +6,9 @@ use futures::StreamExt;
 use nym_vpn_lib::gateway_client::{Config as GatewayClientConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::nym_config::defaults::var_names::{EXPLORER_API, NYM_API};
 use nym_vpn_lib::nym_config::OptionalSet;
-use nym_vpn_lib::{NymVpn, NymVpnExitError, NymVpnExitStatusMessage, StatusReceiver, TaskStatus};
+use nym_vpn_lib::{NymVpn, NymVpnExitStatusMessage, StatusReceiver, TaskStatus};
 use time::OffsetDateTime;
 use tracing::{debug, error, info, instrument};
-
-fn handle_vpn_exit_error(e: Box<dyn std::error::Error + Send + Sync>) -> String {
-    match e.downcast::<Box<NymVpnExitError>>() {
-        Ok(e) => {
-            // TODO The double boxing here is unexpected, we should look into that
-            match **e {
-                NymVpnExitError::Generic { reason } => reason.to_string(),
-                NymVpnExitError::FailedToResetFirewallPolicy { reason } => reason.to_string(),
-                NymVpnExitError::FailedToResetDnsMonitor { reason } => reason.to_string(),
-            }
-        }
-        Err(e) => format!("unknown error: {e}"),
-    }
-}
 
 #[instrument(skip_all)]
 pub async fn spawn_exit_listener(
@@ -44,12 +30,14 @@ pub async fn spawn_exit_listener(
                         app.emit_disconnected(None);
                     }
                     NymVpnExitStatusMessage::Failed(e) => {
-                        let error = handle_vpn_exit_error(e);
+                        let error = e
+                            .downcast::<nym_vpn_lib::error::Error>()
+                            .unwrap_or(Box::new(nym_vpn_lib::error::Error::StopError));
                         debug!(
                             "vpn failed, sending event [{}]: disconnected",
                             EVENT_CONNECTION_STATE
                         );
-                        app.emit_disconnected(Some(error));
+                        app.emit_disconnected(Some(error.to_string()));
                     }
                 }
             }

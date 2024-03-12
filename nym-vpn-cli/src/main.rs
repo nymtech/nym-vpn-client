@@ -36,8 +36,10 @@ fn parse_entry_point(args: &commands::CliArgs) -> Result<EntryPoint> {
         Ok(EntryPoint::Location {
             location: entry_gateway_country.clone(),
         })
+    } else if args.entry.entry_gateway_low_latency {
+        Ok(EntryPoint::RandomLowLatency)
     } else {
-        Err(Error::MissingEntryPointInformation)
+        Ok(EntryPoint::Random)
     }
 }
 

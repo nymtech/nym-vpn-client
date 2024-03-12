@@ -1,6 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_client_core::error::ClientCoreError;
 use nym_ip_packet_requests::{
     response::DynamicConnectFailureReason, response::StaticConnectFailureReason,
 };
@@ -22,8 +23,11 @@ pub enum Error {
     #[error("{0}")]
     DNSError(#[from] talpid_core::dns::Error),
 
+    // We are not returning the underlying talpid_core::firewall:Error error as I ran into issues
+    // with the Send marker trait not being implemented when building on Mac. Possibly we can fix
+    // this in the future.
     #[error("{0}")]
-    FirewallError(#[from] talpid_core::firewall::Error),
+    FirewallError(String),
 
     #[error("{0}")]
     WireguardError(#[from] talpid_wireguard::Error),
@@ -49,7 +53,7 @@ pub enum Error {
     #[error("recipient is not formatted correctly")]
     RecipientFormattingError,
 
-    #[error("{0}")]
+    #[error("failed setting up local TUN network device: {0}")]
     TunError(#[from] tun2::Error),
 
     #[error("{0}")]
@@ -142,6 +146,12 @@ pub enum Error {
 
     #[error("no gateway available for location {0}")]
     NoMatchingGatewayForLocation(String),
+
+    #[error("failed to select gateway based on low latency: {source}")]
+    FailedToSelectGatewayBasedOnLowLatency { source: ClientCoreError },
+
+    #[error("failed to select entry gateway randomly")]
+    FailedToSelectEntryGatewayRandomly,
 
     #[error("deadlock when trying to aquire mixnet client mutes")]
     MixnetClientDeadlock,
