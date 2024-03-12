@@ -26,6 +26,7 @@ mod commands;
 mod country;
 mod db;
 mod error;
+mod events;
 mod fs;
 mod http;
 mod network;

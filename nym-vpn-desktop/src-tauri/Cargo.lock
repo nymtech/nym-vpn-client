@@ -5649,6 +5649,7 @@ dependencies = [
  "nym-node-requests 0.1.0 (git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01)",
  "nym-sdk",
  "nym-task",
+ "nym-topology",
  "nym-validator-client",
  "nym-wireguard-types 0.1.0 (git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01)",
  "oslog",
