@@ -359,7 +359,6 @@ jobs:
     uses: ./.github/workflows/gen-hashes-json.yml
     needs: publish
     with:
-      repo: nym-vpn-client
       release_tag: ${{ needs.publish.outputs.tag }}
     secrets: inherit
 
