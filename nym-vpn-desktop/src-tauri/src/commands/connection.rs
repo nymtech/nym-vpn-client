@@ -10,7 +10,7 @@ use crate::states::app::NodeLocation;
 use crate::{
     error::{CmdError, CmdErrorSource},
     events::{
-        ConnectProgressMsg, ConnectionEventPayload, ProgressEventPayload,
+        AppHandleEventEmitter, ConnectProgressMsg, ConnectionEventPayload, ProgressEventPayload,
         EVENT_CONNECTION_PROGRESS, EVENT_CONNECTION_STATE,
     },
     states::{
@@ -50,13 +50,7 @@ pub async fn connect(
         trace!("update connection state [Connecting]");
         app_state.state = ConnectionState::Connecting;
     }
-
-    debug!("sending event [{}]: Connecting", EVENT_CONNECTION_STATE);
-    app.emit_all(
-        EVENT_CONNECTION_STATE,
-        ConnectionEventPayload::new(ConnectionState::Connecting, None, None),
-    )
-    .ok();
+    app.emit_connecting();
 
     trace!(
         "sending event [{}]: Initializing",
@@ -137,16 +131,7 @@ pub async fn connect(
             trace!("update connection state [Disconnected]");
             let mut app_state = state.lock().await;
             app_state.state = ConnectionState::Disconnected;
-            debug!("sending event [{}]: Disconnected", EVENT_CONNECTION_STATE);
-            app.emit_all(
-                EVENT_CONNECTION_STATE,
-                ConnectionEventPayload::new(
-                    ConnectionState::Disconnected,
-                    Some(e.message.clone()),
-                    None,
-                ),
-            )
-            .ok();
+            app.emit_disconnected(Some(e.message.clone()));
             return Err(e);
         }
     };
@@ -201,28 +186,13 @@ pub async fn disconnect(
     // switch to "Disconnecting" state
     trace!("update connection state [Disconnecting]");
     app_state.state = ConnectionState::Disconnecting;
-
-    debug!("sending event [{}]: Disconnecting", EVENT_CONNECTION_STATE);
-    app.emit_all(
-        EVENT_CONNECTION_STATE,
-        ConnectionEventPayload::new(ConnectionState::Disconnecting, None, None),
-    )
-    .ok();
+    app.emit_disconnecting();
 
     let Some(ref mut vpn_tx) = app_state.vpn_ctrl_tx else {
         trace!("update connection state [Disconnected]");
         app_state.state = ConnectionState::Disconnected;
         app_state.connection_start_time = None;
-        debug!("sending event [{}]: Disconnected", EVENT_CONNECTION_STATE);
-        app.emit_all(
-            EVENT_CONNECTION_STATE,
-            ConnectionEventPayload::new(
-                ConnectionState::Disconnected,
-                Some("vpn handle has not been initialized".to_string()),
-                None,
-            ),
-        )
-        .ok();
+        app.emit_disconnected(Some("vpn handle has not been initialized".to_string()));
         return Err(CmdError::new(
             CmdErrorSource::InternalError,
             "vpn handle has not been initialized".to_string(),

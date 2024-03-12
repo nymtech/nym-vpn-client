@@ -36,16 +36,18 @@ impl ConnectionEventPayload {
 }
 
 pub trait AppHandleEventEmitter {
-    fn emit_disconnected(&self, error: Option<String>);
+    fn emit_connecting(&self);
     fn emit_connected(&self, now: OffsetDateTime, gateway: String);
+    fn emit_disconnecting(&self);
+    fn emit_disconnected(&self, error: Option<String>);
 }
 
 impl AppHandleEventEmitter for tauri::AppHandle {
-    fn emit_disconnected(&self, error: Option<String>) {
-        debug!("sending event [{}]: Disconnected", EVENT_CONNECTION_STATE);
+    fn emit_connecting(&self) {
+        debug!("sending event [{}]: Connecting", EVENT_CONNECTION_STATE);
         self.emit_all(
             EVENT_CONNECTION_STATE,
-            ConnectionEventPayload::new(ConnectionState::Disconnected, error, None),
+            ConnectionEventPayload::new(ConnectionState::Connecting, None, None),
         )
         .ok();
     }
@@ -62,6 +64,24 @@ impl AppHandleEventEmitter for tauri::AppHandle {
                 None,
                 Some(now.unix_timestamp()),
             ),
+        )
+        .ok();
+    }
+
+    fn emit_disconnecting(&self) {
+        debug!("sending event [{}]: Disconnecting", EVENT_CONNECTION_STATE);
+        self.emit_all(
+            EVENT_CONNECTION_STATE,
+            ConnectionEventPayload::new(ConnectionState::Disconnecting, None, None),
+        )
+        .ok();
+    }
+
+    fn emit_disconnected(&self, error: Option<String>) {
+        debug!("sending event [{}]: Disconnected", EVENT_CONNECTION_STATE);
+        self.emit_all(
+            EVENT_CONNECTION_STATE,
+            ConnectionEventPayload::new(ConnectionState::Disconnected, error, None),
         )
         .ok();
     }
