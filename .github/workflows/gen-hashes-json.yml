@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate hashes.json
-        uses: nymtech/nym/.github/actions/nym-hash-releases@bugfix/action-release
+        uses: nymtech/nym/.github/actions/nym-hash-releases@develop
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
