@@ -146,7 +146,7 @@ async fn wait_for_connect_response(
                             continue;
                         };
                         if response.id() == Some(request_id) {
-                            info!("Got response with matching id");
+                            debug!("Got response with matching id");
                             return Ok(response);
                         }
                     }
@@ -198,7 +198,7 @@ pub async fn connect_to_ip_packet_router(
     ips: Option<IpPair>,
     enable_two_hop: bool,
 ) -> Result<IpPair> {
-    info!("Sending connect request");
+    debug!("Sending connect request");
     let request_id = send_connect_to_ip_packet_router(
         &mixnet_client,
         ip_packet_router_address,
@@ -207,7 +207,7 @@ pub async fn connect_to_ip_packet_router(
     )
     .await?;
 
-    info!("Waiting for reply...");
+    debug!("Waiting for reply...");
     let response = wait_for_connect_response(&mixnet_client, request_id).await?;
 
     let mixnet_client_address = mixnet_client.nym_address().await;

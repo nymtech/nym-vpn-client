@@ -133,8 +133,8 @@ impl LanGatewayIp {
             error!("Failed to get default interface: {}", err);
             crate::error::Error::DefaultInterfaceError
         })?;
-        info!("Default interface: {}", default_interface.name);
-        debug!("Default interface: {:?}", default_interface);
+        info!("Default network interface: {}", default_interface.name);
+        debug!("Default network interface: {:?}", default_interface);
         Ok(LanGatewayIp(default_interface))
     }
 }
@@ -190,7 +190,7 @@ pub async fn setup_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
 ) -> Result<tun2::AsyncDevice> {
-    info!("Creating tun device");
+    debug!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
     #[cfg(target_os = "android")]
     let mixnet_tun_config = {
@@ -257,8 +257,8 @@ pub async fn setup_routing(
         config.tunnel_gateway_ip.ipv4,
         config.tunnel_gateway_ip.ipv6,
     );
-    info!("Using node_v4: {:?}", node_v4);
-    info!("Using node_v6: {:?}", node_v6);
+    debug!("Using node_v4: {:?}", node_v4);
+    debug!("Using node_v6: {:?}", node_v6);
 
     let mut routes = [
         ("0.0.0.0/0".to_string(), node_v4),

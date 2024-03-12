@@ -186,13 +186,13 @@ impl NymVpn {
             self.enable_two_hop,
         )
         .await?;
-        info!("Successfully connected to IP packet router on the exit gateway!");
-        info!("Using IP addresses: {ips}");
+        info!("Successfully connected to IP packet router!");
+        info!("Using mixnet VPN IP addresses: {ips}");
 
         // We need the IP of the gateway to correctly configure the routing table
         let mixnet_client_address = mixnet_client.nym_address().await;
         let gateway_used = mixnet_client_address.gateway().to_base58_string();
-        info!("Using gateway: {gateway_used}");
+        debug!("Entry gateway used for setting up routing table: {gateway_used}");
         let entry_mixnet_gateway_ip: IpAddr =
             gateway_client.lookup_gateway_ip(&gateway_used).await?;
         debug!("Gateway ip resolves to: {entry_mixnet_gateway_ip}");
@@ -327,11 +327,13 @@ impl NymVpn {
         // The IP address of the gateway inside the tunnel. This will depend on if wireguard is
         // enabled
         let tunnel_gateway_ip = routing::TunnelGatewayIp::new(wireguard_config.clone());
-        info!("tunnel_gateway_ip: {tunnel_gateway_ip}");
+        if self.enable_wireguard {
+            info!("Wireguard tunnel gateway ip: {tunnel_gateway_ip}");
+        }
 
         // Get the IP address of the local LAN gateway
         let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
-        info!("default_lan_gateway_ip: {default_lan_gateway_ip}");
+        debug!("default_lan_gateway_ip: {default_lan_gateway_ip}");
 
         let task_manager = TaskManager::new(10);
 
@@ -443,8 +445,9 @@ impl NymVpn {
         tunnel.dns_monitor.reset().tap_err(|err| {
             error!("Failed to reset dns monitor: {err}");
         })?;
-        tunnel.firewall.reset_policy().tap_err(|err| {
+        tunnel.firewall.reset_policy().map_err(|err| {
             error!("Failed to reset firewall policy: {err}");
+            Error::FirewallError(err.to_string())
         })?;
 
         Ok(())
@@ -460,9 +463,7 @@ impl NymVpn {
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let (mut tunnel, mut task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
-            self.setup_tunnel()
-                .await
-                .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+            self.setup_tunnel().await?;
 
         // Signal back that we are ready and up with all cylinders firing
         task_manager
@@ -476,19 +477,19 @@ impl NymVpn {
             .await
             .map_err(|err| {
                 error!("Failed to handle interrupt: {err}");
-                Box::new(NymVpnExitError::generic(&err))
+                Box::new(NymVpnExitError::Generic { reason: err })
             })?;
         tunnel.dns_monitor.reset().map_err(|err| {
             error!("Failed to reset dns monitor: {err}");
-            Box::new(NymVpnExitError::FailedToResetDnsMonitor {
+            NymVpnExitError::FailedToResetDnsMonitor {
                 reason: err.to_string(),
-            })
+            }
         })?;
         tunnel.firewall.reset_policy().map_err(|err| {
             error!("Failed to reset firewall policy: {err}");
-            Box::new(NymVpnExitError::FailedToResetFirewallPolicy {
+            NymVpnExitError::FailedToResetFirewallPolicy {
                 reason: err.to_string(),
-            })
+            }
         })?;
 
         result
@@ -511,7 +512,7 @@ pub enum NymVpnCtrlMessage {
 #[derive(thiserror::Error, Debug)]
 pub enum NymVpnExitError {
     #[error("{reason}")]
-    Generic { reason: String },
+    Generic { reason: Error },
 
     // TODO: capture the concrete error type once we have time to investigate on Mac
     #[error("failed to reset firewall policy: {reason}")]
@@ -519,14 +520,6 @@ pub enum NymVpnExitError {
 
     #[error("failed to reset dns monitor: {reason}")]
     FailedToResetDnsMonitor { reason: String },
-}
-
-impl NymVpnExitError {
-    fn generic(err: &dyn std::error::Error) -> Self {
-        NymVpnExitError::Generic {
-            reason: err.to_string(),
-        }
-    }
 }
 
 #[derive(Debug)]

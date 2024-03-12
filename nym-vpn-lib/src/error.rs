@@ -23,8 +23,11 @@ pub enum Error {
     #[error("{0}")]
     DNSError(#[from] talpid_core::dns::Error),
 
+    // We are not returning the underlying talpid_core::firewall:Error error as I ran into issues
+    // with the Send marker trait not being implemented when building on Mac. Possibly we can fix
+    // this in the future.
     #[error("{0}")]
-    FirewallError(#[from] talpid_core::firewall::Error),
+    FirewallError(String),
 
     #[error("{0}")]
     WireguardError(#[from] talpid_wireguard::Error),
@@ -50,7 +53,7 @@ pub enum Error {
     #[error("recipient is not formatted correctly")]
     RecipientFormattingError,
 
-    #[error("{0}")]
+    #[error("failed setting up local TUN network device: {0}")]
     TunError(#[from] tun2::Error),
 
     #[error("{0}")]
