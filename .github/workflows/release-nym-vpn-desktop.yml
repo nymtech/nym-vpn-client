@@ -24,9 +24,7 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        # TODO restore!
-        # os: [ubuntu-22.04-16-core, macos-14]
-        os: [ubuntu-22.04-16-core]
+        os: [ubuntu-22.04-16-core, macos-14]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -36,9 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO restore!
-        # os: [ubuntu-22.04-16-core, macos-14]
-        os: [ubuntu-22.04-16-core]
+        os: [ubuntu-22.04-16-core, macos-14]
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -352,8 +348,8 @@ jobs:
           echo "Creating release"
           # TODO when updater is ready add `updater-bundle_*/*`
           # to the artifacts list
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
