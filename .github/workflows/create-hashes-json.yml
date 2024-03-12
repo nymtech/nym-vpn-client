@@ -21,20 +21,20 @@ jobs:
     name: Create hashes.json
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout nym-hash-releases sources
-        uses: actions/checkout@v4
-        with:
-          repository: nymtech/nym
-          ref: bugfix/action-release
-          sparse-checkout: |
-            .github/actions/nym-hash-releases
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - name: Install packages
-        run: cd ./.github/actions/nym-hash-releases && npm i
+      # - name: Checkout nym-hash-releases sources
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: nymtech/nym
+      #     ref: bugfix/action-release
+      #     sparse-checkout: |
+      #       .github/actions/nym-hash-releases
+      # - uses: actions/setup-node@v4
+      #   with:
+      #     node-version: 18
+      # - name: Install packages
+      #   run: cd ./.github/actions/nym-hash-releases && npm i
 
-      - uses: ./.github/actions/nym-hash-releases
+      - uses: nymtech/nym/.github/actions/nym-hash-releases@bugfix/action-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
