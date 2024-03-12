@@ -30,7 +30,7 @@ tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "syn
 tokio-util = { version = "0.7.10", features = ["codec"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "f5fc9d7e9aa08889aedc45dd81ae9b4d3ec4cbe8", features = ["cli"] }
+uniffi = { version = "0.26.1", features = ["cli"] }
 tun2 = { version = "1.2.3", features = ["async"] }
 url = "2.4"
 
@@ -70,4 +70,4 @@ rand = "0.8.5"
 oslog = "0.2.0"
 
 [build-dependencies]
-uniffi = { git = "https://github.com/mozilla/uniffi-rs", rev = "f5fc9d7e9aa08889aedc45dd81ae9b4d3ec4cbe8", features = ["build"] }
+uniffi = { version = "0.26.1", features = ["build"] }
