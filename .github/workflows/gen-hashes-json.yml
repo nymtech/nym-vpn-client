@@ -27,7 +27,7 @@ jobs:
           repo: nym-vpn-client
           release-tag-or-name-or-id: ${{ inputs.release_tag }}
 
-      - name: Upload hashes.json to release assets
+      - name: Upload hashes.json
         uses: actions/upload-artifact@v2
         with:
           name: Asset Hashes
