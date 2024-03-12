@@ -25,6 +25,8 @@ use talpid_types::net::wireguard::PublicKey;
 use tracing::{debug, info};
 use url::Url;
 
+const FORCE_TLS_FOR_GATEWAY_SELECTION: bool = false;
+
 #[derive(Clone, Debug)]
 pub struct Config {
     pub(crate) api_url: Url,
@@ -179,7 +181,7 @@ impl EntryPoint {
                 // wireguard is enabled for the first hop
                 log::info!("Selecting a random low latency entry gateway");
                 let mut rng = rand::rngs::OsRng;
-                let must_use_tls = false;
+                let must_use_tls = FORCE_TLS_FOR_GATEWAY_SELECTION;
                 let gateway_nodes: Vec<nym_topology::gateway::Node> = gateways
                     .iter()
                     .filter_map(|gateway| {
