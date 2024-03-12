@@ -1,13 +1,13 @@
 use tauri::Manager;
 use time::OffsetDateTime;
-use tracing::debug;
+use tracing::{debug, trace};
 
 use crate::states::app::ConnectionState;
 
 pub const EVENT_CONNECTION_STATE: &str = "connection-state";
 pub const EVENT_CONNECTION_PROGRESS: &str = "connection-progress";
 
-#[derive(Clone, serde::Serialize)]
+#[derive(Clone, Debug, serde::Serialize)]
 pub enum ConnectProgressMsg {
     Initializing,
     InitDone,
@@ -90,6 +90,7 @@ impl AppHandleEventEmitter for tauri::AppHandle {
 
     fn emit_connection_progress(&self, key: ConnectProgressMsg) {
         trace!("sending event [{}]: {:?}", EVENT_CONNECTION_PROGRESS, key);
-        self.emit_all(EVENT_CONNECTION_PROGRESS, ProgressEventPayload { key }).ok();
+        self.emit_all(EVENT_CONNECTION_PROGRESS, ProgressEventPayload { key })
+            .ok();
     }
 }

@@ -1,7 +1,7 @@
 use futures::SinkExt;
 use nym_vpn_lib::gateway_client::{EntryPoint, ExitPoint};
 use nym_vpn_lib::{NymVpnCtrlMessage, NymVpnHandle};
-use tauri::{Manager, State};
+use tauri::State;
 use tracing::{debug, error, info, instrument, trace};
 
 use crate::country::FASTEST_NODE_LOCATION;
@@ -9,10 +9,7 @@ use crate::db::{Db, Key};
 use crate::states::app::NodeLocation;
 use crate::{
     error::{CmdError, CmdErrorSource},
-    events::{
-        AppHandleEventEmitter, ConnectProgressMsg, ConnectionEventPayload, ProgressEventPayload,
-        EVENT_CONNECTION_PROGRESS, EVENT_CONNECTION_STATE,
-    },
+    events::{AppHandleEventEmitter, ConnectProgressMsg},
     states::{
         app::{ConnectionState, VpnMode},
         SharedAppState,
@@ -125,7 +122,7 @@ pub async fn connect(
         }
     };
     info!("nym vpn client spawned");
-    app.emot_connection_progress(ConnectProgressMsg::InitDone);
+    app.emit_connection_progress(ConnectProgressMsg::InitDone);
 
     // Start exit message listener
     // This will listen for the (single) exit message from the VPN client and update the UI accordingly
