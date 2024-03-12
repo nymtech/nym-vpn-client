@@ -150,8 +150,8 @@ pub enum Error {
     #[error("failed to select gateway based on low latency: {source}")]
     FailedToSelectGatewayBasedOnLowLatency { source: ClientCoreError },
 
-    #[error("failed to select entry gateway randomly")]
-    FailedToSelectEntryGatewayRandomly,
+    #[error("failed to select gateway randomly")]
+    FailedToSelectGatewayRandomly,
 
     #[error("deadlock when trying to aquire mixnet client mutes")]
     MixnetClientDeadlock,
