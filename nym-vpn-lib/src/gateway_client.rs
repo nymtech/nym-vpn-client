@@ -5,6 +5,7 @@ use crate::error::{Error, Result};
 use crate::mixnet_processor::IpPacketRouterAddress;
 #[cfg(target_os = "macos")]
 use crate::UniffiCustomTypeConverter;
+use itertools::Itertools;
 use nym_client_core::init::helpers::choose_gateway_by_latency;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_crypto::asymmetric::encryption;
@@ -291,6 +292,10 @@ impl DescribedGatewayWithLocation {
         self.two_letter_iso_country_code()
             .map_or(false, |gateway_iso_code| gateway_iso_code == code)
     }
+
+    pub fn country_name(&self) -> Option<String> {
+        self.location.as_ref().map(|l| l.country_name.clone())
+    }
 }
 
 impl From<DescribedGateway> for DescribedGatewayWithLocation {
@@ -416,6 +421,24 @@ impl GatewayClient {
         select_random_low_latency_described_gateway(&described_gateways)
             .await
             .cloned()
+    }
+
+    pub async fn lookup_all_countries(&self) -> Result<Vec<String>> {
+        let described_gateways = self.lookup_described_gateways_with_location().await?;
+        Ok(described_gateways
+            .iter()
+            .filter_map(|gateway| gateway.country_name())
+            .unique()
+            .collect())
+    }
+
+    pub async fn lookup_all_exit_countries(&self) -> Result<Vec<String>> {
+        let described_gateways = self.lookup_described_exit_gateways_with_location().await?;
+        Ok(described_gateways
+            .iter()
+            .filter_map(|gateway| gateway.country_name())
+            .unique()
+            .collect())
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
