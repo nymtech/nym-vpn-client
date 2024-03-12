@@ -40,12 +40,12 @@ reqwest = { version = "0.11.22", default_features = false, features = ["rustls-t
 tokio-tungstenite = { version = "0.20.1", features = ["rustls"] }
 tungstenite = { version = "0.20.1", default-features = false, features = ["rustls"] }
 
-talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
-talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
-talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
-talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
-talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
-talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "fde37701018191d16bc66c37616588aa120b9549" }
+talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "824f1a471fe87c6a535458bdbd59b4ae557fc412" }
+talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "824f1a471fe87c6a535458bdbd59b4ae557fc412" }
+talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "824f1a471fe87c6a535458bdbd59b4ae557fc412" }
+talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "824f1a471fe87c6a535458bdbd59b4ae557fc412" }
+talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "824f1a471fe87c6a535458bdbd59b4ae557fc412" }
+talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "824f1a471fe87c6a535458bdbd59b4ae557fc412" }
 
 nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "5bb9e36842e93d06c67ac8860dfdbf58fb354b01" }
 nym-client-core = { git = "https://github.com/nymtech/nym", rev = "5bb9e36842e93d06c67ac8860dfdbf58fb354b01" }
@@ -67,7 +67,7 @@ jnix = { version = "=0.5.0", features = ["derive"] }
 nix = "0.23"
 rand = "0.8.5"
 
-[target.'cfg(target_os = "macos")'.dependencies]
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 oslog = "0.2.0"
 
 [build-dependencies]
