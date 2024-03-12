@@ -5,6 +5,7 @@ use crate::error::{Error, Result};
 use crate::mixnet_processor::IpPacketRouterAddress;
 #[cfg(target_os = "macos")]
 use crate::UniffiCustomTypeConverter;
+use nym_client_core::init::helpers::choose_gateway_by_latency;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_crypto::asymmetric::encryption;
 use nym_explorer_client::{ExplorerClient, Location, PrettyDetailedGatewayBond};
@@ -23,6 +24,8 @@ use std::str::FromStr;
 use talpid_types::net::wireguard::PublicKey;
 use tracing::{debug, info};
 use url::Url;
+
+const FORCE_TLS_FOR_GATEWAY_SELECTION: bool = false;
 
 #[derive(Clone, Debug)]
 pub struct Config {
@@ -88,6 +91,8 @@ pub enum EntryPoint {
     Gateway { identity: NodeIdentity },
     // NOTE: Consider using a crate with strongly typed country codes instead of strings
     Location { location: String },
+    RandomLowLatency,
+    Random,
 }
 
 impl EntryPoint {
@@ -144,7 +149,7 @@ impl UniffiCustomTypeConverter for NodeIdentity {
 }
 
 impl EntryPoint {
-    pub fn lookup_gateway_identity(
+    pub async fn lookup_gateway_identity(
         &self,
         gateways: &[DescribedGatewayWithLocation],
     ) -> Result<NodeIdentity> {
@@ -167,6 +172,36 @@ impl EntryPoint {
                 let random_gateway = gateways_with_specified_location
                     .choose(&mut rand::thread_rng())
                     .ok_or(Error::NoMatchingGatewayForLocation(location.to_string()))?;
+                NodeIdentity::from_base58_string(random_gateway.identity_key())
+                    .map_err(|_| Error::NodeIdentityFormattingError)
+            }
+            EntryPoint::RandomLowLatency => {
+                // Recall, even though the mixnet client is able to randomly select a gateway, we
+                // have to do it up front since it affects how we setup the routing table when
+                // wireguard is enabled for the first hop
+                log::info!("Selecting a random low latency entry gateway");
+                let mut rng = rand::rngs::OsRng;
+                let must_use_tls = FORCE_TLS_FOR_GATEWAY_SELECTION;
+                let gateway_nodes: Vec<nym_topology::gateway::Node> = gateways
+                    .iter()
+                    .filter_map(|gateway| {
+                        nym_topology::gateway::Node::try_from(&gateway.gateway).ok()
+                    })
+                    .collect();
+                choose_gateway_by_latency(&mut rng, &gateway_nodes, must_use_tls)
+                    .await
+                    .map(|gateway| *gateway.identity())
+                    .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })
+            }
+            EntryPoint::Random => {
+                // Recall, even though the mixnet client is able to randomly select a gateway, we
+                // have to do it up front since it affects how we setup the routing table when
+                // wireguard is enabled for the first hop
+                log::info!("Selecting a random entry gateway");
+                let random_gateway = gateways
+                    .iter()
+                    .choose(&mut rand::thread_rng())
+                    .ok_or(Error::FailedToSelectEntryGatewayRandomly)?;
                 NodeIdentity::from_base58_string(random_gateway.identity_key())
                     .map_err(|_| Error::NodeIdentityFormattingError)
             }

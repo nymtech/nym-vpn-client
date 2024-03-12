@@ -90,7 +90,7 @@ pub(crate) struct CliArgs {
 }
 
 #[derive(Args)]
-#[group(required = true, multiple = false)]
+#[group(multiple = false)]
 pub(crate) struct CliEntry {
     /// Mixnet public ID of the entry gateway.
     #[clap(long, alias = "entry-id")]
@@ -99,6 +99,10 @@ pub(crate) struct CliEntry {
     /// Auto-select entry gateway by country ISO.
     #[clap(long, alias = "entry-country")]
     pub(crate) entry_gateway_country: Option<String>,
+
+    /// Auto-select entry gateway by latency
+    #[clap(long, alias = "entry-fastest")]
+    pub(crate) entry_gateway_low_latency: bool,
 }
 
 #[derive(Args)]
