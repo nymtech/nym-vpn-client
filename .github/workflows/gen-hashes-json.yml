@@ -1,0 +1,35 @@
+name: gen-hashes
+
+on:
+  workflow_call:
+    inputs:
+      release_tag:
+        description: 'Release tag'
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag'
+        required: true
+        type: string
+
+jobs:
+  gen-hashes:
+    name: Generate hashes.json
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate hashes.json
+        uses: nymtech/nym/.github/actions/nym-hash-releases@bugfix/action-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          repo: nym-vpn-client
+          release-tag-or-name-or-id: ${{ inputs.release_tag }}
+
+      - name: Upload hashes.json to release assets
+        uses: actions/upload-artifact@v2
+        with:
+          name: Asset Hashes
+          path: hashes.json
+
