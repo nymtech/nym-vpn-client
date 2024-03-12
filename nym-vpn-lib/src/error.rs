@@ -1,6 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_client_core::error::ClientCoreError;
 use nym_ip_packet_requests::{
     response::DynamicConnectFailureReason, response::StaticConnectFailureReason,
 };
@@ -142,6 +143,12 @@ pub enum Error {
 
     #[error("no gateway available for location {0}")]
     NoMatchingGatewayForLocation(String),
+
+    #[error("failed to select gateway based on low latency: {source}")]
+    FailedToSelectGatewayBasedOnLowLatency { source: ClientCoreError },
+
+    #[error("failed to select entry gateway randomly")]
+    FailedToSelectEntryGatewayRandomly,
 
     #[error("deadlock when trying to aquire mixnet client mutes")]
     MixnetClientDeadlock,

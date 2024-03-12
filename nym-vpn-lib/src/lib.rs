@@ -298,7 +298,7 @@ impl NymVpn {
             return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
         }
 
-        let entry_gateway_id = self.entry_point.lookup_gateway_identity(&gateways)?;
+        let entry_gateway_id = self.entry_point.lookup_gateway_identity(&gateways).await?;
         let exit_router_address = self.exit_point.lookup_router_address(&gateways)?;
 
         info!("Using entry gateway: {entry_gateway_id}");
