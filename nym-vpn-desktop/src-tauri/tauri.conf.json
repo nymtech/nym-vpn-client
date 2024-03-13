@@ -11,11 +11,9 @@
   },
   "tauri": {
     "updater": {
-      "active": false,
+      "active": true,
       "dialog": false,
-      "endpoints": [
-        "https://releases.myapp.com/{{target}}/{{arch}}/{{current_version}}"
-      ],
+      "endpoints": ["https://nymvpn.net/api/updater/vpn"],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU3RjI2N0FFRUEyRERGOEQKUldTTjN5M3FybWZ5VjhxOFRsLzQ2c1N0NW1PVVNxVEVVQkszYjZHc3RtcEFDOW1ZN2lIN1NGdk0K"
     },
     "allowlist": {
