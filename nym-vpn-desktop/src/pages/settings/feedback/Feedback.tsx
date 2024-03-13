@@ -66,14 +66,10 @@ function Feedback() {
         title={t('feedback.error-report.title')}
         desc={t('feedback.error-report.desc')}
         leadingIcon="error"
+        onClick={handleMonitoringChanged}
         trailingComponent={
-          <Switch
-            checked={monitoring}
-            onChange={handleMonitoringChanged}
-            disabled
-          />
+          <Switch checked={monitoring} onChange={handleMonitoringChanged} />
         }
-        disabled
       />
     </div>
   );

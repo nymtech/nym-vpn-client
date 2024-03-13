@@ -50,6 +50,7 @@ function Settings() {
             desc: t('auto-connect.desc'),
             leadingIcon: 'hdr_auto',
             disabled: true,
+            onClick: handleAutoConnectChanged,
             trailing: (
               <Switch
                 checked={autoConnect}
@@ -62,6 +63,7 @@ function Settings() {
             title: t('entry-selector.title'),
             desc: t('entry-selector.desc'),
             leadingIcon: 'looks_two',
+            onClick: handleEntrySelectorChange,
             trailing: (
               <Switch
                 checked={entrySelector}

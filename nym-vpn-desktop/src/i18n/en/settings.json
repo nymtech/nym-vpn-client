@@ -14,7 +14,7 @@
     "matrix": "Join us on Matrix",
     "discord": "Join us on Discord",
     "error-report": {
-      "title": "Turn on error reporting",
+      "title": "Turn on error monitoring",
       "desc": "Help us improve NymVPN"
     }
   },
