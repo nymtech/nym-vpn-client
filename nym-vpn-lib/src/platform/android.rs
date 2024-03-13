@@ -190,10 +190,13 @@ pub async extern "system" fn Java_net_nymtech_vpn_NymVpn_getGatewayCountries<'en
     let ret = if exit_only == JNI_FALSE { gateway_client.lookup_all_countries().await } else {
         gateway_client.lookup_all_exit_countries().await
     };
-    match ret {
-        Err(err) => error!("Failed to get countries: {:?}", err),
+    return match ret {
+        Err(err) => {
+            error!("Failed to get countries: {:?}", err);
+            "".to_string().into_java(&env).forget().into()
+        },
         Ok(countries) => {
-            return countries.join(",").into_java(&env).forget()
+            countries.join(",").into_java(&env).forget().into()
         }
     }
 }
