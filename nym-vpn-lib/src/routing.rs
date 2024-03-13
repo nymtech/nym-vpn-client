@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use default_net::Interface;
+use netdev::Interface;
 use std::fmt::{Display, Formatter};
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(target_os = "android")]
@@ -10,8 +10,8 @@ use std::os::fd::{AsRawFd, RawFd};
 use std::sync::{Arc, Mutex};
 use std::{collections::HashSet, net::IpAddr};
 
-use default_net::interface::get_default_interface;
 use ipnetwork::IpNetwork;
+use netdev::interface::get_default_interface;
 use nym_ip_packet_requests::IpPair;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 #[cfg(target_os = "android")]
@@ -270,8 +270,19 @@ pub async fn setup_routing(
     // it, we need to add an exception route for the gateway to the routing table.
     if !config.enable_wireguard || cfg!(target_os = "linux") {
         let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
-        let default_node = if let Some(gateway) = config.lan_gateway_ip.0.gateway {
-            Node::new(gateway.ip_addr, config.lan_gateway_ip.0.name)
+        let default_node = if let Some(addr) = config
+            .lan_gateway_ip
+            .0
+            .gateway
+            .map(|g| {
+                g.ipv4
+                    .first()
+                    .map(|a| IpAddr::from(*a))
+                    .or(g.ipv6.first().map(|a| IpAddr::from(*a)))
+            })
+            .flatten()
+        {
+            Node::new(addr, config.lan_gateway_ip.0.name)
         } else {
             Node::device(config.lan_gateway_ip.0.name)
         };

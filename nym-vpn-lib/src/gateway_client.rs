@@ -460,9 +460,9 @@ impl GatewayClient {
         } = gateway_api_client
             .post_gateway_register_client(&init_message)
             .await?
-            else {
-                return Err(crate::error::Error::InvalidGatewayAPIResponse);
-            };
+        else {
+            return Err(crate::error::Error::InvalidGatewayAPIResponse);
+        };
         debug!("Received nonce: {}", nonce);
         debug!("Received wg_port: {}", wg_port);
         debug!("Received gateway data: {:?}", gateway_data);
