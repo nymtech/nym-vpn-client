@@ -3,6 +3,8 @@
 
 #[cfg(target_os = "macos")]
 uniffi::include_scaffolding!("nym_vpn_lib_macos");
+#[cfg(target_os = "ios")]
+uniffi::include_scaffolding!("nym_vpn_lib_ios");
 #[cfg(target_os = "android")]
 uniffi::include_scaffolding!("nym_vpn_lib_android");
 
@@ -39,17 +41,17 @@ pub use nym_task::{
 };
 
 #[cfg(target_os = "ios")]
-use crate::platform::ios::OSTunProvider;
+use crate::platform::ios::{initVPN, OSTunProvider, VPNConfig, WgConfig};
 #[cfg(target_os = "macos")]
 use crate::platform::macos::{initVPN, VPNConfig, WgConfig};
-#[cfg(any(target_os = "macos", target_os = "android"))]
+#[cfg(any(target_os = "macos", target_os = "android", target_os = "ios"))]
 use crate::platform::{runVPN, stopVPN};
 pub use nym_bin_common;
 pub use nym_config;
 use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 use url::Url;
 
 pub mod config;
@@ -60,7 +62,7 @@ pub mod mixnet_processor;
 mod platform;
 pub mod routing;
 pub mod tunnel;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 mod uniffi_custom_impls;
 mod util;
 

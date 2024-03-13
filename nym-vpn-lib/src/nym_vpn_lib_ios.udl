@@ -67,6 +67,8 @@ dictionary VPNConfig {
 interface EntryPoint {
   Gateway(NodeIdentity identity);
   Location(string location);
+  RandomLowLatency();
+  Random();
 };
 
 [Enum]
