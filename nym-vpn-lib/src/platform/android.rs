@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::*;
-use crate::gateway_client::{EntryPoint, ExitPoint};
-use crate::NymVpn;
+use crate::gateway_client::{EntryPoint, ExitPoint, GatewayClient};
+use crate::{gateway_client, NymVpn};
 use ipnetwork::IpNetwork;
 use jnix::jni::{
     objects::{JClass, JObject, JString},
@@ -176,6 +176,26 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_defaultTunConfig<'env>
     let env = JnixEnv::from(env);
 
     TunConfig::default().into_java(&env).forget()
+}
+
+#[no_mangle]
+#[allow(non_snake_case)]
+pub async extern "system" fn Java_net_nymtech_vpn_NymVpn_getGatewayCountries<'env>(
+    env: JNIEnv<'env>,
+    exit_only: jboolean,
+    _this: JObject<'_>,
+) -> JString<'env> {
+    let env = JnixEnv::from(env);
+    let gateway_client = GatewayClient::new(gateway_client::Config::default()).unwrap();
+    let ret = if exit_only == JNI_FALSE { gateway_client.lookup_all_countries().await } else {
+        gateway_client.lookup_all_exit_countries().await
+    };
+    match ret {
+        Err(err) => error!("Failed to get countries: {:?}", err),
+        Ok(countries) => {
+            return countries.join(",").into_java(&env).forget()
+        }
+    }
 }
 
 #[no_mangle]
