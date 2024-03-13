@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
@@ -53,6 +54,9 @@ fun SearchBar(onQuery: (queryString: String) -> Unit, placeholder : (@Composable
         )
     BasicTextField(
         value = query,
+        textStyle = MaterialTheme.typography.bodyLarge.copy(
+            color = MaterialTheme.colorScheme.onBackground
+        ),
         onValueChange = { onQueryChanged : String ->
             // If user makes changes to text, immediately updated it.
             query = onQueryChanged

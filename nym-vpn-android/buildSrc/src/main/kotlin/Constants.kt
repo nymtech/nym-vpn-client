@@ -1,8 +1,8 @@
 import org.gradle.api.JavaVersion
 
 object Constants {
-    const val VERSION_NAME = "v0.0.8-alpha"
-    const val VERSION_CODE = 8
+    const val VERSION_NAME = "v0.0.9-alpha"
+    const val VERSION_CODE = 9
     const val TARGET_SDK = 34
     const val COMPILE_SDK = 34
     const val MIN_SDK = 24
@@ -34,4 +34,8 @@ object Constants {
     //licensee
     val allowedLicenses = listOf("MIT", "Apache-2.0", "BSD-3-Clause")
     const val ANDROID_TERMS_URL = "https://developer.android.com/studio/terms.html"
+
+    //build config
+    const val OPT_IN_REPORTING = "OPT_IN_REPORTING"
+    const val SENTRY_DSN = "SENTRY_DSN"
 }

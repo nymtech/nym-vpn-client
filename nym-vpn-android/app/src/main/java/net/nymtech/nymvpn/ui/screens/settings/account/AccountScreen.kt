@@ -38,6 +38,7 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.util.scaledHeight
+import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
 fun AccountScreen(appViewModel: AppViewModel, viewModel: AccountViewModel = hiltViewModel()) {
@@ -95,9 +96,9 @@ fun AccountScreen(appViewModel: AppViewModel, viewModel: AccountViewModel = hilt
                         stringResource(id = R.string.top_up_credential),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(end = 24.dp)
+                        modifier = Modifier.padding(end = 24.dp.scaledWidth())
                     )
-                    Box(modifier = Modifier.width(91.dp)) {
+                    Box(modifier = Modifier.width(100.dp.scaledWidth())) {
                         MainStyledButton(
                             onClick = { appViewModel.showFeatureInProgressMessage() },
                             content = {

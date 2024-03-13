@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.nymtech.logcat_helper.LogcatHelper
 import net.nymtech.logcat_helper.model.LogLevel
 import net.nymtech.vpn.model.ClientState
@@ -24,13 +25,27 @@ import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.util.ServiceManager
 import net.nymtech.vpn.util.safeCollect
+import timber.log.Timber
 
 object NymVpn : VpnClient {
+
+    init {
+        val nymVPNLib = "nym_vpn_lib"
+        System.loadLibrary(nymVPNLib)
+        Timber.i( "loaded native library $nymVPNLib")
+    }
 
     private val _state = MutableStateFlow(ClientState())
     override val stateFlow: Flow<ClientState> = _state.asStateFlow()
     override fun getState(): ClientState {
         return _state.value
+    }
+
+    override suspend fun gateways(exitOnly: Boolean) : List<String> {
+        return withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
+            //getGateways(exitOnly).split(",")
+            emptyList()
+        }
     }
 
     private val scope = CoroutineScope(Dispatchers.IO)
@@ -156,4 +171,6 @@ object NymVpn : VpnClient {
     const val ENTRY_POINT_EXTRA_KEY = "entryPoint"
     const val EXIT_POINT_EXTRA_KEY = "exitPoint"
     const val TWO_HOP_EXTRA_KEY = "twoHop"
+
+    //private external fun getGateways(exit_gateways_only: Boolean) : String
 }

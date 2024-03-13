@@ -43,7 +43,7 @@ sealed class NavItem(val route: String, val title : StringValue, val leading : I
         data object Legal : NavItem("${Screen.SETTINGS.name}/${Screen.LEGAL.name}", StringValue.StringResource(R.string.legal), backIcon) {
             data object Licenses : NavItem("${Screen.SETTINGS.name}/${Screen.LEGAL.name}/${Screen.LICENSES.name}", StringValue.StringResource(R.string.licenses), backIcon)
         }
-        data object Login : NavItem("${Screen.SETTINGS.name}/${Screen.LOGIN.name}", StringValue.StringResource(R.string.login), backIcon)
+        data object Login : NavItem("${Screen.SETTINGS.name}/${Screen.LOGIN.name}", StringValue.DynamicString(""), backIcon)
         data object Account : NavItem("${Screen.SETTINGS.name}/${Screen.ACCOUNT.name}", StringValue.StringResource(R.string.credential), backIcon)
     }
     sealed class Hop {

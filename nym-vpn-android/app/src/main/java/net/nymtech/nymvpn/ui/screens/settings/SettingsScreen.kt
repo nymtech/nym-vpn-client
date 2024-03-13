@@ -54,14 +54,14 @@ fun SettingsScreen(navController: NavController, appUiState: AppUiState, viewMod
               onClick = { navController.navigate(NavItem.Settings.Login.route) },
               content = {
                   Text(
-                      stringResource(id = R.string.login_view_account),
+                      stringResource(id = R.string.add_cred_to_connect),
                       style = MaterialTheme.typography.labelLarge)
               },
               color = MaterialTheme.colorScheme.primary)
       } else {
           //TODO get real account numbers, mock for now
           val accountDescription = buildAnnotatedString {
-              append("20")
+              append("31")
               append(" ")
               append(stringResource(id = R.string.of))
               append(" ")

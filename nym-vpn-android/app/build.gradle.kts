@@ -27,7 +27,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        buildConfigField("String", "SENTRY_DSN", "\"${(System.getenv("SENTRY_DSN") ?: getLocalProperty("sentry.dsn")) ?: ""}\"")
+        buildConfigField("String", Constants.SENTRY_DSN, "\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\"")
     }
 
     signingConfigs {
@@ -107,8 +107,10 @@ android {
         create(Constants.FDROID) {
             dimension = Constants.TYPE
             proguardFile("fdroid-rules.pro")
+            buildConfigField("Boolean", Constants.OPT_IN_REPORTING, "false")
         }
         create(Constants.GENERAL) {
+            buildConfigField("Boolean", Constants.OPT_IN_REPORTING, "true")
             dimension = Constants.TYPE
         }
     }

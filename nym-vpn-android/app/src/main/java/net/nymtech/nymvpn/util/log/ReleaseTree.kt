@@ -4,18 +4,31 @@ import android.util.Log
 import io.sentry.Sentry
 import timber.log.Timber
 
-class ReleaseTree : Timber.Tree() {
-    override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-        when(priority) {
-            Log.DEBUG -> return
+class ReleaseTree : Timber.DebugTree() {
+
+    override fun d(t: Throwable?) {
+        return
+    }
+
+    override fun d(t: Throwable?, message: String?, vararg args: Any?) {
+        return
+    }
+
+    override fun d(message: String?, vararg args: Any?) {
+        return
+    }
+
+    override fun e(t: Throwable?) {
+        t?.let {
+            Sentry.captureException(t)
         }
-        when(priority) {
-            Log.ERROR -> if(t != null) {
-                Sentry.captureException(t)
-            } else {
-                Sentry.captureException(NymAndroidException(message))
-            }
+        super.e(t)
+    }
+
+    override fun e(message: String?, vararg args: Any?) {
+        message?.let {
+            Sentry.captureException(NymAndroidException(message))
         }
-        super.log(priority, tag, message, t)
+        super.e(message, *args)
     }
 }

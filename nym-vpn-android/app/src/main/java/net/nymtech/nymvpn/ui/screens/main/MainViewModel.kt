@@ -22,6 +22,7 @@ import net.nymtech.vpn.model.EntryPoint
 import net.nymtech.vpn.model.ErrorState
 import net.nymtech.vpn.model.ExitPoint
 import net.nymtech.vpn.model.VpnMode
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel

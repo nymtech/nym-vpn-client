@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarData
@@ -30,6 +31,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
@@ -49,6 +51,7 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.TransparentSystemBars
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -65,7 +68,8 @@ class MainActivity : ComponentActivity() {
     lifecycleScope.launch {
       dataStoreManager.init()
       val reportingEnabled = dataStoreManager.getFromStore(DataStoreManager.ERROR_REPORTING)
-      if(reportingEnabled == true) {
+      if(reportingEnabled ?: BuildConfig.OPT_IN_REPORTING) {
+        if(reportingEnabled == null) dataStoreManager.saveToDataStore(DataStoreManager.ERROR_REPORTING, true)
         SentryAndroid.init(this@MainActivity) { options ->
           options.enableTracing = true
           options.enableAllAutoBreadcrumbs(true)
@@ -137,8 +141,9 @@ class MainActivity : ComponentActivity() {
               }
             }
         ) {
-          Column(modifier = Modifier.padding(it)) {
-            NavHost(navController, startDestination = NavItem.Main.route) {
+
+            NavHost(navController, startDestination = NavItem.Main.route,
+              modifier = Modifier.fillMaxSize().padding(it)) {
               composable(NavItem.Main.route) { MainScreen(navController, uiState) }
               composable(NavItem.Settings.route) { SettingsScreen(navController, uiState) }
               composable(NavItem.Hop.Entry.route) {
@@ -163,5 +168,4 @@ class MainActivity : ComponentActivity() {
       }
     }
   }
-}
 

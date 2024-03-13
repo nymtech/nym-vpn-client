@@ -14,4 +14,5 @@ interface VpnClient {
     fun disconnect(context: Context)
     val stateFlow : Flow<ClientState>
     fun getState() : ClientState
+    suspend fun gateways(exitOnly: Boolean = false) : List<String>
 }

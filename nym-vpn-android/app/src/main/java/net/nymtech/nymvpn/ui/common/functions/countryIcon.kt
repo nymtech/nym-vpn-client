@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.common.labels
+package net.nymtech.nymvpn.ui.common.functions
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.padding

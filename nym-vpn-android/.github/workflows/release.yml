@@ -80,10 +80,10 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       # get release apk path
-      # can be fdroid or general, general for now
+      # general or fdroid
       - name: Get apk path
         id: apk-path
-        run: echo "path=$(find . -regex '^.*/build/outputs/apk/general/release/.*\.apk$' -type f | head -1)" >> $GITHUB_OUTPUT
+        run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/release/.*\.apk$' -type f | head -1)" >> $GITHUB_OUTPUT
 
       - name: Get version code
         run: |
