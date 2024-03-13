@@ -24,9 +24,7 @@ function Display() {
         type: 'set-theme-mode',
         mode,
       });
-      kvSet('UiTheme', mode).catch((e) => {
-        console.warn(e);
-      });
+      kvSet('UiTheme', mode);
     }
   };
 

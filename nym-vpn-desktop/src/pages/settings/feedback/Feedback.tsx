@@ -27,9 +27,7 @@ function Feedback() {
   const handleMonitoringChanged = async () => {
     const isSelected = !state.monitoring;
     dispatch({ type: 'set-monitoring', monitoring: isSelected });
-    kvSet('Monitoring', isSelected).catch((e) => {
-      console.warn(e);
-    });
+    kvSet('Monitoring', isSelected);
   };
 
   return (

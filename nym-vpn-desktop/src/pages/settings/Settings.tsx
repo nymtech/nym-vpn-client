@@ -27,17 +27,13 @@ function Settings() {
   const handleEntrySelectorChange = async () => {
     const isSelected = !state.entrySelector;
     dispatch({ type: 'set-entry-selector', entrySelector: isSelected });
-    kvSet('EntryLocationEnabled', isSelected).catch((e) => {
-      console.warn(e);
-    });
+    kvSet('EntryLocationEnabled', isSelected);
   };
 
   const handleAutoConnectChanged = async () => {
     const isSelected = !state.autoConnect;
     dispatch({ type: 'set-auto-connect', autoConnect: isSelected });
-    kvSet('Autoconnect', isSelected).catch((e) => {
-      console.warn(e);
-    });
+    kvSet('Autoconnect', isSelected);
   };
 
   return (

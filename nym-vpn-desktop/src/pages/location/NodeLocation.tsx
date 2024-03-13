@@ -131,7 +131,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
         payload: { hop: node, location },
       });
     } catch (e) {
-      console.log(e);
+      console.warn(e);
     }
     navigate(routes.root);
   };
