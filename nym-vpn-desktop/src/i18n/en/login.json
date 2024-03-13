@@ -1,8 +1,0 @@
-{
-  "welcome": "Welcome back!",
-  "description1": "Enter your 24 word secret recovery phrase below to log in into your account",
-  "description2": "You can only use recovery phrase created in NymVPN, not Nym Wallet",
-  "input-label": "Recovery phrase",
-  "login-button": "Log in",
-  "error": "Invalid recovery phrase"
-}

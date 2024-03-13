@@ -6,34 +6,35 @@ import settings from './en/settings.json';
 import nodeLocation from './en/node-location.json';
 import backendMessages from './en/backend-messages.json';
 import display from './en/display.json';
-import login from './en/login.json';
+import addCredential from './en/add-credential.json';
 
-const defaultNS = 'common';
+export const defaultNS = 'common';
+export const resources = {
+  en: {
+    common,
+    home,
+    settings,
+    nodeLocation,
+    backendMessages,
+    display,
+    addCredential,
+  },
+} as const;
 
 i18n.use(initReactI18next).init({
   lng: 'en',
   debug: import.meta.env.DEV,
-  resources: {
-    en: {
-      common,
-      home,
-      settings,
-      nodeLocation,
-      backendMessages,
-      display,
-      login,
-    },
-  },
+  defaultNS,
+  resources,
   ns: [
+    'addCredential',
     'common',
     'home',
     'settings',
     'nodeLocation',
     'backendMessages',
     'display',
-    'login',
   ],
-  defaultNS,
 
   interpolation: {
     escapeValue: false, // not needed for react as it escapes by default

@@ -35,5 +35,5 @@
   "display-theme": "Display theme",
   "logs": "Logs",
   "quit": "Quit NymVPN",
-  "login-button": "Log in to view your account"
+  "add-credential-button": "Add credential to connect"
 }

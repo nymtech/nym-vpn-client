@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { NymIcon } from '../../assets/icons';
 import { Button, TextArea } from '../../ui';
 
-function LogIn() {
+function AddCredential() {
   const [phrase, setPhrase] = useState('');
 
-  const { t } = useTranslation('login');
+  const { t } = useTranslation('addCredential');
 
   const onChange = (phrase: string) => {
     setPhrase(phrase);
@@ -22,7 +22,7 @@ function LogIn() {
         <h2 className="text-center dark:text-laughing-jack">
           {t('description1')}
         </h2>
-        <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-3/5">
+        <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-4/5">
           {t('description2')}
         </p>
       </div>
@@ -31,12 +31,12 @@ function LogIn() {
         onChange={onChange}
         spellCheck={false}
         resize="none"
-        rows={5}
+        rows={10}
         label={t('input-label')}
       />
-      <Button onClick={handleClick}>{t('login-button')}</Button>
+      <Button onClick={handleClick}>{t('add-button')}</Button>
     </div>
   );
 }
 
-export default LogIn;
+export default AddCredential;

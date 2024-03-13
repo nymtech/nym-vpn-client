@@ -71,7 +71,7 @@ export default {
       'wind-chime': '#DEDEE1',
       // [D] connection status bg (combined with 15% opacity)
       oil: '#313033',
-      // [L] login screen color of nym logo
+      // [L] add credential screen color of nym logo
       ghost: '#C7C7D1',
       // [D] button bg 'Stop' state
       'dusty-grey': '#CECCD1',

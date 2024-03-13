@@ -42,7 +42,7 @@ export default function TopBar() {
           navigate(routes.settings);
         },
       },
-      '/login': {
+      '/credential': {
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
@@ -139,7 +139,7 @@ export default function TopBar() {
         'flex flex-row flex-nowrap justify-between items-center shrink-0',
         'text-baltic-sea dark:text-mercury-pinkish',
         'h-16 text-xl shadow z-50 select-none cursor-default',
-        // hide the Topbar on login page
+        // hide the Topbar on credential page
         currentNavLocation.hidden
           ? 'shadow-none dark:bg-baltic-sea bg-blanc-nacre'
           : 'dark:bg-baltic-sea-jaguar bg-white',
