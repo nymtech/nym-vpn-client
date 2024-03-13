@@ -25,7 +25,7 @@ function SettingsGroup({ settings }: Props) {
           onClick={setting.onClick}
           className={clsx([
             'bg-white dark:bg-baltic-sea-jaguar relative flex px-5 py-2 focus:outline-none min-h-16',
-            'hover:bg-platinum dark:hover:bg-onyx',
+            'hover:bg-platinum dark:hover:bg-onyx cursor-pointer',
             'transition duration-75',
             index === 0 && 'rounded-t-lg',
             index === settings.length - 1 &&
@@ -36,7 +36,8 @@ function SettingsGroup({ settings }: Props) {
               'border-y border-mercury-pinkish dark:border-gun-powder',
             index === settings.length - 1 && 'rounded-b-lg',
             setting.desc ? 'py-2' : 'py-4',
-            setting.disabled && 'opacity-50 pointer-events-none',
+            setting.disabled &&
+              'opacity-50 pointer-events-none !cursor-default',
           ])}
         >
           <div
