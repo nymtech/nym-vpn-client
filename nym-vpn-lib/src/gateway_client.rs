@@ -5,6 +5,7 @@ use crate::error::{Error, Result};
 use crate::mixnet_processor::IpPacketRouterAddress;
 #[cfg(target_os = "macos")]
 use crate::UniffiCustomTypeConverter;
+use itertools::Itertools;
 use nym_client_core::init::helpers::choose_gateway_by_latency;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_crypto::asymmetric::encryption;
@@ -148,6 +149,50 @@ impl UniffiCustomTypeConverter for NodeIdentity {
     }
 }
 
+fn select_random_described_gateway<'a, I>(gateways: I) -> Result<&'a DescribedGatewayWithLocation>
+where
+    I: IntoIterator<Item = &'a DescribedGatewayWithLocation>,
+{
+    gateways
+        .into_iter()
+        .choose(&mut rand::thread_rng())
+        .ok_or(Error::FailedToSelectGatewayRandomly)
+}
+
+fn select_random_gateway_node<'a, I>(gateways: I) -> Result<NodeIdentity>
+where
+    I: IntoIterator<Item = &'a DescribedGatewayWithLocation>,
+{
+    let random_gateway = select_random_described_gateway(gateways)?;
+    NodeIdentity::from_base58_string(random_gateway.identity_key())
+        .map_err(|_| Error::NodeIdentityFormattingError)
+}
+
+async fn select_random_low_latency_gateway_node(
+    gateways: &[DescribedGatewayWithLocation],
+) -> Result<NodeIdentity> {
+    let mut rng = rand::rngs::OsRng;
+    let must_use_tls = FORCE_TLS_FOR_GATEWAY_SELECTION;
+    let gateway_nodes: Vec<nym_topology::gateway::Node> = gateways
+        .iter()
+        .filter_map(|gateway| nym_topology::gateway::Node::try_from(&gateway.gateway).ok())
+        .collect();
+    choose_gateway_by_latency(&mut rng, &gateway_nodes, must_use_tls)
+        .await
+        .map(|gateway| *gateway.identity())
+        .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })
+}
+
+async fn select_random_low_latency_described_gateway(
+    gateways: &[DescribedGatewayWithLocation],
+) -> Result<&DescribedGatewayWithLocation> {
+    let low_latency_gateway = select_random_low_latency_gateway_node(gateways).await?;
+    gateways
+        .iter()
+        .find(|gateway| gateway.identity_key() == &low_latency_gateway.to_string())
+        .ok_or(Error::NoMatchingGateway)
+}
+
 impl EntryPoint {
     pub async fn lookup_gateway_identity(
         &self,
@@ -169,41 +214,15 @@ impl EntryPoint {
                 let gateways_with_specified_location = gateways
                     .iter()
                     .filter(|g| g.is_two_letter_iso_country_code(location));
-                let random_gateway = gateways_with_specified_location
-                    .choose(&mut rand::thread_rng())
-                    .ok_or(Error::NoMatchingGatewayForLocation(location.to_string()))?;
-                NodeIdentity::from_base58_string(random_gateway.identity_key())
-                    .map_err(|_| Error::NodeIdentityFormattingError)
+                select_random_gateway_node(gateways_with_specified_location)
             }
             EntryPoint::RandomLowLatency => {
-                // Recall, even though the mixnet client is able to randomly select a gateway, we
-                // have to do it up front since it affects how we setup the routing table when
-                // wireguard is enabled for the first hop
                 log::info!("Selecting a random low latency entry gateway");
-                let mut rng = rand::rngs::OsRng;
-                let must_use_tls = FORCE_TLS_FOR_GATEWAY_SELECTION;
-                let gateway_nodes: Vec<nym_topology::gateway::Node> = gateways
-                    .iter()
-                    .filter_map(|gateway| {
-                        nym_topology::gateway::Node::try_from(&gateway.gateway).ok()
-                    })
-                    .collect();
-                choose_gateway_by_latency(&mut rng, &gateway_nodes, must_use_tls)
-                    .await
-                    .map(|gateway| *gateway.identity())
-                    .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })
+                select_random_low_latency_gateway_node(gateways).await
             }
             EntryPoint::Random => {
-                // Recall, even though the mixnet client is able to randomly select a gateway, we
-                // have to do it up front since it affects how we setup the routing table when
-                // wireguard is enabled for the first hop
                 log::info!("Selecting a random entry gateway");
-                let random_gateway = gateways
-                    .iter()
-                    .choose(&mut rand::thread_rng())
-                    .ok_or(Error::FailedToSelectEntryGatewayRandomly)?;
-                NodeIdentity::from_base58_string(random_gateway.identity_key())
-                    .map_err(|_| Error::NodeIdentityFormattingError)
+                select_random_gateway_node(gateways)
             }
         }
     }
@@ -273,6 +292,10 @@ impl DescribedGatewayWithLocation {
         self.two_letter_iso_country_code()
             .map_or(false, |gateway_iso_code| gateway_iso_code == code)
     }
+
+    pub fn country_name(&self) -> Option<String> {
+        self.location.as_ref().map(|l| l.country_name.clone())
+    }
 }
 
 impl From<DescribedGateway> for DescribedGatewayWithLocation {
@@ -326,7 +349,7 @@ impl GatewayClient {
         })
     }
 
-    pub async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {
+    async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {
         log::info!("Fetching gateways from nym-api...");
         self.api_client
             .get_cached_described_gateways()
@@ -334,9 +357,7 @@ impl GatewayClient {
             .map_err(|source| Error::FailedToLookupDescribedGateways { source })
     }
 
-    pub async fn lookup_gateways_in_explorer(
-        &self,
-    ) -> Option<Result<Vec<PrettyDetailedGatewayBond>>> {
+    async fn lookup_gateways_in_explorer(&self) -> Option<Result<Vec<PrettyDetailedGatewayBond>>> {
         log::info!("Fetching gateway geo-locations from nym-explorer...");
         if let Some(explorer_client) = &self.explorer_client {
             Some(
@@ -383,6 +404,41 @@ impl GatewayClient {
                 .map(DescribedGatewayWithLocation::from)
                 .collect()),
         }
+    }
+
+    pub async fn lookup_described_exit_gateways_with_location(
+        &self,
+    ) -> Result<Vec<DescribedGatewayWithLocation>> {
+        let described_gateways = self.lookup_described_gateways_with_location().await?;
+        Ok(described_gateways
+            .into_iter()
+            .filter(|gateway| gateway.has_ip_packet_router())
+            .collect())
+    }
+
+    pub async fn lookup_low_latency_entry_gateway(&self) -> Result<DescribedGatewayWithLocation> {
+        let described_gateways = self.lookup_described_gateways_with_location().await?;
+        select_random_low_latency_described_gateway(&described_gateways)
+            .await
+            .cloned()
+    }
+
+    pub async fn lookup_all_countries(&self) -> Result<Vec<String>> {
+        let described_gateways = self.lookup_described_gateways_with_location().await?;
+        Ok(described_gateways
+            .iter()
+            .filter_map(|gateway| gateway.country_name())
+            .unique()
+            .collect())
+    }
+
+    pub async fn lookup_all_exit_countries(&self) -> Result<Vec<String>> {
+        let described_gateways = self.lookup_described_exit_gateways_with_location().await?;
+        Ok(described_gateways
+            .iter()
+            .filter_map(|gateway| gateway.country_name())
+            .unique()
+            .collect())
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {

@@ -4264,6 +4264,7 @@ dependencies = [
  "err-derive",
  "futures",
  "ipnetwork",
+ "itertools 0.12.1",
  "jnix",
  "lazy_static",
  "log",
