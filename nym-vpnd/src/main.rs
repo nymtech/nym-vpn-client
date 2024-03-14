@@ -8,6 +8,8 @@ use std::{path::PathBuf, sync::OnceLock};
 mod command_interface;
 mod service;
 
+#[cfg(unix)]
+mod unix;
 #[cfg(not(unix))]
 mod windows;
 
@@ -56,6 +58,7 @@ pub fn setup_logging() {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     setup_logging();
     let args = CliArgs::parse();
+    #[cfg(unix)]
     nym_vpn_lib::nym_config::defaults::setup_env(args.config_env_file.as_ref());
 
     // The idea here for explicly starting two separate runtimes is to make sure they are properly
