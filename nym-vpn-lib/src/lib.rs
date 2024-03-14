@@ -13,25 +13,29 @@ use crate::error::{Error, Result};
 use crate::gateway_client::{Config, GatewayClient};
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::mixnet_processor::IpPacketRouterAddress;
-use crate::platform::error::FFIError;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use futures::channel::{mpsc, oneshot};
 use gateway_client::{EntryPoint, ExitPoint};
-use ipnetwork::IpNetwork;
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_task::TaskManager;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use talpid_routing::RouteManager;
-use talpid_types::net::wireguard::{PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig};
 use tap::TapFallible;
 use tokio::time::timeout;
 use tracing::warn;
 use util::wait_for_interrupt_and_signal;
+#[cfg(any(target_os = "android", target_os = "ios", target_os = "macos"))]
+use {
+    crate::platform::error::FFIError,
+    ipnetwork::IpNetwork,
+    std::net::{Ipv6Addr, SocketAddr},
+    talpid_types::net::wireguard::{PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig},
+};
 
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
