@@ -274,13 +274,12 @@ pub async fn setup_routing(
             .lan_gateway_ip
             .0
             .gateway
-            .map(|g| {
+            .and_then(|g| {
                 g.ipv4
                     .first()
                     .map(|a| IpAddr::from(*a))
                     .or(g.ipv6.first().map(|a| IpAddr::from(*a)))
             })
-            .flatten()
         {
             Node::new(addr, config.lan_gateway_ip.0.name)
         } else {
