@@ -89,7 +89,7 @@ function Feedback() {
         <SettingsMenuCard
           title={t('feedback.error-monitoring.title')}
           desc={t('feedback.error-monitoring.desc')}
-          leadingIcon="error"
+          leadingIcon="bug_report"
           onClick={handleMonitoringChanged}
           trailingComponent={
             <Switch checked={monitoring} onChange={handleMonitoringChanged} />
