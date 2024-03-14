@@ -58,10 +58,15 @@ pub fn start_vpn_service(
     })
 }
 
+#[cfg(unix)]
+type VpnCtrlMessage = nym_vpn_lib::NymVpnCtrlMessage;
+#[cfg(not(unix))]
+type VpnCtrlMessage = crate::windows::VpnCtrlMessage;
+
 struct NymVpnService {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
     vpn_command_rx: Receiver<VpnServiceCommand>,
-    vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
+    vpn_ctrl_sender: Option<UnboundedSender<VpnCtrlMessage>>,
 }
 
 impl NymVpnService {
@@ -73,6 +78,12 @@ impl NymVpnService {
         }
     }
 
+    #[cfg(not(unix))]
+    async fn handle_connect(&mut self) -> VpnServiceConnectResult {
+        println!("handle_connect");
+    }
+
+    #[cfg(unix)]
     async fn handle_connect(&mut self) -> VpnServiceConnectResult {
         // Start the VPN
         // TODO: all of this is hardcoded for now
@@ -119,6 +130,12 @@ impl NymVpnService {
         *self.shared_vpn_state.lock().unwrap() = state;
     }
 
+    #[cfg(not(unix))]
+    async fn handle_disconnect(&mut self) -> VpnServiceDisconnectResult {
+        println!("handle_disconnect");
+    }
+
+    #[cfg(unix)]
     async fn handle_disconnect(&mut self) -> VpnServiceDisconnectResult {
         // To handle the mutable borrow we set the state separate from the sending the stop
         // message, including the logical check for the ctrl sender twice.
@@ -177,6 +194,17 @@ impl VpnServiceStatusListener {
         Self { shared_vpn_state }
     }
 
+    #[cfg(not(unix))]
+    async fn start(
+        self,
+        mut vpn_status_rx: futures::channel::mpsc::Receiver<
+            Box<dyn std::error::Error + Send + Sync>,
+        >,
+    ) {
+        println!("VPN status listener not implemented for Windows");
+    }
+
+    #[cfg(unix)]
     async fn start(
         self,
         mut vpn_status_rx: futures::channel::mpsc::Receiver<
