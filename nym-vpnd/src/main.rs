@@ -1,6 +1,7 @@
 // #![cfg_attr(not(unix), allow(dead_code))]
 
 use clap::Parser;
+#[cfg(unix)]
 use nym_vpn_lib::nym_bin_common::bin_info_local_vergen;
 use std::{path::PathBuf, sync::OnceLock};
 
@@ -13,7 +14,10 @@ mod windows;
 // Helper for passing LONG_VERSION to clap
 fn pretty_build_info_static() -> &'static str {
     static PRETTY_BUILD_INFORMATION: OnceLock<String> = OnceLock::new();
-    PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info_local_vergen!().pretty_print())
+    #[cfg(unix)]
+    return PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info_local_vergen!().pretty_print());
+    #[cfg(not(unix))]
+    return PRETTY_BUILD_INFORMATION.get_or_init(|| "PLACEHOLDER".to_string());
 }
 
 #[derive(Parser)]
