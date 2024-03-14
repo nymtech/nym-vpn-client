@@ -81,6 +81,10 @@ export default {
       platinum: '#E2E8EC',
       // [L] input border ring hover
       aluminium: '#8DA3B1',
+      // [D] bg for snackbar
+      poivreNoir: '#484649',
+      // [L] bg for snackbar
+      seashell: '#FFF2EF',
     },
     extend: {
       fontFamily: {
