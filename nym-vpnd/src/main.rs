@@ -1,18 +1,25 @@
-#![cfg_attr(not(unix), allow(dead_code))]
+// #![cfg_attr(not(unix), allow(dead_code))]
 
 use clap::Parser;
+#[cfg(unix)]
 use nym_vpn_lib::nym_bin_common::bin_info_local_vergen;
 use std::{path::PathBuf, sync::OnceLock};
 
-#[cfg(unix)]
 mod command_interface;
-#[cfg(unix)]
 mod service;
+
+#[cfg(unix)]
+mod unix;
+#[cfg(not(unix))]
+mod windows;
 
 // Helper for passing LONG_VERSION to clap
 fn pretty_build_info_static() -> &'static str {
     static PRETTY_BUILD_INFORMATION: OnceLock<String> = OnceLock::new();
-    PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info_local_vergen!().pretty_print())
+    #[cfg(unix)]
+    return PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info_local_vergen!().pretty_print());
+    #[cfg(not(unix))]
+    return PRETTY_BUILD_INFORMATION.get_or_init(|| "PLACEHOLDER".to_string());
 }
 
 #[derive(Parser)]
@@ -48,10 +55,10 @@ pub fn setup_logging() {
         .init();
 }
 
-#[cfg(unix)]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     setup_logging();
     let args = CliArgs::parse();
+    #[cfg(unix)]
     nym_vpn_lib::nym_config::defaults::setup_env(args.config_env_file.as_ref());
 
     // The idea here for explicly starting two separate runtimes is to make sure they are properly
@@ -70,7 +77,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[cfg(not(unix))]
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    unimplemented!("Daemon not implemented for non-unix platforms");
-}
+// fn main() -> Result<(), Box<dyn std::error::Error>> {
+//     unimplemented!("Daemon not implemented for non-unix platforms");
+// }

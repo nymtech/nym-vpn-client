@@ -4314,7 +4314,6 @@ dependencies = [
  "clap",
  "futures",
  "nym-vpn-lib",
- "reqwest",
  "tokio",
  "tracing",
  "tracing-subscriber",

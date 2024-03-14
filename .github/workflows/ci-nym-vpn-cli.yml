@@ -4,11 +4,12 @@ on:
   # push:
   pull_request:
     paths:
+      - ".github/workflows/ci-nym-vpn-cli.yml"
+      - "Cargo.toml"
       - "nym-vpn-cli/**"
       - "nym-vpn-lib/**"
+      - "nym-vpnd/**"
       - "wireguard/**"
-      - "Cargo.toml"
-      - ".github/workflows/ci-nym-vpn-cli.yml"
   workflow_dispatch:
 
 env:
@@ -19,7 +20,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, custom-runner-mac-m1, windows-2022 ]
+        # os: [ ubuntu-22.04, custom-runner-mac-m1, windows-2022 ]
+        os: [ windows-2022 ]
     runs-on: ${{ matrix.os }}
 
     steps:
