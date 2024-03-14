@@ -270,17 +270,12 @@ pub async fn setup_routing(
     // it, we need to add an exception route for the gateway to the routing table.
     if !config.enable_wireguard || cfg!(target_os = "linux") {
         let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
-        let default_node = if let Some(addr) = config
-            .lan_gateway_ip
-            .0
-            .gateway
-            .and_then(|g| {
-                g.ipv4
-                    .first()
-                    .map(|a| IpAddr::from(*a))
-                    .or(g.ipv6.first().map(|a| IpAddr::from(*a)))
-            })
-        {
+        let default_node = if let Some(addr) = config.lan_gateway_ip.0.gateway.and_then(|g| {
+            g.ipv4
+                .first()
+                .map(|a| IpAddr::from(*a))
+                .or(g.ipv6.first().map(|a| IpAddr::from(*a)))
+        }) {
             Node::new(addr, config.lan_gateway_ip.0.name)
         } else {
             Node::device(config.lan_gateway_ip.0.name)
