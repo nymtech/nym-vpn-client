@@ -4,11 +4,12 @@ on:
   # push:
   pull_request:
     paths:
+      - ".github/workflows/ci-nym-vpn-cli.yml"
+      - "Cargo.toml"
       - "nym-vpn-cli/**"
       - "nym-vpn-lib/**"
+      - "nym-vpnd/**"
       - "wireguard/**"
-      - "Cargo.toml"
-      - ".github/workflows/ci-nym-vpn-cli.yml"
   workflow_dispatch:
 
 env:
