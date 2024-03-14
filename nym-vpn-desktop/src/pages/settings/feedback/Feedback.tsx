@@ -1,5 +1,6 @@
 import { open } from '@tauri-apps/api/shell';
-import { useEffect, useState } from 'react';
+import _ from 'lodash';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   DiscordInviteUrl,
@@ -13,7 +14,7 @@ import { StateDispatch } from '../../../types';
 import { SettingsMenuCard, Snackbar, Switch } from '../../../ui';
 import { DiscordIcon, ElementIcon, GitHubIcon } from '../../../assets/icons';
 
-const MaxNotifiedCount = 2;
+const ThrottleDelay = 10000; // ms
 
 function Feedback() {
   const [snackIsOpen, setSnackIsOpen] = useState(false);
@@ -22,22 +23,24 @@ function Feedback() {
   const dispatch = useMainDispatch() as StateDispatch;
   const [monitoring, setMonitoring] = useState(state.monitoring);
 
-  // the count of times the user has been notified by
-  // "restart the application for the change to take effect"
-  // whenever he's interacting with error monitoring switch
-  const [notifiedCount, setNotifiedCount] = useState(0);
-
   const { t } = useTranslation('settings');
 
   useEffect(() => {
     setMonitoring(state.monitoring);
   }, [state]);
 
+  // notify the user at most once per every 10s when he toggles monitoring
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const showSnackbar = useCallback(
+    _.throttle(() => setSnackIsOpen(true), ThrottleDelay, {
+      leading: true,
+      trailing: false,
+    }),
+    [],
+  );
+
   const handleMonitoringChanged = async () => {
-    if (notifiedCount < MaxNotifiedCount) {
-      setSnackIsOpen(true);
-      setNotifiedCount(notifiedCount + 1);
-    }
+    showSnackbar();
     const isSelected = !state.monitoring;
     dispatch({ type: 'set-monitoring', monitoring: isSelected });
     kvSet('Monitoring', isSelected);
