@@ -63,7 +63,7 @@ export default function HopSelect({
           })`}</div>
         </div>
       )}
-      <MsIcon icon="arrow_right" style="pointer-events-none" />
+      <MsIcon icon="arrow_right" className="pointer-events-none" />
     </div>
   );
 }

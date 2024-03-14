@@ -54,7 +54,7 @@ function Snackbar({
           className="w-6 ml-4 focus:outline-none text-black dark:text-white"
           onClick={() => onClose()}
         >
-          <MsIcon icon="close" style="text-3xl" />
+          <MsIcon icon="close" className="text-3xl" />
         </motion.button>
       )}
     </motion.div>

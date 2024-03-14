@@ -152,7 +152,7 @@ export default function TopBar() {
         >
           <MsIcon
             icon={currentNavLocation.leftIcon}
-            style="dark:text-laughing-jack"
+            className="dark:text-laughing-jack"
           />
         </button>
       ) : (
@@ -170,7 +170,7 @@ export default function TopBar() {
         >
           <MsIcon
             icon={currentNavLocation.rightIcon}
-            style="dark:text-laughing-jack"
+            className="dark:text-laughing-jack"
           />
         </button>
       ) : (

@@ -99,7 +99,10 @@ function Settings() {
               navigate(routes.feedback);
             },
             trailing: (
-              <MsIcon icon="arrow_right" style="dark:text-mercury-pinkish" />
+              <MsIcon
+                icon="arrow_right"
+                className="dark:text-mercury-pinkish"
+              />
             ),
           },
           {
@@ -109,7 +112,10 @@ function Settings() {
               navigate(routes.support);
             },
             trailing: (
-              <MsIcon icon="arrow_right" style="dark:text-mercury-pinkish" />
+              <MsIcon
+                icon="arrow_right"
+                className="dark:text-mercury-pinkish"
+              />
             ),
           },
         ]}

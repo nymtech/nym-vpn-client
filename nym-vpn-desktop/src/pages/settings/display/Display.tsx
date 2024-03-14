@@ -40,13 +40,13 @@ function Display() {
         key: 'Light',
         label: t('options.light'),
         cursor: 'pointer',
-        style: 'min-h-11',
+        className: 'min-h-11',
       },
       {
         key: 'Dark',
         label: t('options.dark'),
         cursor: 'pointer',
-        style: 'min-h-11',
+        className: 'min-h-11',
       },
     ];
   }, [t]);

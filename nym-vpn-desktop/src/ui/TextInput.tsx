@@ -11,7 +11,7 @@ type TextInputProps = {
   spellCheck?: boolean;
   autoFocus?: boolean;
   // custom input style
-  style?: string;
+  className?: string;
   leftIcon?: string;
   readonly?: boolean;
 };
@@ -25,7 +25,7 @@ function TextInput({
   placeholder,
   leftIcon,
   autoFocus,
-  style,
+  className,
 }: TextInputProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
@@ -49,7 +49,7 @@ function TextInput({
           'text-baltic-sea dark:text-mercury-pinkish',
           'placeholder:text-cement-feet placeholder:dark:text-mercury-mist',
           ...inputStates,
-          style,
+          className,
           label && 'relative',
           leftIcon && 'pl-11',
         ])}
@@ -72,7 +72,7 @@ function TextInput({
       {leftIcon && (
         <MsIcon
           icon={leftIcon}
-          style="absolute left-3 text-baltic-sea dark:text-laughing-jack"
+          className="absolute left-3 text-baltic-sea dark:text-laughing-jack"
         />
       )}
     </div>
