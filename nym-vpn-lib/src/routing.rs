@@ -268,7 +268,13 @@ pub async fn setup_routing(
 
     // If wireguard is not enabled, and we are not tunneling the connection to the gateway through
     // it, we need to add an exception route for the gateway to the routing table.
-    if !config.enable_wireguard || cfg!(target_os = "linux") {
+    //
+    // NOTE: On windows it seems like it's not necessary to add the default route.
+    // BUG: The name of the device is not correctly set on windows. If this section is to be
+    // re-enabled then config.lan_gateway_ip.0.name needs to be set correctly on Windows. The
+    // correct one should be something along the lines of "Ethernet" or "Wi-Fi". Check the name
+    // with `netsh interface show interfaces`
+    if (!config.enable_wireguard && cfg!(not(target_os = "windows"))) || cfg!(target_os = "linux") {
         let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
         let default_node = if let Some(gateway) = config.lan_gateway_ip.0.gateway {
             Node::new(gateway.ip_addr, config.lan_gateway_ip.0.name)
