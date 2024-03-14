@@ -16,7 +16,7 @@ import { DiscordIcon, ElementIcon, GitHubIcon } from '../../../assets/icons';
 const MaxNotifiedCount = 2;
 
 function Feedback() {
-  const [dialogIsOpen, setDialogIsOpen] = useState(false);
+  const [snackIsOpen, setSnackIsOpen] = useState(false);
 
   const state = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -35,7 +35,7 @@ function Feedback() {
 
   const handleMonitoringChanged = async () => {
     if (notifiedCount < MaxNotifiedCount) {
-      setDialogIsOpen(true);
+      setSnackIsOpen(true);
       setNotifiedCount(notifiedCount + 1);
     }
     const isSelected = !state.monitoring;
@@ -46,8 +46,8 @@ function Feedback() {
   return (
     <>
       <Snackbar
-        open={dialogIsOpen}
-        onClose={() => setDialogIsOpen(false)}
+        open={snackIsOpen}
+        onClose={() => setSnackIsOpen(false)}
         text={t('feedback.monitoring-alert')}
         position="bottom"
         closeIcon
