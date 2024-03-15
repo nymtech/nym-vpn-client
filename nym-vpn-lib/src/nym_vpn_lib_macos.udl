@@ -58,6 +58,7 @@ dictionary WgConfig {
 
 dictionary VPNConfig {
     Url api_url;
+    Url explorer_url;
     EntryPoint entry_gateway;
     ExitPoint exit_router;
 };
