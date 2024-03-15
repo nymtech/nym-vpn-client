@@ -21,10 +21,10 @@ async function initSentry() {
 
   if (!dsn) {
     console.warn(`unable to initialize sentry, APP_SENTRY_DSN env var not set`);
-    await logu.warn('Sentry DSN not set');
+    logu.warn('JS Sentry DSN not set, monitoring disabled');
     return;
   }
-  await logu.info(`Sentry DSN: ${dsn}`);
+  logu.info(`JS Sentry monitoring enabled`);
   console.log('⚠ performance monitoring and error reporting enabled');
   console.log('initializing sentry');
 

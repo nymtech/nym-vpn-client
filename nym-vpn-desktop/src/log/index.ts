@@ -1,6 +1,42 @@
 import { invoke } from '@tauri-apps/api';
 
-type Level = 'Trace' | 'Debug' | 'Info' | 'Warn' | 'Error';
+export type Level = 'Trace' | 'Debug' | 'Info' | 'Warn' | 'Error';
+
+/**
+ * Rust logger
+ */
+export interface Logu {
+  /**
+   * Log a `trace` message
+   *
+   * @param msg - The message to log
+   */
+  readonly trace: (msg: string) => void;
+  /**
+   * Log a `debug` message
+   *
+   * @param msg - The message to log
+   */
+  readonly debug: (msg: string) => void;
+  /**
+   * Log an `info` message
+   *
+   * @param msg - The message to log
+   */
+  readonly info: (msg: string) => void;
+  /**
+   * Log a `warn` message
+   *
+   * @param msg - The message to log
+   */
+  readonly warn: (msg: string) => void;
+  /**
+   * Log an `error` message
+   *
+   * @param msg - The message to log
+   */
+  readonly error: (msg: string) => void;
+}
 
 async function logJs(level: Level, message: string) {
   try {
@@ -13,37 +49,12 @@ async function logJs(level: Level, message: string) {
 /**
  * Rust logger
  */
-const logu = {
-  /**
-   * Log a `trace` message
-   *
-   * @param msg - The message to log
-   */
+const logu: Logu = Object.freeze({
   trace: (msg: string) => logJs('Trace', msg),
-  /**
-   * Log a `debug` message
-   *
-   * @param msg - The message to log
-   */
   debug: (msg: string) => logJs('Debug', msg),
-  /**
-   * Log an `info` message
-   *
-   * @param msg - The message to log
-   */
   info: (msg: string) => logJs('Info', msg),
-  /**
-   * Log a `warn` message
-   *
-   * @param msg - The message to log
-   */
   warn: (msg: string) => logJs('Warn', msg),
-  /**
-   * Log an `error` message
-   *
-   * @param msg - The message to log
-   */
   error: (msg: string) => logJs('Error', msg),
-};
+});
 
 export default logu;
