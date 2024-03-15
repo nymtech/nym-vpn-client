@@ -193,7 +193,7 @@ pub trait IntoJava<'env> {
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub async extern "system" fn Java_net_nymtech_vpn_NymVpn_getGatewayCountries<'env>(
+pub async extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getGatewayCountries<'env>(
     env: JNIEnv<'env>,
     exit_only: jboolean,
     _this: JObject<'_>,
