@@ -405,6 +405,24 @@ impl GatewayClient {
             .collect())
     }
 
+    pub async fn lookup_all_countries_iso(&self) -> Result<Vec<String>> {
+        let described_gateways = self.lookup_described_gateways_with_location().await?;
+        Ok(described_gateways
+            .iter()
+            .filter_map(|gateway| gateway.two_letter_iso_country_code())
+            .unique()
+            .collect())
+    }
+
+    pub async fn lookup_all_exit_countries_iso(&self) -> Result<Vec<String>> {
+        let described_gateways = self.lookup_described_exit_gateways_with_location().await?;
+        Ok(described_gateways
+            .iter()
+            .filter_map(|gateway| gateway.two_letter_iso_country_code())
+            .unique()
+            .collect())
+    }
+
     pub async fn lookup_all_exit_countries(&self) -> Result<Vec<String>> {
         let described_gateways = self.lookup_described_exit_gateways_with_location().await?;
         Ok(described_gateways

@@ -196,12 +196,20 @@ pub trait IntoJava<'env> {
 pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getGatewayCountries<'env>(
     env: JNIEnv<'env>,
     _this: JObject<'_>,
+    api_url: JString<'_>,
+    explorer_url: JString<'_>,
     exit_only: jboolean,
 ) -> JString<'env> {
     let env = JnixEnv::from(env);
-    let gateway_client = GatewayClient::new(gateway_client::Config::default()).unwrap();
-    let ret = if exit_only == JNI_FALSE { RUNTIME.block_on(gateway_client.lookup_all_countries()) } else {
-        RUNTIME.block_on(gateway_client.lookup_all_exit_countries())
+    let api_url = Url::from_str(&String::from_java(&env, api_url)).expect("Invalid api url");
+    let explorer_url =
+        Url::from_str(&String::from_java(&env, explorer_url)).expect("Invalid explorer url");
+    let mut config = gateway_client::Config::default();
+    config.api_url = api_url;
+    config.explorer_url = Some(explorer_url);
+    let gateway_client = GatewayClient::new(config).unwrap();
+    let ret = if exit_only == JNI_FALSE { RUNTIME.block_on(gateway_client.lookup_all_countries_iso()) } else {
+        RUNTIME.block_on(gateway_client.lookup_all_exit_countries_iso())
     };
     return match ret {
         Err(err) => {
