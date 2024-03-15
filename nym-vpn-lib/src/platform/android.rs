@@ -195,8 +195,8 @@ pub trait IntoJava<'env> {
 #[allow(non_snake_case)]
 pub async extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getGatewayCountries<'env>(
     env: JNIEnv<'env>,
-    exit_only: jboolean,
     _this: JObject<'_>,
+    exit_only: jboolean,
 ) -> JString<'env> {
     let env = JnixEnv::from(env);
     let gateway_client = GatewayClient::new(gateway_client::Config::default()).unwrap();
