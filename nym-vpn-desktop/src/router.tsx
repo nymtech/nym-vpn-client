@@ -112,7 +112,6 @@ const router = createRouterFn([
       },
       {
         path: routes.entryNodeLocation,
-        // eslint-disable-next-line react/jsx-no-undef
         element: <NodeLocation node="entry" />,
         errorElement: <Error />,
       },

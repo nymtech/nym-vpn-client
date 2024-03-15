@@ -41,7 +41,7 @@ function Snackbar({
         'fixed z-50 inset-x-0 mx-5 px-5 py-4',
         position === 'top' ? 'top-6' : 'bottom-6',
         'flex justify-between items-center rounded-lg',
-        'text-baltic-sea dark:text-mercury-pinkish bg-seashell dark:bg-poivreNoir',
+        'text-baltic-sea dark:text-mercury-pinkish bg-seashell dark:bg-poivre-noir',
       ])}
       {...getRootProps()}
     >
