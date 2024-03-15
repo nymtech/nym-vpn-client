@@ -78,6 +78,12 @@ jobs:
             exit 1
           fi
           echo "TRIPLET=$triplet" >> $GITHUB_ENV
+          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
+
+      - name: Set extra env for Windows
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        run: |
           echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/build/lib/x64-Debug" >> $GITHUB_ENV
 
       - name: Install Go
