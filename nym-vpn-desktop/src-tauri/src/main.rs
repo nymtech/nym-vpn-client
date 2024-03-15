@@ -154,6 +154,7 @@ async fn main() -> Result<()> {
             node_location::get_countries,
             window::show_main_window,
             commands::cli::cli_args,
+            log::log_js,
         ])
         .run(context)
         .expect("error while running tauri application");

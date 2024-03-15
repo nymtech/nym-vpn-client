@@ -8,6 +8,7 @@ import {
 import * as Sentry from '@sentry/react';
 import { captureConsoleIntegration } from '@sentry/integrations';
 import { getVersion } from '@tauri-apps/api/app';
+import logu from './log';
 
 async function initSentry() {
   const dsn = import.meta.env.APP_SENTRY_DSN;
@@ -20,8 +21,10 @@ async function initSentry() {
 
   if (!dsn) {
     console.warn(`unable to initialize sentry, APP_SENTRY_DSN env var not set`);
+    await logu.warn('Sentry DSN not set');
     return;
   }
+  await logu.info(`Sentry DSN: ${dsn}`);
   console.log('⚠ performance monitoring and error reporting enabled');
   console.log('initializing sentry');
 
