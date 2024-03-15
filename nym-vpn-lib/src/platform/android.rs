@@ -193,15 +193,15 @@ pub trait IntoJava<'env> {
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub async extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getGatewayCountries<'env>(
+pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getGatewayCountries<'env>(
     env: JNIEnv<'env>,
     _this: JObject<'_>,
     exit_only: jboolean,
 ) -> JString<'env> {
     let env = JnixEnv::from(env);
     let gateway_client = GatewayClient::new(gateway_client::Config::default()).unwrap();
-    let ret = if exit_only == JNI_FALSE { gateway_client.lookup_all_countries().await } else {
-        gateway_client.lookup_all_exit_countries().await
+    let ret = if exit_only == JNI_FALSE { RUNTIME.block_on(gateway_client.lookup_all_countries()) } else {
+        RUNTIME.block_on(gateway_client.lookup_all_exit_countries())
     };
     return match ret {
         Err(err) => {
