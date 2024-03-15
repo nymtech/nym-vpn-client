@@ -10,7 +10,6 @@ use jnix::jni::{
     sys::{jboolean, jint, JNI_FALSE},
     JNIEnv,
 };
-use jnix::IntoJava;
 use jnix::{FromJava, JnixEnv};
 use nix::sys::{
     select::{pselect, FdSet},
@@ -173,9 +172,23 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_defaultTunConfig<'env>
     env: JNIEnv<'env>,
     _this: JObject<'_>,
 ) -> JObject<'env> {
+    use jnix::IntoJava;
     let env = JnixEnv::from(env);
-
     TunConfig::default().into_java(&env).forget()
+}
+
+impl<'env> IntoJava<'env> for String {
+    type JavaType = JString<'env>;
+
+    fn into_java(self, env: &JNIEnv<'env>) -> Self::JavaType {
+        env.new_string(&self).expect("Failed to create Java String")
+    }
+}
+
+pub trait IntoJava<'env> {
+    type JavaType;
+
+    fn into_java(self, env: &JNIEnv<'env>) -> Self::JavaType;
 }
 
 #[no_mangle]
@@ -193,10 +206,11 @@ pub async extern "system" fn Java_net_nymtech_vpn_NymVpn_getGatewayCountries<'en
     return match ret {
         Err(err) => {
             error!("Failed to get countries: {:?}", err);
-            "".to_string().into_java(&env).forget().into()
+            "".to_string().into_java(&env)
         },
         Ok(countries) => {
-            countries.join(",").into_java(&env).forget().into()
+            let countries_str : String = countries.join(",");
+            countries_str.into_java(&env)
         }
     }
 }
