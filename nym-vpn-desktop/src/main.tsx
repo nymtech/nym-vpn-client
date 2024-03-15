@@ -20,7 +20,7 @@ dayjs.extend(duration);
   const monitoring = await kvGet<boolean>('Monitoring');
 
   if (monitoring) {
-    initSentry();
+    await initSentry();
   }
 
   ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(

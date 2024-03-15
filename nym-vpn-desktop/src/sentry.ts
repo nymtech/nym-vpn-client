@@ -9,8 +9,14 @@ import * as Sentry from '@sentry/react';
 import { captureConsoleIntegration } from '@sentry/integrations';
 import { getVersion } from '@tauri-apps/api/app';
 
-function initSentry() {
+async function initSentry() {
   const dsn = import.meta.env.APP_SENTRY_DSN;
+  let version = '0.0.0-unknown';
+  try {
+    version = await getVersion();
+  } catch (e) {
+    console.warn(`failed to get app version from tauri: ${e}`);
+  }
 
   if (!dsn) {
     console.warn(`unable to initialize sentry, APP_SENTRY_DSN env var not set`);
@@ -49,12 +55,11 @@ function initSentry() {
     // import.meta.env.MODE is set by Vite and is either
     // 'development' or 'production'
     environment: import.meta.env.MODE,
+
+    release: `nym-vpn-desktop@${version}`,
   });
 
-  getVersion().then((version) => {
-    Sentry.setTag('app_version', version);
-  });
-
+  Sentry.setTag('app_version', version);
   Sentry.setUser({ id: 'nym', ip_address: undefined });
 }
 
