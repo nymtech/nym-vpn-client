@@ -92,7 +92,7 @@ jobs:
 
       - name: Setup MSBuild.exe
         if: contains(matrix.os, 'windows')
-        uses: microsoft/setup-msbuild@v1.0.0
+        uses: microsoft/setup-msbuild@v2
 
       - name: Build winfw.dll from mullvad
         if: contains(matrix.os, 'windows')
