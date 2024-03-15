@@ -1,5 +1,5 @@
 import { ClickAwayListener, useSnackbar } from '@mui/base';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import clsx from 'clsx';
 import { useMainState } from '../contexts';
 import MsIcon from './MsIcon';
@@ -48,9 +48,11 @@ function Snackbar({
       <p>{text}</p>
       {closeIcon && (
         <motion.button
+          key="snackbar-close-button"
           initial={{ opacity: 0.7 }}
-          whileHover={{ opacity: 1 }}
-          transition={{ duration: 0.05 }}
+          whileHover={{ opacity: 1, scale: 1.1 }}
+          whileTap={{ opacity: 1, scale: 0.8 }}
+          transition={{ duration: 0.1 }}
           className="w-6 ml-4 focus:outline-none text-black dark:text-white"
           onClick={() => onClose()}
         >
@@ -60,20 +62,20 @@ function Snackbar({
     </motion.div>
   );
 
-  if (!open) {
-    return null;
-  }
-
   return (
-    <div className={clsx([uiTheme === 'Dark' && 'dark'])}>
-      {clickAway ? (
-        <ClickAwayListener onClickAway={onClickAway}>
-          {snackbar}
-        </ClickAwayListener>
-      ) : (
-        <>{snackbar}</>
+    <AnimatePresence>
+      {open && (
+        <div className={clsx([uiTheme === 'Dark' && 'dark'])}>
+          {clickAway ? (
+            <ClickAwayListener onClickAway={onClickAway}>
+              {snackbar}
+            </ClickAwayListener>
+          ) : (
+            snackbar
+          )}
+        </div>
       )}
-    </div>
+    </AnimatePresence>
   );
 }
 
