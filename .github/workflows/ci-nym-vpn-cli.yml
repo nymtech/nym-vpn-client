@@ -19,11 +19,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, custom-runner-mac-m1, windows-2022 ]
+        os: [ubuntu-22.04, custom-runner-mac-m1, windows-2022]
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: 'Cleanup working directory'
+      - name: "Cleanup working directory"
         if: contains(matrix.os, 'custom')
         run: |
           ls -la ./
@@ -32,15 +32,22 @@ jobs:
           ls -la ./
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make
         if: matrix.os == 'ubuntu-22.04'
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make
 
       - name: Support longpaths on windows
         if: contains(matrix.os, 'windows')
         run: git config --system core.longpaths true
 
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Checkout mullvad libs for Windows
+        if: contains(matrix.os, 'windows')
+        uses: actions/checkout@v4
+        with:
+          repository: nymtech/nym-vpn-mullvad-libs
+          path: "nym-vpn-mullvad-libs"
 
       - name: Install rust toolchain
         id: rust-toolchain
@@ -70,18 +77,50 @@ jobs:
             exit 1
           fi
           echo "TRIPLET=$triplet" >> $GITHUB_ENV
-          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
+          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/build/lib/x64-Debug" >> $GITHUB_ENV
 
       - name: Install Go
         uses: actions/setup-go@v4
         with:
-          go-version: 'stable'
+          go-version: "stable"
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup MSBuild.exe
+        if: contains(matrix.os, 'windows')
+        uses: microsoft/setup-msbuild@v1.0.0
+
+      - name: Build winfw.dll from mullvad
+        if: contains(matrix.os, 'windows')
+        run: ./nym-vpn-mullvad-libs/build-windows-modules.sh
+
+      - name: Move winfw.dll to build directory
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        run: |
+          mv nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/build/lib/
+
+      - name: Download wintun.zip
+        if: contains(matrix.os, 'windows')
+        uses: wei/wget@v1
+        with:
+          args: -O ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
+
+      - name: Unzip wintun.zip
+        if: contains(matrix.os, 'windows')
+        uses: ihiroky/extract-action@v1
+        with:
+          file_path: ${GITHUB_WORKSPACE}/wintun.zip
+
+      - name: Move wintun.dll to build directory
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        run: |
+          mv wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/build/lib/
 
       - name: rustfmt check
         run: cargo fmt --check
