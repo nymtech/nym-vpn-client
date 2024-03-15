@@ -54,6 +54,10 @@ jobs:
           workspaces: |
             nym-vpn-cli
 
+      - name: Add iOS target
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        run: rustup target add aarch64-apple-ios
+
       - name: Set env
         shell: bash
         run: |
@@ -93,9 +97,18 @@ jobs:
         if: "!contains(matrix.os, 'windows')"
         run: cargo build --verbose
 
+      - name: Build (iOS)
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        run: cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
+
       - name: Run tests
         if: "!contains(matrix.os, 'windows')"
         run: cargo test --verbose
 
       - name: Clippy
         run: cargo clippy -- -Dwarnings
+
+      # TODO: Activate clippy for iOS when starting to do usefule work
+      # - name: Clippy (iOS)
+      #   if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+      #   run: cargo clippy --target aarch64-apple-ios -p nym-vpn-lib -- -Dwarnings
