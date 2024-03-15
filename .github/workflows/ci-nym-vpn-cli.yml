@@ -48,15 +48,15 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - name: Add iOS target
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        run: rustup target add aarch64-apple-ios
+
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ steps.rust-toolchain.outputs.cachekey }}
           workspaces: |
             nym-vpn-cli
-
-      - name: Add iOS target
-        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
-        run: rustup target add aarch64-apple-ios
 
       - name: Set env
         shell: bash
