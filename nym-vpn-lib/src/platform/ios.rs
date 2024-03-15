@@ -9,7 +9,7 @@ use log::warn;
 use oslog::OsLogger;
 use std::fmt::Debug;
 use std::net::{Ipv4Addr, Ipv6Addr};
-use talpid_types::net::wireguard::{PeerConfig, TunnelConfig};
+use talpid_types::net::wireguard::{PeerConfig, PrivateKey, TunnelConfig};
 use url::Url;
 
 fn init_logs() {
@@ -66,6 +66,20 @@ pub trait OSTunProvider: Send + Sync + Debug {
 #[allow(non_snake_case)]
 pub async fn initVPN(config: VPNConfig) {
     init_logs();
+
+    let tun_provider = config.tun_provider;
+    let wg_config = WgConfig {
+        tunnel: TunnelConfig {
+            private_key: PrivateKey::new_from_random(),
+            addresses: vec![],
+        },
+        peers: vec![],
+        ipv4_gateway: Ipv4Addr::new(0, 0, 0, 0),
+        ipv6_gateway: None,
+        mtu: 1500,
+    };
+    tun_provider.configure_wg(wg_config);
+    return;
 
     if get_vpn_state().await != ClientState::Uninitialised {
         warn!("VPN was already inited. Try starting it");
