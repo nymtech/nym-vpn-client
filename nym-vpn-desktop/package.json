@@ -28,10 +28,15 @@
   "dependencies": {
     "@headlessui/react": "^1.7.17",
     "@headlessui/tailwindcss": "^0.2.0",
+    "@mui/base": "^5.0.0-beta.39",
+    "@sentry/integrations": "^7.106.1",
+    "@sentry/react": "^7.106.1",
     "@tauri-apps/api": "^1.5.0",
     "clsx": "^2.0.0",
     "dayjs": "^1.11.10",
+    "framer-motion": "^11.0.13",
     "i18next": "^23.7.6",
+    "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-i18next": "^14.0.0",
@@ -41,6 +46,7 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.0",
+    "@types/lodash": "^4.17.0",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
     "@types/react-router-dom": "^5.3.3",

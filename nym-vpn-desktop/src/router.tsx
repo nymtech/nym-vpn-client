@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
+import * as Sentry from '@sentry/react';
 import {
   AddCredential,
   Display,
@@ -32,7 +33,12 @@ export const routes = {
   exitNodeLocation: '/exit-node-location',
 } as const;
 
-const router = createBrowserRouter([
+// Even if Sentry is not instantiated, wrapping the router seems OK
+const createRouterFn = Sentry.wrapCreateBrowserRouter(createBrowserRouter);
+
+// ⚠ router instance creation must remain outside of React
+// tree with routes statically defined
+const router = createRouterFn([
   {
     path: routes.root,
     element: <MainLayout />,
@@ -106,7 +112,6 @@ const router = createBrowserRouter([
       },
       {
         path: routes.entryNodeLocation,
-        // eslint-disable-next-line react/jsx-no-undef
         element: <NodeLocation node="entry" />,
         errorElement: <Error />,
       },

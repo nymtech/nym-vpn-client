@@ -152,16 +152,21 @@ export default function TopBar() {
         >
           <MsIcon
             icon={currentNavLocation.leftIcon}
-            style="dark:text-laughing-jack"
+            className={clsx([
+              'dark:text-laughing-jack transition duration-150',
+              'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black hover:dark:text-blanc-nacre',
+            ])}
           />
         </button>
       ) : (
         <div className="w-6 mx-4" />
       )}
-      {currentNavLocation.title && (
+      {currentNavLocation.title ? (
         <p className="justify-self-center tracking-normal">
           {currentNavLocation.title}
         </p>
+      ) : (
+        <div></div>
       )}
       {currentNavLocation?.rightIcon ? (
         <button
@@ -170,7 +175,10 @@ export default function TopBar() {
         >
           <MsIcon
             icon={currentNavLocation.rightIcon}
-            style="dark:text-laughing-jack"
+            className={clsx([
+              'dark:text-laughing-jack transition duration-150',
+              'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black hover:dark:text-blanc-nacre',
+            ])}
           />
         </button>
       ) : (

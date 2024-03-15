@@ -49,7 +49,7 @@ function SettingsMenuCard({
     >
       <div className={clsx('flex flex-row items-center justify-between gap-4')}>
         {leadingIcon && (
-          <MsIcon icon={leadingIcon} style="dark:text-mercury-pinkish" />
+          <MsIcon icon={leadingIcon} className="dark:text-mercury-pinkish" />
         )}
         {leadingComponent && !leadingIcon && leadingComponent}
         <div className="flex flex-1 items-center">
