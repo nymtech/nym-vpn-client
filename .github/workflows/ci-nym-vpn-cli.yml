@@ -102,7 +102,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
-          mv nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/build/lib/
+          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/build/lib/
 
       - name: Download wintun.zip
         if: contains(matrix.os, 'windows')
@@ -120,7 +120,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
-          mv wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/build/lib/
+          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/build/lib/
 
       - name: rustfmt check
         run: cargo fmt --check
