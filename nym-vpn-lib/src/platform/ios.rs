@@ -52,6 +52,7 @@ impl From<talpid_wireguard::config::Config> for WgConfig {
 
 pub struct VPNConfig {
     pub api_url: Url,
+    pub explorer_url: Url,
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
     pub tun_provider: Arc<dyn OSTunProvider>,
@@ -77,5 +78,6 @@ pub async fn initVPN(config: VPNConfig) {
         config.tun_provider,
     );
     vpn.gateway_config.api_url = config.api_url;
+    vpn.gateway_config.explorer_url = Some(config.explorer_url);
     set_inited_vpn(vpn).await;
 }
