@@ -4,8 +4,10 @@
 use super::*;
 use crate::gateway_client::{EntryPoint, ExitPoint};
 use crate::NymVpn;
+use error::FFIError;
 use log::warn;
 use oslog::OsLogger;
+use std::fmt::Debug;
 use std::net::{Ipv4Addr, Ipv6Addr};
 use talpid_types::net::wireguard::{PeerConfig, TunnelConfig};
 use url::Url;
@@ -36,11 +38,29 @@ pub struct WgConfig {
     pub mtu: u16,
 }
 
+impl From<talpid_wireguard::config::Config> for WgConfig {
+    fn from(value: talpid_wireguard::config::Config) -> Self {
+        WgConfig {
+            tunnel: value.tunnel,
+            peers: value.peers,
+            ipv4_gateway: value.ipv4_gateway,
+            ipv6_gateway: value.ipv6_gateway,
+            mtu: value.mtu,
+        }
+    }
+}
+
 pub struct VPNConfig {
     pub api_url: Url,
     pub explorer_url: Url,
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
+    pub tun_provider: Arc<dyn OSTunProvider>,
+}
+
+pub trait OSTunProvider: Send + Sync + Debug {
+    fn configure_wg(&self, config: WgConfig) -> Result<(), FFIError>;
+    fn configure_nym(&self) -> Result<(), FFIError>;
 }
 
 #[allow(non_snake_case)]
@@ -52,9 +72,12 @@ pub async fn initVPN(config: VPNConfig) {
         return;
     }
 
-    let mut vpn = NymVpn::new(config.entry_gateway, config.exit_router);
+    let mut vpn = NymVpn::new(
+        config.entry_gateway,
+        config.exit_router,
+        config.tun_provider,
+    );
     vpn.gateway_config.api_url = config.api_url;
     vpn.gateway_config.explorer_url = Some(config.explorer_url);
-
-    set_inited_vpn(vpn).await
+    set_inited_vpn(vpn).await;
 }

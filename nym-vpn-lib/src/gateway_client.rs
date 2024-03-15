@@ -3,8 +3,6 @@
 
 use crate::error::{Error, Result};
 use crate::mixnet_processor::IpPacketRouterAddress;
-#[cfg(target_os = "macos")]
-use crate::UniffiCustomTypeConverter;
 use itertools::Itertools;
 use nym_client_core::init::helpers::choose_gateway_by_latency;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
@@ -120,32 +118,6 @@ pub enum ExitPoint {
 impl ExitPoint {
     pub fn is_location(&self) -> bool {
         matches!(self, ExitPoint::Location { .. })
-    }
-}
-
-#[cfg(target_os = "macos")]
-impl UniffiCustomTypeConverter for Recipient {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(Recipient::try_from_base58_string(val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
-
-#[cfg(target_os = "macos")]
-impl UniffiCustomTypeConverter for NodeIdentity {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(NodeIdentity::from_base58_string(val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_base58_string()
     }
 }
 
@@ -312,6 +284,7 @@ pub struct GatewayClient {
     explorer_client: Option<ExplorerClient>,
     keypair: Option<encryption::KeyPair>,
 }
+
 #[derive(Clone, Debug)]
 pub struct GatewayData {
     pub(crate) public_key: PublicKey,

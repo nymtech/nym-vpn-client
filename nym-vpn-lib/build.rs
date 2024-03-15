@@ -4,4 +4,5 @@
 fn main() {
     uniffi::generate_scaffolding("src/nym_vpn_lib_android.udl").unwrap();
     uniffi::generate_scaffolding("src/nym_vpn_lib_macos.udl").unwrap();
+    uniffi::generate_scaffolding("src/nym_vpn_lib_ios.udl").unwrap();
 }

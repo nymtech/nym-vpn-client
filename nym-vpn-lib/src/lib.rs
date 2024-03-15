@@ -3,6 +3,8 @@
 
 #[cfg(target_os = "macos")]
 uniffi::include_scaffolding!("nym_vpn_lib_macos");
+#[cfg(target_os = "ios")]
+uniffi::include_scaffolding!("nym_vpn_lib_ios");
 #[cfg(target_os = "android")]
 uniffi::include_scaffolding!("nym_vpn_lib_android");
 
@@ -27,6 +29,13 @@ use tap::TapFallible;
 use tokio::time::timeout;
 use tracing::warn;
 use util::wait_for_interrupt_and_signal;
+#[cfg(any(target_os = "android", target_os = "ios", target_os = "macos"))]
+use {
+    crate::platform::error::FFIError,
+    ipnetwork::IpNetwork,
+    std::net::{Ipv6Addr, SocketAddr},
+    talpid_types::net::wireguard::{PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig},
+};
 
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
@@ -35,16 +44,18 @@ pub use nym_task::{
     StatusReceiver,
 };
 
+#[cfg(target_os = "ios")]
+use crate::platform::ios::{initVPN, OSTunProvider, VPNConfig, WgConfig};
 #[cfg(target_os = "macos")]
-use crate::platform::macos::initVPN;
-#[cfg(any(target_os = "macos", target_os = "android"))]
+use crate::platform::macos::{initVPN, VPNConfig, WgConfig};
+#[cfg(any(target_os = "macos", target_os = "android", target_os = "ios"))]
 use crate::platform::{runVPN, stopVPN};
 pub use nym_bin_common;
 pub use nym_config;
 use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 use url::Url;
 
 pub mod config;
@@ -55,6 +66,8 @@ pub mod mixnet_processor;
 mod platform;
 pub mod routing;
 pub mod tunnel;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+mod uniffi_custom_impls;
 mod util;
 
 async fn init_wireguard_config(
@@ -122,6 +135,9 @@ pub struct NymVpn {
 
     tun_provider: Arc<Mutex<TunProvider>>,
 
+    #[cfg(target_os = "ios")]
+    ios_tun_provider: Arc<dyn OSTunProvider>,
+
     // Necessary so that the device doesn't get closed before cleanup has taken place
     shadow_handle: ShadowHandle,
 }
@@ -136,6 +152,7 @@ impl NymVpn {
         entry_point: EntryPoint,
         exit_point: ExitPoint,
         #[cfg(target_os = "android")] android_context: talpid_types::android::AndroidContext,
+        #[cfg(target_os = "ios")] ios_tun_provider: Arc<dyn OSTunProvider>,
     ) -> Self {
         let tun_provider = Arc::new(Mutex::new(TunProvider::new(
             #[cfg(target_os = "android")]
@@ -147,6 +164,7 @@ impl NymVpn {
             #[cfg(target_os = "android")]
             vec![],
         )));
+
         Self {
             gateway_config: gateway_client::Config::default(),
             mixnet_client_path: None,
@@ -162,6 +180,8 @@ impl NymVpn {
             enable_poisson_rate: false,
             disable_background_cover_traffic: false,
             tun_provider,
+            #[cfg(target_os = "ios")]
+            ios_tun_provider,
             shadow_handle: ShadowHandle { _inner: None },
         }
     }

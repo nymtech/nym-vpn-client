@@ -61,6 +61,7 @@ dictionary VPNConfig {
     Url explorer_url;
     EntryPoint entry_gateway;
     ExitPoint exit_router;
+    OSTunProvider tun_provider;
 };
 
 [Enum]
@@ -78,7 +79,15 @@ interface ExitPoint {
   Location(string location);
 };
 
-namespace nym_vpn_lib_macos {
+[Trait]
+interface OSTunProvider {
+    [Throws=FFIError]
+    void configure_wg(WgConfig config);
+    [Throws=FFIError]
+    void configure_nym();
+};
+
+namespace nym_vpn_lib_ios {
     [Async]
     void initVPN(VPNConfig config);
     [Async]
