@@ -26,14 +26,13 @@ import java.net.InetAddress
 import kotlin.properties.Delegates.observable
 
 class NymVpnService : VpnService() {
-
     companion object {
         init {
-            val nymVPNLib = "nym_vpn_lib"
             Constants.setupEnvironment()
-            System.loadLibrary(nymVPNLib)
-            Timber.i( "loaded native library $nymVPNLib")
+            System.loadLibrary(Constants.NYM_VPN_LIB)
+            Timber.i( "Loaded native library in service")
         }
+
     }
 
     private var activeTunStatus by observable<CreateTunResult?>(null) { _, oldTunStatus, _ ->
@@ -59,35 +58,43 @@ class NymVpnService : VpnService() {
     val connectivityListener = ConnectivityListener()
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return if (intent?.action == Action.START.name) {
-            NymVpn.setVPNState(VpnState.Connecting.InitializingClient)
-            currentTunConfig = defaultTunConfig()
-            Timber.i("VPN start")
-            try {
+        return when (intent?.action) {
+            Action.START.name, Action.START_FOREGROUND.name -> {
+                NymVpnClient.setVpnState(VpnState.Connecting.InitializingClient)
+                currentTunConfig = defaultTunConfig()
+                Timber.i("VPN start")
+                startVpn(intent)
+                START_STICKY
+            }
+            Action.STOP.name -> {
+                Timber.d("VPN stop")
+                NymVpnClient.setVpnState(VpnState.Disconnecting)
+                stopVPN()
+                stopSelf()
+                START_NOT_STICKY
+            }
+            else -> START_NOT_STICKY
+        }
+    }
 
-                if(prepare(this) == null) {
-                    val isTwoHop = intent.extras?.getString(NymVpn.TWO_HOP_EXTRA_KEY).toBoolean()
-                    val entry = intent.extras?.getString(NymVpn.ENTRY_POINT_EXTRA_KEY)
-                    val exit = intent.extras?.getString(NymVpn.EXIT_POINT_EXTRA_KEY)
-                    if(!entry.isNullOrBlank() && !exit.isNullOrBlank()) {
-                        initVPN(isTwoHop, BuildConfig.API_URL, BuildConfig.EXPLORER_URL, entry, exit,this)
-                        CoroutineScope(Dispatchers.IO).launch {
-                            launch {
-                                runVPN()
-                            }
+    private fun startVpn(intent : Intent) {
+        try {
+            if(prepare(this) == null) {
+                val isTwoHop = intent.extras?.getString(NymVpnClient.TWO_HOP_EXTRA_KEY).toBoolean()
+                val entry = intent.extras?.getString(NymVpnClient.ENTRY_POINT_EXTRA_KEY)
+                val exit = intent.extras?.getString(NymVpnClient.EXIT_POINT_EXTRA_KEY)
+                Timber.i("$entry $exit $isTwoHop")
+                if(!entry.isNullOrBlank() && !exit.isNullOrBlank()) {
+                    initVPN(isTwoHop, BuildConfig.API_URL, BuildConfig.EXPLORER_URL, entry, exit,this)
+                    CoroutineScope(Dispatchers.IO).launch {
+                        launch {
+                            runVPN()
                         }
                     }
                 }
-            } catch (e : Exception) {
-                Timber.e(e.message)
             }
-            START_STICKY
-        } else {
-            Timber.d("VPN stop")
-            NymVpn.setVPNState(VpnState.Disconnecting)
-            stopVPN()
-            stopSelf()
-            START_NOT_STICKY
+        } catch (e : Exception) {
+            Timber.e(e)
         }
     }
 
@@ -109,6 +116,7 @@ class NymVpnService : VpnService() {
     }
 
     override fun onCreate() {
+        super.onCreate()
         connectivityListener.register(this)
         val channelId =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -130,7 +138,7 @@ class NymVpnService : VpnService() {
 
     override fun onDestroy() {
         Timber.i("VpnService destroyed")
-        NymVpn.setVPNState(VpnState.Down)
+        NymVpnClient.setVpnState(VpnState.Down)
         connectivityListener.unregister()
         stopVPN()
         stopSelf()

@@ -4,7 +4,6 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -31,7 +30,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
@@ -51,7 +49,10 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.TransparentSystemBars
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
-import timber.log.Timber
+import net.nymtech.vpn.NymVpnClient
+import net.nymtech.vpn.NymVpnService
+import net.nymtech.vpn.model.Hop
+import net.nymtech.vpn.model.VpnMode
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -66,7 +67,9 @@ class MainActivity : ComponentActivity() {
     installSplashScreen()
 
     lifecycleScope.launch {
+      //init data
       dataStoreManager.init()
+      //setup sentry
       val reportingEnabled = dataStoreManager.getFromStore(DataStoreManager.ERROR_REPORTING)
       if(reportingEnabled ?: BuildConfig.OPT_IN_REPORTING) {
         if(reportingEnabled == null) dataStoreManager.saveToDataStore(DataStoreManager.ERROR_REPORTING, true)
@@ -143,7 +146,9 @@ class MainActivity : ComponentActivity() {
         ) {
 
             NavHost(navController, startDestination = NavItem.Main.route,
-              modifier = Modifier.fillMaxSize().padding(it)) {
+              modifier = Modifier
+                .fillMaxSize()
+                .padding(it)) {
               composable(NavItem.Main.route) { MainScreen(navController, uiState) }
               composable(NavItem.Settings.route) { SettingsScreen(navController, uiState) }
               composable(NavItem.Hop.Entry.route) {

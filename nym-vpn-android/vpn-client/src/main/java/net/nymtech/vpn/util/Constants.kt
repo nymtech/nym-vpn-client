@@ -3,7 +3,11 @@ package net.nymtech.vpn.util
 import android.system.Os
 
 object Constants {
+
+    const val NYM_VPN_LIB = "nym_vpn_lib"
+
     //Add Rust environment vars for lib
+    const val DEFAULT_COUNTRY_ISO = "DE"
     fun setupEnvironment() {
         Os.setenv("CONFIGURED","true", true)
         Os.setenv("RUST_LOG","info", true)

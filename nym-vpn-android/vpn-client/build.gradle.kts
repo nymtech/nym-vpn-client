@@ -72,6 +72,8 @@ dependencies {
 
     implementation(libs.kotlinx.serialization)
     implementation(libs.timber)
+
+    implementation(libs.androidx.localbroadcastmanager)
 }
 
 

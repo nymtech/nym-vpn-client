@@ -1,3 +1,48 @@
-Features
+Download NymVPN and make your online activity safe.
+With our VPN app you can hide your IP address, encrypt your traffic, hide your identity online and much more.
 
-- Multi-hop VPN with Mixnet
+Many entities on the internet can spy on your activity and take your data.
+Governments, big tech, data brokers, internet service providers and advertisers can all try to monitor your online activity. Recent data leakage scandals made it clear that we can't even trust traditional VPN companies.
+
+Our VPN was born to make your internet activities private and a crucial part of this is not making activity logging and tracking possible.
+NymVPN is a new type of VPN designed in a way that makes it impossible for anyone to monitor or log your online activity, even for us. Our VPN operates on a decentralized network, with no trusted parties, centralized components, or single points of failure. All functionalities of NymVPN are performed in a decentralized and distributed way, and there is no possibility of enabling centralized logging.
+Our VPN encrypts data and shields metadata from traffic analysis through a decentralized Mixnet. Simply put: there is no way for us to log your activity, therefore no one can access it.
+
+But what exactly is a Mixnet? A Mixnet is a network of nodes that:
+1. Receive encrypted traffic
+2. Mix the traffic
+3. Redirect the traffic
+This process is done up to 5 times (5-hops) and makes it impossible for anyone to monitor or track your online activity.
+
+This is why you should choose our decentralized, secure, and private VPN
+
+Privacy
+Our dVPN was built with privacy in mind. We don't store logs (no-logs policy) nor track your activity. Even if someone wanted to steal your data from us, there would be nothing to steal.
+
+Censorship resistance
+Our VPN app makes your online activity completely anonymous. We encrypt your traffic, IP address, location and everything that someone with bad intentions could monitor. You are completely safe also thanks to features like the killswitch.
+
+Speed
+The speed of our VPN network grows by the minute thanks to many additional nodes joining the Mixnet network. Moreover, we use modern cryptographic algorithms and innovative protocols such as Sphinx and Loopix to make your connection as fast as possible.
+
+Location of choice
+With NymVPN you can choose to connect from hundreds of locations around the world.
+Download the app --> Choose the location --> Connect
+
+Crypto payments
+You are looking for a VPN that accepts crypto payments? Here we are. We are happy to accept payments with cryptocurrencies.
+
+No-ads
+Enjoy your VPN ads-free. Our main goal is to protect your privacy, also because of this you won't see any ads in our VPN app.
+
+Limitless usage
+Enjoy the internet as much as you want, NymVPN will never limit your traffic.
+
+Our VPN most beloved features:
+- 5-hop Mixnet: your internet traffic will be encrypted and sent to mixnodes that will mix it with other traffic packages 5 times, making it impossible for someone to track your online activity.
+- 2-hop dVPN: in this case your traffic is encrypted and sent to 2 mixnodes that will mix it. The reduced number of hops results in higher speed.
+- No centralized logs: we don't store any activity logs, this makes it impossible for anyone to have access to your internet activity through us.
+- Money-back guarantee: if you are not happy with the product we offer a money-back guarantee policy. If you are not happy with something email us at support@nymvpn.com, we are always looking to improve.
+- Split tunneling: you can easily choose which of your apps will access the internet through the VPN and which ones will access the internet directly.
+- Hide IP: our dVPN will hide all the information linked to you including your IP address.
+- Killswitch: our VPN is built to provide privacy and security, that's why in case your VPN connection drops the killswitch will block your internet access, keeping you and your data safe

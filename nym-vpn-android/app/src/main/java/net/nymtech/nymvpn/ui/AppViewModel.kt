@@ -22,12 +22,12 @@ import net.nymtech.logcat_helper.model.LogLevel
 import net.nymtech.logcat_helper.model.LogMessage
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
-import net.nymtech.nymvpn.model.Country
 import net.nymtech.nymvpn.service.gateway.GatewayApiService
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
 import net.nymtech.nymvpn.util.log.NymLibException
+import net.nymtech.vpn.model.Hop
 import timber.log.Timber
 import java.time.Instant
 import java.util.Locale
@@ -93,13 +93,14 @@ class AppViewModel @Inject constructor(
         FileUtils.saveFileToDownloads(application.applicationContext, content, fileName)
         showSnackbarMessage(application.getString(R.string.logs_saved))
     }
+
     fun updateCountryListCache() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val gateways = gatewayApiService.getDescribedGateways()
                 val countries = gateways.map {
                     val countryIso = it.bond.gateway.location
-                    Country(countryIso, Locale(countryIso.lowercase(), countryIso).displayCountry)
+                    Hop.Country(countryIso, Locale(countryIso.lowercase(), countryIso).displayCountry)
                 }.toSet()
                 dataStoreManager.saveToDataStore(DataStoreManager.NODE_COUNTRIES, countries.toString())
             } catch (e : Exception) {

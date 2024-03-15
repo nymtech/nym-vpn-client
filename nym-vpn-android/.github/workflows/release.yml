@@ -107,7 +107,7 @@ jobs:
         with:
           body_path: ${{ github.workspace }}/fastlane/metadata/android/en-US/changelogs/{{ env.VERSION_CODE }}.txt
           tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
           draft: false
           prerelease: false
           files: ${{ github.workspace }}/${{ steps.apk-path.outputs.path }}

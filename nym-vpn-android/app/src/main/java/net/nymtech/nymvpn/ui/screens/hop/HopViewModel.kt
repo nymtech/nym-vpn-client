@@ -8,10 +8,11 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
-import net.nymtech.nymvpn.model.Country
 import net.nymtech.nymvpn.ui.HopType
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.vpn.model.Hop
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,7 +28,7 @@ class HopViewModel @Inject constructor(
         _uiState,
     ) { prefs, state ->
         val countryList = prefs?.get(DataStoreManager.NODE_COUNTRIES)?.let {
-            Country.fromCollectionString(it)
+            Hop.Country.fromCollectionString(it)
         } ?: emptyList()
         val searchedCountries = if(state.query.isNotBlank()) {
             countryList.filter { it.name.lowercase().contains(state.query) }
@@ -48,21 +49,21 @@ class HopViewModel @Inject constructor(
 
     private fun setSelectedCountry() = viewModelScope.launch {
         val selectedCountryString = when (hopType) {
-            HopType.FIRST -> dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY_ISO)
-            HopType.LAST -> dataStoreManager.getFromStore(DataStoreManager.LAST_HOP_COUNTRY_ISO)
+            HopType.FIRST -> dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY)
+            HopType.LAST -> dataStoreManager.getFromStore(DataStoreManager.LAST_HOP_COUNTRY)
         }
         selectedCountryString?.let {
             _uiState.value = _uiState.value.copy(
-                selected = Country.from(it)
+                selected = Hop.Country.from(it)
             )
         }
-
     }
 
-    fun onSelected(country: Country) = viewModelScope.launch {
+    fun onSelected(country: Hop.Country) = viewModelScope.launch {
         when(hopType) {
-            HopType.FIRST -> dataStoreManager.saveToDataStore(DataStoreManager.FIRST_HOP_COUNTRY_ISO, country.toString())
-            HopType.LAST -> dataStoreManager.saveToDataStore(DataStoreManager.LAST_HOP_COUNTRY_ISO, country.toString())
+            HopType.FIRST -> dataStoreManager.saveToDataStore(DataStoreManager.FIRST_HOP_COUNTRY, country.toString())
+            HopType.LAST -> dataStoreManager.saveToDataStore(DataStoreManager.LAST_HOP_COUNTRY, country.toString())
         }
+        NymVpn.requestTileServiceStateUpdate(NymVpn.instance)
     }
 }

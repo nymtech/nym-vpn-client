@@ -1,10 +1,6 @@
 package net.nymtech.nymvpn.util
 
-import android.system.Os
-
 object Constants {
-
-    const val DEFAULT_COUNTRY_ISO = "DE"
 
     const val SUBSCRIPTION_TIMEOUT = 5_000L
     const val LOG_BUFFER_DELAY = 3_000L

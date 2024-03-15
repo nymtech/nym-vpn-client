@@ -12,6 +12,7 @@ coreKtx = "1.12.0"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
+localbroadcastmanager = "1.1.0"
 materialIconsExtended = "1.6.3"
 moshi = "1.15.1"
 moshiKotlin = "1.15.1"
@@ -21,17 +22,17 @@ hiltNavigationCompose = "1.2.0"
 lifecycleRuntimeKtx = "2.7.0"
 lifecycle-runtime-compose = "2.7.0"
 activityCompose = "1.8.2"
-composeBom = "2024.02.01"
+composeBom = "2024.02.02"
 datastorePreferences = "1.0.0"
 timber = "5.0.1"
-hiltAndroid = "2.50"
+hiltAndroid = "2.51"
 kotlinx-serialization-json = "1.6.3"
 kotlinxCoroutinesCore = "1.8.0"
 window = "1.2.0"
 windowCoreAndroid = "1.3.0-alpha03"
 desugar = "2.0.4"
 
-gradlePlugins-kotlinxSerialization = "1.8.21"
+gradlePlugins-kotlinxSerialization = "1.9.22"
 gradlePlugins-licensee = "1.7.0"
 gradlePlugins-detekt = "1.23.1"
 gradlePlugins-gross = "0.1.0"
@@ -42,6 +43,7 @@ material = "1.11.0"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
+androidx-localbroadcastmanager = { module = "androidx.localbroadcastmanager:localbroadcastmanager", version.ref = "localbroadcastmanager" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }

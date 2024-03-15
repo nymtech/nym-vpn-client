@@ -2,11 +2,12 @@ package net.nymtech.nymvpn
 
 import android.app.Application
 import android.content.ComponentName
+import android.content.Context
 import android.service.quicksettings.TileService
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import dagger.hilt.android.HiltAndroidApp
-import net.nymtech.nymvpn.service.tile.QuickTile
+import net.nymtech.nymvpn.service.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.log.DebugTree
 import net.nymtech.nymvpn.util.log.ReleaseTree
 import net.nymtech.nymvpn.util.navigationBarHeight
@@ -14,7 +15,7 @@ import timber.log.Timber
 
 
 @HiltAndroidApp
-class NymVPN : Application() {
+class NymVpn : Application() {
 
     override fun onCreate() {
         super.onCreate()
@@ -23,7 +24,7 @@ class NymVPN : Application() {
     }
 
     companion object {
-        lateinit var instance : NymVPN
+        lateinit var instance : NymVpn
             private set
 
         private const val BASELINE_HEIGHT = 2201
@@ -53,10 +54,10 @@ class NymVPN : Application() {
             return dp * resizeWidthPercentage
         }
 
-        fun requestTileServiceStateUpdate() {
+        fun requestTileServiceStateUpdate(context: Context) {
             TileService.requestListeningState(
-                instance,
-                ComponentName(instance, QuickTile::class.java),
+                context,
+                ComponentName(context, VpnQuickTile::class.java),
             )
         }
     }

@@ -10,19 +10,17 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
-import net.nymtech.nymvpn.model.Country
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.NumberUtils
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpn.NymVpn
-import net.nymtech.vpn.model.EntryPoint
+import net.nymtech.vpn.NymVpnClient
 import net.nymtech.vpn.model.ErrorState
-import net.nymtech.vpn.model.ExitPoint
+import net.nymtech.vpn.model.Hop
 import net.nymtech.vpn.model.VpnMode
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,18 +34,16 @@ constructor(
   private val _uiState = MutableStateFlow(MainUiState())
 
   val uiState =
-      combine(dataStoreManager.preferencesFlow, _uiState, NymVpn.stateFlow) {
+      combine(dataStoreManager.preferencesFlow, _uiState, NymVpnClient.stateFlow) {
               prefs,
               uiState,
               clientState ->
             val lastHopCountry =
-                Country.from(
-                    prefs?.get(DataStoreManager.LAST_HOP_COUNTRY_ISO)
-                        ?: uiState.lastHopCountry.toString())
+                Hop.Country.from(
+                    prefs?.get(DataStoreManager.LAST_HOP_COUNTRY))
             val firstHopCountry =
-                Country.from(
-                    prefs?.get(DataStoreManager.FIRST_HOP_COUNTRY_ISO)
-                        ?: uiState.firstHopCounty.toString())
+                Hop.Country.from(
+                    prefs?.get(DataStoreManager.FIRST_HOP_COUNTRY))
             val connectionTime =
                 clientState.statistics.connectionSeconds?.let { NumberUtils.convertSecondsToTimeString(it) }
             val networkMode =
@@ -83,24 +79,28 @@ constructor(
       viewModelScope.launch {
           dataStoreManager.saveToDataStore(
             DataStoreManager.NETWORK_MODE, VpnMode.TWO_HOP_MIXNET.name)
+          NymVpn.requestTileServiceStateUpdate(application)
       }
 
   fun onFiveHopSelected() =
       viewModelScope.launch {
         dataStoreManager.saveToDataStore(
             DataStoreManager.NETWORK_MODE, VpnMode.FIVE_HOP_MIXNET.name)
+          NymVpn.requestTileServiceStateUpdate(application)
       }
 
   fun onConnect() =
       viewModelScope.launch(Dispatchers.IO) {
-        NymVpn.connect(application,EntryPoint.Location(uiState.value.firstHopCounty.isoCode),
-          ExitPoint.Location(uiState.value.lastHopCountry.isoCode),
-          isTwoHop = (uiState.value.networkMode == VpnMode.TWO_HOP_MIXNET))
+        NymVpnClient.connect(application,uiState.value.firstHopCounty,
+          uiState.value.lastHopCountry,
+          mode = uiState.value.networkMode)
+          NymVpn.requestTileServiceStateUpdate(application)
   }
 
 
   fun onDisconnect() =
       viewModelScope.launch {
-        NymVpn.disconnect(application)
+        NymVpnClient.disconnect(application)
+        NymVpn.requestTileServiceStateUpdate(application)
       }
 }

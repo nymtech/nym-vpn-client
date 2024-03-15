@@ -4,10 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.ui.text.buildAnnotatedString
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.model.Country
+import net.nymtech.vpn.model.Hop
 
 object StringUtils {
-    fun buildCountryNameString(country : Country, context : Context) : String {
+    fun buildCountryNameString(country : Hop.Country, context : Context) : String {
         return buildAnnotatedString {
             if(country.isFastest) {
                 append(context.getString(R.string.fastest))

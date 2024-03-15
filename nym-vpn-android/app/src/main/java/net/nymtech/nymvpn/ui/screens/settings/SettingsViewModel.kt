@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
-import net.nymtech.nymvpn.model.Country
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.vpn.model.Hop
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,7 +33,7 @@ class SettingsViewModel @Inject constructor(
 
     private suspend fun setFirstHopToDefault() {
         //TODO how we determine default will change
-        dataStoreManager.saveToDataStore(DataStoreManager.FIRST_HOP_COUNTRY_ISO, Country().toString())
+        dataStoreManager.saveToDataStore(DataStoreManager.FIRST_HOP_COUNTRY, Hop.Country().toString())
     }
 
     fun onAutoConnectSelected(selected: Boolean) = viewModelScope.launch {

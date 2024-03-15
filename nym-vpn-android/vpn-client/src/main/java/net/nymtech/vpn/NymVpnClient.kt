@@ -23,17 +23,12 @@ import net.nymtech.vpn.model.ErrorState
 import net.nymtech.vpn.model.ExitPoint
 import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.model.VpnState
+import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.ServiceManager
 import net.nymtech.vpn.util.safeCollect
 import timber.log.Timber
 
-object NymVpn : VpnClient {
-
-    init {
-        val nymVPNLib = "nym_vpn_lib"
-        System.loadLibrary(nymVPNLib)
-        Timber.i( "loaded native library $nymVPNLib")
-    }
+object NymVpnClient : VpnClient {
 
     private val _state = MutableStateFlow(ClientState())
     override val stateFlow: Flow<ClientState> = _state.asStateFlow()
@@ -43,7 +38,7 @@ object NymVpn : VpnClient {
 
     override suspend fun gateways(exitOnly: Boolean) : List<String> {
         return withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
-            //getGateways(exitOnly).split(",")
+            //getGatewayCountries(exitOnly).split(",")
             emptyList()
         }
     }
@@ -55,15 +50,15 @@ object NymVpn : VpnClient {
         return VpnService.prepare(context)
     }
 
-    override fun connect(context: Context, entryPoint: EntryPoint, exitPoint: ExitPoint, isTwoHop: Boolean) {
+    override fun connect(context: Context, entryPoint: EntryPoint, exitPoint: ExitPoint, mode: VpnMode) {
         clearErrorStatus()
+        setMode(mode)
         val extras = mapOf(
-            ENTRY_POINT_EXTRA_KEY to entryPoint.toString(),
-            EXIT_POINT_EXTRA_KEY to exitPoint.toString(),
-            TWO_HOP_EXTRA_KEY to isTwoHop.toString()
+            ENTRY_POINT_EXTRA_KEY to entryPoint.toLibString(),
+            EXIT_POINT_EXTRA_KEY to exitPoint.toLibString(),
+            TWO_HOP_EXTRA_KEY to isTwoHop(mode).toString()
         )
         //TODO fix logic for more modes later
-        if(isTwoHop) setMode(VpnMode.TWO_HOP_MIXNET) else setMode(VpnMode.FIVE_HOP_MIXNET)
         statusJob = collectLogStatus(context)
         ServiceManager.startVpnService(context, extras)
     }
@@ -72,16 +67,22 @@ object NymVpn : VpnClient {
         context: Context,
         entryPoint: EntryPoint,
         exitPoint: ExitPoint,
-        isTwoHop: Boolean
+        mode: VpnMode
     ) {
         clearErrorStatus()
+        setMode(mode)
         val extras = mapOf(
-            ENTRY_POINT_EXTRA_KEY to entryPoint.toString(),
-            EXIT_POINT_EXTRA_KEY to exitPoint.toString(),
-            TWO_HOP_EXTRA_KEY to isTwoHop.toString()
+            ENTRY_POINT_EXTRA_KEY to entryPoint.toLibString(),
+            EXIT_POINT_EXTRA_KEY to exitPoint.toLibString(),
+            TWO_HOP_EXTRA_KEY to isTwoHop(mode).toString()
         )
         statusJob = collectLogStatus(context)
         ServiceManager.startVpnServiceForeground(context, extras)
+    }
+
+    private fun isTwoHop(mode : VpnMode) : Boolean = when(mode) {
+        VpnMode.TWO_HOP_MIXNET -> true
+        else -> false
     }
 
     private fun collectLogStatus(context: Context) = scope.launch {
@@ -127,9 +128,9 @@ object NymVpn : VpnClient {
         //TODO make this more robust in the future
         with(message){
             when {
-                contains("Mixnet processor is running") -> setVPNState(VpnState.Up)
-                contains("Nym VPN has shut down") -> setVPNState(VpnState.Down)
-                contains("Connecting to IP packet router") -> setVPNState(VpnState.Connecting.EstablishingConnection)
+                contains("Mixnet processor is running") -> setVpnState(VpnState.Up)
+                contains("Nym VPN has shut down") -> setVpnState(VpnState.Down)
+                contains("Connecting to IP packet router") -> setVpnState(VpnState.Connecting.EstablishingConnection)
             }
         }
     }
@@ -152,7 +153,7 @@ object NymVpn : VpnClient {
         )
     }
 
-    internal fun setVPNState(state : VpnState) {
+    internal fun setVpnState(state : VpnState) {
         _state.value = _state.value.copy(
             vpnState = state
         )
@@ -171,6 +172,4 @@ object NymVpn : VpnClient {
     const val ENTRY_POINT_EXTRA_KEY = "entryPoint"
     const val EXIT_POINT_EXTRA_KEY = "exitPoint"
     const val TWO_HOP_EXTRA_KEY = "twoHop"
-
-    //private external fun getGateways(exit_gateways_only: Boolean) : String
 }

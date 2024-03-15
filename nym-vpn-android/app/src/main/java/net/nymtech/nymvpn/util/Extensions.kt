@@ -12,22 +12,22 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.NymVPN
+import net.nymtech.nymvpn.NymVpn
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
 
 
 fun Dp.scaledHeight() : Dp {
-    return NymVPN.resizeHeight(this)
+    return NymVpn.resizeHeight(this)
 }
 
 fun Dp.scaledWidth() : Dp {
-    return NymVPN.resizeWidth(this)
+    return NymVpn.resizeWidth(this)
 }
 
 fun TextUnit.scaled() : TextUnit {
-    return NymVPN.resizeHeight(this)
+    return NymVpn.resizeHeight(this)
 }
 
 fun BroadcastReceiver.goAsync(

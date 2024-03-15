@@ -7,20 +7,19 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
-import net.nymtech.nymvpn.util.Constants
-import net.nymtech.vpn.NymVpn
-import net.nymtech.vpn.model.EntryPoint
-import net.nymtech.vpn.model.ExitPoint
+import net.nymtech.vpn.NymVpnClient
+import net.nymtech.vpn.model.Hop
 import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.model.VpnState
 import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class QuickTile : TileService() {
+class VpnQuickTile : TileService() {
 
     @Inject
     lateinit var dataStoreManager: DataStoreManager
@@ -32,7 +31,7 @@ class QuickTile : TileService() {
         Timber.d("Quick tile listening called")
         setTileText()
         scope.launch {
-            NymVpn.stateFlow.collect {
+            NymVpnClient.stateFlow.collect {
                 when(it.vpnState) {
                     VpnState.Up -> {
                         setActive()
@@ -43,10 +42,10 @@ class QuickTile : TileService() {
                         setTileText()
                     }
                     VpnState.Connecting.EstablishingConnection, VpnState.Connecting.InitializingClient -> {
-                        setTileDescription(this@QuickTile.getString(R.string.connecting))
+                        setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
                     }
                     VpnState.Disconnecting -> {
-                        setTileDescription(this@QuickTile.getString(R.string.disconnecting))
+                        setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
                     }
                 }
             }
@@ -73,15 +72,15 @@ class QuickTile : TileService() {
         setTileText()
         Timber.i("Tile clicked")
         unlockAndRun {
-            when(NymVpn.getState().vpnState) {
-                VpnState.Up -> NymVpn.disconnect(this)
+            when(NymVpnClient.getState().vpnState) {
+                VpnState.Up -> NymVpnClient.disconnect(this)
                 VpnState.Down -> {
                     scope.launch {
-                        val entryCountryIso = dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY_ISO) ?: Constants.DEFAULT_COUNTRY_ISO
-                        val exitCountryIso = dataStoreManager.getFromStore(DataStoreManager.LAST_HOP_COUNTRY_ISO) ?: Constants.DEFAULT_COUNTRY_ISO
-                        val isTwoHop = dataStoreManager.getFromStore(DataStoreManager.NETWORK_MODE) == VpnMode.TWO_HOP_MIXNET.name
-                        NymVpn.connect(this@QuickTile,
-                            EntryPoint.Location(entryCountryIso), ExitPoint.Location(exitCountryIso),isTwoHop)
+                        val firstHopCountry = dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY)
+                        val lastHopCountry = dataStoreManager.getFromStore(DataStoreManager.LAST_HOP_COUNTRY)
+                        val mode = dataStoreManager.getFromStore(DataStoreManager.NETWORK_MODE)
+                        NymVpnClient.connectForeground(this@VpnQuickTile,
+                            Hop.Country.from(firstHopCountry), Hop.Country.from(lastHopCountry), VpnMode.from(mode))
                     }
                 }
                 else -> Unit
@@ -90,13 +89,14 @@ class QuickTile : TileService() {
     }
 
     private fun setTileText() = scope.launch {
-        val entryCountryIso = dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY_ISO) ?: Constants.DEFAULT_COUNTRY_ISO
-        val exitCountryIso = dataStoreManager.getFromStore(DataStoreManager.LAST_HOP_COUNTRY_ISO) ?: Constants.DEFAULT_COUNTRY_ISO
-        val isTwoHop = dataStoreManager.getFromStore(DataStoreManager.NETWORK_MODE) == VpnMode.TWO_HOP_MIXNET.name
-        setTitle("${this@QuickTile.getString(R.string.mode)}: ${if(isTwoHop) this@QuickTile.getString(
-            R.string.two_hop) else this@QuickTile.getString(R.string.five_hop)}")
+        val firstHopCountry = dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY)
+        val lastHopCountry = dataStoreManager.getFromStore(DataStoreManager.LAST_HOP_COUNTRY)
+        val mode = dataStoreManager.getFromStore(DataStoreManager.NETWORK_MODE)
+        val isTwoHop = VpnMode.from(mode) == VpnMode.TWO_HOP_MIXNET
+        setTitle("${this@VpnQuickTile.getString(R.string.mode)}: ${if(isTwoHop) this@VpnQuickTile.getString(
+            R.string.two_hop) else this@VpnQuickTile.getString(R.string.five_hop)}")
         setTileDescription(
-            "$entryCountryIso -> $exitCountryIso")
+            "${Hop.Country.from(firstHopCountry).isoCode} -> ${Hop.Country.from(lastHopCountry).isoCode}")
     }
 
     private fun setActive() {

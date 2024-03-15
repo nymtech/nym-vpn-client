@@ -12,14 +12,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.model.Country
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.vpn.model.Hop
 
 @Composable
-fun countryIcon(country: Country): @Composable () -> Unit {
+fun countryIcon(country: Hop.Country): @Composable () -> Unit {
     val context = LocalContext.current
     val image =
         if (country.isFastest) ImageVector.vectorResource(R.drawable.bolt)

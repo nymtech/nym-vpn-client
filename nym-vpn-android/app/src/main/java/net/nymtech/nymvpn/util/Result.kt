@@ -1,6 +1,6 @@
 package net.nymtech.nymvpn.util
 
-import net.nymtech.nymvpn.NymVPN
+import net.nymtech.nymvpn.NymVpn
 import timber.log.Timber
 
 sealed class Result<T> {
@@ -10,7 +10,7 @@ sealed class Result<T> {
         init {
             when (this.error) {
                 is Event.Error.Exception -> Timber.e(this.error.exception)
-                else -> Timber.e(this.error.message.asString(NymVPN.instance))
+                else -> Timber.e(this.error.message.asString(NymVpn.instance))
             }
         }
     }
