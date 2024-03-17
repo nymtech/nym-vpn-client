@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { CmdError, StateDispatch } from '../../types';
 import { routes } from '../../router';
-import { Button } from '../../ui';
+import { Button, PageAnim } from '../../ui';
 import NetworkModeSelect from './NetworkModeSelect';
 import ConnectionStatus from './ConnectionStatus';
 import HopSelect from './HopSelect';
@@ -67,7 +67,7 @@ function Home() {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <PageAnim className="h-full flex flex-col">
       <div className="grow">
         <ConnectionStatus />
       </div>
@@ -110,7 +110,7 @@ function Home() {
           {getButtonText()}
         </Button>
       </div>
-    </div>
+    </PageAnim>
   );
 }
 

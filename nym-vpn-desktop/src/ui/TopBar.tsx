@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import { AppName } from '../constants';
 import { routes } from '../router';
 import { Routes } from '../types';
+import AnimateIn from './AnimateIn';
 import MsIcon from './MsIcon';
 
 type NavLocation = {
@@ -134,7 +135,10 @@ export default function TopBar() {
   }, [location.pathname, navBarData]);
 
   return (
-    <nav
+    <AnimateIn
+      from="opacity-0 scale-x-90"
+      to="opacity-100 scale-x-100"
+      duration={200}
       className={clsx([
         'flex flex-row flex-nowrap justify-between items-center shrink-0',
         'text-baltic-sea dark:text-mercury-pinkish',
@@ -144,20 +148,23 @@ export default function TopBar() {
           ? 'shadow-none dark:bg-baltic-sea bg-blanc-nacre'
           : 'dark:bg-baltic-sea-jaguar bg-white',
       ])}
+      as="nav"
     >
       {currentNavLocation?.leftIcon ? (
-        <button
-          className="w-6 mx-4 focus:outline-none"
-          onClick={currentNavLocation.handleLeftNav}
-        >
-          <MsIcon
-            icon={currentNavLocation.leftIcon}
-            className={clsx([
-              'dark:text-laughing-jack transition duration-150',
-              'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black hover:dark:text-blanc-nacre',
-            ])}
-          />
-        </button>
+        <AnimateIn from="-translate-x-2" to="translate-x-0" duration={200}>
+          <button
+            className="w-6 mx-4 focus:outline-none"
+            onClick={currentNavLocation.handleLeftNav}
+          >
+            <MsIcon
+              icon={currentNavLocation.leftIcon}
+              className={clsx([
+                'dark:text-laughing-jack transition duration-150',
+                'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black hover:dark:text-blanc-nacre',
+              ])}
+            />
+          </button>
+        </AnimateIn>
       ) : (
         <div className="w-6 mx-4" />
       )}
@@ -169,21 +176,23 @@ export default function TopBar() {
         <div></div>
       )}
       {currentNavLocation?.rightIcon ? (
-        <button
-          className="w-6 mx-4 focus:outline-none"
-          onClick={currentNavLocation.handleRightNav}
-        >
-          <MsIcon
-            icon={currentNavLocation.rightIcon}
-            className={clsx([
-              'dark:text-laughing-jack transition duration-150',
-              'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black hover:dark:text-blanc-nacre',
-            ])}
-          />
-        </button>
+        <AnimateIn from="translate-x-2" to="translate-x-0" duration={200}>
+          <button
+            className="w-6 mx-4 focus:outline-none"
+            onClick={currentNavLocation.handleRightNav}
+          >
+            <MsIcon
+              icon={currentNavLocation.rightIcon}
+              className={clsx([
+                'dark:text-laughing-jack transition duration-150',
+                'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black hover:dark:text-blanc-nacre',
+              ])}
+            />
+          </button>
+        </AnimateIn>
       ) : (
         <div className="w-6 mx-4" />
       )}
-    </nav>
+    </AnimateIn>
   );
 }

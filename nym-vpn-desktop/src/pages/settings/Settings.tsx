@@ -6,7 +6,7 @@ import { routes } from '../../router';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
-import { Button, MsIcon, SettingsMenuCard, Switch } from '../../ui';
+import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
 import SettingsGroup from './SettingsGroup';
 
 function Settings() {
@@ -37,7 +37,7 @@ function Settings() {
   };
 
   return (
-    <div className="h-full flex flex-col mt-2 gap-6">
+    <PageAnim className="h-full flex flex-col mt-2 gap-6">
       {import.meta.env.APP_CREDENTIAL === 'true' && (
         <Button onClick={async () => navigate(routes.credential)}>
           {t('add-credential-button')}
@@ -131,7 +131,7 @@ function Settings() {
       <div className="flex grow flex-col justify-end text-comet text-sm tracking-tight leading-tight mb-4">
         Version {state.version}
       </div>
-    </div>
+    </PageAnim>
   );
 }
 
