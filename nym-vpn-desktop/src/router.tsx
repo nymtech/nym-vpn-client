@@ -1,3 +1,4 @@
+import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
 import {
@@ -5,7 +6,6 @@ import {
   Display,
   Error,
   Feedback,
-  Home,
   Legal,
   LegalRouteIndex,
   LicensesJs,
@@ -16,6 +16,9 @@ import {
   SettingsRouteIndex,
   Support,
 } from './pages';
+
+// Lazy loads Home
+const Home = lazy(() => import('./pages/home/Home'));
 
 export const routes = {
   root: '/',

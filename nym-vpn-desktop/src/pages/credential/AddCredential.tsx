@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NymIcon } from '../../assets/icons';
-import { Button, TextArea } from '../../ui';
+import { Button, PageAnim, TextArea } from '../../ui';
 
 function AddCredential() {
   const [phrase, setPhrase] = useState('');
@@ -15,7 +15,7 @@ function AddCredential() {
   const handleClick = async () => {};
 
   return (
-    <div className="h-full flex flex-col justify-end items-center gap-10">
+    <PageAnim className="h-full flex flex-col justify-end items-center gap-10">
       <NymIcon className="w-32 h-32 fill-ghost dark:fill-baltic-sea-jaguar" />
       <div className="flex flex-col items-center gap-4 px-4">
         <h1 className="text-2xl dark:text-white">{t('welcome')}</h1>
@@ -35,7 +35,7 @@ function AddCredential() {
         label={t('input-label')}
       />
       <Button onClick={handleClick}>{t('add-button')}</Button>
-    </div>
+    </PageAnim>
   );
 }
 

@@ -9,6 +9,8 @@ export { default as ThemeSetter } from './ThemeSetter';
 export { default as TopBar } from './TopBar';
 export { default as AnimateIn } from './AnimateIn';
 export { default as Snackbar } from './Snackbar';
+export { default as PageAnim } from './PageAnim';
+export { default as RouteLoading } from './RouteLoading';
 export * from './Button';
 export * from './MsIcon';
 export * from './RadioGroup';

@@ -13,7 +13,7 @@ import {
 } from '../../types';
 import { FastestFeatureEnabled } from '../../constants';
 import { routes } from '../../router';
-import { TextInput } from '../../ui';
+import { PageAnim, TextInput } from '../../ui';
 import CountryList from './CountryList';
 
 export type UiCountry = {
@@ -137,7 +137,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <PageAnim className="h-full flex flex-col">
       <div className="h-70 flex flex-col justify-center items-center gap-y-2 pt-3">
         <div className="w-full flex flex-row items-center px-4 mb-2">
           <TextInput
@@ -160,7 +160,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
           }}
         />
       </div>
-    </div>
+    </PageAnim>
   );
 }
 

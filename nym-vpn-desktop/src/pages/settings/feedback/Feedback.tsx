@@ -1,5 +1,5 @@
 import { open } from '@tauri-apps/api/shell';
-import _ from 'lodash';
+import * as _ from 'lodash-es';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -11,7 +11,7 @@ import {
 import { useMainDispatch, useMainState } from '../../../contexts';
 import { kvSet } from '../../../kvStore';
 import { StateDispatch } from '../../../types';
-import { SettingsMenuCard, Snackbar, Switch } from '../../../ui';
+import { PageAnim, SettingsMenuCard, Snackbar, Switch } from '../../../ui';
 import { DiscordIcon, ElementIcon, GitHubIcon } from '../../../assets/icons';
 
 const ThrottleDelay = 10000; // ms
@@ -55,7 +55,7 @@ function Feedback() {
         position="bottom"
         closeIcon
       />
-      <div className="h-full flex flex-col mt-2 gap-6">
+      <PageAnim className="h-full flex flex-col mt-2 gap-6">
         <SettingsMenuCard
           title={t('feedback.github')}
           onClick={async () => open(GitHubIssuesUrl)}
@@ -95,7 +95,7 @@ function Feedback() {
             <Switch checked={monitoring} onChange={handleMonitoringChanged} />
           }
         />
-      </div>
+      </PageAnim>
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +8,7 @@ import { sleep } from './helpers';
 import { MainStateProvider } from './state';
 import './i18n/config';
 import { Cli } from './types';
-import { ThemeSetter } from './ui';
+import { RouteLoading, ThemeSetter } from './ui';
 
 function App() {
   const { i18n } = useTranslation();
@@ -46,7 +46,9 @@ function App() {
   return (
     <MainStateProvider>
       <ThemeSetter>
-        <RouterProvider router={router} />
+        <Suspense fallback={<RouteLoading />}>
+          <RouterProvider router={router} />
+        </Suspense>
       </ThemeSetter>
     </MainStateProvider>
   );

@@ -6,14 +6,14 @@ import {
   FaqUrl,
   MatrixRoomUrl,
 } from '../../../constants';
-import { SettingsMenuCard } from '../../../ui';
+import { PageAnim, SettingsMenuCard } from '../../../ui';
 import { DiscordIcon, ElementIcon } from '../../../assets/icons';
 
 function Support() {
   const { t } = useTranslation('settings');
 
   return (
-    <div className="h-full flex flex-col mt-2 gap-6">
+    <PageAnim className="h-full flex flex-col mt-2 gap-6">
       <SettingsMenuCard
         title={t('support.faq')}
         onClick={async () => open(FaqUrl)}
@@ -42,7 +42,7 @@ function Support() {
         }
         trailingIcon="arrow_right"
       />
-    </div>
+    </PageAnim>
   );
 }
 

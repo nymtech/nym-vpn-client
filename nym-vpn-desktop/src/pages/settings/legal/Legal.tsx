@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PrivacyPolicyUrl, ToSUrl } from '../../../constants';
 import { routes } from '../../../router';
 import { useExit } from '../../../state';
-import { MsIcon, SettingsMenuCard } from '../../../ui';
+import { MsIcon, PageAnim, SettingsMenuCard } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
 
 function Legal() {
@@ -13,7 +13,7 @@ function Legal() {
   const navigate = useNavigate();
 
   return (
-    <div className="h-full flex flex-col mt-2 gap-6">
+    <PageAnim className="h-full flex flex-col mt-2 gap-6">
       <SettingsGroup
         settings={[
           {
@@ -43,7 +43,7 @@ function Legal() {
         ]}
       />
       <SettingsMenuCard title={t('quit')} onClick={exit} />
-    </div>
+    </PageAnim>
   );
 }
 
