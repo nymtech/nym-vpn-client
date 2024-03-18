@@ -93,7 +93,7 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     vpn_service: JObject<'_>,
 ) {
     if RUNTIME.block_on(get_vpn_state()) != ClientState::Uninitialised {
-        warn!("VPN was already inited. Try starting it");
+        warn!("VPN was already initialized. Try starting it");
         return;
     }
 
@@ -104,23 +104,31 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     LOAD_CLASSES.call_once(|| env.preload_classes(CLASSES.iter().cloned()));
 
     let context = AndroidContext {
-        jvm: Arc::new(env.get_java_vm().expect("Get JVM instance")),
+        jvm: Arc::new(
+            env.get_java_vm()
+                .map_err(|e| error!("Could not get jvm {:?}", e))
+                .expect("Could not get jvm"),
+        ),
         vpn_service: env
             .new_global_ref(vpn_service)
-            .expect("Create global reference"),
+            .map_err(|e| error!("Could not get vpn_service {:?}", e))
+            .expect("Could not get vpn_service"),
     };
-    let api_url = Url::from_str(&String::from_java(&env, api_url)).expect("Invalid api url");
-    let explorer_url =
-        Url::from_str(&String::from_java(&env, explorer_url)).expect("Invalid explorer url");
     let entry_gateway: EntryPoint = serde_json::from_str(&String::from_java(&env, entry_gateway))
-        .expect("Invalid entry gateway");
-    let exit_router: ExitPoint =
-        serde_json::from_str(&String::from_java(&env, exit_router)).expect("Invalid exit router");
+        .map_err(|e| error!("Could not parse entry point {:?}", e))
+        .unwrap();
+    let exit_router: ExitPoint = serde_json::from_str(&String::from_java(&env, exit_router))
+        .map_err(|e| error!("Could not parse exit point {:?}", e))
+        .unwrap();
 
     let mut vpn = NymVpn::new(entry_gateway, exit_router, context);
 
+    let api_url = parse_api_url_from_java(&env, api_url);
+
+    let explorer_url = parse_explorer_url_from_java(&env, explorer_url);
+
     vpn.gateway_config.api_url = api_url;
-    vpn.gateway_config.explorer_url = Some(explorer_url);
+    vpn.gateway_config.explorer_url = explorer_url;
     vpn.enable_two_hop = enable_two_hop != JNI_FALSE;
 
     RUNTIME.block_on(set_inited_vpn(vpn));
@@ -201,26 +209,58 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getGatewayCountries<'en
     exit_only: jboolean,
 ) -> JString<'env> {
     let env = JnixEnv::from(env);
-    let api_url = Url::from_str(&String::from_java(&env, api_url)).expect("Invalid api url");
-    let explorer_url =
-        Url::from_str(&String::from_java(&env, explorer_url)).expect("Invalid explorer url");
+    let api_url = parse_api_url_from_java(&env, api_url);
+    let explorer_url = parse_explorer_url_from_java(&env, explorer_url);
     let mut config = gateway_client::Config::default();
     config.api_url = api_url;
     config.explorer_url = Some(explorer_url);
     let gateway_client = GatewayClient::new(config).unwrap();
-    let ret = if exit_only == JNI_FALSE { RUNTIME.block_on(gateway_client.lookup_all_countries_iso()) } else {
+    let ret = if exit_only == JNI_FALSE {
+        RUNTIME.block_on(gateway_client.lookup_all_countries_iso())
+    } else {
         RUNTIME.block_on(gateway_client.lookup_all_exit_countries_iso())
     };
     return match ret {
         Err(err) => {
             error!("Failed to get countries: {:?}", err);
             "".to_string().into_java(&env)
-        },
+        }
         Ok(countries) => {
-            let countries_str : String = countries.join(",");
+            let countries_str: String = countries.join(",");
             countries_str.into_java(&env)
         }
-    }
+    };
+}
+
+#[no_mangle]
+#[allow(non_snake_case)]
+pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getLowLatencyEntryCountry<'env>(
+    env: JNIEnv<'env>,
+    _this: JObject<'_>,
+    api_url: JString<'_>,
+    explorer_url: JString<'_>,
+) -> JString<'env> {
+    let env = JnixEnv::from(env);
+    let api_url = parse_api_url_from_java(&env, api_url);
+    let explorer_url = parse_explorer_url_from_java(&env, explorer_url);
+    let mut config = gateway_client::Config::default();
+    config.api_url = api_url;
+    config.explorer_url = Some(explorer_url);
+    let gateway_client = GatewayClient::new(config).unwrap();
+    let ret = RUNTIME.block_on(gateway_client.lookup_low_latency_entry_gateway());
+    return match ret {
+        Err(err) => {
+            error!("Failed to get entry country: {:?}", err);
+            "".to_string().into_java(&env)
+        }
+        Ok(described) => {
+            let country = described
+                .two_letter_iso_country_code()
+                .ok_or(Error::CountryCodeNotFound)
+                .unwrap();
+            country.into_java(&env)
+        }
+    };
 }
 
 #[no_mangle]
@@ -259,6 +299,9 @@ enum Error {
 
     #[error(display = "Failed to select() on tunnel device")]
     Select(#[error(source)] nix::Error),
+
+    #[error(display = "Gateway does not contain a two character country ISO")]
+    CountryCodeNotFound,
 
     #[error(display = "Timed out while waiting for tunnel device to receive data")]
     TunnelDeviceTimeout,
@@ -343,6 +386,29 @@ fn try_sending_random_udp(is_ipv6_enabled: bool) -> Result<(), SendRandomDataErr
         };
     }
     Ok(())
+}
+
+fn parse_api_url_from_java(env: &JnixEnv, api_url: JString<'_>) -> Url {
+    return match Url::from_str(&String::from_java(env, api_url)) {
+        Err(err) => {
+            error!("Could not parse api_url: {:?}. Using the default.", err);
+            gateway_client::Config::default().api_url
+        }
+        Ok(url) => url,
+    };
+}
+
+fn parse_explorer_url_from_java(env: &JnixEnv, explorer_url: JString<'_>) -> Option<Url> {
+    return match Url::from_str(&String::from_java(&env, explorer_url)) {
+        Err(err) => {
+            error!(
+                "Could not parse explorer_url: {:?}. Using the default.",
+                err
+            );
+            gateway_client::Config::default().explorer_url
+        }
+        Ok(url) => Some(url),
+    };
 }
 
 fn is_public_ip(addr: IpAddr) -> bool {
