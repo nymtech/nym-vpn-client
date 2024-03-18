@@ -158,7 +158,7 @@ jobs:
         run: cargo build --release --verbose
 
       - name: Build universal (macos)
-        if: ${{ contains(matrix.os, 'custom-runner-mac-m1') || matrix.os.target == 'macos-14' }}
+        if: ${{ contains(matrix.os, 'custom-runner-mac-m1') || matrix.os == 'macos-14' }}
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo build --release --verbose --target x86_64-apple-darwin
