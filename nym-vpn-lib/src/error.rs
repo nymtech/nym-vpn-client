@@ -171,6 +171,10 @@ pub enum Error {
 
     #[error("{0}")]
     TalpidCoreMpsc(#[from] talpid_core::mpsc::Error),
+
+    #[cfg(target_os = "ios")]
+    #[error("{0}")]
+    UniffiError(#[from] crate::platform::error::FFIError),
 }
 
 // Result type based on our error type
