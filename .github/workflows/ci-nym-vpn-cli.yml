@@ -124,7 +124,7 @@ jobs:
         if: contains(matrix.target, 'android')
         run: cargo ndk  -t aarch64-linux-android   -o ./build build -p nym-vpn-lib
         env:
-          NDK_TOOLCHAIN_DIR: '/home/runner/.setup-ndk/r21e/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin'
+          NDK_TOOLCHAIN_DIR: '/home/runner/.setup-ndk/r21e/toolchains/llvm/prebuilt/linux-x86_64/bin'
 
       - name: Build (iOS)
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
