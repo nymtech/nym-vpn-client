@@ -127,6 +127,11 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - name: Install extra arch macos
+        if: env.PLATFORM_ARCH == 'macos_universal'
+        run: |
+          rustup target add x86_64-apple-darwin
+
       - name: Install cross
         uses: actions-rs/cargo@v1
         if: contains(matrix.target, 'android')
