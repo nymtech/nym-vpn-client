@@ -82,9 +82,6 @@ jobs:
             triplet=x86_64-unknown-linux-gnu
           elif ${{ matrix.target == 'android' }}; then
             triplet=aarch64-linux-android
-            as_path=$(find ${{ steps.setup-ndk.outputs.ndk-path }} -name "aarch64-linux-android-as")
-            ndk_toolchain_dir=$(dirname "${as_path}")
-            echo "NDK_TOOLCHAIN_DIR=${ndk_toolchain_dir}" >> $GITHUB_ENV
           elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
             triplet=x86_64-apple-darwin
           elif ${{ contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') }}; then
@@ -126,6 +123,8 @@ jobs:
       - name: Build (Android)
         if: contains(matrix.target, 'android')
         run: cargo ndk  -t aarch64-linux-android   -o ./build build -p nym-vpn-lib
+        env:
+          NDK_TOOLCHAIN_DIR: '/home/runner/.setup-ndk/r21e/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin'
 
       - name: Build (iOS)
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
