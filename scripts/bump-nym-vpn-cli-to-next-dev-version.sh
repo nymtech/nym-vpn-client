@@ -15,7 +15,7 @@ increment_version() {
 
     # Validate version format (basic check)
     if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        echo "Error: Version format must be X.Y.Z (e.g., 0.0.7)" >&2
+        echo "Error: version=$version format must be X.Y.Z (e.g., 0.0.7)" >&2
         exit 1
     fi
 
@@ -40,19 +40,12 @@ run_cargo_set_version() {
     echo "Running in dry-run mode: $command --dry-run"
     $command --dry-run
 
-    # Ask for user confirmation
-    read -p "Was this the intended change? (Y/N): " answer
-    if [[ $answer =~ ^[Yy]$ ]]; then
-        echo "Running command without dry-run: $command"
-        $command
-    else
-        echo "Exiting without making changes."
-        exit 1
-    fi
+    ask_for_confirmation "$command"
 }
 
 main() {
     check_unstaged_changes
+    confirm_root_directory
     local version=$(get_current_version)
     local next_version=$(increment_version "$version")
 
