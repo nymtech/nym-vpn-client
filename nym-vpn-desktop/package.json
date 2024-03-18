@@ -14,6 +14,7 @@
     "dev": "vite",
     "dev:app": "tauri dev",
     "dev:browser": "vite --mode dev-browser",
+    "check": "run-s lint tscheck fmt",
     "build": "tsc && vite build",
     "build:app": "npm run tauri build",
     "preview": "vite preview",
@@ -23,7 +24,9 @@
     "fmt:check": "prettier --check --ignore-unknown \"**/*\"",
     "tscheck": "tsc --noEmit",
     "tauri": "tauri",
-    "gen:licenses": "npx license-checker-rseidelsohn --json --customPath license-fmt.json > public/licenses-js.json"
+    "gen:licenses": "run-p --aggregate-output gen:licenses:rust gen:licenses:js",
+    "gen:licenses:js": "npx license-checker-rseidelsohn --json --customPath license-fmt.json > public/licenses-js.json",
+    "gen:licenses:rust": "cd src-tauri && cargo about generate --all-features --format json -o ../public/licenses-rust.json"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.17",
@@ -62,6 +65,7 @@
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "npm-run-all": "^4.1.5",
     "postcss": "^8.4.31",
     "postcss-import": "^16.0.0",
     "prettier": "^3.0.3",

@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { CSSProperties, ReactNode } from 'react';
 import clsx from 'clsx';
 import MsIcon from './MsIcon';
 
@@ -14,6 +14,8 @@ export type SettingsMenuCardProps = {
   trailingComponent?: ReactNode;
   disabled?: boolean;
   cursor?: SettingMenuCardCursor;
+  className?: string;
+  style?: CSSProperties;
 };
 
 function SettingsMenuCard({
@@ -26,6 +28,8 @@ function SettingsMenuCard({
   trailingComponent,
   disabled,
   cursor,
+  className,
+  style,
 }: SettingsMenuCardProps) {
   return (
     <div
@@ -39,6 +43,7 @@ function SettingsMenuCard({
         cursor === 'default' && 'cursor-default',
         cursor === 'pointer' && 'cursor-pointer',
         cursor === 'not-allowed' && 'cursor-not-allowed',
+        className,
       ])}
       onClick={onClick}
       onKeyDown={(e) => {
@@ -46,21 +51,24 @@ function SettingsMenuCard({
       }}
       role="button"
       tabIndex={disabled ? -1 : 0}
+      style={style}
     >
-      <div className={clsx('flex flex-row items-center justify-between gap-4')}>
+      <div
+        className={clsx(
+          'overflow-hidden flex flex-row items-center justify-between gap-4',
+        )}
+      >
         {leadingIcon && (
           <MsIcon icon={leadingIcon} className="dark:text-mercury-pinkish" />
         )}
         {leadingComponent && !leadingIcon && leadingComponent}
-        <div className="flex flex-1 items-center">
-          <div className="text-sm">
-            <div className="text-base text-baltic-sea dark:text-mercury-pinkish select-none">
-              {title}
-            </div>
-            <div className="text-sm text-cement-feet dark:text-mercury-mist select-none">
-              {desc}
-            </div>
-          </div>
+        <div className="min-w-0 flex flex-col justify-center">
+          <p className="truncate text-base text-baltic-sea dark:text-mercury-pinkish select-none">
+            {title}
+          </p>
+          <p className="truncate text-sm text-cement-feet dark:text-mercury-mist select-none">
+            {desc}
+          </p>
         </div>
       </div>
       {trailingIcon && <MsIcon icon={trailingIcon} />}

@@ -50,9 +50,6 @@ generate-licenses-cli:
 generate-licenses-cli-json:
 	cargo about generate --all-features --format json -o all_licenses_cli.json
 
-generate-licenses-desktop:
-	cargo about generate --all-features -m $(DESKTOP_RUST_DIR)/Cargo.toml $(DESKTOP_RUST_DIR)/about.hbs -o $(DESKTOP_PUBLIC_DIR)/licenses-rust.html
-
 generate-licenses-desktop-json:
 	cargo about generate --all-features -m $(DESKTOP_RUST_DIR)/Cargo.toml --format json -o $(DESKTOP_PUBLIC_DIR)/licenses-rust.json
 
