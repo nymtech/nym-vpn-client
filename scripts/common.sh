@@ -48,3 +48,22 @@ ask_and_tag_release() {
     fi
 }
 
+increment_version() {
+    local version=$1
+    local IFS='.'  # Internal Field Separator for splitting version parts
+    read -r -a parts <<< "$version"  # Read version into an array
+
+    # Validate version format (basic check)
+    if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "Error: version=$version format must be X.Y.Z (e.g., 0.0.7)" >&2
+        exit 1
+    fi
+
+    # Increment the patch version
+    ((parts[2]++))
+
+    # Reassemble the version and append -dev suffix
+    local new_version="${parts[0]}.${parts[1]}.${parts[2]}-dev"
+
+    echo "$new_version"
+}
