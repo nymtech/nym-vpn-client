@@ -214,7 +214,7 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getGatewayCountries<'en
     let explorer_url = parse_explorer_url_from_java(&env, explorer_url);
     let mut config = gateway_client::Config::default();
     config.api_url = api_url;
-    config.explorer_url = Some(explorer_url);
+    config.explorer_url = explorer_url;
     let gateway_client = GatewayClient::new(config).unwrap();
     let ret = if exit_only == JNI_FALSE {
         RUNTIME.block_on(gateway_client.lookup_all_countries_iso())
@@ -246,7 +246,7 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getLowLatencyEntryCount
     let explorer_url = parse_explorer_url_from_java(&env, explorer_url);
     let mut config = gateway_client::Config::default();
     config.api_url = api_url;
-    config.explorer_url = Some(explorer_url);
+    config.explorer_url = explorer_url;
     let gateway_client = GatewayClient::new(config).unwrap();
     let ret = RUNTIME.block_on(gateway_client.lookup_low_latency_entry_gateway());
     return match ret {
