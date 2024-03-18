@@ -69,6 +69,10 @@ jobs:
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
         run: rustup target add aarch64-apple-ios
 
+      - name: Add Android target
+        if: contains(matrix.target, 'android')
+        run: rustup target add aarch64-linux-android
+
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ steps.rust-toolchain.outputs.cachekey }}
