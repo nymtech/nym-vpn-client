@@ -177,6 +177,7 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
           # TODO try fixing `error running bundle_dmg.sh` (macos build)
           NO_STRIP: ${{ contains(matrix.os, 'mac') && 'true' }}
         shell: bash

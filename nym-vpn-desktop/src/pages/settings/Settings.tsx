@@ -27,17 +27,13 @@ function Settings() {
   const handleEntrySelectorChange = async () => {
     const isSelected = !state.entrySelector;
     dispatch({ type: 'set-entry-selector', entrySelector: isSelected });
-    kvSet('EntryLocationEnabled', isSelected).catch((e) => {
-      console.warn(e);
-    });
+    kvSet('EntryLocationEnabled', isSelected);
   };
 
   const handleAutoConnectChanged = async () => {
     const isSelected = !state.autoConnect;
     dispatch({ type: 'set-auto-connect', autoConnect: isSelected });
-    kvSet('Autoconnect', isSelected).catch((e) => {
-      console.warn(e);
-    });
+    kvSet('Autoconnect', isSelected);
   };
 
   return (
@@ -54,6 +50,7 @@ function Settings() {
             desc: t('auto-connect.desc'),
             leadingIcon: 'hdr_auto',
             disabled: true,
+            onClick: handleAutoConnectChanged,
             trailing: (
               <Switch
                 checked={autoConnect}
@@ -66,6 +63,7 @@ function Settings() {
             title: t('entry-selector.title'),
             desc: t('entry-selector.desc'),
             leadingIcon: 'looks_two',
+            onClick: handleEntrySelectorChange,
             trailing: (
               <Switch
                 checked={entrySelector}
@@ -101,7 +99,10 @@ function Settings() {
               navigate(routes.feedback);
             },
             trailing: (
-              <MsIcon icon="arrow_right" style="dark:text-mercury-pinkish" />
+              <MsIcon
+                icon="arrow_right"
+                className="dark:text-mercury-pinkish"
+              />
             ),
           },
           {
@@ -111,7 +112,10 @@ function Settings() {
               navigate(routes.support);
             },
             trailing: (
-              <MsIcon icon="arrow_right" style="dark:text-mercury-pinkish" />
+              <MsIcon
+                icon="arrow_right"
+                className="dark:text-mercury-pinkish"
+              />
             ),
           },
         ]}

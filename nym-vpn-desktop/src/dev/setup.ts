@@ -1,6 +1,6 @@
 import { mockIPC, mockWindows } from '@tauri-apps/api/mocks';
 import { emit } from '@tauri-apps/api/event';
-import { ConnectionState, NodeLocationBackend } from '../types';
+import { ConnectionState, DbKey, NodeLocationBackend } from '../types';
 import { ConnectionEvent } from '../constants';
 import { Country } from '../types';
 
@@ -74,6 +74,21 @@ export function mockTauriIPC() {
           code: 'FR',
         }),
       );
+    }
+
+    if (cmd === 'db_get') {
+      let res: unknown;
+      switch (args.key as DbKey) {
+        case 'UiRootFontSize':
+          res = 12;
+          break;
+        case 'UiTheme':
+          res = 'Dark';
+          break;
+        default:
+          return null;
+      }
+      return new Promise((resolve) => resolve(res));
     }
   });
 }

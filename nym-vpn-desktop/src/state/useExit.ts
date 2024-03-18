@@ -15,9 +15,7 @@ export function useExit() {
       // in bad disconnect scenarios
       dispatch({ type: 'disconnect' });
       // flush the database to save the current state
-      await kvFlush().catch((e: CmdError) => {
-        console.warn(`backend error: ${e.source} - ${e.message}`);
-      });
+      await kvFlush();
       // disconnect from the backend and then exit
       invoke('disconnect')
         .then(async (result) => {

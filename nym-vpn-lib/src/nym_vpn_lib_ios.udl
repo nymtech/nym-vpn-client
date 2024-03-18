@@ -79,7 +79,7 @@ interface ExitPoint {
   Location(string location);
 };
 
-[Trait]
+[Trait, WithForeign]
 interface OSTunProvider {
     [Throws=FFIError]
     void configure_wg(WgConfig config);

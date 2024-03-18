@@ -12,7 +12,7 @@ export type RadioGroupOption<K extends Key> = {
   icon?: React.ReactNode;
   cursor?: RadioGroupOptionCursor;
   // custom style applied to the container of the option
-  style?: string;
+  className?: string;
 };
 
 export type RadioGroupProps<K extends Key> = {
@@ -75,7 +75,7 @@ function RadioGroup<K extends Key>({
                   <div
                     className={clsx([
                       'flex flex-1 items-center justify-between gap-4',
-                      option.style && option.style,
+                      option.className && option.className,
                     ])}
                   >
                     {checked ? (
