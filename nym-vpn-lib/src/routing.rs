@@ -207,14 +207,12 @@ fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
 pub async fn setup_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
-    #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
-        dyn crate::platform::ios::OSTunProvider,
-    >,
+    #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<dyn crate::platform::ios::OSTunProvider>,
 ) -> Result<tun2::AsyncDevice> {
     debug!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
     #[cfg(target_os = "android")]
-    let mixnet_tun_config = {
+    let mixnet_tun_config = { 
         let mut tun_config = talpid_tunnel::tun_provider::TunConfig::default();
         let tun_ips = config.tun_ips();
         tun_config.addresses = vec![tun_ips.ipv4.into(), tun_ips.ipv6.into()];
