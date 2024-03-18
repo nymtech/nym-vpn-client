@@ -2,8 +2,10 @@ import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
 import { appWindow } from '@tauri-apps/api/window';
 import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
+import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
 import {
+  CodeDependency,
   ConnectionState,
   Country,
   NodeLocationBackend,
@@ -204,6 +206,28 @@ async function init(dispatch: StateDispatch) {
     },
   };
 
+  const getDepsRustRq: TauriReq<() => Promise<CodeDependency[] | undefined>> = {
+    name: 'getDepsRustRq',
+    request: () => getRustLicenses(),
+    onFulfilled: (dependencies) => {
+      dispatch({
+        type: 'set-code-deps-rust',
+        dependencies: dependencies || [],
+      });
+    },
+  };
+
+  const getDepsJsRq: TauriReq<() => Promise<CodeDependency[] | undefined>> = {
+    name: 'getDepsJsRq',
+    request: () => getJsLicenses(),
+    onFulfilled: (dependencies) => {
+      dispatch({
+        type: 'set-code-deps-js',
+        dependencies: dependencies || [],
+      });
+    },
+  };
+
   // fire all requests concurrently
   await fireRequests([
     initStateRq,
@@ -219,6 +243,8 @@ async function init(dispatch: StateDispatch) {
     getRootFontSizeRq,
     getEntrySelectorRq,
     getMonitoringRq,
+    getDepsRustRq,
+    getDepsJsRq,
   ]);
 }
 

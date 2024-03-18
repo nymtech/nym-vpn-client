@@ -3,10 +3,10 @@ import { useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { PageAnim } from '../../../../ui';
-import { Dependency } from './types';
+import { CodeDependency } from '../../../../types';
 
 function LicenseDetails() {
-  const [license, setLicense] = useState<Dependency | null>(null);
+  const [license, setLicense] = useState<CodeDependency | null>(null);
   const [language, setLanguage] = useState<'rust' | 'js' | null>(null);
 
   const { t } = useTranslation('licenses');
@@ -14,7 +14,7 @@ function LicenseDetails() {
 
   useEffect(() => {
     if (state.license) {
-      setLicense(state.license as Dependency);
+      setLicense(state.license as CodeDependency);
     }
     if (state.language) {
       setLanguage(state.language as 'rust' | 'js');
@@ -24,26 +24,26 @@ function LicenseDetails() {
   const { licenses, name, repository, authors, licenseTexts, version } =
     license || {};
 
+  const label = (label: string) => (
+    <p className="truncate text-dim-gray dark:text-mercury-mist select-none cursor-default">
+      {label}:
+    </p>
+  );
+
   return (
     <PageAnim className="h-full flex flex-col">
       {license ? (
         <article className="flex flex-col gap-4">
           <div className="flex flex-row items-center gap-4">
-            <p className="text-dim-gray dark:text-mercury-mist select-none">
-              {t('name')}:
-            </p>
+            {label(t('name'))}
             <p className="truncate font-semibold">{name}</p>
           </div>
           <div className="flex flex-row items-center gap-4">
-            <p className="text-dim-gray dark:text-mercury-mist select-none">
-              {t('version')}:
-            </p>
+            {label(t('version'))}
             <p className="truncate">{version}</p>
           </div>
           <div className="flex flex-col gap-2">
-            <p className="text-dim-gray dark:text-mercury-mist select-none">
-              {t('licenses')}:
-            </p>
+            {label(t('licenses'))}
             {licenses && (
               <ul>
                 {licenses.map((license) => (
@@ -55,9 +55,7 @@ function LicenseDetails() {
             )}
           </div>
           <div className="flex flex-col gap-2">
-            <p className="text-dim-gray dark:text-mercury-mist select-none">
-              {t('repository')}:
-            </p>
+            {label(t('repository'))}
             {repository && (
               <a
                 className="truncate hover:underline"
@@ -71,9 +69,7 @@ function LicenseDetails() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <p className="text-dim-gray dark:text-mercury-mist select-none">
-              {t('authors')}:
-            </p>
+            {label(t('authors'))}
             {authors && (
               <ul>
                 {authors.map((author) => (
@@ -85,9 +81,7 @@ function LicenseDetails() {
             )}
           </div>
           <div className="flex flex-col gap-2">
-            <p className="text-dim-gray dark:text-mercury-mist select-none">
-              {t('license-texts')}:
-            </p>
+            {label(t('license-texts'))}
             {licenseTexts && (
               <ul className="flex flex-col gap-4">
                 {licenseTexts.map(
@@ -107,9 +101,7 @@ function LicenseDetails() {
             )}
           </div>
           <div className="flex flex-row items-center gap-4">
-            <p className="truncate text-dim-gray dark:text-mercury-mist select-none">
-              {t('language')}:
-            </p>
+            {label(t('language'))}
             <p className="italic truncate">
               {language === 'js' ? 'JavaScript' : 'Rust'}
             </p>

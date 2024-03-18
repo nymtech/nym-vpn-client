@@ -1,17 +1,3 @@
-export type Dependency = {
-  name: string;
-  version?: string;
-  licenses: string[];
-  licenseTexts: string[];
-  repository?: string;
-  authors: string[];
-  copyright?: string;
-};
-
-export type DependencyByNames = {
-  [key: string]: Dependency;
-};
-
 // types of generated Rust licenses JSON file
 export type RustLicensesJson = {
   overview: RustOverview[];

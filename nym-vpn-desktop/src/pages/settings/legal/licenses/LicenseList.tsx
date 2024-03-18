@@ -6,10 +6,9 @@ import AutoSizer from 'react-virtualized-auto-sizer';
 import { useMainState } from '../../../../contexts';
 import { routes } from '../../../../router';
 import { PageAnim, SettingsMenuCard } from '../../../../ui';
-import { getJsLicenses, getRustLicenses } from './licensesData';
-import { Dependency } from './types';
+import { CodeDependency } from '../../../../types';
 
-const heightFactor = 5.8;
+const heightFactor = 8;
 
 const Row = ({
   style,
@@ -18,7 +17,7 @@ const Row = ({
   language,
 }: {
   style: CSSProperties;
-  license: Dependency;
+  license: CodeDependency;
   language: 'js' | 'rust';
 }) => {
   const navigate = useNavigate();
@@ -44,24 +43,20 @@ type Props = {
 };
 
 function LicenseList({ language }: Props) {
-  const [licenses, setLicenses] = useState<Dependency[]>([]);
+  const [licenses, setLicenses] = useState<CodeDependency[]>([]);
   const [itemSize, setItemSize] = useState<number>(400);
 
   const { t } = useTranslation('settings');
-  const { rootFontSize } = useMainState();
+  const { rootFontSize, codeDepsJs, codeDepsRust } = useMainState();
 
   useEffect(() => {
     if (language === 'js') {
-      getJsLicenses().then((list) => {
-        setLicenses(list || []);
-      });
+      setLicenses(codeDepsJs);
     }
     if (language === 'rust') {
-      getRustLicenses().then((list) => {
-        setLicenses(list || []);
-      });
+      setLicenses(codeDepsRust);
     }
-  }, [language]);
+  }, [language, codeDepsJs, codeDepsRust]);
 
   useEffect(() => {
     setItemSize(rootFontSize * heightFactor);
