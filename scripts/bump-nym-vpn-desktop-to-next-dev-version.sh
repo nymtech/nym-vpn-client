@@ -34,6 +34,7 @@ run_npm_set_version() {
     local next_version=$1
     local command="npm version $next_version"
     echo "Running: $command"
+    $command
     cd ..
 }
 
