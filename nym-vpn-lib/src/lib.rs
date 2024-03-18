@@ -45,7 +45,7 @@ pub use nym_task::{
 };
 
 #[cfg(target_os = "ios")]
-use crate::platform::ios::{initVPN, OSTunProvider, VPNConfig, WgConfig};
+use crate::platform::ios::{initVPN, OSTunProvider, VPNConfig, WgConfig, NymConfig};
 #[cfg(target_os = "macos")]
 use crate::platform::macos::{initVPN, VPNConfig, WgConfig};
 #[cfg(any(target_os = "macos", target_os = "android", target_os = "ios"))]

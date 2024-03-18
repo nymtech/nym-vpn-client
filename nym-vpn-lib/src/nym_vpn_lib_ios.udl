@@ -56,6 +56,13 @@ dictionary WgConfig {
     u16 mtu;
 };
 
+dictionary NymConfig {
+    Ipv4Addr ipv4_addr;
+    Ipv6Addr ipv6_addr;
+    u16 mtu;
+    IpAddr? entry_mixnet_gateway_ip;
+};
+
 dictionary VPNConfig {
     Url api_url;
     Url explorer_url;
@@ -84,7 +91,7 @@ interface OSTunProvider {
     [Throws=FFIError]
     void configure_wg(WgConfig config);
     [Throws=FFIError]
-    void configure_nym();
+    i32 configure_nym(NymConfig config);
 };
 
 namespace nym_vpn_lib_ios {

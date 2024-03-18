@@ -3,12 +3,14 @@
 
 use super::*;
 use crate::gateway_client::{EntryPoint, ExitPoint};
+use crate::routing::RoutingConfig;
 use crate::NymVpn;
 use error::FFIError;
 use log::warn;
 use oslog::OsLogger;
 use std::fmt::Debug;
-use std::net::{Ipv4Addr, Ipv6Addr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::os::fd::RawFd;
 use talpid_types::net::wireguard::{PeerConfig, TunnelConfig};
 use url::Url;
 
@@ -50,6 +52,30 @@ impl From<talpid_wireguard::config::Config> for WgConfig {
     }
 }
 
+#[derive(Clone)]
+pub struct NymConfig {
+    pub ipv4_addr: Ipv4Addr,
+    pub ipv6_addr: Ipv6Addr,
+    pub mtu: u16,
+    pub entry_mixnet_gateway_ip: Option<IpAddr>,
+}
+
+impl From<RoutingConfig> for NymConfig {
+    fn from(value: RoutingConfig) -> Self {
+        let entry_mixnet_gateway_ip = if value.enable_wireguard() {
+            Some(value.entry_mixnet_gateway_ip())
+        } else {
+            None
+        };
+        NymConfig {
+            ipv4_addr: value.tun_ips().ipv4,
+            ipv6_addr: value.tun_ips().ipv6,
+            mtu: value.mtu(),
+            entry_mixnet_gateway_ip,
+        }
+    }
+}
+
 pub struct VPNConfig {
     pub api_url: Url,
     pub explorer_url: Url,
@@ -60,7 +86,7 @@ pub struct VPNConfig {
 
 pub trait OSTunProvider: Send + Sync + Debug {
     fn configure_wg(&self, config: WgConfig) -> Result<(), FFIError>;
-    fn configure_nym(&self) -> Result<(), FFIError>;
+    fn configure_nym(&self, config: NymConfig) -> Result<RawFd, FFIError>;
 }
 
 #[allow(non_snake_case)]
