@@ -28,6 +28,7 @@
     "title": "Legal",
     "policy": "Privacy policy",
     "tos": "Terms of use",
+    "license": "License",
     "licenses-rust": "Licenses (Rust)",
     "licenses-js": "Licenses (JS)",
     "emptyData": "No license data available"

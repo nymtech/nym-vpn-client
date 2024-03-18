@@ -106,6 +106,13 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/legal/license-details': {
+        title: t('legal.license', { ns: 'settings' }),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
       '/settings/support': {
         title: t('support'),
         leftIcon: 'arrow_back',
@@ -169,7 +176,7 @@ export default function TopBar() {
         <div className="w-6 mx-4" />
       )}
       {currentNavLocation.title ? (
-        <p className="justify-self-center tracking-normal">
+        <p className="truncate justify-self-center tracking-normal">
           {currentNavLocation.title}
         </p>
       ) : (

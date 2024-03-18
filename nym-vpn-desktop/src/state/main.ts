@@ -6,6 +6,7 @@ import {
 } from '../constants';
 import {
   AppState,
+  CodeDependency,
   ConnectProgressMsg,
   ConnectionState,
   Country,
@@ -45,7 +46,9 @@ export type StateAction =
       payload: { hop: NodeHop; location: NodeLocation };
     }
   | { type: 'set-fastest-node-location'; country: Country }
-  | { type: 'set-root-font-size'; size: number };
+  | { type: 'set-root-font-size'; size: number }
+  | { type: 'set-code-deps-js'; dependencies: CodeDependency[] }
+  | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] };
 
 export const initialState: AppState = {
   initialized: false,
@@ -68,6 +71,8 @@ export const initialState: AppState = {
   entryCountryList: [],
   exitCountryList: [],
   rootFontSize: DefaultRootFontSize,
+  codeDepsRust: [],
+  codeDepsJs: [],
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -210,6 +215,16 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         rootFontSize: action.size,
+      };
+    case 'set-code-deps-js':
+      return {
+        ...state,
+        codeDepsJs: action.dependencies,
+      };
+    case 'set-code-deps-rust':
+      return {
+        ...state,
+        codeDepsRust: action.dependencies,
       };
 
     case 'reset':

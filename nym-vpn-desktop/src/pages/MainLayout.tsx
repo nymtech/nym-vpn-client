@@ -9,7 +9,7 @@ function MainLayout() {
   return (
     <div
       className={clsx([
-        'h-full flex flex-col min-w-80',
+        'h-full flex flex-col min-w-64',
         'bg-blanc-nacre text-baltic-sea',
         'dark:bg-baltic-sea dark:text-white',
       ])}

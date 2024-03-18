@@ -8,8 +8,8 @@ import {
   Feedback,
   Legal,
   LegalRouteIndex,
-  LicensesJs,
-  LicensesRust,
+  LicenseDetails,
+  LicenseList,
   MainLayout,
   NodeLocation,
   Settings,
@@ -32,6 +32,7 @@ export const routes = {
   legal: '/settings/legal',
   licensesRust: '/settings/legal/licenses-rust',
   licensesJs: '/settings/legal/licenses-js',
+  licenseDetails: '/settings/legal/license-details',
   entryNodeLocation: '/entry-node-location',
   exitNodeLocation: '/exit-node-location',
 } as const;
@@ -101,12 +102,17 @@ const router = createRouterFn([
               },
               {
                 path: routes.licensesRust,
-                element: <LicensesRust />,
+                element: <LicenseList language="rust" />,
                 errorElement: <Error />,
               },
               {
                 path: routes.licensesJs,
-                element: <LicensesJs />,
+                element: <LicenseList language="js" />,
+                errorElement: <Error />,
+              },
+              {
+                path: routes.licenseDetails,
+                element: <LicenseDetails />,
                 errorElement: <Error />,
               },
             ],
