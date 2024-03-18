@@ -150,16 +150,17 @@ jobs:
       - name: Prepare desktop build
         run: mkdir nym-vpn-desktop/dist
 
-      - name: Generate licenses file (Rust)
-        run: |
-          rm nym-vpn-desktop/public/licenses-rust.html || true
-          make generate-licenses-desktop
-
       - name: Generate licenses file (Js)
         working-directory: nym-vpn-desktop
         run: |
           rm public/licenses-js.json || true
-          npm run gen:licenses
+          npm run gen:licenses:js
+
+      - name: Generate licenses file (Rust)
+        working-directory: nym-vpn-desktop
+        run: |
+          rm public/licenses-rust.json || true
+          npm run gen:licenses:rust
 
       - name: Install JS dependencies
         working-directory: nym-vpn-desktop
