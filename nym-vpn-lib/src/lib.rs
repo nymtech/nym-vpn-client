@@ -233,7 +233,13 @@ impl NymVpn {
             mixnet_client.gateway_ws_fd().await,
         );
         debug!("Routing config: {}", routing_config);
-        let mixnet_tun_dev = routing::setup_routing(route_manager, routing_config).await?;
+        let mixnet_tun_dev = routing::setup_routing(
+            route_manager,
+            routing_config,
+            #[cfg(target_os = "ios")]
+            self.ios_tun_provider.clone(),
+        )
+        .await?;
 
         info!("Setting up mixnet processor");
         let processor_config = mixnet_processor::Config::new(*exit_router);

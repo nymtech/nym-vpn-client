@@ -26,6 +26,7 @@ use crate::NymVpn;
 
 const DEFAULT_TUN_MTU: u16 = 1500;
 
+#[derive(Clone)]
 pub struct RoutingConfig {
     pub(crate) mixnet_tun_config: tun2::Configuration,
     // In case we need them, as they're not read-accessible in the tun2 config
@@ -110,7 +111,7 @@ impl RoutingConfig {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct TunnelGatewayIp {
     pub ipv4: Ipv4Addr,
     pub ipv6: Option<Ipv6Addr>,
@@ -140,7 +141,7 @@ impl std::fmt::Display for TunnelGatewayIp {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct LanGatewayIp(pub Interface);
 
 impl LanGatewayIp {
@@ -206,11 +207,12 @@ fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
 pub async fn setup_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
+    #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<dyn crate::platform::ios::OSTunProvider>,
 ) -> Result<tun2::AsyncDevice> {
     debug!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
     #[cfg(target_os = "android")]
-    let mixnet_tun_config = {
+    let mixnet_tun_config = { 
         let mut tun_config = talpid_tunnel::tun_provider::TunConfig::default();
         let tun_ips = config.tun_ips();
         tun_config.addresses = vec![tun_ips.ipv4.into(), tun_ips.ipv6.into()];
@@ -228,6 +230,13 @@ pub async fn setup_routing(
             }
             fd
         };
+        let mut mixnet_tun_config = mixnet_tun_config.clone();
+        mixnet_tun_config.raw_fd(fd);
+        mixnet_tun_config
+    };
+    #[cfg(target_os = "ios")]
+    let mixnet_tun_config = {
+        let fd = ios_tun_provider.configure_nym(config.clone().into())?;
         let mut mixnet_tun_config = mixnet_tun_config.clone();
         mixnet_tun_config.raw_fd(fd);
         mixnet_tun_config
