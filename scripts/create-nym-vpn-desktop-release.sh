@@ -38,21 +38,7 @@ tag_release() {
     local version=$(cargo get package.version --entry src-tauri)
     local tag_name="$NAME-v$version"
     echo "New version: $version, Tag: $tag_name"
-    ask_and_tag_release "$tag_name"
-}
-
-ask_and_tag_release() {
-    local tag_name=$1
-    read -p "Do you want to tag this commit with: $tag_name ? (Y/N): " confirm_tag
-    if [[ $confirm_tag =~ ^[Yy]$ ]]; then
-        echo "Tagging the commit with tag: $tag_name"
-        git commit -a -m "Bump $NAME to $version"
-        git tag $tag_name
-        # Optionally, push the tag to remote repository
-        # git push origin $tag
-    else
-        echo "Not tagging."
-    fi
+    ask_and_tag_release "$tag_name" "$version"
 }
 
 main() {
