@@ -185,6 +185,7 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_defaultTunConfig<'env>
     TunConfig::default().into_java(&env).forget()
 }
 
+// ideally we use IntoJava trait from jnix, quick fix for now
 impl<'env> IntoJava<'env> for String {
     type JavaType = JString<'env>;
 
