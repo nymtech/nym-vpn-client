@@ -115,7 +115,9 @@ jobs:
         if: contains(matrix.target, 'android')
         run: |
           AS_PATH=$(find ${{ steps.setup-ndk.outputs.ndk-path }} -name "aarch64-linux-android-as")
-          NDK_TOOLCHAIN_DIR=$(dirname "$AS_PATH") ./wireguard/build-wireguard-go.sh --android --no-docker
+          NDK_TOOLCHAIN_DIR=$(dirname "$AS_PATH")
+          echo "NDK_TOOLCHAIN_DIR=$NDK_TOOLCHAIN_DIR" >> $GITHUB_ENV
+          ./wireguard/build-wireguard-go.sh --android --no-docker
 
       - name: Build
         if: "!contains(matrix.os, 'windows') && !contains(matrix.target, 'android')"
