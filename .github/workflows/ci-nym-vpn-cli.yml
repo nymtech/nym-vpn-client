@@ -78,7 +78,7 @@ jobs:
         run: |
           if ${{ matrix.os == 'ubuntu' && contains(matrix.target, 'native') }}; then
             triplet=x86_64-unknown-linux-gnu
-          elif ${{ contains(matrix.target, 'android') }}; then
+          elif ${{ matrix.target == 'android' }}; then
             triplet=aarch64-linux-android
           elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
             triplet=x86_64-apple-darwin
