@@ -5,6 +5,8 @@
 # set -x
 set -euo pipefail
 
+source "$(dirname "$0")/common.sh"
+
 # Function to increment version and append -dev suffix
 increment_version() {
     local version=$1
@@ -24,14 +26,6 @@ increment_version() {
     local new_version="${parts[0]}.${parts[1]}.${parts[2]}-dev"
 
     echo "$new_version"
-}
-
-check_unstaged_changes() {
-    # Confirm we don't have unstaged changes
-    if ! git diff --exit-code > /dev/null; then
-        echo "Error: There are unstaged changes. Please commit or stash them before running this script."
-        exit 1
-    fi
 }
 
 get_current_version() {

@@ -1,0 +1,35 @@
+check_unstaged_changes() {
+    # Confirm we don't have unstaged changes
+    if ! git diff --exit-code > /dev/null; then
+        echo "Error: There are unstaged changes. Please commit or stash them before running this script."
+        exit 1
+    fi
+}
+
+confirm_root_directory() {
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        echo "Error: This script must be run from the root of a Git repository."
+        exit 1
+    fi
+
+    local git_root_dir=$(git rev-parse --show-toplevel)
+    local current_dir=$(pwd)
+
+    if [[ "$git_root_dir" != "$current_dir" ]]; then
+        echo "Error: This script must be run from the root of the Git repository. Current directory is not the root."
+        exit 1
+    fi
+}
+
+ask_for_confirmation() {
+    local command=$1
+    read -p "Was this the intended change? (Y/N): " answer
+    if [[ $answer =~ ^[Yy]$ ]]; then
+        echo "Running command without dry-run: $command"
+        $command
+    else
+        echo "Exiting without making changes."
+        exit 1
+    fi
+}
+
