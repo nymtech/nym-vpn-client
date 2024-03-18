@@ -59,6 +59,7 @@ jobs:
       - name: Setup NDK
         uses: nttld/setup-ndk@v1
         id: setup-ndk
+        if: contains(matrix.target, 'android')
         with:
           ndk-version: r21e
           add-to-path: false
