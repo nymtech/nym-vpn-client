@@ -24,9 +24,7 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        # TODO only run on ubuntu for testing purpose
-        # os: [ubuntu-22.04-16-core, macos-14]
-        os: [ubuntu-22.04-16-core]
+        os: [ubuntu-22.04-16-core, macos-14]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -36,9 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO only run on ubuntu for testing purpose
-        # os: [ubuntu-22.04-16-core, macos-14]
-        os: [ubuntu-22.04-16-core]
+        os: [ubuntu-22.04-16-core, macos-14]
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
