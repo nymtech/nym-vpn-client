@@ -299,7 +299,7 @@ jobs:
     env:
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      PKG_VERSION: ${{ needs.build.outputs.version }}
+      PKG_VERSION: ${{ needs.build.outputs.pkg_version }}
       APPIMAGE_DIR: ${{ needs.build.outputs.appimage_dir }}
     permissions:
       contents: write
