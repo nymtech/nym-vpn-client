@@ -119,7 +119,7 @@ jobs:
 
       - name: Build wireguard (Android)
         if: contains(matrix.target, 'android')
-        run: ./wireguard/build-wireguard-go.sh --android --no-docker
+        run: ./wireguard/libwg/build-android.sh
 
       - name: Build
         if: "!contains(matrix.os, 'windows') && !contains(matrix.target, 'android')"
