@@ -18,6 +18,7 @@ B_GRN="$BLD$GRN"
 B_YLW="$BLD$YLW"
 ####
 
+# TODO replace with the current tag and version
 tag=test-appimage
 version=0.0.8-dev
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$tag/nym-vpn_${version}.AppImage"
