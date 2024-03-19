@@ -212,9 +212,11 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getGatewayCountries<'en
     let env = JnixEnv::from(env);
     let api_url = parse_api_url_from_java(&env, api_url);
     let explorer_url = parse_explorer_url_from_java(&env, explorer_url);
-    let mut config = gateway_client::Config::default();
-    config.api_url = api_url;
-    config.explorer_url = explorer_url;
+    let config = gateway_client::Config {
+        api_url,
+        explorer_url,
+        ..Default::default()
+    };
     let gateway_client = GatewayClient::new(config).unwrap();
     let ret = if exit_only == JNI_FALSE {
         RUNTIME.block_on(gateway_client.lookup_all_countries_iso())
@@ -244,9 +246,11 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getLowLatencyEntryCount
     let env = JnixEnv::from(env);
     let api_url = parse_api_url_from_java(&env, api_url);
     let explorer_url = parse_explorer_url_from_java(&env, explorer_url);
-    let mut config = gateway_client::Config::default();
-    config.api_url = api_url;
-    config.explorer_url = explorer_url;
+    let config = gateway_client::Config {
+        api_url,
+        explorer_url,
+        ..Default::default()
+    };
     let gateway_client = GatewayClient::new(config).unwrap();
     let ret = RUNTIME.block_on(gateway_client.lookup_low_latency_entry_gateway());
     return match ret {
@@ -390,17 +394,17 @@ fn try_sending_random_udp(is_ipv6_enabled: bool) -> Result<(), SendRandomDataErr
 }
 
 fn parse_api_url_from_java(env: &JnixEnv, api_url: JString<'_>) -> Url {
-    return match Url::from_str(&String::from_java(env, api_url)) {
+    match Url::from_str(&String::from_java(env, api_url)) {
         Err(err) => {
             error!("Could not parse api_url: {:?}. Using the default.", err);
             gateway_client::Config::default().api_url
         }
         Ok(url) => url,
-    };
+    }
 }
 
 fn parse_explorer_url_from_java(env: &JnixEnv, explorer_url: JString<'_>) -> Option<Url> {
-    return match Url::from_str(&String::from_java(&env, explorer_url)) {
+    match Url::from_str(&String::from_java(env, explorer_url)) {
         Err(err) => {
             error!(
                 "Could not parse explorer_url: {:?}. Using the default.",
@@ -409,7 +413,7 @@ fn parse_explorer_url_from_java(env: &JnixEnv, explorer_url: JString<'_>) -> Opt
             gateway_client::Config::default().explorer_url
         }
         Ok(url) => Some(url),
-    };
+    }
 }
 
 fn is_public_ip(addr: IpAddr) -> bool {
