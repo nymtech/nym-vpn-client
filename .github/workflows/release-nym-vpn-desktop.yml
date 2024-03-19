@@ -253,6 +253,7 @@ jobs:
       - name: Prepare AppImage
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
+          mkdir $APPIMAGE_DIR
           mv nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*.AppImage $APPIMAGE_DIR/nym-vpn_${PKG_VERSION}.AppImage
 
       - name: Upload AppImage
