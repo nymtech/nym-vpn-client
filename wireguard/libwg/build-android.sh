@@ -59,7 +59,7 @@ for arch in ${ARCHITECTURES:-armv7 aarch64 x86_64 i686}; do
     # the directories afterwards
     mkdir -m 777 -p "$(dirname "$STRIPPED_LIB_PATH")"
 
-    mv "$UNSTRIPPED_LIB_PATH" "$STRIPPED_LIB_PATH"
+    cp "$UNSTRIPPED_LIB_PATH" "$STRIPPED_LIB_PATH"
 
 #    this is not available in the newer NDK
 #    $ANDROID_STRIP_TOOL --strip-unneeded --strip-debug -o "$STRIPPED_LIB_PATH" "$UNSTRIPPED_LIB_PATH"

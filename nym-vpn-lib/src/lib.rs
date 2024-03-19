@@ -29,7 +29,7 @@ use tap::TapFallible;
 use tokio::time::timeout;
 use tracing::warn;
 use util::wait_for_interrupt_and_signal;
-#[cfg(any(target_os = "android", target_os = "ios", target_os = "macos"))]
+#[cfg(any(target_os = "ios", target_os = "macos"))]
 use {
     crate::platform::error::FFIError,
     ipnetwork::IpNetwork,
