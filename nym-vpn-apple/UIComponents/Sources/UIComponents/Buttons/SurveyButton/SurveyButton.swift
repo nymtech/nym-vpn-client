@@ -2,7 +2,7 @@ import SwiftUI
 import Theme
 
 public struct SurveyButton: View {
-    private let viewModel: SurveyButtonViewModel
+    @ObservedObject private var viewModel: SurveyButtonViewModel
 
     public init(viewModel: SurveyButtonViewModel) {
         self.viewModel = viewModel
@@ -30,5 +30,6 @@ public struct SurveyButton: View {
                 .inset(by: 0.5)
                 .stroke(viewModel.selectionStrokeColor)
         )
+        .animation(.default, value: viewModel.selectionStrokeColor)
     }
 }

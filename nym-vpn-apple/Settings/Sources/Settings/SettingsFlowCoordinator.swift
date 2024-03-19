@@ -22,6 +22,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             LegalView(viewModel: LegalViewModel(path: $flowState.path))
         case .survey:
             SurveyView(viewModel: SurveyViewModel(path: $flowState.path))
+        case .surveySuccess:
+            SurveySuccessView(viewModel: SurveySuccessViewModel(path: $flowState.path))
         }
     }
 }

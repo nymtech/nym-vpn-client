@@ -287,6 +287,28 @@
         }
       }
     },
+    "feedback.survey.error.provideFeedback" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please provide feedback to submit"
+          }
+        }
+      }
+    },
+    "feedback.survey.error.selectRecommendation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please select a recommendation to submit"
+          }
+        }
+      }
+    },
     "feedback.survey.howLikelyRecommend" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -338,6 +360,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Not likely"
+          }
+        }
+      }
+    },
+    "feedback.survey.submit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Submit"
+          }
+        }
+      }
+    },
+    "feedback.survey.success.text" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thank You for taking the time  to review NymVPN! Your feedback helps us improve the services we provide."
           }
         }
       }

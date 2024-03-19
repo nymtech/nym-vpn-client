@@ -6,6 +6,7 @@ enum SettingsLink: Hashable, Identifiable {
     case support
     case legal
     case survey
+    case surveySuccess
 
     var id: String {
         String(describing: self)

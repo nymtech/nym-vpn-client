@@ -37,5 +37,6 @@ public struct SettingButton: View {
                 .inset(by: 0.5)
                 .stroke(viewModel.selectionStrokeColor)
         )
+        .animation(.default, value: viewModel.selectionStrokeColor)
     }
 }

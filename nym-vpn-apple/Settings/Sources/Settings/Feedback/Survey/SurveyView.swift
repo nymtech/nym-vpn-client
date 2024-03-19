@@ -4,10 +4,10 @@ import Theme
 import UIComponents
 
 struct SurveyView: View {
-    @State private var viewModel: SurveyViewModel
+    @StateObject private var viewModel: SurveyViewModel
 
     init(viewModel: SurveyViewModel) {
-        _viewModel = State(initialValue: viewModel)
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {
@@ -22,6 +22,9 @@ struct SurveyView: View {
                 recommendationOptions()
                 provideFeedbackText()
                 feedbackInputView()
+                if viewModel.error != .noError, let errorMessageTitle = viewModel.error.localizedTitle {
+                    errorMessageView(title: errorMessageTitle)
+                }
                 submitButton()
                 Spacer()
                     .frame(height: 24)
@@ -50,6 +53,7 @@ private extension SurveyView {
     func introText() -> some View {
         Text(viewModel.introText)
             .textStyle(NymTextStyle.Label.Huge.primary)
+            .foregroundStyle(NymColor.surveyText)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 12)
         Spacer()
@@ -60,6 +64,7 @@ private extension SurveyView {
     func recommendationText() -> some View {
         Text(viewModel.recommendQuestionText)
             .textStyle(NymTextStyle.Body.Large.regular)
+            .foregroundStyle(NymColor.surveyText)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 12)
         Spacer()
@@ -74,6 +79,7 @@ private extension SurveyView {
                     viewModel:
                         SurveyButtonViewModel(
                             type: type,
+                            hasError: viewModel.surveyButtonShouldShowError,
                             selectedType: $viewModel.selectedRecommendation
                         )
                 )
@@ -91,6 +97,7 @@ private extension SurveyView {
     func provideFeedbackText() -> some View {
         Text(viewModel.provideFeedbackQuestionText)
             .textStyle(NymTextStyle.Body.Large.primary)
+            .foregroundStyle(NymColor.surveyText)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)
     }
@@ -102,7 +109,6 @@ private extension SurveyView {
                 .textStyle(NymTextStyle.Body.Large.regular)
                 .padding(16)
                 .lineLimit(6, reservesSpace: true)
-
             Spacer()
         }
         .contentShape(
@@ -114,16 +120,29 @@ private extension SurveyView {
         .overlay {
             RoundedRectangle(cornerRadius: 8)
                 .inset(by: 0.5)
-                .stroke(Color(red: 0.29, green: 0.27, blue: 0.31), lineWidth: 1)
+                .stroke(viewModel.textFieldStrokeColor, lineWidth: 1)
         }
-        .padding(12)
+        .padding(EdgeInsets(top: 12, leading: 12, bottom: viewModel.error != .noError ? 4 : 12, trailing: 12))
+    }
+
+    @ViewBuilder
+    func errorMessageView(title: String) -> some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(NymColor.sysError)
+                .textStyle(NymTextStyle.Body.Small.primary)
+            Spacer()
+        }
+        .padding(EdgeInsets(top: 0, leading: 28, bottom: 16, trailing: 28))
     }
 
     @ViewBuilder
     func submitButton() -> some View {
-        ConnectButton()
+        GenericButton(title: viewModel.submitButtonTitle)
             .padding(.horizontal, 16)
-            .onTapGesture {}
+            .onTapGesture {
+                viewModel.submit()
+            }
 //        if viewModel.isSmallScreen() {
 //            Spacer()
 //                .frame(height: 24)

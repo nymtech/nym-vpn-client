@@ -1,7 +1,7 @@
 import SwiftUI
 import Theme
 
-public struct SurveyButtonViewModel {
+public final class SurveyButtonViewModel: ObservableObject {
     public enum ButtonType: Int, CaseIterable, Identifiable {
         case notAtAll
         case notLikely
@@ -27,12 +27,17 @@ public struct SurveyButtonViewModel {
     }
 
     let type: ButtonType
-
+    @Published var hasError: Bool
     @Binding var selectedType: ButtonType?
 
-    public init(type: ButtonType, selectedType: Binding<ButtonType?>) {
+    public init(type: ButtonType, hasError: Bool, selectedType: Binding<ButtonType?>) {
         self.type = type
+        self.hasError = hasError
         self._selectedType = selectedType
+
+        if hasError {
+            removeError()
+        }
     }
 
     private var isSelected: Bool {
@@ -48,6 +53,16 @@ public struct SurveyButtonViewModel {
     }
 
     var selectionStrokeColor: Color {
-        isSelected ? NymColor.primaryOrange : .clear
+        if hasError {
+            return NymColor.sysError
+        } else {
+            return isSelected ? NymColor.primaryOrange : .clear
+        }
+    }
+
+    func removeError() {
+        Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { [weak self] _ in
+            self?.hasError = false
+        }
     }
 }
