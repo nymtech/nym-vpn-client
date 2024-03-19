@@ -1,7 +1,7 @@
 {
   "name": "nym-vpn-desktop",
   "private": true,
-  "version": "0.0.9-dev",
+  "version": "0.0.8",
   "type": "module",
   "authors": [
     "pierre <dommerc.pierre@gmail.com>",
