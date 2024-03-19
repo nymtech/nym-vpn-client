@@ -365,8 +365,9 @@ jobs:
           cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
           # handle AppImage
-          sha256sum $APPIMAGE_DIR/nym-vpn*.AppImage
-          sha256sum $APPIMAGE_DIR/nym-vpn*.AppImage > $APPIMAGE_DIR/nym-vpn_${PKG_VERSION}.AppImage.sha256sum
+          cd $APPIMAGE_DIR
+          sha256sum nym-vpn*.AppImage
+          sha256sum nym-vpn*.AppImage > nym-vpn_${PKG_VERSION}.AppImage.sha256sum
 
       - name: Publish release
         run: |
