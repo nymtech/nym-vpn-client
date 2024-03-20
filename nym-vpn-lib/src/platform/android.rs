@@ -114,13 +114,11 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     let entry_gateway: EntryPoint = serde_json::from_str(&String::from_java(&env, entry_gateway))
         .map_err(|e| {
             error!("Could not parse entry point {:?}", e);
-            return;
         })
         .unwrap();
     let exit_router: ExitPoint = serde_json::from_str(&String::from_java(&env, exit_router))
         .map_err(|e| {
             error!("Could not parse exit point {:?}", e);
-            return;
         })
         .unwrap();
 
@@ -129,14 +127,12 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     let api_url = parse_api_url_from_java(&env, api_url)
         .map_err(|e| {
             error!("Failed to parse api url : {:?}", e);
-            return;
         })
         .unwrap();
 
     let explorer_url = parse_explorer_url_from_java(&env, explorer_url)
         .map_err(|e| {
             error!("Failed to parse explorer url : {:?}", e);
-            return;
         })
         .unwrap();
 
@@ -153,7 +149,6 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_runVPN(_env: JNIEnv, _
     let state = RUNTIME.block_on(get_vpn_state());
     if state != ClientState::Disconnected {
         warn!("Invalid vpn state: {:?}", state);
-        return;
     }
 
     let vpn = RUNTIME.block_on(take_vpn()).expect("VPN not initialized");
@@ -210,7 +205,6 @@ impl<'env> IntoJava<'env> for String {
         env.new_string(&self)
             .map_err(|_e| {
                 error!("Failed to create java string");
-                return;
             })
             .unwrap()
     }
