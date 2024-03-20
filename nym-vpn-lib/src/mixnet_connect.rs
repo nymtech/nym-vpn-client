@@ -19,7 +19,8 @@ use nym_ip_packet_requests::{
     },
 };
 use nym_sdk::mixnet::{
-    MixnetClient, MixnetClientBuilder, MixnetMessageSender, NodeIdentity, Recipient, StoragePaths, MixnetClientSender,
+    MixnetClient, MixnetClientBuilder, MixnetClientSender, MixnetMessageSender, NodeIdentity,
+    Recipient, StoragePaths,
 };
 use tracing::{debug, error, info};
 

@@ -63,6 +63,7 @@ mod connection_monitor;
 pub mod error;
 pub mod gateway_client;
 pub mod mixnet_connect;
+pub mod mixnet_connection_beacon;
 pub mod mixnet_processor;
 mod platform;
 pub mod routing;
@@ -262,7 +263,7 @@ impl NymVpn {
         self.set_shadow_handle(shadow_handle);
 
         info!("Setting up mixnet connection beacon");
-        mixnet_processor::start_mixnet_connection_beacon(
+        mixnet_connection_beacon::start_mixnet_connection_beacon(
             mixnet_client_sender,
             mixnet_client_address,
             task_manager.subscribe_named("mixnet_connection_beacon"),

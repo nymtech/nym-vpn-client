@@ -1,28 +1,29 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::{Duration};
+use std::time::Duration;
 
 use bytes::{Bytes, BytesMut};
-use futures::{SinkExt, StreamExt, channel::mpsc};
+use futures::{channel::mpsc, SinkExt, StreamExt};
 use nym_ip_packet_requests::{
     codec::MultiIpPacketCodec,
     request::{IpPacketRequest, IpPacketRequestData},
     response::IpPacketResponseData,
     response::{InfoLevel, IpPacketResponse},
 };
-use nym_sdk::mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient};
+use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use nym_validator_client::models::DescribedGateway;
 use tokio::task::JoinHandle;
 use tokio::time::timeout;
 use tokio_util::codec::Decoder;
-use tracing::{debug, error, info, trace};
+use tracing::{debug, error, info, trace, warn};
 use tun2::{AbstractDevice, AsyncDevice};
 
 use crate::{
+    connection_monitor,
     error::{Error, Result},
-    mixnet_connect::SharedMixnetClient, connection_monitor,
+    mixnet_connect::SharedMixnetClient,
 };
 
 #[derive(Debug)]
@@ -102,70 +103,6 @@ impl MessageCreator {
     }
 }
 
-pub struct MixnetConnectionBeacon {
-    pub mixnet_client_sender: MixnetClientSender,
-    pub our_address: Recipient,
-}
-
-impl MixnetConnectionBeacon {
-    async fn send_beep(&self) -> Result<u64> {
-        let (request, request_id) = IpPacketRequest::new_ping(self.our_address);
-        let input_message = InputMessage::new_regular(
-            self.our_address,
-            request.to_bytes().unwrap(),
-            TransmissionLane::General,
-            None,
-        );
-        self.mixnet_client_sender.send(input_message).await?;
-        Ok(request_id)
-    }
-
-    pub async fn run(self, mut shutdown: TaskClient) -> Result<()> {
-        info!("Mixnet connection beacon is running");
-        loop {
-            tokio::select! {
-                _ = shutdown.recv_with_delay() => {
-                    info!("MixnetConnectionBeacon: Received shutdown");
-                    break;
-                }
-                _ = tokio::time::sleep(Duration::from_secs(1)) => {
-                    log::info!("BEEP");
-                    let _ping_id = match self.send_beep().await {
-                        Ok(id) => id,
-                        Err(err) => {
-                            error!("Failed to send ping: {err}");
-                            continue;
-                        }
-                    };
-                }
-            }
-        }
-        info!("MixnetConnectionBeacon: Exiting");
-        Ok(())
-    }
-}
-
-pub fn start_mixnet_connection_beacon(
-    mixnet_client_sender: MixnetClientSender,
-    our_address: Recipient,
-    shutdown_listener: TaskClient,
-) -> JoinHandle<Result<()>> {
-    info!("Creating mixnet connection beacon");
-    let beacon = MixnetConnectionBeacon {
-        mixnet_client_sender,
-        our_address,
-    };
-    tokio::spawn(async move {
-        let ret = beacon.run(shutdown_listener).await;
-        if let Err(err) = ret {
-            error!("Mixnet connection beacon error: {err}");
-            Err(err)
-        } else {
-            ret
-        }
-    })
-}
-
 pub struct MixnetProcessor {
     device: AsyncDevice,
     mixnet_client: SharedMixnetClient,
@@ -179,7 +116,9 @@ impl MixnetProcessor {
     pub fn new(
         device: AsyncDevice,
         mixnet_client: SharedMixnetClient,
-        connection_event_tx: futures::channel::mpsc::UnboundedSender<connection_monitor::ConnectionEvent>,
+        connection_event_tx: futures::channel::mpsc::UnboundedSender<
+            connection_monitor::ConnectionEvent,
+        >,
         ip_packet_router_address: IpPacketRouterAddress,
         enable_two_hop: bool,
     ) -> Self {
@@ -306,15 +245,15 @@ impl MixnetProcessor {
                                         if ping_request.reply_to == our_address {
                                             self.connection_event_tx.unbounded_send(connection_monitor::ConnectionEvent::MixnetSelfPing).unwrap();
                                         } else {
-                                            info!("Received unexpected ping, ignoring for now");
+                                            info!("Received unexpected ping - ignoring");
                                         }
                                     },
                                     ref request => {
-                                        error!("Received unexpected request: {request:?}");
+                                        info!("Received unexpected request: {request:?}");
                                     }
                                 }
                             } else {
-                                error!("Failed to deserialize reconstructed message: {err}");
+                                warn!("Failed to deserialize reconstructed message: {err}");
                             }
                         }
                     }
