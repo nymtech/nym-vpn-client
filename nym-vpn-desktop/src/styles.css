@@ -47,3 +47,9 @@
     src: url(assets/fonts/MaterialSymbolsOutlined.woff2) format('woff2');
   }
 }
+
+@layer components {
+  .dot {
+    clip-path: circle(0.3rem);
+  }
+}

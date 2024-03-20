@@ -4,29 +4,38 @@
 use std::{env, sync::Arc};
 
 use anyhow::{anyhow, Context, Result};
-use tauri::api::path::{config_dir, data_dir};
+use clap::Parser;
+use tauri::{api::path::config_dir, Manager};
 use tokio::{fs::try_exists, sync::Mutex};
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, trace};
 
+use commands::db as cmd_db;
 use commands::*;
 use states::app::AppState;
 
 use nym_vpn_lib::nym_config;
 
-use crate::fs::{config::AppConfig, data::AppData, storage::AppStorage};
+use crate::{
+    cli::{print_build_info, Cli},
+    db::Db,
+    fs::{config::AppConfig, storage::AppStorage},
+};
 
+mod cli;
 mod commands;
 mod country;
+mod db;
 mod error;
+mod events;
 mod fs;
 mod http;
 mod network;
 mod states;
 mod vpn_client;
 
-const APP_DIR: &str = "nym-vpn";
-const APP_DATA_FILE: &str = "app-data.toml";
+pub const APP_DIR: &str = "nym-vpn";
 const APP_CONFIG_FILE: &str = "config.toml";
+const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -44,16 +53,21 @@ pub fn setup_logging() {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    tauri::async_runtime::set(tokio::runtime::Handle::current());
+
     dotenvy::dotenv().ok();
     setup_logging();
 
-    let app_data_store = {
-        let mut app_data_path =
-            data_dir().ok_or(anyhow!("Failed to retrieve data directory path"))?;
-        app_data_path.push(APP_DIR);
-        AppStorage::<AppData>::new(app_data_path, APP_DATA_FILE, None)
-    };
-    debug!("app_data_store: {}", app_data_store.full_path.display());
+    // parse the command line arguments
+    let cli = Cli::parse();
+    trace!("cli args: {:#?}", cli);
+
+    let context = tauri::generate_context!();
+
+    if cli.build_info {
+        print_build_info(context.package_info());
+        return Ok(());
+    }
 
     let app_config_store = {
         let mut app_config_path =
@@ -66,8 +80,6 @@ async fn main() -> Result<()> {
         &app_config_store.full_path.display()
     );
 
-    let app_data = app_data_store.read().await?;
-    debug!("app_data: {app_data:?}");
     let app_config = app_config_store.read().await?;
     debug!("app_config: {app_config:?}");
 
@@ -94,7 +106,10 @@ async fn main() -> Result<()> {
     // Read the env variables in the provided file and export them all to the local environment.
     nym_config::defaults::setup_env(app_config.env_config_file.clone());
 
-    let app_state = AppState::try_from((&app_data, &app_config)).map_err(|e| {
+    info!("Creating k/v embedded db");
+    let db = Db::new()?;
+
+    let app_state = AppState::try_from((&db, &app_config)).map_err(|e| {
         error!("failed to create app state from saved app data and config: {e}");
         e
     })?;
@@ -103,10 +118,25 @@ async fn main() -> Result<()> {
 
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(app_state)))
-        .manage(Arc::new(Mutex::new(app_data_store)))
         .manage(Arc::new(app_config))
-        .setup(|_app| {
+        .manage(Arc::new(cli))
+        .manage(db)
+        .setup(move |app| {
             info!("app setup");
+            let env_nosplash = env::var(ENV_APP_NOSPLASH).map(|_| true).unwrap_or(false);
+            trace!("env APP_NOSPLASH: {}", env_nosplash);
+
+            // if splash-screen is disabled, remove it and show
+            // the main window without waiting for frontend signal
+            if cli.nosplash || env_nosplash {
+                debug!("splash screen disabled, showing main window");
+                let main_win = app.get_window("main").expect("failed to get main window");
+                main_win
+                    .eval("document.getElementById('splash').remove();")
+                    .expect("failed to remove splash screen");
+
+                main_win.show().expect("failed to show main window");
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -115,19 +145,18 @@ async fn main() -> Result<()> {
             connection::connect,
             connection::disconnect,
             connection::get_connection_start_time,
-            app_data::get_app_data,
-            app_data::set_app_data,
-            app_data::set_ui_theme,
-            app_data::set_entry_location_selector,
-            app_data::set_monitoring,
-            app_data::set_auto_connect,
-            app_data::set_root_font_size,
+            cmd_db::db_set,
+            cmd_db::db_get,
+            cmd_db::db_flush,
             node_location::get_node_location,
             node_location::set_node_location,
             node_location::get_fastest_node_location,
-            node_location::get_node_countries,
+            node_location::get_countries,
+            window::show_main_window,
+            commands::cli::cli_args,
+            log::log_js,
         ])
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("error while running tauri application");
 
     Ok(())

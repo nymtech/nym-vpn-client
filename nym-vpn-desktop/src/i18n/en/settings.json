@@ -7,14 +7,35 @@
     "title": "Entry location selector",
     "desc": "Manually select your entry hop"
   },
-  "feedback": "Feedback",
-  "error-reporting": {
-    "title": "Error reporting",
-    "desc": "Help us improve NymVPN"
+  "feedback": {
+    "title": "Feedback",
+    "github": "Open a GitHub issue",
+    "send": "Send us feedback",
+    "matrix": "Join us on Matrix",
+    "discord": "Join us on Discord",
+    "error-monitoring": {
+      "title": "Turn on error monitoring",
+      "desc": "Help us improve NymVPN"
+    },
+    "monitoring-alert": "You must restart the application for the change to take effect."
+  },
+  "support": {
+    "title": "Support",
+    "faq": "Check the FAQ",
+    "email": "Send us an e-mail"
+  },
+  "legal": {
+    "title": "Legal",
+    "policy": "Privacy policy",
+    "tos": "Terms of use",
+    "license": "License",
+    "licenses-rust": "Licenses (Rust)",
+    "licenses-js": "Licenses (JS)",
+    "emptyData": "No license data available"
   },
   "faq": "FAQ",
   "display-theme": "Display theme",
   "logs": "Logs",
-  "legal": "Legal",
-  "quit": "Quit NymVPN"
+  "quit": "Quit NymVPN",
+  "add-credential-button": "Add credential to connect"
 }

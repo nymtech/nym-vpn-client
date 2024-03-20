@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
+import { MsIcon } from '../../ui';
 import { UiCountry } from './NodeLocation';
 
 interface CountryListProps {
@@ -30,7 +31,7 @@ export default function CountryList({
                 'flex flex-row justify-between',
                 'hover:bg-gun-powder hover:bg-opacity-10',
                 'dark:hover:bg-laughing-jack dark:hover:bg-opacity-10',
-                'rounded-lg cursor-pointer px-3 py-1',
+                'rounded-lg cursor-pointer px-3 py-1 transition duration-75',
               ])}
               onClick={() => onSelect(uiCountry)}
             >
@@ -51,9 +52,7 @@ export default function CountryList({
               {uiCountry.isFastest && (
                 <div className="flex flex-row items-center m-1 gap-3 p-1 cursor-pointer">
                   <div className="w-7 max-h-6 flex justify-center items-center">
-                    <span className="font-icon text-2xl cursor-pointer">
-                      bolt
-                    </span>
+                    <MsIcon icon="bolt" />
                   </div>
                   <div className="cursor-pointer text-base">{`${t('fastest', {
                     ns: 'common',

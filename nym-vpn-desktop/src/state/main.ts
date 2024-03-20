@@ -6,6 +6,7 @@ import {
 } from '../constants';
 import {
   AppState,
+  CodeDependency,
   ConnectProgressMsg,
   ConnectionState,
   Country,
@@ -18,7 +19,6 @@ import {
 
 export type StateAction =
   | { type: 'init-done' }
-  | { type: 'set-partial-state'; partialState: Partial<AppState> }
   | { type: 'change-connection-state'; state: ConnectionState }
   | { type: 'set-vpn-mode'; mode: VpnMode }
   | { type: 'set-entry-selector'; entrySelector: boolean }
@@ -37,13 +37,18 @@ export type StateAction =
   | { type: 'set-ui-theme'; theme: UiTheme }
   | { type: 'set-theme-mode'; mode: ThemeMode }
   | { type: 'system-theme-changed'; theme: UiTheme }
-  | { type: 'set-country-list'; countries: Country[] }
+  | {
+      type: 'set-country-list';
+      payload: { hop: NodeHop; countries: Country[] };
+    }
   | {
       type: 'set-node-location';
       payload: { hop: NodeHop; location: NodeLocation };
     }
   | { type: 'set-fastest-node-location'; country: Country }
-  | { type: 'set-root-font-size'; size: number };
+  | { type: 'set-root-font-size'; size: number }
+  | { type: 'set-code-deps-js'; dependencies: CodeDependency[] }
+  | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] };
 
 export const initialState: AppState = {
   initialized: false,
@@ -63,8 +68,11 @@ export const initialState: AppState = {
   // TODO ⚠ these should be set to 'Fastest' when the backend is ready
   exitNodeLocation: DefaultNodeCountry,
   fastestNodeLocation: DefaultNodeCountry,
-  countryList: [],
+  entryCountryList: [],
+  exitCountryList: [],
   rootFontSize: DefaultRootFontSize,
+  codeDepsRust: [],
+  codeDepsJs: [],
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -106,13 +114,16 @@ export function reducer(state: AppState, action: StateAction): AppState {
         monitoring: action.monitoring,
       };
     case 'set-country-list':
+      if (action.payload.hop === 'entry') {
+        return {
+          ...state,
+          entryCountryList: action.payload.countries,
+        };
+      }
       return {
         ...state,
-        countryList: action.countries,
+        exitCountryList: action.payload.countries,
       };
-    case 'set-partial-state': {
-      return { ...state, ...action.partialState };
-    }
     case 'change-connection-state': {
       console.log(
         `__REDUCER [change-connection-state] changing connection state to ${action.state}`,
@@ -204,6 +215,16 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         rootFontSize: action.size,
+      };
+    case 'set-code-deps-js':
+      return {
+        ...state,
+        codeDepsJs: action.dependencies,
+      };
+    case 'set-code-deps-rust':
+      return {
+        ...state,
+        codeDepsRust: action.dependencies,
       };
 
     case 'reset':

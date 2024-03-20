@@ -16,5 +16,17 @@ export default defineConfig(async () => ({
   },
   // 3. to make use of `TAURI_DEBUG` and other env variables
   // https://tauri.app/v1/api/config#buildconfig.beforedevcommand
-  envPrefix: ['VITE_', 'TAURI_'],
+  envPrefix: ['VITE_', 'TAURI_', 'APP_'],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // put the following packages in their own chunk
+          // to reduce main chunk size
+          'framer-motion': ['framer-motion'],
+          'mui-base': ['@mui/base'],
+        },
+      },
+    },
+  },
 }));

@@ -71,6 +71,20 @@ export default {
       'wind-chime': '#DEDEE1',
       // [D] connection status bg (combined with 15% opacity)
       oil: '#313033',
+      // [L] add credential screen color of nym logo
+      ghost: '#C7C7D1',
+      // [D] button bg 'Stop' state
+      'dusty-grey': '#CECCD1',
+      // [D] radio-group bg hover
+      onyx: '#3A373F',
+      // [L] radio-group bg hover
+      platinum: '#E2E8EC',
+      // [L] input border ring hover
+      aluminium: '#8DA3B1',
+      // [D] bg for snackbar
+      'poivre-noir': '#484649',
+      // [L] bg for snackbar
+      seashell: '#FFF2EF',
     },
     extend: {
       fontFamily: {

@@ -2,16 +2,19 @@ import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
 import { appWindow } from '@tauri-apps/api/window';
 import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
+import { getJsLicenses, getRustLicenses } from '../data';
+import { kvGet } from '../kvStore';
 import {
-  AppDataFromBackend,
+  CodeDependency,
   ConnectionState,
   Country,
   NodeLocationBackend,
   StateDispatch,
+  ThemeMode,
   UiTheme,
+  VpnMode,
 } from '../types';
 import fireRequests, { TauriReq } from './helper';
-import { initialState } from './main';
 
 // initialize connection state
 const getInitialConnectionState = async () => {
@@ -24,8 +27,15 @@ const getSessionStartTime = async () => {
 };
 
 // init country list
-const getCountries = async () => {
-  return await invoke<Country[]>('get_node_countries');
+const getEntryCountries = async () => {
+  return await invoke<Country[]>('get_countries', {
+    nodeType: 'Entry',
+  });
+};
+const getExitCountries = async () => {
+  return await invoke<Country[]>('get_countries', {
+    nodeType: 'Exit',
+  });
 };
 
 // init node locations
@@ -45,12 +55,11 @@ const getFastestNodeLocation = async () => {
   return await invoke<Country>('get_fastest_node_location');
 };
 
-// get saved on disk app data and restore state from it
-const getAppData = async () => {
-  const theme = await appWindow.theme();
-  const winTheme: UiTheme = theme === 'dark' ? 'Dark' : 'Light';
-  const appData = await invoke<AppDataFromBackend>('get_app_data');
-  return { winTheme, data: appData };
+const getTheme = async () => {
+  const winTheme: UiTheme =
+    (await appWindow.theme()) === 'dark' ? 'Dark' : 'Light';
+  const themeMode = await kvGet<ThemeMode>('UiTheme');
+  return { winTheme, themeMode };
 };
 
 async function init(dispatch: StateDispatch) {
@@ -70,11 +79,31 @@ async function init(dispatch: StateDispatch) {
     },
   };
 
-  const getCountriesRq: TauriReq<typeof getCountries> = {
-    name: 'get_node_countries',
-    request: () => getCountries(),
+  const getEntryCountriesRq: TauriReq<typeof getEntryCountries> = {
+    name: 'get_countries',
+    request: () => getEntryCountries(),
     onFulfilled: (countries) => {
-      dispatch({ type: 'set-country-list', countries });
+      dispatch({
+        type: 'set-country-list',
+        payload: {
+          hop: 'entry',
+          countries,
+        },
+      });
+    },
+  };
+
+  const getExitCountriesRq: TauriReq<typeof getExitCountries> = {
+    name: 'get_countries',
+    request: () => getExitCountries(),
+    onFulfilled: (countries) => {
+      dispatch({
+        type: 'set-country-list',
+        payload: {
+          hop: 'exit',
+          countries,
+        },
+      });
     },
   };
 
@@ -107,7 +136,7 @@ async function init(dispatch: StateDispatch) {
   };
 
   const getFastestLocationRq: TauriReq<typeof getFastestNodeLocation> = {
-    name: 'get_node_countries',
+    name: 'get_fastest_node_location',
     request: () => getFastestNodeLocation(),
     onFulfilled: (country) => {
       dispatch({ type: 'set-fastest-node-location', country });
@@ -122,37 +151,79 @@ async function init(dispatch: StateDispatch) {
     },
   };
 
-  const getSavedAppDataRq: TauriReq<typeof getAppData> = {
-    name: 'get_app_data',
-    request: () => getAppData(),
-    onFulfilled: ({ winTheme, data }) => {
-      console.log('app data read from disk:');
-      console.log(data);
-
-      if (data.ui_root_font_size) {
-        document.documentElement.style.fontSize = `${data.ui_root_font_size}px`;
-      }
-
+  const getThemeRq: TauriReq<typeof getTheme> = {
+    name: 'getTheme',
+    request: () => getTheme(),
+    onFulfilled: ({ winTheme, themeMode }) => {
       let uiTheme: UiTheme = 'Light';
-      if (data.ui_theme === 'System') {
+      if (themeMode === 'System') {
         uiTheme = winTheme;
       } else {
         // if no theme has been saved, fallback to system theme
-        uiTheme = data.ui_theme || winTheme;
+        uiTheme = themeMode || winTheme;
       }
+      dispatch({ type: 'set-ui-theme', theme: uiTheme });
+      dispatch({ type: 'set-theme-mode', mode: themeMode || DefaultThemeMode });
+    },
+  };
 
-      const partialState: Partial<typeof initialState> = {
-        entrySelector: data.entry_location_selector || false,
-        uiTheme,
-        themeMode: data.ui_theme || DefaultThemeMode,
-        vpnMode: data.vpn_mode || 'TwoHop',
-        autoConnect: data.autoconnect || false,
-        monitoring: data.monitoring || false,
-        rootFontSize: data.ui_root_font_size || DefaultRootFontSize,
-      };
+  const getVpnModeRq: TauriReq<() => Promise<VpnMode | undefined>> = {
+    name: 'getVpnMode',
+    request: () => kvGet<VpnMode>('VpnMode'),
+    onFulfilled: (vpnMode) => {
+      dispatch({ type: 'set-vpn-mode', mode: vpnMode || 'TwoHop' });
+    },
+  };
+
+  const getRootFontSizeRq: TauriReq<() => Promise<number | undefined>> = {
+    name: 'getRootFontSize',
+    request: () => kvGet<number>('UiRootFontSize'),
+    onFulfilled: (size) => {
+      // if a font size was saved, set the UI font size accordingly
+      if (size) {
+        document.documentElement.style.fontSize = `${size}px`;
+      }
       dispatch({
-        type: 'set-partial-state',
-        partialState,
+        type: 'set-root-font-size',
+        size: size || DefaultRootFontSize,
+      });
+    },
+  };
+
+  const getEntrySelectorRq: TauriReq<() => Promise<boolean | undefined>> = {
+    name: 'getEntrySelector',
+    request: () => kvGet<boolean>('EntryLocationEnabled'),
+    onFulfilled: (enabled) => {
+      dispatch({ type: 'set-entry-selector', entrySelector: enabled || false });
+    },
+  };
+
+  const getMonitoringRq: TauriReq<() => Promise<boolean | undefined>> = {
+    name: 'getMonitoring',
+    request: () => kvGet<boolean>('Monitoring'),
+    onFulfilled: (monitoring) => {
+      dispatch({ type: 'set-monitoring', monitoring: monitoring || false });
+    },
+  };
+
+  const getDepsRustRq: TauriReq<() => Promise<CodeDependency[] | undefined>> = {
+    name: 'getDepsRustRq',
+    request: () => getRustLicenses(),
+    onFulfilled: (dependencies) => {
+      dispatch({
+        type: 'set-code-deps-rust',
+        dependencies: dependencies || [],
+      });
+    },
+  };
+
+  const getDepsJsRq: TauriReq<() => Promise<CodeDependency[] | undefined>> = {
+    name: 'getDepsJsRq',
+    request: () => getJsLicenses(),
+    onFulfilled: (dependencies) => {
+      dispatch({
+        type: 'set-code-deps-js',
+        dependencies: dependencies || [],
       });
     },
   };
@@ -160,13 +231,20 @@ async function init(dispatch: StateDispatch) {
   // fire all requests concurrently
   await fireRequests([
     initStateRq,
+    getVpnModeRq,
     syncConTimeRq,
-    getCountriesRq,
+    getEntryCountriesRq,
+    getExitCountriesRq,
     getEntryLocationRq,
     getExitLocationRq,
     getFastestLocationRq,
     getVersionRq,
-    getSavedAppDataRq,
+    getThemeRq,
+    getRootFontSizeRq,
+    getEntrySelectorRq,
+    getMonitoringRq,
+    getDepsRustRq,
+    getDepsJsRq,
   ]);
 }
 

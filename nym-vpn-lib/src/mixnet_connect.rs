@@ -2,13 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_config::defaults::NymNetworkDetails;
+use std::cmp::Ordering;
+#[cfg(target_os = "unix")]
+use std::os::fd::RawFd;
+#[cfg(not(target_os = "unix"))]
+use std::os::raw::c_int as RawFd;
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::{
-    net::{IpAddr, Ipv4Addr},
-    time::Duration,
-};
+use std::time::Duration;
 
+use nym_ip_packet_requests::IpPair;
 use nym_ip_packet_requests::{
     request::IpPacketRequest,
     response::{
@@ -41,6 +44,15 @@ impl SharedMixnetClient {
         *self.lock().await.as_ref().unwrap().nym_address()
     }
 
+    pub async fn gateway_ws_fd(&self) -> Option<RawFd> {
+        self.lock()
+            .await
+            .as_ref()
+            .unwrap()
+            .gateway_connection()
+            .gateway_ws_fd
+    }
+
     pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
         self.lock().await.as_mut().unwrap().send(msg).await?;
         Ok(())
@@ -56,20 +68,14 @@ impl SharedMixnetClient {
 async fn send_connect_to_ip_packet_router(
     mixnet_client: &SharedMixnetClient,
     ip_packet_router_address: &IpPacketRouterAddress,
-    ip: Option<Ipv4Addr>,
+    ips: Option<IpPair>,
     enable_two_hop: bool,
 ) -> Result<u64> {
     let hops = enable_two_hop.then_some(0);
     let mixnet_client_address = mixnet_client.nym_address().await;
-    let (request, request_id) = if let Some(ip) = ip {
-        debug!("Sending static connect request with ip: {ip}");
-        IpPacketRequest::new_static_connect_request(
-            ip.into(),
-            mixnet_client_address,
-            hops,
-            None,
-            None,
-        )
+    let (request, request_id) = if let Some(ips) = ips {
+        debug!("Sending static connect request with ips: {ips}");
+        IpPacketRequest::new_static_connect_request(ips, mixnet_client_address, hops, None, None)
     } else {
         debug!("Sending dynamic connect request");
         IpPacketRequest::new_dynamic_connect_request(mixnet_client_address, hops, None, None)
@@ -113,12 +119,24 @@ async fn wait_for_connect_response(
 
                         // Handle if the response is from an IPR running an older or newer version
                         if let Some(version) = msg.message.first() {
-                            if *version != nym_ip_packet_requests::CURRENT_VERSION {
-                                log::error!("Received packet with invalid version: v{version}, is your client up to date?");
-                                return Err(Error::InvalidVersion {
-                                    expected: nym_ip_packet_requests::CURRENT_VERSION,
-                                    received: *version,
-                                });
+                            match version.cmp(&nym_ip_packet_requests::CURRENT_VERSION) {
+                                Ordering::Greater => {
+                                    log::error!("Received packet with newer version: v{version}, is your client up to date?");
+                                    return Err(Error::ReceivedResponseWithNewVersion {
+                                        expected: nym_ip_packet_requests::CURRENT_VERSION,
+                                        received: *version,
+                                    });
+                                }
+                                Ordering::Less => {
+                                    log::error!("Received packet with older version: v{version}, you client appears to be too new for the exit gateway or exit ip-packet-router?");
+                                    return Err(Error::ReceivedResponseWithOldVersion {
+                                        expected: nym_ip_packet_requests::CURRENT_VERSION,
+                                        received: *version,
+                                    });
+                                }
+                                Ordering::Equal => {
+                                    // We're good
+                                }
                             }
                         }
 
@@ -128,7 +146,7 @@ async fn wait_for_connect_response(
                             continue;
                         };
                         if response.id() == Some(request_id) {
-                            info!("Got response with matching id");
+                            debug!("Got response with matching id");
                             return Ok(response);
                         }
                     }
@@ -160,14 +178,14 @@ async fn handle_static_connect_response(
 async fn handle_dynamic_connect_response(
     mixnet_client_address: &Recipient,
     response: DynamicConnectResponse,
-) -> Result<IpAddr> {
+) -> Result<IpPair> {
     debug!("Handling dynamic connect response");
     if response.reply_to != *mixnet_client_address {
         error!("Got reply intended for wrong address");
         return Err(Error::GotReplyIntendedForWrongAddress);
     }
     match response.reply {
-        nym_ip_packet_requests::response::DynamicConnectResponseReply::Success(r) => Ok(r.ip),
+        nym_ip_packet_requests::response::DynamicConnectResponseReply::Success(r) => Ok(r.ips),
         nym_ip_packet_requests::response::DynamicConnectResponseReply::Failure(reason) => {
             Err(Error::DynamicConnectRequestDenied { reason })
         }
@@ -177,28 +195,28 @@ async fn handle_dynamic_connect_response(
 pub async fn connect_to_ip_packet_router(
     mixnet_client: SharedMixnetClient,
     ip_packet_router_address: &IpPacketRouterAddress,
-    ip: Option<Ipv4Addr>,
+    ips: Option<IpPair>,
     enable_two_hop: bool,
-) -> Result<IpAddr> {
-    info!("Sending connect request");
+) -> Result<IpPair> {
+    debug!("Sending connect request");
     let request_id = send_connect_to_ip_packet_router(
         &mixnet_client,
         ip_packet_router_address,
-        ip,
+        ips,
         enable_two_hop,
     )
     .await?;
 
-    info!("Waiting for reply...");
+    debug!("Waiting for reply...");
     let response = wait_for_connect_response(&mixnet_client, request_id).await?;
 
     let mixnet_client_address = mixnet_client.nym_address().await;
     match response.data {
-        IpPacketResponseData::StaticConnect(resp) if ip.is_some() => {
+        IpPacketResponseData::StaticConnect(resp) if ips.is_some() => {
             handle_static_connect_response(&mixnet_client_address, resp).await?;
-            Ok(ip.unwrap().into())
+            Ok(ips.unwrap())
         }
-        IpPacketResponseData::DynamicConnect(resp) if ip.is_none() => {
+        IpPacketResponseData::DynamicConnect(resp) if ips.is_none() => {
             handle_dynamic_connect_response(&mixnet_client_address, resp).await
         }
         response => {

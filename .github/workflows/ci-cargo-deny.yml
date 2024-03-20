@@ -2,18 +2,13 @@ name: ci-cargo-deny
 on: [pull_request]
 jobs:
   cargo-deny:
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        checks:
-          # - advisories
-          - licenses bans sources
-
+    runs-on: ubuntu-22.04-arc
     steps:
-    - uses: actions/checkout@v3
-    - uses: EmbarkStudios/cargo-deny-action@v1
-      with:
-        log-level: warn
-        command: check ${{ matrix.checks }}
-        argument: --all-features
-        credentials: https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com
+      - uses: actions/checkout@v3
+      - run: |
+          sudo apt-get update && sudo apt-get install -y curl gcc git
+      - uses: dtolnay/rust-toolchain@stable
+      # The cargo-deny action uses docker which we currently can't run on
+      # ubuntu-22.04, so we have to build manually for now
+      - run: cargo install cargo-deny
+      - run: cargo deny --all-features check licenses bans sources

@@ -111,10 +111,7 @@ function build_unix {
     fi
 
     pushd libwg
-        target_triple_dir="../../build/lib/$1"
-
-        mkdir -p $target_triple_dir
-        go build -v -o $target_triple_dir/libwg.a -buildmode c-archive
+        create_folder_and_build $1
     popd
 }
 
@@ -133,6 +130,34 @@ function build_android {
     fi
 }
 
+function create_folder_and_build {
+    target_triple_dir="../../build/lib/$1"
+
+    mkdir -p $target_triple_dir
+    go build -v -o $target_triple_dir/libwg.a -buildmode c-archive
+}
+
+function build_macos_universal {
+    export CGO_ENABLED=1
+
+    echo "🍎 Building for aarch64"
+    pushd libwg
+    export GOOS=darwin
+    export GOARCH=arm64
+    create_folder_and_build "aarch64-apple-darwin"
+
+    echo "🍎 Building for x86_64"
+    export GOOS=darwin
+    export GOARCH=amd64
+    create_folder_and_build "x86_64-apple-darwin"
+
+    echo "🍎 Creating universal framework"
+        mkdir -p "../../build/lib/universal-apple-darwin/"
+        lipo -create -output "../../build/lib/universal-apple-darwin/libwg.a"  "../../build/lib/x86_64-apple-darwin/libwg.a" "../../build/lib/aarch64-apple-darwin/libwg.a"
+        cp "../../build/lib/aarch64-apple-darwin/libwg.h" "../../build/lib/universal-apple-darwin/libwg.h"
+    popd
+}
+
 function build_wireguard_go {
     if is_android_build $@; then
         build_android $@
@@ -141,7 +166,8 @@ function build_wireguard_go {
 
     local platform="$(uname -s)";
     case  "$platform" in
-        Linux*|Darwin*) build_unix ${1:-$(unix_target_triple)};;
+        Darwin*) build_macos_universal;;
+        Linux*) build_unix ${1:-$(unix_target_triple)};;
         MINGW*|MSYS_NT*) build_windows;;
     esac
 }

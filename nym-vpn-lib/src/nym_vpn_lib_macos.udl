@@ -4,10 +4,71 @@ typedef string NodeIdentity;
 [Custom]
 typedef string Recipient;
 
+[Custom]
+typedef string Url;
+
+[Custom]
+typedef string PrivateKey;
+
+[Custom]
+typedef string PublicKey;
+
+[Custom]
+typedef string IpAddr;
+
+[Custom]
+typedef string Ipv4Addr;
+
+[Custom]
+typedef string Ipv6Addr;
+
+[Custom]
+typedef string IpNetwork;
+
+[Custom]
+typedef string SocketAddr;
+
+[Custom]
+typedef string PresharedKey;
+
+[Error]
+interface FFIError {
+    InvalidValueUniffi();
+};
+
+dictionary TunnelConfig {
+    PrivateKey private_key;
+    sequence<IpAddr> addresses;
+};
+
+dictionary PeerConfig {
+    PublicKey public_key;
+    sequence<IpNetwork> allowed_ips;
+    SocketAddr endpoint;
+    PresharedKey? psk;
+};
+
+dictionary WgConfig {
+    TunnelConfig tunnel;
+    sequence<PeerConfig> peers;
+    Ipv4Addr ipv4_gateway;
+    Ipv6Addr? ipv6_gateway;
+    u16 mtu;
+};
+
+dictionary VPNConfig {
+    Url api_url;
+    Url explorer_url;
+    EntryPoint entry_gateway;
+    ExitPoint exit_router;
+};
+
 [Enum]
 interface EntryPoint {
   Gateway(NodeIdentity identity);
   Location(string location);
+  RandomLowLatency();
+  Random();
 };
 
 [Enum]
@@ -17,16 +78,13 @@ interface ExitPoint {
   Location(string location);
 };
 
-[Custom]
-typedef string Url;
-
 dictionary Country {
     string code;
 };
 
 namespace nym_vpn_lib_macos {
     [Async]
-    void initVPN(Url api_url, EntryPoint entry_gateway, ExitPoint exit_router);
+    void initVPN(VPNConfig config);
     [Async]
     void runVPN();
     [Async]

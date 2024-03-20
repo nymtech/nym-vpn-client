@@ -1,11 +1,11 @@
 name: release-nym-vpn-desktop
 on:
   schedule:
-    - cron: '4 4 * * *'
+    - cron: "4 4 * * *"
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag name for release'
+        description: "Tag name for release"
         required: false
         default: nightly-desktop
       publish:
@@ -24,15 +24,7 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        os:
-          [
-            ubuntu-22.04-16-core,
-            macos-12,
-            # macos-13,
-            # macos-13-xlarge, # ARM
-            macos-14,        # ARM
-            # custom-runner-mac-m1,
-          ]
+        os: [ubuntu-22.04-16-core, macos-14]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -42,31 +34,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          [
-            ubuntu-22.04-16-core,
-            macos-12,
-            # macos-13,
-            # macos-13-xlarge, # ARM
-            macos-14,        # ARM
-            # custom-runner-mac-m1,
-          ]
+        os: [ubuntu-22.04-16-core, macos-14]
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
+      UPDATER_BUNDLE_DIR: updater_bundle
 
     steps:
       - name: "Cleanup working directory"
-        if: contains(matrix.os, 'custom')
+        if: contains(matrix.os, 'macos')
         run: |
           ls -la ./
           rm -rf ./* || true
           rm -rf ./.??* || true
           ls -la ./
-
-      - name: Reconfigure git
-        run: |
-          git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
 
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -75,12 +56,12 @@ jobs:
             nym-vpn-desktop
             nym-vpn-lib
 
-      - name: Install system dependencies
+      - name: Install system dependencies (Linux)
         if: contains(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
-            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make libfuse2
 
       - name: Get package version
         id: package-version
@@ -100,40 +81,54 @@ jobs:
         run: exit 1
 
       - name: Set env
+        id: set_env
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
             platform_arch=ubuntu-22.04_x86_64
           elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
             platform_arch=ubuntu-20.04_x86_64
-          elif ${{ matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-13-xlarge' || matrix.os == 'macos-14' }}; then
-            platform_arch=macos_aarch64
-          elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
-            platform_arch=macos_x86_64
+          elif ${{ matrix.os == 'macos-14' }}; then
+            platform_arch=macos_universal
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
           fi
+          version=${{ steps.package-version.outputs.metadata }}
           wg_go_lib_name="wireguard-go_$platform_arch"
-          artifact_dir="nym-vpn-desktop_${{ steps.package-version.outputs.metadata }}_$platform_arch"
+          artifact_dir="nym-vpn-desktop_${version}_$platform_arch"
           artifact_archive="$artifact_dir.tar.gz"
           artifact_checksum="$artifact_archive.sha256sum"
+          updater_bundle_name="updater-bundle_${version}_$platform_arch"
           # debug
           echo " ✓ PLATFORM_ARCH: $platform_arch"
           echo " ✓ WG_GO_LIB_NAME: $wg_go_lib_name"
           echo " ✓ WG_GO_LIB_PATH: ${{ env.WG_GO_LIB_PATH }}"
           echo " ✓ ARTIFACT_DIR: $artifact_dir"
           echo " ✓ ARTIFACT_ARCHIVE: $artifact_archive"
+          echo " ✓ UPDATER_BUNDLE_NAME: $updater_bundle_name"
+          echo " ✓ UPDATER_BUNDLE_DIR: ${{ env.UPDATER_BUNDLE_DIR }}"
           # set github env
           echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
           echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
           echo "ARTIFACT_DIR=$artifact_dir" >> $GITHUB_ENV
           echo "ARTIFACT_ARCHIVE=$artifact_archive" >> $GITHUB_ENV
           echo "ARTIFACT_CHECKSUM=$artifact_checksum" >> $GITHUB_ENV
+          echo "UPDATER_BUNDLE_NAME=$updater_bundle_name" >> $GITHUB_ENV
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+
+      - name: Install cargo-about
+        run: cargo install --locked cargo-about
+
+      - name: Install extra arch macos
+        if: env.PLATFORM_ARCH == 'macos_universal'
+        run: |
+          rustup target add x86_64-apple-darwin
+          echo "CARGO_TARGET=--target universal-apple-darwin" >> $GITHUB_ENV
+          echo "ARCH_TARGET=universal-apple-darwin" >> $GITHUB_ENV
 
       - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/download-artifact@v4
@@ -142,9 +137,9 @@ jobs:
           path: ${{ env.WG_GO_LIB_PATH }}
 
       - name: Install Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
@@ -155,9 +150,21 @@ jobs:
       - name: Prepare desktop build
         run: mkdir nym-vpn-desktop/dist
 
-      - name: Install node dependencies
+      - name: Generate licenses file (Js)
         working-directory: nym-vpn-desktop
-        run: npm i
+        run: |
+          rm public/licenses-js.json || true
+          npm run gen:licenses:js
+
+      - name: Generate licenses file (Rust)
+        working-directory: nym-vpn-desktop
+        run: |
+          rm public/licenses-rust.json || true
+          npm run gen:licenses:rust
+
+      - name: Install JS dependencies
+        working-directory: nym-vpn-desktop
+        run: npm ci
 
       - name: Build desktop client
         working-directory: nym-vpn-desktop/src-tauri
@@ -171,20 +178,64 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
+          # TODO try fixing `error running bundle_dmg.sh` (macos build)
+          NO_STRIP: ${{ contains(matrix.os, 'mac') && 'true' }}
         shell: bash
         run: |
-          npm run tauri build
-          ls -la target/release/
-          ls -la target/release/bundle
-          ls -la target/release/bundle/*
+          npm run tauri build -- ${{ env.CARGO_TARGET }}
+          ls -la target/release/ || true
+          ls -la target/release/bundle || true
+          ls -la target/release/bundle/* || true
+          ls -la target/${{ env.ARCH_TARGET }}/release/ || true
+          ls -la target/${{ env.ARCH_TARGET }}/release/bundle || true
+          ls -la target/${{ env.ARCH_TARGET }}/release/bundle/* || true
+
+      - name: Move updater bundle artifacts (Linux)
+        if: contains(matrix.os, 'ubuntu')
+        shell: bash
+        env:
+          SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn*.AppImage.tar.gz
+          TARGET_BUNDLE: updater_amd64.AppImage.tar.gz
+        run: |
+          echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
+          rm -rf $UPDATER_BUNDLE_DIR || true
+          mkdir $UPDATER_BUNDLE_DIR
+          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
+          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
+          ls -la $UPDATER_BUNDLE_DIR
+
+      - name: Move updater bundle artifacts (Macos)
+        if: contains(matrix.os, 'mac')
+        shell: bash
+        env:
+          SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/nym-vpn.app.tar.gz
+          TARGET_BUNDLE: updater_universal.app.tar.gz
+        run: |
+          echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
+          rm -rf $UPDATER_BUNDLE_DIR || true
+          mkdir $UPDATER_BUNDLE_DIR
+          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
+          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
+          ls -la $UPDATER_BUNDLE_DIR
+
+      - name: Upload updater bundle (${{ env.PLATFORM_ARCH }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPDATER_BUNDLE_NAME }}
+          # upload both the updater bundle and its signature
+          # - updater_*.tar.gz
+          # - updater_*.tar.gz.sig
+          path: ${{ env.UPDATER_BUNDLE_DIR }}
+          retention-days: 2
 
       - name: Create archive
         shell: bash
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn*.AppImage ${{ env.ARTIFACT_DIR }} || true
-          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn*.deb ${{ env.ARTIFACT_DIR }} || true
-          cp -vpr nym-vpn-desktop/src-tauri/target/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/appimage/nym-vpn*.AppImage ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/deb/nym-vpn*.deb ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
@@ -198,7 +249,7 @@ jobs:
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
-          echo ${{ steps.package-version.outputs.metadata }} > build-info.txt
+          ./nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*_amd64.AppImage --build-info > build-info.txt
           cat build-info.txt
 
       - name: Upload build-info (${{ env.PLATFORM_ARCH }})
@@ -210,14 +261,15 @@ jobs:
           retention-days: 2
 
   publish:
-    # We need this workaround to make the publish step run even if one of the
-    # builds fail. We can't use always() since that creates an uncancellable
+    # We can't use always() since that creates an uncancellable
     # job
-    #if: github.event_name != 'workflow_dispatch' || inputs.publish == true
     #if: always() && (github.event_name != 'workflow_dispatch' || inputs.publish == true)
-    if: ${{ !cancelled() && (success() || failure() || needs.build.result == 'skipped') && (github.event_name != 'workflow_dispatch' || inputs.publish == true) }}
+    #if: ${{ !cancelled() && (success() || failure() || needs.build.result == 'skipped') && (github.event_name != 'workflow_dispatch' || inputs.publish == true) }}
+    if: github.event_name != 'workflow_dispatch' || inputs.publish == true
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.set_tag.outputs.tag }}
     env:
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -226,7 +278,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v4
+      # Downloads *all* artifacts produced by the `build` job
+      # Each individual artifact will be located in a directory
+      # named with the same name of the artifact (upload)
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
 
       # Setup TAG_NAME, which is used as a general "name"
       - if: github.event_name == 'workflow_dispatch'
@@ -236,14 +292,22 @@ jobs:
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
+      - name: Set tag
+        id: set_tag
+        run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
+
       # We don't bother publishing if not the build info is available
       - name: Check if build-info present
         run: test -f build-info/build-info.txt
 
       - name: Build info
         run: |
-          echo "BUILD_VERSION=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
-          echo "BUILD_INFO=$(cat build-info/build-info.txt)" >> $GITHUB_ENV
+          BUILD_VERSION=$(grep "package version" build-info/build-info.txt | cut -d ':' -f 2 | tr -d ' ')
+          echo BUILD_VERSION=$BUILD_VERSION
+          echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
+          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
+          cat build-info/build-info.txt >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
       - if: env.TAG_NAME == 'nightly-desktop'
         run: |
@@ -257,7 +321,7 @@ jobs:
       - if: env.TAG_NAME != 'nightly-desktop'
         run: |
           (echo "SUBJECT=$TAG_NAME"
-           echo 'PRERELEASE=--prerelease'
+           echo 'PRERELEASE='
            echo 'NOTES_FILE=release-notes-desktop.md') >> $GITHUB_ENV
 
       # Recall that download-artifact will extract into a directory that
@@ -284,5 +348,13 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/*
+
+  gen-hashes:
+    uses: ./.github/workflows/gen-hashes-json.yml
+    needs: publish
+    with:
+      release_tag: ${{ needs.publish.outputs.tag }}
+    secrets: inherit
+

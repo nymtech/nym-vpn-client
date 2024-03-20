@@ -4,7 +4,7 @@
 mod commands;
 
 use nym_vpn_lib::gateway_client::{Config as GatewayConfig, EntryPoint, ExitPoint};
-use nym_vpn_lib::{error::*, NodeIdentity};
+use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
 use nym_vpn_lib::{NymVpn, Recipient};
 
 use crate::commands::override_from_env;
@@ -27,34 +27,36 @@ pub fn setup_logging() {
 }
 
 fn parse_entry_point(args: &commands::CliArgs) -> Result<EntryPoint> {
-    if let Some(ref entry_gateway_id) = args.entry_gateway_id {
+    if let Some(ref entry_gateway_id) = args.entry.entry_gateway_id {
         Ok(EntryPoint::Gateway {
             identity: NodeIdentity::from_base58_string(entry_gateway_id.clone())
                 .map_err(|_| Error::NodeIdentityFormattingError)?,
         })
-    } else if let Some(ref entry_gateway_country) = args.entry_gateway_country {
+    } else if let Some(ref entry_gateway_country) = args.entry.entry_gateway_country {
         Ok(EntryPoint::Location {
             location: entry_gateway_country.clone(),
         })
+    } else if args.entry.entry_gateway_low_latency {
+        Ok(EntryPoint::RandomLowLatency)
     } else {
-        Err(Error::MissingEntryPointInformation)
+        Ok(EntryPoint::Random)
     }
 }
 
 fn parse_exit_point(args: &commands::CliArgs) -> Result<ExitPoint> {
-    if let Some(ref exit_router_address) = args.exit_router_address {
+    if let Some(ref exit_router_address) = args.exit.exit_router_address {
         Ok(ExitPoint::Address {
             address: Recipient::try_from_base58_string(exit_router_address.clone())
                 .map_err(|_| Error::RecipientFormattingError)?,
         })
-    } else if let Some(ref exit_router_id) = args.exit_gateway_id {
+    } else if let Some(ref exit_router_id) = args.exit.exit_gateway_id {
         Ok(ExitPoint::Gateway {
             identity: NodeIdentity::from_base58_string(exit_router_id.clone())
                 .map_err(|_| Error::NodeIdentityFormattingError)?,
         })
-    } else if let Some(ref exit_router_country) = args.exit_router_country {
+    } else if let Some(ref exit_gateway_country) = args.exit.exit_gateway_country {
         Ok(ExitPoint::Location {
-            location: exit_router_country.clone(),
+            location: exit_gateway_country.clone(),
         })
     } else {
         Err(Error::MissingExitPointInformation)
@@ -70,9 +72,21 @@ async fn run() -> Result<()> {
     // Setup gateway configuration
     let gateway_config = override_from_env(&args, GatewayConfig::default());
     info!("nym-api: {}", gateway_config.api_url());
+    info!(
+        "explorer-api: {}",
+        gateway_config
+            .explorer_url()
+            .map(|url| url.to_string())
+            .unwrap_or("unavailable".to_string())
+    );
 
     let entry_point = parse_entry_point(&args)?;
     let exit_point = parse_exit_point(&args)?;
+    let nym_ips = if let (Some(ipv4), Some(ipv6)) = (args.nym_ipv4, args.nym_ipv6) {
+        Some(IpPair::new(ipv4, ipv6))
+    } else {
+        None
+    };
 
     let mut nym_vpn = NymVpn::new(entry_point, exit_point);
     nym_vpn.gateway_config = gateway_config;
@@ -80,7 +94,7 @@ async fn run() -> Result<()> {
     nym_vpn.enable_wireguard = args.enable_wireguard;
     nym_vpn.private_key = args.private_key;
     nym_vpn.wg_ip = args.wg_ip;
-    nym_vpn.nym_ip = args.nym_ip;
+    nym_vpn.nym_ips = nym_ips;
     nym_vpn.nym_mtu = args.nym_mtu;
     nym_vpn.disable_routing = args.disable_routing;
     nym_vpn.enable_two_hop = args.enable_two_hop;

@@ -17,6 +17,16 @@ export interface TunnelConfig {
   name: string;
 }
 
+export type CodeDependency = {
+  name: string;
+  version?: string;
+  licenses: string[];
+  licenseTexts: string[];
+  repository?: string;
+  authors: string[];
+  copyright?: string;
+};
+
 export type AppState = {
   // initial loading phase when the app is starting and fetching data from the backend
   initialized: boolean;
@@ -39,8 +49,11 @@ export type AppState = {
   entryNodeLocation: NodeLocation;
   exitNodeLocation: NodeLocation;
   fastestNodeLocation: Country;
-  countryList: Country[];
+  entryCountryList: Country[];
+  exitCountryList: Country[];
   rootFontSize: number;
+  codeDepsJs: CodeDependency[];
+  codeDepsRust: CodeDependency[];
 };
 
 export type ConnectionEventPayload = {

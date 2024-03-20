@@ -36,18 +36,10 @@ impl Tunnel {
             let command_tx = Arc::new(command_tx);
             let weak_command_tx = Arc::downgrade(&command_tx);
             debug!("Starting firewall");
-            let firewall = Firewall::new()?;
+            let firewall = Firewall::new()
+                .map_err(|err| crate::error::Error::FirewallError(err.to_string()))?;
             debug!("Starting dns monitor");
             let dns_monitor = DnsMonitor::new(weak_command_tx)?;
-            (firewall, dns_monitor)
-        };
-
-        #[cfg(target_os = "windows")]
-        let (firewall, dns_monitor) = {
-            debug!("Starting firewall");
-            let firewall = Firewall::new()?;
-            debug!("Starting dns monitor");
-            let dns_monitor = DnsMonitor::new()?;
             (firewall, dns_monitor)
         };
 
@@ -55,7 +47,8 @@ impl Tunnel {
         let (firewall, dns_monitor) = {
             let fwmark = 0; // ?
             debug!("Starting firewall");
-            let firewall = Firewall::new(fwmark)?;
+            let firewall = Firewall::new(fwmark)
+                .map_err(|err| crate::error::Error::FirewallError(err.to_string()))?;
             debug!("Starting dns monitor");
             let dns_monitor = DnsMonitor::new(
                 tokio::runtime::Handle::current(),
@@ -66,7 +59,10 @@ impl Tunnel {
 
         #[cfg(all(not(target_os = "macos"), not(target_os = "linux")))]
         let (firewall, dns_monitor) = {
-            let firewall = Firewall::new()?;
+            debug!("Starting firewall");
+            let firewall = Firewall::new()
+                .map_err(|err| crate::error::Error::FirewallError(err.to_string()))?;
+            debug!("Starting dns monitor");
             let dns_monitor = DnsMonitor::new()?;
             (firewall, dns_monitor)
         };

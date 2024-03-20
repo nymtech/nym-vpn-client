@@ -11,12 +11,10 @@
   },
   "tauri": {
     "updater": {
-      "active": false,
-      "endpoints": [
-        "https://releases.myapp.com/{{target}}/{{arch}}/{{current_version}}"
-      ],
+      "active": true,
       "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDUxMjFCMDhFOTczQzE5MjUKUldRbEdUeVhqckFoVVljRDZNZkRQZzIyYTBSZUVmSk1SVUlaTC9OeTk0NDFYUVl1blhWV2VTQi8K"
+      "endpoints": ["https://nymvpn.net/api/updater/vpn"],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU3RjI2N0FFRUEyRERGOEQKUldTTjN5M3FybWZ5VjhxOFRsLzQ2c1N0NW1PVVNxVEVVQkszYjZHc3RtcEFDOW1ZN2lIN1NGdk0K"
     },
     "allowlist": {
       "all": false,
@@ -54,9 +52,12 @@
       {
         "fullscreen": false,
         "resizable": true,
+        "visible": false,
+        "center": true,
         "title": "NymVPN",
-        "width": 456,
-        "height": 987,
+        "hiddenTitle": true,
+        "width": 410,
+        "height": 888,
         "minWidth": 160,
         "minHeight": 346,
         "maxWidth": 600,

@@ -12,7 +12,7 @@ export type RadioGroupOption<K extends Key> = {
   icon?: React.ReactNode;
   cursor?: RadioGroupOptionCursor;
   // custom style applied to the container of the option
-  style?: string;
+  className?: string;
 };
 
 export type RadioGroupProps<K extends Key> = {
@@ -58,9 +58,11 @@ function RadioGroup<K extends Key>({
               className={({ checked }) =>
                 clsx([
                   'bg-white dark:bg-baltic-sea-jaguar relative flex rounded-lg px-5 py-2 focus:outline-none',
-                  checked && 'border border-melon',
+                  checked && 'border border-melon hover:border-melon',
                   !checked &&
-                    'border border-white dark:border-baltic-sea-jaguar',
+                    'border border-white dark:border-baltic-sea-jaguar hover:border-platinum dark:hover:border-baltic-sea-jaguar',
+                  'hover:bg-platinum dark:hover:bg-onyx',
+                  'transition',
                   option.cursor === 'default' && 'cursor-default',
                   option.cursor === 'pointer' && 'cursor-pointer',
                   option.cursor === 'not-allowed' && 'cursor-not-allowed',
@@ -72,8 +74,8 @@ function RadioGroup<K extends Key>({
                 return (
                   <div
                     className={clsx([
-                      'flex flex-1 items-center justify-between gap-4',
-                      option.style && option.style,
+                      'overflow-hidden flex flex-1 items-center justify-start gap-4',
+                      option.className && option.className,
                     ])}
                   >
                     {checked ? (
@@ -90,26 +92,24 @@ function RadioGroup<K extends Key>({
                         {option.icon}
                       </div>
                     )}
-                    <div className="flex flex-1 items-center">
-                      <div className="text-sm">
-                        <HuRadioGroup.Label
-                          as="p"
-                          className={clsx([
-                            'text-base text-baltic-sea dark:text-mercury-pinkish',
-                            checked && 'font-semibold',
-                          ])}
+                    <div className="min-w-0 flex flex-col justify-center">
+                      <HuRadioGroup.Label
+                        as="p"
+                        className={clsx([
+                          'truncate text-base text-baltic-sea dark:text-mercury-pinkish',
+                          checked && 'font-semibold',
+                        ])}
+                      >
+                        {option.label}
+                      </HuRadioGroup.Label>
+                      {option.desc && (
+                        <HuRadioGroup.Description
+                          as="span"
+                          className="truncate text-sm text-cement-feet dark:text-mercury-mist"
                         >
-                          {option.label}
-                        </HuRadioGroup.Label>
-                        {option.desc && (
-                          <HuRadioGroup.Description
-                            as="span"
-                            className="text-sm text-cement-feet dark:text-mercury-mist"
-                          >
-                            <span>{option.desc}</span>
-                          </HuRadioGroup.Description>
-                        )}
-                      </div>
+                          <span>{option.desc}</span>
+                        </HuRadioGroup.Description>
+                      )}
                     </div>
                   </div>
                 );

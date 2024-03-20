@@ -19,70 +19,131 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # windows-2022 is incredibly slow right now https://github.com/actions/runner-images/issues/7320
-        # os: [ubuntu-22.04, macos-latest, windows-2019]
-        os: [ubuntu-22.04, macos-latest]
-    continue-on-error: ${{ matrix.os == 'windows-2019' }}
+        os: [ ubuntu-22.04-arc, custom-runner-mac-m1, windows-2022 ]
+        target: [ native ]
+        include:
+          - os: ubuntu-20.04
+            target: android
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Reconfigure git
-      run: |
-        git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
+      - name: 'Cleanup working directory'
+        if: contains(matrix.os, 'custom')
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
 
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make
+        if: contains(matrix.os, 'ubuntu')
 
-    - name: Support longpaths on windows
-      if: contains(matrix.os, 'windows')
-      run: git config --system core.longpaths true
+      - name: Support longpaths on windows
+        if: contains(matrix.os, 'windows')
+        run: git config --system core.longpaths true
 
-    - name: Install system dependencies
-      run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
-      if: matrix.os == 'ubuntu-22.04'
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Install rust toolchain
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
-        components: rustfmt, clippy
+      - name: Install rust toolchain
+        id: rust-toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
 
-    - name: Set LIBRARY_PATH
-      shell: bash
-      run: |
-        if ${{ contains(matrix.os, 'ubuntu') }}; then
-          echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu" >> $GITHUB_ENV
-        elif ${{ contains(matrix.os, 'macos') }}; then
-          echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-apple-darwin" >> $GITHUB_ENV
-        elif ${{ contains(matrix.os, 'windows') }}; then
-          echo "LIBRARY_PATH=${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc" >> $GITHUB_ENV
-        fi
+      - name: Install cargo ndk
+        if: contains(matrix.target, 'android')
+        run: cargo install cargo-ndk
 
-    - name: Install Protoc
-      uses: arduino/setup-protoc@v2
-      if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        if: contains(matrix.target, 'android')
+        with:
+          ndk-version: r21e
+          add-to-path: false
+          local-cache: true
 
-    - name: Check formatting
-      run: cargo fmt --all -- --check
+      - name: Add iOS target
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        run: rustup target add aarch64-apple-ios
 
-    - name: Build wireguard
-      run: ./wireguard/build-wireguard-go.sh
+      - name: Add Android target
+        if: contains(matrix.target, 'android')
+        run: rustup target add aarch64-linux-android
 
-    - name: Build
-      run: cargo build --verbose
-      env:
-        RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ steps.rust-toolchain.outputs.cachekey }}
+          workspaces: |
+            nym-vpn-cli
 
-    - name: Run tests
-      run: cargo test --verbose
-      env:
-        RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+      - name: Set env
+        shell: bash
+        run: |
+          if ${{ contains(matrix.os, 'ubuntu') && contains(matrix.target, 'native') }}; then
+            triplet=x86_64-unknown-linux-gnu
+          elif ${{ matrix.target == 'android' }}; then
+            triplet=aarch64-linux-android
+            echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
+          elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
+            triplet=x86_64-apple-darwin
+          elif ${{ contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') }}; then
+            triplet=universal-apple-darwin
+          elif ${{ contains(matrix.os, 'windows') }}; then
+            triplet=x86_64-pc-windows-msvc
+          else
+            echo " ✗ unknown platform/arch [${{ matrix.os }}]"
+            exit 1
+          fi
+          echo "TRIPLET=$triplet" >> $GITHUB_ENV
+          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
 
-    - name: Clippy
-      run: cargo clippy -- -Dwarnings
-      env:
-        RUSTFLAGS: "-L ${{ env.LIBRARY_PATH }}"
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 'stable'
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v2
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: rustfmt check
+        run: cargo fmt --check
+
+      - name: Build wireguard
+        run: ./wireguard/build-wireguard-go.sh
+
+      - name: Build wireguard (Android)
+        if: contains(matrix.target, 'android')
+        run: ./wireguard/build-wireguard-go.sh --android --no-docker
+
+      - name: Build
+        if: "!contains(matrix.os, 'windows') && !contains(matrix.target, 'android')"
+        run: cargo build --verbose
+
+      - name: Build (Android)
+        if: contains(matrix.target, 'android')
+        run: cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
+
+      - name: Build (iOS)
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        run: cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
+
+      - name: Run tests
+        if: "!contains(matrix.os, 'windows') && !contains(matrix.target, 'android')"
+        run: cargo test --verbose
+
+      - name: Clippy
+        run: cargo clippy -- -Dwarnings
+
+      - name: Clippy (Android)
+        if: contains(matrix.target, 'android')
+        run: cargo ndk  -t aarch64-linux-android clippy -p nym-vpn-lib -- -Dwarnings
+
+      - name: Clippy (iOS)
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        run: cargo clippy --target aarch64-apple-ios -p nym-vpn-lib -- -Dwarnings

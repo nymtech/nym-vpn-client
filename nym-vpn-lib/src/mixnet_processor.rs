@@ -6,8 +6,10 @@ use std::time::Duration;
 use bytes::{Bytes, BytesMut};
 use futures::{SinkExt, StreamExt};
 use nym_ip_packet_requests::{
-    codec::MultiIpPacketCodec, request::IpPacketRequest, response::IpPacketResponse,
+    codec::MultiIpPacketCodec,
+    request::IpPacketRequest,
     response::IpPacketResponseData,
+    response::{InfoLevel, IpPacketResponse},
 };
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
@@ -126,7 +128,7 @@ impl MixnetProcessor {
     pub async fn run(self, mut shutdown: TaskClient) -> Result<AsyncDevice> {
         info!(
             "Opened mixnet processor on tun device {}",
-            self.device.as_ref().name().unwrap(),
+            self.device.as_ref().tun_name().unwrap(),
         );
 
         debug!("Splitting tun device into sink and stream");
@@ -218,8 +220,13 @@ impl MixnetProcessor {
                             IpPacketResponseData::Health(_) => {
                                 info!("Received health response, ignoring for now");
                             }
-                            IpPacketResponseData::Error(error) => {
-                                error!("Received error response from the mixnet: {}", error.reply);
+                            IpPacketResponseData::Info(info) => {
+                                let msg = format!("Received info response from the mixnet: {}", info.reply);
+                                match info.level {
+                                    InfoLevel::Info => log::info!("{msg}"),
+                                    InfoLevel::Warn => log::warn!("{msg}"),
+                                    InfoLevel::Error => log::error!("{msg}"),
+                                }
                             }
                         },
                         Err(err) => {

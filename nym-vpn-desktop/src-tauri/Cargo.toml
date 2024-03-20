@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-desktop"
-version = "0.0.5-dev"
+version = "0.0.9-dev"
 description = "Nym VPN Desktop Client"
 authors = ["pierre <dommerc.pierre@gmail.com>", "zane <zanecschepke@gmail.com>", "nym"]
 license = "GPL-3.0-only"
@@ -9,9 +9,10 @@ edition = "2021"
 
 [build-dependencies]
 tauri-build = { version = "1.5", features = [] }
+build-info-build = "0.0.34"
 
 [dependencies]
-tauri = { version = "1.5.2", features = [ "process-all", "shell-open"] }
+tauri = { version = "1.6.0", features = [ "updater", "process-all", "shell-open"] }
 tokio = { version = "1.33", features = ["rt", "sync", "time", "fs"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -29,6 +30,10 @@ nym-vpn-lib = { path = "../../nym-vpn-lib" }
 futures = "0.3.15"
 reqwest = { version = "0.11", features = ["json"] }
 itertools = "0.12"
+clap = { version = "4.5", features = ["derive"] }
+build-info = "0.0.34"
+sled = "0.34.7"
+strum = { version = "0.26", features = ["derive"] }
 
 # TODO Ugly workaround to force a working setup for nym-vpn-lib
 # We should get rid of this ASAP
@@ -36,7 +41,8 @@ shadowsocks = { version = "~1.14.2" }
 shadowsocks-service = { version = "~1.14.3" }
 
 # TODO keep the rev in sync with the one used in nym-vpn-lib
-nym-explorer-api-requests = { git = "https://github.com/nymtech/nym", rev = "cec05a99f4e71d6c719b2dd16f61a9d6085d658f" }
+nym-explorer-api-requests = { git = "https://github.com/nymtech/nym", rev = "9ff37d2f9f27762d8900e353306029ed13abfb6c" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", rev = "9ff37d2f9f27762d8900e353306029ed13abfb6c" }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

@@ -6,14 +6,14 @@ import { useMainDispatch, useMainState } from '../../contexts';
 import {
   CmdError,
   Country,
-  InputEvent,
   NodeHop,
   NodeLocation,
   StateDispatch,
   isCountry,
 } from '../../types';
-import { FastestFeatureEnabled, routes } from '../../constants';
-import SearchBox from './SearchBox';
+import { FastestFeatureEnabled } from '../../constants';
+import { routes } from '../../router';
+import { PageAnim, TextInput } from '../../ui';
 import CountryList from './CountryList';
 
 export type UiCountry = {
@@ -26,7 +26,8 @@ function NodeLocation({ node }: { node: NodeHop }) {
   const {
     entryNodeLocation,
     exitNodeLocation,
-    countryList,
+    entryCountryList,
+    exitCountryList,
     fastestNodeLocation,
   } = useMainState();
 
@@ -47,11 +48,16 @@ function NodeLocation({ node }: { node: NodeHop }) {
 
   // request backend to refresh cache
   useEffect(() => {
-    invoke<Country[]>('get_node_countries')
+    invoke<Country[]>('get_countries', {
+      nodeType: node === 'entry' ? 'Entry' : 'Exit',
+    })
       .then((countries) => {
         dispatch({
           type: 'set-country-list',
-          countries,
+          payload: {
+            hop: node,
+            countries,
+          },
         });
       })
       .catch((e: CmdError) =>
@@ -64,11 +70,12 @@ function NodeLocation({ node }: { node: NodeHop }) {
         })
         .catch((e: CmdError) => console.error(e));
     }
-  }, [dispatch]);
+  }, [node, dispatch]);
 
   // update the UI country list whenever the country list or
   // fastest country change (likely from the backend)
   useEffect(() => {
+    const countryList = node === 'entry' ? entryCountryList : exitCountryList;
     const list = [
       ...countryList.map((country) => ({ country, isFastest: false })),
     ];
@@ -79,22 +86,21 @@ function NodeLocation({ node }: { node: NodeHop }) {
     setUiCountryList(list);
     setFilteredCountries(list);
     setSearch('');
-  }, [countryList, fastestNodeLocation]);
+  }, [node, entryCountryList, exitCountryList, fastestNodeLocation]);
 
-  const filter = (e: InputEvent) => {
-    const keyword = e.target.value;
-    if (keyword !== '') {
+  const filter = (value: string) => {
+    if (value !== '') {
       const list = uiCountryList.filter((uiCountry) => {
         return uiCountry.country.name
           .toLowerCase()
-          .startsWith(keyword.toLowerCase());
+          .startsWith(value.toLowerCase());
         // Use the toLowerCase() method to make it case-insensitive
       });
       setFilteredCountries(list);
     } else {
       setFilteredCountries(uiCountryList);
     }
-    setSearch(keyword);
+    setSearch(value);
   };
 
   const isCountrySelected = (
@@ -125,19 +131,23 @@ function NodeLocation({ node }: { node: NodeHop }) {
         payload: { hop: node, location },
       });
     } catch (e) {
-      console.log(e);
+      console.warn(e);
     }
     navigate(routes.root);
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <PageAnim className="h-full flex flex-col">
       <div className="h-70 flex flex-col justify-center items-center gap-y-2 pt-3">
-        <SearchBox
-          value={search}
-          onChange={filter}
-          placeholder={t('search-country')}
-        />
+        <div className="w-full flex flex-row items-center px-4 mb-2">
+          <TextInput
+            value={search}
+            onChange={filter}
+            placeholder={t('search-country')}
+            leftIcon="search"
+            label={t('input-label')}
+          />
+        </div>
         <span className="mt-2" />
         <CountryList
           countries={filteredCountries}
@@ -150,7 +160,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
           }}
         />
       </div>
-    </div>
+    </PageAnim>
   );
 }
 

@@ -1,6 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_client_core::error::ClientCoreError;
 use nym_ip_packet_requests::{
     response::DynamicConnectFailureReason, response::StaticConnectFailureReason,
 };
@@ -22,8 +23,11 @@ pub enum Error {
     #[error("{0}")]
     DNSError(#[from] talpid_core::dns::Error),
 
+    // We are not returning the underlying talpid_core::firewall:Error error as I ran into issues
+    // with the Send marker trait not being implemented when building on Mac. Possibly we can fix
+    // this in the future.
     #[error("{0}")]
-    FirewallError(#[from] talpid_core::firewall::Error),
+    FirewallError(String),
 
     #[error("{0}")]
     WireguardError(#[from] talpid_wireguard::Error),
@@ -49,7 +53,7 @@ pub enum Error {
     #[error("recipient is not formatted correctly")]
     RecipientFormattingError,
 
-    #[error("{0}")]
+    #[error("failed setting up local TUN network device: {0}")]
     TunError(#[from] tun2::Error),
 
     #[error("{0}")]
@@ -57,6 +61,14 @@ pub enum Error {
 
     #[error("{0}")]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
+
+    #[error(transparent)]
+    ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
+
+    #[error("failed to fetch location data from explorer-api: {error}")]
+    FailedFetchLocationData {
+        error: nym_explorer_client::ExplorerApiError,
+    },
 
     #[error("missing Gateway exit information")]
     MissingExitPointInformation,
@@ -84,6 +96,9 @@ pub enum Error {
         source: nym_validator_client::ValidatorClientError,
     },
 
+    #[error("gateway was requested by location, but we don't have any location data - is the explorer-api set correctly?")]
+    RequestedGatewayByLocationWithoutLocationDataAvailable,
+
     #[error("requested gateway not found in the remote list: {0}")]
     RequestedGatewayIdNotFound(String),
 
@@ -99,8 +114,11 @@ pub enum Error {
     #[error("could not obtain the LAN gateway from default interface: {0}")]
     DefaultInterfaceGatewayError(String),
 
-    #[error("received response with invalid version, expected v{expected}, got v{received}")]
-    InvalidVersion { expected: u8, received: u8 },
+    #[error("received response with version v{received}, the client is too new and can only understand v{expected}")]
+    ReceivedResponseWithOldVersion { expected: u8, received: u8 },
+
+    #[error("received response with version v{received}, the client is too old and can only understand v{expected}")]
+    ReceivedResponseWithNewVersion { expected: u8, received: u8 },
 
     #[error("got reply for connect request, but it appears intended for the wrong address?")]
     GotReplyIntendedForWrongAddress,
@@ -126,6 +144,15 @@ pub enum Error {
     #[error("no matching gateway found")]
     NoMatchingGateway,
 
+    #[error("no gateway available for location {0}")]
+    NoMatchingGatewayForLocation(String),
+
+    #[error("failed to select gateway based on low latency: {source}")]
+    FailedToSelectGatewayBasedOnLowLatency { source: ClientCoreError },
+
+    #[error("failed to select gateway randomly")]
+    FailedToSelectGatewayRandomly,
+
     #[error("deadlock when trying to aquire mixnet client mutes")]
     MixnetClientDeadlock,
 
@@ -138,11 +165,16 @@ pub enum Error {
     #[error("vpn errored on stop")]
     StopError,
 
+    #[cfg(any(unix, target_os = "android"))]
     #[error("{0}")]
     TunProvider(#[from] talpid_tunnel::tun_provider::Error),
 
     #[error("{0}")]
     TalpidCoreMpsc(#[from] talpid_core::mpsc::Error),
+
+    #[cfg(target_os = "ios")]
+    #[error("{0}")]
+    UniffiError(#[from] crate::platform::error::FFIError),
 }
 
 // Result type based on our error type

@@ -1,11 +1,7 @@
 import { mockIPC, mockWindows } from '@tauri-apps/api/mocks';
 import { emit } from '@tauri-apps/api/event';
-import {
-  AppDataFromBackend,
-  ConnectionState,
-  NodeLocationBackend,
-} from '../types';
-import { ConnectionEvent, DefaultNodeCountry } from '../constants';
+import { ConnectionState, DbKey, NodeLocationBackend } from '../types';
+import { ConnectionEvent } from '../constants';
 import { Country } from '../types';
 
 export function mockTauriIPC() {
@@ -20,7 +16,7 @@ export function mockTauriIPC() {
         setTimeout(async () => {
           await emit(ConnectionEvent, { state: 'Connected' });
           resolve('Connected');
-        }, 2000),
+        }, 1),
       );
     }
     if (cmd === 'disconnect') {
@@ -29,16 +25,14 @@ export function mockTauriIPC() {
         setTimeout(async () => {
           await emit(ConnectionEvent, { state: 'Disconnected' });
           resolve('Disconnected');
-        }, 2000),
+        }, 1),
       );
     }
     if (cmd === 'get_connection_state') {
-      return new Promise<ConnectionState>((resolve) =>
-        setTimeout(() => resolve('Disconnected'), 2000),
-      );
+      return 'Disconnected';
     }
 
-    if (cmd === 'get_node_countries') {
+    if (cmd === 'get_countries') {
       return new Promise<Country[]>((resolve) =>
         resolve([
           {
@@ -82,26 +76,19 @@ export function mockTauriIPC() {
       );
     }
 
-    if (cmd === 'set_root_font_size') {
-      return new Promise<void>((resolve) => resolve());
-    }
-
-    if (cmd === 'get_app_data') {
-      return new Promise<AppDataFromBackend>((resolve) =>
-        resolve({
-          monitoring: false,
-          autoconnect: false,
-          killswitch: false,
-          entry_location_selector: false,
-          ui_theme: 'Dark',
-          ui_root_font_size: 12,
-          vpn_mode: 'TwoHop',
-          // entry_node_location: 'Fastest',
-          // exit_node_location: 'Fastest',
-          entry_node_location: { Country: DefaultNodeCountry },
-          exit_node_location: { Country: DefaultNodeCountry },
-        }),
-      );
+    if (cmd === 'db_get') {
+      let res: unknown;
+      switch (args.key as DbKey) {
+        case 'UiRootFontSize':
+          res = 12;
+          break;
+        case 'UiTheme':
+          res = 'Dark';
+          break;
+        default:
+          return null;
+      }
+      return new Promise((resolve) => resolve(res));
     }
   });
 }

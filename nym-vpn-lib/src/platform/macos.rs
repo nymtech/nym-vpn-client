@@ -3,23 +3,12 @@
 
 use super::*;
 use crate::gateway_client::{EntryPoint, ExitPoint};
-use crate::{NymVpn, UniffiCustomTypeConverter};
+use crate::NymVpn;
 use log::warn;
 use oslog::OsLogger;
-use std::str::FromStr;
+use std::net::{Ipv4Addr, Ipv6Addr};
+use talpid_types::net::wireguard::{PeerConfig, TunnelConfig};
 use url::Url;
-
-impl UniffiCustomTypeConverter for Url {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(Url::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
 
 fn init_logs() {
     OsLogger::new("net.nymtech.vpn.agent")
@@ -38,8 +27,24 @@ fn init_logs() {
     debug!("Logger initialized");
 }
 
+#[derive(Clone)]
+pub struct WgConfig {
+    pub tunnel: TunnelConfig,
+    pub peers: Vec<PeerConfig>,
+    pub ipv4_gateway: Ipv4Addr,
+    pub ipv6_gateway: Option<Ipv6Addr>,
+    pub mtu: u16,
+}
+
+pub struct VPNConfig {
+    pub api_url: Url,
+    pub explorer_url: Url,
+    pub entry_gateway: EntryPoint,
+    pub exit_router: ExitPoint,
+}
+
 #[allow(non_snake_case)]
-pub async fn initVPN(api_url: Url, entry_gateway: EntryPoint, exit_router: ExitPoint) {
+pub async fn initVPN(config: VPNConfig) {
     init_logs();
 
     if get_vpn_state().await != ClientState::Uninitialised {
@@ -47,8 +52,9 @@ pub async fn initVPN(api_url: Url, entry_gateway: EntryPoint, exit_router: ExitP
         return;
     }
 
-    let mut vpn = NymVpn::new(entry_gateway, exit_router);
-    vpn.gateway_config.api_url = api_url;
+    let mut vpn = NymVpn::new(config.entry_gateway, config.exit_router);
+    vpn.gateway_config.api_url = config.api_url;
+    vpn.gateway_config.explorer_url = Some(config.explorer_url);
 
     set_inited_vpn(vpn).await
 }

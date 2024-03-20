@@ -1,0 +1,23 @@
+[package]
+name = "nym-vpnd"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-only"
+
+[dependencies]
+clap = "4.5.1"
+futures = "0.3.15"
+nym-vpn-lib = { path = "../nym-vpn-lib" }
+reqwest = { version = "0.11.24", default-features = false, features = ["rustls"] }
+tokio = { workspace = true, features = ["full"]}
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[build-dependencies]
+vergen = { version = "8.2.6", default-features = false, features = [
+    "build",
+    "git",
+    "gitcl",
+    "rustc",
+    "cargo",
+] }

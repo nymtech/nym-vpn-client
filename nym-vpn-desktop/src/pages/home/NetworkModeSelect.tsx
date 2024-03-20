@@ -1,11 +1,9 @@
-/// <reference types="vite-plugin-svgr/client" />
-
 import { useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api';
 import { useTranslation } from 'react-i18next';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { StateDispatch, VpnMode } from '../../types';
-import MixnetIcon from '../../assets/icons/mixnet.svg?react';
+import { MixnetIcon } from '../../assets/icons';
 import { RadioGroup, RadioGroupOption, RadioGroupOptionCursor } from '../../ui';
 
 function NetworkModeSelect() {
@@ -22,7 +20,7 @@ function NetworkModeSelect() {
         await invoke<void>('set_vpn_mode', { mode: value });
         dispatch({ type: 'set-vpn-mode', mode: value });
       } catch (e) {
-        console.log(e);
+        console.warn(e);
       } finally {
         setLoading(false);
       }

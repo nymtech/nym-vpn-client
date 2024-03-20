@@ -10,25 +10,16 @@ on:
       - "nym-vpn-lib/**"
       - ".github/workflows/ci-nym-vpn-desktop-rust.yml"
 
-jobs:
-  build-wireguard-go:
-    strategy:
-      matrix:
-        os: [ubuntu-22.04, custom-runner-mac-m1]
-    uses: ./.github/workflows/build-wireguard-go.yml
-    with:
-      os: ${{ matrix.os }}
+env:
+  CARGO_TERM_COLOR: always
 
+jobs:
   check:
-    needs: build-wireguard-go
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, custom-runner-mac-m1]
+        os: [ubuntu-22.04-arc, custom-runner-mac-m1]
     runs-on: ${{ matrix.os }}
-    env:
-      CARGO_TERM_COLOR: always
-      WG_GO_LIB_PATH: ${{ github.workspace }}/lib
 
     steps:
       - name: 'Cleanup working directory'
@@ -39,80 +30,74 @@ jobs:
           rm -rf ./.??* || true
           ls -la ./
 
-      - name: Reconfigure git
-        run: |
-          git config --global --replace-all "url.https://${{ secrets.MACHINE_USER_NAME }}:${{ secrets.MACHINE_USER_PAT }}@github.com.insteadOf" ssh://git@github.com
-
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            nym-vpn-desktop
-            nym-vpn-lib
-
-      - name: Set env
-        run: |
-          if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
-            platform_arch=ubuntu-22.04_x86_64
-          elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
-            platform_arch=ubuntu-20.04_x86_64
-          elif ${{ contains(matrix.os, 'mac-m1') }}; then
-            platform_arch=macos_aarch64
-          elif ${{ contains(matrix.os, 'macos') }}; then
-            platform_arch=macos_x86_64
-          else
-            echo " ✗ unknown platform/arch [${{ matrix.os }}]"
-            exit 1
-          fi
-          wg_go_lib_name="wireguard-go_$platform_arch"
-          # debug
-          echo " ✓ PLATFORM_ARCH: $platform_arch"
-          echo " ✓ WG_GO_LIB_NAME: $wg_go_lib_name"
-          echo " ✓ WG_GO_LIB_PATH: ${{ env.WG_GO_LIB_PATH }}"
-          # set github env
-          echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
-          echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
-
-      - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.WG_GO_LIB_NAME }}
-          path: ${{ env.WG_GO_LIB_PATH }}
-
-      - name: Get version
-        working-directory: nym-vpn-desktop/src-tauri
-        run: |
-          version=$(jq '.package.version' --raw-output tauri.conf.json)
-          echo " ✓ App version: $version"
-          echo "APP_VERSION=$version" >> $GITHUB_ENV
-
       - name: Install system dependencies
         if: contains(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
-            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev git curl gcc g++ make
 
-      - name: Install Protoc
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set env
+        run: |
+          if ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
+            platform_arch=ubuntu-20.04_x86_64
+            triplet=x86_64-unknown-linux-gnu
+          elif ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
+            platform_arch=ubuntu-22.04_x86_64
+            triplet=x86_64-unknown-linux-gnu
+          elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
+            platform_arch=macos_x86_64
+            triplet=x86_64-apple-darwin
+          elif ${{ contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') }}; then
+            # platform_arch=macos_aarch64
+            platform_arch=macos_universal
+            triplet=universal-apple-darwin
+          else
+            echo " ✗ unknown platform/arch [${{ matrix.os }}]"
+            exit 1
+          fi
+          echo " ✓ PLATFORM_ARCH: $platform_arch"
+          echo " ✓ TRIPLET: $triplet"
+          echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
+          echo "TRIPLET=$triplet" >> $GITHUB_ENV
+          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
+
+      - name: Install rust toolchain
+        id: rust-toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ steps.rust-toolchain.outputs.cachekey }}
+          workspaces: |
+            nym-vpn-desktop/src-tauri
+          cache-directories: |
+            nym-vpn-desktop/src-tauri/icons
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 'stable'
+
+      - name: Install protoc
         uses: arduino/setup-protoc@v2
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
+      - name: Build wireguard
+        run: ./wireguard/build-wireguard-go.sh
 
-      - name: Fmt check
+      - name: rustfmt check
         working-directory: nym-vpn-desktop/src-tauri
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo fmt --check
 
-      - name: Clippy check
+      - name: clippy check
         working-directory: nym-vpn-desktop/src-tauri
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo clippy -- -Dwarnings
 

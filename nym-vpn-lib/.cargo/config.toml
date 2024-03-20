@@ -1,0 +1,8 @@
+[target.aarch64-linux-android]
+rustflags = ["-L", "./android/app/build/extraJni/arm64-v8a"]
+[target.x86_64-linux-android]
+rustflags = ["-L", "./android/app/build/extraJni/x86_64"]
+[target.armv7-linux-androideabi]
+rustflags = ["-L", "./android/app/build/extraJni/armeabi-v7a"]
+[target.i686-linux-android]
+rustflags = ["-L", "./android/app/build/extraJni/x86"]

@@ -5,22 +5,34 @@ use futures::channel::mpsc::UnboundedSender;
 use nym_vpn_lib::NymVpnCtrlMessage;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+use tracing::trace;
 use ts_rs::TS;
 
 use crate::{
     country::{Country, DEFAULT_COUNTRY_CODE},
-    fs::{config::AppConfig, data::AppData},
+    db::{Db, Key},
+    fs::config::AppConfig,
 };
 
-#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
 #[ts(export)]
 pub enum ConnectionState {
+    // TODO: once the frontend can handle it, include the connection info as part of the connection
+    // state.
+    //Connected(ConnectionInfo),
     Connected,
     #[default]
     Disconnected,
     Connecting,
     Disconnecting,
     Unknown,
+}
+
+#[allow(unused)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[ts(export)]
+pub struct ConnectionInfo {
+    pub gateway: String,
 }
 
 #[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq)]
@@ -50,14 +62,24 @@ pub struct AppState {
     pub vpn_ctrl_tx: Option<UnboundedSender<NymVpnCtrlMessage>>,
 }
 
-impl TryFrom<(&AppData, &AppConfig)> for AppState {
+impl AppState {
+    pub fn set_connected(&mut self, start_time: OffsetDateTime, _gateway: String) {
+        trace!("update connection state [Connected]");
+        // TODO: once the frontend can handle it, set the gateway as part of the connection state
+        //self.state = ConnectionState::Connected(ConnectionInfo { gateway });
+        self.state = ConnectionState::Connected;
+        self.connection_start_time = Some(start_time);
+    }
+}
+
+impl TryFrom<(&Db, &AppConfig)> for AppState {
     type Error = anyhow::Error;
 
-    fn try_from(saved_data: (&AppData, &AppConfig)) -> Result<Self, Self::Error> {
+    fn try_from(store: (&Db, &AppConfig)) -> Result<Self, Self::Error> {
         // retrieve default entry and exit node locations set from
         // the config file
         let default_entry_node_location = Country::try_from(
-            saved_data
+            store
                 .1
                 .default_entry_node_location_code
                 .as_deref()
@@ -66,7 +88,7 @@ impl TryFrom<(&AppData, &AppConfig)> for AppState {
         .map_err(|e| anyhow!("failed to retrieve default entry node location: {e}"))?;
 
         let default_exit_node_location = Country::try_from(
-            saved_data
+            store
                 .1
                 .default_exit_node_location_code
                 .as_deref()
@@ -74,22 +96,19 @@ impl TryFrom<(&AppData, &AppConfig)> for AppState {
         )
         .map_err(|e| anyhow!("failed to retrieve default exit node location: {e}"))?;
 
+        // retrieve the saved app data from the embedded db
+        let entry_node_location = store.0.get_typed::<NodeLocation>(Key::EntryNodeLocation)?;
+        let exit_node_location = store.0.get_typed::<NodeLocation>(Key::ExitNodeLocation)?;
+        let vpn_mode = store.0.get_typed::<VpnMode>(Key::VpnMode)?;
+
         // restore any state from the saved app data (previous user session)
         // fallback to config file for locations if not present
         Ok(AppState {
-            entry_node_location: saved_data.0.entry_node_location.clone().unwrap_or_else(|| {
-                #[cfg(not(feature = "fastest-location"))]
-                return NodeLocation::Country(default_entry_node_location);
-                #[cfg(feature = "fastest-location")]
-                return NodeLocation::Fastest;
-            }),
-            exit_node_location: saved_data.0.exit_node_location.clone().unwrap_or_else(|| {
-                #[cfg(not(feature = "fastest-location"))]
-                return NodeLocation::Country(default_exit_node_location);
-                #[cfg(feature = "fastest-location")]
-                return NodeLocation::Fastest;
-            }),
-            vpn_mode: saved_data.0.vpn_mode.clone().unwrap_or_default(),
+            entry_node_location: entry_node_location
+                .unwrap_or(NodeLocation::Country(default_entry_node_location)),
+            exit_node_location: exit_node_location
+                .unwrap_or(NodeLocation::Country(default_exit_node_location)),
+            vpn_mode: vpn_mode.unwrap_or_default(),
             ..Default::default()
         })
     }

@@ -3,6 +3,8 @@
 
 #[cfg(target_os = "macos")]
 uniffi::include_scaffolding!("nym_vpn_lib_macos");
+#[cfg(target_os = "ios")]
+uniffi::include_scaffolding!("nym_vpn_lib_ios");
 #[cfg(target_os = "android")]
 uniffi::include_scaffolding!("nym_vpn_lib_android");
 
@@ -27,20 +29,33 @@ use tap::TapFallible;
 use tokio::time::timeout;
 use tracing::warn;
 use util::wait_for_interrupt_and_signal;
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+use {
+    crate::platform::error::FFIError,
+    ipnetwork::IpNetwork,
+    std::net::{Ipv6Addr, SocketAddr},
+    talpid_types::net::wireguard::{PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig},
+};
 
+pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
-pub use nym_task::{manager::SentStatus, StatusReceiver};
+pub use nym_task::{
+    manager::{SentStatus, TaskStatus},
+    StatusReceiver,
+};
 
 #[cfg(target_os = "macos")]
-use crate::platform::macos::initVPN;
-#[cfg(any(target_os = "macos", target_os = "android"))]
+use crate::macos::*;
+#[cfg(target_os = "ios")]
+use crate::platform::ios::{initVPN, NymConfig, OSTunProvider, VPNConfig, WgConfig};
+#[cfg(any(target_os = "macos", target_os = "android", target_os = "ios"))]
 use crate::platform::*;
 pub use nym_bin_common;
 pub use nym_config;
 use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 use url::Url;
 
 pub mod config;
@@ -51,6 +66,8 @@ pub mod mixnet_processor;
 mod platform;
 pub mod routing;
 pub mod tunnel;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+mod uniffi_custom_impls;
 mod util;
 
 async fn init_wireguard_config(
@@ -97,11 +114,11 @@ pub struct NymVpn {
     /// The IP address of the wireguard interface.
     pub wg_ip: Option<Ipv4Addr>,
 
-    /// The IP address of the TUN device.
-    pub nym_ip: Option<Ipv4Addr>,
+    /// The IP addresses of the TUN device.
+    pub nym_ips: Option<IpPair>,
 
     /// The MTU of the TUN device.
-    pub nym_mtu: Option<usize>,
+    pub nym_mtu: Option<u16>,
 
     /// Disable routing all traffic through the VPN TUN device.
     pub disable_routing: bool,
@@ -118,14 +135,24 @@ pub struct NymVpn {
 
     tun_provider: Arc<Mutex<TunProvider>>,
 
+    #[cfg(target_os = "ios")]
+    ios_tun_provider: Arc<dyn OSTunProvider>,
+
     // Necessary so that the device doesn't get closed before cleanup has taken place
     shadow_handle: ShadowHandle,
 }
+
+pub struct MixnetConnetionInfo {
+    pub nym_address: Recipient,
+    pub entry_gateway: String,
+}
+
 impl NymVpn {
     pub fn new(
-        entry_gateway: EntryPoint,
-        exit_router: ExitPoint,
+        entry_point: EntryPoint,
+        exit_point: ExitPoint,
         #[cfg(target_os = "android")] android_context: talpid_types::android::AndroidContext,
+        #[cfg(target_os = "ios")] ios_tun_provider: Arc<dyn OSTunProvider>,
     ) -> Self {
         let tun_provider = Arc::new(Mutex::new(TunProvider::new(
             #[cfg(target_os = "android")]
@@ -137,21 +164,24 @@ impl NymVpn {
             #[cfg(target_os = "android")]
             vec![],
         )));
+
         Self {
             gateway_config: gateway_client::Config::default(),
             mixnet_client_path: None,
-            entry_point: entry_gateway,
-            exit_point: exit_router,
+            entry_point,
+            exit_point,
             enable_wireguard: false,
             private_key: None,
             wg_ip: None,
-            nym_ip: None,
+            nym_ips: None,
             nym_mtu: None,
             disable_routing: false,
             enable_two_hop: false,
             enable_poisson_rate: false,
             disable_background_cover_traffic: false,
             tun_provider,
+            #[cfg(target_os = "ios")]
+            ios_tun_provider,
             shadow_handle: ShadowHandle { _inner: None },
         }
     }
@@ -174,39 +204,40 @@ impl NymVpn {
         tunnel_gateway_ip: routing::TunnelGatewayIp,
     ) -> Result<()> {
         info!("Connecting to IP packet router");
-        let ip = mixnet_connect::connect_to_ip_packet_router(
+        let ips = mixnet_connect::connect_to_ip_packet_router(
             mixnet_client.clone(),
             exit_router,
-            self.nym_ip,
+            self.nym_ips,
             self.enable_two_hop,
         )
         .await?;
-        info!("Successfully connected to IP packet router on the exit gateway!");
-        info!("Using IP address: {ip}");
+        info!("Successfully connected to IP packet router!");
+        info!("Using mixnet VPN IP addresses: {ips}");
 
         // We need the IP of the gateway to correctly configure the routing table
         let mixnet_client_address = mixnet_client.nym_address().await;
         let gateway_used = mixnet_client_address.gateway().to_base58_string();
-        info!("Using gateway: {gateway_used}");
+        debug!("Entry gateway used for setting up routing table: {gateway_used}");
         let entry_mixnet_gateway_ip: IpAddr =
             gateway_client.lookup_gateway_ip(&gateway_used).await?;
         debug!("Gateway ip resolves to: {entry_mixnet_gateway_ip}");
 
         info!("Setting up routing");
         let routing_config = routing::RoutingConfig::new(
-            ip,
+            self,
+            ips,
             entry_mixnet_gateway_ip,
             default_lan_gateway_ip,
             tunnel_gateway_ip,
-            self.nym_mtu,
+            #[cfg(target_os = "android")]
+            mixnet_client.gateway_ws_fd().await,
         );
-        debug!("Routing config: {:#?}", routing_config);
+        debug!("Routing config: {}", routing_config);
         let mixnet_tun_dev = routing::setup_routing(
-            self.tun_provider.clone(),
             route_manager,
             routing_config,
-            self.enable_wireguard,
-            self.disable_routing,
+            #[cfg(target_os = "ios")]
+            self.ios_tun_provider.clone(),
         )
         .await?;
 
@@ -236,7 +267,7 @@ impl NymVpn {
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         tunnel_gateway_ip: routing::TunnelGatewayIp,
-    ) -> Result<()> {
+    ) -> Result<MixnetConnetionInfo> {
         info!("Setting up mixnet client");
         let mixnet_client = timeout(
             Duration::from_secs(10),
@@ -252,6 +283,14 @@ impl NymVpn {
         )
         .await
         .map_err(|_| Error::StartMixnetTimeout)??;
+
+        // Now that we have a connection, collection some info about that and return
+        let nym_address = mixnet_client.nym_address().await;
+        let entry_gateway = nym_address.gateway().to_base58_string();
+        let our_mixnet_connection = MixnetConnetionInfo {
+            nym_address,
+            entry_gateway,
+        };
 
         if let Err(err) = self
             .setup_post_mixnet(
@@ -270,7 +309,7 @@ impl NymVpn {
             mixnet_client.disconnect().await;
             return Err(err);
         };
-        Ok(())
+        Ok(our_mixnet_connection)
     }
 
     async fn setup_tunnel(
@@ -281,16 +320,29 @@ impl NymVpn {
         RouteManager,
         Option<(oneshot::Receiver<()>, tokio::task::JoinHandle<Result<()>>)>,
         oneshot::Sender<()>,
+        MixnetConnetionInfo,
     )> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
         let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
-        let gateways = &gateway_client.lookup_described_gateways().await?;
-        let entry_gateway_id = self.entry_point.lookup_gateway_identity(gateways)?;
-        let exit_router_address = self.exit_point.lookup_router_address(gateways)?;
+        let gateways = gateway_client
+            .lookup_described_gateways_with_location()
+            .await?;
 
-        info!("Determined criteria for location {entry_gateway_id}");
-        info!("Exit router address {exit_router_address}");
+        // If the entry or exit point relies on location, do a basic defensive consistency check on
+        // the fetched location data. If none of the gateways have location data, we can't proceed
+        // and it's likely the explorer-api isn't set correctly.
+        if (self.entry_point.is_location() || self.exit_point.is_location())
+            && gateways.iter().filter(|g| g.has_location()).count() == 0
+        {
+            return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
+        }
+
+        let entry_gateway_id = self.entry_point.lookup_gateway_identity(&gateways).await?;
+        let exit_router_address = self.exit_point.lookup_router_address(&gateways)?;
+
+        info!("Using entry gateway: {entry_gateway_id}");
+        info!("Using exit router address {exit_router_address}");
 
         let wireguard_config = if self.enable_wireguard {
             let private_key = self
@@ -315,11 +367,13 @@ impl NymVpn {
         // The IP address of the gateway inside the tunnel. This will depend on if wireguard is
         // enabled
         let tunnel_gateway_ip = routing::TunnelGatewayIp::new(wireguard_config.clone());
-        info!("tunnel_gateway_ip: {tunnel_gateway_ip}");
+        if self.enable_wireguard {
+            info!("Wireguard tunnel gateway ip: {tunnel_gateway_ip}");
+        }
 
         // Get the IP address of the local LAN gateway
         let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
-        info!("default_lan_gateway_ip: {default_lan_gateway_ip}");
+        debug!("default_lan_gateway_ip: {default_lan_gateway_ip}");
 
         let task_manager = TaskManager::new(10);
 
@@ -365,7 +419,7 @@ impl NymVpn {
         // - Sets up mixnet client, and connects
         // - Sets up routing
         // - Starts processing packets
-        if let Err(err) = self
+        let mixnet_connection_info = match self
             .setup_tunnel_services(
                 &mut route_manager,
                 &entry_gateway_id,
@@ -377,32 +431,35 @@ impl NymVpn {
             )
             .await
         {
-            error!("Failed to setup tunnel services: {err}");
-            debug!("{err:?}");
-            wait_for_interrupt(task_manager).await;
-            // Ignore if these fail since we're interesting in the original error anyway
-            handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
-                .await
-                .tap_err(|err| {
-                    warn!("Failed to handle interrupt: {err}");
-                })
-                .ok();
-            tunnel
-                .dns_monitor
-                .reset()
-                .tap_err(|err| {
-                    warn!("Failed to reset dns monitor: {err}");
-                })
-                .ok();
-            tunnel
-                .firewall
-                .reset_policy()
-                .tap_err(|err| {
-                    warn!("Failed to reset firewall policy: {err}");
-                })
-                .ok();
-            return Err(err);
-        }
+            Ok(mixnet_connection_info) => mixnet_connection_info,
+            Err(err) => {
+                error!("Failed to setup tunnel services: {err}");
+                debug!("{err:?}");
+                wait_for_interrupt(task_manager).await;
+                // Ignore if these fail since we're interesting in the original error anyway
+                handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
+                    .await
+                    .tap_err(|err| {
+                        warn!("Failed to handle interrupt: {err}");
+                    })
+                    .ok();
+                tunnel
+                    .dns_monitor
+                    .reset()
+                    .tap_err(|err| {
+                        warn!("Failed to reset dns monitor: {err}");
+                    })
+                    .ok();
+                tunnel
+                    .firewall
+                    .reset_policy()
+                    .tap_err(|err| {
+                        warn!("Failed to reset firewall policy: {err}");
+                    })
+                    .ok();
+                return Err(err);
+            }
+        };
 
         Ok((
             tunnel,
@@ -410,6 +467,7 @@ impl NymVpn {
             route_manager,
             wireguard_waiting,
             tunnel_close_tx,
+            mixnet_connection_info,
         ))
     }
 
@@ -417,8 +475,14 @@ impl NymVpn {
     // applications where the main way to interact with the running process is to send SIGINT
     // (ctrl-c)
     pub async fn run(&mut self) -> Result<()> {
-        let (mut tunnel, task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
-            self.setup_tunnel().await?;
+        let (
+            mut tunnel,
+            task_manager,
+            route_manager,
+            wireguard_waiting,
+            tunnel_close_tx,
+            _mixnet_connection_info,
+        ) = self.setup_tunnel().await?;
 
         // Finished starting everything, now wait for shutdown
         wait_for_interrupt(task_manager).await;
@@ -431,8 +495,9 @@ impl NymVpn {
         tunnel.dns_monitor.reset().tap_err(|err| {
             error!("Failed to reset dns monitor: {err}");
         })?;
-        tunnel.firewall.reset_policy().tap_err(|err| {
+        tunnel.firewall.reset_policy().map_err(|err| {
             error!("Failed to reset firewall policy: {err}");
+            Error::FirewallError(err.to_string())
         })?;
 
         Ok(())
@@ -447,13 +512,20 @@ impl NymVpn {
         vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let (mut tunnel, mut task_manager, route_manager, wireguard_waiting, tunnel_close_tx) =
-            self.setup_tunnel()
-                .await
-                .map_err(|err| Box::new(NymVpnExitError::generic(&err)))?;
+        let (
+            mut tunnel,
+            mut task_manager,
+            route_manager,
+            wireguard_waiting,
+            tunnel_close_tx,
+            mixnet_connection_info,
+        ) = self.setup_tunnel().await?;
 
         // Signal back that we are ready and up with all cylinders firing
-        task_manager.start_status_listener(vpn_status_tx).await;
+        let start_status = TaskStatus::ReadyWithGateway(mixnet_connection_info.entry_gateway);
+        task_manager
+            .start_status_listener(vpn_status_tx, start_status)
+            .await;
 
         // Finished starting everything, now wait for mixnet client shutdown
         let result = wait_for_interrupt_and_signal(task_manager, vpn_ctrl_rx).await;
@@ -462,19 +534,19 @@ impl NymVpn {
             .await
             .map_err(|err| {
                 error!("Failed to handle interrupt: {err}");
-                Box::new(NymVpnExitError::generic(&err))
+                Box::new(NymVpnExitError::Generic { reason: err })
             })?;
         tunnel.dns_monitor.reset().map_err(|err| {
             error!("Failed to reset dns monitor: {err}");
-            Box::new(NymVpnExitError::FailedToResetDnsMonitor {
+            NymVpnExitError::FailedToResetDnsMonitor {
                 reason: err.to_string(),
-            })
+            }
         })?;
         tunnel.firewall.reset_policy().map_err(|err| {
             error!("Failed to reset firewall policy: {err}");
-            Box::new(NymVpnExitError::FailedToResetFirewallPolicy {
+            NymVpnExitError::FailedToResetFirewallPolicy {
                 reason: err.to_string(),
-            })
+            }
         })?;
 
         result
@@ -497,7 +569,7 @@ pub enum NymVpnCtrlMessage {
 #[derive(thiserror::Error, Debug)]
 pub enum NymVpnExitError {
     #[error("{reason}")]
-    Generic { reason: String },
+    Generic { reason: Error },
 
     // TODO: capture the concrete error type once we have time to investigate on Mac
     #[error("failed to reset firewall policy: {reason}")]
@@ -505,14 +577,6 @@ pub enum NymVpnExitError {
 
     #[error("failed to reset dns monitor: {reason}")]
     FailedToResetDnsMonitor { reason: String },
-}
-
-impl NymVpnExitError {
-    fn generic(err: &dyn std::error::Error) -> Self {
-        NymVpnExitError::Generic {
-            reason: err.to_string(),
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -534,29 +598,51 @@ pub enum NymVpnExitStatusMessage {
 /// vpn_config.enable_two_hop = true;
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
 /// ```
-pub fn spawn_nym_vpn(mut nym_vpn: NymVpn) -> Result<NymVpnHandle> {
+pub fn spawn_nym_vpn(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
-
     let (vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
-
     let (vpn_exit_tx, vpn_exit_rx) = oneshot::channel();
 
-    tokio::spawn(async move {
-        let result = nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await;
+    tokio::spawn(run_nym_vpn(
+        nym_vpn,
+        vpn_status_tx,
+        vpn_ctrl_rx,
+        vpn_exit_tx,
+    ));
 
-        if let Err(err) = result {
-            error!("Nym VPN returned error: {err}");
-            debug!("{err:?}");
-            vpn_exit_tx
-                .send(NymVpnExitStatusMessage::Failed(err))
-                .expect("Failed to send exit status");
-            return;
-        }
+    Ok(NymVpnHandle {
+        vpn_ctrl_tx,
+        vpn_status_rx,
+        vpn_exit_rx,
+    })
+}
 
-        log::info!("Nym VPN has shut down");
-        vpn_exit_tx
-            .send(NymVpnExitStatusMessage::Stopped)
-            .expect("Failed to send exit status");
+/// Starts the Nym VPN client, in a separate tokio runtime.
+///
+/// Examples
+///
+/// ```no_run
+/// use nym_vpn_lib::gateway_client::{EntryPoint, ExitPoint};
+/// use nym_vpn_lib::NodeIdentity;
+///
+/// let mut vpn_config = nym_vpn_lib::NymVpn::new(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
+/// ExitPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()).unwrap()});
+/// vpn_config.enable_two_hop = true;
+/// let vpn_handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config);
+/// ```
+pub fn spawn_nym_vpn_with_new_runtime(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
+    let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
+    let (vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
+    let (vpn_exit_tx, vpn_exit_rx) = oneshot::channel();
+
+    std::thread::spawn(|| {
+        let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio run time");
+        rt.block_on(run_nym_vpn(
+            nym_vpn,
+            vpn_status_tx,
+            vpn_ctrl_rx,
+            vpn_exit_tx,
+        ));
     });
 
     Ok(NymVpnHandle {
@@ -564,6 +650,28 @@ pub fn spawn_nym_vpn(mut nym_vpn: NymVpn) -> Result<NymVpnHandle> {
         vpn_status_rx,
         vpn_exit_rx,
     })
+}
+
+async fn run_nym_vpn(
+    mut nym_vpn: NymVpn,
+    vpn_status_tx: nym_task::StatusSender,
+    vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
+    vpn_exit_tx: oneshot::Sender<NymVpnExitStatusMessage>,
+) {
+    let result = nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await;
+    if let Err(err) = result {
+        error!("Nym VPN returned error: {err}");
+        debug!("{err:?}");
+        vpn_exit_tx
+            .send(NymVpnExitStatusMessage::Failed(err))
+            .expect("Failed to send exit status");
+        return;
+    }
+
+    log::info!("Nym VPN has shut down");
+    vpn_exit_tx
+        .send(NymVpnExitStatusMessage::Stopped)
+        .expect("Failed to send exit status");
 }
 
 pub struct NymVpnHandle {
