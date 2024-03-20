@@ -314,6 +314,11 @@ impl NymVpn {
             entry_gateway,
         };
 
+        // Check that we can ping ourselves before continuing
+        info!("Sending mixnet ping to ourselves");
+        mixnet_connection_beacon::self_ping_and_wait(nym_address, mixnet_client.clone()).await?;
+        info!("Successfully pinged ourselves");
+
         if let Err(err) = self
             .setup_post_mixnet(
                 mixnet_client.clone(),
