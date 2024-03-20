@@ -219,6 +219,7 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getGatewayCountries<'en
     explorer_url: JString<'_>,
     exit_only: jboolean,
 ) -> JString<'env> {
+    init_jni_logger();
     let env = JnixEnv::from(env);
     let api_url = parse_api_url_from_java(&env, api_url)
         .map_err(|e| error!("Failed to parse api url : {:?}", e))
@@ -257,6 +258,7 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getLowLatencyEntryCount
     api_url: JString<'_>,
     explorer_url: JString<'_>,
 ) -> JString<'env> {
+    init_jni_logger();
     let env = JnixEnv::from(env);
     let api_url = parse_api_url_from_java(&env, api_url)
         .map_err(|e| error!("Failed to parse api url : {:?}", e))
