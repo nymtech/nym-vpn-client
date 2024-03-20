@@ -4,6 +4,7 @@
 
 set -E
 set -o pipefail
+# catch errors
 trap 'catch $? ${FUNCNAME[0]:-main} $LINENO' ERR
 cwd=$(pwd)
 
@@ -26,6 +27,8 @@ appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$tag/n
 # without root privileges
 desktop_entry_disabled=true
 
+# function called when an error occurs, will print the exit
+# status, function name and line number
 catch() {
   log_e "$B_RED✗$RS unexpected error, [$BLD$1$RS] $BLD$2$RS L#$BLD$3$RS"
   cleanup
@@ -37,18 +40,22 @@ log() {
   echo -e "$1"
 }
 
+# log to stderr
 log_e() {
   >&2 echo -e "$1"
 }
 
+# silent pushd that don't print the directory change
 pushd() {
   command pushd "$@" > /dev/null || exit 1
 }
 
+# silent popd that don't print the directory change
 popd() {
   command popd > /dev/null || exit 1
 }
 
+# check if a command exists
 need_cmd() {
   if ! command -v "$1" > /dev/null 2>&1; then
     log_e " $B_RED⚠$RS need$BLD $1$RS (command not found)"
@@ -56,13 +63,19 @@ need_cmd() {
   fi
 }
 
+# pretty print a path, replacing the HOME directory with '~'
+pretty_path() {
+  echo "${1/#$HOME/\~}"
+}
+
 need_cmd mktemp
 temp_dir=$(mktemp -d)
+data_home=${XDG_DATA_HOME:-$HOME/.local/share}
 install_dir="$HOME/.local/bin"
-icons_dir="$HOME/.local/share/icons"
+icons_dir="$data_home/icons"
 appimage="nym-vpn_${version}.AppImage"
 target_appimage="nym-vpn.appimage"
-desktop_dir="$HOME/.local/share/applications"
+desktop_dir="$data_home/applications"
 
 desktop_entry="[Desktop Entry]
 Name=NymVPN
@@ -95,7 +108,8 @@ _install () {
 
   log "  ${B_GRN}Installing$RS AppImage"
   install -Dm755 "$temp_dir/$appimage" "$install_dir/$target_appimage"
-  log "   ${B_GRN}Installed$RS as $install_dir/$target_appimage"
+  path=$(pretty_path "$install_dir/$target_appimage")
+  log "   ${B_GRN}Installed$RS as $path"
 
   if [ $desktop_entry_disabled == true ]; then
     return
@@ -108,7 +122,8 @@ _install () {
   popd || exit 1
   install -Dm644 "$temp_dir/nym-vpn.svg" "$icons_dir/nym-vpn.svg"
   install -Dm644 "$temp_dir/nym-vpn.desktop" "$desktop_dir/nym-vpn.desktop"
-  log "   ${B_GRN}Installed$RS as $desktop_dir/nym-vpn.desktop"
+  path=$(pretty_path "$desktop_dir/nym-vpn.desktop")
+  log "   ${B_GRN}Installed$RS as $path"
 }
 
 post_install() {
@@ -128,4 +143,4 @@ _install
 post_install
 cleanup
 
-log "  ${B_GRN}✓$RS Done"
+log "   ${B_GRN}✓$RS Done"
