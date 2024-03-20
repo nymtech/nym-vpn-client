@@ -19,7 +19,7 @@ use nym_ip_packet_requests::{
     },
 };
 use nym_sdk::mixnet::{
-    MixnetClient, MixnetClientBuilder, MixnetMessageSender, NodeIdentity, Recipient, StoragePaths,
+    MixnetClient, MixnetClientBuilder, MixnetMessageSender, NodeIdentity, Recipient, StoragePaths, MixnetClientSender,
 };
 use tracing::{debug, error, info};
 
@@ -42,6 +42,10 @@ impl SharedMixnetClient {
 
     pub async fn nym_address(&self) -> Recipient {
         *self.lock().await.as_ref().unwrap().nym_address()
+    }
+
+    pub async fn split_sender(&self) -> MixnetClientSender {
+        self.lock().await.as_ref().unwrap().split_sender()
     }
 
     pub async fn gateway_ws_fd(&self) -> Option<RawFd> {

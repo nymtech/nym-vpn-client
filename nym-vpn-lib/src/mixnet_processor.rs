@@ -7,11 +7,11 @@ use bytes::{Bytes, BytesMut};
 use futures::{SinkExt, StreamExt};
 use nym_ip_packet_requests::{
     codec::MultiIpPacketCodec,
-    request::IpPacketRequest,
+    request::{IpPacketRequest, IpPacketRequestData},
     response::IpPacketResponseData,
     response::{InfoLevel, IpPacketResponse},
 };
-use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
+use nym_sdk::mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use nym_validator_client::models::DescribedGateway;
 use tokio::task::JoinHandle;
@@ -102,6 +102,70 @@ impl MessageCreator {
     }
 }
 
+pub struct MixnetConnectionBeacon {
+    pub mixnet_client_sender: MixnetClientSender,
+    pub our_address: Recipient,
+}
+
+impl MixnetConnectionBeacon {
+    async fn send_beep(&self) -> Result<u64> {
+        let (request, request_id) = IpPacketRequest::new_ping(self.our_address);
+        let input_message = InputMessage::new_regular(
+            self.our_address,
+            request.to_bytes().unwrap(),
+            TransmissionLane::General,
+            None,
+        );
+        self.mixnet_client_sender.send(input_message).await?;
+        Ok(request_id)
+    }
+
+    pub async fn run(self, mut shutdown: TaskClient) -> Result<()> {
+        info!("Mixnet connection beacon is running");
+        loop {
+            tokio::select! {
+                _ = shutdown.recv_with_delay() => {
+                    info!("MixnetConnectionBeacon: Received shutdown");
+                    break;
+                }
+                _ = tokio::time::sleep(Duration::from_secs(1)) => {
+                    log::info!("BEEP");
+                    let _ping_id = match self.send_beep().await {
+                        Ok(id) => id,
+                        Err(err) => {
+                            error!("Failed to send ping: {err}");
+                            continue;
+                        }
+                    };
+                }
+            }
+        }
+        info!("MixnetConnectionBeacon: Exiting");
+        Ok(())
+    }
+}
+
+pub fn start_mixnet_connection_beacon(
+    mixnet_client_sender: MixnetClientSender,
+    our_address: Recipient,
+    shutdown_listener: TaskClient,
+) -> JoinHandle<Result<()>> {
+    info!("Creating mixnet connection beacon");
+    let beacon = MixnetConnectionBeacon {
+        mixnet_client_sender,
+        our_address,
+    };
+    tokio::spawn(async move {
+        let ret = beacon.run(shutdown_listener).await;
+        if let Err(err) = ret {
+            error!("Mixnet connection beacon error: {err}");
+            Err(err)
+        } else {
+            ret
+        }
+    })
+}
+
 pub struct MixnetProcessor {
     device: AsyncDevice,
     mixnet_client: SharedMixnetClient,
@@ -140,6 +204,7 @@ impl MixnetProcessor {
             .await
             .map_err(|_| Error::MixnetClientDeadlock)?;
         let mixnet_client = mixnet_handle.as_mut().unwrap();
+        let our_address = mixnet_client.nym_address().clone();
 
         debug!("Split mixnet sender");
         let sender = mixnet_client.split_sender();
@@ -230,7 +295,24 @@ impl MixnetProcessor {
                             }
                         },
                         Err(err) => {
-                            error!("failed to deserialize reconstructed message: {err}");
+                            // The exception to when we are not expecting a response, is when we
+                            // are sending a ping to ourselves.
+                            if let Ok(request) = IpPacketRequest::from_reconstructed_message(&reconstructed_message) {
+                                match request.data {
+                                    IpPacketRequestData::Ping(ref ping_request) => {
+                                        if ping_request.reply_to == our_address {
+                                            info!("Received self ping");
+                                        } else {
+                                            info!("Received unexpected ping, ignoring for now");
+                                        }
+                                    },
+                                    ref request => {
+                                        error!("Received unexpected request: {request:?}");
+                                    }
+                                }
+                            } else {
+                                error!("Failed to deserialize reconstructed message: {err}");
+                            }
                         }
                     }
                 }

@@ -244,6 +244,7 @@ impl NymVpn {
         info!("Setting up mixnet processor");
         let processor_config = mixnet_processor::Config::new(*exit_router);
         debug!("Mixnet processor config: {:#?}", processor_config);
+        let mixnet_client_sender = mixnet_client.split_sender().await;
         let shadow_handle = mixnet_processor::start_processor(
             processor_config,
             mixnet_tun_dev,
@@ -253,6 +254,13 @@ impl NymVpn {
         )
         .await;
         self.set_shadow_handle(shadow_handle);
+
+        info!("Setting up mixnet connection beacon");
+        mixnet_processor::start_mixnet_connection_beacon(
+            mixnet_client_sender,
+            mixnet_client_address,
+            task_manager.subscribe_named("mixnet_connection_beacon"),
+        );
 
         Ok(())
     }
