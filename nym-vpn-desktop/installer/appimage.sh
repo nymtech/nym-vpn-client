@@ -46,12 +46,12 @@ log_e() {
 }
 
 # silent pushd that don't print the directory change
-pushd() {
+_pushd() {
   command pushd "$@" > /dev/null || exit 1
 }
 
 # silent popd that don't print the directory change
-popd() {
+_popd() {
   command popd > /dev/null || exit 1
 }
 
@@ -93,14 +93,14 @@ download() {
   need_cmd curl
   need_cmd sha256sum
 
-  pushd "$temp_dir" || exit 1
+  _pushd "$temp_dir"
   log "  ${B_GRN}Downloading$RS $appimage"
   curl -fL -# "$appimage_url" -o $appimage
   log "  ${B_GRN}Downloading$RS $appimage.sha256sum"
   curl -fL -# "$appimage_url.sha256sum" -o "$appimage.sha256sum"
   log "  ${B_GRN}Checking$RS sha256sum"
   sha256sum --check --status "$appimage.sha256sum"
-  popd || exit 1
+  _popd
 }
 
 _install () {
@@ -116,10 +116,10 @@ _install () {
   fi
 
   log "  ${B_GRN}Installing$RS desktop entry"
-  pushd "$temp_dir" || exit 1
+  _pushd "$temp_dir"
   echo "$desktop_entry" > "nym-vpn.desktop"
   echo "$icon" > "nym-vpn.svg"
-  popd || exit 1
+  _popd
   install -Dm644 "$temp_dir/nym-vpn.svg" "$icons_dir/nym-vpn.svg"
   install -Dm644 "$temp_dir/nym-vpn.desktop" "$desktop_dir/nym-vpn.desktop"
   path=$(pretty_path "$desktop_dir/nym-vpn.desktop")
