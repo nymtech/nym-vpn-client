@@ -244,13 +244,18 @@ impl NymVpn {
         info!("Setting up mixnet processor");
         let processor_config = mixnet_processor::Config::new(*exit_router);
         debug!("Mixnet processor config: {:#?}", processor_config);
+
         let mixnet_client_sender = mixnet_client.split_sender().await;
+        let (connection_event_tx, connection_event_rx) =
+            mpsc::unbounded::<mixnet_processor::ConnectionEvent>();
+
         let shadow_handle = mixnet_processor::start_processor(
             processor_config,
             mixnet_tun_dev,
             mixnet_client,
             task_manager,
             self.enable_two_hop,
+            connection_event_tx,
         )
         .await;
         self.set_shadow_handle(shadow_handle);
@@ -260,6 +265,12 @@ impl NymVpn {
             mixnet_client_sender,
             mixnet_client_address,
             task_manager.subscribe_named("mixnet_connection_beacon"),
+        );
+
+        info!("Setting up connection monitor");
+        mixnet_processor::start_connection_monitor(
+            connection_event_rx,
+            task_manager.subscribe_named("connection_monitor"),
         );
 
         Ok(())

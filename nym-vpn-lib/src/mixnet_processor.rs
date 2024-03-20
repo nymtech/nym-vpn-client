@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use bytes::{Bytes, BytesMut};
 use futures::{SinkExt, StreamExt};
@@ -166,9 +166,87 @@ pub fn start_mixnet_connection_beacon(
     })
 }
 
+#[derive(Debug)]
+pub enum ConnectionEvent {
+    MixnetSelfPing,
+}
+
+#[derive(Debug, Default)]
+struct ConnectionStats {
+    latest_self_ping: Option<Instant>,
+}
+
+struct ConnectionMonitor {
+    connection_event_rx: futures::channel::mpsc::UnboundedReceiver<ConnectionEvent>,
+    stats: ConnectionStats,
+}
+
+impl ConnectionMonitor {
+    fn new(
+        connection_event_rx: futures::channel::mpsc::UnboundedReceiver<ConnectionEvent>,
+    ) -> Self {
+        ConnectionMonitor {
+            connection_event_rx,
+            stats: ConnectionStats::default(),
+        }
+    }
+
+    async fn run(mut self, mut shutdown: TaskClient) -> Result<()> {
+        info!("Connection monitor is running");
+        loop {
+            tokio::select! {
+                _ = shutdown.recv_with_delay() => {
+                    info!("ConnectionMonitor: Received shutdown");
+                    break;
+                }
+                Some(event) = self.connection_event_rx.next() => {
+                    match event {
+                        ConnectionEvent::MixnetSelfPing => {
+                            info!("Received self ping event");
+                            self.stats.latest_self_ping = Some(Instant::now());
+                        }
+                    }
+                }
+                // Every 5 seconds, check if we have received a self-ping in the last 5 seconds
+                _ = tokio::time::sleep(Duration::from_secs(5)) => {
+                    if let Some(latest_self_ping) = self.stats.latest_self_ping {
+                        if latest_self_ping.elapsed() > Duration::from_secs(5) {
+                            error!("Haven't received a self-ping in the last 5 seconds");
+                            error!("Connection to entry gateway seems down!");
+                        }
+                    } else {
+                        error!("Haven't received a self-ping yet");
+                        error!("Connection to entry gateway seems down!");
+                    }
+                }
+            }
+        }
+        info!("ConnectionMonitor: Exiting");
+        Ok(())
+    }
+}
+
+pub fn start_connection_monitor(
+    connection_event_rx: futures::channel::mpsc::UnboundedReceiver<ConnectionEvent>,
+    shutdown_listener: TaskClient,
+) -> JoinHandle<Result<()>> {
+    info!("Creating connection monitor");
+    let monitor = ConnectionMonitor::new(connection_event_rx);
+    tokio::spawn(async move {
+        let ret = monitor.run(shutdown_listener).await;
+        if let Err(err) = ret {
+            error!("Connection monitor error: {err}");
+            Err(err)
+        } else {
+            ret
+        }
+    })
+}
+
 pub struct MixnetProcessor {
     device: AsyncDevice,
     mixnet_client: SharedMixnetClient,
+    connection_event_tx: futures::channel::mpsc::UnboundedSender<ConnectionEvent>,
     ip_packet_router_address: IpPacketRouterAddress,
     // TODO: handle this as part of setting up the mixnet client
     enable_two_hop: bool,
@@ -178,12 +256,14 @@ impl MixnetProcessor {
     pub fn new(
         device: AsyncDevice,
         mixnet_client: SharedMixnetClient,
+        connection_event_tx: futures::channel::mpsc::UnboundedSender<ConnectionEvent>,
         ip_packet_router_address: IpPacketRouterAddress,
         enable_two_hop: bool,
     ) -> Self {
         MixnetProcessor {
             device,
             mixnet_client,
+            connection_event_tx,
             ip_packet_router_address,
             enable_two_hop,
         }
@@ -204,7 +284,7 @@ impl MixnetProcessor {
             .await
             .map_err(|_| Error::MixnetClientDeadlock)?;
         let mixnet_client = mixnet_handle.as_mut().unwrap();
-        let our_address = mixnet_client.nym_address().clone();
+        let our_address = *mixnet_client.nym_address();
 
         debug!("Split mixnet sender");
         let sender = mixnet_client.split_sender();
@@ -301,7 +381,7 @@ impl MixnetProcessor {
                                 match request.data {
                                     IpPacketRequestData::Ping(ref ping_request) => {
                                         if ping_request.reply_to == our_address {
-                                            info!("Received self ping");
+                                            self.connection_event_tx.unbounded_send(ConnectionEvent::MixnetSelfPing).unwrap();
                                         } else {
                                             info!("Received unexpected ping, ignoring for now");
                                         }
@@ -332,11 +412,13 @@ pub async fn start_processor(
     mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,
     enable_two_hop: bool,
+    connection_event_tx: futures::channel::mpsc::UnboundedSender<ConnectionEvent>,
 ) -> JoinHandle<Result<AsyncDevice>> {
     info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(
         dev,
         mixnet_client,
+        connection_event_tx,
         config.ip_packet_router_address,
         enable_two_hop,
     );
