@@ -47,18 +47,18 @@ talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev =
 talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "2a5b83ed9f8cf662049de54114a5f8c4c350b42e" }
 talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "2a5b83ed9f8cf662049de54114a5f8c4c350b42e" }
 
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "13a576636a255e5e919f41716a3564869c98e1a3" }
-nym-client-core = { git = "https://github.com/nymtech/nym", rev = "13a576636a255e5e919f41716a3564869c98e1a3" }
-nym-config = { git = "https://github.com/nymtech/nym", rev = "13a576636a255e5e919f41716a3564869c98e1a3" }
-nym-crypto = { git = "https://github.com/nymtech/nym", rev = "13a576636a255e5e919f41716a3564869c98e1a3" }
-nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "13a576636a255e5e919f41716a3564869c98e1a3" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "13a576636a255e5e919f41716a3564869c98e1a3" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "13a576636a255e5e919f41716a3564869c98e1a3" }
-nym-sdk = { git = "https://github.com/nymtech/nym", rev = "13a576636a255e5e919f41716a3564869c98e1a3" }
-nym-task = { git = "https://github.com/nymtech/nym", rev = "13a576636a255e5e919f41716a3564869c98e1a3" }
-nym-topology = { git = "https://github.com/nymtech/nym", rev = "13a576636a255e5e919f41716a3564869c98e1a3" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "13a576636a255e5e919f41716a3564869c98e1a3" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "13a576636a255e5e919f41716a3564869c98e1a3" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "24139c76fd4951361578cf370c102f1c6fbd9cd1" }
+nym-client-core = { git = "https://github.com/nymtech/nym", rev = "24139c76fd4951361578cf370c102f1c6fbd9cd1" }
+nym-config = { git = "https://github.com/nymtech/nym", rev = "24139c76fd4951361578cf370c102f1c6fbd9cd1" }
+nym-crypto = { git = "https://github.com/nymtech/nym", rev = "24139c76fd4951361578cf370c102f1c6fbd9cd1" }
+nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "24139c76fd4951361578cf370c102f1c6fbd9cd1" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "24139c76fd4951361578cf370c102f1c6fbd9cd1" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "24139c76fd4951361578cf370c102f1c6fbd9cd1" }
+nym-sdk = { git = "https://github.com/nymtech/nym", rev = "24139c76fd4951361578cf370c102f1c6fbd9cd1" }
+nym-task = { git = "https://github.com/nymtech/nym", rev = "24139c76fd4951361578cf370c102f1c6fbd9cd1" }
+nym-topology = { git = "https://github.com/nymtech/nym", rev = "24139c76fd4951361578cf370c102f1c6fbd9cd1" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "24139c76fd4951361578cf370c102f1c6fbd9cd1" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "24139c76fd4951361578cf370c102f1c6fbd9cd1" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.13.1"
