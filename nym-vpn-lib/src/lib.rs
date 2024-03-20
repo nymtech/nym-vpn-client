@@ -59,6 +59,7 @@ use tun2::AsyncDevice;
 use url::Url;
 
 pub mod config;
+mod connection_monitor;
 pub mod error;
 pub mod gateway_client;
 pub mod mixnet_connect;
@@ -247,7 +248,7 @@ impl NymVpn {
 
         let mixnet_client_sender = mixnet_client.split_sender().await;
         let (connection_event_tx, connection_event_rx) =
-            mpsc::unbounded::<mixnet_processor::ConnectionEvent>();
+            mpsc::unbounded::<connection_monitor::ConnectionEvent>();
 
         let shadow_handle = mixnet_processor::start_processor(
             processor_config,
@@ -268,7 +269,7 @@ impl NymVpn {
         );
 
         info!("Setting up connection monitor");
-        mixnet_processor::start_connection_monitor(
+        connection_monitor::start_connection_monitor(
             connection_event_rx,
             task_manager.subscribe_named("connection_monitor"),
         );
