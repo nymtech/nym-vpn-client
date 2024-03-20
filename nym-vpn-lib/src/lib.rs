@@ -142,7 +142,7 @@ pub struct NymVpn {
     shadow_handle: ShadowHandle,
 }
 
-pub struct MixnetConnetionInfo {
+pub struct MixnetConnectionInfo {
     pub nym_address: Recipient,
     pub entry_gateway: String,
 }
@@ -275,7 +275,7 @@ impl NymVpn {
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         tunnel_gateway_ip: routing::TunnelGatewayIp,
-    ) -> Result<MixnetConnetionInfo> {
+    ) -> Result<MixnetConnectionInfo> {
         info!("Setting up mixnet client");
         let mixnet_client = timeout(
             Duration::from_secs(10),
@@ -295,7 +295,7 @@ impl NymVpn {
         // Now that we have a connection, collection some info about that and return
         let nym_address = mixnet_client.nym_address().await;
         let entry_gateway = nym_address.gateway().to_base58_string();
-        let our_mixnet_connection = MixnetConnetionInfo {
+        let our_mixnet_connection = MixnetConnectionInfo {
             nym_address,
             entry_gateway,
         };
@@ -328,7 +328,7 @@ impl NymVpn {
         RouteManager,
         Option<(oneshot::Receiver<()>, tokio::task::JoinHandle<Result<()>>)>,
         oneshot::Sender<()>,
-        MixnetConnetionInfo,
+        MixnetConnectionInfo,
     )> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
