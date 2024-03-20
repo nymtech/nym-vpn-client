@@ -126,15 +126,19 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
 
     let mut vpn = NymVpn::new(entry_gateway, exit_router, context);
 
-    let api_url = parse_api_url_from_java(&env, api_url).map_err(|e|{
-        error!("Failed to parse api url : {:?}", e);
-        return;
-    }).unwrap();
+    let api_url = parse_api_url_from_java(&env, api_url)
+        .map_err(|e| {
+            error!("Failed to parse api url : {:?}", e);
+            return;
+        })
+        .unwrap();
 
-    let explorer_url = parse_explorer_url_from_java(&env, explorer_url).map_err(|e|{
-        error!("Failed to parse explorer url : {:?}", e);
-        return;
-    }).unwrap();
+    let explorer_url = parse_explorer_url_from_java(&env, explorer_url)
+        .map_err(|e| {
+            error!("Failed to parse explorer url : {:?}", e);
+            return;
+        })
+        .unwrap();
 
     vpn.gateway_config.api_url = api_url;
     vpn.gateway_config.explorer_url = Some(explorer_url);
@@ -207,7 +211,8 @@ impl<'env> IntoJava<'env> for String {
             .map_err(|_e| {
                 error!("Failed to create java string");
                 return;
-            }).unwrap()
+            })
+            .unwrap()
     }
 }
 
@@ -222,14 +227,18 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getGatewayCountries<'en
 ) -> JString<'env> {
     let env = JnixEnv::from(env);
     let api_url = parse_api_url_from_java(&env, api_url)
-        .map_err(|_e| return).map_err(|e|{
-        error!("Failed to parse api url : {:?}", e);
-        return;
-    }).unwrap();
-    let explorer_url = parse_explorer_url_from_java(&env, explorer_url).map_err(|e|{
-        error!("Failed to parse explorer url : {:?}", e);
-        return;
-    }).unwrap();
+        .map_err(|_e| return)
+        .map_err(|e| {
+            error!("Failed to parse api url : {:?}", e);
+            return;
+        })
+        .unwrap();
+    let explorer_url = parse_explorer_url_from_java(&env, explorer_url)
+        .map_err(|e| {
+            error!("Failed to parse explorer url : {:?}", e);
+            return;
+        })
+        .unwrap();
     let config = gateway_client::Config {
         api_url,
         explorer_url: Some(explorer_url),
@@ -262,15 +271,18 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getLowLatencyEntryCount
     explorer_url: JString<'_>,
 ) -> JString<'env> {
     let env = JnixEnv::from(env);
-    let api_url = parse_api_url_from_java(&env, api_url).map_err(|e|{
-        error!("Failed to parse api url : {:?}", e);
-        return;
-    }).unwrap();
+    let api_url = parse_api_url_from_java(&env, api_url)
+        .map_err(|e| {
+            error!("Failed to parse api url : {:?}", e);
+            return;
+        })
+        .unwrap();
     let explorer_url = parse_explorer_url_from_java(&env, explorer_url)
-        .map_err(|e|{
+        .map_err(|e| {
             error!("Failed to parse explorer url : {:?}", e);
             return;
-        }).unwrap();
+        })
+        .unwrap();
     let config = gateway_client::Config {
         api_url,
         explorer_url: Some(explorer_url),
@@ -337,7 +349,6 @@ enum Error {
     TunnelDeviceTimeout,
     #[error(display = "timed out while waiting for tunnel device to receive data")]
     ParseExplorerUrlFailed,
-
 }
 
 fn wait_for_tunnel_up(tun_fd: RawFd, is_ipv6_enabled: bool) -> Result<(), Error> {
