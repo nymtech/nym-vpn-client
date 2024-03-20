@@ -3,32 +3,37 @@
 
 use std::time::{Duration, Instant};
 
-use futures::StreamExt;
+use futures::{channel::mpsc, StreamExt};
 use nym_task::TaskClient;
 use tokio::task::JoinHandle;
-use tracing::{error, info};
+use tracing::{debug, error, trace};
 
 use crate::error::Result;
 
+const CONNECTION_MONITOR_REPORT_INTERVAL: Duration = Duration::from_secs(5);
+
+// When the latest successful self ping is older than this, we consider the connection to the
+// entry gateway as down
+const SELF_PING_EXPIRY: Duration = Duration::from_secs(5);
+
 #[derive(Debug)]
-pub enum ConnectionEvent {
+pub enum ConnectionStatusEvent {
     MixnetSelfPing,
 }
 
 #[derive(Debug, Default)]
 struct ConnectionStats {
+    // TODO: extend with all sorts of good stuff
     latest_self_ping: Option<Instant>,
 }
 
 struct ConnectionMonitor {
-    connection_event_rx: futures::channel::mpsc::UnboundedReceiver<ConnectionEvent>,
+    connection_event_rx: mpsc::UnboundedReceiver<ConnectionStatusEvent>,
     stats: ConnectionStats,
 }
 
 impl ConnectionMonitor {
-    fn new(
-        connection_event_rx: futures::channel::mpsc::UnboundedReceiver<ConnectionEvent>,
-    ) -> Self {
+    fn new(connection_event_rx: mpsc::UnboundedReceiver<ConnectionStatusEvent>) -> Self {
         ConnectionMonitor {
             connection_event_rx,
             stats: ConnectionStats::default(),
@@ -36,44 +41,45 @@ impl ConnectionMonitor {
     }
 
     async fn run(mut self, mut task_client: TaskClient) -> Result<()> {
-        info!("Connection monitor is running");
+        debug!("Connection monitor is running");
+        let mut report_interval = tokio::time::interval(CONNECTION_MONITOR_REPORT_INTERVAL);
+        // Reset so that we don't send a report immediately before we even have a change for any
+        // self pings to be sent and received
+        report_interval.reset();
+
         loop {
             tokio::select! {
-                _ = task_client.recv_with_delay() => {
-                    info!("ConnectionMonitor: Received shutdown");
+                _ = task_client.recv() => {
+                    trace!("ConnectionMonitor: Received shutdown");
                     break;
                 }
                 Some(event) = self.connection_event_rx.next() => {
                     match event {
-                        ConnectionEvent::MixnetSelfPing => {
-                            info!("Received self ping event");
+                        ConnectionStatusEvent::MixnetSelfPing => {
+                            trace!("Received self ping event");
                             self.stats.latest_self_ping = Some(Instant::now());
                         }
                     }
                 }
-                // Every 5 seconds, check if we have received a self-ping in the last 5 seconds
-                _ = tokio::time::sleep(Duration::from_secs(5)) => {
-                    let msg = ConnectionMonitorStatus::Hello;
-                    task_client.send_status_msg(Box::new(msg));
+                _ = report_interval.tick() => {
+                    debug!("Connection statistics: {:?}", self.stats);
+
+                    // Send hello messages, so listerners can hear that we are still alive
+                    task_client.send_status_msg(Box::new(ConnectionMonitorStatus::Hello));
+
                     if let Some(latest_self_ping) = self.stats.latest_self_ping {
-                        if latest_self_ping.elapsed() > Duration::from_secs(5) {
-                            error!("Haven't received a self-ping in the last 5 seconds");
-                            error!("Connection to entry gateway seems down!");
-                            // WIP(JON): we need to make sure things are not put in a pile with no
-                            // receiver emptying it
-                            let msg = ConnectionMonitorStatus::EntryGatewayDown;
-                            task_client.send_status_msg(Box::new(msg));
+                        if latest_self_ping.elapsed() > SELF_PING_EXPIRY {
+                            error!("Entry gateway not routing our mixnet traffic");
+                            task_client.send_status_msg(Box::new(ConnectionMonitorStatus::EntryGatewayDown));
                         }
                     } else {
-                        error!("Haven't received a self-ping yet");
-                        error!("Connection to entry gateway seems down!");
-                        let msg = ConnectionMonitorStatus::EntryGatewayDown;
-                        task_client.send_status_msg(Box::new(msg));
+                        error!("Entry gateway not routing our mixnet traffic");
+                        task_client.send_status_msg(Box::new(ConnectionMonitorStatus::EntryGatewayDown));
                     }
                 }
             }
         }
-        info!("ConnectionMonitor: Exiting");
+        debug!("ConnectionMonitor: Exiting");
         Ok(())
     }
 }
@@ -85,23 +91,19 @@ impl ConnectionMonitor {
 pub enum ConnectionMonitorStatus {
     #[error("hello")]
     Hello,
-    #[error("connection to entry gateway seems down!")]
+    #[error("entry gateway appears down - it's not routing our mixnet traffic")]
     EntryGatewayDown,
 }
 
 pub fn start_connection_monitor(
-    connection_event_rx: futures::channel::mpsc::UnboundedReceiver<ConnectionEvent>,
+    connection_event_rx: futures::channel::mpsc::UnboundedReceiver<ConnectionStatusEvent>,
     shutdown_listener: TaskClient,
 ) -> JoinHandle<Result<()>> {
-    info!("Creating connection monitor");
+    debug!("Creating connection monitor");
     let monitor = ConnectionMonitor::new(connection_event_rx);
     tokio::spawn(async move {
-        let ret = monitor.run(shutdown_listener).await;
-        if let Err(err) = ret {
+        monitor.run(shutdown_listener).await.inspect_err(|err| {
             error!("Connection monitor error: {err}");
-            Err(err)
-        } else {
-            ret
-        }
+        })
     })
 }

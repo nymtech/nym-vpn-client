@@ -5,6 +5,7 @@ edition = "2021"
 license = "GPL-3.0-only"
 
 [dependencies]
+anyhow = "1.0.81"
 clap = { version = "4.4.7", features = ["cargo", "derive"] }
 ipnetwork = "0.16"
 log = "0.4.20"

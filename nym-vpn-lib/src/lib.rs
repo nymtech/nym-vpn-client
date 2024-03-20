@@ -247,9 +247,10 @@ impl NymVpn {
         let processor_config = mixnet_processor::Config::new(*exit_router);
         debug!("Mixnet processor config: {:#?}", processor_config);
 
+        // For other components that will want to send mixnet packets
         let mixnet_client_sender = mixnet_client.split_sender().await;
-        let (connection_event_tx, connection_event_rx) =
-            mpsc::unbounded::<connection_monitor::ConnectionEvent>();
+        // Channels to report connection status events
+        let (connection_event_tx, connection_event_rx) = mpsc::unbounded();
 
         let shadow_handle = mixnet_processor::start_processor(
             processor_config,

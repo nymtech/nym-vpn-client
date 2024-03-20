@@ -21,7 +21,7 @@ use tracing::{debug, error, info, trace, warn};
 use tun2::{AbstractDevice, AsyncDevice};
 
 use crate::{
-    connection_monitor,
+    connection_monitor::{self, ConnectionStatusEvent},
     error::{Error, Result},
     mixnet_connect::SharedMixnetClient,
 };
@@ -106,7 +106,7 @@ impl MessageCreator {
 pub struct MixnetProcessor {
     device: AsyncDevice,
     mixnet_client: SharedMixnetClient,
-    connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionEvent>,
+    connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
     ip_packet_router_address: IpPacketRouterAddress,
     // TODO: handle this as part of setting up the mixnet client
     enable_two_hop: bool,
@@ -117,7 +117,7 @@ impl MixnetProcessor {
         device: AsyncDevice,
         mixnet_client: SharedMixnetClient,
         connection_event_tx: futures::channel::mpsc::UnboundedSender<
-            connection_monitor::ConnectionEvent,
+            connection_monitor::ConnectionStatusEvent,
         >,
         ip_packet_router_address: IpPacketRouterAddress,
         enable_two_hop: bool,
@@ -241,12 +241,10 @@ impl MixnetProcessor {
                             // are sending a ping to ourselves.
                             if let Ok(request) = IpPacketRequest::from_reconstructed_message(&reconstructed_message) {
                                 match request.data {
-                                    IpPacketRequestData::Ping(ref ping_request) => {
-                                        if ping_request.reply_to == our_address {
-                                            self.connection_event_tx.unbounded_send(connection_monitor::ConnectionEvent::MixnetSelfPing).unwrap();
-                                        } else {
-                                            info!("Received unexpected ping - ignoring");
-                                        }
+                                    IpPacketRequestData::Ping(ref ping_request) if ping_request.reply_to == our_address => {
+                                        self.connection_event_tx
+                                            .unbounded_send(ConnectionStatusEvent::MixnetSelfPing)
+                                            .unwrap();
                                     },
                                     ref request => {
                                         info!("Received unexpected request: {request:?}");
@@ -274,7 +272,7 @@ pub async fn start_processor(
     mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,
     enable_two_hop: bool,
-    connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionEvent>,
+    connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
 ) -> JoinHandle<Result<AsyncDevice>> {
     info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(
