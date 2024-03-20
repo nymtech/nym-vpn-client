@@ -39,6 +39,10 @@ jobs:
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
       UPDATER_BUNDLE_DIR: updater_bundle
+      APPIMAGE_DIR: appimage
+    outputs:
+      pkg_version: ${{ steps.set_env.outputs.pkg_version }}
+      appimage_dir: ${{ env.APPIMAGE_DIR }}
 
     steps:
       - name: "Cleanup working directory"
@@ -100,6 +104,7 @@ jobs:
           artifact_checksum="$artifact_archive.sha256sum"
           updater_bundle_name="updater-bundle_${version}_$platform_arch"
           # debug
+          echo " ✓ PKG_VERSION: $version"
           echo " ✓ PLATFORM_ARCH: $platform_arch"
           echo " ✓ WG_GO_LIB_NAME: $wg_go_lib_name"
           echo " ✓ WG_GO_LIB_PATH: ${{ env.WG_GO_LIB_PATH }}"
@@ -108,12 +113,15 @@ jobs:
           echo " ✓ UPDATER_BUNDLE_NAME: $updater_bundle_name"
           echo " ✓ UPDATER_BUNDLE_DIR: ${{ env.UPDATER_BUNDLE_DIR }}"
           # set github env
+          echo "PKG_VERSION=$version" >> $GITHUB_ENV
           echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
           echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
           echo "ARTIFACT_DIR=$artifact_dir" >> $GITHUB_ENV
           echo "ARTIFACT_ARCHIVE=$artifact_archive" >> $GITHUB_ENV
           echo "ARTIFACT_CHECKSUM=$artifact_checksum" >> $GITHUB_ENV
           echo "UPDATER_BUNDLE_NAME=$updater_bundle_name" >> $GITHUB_ENV
+          # set gh outputs
+          echo "pkg_version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -238,6 +246,20 @@ jobs:
           cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
+      - name: Prepare AppImage
+        if: contains(matrix.os, 'ubuntu-22.04')
+        run: |
+          mkdir $APPIMAGE_DIR
+          mv nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*.AppImage $APPIMAGE_DIR/nym-vpn_${PKG_VERSION}.AppImage
+
+      - name: Upload AppImage
+        if: contains(matrix.os, 'ubuntu-22.04')
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APPIMAGE_DIR }}
+          path: ${{ env.APPIMAGE_DIR }}
+          retention-days: 2
+
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
         with:
@@ -249,7 +271,7 @@ jobs:
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
-          ./nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*_amd64.AppImage --build-info > build-info.txt
+          ./$APPIMAGE_DIR/nym-vpn_*.AppImage --build-info > build-info.txt
           cat build-info.txt
 
       - name: Upload build-info (${{ env.PLATFORM_ARCH }})
@@ -273,6 +295,8 @@ jobs:
     env:
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PKG_VERSION: ${{ needs.build.outputs.pkg_version }}
+      APPIMAGE_DIR: ${{ needs.build.outputs.appimage_dir }}
     permissions:
       contents: write
     steps:
@@ -336,6 +360,10 @@ jobs:
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
+          # handle AppImage
+          cd $APPIMAGE_DIR
+          sha256sum nym-vpn*.AppImage
+          sha256sum nym-vpn*.AppImage > nym-vpn_${PKG_VERSION}.AppImage.sha256sum
 
       - name: Publish release
         run: |
@@ -348,8 +376,8 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
@@ -357,4 +385,3 @@ jobs:
     with:
       release_tag: ${{ needs.publish.outputs.tag }}
     secrets: inherit
-
