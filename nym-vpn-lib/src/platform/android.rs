@@ -25,7 +25,8 @@ use std::time::{Duration, Instant};
 use talpid_tunnel::tun_provider::{TunConfig, TunProvider};
 use talpid_types::android::AndroidContext;
 use talpid_types::ErrorExt;
-use url::Url;
+use tracing::error;
+use url::{ParseError, Url};
 
 static LOAD_CLASSES: Once = Once::new();
 
@@ -104,31 +105,39 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     LOAD_CLASSES.call_once(|| env.preload_classes(CLASSES.iter().cloned()));
 
     let context = AndroidContext {
-        jvm: Arc::new(
-            env.get_java_vm()
-                .map_err(|e| error!("Could not get jvm {:?}", e))
-                .expect("Could not get jvm"),
-        ),
+        jvm: Arc::new(env.get_java_vm().expect("Get JVM instance")),
         vpn_service: env
             .new_global_ref(vpn_service)
-            .map_err(|e| error!("Could not get vpn_service {:?}", e))
-            .expect("Could not get vpn_service"),
+            .expect("Create global reference"),
     };
+
     let entry_gateway: EntryPoint = serde_json::from_str(&String::from_java(&env, entry_gateway))
-        .map_err(|e| error!("Could not parse entry point {:?}", e))
+        .map_err(|e| {
+            error!("Could not parse entry point {:?}", e);
+            return;
+        })
         .unwrap();
     let exit_router: ExitPoint = serde_json::from_str(&String::from_java(&env, exit_router))
-        .map_err(|e| error!("Could not parse exit point {:?}", e))
+        .map_err(|e| {
+            error!("Could not parse exit point {:?}", e);
+            return;
+        })
         .unwrap();
 
     let mut vpn = NymVpn::new(entry_gateway, exit_router, context);
 
-    let api_url = parse_api_url_from_java(&env, api_url);
+    let api_url = parse_api_url_from_java(&env, api_url).map_err(|e|{
+        error!("Failed to parse api url : {:?}", e);
+        return;
+    }).unwrap();
 
-    let explorer_url = parse_explorer_url_from_java(&env, explorer_url);
+    let explorer_url = parse_explorer_url_from_java(&env, explorer_url).map_err(|e|{
+        error!("Failed to parse explorer url : {:?}", e);
+        return;
+    }).unwrap();
 
     vpn.gateway_config.api_url = api_url;
-    vpn.gateway_config.explorer_url = explorer_url;
+    vpn.gateway_config.explorer_url = Some(explorer_url);
     vpn.enable_two_hop = enable_two_hop != JNI_FALSE;
 
     RUNTIME.block_on(set_inited_vpn(vpn));
@@ -143,9 +152,7 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_runVPN(_env: JNIEnv, _
         return;
     }
 
-    let vpn = RUNTIME
-        .block_on(take_vpn())
-        .expect("VPN configuration was cleared before it could be used");
+    let vpn = RUNTIME.block_on(take_vpn()).expect("VPN not initialized");
 
     let ret = RUNTIME.block_on(_async_run_vpn(vpn));
 
@@ -156,7 +163,7 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_runVPN(_env: JNIEnv, _
                 wait_for_shutdown(stop_handle, handle)
                     .await
                     .map_err(|err| {
-                        warn!("error during vpn run: {}", err);
+                        warn!("error during vpn run: {:?}", err);
                     })
                     .ok();
             });
@@ -185,19 +192,23 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_defaultTunConfig<'env>
     TunConfig::default().into_java(&env).forget()
 }
 
+pub trait IntoJava<'env> {
+    type JavaType;
+
+    fn into_java(self, env: &JNIEnv<'env>) -> Self::JavaType;
+}
+
 // ideally we use IntoJava trait from jnix, quick fix for now
 impl<'env> IntoJava<'env> for String {
     type JavaType = JString<'env>;
 
     fn into_java(self, env: &JNIEnv<'env>) -> Self::JavaType {
-        env.new_string(&self).expect("Failed to create Java String")
+        env.new_string(&self)
+            .map_err(|_e| {
+                error!("Failed to create java string");
+                return;
+            }).unwrap()
     }
-}
-
-pub trait IntoJava<'env> {
-    type JavaType;
-
-    fn into_java(self, env: &JNIEnv<'env>) -> Self::JavaType;
 }
 
 #[no_mangle]
@@ -210,11 +221,18 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getGatewayCountries<'en
     exit_only: jboolean,
 ) -> JString<'env> {
     let env = JnixEnv::from(env);
-    let api_url = parse_api_url_from_java(&env, api_url);
-    let explorer_url = parse_explorer_url_from_java(&env, explorer_url);
+    let api_url = parse_api_url_from_java(&env, api_url)
+        .map_err(|_e| return).map_err(|e|{
+        error!("Failed to parse api url : {:?}", e);
+        return;
+    }).unwrap();
+    let explorer_url = parse_explorer_url_from_java(&env, explorer_url).map_err(|e|{
+        error!("Failed to parse explorer url : {:?}", e);
+        return;
+    }).unwrap();
     let config = gateway_client::Config {
         api_url,
-        explorer_url,
+        explorer_url: Some(explorer_url),
         ..Default::default()
     };
     let gateway_client = GatewayClient::new(config).unwrap();
@@ -244,11 +262,18 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getLowLatencyEntryCount
     explorer_url: JString<'_>,
 ) -> JString<'env> {
     let env = JnixEnv::from(env);
-    let api_url = parse_api_url_from_java(&env, api_url);
-    let explorer_url = parse_explorer_url_from_java(&env, explorer_url);
+    let api_url = parse_api_url_from_java(&env, api_url).map_err(|e|{
+        error!("Failed to parse api url : {:?}", e);
+        return;
+    }).unwrap();
+    let explorer_url = parse_explorer_url_from_java(&env, explorer_url)
+        .map_err(|e|{
+            error!("Failed to parse explorer url : {:?}", e);
+            return;
+        }).unwrap();
     let config = gateway_client::Config {
         api_url,
-        explorer_url,
+        explorer_url: Some(explorer_url),
         ..Default::default()
     };
     let gateway_client = GatewayClient::new(config).unwrap();
@@ -290,26 +315,29 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_waitForTunnelUp(
 #[derive(Debug, err_derive::Error)]
 #[error(no_from)]
 enum SendRandomDataError {
-    #[error(display = "Failed to bind an UDP socket")]
+    #[error(display = "failed to bind an UDP socket")]
     BindUdpSocket(#[error(source)] io::Error),
 
-    #[error(display = "Failed to send random data through UDP socket")]
+    #[error(display = "failed to send random data through UDP socket")]
     SendToUdpSocket(#[error(source)] io::Error),
 }
 
 #[derive(Debug, err_derive::Error)]
 enum Error {
-    #[error(display = "Failed to verify the tunnel device")]
+    #[error(display = "failed to verify the tunnel device")]
     VerifyTunDevice(#[error(source)] SendRandomDataError),
 
-    #[error(display = "Failed to select() on tunnel device")]
+    #[error(display = "failed to select() on tunnel device")]
     Select(#[error(source)] nix::Error),
 
-    #[error(display = "Gateway does not contain a two character country ISO")]
+    #[error(display = "gateway does not contain a two character country ISO")]
     CountryCodeNotFound,
 
-    #[error(display = "Timed out while waiting for tunnel device to receive data")]
+    #[error(display = "timed out while waiting for tunnel device to receive data")]
     TunnelDeviceTimeout,
+    #[error(display = "timed out while waiting for tunnel device to receive data")]
+    ParseExplorerUrlFailed,
+
 }
 
 fn wait_for_tunnel_up(tun_fd: RawFd, is_ipv6_enabled: bool) -> Result<(), Error> {
@@ -393,27 +421,15 @@ fn try_sending_random_udp(is_ipv6_enabled: bool) -> Result<(), SendRandomDataErr
     Ok(())
 }
 
-fn parse_api_url_from_java(env: &JnixEnv, api_url: JString<'_>) -> Url {
-    match Url::from_str(&String::from_java(env, api_url)) {
-        Err(err) => {
-            error!("Could not parse api_url: {:?}. Using the default.", err);
-            gateway_client::Config::default().api_url
-        }
-        Ok(url) => url,
-    }
+fn parse_api_url_from_java(env: &JnixEnv, api_url: JString<'_>) -> Result<Url, ParseError> {
+    Url::from_str(&String::from_java(env, api_url))
 }
 
-fn parse_explorer_url_from_java(env: &JnixEnv, explorer_url: JString<'_>) -> Option<Url> {
-    match Url::from_str(&String::from_java(env, explorer_url)) {
-        Err(err) => {
-            error!(
-                "Could not parse explorer_url: {:?}. Using the default.",
-                err
-            );
-            gateway_client::Config::default().explorer_url
-        }
-        Ok(url) => Some(url),
-    }
+fn parse_explorer_url_from_java(
+    env: &JnixEnv,
+    explorer_url: JString<'_>,
+) -> Result<Url, ParseError> {
+    Url::from_str(&String::from_java(env, explorer_url))
 }
 
 fn is_public_ip(addr: IpAddr) -> bool {
