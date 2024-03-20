@@ -157,16 +157,6 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_runVPN(_env: JNIEnv, _
     }
 }
 
-#[allow(non_snake_case)]
-#[no_mangle]
-pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_stopVPN(_env: JNIEnv, _class: JClass) {
-    if RUNTIME.block_on(get_vpn_state()) != ClientState::Connected {
-        warn!("could not stop the vpn as it's not running");
-        return;
-    }
-    RUNTIME.block_on(stop_and_reset_shutdown_handle());
-}
-
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_defaultTunConfig<'env>(
