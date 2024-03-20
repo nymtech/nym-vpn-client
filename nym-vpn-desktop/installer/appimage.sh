@@ -63,8 +63,8 @@ need_cmd() {
   fi
 }
 
-# pretty print a path, replacing the HOME directory with '~'
-pretty_path() {
+# replace the HOME directory with '~' in the given path
+tilded() {
   echo "${1/#$HOME/\~}"
 }
 
@@ -108,7 +108,7 @@ _install () {
 
   log "  ${B_GRN}Installing$RS AppImage"
   install -Dm755 "$temp_dir/$appimage" "$install_dir/$target_appimage"
-  path=$(pretty_path "$install_dir/$target_appimage")
+  path=$(tilded "$install_dir/$target_appimage")
   log "   ${B_GRN}Installed$RS as $path"
 
   if [ $desktop_entry_disabled == true ]; then
@@ -122,7 +122,7 @@ _install () {
   _popd
   install -Dm644 "$temp_dir/nym-vpn.svg" "$icons_dir/nym-vpn.svg"
   install -Dm644 "$temp_dir/nym-vpn.desktop" "$desktop_dir/nym-vpn.desktop"
-  path=$(pretty_path "$desktop_dir/nym-vpn.desktop")
+  path=$(tilded "$desktop_dir/nym-vpn.desktop")
   log "   ${B_GRN}Installed$RS as $path"
 }
 
