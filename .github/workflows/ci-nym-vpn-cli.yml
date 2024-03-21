@@ -97,8 +97,9 @@ jobs:
 
       # Needs to come before building mullvad libs, since it creates the output folder
       - name: Build wireguard
+        shell: bash
         run: |
-          ${GITHUB_WORKSPACE}/wireguard/build-wireguard-go.sh
+          ./wireguard/build-wireguard-go.sh
 
       - name: Checkout mullvad libs for Windows
         if: contains(matrix.os, 'windows')
