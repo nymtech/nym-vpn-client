@@ -95,6 +95,10 @@ jobs:
         if: contains(matrix.os, 'windows')
         uses: microsoft/setup-msbuild@v2
 
+      # Needs to come before building mullvad libs, since it creates the output folder
+      - name: Build wireguard
+        run: ./wireguard/build-wireguard-go.sh
+
       - name: Checkout mullvad libs for Windows
         if: contains(matrix.os, 'windows')
         uses: actions/checkout@v4
@@ -136,9 +140,6 @@ jobs:
 
       - name: rustfmt check
         run: cargo fmt --check
-
-      - name: Build wireguard
-        run: ./wireguard/build-wireguard-go.sh
 
       - name: Build
         if: "!contains(matrix.os, 'windows')"
