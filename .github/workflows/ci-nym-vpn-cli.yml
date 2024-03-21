@@ -101,10 +101,7 @@ jobs:
         with:
           repository: nymtech/nym-vpn-mullvad-libs
           path: "nym-vpn-mullvad-libs"
-
-      - name: Mullvad submodules init
-        if: contains(matrix.os, 'windows')
-        uses: snickerbockers/submodules-init@v4
+          submodules: true
 
       - name: Build winfw.dll from mullvad
         if: contains(matrix.os, 'windows')
