@@ -97,7 +97,7 @@ async fn main() -> Result<()> {
             error!(err_message);
             return Err(anyhow!(err_message));
         }
-    } else {
+    } else if cli.sandbox {
         // If no env_config_file is provided, setup the sandbox environment
         // This is tempory until we switch to mainnet
         network::setup_sandbox_environment();
