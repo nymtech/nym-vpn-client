@@ -4,7 +4,7 @@ import android.system.Os
 
 object Constants {
 
-    const val NYM_VPN_LIB = "nym_vpn_lib"
+    const val NYM_VPN_LIB = "uniffi_nym_vpn_lib_android"
 
     //Add Rust environment vars for lib
     const val DEFAULT_COUNTRY_ISO = "DE"

@@ -72,3 +72,5 @@ app/release/output.json
 # where we keep our signing secrets locally
 app/signing.properties
 *.so
+
+vpn-client/src/main/java/net/nymtech/vpn/uniffi

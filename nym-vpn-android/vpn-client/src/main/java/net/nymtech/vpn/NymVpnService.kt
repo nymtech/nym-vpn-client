@@ -13,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import uniffi.nym_vpn_lib_android.stopVpn
 import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.tun_provider.TunConfig
 import net.nymtech.vpn.util.Action
@@ -20,6 +21,7 @@ import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn_client.BuildConfig
 import net.nymtech.vpn_client.R
 import timber.log.Timber
+import uniffi.nym_vpn_lib_android.runVpn
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -69,7 +71,7 @@ class NymVpnService : VpnService() {
             Action.STOP.name -> {
                 Timber.d("VPN stop")
                 NymVpnClient.setVpnState(VpnState.Disconnecting)
-                stopVPN()
+                stopVpn()
                 stopSelf()
                 START_NOT_STICKY
             }
@@ -88,7 +90,7 @@ class NymVpnService : VpnService() {
                     initVPN(isTwoHop, BuildConfig.API_URL, BuildConfig.EXPLORER_URL, entry, exit,this)
                     CoroutineScope(Dispatchers.IO).launch {
                         launch {
-                            runVPN()
+                            runVpn()
                         }
                     }
                 }
@@ -140,7 +142,7 @@ class NymVpnService : VpnService() {
         Timber.i("VpnService destroyed")
         NymVpnClient.setVpnState(VpnState.Down)
         connectivityListener.unregister()
-        stopVPN()
+        stopVpn()
         stopSelf()
     }
 
@@ -254,8 +256,6 @@ class NymVpnService : VpnService() {
         exit_router: String,
         vpn_service: Any
     )
-    private external fun runVPN()
-    private external fun stopVPN()
 
     private external fun defaultTunConfig(): TunConfig
     private external fun waitForTunnelUp(tunFd: Int, isIpv6Enabled: Boolean)
