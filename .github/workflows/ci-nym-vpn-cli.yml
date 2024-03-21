@@ -110,7 +110,8 @@ jobs:
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
-          ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/build-windows-modules.sh
+          cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
+          ./build-windows-modules.sh
 
       - name: Move winfw.dll to build directory
         if: contains(matrix.os, 'windows')
