@@ -87,7 +87,7 @@ jobs:
           echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/build/lib/x64-Debug" >> $GITHUB_ENV
 
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: "stable"
 
