@@ -10,5 +10,5 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       # The cargo-deny action uses docker which we currently can't run on
       # ubuntu-22.04, so we have to build manually for now
-      - run: cargo install cargo-deny
+      - run: cargo install --locked cargo-deny
       - run: cargo deny --all-features check licenses bans sources
