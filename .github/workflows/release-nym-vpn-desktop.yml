@@ -355,15 +355,15 @@ jobs:
       # published, which would just be an empty archive.
       - name: Generate checksums
         run: |
+          pushd $APPIMAGE_DIR
+          sha256sum nym-vpn*.AppImage > nym-vpn_${PKG_VERSION}.AppImage.sha256sum
+          popd
           rmdir nym-vpn-desktop_*tar.gz || true
           for file in nym-vpn-desktop_*tar.gz; do pushd $file; for f in nym-vpn-desktop_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
+          cat $APPIMAGE_DIR/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
-          # handle AppImage
-          cd $APPIMAGE_DIR
-          sha256sum nym-vpn*.AppImage
-          sha256sum nym-vpn*.AppImage > nym-vpn_${PKG_VERSION}.AppImage.sha256sum
 
       - name: AppImage installer bump version
         env:
