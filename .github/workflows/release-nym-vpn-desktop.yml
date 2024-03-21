@@ -365,6 +365,19 @@ jobs:
           sha256sum nym-vpn*.AppImage
           sha256sum nym-vpn*.AppImage > nym-vpn_${PKG_VERSION}.AppImage.sha256sum
 
+      - name: AppImage installer bump version
+        env:
+          appimg_installer: nym-vpn-desktop/scripts/appimage.sh
+        run: |
+          echo "tag: $TAG_NAME"
+          echo "version: $PKG_VERSION"
+          sed -i "s/^tag=.*$/tag=$TAG_NAME/" $appimg_installer
+          sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
+          # TODO rm debug
+          cat $appimg_installer
+          mkdir installer
+          cp $appimg_installer installer
+
       - name: Publish release
         run: |
           echo "build info"
@@ -376,8 +389,8 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
