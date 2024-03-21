@@ -355,15 +355,26 @@ jobs:
       # published, which would just be an empty archive.
       - name: Generate checksums
         run: |
+          pushd $APPIMAGE_DIR
+          sha256sum nym-vpn*.AppImage > nym-vpn_${PKG_VERSION}.AppImage.sha256sum
+          popd
           rmdir nym-vpn-desktop_*tar.gz || true
           for file in nym-vpn-desktop_*tar.gz; do pushd $file; for f in nym-vpn-desktop_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
+          cat $APPIMAGE_DIR/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
-          # handle AppImage
-          cd $APPIMAGE_DIR
-          sha256sum nym-vpn*.AppImage
-          sha256sum nym-vpn*.AppImage > nym-vpn_${PKG_VERSION}.AppImage.sha256sum
+
+      - name: AppImage installer bump version
+        env:
+          appimg_installer: nym-vpn-desktop/scripts/appimage.sh
+        run: |
+          echo "tag: $TAG_NAME"
+          echo "version: $PKG_VERSION"
+          sed -i "s/^tag=.*$/tag=$TAG_NAME/" $appimg_installer
+          sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
+          mkdir installer
+          cp $appimg_installer installer
 
       - name: Publish release
         run: |
@@ -376,8 +387,8 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
