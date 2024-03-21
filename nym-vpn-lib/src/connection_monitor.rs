@@ -64,8 +64,8 @@ impl ConnectionMonitor {
                 _ = report_interval.tick() => {
                     debug!("Connection statistics: {:?}", self.stats);
 
-                    // Send hello messages, so listerners can hear that we are still alive
-                    task_client.send_status_msg(Box::new(ConnectionMonitorStatus::Hello));
+                    // Send I'm alive messages, so listerners can hear that we are still there
+                    task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ImAlive));
 
                     if let Some(latest_self_ping) = self.stats.latest_self_ping {
                         if latest_self_ping.elapsed() > SELF_PING_EXPIRY {
@@ -89,8 +89,8 @@ impl ConnectionMonitor {
 // to create a separate trait in nym_task::TaskManager
 #[derive(thiserror::Error, Debug)]
 pub enum ConnectionMonitorStatus {
-    #[error("hello")]
-    Hello,
+    #[error("I'm alive")]
+    ImAlive,
     #[error("entry gateway appears down - it's not routing our mixnet traffic")]
     EntryGatewayDown,
 }
