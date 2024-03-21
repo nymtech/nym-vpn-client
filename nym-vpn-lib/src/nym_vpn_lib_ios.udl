@@ -95,10 +95,7 @@ interface OSTunProvider {
 };
 
 namespace nym_vpn_lib_ios {
-    [Async]
     void initVPN(VPNConfig config);
-    [Async]
     void runVPN();
-    [Async]
     void stopVPN();
 };

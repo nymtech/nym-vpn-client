@@ -44,7 +44,12 @@ pub struct VPNConfig {
 }
 
 #[allow(non_snake_case)]
-pub async fn initVPN(config: VPNConfig) {
+pub fn initVPN(config: VPNConfig) {
+    RUNTIME.block_on(init_vpn(config));
+}
+
+#[allow(non_snake_case)]
+async fn init_vpn(config: VPNConfig) {
     init_logs();
 
     if get_vpn_state().await != ClientState::Uninitialised {

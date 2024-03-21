@@ -90,7 +90,7 @@ pub trait OSTunProvider: Send + Sync + Debug {
 }
 
 #[allow(non_snake_case)]
-pub async fn initVPN(config: VPNConfig) {
+pub fn initVPN(config: VPNConfig) {
     init_logs();
 
     if get_vpn_state().await != ClientState::Uninitialised {

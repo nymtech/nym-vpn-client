@@ -79,10 +79,7 @@ interface ExitPoint {
 };
 
 namespace nym_vpn_lib_macos {
-    [Async]
     void initVPN(VPNConfig config);
-    [Async]
     void runVPN();
-    [Async]
     void stopVPN();
 };
