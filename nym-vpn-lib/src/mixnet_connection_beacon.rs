@@ -8,7 +8,7 @@ use nym_ip_packet_requests::request::IpPacketRequest;
 use nym_sdk::mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient};
 use rand_distr::Distribution;
-use tokio::task::JoinHandle;
+use tokio::{task::JoinHandle, time::Instant};
 use tracing::{debug, error, trace};
 
 use crate::{
@@ -16,7 +16,7 @@ use crate::{
     mixnet_connect::SharedMixnetClient,
 };
 
-const MIXNET_SELF_PING_INTERVAL: Duration = Duration::from_millis(1000);
+const MIXNET_SELF_PING_AVG_INTERVAL: Duration = Duration::from_millis(500);
 
 fn create_self_ping(our_address: Recipient) -> (InputMessage, u64) {
     let (request, request_id) = IpPacketRequest::new_ping(our_address);
@@ -89,7 +89,7 @@ async fn wait_for_self_ping_return(
 
 struct PoissonDelayTimer<R> {
     rng: R,
-    average_sending_delay: f64,
+    average_sending_delay_sec: f64,
 }
 
 impl<R> PoissonDelayTimer<R>
@@ -99,23 +99,28 @@ where
     fn new(rng: R, average_sending_delay: f64) -> Self {
         Self {
             rng,
-            average_sending_delay,
+            average_sending_delay_sec: average_sending_delay,
         }
     }
 
     // The stream will yield a value every `average_sending_delay` seconds on average.
     fn as_stream(&mut self) -> impl futures::Stream<Item = ()> + Send + '_ {
-        futures::stream::unfold(self, |poisson_delay_timer| async {
-            let average_sending_delay = poisson_delay_timer.average_sending_delay;
-            let exp_dist = rand_distr::Exp::new(1.0 / average_sending_delay).unwrap();
-            let delay_duration = exp_dist.sample(&mut poisson_delay_timer.rng);
-            let next_delay = Duration::from_secs_f64(delay_duration);
+        futures::stream::unfold(
+            (self, Instant::now()),
+            |(poisson_delay_timer, last_instant)| async move {
+                let average_sending_delay_sec = poisson_delay_timer.average_sending_delay_sec;
+                let exp_dist = rand_distr::Exp::new(1.0 / average_sending_delay_sec).unwrap();
+                let delay_duration = exp_dist.sample(&mut poisson_delay_timer.rng);
+                let next_delay = Duration::from_secs_f64(delay_duration);
+                dbg!(next_delay);
 
-            // Sleep for the calculated delay duration
-            tokio::time::sleep(next_delay).await;
+                // Make sure that the future yiels with an interval that isn't affected by the time
+                // spent e.g in the select body
+                tokio::time::sleep_until(last_instant + next_delay).await;
 
-            Some(((), poisson_delay_timer)) // Continue the loop with the last delay as the state
-        })
+                Some(((), (poisson_delay_timer, Instant::now())))
+            },
+        )
     }
 }
 
@@ -136,7 +141,7 @@ impl MixnetConnectionBeacon {
         debug!("Mixnet connection beacon is running");
         // let mut ping_interval = tokio::time::interval(MIXNET_SELF_PING_INTERVAL);
         let rng = nym_crypto::aes::cipher::crypto_common::rand_core::OsRng;
-        let mut timer = PoissonDelayTimer::new(rng, MIXNET_SELF_PING_INTERVAL.as_secs_f64());
+        let mut timer = PoissonDelayTimer::new(rng, MIXNET_SELF_PING_AVG_INTERVAL.as_secs_f64());
         let timer_stream = timer.as_stream();
         tokio::pin!(timer_stream);
 
