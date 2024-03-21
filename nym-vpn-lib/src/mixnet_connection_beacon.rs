@@ -7,6 +7,7 @@ use futures::StreamExt;
 use nym_ip_packet_requests::request::IpPacketRequest;
 use nym_sdk::mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient};
+use rand_distr::Distribution;
 use tokio::task::JoinHandle;
 use tracing::{debug, error, trace};
 
@@ -16,11 +17,6 @@ use crate::{
 };
 
 const MIXNET_SELF_PING_INTERVAL: Duration = Duration::from_millis(1000);
-
-struct MixnetConnectionBeacon {
-    mixnet_client_sender: MixnetClientSender,
-    our_address: Recipient,
-}
 
 fn create_self_ping(our_address: Recipient) -> (InputMessage, u64) {
     let (request, request_id) = IpPacketRequest::new_ping(our_address);
@@ -89,6 +85,43 @@ async fn wait_for_self_ping_return(
             }
         }
     }
+}
+
+struct PoissonDelayTimer<R> {
+    rng: R,
+    average_sending_delay: f64,
+}
+
+impl<R> PoissonDelayTimer<R>
+where
+    R: nym_crypto::aes::cipher::crypto_common::rand_core::RngCore + std::marker::Send,
+{
+    fn new(rng: R, average_sending_delay: f64) -> Self {
+        Self {
+            rng,
+            average_sending_delay,
+        }
+    }
+
+    // The stream will yield a value every `average_sending_delay` seconds on average.
+    fn as_stream(&mut self) -> impl futures::Stream<Item = ()> + Send + '_ {
+        futures::stream::unfold(self, |poisson_delay_timer| async {
+            let average_sending_delay = poisson_delay_timer.average_sending_delay;
+            let exp_dist = rand_distr::Exp::new(1.0 / average_sending_delay).unwrap();
+            let delay_duration = exp_dist.sample(&mut poisson_delay_timer.rng);
+            let next_delay = Duration::from_secs_f64(delay_duration);
+
+            // Sleep for the calculated delay duration
+            tokio::time::sleep(next_delay).await;
+
+            Some(((), poisson_delay_timer)) // Continue the loop with the last delay as the state
+        })
+    }
+}
+
+struct MixnetConnectionBeacon {
+    mixnet_client_sender: MixnetClientSender,
+    our_address: Recipient,
 }
 
 impl MixnetConnectionBeacon {

@@ -4084,7 +4084,7 @@ dependencies = [
  "nym-sphinx-types",
  "nym-topology",
  "rand 0.7.3",
- "rand_distr",
+ "rand_distr 0.3.0",
  "thiserror",
  "tokio",
 ]
@@ -4369,6 +4369,7 @@ dependencies = [
  "nym-wireguard-types",
  "oslog",
  "rand 0.7.3",
+ "rand_distr 0.4.3",
  "reqwest",
  "serde",
  "serde_json",
@@ -5099,6 +5100,16 @@ checksum = "c9e9532ada3929fb8b2e9dbe28d1e06c9b2cc65813f074fcb6bd5fbefeff9d56"
 dependencies = [
  "num-traits",
  "rand 0.7.3",
+]
+
+[[package]]
+name = "rand_distr"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32cb0b9bc82b0a0876c2dd994a7e7a2683d3e7390ca40e6886785ef0c7e3ee31"
+dependencies = [
+ "num-traits",
+ "rand 0.8.5",
 ]
 
 [[package]]
@@ -5968,7 +5979,7 @@ dependencies = [
  "lioness",
  "log",
  "rand 0.7.3",
- "rand_distr",
+ "rand_distr 0.3.0",
  "sha2 0.9.9",
  "subtle 2.4.1",
 ]
