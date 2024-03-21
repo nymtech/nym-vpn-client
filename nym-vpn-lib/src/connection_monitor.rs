@@ -62,7 +62,10 @@ impl ConnectionMonitor {
                     }
                 }
                 _ = report_interval.tick() => {
-                    debug!("Connection statistics: {:?}", self.stats);
+                    debug!(
+                        "Time since latest received self ping: {}ms",
+                        self.stats.latest_self_ping.map(|t| t.elapsed().as_millis()).unwrap_or(0)
+                    );
 
                     // Send I'm alive messages, so listerners can hear that we are still there
                     task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ImAlive));

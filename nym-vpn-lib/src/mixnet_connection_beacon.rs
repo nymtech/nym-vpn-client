@@ -3,6 +3,7 @@
 
 use std::time::Duration;
 
+use futures::StreamExt;
 use nym_ip_packet_requests::request::IpPacketRequest;
 use nym_sdk::mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient};
@@ -39,14 +40,24 @@ pub(crate) async fn self_ping_and_wait(
     our_address: Recipient,
     mixnet_client: SharedMixnetClient,
 ) -> Result<()> {
-    let (input_message, request_id) = create_self_ping(our_address);
-    mixnet_client.send(input_message).await?;
-    wait_for_self_ping_return(&mixnet_client, request_id).await
+    // We want to send a bunch of pings and wait for the first one to return
+    let request_ids: Vec<_> = futures::stream::iter(1..=3)
+        .then(|_| async {
+            let (input_message, request_id) = create_self_ping(our_address);
+            mixnet_client.send(input_message).await?;
+            Ok::<u64, Error>(request_id)
+        })
+        .collect::<Vec<_>>()
+        .await;
+    // Check the vec of results and return the first error, if any. If there are not errors, unwrap
+    // all the results into a vec of u64s.
+    let request_ids = request_ids.into_iter().collect::<Result<Vec<_>>>()?;
+    wait_for_self_ping_return(&mixnet_client, &request_ids).await
 }
 
 async fn wait_for_self_ping_return(
     mixnet_client: &SharedMixnetClient,
-    request_id: u64,
+    request_ids: &[u64],
 ) -> Result<()> {
     let timeout = tokio::time::sleep(Duration::from_secs(5));
     tokio::pin!(timeout);
@@ -70,7 +81,7 @@ async fn wait_for_self_ping_return(
                         error!("Failed to deserialize reconstructed message");
                         continue;
                     };
-                    if response.id() == Some(request_id) {
+                    if request_ids.iter().any(|&id| response.id() == Some(id)) {
                         debug!("Got the ping we were waiting for");
                         return Ok(());
                     }
