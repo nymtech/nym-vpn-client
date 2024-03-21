@@ -373,8 +373,6 @@ jobs:
           echo "version: $PKG_VERSION"
           sed -i "s/^tag=.*$/tag=$TAG_NAME/" $appimg_installer
           sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
-          # TODO rm debug
-          cat $appimg_installer
           mkdir installer
           cp $appimg_installer installer
 
