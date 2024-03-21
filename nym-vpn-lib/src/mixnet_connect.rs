@@ -147,7 +147,8 @@ async fn wait_for_connect_response(
 
                         debug!("MixnetProcessor: Got message while waiting for connect response");
                         let Ok(response) = IpPacketResponse::from_reconstructed_message(&msg) else {
-                            error!("Failed to deserialize reconstructed message");
+                            // This is ok, it's likely just one of our self-pings
+                            debug!("Failed to deserialize reconstructed message");
                             continue;
                         };
                         if response.id() == Some(request_id) {
