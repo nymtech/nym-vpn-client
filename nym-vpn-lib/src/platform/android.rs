@@ -6,7 +6,7 @@ use crate::gateway_client::{EntryPoint, ExitPoint};
 use crate::NymVpn;
 use ipnetwork::IpNetwork;
 use jnix::jni::{
-    objects::{JClass, JObject, JString},
+    objects::{JObject, JString},
     sys::{jboolean, jint, JNI_FALSE},
     JNIEnv,
 };
@@ -125,36 +125,6 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     vpn.enable_two_hop = enable_two_hop != JNI_FALSE;
 
     RUNTIME.block_on(set_inited_vpn(vpn));
-}
-
-#[no_mangle]
-#[allow(non_snake_case)]
-pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_runVPN(_env: JNIEnv, _class: JClass) {
-    let state = RUNTIME.block_on(get_vpn_state());
-    if state != ClientState::Disconnected {
-        warn!("Invalid vpn state: {:?}", state);
-        return;
-    }
-
-    let vpn = RUNTIME
-        .block_on(take_vpn())
-        .expect("VPN configuration was cleared before it could be used");
-
-    let ret = RUNTIME.block_on(_async_run_vpn(vpn));
-
-    match ret {
-        Err(err) => error!("Could not start the VPN: {:?}", err),
-        Ok((stop_handle, handle)) => {
-            RUNTIME.spawn(async move {
-                wait_for_shutdown(stop_handle, handle)
-                    .await
-                    .map_err(|err| {
-                        warn!("error during vpn run: {}", err);
-                    })
-                    .ok();
-            });
-        }
-    }
 }
 
 #[no_mangle]
