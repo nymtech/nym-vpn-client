@@ -126,7 +126,7 @@ struct MixnetConnectionBeacon {
 
 impl MixnetConnectionBeacon {
     async fn send_mixnet_self_ping(&self) -> Result<u64> {
-        trace!("Sending mixnet self ping");
+        error!("Sending mixnet self ping");
         let (input_message, request_id) = create_self_ping(self.our_address);
         self.mixnet_client_sender.send(input_message).await?;
         Ok(request_id)
@@ -134,14 +134,20 @@ impl MixnetConnectionBeacon {
 
     pub async fn run(self, mut shutdown: TaskClient) -> Result<()> {
         debug!("Mixnet connection beacon is running");
-        let mut ping_interval = tokio::time::interval(MIXNET_SELF_PING_INTERVAL);
+        // let mut ping_interval = tokio::time::interval(MIXNET_SELF_PING_INTERVAL);
+        let rng = nym_crypto::aes::cipher::crypto_common::rand_core::OsRng;
+        let mut timer = PoissonDelayTimer::new(rng, MIXNET_SELF_PING_INTERVAL.as_secs_f64());
+        let timer_stream = timer.as_stream();
+        tokio::pin!(timer_stream);
+
         loop {
             tokio::select! {
                 _ = shutdown.recv() => {
                     trace!("MixnetConnectionBeacon: Received shutdown");
                     break;
                 }
-                _ = ping_interval.tick() => {
+                // _ = ping_interval.tick() => {
+                _ = timer_stream.next() => {
                     let _ping_id = match self.send_mixnet_self_ping().await {
                         Ok(id) => id,
                         Err(err) => {
