@@ -52,7 +52,7 @@ jobs:
 
       - name: Install rust toolchain
         id: rust-toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
 
