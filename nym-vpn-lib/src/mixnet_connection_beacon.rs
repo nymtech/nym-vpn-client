@@ -112,7 +112,6 @@ where
                 let exp_dist = rand_distr::Exp::new(1.0 / average_sending_delay_sec).unwrap();
                 let delay_duration = exp_dist.sample(&mut poisson_delay_timer.rng);
                 let next_delay = Duration::from_secs_f64(delay_duration);
-                dbg!(next_delay);
 
                 // Make sure that the future yiels with an interval that isn't affected by the time
                 // spent e.g in the select body
@@ -139,7 +138,6 @@ impl MixnetConnectionBeacon {
 
     pub async fn run(self, mut shutdown: TaskClient) -> Result<()> {
         debug!("Mixnet connection beacon is running");
-        // let mut ping_interval = tokio::time::interval(MIXNET_SELF_PING_INTERVAL);
         let rng = nym_crypto::aes::cipher::crypto_common::rand_core::OsRng;
         let mut timer = PoissonDelayTimer::new(rng, MIXNET_SELF_PING_AVG_INTERVAL.as_secs_f64());
         let timer_stream = timer.as_stream();
@@ -151,7 +149,6 @@ impl MixnetConnectionBeacon {
                     trace!("MixnetConnectionBeacon: Received shutdown");
                     break;
                 }
-                // _ = ping_interval.tick() => {
                 _ = timer_stream.next() => {
                     let _ping_id = match self.send_mixnet_self_ping().await {
                         Ok(id) => id,
