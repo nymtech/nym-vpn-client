@@ -97,7 +97,6 @@ jobs:
 
       # Needs to come before building mullvad libs, since it creates the output folder
       - name: Build wireguard
-        shell: bash
         run: |
           ./wireguard/build-wireguard-go.sh
 
