@@ -61,7 +61,7 @@ jobs:
         id: setup-ndk
         if: contains(matrix.target, 'android')
         with:
-          ndk-version: r23e
+          ndk-version: r25c
           add-to-path: false
           local-cache: true
 
