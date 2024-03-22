@@ -1,6 +1,4 @@
 package net.nymtech.nymvpn.ui
-import android.Manifest
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,9 +21,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 import dagger.hilt.android.AndroidEntryPoint
 import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.Dispatchers
@@ -49,10 +44,7 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.TransparentSystemBars
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpn.NymVpnClient
-import net.nymtech.vpn.NymVpnService
-import net.nymtech.vpn.model.Hop
-import net.nymtech.vpn.model.VpnMode
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -60,7 +52,6 @@ class MainActivity : ComponentActivity() {
 
   @Inject lateinit var dataStoreManager: DataStoreManager
 
-  @OptIn(ExperimentalPermissionsApi::class)
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
@@ -88,26 +79,14 @@ class MainActivity : ComponentActivity() {
     }
 
     setContent {
-
       val appViewModel = hiltViewModel<AppViewModel>()
       val uiState by appViewModel.uiState.collectAsStateWithLifecycle()
       val navController = rememberNavController()
       val snackbarHostState = remember { SnackbarHostState() }
 
-      val notificationPermissionState = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-        rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS) else null
-
-      fun requestNotificationPermission() {
-        if (notificationPermissionState != null && !notificationPermissionState.status.isGranted
-        ) {
-          notificationPermissionState.launchPermissionRequest()
-        }
-      }
-
       LaunchedEffect(Unit) {
         appViewModel.updateCountryListCache()
         appViewModel.readLogCatOutput()
-        requestNotificationPermission()
       }
 
       fun showSnackBarMessage(message: StringValue) {
@@ -150,14 +129,12 @@ class MainActivity : ComponentActivity() {
                 .fillMaxSize()
                 .padding(it)) {
               composable(NavItem.Main.route) { MainScreen(navController, uiState) }
-              composable(NavItem.Settings.route) { SettingsScreen(navController, uiState) }
+              composable(NavItem.Settings.route) { SettingsScreen(navController, appViewModel =  appViewModel, appUiState = uiState) }
               composable(NavItem.Hop.Entry.route) {
-                appViewModel.updateCountryListCache()
-                HopScreen(navController =  navController, hopType =  HopType.FIRST)
+                HopScreen(navController =  navController, appViewModel = appViewModel, hopType =  HopType.FIRST)
               }
               composable(NavItem.Hop.Exit.route) {
-                appViewModel.updateCountryListCache()
-                HopScreen(navController =  navController, hopType = HopType.LAST)
+                HopScreen(navController =  navController, appViewModel = appViewModel, hopType = HopType.LAST)
               }
               composable(NavItem.Settings.Display.route) { DisplayScreen() }
               composable(NavItem.Settings.Logs.route) { LogsScreen(appViewModel) }

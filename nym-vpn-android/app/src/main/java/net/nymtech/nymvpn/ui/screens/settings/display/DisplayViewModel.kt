@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
@@ -14,18 +15,17 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DisplayViewModel @Inject constructor(
-    private val dataStoreManager: DataStoreManager
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
-    val uiState = dataStoreManager.preferencesFlow.map {
-        val theme : String = (it?.get(DataStoreManager.THEME)?.uppercase() ?: Theme.AUTOMATIC.name)
-        DisplayUiState(false,  Theme.valueOf(theme))
+    val uiState = settingsRepository.settingsFlow.map {
+        DisplayUiState(false,  it.theme)
     }.stateIn(viewModelScope,
         SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
         DisplayUiState()
     )
 
     fun onThemeChange(theme : Theme) = viewModelScope.launch {
-        dataStoreManager.saveToDataStore(DataStoreManager.THEME, theme.name)
+        settingsRepository.setTheme(theme)
     }
 }

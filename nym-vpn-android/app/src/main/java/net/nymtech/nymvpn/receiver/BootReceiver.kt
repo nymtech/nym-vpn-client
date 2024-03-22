@@ -23,7 +23,7 @@ class BootReceiver : BroadcastReceiver() {
         if (autoStart == true) {
             val firstHopCountry = dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY)
             val lastHopCountry = dataStoreManager.getFromStore(DataStoreManager.LAST_HOP_COUNTRY)
-            val mode = dataStoreManager.getFromStore(DataStoreManager.NETWORK_MODE)
+            val mode = dataStoreManager.getFromStore(DataStoreManager.VPN_MODE)
             context?.let { context ->
                 NymVpnClient.connectForeground(context, Hop.Country.from(firstHopCountry), Hop.Country.from(lastHopCountry),
                     VpnMode.from(mode))

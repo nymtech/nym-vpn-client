@@ -26,9 +26,16 @@ import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.ServiceManager
 import net.nymtech.vpn.util.safeCollect
+import net.nymtech.vpn_client.BuildConfig
 import timber.log.Timber
 
 object NymVpnClient : VpnClient {
+
+    init {
+        Constants.setupEnvironment()
+        System.loadLibrary(Constants.NYM_VPN_LIB)
+        Timber.i( "Loaded native library in client")
+    }
 
     private val _state = MutableStateFlow(ClientState())
     override val stateFlow: Flow<ClientState> = _state.asStateFlow()
@@ -38,10 +45,16 @@ object NymVpnClient : VpnClient {
 
     override suspend fun gateways(exitOnly: Boolean) : List<String> {
         return withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
-            //getGatewayCountries(exitOnly).split(",")
-            emptyList()
+            getGatewayCountries(exit_only = exitOnly).split(",")
         }
     }
+
+    override suspend fun getLowLatencyEntryCountryCode(): String {
+        return withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
+            getLowLatencyEntryCountry()
+        }
+    }
+
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -172,4 +185,7 @@ object NymVpnClient : VpnClient {
     const val ENTRY_POINT_EXTRA_KEY = "entryPoint"
     const val EXIT_POINT_EXTRA_KEY = "exitPoint"
     const val TWO_HOP_EXTRA_KEY = "twoHop"
+
+    private external fun getGatewayCountries(api_url: String = BuildConfig.API_URL, explorer_url: String = BuildConfig.EXPLORER_URL, exit_only: Boolean) : String
+    private external fun getLowLatencyEntryCountry(api_url: String = BuildConfig.API_URL, explorer_url: String = BuildConfig.EXPLORER_URL) : String
 }

@@ -26,7 +26,7 @@ class AlwaysOnVpnService : Service() {
             Timber.i("Always-on VPN requested start")
             val firstHopCountry = dataStoreManager.getFromStoreBlocking(DataStoreManager.FIRST_HOP_COUNTRY)
             val lastHopCountry = dataStoreManager.getFromStoreBlocking(DataStoreManager.LAST_HOP_COUNTRY)
-            val mode = dataStoreManager.getFromStoreBlocking(DataStoreManager.NETWORK_MODE)
+            val mode = dataStoreManager.getFromStoreBlocking(DataStoreManager.VPN_MODE)
             NymVpn.requestTileServiceStateUpdate(this)
             NymVpnClient.connectForeground(this, Hop.Country.from(firstHopCountry), Hop.Country.from(lastHopCountry),
                 VpnMode.from(mode))

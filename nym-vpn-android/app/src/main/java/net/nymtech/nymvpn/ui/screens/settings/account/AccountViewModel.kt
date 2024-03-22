@@ -6,16 +6,17 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
 
 @HiltViewModel
 class AccountViewModel @Inject constructor(
-    private val dataStoreManager: DataStoreManager
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
-    val uiState = dataStoreManager.preferencesFlow.map {
+    val uiState = settingsRepository.settingsFlow.map {
         //TODO mocked for now
         AccountUiState(
             loading = false,

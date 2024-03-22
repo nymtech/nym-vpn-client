@@ -6,6 +6,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import net.nymtech.nymvpn.data.GatewayRepository
+import net.nymtech.nymvpn.data.datastore.DataStoreSettingsRepository
+import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.datastore.DataStoreGatewayRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import javax.inject.Singleton
 
@@ -17,5 +21,17 @@ class DataModule {
     @Provides
     fun providePreferencesDataStore(@ApplicationContext context: Context): DataStoreManager {
         return DataStoreManager(context)
+    }
+
+    @Singleton
+    @Provides
+    fun provideSettingsRepository(dataStoreManager: DataStoreManager) : SettingsRepository {
+        return DataStoreSettingsRepository(dataStoreManager)
+    }
+
+    @Singleton
+    @Provides
+    fun provideGatewayRepository(dataStoreManager: DataStoreManager) : GatewayRepository {
+        return DataStoreGatewayRepository(dataStoreManager)
     }
 }

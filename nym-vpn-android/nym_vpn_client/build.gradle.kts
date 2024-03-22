@@ -17,10 +17,10 @@ android {
     project.tasks.preBuild.dependsOn(Constants.BUILD_LIB_TASK)
 
     namespace = "${Constants.NAMESPACE}.${Constants.VPN_LIB_NAME}"
-    compileSdk = 34
+    compileSdk = Constants.COMPILE_SDK
 
     defaultConfig {
-        minSdk = 24
+        minSdk = Constants.MIN_SDK
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
         ndk {
@@ -43,7 +43,14 @@ android {
             isShrinkResources = false
             isMinifyEnabled = false
         }
-        create("applicationVariants") {
+        flavorDimensions.add(Constants.TYPE)
+        productFlavors {
+            create(Constants.FDROID) {
+                dimension = Constants.TYPE
+            }
+            create(Constants.GENERAL) {
+                dimension = Constants.TYPE
+            }
         }
     }
     compileOptions {
@@ -64,8 +71,7 @@ android {
 
 dependencies {
 
-    implementation(project(":logcat-helper"))
-
+    implementation(project(":logcat_helper"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.jna.v5140)
     implementation(libs.kotlinx.coroutines.core)
@@ -87,3 +93,4 @@ tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
         commandLine("echo", "Libs already compiled")
     } else commandLine("bash").args(script, ndkPath)
 }
+

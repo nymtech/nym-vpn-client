@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.NymVpn
+import net.nymtech.nymvpn.data.GatewayRepository
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
@@ -27,30 +29,18 @@ import javax.inject.Inject
 class MainViewModel
 @Inject
 constructor(
-    private val dataStoreManager: DataStoreManager,
+    private val gatewayRepository: GatewayRepository,
+    private val settingsRepository: SettingsRepository,
     private val application: Application,
 ) : ViewModel() {
 
-  private val _uiState = MutableStateFlow(MainUiState())
-
   val uiState =
-      combine(dataStoreManager.preferencesFlow, _uiState, NymVpnClient.stateFlow) {
-              prefs,
-              uiState,
+      combine(gatewayRepository.gatewayFlow, settingsRepository.settingsFlow, NymVpnClient.stateFlow) {
+              gateways,
+              settings,
               clientState ->
-            val lastHopCountry =
-                Hop.Country.from(
-                    prefs?.get(DataStoreManager.LAST_HOP_COUNTRY))
-            val firstHopCountry =
-                Hop.Country.from(
-                    prefs?.get(DataStoreManager.FIRST_HOP_COUNTRY))
             val connectionTime =
                 clientState.statistics.connectionSeconds?.let { NumberUtils.convertSecondsToTimeString(it) }
-            val networkMode =
-                VpnMode.valueOf(
-                    prefs?.get(DataStoreManager.NETWORK_MODE) ?: uiState.networkMode.name)
-            val firstHopEnabled: Boolean =
-                (prefs?.get(DataStoreManager.FIRST_HOP_SELECTION) ?: false)
             val connectionState = ConnectionState.from(clientState.vpnState)
             val stateMessage = clientState.errorState.let {
                 when(it) {
@@ -59,15 +49,14 @@ constructor(
                 }
 
             }
-
             MainUiState(
                 false,
-                lastHopCountry = lastHopCountry,
-                firstHopCounty = firstHopCountry,
+                lastHopCountry = gateways.lastHopCountry,
+                firstHopCounty = gateways.firstHopCountry,
                 connectionTime = connectionTime ?: "",
-                networkMode = networkMode,
+                networkMode = settings.vpnMode,
                 connectionState = connectionState,
-                firstHopEnabled = firstHopEnabled,
+                firstHopEnabled = settings.firstHopSelectionEnabled,
                 stateMessage = stateMessage)
           }
           .stateIn(
@@ -77,22 +66,20 @@ constructor(
 
   fun onTwoHopSelected() =
       viewModelScope.launch {
-          dataStoreManager.saveToDataStore(
-            DataStoreManager.NETWORK_MODE, VpnMode.TWO_HOP_MIXNET.name)
+          settingsRepository.setVpnMode(VpnMode.TWO_HOP_MIXNET)
           NymVpn.requestTileServiceStateUpdate(application)
       }
 
   fun onFiveHopSelected() =
       viewModelScope.launch {
-        dataStoreManager.saveToDataStore(
-            DataStoreManager.NETWORK_MODE, VpnMode.FIVE_HOP_MIXNET.name)
+          settingsRepository.setVpnMode(VpnMode.FIVE_HOP_MIXNET)
           NymVpn.requestTileServiceStateUpdate(application)
       }
 
   fun onConnect() =
       viewModelScope.launch(Dispatchers.IO) {
-        NymVpnClient.connect(application,uiState.value.firstHopCounty,
-          uiState.value.lastHopCountry,
+        NymVpnClient.connect(application,gatewayRepository.getFirstHopCountry(),
+          gatewayRepository.getLastHopCountry(),
           mode = uiState.value.networkMode)
           NymVpn.requestTileServiceStateUpdate(application)
   }

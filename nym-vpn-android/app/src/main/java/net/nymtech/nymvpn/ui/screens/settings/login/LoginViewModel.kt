@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.util.Event
 import net.nymtech.nymvpn.util.Result
@@ -11,7 +12,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val dataStoreManager: DataStoreManager
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     fun onLogin(recoveryPhrase : String) : Result<Event> {
@@ -25,6 +26,6 @@ class LoginViewModel @Inject constructor(
     }
 
     private fun saveLogin() = viewModelScope.launch {
-        dataStoreManager.saveToDataStore(DataStoreManager.LOGGED_IN, true)
+        settingsRepository.setLoggedIn(true)
     }
 }

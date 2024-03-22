@@ -7,7 +7,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
@@ -78,7 +77,7 @@ class VpnQuickTile : TileService() {
                     scope.launch {
                         val firstHopCountry = dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY)
                         val lastHopCountry = dataStoreManager.getFromStore(DataStoreManager.LAST_HOP_COUNTRY)
-                        val mode = dataStoreManager.getFromStore(DataStoreManager.NETWORK_MODE)
+                        val mode = dataStoreManager.getFromStore(DataStoreManager.VPN_MODE)
                         NymVpnClient.connectForeground(this@VpnQuickTile,
                             Hop.Country.from(firstHopCountry), Hop.Country.from(lastHopCountry), VpnMode.from(mode))
                     }
@@ -91,7 +90,7 @@ class VpnQuickTile : TileService() {
     private fun setTileText() = scope.launch {
         val firstHopCountry = dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY)
         val lastHopCountry = dataStoreManager.getFromStore(DataStoreManager.LAST_HOP_COUNTRY)
-        val mode = dataStoreManager.getFromStore(DataStoreManager.NETWORK_MODE)
+        val mode = dataStoreManager.getFromStore(DataStoreManager.VPN_MODE)
         val isTwoHop = VpnMode.from(mode) == VpnMode.TWO_HOP_MIXNET
         setTitle("${this@VpnQuickTile.getString(R.string.mode)}: ${if(isTwoHop) this@VpnQuickTile.getString(
             R.string.two_hop) else this@VpnQuickTile.getString(R.string.five_hop)}")
