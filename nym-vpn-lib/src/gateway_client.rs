@@ -18,7 +18,7 @@ use nym_validator_client::models::DescribedGateway;
 use nym_validator_client::NymApiClient;
 use rand::seq::IteratorRandom;
 use serde::{Deserialize, Serialize};
-use std::net::{IpAddr, SocketAddr};
+use std::net::{IpAddr, SocketAddr, ToSocketAddrs};
 use std::str::FromStr;
 use talpid_types::net::wireguard::PublicKey;
 use tracing::{debug, info};
@@ -415,7 +415,8 @@ impl GatewayClient {
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
-        self.api_client
+        let mut ip_or_hostname = self
+            .api_client
             .get_cached_gateways()
             .await?
             .iter()
@@ -428,8 +429,34 @@ impl GatewayClient {
             })
             .ok_or(Error::RequestedGatewayIdNotFound(
                 gateway_identity.to_string(),
-            ))
-            .and_then(|ip| ip.parse().map_err(|_| Error::InvalidGatewayIp(ip)))
+            ))?;
+
+        // If it's a plain IP
+        if let Ok(ip) = ip_or_hostname.parse::<IpAddr>() {
+            return Ok(ip);
+        }
+
+        // HACK: To be able to use the ip_or_hostname as a socket address, we need to append the
+        // port if it's not already there.
+        // TODO: use external crate to robustly resolve the domain name.
+        if !ip_or_hostname.contains(':') {
+            ip_or_hostname.push_str(":80");
+        }
+
+        // If it's not an IP, try to resolve it as a hostname
+        let mut addrs_iter = ip_or_hostname.to_socket_addrs().map_err(|err| {
+            tracing::error!("Failed to resolve gateway hostname: {}", err);
+            Error::FailedToDnsResolveGateway {
+                hostname: ip_or_hostname.to_string(),
+                source: err,
+            }
+        })?;
+
+        // Pick the first one
+        addrs_iter
+            .next()
+            .map(|addr| addr.ip())
+            .ok_or(Error::ResolvedHostnameButNoIp(ip_or_hostname.to_string()))
     }
 
     pub async fn register_wireguard(

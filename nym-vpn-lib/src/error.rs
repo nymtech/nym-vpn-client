@@ -85,6 +85,15 @@ pub enum Error {
     #[error("invalid Gateway location")]
     InvalidGatewayLocation,
 
+    #[error("failed to resolve gateway hostname: {hostname}: {source}")]
+    FailedToDnsResolveGateway {
+        hostname: String,
+        source: std::io::Error,
+    },
+
+    #[error("resolved hostname {0} but no IP address found")]
+    ResolvedHostnameButNoIp(String),
+
     #[error("{0}")]
     KeyRecoveryError(#[from] nym_crypto::asymmetric::encryption::KeyRecoveryError),
 
