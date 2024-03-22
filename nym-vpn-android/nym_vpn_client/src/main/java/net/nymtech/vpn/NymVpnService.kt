@@ -21,6 +21,8 @@ import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn_client.BuildConfig
 import net.nymtech.vpn_client.R
 import timber.log.Timber
+import uniffi.nym_vpn_lib_android.runVpn
+import uniffi.nym_vpn_lib_android.stopVpn
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -71,7 +73,7 @@ class NymVpnService : VpnService() {
                 Timber.d("VPN stop")
                 NymVpnClient.setVpnState(VpnState.Disconnecting)
                 runBlocking {
-                    stopVPN()
+                    stopVpn()
                 }
                 stopSelf()
                 START_NOT_STICKY
@@ -91,7 +93,7 @@ class NymVpnService : VpnService() {
                     initVPN(isTwoHop, BuildConfig.API_URL, BuildConfig.EXPLORER_URL, entry, exit,this)
                     CoroutineScope(Dispatchers.IO).launch {
                         launch {
-                            runVPN()
+                            runVpn()
                         }
                     }
                 }
@@ -143,7 +145,7 @@ class NymVpnService : VpnService() {
         Timber.i("VpnService destroyed")
         NymVpnClient.setVpnState(VpnState.Down)
         connectivityListener.unregister()
-        stopVPN()
+        stopVpn()
         stopSelf()
     }
 
@@ -257,9 +259,6 @@ class NymVpnService : VpnService() {
         exit_router: String,
         vpn_service: Any
     )
-
-    private external fun runVPN()
-    private external fun stopVPN()
 
     private external fun defaultTunConfig(): TunConfig
     private external fun waitForTunnelUp(tunFd: Int, isIpv6Enabled: Boolean)
