@@ -28,6 +28,7 @@ import androidx.navigation.NavController
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
@@ -36,7 +37,7 @@ import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun SettingsScreen(navController: NavController, appUiState: AppUiState, viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(navController: NavController, appUiState: AppUiState, appViewModel: AppViewModel, viewModel: SettingsViewModel = hiltViewModel()) {
 
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -93,7 +94,7 @@ fun SettingsScreen(navController: NavController, appUiState: AppUiState, viewMod
                     {
                       Switch(
                           uiState.isFirstHopSelectionEnabled,
-                          { viewModel.onEntryLocationSelected(it) }, modifier = Modifier.height(32.dp.scaledHeight()).width(52.dp.scaledWidth()))
+                          { appViewModel.onEntryLocationSelected(it) }, modifier = Modifier.height(32.dp.scaledHeight()).width(52.dp.scaledWidth()))
                     },
                     stringResource(R.string.entry_location),
                     stringResource(R.string.entry_location_description),

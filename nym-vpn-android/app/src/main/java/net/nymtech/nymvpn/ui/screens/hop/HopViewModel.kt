@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.NymVpn
-import net.nymtech.nymvpn.data.datastore.DataStoreManager
+import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.ui.HopType
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.Hop
@@ -17,24 +17,32 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HopViewModel @Inject constructor(
-    private val dataStoreManager: DataStoreManager,
+    private val gatewayRepository: GatewayRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HopUiState())
-    private lateinit var hopType: HopType
 
     val uiState = combine(
-        dataStoreManager.preferencesFlow,
+        gatewayRepository.gatewayFlow,
         _uiState,
-    ) { prefs, state ->
-        val countryList = prefs?.get(DataStoreManager.NODE_COUNTRIES)?.let {
-            Hop.Country.fromCollectionString(it)
-        } ?: emptyList()
-        val searchedCountries = if(state.query.isNotBlank()) {
-            countryList.filter { it.name.lowercase().contains(state.query) }
+    ) { gateway, state ->
+        val countryList = when (_uiState.value.hopType) {
+                HopType.FIRST -> {
+                    gateway.entryCountries
+                }
+                HopType.LAST -> {
+                    gateway.exitCountries
+                }
+            }
+        val searchedCountries = if (state.query.isNotBlank()) {
+            countryList.filter { it.name.lowercase().contains(state.query) }.toSet()
         } else countryList
-        HopUiState(false, countryList, searchedCountries, state.selected)
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT), HopUiState())
+        HopUiState(countryList, _uiState.value.hopType, searchedCountries, state.selected)
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
+        HopUiState()
+    )
 
     fun onQueryChange(query: String) {
         _uiState.value = _uiState.value.copy(
@@ -43,26 +51,26 @@ class HopViewModel @Inject constructor(
     }
 
     fun init(hopType: HopType) {
-        this.hopType = hopType
+        _uiState.value = _uiState.value.copy(
+            hopType = hopType
+        )
         setSelectedCountry()
     }
 
     private fun setSelectedCountry() = viewModelScope.launch {
-        val selectedCountryString = when (hopType) {
-            HopType.FIRST -> dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY)
-            HopType.LAST -> dataStoreManager.getFromStore(DataStoreManager.LAST_HOP_COUNTRY)
+        val selectedCountry = when (_uiState.value.hopType) {
+            HopType.FIRST -> gatewayRepository.getFirstHopCountry()
+            HopType.LAST -> gatewayRepository.getLastHopCountry()
         }
-        selectedCountryString?.let {
-            _uiState.value = _uiState.value.copy(
-                selected = Hop.Country.from(it)
-            )
-        }
+        _uiState.value = _uiState.value.copy(
+            selected = selectedCountry
+        )
     }
 
     fun onSelected(country: Hop.Country) = viewModelScope.launch {
-        when(hopType) {
-            HopType.FIRST -> dataStoreManager.saveToDataStore(DataStoreManager.FIRST_HOP_COUNTRY, country.toString())
-            HopType.LAST -> dataStoreManager.saveToDataStore(DataStoreManager.LAST_HOP_COUNTRY, country.toString())
+        when (_uiState.value.hopType) {
+            HopType.FIRST -> gatewayRepository.setFirstHopCountry(country)
+            HopType.LAST -> gatewayRepository.setLastHopCountry(country)
         }
         NymVpn.requestTileServiceStateUpdate(NymVpn.instance)
     }

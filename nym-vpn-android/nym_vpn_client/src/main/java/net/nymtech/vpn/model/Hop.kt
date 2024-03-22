@@ -4,16 +4,16 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.nymtech.vpn.util.Constants
-import java.lang.IllegalArgumentException
 import java.util.Locale
 
-typealias HopCountries = List<Hop.Country>
+typealias HopCountries = Set<Hop.Country>
 sealed class Hop {
     @Serializable
     data class Country(
         val isoCode: String = Constants.DEFAULT_COUNTRY_ISO,
         val name: String = Locale(isoCode.lowercase(), isoCode).displayCountry,
-        val isFastest: Boolean = false
+        val isFastest: Boolean = false,
+        val isDefault: Boolean = false
     ) : ExitPoint, EntryPoint, Hop() {
 
         init {
@@ -35,8 +35,10 @@ sealed class Hop {
             fun from(string: String?): Country {
                 return string?.let { Json.decodeFromString<Country>(string)} ?: Country()
             }
-            fun fromCollectionString(string: String) : HopCountries {
-                return Json.decodeFromString<HopCountries>(string)
+            fun fromCollectionString(string: String?) : HopCountries {
+                return string?.let {
+                    Json.decodeFromString<HopCountries>(it)
+                } ?: emptySet()
             }
         }
     }

@@ -27,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.HopType
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.SearchBar
@@ -40,6 +41,7 @@ import net.nymtech.nymvpn.util.scaledWidth
 fun HopScreen(
     navController: NavController,
     hopType: HopType,
+    appViewModel: AppViewModel,
     viewModel: HopViewModel = hiltViewModel(),
 ) {
 
@@ -48,6 +50,7 @@ fun HopScreen(
 
   LaunchedEffect(Unit) {
       viewModel.init(hopType)
+      appViewModel.updateCountryListCache()
   }
 
   LazyColumn(
@@ -94,7 +97,7 @@ fun HopScreen(
                 }
             }
         }
-        items(uiState.queriedCountries) {
+        items(uiState.queriedCountries.toList()) {
           if (it.isFastest) return@items
           val icon =
               ImageVector.vectorResource(StringUtils.getFlagImageVectorByName(context, it.isoCode.lowercase()))

@@ -1,6 +1,6 @@
 [versions]
 accompanist = "0.34.0"
-agp = "8.3.0"
+agp = "8.3.1"
 converterMoshi = "2.9.0"
 coreSplashscreen = "1.0.1"
 detektRulesCompose = "1.3.0"
@@ -37,6 +37,7 @@ gradlePlugins-licensee = "1.7.0"
 gradlePlugins-detekt = "1.23.1"
 gradlePlugins-gross = "0.1.0"
 gradlePlugins-sentry = "4.3.1"
+gradlePlugins-checksum = "1.4.0"
 appcompat = "1.6.1"
 material = "1.11.0"
 
@@ -107,5 +108,6 @@ gross = { id = "se.premex.gross", version.ref = "gradlePlugins-gross" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "gradlePlugins-kotlinxSerialization" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "gradlePlugins-detekt" }
 sentry = {id = "io.sentry.android.gradle", version.ref = "gradlePlugins-sentry"}
+checksum = {id = "org.gradle.crypto.checksum", version.ref = "gradlePlugins-checksum"}
 
 

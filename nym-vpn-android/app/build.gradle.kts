@@ -1,4 +1,8 @@
+import org.gradle.crypto.checksum.Checksum
 import java.util.Properties
+
+var fdroidApkReleasePath = ""
+var generateChecksum = false
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -10,6 +14,7 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.gross)
     alias(libs.plugins.sentry)
+    alias(libs.plugins.checksum)
 }
 
 android {
@@ -22,6 +27,8 @@ android {
         targetSdk = Constants.TARGET_SDK
         versionCode = Constants.VERSION_CODE
         versionName = Constants.VERSION_NAME
+
+
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -79,6 +86,10 @@ android {
             variant.outputs
                 .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
                 .forEach { output ->
+                    if(variant.flavorName == Constants.FDROID && variant.buildType.name == Constants.RELEASE) {
+                        fdroidApkReleasePath = output.outputFile.path
+                        generateChecksum = true
+                    }
                     val fullName = "${Constants.APP_NAME}-${variant.flavorName}-${variant.buildType.name}-${variant.versionName}"
                     variant.resValue("string", "fullVersionName", fullName)
                     val outputFileName =
@@ -171,8 +182,8 @@ android {
 
 dependencies {
 
-    implementation(project(":vpn-client"))
-    implementation(project(":logcat-helper"))
+    implementation(project(":nym_vpn_client"))
+    implementation(project(":logcat_helper"))
     coreLibraryDesugaring(libs.com.android.tools.desugar)
 
     implementation(libs.androidx.core.ktx)
@@ -231,6 +242,18 @@ dependencies {
     ksp(libs.moshi.kotlin.codegen)
 
     detektPlugins(libs.detekt.rules.compose)
+}
+
+
+tasks.register<Checksum>("createChecksums") {
+    doLast {
+        if(generateChecksum) {
+            inputFiles.setFrom(fdroidApkReleasePath)
+            outputDirectory.set(layout.buildDirectory.dir("nym/checksums"))
+            checksumAlgorithm.set(Checksum.Algorithm.SHA512)
+            appendFileNameToChecksum.set(true)
+        }
+    }
 }
 
 

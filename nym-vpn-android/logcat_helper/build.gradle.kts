@@ -5,31 +5,43 @@ plugins {
 
 android {
     namespace = "net.nymtech.logcat_helper"
-    compileSdk = 34
+    compileSdk = Constants.COMPILE_SDK
 
     defaultConfig {
-        minSdk = 24
+        minSdk = Constants.MIN_SDK
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
-        release {
+        debug {
             isMinifyEnabled = false
+        }
+        release {
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+        flavorDimensions.add(Constants.TYPE)
+        productFlavors {
+            create(Constants.FDROID) {
+                dimension = Constants.TYPE
+            }
+            create(Constants.GENERAL) {
+                dimension = Constants.TYPE
+            }
+        }
     }
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = Constants.JAVA_VERSION
+        targetCompatibility = Constants.JAVA_VERSION
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = Constants.JVM_TARGET
     }
 }
 

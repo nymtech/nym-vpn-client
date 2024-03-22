@@ -13,7 +13,7 @@ enum class VpnMode {
                 }
             } ?: default()
         }
-        private fun default() : VpnMode {
+        fun default() : VpnMode {
             return TWO_HOP_MIXNET
         }
     }

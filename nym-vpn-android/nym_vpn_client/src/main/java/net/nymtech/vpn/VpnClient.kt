@@ -16,4 +16,6 @@ interface VpnClient {
     val stateFlow : Flow<ClientState>
     fun getState() : ClientState
     suspend fun gateways(exitOnly: Boolean = false) : List<String>
+
+    suspend fun getLowLatencyEntryCountryCode() : String
 }

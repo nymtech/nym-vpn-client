@@ -19,7 +19,14 @@ import androidx.core.view.WindowCompat
 enum class Theme {
     DARK_MODE,
     LIGHT_MODE,
-    AUTOMATIC
+    AUTOMATIC;
+
+    companion object {
+        fun default() : Theme {
+            return AUTOMATIC
+        }
+    }
+
 }
 
 private val DarkColorScheme = darkColorScheme(

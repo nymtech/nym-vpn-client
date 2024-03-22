@@ -1,3 +1,3 @@
-[submodule "vpn-client/src/tools/nym-vpn-client"]
-	path = vpn-client/src/tools/nym-vpn-client
+[submodule "nym_vpn_client/src/tools/nym-vpn-client"]
+	path = nym_vpn_client/src/tools/nym-vpn-client
 	url = https://github.com/nymtech/nym-vpn-client.git
