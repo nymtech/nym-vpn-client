@@ -3,6 +3,8 @@
 
 use crate::error::{Error, Result};
 use crate::mixnet_processor::IpPacketRouterAddress;
+use hickory_resolver::config::{ResolverConfig, ResolverOpts};
+use hickory_resolver::TokioAsyncResolver;
 use itertools::Itertools;
 use nym_client_core::init::helpers::choose_gateway_by_latency;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
@@ -415,7 +417,8 @@ impl GatewayClient {
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
-        self.api_client
+        let ip_or_hostname = self
+            .api_client
             .get_cached_gateways()
             .await?
             .iter()
@@ -428,8 +431,17 @@ impl GatewayClient {
             })
             .ok_or(Error::RequestedGatewayIdNotFound(
                 gateway_identity.to_string(),
-            ))
-            .and_then(|ip| ip.parse().map_err(|_| Error::InvalidGatewayIp(ip)))
+            ))?;
+
+        // If it's a plain IP
+        if let Ok(ip) = ip_or_hostname.parse::<IpAddr>() {
+            return Ok(ip);
+        }
+
+        // If it's not an IP, try to resolve it as a hostname
+        let ip = try_resolve_hostname(&ip_or_hostname).await?;
+        info!("Resolved {ip_or_hostname} to {ip}");
+        Ok(ip)
     }
 
     pub async fn register_wireguard(
@@ -489,4 +501,23 @@ impl GatewayClient {
 
         Ok(gateway_data)
     }
+}
+
+async fn try_resolve_hostname(hostname: &str) -> Result<IpAddr> {
+    debug!("Trying to resolve hostname: {hostname}");
+    let resolver = TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default());
+    let addrs = resolver.lookup_ip(hostname).await.map_err(|err| {
+        tracing::error!("Failed to resolve gateway hostname: {}", err);
+        Error::FailedToDnsResolveGateway {
+            hostname: hostname.to_string(),
+            source: err,
+        }
+    })?;
+    debug!("Resolved to: {addrs:?}");
+
+    // Just pick the first one
+    addrs
+        .iter()
+        .next()
+        .ok_or(Error::ResolvedHostnameButNoIp(hostname.to_string()))
 }
