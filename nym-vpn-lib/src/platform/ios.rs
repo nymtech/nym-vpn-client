@@ -88,9 +88,12 @@ pub trait OSTunProvider: Send + Sync + Debug {
     fn configure_wg(&self, config: WgConfig) -> Result<(), FFIError>;
     fn configure_nym(&self, config: NymConfig) -> Result<RawFd, FFIError>;
 }
-
 #[allow(non_snake_case)]
 pub fn initVPN(config: VPNConfig) {
+    RUNTIME.block_on(init_vpn(config));
+}
+
+pub async fn init_vpn(config: VPNConfig) {
     init_logs();
 
     if get_vpn_state().await != ClientState::Uninitialised {
