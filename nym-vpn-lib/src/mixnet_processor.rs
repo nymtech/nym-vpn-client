@@ -4,10 +4,10 @@
 use std::time::Duration;
 
 use bytes::{Bytes, BytesMut};
-use futures::{SinkExt, StreamExt};
+use futures::{channel::mpsc, SinkExt, StreamExt};
 use nym_ip_packet_requests::{
     codec::MultiIpPacketCodec,
-    request::IpPacketRequest,
+    request::{IpPacketRequest, IpPacketRequestData},
     response::IpPacketResponseData,
     response::{InfoLevel, IpPacketResponse},
 };
@@ -17,10 +17,11 @@ use nym_validator_client::models::DescribedGateway;
 use tokio::task::JoinHandle;
 use tokio::time::timeout;
 use tokio_util::codec::Decoder;
-use tracing::{debug, error, info, trace};
+use tracing::{debug, error, info, trace, warn};
 use tun2::{AbstractDevice, AsyncDevice};
 
 use crate::{
+    connection_monitor::{self, ConnectionStatusEvent},
     error::{Error, Result},
     mixnet_connect::SharedMixnetClient,
 };
@@ -105,6 +106,7 @@ impl MessageCreator {
 pub struct MixnetProcessor {
     device: AsyncDevice,
     mixnet_client: SharedMixnetClient,
+    connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
     ip_packet_router_address: IpPacketRouterAddress,
     // TODO: handle this as part of setting up the mixnet client
     enable_two_hop: bool,
@@ -114,12 +116,16 @@ impl MixnetProcessor {
     pub fn new(
         device: AsyncDevice,
         mixnet_client: SharedMixnetClient,
+        connection_event_tx: futures::channel::mpsc::UnboundedSender<
+            connection_monitor::ConnectionStatusEvent,
+        >,
         ip_packet_router_address: IpPacketRouterAddress,
         enable_two_hop: bool,
     ) -> Self {
         MixnetProcessor {
             device,
             mixnet_client,
+            connection_event_tx,
             ip_packet_router_address,
             enable_two_hop,
         }
@@ -140,6 +146,7 @@ impl MixnetProcessor {
             .await
             .map_err(|_| Error::MixnetClientDeadlock)?;
         let mixnet_client = mixnet_handle.as_mut().unwrap();
+        let our_address = *mixnet_client.nym_address();
 
         debug!("Split mixnet sender");
         let sender = mixnet_client.split_sender();
@@ -230,7 +237,22 @@ impl MixnetProcessor {
                             }
                         },
                         Err(err) => {
-                            error!("failed to deserialize reconstructed message: {err}");
+                            // The exception to when we are not expecting a response, is when we
+                            // are sending a ping to ourselves.
+                            if let Ok(request) = IpPacketRequest::from_reconstructed_message(&reconstructed_message) {
+                                match request.data {
+                                    IpPacketRequestData::Ping(ref ping_request) if ping_request.reply_to == our_address => {
+                                        self.connection_event_tx
+                                            .unbounded_send(ConnectionStatusEvent::MixnetSelfPing)
+                                            .unwrap();
+                                    },
+                                    ref request => {
+                                        info!("Received unexpected request: {request:?}");
+                                    }
+                                }
+                            } else {
+                                warn!("Failed to deserialize reconstructed message: {err}");
+                            }
                         }
                     }
                 }
@@ -250,11 +272,13 @@ pub async fn start_processor(
     mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,
     enable_two_hop: bool,
+    connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
 ) -> JoinHandle<Result<AsyncDevice>> {
     info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(
         dev,
         mixnet_client,
+        connection_event_tx,
         config.ip_packet_router_address,
         enable_two_hop,
     );

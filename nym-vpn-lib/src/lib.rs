@@ -59,9 +59,11 @@ use tun2::AsyncDevice;
 use url::Url;
 
 pub mod config;
+mod connection_monitor;
 pub mod error;
 pub mod gateway_client;
 pub mod mixnet_connect;
+pub mod mixnet_connection_beacon;
 pub mod mixnet_processor;
 mod platform;
 pub mod routing;
@@ -142,7 +144,7 @@ pub struct NymVpn {
     shadow_handle: ShadowHandle,
 }
 
-pub struct MixnetConnetionInfo {
+pub struct MixnetConnectionInfo {
     pub nym_address: Recipient,
     pub entry_gateway: String,
 }
@@ -244,15 +246,35 @@ impl NymVpn {
         info!("Setting up mixnet processor");
         let processor_config = mixnet_processor::Config::new(*exit_router);
         debug!("Mixnet processor config: {:#?}", processor_config);
+
+        // For other components that will want to send mixnet packets
+        let mixnet_client_sender = mixnet_client.split_sender().await;
+        // Channels to report connection status events
+        let (connection_event_tx, connection_event_rx) = mpsc::unbounded();
+
         let shadow_handle = mixnet_processor::start_processor(
             processor_config,
             mixnet_tun_dev,
             mixnet_client,
             task_manager,
             self.enable_two_hop,
+            connection_event_tx,
         )
         .await;
         self.set_shadow_handle(shadow_handle);
+
+        info!("Setting up mixnet connection beacon");
+        mixnet_connection_beacon::start_mixnet_connection_beacon(
+            mixnet_client_sender,
+            mixnet_client_address,
+            task_manager.subscribe_named("mixnet_connection_beacon"),
+        );
+
+        info!("Setting up connection monitor");
+        connection_monitor::start_connection_monitor(
+            connection_event_rx,
+            task_manager.subscribe_named("connection_monitor"),
+        );
 
         Ok(())
     }
@@ -267,7 +289,7 @@ impl NymVpn {
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         tunnel_gateway_ip: routing::TunnelGatewayIp,
-    ) -> Result<MixnetConnetionInfo> {
+    ) -> Result<MixnetConnectionInfo> {
         info!("Setting up mixnet client");
         let mixnet_client = timeout(
             Duration::from_secs(10),
@@ -287,10 +309,15 @@ impl NymVpn {
         // Now that we have a connection, collection some info about that and return
         let nym_address = mixnet_client.nym_address().await;
         let entry_gateway = nym_address.gateway().to_base58_string();
-        let our_mixnet_connection = MixnetConnetionInfo {
+        let our_mixnet_connection = MixnetConnectionInfo {
             nym_address,
             entry_gateway,
         };
+
+        // Check that we can ping ourselves before continuing
+        info!("Sending mixnet ping to ourselves");
+        mixnet_connection_beacon::self_ping_and_wait(nym_address, mixnet_client.clone()).await?;
+        info!("Successfully pinged ourselves");
 
         if let Err(err) = self
             .setup_post_mixnet(
@@ -320,7 +347,7 @@ impl NymVpn {
         RouteManager,
         Option<(oneshot::Receiver<()>, tokio::task::JoinHandle<Result<()>>)>,
         oneshot::Sender<()>,
-        MixnetConnetionInfo,
+        MixnetConnectionInfo,
     )> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration

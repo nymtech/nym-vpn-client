@@ -14,8 +14,8 @@ use std::{
 };
 
 const WG_IP_SUBNET: &str = "10.1.0.0/16";
-const TUN_IP4_SUBNET: &str = "10.0.0.0/24";
-const TUN_IP6_SUBNET: &str = "2001:db8:a160::0/120";
+const TUN_IP4_SUBNET: &str = "10.0.0.0/16";
+const TUN_IP6_SUBNET: &str = "2001:db8:a160::0/112";
 
 // Helper for passing LONG_VERSION to clap
 fn pretty_build_info_static() -> &'static str {

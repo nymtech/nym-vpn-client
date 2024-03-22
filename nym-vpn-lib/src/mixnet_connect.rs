@@ -19,7 +19,8 @@ use nym_ip_packet_requests::{
     },
 };
 use nym_sdk::mixnet::{
-    MixnetClient, MixnetClientBuilder, MixnetMessageSender, NodeIdentity, Recipient, StoragePaths,
+    MixnetClient, MixnetClientBuilder, MixnetClientSender, MixnetMessageSender, NodeIdentity,
+    Recipient, StoragePaths,
 };
 use tracing::{debug, error, info};
 
@@ -42,6 +43,10 @@ impl SharedMixnetClient {
 
     pub async fn nym_address(&self) -> Recipient {
         *self.lock().await.as_ref().unwrap().nym_address()
+    }
+
+    pub async fn split_sender(&self) -> MixnetClientSender {
+        self.lock().await.as_ref().unwrap().split_sender()
     }
 
     pub async fn gateway_ws_fd(&self) -> Option<RawFd> {
@@ -142,7 +147,8 @@ async fn wait_for_connect_response(
 
                         debug!("MixnetProcessor: Got message while waiting for connect response");
                         let Ok(response) = IpPacketResponse::from_reconstructed_message(&msg) else {
-                            error!("Failed to deserialize reconstructed message");
+                            // This is ok, it's likely just one of our self-pings
+                            debug!("Failed to deserialize reconstructed message");
                             continue;
                         };
                         if response.id() == Some(request_id) {
