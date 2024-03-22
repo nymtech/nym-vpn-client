@@ -87,6 +87,7 @@ jobs:
           elif ${{ matrix.target == 'android' }}; then
             triplet=aarch64-linux-android
             echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
+            find ${{ steps.setup-ndk.outputs.ndk-path }} -name "clang++"
             ndk=$(find ${{ steps.setup-ndk.outputs.ndk-path }} -name "aarch64-linux-android-as" | xargs dirname)
             echo "NDK_TOOLCHAIN_DIR=$ndk}" >> $GITHUB_ENV
           elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
