@@ -131,7 +131,11 @@ async fn wait_for_shutdown(
 }
 
 #[allow(non_snake_case)]
-pub async fn runVPN() {
+pub fn runVPN() {
+    RUNTIME.block_on(run_vpn());
+}
+
+async fn run_vpn() {
     let state = get_vpn_state().await;
     if state != ClientState::Disconnected {
         warn!("Invalid vpn state: {:?}", state);
@@ -155,7 +159,11 @@ pub async fn runVPN() {
 }
 
 #[allow(non_snake_case)]
-pub async fn stopVPN() {
+pub fn stopVPN() {
+    RUNTIME.block_on(stop_vpn())
+}
+
+async fn stop_vpn() {
     if get_vpn_state().await != ClientState::Connected {
         warn!("could not stop the vpn as it's not running");
         return;

@@ -22,7 +22,7 @@ jobs:
         os: [ ubuntu-22.04-arc, custom-runner-mac-m1, windows-2022 ]
         target: [ native ]
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04-arc
             target: android
     runs-on: ${{ matrix.os }}
 
@@ -36,7 +36,7 @@ jobs:
           ls -la ./
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip clang
         if: contains(matrix.os, 'ubuntu')
 
       - name: Support longpaths on windows
@@ -61,7 +61,7 @@ jobs:
         id: setup-ndk
         if: contains(matrix.target, 'android')
         with:
-          ndk-version: r21e
+          ndk-version: r26c
           add-to-path: false
           local-cache: true
 
@@ -86,6 +86,7 @@ jobs:
             triplet=x86_64-unknown-linux-gnu
           elif ${{ matrix.target == 'android' }}; then
             triplet=aarch64-linux-android
+            echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
             echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
           elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
             triplet=x86_64-apple-darwin
