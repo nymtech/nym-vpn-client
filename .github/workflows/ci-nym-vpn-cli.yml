@@ -36,7 +36,7 @@ jobs:
           ls -la ./
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
         if: contains(matrix.os, 'ubuntu')
 
       - name: Support longpaths on windows
