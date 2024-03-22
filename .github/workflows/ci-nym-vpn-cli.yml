@@ -100,6 +100,7 @@ jobs:
       # DO NOT SPECIFY `shell: bash` because that spawns a process within WSL rather than using
       # powershells `bash`. We need Powershell `bash` because that shells out to GitBash.
       - name: Build wireguard
+        shell: bash
         run: |
           ./wireguard/build-wireguard-go.sh
 
