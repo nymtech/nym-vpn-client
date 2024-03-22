@@ -133,9 +133,9 @@ jobs:
 
       - name: Unzip wintun.zip
         if: contains(matrix.os, 'windows')
-        uses: ihiroky/extract-action@v1
-        with:
-          file_path: ${GITHUB_WORKSPACE}/wintun.zip
+        shell: bash
+        run: |
+          unzip ${GITHUB_WORKSPACE}/wintun.zip
 
       - name: Move wintun.dll to build directory
         if: contains(matrix.os, 'windows')
@@ -147,11 +147,9 @@ jobs:
         run: cargo fmt --check
 
       - name: Build
-        if: "!contains(matrix.os, 'windows')"
         run: cargo build --verbose
 
       - name: Run tests
-        if: "!contains(matrix.os, 'windows')"
         run: cargo test --verbose
 
       - name: Clippy
