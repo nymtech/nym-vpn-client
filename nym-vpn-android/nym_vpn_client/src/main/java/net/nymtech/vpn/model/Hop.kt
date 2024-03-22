@@ -4,7 +4,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.nymtech.vpn.util.Constants
-import java.lang.IllegalArgumentException
 import java.util.Locale
 
 typealias HopCountries = Set<Hop.Country>

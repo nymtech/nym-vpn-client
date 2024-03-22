@@ -2,7 +2,6 @@ package net.nymtech.nymvpn.data
 
 import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.data.model.Gateways
-import net.nymtech.nymvpn.data.model.Settings
 import net.nymtech.vpn.model.Hop
 import net.nymtech.vpn.model.HopCountries
 

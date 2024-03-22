@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.util.log
 
-import android.util.Log
 import io.sentry.Sentry
 import timber.log.Timber
 

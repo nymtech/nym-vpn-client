@@ -2,14 +2,10 @@ package net.nymtech.nymvpn.data.datastore
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.model.Gateways
-import net.nymtech.nymvpn.data.model.Settings
-import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.model.Hop
 import net.nymtech.vpn.model.HopCountries
-import net.nymtech.vpn.model.VpnMode
 import timber.log.Timber
 
 class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager) : GatewayRepository {

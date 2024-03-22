@@ -44,7 +44,6 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.TransparentSystemBars
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint

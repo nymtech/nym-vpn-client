@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.data.model
 
-import androidx.datastore.preferences.core.stringPreferencesKey
 import net.nymtech.vpn.model.Hop
 import net.nymtech.vpn.model.HopCountries
 

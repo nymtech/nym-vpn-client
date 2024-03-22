@@ -7,10 +7,10 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import net.nymtech.nymvpn.data.GatewayRepository
-import net.nymtech.nymvpn.data.datastore.DataStoreSettingsRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreGatewayRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
+import net.nymtech.nymvpn.data.datastore.DataStoreSettingsRepository
 import javax.inject.Singleton
 
 @Module
