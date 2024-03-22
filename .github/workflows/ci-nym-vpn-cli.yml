@@ -79,6 +79,7 @@ jobs:
         shell: bash
         run: |
           echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/build/lib/x64-Debug" >> $GITHUB_ENV
+          mkdir -p ${GITHUB_WORKSPACE}/build/lib/${triplet}/
 
       - name: Install Go
         uses: actions/setup-go@v5
@@ -96,6 +97,8 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       # Needs to come before building mullvad libs, since it creates the output folder
+      # DO NOT SPECIFY `shell: bash` because that spawns a process within WSL rather than using
+      # powershells `bash`. We need Powershell `bash` because that shells out to GitBash.
       - name: Build wireguard
         run: |
           ./wireguard/build-wireguard-go.sh
