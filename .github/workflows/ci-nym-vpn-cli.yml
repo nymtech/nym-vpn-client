@@ -126,9 +126,9 @@ jobs:
 
       - name: Download wintun.zip
         if: contains(matrix.os, 'windows')
-        uses: wei/wget@v1
-        with:
-          args: -O ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
+        shell: bash
+        run: |
+          curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
 
       - name: Unzip wintun.zip
         if: contains(matrix.os, 'windows')
