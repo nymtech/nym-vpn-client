@@ -86,7 +86,7 @@ jobs:
             triplet=x86_64-unknown-linux-gnu
           elif ${{ matrix.target == 'android' }}; then
             triplet=aarch64-linux-android
-            echo "ANDROID_NDK_HOME"=${{ steps.setup-ndk.outputs.ndk-path }}
+            echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
             echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
           elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
             triplet=x86_64-apple-darwin
