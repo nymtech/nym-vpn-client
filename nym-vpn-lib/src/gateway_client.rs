@@ -3,6 +3,8 @@
 
 use crate::error::{Error, Result};
 use crate::mixnet_processor::IpPacketRouterAddress;
+use hickory_resolver::config::{ResolverConfig, ResolverOpts};
+use hickory_resolver::Resolver;
 use itertools::Itertools;
 use nym_client_core::init::helpers::choose_gateway_by_latency;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
@@ -18,7 +20,7 @@ use nym_validator_client::models::DescribedGateway;
 use nym_validator_client::NymApiClient;
 use rand::seq::IteratorRandom;
 use serde::{Deserialize, Serialize};
-use std::net::{IpAddr, SocketAddr, ToSocketAddrs};
+use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::PublicKey;
 use tracing::{debug, info};
@@ -415,7 +417,7 @@ impl GatewayClient {
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
-        let mut ip_or_hostname = self
+        let ip_or_hostname = self
             .api_client
             .get_cached_gateways()
             .await?
@@ -436,27 +438,8 @@ impl GatewayClient {
             return Ok(ip);
         }
 
-        // HACK: To be able to use the ip_or_hostname as a socket address, we need to append the
-        // port if it's not already there.
-        // TODO: use external crate to robustly resolve the domain name.
-        if !ip_or_hostname.contains(':') {
-            ip_or_hostname.push_str(":80");
-        }
-
         // If it's not an IP, try to resolve it as a hostname
-        let mut addrs_iter = ip_or_hostname.to_socket_addrs().map_err(|err| {
-            tracing::error!("Failed to resolve gateway hostname: {}", err);
-            Error::FailedToDnsResolveGateway {
-                hostname: ip_or_hostname.to_string(),
-                source: err,
-            }
-        })?;
-
-        // Pick the first one
-        addrs_iter
-            .next()
-            .map(|addr| addr.ip())
-            .ok_or(Error::ResolvedHostnameButNoIp(ip_or_hostname.to_string()))
+        try_resolve_hostname(ip_or_hostname)
     }
 
     pub async fn register_wireguard(
@@ -516,4 +499,25 @@ impl GatewayClient {
 
         Ok(gateway_data)
     }
+}
+
+fn try_resolve_hostname(hostname: String) -> Result<IpAddr> {
+    let resolver =
+        Resolver::new(ResolverConfig::default(), ResolverOpts::default()).map_err(|err| {
+            tracing::error!("Failed to create resolver: {}", err);
+            Error::FailedToCreateDnsResolver(err)
+        })?;
+    let addrs = resolver.lookup_ip(&hostname).map_err(|err| {
+        tracing::error!("Failed to resolve gateway hostname: {}", err);
+        Error::FailedToDnsResolveGateway {
+            hostname: hostname.to_string(),
+            source: err,
+        }
+    })?;
+
+    // Just pick the first one
+    addrs
+        .iter()
+        .next()
+        .ok_or(Error::ResolvedHostnameButNoIp(hostname.to_string()))
 }

@@ -88,7 +88,7 @@ pub enum Error {
     #[error("failed to resolve gateway hostname: {hostname}: {source}")]
     FailedToDnsResolveGateway {
         hostname: String,
-        source: std::io::Error,
+        source: hickory_resolver::error::ResolveError,
     },
 
     #[error("resolved hostname {0} but no IP address found")]
@@ -184,6 +184,9 @@ pub enum Error {
     #[cfg(target_os = "ios")]
     #[error("{0}")]
     UniffiError(#[from] crate::platform::error::FFIError),
+
+    #[error("failed to create DNS resolver: {0}")]
+    FailedToCreateDnsResolver(std::io::Error),
 }
 
 // Result type based on our error type
