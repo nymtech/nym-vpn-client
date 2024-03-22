@@ -4,7 +4,7 @@
 use crate::error::{Error, Result};
 use crate::mixnet_processor::IpPacketRouterAddress;
 use hickory_resolver::config::{ResolverConfig, ResolverOpts};
-use hickory_resolver::Resolver;
+use hickory_resolver::TokioAsyncResolver;
 use itertools::Itertools;
 use nym_client_core::init::helpers::choose_gateway_by_latency;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
@@ -439,7 +439,9 @@ impl GatewayClient {
         }
 
         // If it's not an IP, try to resolve it as a hostname
-        try_resolve_hostname(ip_or_hostname)
+        let ip = try_resolve_hostname(&ip_or_hostname).await?;
+        info!("Resolved {ip_or_hostname} to {ip}");
+        Ok(ip)
     }
 
     pub async fn register_wireguard(
@@ -501,19 +503,17 @@ impl GatewayClient {
     }
 }
 
-fn try_resolve_hostname(hostname: String) -> Result<IpAddr> {
-    let resolver =
-        Resolver::new(ResolverConfig::default(), ResolverOpts::default()).map_err(|err| {
-            tracing::error!("Failed to create resolver: {}", err);
-            Error::FailedToCreateDnsResolver(err)
-        })?;
-    let addrs = resolver.lookup_ip(&hostname).map_err(|err| {
+async fn try_resolve_hostname(hostname: &str) -> Result<IpAddr> {
+    debug!("Trying to resolve hostname: {hostname}");
+    let resolver = TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default());
+    let addrs = resolver.lookup_ip(hostname).await.map_err(|err| {
         tracing::error!("Failed to resolve gateway hostname: {}", err);
         Error::FailedToDnsResolveGateway {
             hostname: hostname.to_string(),
             source: err,
         }
     })?;
+    debug!("Resolved to: {addrs:?}");
 
     // Just pick the first one
     addrs
