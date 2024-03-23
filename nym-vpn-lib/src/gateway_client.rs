@@ -196,7 +196,7 @@ impl EntryPoint {
             EntryPoint::Location { location } => {
                 // Caution: if an explorer-api for a different network was specified, then
                 // none of the gateways will have an associated location. There is a check
-                // against this earlier in the call stack for guard against this scenario.
+                // against this earlier in the call stack to guard against this scenario.
                 let gateways_with_specified_location = gateways
                     .iter()
                     .filter(|g| g.is_two_letter_iso_country_code(location));
