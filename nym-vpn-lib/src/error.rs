@@ -153,13 +153,13 @@ pub enum Error {
     #[error("no matching gateway found")]
     NoMatchingGateway,
 
-    #[error("no gateway available for location {requested_location}, available countries: {available_countries:?}")]
-    NoMatchingGatewayForLocation {
+    #[error("no entry gateway available for location {requested_location}, available countries: {available_countries:?}")]
+    NoMatchingEntryGatewayForLocation {
         requested_location: String,
         available_countries: Vec<String>,
     },
 
-    #[error("no gateway available for location {requested_location}, available countries: {available_countries:?}")]
+    #[error("no exit gateway available for location {requested_location}, available countries: {available_countries:?}")]
     NoMatchingExitGatewayForLocation {
         requested_location: String,
         available_countries: Vec<String>,
