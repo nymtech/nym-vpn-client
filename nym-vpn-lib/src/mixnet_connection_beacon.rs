@@ -1,12 +1,13 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
+use std::{net::Ipv4Addr, time::Duration};
 
 use futures::StreamExt;
 use nym_ip_packet_requests::request::IpPacketRequest;
 use nym_sdk::mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient};
+use pnet::packet::Packet;
 use tokio::task::JoinHandle;
 use tracing::{debug, error, trace};
 
@@ -15,11 +16,13 @@ use crate::{
     mixnet_connect::SharedMixnetClient,
 };
 
-const MIXNET_SELF_PING_INTERVAL: Duration = Duration::from_millis(1000);
+const MIXNET_SELF_PING_INTERVAL: Duration = Duration::from_millis(2000);
 
 struct MixnetConnectionBeacon {
     mixnet_client_sender: MixnetClientSender,
     our_address: Recipient,
+    our_ip: Ipv4Addr,
+    ipr_address: Recipient,
 }
 
 fn create_self_ping(our_address: Recipient) -> (InputMessage, u64) {
@@ -99,6 +102,72 @@ impl MixnetConnectionBeacon {
         Ok(request_id)
     }
 
+    async fn send_icmp_ping(&self) -> Result<()> {
+        // Create a ICMP IP packet as a Vec<u8>.
+        // The destination is 10.0.0.1 and I need to tag it
+        // properly so that I can identify it when it comes back.
+        // Use pnet
+        let mut buffer = vec![0; 64];
+        let mut icmp_packet =
+            pnet::packet::icmp::echo_request::MutableEchoRequestPacket::new(&mut buffer).unwrap();
+        icmp_packet.set_identifier(424);
+        icmp_packet.set_sequence_number(425);
+        icmp_packet.set_icmp_type(pnet::packet::icmp::IcmpTypes::EchoRequest);
+        icmp_packet.set_icmp_code(pnet::packet::icmp::IcmpCode::new(0));
+
+        // let icmp_packet_immutable = icmp_packet.to_immutable();
+        let icmp = pnet::packet::icmp::IcmpPacket::new(pnet::packet::Packet::packet(&icmp_packet))
+            .unwrap();
+        let checksum = pnet::packet::icmp::checksum(&icmp);
+        icmp_packet.set_checksum(checksum);
+        // dbg!(&icmp_packet);
+
+        let destination = Ipv4Addr::new(10, 0, 0, 1);
+        let source = self.our_ip;
+
+        let total_length = 20 + icmp_packet.packet().len() as u16; // 20 bytes for IPv4 header + ICMP payload
+        let mut ipv4_buffer = vec![0u8; 20 + icmp_packet.packet().len()]; // IPv4 header + ICMP payload
+        let mut ipv4_packet = pnet::packet::ipv4::MutableIpv4Packet::new(&mut ipv4_buffer).unwrap();
+
+        ipv4_packet.set_version(4);
+        ipv4_packet.set_header_length(5);
+        ipv4_packet.set_total_length(total_length);
+        ipv4_packet.set_ttl(64);
+        ipv4_packet.set_next_level_protocol(pnet::packet::ip::IpNextHeaderProtocols::Icmp);
+        ipv4_packet.set_source(source);
+        ipv4_packet.set_destination(destination);
+        ipv4_packet.set_flags(pnet::packet::ipv4::Ipv4Flags::DontFragment);
+        ipv4_packet.set_checksum(0);
+        ipv4_packet.set_payload(icmp_packet.packet());
+
+        let ipv4_checksum = compute_ipv4_checksum(&ipv4_packet.to_immutable());
+        ipv4_packet.set_checksum(ipv4_checksum);
+
+        // ipv4_packet now contains the entire packet
+        // dbg!(&ipv4_packet);
+        let final_packet = ipv4_packet.packet().to_vec();
+        // println!("final_packet: {:?}", final_packet);
+
+        let mut multi_ip_packet_encoder = nym_ip_packet_requests::codec::MultiIpPacketCodec::new(
+            nym_ip_packet_requests::codec::BUFFER_TIMEOUT,
+        );
+
+        multi_ip_packet_encoder.append_packet(final_packet.into());
+        let bundled_packet = multi_ip_packet_encoder.flush_current_buffer();
+
+        let message_creator = crate::mixnet_processor::MessageCreator::new(self.ipr_address, false);
+        let mixnet_message = message_creator
+            .create_input_message(bundled_packet)
+            .expect("Failed to create input message");
+
+        self.mixnet_client_sender
+            .send(mixnet_message)
+            .await
+            .unwrap();
+
+        Ok(())
+    }
+
     pub async fn run(self, mut shutdown: TaskClient) -> Result<()> {
         debug!("Mixnet connection beacon is running");
         let mut ping_interval = tokio::time::interval(MIXNET_SELF_PING_INTERVAL);
@@ -109,15 +178,24 @@ impl MixnetConnectionBeacon {
                     break;
                 }
                 _ = ping_interval.tick() => {
-                    let _ping_id = match self.send_mixnet_self_ping().await {
-                        Ok(id) => id,
+                    match self.send_icmp_ping().await {
+                        Ok(_) => (),
                         Err(err) => {
-                            error!("Failed to send mixnet self ping: {err}");
+                            error!("Failed to send ICMP ping: {err}");
                             continue;
                         }
-                    };
-                    // TODO: store ping_id to be able to monitor or ping timeouts
+                    }
                 }
+                // _ = ping_interval.tick() => {
+                //     let _ping_id = match self.send_mixnet_self_ping().await {
+                //         Ok(id) => id,
+                //         Err(err) => {
+                //             error!("Failed to send mixnet self ping: {err}");
+                //             continue;
+                //         }
+                //     };
+                //     // TODO: store ping_id to be able to monitor or ping timeouts
+                // }
             }
         }
         debug!("MixnetConnectionBeacon: Exiting");
@@ -128,16 +206,39 @@ impl MixnetConnectionBeacon {
 pub fn start_mixnet_connection_beacon(
     mixnet_client_sender: MixnetClientSender,
     our_address: Recipient,
+    our_ip: Ipv4Addr,
+    ipr_address: Recipient,
     shutdown_listener: TaskClient,
 ) -> JoinHandle<Result<()>> {
     debug!("Creating mixnet connection beacon");
     let beacon = MixnetConnectionBeacon {
         mixnet_client_sender,
         our_address,
+        our_ip,
+        ipr_address,
     };
     tokio::spawn(async move {
         beacon.run(shutdown_listener).await.inspect_err(|err| {
             error!("Mixnet connection beacon error: {err}");
         })
     })
+}
+
+// Compute IPv4 checksum: sum all 16-bit words, add carry, take one's complement
+fn compute_ipv4_checksum(header: &pnet::packet::ipv4::Ipv4Packet) -> u16 {
+    let len = header.get_header_length() as usize * 2; // Header length in 16-bit words
+    let mut sum = 0u32;
+
+    for i in 0..len {
+        let word = (header.packet()[2 * i] as u32) << 8 | header.packet()[2 * i + 1] as u32;
+        sum += word;
+    }
+
+    // Add the carry
+    while (sum >> 16) > 0 {
+        sum = (sum & 0xFFFF) + (sum >> 16);
+    }
+
+    // One's complement
+    !sum as u16
 }

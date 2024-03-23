@@ -267,6 +267,8 @@ impl NymVpn {
         mixnet_connection_beacon::start_mixnet_connection_beacon(
             mixnet_client_sender,
             mixnet_client_address,
+            ips.ipv4,
+            exit_router.0,
             task_manager.subscribe_named("mixnet_connection_beacon"),
         );
 

@@ -14,6 +14,7 @@ use nym_ip_packet_requests::{
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use nym_validator_client::models::DescribedGateway;
+use pnet::packet::Packet as _;
 use tokio::task::JoinHandle;
 use tokio::time::timeout;
 use tokio_util::codec::Decoder;
@@ -70,20 +71,20 @@ impl std::fmt::Display for IpPacketRouterAddress {
     }
 }
 
-struct MessageCreator {
+pub struct MessageCreator {
     recipient: Recipient,
     enable_two_hop: bool,
 }
 
 impl MessageCreator {
-    fn new(recipient: Recipient, enable_two_hop: bool) -> Self {
+    pub fn new(recipient: Recipient, enable_two_hop: bool) -> Self {
         Self {
             recipient,
             enable_two_hop,
         }
     }
 
-    fn create_input_message(&self, bundled_packets: Bytes) -> Option<InputMessage> {
+    pub fn create_input_message(&self, bundled_packets: Bytes) -> Option<InputMessage> {
         let Ok(packet) = IpPacketRequest::new_data_request(bundled_packets).to_bytes() else {
             error!("Failed to serialize packet");
             return None;
@@ -178,6 +179,16 @@ impl MixnetProcessor {
                     };
                 }
                 Some(Ok(packet)) = tun_device_stream.next() => {
+                    // println!("Received packet from tun device");
+                    // println!("{:?}", packet);
+                    // parse the packet as an IP + ICMP packet
+                    //if let Some(ipv4_packet) = pnet::packet::ipv4::Ipv4Packet::new(&packet) {
+                    //    dbg!(&ipv4_packet);
+                    //    if let Some(icmp_packet) = pnet::packet::icmp::IcmpPacket::new(ipv4_packet.payload()) {
+                    //        dbg!(&icmp_packet);
+                    //    }
+                    //}
+
                     // Bundle up IP packets into a single mixnet message
                     if let Some(input_message) = multi_ip_packet_encoder
                         .append_packet(packet.into())
@@ -218,6 +229,12 @@ impl MixnetProcessor {
                                 // to the tun device
                                 let mut bytes = BytesMut::from(&*data_response.ip_packet);
                                 while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
+                                    if let Some(ipv4_packet) = pnet::packet::ipv4::Ipv4Packet::new(&packet) {
+                                        dbg!(&ipv4_packet);
+                                        if let Some(icmp_packet) = pnet::packet::icmp::IcmpPacket::new(ipv4_packet.payload()) {
+                                            dbg!(&icmp_packet);
+                                        }
+                                    }
                                     tun_device_sink.send(packet.into()).await?;
                                 }
                             }
