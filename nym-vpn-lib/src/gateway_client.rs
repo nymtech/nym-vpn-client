@@ -224,10 +224,28 @@ impl ExitPoint {
                 let exit_gateways = gateways.iter().filter(|g| g.has_ip_packet_router());
                 let gateways_with_specified_location = exit_gateways
                     .filter(|gateway| gateway.is_two_letter_iso_country_code(location));
-                let random_gateway = gateways_with_specified_location
-                    .choose(&mut rand::thread_rng())
-                    .ok_or(Error::NoMatchingGatewayForLocation(location.to_string()))?;
-                IpPacketRouterAddress::try_from_described_gateway(&random_gateway.gateway)
+                let random_gateway =
+                    gateways_with_specified_location.choose(&mut rand::thread_rng());
+
+                match random_gateway {
+                    Some(random_gateway) => {
+                        IpPacketRouterAddress::try_from_described_gateway(&random_gateway.gateway)
+                    }
+                    // If the country code is not found in the list of gateways, return an error and
+                    // help the user select a valid one.
+                    // TODO: consider returning ISO codes as well
+                    None => {
+                        let countries: Vec<String> = gateways
+                            .iter()
+                            .filter_map(|gateway| gateway.country_name())
+                            .unique()
+                            .collect();
+                        Err(Error::NoMatchingExitGatewayForLocation {
+                            requested_location: location.to_string(),
+                            available_countries: countries,
+                        })
+                    }
+                }
             }
         }
     }
