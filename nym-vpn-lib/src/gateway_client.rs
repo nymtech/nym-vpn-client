@@ -3,6 +3,7 @@
 
 use crate::error::{Error, Result};
 use crate::mixnet_processor::IpPacketRouterAddress;
+use crate::platform::Country;
 use hickory_resolver::config::{ResolverConfig, ResolverOpts};
 use hickory_resolver::TokioAsyncResolver;
 use itertools::Itertools;
@@ -425,20 +426,46 @@ impl GatewayClient {
             .cloned()
     }
 
-    pub async fn lookup_all_countries(&self) -> Result<Vec<String>> {
+    pub async fn lookup_all_countries(&self) -> Result<Vec<Country>> {
         let described_gateways = self.lookup_described_gateways_with_location().await?;
         Ok(described_gateways
             .iter()
-            .filter_map(|gateway| gateway.country_name())
+            .filter_map(|gateway| gateway.country_name().map(|value| Country::Name { value }))
             .unique()
             .collect())
     }
 
-    pub async fn lookup_all_exit_countries(&self) -> Result<Vec<String>> {
+    pub async fn lookup_all_countries_iso(&self) -> Result<Vec<Country>> {
+        let described_gateways = self.lookup_described_gateways_with_location().await?;
+        Ok(described_gateways
+            .iter()
+            .filter_map(|gateway| {
+                gateway
+                    .two_letter_iso_country_code()
+                    .map(|value| Country::Name { value })
+            })
+            .unique()
+            .collect())
+    }
+
+    pub async fn lookup_all_exit_countries_iso(&self) -> Result<Vec<Country>> {
         let described_gateways = self.lookup_described_exit_gateways_with_location().await?;
         Ok(described_gateways
             .iter()
-            .filter_map(|gateway| gateway.country_name())
+            .filter_map(|gateway| {
+                gateway
+                    .two_letter_iso_country_code()
+                    .map(|value| Country::Name { value })
+            })
+            .unique()
+            .collect())
+    }
+
+    pub async fn lookup_all_exit_countries(&self) -> Result<Vec<Country>> {
+        let described_gateways = self.lookup_described_exit_gateways_with_location().await?;
+        Ok(described_gateways
+            .iter()
+            .filter_map(|gateway| gateway.country_name().map(|value| Country::Name { value }))
             .unique()
             .collect())
     }

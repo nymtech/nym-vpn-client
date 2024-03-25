@@ -220,6 +220,9 @@ pub enum Error {
 
     #[error("failed to create ipv4 packet")]
     Ipv4PacketCreationFailure,
+
+    #[error("gateway does not contain a two character country ISO")]
+    CountryCodeNotFound,
 }
 
 // Result type based on our error type

@@ -2,18 +2,23 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
+use crate::gateway_client::GatewayClient;
 use crate::{
-    spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
-    NymVpnHandle,
+    gateway_client, spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError,
+    NymVpnExitStatusMessage, NymVpnHandle,
 };
 use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
 use nym_task::manager::TaskStatus;
+use std::str::FromStr;
 use std::sync::Arc;
 use talpid_core::mpsc::Sender;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
+use url::Url;
+
+use self::error::FFIError;
 
 #[cfg(target_os = "android")]
 pub mod android;
@@ -27,7 +32,7 @@ lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
 }
 
-#[derive(Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug, uniffi::Enum)]
 pub enum ClientState {
     Uninitialised,
     Connected,
@@ -169,4 +174,97 @@ async fn stop_vpn() {
         return;
     }
     stop_and_reset_shutdown_handle().await;
+}
+
+#[derive(Clone, Eq, PartialEq, Hash, uniffi::Enum)]
+pub enum Country {
+    Code { value: String },
+    Name { value: String },
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getGatewayCountries(
+    api_url: String,
+    explorer_url: String,
+    exit_only: bool,
+) -> Result<Vec<Country>, FFIError> {
+    RUNTIME.block_on(get_gateway_countries(api_url, explorer_url, exit_only))
+}
+
+async fn get_gateway_countries(
+    api_url: String,
+    explorer_url: String,
+    exit_only: bool,
+) -> Result<Vec<Country>, FFIError> {
+    let current = get_vpn_state().await;
+    if current != ClientState::Connected {
+        warn!("vpn not started");
+        return Err(FFIError::IncorrectState {
+            current,
+            expected: ClientState::Connected,
+        });
+    }
+
+    let api_url = Url::from_str(&api_url).map_err(|e| FFIError::UrlParse {
+        inner: e.to_string(),
+    })?;
+    let explorer_url = Url::from_str(&explorer_url).map_err(|e| FFIError::UrlParse {
+        inner: e.to_string(),
+    })?;
+    let config = gateway_client::Config {
+        api_url,
+        explorer_url: Some(explorer_url),
+        ..Default::default()
+    };
+    let gateway_client = GatewayClient::new(config)?;
+
+    if !exit_only {
+        Ok(gateway_client.lookup_all_countries_iso().await?)
+    } else {
+        Ok(gateway_client.lookup_all_exit_countries_iso().await?)
+    }
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getLowLatencyEntryCountry(
+    api_url: String,
+    explorer_url: String,
+) -> Result<Country, FFIError> {
+    RUNTIME.block_on(get_low_latency_entry_country(api_url, explorer_url))
+}
+
+async fn get_low_latency_entry_country(
+    api_url: String,
+    explorer_url: String,
+) -> Result<Country, FFIError> {
+    let current = get_vpn_state().await;
+    if current != ClientState::Connected {
+        warn!("vpn not started");
+        return Err(FFIError::IncorrectState {
+            current,
+            expected: ClientState::Connected,
+        });
+    }
+
+    let api_url = Url::from_str(&api_url).map_err(|e| FFIError::UrlParse {
+        inner: e.to_string(),
+    })?;
+    let explorer_url = Url::from_str(&explorer_url).map_err(|e| FFIError::UrlParse {
+        inner: e.to_string(),
+    })?;
+    let config = gateway_client::Config {
+        api_url,
+        explorer_url: Some(explorer_url),
+        ..Default::default()
+    };
+    let gateway_client = GatewayClient::new(config)?;
+    let described = gateway_client.lookup_low_latency_entry_gateway().await?;
+    let country = described
+        .two_letter_iso_country_code()
+        .ok_or(crate::Error::CountryCodeNotFound)
+        .map(|value| Country::Code { value })?;
+
+    Ok(country)
 }

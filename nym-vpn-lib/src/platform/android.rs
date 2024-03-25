@@ -10,8 +10,7 @@ use jnix::jni::{
     sys::{jboolean, jint, JNI_FALSE},
     JNIEnv,
 };
-use jnix::IntoJava;
-use jnix::{FromJava, JnixEnv};
+use jnix::{FromJava, IntoJava, JnixEnv};
 use nix::sys::{
     select::{pselect, FdSet},
     time::{TimeSpec, TimeValLike},
@@ -94,7 +93,7 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     vpn_service: JObject<'_>,
 ) {
     if RUNTIME.block_on(get_vpn_state()) != ClientState::Uninitialised {
-        warn!("VPN was already inited. Try starting it");
+        warn!("VPN was already initialized. Try starting it");
         return;
     }
 
@@ -110,15 +109,31 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
             .new_global_ref(vpn_service)
             .expect("Create global reference"),
     };
-    let api_url = Url::from_str(&String::from_java(&env, api_url)).expect("Invalid api url");
-    let explorer_url =
-        Url::from_str(&String::from_java(&env, explorer_url)).expect("Invalid explorer url");
+
     let entry_gateway: EntryPoint = serde_json::from_str(&String::from_java(&env, entry_gateway))
-        .expect("Invalid entry gateway");
-    let exit_router: ExitPoint =
-        serde_json::from_str(&String::from_java(&env, exit_router)).expect("Invalid exit router");
+        .map_err(|e| {
+            error!("Could not parse entry point {:?}", e);
+        })
+        .unwrap();
+    let exit_router: ExitPoint = serde_json::from_str(&String::from_java(&env, exit_router))
+        .map_err(|e| {
+            error!("Could not parse exit point {:?}", e);
+        })
+        .unwrap();
 
     let mut vpn = NymVpn::new(entry_gateway, exit_router, context);
+
+    let api_url = Url::from_str(&String::from_java(&env, api_url))
+        .map_err(|e| {
+            error!("Failed to parse api url : {:?}", e);
+        })
+        .unwrap();
+
+    let explorer_url = Url::from_str(&String::from_java(&env, explorer_url))
+        .map_err(|e| {
+            error!("Failed to parse explorer url : {:?}", e);
+        })
+        .unwrap();
 
     vpn.gateway_config.api_url = api_url;
     vpn.gateway_config.explorer_url = Some(explorer_url);
@@ -134,7 +149,6 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_defaultTunConfig<'env>
     _this: JObject<'_>,
 ) -> JObject<'env> {
     let env = JnixEnv::from(env);
-
     TunConfig::default().into_java(&env).forget()
 }
 
@@ -160,23 +174,25 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_waitForTunnelUp(
 #[derive(Debug, err_derive::Error)]
 #[error(no_from)]
 enum SendRandomDataError {
-    #[error(display = "Failed to bind an UDP socket")]
+    #[error(display = "failed to bind an UDP socket")]
     BindUdpSocket(#[error(source)] io::Error),
 
-    #[error(display = "Failed to send random data through UDP socket")]
+    #[error(display = "failed to send random data through UDP socket")]
     SendToUdpSocket(#[error(source)] io::Error),
 }
 
 #[derive(Debug, err_derive::Error)]
 enum Error {
-    #[error(display = "Failed to verify the tunnel device")]
+    #[error(display = "failed to verify the tunnel device")]
     VerifyTunDevice(#[error(source)] SendRandomDataError),
 
-    #[error(display = "Failed to select() on tunnel device")]
+    #[error(display = "failed to select() on tunnel device")]
     Select(#[error(source)] nix::Error),
 
-    #[error(display = "Timed out while waiting for tunnel device to receive data")]
+    #[error(display = "timed out while waiting for tunnel device to receive data")]
     TunnelDeviceTimeout,
+    #[error(display = "timed out while waiting for tunnel device to receive data")]
+    ParseExplorerUrlFailed,
 }
 
 fn wait_for_tunnel_up(tun_fd: RawFd, is_ipv6_enabled: bool) -> Result<(), Error> {
