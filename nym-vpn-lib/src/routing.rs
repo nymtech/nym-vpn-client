@@ -78,6 +78,11 @@ impl RoutingConfig {
         mixnet_tun_config.mtu(mtu);
         mixnet_tun_config.up();
 
+        #[cfg(target_os = "linux")]
+        mixnet_tun_config.platform_config(|config| {
+            config.ensure_root_privileges(true);
+        });
+
         Self {
             mixnet_tun_config,
             tun_ips,

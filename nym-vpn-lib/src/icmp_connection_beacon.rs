@@ -36,6 +36,7 @@ pub(crate) const ICMP_IPR_TUN_IP_V4: Ipv4Addr = Ipv4Addr::new(10, 0, 0, 1);
 // 2001:db8:a160::1
 pub(crate) const ICMP_IPR_TUN_IP_V6: Ipv6Addr =
     Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
+
 // This can be anything really, we just want to check if the exit IPR can reach the internet
 pub(crate) const ICMP_IPR_TUN_EXTERNAL_PING_V4: Ipv4Addr = Ipv4Addr::new(8, 8, 8, 8);
 pub(crate) const ICMP_IPR_TUN_EXTERNAL_PING_V6: Ipv6Addr =
@@ -104,7 +105,6 @@ impl IcmpConnectionBeacon {
             &self.our_ips.ipv6,
             &destination,
         )?;
-
         let ipv6_packet = wrap_icmp_in_ipv6(icmp_echo_request, self.our_ips.ipv6, destination)?;
 
         // Wrap the IPv6 packet in a MultiIpPacket
@@ -153,10 +153,10 @@ impl IcmpConnectionBeacon {
                         error!("Failed to send ICMP ping: {err}");
                     }
                     if let Err(err) = self.ping_v6_ipr_tun_device_over_the_mixnet().await {
-                        error!("Failed to send ICMP ping: {err}");
+                        error!("Failed to send ICMPv6 ping: {err}");
                     }
                     if let Err(err) = self.ping_v4_some_external_ip_over_the_mixnet().await {
-                        error!("Failed to send ICMPv6 ping: {err}");
+                        error!("Failed to send ICMP ping: {err}");
                     }
                     if let Err(err) = self.ping_v6_some_external_ip_over_the_mixnet().await {
                         error!("Failed to send ICMPv6 ping: {err}");
