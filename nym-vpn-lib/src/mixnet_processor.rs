@@ -24,6 +24,7 @@ use tun2::{AbstractDevice, AsyncDevice};
 use crate::{
     connection_monitor::{self, ConnectionStatusEvent},
     error::{Error, Result},
+    icmp_connection_beacon,
     mixnet_connect::SharedMixnetClient,
 };
 
@@ -253,21 +254,17 @@ impl MixnetProcessor {
                                 let mut bytes = BytesMut::from(&*data_response.ip_packet);
                                 while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
                                     // Check if the packet is an ICMP ping reply to our beacon
-                                    if let Some(ipv4_packet) = pnet::packet::ipv4::Ipv4Packet::new(&packet) {
-                                        if let Some(icmp_packet) = pnet::packet::icmp::IcmpPacket::new(ipv4_packet.payload()) {
-                                            if let Some(echo_reply) = pnet::packet::icmp::echo_reply::EchoReplyPacket::new(icmp_packet.packet()) {
-                                                if echo_reply.get_identifier() == self.icmp_identifier {
-                                                    if ipv4_packet.get_source() == std::net::Ipv4Addr::new(10, 0, 0, 1) &&
-                                                        ipv4_packet.get_destination() == self.ips.ipv4 {
-                                                            log::info!("JON: Received ping response from ipr");
-                                                            self.connection_event_tx.unbounded_send(ConnectionStatusEvent::IcmpIprTunDevicePingReply).unwrap();
-                                                    }
-                                                    if ipv4_packet.get_source() == std::net::Ipv4Addr::new(8, 8, 8, 8) &&
-                                                        ipv4_packet.get_destination() == self.ips.ipv4 {
-                                                            log::info!("JON: Received ping response from routable ipr");
-                                                            self.connection_event_tx.unbounded_send(ConnectionStatusEvent::IcmpIprExternalPingReply).unwrap();
-                                                    }
-                                                }
+                                    if let Some((identifier, source, destination)) = icmp_connection_beacon::is_icmp_echo_reply(&packet) {
+                                        if identifier == self.icmp_identifier {
+                                            if source == std::net::Ipv4Addr::new(10, 0, 0, 1) &&
+                                                destination == self.ips.ipv4 {
+                                                    log::debug!("Received ping response from ipr tun device");
+                                                    self.connection_event_tx.unbounded_send(ConnectionStatusEvent::IcmpIprTunDevicePingReply).unwrap();
+                                            }
+                                            if source == std::net::Ipv4Addr::new(8, 8, 8, 8) &&
+                                                destination == self.ips.ipv4 {
+                                                    log::debug!("Received ping response from an external ip through the ipr");
+                                                    self.connection_event_tx.unbounded_send(ConnectionStatusEvent::IcmpIprExternalPingReply).unwrap();
                                             }
                                         }
                                     }

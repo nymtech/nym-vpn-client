@@ -3,11 +3,13 @@
 
 use std::{net::Ipv4Addr, time::Duration};
 
+use bytes::Bytes;
 use nym_ip_packet_requests::codec::MultiIpPacketCodec;
 use nym_sdk::mixnet::{MixnetClientSender, MixnetMessageSender, Recipient};
 use nym_task::TaskClient;
 use pnet::packet::{
     icmp::{
+        echo_reply::EchoReplyPacket,
         echo_request::{EchoRequestPacket, MutableEchoRequestPacket},
         IcmpPacket,
     },
@@ -164,7 +166,7 @@ fn create_icmp_ip_packet(
 }
 
 // Compute IPv4 checksum: sum all 16-bit words, add carry, take one's complement
-fn compute_ipv4_checksum(header: &pnet::packet::ipv4::Ipv4Packet) -> u16 {
+fn compute_ipv4_checksum(header: &Ipv4Packet) -> u16 {
     let len = header.get_header_length() as usize * 2; // Header length in 16-bit words
     let mut sum = 0u32;
 
@@ -180,6 +182,21 @@ fn compute_ipv4_checksum(header: &pnet::packet::ipv4::Ipv4Packet) -> u16 {
 
     // One's complement
     !sum as u16
+}
+
+pub(crate) fn is_icmp_echo_reply(packet: &Bytes) -> Option<(u16, Ipv4Addr, Ipv4Addr)> {
+    if let Some(ipv4_packet) = Ipv4Packet::new(&packet) {
+        if let Some(icmp_packet) = IcmpPacket::new(ipv4_packet.payload()) {
+            if let Some(echo_reply) = EchoReplyPacket::new(icmp_packet.packet()) {
+                return Some((
+                    echo_reply.get_identifier(),
+                    ipv4_packet.get_source(),
+                    ipv4_packet.get_destination(),
+                ));
+            }
+        }
+    }
+    None
 }
 
 pub fn start_icmp_connection_beacon(
