@@ -110,6 +110,7 @@ pub struct MixnetProcessor {
     connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
     ip_packet_router_address: IpPacketRouterAddress,
     ips: nym_ip_packet_requests::IpPair,
+    icmp_identifier: u16,
     // TODO: handle this as part of setting up the mixnet client
     enable_two_hop: bool,
 }
@@ -123,6 +124,7 @@ impl MixnetProcessor {
         >,
         ip_packet_router_address: IpPacketRouterAddress,
         ips: nym_ip_packet_requests::IpPair,
+        icmp_identifier: u16,
         enable_two_hop: bool,
     ) -> Self {
         MixnetProcessor {
@@ -131,6 +133,7 @@ impl MixnetProcessor {
             connection_event_tx,
             ip_packet_router_address,
             ips,
+            icmp_identifier,
             enable_two_hop,
         }
     }
@@ -252,14 +255,18 @@ impl MixnetProcessor {
                                 let mut bytes = BytesMut::from(&*data_response.ip_packet);
                                 while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
                                     if let Some(ipv4_packet) = pnet::packet::ipv4::Ipv4Packet::new(&packet) {
-                                        // dbg!(&ipv4_packet);
                                         if let Some(icmp_packet) = pnet::packet::icmp::IcmpPacket::new(ipv4_packet.payload()) {
-                                            // dbg!(&icmp_packet);
-                                            // Check if the source is 10.0.0.1 and if the
-                                            // destination is our IP address
-                                            if ipv4_packet.get_source() == std::net::Ipv4Addr::new(10, 0, 0, 1) &&
-                                                ipv4_packet.get_destination() == self.ips.ipv4 {
-                                                    log::info!("JON: Received ping response from the mixnet!");
+                                            if let Some(echo_reply) = pnet::packet::icmp::echo_reply::EchoReplyPacket::new(icmp_packet.packet()) {
+                                                if echo_reply.get_identifier() == self.icmp_identifier {
+                                                    if ipv4_packet.get_source() == std::net::Ipv4Addr::new(10, 0, 0, 1) &&
+                                                        ipv4_packet.get_destination() == self.ips.ipv4 {
+                                                            log::info!("JON: Received ping response from ipr");
+                                                    }
+                                                    if ipv4_packet.get_source() == std::net::Ipv4Addr::new(8, 8, 8, 8) &&
+                                                        ipv4_packet.get_destination() == self.ips.ipv4 {
+                                                            log::info!("JON: Received ping response from routable ipr");
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -318,6 +325,7 @@ pub async fn start_processor(
     task_manager: &TaskManager,
     enable_two_hop: bool,
     ips: nym_ip_packet_requests::IpPair,
+    icmp_identifier: u16,
     connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
 ) -> JoinHandle<Result<AsyncDevice>> {
     info!("Creating mixnet processor");
@@ -327,6 +335,7 @@ pub async fn start_processor(
         connection_event_tx,
         config.ip_packet_router_address,
         ips,
+        icmp_identifier,
         enable_two_hop,
     );
     let shutdown_listener = task_manager.subscribe();

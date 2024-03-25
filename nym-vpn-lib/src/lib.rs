@@ -252,6 +252,8 @@ impl NymVpn {
         // Channels to report connection status events
         let (connection_event_tx, connection_event_rx) = mpsc::unbounded();
 
+        let icmp_identifier = std::process::id() as u16;
+
         let shadow_handle = mixnet_processor::start_processor(
             processor_config,
             mixnet_tun_dev,
@@ -259,6 +261,7 @@ impl NymVpn {
             task_manager,
             self.enable_two_hop,
             ips,
+            icmp_identifier,
             connection_event_tx,
         )
         .await;
@@ -270,6 +273,7 @@ impl NymVpn {
             mixnet_client_address,
             ips.ipv4,
             exit_router.0,
+            icmp_identifier,
             task_manager.subscribe_named("mixnet_connection_beacon"),
         );
 

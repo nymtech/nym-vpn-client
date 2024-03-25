@@ -23,6 +23,8 @@ struct MixnetConnectionBeacon {
     our_address: Recipient,
     our_ip: Ipv4Addr,
     ipr_address: Recipient,
+    sequence_number: u16,
+    icmp_identifier: u16,
 }
 
 fn create_self_ping(our_address: Recipient) -> (InputMessage, u64) {
@@ -95,6 +97,29 @@ async fn wait_for_self_ping_return(
 }
 
 impl MixnetConnectionBeacon {
+    fn new(
+        mixnet_client_sender: MixnetClientSender,
+        our_address: Recipient,
+        our_ip: Ipv4Addr,
+        ipr_address: Recipient,
+        icmp_identifier: u16,
+    ) -> Self {
+        MixnetConnectionBeacon {
+            mixnet_client_sender,
+            our_address,
+            our_ip,
+            ipr_address,
+            sequence_number: 0,
+            // icmp_identifier: Self::random_u16(),
+            icmp_identifier,
+        }
+    }
+
+    fn random_u16() -> u16 {
+        use rand::Rng;
+        rand::thread_rng().gen()
+    }
+
     async fn send_mixnet_self_ping(&self) -> Result<u64> {
         trace!("Sending mixnet self ping");
         let (input_message, request_id) = create_self_ping(self.our_address);
@@ -102,7 +127,14 @@ impl MixnetConnectionBeacon {
         Ok(request_id)
     }
 
-    async fn send_icmp_ping(&self) -> Result<()> {
+    fn get_next_sequence_number(&mut self) -> u16 {
+        // TODO: wraparound?
+        let sequence_number = self.sequence_number;
+        self.sequence_number += 1;
+        sequence_number
+    }
+
+    async fn send_icmp_ping(&mut self) -> Result<()> {
         // Create a ICMP IP packet as a Vec<u8>.
         // The destination is 10.0.0.1 and I need to tag it
         // properly so that I can identify it when it comes back.
@@ -110,8 +142,8 @@ impl MixnetConnectionBeacon {
         let mut buffer = vec![0; 64];
         let mut icmp_packet =
             pnet::packet::icmp::echo_request::MutableEchoRequestPacket::new(&mut buffer).unwrap();
-        icmp_packet.set_identifier(424);
-        icmp_packet.set_sequence_number(425);
+        icmp_packet.set_identifier(self.icmp_identifier);
+        icmp_packet.set_sequence_number(self.get_next_sequence_number());
         icmp_packet.set_icmp_type(pnet::packet::icmp::IcmpTypes::EchoRequest);
         icmp_packet.set_icmp_code(pnet::packet::icmp::IcmpCode::new(0));
 
@@ -123,6 +155,7 @@ impl MixnetConnectionBeacon {
         // dbg!(&icmp_packet);
 
         let destination = Ipv4Addr::new(10, 0, 0, 1);
+        // let destination = Ipv4Addr::new(8, 8, 8, 8);
         let source = self.our_ip;
 
         let total_length = 20 + icmp_packet.packet().len() as u16; // 20 bytes for IPv4 header + ICMP payload
@@ -168,7 +201,7 @@ impl MixnetConnectionBeacon {
         Ok(())
     }
 
-    pub async fn run(self, mut shutdown: TaskClient) -> Result<()> {
+    pub async fn run(mut self, mut shutdown: TaskClient) -> Result<()> {
         debug!("Mixnet connection beacon is running");
         let mut ping_interval = tokio::time::interval(MIXNET_SELF_PING_INTERVAL);
         loop {
@@ -208,15 +241,17 @@ pub fn start_mixnet_connection_beacon(
     our_address: Recipient,
     our_ip: Ipv4Addr,
     ipr_address: Recipient,
+    icmp_identifier: u16,
     shutdown_listener: TaskClient,
 ) -> JoinHandle<Result<()>> {
     debug!("Creating mixnet connection beacon");
-    let beacon = MixnetConnectionBeacon {
+    let beacon = MixnetConnectionBeacon::new(
         mixnet_client_sender,
         our_address,
         our_ip,
         ipr_address,
-    };
+        icmp_identifier,
+    );
     tokio::spawn(async move {
         beacon.run(shutdown_listener).await.inspect_err(|err| {
             error!("Mixnet connection beacon error: {err}");
