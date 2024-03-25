@@ -21,8 +21,8 @@ import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn_client.BuildConfig
 import net.nymtech.vpn_client.R
 import timber.log.Timber
-import uniffi.nym_vpn_lib_android.runVpn
-import uniffi.nym_vpn_lib_android.stopVpn
+import uniffi.nym_vpn_lib.runVpn
+import uniffi.nym_vpn_lib.stopVpn
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
