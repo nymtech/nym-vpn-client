@@ -316,7 +316,7 @@ fn check_for_icmp_beacon_reply(
     our_ip: Ipv4Addr,
 ) -> Option<ConnectionStatusEvent> {
     if let Some((identifier, source, destination)) =
-        icmp_connection_beacon::is_icmp_echo_reply(&packet)
+        icmp_connection_beacon::is_icmp_echo_reply(packet)
     {
         if identifier == icmp_beacon_identifier
             && source == icmp_connection_beacon::ICMP_IPR_TUN_IP
