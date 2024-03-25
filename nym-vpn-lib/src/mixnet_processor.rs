@@ -315,13 +315,14 @@ impl MixnetProcessor {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub async fn start_processor(
     config: Config,
     dev: AsyncDevice,
     mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,
     enable_two_hop: bool,
-    ips: nym_ip_packet_requests::IpPair,
+    our_ips: nym_ip_packet_requests::IpPair,
     icmp_identifier: u16,
     connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
 ) -> JoinHandle<Result<AsyncDevice>> {
@@ -331,7 +332,7 @@ pub async fn start_processor(
         mixnet_client,
         connection_event_tx,
         config.ip_packet_router_address,
-        ips,
+        our_ips,
         icmp_identifier,
         enable_two_hop,
     );
