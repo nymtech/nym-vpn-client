@@ -173,10 +173,10 @@ pub enum ConnectionMonitorStatus {
     #[error("entry gateway appears down - it's not routing our mixnet traffic")]
     EntryGatewayDown,
 
-    #[error("exit gateway appears down - it's not routing our tun device traffic")]
+    #[error("exit gateway (or ipr) appears down - it's not responding to IP traffic")]
     ExitGatewayDown,
 
-    #[error("exit gateway appears to be having issues routing our external traffic")]
+    #[error("exit gateway (or ipr) appears to be having issues routing and forwarding our external IP traffic")]
     ExitGatewayRoutingError,
 }
 
