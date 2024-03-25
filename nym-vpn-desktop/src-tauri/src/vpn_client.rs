@@ -80,7 +80,7 @@ pub async fn spawn_status_listener(
                     }
                 }
             } else {
-                error!("received unknown status message: {msg:?}");
+                info!("received unknown status message: {msg:?}");
             }
         }
         info!("vpn status listener has exited");
