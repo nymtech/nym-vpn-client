@@ -12,19 +12,28 @@ use crate::error::Result;
 
 const CONNECTION_MONITOR_REPORT_INTERVAL: Duration = Duration::from_secs(5);
 
-// When the latest successful self ping is older than this, we consider the connection to the
+// When the latest successful ping is older than this, we consider the connection to the
 // entry gateway as down
 const SELF_PING_EXPIRY: Duration = Duration::from_secs(5);
+
+// When the latest successful ping is older than these, we consider the connection to the IPR tun
+// device on the exit router as down
+const IPR_TUN_DEVICE_PING_REPLY_EXPIRY: Duration = Duration::from_secs(5);
+const IPR_EXTERNAL_PING_REPLY_EXPIRY: Duration = Duration::from_secs(5);
 
 #[derive(Debug)]
 pub enum ConnectionStatusEvent {
     MixnetSelfPing,
+    IcmpIprTunDevicePingReply,
+    IcmpIprExternalPingReply,
 }
 
 #[derive(Debug, Default)]
 struct ConnectionStats {
     // TODO: extend with all sorts of good stuff
     latest_self_ping: Option<Instant>,
+    latest_ipr_tun_device_ping_reply: Option<Instant>,
+    latest_ipr_external_ping_reply: Option<Instant>,
 }
 
 struct ConnectionMonitor {
@@ -59,12 +68,28 @@ impl ConnectionMonitor {
                             trace!("Received self ping event");
                             self.stats.latest_self_ping = Some(Instant::now());
                         }
+                        ConnectionStatusEvent::IcmpIprTunDevicePingReply => {
+                            trace!("Received IPR tun device ping reply event");
+                            self.stats.latest_ipr_tun_device_ping_reply = Some(Instant::now());
+                        }
+                        ConnectionStatusEvent::IcmpIprExternalPingReply => {
+                            trace!("Received IPR external ping reply event");
+                            self.stats.latest_ipr_external_ping_reply = Some(Instant::now());
+                        }
                     }
                 }
                 _ = report_interval.tick() => {
                     debug!(
                         "Time since latest received self ping: {}ms",
                         self.stats.latest_self_ping.map(|t| t.elapsed().as_millis()).unwrap_or(0)
+                    );
+                    debug!(
+                        "Time since latest received ipr tun device ping reply: {}ms",
+                        self.stats.latest_ipr_tun_device_ping_reply.map(|t| t.elapsed().as_millis()).unwrap_or(0)
+                    );
+                    debug!(
+                        "Time since latest received ipr external ping reply: {}ms",
+                        self.stats.latest_ipr_external_ping_reply.map(|t| t.elapsed().as_millis()).unwrap_or(0)
                     );
 
                     // Send I'm alive messages, so listerners can hear that we are still there
@@ -76,8 +101,28 @@ impl ConnectionMonitor {
                             task_client.send_status_msg(Box::new(ConnectionMonitorStatus::EntryGatewayDown));
                         }
                     } else {
-                        error!("Entry gateway not routing our mixnet traffic");
+                        error!("Entry gateway has never been able to route our mixnet traffic");
                         task_client.send_status_msg(Box::new(ConnectionMonitorStatus::EntryGatewayDown));
+                    }
+
+                    if let Some(latest_ipr_tun_device_ping_reply) = self.stats.latest_ipr_tun_device_ping_reply {
+                        if latest_ipr_tun_device_ping_reply.elapsed() > IPR_TUN_DEVICE_PING_REPLY_EXPIRY {
+                            error!("Exit IPR not routing our tun device traffic");
+                            task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDown));
+                        }
+                    } else {
+                        error!("Exit IPR has never been able to route our tun device traffic");
+                            task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDown));
+                    }
+
+                    if let Some(latest_ipr_external_ping_reply) = self.stats.latest_ipr_external_ping_reply {
+                        if latest_ipr_external_ping_reply.elapsed() > IPR_EXTERNAL_PING_REPLY_EXPIRY {
+                            error!("Exit IPR not routing our external traffic");
+                            task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayRoutingError));
+                        }
+                    } else {
+                        error!("Exit IPR has never been able to route our external traffic");
+                        task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayRoutingError));
                     }
                 }
             }
@@ -94,8 +139,15 @@ impl ConnectionMonitor {
 pub enum ConnectionMonitorStatus {
     #[error("I'm alive")]
     ImAlive,
+
     #[error("entry gateway appears down - it's not routing our mixnet traffic")]
     EntryGatewayDown,
+
+    #[error("exit gateway appears down - it's not routing our tun device traffic")]
+    ExitGatewayDown,
+
+    #[error("exit gateway appears to be having issues routing our external traffic")]
+    ExitGatewayRoutingError,
 }
 
 pub fn start_connection_monitor(

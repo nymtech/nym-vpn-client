@@ -206,16 +206,6 @@ impl MixnetProcessor {
                     };
                 }
                 Some(Ok(packet)) = tun_device_stream.next() => {
-                    // println!("Received packet from tun device");
-                    // println!("{:?}", packet);
-                    // parse the packet as an IP + ICMP packet
-                    //if let Some(ipv4_packet) = pnet::packet::ipv4::Ipv4Packet::new(&packet) {
-                    //    dbg!(&ipv4_packet);
-                    //    if let Some(icmp_packet) = pnet::packet::icmp::IcmpPacket::new(ipv4_packet.payload()) {
-                    //        dbg!(&icmp_packet);
-                    //    }
-                    //}
-
                     // Bundle up IP packets into a single mixnet message
                     if let Some(input_message) = multi_ip_packet_encoder
                         .append_packet(packet.into())
@@ -262,6 +252,7 @@ impl MixnetProcessor {
                                 // to the tun device
                                 let mut bytes = BytesMut::from(&*data_response.ip_packet);
                                 while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
+                                    // Check if the packet is an ICMP ping reply to our beacon
                                     if let Some(ipv4_packet) = pnet::packet::ipv4::Ipv4Packet::new(&packet) {
                                         if let Some(icmp_packet) = pnet::packet::icmp::IcmpPacket::new(ipv4_packet.payload()) {
                                             if let Some(echo_reply) = pnet::packet::icmp::echo_reply::EchoReplyPacket::new(icmp_packet.packet()) {
@@ -269,10 +260,12 @@ impl MixnetProcessor {
                                                     if ipv4_packet.get_source() == std::net::Ipv4Addr::new(10, 0, 0, 1) &&
                                                         ipv4_packet.get_destination() == self.ips.ipv4 {
                                                             log::info!("JON: Received ping response from ipr");
+                                                            self.connection_event_tx.unbounded_send(ConnectionStatusEvent::IcmpIprTunDevicePingReply).unwrap();
                                                     }
                                                     if ipv4_packet.get_source() == std::net::Ipv4Addr::new(8, 8, 8, 8) &&
                                                         ipv4_packet.get_destination() == self.ips.ipv4 {
                                                             log::info!("JON: Received ping response from routable ipr");
+                                                            self.connection_event_tx.unbounded_send(ConnectionStatusEvent::IcmpIprExternalPingReply).unwrap();
                                                     }
                                                 }
                                             }
