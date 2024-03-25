@@ -18,10 +18,8 @@ use tokio::sync::{Mutex, Notify};
 #[cfg(target_os = "android")]
 pub mod android;
 pub(crate) mod error;
-#[cfg(target_os = "ios")]
-pub mod ios;
-#[cfg(target_os = "macos")]
-pub mod macos;
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+pub mod swift;
 
 lazy_static! {
     static ref VPN_SHUTDOWN_HANDLE: Mutex<Option<Arc<Notify>>> = Mutex::new(None);
@@ -131,6 +129,7 @@ async fn wait_for_shutdown(
 }
 
 #[allow(non_snake_case)]
+#[uniffi::export]
 pub fn runVPN() {
     RUNTIME.block_on(run_vpn());
 }
@@ -159,6 +158,7 @@ async fn run_vpn() {
 }
 
 #[allow(non_snake_case)]
+#[uniffi::export]
 pub fn stopVPN() {
     RUNTIME.block_on(stop_vpn())
 }

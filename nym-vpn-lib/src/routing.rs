@@ -208,7 +208,7 @@ pub async fn setup_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
     #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
-        dyn crate::platform::ios::OSTunProvider,
+        dyn crate::platform::swift::OSTunProvider,
     >,
 ) -> Result<tun2::AsyncDevice> {
     debug!("Creating tun device");
