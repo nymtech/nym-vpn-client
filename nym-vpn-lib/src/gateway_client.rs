@@ -157,6 +157,17 @@ async fn select_random_low_latency_gateway_node(
         .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })
 }
 
+fn list_all_country_iso_codes<'a, I>(gateways: I) -> Vec<String>
+where
+    I: IntoIterator<Item = &'a DescribedGatewayWithLocation>,
+{
+    gateways
+        .into_iter()
+        .filter_map(|gateway| gateway.two_letter_iso_country_code())
+        .unique()
+        .collect()
+}
+
 async fn select_random_low_latency_described_gateway(
     gateways: &[DescribedGatewayWithLocation],
 ) -> Result<&DescribedGatewayWithLocation> {
@@ -183,11 +194,18 @@ impl EntryPoint {
                 Ok(*identity)
             }
             EntryPoint::Location { location } => {
-                // If an explorer-api for a different network was specified, then none of the
-                // gateways will have an associated location.
+                // Caution: if an explorer-api for a different network was specified, then
+                // none of the gateways will have an associated location. There is a check
+                // against this earlier in the call stack to guard against this scenario.
                 let gateways_with_specified_location = gateways
                     .iter()
                     .filter(|g| g.is_two_letter_iso_country_code(location));
+                if gateways_with_specified_location.clone().count() == 0 {
+                    return Err(Error::NoMatchingEntryGatewayForLocation {
+                        requested_location: location.to_string(),
+                        available_countries: list_all_country_iso_codes(gateways),
+                    });
+                }
                 select_random_gateway_node(gateways_with_specified_location)
             }
             EntryPoint::RandomLowLatency => {
@@ -223,11 +241,20 @@ impl ExitPoint {
             ExitPoint::Location { location } => {
                 let exit_gateways = gateways.iter().filter(|g| g.has_ip_packet_router());
                 let gateways_with_specified_location = exit_gateways
+                    .clone()
                     .filter(|gateway| gateway.is_two_letter_iso_country_code(location));
-                let random_gateway = gateways_with_specified_location
-                    .choose(&mut rand::thread_rng())
-                    .ok_or(Error::NoMatchingGatewayForLocation(location.to_string()))?;
-                IpPacketRouterAddress::try_from_described_gateway(&random_gateway.gateway)
+                let random_gateway =
+                    gateways_with_specified_location.choose(&mut rand::thread_rng());
+
+                match random_gateway {
+                    Some(random_gateway) => {
+                        IpPacketRouterAddress::try_from_described_gateway(&random_gateway.gateway)
+                    }
+                    None => Err(Error::NoMatchingExitGatewayForLocation {
+                        requested_location: location.to_string(),
+                        available_countries: list_all_country_iso_codes(exit_gateways),
+                    }),
+                }
             }
         }
     }

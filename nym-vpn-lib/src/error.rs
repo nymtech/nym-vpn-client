@@ -153,8 +153,17 @@ pub enum Error {
     #[error("no matching gateway found")]
     NoMatchingGateway,
 
-    #[error("no gateway available for location {0}")]
-    NoMatchingGatewayForLocation(String),
+    #[error("no entry gateway available for location {requested_location}, available countries: {available_countries:?}")]
+    NoMatchingEntryGatewayForLocation {
+        requested_location: String,
+        available_countries: Vec<String>,
+    },
+
+    #[error("no exit gateway available for location {requested_location}, available countries: {available_countries:?}")]
+    NoMatchingExitGatewayForLocation {
+        requested_location: String,
+        available_countries: Vec<String>,
+    },
 
     #[error("failed to select gateway based on low latency: {source}")]
     FailedToSelectGatewayBasedOnLowLatency { source: ClientCoreError },
