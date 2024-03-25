@@ -187,6 +187,30 @@ pub enum Error {
 
     #[error("failed to create DNS resolver: {0}")]
     FailedToCreateDnsResolver(std::io::Error),
+
+    #[error("tun device address not set: {0}")]
+    TunDeviceAddressNotSet(tun2::Error),
+
+    #[error("invalid tun device address: {actual}, we expected {expected}")]
+    InvalidTunDeviceAddress {
+        expected: std::net::Ipv4Addr,
+        actual: std::net::IpAddr,
+    },
+
+    #[error("failed to serialize message")]
+    FailedToSerializeMessage {
+        #[from]
+        source: bincode::Error,
+    },
+
+    #[error("failed to create icmp echo request packet")]
+    IcmpEchoRequestPacketCreationFailure,
+
+    #[error("failed to create icmp packet")]
+    IcmpPacketCreationFailure,
+
+    #[error("failed to create ipv4 packet")]
+    Ipv4PacketCreationFailure,
 }
 
 // Result type based on our error type
