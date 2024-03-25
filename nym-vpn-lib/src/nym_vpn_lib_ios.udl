@@ -34,6 +34,7 @@ typedef string PresharedKey;
 [Error]
 interface FFIError {
     InvalidValueUniffi();
+    FdNotFound();
 };
 
 dictionary TunnelConfig {
