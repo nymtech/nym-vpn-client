@@ -22,7 +22,7 @@ jobs:
         os: [ ubuntu-22.04, custom-runner-mac-m1, windows-2022 ]
         target: [ native ]
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-22.04-arc
             target: android
     runs-on: ${{ matrix.os }}
 
@@ -36,7 +36,7 @@ jobs:
           ls -la ./
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
         if: contains(matrix.os, 'ubuntu')
 
       - name: Support longpaths on windows
@@ -61,9 +61,8 @@ jobs:
         id: setup-ndk
         if: contains(matrix.target, 'android')
         with:
-          ndk-version: r21e
+          ndk-version: r26c
           add-to-path: false
-          local-cache: true
 
       - name: Add iOS target
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
@@ -86,6 +85,7 @@ jobs:
             triplet=x86_64-unknown-linux-gnu
           elif ${{ matrix.target == 'android' }}; then
             triplet=aarch64-linux-android
+            echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
             echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
           elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
             triplet=x86_64-apple-darwin
@@ -127,11 +127,16 @@ jobs:
 
       - name: Build (Android)
         if: contains(matrix.target, 'android')
-        run: cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
+        run: |
+          cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
+          rustflags="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu"
+          RUSTFLAGS=$rustflags cargo run --bin uniffi-bindgen generate --library target/aarch64-linux-android/debug/libnym_vpn_lib.so  --language kotlin --out-dir build -n
 
       - name: Build (iOS)
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
-        run: cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
+        run: |
+          cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
+          cargo run --bin uniffi-bindgen generate --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  --language swift --out-dir build -n
 
       - name: Run tests
         if: "!contains(matrix.os, 'windows') && !contains(matrix.target, 'android')"

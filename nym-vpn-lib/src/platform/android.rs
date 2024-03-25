@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::*;
-use crate::gateway_client::{EntryPoint, ExitPoint, GatewayClient};
-use crate::{gateway_client, NymVpn};
+use crate::gateway_client::{EntryPoint, ExitPoint};
+use crate::NymVpn;
 use ipnetwork::IpNetwork;
 use jnix::jni::{
-    objects::{JClass, JObject, JString},
+    objects::{JObject, JString},
     sys::{jboolean, jint, JNI_FALSE},
     JNIEnv,
 };
-use jnix::{FromJava, JnixEnv};
+use jnix::{FromJava, IntoJava, JnixEnv};
 use nix::sys::{
     select::{pselect, FdSet},
     time::{TimeSpec, TimeValLike},
@@ -25,8 +25,7 @@ use std::time::{Duration, Instant};
 use talpid_tunnel::tun_provider::{TunConfig, TunProvider};
 use talpid_types::android::AndroidContext;
 use talpid_types::ErrorExt;
-use tracing::error;
-use url::{ParseError, Url};
+use url::Url;
 
 static LOAD_CLASSES: Once = Once::new();
 
@@ -124,13 +123,13 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
 
     let mut vpn = NymVpn::new(entry_gateway, exit_router, context);
 
-    let api_url = parse_api_url_from_java(&env, api_url)
+    let api_url = Url::from_str(&String::from_java(&env, api_url))
         .map_err(|e| {
             error!("Failed to parse api url : {:?}", e);
         })
         .unwrap();
 
-    let explorer_url = parse_explorer_url_from_java(&env, explorer_url)
+    let explorer_url = Url::from_str(&String::from_java(&env, explorer_url))
         .map_err(|e| {
             error!("Failed to parse explorer url : {:?}", e);
         })
@@ -145,147 +144,12 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_runVPN(_env: JNIEnv, _class: JClass) {
-    let state = RUNTIME.block_on(get_vpn_state());
-    if state != ClientState::Disconnected {
-        warn!("Invalid vpn state: {:?}", state);
-    }
-
-    let vpn = RUNTIME.block_on(take_vpn()).expect("VPN not initialized");
-
-    let ret = RUNTIME.block_on(_async_run_vpn(vpn));
-
-    match ret {
-        Err(err) => error!("Could not start the VPN: {:?}", err),
-        Ok((stop_handle, handle)) => {
-            RUNTIME.spawn(async move {
-                wait_for_shutdown(stop_handle, handle)
-                    .await
-                    .map_err(|err| {
-                        warn!("error during vpn run: {:?}", err);
-                    })
-                    .ok();
-            });
-        }
-    }
-}
-
-#[allow(non_snake_case)]
-#[no_mangle]
-pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_stopVPN(_env: JNIEnv, _class: JClass) {
-    if RUNTIME.block_on(get_vpn_state()) != ClientState::Connected {
-        warn!("could not stop the vpn as it's not running");
-        return;
-    }
-    RUNTIME.block_on(stop_and_reset_shutdown_handle());
-}
-
-#[no_mangle]
-#[allow(non_snake_case)]
 pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_defaultTunConfig<'env>(
     env: JNIEnv<'env>,
     _this: JObject<'_>,
 ) -> JObject<'env> {
-    use jnix::IntoJava;
     let env = JnixEnv::from(env);
     TunConfig::default().into_java(&env).forget()
-}
-
-pub trait IntoJava<'env> {
-    type JavaType;
-
-    fn into_java(self, env: &JNIEnv<'env>) -> Self::JavaType;
-}
-
-// ideally we use IntoJava trait from jnix, quick fix for now
-impl<'env> IntoJava<'env> for String {
-    type JavaType = JString<'env>;
-
-    fn into_java(self, env: &JNIEnv<'env>) -> Self::JavaType {
-        env.new_string(&self)
-            .map_err(|_e| {
-                error!("Failed to create java string");
-            })
-            .unwrap()
-    }
-}
-
-#[no_mangle]
-#[allow(non_snake_case)]
-pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getGatewayCountries<'env>(
-    env: JNIEnv<'env>,
-    _this: JObject<'_>,
-    api_url: JString<'_>,
-    explorer_url: JString<'_>,
-    exit_only: jboolean,
-) -> JString<'env> {
-    init_jni_logger();
-    let env = JnixEnv::from(env);
-    let api_url = parse_api_url_from_java(&env, api_url)
-        .map_err(|e| error!("Failed to parse api url : {:?}", e))
-        .unwrap();
-    let explorer_url = parse_explorer_url_from_java(&env, explorer_url)
-        .map_err(|e| error!("Failed to parse explorer url : {:?}", e))
-        .unwrap();
-    let config = gateway_client::Config {
-        api_url,
-        explorer_url: Some(explorer_url),
-        ..Default::default()
-    };
-    let gateway_client = GatewayClient::new(config).unwrap();
-    let ret = if exit_only == JNI_FALSE {
-        RUNTIME.block_on(gateway_client.lookup_all_countries_iso())
-    } else {
-        RUNTIME.block_on(gateway_client.lookup_all_exit_countries_iso())
-    };
-    return match ret {
-        Err(err) => {
-            error!("Failed to get countries: {:?}", err);
-            "".to_string().into_java(&env)
-        }
-        Ok(countries) => {
-            let countries_str: String = countries.join(",");
-            countries_str.into_java(&env)
-        }
-    };
-}
-
-#[no_mangle]
-#[allow(non_snake_case)]
-pub extern "system" fn Java_net_nymtech_vpn_NymVpnClient_getLowLatencyEntryCountry<'env>(
-    env: JNIEnv<'env>,
-    _this: JObject<'_>,
-    api_url: JString<'_>,
-    explorer_url: JString<'_>,
-) -> JString<'env> {
-    init_jni_logger();
-    let env = JnixEnv::from(env);
-    let api_url = parse_api_url_from_java(&env, api_url)
-        .map_err(|e| error!("Failed to parse api url : {:?}", e))
-        .unwrap();
-    let explorer_url = parse_explorer_url_from_java(&env, explorer_url)
-        .map_err(|e| error!("Failed to parse explorer url : {:?}", e))
-        .unwrap();
-    let config = gateway_client::Config {
-        api_url,
-        explorer_url: Some(explorer_url),
-        ..Default::default()
-    };
-    let gateway_client = GatewayClient::new(config).unwrap();
-    let ret = RUNTIME.block_on(gateway_client.lookup_low_latency_entry_gateway());
-    return match ret {
-        Err(err) => {
-            error!("Failed to get entry country: {:?}", err);
-            "".to_string().into_java(&env)
-        }
-        Ok(described) => {
-            let country = described
-                .two_letter_iso_country_code()
-                .ok_or(Error::CountryCodeNotFound)
-                .unwrap();
-            country.into_java(&env)
-        }
-    };
 }
 
 #[no_mangle]
@@ -324,9 +188,6 @@ enum Error {
 
     #[error(display = "failed to select() on tunnel device")]
     Select(#[error(source)] nix::Error),
-
-    #[error(display = "gateway does not contain a two character country ISO")]
-    CountryCodeNotFound,
 
     #[error(display = "timed out while waiting for tunnel device to receive data")]
     TunnelDeviceTimeout,
@@ -413,17 +274,6 @@ fn try_sending_random_udp(is_ipv6_enabled: bool) -> Result<(), SendRandomDataErr
         };
     }
     Ok(())
-}
-
-fn parse_api_url_from_java(env: &JnixEnv, api_url: JString<'_>) -> Result<Url, ParseError> {
-    Url::from_str(&String::from_java(env, api_url))
-}
-
-fn parse_explorer_url_from_java(
-    env: &JnixEnv,
-    explorer_url: JString<'_>,
-) -> Result<Url, ParseError> {
-    Url::from_str(&String::from_java(env, explorer_url))
 }
 
 fn is_public_ip(addr: IpAddr) -> bool {

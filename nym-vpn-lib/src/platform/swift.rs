@@ -6,12 +6,13 @@ use crate::gateway_client::{EntryPoint, ExitPoint};
 use crate::routing::RoutingConfig;
 use crate::NymVpn;
 use error::FFIError;
+use ipnetwork::IpNetwork;
 use log::warn;
 use oslog::OsLogger;
 use std::fmt::Debug;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::os::fd::RawFd;
-use talpid_types::net::wireguard::{PeerConfig, TunnelConfig};
+use talpid_types::net::wireguard::{PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig};
 use url::Url;
 
 fn init_logs() {
@@ -31,10 +32,44 @@ fn init_logs() {
     debug!("Logger initialized");
 }
 
-#[derive(Clone)]
+#[derive(uniffi::Record, Clone)]
+pub struct UniffiTunnelConfig {
+    pub private_key: PrivateKey,
+    pub addresses: Vec<IpAddr>,
+}
+
+impl From<TunnelConfig> for UniffiTunnelConfig {
+    fn from(value: TunnelConfig) -> Self {
+        UniffiTunnelConfig {
+            private_key: value.private_key,
+            addresses: value.addresses,
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone)]
+pub struct UniffiPeerConfig {
+    pub public_key: PublicKey,
+    pub allowed_ips: Vec<IpNetwork>,
+    pub endpoint: SocketAddr,
+    pub psk: Option<PresharedKey>,
+}
+
+impl From<PeerConfig> for UniffiPeerConfig {
+    fn from(value: PeerConfig) -> Self {
+        UniffiPeerConfig {
+            public_key: value.public_key,
+            allowed_ips: value.allowed_ips,
+            endpoint: value.endpoint,
+            psk: value.psk,
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone)]
 pub struct WgConfig {
-    pub tunnel: TunnelConfig,
-    pub peers: Vec<PeerConfig>,
+    pub tunnel: UniffiTunnelConfig,
+    pub peers: Vec<UniffiPeerConfig>,
     pub ipv4_gateway: Ipv4Addr,
     pub ipv6_gateway: Option<Ipv6Addr>,
     pub mtu: u16,
@@ -43,8 +78,8 @@ pub struct WgConfig {
 impl From<talpid_wireguard::config::Config> for WgConfig {
     fn from(value: talpid_wireguard::config::Config) -> Self {
         WgConfig {
-            tunnel: value.tunnel,
-            peers: value.peers,
+            tunnel: value.tunnel.into(),
+            peers: value.peers.into_iter().map(Into::into).collect(),
             ipv4_gateway: value.ipv4_gateway,
             ipv6_gateway: value.ipv6_gateway,
             mtu: value.mtu,
@@ -52,7 +87,7 @@ impl From<talpid_wireguard::config::Config> for WgConfig {
     }
 }
 
-#[derive(Clone)]
+#[derive(uniffi::Record, Clone)]
 pub struct NymConfig {
     pub ipv4_addr: Ipv4Addr,
     pub ipv6_addr: Ipv6Addr,
@@ -76,21 +111,28 @@ impl From<RoutingConfig> for NymConfig {
     }
 }
 
+#[derive(uniffi::Record)]
 pub struct VPNConfig {
     pub api_url: Url,
     pub explorer_url: Url,
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
+    #[cfg(target_os = "ios")]
     pub tun_provider: Arc<dyn OSTunProvider>,
 }
 
+#[uniffi::export(with_foreign)]
 pub trait OSTunProvider: Send + Sync + Debug {
     fn configure_wg(&self, config: WgConfig) -> Result<(), FFIError>;
     fn configure_nym(&self, config: NymConfig) -> Result<RawFd, FFIError>;
 }
-
 #[allow(non_snake_case)]
-pub async fn initVPN(config: VPNConfig) {
+#[uniffi::export]
+pub fn initVPN(config: VPNConfig) {
+    RUNTIME.block_on(init_vpn(config));
+}
+
+pub async fn init_vpn(config: VPNConfig) {
     init_logs();
 
     if get_vpn_state().await != ClientState::Uninitialised {
@@ -101,6 +143,7 @@ pub async fn initVPN(config: VPNConfig) {
     let mut vpn = NymVpn::new(
         config.entry_gateway,
         config.exit_router,
+        #[cfg(target_os = "ios")]
         config.tun_provider,
     );
     vpn.gateway_config.api_url = config.api_url;

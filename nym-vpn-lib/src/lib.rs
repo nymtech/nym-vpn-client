@@ -1,12 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(target_os = "macos")]
-uniffi::include_scaffolding!("nym_vpn_lib_macos");
-#[cfg(target_os = "ios")]
-uniffi::include_scaffolding!("nym_vpn_lib_ios");
-#[cfg(target_os = "android")]
-uniffi::include_scaffolding!("nym_vpn_lib_android");
+uniffi::setup_scaffolding!();
 
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
@@ -29,13 +24,6 @@ use tap::TapFallible;
 use tokio::time::timeout;
 use tracing::warn;
 use util::wait_for_interrupt_and_signal;
-#[cfg(any(target_os = "ios", target_os = "macos"))]
-use {
-    crate::platform::error::FFIError,
-    ipnetwork::IpNetwork,
-    std::net::{Ipv6Addr, SocketAddr},
-    talpid_types::net::wireguard::{PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig},
-};
 
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
@@ -45,30 +33,24 @@ pub use nym_task::{
 };
 
 #[cfg(target_os = "ios")]
-use crate::platform::ios::{initVPN, NymConfig, OSTunProvider, VPNConfig, WgConfig};
-#[cfg(target_os = "macos")]
-use crate::platform::macos::{initVPN, VPNConfig, WgConfig};
-#[cfg(any(target_os = "macos", target_os = "android", target_os = "ios"))]
-use crate::platform::{runVPN, stopVPN};
+use crate::platform::swift::OSTunProvider;
 pub use nym_bin_common;
 pub use nym_config;
 use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
-#[cfg(any(target_os = "macos", target_os = "ios"))]
-use url::Url;
 
 pub mod config;
 mod connection_monitor;
 pub mod error;
 pub mod gateway_client;
+mod icmp_connection_beacon;
 pub mod mixnet_connect;
 pub mod mixnet_connection_beacon;
 pub mod mixnet_processor;
 mod platform;
 pub mod routing;
 pub mod tunnel;
-#[cfg(any(target_os = "macos", target_os = "ios"))]
 mod uniffi_custom_impls;
 mod util;
 
@@ -252,12 +234,16 @@ impl NymVpn {
         // Channels to report connection status events
         let (connection_event_tx, connection_event_rx) = mpsc::unbounded();
 
+        let icmp_identifier = std::process::id() as u16;
+
         let shadow_handle = mixnet_processor::start_processor(
             processor_config,
             mixnet_tun_dev,
             mixnet_client,
             task_manager,
             self.enable_two_hop,
+            ips,
+            icmp_identifier,
             connection_event_tx,
         )
         .await;
@@ -265,9 +251,18 @@ impl NymVpn {
 
         info!("Setting up mixnet connection beacon");
         mixnet_connection_beacon::start_mixnet_connection_beacon(
-            mixnet_client_sender,
+            mixnet_client_sender.clone(),
             mixnet_client_address,
             task_manager.subscribe_named("mixnet_connection_beacon"),
+        );
+
+        info!("Setting up ICMP connection beacon");
+        icmp_connection_beacon::start_icmp_connection_beacon(
+            mixnet_client_sender,
+            ips.ipv4,
+            exit_router.0,
+            icmp_identifier,
+            task_manager.subscribe_named("icmp_connection_beacon"),
         );
 
         info!("Setting up connection monitor");

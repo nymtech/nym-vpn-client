@@ -9,6 +9,18 @@ use std::str::FromStr;
 use talpid_types::net::wireguard::{PresharedKey, PrivateKey, PublicKey};
 use url::Url;
 
+uniffi::custom_type!(Ipv4Addr, String);
+uniffi::custom_type!(Ipv6Addr, String);
+uniffi::custom_type!(IpAddr, String);
+uniffi::custom_type!(PrivateKey, String);
+uniffi::custom_type!(PublicKey, String);
+uniffi::custom_type!(IpNetwork, String);
+uniffi::custom_type!(SocketAddr, String);
+uniffi::custom_type!(PresharedKey, String);
+uniffi::custom_type!(Url, String);
+uniffi::custom_type!(NodeIdentity, String);
+uniffi::custom_type!(Recipient, String);
+
 impl UniffiCustomTypeConverter for NodeIdentity {
     type Builtin = String;
 

@@ -3,6 +3,9 @@
 
 use crate::error::{Error, Result};
 use crate::mixnet_processor::IpPacketRouterAddress;
+use crate::platform::Country;
+use hickory_resolver::config::{ResolverConfig, ResolverOpts};
+use hickory_resolver::TokioAsyncResolver;
 use itertools::Itertools;
 use nym_client_core::init::helpers::choose_gateway_by_latency;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
@@ -85,7 +88,7 @@ impl Config {
 
 // The entry point is always a gateway identity, or some other entry that can be resolved to a
 // gateway identity.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, uniffi::Enum)]
 pub enum EntryPoint {
     Gateway { identity: NodeIdentity },
     // NOTE: Consider using a crate with strongly typed country codes instead of strings
@@ -102,7 +105,7 @@ impl EntryPoint {
 
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
 // gateway, we can refer to it by the gateway identity.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum ExitPoint {
     // An explicit exit address. This is useful when the exit ip-packet-router is running as a
@@ -396,44 +399,53 @@ impl GatewayClient {
             .cloned()
     }
 
-    pub async fn lookup_all_countries(&self) -> Result<Vec<String>> {
+    pub async fn lookup_all_countries(&self) -> Result<Vec<Country>> {
         let described_gateways = self.lookup_described_gateways_with_location().await?;
         Ok(described_gateways
             .iter()
-            .filter_map(|gateway| gateway.country_name())
+            .filter_map(|gateway| gateway.country_name().map(|value| Country::Name { value }))
             .unique()
             .collect())
     }
 
-    pub async fn lookup_all_countries_iso(&self) -> Result<Vec<String>> {
+    pub async fn lookup_all_countries_iso(&self) -> Result<Vec<Country>> {
         let described_gateways = self.lookup_described_gateways_with_location().await?;
         Ok(described_gateways
             .iter()
-            .filter_map(|gateway| gateway.two_letter_iso_country_code())
+            .filter_map(|gateway| {
+                gateway
+                    .two_letter_iso_country_code()
+                    .map(|value| Country::Name { value })
+            })
             .unique()
             .collect())
     }
 
-    pub async fn lookup_all_exit_countries_iso(&self) -> Result<Vec<String>> {
+    pub async fn lookup_all_exit_countries_iso(&self) -> Result<Vec<Country>> {
         let described_gateways = self.lookup_described_exit_gateways_with_location().await?;
         Ok(described_gateways
             .iter()
-            .filter_map(|gateway| gateway.two_letter_iso_country_code())
+            .filter_map(|gateway| {
+                gateway
+                    .two_letter_iso_country_code()
+                    .map(|value| Country::Name { value })
+            })
             .unique()
             .collect())
     }
 
-    pub async fn lookup_all_exit_countries(&self) -> Result<Vec<String>> {
+    pub async fn lookup_all_exit_countries(&self) -> Result<Vec<Country>> {
         let described_gateways = self.lookup_described_exit_gateways_with_location().await?;
         Ok(described_gateways
             .iter()
-            .filter_map(|gateway| gateway.country_name())
+            .filter_map(|gateway| gateway.country_name().map(|value| Country::Name { value }))
             .unique()
             .collect())
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
-        self.api_client
+        let ip_or_hostname = self
+            .api_client
             .get_cached_gateways()
             .await?
             .iter()
@@ -446,8 +458,17 @@ impl GatewayClient {
             })
             .ok_or(Error::RequestedGatewayIdNotFound(
                 gateway_identity.to_string(),
-            ))
-            .and_then(|ip| ip.parse().map_err(|_| Error::InvalidGatewayIp(ip)))
+            ))?;
+
+        // If it's a plain IP
+        if let Ok(ip) = ip_or_hostname.parse::<IpAddr>() {
+            return Ok(ip);
+        }
+
+        // If it's not an IP, try to resolve it as a hostname
+        let ip = try_resolve_hostname(&ip_or_hostname).await?;
+        info!("Resolved {ip_or_hostname} to {ip}");
+        Ok(ip)
     }
 
     pub async fn register_wireguard(
@@ -507,4 +528,23 @@ impl GatewayClient {
 
         Ok(gateway_data)
     }
+}
+
+async fn try_resolve_hostname(hostname: &str) -> Result<IpAddr> {
+    debug!("Trying to resolve hostname: {hostname}");
+    let resolver = TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default());
+    let addrs = resolver.lookup_ip(hostname).await.map_err(|err| {
+        tracing::error!("Failed to resolve gateway hostname: {}", err);
+        Error::FailedToDnsResolveGateway {
+            hostname: hostname.to_string(),
+            source: err,
+        }
+    })?;
+    debug!("Resolved to: {addrs:?}");
+
+    // Just pick the first one
+    addrs
+        .iter()
+        .next()
+        .ok_or(Error::ResolvedHostnameButNoIp(hostname.to_string()))
 }

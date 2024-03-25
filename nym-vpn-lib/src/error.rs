@@ -85,6 +85,15 @@ pub enum Error {
     #[error("invalid Gateway location")]
     InvalidGatewayLocation,
 
+    #[error("failed to resolve gateway hostname: {hostname}: {source}")]
+    FailedToDnsResolveGateway {
+        hostname: String,
+        source: hickory_resolver::error::ResolveError,
+    },
+
+    #[error("resolved hostname {0} but no IP address found")]
+    ResolvedHostnameButNoIp(String),
+
     #[error("{0}")]
     KeyRecoveryError(#[from] nym_crypto::asymmetric::encryption::KeyRecoveryError),
 
@@ -175,6 +184,36 @@ pub enum Error {
     #[cfg(target_os = "ios")]
     #[error("{0}")]
     UniffiError(#[from] crate::platform::error::FFIError),
+
+    #[error("failed to create DNS resolver: {0}")]
+    FailedToCreateDnsResolver(std::io::Error),
+
+    #[error("tun device address not set: {0}")]
+    TunDeviceAddressNotSet(tun2::Error),
+
+    #[error("invalid tun device address: {actual}, we expected {expected}")]
+    InvalidTunDeviceAddress {
+        expected: std::net::Ipv4Addr,
+        actual: std::net::IpAddr,
+    },
+
+    #[error("failed to serialize message")]
+    FailedToSerializeMessage {
+        #[from]
+        source: bincode::Error,
+    },
+
+    #[error("failed to create icmp echo request packet")]
+    IcmpEchoRequestPacketCreationFailure,
+
+    #[error("failed to create icmp packet")]
+    IcmpPacketCreationFailure,
+
+    #[error("failed to create ipv4 packet")]
+    Ipv4PacketCreationFailure,
+
+    #[error("gateway does not contain a two character country ISO")]
+    CountryCodeNotFound,
 }
 
 // Result type based on our error type
