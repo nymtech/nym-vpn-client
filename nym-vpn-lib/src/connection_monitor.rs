@@ -64,7 +64,7 @@ impl ConnectionMonitor {
         false
     }
 
-    fn report_on_tun_ping(&self, task_client: &mut TaskClient) -> bool {
+    fn report_on_exit_ipr_tun_ping(&self, task_client: &mut TaskClient) -> bool {
         if let Some(latest_ipr_tun_device_ping_reply) = self.stats.latest_ipr_tun_device_ping_reply
         {
             if latest_ipr_tun_device_ping_reply.elapsed() > IPR_TUN_DEVICE_PING_REPLY_EXPIRY {
@@ -80,7 +80,7 @@ impl ConnectionMonitor {
         false
     }
 
-    fn report_on_external_ping(&self, task_client: &mut TaskClient) -> bool {
+    fn report_on_exit_ipr_external_ping(&self, task_client: &mut TaskClient) -> bool {
         if let Some(latest_ipr_external_ping_reply) = self.stats.latest_ipr_external_ping_reply {
             if latest_ipr_external_ping_reply.elapsed() > IPR_EXTERNAL_PING_REPLY_EXPIRY {
                 error!("Exit IPR not routing IP traffic to external destinations");
@@ -147,10 +147,10 @@ impl ConnectionMonitor {
                     if self.report_on_self_ping(&mut task_client) {
                         continue;
                     }
-                    if self.report_on_tun_ping(&mut task_client) {
+                    if self.report_on_exit_ipr_tun_ping(&mut task_client) {
                         continue;
                     }
-                    if self.report_on_external_ping(&mut task_client) {
+                    if self.report_on_exit_ipr_external_ping(&mut task_client) {
                         continue;
                     }
 
