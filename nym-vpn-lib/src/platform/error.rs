@@ -5,4 +5,7 @@
 pub enum FFIError {
     #[error("Invalid value passed in uniffi")]
     InvalidValueUniffi,
+
+    #[error("Could not obtain a fd")]
+    FdNotFound,
 }
