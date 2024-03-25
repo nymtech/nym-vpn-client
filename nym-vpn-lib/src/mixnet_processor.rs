@@ -254,17 +254,13 @@ impl MixnetProcessor {
                                 while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
                                     // Check if the packet is an ICMP ping reply to our beacon
                                     if let Some((identifier, source, destination)) = icmp_connection_beacon::is_icmp_echo_reply(&packet) {
-                                        if identifier == self.icmp_identifier {
-                                            if source == std::net::Ipv4Addr::new(10, 0, 0, 1) &&
-                                                destination == self.ips.ipv4 {
-                                                    log::debug!("Received ping response from ipr tun device");
-                                                    self.connection_event_tx.unbounded_send(ConnectionStatusEvent::IcmpIprTunDevicePingReply).unwrap();
-                                            }
-                                            if source == std::net::Ipv4Addr::new(8, 8, 8, 8) &&
-                                                destination == self.ips.ipv4 {
-                                                    log::debug!("Received ping response from an external ip through the ipr");
-                                                    self.connection_event_tx.unbounded_send(ConnectionStatusEvent::IcmpIprExternalPingReply).unwrap();
-                                            }
+                                        if identifier == self.icmp_identifier && source == icmp_connection_beacon::ICMP_IPR_TUN_IP && destination == self.ips.ipv4 {
+                                            log::debug!("Received ping response from ipr tun device");
+                                            self.connection_event_tx.unbounded_send(ConnectionStatusEvent::IcmpIprTunDevicePingReply).unwrap();
+                                        }
+                                        if identifier == self.icmp_identifier && source == icmp_connection_beacon::ICMP_IPR_TUN_EXTERNAL_PING && destination == self.ips.ipv4 {
+                                            log::debug!("Received ping response from an external ip through the ipr");
+                                            self.connection_event_tx.unbounded_send(ConnectionStatusEvent::IcmpIprExternalPingReply).unwrap();
                                         }
                                     }
                                     tun_device_sink.send(packet.into()).await?;

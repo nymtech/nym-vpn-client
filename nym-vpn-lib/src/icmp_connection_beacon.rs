@@ -26,6 +26,10 @@ use crate::{
 
 const ICMP_BEACON_PING_INTERVAL: Duration = Duration::from_millis(1000);
 
+pub(crate) const ICMP_IPR_TUN_IP: Ipv4Addr = Ipv4Addr::new(10, 0, 0, 1);
+// This can be anything really, we just want to check if the exit IPR can reach the internet
+pub(crate) const ICMP_IPR_TUN_EXTERNAL_PING: Ipv4Addr = Ipv4Addr::new(8, 8, 8, 8);
+
 struct IcmpConnectionBeacon {
     mixnet_client_sender: MixnetClientSender,
     our_ip: Ipv4Addr,
@@ -61,15 +65,18 @@ impl IcmpConnectionBeacon {
         let sequence_number = self.get_next_sequence_number();
         let identifier = self.icmp_identifier;
         let icmp_echo_request = create_icmp_echo_request(sequence_number, identifier)?;
-        let ipv4_packet = create_icmp_ip_packet(icmp_echo_request, self.our_ip, destination)?;
+        let ipv4_packet = wrap_icmp_in_ip(icmp_echo_request, self.our_ip, destination)?;
 
-        // Wrap the IPv4 packet in a MultiIpPacket and send it over the mixnet
+        // Wrap the IPv4 packet in a MultiIpPacket
         let bundled_packet =
             MultiIpPacketCodec::bundle_one_packet(ipv4_packet.packet().to_vec().into());
+
+        // Wrap into a mixnet input message addressed to the IPR
         let two_hop = true;
         let message_creator = mixnet_processor::MessageCreator::new(self.ipr_address, two_hop);
         let mixnet_message = message_creator.create_input_message(bundled_packet)?;
 
+        // Send across the mixnet
         self.mixnet_client_sender
             .send(mixnet_message)
             .await
@@ -77,16 +84,11 @@ impl IcmpConnectionBeacon {
     }
 
     async fn ping_ipr_tun_device_over_the_mixnet(&mut self) -> Result<()> {
-        // TODO: this address is assumed in a few places, extract out to common place
-        let ipr_tun_device = Ipv4Addr::new(10, 0, 0, 1);
-        self.send_icmp_ping(ipr_tun_device).await
+        self.send_icmp_ping(ICMP_IPR_TUN_IP).await
     }
 
     async fn ping_some_external_ip_over_the_mixnet(&mut self) -> Result<()> {
-        // This can be any external IP, we just want to check if the exit IPR can reach the
-        // internet
-        let some_external_ip = Ipv4Addr::new(8, 8, 8, 8);
-        self.send_icmp_ping(some_external_ip).await
+        self.send_icmp_ping(ICMP_IPR_TUN_EXTERNAL_PING).await
     }
 
     pub async fn run(mut self, mut shutdown: TaskClient) -> Result<()> {
@@ -136,7 +138,7 @@ fn create_icmp_echo_request(
     Ok(icmp_echo_request.consume_to_immutable())
 }
 
-fn create_icmp_ip_packet(
+fn wrap_icmp_in_ip(
     icmp_echo_request: EchoRequestPacket,
     source: Ipv4Addr,
     destination: Ipv4Addr,
