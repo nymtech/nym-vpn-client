@@ -25,7 +25,9 @@ const IPR_EXTERNAL_PING_REPLY_EXPIRY: Duration = Duration::from_secs(5);
 pub enum ConnectionStatusEvent {
     MixnetSelfPing,
     IcmpIprTunDevicePingReply,
+    Icmpv6IprTunDevicePingReply,
     IcmpIprExternalPingReply,
+    Icmpv6IprExternalPingReply,
 }
 
 #[derive(Debug, Default)]
