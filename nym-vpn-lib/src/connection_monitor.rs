@@ -35,12 +35,62 @@ struct ConnectionStats {
     // TODO: extend with all sorts of good stuff
     latest_self_ping: Option<Instant>,
     latest_ipr_tun_device_ping_reply: Option<Instant>,
+    latest_ipr_tun_device_ping_v6_reply: Option<Instant>,
     latest_ipr_external_ping_reply: Option<Instant>,
+    latest_ipr_external_ping_v6_reply: Option<Instant>,
 }
 
 struct ConnectionMonitor {
     connection_event_rx: mpsc::UnboundedReceiver<ConnectionStatusEvent>,
     stats: ConnectionStats,
+}
+
+enum ConnectionState {
+    EntryTimeout,
+    ExitTimeout,
+    ExitRoutingError,
+    Connected,
+}
+
+impl ConnectionState {
+    fn map_from_stats(stats: &ConnectionStats) -> Self {
+        if let Some(latest_self_ping) = stats.latest_self_ping {
+            if latest_self_ping.elapsed() > SELF_PING_EXPIRY {
+                return ConnectionState::EntryTimeout;
+            }
+        }
+        if let Some(latest_ipr_tun_device_ping_reply) = stats.latest_ipr_tun_device_ping_reply {
+            if latest_ipr_tun_device_ping_reply.elapsed() > IPR_TUN_DEVICE_PING_REPLY_EXPIRY {
+                return ConnectionState::ExitTimeout;
+            }
+        }
+        if let Some(latest_ipr_external_ping_reply) = stats.latest_ipr_external_ping_reply {
+            if latest_ipr_external_ping_reply.elapsed() < IPR_EXTERNAL_PING_REPLY_EXPIRY {
+                return ConnectionState::ExitRoutingError;
+            }
+        }
+        ConnectionState::Connected
+    }
+
+    fn map_from_stats_v6(stats: &ConnectionStats) -> Self {
+        if let Some(latest_self_ping) = stats.latest_self_ping {
+            if latest_self_ping.elapsed() > SELF_PING_EXPIRY {
+                return ConnectionState::EntryTimeout;
+            }
+        }
+        if let Some(latest_ipr_tun_device_ping_v6_reply) = stats.latest_ipr_tun_device_ping_v6_reply
+        {
+            if latest_ipr_tun_device_ping_v6_reply.elapsed() > IPR_TUN_DEVICE_PING_REPLY_EXPIRY {
+                return ConnectionState::ExitTimeout;
+            }
+        }
+        if let Some(latest_ipr_external_ping_v6_reply) = stats.latest_ipr_external_ping_v6_reply {
+            if latest_ipr_external_ping_v6_reply.elapsed() < IPR_EXTERNAL_PING_REPLY_EXPIRY {
+                return ConnectionState::ExitRoutingError;
+            }
+        }
+        ConnectionState::Connected
+    }
 }
 
 impl ConnectionMonitor {
@@ -51,51 +101,49 @@ impl ConnectionMonitor {
         }
     }
 
-    fn report_on_self_ping(&self, task_client: &mut TaskClient) -> bool {
-        if let Some(latest_self_ping) = self.stats.latest_self_ping {
-            if latest_self_ping.elapsed() > SELF_PING_EXPIRY {
+    fn report_on_v4_state(&self, state: &ConnectionState, task_client: &mut TaskClient) {
+        match state {
+            ConnectionState::EntryTimeout => {
                 error!("Entry gateway not routing our mixnet traffic");
                 task_client.send_status_msg(Box::new(ConnectionMonitorStatus::EntryGatewayDown));
-                return true;
             }
-        } else {
-            error!("Entry gateway not routing our mixnet traffic, and no response for the entire session");
-            task_client.send_status_msg(Box::new(ConnectionMonitorStatus::EntryGatewayDown));
-            return true;
-        }
-        false
-    }
-
-    fn report_on_exit_ipr_tun_ping(&self, task_client: &mut TaskClient) -> bool {
-        if let Some(latest_ipr_tun_device_ping_reply) = self.stats.latest_ipr_tun_device_ping_reply
-        {
-            if latest_ipr_tun_device_ping_reply.elapsed() > IPR_TUN_DEVICE_PING_REPLY_EXPIRY {
+            ConnectionState::ExitTimeout => {
                 error!("Exit IPR not responding to IP traffic");
                 task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDown));
-                return true;
             }
-        } else {
-            error!("Exit IPR not responding to IP traffic, and no response for the entire session");
-            task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDown));
-            return true;
-        }
-        false
-    }
-
-    fn report_on_exit_ipr_external_ping(&self, task_client: &mut TaskClient) -> bool {
-        if let Some(latest_ipr_external_ping_reply) = self.stats.latest_ipr_external_ping_reply {
-            if latest_ipr_external_ping_reply.elapsed() > IPR_EXTERNAL_PING_REPLY_EXPIRY {
+            ConnectionState::ExitRoutingError => {
                 error!("Exit IPR not routing IP traffic to external destinations");
                 task_client
                     .send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayRoutingError));
-                return true;
             }
-        } else {
-            error!("Exit IPR not routing IP traffic to external destinations, and not done so for the entire session");
-            task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayRoutingError));
-            return true;
+            ConnectionState::Connected => {
+                debug!("ConnectionMonitor: All IPv4 connections are up");
+                task_client.send_status_msg(Box::new(ConnectionMonitorStatus::AllConnectionsUp));
+            }
         }
-        false
+    }
+
+    // This is a separate from the v4 report above since we don't want to be as harsh about the
+    // potential lack of v6 connectivity
+    fn report_on_v6_state(&self, state: &ConnectionState, task_client: &mut TaskClient) {
+        match state {
+            ConnectionState::EntryTimeout => {
+                // Handled in the v4 report
+            }
+            ConnectionState::ExitTimeout => {
+                error!("Exit IPR not responding to IPv6 traffic");
+                task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDown6));
+            }
+            ConnectionState::ExitRoutingError => {
+                error!("Exit IPR not routing IPv6 traffic to external destinations");
+                task_client
+                    .send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayRoutingError6));
+            }
+            ConnectionState::Connected => {
+                debug!("ConnectionMonitor: All IPv6 connections are up");
+                task_client.send_status_msg(Box::new(ConnectionMonitorStatus::AllConnectionsUp));
+            }
+        }
     }
 
     async fn run(mut self, mut task_client: TaskClient) -> Result<()> {
@@ -121,9 +169,17 @@ impl ConnectionMonitor {
                             trace!("Received IPR tun device ping reply event");
                             self.stats.latest_ipr_tun_device_ping_reply = Some(Instant::now());
                         }
+                        ConnectionStatusEvent::Icmpv6IprTunDevicePingReply => {
+                            trace!("Received IPR tun device ping v6 reply event");
+                            self.stats.latest_ipr_tun_device_ping_v6_reply = Some(Instant::now());
+                        }
                         ConnectionStatusEvent::IcmpIprExternalPingReply => {
                             trace!("Received IPR external ping reply event");
                             self.stats.latest_ipr_external_ping_reply = Some(Instant::now());
+                        }
+                        ConnectionStatusEvent::Icmpv6IprExternalPingReply => {
+                            trace!("Received IPR external ping v6 reply event");
+                            self.stats.latest_ipr_external_ping_v6_reply = Some(Instant::now());
                         }
                     }
                 }
@@ -137,25 +193,31 @@ impl ConnectionMonitor {
                         self.stats.latest_ipr_tun_device_ping_reply.map(|t| t.elapsed().as_millis()).unwrap_or(0)
                     );
                     debug!(
+                        "Time since latest received ipr tun device ping v6 reply: {}ms",
+                        self.stats.latest_ipr_tun_device_ping_v6_reply.map(|t| t.elapsed().as_millis()).unwrap_or(0)
+                    );
+                    debug!(
                         "Time since latest received ipr external ping reply: {}ms",
                         self.stats.latest_ipr_external_ping_reply.map(|t| t.elapsed().as_millis()).unwrap_or(0)
                     );
+                    debug!(
+                        "Time since latest received ipr external ping v6 reply: {}ms",
+                        self.stats.latest_ipr_external_ping_v6_reply.map(|t| t.elapsed().as_millis()).unwrap_or(0)
+                    );
 
-                    // Send I'm alive messages, so listerners can hear that we are still there
-                    task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ImAlive));
+                    let ipv4_state = ConnectionState::map_from_stats(&self.stats);
+                    let ipv6_state = ConnectionState::map_from_stats_v6(&self.stats);
 
-                    // We report on three possibly failure points. Since these happen in serial, we
-                    // only report on the first.
-                    if self.report_on_self_ping(&mut task_client) {
-                        continue;
+                    match (&ipv4_state, &ipv6_state) {
+                        (ConnectionState::Connected, ConnectionState::Connected) => {
+                            debug!("ConnectionMonitor: All connections are up");
+                            task_client.send_status_msg(Box::new(ConnectionMonitorStatus::AllConnectionsUp));
+                        }
+                        _ => {
+                            self.report_on_v4_state(&ipv4_state, &mut task_client);
+                            self.report_on_v6_state(&ipv6_state, &mut task_client);
+                        }
                     }
-                    if self.report_on_exit_ipr_tun_ping(&mut task_client) {
-                        continue;
-                    }
-                    if self.report_on_exit_ipr_external_ping(&mut task_client) {
-                        continue;
-                    }
-
                 }
             }
         }
@@ -169,17 +231,23 @@ impl ConnectionMonitor {
 // to create a separate trait in nym_task::TaskManager
 #[derive(thiserror::Error, Debug)]
 pub enum ConnectionMonitorStatus {
-    #[error("I'm alive")]
-    ImAlive,
-
     #[error("entry gateway appears down - it's not routing our mixnet traffic")]
     EntryGatewayDown,
 
     #[error("exit gateway (or ipr) appears down - it's not responding to IP traffic")]
     ExitGatewayDown,
 
+    #[error("exit gateway (or ipr) appears down - it's not responding to IPv6 traffic")]
+    ExitGatewayDown6,
+
     #[error("exit gateway (or ipr) appears to be having issues routing and forwarding our external IP traffic")]
     ExitGatewayRoutingError,
+
+    #[error("exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv6 traffic")]
+    ExitGatewayRoutingError6,
+
+    #[error("all connections are up")]
+    AllConnectionsUp,
 }
 
 pub fn start_connection_monitor(
