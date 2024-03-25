@@ -63,7 +63,6 @@ jobs:
         with:
           ndk-version: r26c
           add-to-path: false
-          local-cache: true
 
       - name: Add iOS target
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
