@@ -204,8 +204,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.jna)
-
     // util
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.permissions)

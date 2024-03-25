@@ -5,14 +5,12 @@ converterMoshi = "2.9.0"
 coreSplashscreen = "1.0.1"
 detektRulesCompose = "1.3.0"
 jna = "5.14.0"
-jnaVersion = "5.14.0"
 kotlin = "1.9.23"
 ksp = "1.9.23-1.0.19"
 coreKtx = "1.12.0"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
-localbroadcastmanager = "1.1.0"
 materialIconsExtended = "1.6.4"
 moshi = "1.15.1"
 moshiKotlin = "1.15.1"
@@ -33,7 +31,7 @@ windowCoreAndroid = "1.3.0-alpha03"
 desugar = "2.0.4"
 
 gradlePlugins-kotlinxSerialization = "1.9.23"
-gradlePlugins-licensee = "1.9.1"
+gradlePlugins-licensee = "1.7.0"
 gradlePlugins-detekt = "1.23.1"
 gradlePlugins-gross = "0.1.0"
 gradlePlugins-sentry = "4.3.1"
@@ -44,7 +42,6 @@ material = "1.11.0"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
-androidx-localbroadcastmanager = { module = "androidx.localbroadcastmanager:localbroadcastmanager", version.ref = "localbroadcastmanager" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }
@@ -52,7 +49,6 @@ detekt-rules-compose = { module = "ru.kode:detekt-rules-compose", version.ref = 
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
-jna-v5140 = { module = "net.java.dev.jna:jna", version.ref = "jnaVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
