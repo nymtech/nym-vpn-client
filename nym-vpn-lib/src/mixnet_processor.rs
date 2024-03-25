@@ -109,6 +109,7 @@ pub struct MixnetProcessor {
     mixnet_client: SharedMixnetClient,
     connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
     ip_packet_router_address: IpPacketRouterAddress,
+    ips: nym_ip_packet_requests::IpPair,
     // TODO: handle this as part of setting up the mixnet client
     enable_two_hop: bool,
 }
@@ -121,6 +122,7 @@ impl MixnetProcessor {
             connection_monitor::ConnectionStatusEvent,
         >,
         ip_packet_router_address: IpPacketRouterAddress,
+        ips: nym_ip_packet_requests::IpPair,
         enable_two_hop: bool,
     ) -> Self {
         MixnetProcessor {
@@ -128,6 +130,7 @@ impl MixnetProcessor {
             mixnet_client,
             connection_event_tx,
             ip_packet_router_address,
+            ips,
             enable_two_hop,
         }
     }
@@ -137,6 +140,25 @@ impl MixnetProcessor {
             "Opened mixnet processor on tun device {}",
             self.device.as_ref().tun_name().unwrap(),
         );
+
+        match self.device.as_ref().address() {
+            Ok(address) => {
+                if address != self.ips.ipv4 {
+                    error!(
+                        "Tun device address {} does not match the expected address {}",
+                        address, self.ips.ipv4
+                    );
+                    return Err(Error::InvalidTunDeviceAddress {
+                        expected: self.ips.ipv4,
+                        actual: address,
+                    });
+                }
+            }
+            Err(err) => {
+                error!("Tun device address is not set");
+                return Err(Error::TunDeviceAddressNotSet(err));
+            }
+        }
 
         debug!("Splitting tun device into sink and stream");
         let (mut tun_device_sink, mut tun_device_stream) = self.device.into_framed().split();
@@ -230,9 +252,15 @@ impl MixnetProcessor {
                                 let mut bytes = BytesMut::from(&*data_response.ip_packet);
                                 while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
                                     if let Some(ipv4_packet) = pnet::packet::ipv4::Ipv4Packet::new(&packet) {
-                                        dbg!(&ipv4_packet);
+                                        // dbg!(&ipv4_packet);
                                         if let Some(icmp_packet) = pnet::packet::icmp::IcmpPacket::new(ipv4_packet.payload()) {
-                                            dbg!(&icmp_packet);
+                                            // dbg!(&icmp_packet);
+                                            // Check if the source is 10.0.0.1 and if the
+                                            // destination is our IP address
+                                            if ipv4_packet.get_source() == std::net::Ipv4Addr::new(10, 0, 0, 1) &&
+                                                ipv4_packet.get_destination() == self.ips.ipv4 {
+                                                    log::info!("JON: Received ping response from the mixnet!");
+                                            }
                                         }
                                     }
                                     tun_device_sink.send(packet.into()).await?;
@@ -289,6 +317,7 @@ pub async fn start_processor(
     mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,
     enable_two_hop: bool,
+    ips: nym_ip_packet_requests::IpPair,
     connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
 ) -> JoinHandle<Result<AsyncDevice>> {
     info!("Creating mixnet processor");
@@ -297,6 +326,7 @@ pub async fn start_processor(
         mixnet_client,
         connection_event_tx,
         config.ip_packet_router_address,
+        ips,
         enable_two_hop,
     );
     let shutdown_listener = task_manager.subscribe();

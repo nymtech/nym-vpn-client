@@ -258,6 +258,7 @@ impl NymVpn {
             mixnet_client,
             task_manager,
             self.enable_two_hop,
+            ips,
             connection_event_tx,
         )
         .await;
