@@ -319,14 +319,14 @@ fn check_for_icmp_beacon_reply(
         icmp_connection_beacon::is_icmp_echo_reply(packet)
     {
         if identifier == icmp_beacon_identifier
-            && source == icmp_connection_beacon::ICMP_IPR_TUN_IP
+            && source == icmp_connection_beacon::ICMP_IPR_TUN_IP_V4
             && destination == our_ip
         {
             log::debug!("Received ping response from ipr tun device");
             return Some(ConnectionStatusEvent::IcmpIprTunDevicePingReply);
         }
         if identifier == icmp_beacon_identifier
-            && source == icmp_connection_beacon::ICMP_IPR_TUN_EXTERNAL_PING
+            && source == icmp_connection_beacon::ICMP_IPR_TUN_EXTERNAL_PING_V4
             && destination == our_ip
         {
             log::debug!("Received ping response from an external ip through the ipr");
