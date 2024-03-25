@@ -14,7 +14,6 @@ use nym_ip_packet_requests::{
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use nym_validator_client::models::DescribedGateway;
-use pnet::packet::Packet as _;
 use tokio::task::JoinHandle;
 use tokio::time::timeout;
 use tokio_util::codec::Decoder;
