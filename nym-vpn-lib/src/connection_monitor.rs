@@ -49,42 +49,51 @@ impl ConnectionMonitor {
         }
     }
 
-    fn report_on_self_ping(&self, task_client: &mut TaskClient) {
+    fn report_on_self_ping(&self, task_client: &mut TaskClient) -> bool {
         if let Some(latest_self_ping) = self.stats.latest_self_ping {
             if latest_self_ping.elapsed() > SELF_PING_EXPIRY {
                 error!("Entry gateway not routing our mixnet traffic");
                 task_client.send_status_msg(Box::new(ConnectionMonitorStatus::EntryGatewayDown));
+                return true;
             }
         } else {
-            error!("Entry gateway has never been able to route our mixnet traffic");
+            error!("Entry gateway not routing our mixnet traffic, and no response for the entire session");
             task_client.send_status_msg(Box::new(ConnectionMonitorStatus::EntryGatewayDown));
+            return true;
         }
+        false
     }
 
-    fn report_on_tun_ping(&self, task_client: &mut TaskClient) {
+    fn report_on_tun_ping(&self, task_client: &mut TaskClient) -> bool {
         if let Some(latest_ipr_tun_device_ping_reply) = self.stats.latest_ipr_tun_device_ping_reply
         {
             if latest_ipr_tun_device_ping_reply.elapsed() > IPR_TUN_DEVICE_PING_REPLY_EXPIRY {
-                error!("Exit IPR not routing our tun device traffic");
+                error!("Exit IPR not responding to IP traffic");
                 task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDown));
+                return true;
             }
         } else {
-            error!("Exit IPR has never been able to route our tun device traffic");
+            error!("Exit IPR not responding to IP traffic, and no response for the entire session");
             task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDown));
+            return true;
         }
+        false
     }
 
-    fn report_on_external_ping(&self, task_client: &mut TaskClient) {
+    fn report_on_external_ping(&self, task_client: &mut TaskClient) -> bool {
         if let Some(latest_ipr_external_ping_reply) = self.stats.latest_ipr_external_ping_reply {
             if latest_ipr_external_ping_reply.elapsed() > IPR_EXTERNAL_PING_REPLY_EXPIRY {
-                error!("Exit IPR not routing our external traffic");
+                error!("Exit IPR not routing IP traffic to external destinations");
                 task_client
                     .send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayRoutingError));
+                return true;
             }
         } else {
-            error!("Exit IPR has never been able to route our external traffic");
+            error!("Exit IPR not routing IP traffic to external destinations, and not done so for the entire session");
             task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayRoutingError));
+            return true;
         }
+        false
     }
 
     async fn run(mut self, mut task_client: TaskClient) -> Result<()> {
@@ -133,9 +142,17 @@ impl ConnectionMonitor {
                     // Send I'm alive messages, so listerners can hear that we are still there
                     task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ImAlive));
 
-                    self.report_on_self_ping(&mut task_client);
-                    self.report_on_tun_ping(&mut task_client);
-                    self.report_on_external_ping(&mut task_client);
+                    // We report on three possibly failure points. Since these happen in serial, we
+                    // only report on the first.
+                    if self.report_on_self_ping(&mut task_client) {
+                        continue;
+                    }
+                    if self.report_on_tun_ping(&mut task_client) {
+                        continue;
+                    }
+                    if self.report_on_external_ping(&mut task_client) {
+                        continue;
+                    }
 
                 }
             }

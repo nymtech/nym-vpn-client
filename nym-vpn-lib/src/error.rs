@@ -192,7 +192,10 @@ pub enum Error {
     TunDeviceAddressNotSet(tun2::Error),
 
     #[error("invalid tun device address: {actual}, we expected {expected}")]
-    InvalidTunDeviceAddress { expected: std::net::Ipv4Addr, actual: std::net::IpAddr },
+    InvalidTunDeviceAddress {
+        expected: std::net::Ipv4Addr,
+        actual: std::net::IpAddr,
+    },
 
     #[error("failed to serialize message")]
     FailedToSerializeMessage {
