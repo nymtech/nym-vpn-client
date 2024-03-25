@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
+use std::{net::Ipv4Addr, time::Duration};
 
 use bytes::{Bytes, BytesMut};
 use futures::{channel::mpsc, SinkExt, StreamExt};
@@ -23,6 +23,7 @@ use tun2::{AbstractDevice, AsyncDevice};
 use crate::{
     connection_monitor::{self, ConnectionStatusEvent},
     error::{Error, Result},
+    icmp_connection_beacon,
     mixnet_connect::SharedMixnetClient,
 };
 
@@ -70,24 +71,21 @@ impl std::fmt::Display for IpPacketRouterAddress {
     }
 }
 
-struct MessageCreator {
+pub struct MessageCreator {
     recipient: Recipient,
     enable_two_hop: bool,
 }
 
 impl MessageCreator {
-    fn new(recipient: Recipient, enable_two_hop: bool) -> Self {
+    pub fn new(recipient: Recipient, enable_two_hop: bool) -> Self {
         Self {
             recipient,
             enable_two_hop,
         }
     }
 
-    fn create_input_message(&self, bundled_packets: Bytes) -> Option<InputMessage> {
-        let Ok(packet) = IpPacketRequest::new_data_request(bundled_packets).to_bytes() else {
-            error!("Failed to serialize packet");
-            return None;
-        };
+    pub fn create_input_message(&self, bundled_packets: Bytes) -> Result<InputMessage> {
+        let packet = IpPacketRequest::new_data_request(bundled_packets).to_bytes()?;
 
         let lane = TransmissionLane::General;
         let packet_type = None;
@@ -99,7 +97,7 @@ impl MessageCreator {
             packet_type,
             hops,
         );
-        Some(input_message)
+        Ok(input_message)
     }
 }
 
@@ -108,6 +106,8 @@ pub struct MixnetProcessor {
     mixnet_client: SharedMixnetClient,
     connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
     ip_packet_router_address: IpPacketRouterAddress,
+    our_ips: nym_ip_packet_requests::IpPair,
+    icmp_beacon_identifier: u16,
     // TODO: handle this as part of setting up the mixnet client
     enable_two_hop: bool,
 }
@@ -116,10 +116,10 @@ impl MixnetProcessor {
     pub fn new(
         device: AsyncDevice,
         mixnet_client: SharedMixnetClient,
-        connection_event_tx: futures::channel::mpsc::UnboundedSender<
-            connection_monitor::ConnectionStatusEvent,
-        >,
+        connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
         ip_packet_router_address: IpPacketRouterAddress,
+        our_ips: nym_ip_packet_requests::IpPair,
+        icmp_beacon_identifier: u16,
         enable_two_hop: bool,
     ) -> Self {
         MixnetProcessor {
@@ -127,8 +127,32 @@ impl MixnetProcessor {
             mixnet_client,
             connection_event_tx,
             ip_packet_router_address,
+            our_ips,
+            icmp_beacon_identifier,
             enable_two_hop,
         }
+    }
+
+    fn assert_tun_address_matches(&self) -> Result<()> {
+        match self.device.as_ref().address() {
+            Ok(address) => {
+                if address != self.our_ips.ipv4 {
+                    error!(
+                        "Tun device address {} does not match the expected address {}",
+                        address, self.our_ips.ipv4
+                    );
+                    return Err(Error::InvalidTunDeviceAddress {
+                        expected: self.our_ips.ipv4,
+                        actual: address,
+                    });
+                }
+            }
+            Err(err) => {
+                error!("Tun device address is not set");
+                return Err(Error::TunDeviceAddressNotSet(err));
+            }
+        }
+        Ok(())
     }
 
     pub async fn run(self, mut shutdown: TaskClient) -> Result<AsyncDevice> {
@@ -136,6 +160,7 @@ impl MixnetProcessor {
             "Opened mixnet processor on tun device {}",
             self.device.as_ref().tun_name().unwrap(),
         );
+        self.assert_tun_address_matches()?;
 
         debug!("Splitting tun device into sink and stream");
         let (mut tun_device_sink, mut tun_device_stream) = self.device.into_framed().split();
@@ -170,10 +195,15 @@ impl MixnetProcessor {
                 Some(bundled_packets) = multi_ip_packet_encoder.buffer_timeout() => {
                     assert!(!bundled_packets.is_empty());
 
-                    if let Some(input_message) = message_creator.create_input_message(bundled_packets) {
-                        let ret = sender.send(input_message).await;
-                        if ret.is_err() && !shutdown.is_shutdown_poll() {
-                            error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                    match message_creator.create_input_message(bundled_packets) {
+                        Ok(input_message) => {
+                            let ret = sender.send(input_message).await;
+                            if ret.is_err() && !shutdown.is_shutdown_poll() {
+                                error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                            }
+                        }
+                        Err(err) => {
+                            error!("Failed to create input message: {err}");
                         }
                     };
                 }
@@ -181,11 +211,17 @@ impl MixnetProcessor {
                     // Bundle up IP packets into a single mixnet message
                     if let Some(input_message) = multi_ip_packet_encoder
                         .append_packet(packet.into())
-                        .and_then(|bundled_packets| message_creator.create_input_message(bundled_packets))
                     {
-                        let ret = sender.send(input_message).await;
-                        if ret.is_err() && !shutdown.is_shutdown_poll() {
-                            error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                        match message_creator.create_input_message(input_message) {
+                            Ok(input_message) => {
+                                let ret = sender.send(input_message).await;
+                                if ret.is_err() && !shutdown.is_shutdown_poll() {
+                                    error!("Could not forward IP packet to the mixnet. The packet(s) will be dropped.");
+                                }
+                            }
+                            Err(err) => {
+                                error!("Failed to create input message, the packet(s) will be dropped: {err}");
+                            }
                         }
                     }
                 }
@@ -218,6 +254,14 @@ impl MixnetProcessor {
                                 // to the tun device
                                 let mut bytes = BytesMut::from(&*data_response.ip_packet);
                                 while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
+                                    // Check if the packet is an ICMP ping reply to our beacon
+                                    if let Some(connection_event) = check_for_icmp_beacon_reply(
+                                        &packet,
+                                        self.icmp_beacon_identifier,
+                                        self.our_ips.ipv4
+                                    ) {
+                                        self.connection_event_tx.unbounded_send(connection_event).unwrap();
+                                    }
                                     tun_device_sink.send(packet.into()).await?;
                                 }
                             }
@@ -266,12 +310,41 @@ impl MixnetProcessor {
     }
 }
 
+fn check_for_icmp_beacon_reply(
+    packet: &Bytes,
+    icmp_beacon_identifier: u16,
+    our_ip: Ipv4Addr,
+) -> Option<ConnectionStatusEvent> {
+    if let Some((identifier, source, destination)) =
+        icmp_connection_beacon::is_icmp_echo_reply(packet)
+    {
+        if identifier == icmp_beacon_identifier
+            && source == icmp_connection_beacon::ICMP_IPR_TUN_IP
+            && destination == our_ip
+        {
+            log::debug!("Received ping response from ipr tun device");
+            return Some(ConnectionStatusEvent::IcmpIprTunDevicePingReply);
+        }
+        if identifier == icmp_beacon_identifier
+            && source == icmp_connection_beacon::ICMP_IPR_TUN_EXTERNAL_PING
+            && destination == our_ip
+        {
+            log::debug!("Received ping response from an external ip through the ipr");
+            return Some(ConnectionStatusEvent::IcmpIprExternalPingReply);
+        }
+    }
+    None
+}
+
+#[allow(clippy::too_many_arguments)]
 pub async fn start_processor(
     config: Config,
     dev: AsyncDevice,
     mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,
     enable_two_hop: bool,
+    our_ips: nym_ip_packet_requests::IpPair,
+    icmp_identifier: u16,
     connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
 ) -> JoinHandle<Result<AsyncDevice>> {
     info!("Creating mixnet processor");
@@ -280,6 +353,8 @@ pub async fn start_processor(
         mixnet_client,
         connection_event_tx,
         config.ip_packet_router_address,
+        our_ips,
+        icmp_identifier,
         enable_two_hop,
     );
     let shutdown_listener = task_manager.subscribe();

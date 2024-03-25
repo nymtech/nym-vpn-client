@@ -92,6 +92,13 @@ async fn wait_for_self_ping_return(
 }
 
 impl MixnetConnectionBeacon {
+    fn new(mixnet_client_sender: MixnetClientSender, our_address: Recipient) -> Self {
+        MixnetConnectionBeacon {
+            mixnet_client_sender,
+            our_address,
+        }
+    }
+
     async fn send_mixnet_self_ping(&self) -> Result<u64> {
         trace!("Sending mixnet self ping");
         let (input_message, request_id) = create_self_ping(self.our_address);
@@ -131,10 +138,7 @@ pub fn start_mixnet_connection_beacon(
     shutdown_listener: TaskClient,
 ) -> JoinHandle<Result<()>> {
     debug!("Creating mixnet connection beacon");
-    let beacon = MixnetConnectionBeacon {
-        mixnet_client_sender,
-        our_address,
-    };
+    let beacon = MixnetConnectionBeacon::new(mixnet_client_sender, our_address);
     tokio::spawn(async move {
         beacon.run(shutdown_listener).await.inspect_err(|err| {
             error!("Mixnet connection beacon error: {err}");
