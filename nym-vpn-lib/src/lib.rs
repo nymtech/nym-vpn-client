@@ -62,6 +62,7 @@ pub mod config;
 mod connection_monitor;
 pub mod error;
 pub mod gateway_client;
+mod icmp_connection_beacon;
 pub mod mixnet_connect;
 pub mod mixnet_connection_beacon;
 pub mod mixnet_processor;
@@ -269,12 +270,18 @@ impl NymVpn {
 
         info!("Setting up mixnet connection beacon");
         mixnet_connection_beacon::start_mixnet_connection_beacon(
-            mixnet_client_sender,
+            mixnet_client_sender.clone(),
             mixnet_client_address,
+            task_manager.subscribe_named("mixnet_connection_beacon"),
+        );
+
+        info!("Setting up ICMP connection beacon");
+        icmp_connection_beacon::start_icmp_connection_beacon(
+            mixnet_client_sender,
             ips.ipv4,
             exit_router.0,
             icmp_identifier,
-            task_manager.subscribe_named("mixnet_connection_beacon"),
+            task_manager.subscribe_named("icmp_connection_beacon"),
         );
 
         info!("Setting up connection monitor");
