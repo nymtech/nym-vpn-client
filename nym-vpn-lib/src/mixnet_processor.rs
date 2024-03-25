@@ -84,11 +84,8 @@ impl MessageCreator {
         }
     }
 
-    pub fn create_input_message(&self, bundled_packets: Bytes) -> Option<InputMessage> {
-        let Ok(packet) = IpPacketRequest::new_data_request(bundled_packets).to_bytes() else {
-            error!("Failed to serialize packet");
-            return None;
-        };
+    pub fn create_input_message(&self, bundled_packets: Bytes) -> Result<InputMessage> {
+        let packet = IpPacketRequest::new_data_request(bundled_packets).to_bytes()?;
 
         let lane = TransmissionLane::General;
         let packet_type = None;
@@ -100,7 +97,7 @@ impl MessageCreator {
             packet_type,
             hops,
         );
-        Some(input_message)
+        Ok(input_message)
     }
 }
 
@@ -196,10 +193,15 @@ impl MixnetProcessor {
                 Some(bundled_packets) = multi_ip_packet_encoder.buffer_timeout() => {
                     assert!(!bundled_packets.is_empty());
 
-                    if let Some(input_message) = message_creator.create_input_message(bundled_packets) {
-                        let ret = sender.send(input_message).await;
-                        if ret.is_err() && !shutdown.is_shutdown_poll() {
-                            error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                    match message_creator.create_input_message(bundled_packets) {
+                        Ok(input_message) => {
+                            let ret = sender.send(input_message).await;
+                            if ret.is_err() && !shutdown.is_shutdown_poll() {
+                                error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                            }
+                        }
+                        Err(err) => {
+                            error!("Failed to create input message: {err}");
                         }
                     };
                 }
@@ -217,11 +219,17 @@ impl MixnetProcessor {
                     // Bundle up IP packets into a single mixnet message
                     if let Some(input_message) = multi_ip_packet_encoder
                         .append_packet(packet.into())
-                        .and_then(|bundled_packets| message_creator.create_input_message(bundled_packets))
                     {
-                        let ret = sender.send(input_message).await;
-                        if ret.is_err() && !shutdown.is_shutdown_poll() {
-                            error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
+                        match message_creator.create_input_message(input_message) {
+                            Ok(input_message) => {
+                                let ret = sender.send(input_message).await;
+                                if ret.is_err() && !shutdown.is_shutdown_poll() {
+                                    error!("Could not forward IP packet to the mixnet. The packet(s) will be dropped.");
+                                }
+                            }
+                            Err(err) => {
+                                error!("Failed to create input message, the packet(s) will be dropped: {err}");
+                            }
                         }
                     }
                 }

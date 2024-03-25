@@ -3,16 +3,24 @@
 
 use std::{net::Ipv4Addr, time::Duration};
 
+use nym_ip_packet_requests::codec::MultiIpPacketCodec;
 use nym_sdk::mixnet::{MixnetClientSender, MixnetMessageSender, Recipient};
 use nym_task::TaskClient;
 use pnet::packet::{
-    icmp::{echo_request::MutableEchoRequestPacket, IcmpPacket},
+    icmp::{
+        echo_request::{EchoRequestPacket, MutableEchoRequestPacket},
+        IcmpPacket,
+    },
+    ipv4::{Ipv4Packet, MutableIpv4Packet},
     Packet,
 };
 use tokio::task::JoinHandle;
 use tracing::{debug, error, trace};
 
-use crate::error::Result;
+use crate::{
+    error::{Error, Result},
+    mixnet_processor,
+};
 
 const ICMP_BEACON_PING_INTERVAL: Duration = Duration::from_millis(1000);
 
@@ -46,63 +54,37 @@ impl IcmpConnectionBeacon {
         sequence_number
     }
 
-    async fn send_icmp_ping(&mut self) -> Result<()> {
-        let mut buffer = vec![0; 64];
+    async fn send_icmp_ping(&mut self, destination: Ipv4Addr) -> Result<()> {
+        // Create ICMP/IPv4 echo request packet
         let sequence_number = self.get_next_sequence_number();
         let identifier = self.icmp_identifier;
-        let mut icmp_echo_request =
-            create_icmp_echo_request(&mut buffer, sequence_number, identifier);
+        let icmp_echo_request = create_icmp_echo_request(sequence_number, identifier)?;
+        let ipv4_packet = create_icmp_ip_packet(icmp_echo_request, self.our_ip, destination)?;
 
-        let icmp = IcmpPacket::new(icmp_echo_request.packet()).unwrap();
-        let checksum = pnet::packet::icmp::checksum(&icmp);
-        icmp_echo_request.set_checksum(checksum);
-        // dbg!(&icmp_packet);
-
-        let destination = Ipv4Addr::new(10, 0, 0, 1);
-        // let destination = Ipv4Addr::new(8, 8, 8, 8);
-        let source = self.our_ip;
-
-        let total_length = 20 + icmp_echo_request.packet().len() as u16; // 20 bytes for IPv4 header + ICMP payload
-        let mut ipv4_buffer = vec![0u8; 20 + icmp_echo_request.packet().len()]; // IPv4 header + ICMP payload
-        let mut ipv4_packet = pnet::packet::ipv4::MutableIpv4Packet::new(&mut ipv4_buffer).unwrap();
-
-        ipv4_packet.set_version(4);
-        ipv4_packet.set_header_length(5);
-        ipv4_packet.set_total_length(total_length);
-        ipv4_packet.set_ttl(64);
-        ipv4_packet.set_next_level_protocol(pnet::packet::ip::IpNextHeaderProtocols::Icmp);
-        ipv4_packet.set_source(source);
-        ipv4_packet.set_destination(destination);
-        ipv4_packet.set_flags(pnet::packet::ipv4::Ipv4Flags::DontFragment);
-        ipv4_packet.set_checksum(0);
-        ipv4_packet.set_payload(icmp_echo_request.packet());
-
-        let ipv4_checksum = compute_ipv4_checksum(&ipv4_packet.to_immutable());
-        ipv4_packet.set_checksum(ipv4_checksum);
-
-        // ipv4_packet now contains the entire packet
-        // dbg!(&ipv4_packet);
-        let final_packet = ipv4_packet.packet().to_vec();
-        // println!("final_packet: {:?}", final_packet);
-
-        let mut multi_ip_packet_encoder = nym_ip_packet_requests::codec::MultiIpPacketCodec::new(
-            nym_ip_packet_requests::codec::BUFFER_TIMEOUT,
-        );
-
-        multi_ip_packet_encoder.append_packet(final_packet.into());
-        let bundled_packet = multi_ip_packet_encoder.flush_current_buffer();
-
-        let message_creator = crate::mixnet_processor::MessageCreator::new(self.ipr_address, false);
-        let mixnet_message = message_creator
-            .create_input_message(bundled_packet)
-            .expect("Failed to create input message");
+        // Wrap the IPv4 packet in a MultiIpPacket and send it over the mixnet
+        let bundled_packet =
+            MultiIpPacketCodec::bundle_one_packet(ipv4_packet.packet().to_vec().into());
+        let two_hop = true;
+        let message_creator = mixnet_processor::MessageCreator::new(self.ipr_address, two_hop);
+        let mixnet_message = message_creator.create_input_message(bundled_packet)?;
 
         self.mixnet_client_sender
             .send(mixnet_message)
             .await
-            .unwrap();
+            .map_err(|err| err.into())
+    }
 
-        Ok(())
+    async fn ping_ipr_tun_device_over_the_mixnet(&mut self) -> Result<()> {
+        // TODO: this address is assumed in a few places, extract out to common place
+        let ipr_tun_device = Ipv4Addr::new(10, 0, 0, 1);
+        self.send_icmp_ping(ipr_tun_device).await
+    }
+
+    async fn ping_some_external_ip_over_the_mixnet(&mut self) -> Result<()> {
+        // This can be any external IP, we just want to check if the exit IPR can reach the
+        // internet
+        let some_external_ip = Ipv4Addr::new(8, 8, 8, 8);
+        self.send_icmp_ping(some_external_ip).await
     }
 
     pub async fn run(mut self, mut shutdown: TaskClient) -> Result<()> {
@@ -115,7 +97,10 @@ impl IcmpConnectionBeacon {
                     break;
                 }
                 _ = ping_interval.tick() => {
-                    if let Err(err) = self.send_icmp_ping().await {
+                    if let Err(err) = self.ping_ipr_tun_device_over_the_mixnet().await {
+                        error!("Failed to send ICMP ping: {err}");
+                    }
+                    if let Err(err) = self.ping_some_external_ip_over_the_mixnet().await {
                         error!("Failed to send ICMP ping: {err}");
                     }
                 }
@@ -127,16 +112,55 @@ impl IcmpConnectionBeacon {
 }
 
 fn create_icmp_echo_request(
-    buffer: &mut [u8],
     sequence_number: u16,
     identifier: u16,
-) -> MutableEchoRequestPacket {
-    let mut icmp_packet = MutableEchoRequestPacket::new(buffer).unwrap();
-    icmp_packet.set_identifier(identifier);
-    icmp_packet.set_sequence_number(sequence_number);
-    icmp_packet.set_icmp_type(pnet::packet::icmp::IcmpTypes::EchoRequest);
-    icmp_packet.set_icmp_code(pnet::packet::icmp::IcmpCode::new(0));
-    icmp_packet
+) -> Result<EchoRequestPacket<'static>> {
+    let buffer = vec![0; 64];
+    let mut icmp_echo_request = MutableEchoRequestPacket::owned(buffer)
+        .ok_or(Error::IcmpEchoRequestPacketCreationFailure)?;
+
+    // Configure the ICMP echo request packet
+    icmp_echo_request.set_identifier(identifier);
+    icmp_echo_request.set_sequence_number(sequence_number);
+    icmp_echo_request.set_icmp_type(pnet::packet::icmp::IcmpTypes::EchoRequest);
+    icmp_echo_request.set_icmp_code(pnet::packet::icmp::IcmpCode::new(0));
+
+    // Calculate checksum once we've set all the fields
+    let icmp_packet =
+        IcmpPacket::new(icmp_echo_request.packet()).ok_or(Error::IcmpPacketCreationFailure)?;
+    let checksum = pnet::packet::icmp::checksum(&icmp_packet);
+    icmp_echo_request.set_checksum(checksum);
+
+    Ok(icmp_echo_request.consume_to_immutable())
+}
+
+fn create_icmp_ip_packet(
+    icmp_echo_request: EchoRequestPacket,
+    source: Ipv4Addr,
+    destination: Ipv4Addr,
+) -> Result<Ipv4Packet> {
+    // 20 bytes for IPv4 header + ICMP payload
+    let total_length = 20 + icmp_echo_request.packet().len();
+    // IPv4 header + ICMP payload
+    let ipv4_buffer = vec![0u8; 20 + icmp_echo_request.packet().len()];
+    let mut ipv4_packet =
+        MutableIpv4Packet::owned(ipv4_buffer).ok_or(Error::Ipv4PacketCreationFailure)?;
+
+    ipv4_packet.set_version(4);
+    ipv4_packet.set_header_length(5);
+    ipv4_packet.set_total_length(total_length as u16);
+    ipv4_packet.set_ttl(64);
+    ipv4_packet.set_next_level_protocol(pnet::packet::ip::IpNextHeaderProtocols::Icmp);
+    ipv4_packet.set_source(source);
+    ipv4_packet.set_destination(destination);
+    ipv4_packet.set_flags(pnet::packet::ipv4::Ipv4Flags::DontFragment);
+    ipv4_packet.set_checksum(0);
+    ipv4_packet.set_payload(icmp_echo_request.packet());
+
+    let ipv4_checksum = compute_ipv4_checksum(&ipv4_packet.to_immutable());
+    ipv4_packet.set_checksum(ipv4_checksum);
+
+    Ok(ipv4_packet.consume_to_immutable())
 }
 
 // Compute IPv4 checksum: sum all 16-bit words, add carry, take one's complement
