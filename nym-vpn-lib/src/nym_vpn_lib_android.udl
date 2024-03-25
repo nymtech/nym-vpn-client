@@ -1,4 +1,0 @@
-namespace nym_vpn_lib_android {
-    void runVPN();
-    void stopVPN();
-};

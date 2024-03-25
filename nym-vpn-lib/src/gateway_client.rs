@@ -87,7 +87,7 @@ impl Config {
 
 // The entry point is always a gateway identity, or some other entry that can be resolved to a
 // gateway identity.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, uniffi::Enum)]
 pub enum EntryPoint {
     Gateway { identity: NodeIdentity },
     // NOTE: Consider using a crate with strongly typed country codes instead of strings
@@ -104,7 +104,7 @@ impl EntryPoint {
 
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
 // gateway, we can refer to it by the gateway identity.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum ExitPoint {
     // An explicit exit address. This is useful when the exit ip-packet-router is running as a
