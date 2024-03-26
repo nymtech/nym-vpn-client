@@ -442,7 +442,7 @@ impl GatewayClient {
             .filter_map(|gateway| {
                 gateway
                     .two_letter_iso_country_code()
-                    .map(|value| Country::Name { value })
+                    .map(|value| Country::Code { value })
             })
             .unique()
             .collect())
@@ -455,7 +455,7 @@ impl GatewayClient {
             .filter_map(|gateway| {
                 gateway
                     .two_letter_iso_country_code()
-                    .map(|value| Country::Name { value })
+                    .map(|value| Country::Code { value })
             })
             .unique()
             .collect())
