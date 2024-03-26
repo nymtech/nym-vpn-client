@@ -173,7 +173,7 @@ jobs:
         shell: bash
         run: |
           mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/build/lib/
-          mv ${GITHUB_WORKSPACE}/winpcap/WpdPack/Lib/Packet.lib ${GITHUB_WORKSPACE}/build/lib/
+          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/Packet.lib ${GITHUB_WORKSPACE}/build/lib/
 
       - name: rustfmt check
         run: cargo fmt --check
