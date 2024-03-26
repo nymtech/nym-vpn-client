@@ -48,7 +48,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install rust toolchain
-        if: "!contains(matrix.target, 'windows')"
+        if: "!contains(matrix.os, 'windows')"
         id: rust-toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
