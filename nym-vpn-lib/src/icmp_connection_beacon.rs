@@ -10,7 +10,7 @@ use bytes::Bytes;
 use nym_ip_packet_requests::{codec::MultiIpPacketCodec, IpPair};
 use nym_sdk::mixnet::{MixnetClientSender, MixnetMessageSender, Recipient};
 use nym_task::TaskClient;
-use pnet::packet::{
+use pnet_packet::{
     icmp::{
         echo_reply::EchoReplyPacket,
         echo_request::{EchoRequestPacket, MutableEchoRequestPacket},
@@ -180,13 +180,13 @@ fn create_icmpv4_echo_request(
     // Configure the ICMP echo request packet
     icmp_echo_request.set_identifier(identifier);
     icmp_echo_request.set_sequence_number(sequence_number);
-    icmp_echo_request.set_icmp_type(pnet::packet::icmp::IcmpTypes::EchoRequest);
-    icmp_echo_request.set_icmp_code(pnet::packet::icmp::IcmpCode::new(0));
+    icmp_echo_request.set_icmp_type(pnet_packet::icmp::IcmpTypes::EchoRequest);
+    icmp_echo_request.set_icmp_code(pnet_packet::icmp::IcmpCode::new(0));
 
     // Calculate checksum once we've set all the fields
     let icmp_packet =
         IcmpPacket::new(icmp_echo_request.packet()).ok_or(Error::IcmpPacketCreationFailure)?;
-    let checksum = pnet::packet::icmp::checksum(&icmp_packet);
+    let checksum = pnet_packet::icmp::checksum(&icmp_packet);
     icmp_echo_request.set_checksum(checksum);
 
     Ok(icmp_echo_request.consume_to_immutable())
@@ -206,13 +206,13 @@ fn create_icmpv6_echo_request(
     // Configure the ICMP echo request packet
     icmp_echo_request.set_identifier(identifier);
     icmp_echo_request.set_sequence_number(sequence_number);
-    icmp_echo_request.set_icmpv6_type(pnet::packet::icmpv6::Icmpv6Types::EchoRequest);
-    icmp_echo_request.set_icmpv6_code(pnet::packet::icmpv6::Icmpv6Code::new(0));
+    icmp_echo_request.set_icmpv6_type(pnet_packet::icmpv6::Icmpv6Types::EchoRequest);
+    icmp_echo_request.set_icmpv6_code(pnet_packet::icmpv6::Icmpv6Code::new(0));
 
     // Calculate checksum once we've set all the fields
     let icmp_packet = icmpv6::Icmpv6Packet::new(icmp_echo_request.packet())
         .ok_or(Error::IcmpPacketCreationFailure)?;
-    let checksum = pnet::packet::icmpv6::checksum(&icmp_packet, source, destination);
+    let checksum = pnet_packet::icmpv6::checksum(&icmp_packet, source, destination);
     icmp_echo_request.set_checksum(checksum);
 
     Ok(icmp_echo_request.consume_to_immutable())
@@ -234,10 +234,10 @@ fn wrap_icmp_in_ipv4(
     ipv4_packet.set_header_length(5);
     ipv4_packet.set_total_length(total_length as u16);
     ipv4_packet.set_ttl(64);
-    ipv4_packet.set_next_level_protocol(pnet::packet::ip::IpNextHeaderProtocols::Icmp);
+    ipv4_packet.set_next_level_protocol(pnet_packet::ip::IpNextHeaderProtocols::Icmp);
     ipv4_packet.set_source(source);
     ipv4_packet.set_destination(destination);
-    ipv4_packet.set_flags(pnet::packet::ipv4::Ipv4Flags::DontFragment);
+    ipv4_packet.set_flags(pnet_packet::ipv4::Ipv4Flags::DontFragment);
     ipv4_packet.set_checksum(0);
     ipv4_packet.set_payload(icmp_echo_request.packet());
 
@@ -258,7 +258,7 @@ fn wrap_icmp_in_ipv6(
 
     ipv6_packet.set_version(6);
     ipv6_packet.set_payload_length(icmp_echo_request.packet().len() as u16);
-    ipv6_packet.set_next_header(pnet::packet::ip::IpNextHeaderProtocols::Icmpv6);
+    ipv6_packet.set_next_header(pnet_packet::ip::IpNextHeaderProtocols::Icmpv6);
     ipv6_packet.set_hop_limit(64);
     ipv6_packet.set_source(source);
     ipv6_packet.set_destination(destination);
@@ -306,7 +306,7 @@ pub(crate) fn is_icmp_v6_echo_reply(packet: &Bytes) -> Option<(u16, Ipv6Addr, Ip
     if let Some(ipv6_packet) = Ipv6Packet::new(packet) {
         if let Some(icmp_packet) = IcmpPacket::new(ipv6_packet.payload()) {
             if let Some(echo_reply) =
-                pnet::packet::icmpv6::echo_reply::EchoReplyPacket::new(icmp_packet.packet())
+                pnet_packet::icmpv6::echo_reply::EchoReplyPacket::new(icmp_packet.packet())
             {
                 return Some((
                     echo_reply.get_identifier(),
