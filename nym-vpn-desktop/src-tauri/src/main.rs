@@ -83,8 +83,13 @@ async fn main() -> Result<()> {
     let app_config = app_config_store.read().await?;
     debug!("app_config: {app_config:?}");
 
-    // check for the existence of the env_config_file if provided
-    if let Some(env_config_file) = &app_config.env_config_file {
+    // By default, mainnet is used. The network can be overridden by either setting the `--sandbox`
+    // flag or providing a custom env file.
+    if cli.sandbox {
+        // TODO: instead bundle a sandbox env file we can use
+        network::setup_sandbox_environment();
+    } else if let Some(env_config_file) = &app_config.env_config_file {
+        // check for the existence of the env_config_file if provided
         debug!("provided env_config_file: {}", env_config_file.display());
         if !(try_exists(env_config_file)
             .await
@@ -97,10 +102,6 @@ async fn main() -> Result<()> {
             error!(err_message);
             return Err(anyhow!(err_message));
         }
-    } else if cli.sandbox {
-        // If no env_config_file is provided, setup the sandbox environment
-        // This is tempory until we switch to mainnet
-        network::setup_sandbox_environment();
     }
 
     // Read the env variables in the provided file and export them all to the local environment.
