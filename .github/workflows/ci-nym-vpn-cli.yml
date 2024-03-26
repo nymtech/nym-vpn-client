@@ -123,13 +123,14 @@ jobs:
         if: contains(matrix.os, 'windows')
         uses: microsoft/setup-msbuild@v2
 
-      # Needs to come before building mullvad libs, since it creates the output folder
-      # DO NOT SPECIFY `shell: bash` because that spawns a process within WSL rather than using
-      # powershells `bash`. We need Powershell `bash` because that shells out to GitBash.
       - name: Build wireguard
         shell: bash
         run: |
           ./wireguard/build-wireguard-go.sh
+
+      - name: Build wireguard (Android)
+        if: contains(matrix.target, 'android')
+        run: ./wireguard/libwg/build-android.sh
 
       - name: Checkout mullvad libs for Windows
         if: contains(matrix.os, 'windows')
@@ -172,13 +173,6 @@ jobs:
 
       - name: rustfmt check
         run: cargo fmt --check
-
-      - name: Build wireguard
-        run: ./wireguard/build-wireguard-go.sh
-
-      - name: Build wireguard (Android)
-        if: contains(matrix.target, 'android')
-        run: ./wireguard/libwg/build-android.sh
 
       - name: Build
         if: "!contains(matrix.target, 'android')"
