@@ -40,7 +40,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         run: |
           ls ./
-          rm ${GITHUB_WORKSPACE} || true
+          rm ./*
           ls ./
 
       - name: Install system dependencies
