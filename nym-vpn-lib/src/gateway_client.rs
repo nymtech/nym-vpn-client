@@ -315,6 +315,9 @@ impl From<DescribedGateway> for DescribedGatewayWithLocation {
 pub struct GatewayClient {
     api_client: NymApiClient,
     explorer_client: Option<ExplorerClient>,
+}
+
+pub struct WgGatewayClient {
     keypair: Option<encryption::KeyPair>,
 }
 
@@ -325,15 +328,8 @@ pub struct GatewayData {
     pub(crate) private_ip: IpAddr,
 }
 
-impl GatewayClient {
+impl WgGatewayClient {
     pub fn new(config: Config) -> Result<Self> {
-        let api_client = NymApiClient::new(config.api_url);
-        let explorer_client = if let Some(url) = config.explorer_url {
-            Some(ExplorerClient::new(url)?)
-        } else {
-            None
-        };
-
         let keypair = if let Some(local_private_key) = config.local_private_key {
             let private_key_intermediate = PublicKey::from_base64(&local_private_key)
                 .map_err(|_| crate::error::Error::InvalidWireGuardKey)?;
@@ -348,10 +344,81 @@ impl GatewayClient {
             None
         };
 
+        Ok(WgGatewayClient { keypair })
+    }
+
+    pub async fn register_wireguard(
+        &self,
+        // gateway_identity: &str,
+        gateway_host: IpAddr,
+        wg_ip: IpAddr,
+    ) -> Result<GatewayData> {
+        // info!("Lookup ip for {}", gateway_identity);
+        // let gateway_host = self.lookup_gateway_ip(gateway_identity).await?;
+        // info!("Received wg gateway ip: {}", gateway_host);
+
+        let gateway_api_client = nym_node_requests::api::Client::new_url(
+            format!("{}:{}", gateway_host, DEFAULT_NYM_NODE_HTTP_PORT),
+            None,
+        )?;
+
+        // In the CLI it's ensured that the keypair is always present when wireguard is enabled.
+        let keypair = self.keypair.as_ref().unwrap();
+
+        debug!("Registering with the wg gateway...");
+        let init_message = ClientMessage::Initial(InitMessage {
+            pub_key: PeerPublicKey::new(keypair.public_key().to_bytes().into()),
+        });
+        let ClientRegistrationResponse::PendingRegistration {
+            nonce,
+            gateway_data,
+            wg_port,
+        } = gateway_api_client
+            .post_gateway_register_client(&init_message)
+            .await?
+        else {
+            return Err(crate::error::Error::InvalidGatewayAPIResponse);
+        };
+        debug!("Received nonce: {}", nonce);
+        debug!("Received wg_port: {}", wg_port);
+        debug!("Received gateway data: {:?}", gateway_data);
+
+        // Unwrap since we have already checked that we have the keypair.
+        debug!("Verifying data");
+        gateway_data.verify(keypair.private_key(), nonce)?;
+
+        // let mut mac = HmacSha256::new_from_slice(client_dh.as_bytes()).unwrap();
+        // mac.update(client_static_public.as_bytes());
+        // mac.update(&nonce.to_le_bytes());
+        // let mac = mac.finalize().into_bytes();
+        //
+        // let finalized_message = ClientMessage::Final(GatewayClient {
+        //     pub_key: PeerPublicKey::new(client_static_public),
+        //     mac: ClientMac::new(mac.as_slice().to_vec()),
+        // });
+        let gateway_data = GatewayData {
+            public_key: PublicKey::from(gateway_data.pub_key().to_bytes()),
+            endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, wg_port))?,
+            private_ip: wg_ip,
+            // private_ip: "10.1.0.2".parse().unwrap(), // placeholder value for now
+        };
+
+        Ok(gateway_data)
+    }
+}
+
+impl GatewayClient {
+    pub fn new(config: Config) -> Result<Self> {
+        let api_client = NymApiClient::new(config.api_url);
+        let explorer_client = if let Some(url) = config.explorer_url {
+            Some(ExplorerClient::new(url)?)
+        } else {
+            None
+        };
+
         Ok(GatewayClient {
             api_client,
             explorer_client,
-            keypair,
         })
     }
 
@@ -493,63 +560,6 @@ impl GatewayClient {
         Ok(ip)
     }
 
-    pub async fn register_wireguard(
-        &self,
-        gateway_identity: &str,
-        wg_ip: IpAddr,
-    ) -> Result<GatewayData> {
-        info!("Lookup ip for {}", gateway_identity);
-        let gateway_host = self.lookup_gateway_ip(gateway_identity).await?;
-        info!("Received wg gateway ip: {}", gateway_host);
-
-        let gateway_api_client = nym_node_requests::api::Client::new_url(
-            format!("{}:{}", gateway_host, DEFAULT_NYM_NODE_HTTP_PORT),
-            None,
-        )?;
-
-        // In the CLI it's ensured that the keypair is always present when wireguard is enabled.
-        let keypair = self.keypair.as_ref().unwrap();
-
-        debug!("Registering with the wg gateway...");
-        let init_message = ClientMessage::Initial(InitMessage {
-            pub_key: PeerPublicKey::new(keypair.public_key().to_bytes().into()),
-        });
-        let ClientRegistrationResponse::PendingRegistration {
-            nonce,
-            gateway_data,
-            wg_port,
-        } = gateway_api_client
-            .post_gateway_register_client(&init_message)
-            .await?
-        else {
-            return Err(crate::error::Error::InvalidGatewayAPIResponse);
-        };
-        debug!("Received nonce: {}", nonce);
-        debug!("Received wg_port: {}", wg_port);
-        debug!("Received gateway data: {:?}", gateway_data);
-
-        // Unwrap since we have already checked that we have the keypair.
-        debug!("Verifying data");
-        gateway_data.verify(keypair.private_key(), nonce)?;
-
-        // let mut mac = HmacSha256::new_from_slice(client_dh.as_bytes()).unwrap();
-        // mac.update(client_static_public.as_bytes());
-        // mac.update(&nonce.to_le_bytes());
-        // let mac = mac.finalize().into_bytes();
-        //
-        // let finalized_message = ClientMessage::Final(GatewayClient {
-        //     pub_key: PeerPublicKey::new(client_static_public),
-        //     mac: ClientMac::new(mac.as_slice().to_vec()),
-        // });
-        let gateway_data = GatewayData {
-            public_key: PublicKey::from(gateway_data.pub_key().to_bytes()),
-            endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, wg_port))?,
-            private_ip: wg_ip,
-            // private_ip: "10.1.0.2".parse().unwrap(), // placeholder value for now
-        };
-
-        Ok(gateway_data)
-    }
 }
 
 async fn try_resolve_hostname(hostname: &str) -> Result<IpAddr> {
