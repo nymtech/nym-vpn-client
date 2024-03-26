@@ -47,6 +47,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: "Manually reset the repo"
+        run: |
+          git clean -ffdx
+          git reset --hard HEAD
+
       - name: Install rust toolchain
         if: "!contains(matrix.os, 'windows')"
         id: rust-toolchain
@@ -73,12 +78,6 @@ jobs:
       - name: Add Android target
         if: contains(matrix.target, 'android')
         run: rustup target add aarch64-linux-android
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ steps.rust-toolchain.outputs.cachekey }}
-          workspaces: |
-            nym-vpn-cli
 
       - name: Set env
         shell: bash
