@@ -88,19 +88,21 @@ async fn main() -> Result<()> {
     if cli.sandbox {
         // TODO: instead bundle a sandbox env file we can use
         network::setup_sandbox_environment();
-    } else if let Some(env_config_file) = &app_config.env_config_file {
-        // check for the existence of the env_config_file if provided
-        debug!("provided env_config_file: {}", env_config_file.display());
-        if !(try_exists(env_config_file)
-            .await
-            .context("an error happened while reading env_config_file `{}`")?)
-        {
-            let err_message = format!(
-                "app config, env_config_file `{}`: file not found",
-                env_config_file.display()
-            );
-            error!(err_message);
-            return Err(anyhow!(err_message));
+    } else {
+        if let Some(env_config_file) = &app_config.env_config_file {
+            // check for the existence of the env_config_file if provided
+            debug!("provided env_config_file: {}", env_config_file.display());
+            if !(try_exists(env_config_file)
+                .await
+                .context("an error happened while reading env_config_file `{}`")?)
+            {
+                let err_message = format!(
+                    "app config, env_config_file `{}`: file not found",
+                    env_config_file.display()
+                );
+                error!(err_message);
+                return Err(anyhow!(err_message));
+            }
         }
 
         // Read the env variables in the provided file and export them all to the local environment.
