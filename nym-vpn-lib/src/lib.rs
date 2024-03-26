@@ -5,7 +5,7 @@ uniffi::setup_scaffolding!();
 
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
-use crate::gateway_client::{Config, GatewayClient};
+use crate::gateway_client::{Config, WgConfig, GatewayClient};
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
@@ -84,6 +84,9 @@ pub struct NymVpn {
     /// Gateway configuration
     pub gateway_config: Config,
 
+    /// Wireguard Gateway configuration
+    pub wg_gateway_config: WgConfig,
+
     /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
     pub mixnet_client_path: Option<PathBuf>,
 
@@ -155,6 +158,7 @@ impl NymVpn {
 
         Self {
             gateway_config: gateway_client::Config::default(),
+            wg_gateway_config: gateway_client::WgConfig::default(),
             mixnet_client_path: None,
             entry_point,
             exit_point,
@@ -355,7 +359,7 @@ impl NymVpn {
             .lookup_described_gateways_with_location()
             .await?;
 
-        let wg_gateway_client = WgGatewayClient::new(self.gateway_config.clone())?;
+        let wg_gateway_client = WgGatewayClient::new(self.wg_gateway_config.clone())?;
 
         // If the entry or exit point relies on location, do a basic defensive consistency check on
         // the fetched location data. If none of the gateways have location data, we can't proceed

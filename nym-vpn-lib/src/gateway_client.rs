@@ -32,7 +32,6 @@ const FORCE_TLS_FOR_GATEWAY_SELECTION: bool = false;
 pub struct Config {
     pub(crate) api_url: Url,
     pub(crate) explorer_url: Option<Url>,
-    pub(crate) local_private_key: Option<String>,
 }
 
 impl Default for Config {
@@ -55,7 +54,6 @@ impl Default for Config {
         Config {
             api_url: default_api_url,
             explorer_url: default_explorer_url,
-            local_private_key: Default::default(),
         }
     }
 }
@@ -77,6 +75,19 @@ impl Config {
     pub fn with_custom_explorer_url(mut self, explorer_url: Url) -> Self {
         self.explorer_url = Some(explorer_url);
         self
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct WgConfig {
+    pub(crate) local_private_key: Option<String>,
+}
+
+impl WgConfig {
+    pub fn new() -> Self {
+        WgConfig {
+            local_private_key: None,
+        }
     }
 
     pub fn with_local_private_key(mut self, local_private_key: String) -> Self {
@@ -329,7 +340,7 @@ pub struct GatewayData {
 }
 
 impl WgGatewayClient {
-    pub fn new(config: Config) -> Result<Self> {
+    pub fn new(config: WgConfig) -> Result<Self> {
         let keypair = if let Some(local_private_key) = config.local_private_key {
             let private_key_intermediate = PublicKey::from_base64(&local_private_key)
                 .map_err(|_| crate::error::Error::InvalidWireGuardKey)?;
@@ -559,7 +570,6 @@ impl GatewayClient {
         info!("Resolved {ip_or_hostname} to {ip}");
         Ok(ip)
     }
-
 }
 
 async fn try_resolve_hostname(hostname: &str) -> Result<IpAddr> {
