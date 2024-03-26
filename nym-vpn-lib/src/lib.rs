@@ -45,9 +45,7 @@ use tun2::AsyncDevice;
 pub mod config;
 mod connection_monitor;
 pub mod error;
-mod icmp_connection_beacon;
 pub mod mixnet_connect;
-pub mod mixnet_connection_beacon;
 pub mod mixnet_processor;
 mod platform;
 pub mod routing;
@@ -260,14 +258,14 @@ impl NymVpn {
         self.set_shadow_handle(shadow_handle);
 
         info!("Setting up mixnet connection beacon");
-        mixnet_connection_beacon::start_mixnet_connection_beacon(
+        connection_monitor::mixnet_connection_beacon::start_mixnet_connection_beacon(
             mixnet_client_sender.clone(),
             mixnet_client_address,
             task_manager.subscribe_named("mixnet_connection_beacon"),
         );
 
         info!("Setting up ICMP connection beacon");
-        icmp_connection_beacon::start_icmp_connection_beacon(
+        connection_monitor::icmp_connection_beacon::start_icmp_connection_beacon(
             mixnet_client_sender,
             ips,
             exit_router.0,
@@ -321,7 +319,11 @@ impl NymVpn {
 
         // Check that we can ping ourselves before continuing
         info!("Sending mixnet ping to ourselves");
-        mixnet_connection_beacon::self_ping_and_wait(nym_address, mixnet_client.clone()).await?;
+        connection_monitor::mixnet_connection_beacon::self_ping_and_wait(
+            nym_address,
+            mixnet_client.clone(),
+        )
+        .await?;
         info!("Successfully pinged ourselves");
 
         if let Err(err) = self

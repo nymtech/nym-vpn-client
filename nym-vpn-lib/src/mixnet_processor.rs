@@ -23,9 +23,8 @@ use tun2::{AbstractDevice, AsyncDevice};
 use nym_gateway_directory::IpPacketRouterAddress;
 
 use crate::{
-    connection_monitor::{self, ConnectionStatusEvent},
+    connection_monitor::{self, icmp_connection_beacon, ConnectionStatusEvent},
     error::{Error, Result},
-    icmp_connection_beacon,
     mixnet_connect::SharedMixnetClient,
 };
 
