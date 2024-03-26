@@ -133,34 +133,11 @@ impl MixnetProcessor {
         }
     }
 
-    fn assert_tun_address_matches(&self) -> Result<()> {
-        match self.device.as_ref().address() {
-            Ok(address) => {
-                if address != self.our_ips.ipv4 {
-                    error!(
-                        "Tun device address {} does not match the expected address {}",
-                        address, self.our_ips.ipv4
-                    );
-                    return Err(Error::InvalidTunDeviceAddress {
-                        expected: self.our_ips.ipv4,
-                        actual: address,
-                    });
-                }
-            }
-            Err(err) => {
-                error!("Tun device address is not set");
-                return Err(Error::TunDeviceAddressNotSet(err));
-            }
-        }
-        Ok(())
-    }
-
     pub async fn run(self, mut shutdown: TaskClient) -> Result<AsyncDevice> {
         info!(
             "Opened mixnet processor on tun device {}",
             self.device.as_ref().tun_name().unwrap(),
         );
-        self.assert_tun_address_matches()?;
 
         debug!("Splitting tun device into sink and stream");
         let (mut tun_device_sink, mut tun_device_stream) = self.device.into_framed().split();
