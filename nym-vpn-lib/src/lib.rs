@@ -1,10 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(target_os = "macos")]
-uniffi::include_scaffolding!("nym_vpn_lib_macos");
-#[cfg(target_os = "android")]
-uniffi::include_scaffolding!("nym_vpn_lib_android");
+uniffi::setup_scaffolding!();
 
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
@@ -35,26 +32,26 @@ pub use nym_task::{
     StatusReceiver,
 };
 
-#[cfg(target_os = "macos")]
-use crate::platform::macos::initVPN;
-#[cfg(any(target_os = "macos", target_os = "android"))]
-use crate::platform::{runVPN, stopVPN};
+#[cfg(target_os = "ios")]
+use crate::platform::swift::OSTunProvider;
 pub use nym_bin_common;
 pub use nym_config;
 use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
-#[cfg(target_os = "macos")]
-use url::Url;
 
 pub mod config;
+mod connection_monitor;
 pub mod error;
 pub mod gateway_client;
+mod icmp_connection_beacon;
 pub mod mixnet_connect;
+pub mod mixnet_connection_beacon;
 pub mod mixnet_processor;
 mod platform;
 pub mod routing;
 pub mod tunnel;
+mod uniffi_custom_impls;
 mod util;
 
 async fn init_wireguard_config(
@@ -122,11 +119,14 @@ pub struct NymVpn {
 
     tun_provider: Arc<Mutex<TunProvider>>,
 
+    #[cfg(target_os = "ios")]
+    ios_tun_provider: Arc<dyn OSTunProvider>,
+
     // Necessary so that the device doesn't get closed before cleanup has taken place
     shadow_handle: ShadowHandle,
 }
 
-pub struct MixnetConnetionInfo {
+pub struct MixnetConnectionInfo {
     pub nym_address: Recipient,
     pub entry_gateway: String,
 }
@@ -136,6 +136,7 @@ impl NymVpn {
         entry_point: EntryPoint,
         exit_point: ExitPoint,
         #[cfg(target_os = "android")] android_context: talpid_types::android::AndroidContext,
+        #[cfg(target_os = "ios")] ios_tun_provider: Arc<dyn OSTunProvider>,
     ) -> Self {
         let tun_provider = Arc::new(Mutex::new(TunProvider::new(
             #[cfg(target_os = "android")]
@@ -147,6 +148,7 @@ impl NymVpn {
             #[cfg(target_os = "android")]
             vec![],
         )));
+
         Self {
             gateway_config: gateway_client::Config::default(),
             mixnet_client_path: None,
@@ -162,6 +164,8 @@ impl NymVpn {
             enable_poisson_rate: false,
             disable_background_cover_traffic: false,
             tun_provider,
+            #[cfg(target_os = "ios")]
+            ios_tun_provider,
             shadow_handle: ShadowHandle { _inner: None },
         }
     }
@@ -213,20 +217,59 @@ impl NymVpn {
             mixnet_client.gateway_ws_fd().await,
         );
         debug!("Routing config: {}", routing_config);
-        let mixnet_tun_dev = routing::setup_routing(route_manager, routing_config).await?;
+        let mixnet_tun_dev = routing::setup_routing(
+            route_manager,
+            routing_config,
+            #[cfg(target_os = "ios")]
+            self.ios_tun_provider.clone(),
+        )
+        .await?;
 
         info!("Setting up mixnet processor");
         let processor_config = mixnet_processor::Config::new(*exit_router);
         debug!("Mixnet processor config: {:#?}", processor_config);
+
+        // For other components that will want to send mixnet packets
+        let mixnet_client_sender = mixnet_client.split_sender().await;
+        // Channels to report connection status events
+        let (connection_event_tx, connection_event_rx) = mpsc::unbounded();
+
+        let icmp_identifier = std::process::id() as u16;
+
         let shadow_handle = mixnet_processor::start_processor(
             processor_config,
             mixnet_tun_dev,
             mixnet_client,
             task_manager,
             self.enable_two_hop,
+            ips,
+            icmp_identifier,
+            connection_event_tx,
         )
         .await;
         self.set_shadow_handle(shadow_handle);
+
+        info!("Setting up mixnet connection beacon");
+        mixnet_connection_beacon::start_mixnet_connection_beacon(
+            mixnet_client_sender.clone(),
+            mixnet_client_address,
+            task_manager.subscribe_named("mixnet_connection_beacon"),
+        );
+
+        info!("Setting up ICMP connection beacon");
+        icmp_connection_beacon::start_icmp_connection_beacon(
+            mixnet_client_sender,
+            ips.ipv4,
+            exit_router.0,
+            icmp_identifier,
+            task_manager.subscribe_named("icmp_connection_beacon"),
+        );
+
+        info!("Setting up connection monitor");
+        connection_monitor::start_connection_monitor(
+            connection_event_rx,
+            task_manager.subscribe_named("connection_monitor"),
+        );
 
         Ok(())
     }
@@ -241,7 +284,7 @@ impl NymVpn {
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         tunnel_gateway_ip: routing::TunnelGatewayIp,
-    ) -> Result<MixnetConnetionInfo> {
+    ) -> Result<MixnetConnectionInfo> {
         info!("Setting up mixnet client");
         let mixnet_client = timeout(
             Duration::from_secs(10),
@@ -261,10 +304,15 @@ impl NymVpn {
         // Now that we have a connection, collection some info about that and return
         let nym_address = mixnet_client.nym_address().await;
         let entry_gateway = nym_address.gateway().to_base58_string();
-        let our_mixnet_connection = MixnetConnetionInfo {
+        let our_mixnet_connection = MixnetConnectionInfo {
             nym_address,
             entry_gateway,
         };
+
+        // Check that we can ping ourselves before continuing
+        info!("Sending mixnet ping to ourselves");
+        mixnet_connection_beacon::self_ping_and_wait(nym_address, mixnet_client.clone()).await?;
+        info!("Successfully pinged ourselves");
 
         if let Err(err) = self
             .setup_post_mixnet(
@@ -294,7 +342,7 @@ impl NymVpn {
         RouteManager,
         Option<(oneshot::Receiver<()>, tokio::task::JoinHandle<Result<()>>)>,
         oneshot::Sender<()>,
-        MixnetConnetionInfo,
+        MixnetConnectionInfo,
     )> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration

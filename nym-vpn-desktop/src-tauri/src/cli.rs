@@ -59,7 +59,5 @@ git branch:      {}
             git.commit_timestamp,
             git.branch.as_ref().unwrap_or(&"".to_string())
         );
-    } else {
-        println!("git:           not available");
     }
 }

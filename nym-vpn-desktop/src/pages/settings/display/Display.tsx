@@ -4,7 +4,7 @@ import { useMainDispatch, useMainState } from '../../../contexts';
 import { kvSet } from '../../../kvStore';
 import { useSystemTheme } from '../../../state';
 import { StateDispatch, ThemeMode } from '../../../types';
-import { RadioGroup, RadioGroupOption } from '../../../ui';
+import { PageAnim, RadioGroup, RadioGroupOption } from '../../../ui';
 import UiScaler from './UiScaler';
 
 function Display() {
@@ -24,9 +24,7 @@ function Display() {
         type: 'set-theme-mode',
         mode,
       });
-      kvSet('UiTheme', mode).catch((e) => {
-        console.warn(e);
-      });
+      kvSet('UiTheme', mode);
     }
   };
 
@@ -42,19 +40,19 @@ function Display() {
         key: 'Light',
         label: t('options.light'),
         cursor: 'pointer',
-        style: 'min-h-11',
+        className: 'min-h-11',
       },
       {
         key: 'Dark',
         label: t('options.dark'),
         cursor: 'pointer',
-        style: 'min-h-11',
+        className: 'min-h-11',
       },
     ];
   }, [t]);
 
   return (
-    <div className="h-full flex flex-col py-6 gap-6">
+    <PageAnim className="h-full flex flex-col py-6 gap-6">
       <RadioGroup
         defaultValue={state.themeMode}
         options={options}
@@ -65,7 +63,7 @@ function Display() {
         {t('zoom-section-title')}
       </div>
       <UiScaler />
-    </div>
+    </PageAnim>
   );
 }
 

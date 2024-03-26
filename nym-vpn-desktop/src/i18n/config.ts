@@ -7,6 +7,7 @@ import nodeLocation from './en/node-location.json';
 import backendMessages from './en/backend-messages.json';
 import display from './en/display.json';
 import addCredential from './en/add-credential.json';
+import licenses from './en/licenses.json';
 
 export const defaultNS = 'common';
 export const resources = {
@@ -18,6 +19,7 @@ export const resources = {
     backendMessages,
     display,
     addCredential,
+    licenses,
   },
 } as const;
 
@@ -34,6 +36,7 @@ i18n.use(initReactI18next).init({
     'nodeLocation',
     'backendMessages',
     'display',
+    'licenses',
   ],
 
   interpolation: {

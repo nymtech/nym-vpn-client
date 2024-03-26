@@ -22,9 +22,7 @@ function UiScaler() {
   const setNewFontSize = () => {
     document.documentElement.style.fontSize = `${slideValue}px`;
     dispatch({ type: 'set-root-font-size', size: slideValue });
-    kvSet('UiRootFontSize', slideValue).catch((e) => {
-      console.warn(e);
-    });
+    kvSet('UiRootFontSize', slideValue);
   };
 
   return (

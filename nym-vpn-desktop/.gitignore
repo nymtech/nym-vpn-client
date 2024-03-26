@@ -26,4 +26,4 @@ dist-ssr
 .cargo/
 yarn.lock
 
-public/licenses-js.json
+public/licenses-*.json

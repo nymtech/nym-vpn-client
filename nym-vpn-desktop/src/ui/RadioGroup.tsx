@@ -12,7 +12,7 @@ export type RadioGroupOption<K extends Key> = {
   icon?: React.ReactNode;
   cursor?: RadioGroupOptionCursor;
   // custom style applied to the container of the option
-  style?: string;
+  className?: string;
 };
 
 export type RadioGroupProps<K extends Key> = {
@@ -74,8 +74,8 @@ function RadioGroup<K extends Key>({
                 return (
                   <div
                     className={clsx([
-                      'flex flex-1 items-center justify-between gap-4',
-                      option.style && option.style,
+                      'overflow-hidden flex flex-1 items-center justify-start gap-4',
+                      option.className && option.className,
                     ])}
                   >
                     {checked ? (
@@ -92,26 +92,24 @@ function RadioGroup<K extends Key>({
                         {option.icon}
                       </div>
                     )}
-                    <div className="flex flex-1 items-center">
-                      <div className="text-sm">
-                        <HuRadioGroup.Label
-                          as="p"
-                          className={clsx([
-                            'text-base text-baltic-sea dark:text-mercury-pinkish',
-                            checked && 'font-semibold',
-                          ])}
+                    <div className="min-w-0 flex flex-col justify-center">
+                      <HuRadioGroup.Label
+                        as="p"
+                        className={clsx([
+                          'truncate text-base text-baltic-sea dark:text-mercury-pinkish',
+                          checked && 'font-semibold',
+                        ])}
+                      >
+                        {option.label}
+                      </HuRadioGroup.Label>
+                      {option.desc && (
+                        <HuRadioGroup.Description
+                          as="span"
+                          className="truncate text-sm text-cement-feet dark:text-mercury-mist"
                         >
-                          {option.label}
-                        </HuRadioGroup.Label>
-                        {option.desc && (
-                          <HuRadioGroup.Description
-                            as="span"
-                            className="text-sm text-cement-feet dark:text-mercury-mist"
-                          >
-                            <span>{option.desc}</span>
-                          </HuRadioGroup.Description>
-                        )}
-                      </div>
+                          <span>{option.desc}</span>
+                        </HuRadioGroup.Description>
+                      )}
                     </div>
                   </div>
                 );

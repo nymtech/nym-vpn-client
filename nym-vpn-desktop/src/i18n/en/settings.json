@@ -13,10 +13,11 @@
     "send": "Send us feedback",
     "matrix": "Join us on Matrix",
     "discord": "Join us on Discord",
-    "error-report": {
-      "title": "Turn on error reporting",
+    "error-monitoring": {
+      "title": "Turn on error monitoring",
       "desc": "Help us improve NymVPN"
-    }
+    },
+    "monitoring-alert": "You must restart the application for the change to take effect."
   },
   "support": {
     "title": "Support",
@@ -27,6 +28,7 @@
     "title": "Legal",
     "policy": "Privacy policy",
     "tos": "Terms of use",
+    "license": "License",
     "licenses-rust": "Licenses (Rust)",
     "licenses-js": "Licenses (JS)",
     "emptyData": "No license data available"

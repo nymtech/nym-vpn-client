@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use default_net::Interface;
+use netdev::Interface;
 use std::fmt::{Display, Formatter};
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(target_os = "android")]
@@ -10,8 +10,8 @@ use std::os::fd::{AsRawFd, RawFd};
 use std::sync::{Arc, Mutex};
 use std::{collections::HashSet, net::IpAddr};
 
-use default_net::interface::get_default_interface;
 use ipnetwork::IpNetwork;
+use netdev::interface::get_default_interface;
 use nym_ip_packet_requests::IpPair;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 #[cfg(target_os = "android")]
@@ -26,10 +26,13 @@ use crate::NymVpn;
 
 const DEFAULT_TUN_MTU: u16 = 1500;
 
+#[derive(Clone)]
 pub struct RoutingConfig {
     pub(crate) mixnet_tun_config: tun2::Configuration,
-    // In case we need it, as it's not read-accessible in the tun2 config
+    // In case we need them, as they're not read-accessible in the tun2 config
     pub(crate) tun_ips: IpPair,
+    pub(crate) mtu: u16,
+
     pub(crate) entry_mixnet_gateway_ip: IpAddr,
     pub(crate) lan_gateway_ip: LanGatewayIp,
     pub(crate) tunnel_gateway_ip: TunnelGatewayIp,
@@ -45,9 +48,10 @@ impl Display for RoutingConfig {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "mixnet_tun_config: {:?}\ntun_ips: {:?}\nentry_mixnet_gateway_ip: {:?}\nlan_gateway_ip: {:?}\ntunnel_gateway_ip: {:?}\nenable_wireguard: {:?}\ndisable_routing: {:?}",
+            "mixnet_tun_config: {:?}\ntun_ips: {:?}\nmtu: {}\nentry_mixnet_gateway_ip: {:?}\nlan_gateway_ip: {:?}\ntunnel_gateway_ip: {:?}\nenable_wireguard: {:?}\ndisable_routing: {:?}",
             self.mixnet_tun_config,
             self.tun_ips,
+            self.mtu,
             self.entry_mixnet_gateway_ip,
             self.lan_gateway_ip,
             self.tunnel_gateway_ip,
@@ -68,14 +72,16 @@ impl RoutingConfig {
     ) -> Self {
         debug!("TUN device IPs: {}", tun_ips);
         let mut mixnet_tun_config = tun2::Configuration::default();
+        let mtu = vpn.nym_mtu.unwrap_or(DEFAULT_TUN_MTU);
         // only IPv4 is supported by tun2 for now
         mixnet_tun_config.address(tun_ips.ipv4);
-        mixnet_tun_config.mtu(vpn.nym_mtu.unwrap_or(DEFAULT_TUN_MTU));
+        mixnet_tun_config.mtu(mtu);
         mixnet_tun_config.up();
 
         Self {
             mixnet_tun_config,
             tun_ips,
+            mtu,
             entry_mixnet_gateway_ip,
             lan_gateway_ip,
             tunnel_gateway_ip,
@@ -91,9 +97,21 @@ impl RoutingConfig {
     pub fn tun_ips(&self) -> IpPair {
         self.tun_ips
     }
+
+    pub fn mtu(&self) -> u16 {
+        self.mtu
+    }
+
+    pub fn entry_mixnet_gateway_ip(&self) -> IpAddr {
+        self.entry_mixnet_gateway_ip
+    }
+
+    pub fn enable_wireguard(&self) -> bool {
+        self.enable_wireguard
+    }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct TunnelGatewayIp {
     pub ipv4: Ipv4Addr,
     pub ipv6: Option<Ipv6Addr>,
@@ -123,7 +141,7 @@ impl std::fmt::Display for TunnelGatewayIp {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct LanGatewayIp(pub Interface);
 
 impl LanGatewayIp {
@@ -189,6 +207,9 @@ fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
 pub async fn setup_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
+    #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
+        dyn crate::platform::swift::OSTunProvider,
+    >,
 ) -> Result<tun2::AsyncDevice> {
     debug!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
@@ -211,6 +232,13 @@ pub async fn setup_routing(
             }
             fd
         };
+        let mut mixnet_tun_config = mixnet_tun_config.clone();
+        mixnet_tun_config.raw_fd(fd);
+        mixnet_tun_config
+    };
+    #[cfg(target_os = "ios")]
+    let mixnet_tun_config = {
+        let fd = ios_tun_provider.configure_nym(config.clone().into())?;
         let mut mixnet_tun_config = mixnet_tun_config.clone();
         mixnet_tun_config.raw_fd(fd);
         mixnet_tun_config
@@ -276,8 +304,13 @@ pub async fn setup_routing(
     // with `netsh interface show interfaces`
     if (!config.enable_wireguard && cfg!(not(target_os = "windows"))) || cfg!(target_os = "linux") {
         let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
-        let default_node = if let Some(gateway) = config.lan_gateway_ip.0.gateway {
-            Node::new(gateway.ip_addr, config.lan_gateway_ip.0.name)
+        let default_node = if let Some(addr) = config.lan_gateway_ip.0.gateway.and_then(|g| {
+            g.ipv4
+                .first()
+                .map(|a| IpAddr::from(*a))
+                .or(g.ipv6.first().map(|a| IpAddr::from(*a)))
+        }) {
+            Node::new(addr, config.lan_gateway_ip.0.name)
         } else {
             Node::device(config.lan_gateway_ip.0.name)
         };

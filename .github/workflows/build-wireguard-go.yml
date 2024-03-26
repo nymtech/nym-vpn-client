@@ -16,7 +16,7 @@ on:
         - macos-13-xlarge
         - macos-14
         - custom-runner-mac-m1
-        - ubuntu-22.04
+        - ubuntu-22.04-arc
 
   # reusable workflow
   workflow_call:
@@ -43,7 +43,7 @@ jobs:
 
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y git curl gcc g++ make
-        if: inputs.os == 'ubuntu-22.04'
+        if: contains(inputs.os, 'ubuntu')
 
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
@@ -71,7 +71,7 @@ jobs:
 
       - name: Upload artifacts (ubuntu-22.04 x86_64)
         uses: actions/upload-artifact@v4
-        if: contains(inputs.os, 'ubuntu-22.04') || inputs.os == 'ubuntu-22.04'
+        if: contains(inputs.os, 'ubuntu-22.04')
         with:
           name: wireguard-go_ubuntu-22.04_x86_64
           path: |

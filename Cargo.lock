@@ -195,9 +195,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.79"
+version = "1.0.81"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "080e9890a082662b09c1ad45f567faeeb47f22b5fb23895fbe1e651e718e25ca"
+checksum = "0952808a6c2afd1aa8947271f3a60f1a6763c7b912d210184c5149b5cf147247"
 
 [[package]]
 name = "arc-swap"
@@ -328,9 +328,9 @@ dependencies = [
  "bitflags 1.3.2",
  "bytes",
  "futures-util",
- "http",
- "http-body",
- "hyper",
+ "http 0.2.11",
+ "http-body 0.4.6",
+ "hyper 0.14.28",
  "itoa",
  "matchit",
  "memchr",
@@ -354,8 +354,8 @@ dependencies = [
  "async-trait",
  "bytes",
  "futures-util",
- "http",
- "http-body",
+ "http 0.2.11",
+ "http-body 0.4.6",
  "mime",
  "rustversion",
  "tower-layer",
@@ -1380,23 +1380,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "default-net"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85dc7576d8346d3c86ad64dc64d26d0f6c970ba4795b850f15ee94467d8e53eb"
-dependencies = [
- "dlopen2",
- "libc",
- "memalloc",
- "netlink-packet-core 0.7.0",
- "netlink-packet-route 0.17.1",
- "netlink-sys",
- "once_cell",
- "system-configuration",
- "windows 0.48.0",
-]
-
-[[package]]
 name = "der"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1723,6 +1706,18 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "enum-as-inner"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5ffccbb6966c05b32ef8fbac435df276c4ae4d3dc55a8cd0eb9745e6c12f546a"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.48",
 ]
 
 [[package]]
@@ -2159,7 +2154,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "gloo-utils",
- "http",
+ "http 0.2.11",
  "js-sys",
  "pin-project",
  "serde",
@@ -2228,7 +2223,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "futures-util",
- "http",
+ "http 0.2.11",
  "indexmap 2.1.0",
  "slab",
  "tokio",
@@ -2315,6 +2310,51 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ebdb29d2ea9ed0083cd8cece49bbd968021bd99b0849edb4a9a7ee0fdf6a4e0"
 
 [[package]]
+name = "hickory-proto"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "091a6fbccf4860009355e3efc52ff4acf37a63489aad7435372d44ceeb6fbbcf"
+dependencies = [
+ "async-trait",
+ "cfg-if",
+ "data-encoding",
+ "enum-as-inner 0.6.0",
+ "futures-channel",
+ "futures-io",
+ "futures-util",
+ "idna 0.4.0",
+ "ipnet",
+ "once_cell",
+ "rand 0.8.5",
+ "thiserror",
+ "tinyvec",
+ "tokio",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "hickory-resolver"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35b8f021164e6a984c9030023544c57789c51760065cd510572fedcfb04164e8"
+dependencies = [
+ "cfg-if",
+ "futures-util",
+ "hickory-proto",
+ "ipconfig",
+ "lru-cache",
+ "once_cell",
+ "parking_lot 0.12.1",
+ "rand 0.8.5",
+ "resolv-conf",
+ "smallvec",
+ "thiserror",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "hkdf"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2384,9 +2424,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "http"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "21b9ddb458710bc376481b842f5da65cdf31522de232c1ca8146abce2a358258"
+dependencies = [
+ "bytes",
+ "fnv",
+ "itoa",
+]
+
+[[package]]
 name = "http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "async-trait",
  "reqwest",
@@ -2405,7 +2456,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ceab25649e9960c0311ea418d17bee82c0dcec1bd053b5f9a66e265a693bed2"
 dependencies = [
  "bytes",
- "http",
+ "http 0.2.11",
+ "pin-project-lite",
+]
+
+[[package]]
+name = "http-body"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1cac85db508abc24a2e48553ba12a996e87244a0395ce011e62b37158745d643"
+dependencies = [
+ "bytes",
+ "http 1.1.0",
+]
+
+[[package]]
+name = "http-body-util"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0475f8b2ac86659c21b64320d5d653f9efe42acd2a4e560073ec61a155a34f1d"
+dependencies = [
+ "bytes",
+ "futures-core",
+ "http 1.1.0",
+ "http-body 1.0.0",
  "pin-project-lite",
 ]
 
@@ -2467,8 +2541,8 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http",
- "http-body",
+ "http 0.2.11",
+ "http-body 0.4.6",
  "httparse",
  "httpdate",
  "itoa",
@@ -2481,14 +2555,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "hyper"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb5aa53871fc917b1a9ed87b683a5d86db645e23acb32c2e0785a353e522fb75"
+dependencies = [
+ "bytes",
+ "futures-channel",
+ "futures-util",
+ "http 1.1.0",
+ "http-body 1.0.0",
+ "httparse",
+ "httpdate",
+ "itoa",
+ "pin-project-lite",
+ "tokio",
+]
+
+[[package]]
 name = "hyper-rustls"
 version = "0.24.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec3efd23720e2049821a693cbc7e65ea87c72f1c58ff2f9522ff332b1491e590"
 dependencies = [
  "futures-util",
- "http",
- "hyper",
+ "http 0.2.11",
+ "hyper 0.14.28",
  "rustls 0.21.10",
  "tokio",
  "tokio-rustls 0.24.1",
@@ -2500,10 +2592,26 @@ version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbb958482e8c7be4bc3cf272a766a2b0bf1a6755e7a6ae777f017a31d11b13b1"
 dependencies = [
- "hyper",
+ "hyper 0.14.28",
  "pin-project-lite",
  "tokio",
  "tokio-io-timeout",
+]
+
+[[package]]
+name = "hyper-util"
+version = "0.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca38ef113da30126bbff9cd1705f9273e15d45498615d138b0c20279ac7a76aa"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "http 1.1.0",
+ "http-body 1.0.0",
+ "hyper 1.1.0",
+ "pin-project-lite",
+ "socket2 0.5.5",
+ "tokio",
 ]
 
 [[package]]
@@ -2542,6 +2650,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "418a0a6fab821475f634efe3ccc45c013f742efe03d853e8d3355d5cb850ecf8"
 dependencies = [
  "matches",
+ "unicode-bidi",
+ "unicode-normalization",
+]
+
+[[package]]
+name = "idna"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7d20d6b07bfbc108882d88ed8e37d39636dcc260e15e30c45e6ba089610b917c"
+dependencies = [
  "unicode-bidi",
  "unicode-normalization",
 ]
@@ -2669,6 +2787,15 @@ name = "ipnetwork"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b8eca9f51da27bc908ef3dd85c21e1bbba794edaf94d7841e37356275b82d31e"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "ipnetwork"
+version = "0.20.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf466541e9d546596ee94f9f69590f89473455f88372423e0008fc1a7daf100e"
 dependencies = [
  "serde",
 ]
@@ -3072,6 +3199,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5ce46fe64a9d73be07dcbe690a38ce1b293be448fd8ce1e6c1b8062c9f72c6a"
 
 [[package]]
+name = "netdev"
+version = "0.24.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3cb81882c2170b1d7594eb8c9c806e29eb831a4d6be829aea01ccfd26f13f496"
+dependencies = [
+ "dlopen2",
+ "libc",
+ "memalloc",
+ "netlink-packet-core 0.7.0",
+ "netlink-packet-route 0.17.1",
+ "netlink-sys",
+ "once_cell",
+ "system-configuration 0.6.0",
+ "windows",
+]
+
+[[package]]
 name = "netlink-packet-core"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3231,6 +3375,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "no-std-net"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43794a0ace135be66a25d3ae77d41b91615fb68ae937f904090203e81f755b65"
+
+[[package]]
 name = "nom"
 version = "7.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3311,7 +3461,7 @@ dependencies = [
 [[package]]
 name = "nym-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bs58 0.5.0",
  "cosmrs",
@@ -3330,7 +3480,7 @@ dependencies = [
 [[package]]
 name = "nym-bandwidth-controller"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bip39",
  "log",
@@ -3350,7 +3500,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "atty",
  "clap",
@@ -3368,7 +3518,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core"
 version = "1.1.15"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "async-trait",
  "base64 0.21.7",
@@ -3377,7 +3527,10 @@ dependencies = [
  "dirs 4.0.0",
  "futures",
  "gloo-timers",
+ "http-body-util",
  "humantime-serde",
+ "hyper 1.1.0",
+ "hyper-util",
  "log",
  "nym-bandwidth-controller",
  "nym-config",
@@ -3386,6 +3539,7 @@ dependencies = [
  "nym-explorer-client",
  "nym-gateway-client",
  "nym-gateway-requests",
+ "nym-metrics",
  "nym-network-defaults",
  "nym-nonexhaustive-delayqueue",
  "nym-pemstore",
@@ -3418,7 +3572,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut"
 version = "0.5.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bls12_381",
  "bs58 0.5.0",
@@ -3439,7 +3593,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-bandwidth-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3449,7 +3603,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-dkg-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3463,7 +3617,7 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "dirs 5.0.1",
  "handlebars",
@@ -3477,7 +3631,7 @@ dependencies = [
 [[package]]
 name = "nym-contracts-common"
 version = "0.5.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bs58 0.5.0",
  "cosmwasm-schema",
@@ -3490,7 +3644,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "async-trait",
  "log",
@@ -3503,7 +3657,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "log",
  "nym-bandwidth-controller",
@@ -3520,7 +3674,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -3539,7 +3693,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials-interface"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bls12_381",
  "nym-coconut",
@@ -3550,7 +3704,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "aes 0.8.3",
  "blake3",
@@ -3576,7 +3730,7 @@ dependencies = [
 [[package]]
 name = "nym-dkg"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bitvec",
  "bls12_381",
@@ -3598,7 +3752,7 @@ dependencies = [
 [[package]]
 name = "nym-ephemera-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3609,7 +3763,7 @@ dependencies = [
 [[package]]
 name = "nym-exit-policy"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "serde",
  "thiserror",
@@ -3619,7 +3773,7 @@ dependencies = [
 [[package]]
 name = "nym-explorer-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "nym-api-requests",
  "nym-contracts-common",
@@ -3631,7 +3785,7 @@ dependencies = [
 [[package]]
 name = "nym-explorer-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "log",
  "nym-explorer-api-requests",
@@ -3644,7 +3798,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "futures",
  "getrandom 0.2.12",
@@ -3677,7 +3831,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bs58 0.5.0",
  "futures",
@@ -3692,14 +3846,16 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror",
+ "tokio",
  "tungstenite",
+ "wasmtimer",
  "zeroize",
 ]
 
 [[package]]
 name = "nym-group-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -3711,7 +3867,7 @@ dependencies = [
 [[package]]
 name = "nym-ip-packet-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bincode",
  "bytes",
@@ -3725,9 +3881,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-metrics"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
+dependencies = [
+ "dashmap",
+ "lazy_static",
+ "log",
+ "prometheus",
+]
+
+[[package]]
 name = "nym-mixnet-contract-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bs58 0.4.0",
  "cosmwasm-schema",
@@ -3746,7 +3913,7 @@ dependencies = [
 [[package]]
 name = "nym-multisig-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3762,7 +3929,7 @@ dependencies = [
 [[package]]
 name = "nym-name-service-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3776,7 +3943,7 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "cfg-if",
  "dotenvy",
@@ -3792,7 +3959,7 @@ dependencies = [
 [[package]]
 name = "nym-node-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "async-trait",
  "base64 0.21.7",
@@ -3810,7 +3977,7 @@ dependencies = [
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -3821,7 +3988,7 @@ dependencies = [
 [[package]]
 name = "nym-ordered-buffer"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "log",
  "thiserror",
@@ -3830,7 +3997,7 @@ dependencies = [
 [[package]]
 name = "nym-outfox"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "blake3",
  "chacha20 0.9.1",
@@ -3848,7 +4015,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "pem",
 ]
@@ -3856,14 +4023,14 @@ dependencies = [
 [[package]]
 name = "nym-sdk"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "async-trait",
  "bip39",
  "bytecodec",
  "bytes",
  "futures",
- "http",
+ "http 0.2.11",
  "httpcodec",
  "log",
  "nym-bandwidth-controller",
@@ -3892,7 +4059,7 @@ dependencies = [
 [[package]]
 name = "nym-service-provider-directory-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3905,7 +4072,7 @@ dependencies = [
 [[package]]
 name = "nym-service-providers-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "async-trait",
  "log",
@@ -3919,7 +4086,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-client-core"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "anyhow",
  "dirs 4.0.0",
@@ -3952,7 +4119,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-proxy-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bytes",
  "futures",
@@ -3967,7 +4134,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bincode",
  "log",
@@ -3983,7 +4150,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "log",
  "nym-crypto",
@@ -4007,7 +4174,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-acknowledgements"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -4024,7 +4191,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-addressing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4035,7 +4202,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-anonymous-replies"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bs58 0.5.0",
  "nym-crypto",
@@ -4053,7 +4220,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-chunking"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "log",
  "nym-sphinx-addressing",
@@ -4066,7 +4233,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-cover"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -4084,7 +4251,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-forwarding"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "nym-outfox",
  "nym-sphinx-addressing",
@@ -4096,7 +4263,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-framing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "bytes",
  "nym-sphinx-params",
@@ -4108,7 +4275,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-params"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4119,7 +4286,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-routing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -4129,7 +4296,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "nym-outfox",
  "sphinx-packet",
@@ -4139,7 +4306,7 @@ dependencies = [
 [[package]]
 name = "nym-task"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "futures",
  "log",
@@ -4153,7 +4320,7 @@ dependencies = [
 [[package]]
 name = "nym-topology"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "async-trait",
  "bs58 0.5.0",
@@ -4176,7 +4343,7 @@ dependencies = [
 [[package]]
 name = "nym-validator-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "async-trait",
  "base64 0.13.1",
@@ -4226,7 +4393,7 @@ dependencies = [
 [[package]]
 name = "nym-vesting-contract-common"
 version = "0.7.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4238,10 +4405,11 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-cli"
-version = "0.0.5-dev"
+version = "0.0.8-dev"
 dependencies = [
+ "anyhow",
  "clap",
- "ipnetwork",
+ "ipnetwork 0.16.0",
  "log",
  "nym-vpn-lib",
  "shadowsocks",
@@ -4260,14 +4428,15 @@ dependencies = [
  "anyhow",
  "bincode",
  "bytes",
- "default-net",
  "err-derive",
  "futures",
- "ipnetwork",
+ "hickory-resolver",
+ "ipnetwork 0.16.0",
  "itertools 0.12.1",
  "jnix",
  "lazy_static",
  "log",
+ "netdev",
  "nix 0.23.2",
  "nym-bin-common",
  "nym-client-core",
@@ -4282,8 +4451,8 @@ dependencies = [
  "nym-validator-client",
  "nym-wireguard-types",
  "oslog",
+ "pnet",
  "rand 0.7.3",
- "rand 0.8.5",
  "reqwest",
  "serde",
  "serde_json",
@@ -4324,7 +4493,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "base64 0.21.7",
  "dashmap",
@@ -4637,7 +4806,7 @@ dependencies = [
  "errno 0.2.8",
  "error-chain",
  "ioctl-sys",
- "ipnetwork",
+ "ipnetwork 0.16.0",
  "libc",
 ]
 
@@ -4700,6 +4869,97 @@ name = "platforms"
 version = "3.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "626dec3cac7cc0e1577a2ec3fc496277ec2baa084bebad95bb6fdbfae235f84c"
+
+[[package]]
+name = "pnet"
+version = "0.34.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "130c5b738eeda2dc5796fe2671e49027e6935e817ab51b930a36ec9e6a206a64"
+dependencies = [
+ "ipnetwork 0.20.0",
+ "pnet_base",
+ "pnet_datalink",
+ "pnet_packet",
+ "pnet_sys",
+ "pnet_transport",
+]
+
+[[package]]
+name = "pnet_base"
+version = "0.34.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe4cf6fb3ab38b68d01ab2aea03ed3d1132b4868fa4e06285f29f16da01c5f4c"
+dependencies = [
+ "no-std-net",
+]
+
+[[package]]
+name = "pnet_datalink"
+version = "0.34.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ad5854abf0067ebbd3967f7d45ebc8976ff577ff0c7bd101c4973ae3c70f98fe"
+dependencies = [
+ "ipnetwork 0.20.0",
+ "libc",
+ "pnet_base",
+ "pnet_sys",
+ "winapi",
+]
+
+[[package]]
+name = "pnet_macros"
+version = "0.34.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "688b17499eee04a0408aca0aa5cba5fc86401d7216de8a63fdf7a4c227871804"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "regex",
+ "syn 2.0.48",
+]
+
+[[package]]
+name = "pnet_macros_support"
+version = "0.34.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eea925b72f4bd37f8eab0f221bbe4c78b63498350c983ffa9dd4bcde7e030f56"
+dependencies = [
+ "pnet_base",
+]
+
+[[package]]
+name = "pnet_packet"
+version = "0.34.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9a005825396b7fe7a38a8e288dbc342d5034dac80c15212436424fef8ea90ba"
+dependencies = [
+ "glob",
+ "pnet_base",
+ "pnet_macros",
+ "pnet_macros_support",
+]
+
+[[package]]
+name = "pnet_sys"
+version = "0.34.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "417c0becd1b573f6d544f73671070b039051e5ad819cc64aa96377b536128d00"
+dependencies = [
+ "libc",
+ "winapi",
+]
+
+[[package]]
+name = "pnet_transport"
+version = "0.34.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2637e14d7de974ee2f74393afccbc8704f3e54e6eb31488715e72481d1662cc3"
+dependencies = [
+ "libc",
+ "pnet_base",
+ "pnet_packet",
+ "pnet_sys",
+]
 
 [[package]]
 name = "poly1305"
@@ -4801,6 +5061,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "prometheus"
+version = "0.13.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "449811d15fbdf5ceb5c1144416066429cf82316e2ec8ce0c1f6f8a02e7bbcf8c"
+dependencies = [
+ "cfg-if",
+ "fnv",
+ "lazy_static",
+ "memchr",
+ "parking_lot 0.12.1",
+ "protobuf",
+ "thiserror",
+]
+
+[[package]]
 name = "prost"
 version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4885,6 +5160,12 @@ checksum = "193898f59edcf43c26227dcd4c8427f00d99d61e95dcde58dabd49fa291d470e"
 dependencies = [
  "prost 0.12.3",
 ]
+
+[[package]]
+name = "protobuf"
+version = "2.28.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "106dd99e98437432fed6519dedecfade6a06a73bb7b2a1e019fdd2bee5778d94"
 
 [[package]]
 name = "quick-error"
@@ -5109,9 +5390,9 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http",
- "http-body",
- "hyper",
+ "http 0.2.11",
+ "http-body 0.4.6",
+ "hyper 0.14.28",
  "hyper-rustls",
  "ipnet",
  "js-sys",
@@ -5127,7 +5408,7 @@ dependencies = [
  "serde_json",
  "serde_urlencoded",
  "sync_wrapper",
- "system-configuration",
+ "system-configuration 0.5.1",
  "tokio",
  "tokio-rustls 0.24.1",
  "tower-service",
@@ -6102,7 +6383,18 @@ checksum = "ba3a3adc5c275d719af8cb4272ea1c4a6d668a777f37e115f6d11ddbc1c8e0e7"
 dependencies = [
  "bitflags 1.3.2",
  "core-foundation",
- "system-configuration-sys",
+ "system-configuration-sys 0.5.0",
+]
+
+[[package]]
+name = "system-configuration"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "658bc6ee10a9b4fcf576e9b0819d95ec16f4d2c02d39fd83ac1c8789785c4a42"
+dependencies = [
+ "bitflags 2.4.1",
+ "core-foundation",
+ "system-configuration-sys 0.6.0",
 ]
 
 [[package]]
@@ -6116,9 +6408,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "system-configuration-sys"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e1d1b10ced5ca923a1fcb8d03e96b8d3268065d724548c0211415ff6ac6bac4"
+dependencies = [
+ "core-foundation-sys",
+ "libc",
+]
+
+[[package]]
 name = "talpid-core"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=fde37701018191d16bc66c37616588aa120b9549#fde37701018191d16bc66c37616588aa120b9549"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf662049de54114a5f8c4c350b42e#2a5b83ed9f8cf662049de54114a5f8c4c350b42e"
 dependencies = [
  "async-trait",
  "atty",
@@ -6132,7 +6434,7 @@ dependencies = [
  "hex",
  "inotify 0.10.2",
  "internet-checksum",
- "ipnetwork",
+ "ipnetwork 0.16.0",
  "jnix",
  "lazy_static",
  "libc",
@@ -6157,7 +6459,7 @@ dependencies = [
  "shell-escape",
  "socket2 0.4.10",
  "subslice",
- "system-configuration",
+ "system-configuration 0.5.1",
  "talpid-dbus",
  "talpid-openvpn",
  "talpid-routing",
@@ -6185,7 +6487,7 @@ dependencies = [
 [[package]]
 name = "talpid-dbus"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=fde37701018191d16bc66c37616588aa120b9549#fde37701018191d16bc66c37616588aa120b9549"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf662049de54114a5f8c4c350b42e#2a5b83ed9f8cf662049de54114a5f8c4c350b42e"
 dependencies = [
  "dbus",
  "err-derive",
@@ -6198,7 +6500,7 @@ dependencies = [
 [[package]]
 name = "talpid-openvpn"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=fde37701018191d16bc66c37616588aa120b9549#fde37701018191d16bc66c37616588aa120b9549"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf662049de54114a5f8c4c350b42e#2a5b83ed9f8cf662049de54114a5f8c4c350b42e"
 dependencies = [
  "async-trait",
  "atty",
@@ -6235,7 +6537,7 @@ dependencies = [
 [[package]]
 name = "talpid-platform-metadata"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=fde37701018191d16bc66c37616588aa120b9549#fde37701018191d16bc66c37616588aa120b9549"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf662049de54114a5f8c4c350b42e#2a5b83ed9f8cf662049de54114a5f8c4c350b42e"
 dependencies = [
  "rs-release",
  "talpid-dbus",
@@ -6245,11 +6547,11 @@ dependencies = [
 [[package]]
 name = "talpid-routing"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=fde37701018191d16bc66c37616588aa120b9549#fde37701018191d16bc66c37616588aa120b9549"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf662049de54114a5f8c4c350b42e#2a5b83ed9f8cf662049de54114a5f8c4c350b42e"
 dependencies = [
  "err-derive",
  "futures",
- "ipnetwork",
+ "ipnetwork 0.16.0",
  "lazy_static",
  "libc",
  "log",
@@ -6268,7 +6570,7 @@ dependencies = [
 [[package]]
 name = "talpid-time"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=fde37701018191d16bc66c37616588aa120b9549#fde37701018191d16bc66c37616588aa120b9549"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf662049de54114a5f8c4c350b42e#2a5b83ed9f8cf662049de54114a5f8c4c350b42e"
 dependencies = [
  "libc",
  "tokio",
@@ -6277,13 +6579,13 @@ dependencies = [
 [[package]]
 name = "talpid-tunnel"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=fde37701018191d16bc66c37616588aa120b9549#fde37701018191d16bc66c37616588aa120b9549"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf662049de54114a5f8c4c350b42e#2a5b83ed9f8cf662049de54114a5f8c4c350b42e"
 dependencies = [
  "cfg-if",
  "duct",
  "err-derive",
  "futures",
- "ipnetwork",
+ "ipnetwork 0.16.0",
  "jnix",
  "log",
  "nix 0.23.2",
@@ -6298,7 +6600,7 @@ dependencies = [
 [[package]]
 name = "talpid-tunnel-config-client"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=fde37701018191d16bc66c37616588aa120b9549#fde37701018191d16bc66c37616588aa120b9549"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf662049de54114a5f8c4c350b42e#2a5b83ed9f8cf662049de54114a5f8c4c350b42e"
 dependencies = [
  "classic-mceliece-rust",
  "log",
@@ -6314,11 +6616,11 @@ dependencies = [
 [[package]]
 name = "talpid-types"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=fde37701018191d16bc66c37616588aa120b9549#fde37701018191d16bc66c37616588aa120b9549"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf662049de54114a5f8c4c350b42e#2a5b83ed9f8cf662049de54114a5f8c4c350b42e"
 dependencies = [
  "base64 0.13.1",
  "err-derive",
- "ipnetwork",
+ "ipnetwork 0.16.0",
  "jnix",
  "rand 0.8.5",
  "serde",
@@ -6329,7 +6631,7 @@ dependencies = [
 [[package]]
 name = "talpid-windows-net"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=fde37701018191d16bc66c37616588aa120b9549#fde37701018191d16bc66c37616588aa120b9549"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf662049de54114a5f8c4c350b42e#2a5b83ed9f8cf662049de54114a5f8c4c350b42e"
 dependencies = [
  "err-derive",
  "futures",
@@ -6342,7 +6644,7 @@ dependencies = [
 [[package]]
 name = "talpid-wireguard"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=fde37701018191d16bc66c37616588aa120b9549#fde37701018191d16bc66c37616588aa120b9549"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf662049de54114a5f8c4c350b42e#2a5b83ed9f8cf662049de54114a5f8c4c350b42e"
 dependencies = [
  "bitflags 1.3.2",
  "byteorder",
@@ -6352,7 +6654,7 @@ dependencies = [
  "futures",
  "hex",
  "internet-checksum",
- "ipnetwork",
+ "ipnetwork 0.16.0",
  "lazy_static",
  "libc",
  "log",
@@ -6689,7 +6991,9 @@ dependencies = [
  "futures-util",
  "log",
  "rustls 0.21.10",
+ "rustls-native-certs",
  "tokio",
+ "tokio-rustls 0.24.1",
  "tungstenite",
 ]
 
@@ -6765,9 +7069,9 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http",
- "http-body",
- "hyper",
+ "http 0.2.11",
+ "http-body 0.4.6",
+ "hyper 0.14.28",
  "hyper-timeout",
  "percent-encoding",
  "pin-project",
@@ -6964,7 +7268,7 @@ dependencies = [
  "async-trait",
  "cfg-if",
  "data-encoding",
- "enum-as-inner",
+ "enum-as-inner 0.4.0",
  "futures-channel",
  "futures-io",
  "futures-util",
@@ -7011,7 +7315,7 @@ dependencies = [
  "async-trait",
  "bytes",
  "cfg-if",
- "enum-as-inner",
+ "enum-as-inner 0.4.0",
  "env_logger 0.9.3",
  "futures-executor",
  "futures-util",
@@ -7071,7 +7375,7 @@ dependencies = [
  "byteorder",
  "bytes",
  "data-encoding",
- "http",
+ "http 0.2.11",
  "httparse",
  "log",
  "rand 0.8.5",
@@ -7085,7 +7389,7 @@ dependencies = [
 [[package]]
 name = "tunnel-obfuscation"
 version = "0.0.0"
-source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=fde37701018191d16bc66c37616588aa120b9549#fde37701018191d16bc66c37616588aa120b9549"
+source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf662049de54114a5f8c4c350b42e#2a5b83ed9f8cf662049de54114a5f8c4c350b42e"
 dependencies = [
  "async-trait",
  "err-derive",
@@ -7508,7 +7812,7 @@ checksum = "7ab9b36309365056cd639da3134bf87fa8f3d86008abf99e612384a6eecd459f"
 [[package]]
 name = "wasm-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=5bb9e36842e93d06c67ac8860dfdbf58fb354b01#5bb9e36842e93d06c67ac8860dfdbf58fb354b01"
+source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
 dependencies = [
  "futures",
  "getrandom 0.2.12",
@@ -7627,15 +7931,6 @@ name = "winapi-x86_64-pc-windows-gnu"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
-
-[[package]]
-name = "windows"
-version = "0.48.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e686886bc078bc1b0b600cac0147aadb815089b6e4da64016cbd754b6342700f"
-dependencies = [
- "windows-targets 0.48.5",
-]
 
 [[package]]
 name = "windows"
@@ -7962,7 +8257,7 @@ dependencies = [
  "libloading",
  "log",
  "thiserror",
- "windows 0.52.0",
+ "windows",
 ]
 
 [[package]]

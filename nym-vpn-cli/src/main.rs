@@ -107,7 +107,7 @@ async fn run() -> Result<()> {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> anyhow::Result<()> {
     if let Err(err) = run().await {
         error!("Exit with error: {err}");
         eprintln!("An error occurred: {err}");

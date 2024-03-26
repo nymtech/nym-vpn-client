@@ -1,20 +1,24 @@
+import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
+import * as Sentry from '@sentry/react';
 import {
   AddCredential,
   Display,
   Error,
   Feedback,
-  Home,
   Legal,
   LegalRouteIndex,
-  LicensesJs,
-  LicensesRust,
+  LicenseDetails,
+  LicenseList,
   MainLayout,
   NodeLocation,
   Settings,
   SettingsRouteIndex,
   Support,
 } from './pages';
+
+// Lazy loads Home
+const Home = lazy(() => import('./pages/home/Home'));
 
 export const routes = {
   root: '/',
@@ -28,11 +32,17 @@ export const routes = {
   legal: '/settings/legal',
   licensesRust: '/settings/legal/licenses-rust',
   licensesJs: '/settings/legal/licenses-js',
+  licenseDetails: '/settings/legal/license-details',
   entryNodeLocation: '/entry-node-location',
   exitNodeLocation: '/exit-node-location',
 } as const;
 
-const router = createBrowserRouter([
+// Even if Sentry is not instantiated, wrapping the router seems OK
+const createRouterFn = Sentry.wrapCreateBrowserRouter(createBrowserRouter);
+
+// ⚠ router instance creation must remain outside of React
+// tree with routes statically defined
+const router = createRouterFn([
   {
     path: routes.root,
     element: <MainLayout />,
@@ -92,12 +102,17 @@ const router = createBrowserRouter([
               },
               {
                 path: routes.licensesRust,
-                element: <LicensesRust />,
+                element: <LicenseList language="rust" />,
                 errorElement: <Error />,
               },
               {
                 path: routes.licensesJs,
-                element: <LicensesJs />,
+                element: <LicenseList language="js" />,
+                errorElement: <Error />,
+              },
+              {
+                path: routes.licenseDetails,
+                element: <LicenseDetails />,
                 errorElement: <Error />,
               },
             ],
@@ -106,7 +121,6 @@ const router = createBrowserRouter([
       },
       {
         path: routes.entryNodeLocation,
-        // eslint-disable-next-line react/jsx-no-undef
         element: <NodeLocation node="entry" />,
         errorElement: <Error />,
       },

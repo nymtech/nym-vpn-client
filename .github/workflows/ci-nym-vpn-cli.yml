@@ -20,7 +20,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, custom-runner-mac-m1, windows11]
+        os: [ubuntu-22.04-arc, custom-runner-mac-m1, windows11]
+        target: [native]
+        include:
+          - os: ubuntu-22.04-arc
+            target: android
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -33,8 +37,8 @@ jobs:
           ls -la ./
 
       - name: Install system dependencies
-        if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
+        if: contains(matrix.os, 'ubuntu')
 
       - name: Support longpaths on windows
         if: contains(matrix.os, 'windows')
@@ -49,6 +53,26 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - name: Install cargo ndk
+        if: contains(matrix.target, 'android')
+        run: cargo install cargo-ndk
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        if: contains(matrix.target, 'android')
+        with:
+          ndk-version: r26c
+          add-to-path: false
+
+      - name: Add iOS target
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        run: rustup target add aarch64-apple-ios
+
+      - name: Add Android target
+        if: contains(matrix.target, 'android')
+        run: rustup target add aarch64-linux-android
+
       - uses: Swatinem/rust-cache@v2
         with:
           key: ${{ steps.rust-toolchain.outputs.cachekey }}
@@ -58,8 +82,12 @@ jobs:
       - name: Set env
         shell: bash
         run: |
-          if ${{ contains(matrix.os, 'ubuntu') || matrix.os == 'ubuntu-22.04' }}; then
+          if ${{ contains(matrix.os, 'ubuntu') && contains(matrix.target, 'native') }}; then
             triplet=x86_64-unknown-linux-gnu
+          elif ${{ matrix.target == 'android' }}; then
+            triplet=aarch64-linux-android
+            echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
+            echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
           elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
             triplet=x86_64-apple-darwin
           elif ${{ contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') }}; then
@@ -145,11 +173,41 @@ jobs:
       - name: rustfmt check
         run: cargo fmt --check
 
+      - name: Build wireguard
+        run: ./wireguard/build-wireguard-go.sh
+
+      - name: Build wireguard (Android)
+        if: contains(matrix.target, 'android')
+        run: ./wireguard/libwg/build-android.sh
+
       - name: Build
+        if: "!contains(matrix.target, 'android')"
         run: cargo build --verbose
 
+      - name: Build (Android)
+        if: contains(matrix.target, 'android')
+        run: |
+          cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
+          rustflags="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu"
+          RUSTFLAGS=$rustflags cargo run --bin uniffi-bindgen generate --library target/aarch64-linux-android/debug/libnym_vpn_lib.so  --language kotlin --out-dir build -n
+
+      - name: Build (iOS)
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        run: |
+          cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
+          cargo run --bin uniffi-bindgen generate --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  --language swift --out-dir build -n
+
       - name: Run tests
+        if: "!contains(matrix.target, 'android')"
         run: cargo test --verbose
 
       - name: Clippy
         run: cargo clippy -- -Dwarnings
+
+      - name: Clippy (Android)
+        if: contains(matrix.target, 'android')
+        run: cargo ndk  -t aarch64-linux-android clippy -p nym-vpn-lib -- -Dwarnings
+
+      - name: Clippy (iOS)
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        run: cargo clippy --target aarch64-apple-ios -p nym-vpn-lib -- -Dwarnings

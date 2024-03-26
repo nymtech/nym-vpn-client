@@ -6,12 +6,11 @@ use crate::gateway_client::{EntryPoint, ExitPoint};
 use crate::NymVpn;
 use ipnetwork::IpNetwork;
 use jnix::jni::{
-    objects::{JClass, JObject, JString},
+    objects::{JObject, JString},
     sys::{jboolean, jint, JNI_FALSE},
     JNIEnv,
 };
-use jnix::IntoJava;
-use jnix::{FromJava, JnixEnv};
+use jnix::{FromJava, IntoJava, JnixEnv};
 use nix::sys::{
     select::{pselect, FdSet},
     time::{TimeSpec, TimeValLike},
@@ -94,7 +93,7 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     vpn_service: JObject<'_>,
 ) {
     if RUNTIME.block_on(get_vpn_state()) != ClientState::Uninitialised {
-        warn!("VPN was already inited. Try starting it");
+        warn!("VPN was already initialized. Try starting it");
         return;
     }
 
@@ -110,15 +109,31 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
             .new_global_ref(vpn_service)
             .expect("Create global reference"),
     };
-    let api_url = Url::from_str(&String::from_java(&env, api_url)).expect("Invalid api url");
-    let explorer_url =
-        Url::from_str(&String::from_java(&env, explorer_url)).expect("Invalid explorer url");
+
     let entry_gateway: EntryPoint = serde_json::from_str(&String::from_java(&env, entry_gateway))
-        .expect("Invalid entry gateway");
-    let exit_router: ExitPoint =
-        serde_json::from_str(&String::from_java(&env, exit_router)).expect("Invalid exit router");
+        .map_err(|e| {
+            error!("Could not parse entry point {:?}", e);
+        })
+        .unwrap();
+    let exit_router: ExitPoint = serde_json::from_str(&String::from_java(&env, exit_router))
+        .map_err(|e| {
+            error!("Could not parse exit point {:?}", e);
+        })
+        .unwrap();
 
     let mut vpn = NymVpn::new(entry_gateway, exit_router, context);
+
+    let api_url = Url::from_str(&String::from_java(&env, api_url))
+        .map_err(|e| {
+            error!("Failed to parse api url : {:?}", e);
+        })
+        .unwrap();
+
+    let explorer_url = Url::from_str(&String::from_java(&env, explorer_url))
+        .map_err(|e| {
+            error!("Failed to parse explorer url : {:?}", e);
+        })
+        .unwrap();
 
     vpn.gateway_config.api_url = api_url;
     vpn.gateway_config.explorer_url = Some(explorer_url);
@@ -129,52 +144,11 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
 
 #[no_mangle]
 #[allow(non_snake_case)]
-pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_runVPN(_env: JNIEnv, _class: JClass) {
-    let state = RUNTIME.block_on(get_vpn_state());
-    if state != ClientState::Disconnected {
-        warn!("Invalid vpn state: {:?}", state);
-        return;
-    }
-
-    let vpn = RUNTIME
-        .block_on(take_vpn())
-        .expect("VPN configuration was cleared before it could be used");
-
-    let ret = RUNTIME.block_on(_async_run_vpn(vpn));
-
-    match ret {
-        Err(err) => error!("Could not start the VPN: {:?}", err),
-        Ok((stop_handle, handle)) => {
-            RUNTIME.spawn(async move {
-                wait_for_shutdown(stop_handle, handle)
-                    .await
-                    .map_err(|err| {
-                        warn!("error during vpn run: {}", err);
-                    })
-                    .ok();
-            });
-        }
-    }
-}
-
-#[allow(non_snake_case)]
-#[no_mangle]
-pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_stopVPN(_env: JNIEnv, _class: JClass) {
-    if RUNTIME.block_on(get_vpn_state()) != ClientState::Connected {
-        warn!("could not stop the vpn as it's not running");
-        return;
-    }
-    RUNTIME.block_on(stop_and_reset_shutdown_handle());
-}
-
-#[no_mangle]
-#[allow(non_snake_case)]
 pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_defaultTunConfig<'env>(
     env: JNIEnv<'env>,
     _this: JObject<'_>,
 ) -> JObject<'env> {
     let env = JnixEnv::from(env);
-
     TunConfig::default().into_java(&env).forget()
 }
 
@@ -200,23 +174,25 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_waitForTunnelUp(
 #[derive(Debug, err_derive::Error)]
 #[error(no_from)]
 enum SendRandomDataError {
-    #[error(display = "Failed to bind an UDP socket")]
+    #[error(display = "failed to bind an UDP socket")]
     BindUdpSocket(#[error(source)] io::Error),
 
-    #[error(display = "Failed to send random data through UDP socket")]
+    #[error(display = "failed to send random data through UDP socket")]
     SendToUdpSocket(#[error(source)] io::Error),
 }
 
 #[derive(Debug, err_derive::Error)]
 enum Error {
-    #[error(display = "Failed to verify the tunnel device")]
+    #[error(display = "failed to verify the tunnel device")]
     VerifyTunDevice(#[error(source)] SendRandomDataError),
 
-    #[error(display = "Failed to select() on tunnel device")]
+    #[error(display = "failed to select() on tunnel device")]
     Select(#[error(source)] nix::Error),
 
-    #[error(display = "Timed out while waiting for tunnel device to receive data")]
+    #[error(display = "timed out while waiting for tunnel device to receive data")]
     TunnelDeviceTimeout,
+    #[error(display = "timed out while waiting for tunnel device to receive data")]
+    ParseExplorerUrlFailed,
 }
 
 fn wait_for_tunnel_up(tun_fd: RawFd, is_ipv6_enabled: bool) -> Result<(), Error> {
@@ -247,7 +223,7 @@ fn try_sending_random_udp(is_ipv6_enabled: bool) -> Result<(), SendRandomDataErr
         // pick any random route to select between Ipv4 and Ipv6
         // TODO: if we are to allow LAN on Android by changing the routes that are stuffed in
         // TunConfig, then this should be revisited to be fair between IPv4 and IPv6
-        let should_generate_ipv4 = is_ipv6_enabled == false || thread_rng().gen();
+        let should_generate_ipv4 = !is_ipv6_enabled || thread_rng().gen();
 
         let rand_port = thread_rng().gen();
         let (local_addr, rand_dest_addr) = if should_generate_ipv4 || tried_ipv6 {
@@ -255,7 +231,7 @@ fn try_sending_random_udp(is_ipv6_enabled: bool) -> Result<(), SendRandomDataErr
             thread_rng().fill(&mut ipv4_bytes);
             (
                 SocketAddr::new(Ipv4Addr::UNSPECIFIED.into(), 0),
-                SocketAddr::new(IpAddr::from(ipv4_bytes).into(), rand_port),
+                SocketAddr::new(IpAddr::from(ipv4_bytes), rand_port),
             )
         } else {
             let mut ipv6_bytes = [0u8; 16];
@@ -263,7 +239,7 @@ fn try_sending_random_udp(is_ipv6_enabled: bool) -> Result<(), SendRandomDataErr
             thread_rng().fill(&mut ipv6_bytes);
             (
                 SocketAddr::new(Ipv6Addr::UNSPECIFIED.into(), 0),
-                SocketAddr::new(IpAddr::from(ipv6_bytes).into(), rand_port),
+                SocketAddr::new(IpAddr::from(ipv6_bytes), rand_port),
             )
         };
 
