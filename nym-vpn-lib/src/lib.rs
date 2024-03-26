@@ -196,7 +196,7 @@ impl NymVpn {
         tunnel_gateway_ip: routing::TunnelGatewayIp,
     ) -> Result<()> {
         info!("Connecting to IP packet router");
-        let ips = mixnet_connect::connect_to_ip_packet_router(
+        let our_ips = mixnet_connect::connect_to_ip_packet_router(
             mixnet_client.clone(),
             exit_router,
             self.nym_ips,
@@ -204,7 +204,7 @@ impl NymVpn {
         )
         .await?;
         info!("Successfully connected to IP packet router!");
-        info!("Using mixnet VPN IP addresses: {ips}");
+        info!("Using mixnet VPN IP addresses: {our_ips}");
 
         // We need the IP of the gateway to correctly configure the routing table
         let mixnet_client_address = mixnet_client.nym_address().await;
@@ -217,7 +217,7 @@ impl NymVpn {
         info!("Setting up routing");
         let routing_config = routing::RoutingConfig::new(
             self,
-            ips,
+            our_ips,
             entry_mixnet_gateway_ip,
             default_lan_gateway_ip,
             tunnel_gateway_ip,
@@ -242,7 +242,7 @@ impl NymVpn {
         // Channels to report connection status events
         let (connection_event_tx, connection_event_rx) = mpsc::unbounded();
 
-        let icmp_identifier = std::process::id() as u16;
+        let icmp_beacon_identifier = connection_monitor::create_icmp_beacon_identifier();
 
         let shadow_handle = mixnet_processor::start_processor(
             processor_config,
@@ -250,33 +250,21 @@ impl NymVpn {
             mixnet_client,
             task_manager,
             self.enable_two_hop,
-            ips,
-            icmp_identifier,
+            our_ips,
+            icmp_beacon_identifier,
             connection_event_tx,
         )
         .await;
         self.set_shadow_handle(shadow_handle);
 
-        info!("Setting up mixnet connection beacon");
-        connection_monitor::mixnet_beacon::start_mixnet_connection_beacon(
-            mixnet_client_sender.clone(),
-            mixnet_client_address,
-            task_manager.subscribe_named("mixnet_beacon"),
-        );
-
-        info!("Setting up ICMP connection beacon");
-        connection_monitor::icmp_beacon::start_icmp_connection_beacon(
+        connection_monitor::start_connection_monitor(
             mixnet_client_sender,
-            ips,
-            exit_router.0,
-            icmp_identifier,
-            task_manager.subscribe_named("icmp_beacon"),
-        );
-
-        info!("Setting up connection monitor");
-        connection_monitor::monitor::start_connection_monitor(
+            mixnet_client_address,
+            our_ips,
+            exit_router,
+            icmp_beacon_identifier,
             connection_event_rx,
-            task_manager.subscribe_named("connection_monitor"),
+            task_manager,
         );
 
         Ok(())
@@ -319,11 +307,8 @@ impl NymVpn {
 
         // Check that we can ping ourselves before continuing
         info!("Sending mixnet ping to ourselves");
-        connection_monitor::mixnet_beacon::self_ping_and_wait(
-            nym_address,
-            mixnet_client.clone(),
-        )
-        .await?;
+        connection_monitor::mixnet_beacon::self_ping_and_wait(nym_address, mixnet_client.clone())
+            .await?;
         info!("Successfully pinged ourselves");
 
         if let Err(err) = self
