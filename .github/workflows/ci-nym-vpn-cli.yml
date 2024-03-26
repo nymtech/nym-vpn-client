@@ -40,7 +40,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         run: |
           ls ./
-          rm ./*
+          rm nym-vpn-mullvad-libs
           ls ./
 
       - name: Install system dependencies
