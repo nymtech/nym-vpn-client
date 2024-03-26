@@ -239,10 +239,9 @@ impl NymVpn {
 
         // For other components that will want to send mixnet packets
         let mixnet_client_sender = mixnet_client.split_sender().await;
-        // Channels to report connection status events
-        let (connection_event_tx, connection_event_rx) = mpsc::unbounded();
 
-        let icmp_beacon_identifier = connection_monitor::create_icmp_beacon_identifier();
+        // Setup connection monitor shared tag and channels
+        let connection_monitor = connection_monitor::ConnectionMonitorTask::setup();
 
         let shadow_handle = mixnet_processor::start_processor(
             processor_config,
@@ -251,19 +250,17 @@ impl NymVpn {
             task_manager,
             self.enable_two_hop,
             our_ips,
-            icmp_beacon_identifier,
-            connection_event_tx,
+            connection_monitor.icmp_beacon_identifier(),
+            connection_monitor.event_sender(),
         )
         .await;
         self.set_shadow_handle(shadow_handle);
 
-        connection_monitor::start_connection_monitor(
+        connection_monitor.start(
             mixnet_client_sender,
             mixnet_client_address,
             our_ips,
             exit_router,
-            icmp_beacon_identifier,
-            connection_event_rx,
             task_manager,
         );
 

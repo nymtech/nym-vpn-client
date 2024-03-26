@@ -16,34 +16,59 @@ pub(crate) fn create_icmp_beacon_identifier() -> u16 {
     std::process::id() as u16
 }
 
-pub(crate) fn start_connection_monitor(
-    mixnet_client_sender: MixnetClientSender,
-    our_nym_address: Recipient,
-    our_ips: IpPair,
-    exit_router_address: &IpPacketRouterAddress,
+pub(crate) struct ConnectionMonitorTask {
     icmp_beacon_identifier: u16,
+    connection_event_tx: mpsc::UnboundedSender<monitor::ConnectionStatusEvent>,
     connection_event_rx: mpsc::UnboundedReceiver<monitor::ConnectionStatusEvent>,
-    task_manager: &nym_task::TaskManager,
-) {
-    info!("Setting up mixnet connection beacon");
-    mixnet_beacon::start_mixnet_connection_beacon(
-        mixnet_client_sender.clone(),
-        our_nym_address,
-        task_manager.subscribe_named("mixnet_beacon"),
-    );
+}
 
-    info!("Setting up ICMP connection beacon");
-    icmp_beacon::start_icmp_connection_beacon(
-        mixnet_client_sender,
-        our_ips,
-        exit_router_address.0,
-        icmp_beacon_identifier,
-        task_manager.subscribe_named("icmp_beacon"),
-    );
+impl ConnectionMonitorTask {
+    pub(crate) fn setup() -> ConnectionMonitorTask {
+        let (connection_event_tx, connection_event_rx) = mpsc::unbounded();
+        let icmp_beacon_identifier = create_icmp_beacon_identifier();
+        ConnectionMonitorTask {
+            icmp_beacon_identifier,
+            connection_event_tx,
+            connection_event_rx,
+        }
+    }
 
-    info!("Setting up connection monitor");
-    monitor::start_connection_monitor(
-        connection_event_rx,
-        task_manager.subscribe_named("connection_monitor"),
-    );
+    pub(crate) fn event_sender(&self) -> mpsc::UnboundedSender<monitor::ConnectionStatusEvent> {
+        self.connection_event_tx.clone()
+    }
+
+    pub(crate) fn icmp_beacon_identifier(&self) -> u16 {
+        self.icmp_beacon_identifier
+    }
+
+    pub(crate) fn start(
+        self,
+        mixnet_client_sender: MixnetClientSender,
+        our_nym_address: Recipient,
+        our_ips: IpPair,
+        exit_router_address: &IpPacketRouterAddress,
+        task_manager: &nym_task::TaskManager,
+    ) {
+        info!("Setting up mixnet connection beacon");
+        mixnet_beacon::start_mixnet_connection_beacon(
+            mixnet_client_sender.clone(),
+            our_nym_address,
+            task_manager.subscribe_named("mixnet_beacon"),
+        );
+
+        info!("Setting up ICMP connection beacon");
+        icmp_beacon::start_icmp_connection_beacon(
+            mixnet_client_sender,
+            our_ips,
+            exit_router_address.0,
+            self.icmp_beacon_identifier,
+            task_manager.subscribe_named("icmp_beacon"),
+        );
+
+        info!("Setting up connection monitor");
+        monitor::start_connection_monitor(
+            self.connection_event_rx,
+            task_manager.subscribe_named("connection_monitor"),
+        );
+    }
 }
