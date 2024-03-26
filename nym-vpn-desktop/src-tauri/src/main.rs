@@ -102,10 +102,10 @@ async fn main() -> Result<()> {
             error!(err_message);
             return Err(anyhow!(err_message));
         }
-    }
 
-    // Read the env variables in the provided file and export them all to the local environment.
-    nym_config::defaults::setup_env(app_config.env_config_file.clone());
+        // Read the env variables in the provided file and export them all to the local environment.
+        nym_config::defaults::setup_env(app_config.env_config_file.clone());
+    }
 
     info!("Creating k/v embedded db");
     let db = Db::new()?;
