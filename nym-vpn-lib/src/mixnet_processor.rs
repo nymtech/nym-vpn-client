@@ -23,7 +23,7 @@ use tun2::{AbstractDevice, AsyncDevice};
 use nym_gateway_directory::IpPacketRouterAddress;
 
 use crate::{
-    connection_monitor::{self, monitor::ConnectionStatusEvent},
+    connection_monitor::{self, monitor::ConnectionStatusEvent, ConnectionMonitorTask},
     error::{Error, Result},
     mixnet_connect::SharedMixnetClient,
 };
@@ -83,22 +83,21 @@ pub struct MixnetProcessor {
 }
 
 impl MixnetProcessor {
-    pub fn new(
+    pub(crate) fn new(
         device: AsyncDevice,
         mixnet_client: SharedMixnetClient,
-        connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
+        connection_monitor: &ConnectionMonitorTask,
         ip_packet_router_address: IpPacketRouterAddress,
         our_ips: nym_ip_packet_requests::IpPair,
-        icmp_beacon_identifier: u16,
         enable_two_hop: bool,
     ) -> Self {
         MixnetProcessor {
             device,
             mixnet_client,
-            connection_event_tx,
+            connection_event_tx: connection_monitor.event_sender(),
             ip_packet_router_address,
             our_ips,
-            icmp_beacon_identifier,
+            icmp_beacon_identifier: connection_monitor.icmp_beacon_identifier(),
             enable_two_hop,
         }
     }
@@ -303,24 +302,22 @@ fn check_for_icmp_beacon_reply(
 }
 
 #[allow(clippy::too_many_arguments)]
-pub async fn start_processor(
+pub(crate) async fn start_processor(
     config: Config,
     dev: AsyncDevice,
     mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,
     enable_two_hop: bool,
     our_ips: nym_ip_packet_requests::IpPair,
-    icmp_identifier: u16,
-    connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
+    connection_monitor: &ConnectionMonitorTask,
 ) -> JoinHandle<Result<AsyncDevice>> {
     info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(
         dev,
         mixnet_client,
-        connection_event_tx,
+        connection_monitor,
         config.ip_packet_router_address,
         our_ips,
-        icmp_identifier,
         enable_two_hop,
     );
     let shutdown_listener = task_manager.subscribe();

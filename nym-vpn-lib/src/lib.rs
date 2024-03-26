@@ -250,8 +250,7 @@ impl NymVpn {
             task_manager,
             self.enable_two_hop,
             our_ips,
-            connection_monitor.icmp_beacon_identifier(),
-            connection_monitor.event_sender(),
+            &connection_monitor,
         )
         .await;
         self.set_shadow_handle(shadow_handle);
