@@ -10,6 +10,7 @@ use crate::{
 use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
+use nym_explorer_client::Location;
 use nym_task::manager::TaskStatus;
 use std::sync::Arc;
 use talpid_core::mpsc::Sender;
@@ -175,19 +176,13 @@ async fn stop_vpn() {
     stop_and_reset_shutdown_handle().await;
 }
 
-#[derive(Clone, Eq, PartialEq, Hash, uniffi::Enum)]
-pub enum Country {
-    Code { value: String },
-    Name { value: String },
-}
-
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getGatewayCountries(
     api_url: Url,
     explorer_url: Url,
     exit_only: bool,
-) -> Result<Vec<Country>, FFIError> {
+) -> Result<Vec<Location>, FFIError> {
     RUNTIME.block_on(get_gateway_countries(api_url, explorer_url, exit_only))
 }
 
@@ -195,7 +190,7 @@ async fn get_gateway_countries(
     api_url: Url,
     explorer_url: Url,
     exit_only: bool,
-) -> Result<Vec<Country>, FFIError> {
+) -> Result<Vec<Location>, FFIError> {
     let config = gateway_client::Config {
         api_url,
         explorer_url: Some(explorer_url),
@@ -212,14 +207,14 @@ async fn get_gateway_countries(
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getLowLatencyEntryCountry(api_url: Url, explorer_url: Url) -> Result<Country, FFIError> {
+pub fn getLowLatencyEntryCountry(api_url: Url, explorer_url: Url) -> Result<Location, FFIError> {
     RUNTIME.block_on(get_low_latency_entry_country(api_url, explorer_url))
 }
 
 async fn get_low_latency_entry_country(
     api_url: Url,
     explorer_url: Url,
-) -> Result<Country, FFIError> {
+) -> Result<Location, FFIError> {
     let config = gateway_client::Config {
         api_url,
         explorer_url: Some(explorer_url),
@@ -228,9 +223,8 @@ async fn get_low_latency_entry_country(
     let gateway_client = GatewayClient::new(config)?;
     let described = gateway_client.lookup_low_latency_entry_gateway().await?;
     let country = described
-        .two_letter_iso_country_code()
-        .ok_or(crate::Error::CountryCodeNotFound)
-        .map(|value| Country::Code { value })?;
+        .location()
+        .ok_or(crate::Error::CountryCodeNotFound)?;
 
     Ok(country)
 }
