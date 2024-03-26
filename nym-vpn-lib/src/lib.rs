@@ -5,13 +5,14 @@ uniffi::setup_scaffolding!();
 
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
-use crate::gateway_client::{Config, WgConfig, GatewayClient};
+use crate::gateway_client::{Config, GatewayClient};
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
+use crate::wg_gateway_client::{WgConfig, WgGatewayClient};
 use futures::channel::{mpsc, oneshot};
-use gateway_client::{EntryPoint, ExitPoint, WgGatewayClient};
+use gateway_client::{EntryPoint, ExitPoint};
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_task::TaskManager;
@@ -53,6 +54,7 @@ pub mod routing;
 pub mod tunnel;
 mod uniffi_custom_impls;
 mod util;
+pub mod wg_gateway_client;
 
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
@@ -158,7 +160,7 @@ impl NymVpn {
 
         Self {
             gateway_config: gateway_client::Config::default(),
-            wg_gateway_config: gateway_client::WgConfig::default(),
+            wg_gateway_config: wg_gateway_client::WgConfig::default(),
             mixnet_client_path: None,
             entry_point,
             exit_point,

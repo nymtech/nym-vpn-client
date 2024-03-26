@@ -6,8 +6,7 @@ use ipnetwork::{Ipv4Network, Ipv6Network};
 use nym_vpn_lib::nym_config::defaults::var_names::{EXPLORER_API, NYM_API};
 use nym_vpn_lib::nym_config::OptionalSet;
 use nym_vpn_lib::{
-    gateway_client::{Config, WgConfig},
-    nym_bin_common::bin_info_local_vergen,
+    gateway_client::Config, nym_bin_common::bin_info_local_vergen, wg_gateway_client::WgConfig,
 };
 use std::{
     net::{Ipv4Addr, Ipv6Addr},

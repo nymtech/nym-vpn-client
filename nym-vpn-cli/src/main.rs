@@ -3,9 +3,8 @@
 
 mod commands;
 
-use nym_vpn_lib::gateway_client::{
-    Config as GatewayConfig, EntryPoint, ExitPoint, WgConfig as WgGatewayConfig,
-};
+use nym_vpn_lib::gateway_client::{Config as GatewayConfig, EntryPoint, ExitPoint};
+use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayConfig;
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
 use nym_vpn_lib::{NymVpn, Recipient};
 
