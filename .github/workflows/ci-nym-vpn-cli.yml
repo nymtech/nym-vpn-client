@@ -36,6 +36,13 @@ jobs:
           rm -rf ./.??* || true
           ls -la ./
 
+      - name: "Cleanup working directory (Windows)"
+        if: contains(matrix.os, 'windows')
+        run: |
+          ls ./
+          rm ./* || true
+          ls ./
+
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
         if: contains(matrix.os, 'ubuntu')
