@@ -161,7 +161,7 @@ jobs:
           repository: nymtech/nym-vpn-mullvad-libs
           ref: nym_patches
           path: "nym-vpn-mullvad-libs"
-          submodules: true
+          submodules: recursive
 
       - name: Build winfw.dll from mullvad
         if: contains(matrix.os, 'windows')
