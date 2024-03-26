@@ -154,23 +154,26 @@ jobs:
         run: |
           mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/build/lib/
 
-      - name: Download wintun.zip
+      - name: Download wintun.zip and winpcap.zip
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
           curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
+          curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
 
-      - name: Unzip wintun.zip
+      - name: Unzip wintun.zip and winpcap.zip
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
           unzip ${GITHUB_WORKSPACE}/wintun.zip
+          unzip ${GITHUB_WORKSPACE}/winpcap.zip
 
-      - name: Move wintun.dll to build directory
+      - name: Move wintun.dll and packet.lib to build directory
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
           mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/build/lib/
+          mv ${GITHUB_WORKSPACE}/winpcap/WpdPack/Lib/Packet.lib ${GITHUB_WORKSPACE}/build/lib/
 
       - name: rustfmt check
         run: cargo fmt --check
