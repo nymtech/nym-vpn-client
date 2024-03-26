@@ -258,19 +258,19 @@ impl NymVpn {
         self.set_shadow_handle(shadow_handle);
 
         info!("Setting up mixnet connection beacon");
-        connection_monitor::mixnet_connection_beacon::start_mixnet_connection_beacon(
+        connection_monitor::mixnet_beacon::start_mixnet_connection_beacon(
             mixnet_client_sender.clone(),
             mixnet_client_address,
-            task_manager.subscribe_named("mixnet_connection_beacon"),
+            task_manager.subscribe_named("mixnet_beacon"),
         );
 
         info!("Setting up ICMP connection beacon");
-        connection_monitor::icmp_connection_beacon::start_icmp_connection_beacon(
+        connection_monitor::icmp_beacon::start_icmp_connection_beacon(
             mixnet_client_sender,
             ips,
             exit_router.0,
             icmp_identifier,
-            task_manager.subscribe_named("icmp_connection_beacon"),
+            task_manager.subscribe_named("icmp_beacon"),
         );
 
         info!("Setting up connection monitor");
@@ -319,7 +319,7 @@ impl NymVpn {
 
         // Check that we can ping ourselves before continuing
         info!("Sending mixnet ping to ourselves");
-        connection_monitor::mixnet_connection_beacon::self_ping_and_wait(
+        connection_monitor::mixnet_beacon::self_ping_and_wait(
             nym_address,
             mixnet_client.clone(),
         )

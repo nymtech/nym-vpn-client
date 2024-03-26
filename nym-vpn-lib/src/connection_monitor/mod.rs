@@ -10,8 +10,8 @@ use tracing::{debug, error, trace};
 
 use crate::error::Result;
 
-pub(crate) mod icmp_connection_beacon;
-pub(crate) mod mixnet_connection_beacon;
+pub(crate) mod icmp_beacon;
+pub(crate) mod mixnet_beacon;
 
 const CONNECTION_MONITOR_REPORT_INTERVAL: Duration = Duration::from_secs(5);
 
