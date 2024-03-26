@@ -259,7 +259,7 @@ impl NymVpn {
         info!("Setting up ICMP connection beacon");
         icmp_connection_beacon::start_icmp_connection_beacon(
             mixnet_client_sender,
-            ips.ipv4,
+            ips,
             exit_router.0,
             icmp_identifier,
             task_manager.subscribe_named("icmp_connection_beacon"),
