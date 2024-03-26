@@ -74,7 +74,7 @@ jobs:
         if: contains(matrix.target, 'android')
         run: rustup target add aarch64-linux-android
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v4
         with:
           key: ${{ steps.rust-toolchain.outputs.cachekey }}
           workspaces: |
