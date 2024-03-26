@@ -197,15 +197,6 @@ async fn get_gateway_countries(
     explorer_url: String,
     exit_only: bool,
 ) -> Result<Vec<Country>, FFIError> {
-    let current = get_vpn_state().await;
-    if current != ClientState::Connected {
-        warn!("vpn not started");
-        return Err(FFIError::IncorrectState {
-            current,
-            expected: ClientState::Connected,
-        });
-    }
-
     let api_url = Url::from_str(&api_url).map_err(|e| FFIError::UrlParse {
         inner: e.to_string(),
     })?;
@@ -239,15 +230,6 @@ async fn get_low_latency_entry_country(
     api_url: String,
     explorer_url: String,
 ) -> Result<Country, FFIError> {
-    let current = get_vpn_state().await;
-    if current != ClientState::Connected {
-        warn!("vpn not started");
-        return Err(FFIError::IncorrectState {
-            current,
-            expected: ClientState::Connected,
-        });
-    }
-
     let api_url = Url::from_str(&api_url).map_err(|e| FFIError::UrlParse {
         inner: e.to_string(),
     })?;
