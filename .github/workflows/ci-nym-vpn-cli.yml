@@ -106,7 +106,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
-          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/build/lib/x64-Debug" >> $GITHUB_ENV
+          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc -L ${GITHUB_WORKSPACE}/build/lib/ -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/build/lib/x64-Debug" >> $GITHUB_ENV
           mkdir -p ${GITHUB_WORKSPACE}/build/lib/
 
       - name: Install Go
