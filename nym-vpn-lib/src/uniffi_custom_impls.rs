@@ -4,6 +4,7 @@
 use crate::platform::error::FFIError;
 use crate::{NodeIdentity, Recipient, UniffiCustomTypeConverter};
 use ipnetwork::IpNetwork;
+use nym_explorer_client::Location;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::{PresharedKey, PrivateKey, PublicKey};
@@ -20,6 +21,7 @@ uniffi::custom_type!(PresharedKey, String);
 uniffi::custom_type!(Url, String);
 uniffi::custom_type!(NodeIdentity, String);
 uniffi::custom_type!(Recipient, String);
+uniffi::custom_type!(Location, String);
 
 impl UniffiCustomTypeConverter for NodeIdentity {
     type Builtin = String;
@@ -156,5 +158,17 @@ impl UniffiCustomTypeConverter for PresharedKey {
 
     fn from_custom(obj: Self) -> Self::Builtin {
         PrivateKey::from_custom(PrivateKey::from(*obj.as_bytes()))
+    }
+}
+
+impl UniffiCustomTypeConverter for Location {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(serde_json::from_str(&val)?)
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        serde_json::to_string(&obj).unwrap()
     }
 }
