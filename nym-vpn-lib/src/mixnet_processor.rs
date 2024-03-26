@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::Ipv4Addr, time::Duration};
+use std::time::Duration;
 
 use bytes::{Bytes, BytesMut};
 use futures::{channel::mpsc, SinkExt, StreamExt};
@@ -10,6 +10,7 @@ use nym_ip_packet_requests::{
     request::{IpPacketRequest, IpPacketRequestData},
     response::IpPacketResponseData,
     response::{InfoLevel, IpPacketResponse},
+    IpPair,
 };
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
@@ -235,7 +236,7 @@ impl MixnetProcessor {
                                     if let Some(connection_event) = check_for_icmp_beacon_reply(
                                         &packet,
                                         self.icmp_beacon_identifier,
-                                        self.our_ips.ipv4
+                                        self.our_ips,
                                     ) {
                                         self.connection_event_tx.unbounded_send(connection_event).unwrap();
                                     }
@@ -290,24 +291,43 @@ impl MixnetProcessor {
 fn check_for_icmp_beacon_reply(
     packet: &Bytes,
     icmp_beacon_identifier: u16,
-    our_ip: Ipv4Addr,
+    our_ips: IpPair,
 ) -> Option<ConnectionStatusEvent> {
     if let Some((identifier, source, destination)) =
         icmp_connection_beacon::is_icmp_echo_reply(packet)
     {
         if identifier == icmp_beacon_identifier
-            && source == icmp_connection_beacon::ICMP_IPR_TUN_IP
-            && destination == our_ip
+            && source == icmp_connection_beacon::ICMP_IPR_TUN_IP_V4
+            && destination == our_ips.ipv4
         {
             log::debug!("Received ping response from ipr tun device");
-            return Some(ConnectionStatusEvent::IcmpIprTunDevicePingReply);
+            return Some(ConnectionStatusEvent::Icmpv4IprTunDevicePingReply);
         }
         if identifier == icmp_beacon_identifier
-            && source == icmp_connection_beacon::ICMP_IPR_TUN_EXTERNAL_PING
-            && destination == our_ip
+            && source == icmp_connection_beacon::ICMP_IPR_TUN_EXTERNAL_PING_V4
+            && destination == our_ips.ipv4
         {
             log::debug!("Received ping response from an external ip through the ipr");
-            return Some(ConnectionStatusEvent::IcmpIprExternalPingReply);
+            return Some(ConnectionStatusEvent::Icmpv4IprExternalPingReply);
+        }
+    }
+
+    if let Some((identifier, source, destination)) =
+        icmp_connection_beacon::is_icmp_v6_echo_reply(packet)
+    {
+        if identifier == icmp_beacon_identifier
+            && source == icmp_connection_beacon::ICMP_IPR_TUN_IP_V6
+            && destination == our_ips.ipv6
+        {
+            log::debug!("Received ping v6 response from ipr tun device");
+            return Some(ConnectionStatusEvent::Icmpv6IprTunDevicePingReply);
+        }
+        if identifier == icmp_beacon_identifier
+            && source == icmp_connection_beacon::ICMP_IPR_TUN_EXTERNAL_PING_V6
+            && destination == our_ips.ipv6
+        {
+            log::debug!("Received ping v6 response from an external ip through the ipr");
+            return Some(ConnectionStatusEvent::Icmpv6IprExternalPingReply);
         }
     }
     None
