@@ -18,9 +18,6 @@ pub enum FFIError {
     },
 
     #[error("{inner}")]
-    UrlParse { inner: String },
-
-    #[error("{inner}")]
     LibError { inner: String },
 }
 
