@@ -22,10 +22,10 @@ esac
 
 (cd $PWD/src/tools/nym-vpn-client; cargo run --bin uniffi-bindgen generate --library ./target/aarch64-linux-android/debug/libnym_vpn_lib.so  --language kotlin --out-dir ../../main/java/net/nymtech/vpn -n)
 
-mv $PWD/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so $PWD/src/main/jniLibs/arm64-v8a/libuniffi_nym_vpn_lib_android.so
-mv $PWD/src/main/jniLibs/armeabi-v7a/libnym_vpn_lib.so $PWD/src/main/jniLibs/armeabi-v7a/libuniffi_nym_vpn_lib_android.so
-mv $PWD/src/main/jniLibs/x86/libnym_vpn_lib.so $PWD/src/main/jniLibs/x86/libuniffi_nym_vpn_lib_android.so
-mv $PWD/src/main/jniLibs/x86_64/libnym_vpn_lib.so $PWD/src/main/jniLibs/x86_64/libuniffi_nym_vpn_lib_android.so
+mv $PWD/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so $PWD/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so
+mv $PWD/src/main/jniLibs/armeabi-v7a/libnym_vpn_lib.so $PWD/src/main/jniLibs/armeabi-v7a/libnym_vpn_lib.so
+mv $PWD/src/main/jniLibs/x86/libnym_vpn_lib.so $PWD/src/main/jniLibs/x86/libnym_vpn_lib.so
+mv $PWD/src/main/jniLibs/x86_64/libnym_vpn_lib.so $PWD/src/main/jniLibs/x86_64/libnym_vpn_lib.so
 
 mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/arm64-v8a/libwg.so $PWD/src/main/jniLibs/arm64-v8a/
 mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/armeabi-v7a/libwg.so $PWD/src/main/jniLibs/armeabi-v7a/

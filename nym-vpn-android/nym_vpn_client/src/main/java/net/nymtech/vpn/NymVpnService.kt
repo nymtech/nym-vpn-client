@@ -11,7 +11,9 @@ import android.os.Build
 import android.os.ParcelFileDescriptor
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import net.nymtech.vpn.model.VpnState
@@ -141,11 +143,14 @@ class NymVpnService : VpnService() {
         startForeground(123, notification)
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onDestroy() {
         Timber.i("VpnService destroyed")
         NymVpnClient.setVpnState(VpnState.Down)
         connectivityListener.unregister()
-        stopVpn()
+        GlobalScope.launch {
+            stopVpn()
+        }
         stopSelf()
     }
 

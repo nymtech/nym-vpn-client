@@ -1,0 +1,25 @@
+package net.nymtech.vpn
+
+import java.net.InetAddress
+
+sealed class CreateTunResult {
+    open val isOpen
+        get() = false
+
+    class Success(val tunFd: Int) : CreateTunResult() {
+        override val isOpen
+            get() = true
+    }
+
+    class InvalidDnsServers(
+        val addresses: ArrayList<InetAddress>,
+        val tunFd: Int
+    ) : CreateTunResult() {
+        override val isOpen
+            get() = true
+    }
+
+    object PermissionDenied : CreateTunResult()
+
+    object TunnelDeviceError : CreateTunResult()
+}
