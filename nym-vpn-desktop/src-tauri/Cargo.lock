@@ -5571,7 +5571,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-desktop"
-version = "0.0.10"
+version = "0.0.11-dev"
 dependencies = [
  "anyhow",
  "build-info",
