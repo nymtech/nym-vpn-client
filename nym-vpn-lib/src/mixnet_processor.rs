@@ -23,7 +23,7 @@ use tun2::{AbstractDevice, AsyncDevice};
 use nym_gateway_directory::IpPacketRouterAddress;
 
 use crate::{
-    connection_monitor::{self, ConnectionStatusEvent},
+    connection_monitor::{self, monitor::ConnectionStatusEvent},
     error::{Error, Result},
     mixnet_connect::SharedMixnetClient,
 };
@@ -74,7 +74,7 @@ impl MessageCreator {
 pub struct MixnetProcessor {
     device: AsyncDevice,
     mixnet_client: SharedMixnetClient,
-    connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
+    connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
     ip_packet_router_address: IpPacketRouterAddress,
     our_ips: nym_ip_packet_requests::IpPair,
     icmp_beacon_identifier: u16,
@@ -86,7 +86,7 @@ impl MixnetProcessor {
     pub fn new(
         device: AsyncDevice,
         mixnet_client: SharedMixnetClient,
-        connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
+        connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
         ip_packet_router_address: IpPacketRouterAddress,
         our_ips: nym_ip_packet_requests::IpPair,
         icmp_beacon_identifier: u16,
@@ -311,7 +311,7 @@ pub async fn start_processor(
     enable_two_hop: bool,
     our_ips: nym_ip_packet_requests::IpPair,
     icmp_identifier: u16,
-    connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
+    connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
 ) -> JoinHandle<Result<AsyncDevice>> {
     info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(

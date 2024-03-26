@@ -274,7 +274,7 @@ impl NymVpn {
         );
 
         info!("Setting up connection monitor");
-        connection_monitor::start_connection_monitor(
+        connection_monitor::monitor::start_connection_monitor(
             connection_event_rx,
             task_manager.subscribe_named("connection_monitor"),
         );
