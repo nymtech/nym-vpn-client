@@ -192,7 +192,7 @@ async fn get_gateway_countries(
     explorer_url: Url,
     exit_only: bool,
 ) -> Result<Vec<Location>, FFIError> {
-    let config = gateway_client::Config {
+    let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
     };
@@ -215,7 +215,7 @@ async fn get_low_latency_entry_country(
     api_url: Url,
     explorer_url: Url,
 ) -> Result<Location, FFIError> {
-    let config = gateway_client::Config {
+    let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
     };

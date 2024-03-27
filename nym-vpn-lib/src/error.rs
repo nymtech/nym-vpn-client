@@ -223,6 +223,9 @@ pub enum Error {
 
     #[error("gateway does not contain a two character country ISO")]
     CountryCodeNotFound,
+
+    #[error("{0}")]
+    GatewayDirectoryError(#[from] nym_gateway_directory::Error),
 }
 
 // Result type based on our error type

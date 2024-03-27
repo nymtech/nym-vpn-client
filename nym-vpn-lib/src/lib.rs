@@ -157,7 +157,7 @@ impl NymVpn {
         )));
 
         Self {
-            gateway_config: gateway_client::Config::default(),
+            gateway_config: nym_gateway_directory::Config::default(),
             wg_gateway_config: wg_gateway_client::WgConfig::default(),
             mixnet_client_path: None,
             entry_point,

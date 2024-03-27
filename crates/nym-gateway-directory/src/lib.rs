@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 use hickory_resolver::config::{ResolverConfig, ResolverOpts};
 use hickory_resolver::TokioAsyncResolver;
 use itertools::Itertools;
@@ -20,12 +20,14 @@ pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
 
 mod error;
 
+pub use crate::error::Error;
+
 const FORCE_TLS_FOR_GATEWAY_SELECTION: bool = false;
 
 #[derive(Clone, Debug)]
 pub struct Config {
-    pub(crate) api_url: Url,
-    pub(crate) explorer_url: Option<Url>,
+    pub api_url: Url,
+    pub explorer_url: Option<Url>,
 }
 
 impl Default for Config {

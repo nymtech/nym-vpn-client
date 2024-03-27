@@ -19,11 +19,24 @@ pub enum FFIError {
 
     #[error("{inner}")]
     LibError { inner: String },
+
+    #[error("{inner}")]
+    GatewayDirectoryError {
+        inner: String
+    },
 }
 
 impl From<crate::Error> for FFIError {
     fn from(value: crate::Error) -> Self {
         Self::LibError {
+            inner: value.to_string(),
+        }
+    }
+}
+
+impl From<nym_gateway_directory::Error> for FFIError {
+    fn from(value: nym_gateway_directory::Error) -> Self {
+        Self::GatewayDirectoryError {
             inner: value.to_string(),
         }
     }

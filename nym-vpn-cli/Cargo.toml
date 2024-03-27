@@ -14,6 +14,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
+nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
 
 # Ugly workaround to force a working setup of dependencies. We should get rid
 # of this ASAP

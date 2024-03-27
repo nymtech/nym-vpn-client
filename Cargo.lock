@@ -4422,6 +4422,7 @@ dependencies = [
  "clap",
  "ipnetwork",
  "log",
+ "nym-gateway-directory",
  "nym-vpn-lib",
  "shadowsocks",
  "shadowsocks-service",
@@ -4441,6 +4442,7 @@ dependencies = [
  "bytes",
  "err-derive",
  "futures",
+ "hickory-resolver",
  "ipnetwork",
  "itertools 0.12.1",
  "jnix",
@@ -4493,6 +4495,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "futures",
+ "nym-gateway-directory",
  "nym-vpn-lib",
  "reqwest",
  "tokio",
