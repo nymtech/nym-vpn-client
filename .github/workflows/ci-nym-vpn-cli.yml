@@ -29,7 +29,8 @@ jobs:
 
     steps:
       - name: "Cleanup working directory"
-        if: "contains(matrix.os, 'custom') && !contains(matrix.os, 'windows')"
+        if: contains(matrix.os, 'custom')
+        shell: bash
         run: |
           ls -la ./
           rm -rf ./* || true
@@ -73,12 +74,6 @@ jobs:
       - name: Add Android target
         if: contains(matrix.target, 'android')
         run: rustup target add aarch64-linux-android
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ steps.rust-toolchain.outputs.cachekey }}
-          workspaces: |
-            nym-vpn-cli
 
       - name: Set env
         shell: bash

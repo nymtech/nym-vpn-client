@@ -2,15 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::*;
-use crate::gateway_directory::{EntryPoint, ExitPoint};
-use crate::NymVpn;
 use ipnetwork::IpNetwork;
 use jnix::jni::{
-    objects::{JObject, JString},
+    objects::JObject,
     sys::{jboolean, jint, JNI_FALSE},
     JNIEnv,
 };
-use jnix::{FromJava, IntoJava, JnixEnv};
+use jnix::{IntoJava, JnixEnv};
 use nix::sys::{
     select::{pselect, FdSet},
     time::{TimeSpec, TimeValLike},
@@ -19,15 +17,17 @@ use rand::{thread_rng, Rng};
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, UdpSocket};
 use std::os::fd::RawFd;
-use std::str::FromStr;
-use std::sync::{Arc, Once};
+use std::sync::{Arc, Mutex, Once};
 use std::time::{Duration, Instant};
 use talpid_tunnel::tun_provider::{TunConfig, TunProvider};
 use talpid_types::android::AndroidContext;
 use talpid_types::ErrorExt;
-use url::Url;
 
 static LOAD_CLASSES: Once = Once::new();
+
+lazy_static! {
+    static ref CONTEXT: Mutex<Option<AndroidContext>> = Mutex::new(None);
+}
 
 pub const CLASSES: &[&str] = &[
     "java/lang/Boolean",
@@ -60,7 +60,7 @@ pub const CLASSES: &[&str] = &[
 ];
 
 pub(crate) struct TunnelConfiguration {
-    pub(crate) tun_provider: Arc<std::sync::Mutex<TunProvider>>,
+    pub(crate) tun_provider: Arc<Mutex<TunProvider>>,
     pub(crate) gateway_fd: Option<RawFd>,
 }
 
@@ -80,66 +80,42 @@ fn init_jni_logger() {
     log::debug!("Logger initialized");
 }
 
+pub(crate) fn get_context() -> Option<AndroidContext> {
+    CONTEXT.lock().unwrap().clone()
+}
+
 #[no_mangle]
 #[allow(non_snake_case)]
 pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     env: JNIEnv<'_>,
     _this: JObject<'_>,
-    enable_two_hop: jboolean,
-    api_url: JString<'_>,
-    explorer_url: JString<'_>,
-    entry_gateway: JString<'_>,
-    exit_router: JString<'_>,
     vpn_service: JObject<'_>,
 ) {
-    if RUNTIME.block_on(get_vpn_state()) != ClientState::Uninitialised {
-        warn!("VPN was already initialized. Try starting it");
+    if get_context().is_some() {
+        warn!("Context was already initialised, not doing anything");
         return;
     }
 
     init_jni_logger();
 
     let env = JnixEnv::from(env);
+    let jvm = if let Ok(data) = env.get_java_vm() {
+        Arc::new(data)
+    } else {
+        warn!("Java VM is not available. Aborting");
+        return;
+    };
+    let vpn_service = if let Ok(vpn) = env.new_global_ref(vpn_service) {
+        vpn
+    } else {
+        warn!("VPN object is not available. Aborting");
+        return;
+    };
+    let context = AndroidContext { jvm, vpn_service };
 
     LOAD_CLASSES.call_once(|| env.preload_classes(CLASSES.iter().cloned()));
 
-    let context = AndroidContext {
-        jvm: Arc::new(env.get_java_vm().expect("Get JVM instance")),
-        vpn_service: env
-            .new_global_ref(vpn_service)
-            .expect("Create global reference"),
-    };
-
-    let entry_gateway: EntryPoint = serde_json::from_str(&String::from_java(&env, entry_gateway))
-        .map_err(|e| {
-            error!("Could not parse entry point {:?}", e);
-        })
-        .unwrap();
-    let exit_router: ExitPoint = serde_json::from_str(&String::from_java(&env, exit_router))
-        .map_err(|e| {
-            error!("Could not parse exit point {:?}", e);
-        })
-        .unwrap();
-
-    let mut vpn = NymVpn::new(entry_gateway, exit_router, context);
-
-    let api_url = Url::from_str(&String::from_java(&env, api_url))
-        .map_err(|e| {
-            error!("Failed to parse api url : {:?}", e);
-        })
-        .unwrap();
-
-    let explorer_url = Url::from_str(&String::from_java(&env, explorer_url))
-        .map_err(|e| {
-            error!("Failed to parse explorer url : {:?}", e);
-        })
-        .unwrap();
-
-    vpn.gateway_config.api_url = api_url;
-    vpn.gateway_config.explorer_url = Some(explorer_url);
-    vpn.enable_two_hop = enable_two_hop != JNI_FALSE;
-
-    RUNTIME.block_on(set_inited_vpn(vpn));
+    *CONTEXT.lock().unwrap() = Some(context);
 }
 
 #[no_mangle]
