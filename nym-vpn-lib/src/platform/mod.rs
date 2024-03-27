@@ -5,7 +5,7 @@
 use crate::gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
 use crate::{
     spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
-    NymVpnHandle, UniffiCustomTypeConverter,
+    NymVpnHandle,
 };
 use futures::StreamExt;
 use lazy_static::lazy_static;
@@ -208,31 +208,4 @@ async fn get_low_latency_entry_country(
         .ok_or(crate::Error::CountryCodeNotFound)?;
 
     Ok(country)
-}
-
-uniffi::custom_type!(EntryPoint, String);
-uniffi::custom_type!(ExitPoint, String);
-
-impl UniffiCustomTypeConverter for EntryPoint {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(serde_json::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
-
-impl UniffiCustomTypeConverter for ExitPoint {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(serde_json::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
 }
