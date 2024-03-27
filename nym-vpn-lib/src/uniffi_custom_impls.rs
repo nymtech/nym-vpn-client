@@ -190,9 +190,9 @@ pub enum FfiEntryPoint {
     Random,
 }
 
-impl Into<EntryPoint> for FfiEntryPoint {
-    fn into(self) -> EntryPoint {
-        match self {
+impl From<FfiEntryPoint> for EntryPoint {
+    fn from(value: FfiEntryPoint) -> Self {
+        match value {
             FfiEntryPoint::Gateway { identity } => EntryPoint::Gateway { identity },
             FfiEntryPoint::Location { location } => EntryPoint::Location { location },
             FfiEntryPoint::RandomLowLatency => EntryPoint::RandomLowLatency,
@@ -202,15 +202,16 @@ impl Into<EntryPoint> for FfiEntryPoint {
 }
 
 #[derive(uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
 pub enum FfiExitPoint {
     Address { address: Recipient },
     Gateway { identity: NodeIdentity },
     Location { location: String },
 }
 
-impl Into<ExitPoint> for FfiExitPoint {
-    fn into(self) -> ExitPoint {
-        match self {
+impl From<FfiExitPoint> for ExitPoint {
+    fn from(value: FfiExitPoint) -> Self {
+        match value {
             FfiExitPoint::Address { address } => ExitPoint::Address { address },
             FfiExitPoint::Gateway { identity } => ExitPoint::Gateway { identity },
             FfiExitPoint::Location { location } => ExitPoint::Location { location },
