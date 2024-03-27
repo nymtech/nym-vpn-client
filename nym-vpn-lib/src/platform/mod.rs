@@ -2,15 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
-use crate::gateway_client::GatewayClient;
+// use crate::gateway_client::GatewayClient;
 use crate::{
-    gateway_client, spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError,
-    NymVpnExitStatusMessage, NymVpnHandle,
+    spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
+    NymVpnHandle,
 };
 use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
 use nym_explorer_client::Location;
+use nym_gateway_directory::GatewayClient;
 use nym_task::manager::TaskStatus;
 use std::sync::Arc;
 use talpid_core::mpsc::Sender;
