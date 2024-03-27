@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
-use crate::gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
+use crate::gateway_directory::GatewayClient;
+use crate::uniffi_custom_impls::{FfiEntryPoint, FfiExitPoint, FfiLocation};
 use crate::{
     spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
     NymVpnHandle,
@@ -10,7 +11,6 @@ use crate::{
 use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
-use nym_explorer_client::Location;
 use nym_task::manager::TaskStatus;
 use std::sync::Arc;
 use talpid_core::mpsc::Sender;
@@ -100,8 +100,8 @@ async fn wait_for_shutdown(
 pub struct VPNConfig {
     pub api_url: Url,
     pub explorer_url: Url,
-    pub entry_gateway: EntryPoint,
-    pub exit_router: ExitPoint,
+    pub entry_gateway: FfiEntryPoint,
+    pub exit_router: FfiExitPoint,
     pub enable_two_hop: bool,
     #[cfg(target_os = "ios")]
     pub tun_provider: Arc<dyn crate::OSTunProvider>,
@@ -121,8 +121,8 @@ async fn run_vpn(config: VPNConfig) -> Result<(), FFIError> {
     let context = crate::platform::android::get_context().ok_or(FFIError::NoContext)?;
 
     let mut vpn = NymVpn::new(
-        config.entry_gateway,
-        config.exit_router,
+        config.entry_gateway.into(),
+        config.exit_router.into(),
         #[cfg(target_os = "android")]
         context,
         #[cfg(target_os = "ios")]
@@ -165,7 +165,7 @@ pub fn getGatewayCountries(
     api_url: Url,
     explorer_url: Url,
     exit_only: bool,
-) -> Result<Vec<Location>, FFIError> {
+) -> Result<Vec<FfiLocation>, FFIError> {
     RUNTIME.block_on(get_gateway_countries(api_url, explorer_url, exit_only))
 }
 
@@ -173,30 +173,31 @@ async fn get_gateway_countries(
     api_url: Url,
     explorer_url: Url,
     exit_only: bool,
-) -> Result<Vec<Location>, FFIError> {
+) -> Result<Vec<FfiLocation>, FFIError> {
     let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
     };
     let gateway_client = GatewayClient::new(config)?;
 
-    if !exit_only {
-        Ok(gateway_client.lookup_all_countries_iso().await?)
+    let locations = if !exit_only {
+        gateway_client.lookup_all_countries_iso().await?
     } else {
-        Ok(gateway_client.lookup_all_exit_countries_iso().await?)
-    }
+        gateway_client.lookup_all_exit_countries_iso().await?
+    };
+    Ok(locations.into_iter().map(Into::into).collect())
 }
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getLowLatencyEntryCountry(api_url: Url, explorer_url: Url) -> Result<Location, FFIError> {
+pub fn getLowLatencyEntryCountry(api_url: Url, explorer_url: Url) -> Result<FfiLocation, FFIError> {
     RUNTIME.block_on(get_low_latency_entry_country(api_url, explorer_url))
 }
 
 async fn get_low_latency_entry_country(
     api_url: Url,
     explorer_url: Url,
-) -> Result<Location, FFIError> {
+) -> Result<FfiLocation, FFIError> {
     let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
@@ -205,7 +206,8 @@ async fn get_low_latency_entry_country(
     let described = gateway_client.lookup_low_latency_entry_gateway().await?;
     let country = described
         .location()
-        .ok_or(crate::Error::CountryCodeNotFound)?;
+        .ok_or(crate::Error::CountryCodeNotFound)?
+        .into();
 
     Ok(country)
 }
