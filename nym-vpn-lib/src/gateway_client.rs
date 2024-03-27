@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::error::{Error, Result};
-use crate::mixnet_processor::IpPacketRouterAddress;
 use hickory_resolver::config::{ResolverConfig, ResolverOpts};
 use hickory_resolver::TokioAsyncResolver;
 use itertools::Itertools;
@@ -67,6 +66,37 @@ impl Config {
     pub fn with_custom_explorer_url(mut self, explorer_url: Url) -> Self {
         self.explorer_url = Some(explorer_url);
         self
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct IpPacketRouterAddress(pub Recipient);
+
+impl IpPacketRouterAddress {
+    pub fn try_from_base58_string(ip_packet_router_nym_address: &str) -> Result<Self> {
+        Ok(Self(
+            Recipient::try_from_base58_string(ip_packet_router_nym_address)
+                .map_err(|_| Error::RecipientFormattingError)?,
+        ))
+    }
+
+    pub fn try_from_described_gateway(gateway: &DescribedGateway) -> Result<Self> {
+        let address = gateway
+            .self_described
+            .clone()
+            .and_then(|described_gateway| described_gateway.ip_packet_router)
+            .map(|ipr| ipr.address)
+            .ok_or(Error::MissingIpPacketRouterAddress)?;
+        Ok(Self(
+            Recipient::try_from_base58_string(address)
+                .map_err(|_| Error::RecipientFormattingError)?,
+        ))
+    }
+}
+
+impl std::fmt::Display for IpPacketRouterAddress {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 

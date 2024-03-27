@@ -26,7 +26,7 @@ use tracing::{debug, error, info};
 
 use crate::{
     error::{Error, Result},
-    mixnet_processor::IpPacketRouterAddress,
+    gateway_client::IpPacketRouterAddress,
 };
 
 #[derive(Clone)]

@@ -5,9 +5,8 @@ uniffi::setup_scaffolding!();
 
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
-use crate::gateway_client::{Config, GatewayClient};
+use crate::gateway_client::{Config, GatewayClient, IpPacketRouterAddress};
 use crate::mixnet_connect::setup_mixnet_client;
-use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::{WgConfig, WgGatewayClient};
