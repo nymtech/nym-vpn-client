@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::Ipv4Addr, time::Duration};
+use std::time::Duration;
 
 use bytes::{Bytes, BytesMut};
 use futures::{channel::mpsc, SinkExt, StreamExt};
@@ -10,20 +10,21 @@ use nym_ip_packet_requests::{
     request::{IpPacketRequest, IpPacketRequestData},
     response::IpPacketResponseData,
     response::{InfoLevel, IpPacketResponse},
+    IpPair,
 };
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
-use nym_validator_client::models::DescribedGateway;
 use tokio::task::JoinHandle;
 use tokio::time::timeout;
 use tokio_util::codec::Decoder;
 use tracing::{debug, error, info, trace, warn};
 use tun2::{AbstractDevice, AsyncDevice};
 
+use nym_gateway_directory::IpPacketRouterAddress;
+
 use crate::{
-    connection_monitor::{self, ConnectionStatusEvent},
+    connection_monitor::{self, monitor::ConnectionStatusEvent, ConnectionMonitorTask},
     error::{Error, Result},
-    icmp_connection_beacon,
     mixnet_connect::SharedMixnetClient,
 };
 
@@ -37,37 +38,6 @@ impl Config {
         Config {
             ip_packet_router_address,
         }
-    }
-}
-
-#[derive(Debug, Copy, Clone)]
-pub struct IpPacketRouterAddress(pub Recipient);
-
-impl IpPacketRouterAddress {
-    pub fn try_from_base58_string(ip_packet_router_nym_address: &str) -> Result<Self> {
-        Ok(Self(
-            Recipient::try_from_base58_string(ip_packet_router_nym_address)
-                .map_err(|_| Error::RecipientFormattingError)?,
-        ))
-    }
-
-    pub fn try_from_described_gateway(gateway: &DescribedGateway) -> Result<Self> {
-        let address = gateway
-            .self_described
-            .clone()
-            .and_then(|described_gateway| described_gateway.ip_packet_router)
-            .map(|ipr| ipr.address)
-            .ok_or(Error::MissingIpPacketRouterAddress)?;
-        Ok(Self(
-            Recipient::try_from_base58_string(address)
-                .map_err(|_| Error::RecipientFormattingError)?,
-        ))
-    }
-}
-
-impl std::fmt::Display for IpPacketRouterAddress {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
     }
 }
 
@@ -104,7 +74,7 @@ impl MessageCreator {
 pub struct MixnetProcessor {
     device: AsyncDevice,
     mixnet_client: SharedMixnetClient,
-    connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
+    connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
     ip_packet_router_address: IpPacketRouterAddress,
     our_ips: nym_ip_packet_requests::IpPair,
     icmp_beacon_identifier: u16,
@@ -113,46 +83,23 @@ pub struct MixnetProcessor {
 }
 
 impl MixnetProcessor {
-    pub fn new(
+    pub(crate) fn new(
         device: AsyncDevice,
         mixnet_client: SharedMixnetClient,
-        connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
+        connection_monitor: &ConnectionMonitorTask,
         ip_packet_router_address: IpPacketRouterAddress,
         our_ips: nym_ip_packet_requests::IpPair,
-        icmp_beacon_identifier: u16,
         enable_two_hop: bool,
     ) -> Self {
         MixnetProcessor {
             device,
             mixnet_client,
-            connection_event_tx,
+            connection_event_tx: connection_monitor.event_sender(),
             ip_packet_router_address,
             our_ips,
-            icmp_beacon_identifier,
+            icmp_beacon_identifier: connection_monitor.icmp_beacon_identifier(),
             enable_two_hop,
         }
-    }
-
-    fn assert_tun_address_matches(&self) -> Result<()> {
-        match self.device.as_ref().address() {
-            Ok(address) => {
-                if address != self.our_ips.ipv4 {
-                    error!(
-                        "Tun device address {} does not match the expected address {}",
-                        address, self.our_ips.ipv4
-                    );
-                    return Err(Error::InvalidTunDeviceAddress {
-                        expected: self.our_ips.ipv4,
-                        actual: address,
-                    });
-                }
-            }
-            Err(err) => {
-                error!("Tun device address is not set");
-                return Err(Error::TunDeviceAddressNotSet(err));
-            }
-        }
-        Ok(())
     }
 
     pub async fn run(self, mut shutdown: TaskClient) -> Result<AsyncDevice> {
@@ -160,7 +107,6 @@ impl MixnetProcessor {
             "Opened mixnet processor on tun device {}",
             self.device.as_ref().tun_name().unwrap(),
         );
-        self.assert_tun_address_matches()?;
 
         debug!("Splitting tun device into sink and stream");
         let (mut tun_device_sink, mut tun_device_stream) = self.device.into_framed().split();
@@ -258,7 +204,7 @@ impl MixnetProcessor {
                                     if let Some(connection_event) = check_for_icmp_beacon_reply(
                                         &packet,
                                         self.icmp_beacon_identifier,
-                                        self.our_ips.ipv4
+                                        self.our_ips,
                                     ) {
                                         self.connection_event_tx.unbounded_send(connection_event).unwrap();
                                     }
@@ -313,48 +259,65 @@ impl MixnetProcessor {
 fn check_for_icmp_beacon_reply(
     packet: &Bytes,
     icmp_beacon_identifier: u16,
-    our_ip: Ipv4Addr,
+    our_ips: IpPair,
 ) -> Option<ConnectionStatusEvent> {
     if let Some((identifier, source, destination)) =
-        icmp_connection_beacon::is_icmp_echo_reply(packet)
+        connection_monitor::icmp_beacon::is_icmp_echo_reply(packet)
     {
         if identifier == icmp_beacon_identifier
-            && source == icmp_connection_beacon::ICMP_IPR_TUN_IP
-            && destination == our_ip
+            && source == connection_monitor::icmp_beacon::ICMP_IPR_TUN_IP_V4
+            && destination == our_ips.ipv4
         {
             log::debug!("Received ping response from ipr tun device");
-            return Some(ConnectionStatusEvent::IcmpIprTunDevicePingReply);
+            return Some(ConnectionStatusEvent::Icmpv4IprTunDevicePingReply);
         }
         if identifier == icmp_beacon_identifier
-            && source == icmp_connection_beacon::ICMP_IPR_TUN_EXTERNAL_PING
-            && destination == our_ip
+            && source == connection_monitor::icmp_beacon::ICMP_IPR_TUN_EXTERNAL_PING_V4
+            && destination == our_ips.ipv4
         {
             log::debug!("Received ping response from an external ip through the ipr");
-            return Some(ConnectionStatusEvent::IcmpIprExternalPingReply);
+            return Some(ConnectionStatusEvent::Icmpv4IprExternalPingReply);
+        }
+    }
+
+    if let Some((identifier, source, destination)) =
+        connection_monitor::icmp_beacon::is_icmp_v6_echo_reply(packet)
+    {
+        if identifier == icmp_beacon_identifier
+            && source == connection_monitor::icmp_beacon::ICMP_IPR_TUN_IP_V6
+            && destination == our_ips.ipv6
+        {
+            log::debug!("Received ping v6 response from ipr tun device");
+            return Some(ConnectionStatusEvent::Icmpv6IprTunDevicePingReply);
+        }
+        if identifier == icmp_beacon_identifier
+            && source == connection_monitor::icmp_beacon::ICMP_IPR_TUN_EXTERNAL_PING_V6
+            && destination == our_ips.ipv6
+        {
+            log::debug!("Received ping v6 response from an external ip through the ipr");
+            return Some(ConnectionStatusEvent::Icmpv6IprExternalPingReply);
         }
     }
     None
 }
 
 #[allow(clippy::too_many_arguments)]
-pub async fn start_processor(
+pub(crate) async fn start_processor(
     config: Config,
     dev: AsyncDevice,
     mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,
     enable_two_hop: bool,
     our_ips: nym_ip_packet_requests::IpPair,
-    icmp_identifier: u16,
-    connection_event_tx: mpsc::UnboundedSender<connection_monitor::ConnectionStatusEvent>,
+    connection_monitor: &ConnectionMonitorTask,
 ) -> JoinHandle<Result<AsyncDevice>> {
     info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(
         dev,
         mixnet_client,
-        connection_event_tx,
+        connection_monitor,
         config.ip_packet_router_address,
         our_ips,
-        icmp_identifier,
         enable_two_hop,
     );
     let shutdown_listener = task_manager.subscribe();

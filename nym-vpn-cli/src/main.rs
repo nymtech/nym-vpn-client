@@ -3,11 +3,12 @@
 
 mod commands;
 
-use nym_vpn_lib::gateway_client::{Config as GatewayConfig, EntryPoint, ExitPoint};
+use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
+use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayConfig;
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
 use nym_vpn_lib::{NymVpn, Recipient};
 
-use crate::commands::override_from_env;
+use crate::commands::{override_from_env, wg_override_from_env};
 use clap::Parser;
 use log::*;
 use nym_vpn_lib::nym_config::defaults::setup_env;
@@ -80,6 +81,9 @@ async fn run() -> Result<()> {
             .unwrap_or("unavailable".to_string())
     );
 
+    // Setup wireguard gateway configuration
+    let wg_gateway_config = wg_override_from_env(&args, WgGatewayConfig::default());
+
     let entry_point = parse_entry_point(&args)?;
     let exit_point = parse_exit_point(&args)?;
     let nym_ips = if let (Some(ipv4), Some(ipv6)) = (args.nym_ipv4, args.nym_ipv6) {
@@ -90,6 +94,7 @@ async fn run() -> Result<()> {
 
     let mut nym_vpn = NymVpn::new(entry_point, exit_point);
     nym_vpn.gateway_config = gateway_config;
+    nym_vpn.wg_gateway_config = wg_gateway_config;
     nym_vpn.mixnet_client_path = args.mixnet_client_path;
     nym_vpn.enable_wireguard = args.enable_wireguard;
     nym_vpn.private_key = args.private_key;

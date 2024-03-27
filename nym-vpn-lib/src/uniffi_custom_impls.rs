@@ -4,6 +4,8 @@
 use crate::platform::error::FFIError;
 use crate::{NodeIdentity, Recipient, UniffiCustomTypeConverter};
 use ipnetwork::IpNetwork;
+use nym_explorer_client::Location;
+use nym_gateway_directory::{EntryPoint, ExitPoint};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::{PresharedKey, PrivateKey, PublicKey};
@@ -156,5 +158,63 @@ impl UniffiCustomTypeConverter for PresharedKey {
 
     fn from_custom(obj: Self) -> Self::Builtin {
         PrivateKey::from_custom(PrivateKey::from(*obj.as_bytes()))
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct FfiLocation {
+    pub two_letter_iso_country_code: String,
+    pub three_letter_iso_country_code: String,
+    pub country_name: String,
+    pub latitude: Option<f64>,
+    pub longitude: Option<f64>,
+}
+
+impl From<Location> for FfiLocation {
+    fn from(value: Location) -> Self {
+        FfiLocation {
+            two_letter_iso_country_code: value.two_letter_iso_country_code,
+            three_letter_iso_country_code: value.three_letter_iso_country_code,
+            country_name: value.country_name,
+            latitude: value.latitude,
+            longitude: value.longitude,
+        }
+    }
+}
+
+#[derive(uniffi::Enum)]
+pub enum FfiEntryPoint {
+    Gateway { identity: NodeIdentity },
+    Location { location: String },
+    RandomLowLatency,
+    Random,
+}
+
+impl From<FfiEntryPoint> for EntryPoint {
+    fn from(value: FfiEntryPoint) -> Self {
+        match value {
+            FfiEntryPoint::Gateway { identity } => EntryPoint::Gateway { identity },
+            FfiEntryPoint::Location { location } => EntryPoint::Location { location },
+            FfiEntryPoint::RandomLowLatency => EntryPoint::RandomLowLatency,
+            FfiEntryPoint::Random => EntryPoint::Random,
+        }
+    }
+}
+
+#[derive(uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum FfiExitPoint {
+    Address { address: Recipient },
+    Gateway { identity: NodeIdentity },
+    Location { location: String },
+}
+
+impl From<FfiExitPoint> for ExitPoint {
+    fn from(value: FfiExitPoint) -> Self {
+        match value {
+            FfiExitPoint::Address { address } => ExitPoint::Address { address },
+            FfiExitPoint::Gateway { identity } => ExitPoint::Gateway { identity },
+            FfiExitPoint::Location { location } => ExitPoint::Location { location },
+        }
     }
 }

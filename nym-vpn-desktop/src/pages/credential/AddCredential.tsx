@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { NymIcon } from '../../assets/icons';
+import { NymIcon } from '../../assets';
 import { Button, PageAnim, TextArea } from '../../ui';
 
 function AddCredential() {

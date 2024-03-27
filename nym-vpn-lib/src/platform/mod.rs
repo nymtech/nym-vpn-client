@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
-use crate::gateway_client::GatewayClient;
+use crate::gateway_directory::GatewayClient;
+use crate::uniffi_custom_impls::{FfiEntryPoint, FfiExitPoint, FfiLocation};
 use crate::{
-    gateway_client, spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError,
-    NymVpnExitStatusMessage, NymVpnHandle,
+    spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
+    NymVpnHandle,
 };
 use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
 use nym_task::manager::TaskStatus;
-use std::str::FromStr;
 use std::sync::Arc;
 use talpid_core::mpsc::Sender;
 use tokio::runtime::Runtime;
@@ -28,71 +28,34 @@ pub mod swift;
 
 lazy_static! {
     static ref VPN_SHUTDOWN_HANDLE: Mutex<Option<Arc<Notify>>> = Mutex::new(None);
-    static ref VPN: Mutex<Option<NymVpn>> = Mutex::new(None);
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
 }
 
-#[derive(Eq, PartialEq, Debug, uniffi::Enum)]
-pub enum ClientState {
-    Uninitialised,
-    Connected,
-    Disconnected,
-}
-
-async fn is_vpn_inited() -> bool {
-    let guard = VPN.lock().await;
-    guard.is_some()
-}
-
-async fn take_vpn() -> Option<NymVpn> {
-    let mut guard = VPN.lock().await;
-    guard.take()
-}
-
-async fn is_shutdown_handle_set() -> bool {
-    VPN_SHUTDOWN_HANDLE.lock().await.is_some()
-}
-
-pub async fn get_vpn_state() -> ClientState {
-    if is_shutdown_handle_set().await {
-        ClientState::Connected
-    } else if !is_vpn_inited().await {
-        ClientState::Uninitialised
-    } else {
-        ClientState::Disconnected
-    }
-}
-
-async fn set_shutdown_handle(handle: Arc<Notify>) {
+async fn set_shutdown_handle(handle: Arc<Notify>) -> Result<(), FFIError> {
     let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
     if guard.is_some() {
-        panic!("vpn wasn't properly stopped")
+        return Err(FFIError::VpnNotStopped);
     }
-    *guard = Some(handle)
+    *guard = Some(handle);
+
+    Ok(())
 }
 
-async fn set_inited_vpn(vpn: NymVpn) {
-    let mut guard = VPN.lock().await;
-    if guard.is_some() {
-        panic!("vpn was already inited");
-    }
-    *guard = Some(vpn)
-}
-
-async fn stop_and_reset_shutdown_handle() {
+async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
     let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
     if let Some(sh) = &*guard {
         sh.notify_waiters()
     } else {
-        panic!("client wasn't properly started")
+        return Err(FFIError::VpnNotStarted);
     }
+    *guard = None;
 
-    *guard = None
+    Ok(())
 }
 
-async fn _async_run_vpn(vpn: NymVpn) -> crate::error::Result<(Arc<Notify>, NymVpnHandle)> {
+async fn _async_run_vpn(vpn: NymVpn) -> Result<(Arc<Notify>, NymVpnHandle), FFIError> {
     let stop_handle = Arc::new(Notify::new());
-    set_shutdown_handle(stop_handle.clone()).await;
+    set_shutdown_handle(stop_handle.clone()).await?;
 
     let mut handle = spawn_nym_vpn(vpn)?;
 
@@ -133,20 +96,42 @@ async fn wait_for_shutdown(
     Ok(())
 }
 
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn runVPN() {
-    RUNTIME.block_on(run_vpn());
+#[derive(uniffi::Record)]
+pub struct VPNConfig {
+    pub api_url: Url,
+    pub explorer_url: Url,
+    pub entry_gateway: FfiEntryPoint,
+    pub exit_router: FfiExitPoint,
+    pub enable_two_hop: bool,
+    #[cfg(target_os = "ios")]
+    pub tun_provider: Arc<dyn crate::OSTunProvider>,
 }
 
-async fn run_vpn() {
-    let state = get_vpn_state().await;
-    if state != ClientState::Disconnected {
-        warn!("Invalid vpn state: {:?}", state);
-        return;
-    }
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
+    RUNTIME.block_on(run_vpn(config))
+}
 
-    let vpn = take_vpn().await.expect("VPN was not inited");
+async fn run_vpn(config: VPNConfig) -> Result<(), FFIError> {
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
+    crate::platform::swift::init_logs();
+
+    #[cfg(target_os = "android")]
+    let context = crate::platform::android::get_context().ok_or(FFIError::NoContext)?;
+
+    let mut vpn = NymVpn::new(
+        config.entry_gateway.into(),
+        config.exit_router.into(),
+        #[cfg(target_os = "android")]
+        context,
+        #[cfg(target_os = "ios")]
+        config.tun_provider,
+    );
+    vpn.gateway_config.api_url = config.api_url;
+    vpn.gateway_config.explorer_url = Some(config.explorer_url);
+    vpn.enable_two_hop = config.enable_two_hop;
+
     match _async_run_vpn(vpn).await {
         Err(err) => error!("Could not start the VPN: {:?}", err),
         Ok((stop_handle, handle)) => {
@@ -160,111 +145,69 @@ async fn run_vpn() {
             });
         }
     }
+
+    Ok(())
 }
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn stopVPN() {
+pub fn stopVPN() -> Result<(), FFIError> {
     RUNTIME.block_on(stop_vpn())
 }
 
-async fn stop_vpn() {
-    if get_vpn_state().await != ClientState::Connected {
-        warn!("could not stop the vpn as it's not running");
-        return;
-    }
-    stop_and_reset_shutdown_handle().await;
-}
-
-#[derive(Clone, Eq, PartialEq, Hash, uniffi::Enum)]
-pub enum Country {
-    Code { value: String },
-    Name { value: String },
+async fn stop_vpn() -> Result<(), FFIError> {
+    stop_and_reset_shutdown_handle().await
 }
 
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getGatewayCountries(
-    api_url: String,
-    explorer_url: String,
+    api_url: Url,
+    explorer_url: Url,
     exit_only: bool,
-) -> Result<Vec<Country>, FFIError> {
+) -> Result<Vec<FfiLocation>, FFIError> {
     RUNTIME.block_on(get_gateway_countries(api_url, explorer_url, exit_only))
 }
 
 async fn get_gateway_countries(
-    api_url: String,
-    explorer_url: String,
+    api_url: Url,
+    explorer_url: Url,
     exit_only: bool,
-) -> Result<Vec<Country>, FFIError> {
-    let current = get_vpn_state().await;
-    if current != ClientState::Connected {
-        warn!("vpn not started");
-        return Err(FFIError::IncorrectState {
-            current,
-            expected: ClientState::Connected,
-        });
-    }
-
-    let api_url = Url::from_str(&api_url).map_err(|e| FFIError::UrlParse {
-        inner: e.to_string(),
-    })?;
-    let explorer_url = Url::from_str(&explorer_url).map_err(|e| FFIError::UrlParse {
-        inner: e.to_string(),
-    })?;
-    let config = gateway_client::Config {
+) -> Result<Vec<FfiLocation>, FFIError> {
+    let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
-        ..Default::default()
     };
     let gateway_client = GatewayClient::new(config)?;
 
-    if !exit_only {
-        Ok(gateway_client.lookup_all_countries_iso().await?)
+    let locations = if !exit_only {
+        gateway_client.lookup_all_countries_iso().await?
     } else {
-        Ok(gateway_client.lookup_all_exit_countries_iso().await?)
-    }
+        gateway_client.lookup_all_exit_countries_iso().await?
+    };
+    Ok(locations.into_iter().map(Into::into).collect())
 }
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getLowLatencyEntryCountry(
-    api_url: String,
-    explorer_url: String,
-) -> Result<Country, FFIError> {
+pub fn getLowLatencyEntryCountry(api_url: Url, explorer_url: Url) -> Result<FfiLocation, FFIError> {
     RUNTIME.block_on(get_low_latency_entry_country(api_url, explorer_url))
 }
 
 async fn get_low_latency_entry_country(
-    api_url: String,
-    explorer_url: String,
-) -> Result<Country, FFIError> {
-    let current = get_vpn_state().await;
-    if current != ClientState::Connected {
-        warn!("vpn not started");
-        return Err(FFIError::IncorrectState {
-            current,
-            expected: ClientState::Connected,
-        });
-    }
-
-    let api_url = Url::from_str(&api_url).map_err(|e| FFIError::UrlParse {
-        inner: e.to_string(),
-    })?;
-    let explorer_url = Url::from_str(&explorer_url).map_err(|e| FFIError::UrlParse {
-        inner: e.to_string(),
-    })?;
-    let config = gateway_client::Config {
+    api_url: Url,
+    explorer_url: Url,
+) -> Result<FfiLocation, FFIError> {
+    let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
-        ..Default::default()
     };
     let gateway_client = GatewayClient::new(config)?;
     let described = gateway_client.lookup_low_latency_entry_gateway().await?;
     let country = described
-        .two_letter_iso_country_code()
-        .ok_or(crate::Error::CountryCodeNotFound)
-        .map(|value| Country::Code { value })?;
+        .location()
+        .ok_or(crate::Error::CountryCodeNotFound)?
+        .into();
 
     Ok(country)
 }

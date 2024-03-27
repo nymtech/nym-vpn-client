@@ -1,7 +1,6 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_client_core::error::ClientCoreError;
 use nym_ip_packet_requests::{
     response::DynamicConnectFailureReason, response::StaticConnectFailureReason,
 };
@@ -50,14 +49,14 @@ pub enum Error {
     #[error("identity not formatted correctly")]
     NodeIdentityFormattingError,
 
-    #[error("recipient is not formatted correctly")]
-    RecipientFormattingError,
-
     #[error("failed setting up local TUN network device: {0}")]
     TunError(#[from] tun2::Error),
 
     #[error("{0}")]
     WireguardConfigError(#[from] talpid_wireguard::config::Error),
+
+    #[error("recipient is not formatted correctly")]
+    RecipientFormattingError,
 
     #[error("{0}")]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
@@ -65,34 +64,11 @@ pub enum Error {
     #[error(transparent)]
     ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
 
-    #[error("failed to fetch location data from explorer-api: {error}")]
-    FailedFetchLocationData {
-        error: nym_explorer_client::ExplorerApiError,
-    },
-
     #[error("missing Gateway exit information")]
     MissingExitPointInformation,
 
     #[error("missing Gateway entry information")]
     MissingEntryPointInformation,
-
-    #[error("invalid Gateway ip: {0}")]
-    InvalidGatewayIp(String),
-
-    #[error("invalid Gateway address")]
-    InvalidGatewayAddress,
-
-    #[error("invalid Gateway location")]
-    InvalidGatewayLocation,
-
-    #[error("failed to resolve gateway hostname: {hostname}: {source}")]
-    FailedToDnsResolveGateway {
-        hostname: String,
-        source: hickory_resolver::error::ResolveError,
-    },
-
-    #[error("resolved hostname {0} but no IP address found")]
-    ResolvedHostnameButNoIp(String),
 
     #[error("{0}")]
     KeyRecoveryError(#[from] nym_crypto::asymmetric::encryption::KeyRecoveryError),
@@ -100,16 +76,8 @@ pub enum Error {
     #[error("{0}")]
     NymNodeApiClientError(#[from] nym_node_requests::api::client::NymNodeApiClientError),
 
-    #[error("failed to lookup described gateways: {source}")]
-    FailedToLookupDescribedGateways {
-        source: nym_validator_client::ValidatorClientError,
-    },
-
     #[error("gateway was requested by location, but we don't have any location data - is the explorer-api set correctly?")]
     RequestedGatewayByLocationWithoutLocationDataAvailable,
-
-    #[error("requested gateway not found in the remote list: {0}")]
-    RequestedGatewayIdNotFound(String),
 
     #[error("invalid Gateway API response")]
     InvalidGatewayAPIResponse,
@@ -119,9 +87,6 @@ pub enum Error {
 
     #[error("could not obtain the default interface")]
     DefaultInterfaceError,
-
-    #[error("could not obtain the LAN gateway from default interface: {0}")]
-    DefaultInterfaceGatewayError(String),
 
     #[error("received response with version v{received}, the client is too new and can only understand v{expected}")]
     ReceivedResponseWithOldVersion { expected: u8, received: u8 },
@@ -147,30 +112,6 @@ pub enum Error {
     #[error("connect request denied: {reason}")]
     DynamicConnectRequestDenied { reason: DynamicConnectFailureReason },
 
-    #[error("missing ip packet router address for gateway")]
-    MissingIpPacketRouterAddress,
-
-    #[error("no matching gateway found")]
-    NoMatchingGateway,
-
-    #[error("no entry gateway available for location {requested_location}, available countries: {available_countries:?}")]
-    NoMatchingEntryGatewayForLocation {
-        requested_location: String,
-        available_countries: Vec<String>,
-    },
-
-    #[error("no exit gateway available for location {requested_location}, available countries: {available_countries:?}")]
-    NoMatchingExitGatewayForLocation {
-        requested_location: String,
-        available_countries: Vec<String>,
-    },
-
-    #[error("failed to select gateway based on low latency: {source}")]
-    FailedToSelectGatewayBasedOnLowLatency { source: ClientCoreError },
-
-    #[error("failed to select gateway randomly")]
-    FailedToSelectGatewayRandomly,
-
     #[error("deadlock when trying to aquire mixnet client mutes")]
     MixnetClientDeadlock,
 
@@ -193,19 +134,6 @@ pub enum Error {
     #[cfg(target_os = "ios")]
     #[error("{0}")]
     UniffiError(#[from] crate::platform::error::FFIError),
-
-    #[error("failed to create DNS resolver: {0}")]
-    FailedToCreateDnsResolver(std::io::Error),
-
-    #[error("tun device address not set: {0}")]
-    TunDeviceAddressNotSet(tun2::Error),
-
-    #[error("invalid tun device address: {actual}, we expected {expected}")]
-    InvalidTunDeviceAddress {
-        expected: std::net::Ipv4Addr,
-        actual: std::net::IpAddr,
-    },
-
     #[error("failed to serialize message")]
     FailedToSerializeMessage {
         #[from]
@@ -223,6 +151,9 @@ pub enum Error {
 
     #[error("gateway does not contain a two character country ISO")]
     CountryCodeNotFound,
+
+    #[error("{0}")]
+    GatewayDirectoryError(#[from] nym_gateway_directory::Error),
 }
 
 // Result type based on our error type

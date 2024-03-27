@@ -2,20 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::*;
-use crate::gateway_client::{EntryPoint, ExitPoint};
 use crate::routing::RoutingConfig;
-use crate::NymVpn;
 use error::FFIError;
 use ipnetwork::IpNetwork;
-use log::warn;
 use oslog::OsLogger;
 use std::fmt::Debug;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::os::fd::RawFd;
 use talpid_types::net::wireguard::{PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig};
-use url::Url;
 
-fn init_logs() {
+pub(crate) fn init_logs() {
     OsLogger::new("net.nymtech.vpn.agent")
         .level_filter(LevelFilter::Debug)
         .category_level_filter("hyper", log::LevelFilter::Warn)
@@ -111,42 +107,8 @@ impl From<RoutingConfig> for NymConfig {
     }
 }
 
-#[derive(uniffi::Record)]
-pub struct VPNConfig {
-    pub api_url: Url,
-    pub explorer_url: Url,
-    pub entry_gateway: EntryPoint,
-    pub exit_router: ExitPoint,
-    #[cfg(target_os = "ios")]
-    pub tun_provider: Arc<dyn OSTunProvider>,
-}
-
 #[uniffi::export(with_foreign)]
 pub trait OSTunProvider: Send + Sync + Debug {
     fn configure_wg(&self, config: WgConfig) -> Result<(), FFIError>;
     fn configure_nym(&self, config: NymConfig) -> Result<RawFd, FFIError>;
-}
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn initVPN(config: VPNConfig) {
-    RUNTIME.block_on(init_vpn(config));
-}
-
-pub async fn init_vpn(config: VPNConfig) {
-    init_logs();
-
-    if get_vpn_state().await != ClientState::Uninitialised {
-        warn!("VPN was already inited. Try starting it");
-        return;
-    }
-
-    let mut vpn = NymVpn::new(
-        config.entry_gateway,
-        config.exit_router,
-        #[cfg(target_os = "ios")]
-        config.tun_provider,
-    );
-    vpn.gateway_config.api_url = config.api_url;
-    vpn.gateway_config.explorer_url = Some(config.explorer_url);
-    set_inited_vpn(vpn).await;
 }

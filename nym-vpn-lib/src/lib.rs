@@ -5,15 +5,14 @@ uniffi::setup_scaffolding!();
 
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
-use crate::gateway_client::{Config, GatewayClient};
 use crate::mixnet_connect::setup_mixnet_client;
-use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
+use crate::wg_gateway_client::{WgConfig, WgGatewayClient};
 use futures::channel::{mpsc, oneshot};
-use gateway_client::{EntryPoint, ExitPoint};
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
+use nym_gateway_directory::{Config, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress};
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
@@ -24,6 +23,9 @@ use tap::TapFallible;
 use tokio::time::timeout;
 use tracing::warn;
 use util::wait_for_interrupt_and_signal;
+
+// Public reexport onder gateway_directory name
+pub use nym_gateway_directory as gateway_directory;
 
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
@@ -43,26 +45,28 @@ use tun2::AsyncDevice;
 pub mod config;
 mod connection_monitor;
 pub mod error;
-pub mod gateway_client;
-mod icmp_connection_beacon;
 pub mod mixnet_connect;
-pub mod mixnet_connection_beacon;
 pub mod mixnet_processor;
 mod platform;
 pub mod routing;
 pub mod tunnel;
 mod uniffi_custom_impls;
 mod util;
+pub mod wg_gateway_client;
 
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
+    wg_gateway_client: &WgGatewayClient,
     entry_gateway_identity: &str,
     wireguard_private_key: &str,
     wireguard_ip: IpAddr,
 ) -> Result<WireguardConfig> {
     // First we need to register with the gateway to setup keys and IP assignment
     info!("Registering with wireguard gateway");
-    let wg_gateway_data = gateway_client
+    let entry_gateway_identity = gateway_client
+        .lookup_gateway_ip(entry_gateway_identity)
+        .await?;
+    let wg_gateway_data = wg_gateway_client
         .register_wireguard(entry_gateway_identity, wireguard_ip)
         .await?;
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
@@ -79,6 +83,9 @@ struct ShadowHandle {
 pub struct NymVpn {
     /// Gateway configuration
     pub gateway_config: Config,
+
+    /// Wireguard Gateway configuration
+    pub wg_gateway_config: WgConfig,
 
     /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
     pub mixnet_client_path: Option<PathBuf>,
@@ -150,7 +157,8 @@ impl NymVpn {
         )));
 
         Self {
-            gateway_config: gateway_client::Config::default(),
+            gateway_config: nym_gateway_directory::Config::default(),
+            wg_gateway_config: wg_gateway_client::WgConfig::default(),
             mixnet_client_path: None,
             entry_point,
             exit_point,
@@ -188,7 +196,7 @@ impl NymVpn {
         tunnel_gateway_ip: routing::TunnelGatewayIp,
     ) -> Result<()> {
         info!("Connecting to IP packet router");
-        let ips = mixnet_connect::connect_to_ip_packet_router(
+        let our_ips = mixnet_connect::connect_to_ip_packet_router(
             mixnet_client.clone(),
             exit_router,
             self.nym_ips,
@@ -196,7 +204,7 @@ impl NymVpn {
         )
         .await?;
         info!("Successfully connected to IP packet router!");
-        info!("Using mixnet VPN IP addresses: {ips}");
+        info!("Using mixnet VPN IP addresses: {our_ips}");
 
         // We need the IP of the gateway to correctly configure the routing table
         let mixnet_client_address = mixnet_client.nym_address().await;
@@ -209,7 +217,7 @@ impl NymVpn {
         info!("Setting up routing");
         let routing_config = routing::RoutingConfig::new(
             self,
-            ips,
+            our_ips,
             entry_mixnet_gateway_ip,
             default_lan_gateway_ip,
             tunnel_gateway_ip,
@@ -231,10 +239,9 @@ impl NymVpn {
 
         // For other components that will want to send mixnet packets
         let mixnet_client_sender = mixnet_client.split_sender().await;
-        // Channels to report connection status events
-        let (connection_event_tx, connection_event_rx) = mpsc::unbounded();
 
-        let icmp_identifier = std::process::id() as u16;
+        // Setup connection monitor shared tag and channels
+        let connection_monitor = connection_monitor::ConnectionMonitorTask::setup();
 
         let shadow_handle = mixnet_processor::start_processor(
             processor_config,
@@ -242,33 +249,18 @@ impl NymVpn {
             mixnet_client,
             task_manager,
             self.enable_two_hop,
-            ips,
-            icmp_identifier,
-            connection_event_tx,
+            our_ips,
+            &connection_monitor,
         )
         .await;
         self.set_shadow_handle(shadow_handle);
 
-        info!("Setting up mixnet connection beacon");
-        mixnet_connection_beacon::start_mixnet_connection_beacon(
-            mixnet_client_sender.clone(),
-            mixnet_client_address,
-            task_manager.subscribe_named("mixnet_connection_beacon"),
-        );
-
-        info!("Setting up ICMP connection beacon");
-        icmp_connection_beacon::start_icmp_connection_beacon(
+        connection_monitor.start(
             mixnet_client_sender,
-            ips.ipv4,
-            exit_router.0,
-            icmp_identifier,
-            task_manager.subscribe_named("icmp_connection_beacon"),
-        );
-
-        info!("Setting up connection monitor");
-        connection_monitor::start_connection_monitor(
-            connection_event_rx,
-            task_manager.subscribe_named("connection_monitor"),
+            mixnet_client_address,
+            our_ips,
+            exit_router,
+            task_manager,
         );
 
         Ok(())
@@ -311,7 +303,8 @@ impl NymVpn {
 
         // Check that we can ping ourselves before continuing
         info!("Sending mixnet ping to ourselves");
-        mixnet_connection_beacon::self_ping_and_wait(nym_address, mixnet_client.clone()).await?;
+        connection_monitor::mixnet_beacon::self_ping_and_wait(nym_address, mixnet_client.clone())
+            .await?;
         info!("Successfully pinged ourselves");
 
         if let Err(err) = self
@@ -351,6 +344,8 @@ impl NymVpn {
             .lookup_described_gateways_with_location()
             .await?;
 
+        let wg_gateway_client = WgGatewayClient::new(self.wg_gateway_config.clone())?;
+
         // If the entry or exit point relies on location, do a basic defensive consistency check on
         // the fetched location data. If none of the gateways have location data, we can't proceed
         // and it's likely the explorer-api isn't set correctly.
@@ -376,6 +371,7 @@ impl NymVpn {
                 .expect("clap should enforce value when wireguard enabled");
             let wireguard_config = init_wireguard_config(
                 &gateway_client,
+                &wg_gateway_client,
                 &entry_gateway_id.to_base58_string(),
                 private_key,
                 wg_ip.into(),
@@ -612,7 +608,7 @@ pub enum NymVpnExitStatusMessage {
 /// Examples
 ///
 /// ```no_run
-/// use nym_vpn_lib::gateway_client::{EntryPoint, ExitPoint};
+/// use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 /// use nym_vpn_lib::NodeIdentity;
 ///
 /// let mut vpn_config = nym_vpn_lib::NymVpn::new(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
@@ -644,7 +640,7 @@ pub fn spawn_nym_vpn(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
 /// Examples
 ///
 /// ```no_run
-/// use nym_vpn_lib::gateway_client::{EntryPoint, ExitPoint};
+/// use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 /// use nym_vpn_lib::NodeIdentity;
 ///
 /// let mut vpn_config = nym_vpn_lib::NymVpn::new(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::error::*;
-use crate::gateway_client::GatewayData;
+use crate::wg_gateway_client::GatewayData;
 use std::net::Ipv4Addr;
 use std::str::FromStr;
 use talpid_types::net::wireguard::{

@@ -83,28 +83,31 @@ async fn main() -> Result<()> {
     let app_config = app_config_store.read().await?;
     debug!("app_config: {app_config:?}");
 
-    // check for the existence of the env_config_file if provided
-    if let Some(env_config_file) = &app_config.env_config_file {
-        debug!("provided env_config_file: {}", env_config_file.display());
-        if !(try_exists(env_config_file)
-            .await
-            .context("an error happened while reading env_config_file `{}`")?)
-        {
-            let err_message = format!(
-                "app config, env_config_file `{}`: file not found",
-                env_config_file.display()
-            );
-            error!(err_message);
-            return Err(anyhow!(err_message));
-        }
-    } else {
-        // If no env_config_file is provided, setup the sandbox environment
-        // This is tempory until we switch to mainnet
+    // By default, mainnet is used. The network can be overridden by either setting the `--sandbox`
+    // flag or providing a custom env file.
+    if cli.sandbox {
+        // TODO: instead bundle a sandbox env file we can use
         network::setup_sandbox_environment();
-    }
+    } else {
+        if let Some(env_config_file) = &app_config.env_config_file {
+            // check for the existence of the env_config_file if provided
+            debug!("provided env_config_file: {}", env_config_file.display());
+            if !(try_exists(env_config_file)
+                .await
+                .context("an error happened while reading env_config_file `{}`")?)
+            {
+                let err_message = format!(
+                    "app config, env_config_file `{}`: file not found",
+                    env_config_file.display()
+                );
+                error!(err_message);
+                return Err(anyhow!(err_message));
+            }
+        }
 
-    // Read the env variables in the provided file and export them all to the local environment.
-    nym_config::defaults::setup_env(app_config.env_config_file.clone());
+        // Read the env variables in the provided file and export them all to the local environment.
+        nym_config::defaults::setup_env(app_config.env_config_file.clone());
+    }
 
     info!("Creating k/v embedded db");
     let db = Db::new()?;

@@ -21,6 +21,10 @@ pub struct Cli {
     /// Print build information
     #[arg(short, long)]
     pub build_info: bool,
+
+    /// Sandbox network
+    #[arg(short, long)]
+    pub sandbox: bool,
 }
 
 pub fn print_build_info(package_info: &PackageInfo) {
