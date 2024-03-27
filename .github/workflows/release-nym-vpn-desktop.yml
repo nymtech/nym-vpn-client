@@ -59,6 +59,7 @@ jobs:
           sparse-checkout: |
             nym-vpn-desktop
             nym-vpn-lib
+            crates
 
       - name: Install system dependencies (Linux)
         if: contains(matrix.os, 'ubuntu')
