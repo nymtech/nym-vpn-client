@@ -4986,6 +4986,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-gateway-directory"
+version = "0.1.0"
+dependencies = [
+ "hickory-resolver",
+ "itertools 0.12.1",
+ "log",
+ "nym-client-core",
+ "nym-explorer-client",
+ "nym-sdk",
+ "nym-topology",
+ "nym-validator-client",
+ "rand 0.7.3",
+ "serde",
+ "thiserror",
+ "tracing",
+ "url",
+]
+
+[[package]]
 name = "nym-gateway-requests"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=f5378e8a868d9f99adf61b0aa018593e32bc03de#f5378e8a868d9f99adf61b0aa018593e32bc03de"
@@ -5616,6 +5635,7 @@ dependencies = [
  "nym-config",
  "nym-crypto",
  "nym-explorer-client",
+ "nym-gateway-directory",
  "nym-ip-packet-requests",
  "nym-node-requests",
  "nym-sdk",

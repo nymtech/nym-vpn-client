@@ -4422,7 +4422,6 @@ dependencies = [
  "clap",
  "ipnetwork",
  "log",
- "nym-gateway-directory",
  "nym-vpn-lib",
  "shadowsocks",
  "shadowsocks-service",

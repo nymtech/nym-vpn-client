@@ -21,9 +21,7 @@ pub enum FFIError {
     LibError { inner: String },
 
     #[error("{inner}")]
-    GatewayDirectoryError {
-        inner: String
-    },
+    GatewayDirectoryError { inner: String },
 }
 
 impl From<crate::Error> for FFIError {

@@ -3,7 +3,7 @@ use crate::states::{app::ConnectionState, SharedAppState};
 use anyhow::Result;
 use futures::channel::oneshot::Receiver as OneshotReceiver;
 use futures::StreamExt;
-use nym_vpn_lib::gateway_client::{Config as GatewayClientConfig, EntryPoint, ExitPoint};
+use nym_vpn_lib::gateway_directory::{Config as GatewayClientConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::nym_config::defaults::var_names::{EXPLORER_API, NYM_API};
 use nym_vpn_lib::nym_config::OptionalSet;
 use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayClientConfig;
