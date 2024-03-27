@@ -6,7 +6,7 @@ use nym_ip_packet_requests::IpPair;
 use nym_sdk::mixnet::{MixnetClientSender, Recipient};
 use tracing::info;
 
-use crate::mixnet_processor::IpPacketRouterAddress;
+use crate::IpPacketRouterAddress;
 
 pub(crate) mod icmp_beacon;
 pub(crate) mod mixnet_beacon;
