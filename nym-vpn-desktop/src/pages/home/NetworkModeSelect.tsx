@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api';
 import { useTranslation } from 'react-i18next';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { StateDispatch, VpnMode } from '../../types';
-import { MixnetIcon } from '../../assets/icons';
+import { MixnetIcon } from '../../assets';
 import { RadioGroup, RadioGroupOption, RadioGroupOptionCursor } from '../../ui';
 
 function NetworkModeSelect() {
