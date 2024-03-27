@@ -55,6 +55,13 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - name: Install rust toolchain (Windows)
+        if: contains(matrix.os, 'windows')
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
       - name: Install cargo ndk
         if: contains(matrix.target, 'android')
         run: cargo install cargo-ndk
