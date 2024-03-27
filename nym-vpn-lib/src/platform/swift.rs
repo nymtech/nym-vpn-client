@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::*;
-use crate::gateway_directory::{EntryPoint, ExitPoint};
 use crate::routing::RoutingConfig;
 use crate::NymVpn;
 use error::FFIError;
@@ -107,6 +106,52 @@ impl From<RoutingConfig> for NymConfig {
             ipv6_addr: value.tun_ips().ipv6,
             mtu: value.mtu(),
             entry_mixnet_gateway_ip,
+        }
+    }
+}
+
+#[derive(uniffi::Enum, Clone)]
+pub enum EntryPoint {
+    Gateway { identity: NodeIdentity },
+    Location { location: String },
+    RandomLowLatency,
+    Random,
+}
+
+#[derive(uniffi::Enum, Clone)]
+pub enum ExitPoint {
+    Address { address: Recipient },
+    Gateway { identity: NodeIdentity },
+    Location { location: String },
+}
+
+impl From<crate::gateway_directory::EntryPoint> for EntryPoint {
+    fn from(value: crate::gateway_directory::EntryPoint) -> Self {
+        match value {
+            crate::gateway_directory::EntryPoint::Gateway { identity } => {
+                EntryPoint::Gateway { identity }
+            }
+            crate::gateway_directory::EntryPoint::Location { location } => {
+                EntryPoint::Location { location }
+            }
+            crate::gateway_directory::EntryPoint::RandomLowLatency => EntryPoint::RandomLowLatency,
+            crate::gateway_directory::EntryPoint::Random => EntryPoint::Random,
+        }
+    }
+}
+
+impl From<crate::gateway_directory::ExitPoint> for ExitPoint {
+    fn from(value: crate::gateway_directory::ExitPoint) -> Self {
+        match value {
+            crate::gateway_directory::ExitPoint::Address { address } => {
+                ExitPoint::Address { address }
+            }
+            crate::gateway_directory::ExitPoint::Gateway { identity } => {
+                ExitPoint::Gateway { identity }
+            }
+            crate::gateway_directory::ExitPoint::Location { location } => {
+                ExitPoint::Location { location }
+            }
         }
     }
 }
