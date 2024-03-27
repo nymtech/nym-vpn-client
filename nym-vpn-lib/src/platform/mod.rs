@@ -194,7 +194,6 @@ async fn get_gateway_countries(
     let config = gateway_client::Config {
         api_url,
         explorer_url: Some(explorer_url),
-        ..Default::default()
     };
     let gateway_client = GatewayClient::new(config)?;
 
@@ -218,7 +217,6 @@ async fn get_low_latency_entry_country(
     let config = gateway_client::Config {
         api_url,
         explorer_url: Some(explorer_url),
-        ..Default::default()
     };
     let gateway_client = GatewayClient::new(config)?;
     let described = gateway_client.lookup_low_latency_entry_gateway().await?;
