@@ -64,6 +64,7 @@ jobs:
             nym-vpn-cli
             nym-vpn-lib
             nym-vpnd
+            crates
 
       - name: Install system dependencies
         if: contains(matrix.os, 'ubuntu')
