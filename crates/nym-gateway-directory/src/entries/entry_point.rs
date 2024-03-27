@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    described_gateway::DescribedGatewayWithLocation,
     error::Result,
     helpers::{
         list_all_country_iso_codes, select_random_gateway_node,
         select_random_low_latency_gateway_node,
     },
-    Error,
+    DescribedGatewayWithLocation, Error,
 };
 use nym_sdk::mixnet::NodeIdentity;
 use serde::{Deserialize, Serialize};

@@ -1,20 +1,18 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod described_gateway;
-mod entry_point;
+mod entries;
 mod error;
-mod exit_point;
 mod gateway_client;
 mod helpers;
-mod ipr_address;
 
 pub use crate::{
-    entry_point::EntryPoint,
+    entries::{
+        described_gateway::DescribedGatewayWithLocation, entry_point::EntryPoint,
+        exit_point::ExitPoint, ipr_address::IpPacketRouterAddress,
+    },
     error::Error,
-    exit_point::ExitPoint,
     gateway_client::{Config, GatewayClient},
-    ipr_address::IpPacketRouterAddress,
 };
 
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};

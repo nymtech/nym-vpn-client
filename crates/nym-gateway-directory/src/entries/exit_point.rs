@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    described_gateway::DescribedGatewayWithLocation, error::Result,
-    helpers::list_all_country_iso_codes, ipr_address::IpPacketRouterAddress, Error,
+    error::Result, helpers::list_all_country_iso_codes, DescribedGatewayWithLocation, Error,
+    IpPacketRouterAddress,
 };
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use rand::seq::IteratorRandom;

@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    described_gateway::DescribedGatewayWithLocation,
     error::Result,
     helpers::{select_random_low_latency_described_gateway, try_resolve_hostname},
-    Error,
+    DescribedGatewayWithLocation, Error,
 };
 use itertools::Itertools;
 use nym_explorer_client::{ExplorerClient, Location, PrettyDetailedGatewayBond};

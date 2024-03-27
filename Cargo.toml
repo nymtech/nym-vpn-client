@@ -29,6 +29,7 @@ repository = "https://github.com/nymtech/nym-vpn-client"
 homepage = "https://nymtech.net"
 documentation = "https://nymtech.net"
 edition = "2021"
+license = "GPL-3.0-only"
 
 [workspace.dependencies]
 anyhow = "1.0.71"

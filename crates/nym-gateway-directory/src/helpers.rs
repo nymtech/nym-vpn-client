@@ -1,10 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    described_gateway::DescribedGatewayWithLocation, error::Result, Error,
-    FORCE_TLS_FOR_GATEWAY_SELECTION,
-};
+use crate::{error::Result, DescribedGatewayWithLocation, Error, FORCE_TLS_FOR_GATEWAY_SELECTION};
 use hickory_resolver::{
     config::{ResolverConfig, ResolverOpts},
     TokioAsyncResolver,
