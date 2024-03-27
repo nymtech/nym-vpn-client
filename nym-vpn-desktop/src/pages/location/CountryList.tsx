@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { MsIcon } from '../../ui';
+import { FlagIcon, MsIcon, countryCode } from '../../ui';
 import { UiCountry } from './NodeLocation';
 
 interface CountryListProps {
@@ -37,13 +37,11 @@ export default function CountryList({
             >
               {!uiCountry.isFastest && (
                 <div className="flex flex-row items-center m-1 gap-3 p-1 cursor-pointer">
-                  <div className="w-7 flex justify-center items-center">
-                    <img
-                      src={`./flags/${uiCountry.country.code.toLowerCase()}.svg`}
-                      className="h-6"
-                      alt={uiCountry.country.code}
-                    />
-                  </div>
+                  <FlagIcon
+                    code={uiCountry.country.code.toLowerCase() as countryCode}
+                    alt={uiCountry.country.code}
+                    className="h-6"
+                  />
                   <div className="flex items-center dark:text-mercury-pinkish text-base cursor-pointer">
                     {uiCountry.country.name}
                   </div>

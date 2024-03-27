@@ -12,7 +12,7 @@ import { useMainDispatch, useMainState } from '../../../contexts';
 import { kvSet } from '../../../kvStore';
 import { StateDispatch } from '../../../types';
 import { PageAnim, SettingsMenuCard, Snackbar, Switch } from '../../../ui';
-import { DiscordIcon, ElementIcon, GitHubIcon } from '../../../assets/icons';
+import { DiscordIcon, ElementIcon, GitHubIcon } from '../../../assets';
 
 const ThrottleDelay = 10000; // ms
 

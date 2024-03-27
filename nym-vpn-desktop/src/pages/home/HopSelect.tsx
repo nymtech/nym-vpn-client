@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { NodeHop, NodeLocation, isCountry } from '../../types';
 import { useMainState } from '../../contexts';
-import { MsIcon } from '../../ui';
+import { FlagIcon, MsIcon, countryCode } from '../../ui';
 
 interface HopSelectProps {
   nodeLocation: NodeLocation;
@@ -43,13 +43,10 @@ export default function HopSelect({
       </div>
       {isCountry(nodeLocation) && (
         <div className="flex flex-row items-center gap-3">
-          <div className="w-7 flex justify-center items-center">
-            <img
-              src={`./flags/${nodeLocation.code.toLowerCase()}.svg`}
-              className="h-7 scale-90 pointer-events-none fill-current"
-              alt={nodeLocation.code}
-            />
-          </div>
+          <FlagIcon
+            code={nodeLocation.code.toLowerCase() as countryCode}
+            alt={nodeLocation.code}
+          />
           <div className="text-base">{nodeLocation.name}</div>
         </div>
       )}

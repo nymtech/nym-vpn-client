@@ -7,7 +7,7 @@ import {
   MatrixRoomUrl,
 } from '../../../constants';
 import { PageAnim, SettingsMenuCard } from '../../../ui';
-import { DiscordIcon, ElementIcon } from '../../../assets/icons';
+import { DiscordIcon, ElementIcon } from '../../../assets';
 
 function Support() {
   const { t } = useTranslation('settings');
