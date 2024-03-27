@@ -5,7 +5,9 @@ use clap::{Args, Parser};
 use ipnetwork::{Ipv4Network, Ipv6Network};
 use nym_vpn_lib::nym_config::defaults::var_names::{EXPLORER_API, NYM_API};
 use nym_vpn_lib::nym_config::OptionalSet;
-use nym_vpn_lib::{gateway_client::Config, nym_bin_common::bin_info_local_vergen};
+use nym_vpn_lib::{
+    gateway_client::Config, nym_bin_common::bin_info_local_vergen, wg_gateway_client::WgConfig,
+};
 use std::{
     net::{Ipv4Addr, Ipv6Addr},
     path::PathBuf,
@@ -156,13 +158,16 @@ fn validate_ipv6(ip: &str) -> Result<Ipv6Addr, String> {
     Ok(ip)
 }
 
-pub fn override_from_env(args: &CliArgs, config: Config) -> Config {
-    let mut config = config
+pub fn override_from_env(_args: &CliArgs, config: Config) -> Config {
+    config
         .with_optional_env(Config::with_custom_api_url, None, NYM_API)
         // TODO: there is a landmine here, if the user sets non-mainnet nym-api, but doesn't
         // specify explorer-api, it will default to mainnet explorer-api and location lookup will
         // implicitly fail instead of explicitly fail.
-        .with_optional_env(Config::with_custom_explorer_url, None, EXPLORER_API);
+        .with_optional_env(Config::with_custom_explorer_url, None, EXPLORER_API)
+}
+
+pub fn wg_override_from_env(args: &CliArgs, mut config: WgConfig) -> WgConfig {
     if let Some(ref private_key) = args.private_key {
         config = config.with_local_private_key(private_key.clone());
     }

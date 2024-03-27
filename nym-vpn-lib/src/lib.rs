@@ -5,11 +5,11 @@ uniffi::setup_scaffolding!();
 
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
-use crate::gateway_client::{Config, GatewayClient};
+use crate::gateway_client::{Config, GatewayClient, IpPacketRouterAddress};
 use crate::mixnet_connect::setup_mixnet_client;
-use crate::mixnet_processor::IpPacketRouterAddress;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
+use crate::wg_gateway_client::{WgConfig, WgGatewayClient};
 use futures::channel::{mpsc, oneshot};
 use gateway_client::{EntryPoint, ExitPoint};
 use log::{debug, error, info};
@@ -53,16 +53,21 @@ pub mod routing;
 pub mod tunnel;
 mod uniffi_custom_impls;
 mod util;
+pub mod wg_gateway_client;
 
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
+    wg_gateway_client: &WgGatewayClient,
     entry_gateway_identity: &str,
     wireguard_private_key: &str,
     wireguard_ip: IpAddr,
 ) -> Result<WireguardConfig> {
     // First we need to register with the gateway to setup keys and IP assignment
     info!("Registering with wireguard gateway");
-    let wg_gateway_data = gateway_client
+    let entry_gateway_identity = gateway_client
+        .lookup_gateway_ip(entry_gateway_identity)
+        .await?;
+    let wg_gateway_data = wg_gateway_client
         .register_wireguard(entry_gateway_identity, wireguard_ip)
         .await?;
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
@@ -79,6 +84,9 @@ struct ShadowHandle {
 pub struct NymVpn {
     /// Gateway configuration
     pub gateway_config: Config,
+
+    /// Wireguard Gateway configuration
+    pub wg_gateway_config: WgConfig,
 
     /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
     pub mixnet_client_path: Option<PathBuf>,
@@ -151,6 +159,7 @@ impl NymVpn {
 
         Self {
             gateway_config: gateway_client::Config::default(),
+            wg_gateway_config: wg_gateway_client::WgConfig::default(),
             mixnet_client_path: None,
             entry_point,
             exit_point,
@@ -259,7 +268,7 @@ impl NymVpn {
         info!("Setting up ICMP connection beacon");
         icmp_connection_beacon::start_icmp_connection_beacon(
             mixnet_client_sender,
-            ips.ipv4,
+            ips,
             exit_router.0,
             icmp_identifier,
             task_manager.subscribe_named("icmp_connection_beacon"),
@@ -351,6 +360,8 @@ impl NymVpn {
             .lookup_described_gateways_with_location()
             .await?;
 
+        let wg_gateway_client = WgGatewayClient::new(self.wg_gateway_config.clone())?;
+
         // If the entry or exit point relies on location, do a basic defensive consistency check on
         // the fetched location data. If none of the gateways have location data, we can't proceed
         // and it's likely the explorer-api isn't set correctly.
@@ -376,6 +387,7 @@ impl NymVpn {
                 .expect("clap should enforce value when wireguard enabled");
             let wireguard_config = init_wireguard_config(
                 &gateway_client,
+                &wg_gateway_client,
                 &entry_gateway_id.to_base58_string(),
                 private_key,
                 wg_ip.into(),

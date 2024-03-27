@@ -2792,15 +2792,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ipnetwork"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf466541e9d546596ee94f9f69590f89473455f88372423e0008fc1a7daf100e"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "iprange"
 version = "0.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4405,11 +4396,11 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-cli"
-version = "0.0.8-dev"
+version = "0.0.9-dev"
 dependencies = [
  "anyhow",
  "clap",
- "ipnetwork 0.16.0",
+ "ipnetwork",
  "log",
  "nym-vpn-lib",
  "shadowsocks",
@@ -4431,7 +4422,7 @@ dependencies = [
  "err-derive",
  "futures",
  "hickory-resolver",
- "ipnetwork 0.16.0",
+ "ipnetwork",
  "itertools 0.12.1",
  "jnix",
  "lazy_static",
@@ -4451,7 +4442,7 @@ dependencies = [
  "nym-validator-client",
  "nym-wireguard-types",
  "oslog",
- "pnet",
+ "pnet_packet",
  "rand 0.7.3",
  "reqwest",
  "serde",
@@ -4806,7 +4797,7 @@ dependencies = [
  "errno 0.2.8",
  "error-chain",
  "ioctl-sys",
- "ipnetwork 0.16.0",
+ "ipnetwork",
  "libc",
 ]
 
@@ -4871,39 +4862,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "626dec3cac7cc0e1577a2ec3fc496277ec2baa084bebad95bb6fdbfae235f84c"
 
 [[package]]
-name = "pnet"
-version = "0.34.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "130c5b738eeda2dc5796fe2671e49027e6935e817ab51b930a36ec9e6a206a64"
-dependencies = [
- "ipnetwork 0.20.0",
- "pnet_base",
- "pnet_datalink",
- "pnet_packet",
- "pnet_sys",
- "pnet_transport",
-]
-
-[[package]]
 name = "pnet_base"
 version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fe4cf6fb3ab38b68d01ab2aea03ed3d1132b4868fa4e06285f29f16da01c5f4c"
 dependencies = [
  "no-std-net",
-]
-
-[[package]]
-name = "pnet_datalink"
-version = "0.34.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad5854abf0067ebbd3967f7d45ebc8976ff577ff0c7bd101c4973ae3c70f98fe"
-dependencies = [
- "ipnetwork 0.20.0",
- "libc",
- "pnet_base",
- "pnet_sys",
- "winapi",
 ]
 
 [[package]]
@@ -4937,28 +4901,6 @@ dependencies = [
  "pnet_base",
  "pnet_macros",
  "pnet_macros_support",
-]
-
-[[package]]
-name = "pnet_sys"
-version = "0.34.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "417c0becd1b573f6d544f73671070b039051e5ad819cc64aa96377b536128d00"
-dependencies = [
- "libc",
- "winapi",
-]
-
-[[package]]
-name = "pnet_transport"
-version = "0.34.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2637e14d7de974ee2f74393afccbc8704f3e54e6eb31488715e72481d1662cc3"
-dependencies = [
- "libc",
- "pnet_base",
- "pnet_packet",
- "pnet_sys",
 ]
 
 [[package]]
@@ -6434,7 +6376,7 @@ dependencies = [
  "hex",
  "inotify 0.10.2",
  "internet-checksum",
- "ipnetwork 0.16.0",
+ "ipnetwork",
  "jnix",
  "lazy_static",
  "libc",
@@ -6551,7 +6493,7 @@ source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf6
 dependencies = [
  "err-derive",
  "futures",
- "ipnetwork 0.16.0",
+ "ipnetwork",
  "lazy_static",
  "libc",
  "log",
@@ -6585,7 +6527,7 @@ dependencies = [
  "duct",
  "err-derive",
  "futures",
- "ipnetwork 0.16.0",
+ "ipnetwork",
  "jnix",
  "log",
  "nix 0.23.2",
@@ -6620,7 +6562,7 @@ source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=2a5b83ed9f8cf6
 dependencies = [
  "base64 0.13.1",
  "err-derive",
- "ipnetwork 0.16.0",
+ "ipnetwork",
  "jnix",
  "rand 0.8.5",
  "serde",
@@ -6654,7 +6596,7 @@ dependencies = [
  "futures",
  "hex",
  "internet-checksum",
- "ipnetwork 0.16.0",
+ "ipnetwork",
  "lazy_static",
  "libc",
  "log",
