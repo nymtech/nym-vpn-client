@@ -29,7 +29,8 @@ jobs:
 
     steps:
       - name: "Cleanup working directory"
-        if: "contains(matrix.os, 'custom') && !contains(matrix.os, 'windows')"
+        if: contains(matrix.os, 'custom')
+        shell: bash
         run: |
           ls -la ./
           rm -rf ./* || true
@@ -46,11 +47,6 @@ jobs:
 
       - name: Checkout repo
         uses: actions/checkout@v4
-
-      - name: "Manually reset the repo"
-        run: |
-          git clean -ffdx
-          git reset --hard HEAD
 
       - name: Install rust toolchain
         if: "!contains(matrix.os, 'windows')"
