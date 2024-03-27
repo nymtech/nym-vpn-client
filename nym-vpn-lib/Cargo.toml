@@ -42,12 +42,12 @@ reqwest = { version = "0.11.22", default_features = false, features = ["rustls-t
 tokio-tungstenite = { version = "0.20.1", features = ["rustls"] }
 tungstenite = { version = "0.20.1", default-features = false, features = ["rustls"] }
 
-talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "2a5b83ed9f8cf662049de54114a5f8c4c350b42e" }
-talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "2a5b83ed9f8cf662049de54114a5f8c4c350b42e" }
-talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "2a5b83ed9f8cf662049de54114a5f8c4c350b42e" }
-talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "2a5b83ed9f8cf662049de54114a5f8c4c350b42e" }
-talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "2a5b83ed9f8cf662049de54114a5f8c4c350b42e" }
-talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "2a5b83ed9f8cf662049de54114a5f8c4c350b42e" }
+talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "a76d598a7a33e9668f16105b68f6a608b72c9a89" }
+talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "a76d598a7a33e9668f16105b68f6a608b72c9a89" }
+talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "a76d598a7a33e9668f16105b68f6a608b72c9a89" }
+talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "a76d598a7a33e9668f16105b68f6a608b72c9a89" }
+talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "a76d598a7a33e9668f16105b68f6a608b72c9a89" }
+talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "a76d598a7a33e9668f16105b68f6a608b72c9a89" }
 
 nym-bin-common.workspace = true
 nym-client-core.workspace = true
