@@ -5,17 +5,16 @@ edition.workspace = true
 license = "Apache-2.0"
 
 [dependencies]
-# nym-topology = { git = "https://github.com/nymtech/nym", rev = "f5378e8a868d9f99adf61b0aa018593e32bc03de" }
-nym-topology.workspace = true
-nym-validator-client.workspace = true
-nym-explorer-client.workspace = true
-nym-sdk.workspace = true
-nym-client-core.workspace = true
-tracing.workspace = true
-log.workspace = true
-rand.workspace = true
-url.workspace = true
 hickory-resolver.workspace = true
 itertools.workspace = true
+log.workspace = true
+nym-client-core.workspace = true
+nym-explorer-client.workspace = true
+nym-sdk.workspace = true
+nym-topology.workspace = true
+nym-validator-client.workspace = true
+rand.workspace = true
 serde.workspace = true
 thiserror.workspace = true
+tracing.workspace = true
+url.workspace = true
