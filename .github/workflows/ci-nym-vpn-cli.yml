@@ -154,7 +154,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: nymtech/nym-vpn-mullvad-libs
-          ref: main
+          ref: nym_patches
           path: "nym-vpn-mullvad-libs"
           submodules: true
 
