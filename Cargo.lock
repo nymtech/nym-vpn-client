@@ -4494,7 +4494,6 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "futures",
- "nym-gateway-directory",
  "nym-vpn-lib",
  "reqwest",
  "tokio",

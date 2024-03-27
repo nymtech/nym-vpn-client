@@ -79,17 +79,17 @@ impl NymVpnService {
         self.set_shared_state(VpnState::Connecting);
 
         let mut nym_vpn = nym_vpn_lib::NymVpn::new(
-            nym_gateway_directory::EntryPoint::Location {
+            nym_vpn_lib::gateway_directory::EntryPoint::Location {
                 location: "FR".to_string(),
             },
-            nym_gateway_directory::ExitPoint::Location {
+            nym_vpn_lib::gateway_directory::ExitPoint::Location {
                 location: "FR".to_string(),
             },
         );
 
         nym_vpn.gateway_config = nym_vpn_lib::nym_config::OptionalSet::with_optional_env(
-            nym_gateway_directory::Config::default(),
-            nym_gateway_directory::Config::with_custom_api_url,
+            nym_vpn_lib::gateway_directory::Config::default(),
+            nym_vpn_lib::gateway_directory::Config::with_custom_api_url,
             None,
             "NYM_API",
         );
