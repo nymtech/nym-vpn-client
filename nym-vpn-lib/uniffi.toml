@@ -9,7 +9,7 @@ from_custom = "String(describing: {})"
 
 [bindings.kotlin]
 cdylib_name = "nym_vpn_lib"
-package_name = "nym-vpn-lib"
+package_name = "nym_vpn_lib"
 
 [bindings.kotlin.custom_types.Url]
 # Name of the type in the Kotlin code
