@@ -24,10 +24,9 @@ use nym_sdk::mixnet::{
 };
 use tracing::{debug, error, info};
 
-use crate::{
-    error::{Error, Result},
-    gateway_client::IpPacketRouterAddress,
-};
+use nym_gateway_directory::IpPacketRouterAddress;
+
+use crate::error::{Error, Result};
 
 #[derive(Clone)]
 pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);

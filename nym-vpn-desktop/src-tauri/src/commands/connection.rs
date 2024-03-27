@@ -1,5 +1,5 @@
 use futures::SinkExt;
-use nym_vpn_lib::gateway_client::{EntryPoint, ExitPoint};
+use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 use nym_vpn_lib::{NymVpnCtrlMessage, NymVpnHandle};
 use tauri::State;
 use tracing::{debug, error, info, instrument, trace};

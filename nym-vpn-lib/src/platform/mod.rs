@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
-use crate::gateway_client::{EntryPoint, ExitPoint, GatewayClient};
+use crate::gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
 use crate::{
-    gateway_client, spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError,
-    NymVpnExitStatusMessage, NymVpnHandle,
+    spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
+    NymVpnHandle,
 };
 use futures::StreamExt;
 use lazy_static::lazy_static;
@@ -174,7 +174,7 @@ async fn get_gateway_countries(
     explorer_url: Url,
     exit_only: bool,
 ) -> Result<Vec<Location>, FFIError> {
-    let config = gateway_client::Config {
+    let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
     };
@@ -197,7 +197,7 @@ async fn get_low_latency_entry_country(
     api_url: Url,
     explorer_url: Url,
 ) -> Result<Location, FFIError> {
-    let config = gateway_client::Config {
+    let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
     };

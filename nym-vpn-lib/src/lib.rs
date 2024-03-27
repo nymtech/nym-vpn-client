@@ -5,15 +5,14 @@ uniffi::setup_scaffolding!();
 
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
-use crate::gateway_client::{Config, GatewayClient, IpPacketRouterAddress};
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::{WgConfig, WgGatewayClient};
 use futures::channel::{mpsc, oneshot};
-use gateway_client::{EntryPoint, ExitPoint};
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
+use nym_gateway_directory::{Config, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress};
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
@@ -24,6 +23,9 @@ use tap::TapFallible;
 use tokio::time::timeout;
 use tracing::warn;
 use util::wait_for_interrupt_and_signal;
+
+// Public reexport onder gateway_directory name
+pub use nym_gateway_directory as gateway_directory;
 
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
@@ -43,7 +45,6 @@ use tun2::AsyncDevice;
 pub mod config;
 mod connection_monitor;
 pub mod error;
-pub mod gateway_client;
 mod icmp_connection_beacon;
 pub mod mixnet_connect;
 pub mod mixnet_connection_beacon;
@@ -158,7 +159,7 @@ impl NymVpn {
         )));
 
         Self {
-            gateway_config: gateway_client::Config::default(),
+            gateway_config: nym_gateway_directory::Config::default(),
             wg_gateway_config: wg_gateway_client::WgConfig::default(),
             mixnet_client_path: None,
             entry_point,
@@ -624,7 +625,7 @@ pub enum NymVpnExitStatusMessage {
 /// Examples
 ///
 /// ```no_run
-/// use nym_vpn_lib::gateway_client::{EntryPoint, ExitPoint};
+/// use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 /// use nym_vpn_lib::NodeIdentity;
 ///
 /// let mut vpn_config = nym_vpn_lib::NymVpn::new(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
@@ -656,7 +657,7 @@ pub fn spawn_nym_vpn(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
 /// Examples
 ///
 /// ```no_run
-/// use nym_vpn_lib::gateway_client::{EntryPoint, ExitPoint};
+/// use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 /// use nym_vpn_lib::NodeIdentity;
 ///
 /// let mut vpn_config = nym_vpn_lib::NymVpn::new(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},

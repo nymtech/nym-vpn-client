@@ -20,10 +20,11 @@ use tokio_util::codec::Decoder;
 use tracing::{debug, error, info, trace, warn};
 use tun2::{AbstractDevice, AsyncDevice};
 
+use nym_gateway_directory::IpPacketRouterAddress;
+
 use crate::{
     connection_monitor::{self, ConnectionStatusEvent},
     error::{Error, Result},
-    gateway_client::IpPacketRouterAddress,
     icmp_connection_beacon,
     mixnet_connect::SharedMixnetClient,
 };

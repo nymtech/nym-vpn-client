@@ -5,13 +5,13 @@ edition = "2021"
 license = "GPL-3.0-only"
 
 [dependencies]
-anyhow = "1.0.81"
+anyhow.workspace = true
 clap = { version = "4.4.7", features = ["cargo", "derive"] }
-ipnetwork = "0.16"
-log = "0.4.20"
-tokio = { version = "1.8", features = ["process", "rt-multi-thread", "fs", "sync"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+ipnetwork.workspace = true
+log.workspace = true
+tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
+tracing.workspace = true
+tracing-subscriber.workspace = true
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 

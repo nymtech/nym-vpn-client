@@ -12,30 +12,30 @@ name = "uniffi-bindgen"
 path = "uniffi-bindgen.rs"
 
 [dependencies]
-anyhow = "1.0.71"
-bincode = "1.3.3"
-bytes = "1.0"
-futures = "0.3.15"
-hickory-resolver = "0.24"
-ipnetwork = "0.16"
-pnet_packet = "0.34.0"
-itertools = "0.12.1"
-lazy_static = "1.4.0"
-log = "0.4.20"
-netdev = "0.24.0"
-rand = "0.7.3"
-serde = "1.0.192"
-serde_json = "1.0.91"
-signature = "1"
-tap = "1.0.1"
-thiserror = "1.0.38"
+anyhow.workspace = true
+bincode.workspace = true
+bytes.workspace = true
+futures.workspace = true
+hickory-resolver.workspace = true
+ipnetwork.workspace = true
+itertools.workspace = true
+lazy_static.workspace = true
+log.workspace = true
+netdev.workspace = true
+pnet_packet.workspace = true
+rand.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+signature.workspace = true
+tap.workspace = true
+thiserror.workspace = true
 tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
-tokio-util = { version = "0.7.10", features = ["codec"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tun2 = { version = "1.2.3", features = ["async"] }
-uniffi = { version = "0.26.1", features = ["cli"] }
-url = "2.4"
+tokio-util = { workspace = true, features = ["codec"] }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+tracing.workspace = true
+tun2 = { workspace = true, features = ["async"] }
+uniffi = { workspace = true, features = ["cli"] }
+url.workspace = true
 
 # Used in order to correctly import rustls for sub-dependencies
 reqwest = { version = "0.11.22", default_features = false, features = ["rustls-tls"] }
@@ -49,18 +49,20 @@ talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev =
 talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "2a5b83ed9f8cf662049de54114a5f8c4c350b42e" }
 talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "2a5b83ed9f8cf662049de54114a5f8c4c350b42e" }
 
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "f5378e8a868d9f99adf61b0aa018593e32bc03de" }
-nym-client-core = { git = "https://github.com/nymtech/nym", rev = "f5378e8a868d9f99adf61b0aa018593e32bc03de" }
-nym-config = { git = "https://github.com/nymtech/nym", rev = "f5378e8a868d9f99adf61b0aa018593e32bc03de" }
-nym-crypto = { git = "https://github.com/nymtech/nym", rev = "f5378e8a868d9f99adf61b0aa018593e32bc03de" }
-nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "f5378e8a868d9f99adf61b0aa018593e32bc03de" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "f5378e8a868d9f99adf61b0aa018593e32bc03de" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "f5378e8a868d9f99adf61b0aa018593e32bc03de" }
-nym-sdk = { git = "https://github.com/nymtech/nym", rev = "f5378e8a868d9f99adf61b0aa018593e32bc03de" }
-nym-task = { git = "https://github.com/nymtech/nym", rev = "f5378e8a868d9f99adf61b0aa018593e32bc03de" }
-nym-topology = { git = "https://github.com/nymtech/nym", rev = "f5378e8a868d9f99adf61b0aa018593e32bc03de" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "f5378e8a868d9f99adf61b0aa018593e32bc03de" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "f5378e8a868d9f99adf61b0aa018593e32bc03de" }
+nym-bin-common.workspace = true
+nym-client-core.workspace = true
+nym-config.workspace = true
+nym-crypto.workspace = true
+nym-explorer-client.workspace = true
+nym-ip-packet-requests.workspace = true
+nym-node-requests.workspace = true
+nym-sdk.workspace = true
+nym-task.workspace = true
+nym-topology.workspace = true
+nym-validator-client.workspace = true
+nym-wireguard-types.workspace = true
+
+nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.13.1"
