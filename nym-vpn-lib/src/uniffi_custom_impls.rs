@@ -22,9 +22,6 @@ uniffi::custom_type!(PresharedKey, String);
 uniffi::custom_type!(Url, String);
 uniffi::custom_type!(NodeIdentity, String);
 uniffi::custom_type!(Recipient, String);
-uniffi::custom_type!(Location, String);
-uniffi::custom_type!(EntryPoint, String);
-uniffi::custom_type!(ExitPoint, String);
 
 impl UniffiCustomTypeConverter for NodeIdentity {
     type Builtin = String;
@@ -164,38 +161,59 @@ impl UniffiCustomTypeConverter for PresharedKey {
     }
 }
 
-impl UniffiCustomTypeConverter for Location {
-    type Builtin = String;
+#[derive(uniffi::Record)]
+pub struct FfiLocation {
+    pub two_letter_iso_country_code: String,
+    pub three_letter_iso_country_code: String,
+    pub country_name: String,
+    pub latitude: Option<f64>,
+    pub longitude: Option<f64>,
+}
 
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(serde_json::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        serde_json::to_string(&obj).unwrap()
+impl From<Location> for FfiLocation {
+    fn from(value: Location) -> Self {
+        FfiLocation {
+            two_letter_iso_country_code: value.two_letter_iso_country_code,
+            three_letter_iso_country_code: value.three_letter_iso_country_code,
+            country_name: value.country_name,
+            latitude: value.latitude,
+            longitude: value.longitude,
+        }
     }
 }
 
-impl UniffiCustomTypeConverter for EntryPoint {
-    type Builtin = String;
+#[derive(uniffi::Enum)]
+pub enum FfiEntryPoint {
+    Gateway { identity: NodeIdentity },
+    Location { location: String },
+    RandomLowLatency,
+    Random,
+}
 
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(serde_json::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
+impl Into<EntryPoint> for FfiEntryPoint {
+    fn into(self) -> EntryPoint {
+        match self {
+            FfiEntryPoint::Gateway { identity } => EntryPoint::Gateway { identity },
+            FfiEntryPoint::Location { location } => EntryPoint::Location { location },
+            FfiEntryPoint::RandomLowLatency => EntryPoint::RandomLowLatency,
+            FfiEntryPoint::Random => EntryPoint::Random,
+        }
     }
 }
 
-impl UniffiCustomTypeConverter for ExitPoint {
-    type Builtin = String;
+#[derive(uniffi::Enum)]
+pub enum FfiExitPoint {
+    Address { address: Recipient },
+    Gateway { identity: NodeIdentity },
+    Location { location: String },
+}
 
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(serde_json::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
+impl Into<ExitPoint> for FfiExitPoint {
+    fn into(self) -> ExitPoint {
+        match self {
+            FfiExitPoint::Address { address } => ExitPoint::Address { address },
+            FfiExitPoint::Gateway { identity } => ExitPoint::Gateway { identity },
+            FfiExitPoint::Location { location } => ExitPoint::Location { location },
+        }
     }
 }
