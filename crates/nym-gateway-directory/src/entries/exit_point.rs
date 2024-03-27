@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::fmt::{Display, Formatter};
+
 use crate::{
     error::Result, helpers::list_all_country_iso_codes, DescribedGatewayWithLocation, Error,
     IpPacketRouterAddress,
@@ -23,6 +25,16 @@ pub enum ExitPoint {
     Gateway { identity: NodeIdentity },
     // NOTE: Consider using a crate with strongly typed country codes instead of strings
     Location { location: String },
+}
+
+impl Display for ExitPoint {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ExitPoint::Address { address } => write!(f, "Address: {}", address),
+            ExitPoint::Gateway { identity } => write!(f, "Gateway: {}", identity),
+            ExitPoint::Location { location } => write!(f, "Location: {}", location),
+        }
+    }
 }
 
 impl ExitPoint {

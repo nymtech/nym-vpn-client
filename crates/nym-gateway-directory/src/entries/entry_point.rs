@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::fmt::{Display, Formatter};
+
 use crate::{
     error::Result,
     helpers::{
@@ -22,6 +24,17 @@ pub enum EntryPoint {
     Location { location: String },
     RandomLowLatency,
     Random,
+}
+
+impl Display for EntryPoint {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            EntryPoint::Gateway { identity } => write!(f, "Gateway: {}", identity),
+            EntryPoint::Location { location } => write!(f, "Location: {}", location),
+            EntryPoint::RandomLowLatency => write!(f, "Random low latency"),
+            EntryPoint::Random => write!(f, "Random"),
+        }
+    }
 }
 
 impl EntryPoint {
