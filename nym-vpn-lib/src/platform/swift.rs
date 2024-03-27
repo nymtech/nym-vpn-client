@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::*;
-use crate::gateway_client::{EntryPoint, ExitPoint};
+use crate::gateway_directory::{EntryPoint, ExitPoint};
 use crate::routing::RoutingConfig;
 use crate::NymVpn;
 use error::FFIError;
