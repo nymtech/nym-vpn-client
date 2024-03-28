@@ -4,4 +4,4 @@
 
 # Windows batch need to be checked out using CRLF locally
 *.bat eol=crlf
-
+*.sln text eol=crlf
