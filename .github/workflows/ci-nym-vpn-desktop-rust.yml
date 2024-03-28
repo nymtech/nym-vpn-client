@@ -99,6 +99,10 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup MSBuild.exe
+        if: contains(matrix.os, 'windows')
+        uses: microsoft/setup-msbuild@v2
+
       - name: Build wireguard
         shell: bash
         run: |
