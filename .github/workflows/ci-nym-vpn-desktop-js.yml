@@ -46,7 +46,6 @@ jobs:
         run: npm run lint
 
       - name: Check formatting
-        if: "!contains(matrix.os, 'windows')"
         working-directory: nym-vpn-desktop
         run: npm run fmt:check
 
