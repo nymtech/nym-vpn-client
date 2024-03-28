@@ -60,6 +60,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Set env
+        shell: bash
         run: |
           if ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
             platform_arch=ubuntu-20.04_x86_64
