@@ -12,18 +12,20 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
   check:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04-arc, custom-runner-mac-m1]
+        os: [ubuntu-22.04-arc, custom-runner-mac-m1, custom-windows-11]
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: 'Cleanup working directory'
+      - name: "Cleanup working directory"
         if: contains(matrix.os, 'custom')
+        shell: bash
         run: |
           ls -la ./
           rm -rf ./* || true
@@ -37,10 +39,29 @@ jobs:
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
             libgtk-3-dev squashfs-tools libayatana-appindicator3-dev git curl gcc g++ make
 
+      - name: Support longpaths on windows
+        if: contains(matrix.os, 'windows')
+        run: git config --system core.longpaths true
+
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install rust toolchain
+        if: "!contains(matrix.os, 'windows')"
+        id: rust-toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Install rust toolchain (Windows)
+        if: contains(matrix.os, 'windows')
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
       - name: Set env
+        shell: bash
         run: |
           if ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
             platform_arch=ubuntu-20.04_x86_64
@@ -55,6 +76,8 @@ jobs:
             # platform_arch=macos_aarch64
             platform_arch=macos_universal
             triplet=universal-apple-darwin
+          elif ${{ contains(matrix.os, 'windows') }}; then
+            triplet=x86_64-pc-windows-msvc
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
@@ -65,33 +88,25 @@ jobs:
           echo "TRIPLET=$triplet" >> $GITHUB_ENV
           echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
 
-      - name: Install rust toolchain
-        id: rust-toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: ${{ steps.rust-toolchain.outputs.cachekey }}
-          workspaces: |
-            nym-vpn-desktop/src-tauri
-          cache-directories: |
-            nym-vpn-desktop/src-tauri/icons
-
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: 'stable'
+          go-version: "stable"
 
       - name: Install protoc
         uses: arduino/setup-protoc@v2
-        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') || contains(matrix.os, 'windows')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup MSBuild.exe
+        if: contains(matrix.os, 'windows')
+        uses: microsoft/setup-msbuild@v2
+
       - name: Build wireguard
-        run: ./wireguard/build-wireguard-go.sh
+        shell: bash
+        run: |
+          ./wireguard/build-wireguard-go.sh
 
       - name: rustfmt check
         working-directory: nym-vpn-desktop/src-tauri
@@ -100,4 +115,3 @@ jobs:
       - name: clippy check
         working-directory: nym-vpn-desktop/src-tauri
         run: cargo clippy -- -Dwarnings
-
