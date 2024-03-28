@@ -3,7 +3,7 @@
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
 use crate::gateway_directory::GatewayClient;
-use crate::uniffi_custom_impls::{FfiEntryPoint, FfiExitPoint, FfiLocation};
+use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location};
 use crate::{
     spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
     NymVpnHandle,
@@ -100,8 +100,8 @@ async fn wait_for_shutdown(
 pub struct VPNConfig {
     pub api_url: Url,
     pub explorer_url: Url,
-    pub entry_gateway: FfiEntryPoint,
-    pub exit_router: FfiExitPoint,
+    pub entry_gateway: EntryPoint,
+    pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
     #[cfg(target_os = "ios")]
     pub tun_provider: Arc<dyn crate::OSTunProvider>,
@@ -165,7 +165,7 @@ pub fn getGatewayCountries(
     api_url: Url,
     explorer_url: Url,
     exit_only: bool,
-) -> Result<Vec<FfiLocation>, FFIError> {
+) -> Result<Vec<Location>, FFIError> {
     RUNTIME.block_on(get_gateway_countries(api_url, explorer_url, exit_only))
 }
 
@@ -173,7 +173,7 @@ async fn get_gateway_countries(
     api_url: Url,
     explorer_url: Url,
     exit_only: bool,
-) -> Result<Vec<FfiLocation>, FFIError> {
+) -> Result<Vec<Location>, FFIError> {
     let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
@@ -190,14 +190,14 @@ async fn get_gateway_countries(
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getLowLatencyEntryCountry(api_url: Url, explorer_url: Url) -> Result<FfiLocation, FFIError> {
+pub fn getLowLatencyEntryCountry(api_url: Url, explorer_url: Url) -> Result<Location, FFIError> {
     RUNTIME.block_on(get_low_latency_entry_country(api_url, explorer_url))
 }
 
 async fn get_low_latency_entry_country(
     api_url: Url,
     explorer_url: Url,
-) -> Result<FfiLocation, FFIError> {
+) -> Result<Location, FFIError> {
     let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),

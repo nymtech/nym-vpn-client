@@ -4,8 +4,8 @@
 use crate::platform::error::FFIError;
 use crate::{NodeIdentity, Recipient, UniffiCustomTypeConverter};
 use ipnetwork::IpNetwork;
-use nym_explorer_client::Location;
-use nym_gateway_directory::{EntryPoint, ExitPoint};
+use nym_explorer_client::Location as ExpLocation;
+use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::{PresharedKey, PrivateKey, PublicKey};
@@ -162,7 +162,7 @@ impl UniffiCustomTypeConverter for PresharedKey {
 }
 
 #[derive(uniffi::Record)]
-pub struct FfiLocation {
+pub struct Location {
     pub two_letter_iso_country_code: String,
     pub three_letter_iso_country_code: String,
     pub country_name: String,
@@ -170,9 +170,9 @@ pub struct FfiLocation {
     pub longitude: Option<f64>,
 }
 
-impl From<Location> for FfiLocation {
-    fn from(value: Location) -> Self {
-        FfiLocation {
+impl From<ExpLocation> for Location {
+    fn from(value: ExpLocation) -> Self {
+        Location {
             two_letter_iso_country_code: value.two_letter_iso_country_code,
             three_letter_iso_country_code: value.three_letter_iso_country_code,
             country_name: value.country_name,
@@ -183,38 +183,38 @@ impl From<Location> for FfiLocation {
 }
 
 #[derive(uniffi::Enum)]
-pub enum FfiEntryPoint {
+pub enum EntryPoint {
     Gateway { identity: NodeIdentity },
     Location { location: String },
     RandomLowLatency,
     Random,
 }
 
-impl From<FfiEntryPoint> for EntryPoint {
-    fn from(value: FfiEntryPoint) -> Self {
+impl From<EntryPoint> for GwEntryPoint {
+    fn from(value: EntryPoint) -> Self {
         match value {
-            FfiEntryPoint::Gateway { identity } => EntryPoint::Gateway { identity },
-            FfiEntryPoint::Location { location } => EntryPoint::Location { location },
-            FfiEntryPoint::RandomLowLatency => EntryPoint::RandomLowLatency,
-            FfiEntryPoint::Random => EntryPoint::Random,
+            EntryPoint::Gateway { identity } => GwEntryPoint::Gateway { identity },
+            EntryPoint::Location { location } => GwEntryPoint::Location { location },
+            EntryPoint::RandomLowLatency => GwEntryPoint::RandomLowLatency,
+            EntryPoint::Random => GwEntryPoint::Random,
         }
     }
 }
 
 #[derive(uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
-pub enum FfiExitPoint {
+pub enum ExitPoint {
     Address { address: Recipient },
     Gateway { identity: NodeIdentity },
     Location { location: String },
 }
 
-impl From<FfiExitPoint> for ExitPoint {
-    fn from(value: FfiExitPoint) -> Self {
+impl From<ExitPoint> for GwExitPoint {
+    fn from(value: ExitPoint) -> Self {
         match value {
-            FfiExitPoint::Address { address } => ExitPoint::Address { address },
-            FfiExitPoint::Gateway { identity } => ExitPoint::Gateway { identity },
-            FfiExitPoint::Location { location } => ExitPoint::Location { location },
+            ExitPoint::Address { address } => GwExitPoint::Address { address },
+            ExitPoint::Gateway { identity } => GwExitPoint::Gateway { identity },
+            ExitPoint::Location { location } => GwExitPoint::Location { location },
         }
     }
 }

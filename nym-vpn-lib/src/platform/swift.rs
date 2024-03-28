@@ -9,7 +9,9 @@ use oslog::OsLogger;
 use std::fmt::Debug;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::os::fd::RawFd;
-use talpid_types::net::wireguard::{PeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig};
+use talpid_types::net::wireguard::{
+    PeerConfig as WgPeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig as WgTunnelConfig,
+};
 
 pub(crate) fn init_logs() {
     OsLogger::new("net.nymtech.vpn.agent")
@@ -29,14 +31,14 @@ pub(crate) fn init_logs() {
 }
 
 #[derive(uniffi::Record, Clone)]
-pub struct UniffiTunnelConfig {
+pub struct TunnelConfig {
     pub private_key: PrivateKey,
     pub addresses: Vec<IpAddr>,
 }
 
-impl From<TunnelConfig> for UniffiTunnelConfig {
-    fn from(value: TunnelConfig) -> Self {
-        UniffiTunnelConfig {
+impl From<WgTunnelConfig> for TunnelConfig {
+    fn from(value: WgTunnelConfig) -> Self {
+        TunnelConfig {
             private_key: value.private_key,
             addresses: value.addresses,
         }
@@ -44,16 +46,16 @@ impl From<TunnelConfig> for UniffiTunnelConfig {
 }
 
 #[derive(uniffi::Record, Clone)]
-pub struct UniffiPeerConfig {
+pub struct PeerConfig {
     pub public_key: PublicKey,
     pub allowed_ips: Vec<IpNetwork>,
     pub endpoint: SocketAddr,
     pub psk: Option<PresharedKey>,
 }
 
-impl From<PeerConfig> for UniffiPeerConfig {
-    fn from(value: PeerConfig) -> Self {
-        UniffiPeerConfig {
+impl From<WgPeerConfig> for PeerConfig {
+    fn from(value: WgPeerConfig) -> Self {
+        PeerConfig {
             public_key: value.public_key,
             allowed_ips: value.allowed_ips,
             endpoint: value.endpoint,
@@ -64,8 +66,8 @@ impl From<PeerConfig> for UniffiPeerConfig {
 
 #[derive(uniffi::Record, Clone)]
 pub struct WgConfig {
-    pub tunnel: UniffiTunnelConfig,
-    pub peers: Vec<UniffiPeerConfig>,
+    pub tunnel: TunnelConfig,
+    pub peers: Vec<PeerConfig>,
     pub ipv4_gateway: Ipv4Addr,
     pub ipv6_gateway: Option<Ipv6Addr>,
     pub mtu: u16,
