@@ -13,34 +13,46 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-22.04-arc
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04-arc, custom-windows-11]
+    runs-on: ${{ matrix.os }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
             nym-vpn-desktop
+
       - name: Install Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: nym-vpn-desktop/package-lock.json
+
       - name: Install dependencies
         working-directory: nym-vpn-desktop
         run: npm ci
+
       - name: Typecheck
         working-directory: nym-vpn-desktop
         run: npm run tscheck
+
       - name: Check lint
         working-directory: nym-vpn-desktop
         run: npm run lint
+
       - name: Check formatting
         working-directory: nym-vpn-desktop
         run: npm run fmt:check
+
       #      - name: Run tests
       #        working-directory: nym-vpn-desktop
       #        run: npm run test
+
       - name: Check build
         working-directory: nym-vpn-desktop
         run: npm run build
