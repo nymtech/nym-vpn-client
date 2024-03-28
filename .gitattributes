@@ -1,0 +1,7 @@
+# LF is for Linux/Mac, CRLF is Windows specific
+# enforce all files are checked into the repo with LF
+* text=auto eol=lf
+
+# Windows batch need to be checked out using CRLF locally
+*.bat eol=crlf
+*.sln text eol=crlf
