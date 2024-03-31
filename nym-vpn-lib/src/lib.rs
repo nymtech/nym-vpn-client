@@ -230,8 +230,7 @@ impl NymVpn {
             routing_config,
             #[cfg(target_os = "ios")]
             self.ios_tun_provider.clone(),
-        )
-        .await?;
+        )?;
 
         info!("Setting up mixnet processor");
         let processor_config = mixnet_processor::Config::new(*exit_router);

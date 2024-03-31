@@ -339,7 +339,7 @@ pub fn setup_routing(
     info!("Adding routes to route manager");
     debug!("Routes: {:#?}", routes.clone().collect::<HashSet<_>>());
 
-    let mut rt = Runtime::new().unwrap();
+    let rt = Runtime::new().unwrap();
 
     rt.block_on(route_manager.add_routes(routes.collect()))?;
 
