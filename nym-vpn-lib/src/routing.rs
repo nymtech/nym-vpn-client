@@ -17,6 +17,7 @@ use talpid_routing::{Node, RequiredRoute, RouteManager};
 #[cfg(target_os = "android")]
 use talpid_tunnel::tun_provider::TunProvider;
 use tap::TapFallible;
+use tokio::runtime::Runtime;
 use tracing::{debug, error, info, trace};
 use tun2::AbstractDevice;
 
@@ -337,8 +338,10 @@ pub fn setup_routing(
 
     info!("Adding routes to route manager");
     debug!("Routes: {:#?}", routes.clone().collect::<HashSet<_>>());
-    futures::executor::block_on(async { route_manager.add_routes(routes.collect()) })
-        .expect("Could not add routes");
+
+    let mut rt = Runtime::new().unwrap();
+
+    rt.block_on(route_manager.add_routes(routes.collect()))?;
 
     Ok(dev)
 }
