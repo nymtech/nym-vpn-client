@@ -337,7 +337,8 @@ pub fn setup_routing(
 
     info!("Adding routes to route manager");
     debug!("Routes: {:#?}", routes.clone().collect::<HashSet<_>>());
-    futures::executor::block_on(async { route_manager.add_routes(routes.collect()).await? });
+    futures::executor::block_on(async { route_manager.add_routes(routes.collect()).await })
+        .expect("Could not add routes");
 
     Ok(dev)
 }
