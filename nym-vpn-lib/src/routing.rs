@@ -209,7 +209,7 @@ fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
     vec![network]
 }
 
-pub async fn setup_routing(
+pub fn setup_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
     #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
@@ -337,7 +337,7 @@ pub async fn setup_routing(
 
     info!("Adding routes to route manager");
     debug!("Routes: {:#?}", routes.clone().collect::<HashSet<_>>());
-    route_manager.add_routes(routes.collect()).await?;
+    futures::executor::block_on(async { route_manager.add_routes(routes.collect()).await? });
 
     Ok(dev)
 }
