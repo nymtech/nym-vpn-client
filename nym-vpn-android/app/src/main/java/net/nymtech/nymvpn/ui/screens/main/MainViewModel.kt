@@ -75,9 +75,13 @@ constructor(
 
   fun onConnect() =
       viewModelScope.launch(Dispatchers.IO) {
-        NymVpnClient.connect(application,gatewayRepository.getFirstHopCountry(),
-          gatewayRepository.getLastHopCountry(),
-          mode = uiState.value.networkMode)
+          val entryCountry = gatewayRepository.getFirstHopCountry()
+          val exitCountry = gatewayRepository.getLastHopCountry()
+          val mode = settingsRepository.getVpnMode()
+          val entry = entryCountry.toEntryPoint()
+          val exit = exitCountry.toExitPoint()
+          NymVpnClient.configure(entry,exit,mode)
+          NymVpnClient.start(application)
           NymVpn.requestTileServiceStateUpdate(application)
   }
 

@@ -21,6 +21,8 @@ case  "$(uname -s)" in
 esac
 
 (cd $PWD/src/tools/nym-vpn-client; cargo run --bin uniffi-bindgen generate --library ./target/aarch64-linux-android/debug/libnym_vpn_lib.so  --language kotlin --out-dir ../../main/java/net/nymtech/vpn -n)
+#fix package name
+sed -i 's/package nym-vpn-lib;/package nym_vpn_lib;/g' $PWD/src/main/java/net/nymtech/vpn/nym-vpn-lib/nym_vpn_lib.kt
 
 mv $PWD/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so $PWD/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so
 mv $PWD/src/main/jniLibs/armeabi-v7a/libnym_vpn_lib.so $PWD/src/main/jniLibs/armeabi-v7a/libnym_vpn_lib.so

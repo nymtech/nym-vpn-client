@@ -1,12 +1,10 @@
 package net.nymtech.nymvpn.data.model
 
-import net.nymtech.vpn.model.Hop
-import net.nymtech.vpn.model.HopCountries
-
+import net.nymtech.vpn.model.Country
 data class Gateways(
-    val firstHopCountry: Hop.Country = Hop.Country(),
-    val lastHopCountry: Hop.Country = Hop.Country(),
-    val lowLatencyCountry: Hop.Country = Hop.Country(),
-    val entryCountries: HopCountries = emptySet(),
-    val exitCountries: HopCountries = emptySet()
+    val firstHopCountry: Country = Country(),
+    val lastHopCountry: Country = Country(),
+    val lowLatencyCountry: Country = Country(),
+    val entryCountries: Set<Country> = emptySet(),
+    val exitCountries: Set<Country> = emptySet()
 )

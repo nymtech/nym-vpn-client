@@ -12,7 +12,7 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.ui.HopType
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.vpn.model.Hop
+import net.nymtech.vpn.model.Country
 import javax.inject.Inject
 
 @HiltViewModel
@@ -67,7 +67,7 @@ class HopViewModel @Inject constructor(
         )
     }
 
-    fun onSelected(country: Hop.Country) = viewModelScope.launch {
+    fun onSelected(country: Country) = viewModelScope.launch {
         when (_uiState.value.hopType) {
             HopType.FIRST -> gatewayRepository.setFirstHopCountry(country)
             HopType.LAST -> gatewayRepository.setLastHopCountry(country)

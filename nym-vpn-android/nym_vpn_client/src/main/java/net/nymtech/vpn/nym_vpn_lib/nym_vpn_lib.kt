@@ -3,7 +3,7 @@
 
 @file:Suppress("NAME_SHADOWING")
 
-package uniffi.nym_vpn_lib;
+package nym_vpn_lib;
 
 // Common helper code.
 //
@@ -29,6 +29,8 @@ import java.nio.ByteOrder
 import java.nio.CharBuffer
 import java.nio.charset.CodingErrorAction
 import java.util.concurrent.ConcurrentHashMap
+import java.net.URI
+import java.net.URL
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -386,7 +388,7 @@ internal interface UniffiLib : Library {
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_nym_vpn_lib_fn_func_runvpn(uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_runvpn(`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_nym_vpn_lib_fn_func_stopvpn(uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -527,16 +529,16 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 14840.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 45821.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 27191.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 48712.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_runvpn() != 15640.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_runvpn() != 53939.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_stopvpn() != 4440.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_stopvpn() != 23819.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -575,6 +577,26 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
             // swallow
         }
     }
+
+public object FfiConverterDouble: FfiConverter<Double, Double> {
+    override fun lift(value: Double): Double {
+        return value
+    }
+
+    override fun read(buf: ByteBuffer): Double {
+        return buf.getDouble()
+    }
+
+    override fun lower(value: Double): Double {
+        return value
+    }
+
+    override fun allocationSize(value: Double) = 8
+
+    override fun write(value: Double, buf: ByteBuffer) {
+        buf.putDouble(value)
+    }
+}
 
 public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
     override fun lift(value: Byte): Boolean {
@@ -652,100 +674,85 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 
 
 
-enum class ClientState {
-    
-    UNINITIALISED,
-    CONNECTED,
-    DISCONNECTED;
-    companion object
-}
-
-public object FfiConverterTypeClientState: FfiConverterRustBuffer<ClientState> {
-    override fun read(buf: ByteBuffer) = try {
-        ClientState.values()[buf.getInt() - 1]
-    } catch (e: IndexOutOfBoundsException) {
-        throw RuntimeException("invalid enum value, something is very wrong!!", e)
-    }
-
-    override fun allocationSize(value: ClientState) = 4
-
-    override fun write(value: ClientState, buf: ByteBuffer) {
-        buf.putInt(value.ordinal + 1)
-    }
-}
-
-
-
-
-
-sealed class Country {
-    
-    data class Code(
-        
-        val `value`: String
-        ) : Country() {
-        companion object
-    }
-    
-    data class Name(
-        
-        val `value`: String
-        ) : Country() {
-        companion object
-    }
-    
-
+data class Location (
+    var `twoLetterIsoCountryCode`: String, 
+    var `threeLetterIsoCountryCode`: String, 
+    var `countryName`: String, 
+    var `latitude`: Double?, 
+    var `longitude`: Double?
+) {
     
     companion object
 }
 
-public object FfiConverterTypeCountry : FfiConverterRustBuffer<Country>{
-    override fun read(buf: ByteBuffer): Country {
-        return when(buf.getInt()) {
-            1 -> Country.Code(
-                FfiConverterString.read(buf),
-                )
-            2 -> Country.Name(
-                FfiConverterString.read(buf),
-                )
-            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
-        }
+public object FfiConverterTypeLocation: FfiConverterRustBuffer<Location> {
+    override fun read(buf: ByteBuffer): Location {
+        return Location(
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterOptionalDouble.read(buf),
+            FfiConverterOptionalDouble.read(buf),
+        )
     }
 
-    override fun allocationSize(value: Country) = when(value) {
-        is Country.Code -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4
-                + FfiConverterString.allocationSize(value.`value`)
-            )
-        }
-        is Country.Name -> {
-            // Add the size for the Int that specifies the variant plus the size needed for all fields
-            (
-                4
-                + FfiConverterString.allocationSize(value.`value`)
-            )
-        }
-    }
+    override fun allocationSize(value: Location) = (
+            FfiConverterString.allocationSize(value.`twoLetterIsoCountryCode`) +
+            FfiConverterString.allocationSize(value.`threeLetterIsoCountryCode`) +
+            FfiConverterString.allocationSize(value.`countryName`) +
+            FfiConverterOptionalDouble.allocationSize(value.`latitude`) +
+            FfiConverterOptionalDouble.allocationSize(value.`longitude`)
+    )
 
-    override fun write(value: Country, buf: ByteBuffer) {
-        when(value) {
-            is Country.Code -> {
-                buf.putInt(1)
-                FfiConverterString.write(value.`value`, buf)
-                Unit
-            }
-            is Country.Name -> {
-                buf.putInt(2)
-                FfiConverterString.write(value.`value`, buf)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    override fun write(value: Location, buf: ByteBuffer) {
+            FfiConverterString.write(value.`twoLetterIsoCountryCode`, buf)
+            FfiConverterString.write(value.`threeLetterIsoCountryCode`, buf)
+            FfiConverterString.write(value.`countryName`, buf)
+            FfiConverterOptionalDouble.write(value.`latitude`, buf)
+            FfiConverterOptionalDouble.write(value.`longitude`, buf)
     }
 }
 
 
+
+data class VpnConfig (
+    var `apiUrl`: Url, 
+    var `explorerUrl`: Url, 
+    var `entryGateway`: EntryPoint, 
+    var `exitRouter`: ExitPoint, 
+    var `enableTwoHop`: Boolean
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
+    override fun read(buf: ByteBuffer): VpnConfig {
+        return VpnConfig(
+            FfiConverterTypeUrl.read(buf),
+            FfiConverterTypeUrl.read(buf),
+            FfiConverterTypeEntryPoint.read(buf),
+            FfiConverterTypeExitPoint.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: VpnConfig) = (
+            FfiConverterTypeUrl.allocationSize(value.`apiUrl`) +
+            FfiConverterTypeUrl.allocationSize(value.`explorerUrl`) +
+            FfiConverterTypeEntryPoint.allocationSize(value.`entryGateway`) +
+            FfiConverterTypeExitPoint.allocationSize(value.`exitRouter`) +
+            FfiConverterBoolean.allocationSize(value.`enableTwoHop`)
+    )
+
+    override fun write(value: VpnConfig, buf: ByteBuffer) {
+            FfiConverterTypeUrl.write(value.`apiUrl`, buf)
+            FfiConverterTypeUrl.write(value.`explorerUrl`, buf)
+            FfiConverterTypeEntryPoint.write(value.`entryGateway`, buf)
+            FfiConverterTypeExitPoint.write(value.`exitRouter`, buf)
+            FfiConverterBoolean.write(value.`enableTwoHop`, buf)
+    }
+}
 
 
 
@@ -957,17 +964,25 @@ sealed class FfiException: Exception() {
             get() = ""
     }
     
-    class IncorrectState(
-        
-        val `current`: ClientState, 
-        
-        val `expected`: ClientState
+    class VpnNotStopped(
         ) : FfiException() {
         override val message
-            get() = "current=${ `current` }, expected=${ `expected` }"
+            get() = ""
     }
     
-    class UrlParse(
+    class VpnNotStarted(
+        ) : FfiException() {
+        override val message
+            get() = ""
+    }
+    
+    class NoContext(
+        ) : FfiException() {
+        override val message
+            get() = ""
+    }
+    
+    class LibException(
         
         val `inner`: String
         ) : FfiException() {
@@ -975,7 +990,7 @@ sealed class FfiException: Exception() {
             get() = "inner=${ `inner` }"
     }
     
-    class LibException(
+    class GatewayDirectoryException(
         
         val `inner`: String
         ) : FfiException() {
@@ -998,14 +1013,13 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
         return when(buf.getInt()) {
             1 -> FfiException.InvalidValueUniffi()
             2 -> FfiException.FdNotFound()
-            3 -> FfiException.IncorrectState(
-                FfiConverterTypeClientState.read(buf),
-                FfiConverterTypeClientState.read(buf),
-                )
-            4 -> FfiException.UrlParse(
+            3 -> FfiException.VpnNotStopped()
+            4 -> FfiException.VpnNotStarted()
+            5 -> FfiException.NoContext()
+            6 -> FfiException.LibException(
                 FfiConverterString.read(buf),
                 )
-            5 -> FfiException.LibException(
+            7 -> FfiException.GatewayDirectoryException(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
@@ -1022,18 +1036,24 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4
             )
-            is FfiException.IncorrectState -> (
+            is FfiException.VpnNotStopped -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4
-                + FfiConverterTypeClientState.allocationSize(value.`current`)
-                + FfiConverterTypeClientState.allocationSize(value.`expected`)
             )
-            is FfiException.UrlParse -> (
+            is FfiException.VpnNotStarted -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+            )
+            is FfiException.NoContext -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4
+            )
+            is FfiException.LibException -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4
                 + FfiConverterString.allocationSize(value.`inner`)
             )
-            is FfiException.LibException -> (
+            is FfiException.GatewayDirectoryException -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4
                 + FfiConverterString.allocationSize(value.`inner`)
@@ -1051,19 +1071,25 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
                 buf.putInt(2)
                 Unit
             }
-            is FfiException.IncorrectState -> {
+            is FfiException.VpnNotStopped -> {
                 buf.putInt(3)
-                FfiConverterTypeClientState.write(value.`current`, buf)
-                FfiConverterTypeClientState.write(value.`expected`, buf)
                 Unit
             }
-            is FfiException.UrlParse -> {
+            is FfiException.VpnNotStarted -> {
                 buf.putInt(4)
-                FfiConverterString.write(value.`inner`, buf)
+                Unit
+            }
+            is FfiException.NoContext -> {
+                buf.putInt(5)
                 Unit
             }
             is FfiException.LibException -> {
-                buf.putInt(5)
+                buf.putInt(6)
+                FfiConverterString.write(value.`inner`, buf)
+                Unit
+            }
+            is FfiException.GatewayDirectoryException -> {
+                buf.putInt(7)
                 FfiConverterString.write(value.`inner`, buf)
                 Unit
             }
@@ -1075,24 +1101,53 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
 
 
 
-public object FfiConverterSequenceTypeCountry: FfiConverterRustBuffer<List<Country>> {
-    override fun read(buf: ByteBuffer): List<Country> {
-        val len = buf.getInt()
-        return List<Country>(len) {
-            FfiConverterTypeCountry.read(buf)
+public object FfiConverterOptionalDouble: FfiConverterRustBuffer<Double?> {
+    override fun read(buf: ByteBuffer): Double? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterDouble.read(buf)
+    }
+
+    override fun allocationSize(value: Double?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterDouble.allocationSize(value)
         }
     }
 
-    override fun allocationSize(value: List<Country>): Int {
+    override fun write(value: Double?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterDouble.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeLocation: FfiConverterRustBuffer<List<Location>> {
+    override fun read(buf: ByteBuffer): List<Location> {
+        val len = buf.getInt()
+        return List<Location>(len) {
+            FfiConverterTypeLocation.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<Location>): Int {
         val sizeForLength = 4
-        val sizeForItems = value.map { FfiConverterTypeCountry.allocationSize(it) }.sum()
+        val sizeForItems = value.map { FfiConverterTypeLocation.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
-    override fun write(value: List<Country>, buf: ByteBuffer) {
+    override fun write(value: List<Location>, buf: ByteBuffer) {
         buf.putInt(value.size)
         value.forEach {
-            FfiConverterTypeCountry.write(it, buf)
+            FfiConverterTypeLocation.write(it, buf)
         }
     }
 }
@@ -1116,36 +1171,78 @@ public typealias FfiConverterTypeNodeIdentity = FfiConverterString
  */
 public typealias Recipient = String
 public typealias FfiConverterTypeRecipient = FfiConverterString
+
+
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the custom type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias Url = URL
+
+
+
+public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
+    override fun lift(value: RustBuffer.ByValue): Url {
+        val builtinValue = FfiConverterString.lift(value)
+        return URI(builtinValue).toURL()
+    }
+
+    override fun lower(value: Url): RustBuffer.ByValue {
+        val builtinValue = value.toString()
+        return FfiConverterString.lower(builtinValue)
+    }
+
+    override fun read(buf: ByteBuffer): Url {
+        val builtinValue = FfiConverterString.read(buf)
+        return URI(builtinValue).toURL()
+    }
+
+    override fun allocationSize(value: Url): Int {
+        val builtinValue = value.toString()
+        return FfiConverterString.allocationSize(builtinValue)
+    }
+
+    override fun write(value: Url, buf: ByteBuffer) {
+        val builtinValue = value.toString()
+        FfiConverterString.write(builtinValue, buf)
+    }
+}
 @Throws(FfiException::class)
 
-fun `getGatewayCountries`(`apiUrl`: String, `explorerUrl`: String, `exitOnly`: Boolean): List<Country> {
-    return FfiConverterSequenceTypeCountry.lift(
+fun `getGatewayCountries`(`apiUrl`: Url, `explorerUrl`: Url, `exitOnly`: Boolean): List<Location> {
+    return FfiConverterSequenceTypeLocation.lift(
     uniffiRustCallWithError(FfiException) { _status ->
-    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getgatewaycountries(FfiConverterString.lower(`apiUrl`),FfiConverterString.lower(`explorerUrl`),FfiConverterBoolean.lower(`exitOnly`),_status)
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getgatewaycountries(FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterTypeUrl.lower(`explorerUrl`),FfiConverterBoolean.lower(`exitOnly`),_status)
 })
 }
 
 @Throws(FfiException::class)
 
-fun `getLowLatencyEntryCountry`(`apiUrl`: String, `explorerUrl`: String): Country {
-    return FfiConverterTypeCountry.lift(
+fun `getLowLatencyEntryCountry`(`apiUrl`: Url, `explorerUrl`: Url): Location {
+    return FfiConverterTypeLocation.lift(
     uniffiRustCallWithError(FfiException) { _status ->
-    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(FfiConverterString.lower(`apiUrl`),FfiConverterString.lower(`explorerUrl`),_status)
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterTypeUrl.lower(`explorerUrl`),_status)
 })
 }
 
+@Throws(FfiException::class)
 
-fun `runVpn`() =
+fun `runVpn`(`config`: VpnConfig) =
     
-    uniffiRustCall() { _status ->
-    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_runvpn(_status)
+    uniffiRustCallWithError(FfiException) { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_runvpn(FfiConverterTypeVPNConfig.lower(`config`),_status)
 }
 
 
+@Throws(FfiException::class)
 
 fun `stopVpn`() =
     
-    uniffiRustCall() { _status ->
+    uniffiRustCallWithError(FfiException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_stopvpn(_status)
 }
 

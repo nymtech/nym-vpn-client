@@ -54,6 +54,7 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = Constants.JAVA_VERSION
         targetCompatibility = Constants.JAVA_VERSION
     }
@@ -70,14 +71,21 @@ android {
 }
 
 dependencies {
-
     implementation(project(":logcat_helper"))
+    coreLibraryDesugaring(libs.com.android.tools.desugar)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.core)
 
     implementation(libs.kotlinx.serialization)
     implementation(libs.timber)
     implementation(libs.jna)
+
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
 }
 
 

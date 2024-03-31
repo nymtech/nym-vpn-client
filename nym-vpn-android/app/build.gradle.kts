@@ -210,6 +210,7 @@ dependencies {
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.kotlinx.serialization)
     implementation(libs.androidx.window)
+    implementation(libs.androidx.lifecycle.service)
 
     // logging
     implementation(libs.timber)

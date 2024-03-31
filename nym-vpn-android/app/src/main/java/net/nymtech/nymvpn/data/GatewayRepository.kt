@@ -2,24 +2,23 @@ package net.nymtech.nymvpn.data
 
 import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.data.model.Gateways
-import net.nymtech.vpn.model.Hop
-import net.nymtech.vpn.model.HopCountries
+import net.nymtech.vpn.model.Country
 
 interface GatewayRepository {
-    suspend fun getFirstHopCountry() : Hop.Country
-    suspend fun setFirstHopCountry(country: Hop.Country)
+    suspend fun getFirstHopCountry() : Country
+    suspend fun setFirstHopCountry(country: Country)
 
-    suspend fun getLowLatencyCountry() : Hop.Country
-    suspend fun setLowLatencyCountry(country: Hop.Country)
+    suspend fun getLowLatencyCountry() : Country
+    suspend fun setLowLatencyCountry(country: Country)
 
-    suspend fun getLastHopCountry() : Hop.Country
-    suspend fun setLastHopCountry(country: Hop.Country)
+    suspend fun getLastHopCountry() : Country
+    suspend fun setLastHopCountry(country: Country)
 
-    suspend fun setEntryCountries(countries: HopCountries)
-    suspend fun getEntryCountries() : HopCountries
+    suspend fun setEntryCountries(countries: Set<Country>)
+    suspend fun getEntryCountries() : Set<Country>
 
-    suspend fun setExitCountries(countries: HopCountries)
-    suspend fun getExitCountries() : HopCountries
+    suspend fun setExitCountries(countries: Set<Country>)
+    suspend fun getExitCountries() : Set<Country>
 
     val gatewayFlow : Flow<Gateways>
 }

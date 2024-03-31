@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
-import net.nymtech.vpn.model.Hop
+import net.nymtech.vpn.model.Country
 import timber.log.Timber
 import java.io.IOException
 
@@ -40,8 +40,8 @@ class DataStoreManager(private val context: Context) {
 
     suspend fun init() {
         context.dataStore.edit {
-            if(it[FIRST_HOP_COUNTRY] == null) it[FIRST_HOP_COUNTRY] = Hop.Country(isDefault = true).toString()
-            if(it[LAST_HOP_COUNTRY] == null) it[LAST_HOP_COUNTRY] = Hop.Country(isDefault = true).toString()
+            if(it[FIRST_HOP_COUNTRY] == null) it[FIRST_HOP_COUNTRY] = Country(isDefault = true).toString()
+            if(it[LAST_HOP_COUNTRY] == null) it[LAST_HOP_COUNTRY] = Country(isDefault = true).toString()
         }
     }
 

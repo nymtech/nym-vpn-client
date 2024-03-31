@@ -71,7 +71,7 @@ fun HopScreen(
         }
         item {
             if (uiState.countries.isNotEmpty()) {
-                val fastest = uiState.countries.firstOrNull { it.isFastest }
+                val fastest = uiState.countries.firstOrNull { it.isLowLatency }
                 if (fastest != null) {
                     val name = StringUtils.buildCountryNameString(fastest, context)
                     val icon = ImageVector.vectorResource(R.drawable.bolt)
@@ -98,7 +98,7 @@ fun HopScreen(
             }
         }
         items(uiState.queriedCountries.toList()) {
-          if (it.isFastest) return@items
+          if (it.isLowLatency) return@items
           val icon =
               ImageVector.vectorResource(StringUtils.getFlagImageVectorByName(context, it.isoCode.lowercase()))
           SelectionItemButton(

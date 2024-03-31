@@ -31,6 +31,9 @@ object Constants {
     const val SANDBOX_API_URL = "https://sandbox-nym-api1.nymtech.net/api"
     const val SANDBOX_EXPLORER_URL = "https://sandbox-explorer.nymtech.net/api"
 
+    const val MAINNET_API_URL = "https://validator.nymtech.net/api/"
+    const val MAINNET_EXPLORER_URL = "https://explorer.nymtech.net/api/"
+
     //licensee
     val allowedLicenses = listOf("MIT", "Apache-2.0", "BSD-3-Clause")
     const val ANDROID_TERMS_URL = "https://developer.android.com/studio/terms.html"

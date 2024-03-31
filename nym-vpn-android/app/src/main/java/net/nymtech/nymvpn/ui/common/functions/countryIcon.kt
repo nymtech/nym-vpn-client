@@ -16,13 +16,13 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
-import net.nymtech.vpn.model.Hop
+import net.nymtech.vpn.model.Country
 
 @Composable
-fun countryIcon(country: Hop.Country): @Composable () -> Unit {
+fun countryIcon(country: Country): @Composable () -> Unit {
     val context = LocalContext.current
     val image =
-        if (country.isFastest) ImageVector.vectorResource(R.drawable.bolt)
+        if (country.isLowLatency) ImageVector.vectorResource(R.drawable.bolt)
         else ImageVector.vectorResource(StringUtils.getFlagImageVectorByName(context, country.isoCode.lowercase()))
     return {
         Image(
@@ -34,7 +34,7 @@ fun countryIcon(country: Hop.Country): @Composable () -> Unit {
                     iconSize
                 ),
             colorFilter =
-            if (country.isFastest) ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
+            if (country.isLowLatency) ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
             else null)
     }
 }

@@ -40,7 +40,7 @@ object ServiceManager {
     }
   }
 
-    fun startVpnService(context: Context, extras : Map<String, String>?) {
+    fun startVpnService(context: Context, extras : Map<String, String>? = null) {
         Timber.d("Called start vpn service")
         actionOnService(
             Action.START,
@@ -50,7 +50,7 @@ object ServiceManager {
         )
     }
 
-    fun startVpnServiceForeground(context: Context, extras : Map<String, String>?) {
+    fun startVpnServiceForeground(context: Context, extras : Map<String, String>? = null) {
         Timber.d("Called start vpn service foreground")
         actionOnService(
             Action.START_FOREGROUND,

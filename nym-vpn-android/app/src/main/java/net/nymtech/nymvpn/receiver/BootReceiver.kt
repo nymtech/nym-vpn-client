@@ -5,28 +5,30 @@ import android.content.Context
 import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
 import net.nymtech.nymvpn.NymVpn
-import net.nymtech.nymvpn.data.datastore.DataStoreManager
+import net.nymtech.nymvpn.data.GatewayRepository
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.util.goAsync
 import net.nymtech.vpn.NymVpnClient
-import net.nymtech.vpn.model.Hop
-import net.nymtech.vpn.model.VpnMode
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class BootReceiver : BroadcastReceiver() {
 
-    @Inject lateinit var dataStoreManager: DataStoreManager
+    @Inject lateinit var gatewayRepository: GatewayRepository
+
+    @Inject lateinit var settingsRepository: SettingsRepository
 
     override fun onReceive(context: Context?, intent: Intent?) = goAsync {
         if (Intent.ACTION_BOOT_COMPLETED != intent?.action) return@goAsync
-        val autoStart = dataStoreManager.getFromStore(DataStoreManager.AUTO_START)
-        if (autoStart == true) {
-            val firstHopCountry = dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY)
-            val lastHopCountry = dataStoreManager.getFromStore(DataStoreManager.LAST_HOP_COUNTRY)
-            val mode = dataStoreManager.getFromStore(DataStoreManager.VPN_MODE)
+        if (settingsRepository.isAutoStartEnabled()) {
+            val entryCountry = gatewayRepository.getFirstHopCountry()
+            val exitCountry = gatewayRepository.getLastHopCountry()
+            val mode = settingsRepository.getVpnMode()
             context?.let { context ->
-                NymVpnClient.connectForeground(context, Hop.Country.from(firstHopCountry), Hop.Country.from(lastHopCountry),
-                    VpnMode.from(mode))
+                val entry = entryCountry.toEntryPoint()
+                val exit = exitCountry.toExitPoint()
+                NymVpnClient.configure(entry,exit,mode)
+                NymVpnClient.start(context)
                 NymVpn.requestTileServiceStateUpdate(context)
             }
         }

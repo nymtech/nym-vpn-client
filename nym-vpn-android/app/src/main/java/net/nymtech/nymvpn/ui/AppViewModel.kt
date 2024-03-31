@@ -27,7 +27,7 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
 import net.nymtech.nymvpn.util.log.NymLibException
 import net.nymtech.vpn.NymVpnClient
-import net.nymtech.vpn.model.Hop
+import net.nymtech.vpn.model.Country
 import timber.log.Timber
 import java.time.Instant
 import java.util.Locale
@@ -103,38 +103,29 @@ class AppViewModel @Inject constructor(
 
     fun onEntryLocationSelected(selected : Boolean) = viewModelScope.launch {
         settingsRepository.setFirstHopSelection(selected)
-        gatewayRepository.setFirstHopCountry(Hop.Country(isDefault = true))
+        gatewayRepository.setFirstHopCountry(Country(isDefault = true))
         updateFirstHopDefaultCountry()
     }
 
     private suspend fun updateFirstHopDefaultCountry() {
         val firstHop = gatewayRepository.getFirstHopCountry()
-        if(firstHop.isDefault || firstHop.isFastest) {
+        if(firstHop.isDefault || firstHop.isLowLatency) {
             setFirstHopToLowLatency()
         }
     }
 
     private suspend fun updateEntryCountriesCache() {
-        val entryGateways = NymVpnClient.gateways(false)
-        val entryCountries = entryGateways.map {
-            val countryIso = it
-            Hop.Country(countryIso, Locale(countryIso.lowercase(), countryIso).displayCountry)
-        }.toSet()
+        val entryCountries = NymVpnClient.gateways(false)
         gatewayRepository.setEntryCountries(entryCountries)
     }
 
     private suspend fun updateExitCountriesCache() {
-        val exitGateways = NymVpnClient.gateways(true)
-        val exitCountries = exitGateways.map {
-            val countryIso = it
-            Hop.Country(countryIso, Locale(countryIso.lowercase(), countryIso).displayCountry)
-        }.toSet()
+        val exitCountries = NymVpnClient.gateways(true)
         gatewayRepository.setExitCountries(exitCountries)
     }
     private suspend fun setFirstHopToLowLatency() {
-        val lowLatencyCountryIso = NymVpnClient.getLowLatencyEntryCountryCode()
-        Timber.i("Setting low latency entry country: $lowLatencyCountryIso")
-        gatewayRepository.setFirstHopCountry(Hop.Country(isoCode = lowLatencyCountryIso, isFastest = true))
+        val lowLatencyCountry = NymVpnClient.getLowLatencyEntryCountryCode()
+        gatewayRepository.setFirstHopCountry(lowLatencyCountry)
     }
 
     fun openWebPage(url: String) {

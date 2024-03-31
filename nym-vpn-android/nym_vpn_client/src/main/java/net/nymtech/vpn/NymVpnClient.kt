@@ -18,27 +18,28 @@ import kotlinx.coroutines.withContext
 import net.nymtech.logcat_helper.LogcatHelper
 import net.nymtech.logcat_helper.model.LogLevel
 import net.nymtech.vpn.model.ClientState
-import net.nymtech.vpn.model.EntryPoint
+import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.ErrorState
-import net.nymtech.vpn.model.ExitPoint
 import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.model.VpnState
-import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.ServiceManager
 import net.nymtech.vpn.util.safeCollect
 import net.nymtech.vpn_client.BuildConfig
+import nym_vpn_lib.EntryPoint
+import nym_vpn_lib.ExitPoint
+import nym_vpn_lib.VpnConfig
+import nym_vpn_lib.getGatewayCountries
+import nym_vpn_lib.getLowLatencyEntryCountry
+import nym_vpn_lib.runVpn
 import timber.log.Timber
-import uniffi.nym_vpn_lib.Country
-import uniffi.nym_vpn_lib.getGatewayCountries
-import uniffi.nym_vpn_lib.getLowLatencyEntryCountry
+import java.net.URL
 
+//TODO change to builder pattern?
 object NymVpnClient : VpnClient {
 
-    init {
-        Constants.setupEnvironment()
-        System.loadLibrary(Constants.NYM_VPN_LIB)
-        Timber.i( "Loaded native library in client")
-    }
+    private val apiUrl = URL(BuildConfig.API_URL)
+    private val explorerUrl = URL(BuildConfig.EXPLORER_URL)
+    private val scope = CoroutineScope(Dispatchers.IO)
 
     private val _state = MutableStateFlow(ClientState())
     override val stateFlow: Flow<ClientState> = _state.asStateFlow()
@@ -46,59 +47,55 @@ object NymVpnClient : VpnClient {
         return _state.value
     }
 
-    override suspend fun gateways(exitOnly: Boolean) : List<String> {
+    override suspend fun gateways(exitOnly: Boolean) : Set<Country> {
         return withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
-            val gateways = getGatewayCountries(BuildConfig.API_URL,BuildConfig.EXPLORER_URL,exitOnly)
-            gateways.map {
-                (it as Country.Code).value
-            }
+            getGatewayCountries(apiUrl,explorerUrl,exitOnly).map {
+                Country(isoCode = it.twoLetterIsoCountryCode)
+            }.toSet()
         }
     }
 
-    override suspend fun getLowLatencyEntryCountryCode(): String {
+    override suspend fun getLowLatencyEntryCountryCode(): Country {
         return withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
-            getLowLatencyEntryCountry(BuildConfig.API_URL, BuildConfig.EXPLORER_URL).let {
-                (it as Country.Code).value
-            }
+            Country(isoCode = getLowLatencyEntryCountry(apiUrl, explorerUrl).twoLetterIsoCountryCode, isLowLatency = true)
         }
     }
-
-
-    private val scope = CoroutineScope(Dispatchers.IO)
 
     private var statusJob: Job? = null
+    override fun configure(entryPoint: EntryPoint, exitPoint: ExitPoint, mode: VpnMode) {
+        _state.value = _state.value.copy(
+            entryPoint = entryPoint,
+            exitPoint = exitPoint,
+            mode = mode
+        )
+    }
+
     override fun prepare(context : Context): Intent? {
         return VpnService.prepare(context)
     }
 
-    override fun connect(context: Context, entryPoint: EntryPoint, exitPoint: ExitPoint, mode: VpnMode) {
+    override fun start(context: Context) {
         clearErrorStatus()
-        setMode(mode)
-        val extras = mapOf(
-            ENTRY_POINT_EXTRA_KEY to entryPoint.toLibString(),
-            EXIT_POINT_EXTRA_KEY to exitPoint.toLibString(),
-            TWO_HOP_EXTRA_KEY to isTwoHop(mode).toString()
-        )
-        //TODO fix logic for more modes later
         statusJob = collectLogStatus(context)
-        ServiceManager.startVpnService(context, extras)
+        ServiceManager.startVpnService(context)
     }
 
-    override fun connectForeground(
-        context: Context,
-        entryPoint: EntryPoint,
-        exitPoint: ExitPoint,
-        mode: VpnMode
-    ) {
+    override fun startForeground(context: Context) {
         clearErrorStatus()
-        setMode(mode)
-        val extras = mapOf(
-            ENTRY_POINT_EXTRA_KEY to entryPoint.toLibString(),
-            EXIT_POINT_EXTRA_KEY to exitPoint.toLibString(),
-            TWO_HOP_EXTRA_KEY to isTwoHop(mode).toString()
-        )
         statusJob = collectLogStatus(context)
-        ServiceManager.startVpnServiceForeground(context, extras)
+        ServiceManager.startVpnServiceForeground(context)
+    }
+    internal fun connect() {
+        //TODO refactor
+        if(_state.value.exitPoint != null && _state.value.entryPoint != null) {
+            try {
+                runVpn(VpnConfig(
+                    apiUrl, explorerUrl,
+                    _state.value.entryPoint!!, _state.value.exitPoint!!, isTwoHop(_state.value.mode)))
+            } catch (e : Exception) {
+                Timber.e(e)
+            }
+        }
     }
 
     private fun isTwoHop(mode : VpnMode) : Boolean = when(mode) {
@@ -161,13 +158,6 @@ object NymVpnClient : VpnClient {
             errorState = ErrorState.None
         )
     }
-
-    private fun setMode(mode : VpnMode) {
-        _state.value = _state.value.copy(
-            mode = mode
-        )
-    }
-
     private fun setErrorState(message : String) {
         _state.value = _state.value.copy(
             errorState = ErrorState.LibraryError(message)

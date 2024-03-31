@@ -13,18 +13,15 @@ import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.tun_provider.TunConfig
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
-import net.nymtech.vpn_client.BuildConfig
 import net.nymtech.vpn_client.R
+import nym_vpn_lib.stopVpn
 import timber.log.Timber
-import uniffi.nym_vpn_lib.runVpn
-import uniffi.nym_vpn_lib.stopVpn
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -35,10 +32,11 @@ class NymVpnService : VpnService() {
         init {
             Constants.setupEnvironment()
             System.loadLibrary(Constants.NYM_VPN_LIB)
-            Timber.i( "Loaded native library in service")
+            Timber.i("Loaded native library in service")
         }
-
     }
+
+    val scope = CoroutineScope(Dispatchers.IO)
 
     private var activeTunStatus by observable<CreateTunResult?>(null) { _, oldTunStatus, _ ->
         val oldTunFd = when (oldTunStatus) {
@@ -62,46 +60,35 @@ class NymVpnService : VpnService() {
 
     val connectivityListener = ConnectivityListener()
 
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return when (intent?.action) {
             Action.START.name, Action.START_FOREGROUND.name -> {
                 NymVpnClient.setVpnState(VpnState.Connecting.InitializingClient)
                 currentTunConfig = defaultTunConfig()
                 Timber.i("VPN start")
-                startVpn(intent)
+                if(prepare(this) == null) {
+                        scope.launch {
+                            initVPN(this)
+                            NymVpnClient.connect()
+                        }
+                    }
                 START_STICKY
             }
             Action.STOP.name -> {
                 Timber.d("VPN stop")
                 NymVpnClient.setVpnState(VpnState.Disconnecting)
-                runBlocking {
-                    stopVpn()
-                }
+                    scope.launch(Dispatchers.IO) {
+                        try {
+                            stopVpn()
+                        } catch (e : Exception) {
+                            Timber.e(e)
+                        }
+                    }
                 stopSelf()
                 START_NOT_STICKY
             }
             else -> START_NOT_STICKY
-        }
-    }
-
-    private fun startVpn(intent : Intent) {
-        try {
-            if(prepare(this) == null) {
-                val isTwoHop = intent.extras?.getString(NymVpnClient.TWO_HOP_EXTRA_KEY).toBoolean()
-                val entry = intent.extras?.getString(NymVpnClient.ENTRY_POINT_EXTRA_KEY)
-                val exit = intent.extras?.getString(NymVpnClient.EXIT_POINT_EXTRA_KEY)
-                Timber.i("$entry $exit $isTwoHop")
-                if(!entry.isNullOrBlank() && !exit.isNullOrBlank()) {
-                    initVPN(isTwoHop, BuildConfig.API_URL, BuildConfig.EXPLORER_URL, entry, exit,this)
-                    CoroutineScope(Dispatchers.IO).launch {
-                        launch {
-                            runVpn()
-                        }
-                    }
-                }
-            }
-        } catch (e : Exception) {
-            Timber.e(e)
         }
     }
 
@@ -143,14 +130,11 @@ class NymVpnService : VpnService() {
         startForeground(123, notification)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onDestroy() {
         Timber.i("VpnService destroyed")
         NymVpnClient.setVpnState(VpnState.Down)
         connectivityListener.unregister()
-        GlobalScope.launch {
-            stopVpn()
-        }
+        scope.cancel()
         stopSelf()
     }
 
@@ -257,11 +241,6 @@ class NymVpnService : VpnService() {
     }
 
     private external fun initVPN(
-        enable_two_hop: Boolean,
-        api_url: String,
-        explorer_url: String,
-        entry_gateway: String,
-        exit_router: String,
         vpn_service: Any
     )
 
