@@ -107,13 +107,7 @@ pub struct VPNConfig {
     pub tun_provider: Arc<dyn crate::OSTunProvider>,
 }
 
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
-    RUNTIME.block_on(run_vpn(config))
-}
-
-async fn run_vpn(config: VPNConfig) -> Result<(), FFIError> {
+fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn, FFIError> {
     #[cfg(any(target_os = "ios", target_os = "macos"))]
     crate::platform::swift::init_logs();
 
@@ -132,8 +126,22 @@ async fn run_vpn(config: VPNConfig) -> Result<(), FFIError> {
     vpn.gateway_config.explorer_url = Some(config.explorer_url);
     vpn.enable_two_hop = config.enable_two_hop;
 
+    Ok(vpn)
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
+    let vpn = sync_run_vpn(config)?;
+    RUNTIME.block_on(run_vpn(vpn))
+}
+
+async fn run_vpn(vpn: NymVpn) -> Result<(), FFIError> {
     match _async_run_vpn(vpn).await {
-        Err(err) => error!("Could not start the VPN: {:?}", err),
+        Err(err) => {
+            error!("Could not start the VPN: {:?}", err);
+            Err(err)
+        }
         Ok((stop_handle, handle)) => {
             RUNTIME.spawn(async move {
                 wait_for_shutdown(stop_handle, handle)
@@ -143,10 +151,9 @@ async fn run_vpn(config: VPNConfig) -> Result<(), FFIError> {
                     })
                     .ok();
             });
+            Ok(())
         }
     }
-
-    Ok(())
 }
 
 #[allow(non_snake_case)]
