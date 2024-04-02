@@ -17,11 +17,6 @@ jobs:
           sparse-checkout: |
             wireguard
 
-      - name: Moving directories
-        run: |
-          mkdir workspace
-          mv wireguard workspace
-
       - name: Install Go
         uses: actions/setup-go@v5
         with:
