@@ -136,7 +136,7 @@ jobs:
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
-        if: ${{ contains(matrix.target, 'native') }}
+        if: contains(matrix.target, 'native')
         with:
           components: rustfmt, clippy
 
@@ -144,6 +144,12 @@ jobs:
         if: env.PLATFORM_ARCH == 'macos_universal'
         run: |
           rustup target add x86_64-apple-darwin
+
+      - name: Create directory for Windows
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        run: |
+          mkdir -p ${{ env.WG_GO_LIB_PATH }}
 
       - name: Install cross
         uses: actions-rs/cargo@v1
