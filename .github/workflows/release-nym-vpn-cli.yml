@@ -226,7 +226,7 @@ jobs:
       - name: Build native
         if: ${{ contains(matrix.target, 'native') }}
         env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
         run: cargo build --release --verbose
 
       - name: Build universal (macos)
@@ -244,16 +244,6 @@ jobs:
           use-cross: true
           command: build
           args: --target aarch64-linux-android --release -p nym-vpn-lib
-
-      - name: Build Windows
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
-        uses: actions-rs/cargo@v1
-        if: contains(matrix.target, 'windows')
-        with:
-          use-cross: true
-          command: build
-          args: --target x86_64-pc-windows-msvc --release -p nym-vpn-lib
 
       - name: Run tests
         if: ${{ contains(matrix.os, 'native') }}
