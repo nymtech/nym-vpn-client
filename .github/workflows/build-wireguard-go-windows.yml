@@ -35,10 +35,10 @@ jobs:
         run: |
           ./wireguard/build-wireguard-go.sh
 
-      - name: Upload artifacts
+      - name: Upload artifacts (Windows)
         uses: actions/upload-artifact@v4
         with:
-          name: wireguard-x86_64-pc-windows-msvc
+          name: wireguard-go_x86_64-pc-windows-msvc
           path: |
-            workspace/build/lib/x86_64-pc-windows-msvc
+            build/lib/x86_64-pc-windows-msvc
           retention-days: 1
