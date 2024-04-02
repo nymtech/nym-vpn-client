@@ -133,13 +133,18 @@ jobs:
         run: |
           rustup target add x86_64-apple-darwin
 
+      - name: Add android target
+        if: contains(matrix.target, 'android')
+        run: |
+          rustup target install aarch64-linux-android
+
       - name: Setup Android SDK
         uses: nttld/setup-ndk@v1
         if: contains(matrix.target, 'android')
         with:
           ndk-version: r25c
 
-      - name: Add cargo-ndk
+      - name: Add cargo-ndk, add target
         if: contains(matrix.target, 'android')
         run: |
           cargo install cargo-ndk
