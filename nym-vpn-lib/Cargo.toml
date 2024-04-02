@@ -75,4 +75,4 @@ rand = "0.7.3"
 oslog = "0.2.0"
 
 [build-dependencies]
-uniffi = { version = "0.26.1", features = ["build"] }
+uniffi = { version = "0.27.0", features = ["build"] }
