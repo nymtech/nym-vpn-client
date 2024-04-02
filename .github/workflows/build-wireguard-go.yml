@@ -86,3 +86,12 @@ jobs:
           path: |
             build/lib/universal-apple-darwin
           retention-days: 1
+
+      - name: Upload artifacts (Windows)
+        uses: actions/upload-artifact@v4
+        if: contains(inputs.os, 'windows')
+        with:
+          name: wireguard-go_x86_64-pc-windows-msvc
+          path: |
+            build/lib/x86_64-pc-windows-msvc
+          retention-days: 1
