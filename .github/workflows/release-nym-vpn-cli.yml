@@ -149,11 +149,12 @@ jobs:
         run: |
           rustup target add x86_64-apple-darwin
 
+      ## Make sure not to use the full variable, windows recreate the entire path....
       - name: Create directory for Windows
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
-          mkdir -p ${{ env.WG_GO_LIB_PATH }}
+          mkdir -p ${GITHUB_WORKSPACE}/build/lib/
 
       - name: Install cross
         uses: actions-rs/cargo@v1
