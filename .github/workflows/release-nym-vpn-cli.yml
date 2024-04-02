@@ -108,7 +108,7 @@ jobs:
           elif ${{ matrix.os == 'macos-14' }}; then
             platform_arch=macos_universal
           elif ${{ contains(matrix.os, 'windows') }}; then
-            triplet=x86_64-pc-windows-msvc
+            platform_arch=x86_64-pc-windows-msvc
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
