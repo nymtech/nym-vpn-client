@@ -198,8 +198,8 @@ jobs:
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
-          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${{ env.WG_GO_LIB_PATH }}/
-          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${{ env.WG_GO_LIB_PATH }}/
+          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/lib/
+          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${GITHUB_WORKSPACE}/lib/
 
       - name: Checkout mullvad libs for Windows
         if: contains(matrix.os, 'windows')
@@ -221,7 +221,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
-          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${{ env.WG_GO_LIB_PATH }}
+          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/lib/
 
       - name: Build native
         if: ${{ contains(matrix.target, 'native') }}
