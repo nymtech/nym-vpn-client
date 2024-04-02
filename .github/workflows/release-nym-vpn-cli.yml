@@ -41,9 +41,9 @@ jobs:
         # os: [ ubuntu-22.04, custom-runner-mac-m1 ]
         os: [ ubuntu-22.04, macos-14 ]
         target: [ native ]
-    #        include:
-    #          - os: ubuntu-20.04
-    #            target: android
+        include:
+          - os: ubuntu-20.04
+            target: android
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -133,12 +133,16 @@ jobs:
         run: |
           rustup target add x86_64-apple-darwin
 
-      - name: Install cross
-        uses: actions-rs/cargo@v1
+      - name: Setup Android SDK
+        uses: nttld/setup-ndk@v1
         if: contains(matrix.target, 'android')
         with:
-          command: install
-          args: cross --git https://github.com/cross-rs/cross
+          ndk-version: r25c
+
+      - name: Add cargo-ndk
+        if: contains(matrix.target, 'android')
+        run: |
+          cargo install cargo-ndk
 
       - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/download-artifact@v4
@@ -170,9 +174,8 @@ jobs:
         uses: actions-rs/cargo@v1
         if: contains(matrix.target, 'android')
         with:
-          use-cross: true
-          command: build
-          args: --target aarch64-linux-android --release -p nym-vpn-lib
+          command: ndk
+          args: -t arm64-v8a -o target/aarch64-linux-android/release
 
       - name: Run tests
         if: ${{ contains(matrix.os, 'native') }}
