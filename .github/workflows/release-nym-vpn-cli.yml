@@ -154,7 +154,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
-          mkdir -p ${GITHUB_WORKSPACE}/build/lib/
+          mkdir -p ${GITHUB_WORKSPACE}/lib/
 
       - name: Install cross
         uses: actions-rs/cargo@v1
