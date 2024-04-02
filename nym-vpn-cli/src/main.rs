@@ -3,6 +3,8 @@
 
 mod commands;
 
+use std::path::PathBuf;
+
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayConfig;
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
@@ -101,7 +103,7 @@ async fn run_vpn(args: commands::RunArgs) -> Result<()> {
     let mut nym_vpn = NymVpn::new(entry_point, exit_point);
     nym_vpn.gateway_config = gateway_config;
     nym_vpn.wg_gateway_config = wg_gateway_config;
-    nym_vpn.mixnet_client_path = args.mixnet_client_path;
+    nym_vpn.mixnet_client_path = args.mixnet_client_path.or_else(mixnet_client_path);
     nym_vpn.enable_wireguard = args.enable_wireguard;
     nym_vpn.private_key = args.private_key;
     nym_vpn.wg_ip = args.wg_ip;
@@ -116,6 +118,11 @@ async fn run_vpn(args: commands::RunArgs) -> Result<()> {
     nym_vpn.run().await?;
 
     Ok(())
+}
+
+fn mixnet_client_path() -> Option<PathBuf> {
+    // TODO: extract out the dir name
+    dirs::config_dir().map(|dir| dir.join("nym-vpn-cli"))
 }
 
 #[tokio::main]
