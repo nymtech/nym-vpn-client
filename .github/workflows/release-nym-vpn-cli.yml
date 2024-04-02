@@ -197,8 +197,8 @@ jobs:
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
-          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${{ env.WG_GO_LIB_PATH }}
-          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${{ env.WG_GO_LIB_PATH }}
+          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${{ env.WG_GO_LIB_PATH }}/
+          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${{ env.WG_GO_LIB_PATH }}/
 
       - name: Checkout mullvad libs for Windows
         if: contains(matrix.os, 'windows')
