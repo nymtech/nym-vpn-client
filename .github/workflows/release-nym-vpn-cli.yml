@@ -164,6 +164,53 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build wireguard (Android)
+        if: contains(matrix.target, 'android')
+        run: ./wireguard/libwg/build-android.sh
+
+      - name: Download wintun.zip and winpcap.zip
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        run: |
+          curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
+          curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
+
+      - name: Unzip wintun.zip and winpcap.zip
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        run: |
+          unzip ${GITHUB_WORKSPACE}/wintun.zip
+          unzip ${GITHUB_WORKSPACE}/winpcap.zip
+
+      - name: Move wintun.dll and packet.lib to build directory
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        run: |
+          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/build/lib/
+          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${GITHUB_WORKSPACE}/build/lib/
+
+      - name: Checkout mullvad libs for Windows
+        if: contains(matrix.os, 'windows')
+        uses: actions/checkout@v4
+        with:
+          repository: nymtech/nym-vpn-mullvad-libs
+          ref: main
+          path: "nym-vpn-mullvad-libs"
+          submodules: true
+
+      - name: Build winfw.dll from mullvad
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        run: |
+          cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
+          ./build-windows-modules.sh
+
+      - name: Move winfw.dll to build directory
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        run: |
+          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/build/lib/
+
       - name: Build native
         if: ${{ contains(matrix.target, 'native') }}
         env:
@@ -194,7 +241,7 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: --target aarch64-linux-android --release -p nym-vpn-lib
+          args: --target x86_64-pc-windows-msvc --release -p nym-vpn-lib
 
       - name: Run tests
         if: ${{ contains(matrix.os, 'native') }}
