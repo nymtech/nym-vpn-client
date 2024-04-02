@@ -1,0 +1,51 @@
+name: build-wireguard-go-android
+
+env:
+  CARGO_TERM_COLOR: always
+
+on: [workflow_dispatch, workflow_call]
+
+jobs:
+  build:
+    runs-on: "custom-windows-11"
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          # fetch only the root files and wireguard dir
+          sparse-checkout: |
+            wireguard
+
+      - name: Moving directories
+        run: |
+          mkdir workspace
+          mv wireguard workspace
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v2
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup MSBuild.exe
+        if: contains(matrix.os, 'windows')
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build wireguard
+        shell: bash
+        run: |
+          ./wireguard/build-wireguard-go.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wireguard-x86_64-pc-windows-msvc
+          path: |
+            workspace/build/lib/x86_64-pc-windows-msvc
+          retention-days: 1
