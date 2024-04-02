@@ -169,13 +169,10 @@ jobs:
         run: cargo build --release --verbose --target x86_64-apple-darwin
 
       - name: Build Android
+        if: contains(matrix.target, 'android')
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
-        uses: actions-rs/cargo@v1
-        if: contains(matrix.target, 'android')
-        with:
-          command: ndk
-          args: -t arm64-v8a -o target/aarch64-linux-android/release
+        run: cargo ndk -t arm64-v8a -o target/aarch64-linux-android/release
 
       - name: Run tests
         if: ${{ contains(matrix.os, 'native') }}
