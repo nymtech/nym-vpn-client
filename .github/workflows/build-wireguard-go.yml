@@ -5,18 +5,18 @@ on:
     inputs:
       os:
         required: true
-        description: 'Runner'
-        default: 'ubuntu-22.04'
+        description: "Runner"
+        default: "ubuntu-22.04"
         type: choice
         options:
-        - ubuntu-20.04
-        - ubuntu-22.04
-        - macos-12
-        - macos-13
-        - macos-13-xlarge
-        - macos-14
-        - custom-runner-mac-m1
-        - ubuntu-22.04-arc
+          - ubuntu-20.04
+          - ubuntu-22.04
+          - macos-12
+          - macos-13
+          - macos-13-xlarge
+          - macos-14
+          - custom-runner-mac-m1
+          - ubuntu-22.04-arc
 
   # reusable workflow
   workflow_call:
@@ -33,7 +33,7 @@ jobs:
     runs-on: ${{ inputs.os }}
 
     steps:
-      - name: 'Cleanup working directory'
+      - name: "Cleanup working directory"
         if: contains(inputs.os, 'custom')
         run: |
           ls -la ./
@@ -53,9 +53,9 @@ jobs:
             wireguard
 
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: 'stable'
+          go-version: "stable"
 
       - name: Build wireguard
         run: ./wireguard/build-wireguard-go.sh
