@@ -23,6 +23,7 @@ import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.ErrorState
 import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.model.VpnState
+import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.ServiceManager
 import net.nymtech.vpn.util.safeCollect
 import net.nymtech.vpn_client.BuildConfig
@@ -115,11 +116,12 @@ object NymVpnClient : VpnClient {
             }.safeCollect {
                 when(it.level) {
                     LogLevel.ERROR -> {
-                        //TODO probably don't want to handle all errors this way
-                        cancel()
-                        setErrorState(it.message)
-                        disconnect(context)
-                        statusJob?.cancel()
+                        if(it.tag.contains(Constants.NYM_VPN_LIB_TAG)) {
+                            cancel()
+                            setErrorState(it.message)
+                            disconnect(context)
+                            statusJob?.cancel()
+                        }
                     }
                     LogLevel.INFO -> {
                         parseLibInfo(it.message)
