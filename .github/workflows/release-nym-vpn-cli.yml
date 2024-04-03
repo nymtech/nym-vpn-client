@@ -223,7 +223,13 @@ jobs:
           mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/lib/
 
       - name: Build native
-        if: ${{ contains(matrix.target, 'native') }}
+        if: contains(matrix.target, 'native') && !contains(matrix.os, 'windows')
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: cargo build --release --verbose
+
+      - name: Build Windows
+        if: contains(matrix.os, 'windows')
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
         run: cargo build --release --verbose
