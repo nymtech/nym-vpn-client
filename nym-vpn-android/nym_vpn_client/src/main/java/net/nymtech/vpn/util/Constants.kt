@@ -8,7 +8,30 @@ object Constants {
 
     //Add Rust environment vars for lib
     const val DEFAULT_COUNTRY_ISO = "DE"
-    fun setupEnvironment() {
+    fun setupEnvironmentMainnet() {
+        Os.setenv("CONFIGURED","true", true)
+        Os.setenv("RUST_LOG","info", true)
+        Os.setenv("RUST_BACKTRACE","1", true)
+        Os.setenv("NETWORK_NAME","sandbox", true)
+        Os.setenv("BECH32_PREFIX","n", true)
+        Os.setenv("MIX_DENOM","unym", true)
+        Os.setenv("MIX_DENOM_DISPLAY","nym", true)
+        Os.setenv("STAKE_DENOM","unyx", true)
+        Os.setenv("STAKE_DENOM_DISPLAY","nyx", true)
+        Os.setenv("DENOMS_EXPONENT","6", true)
+
+        Os.setenv("REWARDING_VALIDATOR_ADDRESS","n10yyd98e2tuwu0f7ypz9dy3hhjw7v772q6287gy", true)
+        Os.setenv("MIXNET_CONTRACT_ADDRESS","n17srjznxl9dvzdkpwpw24gg668wc73val88a6m5ajg6ankwvz9wtst0cznr", true)
+        Os.setenv("VESTING_CONTRACT_ADDRESS","n1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrq73f2nw", true)
+
+        Os.setenv("STATISTICS_SERVICE_DOMAIN_ADDRESS","https://mainnet-stats.nymte.ch:8090", true)
+        Os.setenv("EXPLORER_API","https://explorer.nymtech.net/api/", true)
+        Os.setenv("NYXD","https://rpc.nymtech.net", true)
+        Os.setenv("NYXD_WS","wss://rpc.nymtech.net/websocket", true)
+        Os.setenv("NYM_API","https://validator.nymtech.net/api/", true)
+    }
+
+    fun setupEnvironmentSandbox() {
         Os.setenv("CONFIGURED","true", true)
         Os.setenv("RUST_LOG","info", true)
         Os.setenv("RUST_BACKTRACE","1", true)

@@ -13,7 +13,9 @@ import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.tun_provider.TunConfig
@@ -30,7 +32,8 @@ import kotlin.properties.Delegates.observable
 class NymVpnService : VpnService() {
     companion object {
         init {
-            Constants.setupEnvironment()
+            Constants.setupEnvironmentSandbox()
+            //Constants.setupEnvironmentMainnet()
             System.loadLibrary(Constants.NYM_VPN_LIB)
             Timber.i("Loaded native library in service")
         }
@@ -68,8 +71,8 @@ class NymVpnService : VpnService() {
                 currentTunConfig = defaultTunConfig()
                 Timber.i("VPN start")
                 if(prepare(this) == null) {
-                        scope.launch {
-                            initVPN(this)
+                    initVPN(this)
+                        GlobalScope.launch(Dispatchers.IO) {
                             NymVpnClient.connect()
                         }
                     }
@@ -78,14 +81,12 @@ class NymVpnService : VpnService() {
             Action.STOP.name -> {
                 Timber.d("VPN stop")
                 NymVpnClient.setVpnState(VpnState.Disconnecting)
-                    scope.launch(Dispatchers.IO) {
-                        try {
-                            stopVpn()
-                        } catch (e : Exception) {
-                            Timber.e(e)
-                        }
-                    }
-                stopSelf()
+                GlobalScope.launch(Dispatchers.IO) {
+                    stopVpn()
+                    delay(1000)
+                    stopService()
+                }
+
                 START_NOT_STICKY
             }
             else -> START_NOT_STICKY
@@ -132,6 +133,9 @@ class NymVpnService : VpnService() {
 
     override fun onDestroy() {
         Timber.i("VpnService destroyed")
+    }
+
+    private fun stopService() {
         NymVpnClient.setVpnState(VpnState.Down)
         connectivityListener.unregister()
         scope.cancel()

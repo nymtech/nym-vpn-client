@@ -2,6 +2,17 @@
 name: Android CI Tag Deployment - Pre
 
 on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name for release'
+        required: false
+        default: nightly
+      publish:
+        type: boolean
+        description: Publish Release
+        required: true
+        default: false
   push:
     tags:
       - 'v*.*.*-**'
@@ -94,6 +105,11 @@ jobs:
         with:
           name: nymvpn
           path: ${{ steps.apk-path.outputs.path }}
+
+      - name: Get checksum
+        id: checksum
+        run: echo "checksum=$(apksigner verify -print-certs ${{ steps.apk-path.outputs.path }} | grep -Po "(?<=SHA-256 digest:) .*")\n" >> $GITHUB_OUTPUT
+
       - name: Download APK from build
         uses: actions/download-artifact@v4
         with:
@@ -110,6 +126,20 @@ jobs:
           draft: false
           prerelease: true
           files: ${{ github.workspace }}/${{ steps.apk-path.outputs.path }}
+
+      - name: Append checksum
+        id: append_checksum
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          body: SHA256 Checksum\n  ${{ steps.checksum.outputs.checksum }}
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: true
+          append_body: true
+
       - name: Deploy with fastlane
         uses: ruby/setup-ruby@v1
         with:

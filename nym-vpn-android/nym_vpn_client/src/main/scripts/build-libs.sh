@@ -11,7 +11,7 @@ export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin"
 bash $PWD/src/tools/nym-vpn-client/wireguard/build-wireguard-go.sh
 bash $PWD/src/tools/nym-vpn-client/wireguard/libwg/build-android.sh
 echo "Building nym-vpn-lib dep"
-(cd $PWD/src/tools/nym-vpn-client/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release; cargo ndk -t aarch64-linux-android build)
+(cd $PWD/src/tools/nym-vpn-client/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release)
 #mv wireguard
 
 case  "$(uname -s)" in

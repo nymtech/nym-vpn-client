@@ -1,4 +1,3 @@
-import org.gradle.crypto.checksum.Checksum
 import java.util.Properties
 
 var fdroidApkReleasePath = ""
@@ -14,7 +13,6 @@ plugins {
     alias(libs.plugins.kotlinxSerialization)
     alias(libs.plugins.gross)
     alias(libs.plugins.sentry)
-    alias(libs.plugins.checksum)
 }
 
 android {
@@ -27,8 +25,6 @@ android {
         targetSdk = Constants.TARGET_SDK
         versionCode = Constants.VERSION_CODE
         versionName = Constants.VERSION_NAME
-
-
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -241,18 +237,6 @@ dependencies {
     ksp(libs.moshi.kotlin.codegen)
 
     detektPlugins(libs.detekt.rules.compose)
-}
-
-
-tasks.register<Checksum>("createChecksums") {
-    doLast {
-        if(generateChecksum) {
-            inputFiles.setFrom(fdroidApkReleasePath)
-            outputDirectory.set(layout.buildDirectory.dir("nym/checksums"))
-            checksumAlgorithm.set(Checksum.Algorithm.SHA512)
-            appendFileNameToChecksum.set(true)
-        }
-    }
 }
 
 

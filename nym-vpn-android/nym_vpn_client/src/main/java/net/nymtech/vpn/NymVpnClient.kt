@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import net.nymtech.logcat_helper.LogcatHelper
 import net.nymtech.logcat_helper.model.LogLevel
@@ -27,6 +28,7 @@ import net.nymtech.vpn.util.safeCollect
 import net.nymtech.vpn_client.BuildConfig
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
+import nym_vpn_lib.FfiException
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.getGatewayCountries
 import nym_vpn_lib.getLowLatencyEntryCountry

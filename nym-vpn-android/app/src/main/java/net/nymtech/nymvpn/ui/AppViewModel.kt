@@ -124,8 +124,13 @@ class AppViewModel @Inject constructor(
         gatewayRepository.setExitCountries(exitCountries)
     }
     private suspend fun setFirstHopToLowLatency() {
-        val lowLatencyCountry = NymVpnClient.getLowLatencyEntryCountryCode()
-        gatewayRepository.setFirstHopCountry(lowLatencyCountry)
+        runCatching {
+            NymVpnClient.getLowLatencyEntryCountryCode()
+        }.onFailure {
+            Timber.e(it)
+        }.onSuccess {
+            gatewayRepository.setFirstHopCountry(it)
+        }
     }
 
     fun openWebPage(url: String) {
