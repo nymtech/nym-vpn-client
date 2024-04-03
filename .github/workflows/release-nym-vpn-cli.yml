@@ -222,6 +222,7 @@ jobs:
             zip -r ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
           else
             tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
+          fi
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
