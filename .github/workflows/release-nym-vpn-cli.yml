@@ -1,11 +1,11 @@
 name: release-nym-vpn-cli
 on:
   schedule:
-    - cron: '4 3 * * *'
+    - cron: "4 3 * * *"
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag name for release'
+        description: "Tag name for release"
         required: false
         default: nightly
       publish:
@@ -24,8 +24,8 @@ jobs:
   build-wireguard-go:
     strategy:
       matrix:
-        # os: [ ubuntu-22.04, custom-runner-mac-m1 ]
-        os: [ ubuntu-22.04, macos-14 ]
+        # os: [ ubuntu-22.04, custom-runner-mac-m1]
+        os: [ubuntu-22.04, macos-14]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
@@ -33,14 +33,22 @@ jobs:
   build-wireguard-go-android:
     uses: ./.github/workflows/build-wireguard-go-android.yml
 
+  build-wireguard-go-windows:
+    uses: ./.github/workflows/build-wireguard-go-windows.yml
+
   build:
-    needs: [ build-wireguard-go, build-wireguard-go-android ]
+    needs:
+      [
+        build-wireguard-go,
+        build-wireguard-go-android,
+        build-wireguard-go-windows,
+      ]
     strategy:
       fail-fast: false
       matrix:
-        # os: [ ubuntu-22.04, custom-runner-mac-m1 ]
-        os: [ ubuntu-22.04, macos-14 ]
-        target: [ native ]
+        # os: [ ubuntu-22.04, custom-runner-mac-m1, custom-windows-11 ]
+        os: [ubuntu-22.04, macos-14, custom-windows-11]
+        target: [native]
         include:
           - os: ubuntu-20.04
             target: android
@@ -53,6 +61,7 @@ jobs:
     steps:
       - name: "Cleanup working directory"
         if: contains(matrix.os, 'custom')
+        shell: bash
         run: |
           ls -la ./
           rm -rf ./* || true
@@ -72,6 +81,10 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
 
+      - name: Setup MSBuild.exe
+        if: contains(matrix.os, 'windows')
+        uses: microsoft/setup-msbuild@v2
+
       - name: Get package version
         id: package-version
         uses: nicolaiunrein/cargo-get@master
@@ -90,6 +103,7 @@ jobs:
         run: exit 1
 
       - name: Set env
+        shell: bash
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native') }}; then
             platform_arch=ubuntu-22.04_x86_64
@@ -103,6 +117,8 @@ jobs:
           elif ${{ matrix.target == 'ios' }}; then
             platform_arch=ios_universal
             wg_go_lib_name="wireguard-go_apple_universal"
+          elif ${{ contains(matrix.os, 'windows') }}; then
+            platform_arch=x86_64-pc-windows-msvc
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
@@ -129,7 +145,7 @@ jobs:
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
-        if: ${{ contains(matrix.target, 'native') }}
+        if: contains(matrix.target, 'native')
         with:
           components: rustfmt, clippy
 
@@ -141,6 +157,13 @@ jobs:
           rustup target add x86_64-apple-ios
           rustup target add aarch64-apple-ios-sim
 
+
+      ## Make sure not to use the full variable, windows recreate the entire path....
+      - name: Create directory for Windows
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        run: |
+          mkdir -p ${GITHUB_WORKSPACE}/lib/
 
       - name: Add android target
         if: contains(matrix.target, 'android')
@@ -170,14 +193,48 @@ jobs:
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
-        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') || contains(matrix.os, 'windows')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Download/Unzip/Move wintun.zip and winpcap.zip
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        run: |
+          curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
+          curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
+          unzip ${GITHUB_WORKSPACE}/wintun.zip
+          unzip ${GITHUB_WORKSPACE}/winpcap.zip
+          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/lib/
+          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${GITHUB_WORKSPACE}/lib/
+
+      - name: Checkout mullvad libs for Windows
+        if: contains(matrix.os, 'windows')
+        uses: actions/checkout@v4
+        with:
+          repository: nymtech/nym-vpn-mullvad-libs
+          ref: main
+          path: "nym-vpn-mullvad-libs"
+          submodules: true
+
+      - name: Build/Move winfw.dll from mullvad
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        run: |
+          cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
+          ./build-windows-modules.sh
+          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/lib/
+
       - name: Build native
-        if: ${{ contains(matrix.target, 'native') }}
+        if: contains(matrix.target, 'native') && !contains(matrix.os, 'windows')
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: cargo build --release --verbose
+
+      - name: Build Windows
+        if: contains(matrix.os, 'windows')
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
         run: cargo build --release --verbose
 
       - name: Build universal (macos)
@@ -205,6 +262,7 @@ jobs:
         run: cargo test --release --verbose
 
       - name: Create archive
+        shell: bash
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
           if ${{ contains(matrix.target, 'android') }}; then
