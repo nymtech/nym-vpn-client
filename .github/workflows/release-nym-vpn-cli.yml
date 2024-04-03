@@ -105,14 +105,19 @@ jobs:
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native') }}; then
             platform_arch=ubuntu-22.04_x86_64
+            rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
           elif ${{ contains(matrix.target, 'android') }}; then
             platform_arch=aarch64-linux-android
+            rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
           elif ${{ matrix.os == 'custom-runner-mac-m1' }}; then
             platform_arch=macos_universal
+            rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
           elif ${{ matrix.os == 'macos-14' }}; then
             platform_arch=macos_universal
+            rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
           elif ${{ contains(matrix.os, 'windows') }}; then
             platform_arch=x86_64-pc-windows-msvc
+            rustflags="-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
@@ -131,17 +136,19 @@ jobs:
           echo " ✓ WG_GO_LIB_PATH: ${{ env.WG_GO_LIB_PATH }}"
           echo " ✓ ARTIFACT_DIR: $artifact_dir"
           echo " ✓ ARTIFACT_ARCHIVE: $artifact_archive"
+          echo " ✓ RUSTFLAGS: $rustflags"
           # set github env
           echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
           echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
           echo "ARTIFACT_DIR=$artifact_dir" >> $GITHUB_ENV
           echo "ARTIFACT_ARCHIVE=$artifact_archive" >> $GITHUB_ENV
           echo "ARTIFACT_CHECKSUM=$artifact_checksum" >> $GITHUB_ENV
+          echo "RUSTFLAGS=$rustflags" >> $GITHUB_ENV
 
       - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        if: contains(matrix.target, 'native')
+        uses: brndnmtthws/rust-action-rustup@v1
         with:
+          toolchain: stable
           components: rustfmt, clippy
 
       - name: Install extra arch macos
@@ -213,33 +220,19 @@ jobs:
           mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/lib/
 
       - name: Build native
-        if: contains(matrix.target, 'native') && !contains(matrix.os, 'windows')
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
-        run: cargo build --release --verbose
-
-      - name: Build Windows
-        if: contains(matrix.os, 'windows')
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
+        if: contains(matrix.target, 'native')
         run: cargo build --release --verbose
 
       - name: Build universal (macos)
         if: ${{ contains(matrix.os, 'custom-runner-mac-m1') || matrix.os == 'macos-14' }}
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo build --release --verbose --target x86_64-apple-darwin
 
       - name: Build Android
         if: contains(matrix.target, 'android')
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: (cd nym-vpn-lib; cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --release)
 
       - name: Run tests
         if: ${{ contains(matrix.os, 'native') }}
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo test --release --verbose
 
       - name: Create archive
