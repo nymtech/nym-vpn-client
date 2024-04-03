@@ -184,10 +184,6 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build wireguard (Android)
-        if: contains(matrix.target, 'android')
-        run: ./wireguard/libwg/build-android.sh
-
       - name: Download wintun.zip and winpcap.zip
         if: contains(matrix.os, 'windows')
         shell: bash
