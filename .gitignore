@@ -11,4 +11,5 @@ bin
 .env
 .env.dev
 /.vscode/settings.json
+.vscode
 **/.DS_Store

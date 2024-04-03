@@ -343,8 +343,10 @@ impl NymVpn {
         let gateways = gateway_client
             .lookup_described_gateways_with_location()
             .await?;
+        log::info!("Got gateways {:?}", gateways);
 
         let wg_gateway_client = WgGatewayClient::new(self.wg_gateway_config.clone())?;
+        log::info!("Created wg gateway client");
 
         // If the entry or exit point relies on location, do a basic defensive consistency check on
         // the fetched location data. If none of the gateways have location data, we can't proceed
@@ -356,6 +358,7 @@ impl NymVpn {
         }
 
         let entry_gateway_id = self.entry_point.lookup_gateway_identity(&gateways).await?;
+        log::info!("Gateway id {:?}", entry_gateway_id);
         let exit_router_address = self.exit_point.lookup_router_address(&gateways)?;
 
         info!("Using entry gateway: {entry_gateway_id}");
