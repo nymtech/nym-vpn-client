@@ -44,6 +44,8 @@ jobs:
         include:
           - os: ubuntu-20.04
             target: android
+          - os: macos-14
+            target: ios
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -91,18 +93,21 @@ jobs:
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native') }}; then
             platform_arch=ubuntu-22.04_x86_64
+            wg_go_lib_name="wireguard-go_$platform_arch"
           elif ${{ contains(matrix.target, 'android') }}; then
             platform_arch=aarch64-linux-android
-          elif ${{ matrix.os == 'custom-runner-mac-m1' }}; then
+            wg_go_lib_name="wireguard-go_$platform_arch"
+          elif ${{ (matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-14') && matrix.target == 'native' }}; then
             platform_arch=macos_universal
-          elif ${{ matrix.os == 'macos-14' }}; then
-            platform_arch=macos_universal
+            wg_go_lib_name="wireguard-go_apple_universal"
+          elif ${{ matrix.target == 'ios' }}; then
+            platform_arch=ios_universal
+            wg_go_lib_name="wireguard-go_apple_universal"
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
           fi
-          wg_go_lib_name="wireguard-go_$platform_arch"
-          if ${{ contains(matrix.target, 'android') }}; then
+          if ${{ contains(matrix.target, 'android') || contains(matrix.target, 'ios') }}; then
             artifact_dir="nym-vpn-lib_${{ steps.package-version.outputs.metadata }}_$platform_arch"
           else
             artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
@@ -128,10 +133,14 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      - name: Install extra arch macos
-        if: env.PLATFORM_ARCH == 'macos_universal'
+      - name: Install extra arch apple
+        if: contains(matrix.os, 'custom-runner-mac-m1') || contains(matrix.os, 'macos-14')
         run: |
           rustup target add x86_64-apple-darwin
+          rustup target add aarch64-apple-ios
+          rustup target add x86_64-apple-ios
+          rustup target add aarch64-apple-ios-sim
+
 
       - name: Add android target
         if: contains(matrix.target, 'android')
@@ -148,6 +157,11 @@ jobs:
         if: contains(matrix.target, 'android')
         run: |
           cargo install cargo-ndk
+
+      - name: Setup cargo swift
+        if: contains(matrix.os, 'custom-runner-mac-m1') || contains(matrix.os, 'macos-14')
+        run: |
+          cargo install cargo-swift@0.7.0
 
       - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/download-artifact@v4
@@ -168,10 +182,14 @@ jobs:
         run: cargo build --release --verbose
 
       - name: Build universal (macos)
-        if: ${{ contains(matrix.os, 'custom-runner-mac-m1') || matrix.os == 'macos-14' }}
+        if: ${{ (contains(matrix.os, 'custom-runner-mac-m1') || matrix.os == 'macos-14') && matrix.target == 'native' }}
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo build --release --verbose --target x86_64-apple-darwin
+
+      - name: Build iOS
+        if: ${{ matrix.target == 'ios' }}
+        run: (cd nym-vpn-lib; cargo swift package -p ios -n NymVpnLib --release)
 
       - name: Build Android
         if: contains(matrix.target, 'android')
@@ -192,12 +210,17 @@ jobs:
             cp target/aarch64-linux-android/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}
           elif ${{ contains(matrix.os, 'custom-runner-mac-m1') }}; then
             lipo -create -output ${{ env.ARTIFACT_DIR }}/nym-vpn-cli target/release/nym-vpn-cli target/x86_64-apple-darwin/release/nym-vpn-cli
-          elif ${{ matrix.os == 'macos-14'}}; then
+          elif ${{ matrix.os == 'macos-14' && matrix.target == 'native' }}; then
             lipo -create -output ${{ env.ARTIFACT_DIR }}/nym-vpn-cli target/release/nym-vpn-cli target/x86_64-apple-darwin/release/nym-vpn-cli
+          elif ${{ matrix.target == 'ios' }}; then
+            cp -R nym-vpn-lib/NymVpnLib/RustFramework.xcframework ${{ env.ARTIFACT_DIR }}
           else
             cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
           fi
-          tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
+          if ${{ matrix.target == 'ios' }}; then
+            zip -r ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
+          else
+            tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
