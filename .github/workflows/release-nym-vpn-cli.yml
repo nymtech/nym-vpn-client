@@ -351,10 +351,10 @@ jobs:
       # Remove any empty artifact directories.
       - name: Generate checksums
         run: |
-          rmdir nym-vpn-cli_*.zip || true
-          for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          rmdir nym-vpn-*.zip || true
+          for file in nym-vpn-*tar.gz; do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          cat nym-vpn-cli_*.zip/*.sha256sum >> $GITHUB_ENV
+          cat nym-vpn-*.zip/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
