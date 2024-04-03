@@ -113,7 +113,7 @@ jobs:
           elif ${{ contains(matrix.os, 'windows') }}; then
             platform_arch=x86_64-pc-windows-msvc
             rustflags="-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
-            sed -i 's/-dev/.1/g' nym-vpn-desktop/src-tauri/Cargo.toml
+            sed -i 's/-dev/-1/g' nym-vpn-desktop/src-tauri/Cargo.toml
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
