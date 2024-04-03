@@ -252,6 +252,7 @@ jobs:
         run: cargo test --release --verbose
 
       - name: Create archive
+        shell: bash
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
           if ${{ contains(matrix.target, 'android') }}; then
