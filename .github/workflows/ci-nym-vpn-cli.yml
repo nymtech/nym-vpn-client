@@ -191,12 +191,14 @@ jobs:
           cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
           rustflags="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu"
           RUSTFLAGS=$rustflags cargo run --bin uniffi-bindgen generate --library target/aarch64-linux-android/debug/libnym_vpn_lib.so  --language kotlin --out-dir build -n
+          diff -B build/nym_vpn_lib/nym_vpn_lib.kt nym-vpn-lib/uniffi/nym_vpn_lib.kt
 
       - name: Build (iOS)
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
         run: |
           cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
           cargo run --bin uniffi-bindgen generate --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  --language swift --out-dir build -n
+          diff -B build/nym_vpn_lib.swift nym-vpn-lib/uniffi/nym_vpn_lib.swift
 
       - name: Run tests
         if: "!contains(matrix.target, 'android')"
