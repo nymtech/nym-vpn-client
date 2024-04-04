@@ -45,10 +45,10 @@ jobs:
             x86_64-linux-android \
             i686-linux-android
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: 'build-tools'
+      - name: Install apksigner
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apksigner
 
       - name: Setup Android NDK
         uses: nttld/setup-ndk@v1
@@ -104,7 +104,8 @@ jobs:
 
       - name: Download APK from build
         uses: actions/download-artifact@v4
-
+        with:
+          name: nymvpn
       - name: Create Release with Fastlane changelog notes
         id: create_release
         uses: softprops/action-gh-release@v2
