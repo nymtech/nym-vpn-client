@@ -48,6 +48,8 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'build-tools'
 
       - name: Setup Android NDK
         uses: nttld/setup-ndk@v1
@@ -99,10 +101,6 @@ jobs:
         with:
           name: nymvpn
           path: ${{ steps.apk-path.outputs.path }}
-
-      - name: Get checksum
-        id: checksum
-        run: echo "checksum=$(apksigner verify -print-certs ${{ steps.apk-path.outputs.path }} | grep -Po "(?<=SHA-256 digest:) .*")\n" >> $GITHUB_OUTPUT
       
       - name: Download APK from build
         uses: actions/download-artifact@v4
@@ -121,6 +119,10 @@ jobs:
           draft: false
           prerelease: false
           files: ${{ github.workspace }}/${{ steps.apk-path.outputs.path }}
+
+      - name: Get checksum
+        id: checksum
+        run: echo "checksum=$(apksigner verify -print-certs ${{ steps.apk-path.outputs.path }} | grep -Po "(?<=SHA-256 digest:) .*")\n" >> $GITHUB_OUTPUT
 
       - name: Append checksum
         id: append_checksum
