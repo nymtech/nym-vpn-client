@@ -26,9 +26,8 @@ android {
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
         }
-        //TODO change this later to sandbox and mainnet switch depending on build
-        buildConfigField("String", "API_URL", "\"${Constants.SANDBOX_API_URL}\"")
-        buildConfigField("String", "EXPLORER_URL", "\"${Constants.SANDBOX_EXPLORER_URL}\"")
+        buildConfigField("String", "API_URL", "\"${Constants.MAINNET_API_URL}\"")
+        buildConfigField("String", "EXPLORER_URL", "\"${Constants.MAINNET_EXPLORER_URL}\"")
     }
 
     buildTypes {

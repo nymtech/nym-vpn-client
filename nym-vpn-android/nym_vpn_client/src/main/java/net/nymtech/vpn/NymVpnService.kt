@@ -32,8 +32,8 @@ import kotlin.properties.Delegates.observable
 class NymVpnService : VpnService() {
     companion object {
         init {
-            Constants.setupEnvironmentSandbox()
-            //Constants.setupEnvironmentMainnet()
+            //Constants.setupEnvironmentSandbox()
+            Constants.setupEnvironmentMainnet()
             System.loadLibrary(Constants.NYM_VPN_LIB)
             Timber.i("Loaded native library in service")
         }

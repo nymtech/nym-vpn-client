@@ -97,7 +97,9 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             updateExitCountriesCache()
             updateEntryCountriesCache()
-            updateFirstHopDefaultCountry()
+            if(!settingsRepository.isFirstHopSelectionEnabled() || gatewayRepository.getFirstHopCountry().isDefault) {
+                updateFirstHopDefaultCountry()
+            }
         }
     }
 
