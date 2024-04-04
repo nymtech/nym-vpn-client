@@ -100,6 +100,7 @@ jobs:
         id: set_env
         shell: bash
         run: |
+          version=${{ steps.package-version.outputs.metadata }}
 
           if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
             platform_arch=ubuntu-22.04_x86_64
@@ -114,11 +115,11 @@ jobs:
             platform_arch=x86_64-pc-windows-msvc
             rustflags="-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
             sed -i 's/-dev/-1/g' nym-vpn-desktop/src-tauri/Cargo.toml
+            version=$(${{ steps.package-version.outputs.metadata }} | sed 's/dev/1/g')
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
           fi
-          version=${{ steps.package-version.outputs.metadata }}
           wg_go_lib_name="wireguard-go_$platform_arch"
           artifact_dir="nym-vpn-desktop_${version}_$platform_arch"
           artifact_archive="$artifact_dir.tar.gz"
@@ -293,7 +294,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         shell: bash
         env:
-          SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/nsis/nym-vpn*.exe
+          SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}"_x64-setup.exe
           TARGET_BUNDLE: updater_exe.tar.gz
         run: |
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
