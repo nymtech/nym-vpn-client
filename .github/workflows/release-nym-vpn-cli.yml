@@ -361,7 +361,7 @@ jobs:
         run: |
           rmdir nym-vpn-*.zip || true
           rmdir nym-vpn-*.tar.gz || true
-          for file in nym-vpn-*tar.gz; do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          for file in nym-vpn-*.(tar.gz|zip); do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-*.zip/*.sha256sum >> $GITHUB_ENV
           cat nym-vpn-*.tar.gz/*.sha256sum >> $GITHUB_ENV
