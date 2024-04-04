@@ -294,14 +294,14 @@ jobs:
         if: contains(matrix.os, 'windows')
         shell: bash
         env:
-          SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}"_x64-setup.exe
+          SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup
           TARGET_BUNDLE: updater_exe.tar.gz
         run: |
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
           mkdir $UPDATER_BUNDLE_DIR
-          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
-          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.nsis.zip.sig || true
+          mv ${{ env.SRC_BUNDLE }}.exe     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.exe || true
+          mv ${{ env.SRC_BUNDLE }}.nsis.zip.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.nsis.zip.sig || true
           ls -la $UPDATER_BUNDLE_DIR
 
       - name: Upload updater bundle (${{ env.PLATFORM_ARCH }})
