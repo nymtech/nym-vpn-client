@@ -12,7 +12,6 @@ class NymVpnClientTest {
         //TODO write tests
         // Context of the app under test.
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        //assertEquals("net.nymtech.vpn_client.test", appContext.packageName)
-        //NymVpnClient.connect(context, EntryPoint.Location("DE"), )
+        assertEquals("net.nymtech.vpn_client.test", appContext.packageName)
     }
 }

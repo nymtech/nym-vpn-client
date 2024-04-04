@@ -2,17 +2,6 @@
 name: Android CI Tag Deployment - Pre
 
 on:
-  workflow_dispatch:
-    inputs:
-      tag_name:
-        description: 'Tag name for release'
-        required: false
-        default: nightly
-      publish:
-        type: boolean
-        description: Publish Release
-        required: true
-        default: false
   push:
     tags:
       - 'v*.*.*-**'
