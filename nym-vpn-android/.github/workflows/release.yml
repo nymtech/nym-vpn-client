@@ -144,5 +144,5 @@ jobs:
           bundler-cache: true
           # deploy to google open alpha, for now
       - name: Distribute app to Beta track 🚀
-        run: (cd ${{ github.workspace }} && bundle install && bundle exec fastlane beta)
+        run: (cd ${{ github.workspace }} && bundle install && bundle exec fastlane alpha)
 
