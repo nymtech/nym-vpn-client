@@ -44,10 +44,15 @@ jobs:
             armv7-linux-androideabi \
             x86_64-linux-android \
             i686-linux-android
+
       - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Android NDK
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r25c
+
       - name: Add cargo-ndk
         run: |
           cargo install cargo-ndk
@@ -122,7 +127,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          body: SHA256 Checksum\n  ${{ steps.checksum.outputs.checksum }}
+          body: > 
+            ### SHA256 Checksum: 
+            ```${{ steps.checksum.outputs.checksum }}```
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           draft: false
