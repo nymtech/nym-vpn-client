@@ -94,14 +94,16 @@ android {
                 }
         }
         release {
+            //TODO fix release jni minifying
             isDebuggable = false
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            signingConfig = signingConfigs.getByName(Constants.RELEASE)
+            signingConfig = signingConfigs.getByName("debug")
+            //signingConfig = signingConfigs.getByName(Constants.RELEASE)
         }
         debug {
             isMinifyEnabled = false
