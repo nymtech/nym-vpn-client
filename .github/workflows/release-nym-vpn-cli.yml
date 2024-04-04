@@ -129,7 +129,11 @@ jobs:
           else
             artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
           fi
-          artifact_archive="$artifact_dir.zip"
+          if ${{ contains(matrix.target, 'ios' )}}; then
+            artifact_archive="$artifact_dir.zip"
+          else
+            artifact_archive="$artifact_dir.tar.gz"
+          fi
           artifact_checksum="$artifact_archive.sha256sum"
           # debug
           echo " ✓ PLATFORM_ARCH: $platform_arch"
@@ -277,8 +281,11 @@ jobs:
           else
             cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
           fi
-          
-          zip -r ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
+          if ${{ contains(matrix.target, 'ios') }}; then
+            zip -r ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
+          else
+            tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
+          fi
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
@@ -353,9 +360,14 @@ jobs:
       - name: Generate checksums
         run: |
           rmdir nym-vpn-*.zip || true
+          rmdir nym-vpn-*.tar.gz || true
           for file in nym-vpn-*tar.gz; do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          cat nym-vpn-*.zip/*.sha256sum >> $GITHUB_ENV
+          if ${{ contains(matrix.target, 'ios') }}; then
+            cat nym-vpn-*.zip/*.sha256sum >> $GITHUB_ENV
+          else
+            cat nym-vpn-*.tar.gz/*.sha256sum >> $GITHUB_ENV
+          fi
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
@@ -369,5 +381,11 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.zip/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.zip/*
+          if ${{ contains(matrix.target, 'ios') }}; then
+            echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.zip/*
+            gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.zip/*
+          else
+            echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/*
+            gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/*
+          fi
+
