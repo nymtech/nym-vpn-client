@@ -13,7 +13,9 @@ use nym_vpn_lib::{NymVpn, Recipient};
 use crate::commands::{override_from_env, wg_override_from_env};
 use clap::Parser;
 use log::*;
-use nym_vpn_lib::nym_config::defaults::setup_env;
+use nym_vpn_lib::nym_config::defaults::{setup_env, var_names};
+
+const CONFIG_DIRECTORY_NAME: &str = "nym-vpn-cli";
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -121,8 +123,9 @@ async fn run_vpn(args: commands::RunArgs) -> Result<()> {
 }
 
 fn mixnet_client_path() -> Option<PathBuf> {
-    // TODO: extract out the dir name
-    dirs::config_dir().map(|dir| dir.join("nym-vpn-cli"))
+    let network_name =
+        std::env::var(var_names::NETWORK_NAME).expect("NETWORK_NAME env var not set");
+    dirs::config_dir().map(|dir| dir.join(CONFIG_DIRECTORY_NAME).join(network_name))
 }
 
 #[tokio::main]
