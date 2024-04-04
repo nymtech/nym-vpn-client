@@ -119,6 +119,7 @@ jobs:
             wg_go_lib_name="wireguard-go_apple_universal"
           elif ${{ contains(matrix.os, 'windows') }}; then
             platform_arch=x86_64-pc-windows-msvc
+            wg_go_lib_name="wireguard-go_$platform_arch"
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
