@@ -56,6 +56,6 @@ generate-licenses-desktop-json:
 	cargo about generate --all-features -m $(DESKTOP_RUST_DIR)/Cargo.toml --format json -o $(DESKTOP_PUBLIC_DIR)/licenses-rust.json
 
 build-deb:
-        RUSTFLAGS="-L $(CURDIR)/build/lib/$(ARCH)" cargo deb -p nym-vpn-cli
+  RUSTFLAGS="-L $(CURDIR)/build/lib/$(ARCH)" cargo deb -p nym-vpn-cli
 
 .PHONY: build-wireguard build-cli build-desktop local-install build-deb
