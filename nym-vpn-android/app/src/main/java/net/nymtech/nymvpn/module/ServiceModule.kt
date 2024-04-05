@@ -19,7 +19,7 @@ class ServiceModule {
 
     @Singleton
     @Provides
-    fun provideMoshi() : Moshi {
+    fun provideMoshi(): Moshi {
         return Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
             .build()
@@ -27,7 +27,7 @@ class ServiceModule {
 
     @Singleton
     @Provides
-    fun provideRetrofit(moshi : Moshi) : Retrofit {
+    fun provideRetrofit(moshi: Moshi): Retrofit {
         return Retrofit.Builder()
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .baseUrl(Constants.SANDBOX_URL)
@@ -36,7 +36,7 @@ class ServiceModule {
 
     @Singleton
     @Provides
-    fun provideGatewayService(retrofit: Retrofit) : GatewayApiService {
+    fun provideGatewayService(retrofit: Retrofit): GatewayApiService {
         return retrofit.create(GatewayApiService::class.java)
     }
 }

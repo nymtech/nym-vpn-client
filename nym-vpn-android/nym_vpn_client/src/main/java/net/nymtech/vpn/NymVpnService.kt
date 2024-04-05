@@ -55,7 +55,7 @@ class NymVpnService : VpnService() {
     private val tunIsOpen
         get() = activeTunStatus?.isOpen ?: false
 
-    private var currentTunConfig : TunConfig? = null
+    private var currentTunConfig: TunConfig? = null
 
     private var tunIsStale = false
 
@@ -70,14 +70,15 @@ class NymVpnService : VpnService() {
                 NymVpnClient.setVpnState(VpnState.Connecting.InitializingClient)
                 currentTunConfig = defaultTunConfig()
                 Timber.i("VPN start")
-                if(prepare(this) == null) {
+                if (prepare(this) == null) {
                     initVPN(this)
-                        GlobalScope.launch(Dispatchers.IO) {
-                            NymVpnClient.connect()
-                        }
+                    GlobalScope.launch(Dispatchers.IO) {
+                        NymVpnClient.connect()
                     }
+                }
                 START_STICKY
             }
+
             Action.STOP.name -> {
                 Timber.d("VPN stop")
                 NymVpnClient.setVpnState(VpnState.Disconnecting)
@@ -89,16 +90,19 @@ class NymVpnService : VpnService() {
 
                 START_NOT_STICKY
             }
+
             else -> START_NOT_STICKY
         }
     }
 
-    private fun createNotificationChannel(): String{
+    private fun createNotificationChannel(): String {
         val channelId = "my_service"
         val channelName = "My Background Service"
         val chan = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel(channelId,
-                channelName, NotificationManager.IMPORTANCE_HIGH)
+            NotificationChannel(
+                channelId,
+                channelName, NotificationManager.IMPORTANCE_HIGH
+            )
         } else {
             TODO("VERSION.SDK_INT < O")
         }

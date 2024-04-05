@@ -38,8 +38,8 @@ import net.nymtech.nymvpn.util.scaledWidth
 @Composable
 fun FeedbackScreen(appViewModel: AppViewModel, viewModel: FeedbackViewModel = hiltViewModel()) {
 
-  val isErrorReportingEnabled by viewModel.isErrorReportingEnabled.collectAsStateWithLifecycle()
-  var showErrorReportingDialog by remember { mutableStateOf(false) }
+    val isErrorReportingEnabled by viewModel.isErrorReportingEnabled.collectAsStateWithLifecycle()
+    var showErrorReportingDialog by remember { mutableStateOf(false) }
 
 
     val context = LocalContext.current
@@ -63,27 +63,40 @@ fun FeedbackScreen(appViewModel: AppViewModel, viewModel: FeedbackViewModel = hi
                     Text(text = stringResource(R.string.cancel))
                 }
             },
-            title = { Text(text = stringResource(R.string.error_reporting), color = CustomColors.snackbarTextColor) },
-            text = { Text(text = stringResource(R.string.error_reporting_alert), color = CustomColors.snackbarTextColor) },
+            title = {
+                Text(
+                    text = stringResource(R.string.error_reporting),
+                    color = CustomColors.snackbarTextColor
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.error_reporting_alert),
+                    color = CustomColors.snackbarTextColor
+                )
+            },
         )
     }
 
-  Column(
-      horizontalAlignment = Alignment.Start,
-      verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
-      modifier =
-          Modifier.verticalScroll(rememberScrollState())
-              .fillMaxSize()
-              .padding(top = 24.dp.scaledHeight())
-              .padding(horizontal = 24.dp.scaledWidth())) {
+    Column(
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
+        modifier =
+        Modifier
+            .verticalScroll(rememberScrollState())
+            .fillMaxSize()
+            .padding(top = 24.dp.scaledHeight())
+            .padding(horizontal = 24.dp.scaledWidth())
+    ) {
         SurfaceSelectionGroupButton(
             listOf(
                 SelectionItem(
                     leadingIcon = ImageVector.vectorResource(R.drawable.github),
                     title = stringResource(R.string.open_github),
                     onClick = { appViewModel.openWebPage(context.getString(R.string.github_issues_url)) }),
-            ))
-       SurfaceSelectionGroupButton(
+            )
+        )
+        SurfaceSelectionGroupButton(
             listOf(
                 SelectionItem(
                     leadingIcon = ImageVector.vectorResource(R.drawable.send),
@@ -91,7 +104,8 @@ fun FeedbackScreen(appViewModel: AppViewModel, viewModel: FeedbackViewModel = hi
                     onClick = {
                         appViewModel.launchEmail()
                     })
-            ))
+            )
+        )
         SurfaceSelectionGroupButton(
             listOf(
                 SelectionItem(
@@ -100,7 +114,8 @@ fun FeedbackScreen(appViewModel: AppViewModel, viewModel: FeedbackViewModel = hi
                     onClick = {
                         appViewModel.openWebPage(context.getString(R.string.matrix_url))
                     }),
-            ))
+            )
+        )
         SurfaceSelectionGroupButton(
             listOf(
                 SelectionItem(
@@ -109,7 +124,8 @@ fun FeedbackScreen(appViewModel: AppViewModel, viewModel: FeedbackViewModel = hi
                     onClick = {
                         appViewModel.openWebPage(context.getString(R.string.discord_url))
                     }),
-            ))
+            )
+        )
         SurfaceSelectionGroupButton(
             listOf(
                 SelectionItem(
@@ -117,7 +133,15 @@ fun FeedbackScreen(appViewModel: AppViewModel, viewModel: FeedbackViewModel = hi
                     title = stringResource(R.string.error_reporting),
                     description = stringResource(R.string.error_reporting_description),
                     trailing = {
-                      Switch(isErrorReportingEnabled, { showErrorReportingDialog = true }, modifier = Modifier.height(32.dp.scaledHeight()).width(52.dp.scaledWidth()))
-                    })))
-      }
+                        Switch(
+                            isErrorReportingEnabled,
+                            { showErrorReportingDialog = true },
+                            modifier = Modifier
+                                .height(32.dp.scaledHeight())
+                                .width(52.dp.scaledWidth())
+                        )
+                    })
+            )
+        )
+    }
 }

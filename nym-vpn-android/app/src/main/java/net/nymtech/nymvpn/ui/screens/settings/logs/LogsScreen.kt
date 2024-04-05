@@ -48,7 +48,7 @@ fun LogsScreen(appViewModel: AppViewModel) {
     val scope = rememberCoroutineScope()
 
 
-    LaunchedEffect(logs.size){
+    LaunchedEffect(logs.size) {
         scope.launch {
             lazyColumnListState.animateScrollToItem(logs.size)
         }
@@ -79,9 +79,12 @@ fun LogsScreen(appViewModel: AppViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = 5.dp)
-                .padding(horizontal = 24.dp.scaledWidth())) {
+                .padding(horizontal = 24.dp.scaledWidth())
+        ) {
             items(logs) {
-                Row(horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.Start), verticalAlignment = Alignment.Top,
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.Start),
+                    verticalAlignment = Alignment.Top,
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable(interactionSource = remember { MutableInteractionSource() },
@@ -89,11 +92,23 @@ fun LogsScreen(appViewModel: AppViewModel) {
                                 clipboardManager.setText(annotatedString = AnnotatedString(it.toString()))
                             })
                 ) {
-                    Text(text = it.tag, modifier = Modifier.fillMaxSize(0.3f), style = MaterialTheme.typography.labelSmall)
+                    Text(
+                        text = it.tag,
+                        modifier = Modifier.fillMaxSize(0.3f),
+                        style = MaterialTheme.typography.labelSmall
+                    )
                     LogTypeLabel(color = Color(it.level.color())) {
-                        Text(text = it.level.signifier, textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            text = it.level.signifier,
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.labelSmall
+                        )
                     }
-                    Text("${it.message} - ${it.time}", color = MaterialTheme.colorScheme.onBackground, style = MaterialTheme.typography.labelSmall)
+                    Text(
+                        "${it.message} - ${it.time}",
+                        color = MaterialTheme.colorScheme.onBackground,
+                        style = MaterialTheme.typography.labelSmall
+                    )
                 }
             }
         }

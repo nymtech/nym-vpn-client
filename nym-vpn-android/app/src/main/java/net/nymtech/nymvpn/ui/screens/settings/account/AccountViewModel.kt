@@ -23,7 +23,8 @@ class AccountViewModel @Inject constructor(
             subscriptionDaysRemaining = 31,
             subscriptionTotalDays = 31
         )
-    }.stateIn(viewModelScope,
+    }.stateIn(
+        viewModelScope,
         SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
         AccountUiState()
     )

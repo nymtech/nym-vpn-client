@@ -5,6 +5,7 @@ The Android client application for NymVPN.
 ## Building
 
 ### Install Rust
+
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
@@ -20,21 +21,25 @@ rustup target add \
 ```
 
 ### Install cargo-ndk
+
 ```
 cargo install cargo-ndk
 ```
 
 ### Install Go
+
 ```
 brew install go
 ```
 
 ### Install JDK 17
+
 ```
 brew install openjdk@17
 ```
 
 ### Install protobuf
+
 ```
 brew install protobuf
 ```

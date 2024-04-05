@@ -17,12 +17,22 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.util.scaledHeight
 
 @Composable
-fun PillLabel(text: String, backgroundColor : Color, textColor : Color) {
-    Surface(modifier = Modifier
-        .height(56.dp.scaledHeight())
-        .width(159.dp), shape = RoundedCornerShape(size = 50.dp), color = backgroundColor){
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceEvenly){
-            Text(text, textAlign = TextAlign.Center, color = textColor, style = MaterialTheme.typography.labelLarge)
+fun PillLabel(text: String, backgroundColor: Color, textColor: Color) {
+    Surface(
+        modifier = Modifier
+            .height(56.dp.scaledHeight())
+            .width(159.dp), shape = RoundedCornerShape(size = 50.dp), color = backgroundColor
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text(
+                text,
+                textAlign = TextAlign.Center,
+                color = textColor,
+                style = MaterialTheme.typography.labelLarge
+            )
         }
     }
 }

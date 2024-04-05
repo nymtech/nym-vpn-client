@@ -28,9 +28,9 @@ import net.nymtech.nymvpn.util.FileUtils
 import net.nymtech.nymvpn.util.log.NymLibException
 import net.nymtech.vpn.NymVpnClient
 import net.nymtech.vpn.model.Country
+import nym_vpn_lib.FfiException
 import timber.log.Timber
 import java.time.Instant
-import java.util.Locale
 import javax.inject.Inject
 
 
@@ -46,38 +46,46 @@ class AppViewModel @Inject constructor(
     val logs = mutableStateListOf<LogMessage>()
     private val logsBuffer = mutableListOf<LogMessage>()
 
-    val uiState = combine(_uiState, settingsRepository.settingsFlow) {
-        state, settings ->
-        AppUiState(false,  settings.theme, settings.loggedIn, state.snackbarMessage, state.snackbarMessageConsumed)
-    }.stateIn(viewModelScope,
+    val uiState = combine(_uiState, settingsRepository.settingsFlow) { state, settings ->
+        AppUiState(
+            false,
+            settings.theme,
+            settings.loggedIn,
+            state.snackbarMessage,
+            state.snackbarMessageConsumed
+        )
+    }.stateIn(
+        viewModelScope,
         SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
         AppUiState()
     )
 
-    fun readLogCatOutput() = viewModelScope.launch(viewModelScope.coroutineContext + Dispatchers.IO) {
-        launch {
-            LogcatHelper.logs {
-                logsBuffer.add(it)
-                when(it.level){
-                    LogLevel.ERROR -> {
-                        if(it.tag.contains(Constants.NYM_VPN_LIB_TAG))
-                            Sentry.captureException(NymLibException("${it.time} - ${it.tag} ${it.message}"))
+    fun readLogCatOutput() =
+        viewModelScope.launch(viewModelScope.coroutineContext + Dispatchers.IO) {
+            launch {
+                LogcatHelper.logs {
+                    logsBuffer.add(it)
+                    when (it.level) {
+                        LogLevel.ERROR -> {
+                            if (it.tag.contains(Constants.NYM_VPN_LIB_TAG))
+                                Sentry.captureException(NymLibException("${it.time} - ${it.tag} ${it.message}"))
+                        }
+
+                        else -> Unit
                     }
-                    else -> Unit
                 }
             }
+            launch {
+                do {
+                    logs.addAll(logsBuffer)
+                    logsBuffer.clear()
+                    if (logs.size > Constants.LOG_BUFFER_SIZE) {
+                        logs.removeRange(0, (logs.size - Constants.LOG_BUFFER_SIZE).toInt())
+                    }
+                    delay(Constants.LOG_BUFFER_DELAY)
+                } while (true)
+            }
         }
-        launch {
-            do {
-                logs.addAll(logsBuffer)
-                logsBuffer.clear()
-                if(logs.size > Constants.LOG_BUFFER_SIZE) {
-                    logs.removeRange(0, (logs.size - Constants.LOG_BUFFER_SIZE).toInt())
-                }
-                delay(Constants.LOG_BUFFER_DELAY)
-            } while (true)
-        }
-    }
 
     fun clearLogs() {
         logs.clear()
@@ -97,13 +105,13 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             updateExitCountriesCache()
             updateEntryCountriesCache()
-            if(!settingsRepository.isFirstHopSelectionEnabled() || gatewayRepository.getFirstHopCountry().isDefault) {
+            if (!settingsRepository.isFirstHopSelectionEnabled() || gatewayRepository.getFirstHopCountry().isDefault) {
                 updateFirstHopDefaultCountry()
             }
         }
     }
 
-    fun onEntryLocationSelected(selected : Boolean) = viewModelScope.launch {
+    fun onEntryLocationSelected(selected: Boolean) = viewModelScope.launch {
         settingsRepository.setFirstHopSelection(selected)
         gatewayRepository.setFirstHopCountry(Country(isDefault = true))
         updateFirstHopDefaultCountry()
@@ -111,20 +119,29 @@ class AppViewModel @Inject constructor(
 
     private suspend fun updateFirstHopDefaultCountry() {
         val firstHop = gatewayRepository.getFirstHopCountry()
-        if(firstHop.isDefault || firstHop.isLowLatency) {
+        if (firstHop.isDefault || firstHop.isLowLatency) {
             setFirstHopToLowLatency()
         }
     }
 
     private suspend fun updateEntryCountriesCache() {
-        val entryCountries = NymVpnClient.gateways(false)
-        gatewayRepository.setEntryCountries(entryCountries)
+        try {
+            val entryCountries = NymVpnClient.gateways(false)
+            gatewayRepository.setEntryCountries(entryCountries)
+        } catch (e: FfiException) {
+            Timber.e(e)
+        }
     }
 
     private suspend fun updateExitCountriesCache() {
-        val exitCountries = NymVpnClient.gateways(true)
-        gatewayRepository.setExitCountries(exitCountries)
+        try {
+            val exitCountries = NymVpnClient.gateways(true)
+            gatewayRepository.setExitCountries(exitCountries)
+        } catch (e: FfiException) {
+            Timber.e(e)
+        }
     }
+
     private suspend fun setFirstHopToLowLatency() {
         runCatching {
             NymVpnClient.getLowLatencyEntryCountryCode()
@@ -153,7 +170,10 @@ class AppViewModel @Inject constructor(
             val intent =
                 Intent(Intent.ACTION_SENDTO).apply {
                     type = Constants.EMAIL_MIME_TYPE
-                    putExtra(Intent.EXTRA_EMAIL, arrayOf(application.getString(R.string.support_email)))
+                    putExtra(
+                        Intent.EXTRA_EMAIL,
+                        arrayOf(application.getString(R.string.support_email))
+                    )
                     putExtra(Intent.EXTRA_SUBJECT, application.getString(R.string.email_subject))
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
@@ -166,7 +186,8 @@ class AppViewModel @Inject constructor(
             showSnackbarMessage(application.getString(R.string.no_email_detected))
         }
     }
-    fun showSnackbarMessage(message : String) {
+
+    fun showSnackbarMessage(message: String) {
         _uiState.value = _uiState.value.copy(
             snackbarMessage = message,
             snackbarMessageConsumed = false
@@ -182,6 +203,10 @@ class AppViewModel @Inject constructor(
     }
 
     fun showFeatureInProgressMessage() {
-        Toast.makeText(application.applicationContext, application.getString(R.string.feature_in_progress), Toast.LENGTH_LONG).show()
+        Toast.makeText(
+            application.applicationContext,
+            application.getString(R.string.feature_in_progress),
+            Toast.LENGTH_LONG
+        ).show()
     }
 }

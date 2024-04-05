@@ -18,15 +18,15 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
 
 
-fun Dp.scaledHeight() : Dp {
+fun Dp.scaledHeight(): Dp {
     return NymVpn.resizeHeight(this)
 }
 
-fun Dp.scaledWidth() : Dp {
+fun Dp.scaledWidth(): Dp {
     return NymVpn.resizeWidth(this)
 }
 
-fun TextUnit.scaled() : TextUnit {
+fun TextUnit.scaled(): TextUnit {
     return NymVpn.resizeHeight(this)
 }
 

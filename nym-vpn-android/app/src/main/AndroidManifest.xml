@@ -1,31 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!--start vpn on boot permission-->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application
         android:name=".NymVpn"
-        android:largeHeap="true"
-        tools:node="merge"
-        android:hardwareAccelerated="true"
         android:allowBackup="true"
-        android:enableOnBackInvokedCallback="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"
+        android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppSplashScreen"
+        tools:node="merge"
         tools:targetApi="33">
         <activity
             android:name=".ui.MainActivity"
-            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -55,6 +56,7 @@
             android:exported="false">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.ACTION_BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
@@ -69,12 +71,12 @@
             android:permission="android.permission.BIND_VPN_SERVICE"
             android:persistent="true"
             tools:node="merge">
-        <intent-filter>
-            <action android:name="android.net.VpnService" />
-        </intent-filter>
-        <meta-data
-            android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
-            android:value="true" />
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
+                android:value="true" />
         </service>
         <!-- Sentry -->
         <meta-data
@@ -88,7 +90,9 @@
         <meta-data
             android:name="io.sentry.attach-view-hierarchy"
             android:value="true" />
-        <meta-data android:name="io.sentry.release" android:value="@string/fullVersionName" />
+        <meta-data
+            android:name="io.sentry.release"
+            android:value="@string/fullVersionName" />
     </application>
 
 </manifest>

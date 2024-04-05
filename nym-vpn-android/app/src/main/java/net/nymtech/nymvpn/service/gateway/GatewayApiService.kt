@@ -5,5 +5,5 @@ import retrofit2.http.GET
 
 interface GatewayApiService {
     @GET("gateways/described")
-    suspend fun getDescribedGateways() : List<DescribedGateway>
+    suspend fun getDescribedGateways(): List<DescribedGateway>
 }

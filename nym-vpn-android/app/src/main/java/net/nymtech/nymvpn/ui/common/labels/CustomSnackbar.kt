@@ -25,13 +25,18 @@ fun CustomSnackBar(
     isRtl: Boolean = true,
     containerColor: Color = CustomColors.snackBarBackgroundColor
 ) {
-    Box(modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp.scaledWidth()).padding(top = 100.dp.scaledHeight()), contentAlignment = Alignment.TopCenter) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp.scaledWidth())
+            .padding(top = 100.dp.scaledHeight()), contentAlignment = Alignment.TopCenter
+    ) {
         Snackbar(containerColor = containerColor) {
             CompositionLocalProvider(
                 LocalLayoutDirection provides
                         if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
             ) {
-                Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Center){
+                Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Center) {
                     Text(message, color = CustomColors.snackbarTextColor)
                 }
             }

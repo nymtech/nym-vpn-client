@@ -15,7 +15,8 @@ data class SelectionItem(
         Icon(
             ImageVector.vectorResource(R.drawable.link_arrow_right), "arrow", Modifier.size(
                 iconSize
-            ))
+            )
+        )
     },
     val title: String = "",
     val description: String? = null,

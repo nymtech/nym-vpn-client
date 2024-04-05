@@ -22,5 +22,5 @@ class LicensesViewModel @Inject constructor(
         viewModelScope.launch {
             val source = application.assets.open("artifacts.json").source().buffer()
             _licences.value = LicenseParser.decode(source)
-    }
+        }
 }

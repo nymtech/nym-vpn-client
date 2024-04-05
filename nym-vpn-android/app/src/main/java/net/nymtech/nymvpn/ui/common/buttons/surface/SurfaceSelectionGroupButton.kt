@@ -27,47 +27,75 @@ import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
 fun SurfaceSelectionGroupButton(items: List<SelectionItem>) {
-  val interactionSource = remember { MutableInteractionSource() }
-  Card(
-      modifier = Modifier.fillMaxWidth(),
-      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    val interactionSource = remember { MutableInteractionSource() }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
         items.mapIndexed { index, it ->
-          Box(
-              contentAlignment = Alignment.Center,
-              modifier =
-                  Modifier.clickable(
-                      interactionSource = interactionSource, indication = null) {
-                        it.onClick()
-                      },
-          ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.height(64.dp.scaledHeight()).padding(top = 4.dp.scaledHeight(), bottom = 4.dp.scaledHeight(), end = 24.dp.scaledWidth())) {
-              it.leadingIcon?.let { icon ->
-                Icon(icon, icon.name, modifier = Modifier.padding(start = 16.dp.scaledWidth()).size(
-                    iconSize))
-              }
-              Row(
-                  horizontalArrangement = Arrangement.spacedBy(16.dp.scaledHeight()),
-                  verticalAlignment = Alignment.CenterVertically) {
-                    Column {
-                      Text(it.title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 16.dp.scaledWidth()))
-                      it.description?.let { description ->
-                          val descriptionTypography = MaterialTheme.typography.bodyMedium
-                        Text(
-                            description,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = descriptionTypography,
-                            modifier = Modifier.padding(start = 16.dp.scaledWidth()))
-                      }
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier =
+                Modifier.clickable(
+                    interactionSource = interactionSource, indication = null
+                ) {
+                    it.onClick()
+                },
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .height(64.dp.scaledHeight())
+                        .padding(
+                            top = 4.dp.scaledHeight(),
+                            bottom = 4.dp.scaledHeight(),
+                            end = 24.dp.scaledWidth()
+                        )
+                ) {
+                    it.leadingIcon?.let { icon ->
+                        Icon(
+                            icon,
+                            icon.name,
+                            modifier = Modifier
+                                .padding(start = 16.dp.scaledWidth())
+                                .size(
+                                    iconSize
+                                )
+                        )
                     }
-                  }
-              Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                it.trailing?.let {
-                    it()
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp.scaledHeight()),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                it.title,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 16.dp.scaledWidth())
+                            )
+                            it.description?.let { description ->
+                                val descriptionTypography = MaterialTheme.typography.bodyMedium
+                                Text(
+                                    description,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = descriptionTypography,
+                                    modifier = Modifier.padding(start = 16.dp.scaledWidth())
+                                )
+                            }
+                        }
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        it.trailing?.let {
+                            it()
+                        }
+                    }
                 }
-              }
             }
-          }
-          if (index + 1 != items.size) HorizontalDivider()
+            if (index + 1 != items.size) HorizontalDivider()
         }
-      }
+    }
 }

@@ -10,7 +10,7 @@ import java.io.FileOutputStream
 
 object FileUtils {
     fun saveFileToDownloads(context: Context, content: String, fileName: String) {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val contentValues = ContentValues().apply {
                 put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
                 put(MediaStore.MediaColumns.MIME_TYPE, Constants.TEXT_MIME_TYPE)

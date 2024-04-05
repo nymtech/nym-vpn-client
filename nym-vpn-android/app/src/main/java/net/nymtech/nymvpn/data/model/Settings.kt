@@ -7,7 +7,7 @@ import net.nymtech.vpn.model.VpnMode
 data class Settings(
     val theme: Theme = Theme.default(),
     val vpnMode: VpnMode = VpnMode.default(),
-    val autoStartEnabled : Boolean = AUTO_START_DEFAULT,
+    val autoStartEnabled: Boolean = AUTO_START_DEFAULT,
     val errorReportingEnabled: Boolean = BuildConfig.OPT_IN_REPORTING,
     val firstHopSelectionEnabled: Boolean = FIRST_HOP_SELECTION_DEFAULT,
     val loggedIn: Boolean = LOGGED_IN_DEFAULT

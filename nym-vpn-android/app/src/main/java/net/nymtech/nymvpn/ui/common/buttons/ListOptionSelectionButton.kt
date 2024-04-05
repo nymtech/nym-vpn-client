@@ -31,7 +31,7 @@ import net.nymtech.nymvpn.util.scaledHeight
 fun ListOptionSelectionButton(
     label: String,
     value: String,
-    onClick : () -> Unit,
+    onClick: () -> Unit,
     leadingIcon: @Composable () -> Unit,
     trailingIcon: ImageVector = ImageVector.vectorResource(R.drawable.link_arrow_right)
 ) {
@@ -55,8 +55,12 @@ fun ListOptionSelectionButton(
         readOnly = true,
         enabled = false,
         onValueChange = {},
-        modifier = Modifier.fillMaxWidth().height(60.dp.scaledHeight()).defaultMinSize(minHeight = 1.dp, minWidth = 1.dp).clickable(interactionSource = interactionSource, indication = null){ onClick() }
-        ) {
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp.scaledHeight())
+            .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
+            .clickable(interactionSource = interactionSource, indication = null) { onClick() }
+    ) {
         OutlinedTextFieldDefaults.DecorationBox(
             value = value,
             leadingIcon = {
@@ -65,17 +69,43 @@ fun ListOptionSelectionButton(
             trailingIcon = {
                 Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
             },
-            label = { Text(label, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(start = 8.dp)) },
+            label = {
+                Text(
+                    label,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            },
             enabled = false,
             contentPadding = PaddingValues(1.dp),
             singleLine = true,
-            placeholder = { Text(value, style = MaterialTheme.typography.bodyLarge ,overflow = TextOverflow.Visible) },
+            placeholder = {
+                Text(
+                    value,
+                    style = MaterialTheme.typography.bodyLarge,
+                    overflow = TextOverflow.Visible
+                )
+            },
             visualTransformation = VisualTransformation.None,
-            innerTextField = { Text(value, style = MaterialTheme.typography.bodyLarge ,overflow = TextOverflow.Visible) },
+            innerTextField = {
+                Text(
+                    value,
+                    style = MaterialTheme.typography.bodyLarge,
+                    overflow = TextOverflow.Visible
+                )
+            },
             interactionSource = interactionSource,
             colors = colors,
             container = {
-                OutlinedTextFieldDefaults.ContainerBox(enabled = false, false, interactionSource, colors, focusedBorderThickness = 1.dp, unfocusedBorderThickness = 1.dp, shape = ShapeDefaults.Small)
+                OutlinedTextFieldDefaults.ContainerBox(
+                    enabled = false,
+                    false,
+                    interactionSource,
+                    colors,
+                    focusedBorderThickness = 1.dp,
+                    unfocusedBorderThickness = 1.dp,
+                    shape = ShapeDefaults.Small
+                )
             },
         )
     }

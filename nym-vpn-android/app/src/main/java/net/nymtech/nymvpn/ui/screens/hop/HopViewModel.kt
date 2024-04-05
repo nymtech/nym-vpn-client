@@ -27,13 +27,14 @@ class HopViewModel @Inject constructor(
         _uiState,
     ) { gateway, state ->
         val countryList = when (_uiState.value.hopType) {
-                HopType.FIRST -> {
-                    gateway.entryCountries
-                }
-                HopType.LAST -> {
-                    gateway.exitCountries
-                }
+            HopType.FIRST -> {
+                gateway.entryCountries
             }
+
+            HopType.LAST -> {
+                gateway.exitCountries
+            }
+        }
         val searchedCountries = if (state.query.isNotBlank()) {
             countryList.filter { it.name.lowercase().contains(state.query) }.toSet()
         } else countryList

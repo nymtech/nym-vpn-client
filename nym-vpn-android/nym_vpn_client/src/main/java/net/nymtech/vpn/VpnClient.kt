@@ -11,14 +11,19 @@ import nym_vpn_lib.ExitPoint
 
 interface VpnClient {
 
-    fun configure(entryPoint: EntryPoint, exitPoint: ExitPoint, mode: VpnMode = VpnMode.TWO_HOP_MIXNET)
-    fun prepare(context : Context) : Intent?
+    fun configure(
+        entryPoint: EntryPoint,
+        exitPoint: ExitPoint,
+        mode: VpnMode = VpnMode.TWO_HOP_MIXNET
+    )
+
+    fun prepare(context: Context): Intent?
     fun start(context: Context)
     fun startForeground(context: Context)
     fun disconnect(context: Context)
-    val stateFlow : Flow<ClientState>
-    fun getState() : ClientState
-    suspend fun gateways(exitOnly: Boolean = false) : Set<Country>
+    val stateFlow: Flow<ClientState>
+    fun getState(): ClientState
+    suspend fun gateways(exitOnly: Boolean = false): Set<Country>
 
-    suspend fun getLowLatencyEntryCountryCode() : Country
+    suspend fun getLowLatencyEntryCountryCode(): Country
 }

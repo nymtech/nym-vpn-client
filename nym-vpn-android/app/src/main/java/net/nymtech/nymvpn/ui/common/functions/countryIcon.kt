@@ -23,7 +23,12 @@ fun countryIcon(country: Country): @Composable () -> Unit {
     val context = LocalContext.current
     val image =
         if (country.isLowLatency) ImageVector.vectorResource(R.drawable.bolt)
-        else ImageVector.vectorResource(StringUtils.getFlagImageVectorByName(context, country.isoCode.lowercase()))
+        else ImageVector.vectorResource(
+            StringUtils.getFlagImageVectorByName(
+                context,
+                country.isoCode.lowercase()
+            )
+        )
     return {
         Image(
             image,
@@ -35,6 +40,7 @@ fun countryIcon(country: Country): @Composable () -> Unit {
                 ),
             colorFilter =
             if (country.isLowLatency) ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
-            else null)
+            else null
+        )
     }
 }

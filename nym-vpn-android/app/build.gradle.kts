@@ -30,7 +30,11 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        buildConfigField("String", Constants.SENTRY_DSN, "\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\"")
+        buildConfigField(
+            "String",
+            Constants.SENTRY_DSN,
+            "\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\""
+        )
     }
 
     signingConfigs {
@@ -82,11 +86,12 @@ android {
             variant.outputs
                 .map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
                 .forEach { output ->
-                    if(variant.flavorName == Constants.FDROID && variant.buildType.name == Constants.RELEASE) {
+                    if (variant.flavorName == Constants.FDROID && variant.buildType.name == Constants.RELEASE) {
                         fdroidApkReleasePath = output.outputFile.path
                         generateChecksum = true
                     }
-                    val fullName = "${Constants.APP_NAME}-${variant.flavorName}-${variant.buildType.name}-${variant.versionName}"
+                    val fullName =
+                        "${Constants.APP_NAME}-${variant.flavorName}-${variant.buildType.name}-${variant.versionName}"
                     variant.resValue("string", "fullVersionName", fullName)
                     val outputFileName =
                         "$fullName.apk"

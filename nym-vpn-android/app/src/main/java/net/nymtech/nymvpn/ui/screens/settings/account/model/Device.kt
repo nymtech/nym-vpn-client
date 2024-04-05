@@ -5,6 +5,7 @@ import net.nymtech.nymvpn.util.StringValue
 
 
 typealias Devices = List<Device>
+
 data class Device(
     val name: String,
     val type: DeviceType
@@ -16,8 +17,9 @@ enum class DeviceType {
     ANDROID,
     WINDOWS,
     LINUX;
-    fun formattedName() : StringValue {
-        return when(this) {
+
+    fun formattedName(): StringValue {
+        return when (this) {
             ANDROID -> StringValue.StringResource(R.string.android)
             IOS -> StringValue.StringResource(R.string.ios)
             WINDOWS -> StringValue.StringResource(R.string.windows)
@@ -25,8 +27,9 @@ enum class DeviceType {
             LINUX -> StringValue.StringResource(R.string.linux)
         }
     }
-    fun icon() : Int {
-        return when(this) {
+
+    fun icon(): Int {
+        return when (this) {
             ANDROID, IOS -> R.drawable.phone
             WINDOWS, MAC_OS, LINUX -> R.drawable.laptop
         }

@@ -18,13 +18,14 @@ class DisplayViewModel @Inject constructor(
 ) : ViewModel() {
 
     val uiState = settingsRepository.settingsFlow.map {
-        DisplayUiState(false,  it.theme)
-    }.stateIn(viewModelScope,
+        DisplayUiState(false, it.theme)
+    }.stateIn(
+        viewModelScope,
         SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
         DisplayUiState()
     )
 
-    fun onThemeChange(theme : Theme) = viewModelScope.launch {
+    fun onThemeChange(theme: Theme) = viewModelScope.launch {
         settingsRepository.setTheme(theme)
     }
 }

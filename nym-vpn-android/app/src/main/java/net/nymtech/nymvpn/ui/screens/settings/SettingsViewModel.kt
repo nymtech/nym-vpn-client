@@ -18,7 +18,8 @@ class SettingsViewModel @Inject constructor(
 
     val uiState = settingsRepository.settingsFlow.map {
         SettingsUiState(false, it.firstHopSelectionEnabled, it.autoStartEnabled)
-    }.stateIn(viewModelScope,
+    }.stateIn(
+        viewModelScope,
         SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
         SettingsUiState()
     )

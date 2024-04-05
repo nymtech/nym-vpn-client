@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -36,6 +37,7 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.vpn.model.Country
 
 @Composable
 fun HopScreen(
@@ -45,29 +47,46 @@ fun HopScreen(
     viewModel: HopViewModel = hiltViewModel(),
 ) {
 
-  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-  val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
-  LaunchedEffect(Unit) {
-      viewModel.init(hopType)
-      appViewModel.updateCountryListCache()
-  }
+    val countryComparator = compareBy<Country> { it.name }
 
-  LazyColumn(
-     horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.Top,
-      modifier = Modifier
-          .fillMaxSize()
-          .padding(horizontal = 24.dp.scaledWidth(), vertical = 24.dp.scaledHeight())) {
+    val sortedCountries = remember(uiState.queriedCountries, countryComparator) {
+        uiState.queriedCountries.sortedWith(countryComparator)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.init(hopType)
+        appViewModel.updateCountryListCache()
+    }
+
+    LazyColumn(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Top,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp.scaledWidth(), vertical = 24.dp.scaledHeight())
+    ) {
         item {
-          Column(
-              verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight()),
-              modifier = Modifier.padding(bottom = 24.dp.scaledHeight())) {
-              Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp.scaledWidth(), vertical = 16.dp.scaledHeight()))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight()),
+                modifier = Modifier.padding(bottom = 24.dp.scaledHeight())
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp.scaledWidth(), vertical = 16.dp.scaledHeight())
+                )
                 SearchBar(
                     onQuery = viewModel::onQueryChange,
-                    placeholder = { Text(stringResource(id = R.string.search_country), color = MaterialTheme.colorScheme.outline) })
-              }
+                    placeholder = {
+                        Text(
+                            stringResource(id = R.string.search_country),
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    })
+            }
         }
         item {
             if (uiState.countries.isNotEmpty()) {
@@ -80,9 +99,13 @@ fun HopScreen(
                             Icon(
                                 icon,
                                 icon.name,
-                                modifier = Modifier.padding(horizontal = 16.dp.scaledWidth(), 16.dp.scaledHeight()).size(
-                                    iconSize),
-                                tint = MaterialTheme.colorScheme.onSurface)
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp.scaledWidth(), 16.dp.scaledHeight())
+                                    .size(
+                                        iconSize
+                                    ),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
                         },
                         name,
                         onClick = {
@@ -93,25 +116,39 @@ fun HopScreen(
                         trailingText =
                         if (fastest == uiState.selected)
                             stringResource(id = R.string.is_selected)
-                        else null)
+                        else null
+                    )
                 }
             }
         }
-        items(uiState.queriedCountries.toList()) {
-          if (it.isLowLatency) return@items
-          val icon =
-              ImageVector.vectorResource(StringUtils.getFlagImageVectorByName(context, it.isoCode.lowercase()))
-          SelectionItemButton(
-              { Image(icon, icon.name, modifier = Modifier.padding(horizontal = 16.dp.scaledWidth(), 16.dp.scaledHeight()).size(
-                  iconSize)) },
-              buttonText = it.name,
-              onClick = {
-                viewModel.onSelected(it)
-                navController.navigate(NavItem.Main.route)
-              },
-              selected = it == uiState.selected,
-              trailingText =
-                  if (it == uiState.selected) stringResource(id = R.string.is_selected) else null)
+        items(sortedCountries) {
+            if (it.isLowLatency) return@items
+            val icon =
+                ImageVector.vectorResource(
+                    StringUtils.getFlagImageVectorByName(
+                        context,
+                        it.isoCode.lowercase()
+                    )
+                )
+            SelectionItemButton(
+                {
+                    Image(
+                        icon, icon.name, modifier = Modifier
+                            .padding(horizontal = 16.dp.scaledWidth(), 16.dp.scaledHeight())
+                            .size(
+                                iconSize
+                            )
+                    )
+                },
+                buttonText = it.name,
+                onClick = {
+                    viewModel.onSelected(it)
+                    navController.navigate(NavItem.Main.route)
+                },
+                selected = it == uiState.selected,
+                trailingText =
+                if (it == uiState.selected) stringResource(id = R.string.is_selected) else null
+            )
         }
-      }
+    }
 }

@@ -1,4 +1,3 @@
-
 import org.gradle.api.JavaVersion
 
 object Constants {

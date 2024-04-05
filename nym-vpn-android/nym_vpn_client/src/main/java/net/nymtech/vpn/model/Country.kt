@@ -16,7 +16,7 @@ data class Country(
 ) {
 
     init {
-        if(isoCode.length > 2) {
+        if (isoCode.length > 2) {
             throw IllegalArgumentException("isoCode must be two characters")
         }
     }
@@ -25,19 +25,20 @@ data class Country(
         return Json.encodeToString(serializer(), this)
     }
 
-    fun toEntryPoint() : EntryPoint {
+    fun toEntryPoint(): EntryPoint {
         return EntryPoint.Location(isoCode)
     }
 
-    fun toExitPoint() : ExitPoint {
+    fun toExitPoint(): ExitPoint {
         return ExitPoint.Location(isoCode)
     }
 
     companion object {
         fun from(string: String?): Country {
-            return string?.let { Json.decodeFromString<Country>(string)} ?: Country()
+            return string?.let { Json.decodeFromString<Country>(string) } ?: Country()
         }
-        fun fromCollectionString(string: String?) : Set<Country> {
+
+        fun fromCollectionString(string: String?): Set<Country> {
             return string?.let {
                 Json.decodeFromString<Set<Country>>(it)
             } ?: emptySet()

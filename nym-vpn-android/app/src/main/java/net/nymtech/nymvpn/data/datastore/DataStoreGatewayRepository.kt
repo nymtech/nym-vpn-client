@@ -7,7 +7,8 @@ import net.nymtech.nymvpn.data.model.Gateways
 import net.nymtech.vpn.model.Country
 import timber.log.Timber
 
-class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager) : GatewayRepository {
+class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager) :
+    GatewayRepository {
     override suspend fun getFirstHopCountry(): Country {
         val country = dataStoreManager.getFromStore(DataStoreManager.FIRST_HOP_COUNTRY)
         return Country.from(country)
@@ -55,7 +56,7 @@ class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager)
 
     override val gatewayFlow: Flow<Gateways> = dataStoreManager.preferencesFlow.map { prefs ->
         prefs?.let { pref ->
-            try{
+            try {
                 Gateways(
                     firstHopCountry = Country.from(pref[DataStoreManager.FIRST_HOP_COUNTRY]),
                     lastHopCountry = Country.from(pref[DataStoreManager.LAST_HOP_COUNTRY]),
@@ -63,7 +64,7 @@ class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager)
                     exitCountries = Country.fromCollectionString(pref[DataStoreManager.EXIT_COUNTRIES]),
                     entryCountries = Country.fromCollectionString(pref[DataStoreManager.ENTRY_COUNTRIES])
                 )
-            } catch (e : IllegalArgumentException) {
+            } catch (e: IllegalArgumentException) {
                 Timber.e(e)
                 Gateways()
             }

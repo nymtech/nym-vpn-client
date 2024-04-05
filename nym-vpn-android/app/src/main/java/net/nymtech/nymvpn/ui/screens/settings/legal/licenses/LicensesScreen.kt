@@ -40,26 +40,32 @@ fun LicensesScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp.scaledWidth())) {
+            .padding(horizontal = 24.dp.scaledWidth())
+    ) {
         item {
-            Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())){}
+            Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())) {}
         }
         items(licenses) { it ->
             SurfaceSelectionGroupButton(items =
-                listOf(
-                    SelectionItem(
-                        //TODO refactor
-                    title = (if(it.name != null && it.name.length > 32) it.name.substring(0,29).plus("...") else it.name
-                        ?: stringResource(id = R.string.unknown)) ,
-                    description = it.spdxLicenses?.joinToString(postfix = " ") { it.name } + if(it.unknownLicenses != null)
+            listOf(
+                SelectionItem(
+                    //TODO refactor
+                    title = (if (it.name != null && it.name.length > 32) it.name.substring(
+                        0,
+                        29
+                    ).plus("...") else it.name
+                        ?: stringResource(id = R.string.unknown)),
+                    description = it.spdxLicenses?.joinToString(postfix = " ") { it.name } + if (it.unknownLicenses != null)
                         it.unknownLicenses.joinToString { it.name } else "",
-                    onClick ={ if(it.scm != null) appViewModel.openWebPage(it.scm.url)
-                    else appViewModel.showSnackbarMessage(context.getString(R.string.no_scm_found)) }
+                    onClick = {
+                        if (it.scm != null) appViewModel.openWebPage(it.scm.url)
+                        else appViewModel.showSnackbarMessage(context.getString(R.string.no_scm_found))
+                    }
                 )
             ))
         }
         item {
-            Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())){}
+            Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())) {}
         }
     }
 }

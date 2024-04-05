@@ -34,18 +34,21 @@ class VpnQuickTile : TileService() {
         setTileText()
         scope.launch {
             NymVpnClient.stateFlow.collect {
-                when(it.vpnState) {
+                when (it.vpnState) {
                     VpnState.Up -> {
                         setActive()
                         setTileText()
                     }
+
                     VpnState.Down -> {
                         setInactive()
                         setTileText()
                     }
+
                     VpnState.Connecting.EstablishingConnection, VpnState.Connecting.InitializingClient -> {
                         setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
                     }
+
                     VpnState.Disconnecting -> {
                         setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
                     }
@@ -74,7 +77,7 @@ class VpnQuickTile : TileService() {
         setTileText()
         Timber.i("Tile clicked")
         unlockAndRun {
-            when(NymVpnClient.getState().vpnState) {
+            when (NymVpnClient.getState().vpnState) {
                 VpnState.Up -> NymVpnClient.disconnect(this)
                 VpnState.Down -> {
                     scope.launch {
@@ -83,15 +86,16 @@ class VpnQuickTile : TileService() {
                         val mode = settingsRepository.getVpnMode()
                         val entry = entryCountry.toEntryPoint()
                         val exit = exitCountry.toExitPoint()
-                        NymVpnClient.configure(entry,exit,mode)
+                        NymVpnClient.configure(entry, exit, mode)
                         NymVpnClient.start(this@VpnQuickTile)
                         NymVpn.requestTileServiceStateUpdate(this@VpnQuickTile)
                     }
 
                 }
+
                 else -> Unit
             }
-       }
+        }
     }
 
     private fun setTileText() = scope.launch {
@@ -99,10 +103,16 @@ class VpnQuickTile : TileService() {
         val lastHopCountry = gatewayRepository.getLastHopCountry()
         val mode = settingsRepository.getVpnMode()
         val isTwoHop = mode == VpnMode.TWO_HOP_MIXNET
-        setTitle("${this@VpnQuickTile.getString(R.string.mode)}: ${if(isTwoHop) this@VpnQuickTile.getString(
-            R.string.two_hop) else this@VpnQuickTile.getString(R.string.five_hop)}")
+        setTitle(
+            "${this@VpnQuickTile.getString(R.string.mode)}: ${
+                if (isTwoHop) this@VpnQuickTile.getString(
+                    R.string.two_hop
+                ) else this@VpnQuickTile.getString(R.string.five_hop)
+            }"
+        )
         setTileDescription(
-            "${firstHopCountry.isoCode} -> ${lastHopCountry.isoCode}")
+            "${firstHopCountry.isoCode} -> ${lastHopCountry.isoCode}"
+        )
     }
 
     private fun setActive() {
@@ -110,7 +120,7 @@ class VpnQuickTile : TileService() {
         qsTile.updateTile()
     }
 
-    private fun setTitle(title : String) {
+    private fun setTitle(title: String) {
         qsTile.label = title
         qsTile.updateTile()
     }

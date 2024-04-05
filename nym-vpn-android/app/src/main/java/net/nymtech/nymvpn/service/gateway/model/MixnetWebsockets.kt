@@ -7,6 +7,6 @@ import com.squareup.moshi.JsonClass
 @Keep
 @JsonClass(generateAdapter = true)
 data class MixnetWebsockets(
-    @Json(name = "ws_port") val wsPort : Int?,
-    @Json(name = "wss_port") val wssPort : Int?
+    @Json(name = "ws_port") val wsPort: Int?,
+    @Json(name = "wss_port") val wssPort: Int?
 )

@@ -11,9 +11,11 @@ import androidx.compose.ui.Alignment
 fun GroupLabel(title: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start) {
+        horizontalArrangement = Arrangement.Start
+    ) {
         Text(
             title,
-            style = MaterialTheme.typography.titleMedium)
+            style = MaterialTheme.typography.titleMedium
+        )
     }
 }

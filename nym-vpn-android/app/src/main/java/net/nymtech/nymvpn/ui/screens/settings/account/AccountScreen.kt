@@ -82,8 +82,8 @@ fun AccountScreen(appViewModel: AppViewModel, viewModel: AccountViewModel = hilt
                 )
                 LinearProgressIndicator(modifier = Modifier
                     .fillMaxWidth(), progress = {
-                        if(uiState.subscriptionTotalDays == 0) 0f else
-                    uiState.subscriptionDaysRemaining.toFloat() / uiState.subscriptionTotalDays
+                    if (uiState.subscriptionTotalDays == 0) 0f else
+                        uiState.subscriptionDaysRemaining.toFloat() / uiState.subscriptionTotalDays
                 })
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -124,9 +124,13 @@ fun AccountScreen(appViewModel: AppViewModel, viewModel: AccountViewModel = hilt
             ) {
                 GroupLabel(title = stringResource(R.string.devices))
                 IconButton(onClick = {
-                   appViewModel.showFeatureInProgressMessage()
-                }, modifier = Modifier.padding(start =  24.dp)) {
-                    Icon(Icons.Filled.Add, Icons.Filled.Add.name, tint = MaterialTheme.colorScheme.onSurface)
+                    appViewModel.showFeatureInProgressMessage()
+                }, modifier = Modifier.padding(start = 24.dp)) {
+                    Icon(
+                        Icons.Filled.Add,
+                        Icons.Filled.Add.name,
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
             SurfaceSelectionGroupButton(

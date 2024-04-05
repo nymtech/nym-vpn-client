@@ -10,37 +10,39 @@ import timber.log.Timber
 
 object ServiceManager {
 
-  private fun <T : Service> actionOnService(
-      action: Action,
-      context: Context,
-      cls: Class<T>,
-      extras: Map<String, String>? = null
-  ) {
-    val intent =
-        Intent(context, cls).also {
-          it.action = action.name
-          extras?.forEach { (k, v) -> it.putExtra(k, v) }
-        }
-    intent.component?.javaClass
-    try {
-      when (action) {
-        Action.START_FOREGROUND -> {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent)
-          } else context.startService(intent)
-        }
-        Action.START -> {
-            Timber.d("Start intent")
-          context.startService(intent)
-        }
-        Action.STOP -> context.startService(intent)
-      }
-    } catch (e: Exception) {
-      Timber.e(e.message)
-    }
-  }
+    private fun <T : Service> actionOnService(
+        action: Action,
+        context: Context,
+        cls: Class<T>,
+        extras: Map<String, String>? = null
+    ) {
+        val intent =
+            Intent(context, cls).also {
+                it.action = action.name
+                extras?.forEach { (k, v) -> it.putExtra(k, v) }
+            }
+        intent.component?.javaClass
+        try {
+            when (action) {
+                Action.START_FOREGROUND -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(intent)
+                    } else context.startService(intent)
+                }
 
-    fun startVpnService(context: Context, extras : Map<String, String>? = null) {
+                Action.START -> {
+                    Timber.d("Start intent")
+                    context.startService(intent)
+                }
+
+                Action.STOP -> context.startService(intent)
+            }
+        } catch (e: Exception) {
+            Timber.e(e.message)
+        }
+    }
+
+    fun startVpnService(context: Context, extras: Map<String, String>? = null) {
         Timber.d("Called start vpn service")
         actionOnService(
             Action.START,
@@ -50,7 +52,7 @@ object ServiceManager {
         )
     }
 
-    fun startVpnServiceForeground(context: Context, extras : Map<String, String>? = null) {
+    fun startVpnServiceForeground(context: Context, extras: Map<String, String>? = null) {
         Timber.d("Called start vpn service foreground")
         actionOnService(
             Action.START_FOREGROUND,

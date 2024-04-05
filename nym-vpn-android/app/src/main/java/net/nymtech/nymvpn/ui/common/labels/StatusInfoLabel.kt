@@ -13,6 +13,10 @@ import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
 fun StatusInfoLabel(message: String, textColor: Color) {
-    Text(message, color = textColor, style = MaterialTheme.typography.labelLarge,
-        modifier = Modifier.padding(horizontal = 24.dp.scaledWidth()).height(IntrinsicSize.Min))
+    Text(
+        message, color = textColor, style = MaterialTheme.typography.labelLarge,
+        modifier = Modifier
+            .padding(horizontal = 24.dp.scaledWidth())
+            .height(IntrinsicSize.Min)
+    )
 }

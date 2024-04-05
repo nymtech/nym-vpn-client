@@ -90,12 +90,14 @@ dependencies {
 
 
 tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
-    val ndkPath = android.sdkDirectory.resolve("ndk").listFilesOrdered().last().path ?: System.getenv("ANDROID_NDK_HOME")
+    val ndkPath = android.sdkDirectory.resolve("ndk").listFilesOrdered().last().path
+        ?: System.getenv("ANDROID_NDK_HOME")
     commandLine("echo", "NDK HOME: $ndkPath")
     val script = "${projectDir.path}/src/main/scripts/build-libs.sh"
     //TODO find a better way to limit builds
-    if(file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so").exists() &&
-        file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libwg.so").exists()) {
+    if (file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so").exists() &&
+        file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libwg.so").exists()
+    ) {
         commandLine("echo", "Libs already compiled")
     } else commandLine("bash").args(script, ndkPath)
 }

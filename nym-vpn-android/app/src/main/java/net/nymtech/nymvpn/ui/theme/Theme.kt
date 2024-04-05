@@ -22,7 +22,7 @@ enum class Theme {
     AUTOMATIC;
 
     companion object {
-        fun default() : Theme {
+        fun default(): Theme {
             return AUTOMATIC
         }
     }
@@ -63,7 +63,7 @@ fun NymVPNTheme(
 ) {
     val context = LocalContext.current
 
-    val darkTheme = when(theme) {
+    val darkTheme = when (theme) {
         Theme.AUTOMATIC -> isSystemInDarkTheme()
         Theme.DARK_MODE -> true
         Theme.LIGHT_MODE -> false
@@ -73,6 +73,7 @@ fun NymVPNTheme(
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }

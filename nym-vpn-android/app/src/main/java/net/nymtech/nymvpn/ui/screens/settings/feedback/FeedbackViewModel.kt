@@ -18,7 +18,8 @@ class FeedbackViewModel @Inject constructor(
 
     val isErrorReportingEnabled = settingsRepository.settingsFlow.map {
         it.errorReportingEnabled
-    }.stateIn(viewModelScope,
+    }.stateIn(
+        viewModelScope,
         SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
         false
     )

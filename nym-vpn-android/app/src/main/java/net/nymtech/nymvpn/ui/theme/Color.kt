@@ -12,8 +12,8 @@ sealed class ThemeColors(
     val onPrimary: Color,
     val onSurfaceVariant: Color,
     val onSecondary: Color
-)  {
-    data object Dark: ThemeColors(
+) {
+    data object Dark : ThemeColors(
         background = Color(0xFF1C1B1F),
         surface = Color(0x14D0BCFF),
         primary = primary,
@@ -24,7 +24,8 @@ sealed class ThemeColors(
         onSurfaceVariant = Color(0xFF938F99),
         onSecondary = Color(0xFF56545A),
     )
-    data object Light: ThemeColors(
+
+    data object Light : ThemeColors(
         background = Color(0xFFF2F4F6),
         surface = Color(0xFFFFFFFF),
         primary = primary,
@@ -36,6 +37,7 @@ sealed class ThemeColors(
         onSecondary = Color(0xFFA4A4A4),
     )
 }
+
 val primary = Color(0xFFFB6E4E)
 val secondary = Color(0XFF625B71)
 

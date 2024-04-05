@@ -23,6 +23,7 @@ class DataStoreManager(private val context: Context) {
         val ERROR_REPORTING = booleanPreferencesKey("ERROR_REPORTING")
         val AUTO_START = booleanPreferencesKey("AUTO_START")
         val LOGGED_IN = booleanPreferencesKey("LOGGED_IN")
+
         //GatewayCountries
         val FIRST_HOP_COUNTRY = stringPreferencesKey("FIRST_HOP_COUNTRY")
         val LOW_LATENCY_COUNTRY = stringPreferencesKey("LOW_LATENCY_COUNTRY")
@@ -34,23 +35,25 @@ class DataStoreManager(private val context: Context) {
     // preferences
     private val preferencesKey = "preferences"
     private val Context.dataStore by
-        preferencesDataStore(
-            name = preferencesKey,
-        )
+    preferencesDataStore(
+        name = preferencesKey,
+    )
 
     suspend fun init() {
         context.dataStore.edit {
-            if(it[FIRST_HOP_COUNTRY] == null) it[FIRST_HOP_COUNTRY] = Country(isDefault = true).toString()
-            if(it[LAST_HOP_COUNTRY] == null) it[LAST_HOP_COUNTRY] = Country(isDefault = true).toString()
+            if (it[FIRST_HOP_COUNTRY] == null) it[FIRST_HOP_COUNTRY] =
+                Country(isDefault = true).toString()
+            if (it[LAST_HOP_COUNTRY] == null) it[LAST_HOP_COUNTRY] =
+                Country(isDefault = true).toString()
         }
     }
 
     suspend fun <T> saveToDataStore(key: Preferences.Key<T>, value: T) {
         try {
             context.dataStore.edit { it[key] = value }
-        } catch (e : IOException) {
+        } catch (e: IOException) {
             Timber.e(e)
-        } catch (e : Exception) {
+        } catch (e: Exception) {
             Timber.e(e)
         }
     }
@@ -58,10 +61,10 @@ class DataStoreManager(private val context: Context) {
 
     fun <T> getFromStoreFlow(key: Preferences.Key<T>) = context.dataStore.data.map { it[key] }
 
-    suspend fun <T> getFromStore(key: Preferences.Key<T>) : T? {
+    suspend fun <T> getFromStore(key: Preferences.Key<T>): T? {
         return try {
-            context.dataStore.data.map{ it[key] }.first()
-        } catch (e : IOException) {
+            context.dataStore.data.map { it[key] }.first()
+        } catch (e: IOException) {
             Timber.e(e)
             null
         }
@@ -69,7 +72,7 @@ class DataStoreManager(private val context: Context) {
 
 
     fun <T> getFromStoreBlocking(key: Preferences.Key<T>) = runBlocking {
-        context.dataStore.data.map{ it[key] }.first()
+        context.dataStore.data.map { it[key] }.first()
     }
 
     val preferencesFlow: Flow<Preferences?> = context.dataStore.data

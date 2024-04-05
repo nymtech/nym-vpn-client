@@ -12,46 +12,47 @@ import net.nymtech.nymvpn.util.scaled
 val Typography =
     Typography(
         bodyLarge =
-            TextStyle(
-                fontFamily = FontFamily.Default,
-                fontWeight = FontWeight.Normal,
-                fontSize = 16.sp.scaled(),
-                lineHeight = 24.sp.scaled(),
-                letterSpacing = 0.5.sp.scaled()),
+        TextStyle(
+            fontFamily = FontFamily.Default,
+            fontWeight = FontWeight.Normal,
+            fontSize = 16.sp.scaled(),
+            lineHeight = 24.sp.scaled(),
+            letterSpacing = 0.5.sp.scaled()
+        ),
         bodySmall =
-            TextStyle(
-                fontSize = 12.sp.scaled(),
-                lineHeight = 16.sp.scaled(),
-                fontWeight = FontWeight(400),
-                letterSpacing = 0.4.sp.scaled(),
-            ),
+        TextStyle(
+            fontSize = 12.sp.scaled(),
+            lineHeight = 16.sp.scaled(),
+            fontWeight = FontWeight(400),
+            letterSpacing = 0.4.sp.scaled(),
+        ),
         titleLarge =
-            TextStyle(
-                fontSize = 22.sp.scaled(),
-                lineHeight = 28.sp.scaled(),
-                fontWeight = FontWeight(400),
-            ),
+        TextStyle(
+            fontSize = 22.sp.scaled(),
+            lineHeight = 28.sp.scaled(),
+            fontWeight = FontWeight(400),
+        ),
         titleMedium =
-            TextStyle(
-                fontSize = 16.sp.scaled(),
-                lineHeight = 24.sp.scaled(),
-                fontWeight = FontWeight(600),
-                letterSpacing = 0.15.sp.scaled(),
-            ),
+        TextStyle(
+            fontSize = 16.sp.scaled(),
+            lineHeight = 24.sp.scaled(),
+            fontWeight = FontWeight(600),
+            letterSpacing = 0.15.sp.scaled(),
+        ),
         bodyMedium =
-            TextStyle(
-                fontSize = 14.sp.scaled(),
-                lineHeight = 20.sp.scaled(),
-                fontWeight = FontWeight(400),
-                letterSpacing = 0.25.sp.scaled(),
-            ),
+        TextStyle(
+            fontSize = 14.sp.scaled(),
+            lineHeight = 20.sp.scaled(),
+            fontWeight = FontWeight(400),
+            letterSpacing = 0.25.sp.scaled(),
+        ),
         labelSmall =
-            TextStyle(
-                fontSize = 11.sp.scaled(),
-                lineHeight = 16.sp.scaled(),
-                fontWeight = FontWeight(500),
-                letterSpacing = 0.5.sp.scaled(),
-            ),
+        TextStyle(
+            fontSize = 11.sp.scaled(),
+            lineHeight = 16.sp.scaled(),
+            fontWeight = FontWeight(500),
+            letterSpacing = 0.5.sp.scaled(),
+        ),
         headlineSmall = TextStyle(
             fontSize = 24.sp.scaled(),
             lineHeight = 32.sp.scaled(),

@@ -42,7 +42,11 @@ import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewModel: LoginViewModel = hiltViewModel()) {
+fun LoginScreen(
+    navController: NavController,
+    appViewModel: AppViewModel,
+    viewModel: LoginViewModel = hiltViewModel()
+) {
 
     val context = LocalContext.current
 
@@ -50,7 +54,7 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
         mutableStateOf("")
     }
 
-    var error by remember{
+    var error by remember {
         mutableStateOf<Event.Error>(Event.Error.None)
     }
 
@@ -58,7 +62,7 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
     val scrollState = rememberScrollState()
 
     LaunchedEffect(imeState.value) {
-        if (imeState.value){
+        if (imeState.value) {
             scrollState.animateScrollTo(scrollState.viewportSize)
         }
     }
@@ -68,9 +72,11 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(40.dp.scaledHeight(), Alignment.Bottom),
         modifier = Modifier
-            .fillMaxSize().imePadding()
+            .fillMaxSize()
+            .imePadding()
             .verticalScroll(scrollState)
-            .padding(horizontal = 24.dp.scaledWidth())) {
+            .padding(horizontal = 24.dp.scaledWidth())
+    ) {
         Image(
             painter = painterResource(id = R.drawable.login),
             contentDescription = stringResource(id = R.string.login),
@@ -85,16 +91,31 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
             verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top), modifier = Modifier
                 .padding(
                     horizontal = 24.dp.scaledWidth(), vertical = 24.dp.scaledHeight()
-                )) {
-            Text(text = stringResource(id = R.string.welcome), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
-            Text(text = stringResource(id = R.string.credential_message), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-            Text(text = stringResource(id = R.string.credential_disclaimer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+                )
+        ) {
+            Text(
+                text = stringResource(id = R.string.welcome),
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Text(
+                text = stringResource(id = R.string.credential_message),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = stringResource(id = R.string.credential_disclaimer),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
         }
         val isLoginError = error is Event.Error.LoginFailed
         OutlinedTextField(
             value = recoveryPhrase,
             onValueChange = {
-                if(isLoginError) error = Event.Error.None
+                if (isLoginError) error = Event.Error.None
                 recoveryPhrase = it
             },
             label = { Text(text = stringResource(id = R.string.credential_label)) },
@@ -114,16 +135,19 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
                 .width(342.dp.scaledWidth())
                 .height(196.dp.scaledHeight())
         )
-        Box(modifier = Modifier
-            .padding(bottom = 24.dp.scaledHeight())) {
+        Box(
+            modifier = Modifier
+                .padding(bottom = 24.dp.scaledHeight())
+        ) {
             MainStyledButton(
                 onClick = {
                     viewModel.onLogin(recoveryPhrase).let {
-                        when(it){
+                        when (it) {
                             is Result.Success -> {
                                 navController.navigate(NavItem.Main.route)
                                 appViewModel.showSnackbarMessage(context.getString(R.string.credential_successful))
                             }
+
                             is Result.Error -> error = it.error
                         }
                     }
@@ -131,9 +155,11 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
                 content = {
                     Text(
                         stringResource(id = R.string.add_credential),
-                        style = MaterialTheme.typography.labelLarge)
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 },
-                color = MaterialTheme.colorScheme.primary)
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }

@@ -13,11 +13,19 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.util.scaledHeight
 
 @Composable
-fun MainStyledButton(onClick: () -> Unit, content: @Composable () -> Unit, color: Color = MaterialTheme.colorScheme.primary) {
-    Button(onClick = { onClick() }, colors = ButtonDefaults.buttonColors(
-        containerColor = color
-    ), modifier = Modifier.height(56.dp.scaledHeight()).fillMaxWidth(), shape =
-    ShapeDefaults.Small) {
+fun MainStyledButton(
+    onClick: () -> Unit,
+    content: @Composable () -> Unit,
+    color: Color = MaterialTheme.colorScheme.primary
+) {
+    Button(
+        onClick = { onClick() }, colors = ButtonDefaults.buttonColors(
+            containerColor = color
+        ), modifier = Modifier
+            .height(56.dp.scaledHeight())
+            .fillMaxWidth(), shape =
+        ShapeDefaults.Small
+    ) {
         content()
     }
 }

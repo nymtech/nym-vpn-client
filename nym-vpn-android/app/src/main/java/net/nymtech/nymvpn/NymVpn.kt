@@ -24,33 +24,36 @@ class NymVpn : Application() {
     }
 
     companion object {
-        lateinit var instance : NymVpn
+        lateinit var instance: NymVpn
             private set
 
         private const val BASELINE_HEIGHT = 2201
         private const val BASELINE_WIDTH = 1080
         private const val BASELINE_DENSITY = 2.625
-        fun resizeHeight(dp : Dp) : Dp {
+        fun resizeHeight(dp: Dp): Dp {
             val displayMetrics = instance.resources.displayMetrics
             val density = displayMetrics.density
             val height = displayMetrics.heightPixels - instance.navigationBarHeight
-            val resizeHeightPercentage = (height.toFloat() / BASELINE_HEIGHT) * (BASELINE_DENSITY.toFloat() / density)
+            val resizeHeightPercentage =
+                (height.toFloat() / BASELINE_HEIGHT) * (BASELINE_DENSITY.toFloat() / density)
             return dp * resizeHeightPercentage
         }
 
-        fun resizeHeight(textUnit: TextUnit) : TextUnit {
+        fun resizeHeight(textUnit: TextUnit): TextUnit {
             val displayMetrics = instance.resources.displayMetrics
             val density = displayMetrics.density
             val height = displayMetrics.heightPixels - instance.navigationBarHeight
-            val resizeHeightPercentage = (height.toFloat() / BASELINE_HEIGHT) * (BASELINE_DENSITY.toFloat() / density)
+            val resizeHeightPercentage =
+                (height.toFloat() / BASELINE_HEIGHT) * (BASELINE_DENSITY.toFloat() / density)
             return textUnit * resizeHeightPercentage * 1.1
         }
 
-        fun resizeWidth(dp : Dp) : Dp {
+        fun resizeWidth(dp: Dp): Dp {
             val displayMetrics = instance.resources.displayMetrics
             val density = displayMetrics.density
             val width = displayMetrics.widthPixels
-            val resizeWidthPercentage = (width.toFloat() / BASELINE_WIDTH) * (BASELINE_DENSITY.toFloat() / density)
+            val resizeWidthPercentage =
+                (width.toFloat() / BASELINE_WIDTH) * (BASELINE_DENSITY.toFloat() / density)
             return dp * resizeWidthPercentage
         }
 

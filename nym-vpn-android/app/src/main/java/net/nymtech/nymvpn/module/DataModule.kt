@@ -25,13 +25,13 @@ class DataModule {
 
     @Singleton
     @Provides
-    fun provideSettingsRepository(dataStoreManager: DataStoreManager) : SettingsRepository {
+    fun provideSettingsRepository(dataStoreManager: DataStoreManager): SettingsRepository {
         return DataStoreSettingsRepository(dataStoreManager)
     }
 
     @Singleton
     @Provides
-    fun provideGatewayRepository(dataStoreManager: DataStoreManager) : GatewayRepository {
+    fun provideGatewayRepository(dataStoreManager: DataStoreManager): GatewayRepository {
         return DataStoreGatewayRepository(dataStoreManager)
     }
 }

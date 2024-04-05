@@ -14,9 +14,9 @@ class LoginViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
-    fun onLogin(recoveryPhrase : String) : Result<Event> {
+    fun onLogin(recoveryPhrase: String): Result<Event> {
         //TODO handle real login, mock for now
-        return if(recoveryPhrase == "") {
+        return if (recoveryPhrase == "") {
             saveLogin()
             Result.Success(Event.Message.None)
         } else {
