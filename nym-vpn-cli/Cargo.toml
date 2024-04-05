@@ -3,6 +3,7 @@ name = "nym-vpn-cli"
 version = "0.0.10-dev"
 edition = "2021"
 license = "GPL-3.0-only"
+authors = ["Nym Technologies"]
 
 [dependencies]
 anyhow.workspace = true
@@ -28,3 +29,9 @@ vergen = { version = "8.2.6", default-features = false, features = [
     "rustc",
     "cargo",
 ] }
+
+# Debian
+[package.metadata.deb]
+name = "nym-vpn-cli"
+maintainer-scripts = "debian"
+systemd-units = { enable = false }
