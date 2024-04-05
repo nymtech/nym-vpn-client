@@ -85,9 +85,13 @@ pub(crate) struct CliArgs {
     #[arg(long)]
     pub(crate) enable_poisson_rate: bool,
 
-    /// Disable constant rate background loop cover traffic
+    /// Disable constant rate background loop cover traffic.
     #[arg(long)]
     pub(crate) disable_background_cover_traffic: bool,
+
+    /// Enable credentials mode.
+    #[arg(long)]
+    pub(crate) enable_credentials_mode: bool,
 }
 
 #[derive(Args)]

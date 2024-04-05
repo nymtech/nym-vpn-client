@@ -105,6 +105,7 @@ async fn run() -> Result<()> {
     nym_vpn.enable_two_hop = args.enable_two_hop;
     nym_vpn.enable_poisson_rate = args.enable_poisson_rate;
     nym_vpn.disable_background_cover_traffic = args.disable_background_cover_traffic;
+    nym_vpn.enable_credentials_mode = args.enable_credentials_mode;
 
     nym_vpn.run().await?;
 

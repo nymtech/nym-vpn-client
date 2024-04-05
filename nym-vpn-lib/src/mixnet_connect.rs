@@ -255,6 +255,7 @@ pub(crate) async fn setup_mixnet_client(
     enable_two_hop: bool,
     enable_poisson_rate: bool,
     disable_background_cover_traffic: bool,
+    enable_credentials_mode: bool,
 ) -> Result<SharedMixnetClient> {
     // Disable Poisson rate limiter by default
     let mut debug_config = nym_client_core::config::DebugConfig::default();
@@ -291,6 +292,7 @@ pub(crate) async fn setup_mixnet_client(
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(debug_config)
             .custom_shutdown(task_client)
+            .credentials_mode(enable_credentials_mode)
             .build()?
             .connect_to_mixnet()
             .await?
@@ -302,6 +304,7 @@ pub(crate) async fn setup_mixnet_client(
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(debug_config)
             .custom_shutdown(task_client)
+            .credentials_mode(enable_credentials_mode)
             .build()?
             .connect_to_mixnet()
             .await?

@@ -124,6 +124,8 @@ pub struct NymVpn {
     /// Disable constant rate background loop cover traffic
     pub disable_background_cover_traffic: bool,
 
+    pub enable_credentials_mode: bool,
+
     tun_provider: Arc<Mutex<TunProvider>>,
 
     #[cfg(target_os = "ios")]
@@ -171,6 +173,7 @@ impl NymVpn {
             enable_two_hop: false,
             enable_poisson_rate: false,
             disable_background_cover_traffic: false,
+            enable_credentials_mode: false,
             tun_provider,
             #[cfg(target_os = "ios")]
             ios_tun_provider,
@@ -288,6 +291,7 @@ impl NymVpn {
                 self.enable_two_hop,
                 self.enable_poisson_rate,
                 self.disable_background_cover_traffic,
+                self.enable_credentials_mode,
             ),
         )
         .await
