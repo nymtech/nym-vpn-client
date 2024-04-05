@@ -71,10 +71,9 @@ async fn run() -> Result<()> {
     setup_env(args.config_env_file.as_ref());
 
     match args.command {
-        commands::Commands::Run(run_args) => run_vpn(run_args).await
+        commands::Commands::Run(run_args) => run_vpn(run_args).await,
     }
 }
-
 
 async fn run_vpn(args: commands::RunArgs) -> Result<()> {
     // Setup gateway configuration

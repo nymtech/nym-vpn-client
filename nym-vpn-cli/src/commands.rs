@@ -28,7 +28,6 @@ fn pretty_build_info_static() -> &'static str {
 pub(crate) enum Commands {
     /// Run the client
     Run(RunArgs),
-
     // Import credential
     //ImportCredential(ImportCredentialArgs),
 }
@@ -44,7 +43,7 @@ pub(crate) struct CliArgs {
     pub(crate) command: Commands,
 }
 
-#[derive(Args,)]
+#[derive(Args)]
 pub(crate) struct RunArgs {
     /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
     #[arg(long)]
