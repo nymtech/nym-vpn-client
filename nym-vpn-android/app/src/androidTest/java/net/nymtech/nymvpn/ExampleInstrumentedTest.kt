@@ -17,6 +17,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("net.nymtech.nymvpn", appContext.packageName)
+        assertEquals("net.nymtech.nymvpn", context.packageName)
     }
 }

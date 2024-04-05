@@ -119,7 +119,7 @@ jobs:
 
       - name: Get checksum
         id: checksum
-        run: echo "checksum=$(apksigner verify -print-certs ${{ steps.apk-path.outputs.path }} | grep -Po "(?<=SHA-256 digest:) .*")\n" >> $GITHUB_OUTPUT
+        run: echo "checksum=$(apksigner verify -print-certs ${{ steps.apk-path.outputs.path }} | grep -Po "(?<=SHA-256 digest:) .*")" | awk '{$1=$1};1' >> $GITHUB_OUTPUT
 
       - name: Append checksum
         id: append_checksum
@@ -128,7 +128,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           body: >
-            ### SHA256 Checksum: <br /> ```${{ steps.checksum.outputs.checksum }}```
+            SHA256 Checksum: <br /> ```${{ steps.checksum.outputs.checksum }}```
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           draft: false
