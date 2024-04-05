@@ -28,3 +28,9 @@ vergen = { version = "8.2.6", default-features = false, features = [
     "rustc",
     "cargo",
 ] }
+
+# Debian
+[package.metadata.deb]
+name = "nym-vpn-cli"
+maintainer-scripts = "debian"
+systemd-units = { enable = false }
