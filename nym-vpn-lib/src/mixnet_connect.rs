@@ -247,6 +247,7 @@ fn true_to_disabled(val: bool) -> &'static str {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn setup_mixnet_client(
     mixnet_entry_gateway: &NodeIdentity,
     mixnet_client_key_storage_path: &Option<PathBuf>,
