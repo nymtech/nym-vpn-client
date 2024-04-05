@@ -27,7 +27,7 @@ pub fn setup_logging() {
         .init();
 }
 
-fn parse_entry_point(args: &commands::CliArgs) -> Result<EntryPoint> {
+fn parse_entry_point(args: &commands::RunArgs) -> Result<EntryPoint> {
     if let Some(ref entry_gateway_id) = args.entry.entry_gateway_id {
         Ok(EntryPoint::Gateway {
             identity: NodeIdentity::from_base58_string(entry_gateway_id.clone())
@@ -44,7 +44,7 @@ fn parse_entry_point(args: &commands::CliArgs) -> Result<EntryPoint> {
     }
 }
 
-fn parse_exit_point(args: &commands::CliArgs) -> Result<ExitPoint> {
+fn parse_exit_point(args: &commands::RunArgs) -> Result<ExitPoint> {
     if let Some(ref exit_router_address) = args.exit.exit_router_address {
         Ok(ExitPoint::Address {
             address: Recipient::try_from_base58_string(exit_router_address.clone())
@@ -70,6 +70,13 @@ async fn run() -> Result<()> {
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
     setup_env(args.config_env_file.as_ref());
 
+    match args.command {
+        commands::Commands::Run(run_args) => run_vpn(run_args).await
+    }
+}
+
+
+async fn run_vpn(args: commands::RunArgs) -> Result<()> {
     // Setup gateway configuration
     let gateway_config = override_from_env(&args, GatewayConfig::default());
     info!("nym-api: {}", gateway_config.api_url());

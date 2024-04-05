@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use clap::{Args, Parser};
+use clap::{Args, Parser, Subcommand};
 use ipnetwork::{Ipv4Network, Ipv6Network};
 use nym_vpn_lib::gateway_directory::Config;
 use nym_vpn_lib::nym_config::defaults::var_names::{EXPLORER_API, NYM_API};
@@ -24,6 +24,15 @@ fn pretty_build_info_static() -> &'static str {
     PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info_local_vergen!().pretty_print())
 }
 
+#[derive(Subcommand)]
+pub(crate) enum Commands {
+    /// Run the client
+    Run(RunArgs),
+
+    // Import credential
+    //ImportCredential(ImportCredentialArgs),
+}
+
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about, long_version = pretty_build_info_static())]
 pub(crate) struct CliArgs {
@@ -31,6 +40,12 @@ pub(crate) struct CliArgs {
     #[arg(short, long, value_parser = check_path)]
     pub(crate) config_env_file: Option<PathBuf>,
 
+    #[command(subcommand)]
+    pub(crate) command: Commands,
+}
+
+#[derive(Args,)]
+pub(crate) struct RunArgs {
     /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
     #[arg(long)]
     pub(crate) mixnet_client_path: Option<PathBuf>,
@@ -161,7 +176,7 @@ fn validate_ipv6(ip: &str) -> Result<Ipv6Addr, String> {
     Ok(ip)
 }
 
-pub fn override_from_env(_args: &CliArgs, config: Config) -> Config {
+pub fn override_from_env(_args: &RunArgs, config: Config) -> Config {
     config
         .with_optional_env(Config::with_custom_api_url, None, NYM_API)
         // TODO: there is a landmine here, if the user sets non-mainnet nym-api, but doesn't
@@ -170,7 +185,7 @@ pub fn override_from_env(_args: &CliArgs, config: Config) -> Config {
         .with_optional_env(Config::with_custom_explorer_url, None, EXPLORER_API)
 }
 
-pub fn wg_override_from_env(args: &CliArgs, mut config: WgConfig) -> WgConfig {
+pub fn wg_override_from_env(args: &RunArgs, mut config: WgConfig) -> WgConfig {
     if let Some(ref private_key) = args.private_key {
         config = config.with_local_private_key(private_key.clone());
     }
