@@ -105,7 +105,7 @@ async fn run_vpn(args: commands::RunArgs) -> Result<()> {
     let mut nym_vpn = NymVpn::new(entry_point, exit_point);
     nym_vpn.gateway_config = gateway_config;
     nym_vpn.wg_gateway_config = wg_gateway_config;
-    nym_vpn.mixnet_client_path = args.mixnet_client_path.or_else(mixnet_client_path);
+    nym_vpn.mixnet_config_path = args.mixnet_client_path.or_else(mixnet_config_path);
     nym_vpn.enable_wireguard = args.enable_wireguard;
     nym_vpn.private_key = args.private_key;
     nym_vpn.wg_ip = args.wg_ip;
@@ -122,7 +122,7 @@ async fn run_vpn(args: commands::RunArgs) -> Result<()> {
     Ok(())
 }
 
-fn mixnet_client_path() -> Option<PathBuf> {
+fn mixnet_config_path() -> Option<PathBuf> {
     let network_name =
         std::env::var(var_names::NETWORK_NAME).expect("NETWORK_NAME env var not set");
     dirs::config_dir().map(|dir| dir.join(CONFIG_DIRECTORY_NAME).join(network_name))
