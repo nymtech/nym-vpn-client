@@ -3,19 +3,22 @@
 
 mod commands;
 
+use std::fs;
 use std::path::PathBuf;
 
+use nym_vpn_lib::credential_storage::initialise_persistent_storage;
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayConfig;
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
 use nym_vpn_lib::{NymVpn, Recipient};
 
-use crate::commands::{override_from_env, wg_override_from_env};
+use crate::commands::{override_from_env, wg_override_from_env, Commands};
 use clap::Parser;
 use log::*;
 use nym_vpn_lib::nym_config::defaults::{setup_env, var_names};
 
 const CONFIG_DIRECTORY_NAME: &str = "nym-vpn-cli";
+const CREDENTIAL_DB_NAME: &str = "credentials_database.db";
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -74,12 +77,15 @@ async fn run() -> Result<()> {
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
     setup_env(args.config_env_file.as_ref());
 
+    let config_path = args.config_path.or(mixnet_config_path());
+
     match args.command {
-        commands::Commands::Run(run_args) => run_vpn(run_args).await,
+        Commands::Run(args) => run_vpn(args, config_path).await,
+        Commands::ImportCredential(args) => import_credential(args, config_path).await,
     }
 }
 
-async fn run_vpn(args: commands::RunArgs) -> Result<()> {
+async fn run_vpn(args: commands::RunArgs, config_path: Option<PathBuf>) -> Result<()> {
     // Setup gateway configuration
     let gateway_config = override_from_env(&args, GatewayConfig::default());
     info!("nym-api: {}", gateway_config.api_url());
@@ -105,7 +111,7 @@ async fn run_vpn(args: commands::RunArgs) -> Result<()> {
     let mut nym_vpn = NymVpn::new(entry_point, exit_point);
     nym_vpn.gateway_config = gateway_config;
     nym_vpn.wg_gateway_config = wg_gateway_config;
-    nym_vpn.mixnet_config_path = args.mixnet_client_path.or_else(mixnet_config_path);
+    nym_vpn.mixnet_config_path = config_path;
     nym_vpn.enable_wireguard = args.enable_wireguard;
     nym_vpn.private_key = args.private_key;
     nym_vpn.wg_ip = args.wg_ip;
@@ -118,6 +124,27 @@ async fn run_vpn(args: commands::RunArgs) -> Result<()> {
     nym_vpn.enable_credentials_mode = args.enable_credentials_mode;
 
     nym_vpn.run().await?;
+
+    Ok(())
+}
+
+async fn import_credential(
+    args: commands::ImportCredentialArgs,
+    config_path: Option<PathBuf>,
+) -> Result<()> {
+    let credential_path = config_path
+        .map(|path| path.join(CREDENTIAL_DB_NAME))
+        .expect(
+            "Could not determine the path to the credential database. Please provide it manually.",
+        );
+    let credentials_store = initialise_persistent_storage(credential_path).await;
+
+    let raw_credential = fs::read(args.credential_file)?;
+    let version = None;
+
+    nym_vpn_lib::id::import_credential(credentials_store, raw_credential, version)
+        .await
+        .unwrap();
 
     Ok(())
 }

@@ -24,14 +24,6 @@ fn pretty_build_info_static() -> &'static str {
     PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info_local_vergen!().pretty_print())
 }
 
-#[derive(Subcommand)]
-pub(crate) enum Commands {
-    /// Run the client
-    Run(RunArgs),
-    // Import credential
-    //ImportCredential(ImportCredentialArgs),
-}
-
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about, long_version = pretty_build_info_static())]
 pub(crate) struct CliArgs {
@@ -39,16 +31,25 @@ pub(crate) struct CliArgs {
     #[arg(short, long, value_parser = check_path)]
     pub(crate) config_env_file: Option<PathBuf>,
 
+    /// Path to the data directory of the mixnet client.
+    #[arg(long)]
+    pub(crate) config_path: Option<PathBuf>,
+
     #[command(subcommand)]
     pub(crate) command: Commands,
 }
 
+#[derive(Subcommand)]
+pub(crate) enum Commands {
+    /// Run the client
+    Run(RunArgs),
+
+    /// Import credential
+    ImportCredential(ImportCredentialArgs),
+}
+
 #[derive(Args)]
 pub(crate) struct RunArgs {
-    /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
-    #[arg(long)]
-    pub(crate) mixnet_client_path: Option<PathBuf>,
-
     #[command(flatten)]
     pub(crate) entry: CliEntry,
 
@@ -137,6 +138,13 @@ pub(crate) struct CliExit {
     /// Mixnet recipient address.
     #[clap(long, alias = "exit-country")]
     pub(crate) exit_gateway_country: Option<String>,
+}
+
+#[derive(Args)]
+pub(crate) struct ImportCredentialArgs {
+    /// Path to the credential file.
+    #[arg(long, value_parser = check_path)]
+    pub(crate) credential_file: PathBuf,
 }
 
 fn validate_wg_ip(ip: &str) -> Result<Ipv4Addr, String> {
