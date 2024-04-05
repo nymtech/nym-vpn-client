@@ -3,6 +3,8 @@
 
 mod commands;
 
+use std::path::PathBuf;
+
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayConfig;
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
@@ -11,7 +13,9 @@ use nym_vpn_lib::{NymVpn, Recipient};
 use crate::commands::{override_from_env, wg_override_from_env};
 use clap::Parser;
 use log::*;
-use nym_vpn_lib::nym_config::defaults::setup_env;
+use nym_vpn_lib::nym_config::defaults::{setup_env, var_names};
+
+const CONFIG_DIRECTORY_NAME: &str = "nym-vpn-cli";
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -101,7 +105,9 @@ async fn run_vpn(args: commands::RunArgs) -> Result<()> {
     let mut nym_vpn = NymVpn::new(entry_point, exit_point);
     nym_vpn.gateway_config = gateway_config;
     nym_vpn.wg_gateway_config = wg_gateway_config;
-    nym_vpn.mixnet_client_path = args.mixnet_client_path;
+    nym_vpn.mixnet_config_path = args.mixnet_client_path;
+    // TODO: uncomment below to enable persistent mixnet config by default
+    // nym_vpn.mixnet_config_path = args.mixnet_client_path.or_else(mixnet_config_path);
     nym_vpn.enable_wireguard = args.enable_wireguard;
     nym_vpn.private_key = args.private_key;
     nym_vpn.wg_ip = args.wg_ip;
@@ -116,6 +122,13 @@ async fn run_vpn(args: commands::RunArgs) -> Result<()> {
     nym_vpn.run().await?;
 
     Ok(())
+}
+
+#[allow(unused)]
+fn mixnet_config_path() -> Option<PathBuf> {
+    let network_name =
+        std::env::var(var_names::NETWORK_NAME).expect("NETWORK_NAME env var not set");
+    dirs::config_dir().map(|dir| dir.join(CONFIG_DIRECTORY_NAME).join(network_name))
 }
 
 #[tokio::main]

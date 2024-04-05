@@ -4487,6 +4487,7 @@ version = "0.0.10-dev"
 dependencies = [
  "anyhow",
  "clap",
+ "dirs 5.0.1",
  "ipnetwork",
  "log",
  "nym-vpn-lib",

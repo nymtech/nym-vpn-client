@@ -192,30 +192,35 @@ fn report_connectivity(connectivity: &ConnectivityState, task_client: &mut TaskC
         return;
     }
 
-    if connectivity.exit.ipv4 == ConnectivityStatus::Fail {
-        error!("Exit IPR not responding to IPv4 traffic");
+    // If we can route external traffic, then it's ok even if we can't ping the exit IPR.
+    if connectivity.exit_routing.ipv4 == ConnectivityStatus::Ok {
+        debug!("ConnectionMonitor: connection success over ipv4");
+        task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ConnectedIpv4));
+    } else if connectivity.exit.ipv4 == ConnectivityStatus::Fail {
+        error!("Exit gateway (IPR) not responding to IPv4 traffic");
         task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDownIpv4));
     } else if connectivity.exit_routing.ipv4 == ConnectivityStatus::Fail {
-        error!("Exit IPR not routing IPv4 traffic to external destinations");
+        error!("Exit gateway (IPR) not routing IPv4 traffic to external destinations");
         task_client.send_status_msg(Box::new(
             ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv4,
         ));
     } else {
-        debug!("ConnectionMonitor: connection success over ipv4");
-        task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ConnectedIpv4));
+        error!("Unexpected connectivity state - exit gateway ipv4 connectivity is ok, but routing is not?");
     }
 
-    if connectivity.exit.ipv6 == ConnectivityStatus::Fail {
-        error!("Exit IPR not responding to IPv6 traffic");
+    if connectivity.exit_routing.ipv6 == ConnectivityStatus::Ok {
+        debug!("ConnectionMonitor: connection success over ipv6");
+        task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ConnectedIpv6));
+    } else if connectivity.exit.ipv6 == ConnectivityStatus::Fail {
+        error!("Exit gateway (IPR) not responding to IPv6 traffic");
         task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDownIpv6));
     } else if connectivity.exit_routing.ipv6 == ConnectivityStatus::Fail {
-        error!("Exit IPR not routing IPv6 traffic to external destinations");
+        error!("Exit gateway (IPR) not routing IPv6 traffic to external destinations");
         task_client.send_status_msg(Box::new(
             ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv6,
         ));
     } else {
-        debug!("ConnectionMonitor: connection success over ipv6");
-        task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ConnectedIpv6));
+        error!("Unexpected connectivity state - exit gateway ipv6 connectivity is ok, but routing is not?");
     }
 }
 

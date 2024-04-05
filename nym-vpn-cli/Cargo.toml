@@ -8,11 +8,12 @@ authors = ["Nym Technologies"]
 [dependencies]
 anyhow.workspace = true
 clap = { version = "4.4.7", features = ["cargo", "derive"] }
+dirs = "5.0.1"
 ipnetwork.workspace = true
 log.workspace = true
 tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
-tracing.workspace = true
 tracing-subscriber.workspace = true
+tracing.workspace = true
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 

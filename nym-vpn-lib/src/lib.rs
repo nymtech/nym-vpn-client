@@ -88,7 +88,7 @@ pub struct NymVpn {
     pub wg_gateway_config: WgConfig,
 
     /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
-    pub mixnet_client_path: Option<PathBuf>,
+    pub mixnet_config_path: Option<PathBuf>,
 
     /// Mixnet public ID of the entry gateway.
     pub entry_point: EntryPoint,
@@ -161,7 +161,7 @@ impl NymVpn {
         Self {
             gateway_config: nym_gateway_directory::Config::default(),
             wg_gateway_config: wg_gateway_client::WgConfig::default(),
-            mixnet_client_path: None,
+            mixnet_config_path: None,
             entry_point,
             exit_point,
             enable_wireguard: false,
@@ -198,7 +198,9 @@ impl NymVpn {
         default_lan_gateway_ip: routing::LanGatewayIp,
         tunnel_gateway_ip: routing::TunnelGatewayIp,
     ) -> Result<()> {
-        info!("Connecting to IP packet router");
+        let exit_gateway = exit_router.gateway().to_base58_string();
+        info!("Connecting to exit gateway: {exit_gateway}");
+        debug!("Connecting to exit IPR: {exit_router}");
         let our_ips = mixnet_connect::connect_to_ip_packet_router(
             mixnet_client.clone(),
             exit_router,
@@ -206,7 +208,7 @@ impl NymVpn {
             self.enable_two_hop,
         )
         .await?;
-        info!("Successfully connected to IP packet router!");
+        info!("Successfully connected to exit gateway");
         info!("Using mixnet VPN IP addresses: {our_ips}");
 
         // We need the IP of the gateway to correctly configure the routing table
@@ -281,11 +283,12 @@ impl NymVpn {
         tunnel_gateway_ip: routing::TunnelGatewayIp,
     ) -> Result<MixnetConnectionInfo> {
         info!("Setting up mixnet client");
+        info!("Connecting to entry gateway: {entry_gateway}");
         let mixnet_client = timeout(
             Duration::from_secs(10),
             setup_mixnet_client(
                 entry_gateway,
-                &self.mixnet_client_path,
+                &self.mixnet_config_path,
                 task_manager.subscribe_named("mixnet_client_main"),
                 self.enable_wireguard,
                 self.enable_two_hop,
@@ -302,14 +305,16 @@ impl NymVpn {
         let entry_gateway = nym_address.gateway().to_base58_string();
         let our_mixnet_connection = MixnetConnectionInfo {
             nym_address,
-            entry_gateway,
+            entry_gateway: entry_gateway.clone(),
         };
 
+        info!("Successfully connected to entry gateway: {entry_gateway}");
+
         // Check that we can ping ourselves before continuing
-        info!("Sending mixnet ping to ourselves");
+        info!("Sending mixnet ping to ourselves to verify mixnet connection");
         connection_monitor::mixnet_beacon::self_ping_and_wait(nym_address, mixnet_client.clone())
             .await?;
-        info!("Successfully pinged ourselves");
+        info!("Successfully mixnet pinged ourselves");
 
         if let Err(err) = self
             .setup_post_mixnet(
@@ -400,7 +405,7 @@ impl NymVpn {
         let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
         debug!("default_lan_gateway_ip: {default_lan_gateway_ip}");
 
-        let task_manager = TaskManager::new(10);
+        let task_manager = TaskManager::new(10).named("nym_vpn_lib");
 
         info!("Setting up route manager");
         let mut route_manager = setup_route_manager().await?;
