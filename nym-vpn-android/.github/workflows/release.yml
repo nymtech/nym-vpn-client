@@ -1,5 +1,5 @@
 # name of the workflow
-name: Android CI Tag Deployment - Prod
+name: Android CI Tag Deployment - Pre
 
 on:
   push:
@@ -45,13 +45,7 @@ jobs:
             armv7-linux-androideabi \
             x86_64-linux-android \
             i686-linux-android
-
-      - name: Install apksigner
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y apksigner
-
-      - name: Setup Android NDK
+      - name: Setup Android SDK
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r25c
@@ -75,6 +69,7 @@ jobs:
         run: |
           store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
           echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
+
       - name: Create service_account.json
         id: createServiceAccount
         run: echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' > service_account.json
@@ -90,7 +85,6 @@ jobs:
       - name: Get apk path
         id: apk-path
         run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/release/.*\.apk$' -type f | head -1)" >> $GITHUB_OUTPUT
-
       - name: Get version code
         run: |
           version_code=$(grep "VERSION_CODE" buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
@@ -101,24 +95,28 @@ jobs:
         with:
           name: nymvpn
           path: ${{ steps.apk-path.outputs.path }}
-      
       - name: Download APK from build
         uses: actions/download-artifact@v4
         with:
           name: nymvpn
       - name: Create Release with Fastlane changelog notes
         id: create_release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          body_path: ${{ github.workspace }}/fastlane/metadata/android/en-US/changelogs/{{ env.VERSION_CODE }}.txt
+          body_path: ${{ github.workspace }}/fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          make_latest: true
           draft: false
+          make_latest: true
           prerelease: false
           files: ${{ github.workspace }}/${{ steps.apk-path.outputs.path }}
+
+      - name: Install apksigner
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apksigner
 
       - name: Get checksum
         id: checksum
@@ -138,13 +136,12 @@ jobs:
           draft: false
           prerelease: false
           append_body: true
-          # disable fastlane deploy for now
+
       - name: Deploy with fastlane
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2' # Not needed with a .ruby-version file
           bundler-cache: true
-          # deploy to google open alpha, for now
-      - name: Distribute app to Beta track 🚀
+          # deploy to google internal track
+      - name: Distribute app to Alpha track 🚀
         run: (cd ${{ github.workspace }} && bundle install && bundle exec fastlane alpha)
-

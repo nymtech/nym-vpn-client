@@ -6,6 +6,7 @@ on:
     tags:
       - 'v*.*.*-**'
 
+
 jobs:
   build:
     name: Build Signed APK
@@ -44,17 +45,10 @@ jobs:
             armv7-linux-androideabi \
             x86_64-linux-android \
             i686-linux-android
-
-      - name: Install apksigner
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y apksigner
-
-      - name: Setup Android NDK
+      - name: Setup Android SDK
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r25c
-
       - name: Add cargo-ndk
         run: |
           cargo install cargo-ndk
@@ -101,14 +95,13 @@ jobs:
         with:
           name: nymvpn
           path: ${{ steps.apk-path.outputs.path }}
-
       - name: Download APK from build
         uses: actions/download-artifact@v4
         with:
           name: nymvpn
       - name: Create Release with Fastlane changelog notes
         id: create_release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -118,6 +111,11 @@ jobs:
           draft: false
           prerelease: true
           files: ${{ github.workspace }}/${{ steps.apk-path.outputs.path }}
+
+      - name: Install apksigner
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apksigner
 
       - name: Get checksum
         id: checksum
@@ -129,7 +127,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          body: > 
+          body: >
             ### SHA256 Checksum: 
             ```${{ steps.checksum.outputs.checksum }}```
           tag_name: ${{ github.ref_name }}
@@ -146,4 +144,3 @@ jobs:
           # deploy to google internal track
       - name: Distribute app to Alpha track 🚀
         run: (cd ${{ github.workspace }} && bundle install && bundle exec fastlane alpha)
-
