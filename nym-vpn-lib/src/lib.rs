@@ -30,7 +30,7 @@ pub use nym_gateway_directory as gateway_directory;
 pub use nym_id as id;
 
 pub use nym_ip_packet_requests::IpPair;
-pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
+pub use nym_sdk::mixnet::{NodeIdentity, Recipient, StoragePaths};
 pub use nym_task::{
     manager::{SentStatus, TaskStatus},
     StatusReceiver,

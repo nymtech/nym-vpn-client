@@ -6,9 +6,9 @@ mod commands;
 use std::fs;
 use std::path::PathBuf;
 
-use nym_vpn_lib::credential_storage::initialise_persistent_storage;
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayConfig;
+use nym_vpn_lib::{credential_storage, StoragePaths};
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
 use nym_vpn_lib::{NymVpn, Recipient};
 
@@ -18,7 +18,6 @@ use log::*;
 use nym_vpn_lib::nym_config::defaults::{setup_env, var_names};
 
 const CONFIG_DIRECTORY_NAME: &str = "nym-vpn-cli";
-const CREDENTIAL_DB_NAME: &str = "credentials_database.db";
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -132,12 +131,11 @@ async fn import_credential(
     args: commands::ImportCredentialArgs,
     config_path: Option<PathBuf>,
 ) -> Result<()> {
-    let credential_path = config_path
-        .map(|path| path.join(CREDENTIAL_DB_NAME))
-        .expect(
-            "Could not determine the path to the credential database. Please provide it manually.",
-        );
-    let credentials_store = initialise_persistent_storage(credential_path).await;
+    let config_path = config_path.expect("config path not set");
+    let storage_path = StoragePaths::new_from_dir(config_path)?;
+    let credential_path = storage_path.credential_database_path;
+    let credentials_store =
+        credential_storage::initialise_persistent_storage(credential_path).await;
 
     let raw_credential = fs::read(args.credential_file)?;
     let version = None;
