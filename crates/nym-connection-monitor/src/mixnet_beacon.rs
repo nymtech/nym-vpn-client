@@ -1,21 +1,67 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use futures::StreamExt;
 use nym_ip_packet_requests::request::IpPacketRequest;
-use nym_sdk::mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient};
-use nym_task::{connections::TransmissionLane, TaskClient};
+use nym_sdk::{
+    mixnet::{
+        InputMessage, MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient,
+        TransmissionLane,
+    },
+    TaskClient,
+};
 use tokio::task::JoinHandle;
 use tracing::{debug, error, trace};
 
 use crate::{
     error::{Error, Result},
-    mixnet_connect::SharedMixnetClient,
+    // mixnet_connect::SharedMixnetClient,
 };
 
 const MIXNET_SELF_PING_INTERVAL: Duration = Duration::from_millis(1000);
+
+#[derive(Clone)]
+pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
+
+impl SharedMixnetClient {
+    pub fn new(mixnet_client: MixnetClient) -> Self {
+        Self(Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))))
+    }
+
+    pub async fn lock(&self) -> tokio::sync::MutexGuard<'_, Option<MixnetClient>> {
+        self.0.lock().await
+    }
+
+    pub async fn nym_address(&self) -> Recipient {
+        *self.lock().await.as_ref().unwrap().nym_address()
+    }
+
+    pub async fn split_sender(&self) -> MixnetClientSender {
+        self.lock().await.as_ref().unwrap().split_sender()
+    }
+
+    // pub async fn gateway_ws_fd(&self) -> Option<RawFd> {
+    //     self.lock()
+    //         .await
+    //         .as_ref()
+    //         .unwrap()
+    //         .gateway_connection()
+    //         .gateway_ws_fd
+    // }
+
+    pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
+        self.lock().await.as_mut().unwrap().send(msg).await?;
+        Ok(())
+    }
+
+    pub async fn disconnect(self) -> Self {
+        let handle = self.lock().await.take().unwrap();
+        handle.disconnect().await;
+        self
+    }
+}
 
 struct MixnetConnectionBeacon {
     mixnet_client_sender: MixnetClientSender,

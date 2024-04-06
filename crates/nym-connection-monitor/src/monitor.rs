@@ -4,7 +4,7 @@
 use std::time::{Duration, Instant};
 
 use futures::{channel::mpsc, StreamExt};
-use nym_task::TaskClient;
+use nym_sdk::TaskClient;
 use tokio::task::JoinHandle;
 use tracing::{debug, error, trace};
 

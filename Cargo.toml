@@ -10,21 +10,21 @@ members = [
 exclude = ["nym-vpn-desktop/src-tauri"]
 
 # For local development
-# [patch."https://github.com/nymtech/nym"]
-# nym-bin-common = { path = "../nym/common/bin-common" }
-# nym-client-core = { path = "../nym/common/client-core" }
-# nym-config = { path = "../nym/common/config" }
-# nym-credential-storage = { path = "../nym/common/credential-storage" }
-# nym-crypto = { path = "../nym/common/crypto" }
-# nym-explorer-client = { path = "../nym/explorer-api/explorer-client" }
-# nym-id = { path = "../nym/common/nym-id" }
-# nym-ip-packet-requests = { path = "../nym/common/ip-packet-requests" }
-# nym-node-requests = { path = "../nym/nym-node/nym-node-requests" }
-# nym-sdk = { path = "../nym/sdk/rust/nym-sdk" }
-# nym-task = { path = "../nym/common/task" }
-# nym-topology = { path = "../nym/common/topology" }
-# nym-validator-client = { path = "../nym/common/client-libs/validator-client" }
-# nym-wireguard-types = { path = "../nym/common/wireguard-types" }
+[patch."https://github.com/nymtech/nym"]
+nym-bin-common = { path = "../nym/common/bin-common" }
+nym-client-core = { path = "../nym/common/client-core" }
+nym-config = { path = "../nym/common/config" }
+nym-credential-storage = { path = "../nym/common/credential-storage" }
+nym-crypto = { path = "../nym/common/crypto" }
+nym-explorer-client = { path = "../nym/explorer-api/explorer-client" }
+nym-id = { path = "../nym/common/nym-id" }
+nym-ip-packet-requests = { path = "../nym/common/ip-packet-requests" }
+nym-node-requests = { path = "../nym/nym-node/nym-node-requests" }
+nym-sdk = { path = "../nym/sdk/rust/nym-sdk" }
+nym-task = { path = "../nym/common/task" }
+nym-topology = { path = "../nym/common/topology" }
+nym-validator-client = { path = "../nym/common/client-libs/validator-client" }
+nym-wireguard-types = { path = "../nym/common/wireguard-types" }
 
 [workspace.package]
 authors = ["Nym Technologies SA"]

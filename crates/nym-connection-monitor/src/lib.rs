@@ -3,11 +3,13 @@
 
 use futures::channel::mpsc;
 use nym_ip_packet_requests::IpPair;
-use nym_sdk::mixnet::{MixnetClientSender, Recipient};
+use nym_sdk::{
+    mixnet::{MixnetClientSender, Recipient},
+    TaskManager,
+};
 use tracing::info;
 
-use crate::IpPacketRouterAddress;
-
+mod error;
 pub(crate) mod icmp_beacon;
 pub(crate) mod mixnet_beacon;
 pub(crate) mod monitor;
@@ -46,8 +48,8 @@ impl ConnectionMonitorTask {
         mixnet_client_sender: MixnetClientSender,
         our_nym_address: Recipient,
         our_ips: IpPair,
-        exit_router_address: &IpPacketRouterAddress,
-        task_manager: &nym_task::TaskManager,
+        exit_router_address: Recipient,
+        task_manager: &TaskManager,
     ) {
         info!("Setting up mixnet connection beacon");
         mixnet_beacon::start_mixnet_connection_beacon(
@@ -60,7 +62,7 @@ impl ConnectionMonitorTask {
         icmp_beacon::start_icmp_connection_beacon(
             mixnet_client_sender,
             our_ips,
-            exit_router_address.0,
+            exit_router_address,
             self.icmp_beacon_identifier,
             task_manager.subscribe_named("icmp_beacon"),
         );

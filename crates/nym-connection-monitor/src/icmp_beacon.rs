@@ -7,9 +7,11 @@ use std::{
 };
 
 use bytes::Bytes;
-use nym_ip_packet_requests::{codec::MultiIpPacketCodec, IpPair};
-use nym_sdk::mixnet::{MixnetClientSender, MixnetMessageSender, Recipient};
-use nym_task::TaskClient;
+use nym_ip_packet_requests::{codec::MultiIpPacketCodec, request::IpPacketRequest, IpPair};
+use nym_sdk::{
+    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient, TransmissionLane},
+    TaskClient,
+};
 use pnet_packet::{
     icmp::{
         echo_reply::EchoReplyPacket,
@@ -24,10 +26,7 @@ use pnet_packet::{
 use tokio::task::JoinHandle;
 use tracing::{debug, error, trace};
 
-use crate::{
-    error::{Error, Result},
-    mixnet_processor,
-};
+use crate::error::{Error, Result};
 
 const ICMP_BEACON_PING_INTERVAL: Duration = Duration::from_millis(1000);
 
@@ -86,8 +85,7 @@ impl IcmpConnectionBeacon {
 
         // Wrap into a mixnet input message addressed to the IPR
         let two_hop = true;
-        let message_creator = mixnet_processor::MessageCreator::new(self.ipr_address, two_hop);
-        let mixnet_message = message_creator.create_input_message(bundled_packet)?;
+        let mixnet_message = create_input_message(self.ipr_address, bundled_packet, two_hop)?;
 
         // Send across the mixnet
         self.mixnet_client_sender
@@ -114,8 +112,7 @@ impl IcmpConnectionBeacon {
 
         // Wrap into a mixnet input message addressed to the IPR
         let two_hop = true;
-        let message_creator = mixnet_processor::MessageCreator::new(self.ipr_address, two_hop);
-        let mixnet_message = message_creator.create_input_message(bundled_packet)?;
+        let mixnet_message = create_input_message(self.ipr_address, bundled_packet, two_hop)?;
 
         // Send across the mixnet
         self.mixnet_client_sender
@@ -318,6 +315,21 @@ pub(crate) fn is_icmp_v6_echo_reply(packet: &Bytes) -> Option<(u16, Ipv6Addr, Ip
         }
     }
     None
+}
+
+pub fn create_input_message(
+    recipient: Recipient,
+    bundled_packets: Bytes,
+    enable_two_hop: bool,
+) -> Result<InputMessage> {
+    let packet = IpPacketRequest::new_data_request(bundled_packets).to_bytes()?;
+
+    let lane = TransmissionLane::General;
+    let packet_type = None;
+    let hops = enable_two_hop.then_some(0);
+    let input_message =
+        InputMessage::new_regular_with_custom_hops(recipient, packet, lane, packet_type, hops);
+    Ok(input_message)
 }
 
 pub fn start_icmp_connection_beacon(
