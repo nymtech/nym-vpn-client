@@ -19,45 +19,20 @@ use crate::error::{Error, Result};
 
 const MIXNET_SELF_PING_INTERVAL: Duration = Duration::from_millis(1000);
 
+type SharedMixnetClientInner = Arc<tokio::sync::Mutex<Option<MixnetClient>>>;
+
 #[derive(Clone)]
-pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
+pub struct SharedMixnetClient(SharedMixnetClientInner);
 
 impl SharedMixnetClient {
-    // pub fn new(mixnet_client: MixnetClient) -> Self {
-    //     Self(Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))))
-    // }
-    //
     pub async fn lock(&self) -> tokio::sync::MutexGuard<'_, Option<MixnetClient>> {
         self.0.lock().await
     }
-
-    // pub async fn nym_address(&self) -> Recipient {
-    //     *self.lock().await.as_ref().unwrap().nym_address()
-    // }
-    //
-    // pub async fn split_sender(&self) -> MixnetClientSender {
-    //     self.lock().await.as_ref().unwrap().split_sender()
-    // }
-    //
-    // pub async fn gateway_ws_fd(&self) -> Option<RawFd> {
-    //     self.lock()
-    //         .await
-    //         .as_ref()
-    //         .unwrap()
-    //         .gateway_connection()
-    //         .gateway_ws_fd
-    // }
 
     pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
         self.lock().await.as_mut().unwrap().send(msg).await?;
         Ok(())
     }
-
-    // pub async fn disconnect(self) -> Self {
-    //     let handle = self.lock().await.take().unwrap();
-    //     handle.disconnect().await;
-    //     self
-    // }
 }
 
 struct MixnetConnectionBeacon {
@@ -81,8 +56,10 @@ fn create_self_ping(our_address: Recipient) -> (InputMessage, u64) {
 // Send mixnet self ping and wait for the response
 pub async fn self_ping_and_wait(
     our_address: Recipient,
-    mixnet_client: SharedMixnetClient,
+    mixnet_client: SharedMixnetClientInner,
 ) -> Result<()> {
+    let mixnet_client = SharedMixnetClient(mixnet_client);
+
     // We want to send a bunch of pings and wait for the first one to return
     let request_ids: Vec<_> = futures::stream::iter(1..=3)
         .then(|_| async {

@@ -317,7 +317,7 @@ impl NymVpn {
 
         // Check that we can ping ourselves before continuing
         info!("Sending mixnet ping to ourselves to verify mixnet connection");
-        nym_connection_monitor::self_ping_and_wait(nym_address, mixnet_client.clone()).await?;
+        nym_connection_monitor::self_ping_and_wait(nym_address, mixnet_client.inner()).await?;
         info!("Successfully mixnet pinged ourselves");
 
         if let Err(err) = self
