@@ -82,7 +82,7 @@ fn create_self_ping(our_address: Recipient) -> (InputMessage, u64) {
 }
 
 // Send mixnet self ping and wait for the response
-pub(crate) async fn self_ping_and_wait(
+pub async fn self_ping_and_wait(
     our_address: Recipient,
     mixnet_client: SharedMixnetClient,
 ) -> Result<()> {

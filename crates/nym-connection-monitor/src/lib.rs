@@ -3,29 +3,35 @@
 
 use futures::channel::mpsc;
 use nym_ip_packet_requests::IpPair;
-use nym_sdk::{
-    mixnet::{MixnetClientSender, Recipient},
-    TaskManager,
-};
+use nym_sdk::mixnet::{MixnetClientSender, Recipient};
+use nym_task::TaskManager;
 use tracing::info;
 
 mod error;
-pub(crate) mod icmp_beacon;
-pub(crate) mod mixnet_beacon;
-pub(crate) mod monitor;
+mod icmp_beacon;
+mod mixnet_beacon;
+mod monitor;
+
+pub use error::Error;
+pub use icmp_beacon::{
+    is_icmp_echo_reply, is_icmp_v6_echo_reply, ICMP_IPR_TUN_EXTERNAL_PING_V4,
+    ICMP_IPR_TUN_EXTERNAL_PING_V6, ICMP_IPR_TUN_IP_V4, ICMP_IPR_TUN_IP_V6,
+};
+pub use mixnet_beacon::self_ping_and_wait;
+pub use monitor::ConnectionStatusEvent;
 
 pub(crate) fn create_icmp_beacon_identifier() -> u16 {
     std::process::id() as u16
 }
 
-pub(crate) struct ConnectionMonitorTask {
+pub struct ConnectionMonitorTask {
     icmp_beacon_identifier: u16,
     connection_event_tx: mpsc::UnboundedSender<monitor::ConnectionStatusEvent>,
     connection_event_rx: mpsc::UnboundedReceiver<monitor::ConnectionStatusEvent>,
 }
 
 impl ConnectionMonitorTask {
-    pub(crate) fn setup() -> ConnectionMonitorTask {
+    pub fn setup() -> ConnectionMonitorTask {
         let (connection_event_tx, connection_event_rx) = mpsc::unbounded();
         let icmp_beacon_identifier = create_icmp_beacon_identifier();
         ConnectionMonitorTask {
@@ -35,15 +41,15 @@ impl ConnectionMonitorTask {
         }
     }
 
-    pub(crate) fn event_sender(&self) -> mpsc::UnboundedSender<monitor::ConnectionStatusEvent> {
+    pub fn event_sender(&self) -> mpsc::UnboundedSender<monitor::ConnectionStatusEvent> {
         self.connection_event_tx.clone()
     }
 
-    pub(crate) fn icmp_beacon_identifier(&self) -> u16 {
+    pub fn icmp_beacon_identifier(&self) -> u16 {
         self.icmp_beacon_identifier
     }
 
-    pub(crate) fn start(
+    pub fn start(
         self,
         mixnet_client_sender: MixnetClientSender,
         our_nym_address: Recipient,

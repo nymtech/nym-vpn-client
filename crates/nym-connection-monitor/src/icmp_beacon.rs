@@ -31,15 +31,14 @@ use crate::error::{Error, Result};
 const ICMP_BEACON_PING_INTERVAL: Duration = Duration::from_millis(1000);
 
 // TODO: extract these from the ip-packet-router crate
-pub(crate) const ICMP_IPR_TUN_IP_V4: Ipv4Addr = Ipv4Addr::new(10, 0, 0, 1);
+pub const ICMP_IPR_TUN_IP_V4: Ipv4Addr = Ipv4Addr::new(10, 0, 0, 1);
 // 2001:db8:a160::1
-pub(crate) const ICMP_IPR_TUN_IP_V6: Ipv6Addr =
-    Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
+pub const ICMP_IPR_TUN_IP_V6: Ipv6Addr = Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
 
 // This can be anything really, we just want to check if the exit IPR can reach the internet
 // TODO: have a pool of IPs to ping
-pub(crate) const ICMP_IPR_TUN_EXTERNAL_PING_V4: Ipv4Addr = Ipv4Addr::new(8, 8, 8, 8);
-pub(crate) const ICMP_IPR_TUN_EXTERNAL_PING_V6: Ipv6Addr =
+pub const ICMP_IPR_TUN_EXTERNAL_PING_V4: Ipv4Addr = Ipv4Addr::new(8, 8, 8, 8);
+pub const ICMP_IPR_TUN_EXTERNAL_PING_V6: Ipv6Addr =
     Ipv6Addr::new(0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8888);
 
 struct IcmpConnectionBeacon {
@@ -285,7 +284,7 @@ fn compute_ipv4_checksum(header: &Ipv4Packet) -> u16 {
     !sum as u16
 }
 
-pub(crate) fn is_icmp_echo_reply(packet: &Bytes) -> Option<(u16, Ipv4Addr, Ipv4Addr)> {
+pub fn is_icmp_echo_reply(packet: &Bytes) -> Option<(u16, Ipv4Addr, Ipv4Addr)> {
     if let Some(ipv4_packet) = Ipv4Packet::new(packet) {
         if let Some(icmp_packet) = IcmpPacket::new(ipv4_packet.payload()) {
             if let Some(echo_reply) = EchoReplyPacket::new(icmp_packet.packet()) {
@@ -300,7 +299,7 @@ pub(crate) fn is_icmp_echo_reply(packet: &Bytes) -> Option<(u16, Ipv4Addr, Ipv4A
     None
 }
 
-pub(crate) fn is_icmp_v6_echo_reply(packet: &Bytes) -> Option<(u16, Ipv6Addr, Ipv6Addr)> {
+pub fn is_icmp_v6_echo_reply(packet: &Bytes) -> Option<(u16, Ipv6Addr, Ipv6Addr)> {
     if let Some(ipv6_packet) = Ipv6Packet::new(packet) {
         if let Some(icmp_packet) = IcmpPacket::new(ipv6_packet.payload()) {
             if let Some(echo_reply) =
@@ -327,9 +326,13 @@ pub fn create_input_message(
     let lane = TransmissionLane::General;
     let packet_type = None;
     let hops = enable_two_hop.then_some(0);
-    let input_message =
-        InputMessage::new_regular_with_custom_hops(recipient, packet, lane, packet_type, hops);
-    Ok(input_message)
+    Ok(InputMessage::new_regular_with_custom_hops(
+        recipient,
+        packet,
+        lane,
+        packet_type,
+        hops,
+    ))
 }
 
 pub fn start_icmp_connection_beacon(

@@ -163,6 +163,9 @@ pub enum Error {
 
     #[error("config path not set")]
     ConfigPathNotSet,
+
+    #[error("{0}")]
+    ConnectionMonitorError(#[from] nym_connection_monitor::Error),
 }
 
 // Result type based on our error type

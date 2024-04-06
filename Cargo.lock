@@ -3684,6 +3684,7 @@ dependencies = [
  "futures",
  "nym-ip-packet-requests",
  "nym-sdk",
+ "nym-task",
  "pnet_packet",
  "thiserror",
  "tokio",
