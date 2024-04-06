@@ -132,19 +132,7 @@ async fn import_credential(
     config_path: Option<PathBuf>,
 ) -> Result<()> {
     let config_path = config_path.expect("config path not set");
-    let storage_path = StoragePaths::new_from_dir(config_path)?;
-    let credential_path = storage_path.credential_database_path;
-    let credentials_store =
-        credential_storage::initialise_persistent_storage(credential_path).await;
-
-    let raw_credential = fs::read(args.credential_file)?;
-    let version = None;
-
-    nym_vpn_lib::id::import_credential(credentials_store, raw_credential, version)
-        .await
-        .unwrap();
-
-    Ok(())
+    nym_vpn_lib::credentials::import_credential(args.credential_file, config_path).await?;
 }
 
 #[allow(unused)]

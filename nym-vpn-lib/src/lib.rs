@@ -44,16 +44,18 @@ use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
 
-pub mod config;
 mod connection_monitor;
+mod platform;
+mod uniffi_custom_impls;
+mod util;
+
+pub mod config;
+pub mod credentials;
 pub mod error;
 pub mod mixnet_connect;
 pub mod mixnet_processor;
-mod platform;
 pub mod routing;
 pub mod tunnel;
-mod uniffi_custom_impls;
-mod util;
 pub mod wg_gateway_client;
 
 async fn init_wireguard_config(
