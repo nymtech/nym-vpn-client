@@ -38,6 +38,7 @@ pub(crate) const ICMP_IPR_TUN_IP_V6: Ipv6Addr =
     Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
 
 // This can be anything really, we just want to check if the exit IPR can reach the internet
+// TODO: have a pool of IPs to ping
 pub(crate) const ICMP_IPR_TUN_EXTERNAL_PING_V4: Ipv4Addr = Ipv4Addr::new(8, 8, 8, 8);
 pub(crate) const ICMP_IPR_TUN_EXTERNAL_PING_V6: Ipv6Addr =
     Ipv6Addr::new(0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8888);

@@ -3,12 +3,10 @@
 
 mod commands;
 
-use std::fs;
 use std::path::PathBuf;
 
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayConfig;
-use nym_vpn_lib::{credential_storage, StoragePaths};
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
 use nym_vpn_lib::{NymVpn, Recipient};
 
@@ -132,7 +130,7 @@ async fn import_credential(
     config_path: Option<PathBuf>,
 ) -> Result<()> {
     let config_path = config_path.expect("config path not set");
-    nym_vpn_lib::credentials::import_credential(args.credential_file, config_path).await?;
+    nym_vpn_lib::credentials::import_credential(args.credential_file, config_path).await
 }
 
 #[allow(unused)]
