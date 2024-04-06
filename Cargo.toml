@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
-members = [
+members = [ 
+    "crates/nym-connection-monitor",
     "crates/nym-gateway-directory",
     "nym-vpn-cli",
     "nym-vpn-lib",

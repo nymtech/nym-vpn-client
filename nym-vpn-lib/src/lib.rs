@@ -44,7 +44,7 @@ use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
 
-mod connection_monitor;
+// mod connection_monitor;
 mod platform;
 mod uniffi_custom_impls;
 mod util;

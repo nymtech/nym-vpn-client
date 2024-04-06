@@ -66,6 +66,7 @@ nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
 
 nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
+nym-connection-monitor = { path = "../crates/nym-connection-monitor" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.13.1"
