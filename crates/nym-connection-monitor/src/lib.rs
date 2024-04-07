@@ -11,7 +11,7 @@ mod error;
 mod icmp_beacon;
 mod mixnet_beacon;
 mod monitor;
-mod packet;
+mod packet_helpers;
 mod sync_self_ping;
 
 pub use error::Error;
