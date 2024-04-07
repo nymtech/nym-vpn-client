@@ -48,45 +48,50 @@ impl ExitPoint {
     pub fn lookup_router_address(
         &self,
         gateways: &[DescribedGatewayWithLocation],
-    ) -> Result<IpPacketRouterAddress> {
+    ) -> Result<(IpPacketRouterAddress, Option<String>)> {
         match &self {
             ExitPoint::Address { address } => {
                 // There is no validation done when a ip packet router is specified by address
                 // since it might be private and not available in any directory.
-                Ok(IpPacketRouterAddress(*address))
+                Ok((IpPacketRouterAddress(*address), None))
             }
-            ExitPoint::Gateway { identity } => gateways
-                .iter()
-                .find(|gateway| gateway.identity_key() == &identity.to_string())
-                .ok_or(Error::NoMatchingGateway)
-                .and_then(|gateway| {
-                    IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)
-                }),
+            ExitPoint::Gateway { identity } => {
+                let gateway = gateways
+                    .iter()
+                    .find(|gateway| gateway.identity_key() == &identity.to_string())
+                    .ok_or(Error::NoMatchingGateway)?;
+                Ok((
+                    IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
+                    gateway.two_letter_iso_country_code(),
+                ))
+            }
             ExitPoint::Location { location } => {
                 log::info!("Selecting a random exit gateway in location: {}", location);
                 let exit_gateways = gateways.iter().filter(|g| g.has_ip_packet_router());
-                exit_gateways
+                let gateway = exit_gateways
                     .clone()
                     .filter(|gateway| gateway.is_two_letter_iso_country_code(location))
                     .choose(&mut rand::thread_rng())
                     .ok_or(Error::NoMatchingExitGatewayForLocation {
                         requested_location: location.to_string(),
                         available_countries: list_all_country_iso_codes(exit_gateways),
-                    })
-                    .and_then(|random_gateway| {
-                        IpPacketRouterAddress::try_from_described_gateway(&random_gateway.gateway)
-                    })
+                    })?;
+                Ok((
+                    IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
+                    gateway.two_letter_iso_country_code(),
+                ))
             }
             ExitPoint::Random => {
                 log::info!("Selecting a random exit gateway");
-                gateways
+                let gateway = gateways
                     .iter()
                     .filter(|g| g.has_ip_packet_router())
                     .choose(&mut rand::thread_rng())
-                    .ok_or(Error::FailedToSelectGatewayRandomly)
-                    .and_then(|random_gateway| {
-                        IpPacketRouterAddress::try_from_described_gateway(&random_gateway.gateway)
-                    })
+                    .ok_or(Error::FailedToSelectGatewayRandomly)?;
+                Ok((
+                    IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
+                    gateway.two_letter_iso_country_code(),
+                ))
             }
         }
     }
