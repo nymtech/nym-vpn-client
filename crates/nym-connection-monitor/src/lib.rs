@@ -11,14 +11,15 @@ mod error;
 mod icmp_beacon;
 mod mixnet_beacon;
 mod monitor;
+mod sync_self_ping;
 
 pub use error::Error;
 pub use icmp_beacon::{
     is_icmp_echo_reply, is_icmp_v6_echo_reply, ICMP_IPR_TUN_EXTERNAL_PING_V4,
     ICMP_IPR_TUN_EXTERNAL_PING_V6, ICMP_IPR_TUN_IP_V4, ICMP_IPR_TUN_IP_V6,
 };
-pub use mixnet_beacon::self_ping_and_wait;
 pub use monitor::ConnectionStatusEvent;
+pub use sync_self_ping::self_ping_and_wait;
 
 pub(crate) fn create_icmp_beacon_identifier() -> u16 {
     std::process::id() as u16

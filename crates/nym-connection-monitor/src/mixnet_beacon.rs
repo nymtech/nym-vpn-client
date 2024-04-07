@@ -1,114 +1,23 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
-use futures::StreamExt;
 use nym_ip_packet_requests::request::IpPacketRequest;
 use nym_sdk::{
-    mixnet::{
-        InputMessage, MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient,
-        TransmissionLane,
-    },
+    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient, TransmissionLane},
     TaskClient,
 };
 use tokio::task::JoinHandle;
 use tracing::{debug, error, trace};
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 
 const MIXNET_SELF_PING_INTERVAL: Duration = Duration::from_millis(1000);
-
-type SharedMixnetClientInner = Arc<tokio::sync::Mutex<Option<MixnetClient>>>;
-
-#[derive(Clone)]
-pub struct SharedMixnetClient(SharedMixnetClientInner);
-
-impl SharedMixnetClient {
-    pub async fn lock(&self) -> tokio::sync::MutexGuard<'_, Option<MixnetClient>> {
-        self.0.lock().await
-    }
-
-    pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
-        self.lock().await.as_mut().unwrap().send(msg).await?;
-        Ok(())
-    }
-}
 
 struct MixnetConnectionBeacon {
     mixnet_client_sender: MixnetClientSender,
     our_address: Recipient,
-}
-
-fn create_self_ping(our_address: Recipient) -> (InputMessage, u64) {
-    let (request, request_id) = IpPacketRequest::new_ping(our_address);
-    (
-        InputMessage::new_regular(
-            our_address,
-            request.to_bytes().unwrap(),
-            TransmissionLane::General,
-            None,
-        ),
-        request_id,
-    )
-}
-
-// Send mixnet self ping and wait for the response
-pub async fn self_ping_and_wait(
-    our_address: Recipient,
-    mixnet_client: SharedMixnetClientInner,
-) -> Result<()> {
-    let mixnet_client = SharedMixnetClient(mixnet_client);
-
-    // We want to send a bunch of pings and wait for the first one to return
-    let request_ids: Vec<_> = futures::stream::iter(1..=3)
-        .then(|_| async {
-            let (input_message, request_id) = create_self_ping(our_address);
-            mixnet_client.send(input_message).await?;
-            Ok::<u64, Error>(request_id)
-        })
-        .collect::<Vec<_>>()
-        .await;
-    // Check the vec of results and return the first error, if any. If there are not errors, unwrap
-    // all the results into a vec of u64s.
-    let request_ids = request_ids.into_iter().collect::<Result<Vec<_>>>()?;
-    wait_for_self_ping_return(&mixnet_client, &request_ids).await
-}
-
-async fn wait_for_self_ping_return(
-    mixnet_client: &SharedMixnetClient,
-    request_ids: &[u64],
-) -> Result<()> {
-    let timeout = tokio::time::sleep(Duration::from_secs(5));
-    tokio::pin!(timeout);
-
-    // Connecting is basically synchronous from the perspective of the mixnet client, so it's safe
-    // to just grab ahold of the mutex and keep it until we get the response.
-    let mut mixnet_client_handle = mixnet_client.lock().await;
-    let mixnet_client = mixnet_client_handle.as_mut().unwrap();
-
-    loop {
-        tokio::select! {
-            _ = &mut timeout => {
-                error!("Timed out waiting for mixnet self ping to return");
-                return Err(Error::TimeoutWaitingForConnectResponse);
-            }
-            Some(msgs) = mixnet_client.wait_for_messages() => {
-                for msg in msgs {
-                    let Ok(response) = IpPacketRequest::from_reconstructed_message(&msg) else {
-                        // TODO: consider just not logging here since we expect this to be
-                        // common when reconnecting to a gateway
-                        error!("Failed to deserialize reconstructed message");
-                        continue;
-                    };
-                    if request_ids.iter().any(|&id| response.id() == Some(id)) {
-                        debug!("Got the ping we were waiting for");
-                        return Ok(());
-                    }
-                }
-            }
-        }
-    }
 }
 
 impl MixnetConnectionBeacon {
@@ -150,6 +59,19 @@ impl MixnetConnectionBeacon {
         debug!("MixnetConnectionBeacon: Exiting");
         Ok(())
     }
+}
+
+pub fn create_self_ping(our_address: Recipient) -> (InputMessage, u64) {
+    let (request, request_id) = IpPacketRequest::new_ping(our_address);
+    (
+        InputMessage::new_regular(
+            our_address,
+            request.to_bytes().unwrap(),
+            TransmissionLane::General,
+            None,
+        ),
+        request_id,
+    )
 }
 
 pub fn start_mixnet_connection_beacon(
