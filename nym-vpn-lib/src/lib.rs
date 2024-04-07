@@ -369,8 +369,10 @@ impl NymVpn {
         let entry_gateway_id = self.entry_point.lookup_gateway_identity(&gateways).await?;
         log::info!("Gateway id {:?}", entry_gateway_id);
         let exit_router_address = self.exit_point.lookup_router_address(&gateways)?;
+        let exit_gateway_id = exit_router_address.gateway();
 
         info!("Using entry gateway: {entry_gateway_id}");
+        info!("Using exit gateway: {exit_gateway_id}");
         info!("Using exit router address {exit_router_address}");
 
         let wireguard_config = if self.enable_wireguard {

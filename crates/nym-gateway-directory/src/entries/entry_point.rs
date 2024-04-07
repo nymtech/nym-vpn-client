@@ -19,10 +19,15 @@ use serde::{Deserialize, Serialize};
 // #[derive(Clone, Debug, Deserialize, Serialize, uniffi::Enum)]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum EntryPoint {
+    // An explicit entry gateway identity.
     Gateway { identity: NodeIdentity },
+    // Select a random entry gateway in a specific location.
     // NOTE: Consider using a crate with strongly typed country codes instead of strings
     Location { location: String },
+    // Select a random entry gateway but increasey probability of selecting a low latency gateway
+    // as determined by ping times.
     RandomLowLatency,
+    // Select an entry gateway at random.
     Random,
 }
 
@@ -57,6 +62,7 @@ impl EntryPoint {
                 Ok(*identity)
             }
             EntryPoint::Location { location } => {
+                log::info!("Selecting a random entry gateway in location: {}", location);
                 // Caution: if an explorer-api for a different network was specified, then
                 // none of the gateways will have an associated location. There is a check
                 // against this earlier in the call stack to guard against this scenario.

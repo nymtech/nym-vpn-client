@@ -125,7 +125,7 @@ pub(crate) struct CliEntry {
 }
 
 #[derive(Args)]
-#[group(required = true, multiple = false)]
+#[group(multiple = false)]
 pub(crate) struct CliExit {
     /// Mixnet recipient address.
     #[clap(long, alias = "exit-address")]
