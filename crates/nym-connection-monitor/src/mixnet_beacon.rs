@@ -5,9 +5,10 @@ use std::time::Duration;
 
 use nym_ip_packet_requests::request::IpPacketRequest;
 use nym_sdk::{
-    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient, TransmissionLane},
+    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
     TaskClient,
 };
+use nym_task::connections::TransmissionLane;
 use tokio::task::JoinHandle;
 use tracing::{debug, error, trace};
 

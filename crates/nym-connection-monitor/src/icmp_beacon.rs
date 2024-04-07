@@ -9,9 +9,10 @@ use std::{
 use bytes::Bytes;
 use nym_ip_packet_requests::{codec::MultiIpPacketCodec, request::IpPacketRequest, IpPair};
 use nym_sdk::{
-    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient, TransmissionLane},
+    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
     TaskClient,
 };
+use nym_task::connections::TransmissionLane;
 use pnet_packet::Packet;
 use tokio::task::JoinHandle;
 use tracing::{debug, error, trace};
