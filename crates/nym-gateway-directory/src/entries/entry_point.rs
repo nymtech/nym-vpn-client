@@ -50,7 +50,7 @@ impl EntryPoint {
     pub async fn lookup_gateway_identity(
         &self,
         gateways: &[DescribedGatewayWithLocation],
-    ) -> Result<NodeIdentity> {
+    ) -> Result<(NodeIdentity, Option<String>)> {
         match &self {
             EntryPoint::Gateway { identity } => {
                 // Confirm up front that the gateway identity is in the list of gateways from the
@@ -59,7 +59,7 @@ impl EntryPoint {
                     .iter()
                     .find(|gateway| gateway.identity_key() == &identity.to_string())
                     .ok_or(Error::NoMatchingGateway)?;
-                Ok(*identity)
+                Ok((*identity, None))
             }
             EntryPoint::Location { location } => {
                 log::info!("Selecting a random entry gateway in location: {}", location);
