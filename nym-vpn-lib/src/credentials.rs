@@ -2,20 +2,32 @@ use std::{fs, path::PathBuf};
 
 use nym_sdk::mixnet::StoragePaths;
 
-use crate::error::Result;
+use crate::error::{Error, Result};
 
-pub async fn import_credential(credential_file: PathBuf, config_path: PathBuf) -> Result<()> {
+// Import binary credential data
+pub async fn import_credential(credential: Vec<u8>, config_path: PathBuf) -> Result<()> {
     let storage_path = StoragePaths::new_from_dir(config_path)?;
     let credential_path = storage_path.credential_database_path;
     let credentials_store =
         nym_credential_storage::initialise_persistent_storage(credential_path).await;
 
-    let raw_credential = fs::read(credential_file)?;
     let version = None;
 
-    nym_id::import_credential(credentials_store, raw_credential, version)
+    nym_id::import_credential(credentials_store, credential, version)
         .await
-        .unwrap();
+        .map_err(|err| Error::FailedToImportCredential { source: err })
+}
 
-    Ok(())
+// Import credential data from a base58 string
+pub async fn import_credential_base58(credential: &str, config_path: PathBuf) -> Result<()> {
+    let raw_credential = bs58::decode(credential)
+        .into_vec()
+        .map_err(|err| Error::FailedToDecodeBase58Credential { source: err })?;
+    import_credential(raw_credential, config_path).await
+}
+
+// Import credential data from a binary file
+pub async fn import_credential_file(credential_file: PathBuf, config_path: PathBuf) -> Result<()> {
+    let raw_credential = fs::read(credential_file)?;
+    import_credential(raw_credential, config_path).await
 }

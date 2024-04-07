@@ -3,6 +3,7 @@
 
 mod commands;
 
+use std::fs;
 use std::path::PathBuf;
 
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
@@ -130,7 +131,15 @@ async fn import_credential(
     config_path: Option<PathBuf>,
 ) -> Result<()> {
     let config_path = config_path.expect("config path not set");
-    nym_vpn_lib::credentials::import_credential(args.credential_file, config_path).await
+    let raw_credential = match args.credential_type.credential_data {
+        Some(data) => data,
+        None => fs::read(
+            args.credential_type
+                .credential_path
+                .expect("unreachable according to clap"),
+        )?,
+    };
+    nym_vpn_lib::credentials::import_credential(raw_credential, config_path).await
 }
 
 #[allow(unused)]

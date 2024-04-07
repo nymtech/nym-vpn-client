@@ -142,9 +142,24 @@ pub(crate) struct CliExit {
 
 #[derive(Args)]
 pub(crate) struct ImportCredentialArgs {
+    #[command(flatten)]
+    pub(crate) credential_type: ImportCredentialType,
+
+    // currently hidden as there exists only a single serialization standard
+    #[arg(long, hide = true)]
+    pub(crate) version: Option<u8>,
+}
+
+#[derive(Args)]
+#[group(required = true, multiple = false)]
+pub(crate) struct ImportCredentialType {
+    /// Credential encoded using base58.
+    #[arg(long, value_parser = parse_encoded_credential_data)]
+    pub(crate) credential_data: Option<Vec<u8>>,
+
     /// Path to the credential file.
     #[arg(long, value_parser = check_path)]
-    pub(crate) credential_file: PathBuf,
+    pub(crate) credential_path: Option<PathBuf>,
 }
 
 fn validate_wg_ip(ip: &str) -> Result<Ipv4Addr, String> {
@@ -208,4 +223,8 @@ fn check_path(path: &str) -> Result<PathBuf, String> {
         return Err(format!("Path {:?} is not a file", path));
     }
     Ok(path)
+}
+
+fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
+    bs58::decode(raw).into_vec()
 }
