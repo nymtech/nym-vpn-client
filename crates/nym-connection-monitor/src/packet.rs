@@ -1,9 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    net::{Ipv4Addr, Ipv6Addr},
-};
+use std::net::{Ipv4Addr, Ipv6Addr};
 
 use bytes::Bytes;
 use pnet_packet::{
@@ -138,7 +136,7 @@ pub(crate) fn compute_ipv4_checksum(header: &Ipv4Packet) -> u16 {
     !sum as u16
 }
 
-pub fn is_icmp_echo_reply(packet: &Bytes) -> Option<(u16, Ipv4Addr, Ipv4Addr)> {
+pub(crate) fn is_icmp_echo_reply(packet: &Bytes) -> Option<(u16, Ipv4Addr, Ipv4Addr)> {
     if let Some(ipv4_packet) = Ipv4Packet::new(packet) {
         if let Some(icmp_packet) = IcmpPacket::new(ipv4_packet.payload()) {
             if let Some(echo_reply) = EchoReplyPacket::new(icmp_packet.packet()) {
@@ -153,7 +151,7 @@ pub fn is_icmp_echo_reply(packet: &Bytes) -> Option<(u16, Ipv4Addr, Ipv4Addr)> {
     None
 }
 
-pub fn is_icmp_v6_echo_reply(packet: &Bytes) -> Option<(u16, Ipv6Addr, Ipv6Addr)> {
+pub(crate) fn is_icmp_v6_echo_reply(packet: &Bytes) -> Option<(u16, Ipv6Addr, Ipv6Addr)> {
     if let Some(ipv6_packet) = Ipv6Packet::new(packet) {
         if let Some(icmp_packet) = IcmpPacket::new(ipv6_packet.payload()) {
             if let Some(echo_reply) =

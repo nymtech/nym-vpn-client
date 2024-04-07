@@ -19,22 +19,22 @@ use tracing::{debug, error, trace};
 use crate::{
     error::Result,
     packet::{
-        create_icmpv4_echo_request, create_icmpv6_echo_request, wrap_icmp_in_ipv4,
-        wrap_icmp_in_ipv6,
+        create_icmpv4_echo_request, create_icmpv6_echo_request, is_icmp_echo_reply,
+        is_icmp_v6_echo_reply, wrap_icmp_in_ipv4, wrap_icmp_in_ipv6,
     },
 };
 
 const ICMP_BEACON_PING_INTERVAL: Duration = Duration::from_millis(1000);
 
 // TODO: extract these from the ip-packet-router crate
-pub const ICMP_IPR_TUN_IP_V4: Ipv4Addr = Ipv4Addr::new(10, 0, 0, 1);
+const ICMP_IPR_TUN_IP_V4: Ipv4Addr = Ipv4Addr::new(10, 0, 0, 1);
 // 2001:db8:a160::1
-pub const ICMP_IPR_TUN_IP_V6: Ipv6Addr = Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
+const ICMP_IPR_TUN_IP_V6: Ipv6Addr = Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
 
 // This can be anything really, we just want to check if the exit IPR can reach the internet
 // TODO: have a pool of IPs to ping
-pub const ICMP_IPR_TUN_EXTERNAL_PING_V4: Ipv4Addr = Ipv4Addr::new(8, 8, 8, 8);
-pub const ICMP_IPR_TUN_EXTERNAL_PING_V6: Ipv6Addr =
+const ICMP_IPR_TUN_EXTERNAL_PING_V4: Ipv4Addr = Ipv4Addr::new(8, 8, 8, 8);
+const ICMP_IPR_TUN_EXTERNAL_PING_V6: Ipv6Addr =
     Ipv6Addr::new(0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8888);
 
 struct IcmpConnectionBeacon {
@@ -125,10 +125,12 @@ impl IcmpConnectionBeacon {
     }
 
     async fn ping_v4_some_external_ip_over_the_mixnet(&mut self) -> Result<()> {
+        // TODO: ramdon external IP from a pool
         self.send_icmp_v4_ping(ICMP_IPR_TUN_EXTERNAL_PING_V4).await
     }
 
     async fn ping_v6_some_external_ip_over_the_mixnet(&mut self) -> Result<()> {
+        // TODO: ramdon external IP from a pool
         self.send_icmp_v6_ping(ICMP_IPR_TUN_EXTERNAL_PING_V6).await
     }
 
@@ -179,6 +181,51 @@ fn create_input_message(
         packet_type,
         hops,
     ))
+}
+
+pub enum IcmpBeaconReply {
+    TunDeviceReply,
+    ExternalPingReply(Ipv4Addr),
+}
+
+pub enum Icmpv6BeaconReply {
+    TunDeviceReply,
+    ExternalPingReply(Ipv6Addr),
+}
+
+pub fn is_icmp_beacon_reply(
+    packet: &Bytes,
+    identifier: u16,
+    destination: Ipv4Addr,
+) -> Option<IcmpBeaconReply> {
+    if let Some((reply_identifier, reply_source, reply_destination)) = is_icmp_echo_reply(packet) {
+        if reply_identifier == identifier && reply_destination == destination {
+            if reply_source == ICMP_IPR_TUN_IP_V4 {
+                return Some(IcmpBeaconReply::TunDeviceReply);
+            } else if reply_source == ICMP_IPR_TUN_EXTERNAL_PING_V4 {
+                return Some(IcmpBeaconReply::ExternalPingReply(reply_source));
+            }
+        }
+    }
+    None
+}
+
+pub fn is_icmp_v6_beacon_reply(
+    packet: &Bytes,
+    identifier: u16,
+    destination: Ipv6Addr,
+) -> Option<Icmpv6BeaconReply> {
+    if let Some((reply_identifier, reply_source, reply_destination)) = is_icmp_v6_echo_reply(packet)
+    {
+        if reply_identifier == identifier && reply_destination == destination {
+            if reply_source == ICMP_IPR_TUN_IP_V6 {
+                return Some(Icmpv6BeaconReply::TunDeviceReply);
+            } else if reply_source == ICMP_IPR_TUN_EXTERNAL_PING_V6 {
+                return Some(Icmpv6BeaconReply::ExternalPingReply(reply_source));
+            }
+        }
+    }
+    None
 }
 
 pub fn start_icmp_connection_beacon(

@@ -20,7 +20,10 @@ use tokio_util::codec::Decoder;
 use tracing::{debug, error, info, trace, warn};
 use tun2::{AbstractDevice, AsyncDevice};
 
-use nym_connection_monitor::{ConnectionMonitorTask, ConnectionStatusEvent};
+use nym_connection_monitor::{
+    is_icmp_beacon_reply, is_icmp_v6_beacon_reply, ConnectionMonitorTask, ConnectionStatusEvent,
+    IcmpBeaconReply, Icmpv6BeaconReply,
+};
 use nym_gateway_directory::IpPacketRouterAddress;
 
 use crate::{
@@ -261,43 +264,30 @@ fn check_for_icmp_beacon_reply(
     icmp_beacon_identifier: u16,
     our_ips: IpPair,
 ) -> Option<ConnectionStatusEvent> {
-    if let Some((identifier, source, destination)) =
-        nym_connection_monitor::is_icmp_echo_reply(packet)
-    {
-        if identifier == icmp_beacon_identifier
-            && source == nym_connection_monitor::ICMP_IPR_TUN_IP_V4
-            && destination == our_ips.ipv4
-        {
+    match is_icmp_beacon_reply(packet, icmp_beacon_identifier, our_ips.ipv4) {
+        Some(IcmpBeaconReply::TunDeviceReply) => {
             log::debug!("Received ping response from ipr tun device");
             return Some(ConnectionStatusEvent::Icmpv4IprTunDevicePingReply);
         }
-        if identifier == icmp_beacon_identifier
-            && source == nym_connection_monitor::ICMP_IPR_TUN_EXTERNAL_PING_V4
-            && destination == our_ips.ipv4
-        {
+        Some(IcmpBeaconReply::ExternalPingReply(_source)) => {
             log::debug!("Received ping response from an external ip through the ipr");
             return Some(ConnectionStatusEvent::Icmpv4IprExternalPingReply);
         }
+        None => {}
     }
 
-    if let Some((identifier, source, destination)) =
-        nym_connection_monitor::is_icmp_v6_echo_reply(packet)
-    {
-        if identifier == icmp_beacon_identifier
-            && source == nym_connection_monitor::ICMP_IPR_TUN_IP_V6
-            && destination == our_ips.ipv6
-        {
+    match is_icmp_v6_beacon_reply(packet, icmp_beacon_identifier, our_ips.ipv6) {
+        Some(Icmpv6BeaconReply::TunDeviceReply) => {
             log::debug!("Received ping v6 response from ipr tun device");
             return Some(ConnectionStatusEvent::Icmpv6IprTunDevicePingReply);
         }
-        if identifier == icmp_beacon_identifier
-            && source == nym_connection_monitor::ICMP_IPR_TUN_EXTERNAL_PING_V6
-            && destination == our_ips.ipv6
-        {
+        Some(Icmpv6BeaconReply::ExternalPingReply(_source)) => {
             log::debug!("Received ping v6 response from an external ip through the ipr");
             return Some(ConnectionStatusEvent::Icmpv6IprExternalPingReply);
         }
+        None => {}
     }
+
     None
 }
 
