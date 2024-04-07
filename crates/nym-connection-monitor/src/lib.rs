@@ -26,6 +26,9 @@ fn create_icmp_beacon_identifier() -> u16 {
     std::process::id() as u16
 }
 
+// Top-level task that sets up the ICMP and mixnet connection beacons and the connection monitor,
+// as well as provides the channel to send connection status events read from the mixnet, to the
+// monitor.
 pub struct ConnectionMonitorTask {
     icmp_beacon_identifier: u16,
     connection_event_tx: mpsc::UnboundedSender<monitor::ConnectionStatusEvent>,
