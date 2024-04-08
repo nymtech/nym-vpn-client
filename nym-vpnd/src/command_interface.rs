@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 
+use nym_task::TaskManager;
 use tokio::io::AsyncWriteExt;
 use tokio::{
     io::AsyncReadExt,
@@ -8,12 +9,13 @@ use tokio::{
         oneshot,
     },
 };
+use tracing::{error, info, warn};
 
 use crate::service::{
     VpnServiceCommand, VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceStatusResult,
 };
 
-pub fn start_command_interface() -> (std::thread::JoinHandle<()>, Receiver<VpnServiceCommand>) {
+pub fn start_command_interface(mut task_manager: TaskManager) -> (std::thread::JoinHandle<()>, Receiver<VpnServiceCommand>) {
     // Channel to send commands to the vpn service
     let (vpn_command_tx, vpn_command_rx) = tokio::sync::mpsc::channel(32);
 
@@ -29,20 +31,12 @@ pub fn start_command_interface() -> (std::thread::JoinHandle<()>, Receiver<VpnSe
                     .await
             });
 
-            // Signal listener
-            tokio::select! {
-                _ = tokio::signal::ctrl_c() => {
-                    println!("Received Ctrl-C, shutting down");
-                }
-            }
+            // Wait for interrupt
+            // Send shutdown signal to all tasks
+            // Wait for all tasks to finish
+            let _ = task_manager.catch_interrupt().await;
 
-            // Signal shutdown here
-            // ...
-
-            // Wait for shutdown here
-            // ...
-
-            println!("Command interface exiting");
+            info!("Command interface exiting");
         });
     });
 
@@ -65,7 +59,7 @@ impl CommandInterface {
     async fn listen(self) {
         // Remove any previous file just in case
         if let Err(err) = std::fs::remove_file(&self.socket_path) {
-            println!(
+            info!(
                 "Failed to remove previous command interface socket: {:?}",
                 err
             );
@@ -82,10 +76,10 @@ impl CommandInterface {
 
 impl Drop for CommandInterface {
     fn drop(&mut self) {
-        println!("Removing command interface socket: {:?}", self.socket_path);
+        info!("Removing command interface socket: {:?}", self.socket_path);
         match std::fs::remove_file(&self.socket_path) {
-            Ok(_) => println!("Removed command interface socket: {:?}", self.socket_path),
-            Err(e) => println!("Failed to remove command interface socket: {:?}", e),
+            Ok(_) => info!("Removed command interface socket: {:?}", self.socket_path),
+            Err(e) => error!("Failed to remove command interface socket: {:?}", e),
         }
     }
 }
@@ -100,20 +94,20 @@ impl CommandInterfaceConnectionHandler {
     }
 
     async fn handle_connect(&self) {
-        println!("Starting VPN");
+        info!("Starting VPN");
         let (tx, rx) = oneshot::channel();
         self.vpn_command_tx
             .send(VpnServiceCommand::Connect(tx))
             .await
             .unwrap();
-        println!("Sent start command to VPN");
-        println!("Waiting for response");
+        info!("Sent start command to VPN");
+        info!("Waiting for response");
         match rx.await.unwrap() {
             VpnServiceConnectResult::Success => {
-                println!("VPN started successfully");
+                info!("VPN started successfully");
             }
             VpnServiceConnectResult::Fail(err) => {
-                println!("VPN failed to start: {err}");
+                info!("VPN failed to start: {err}");
             }
         };
     }
@@ -124,17 +118,17 @@ impl CommandInterfaceConnectionHandler {
             .send(VpnServiceCommand::Disconnect(tx))
             .await
             .unwrap();
-        println!("Sent stop command to VPN");
-        println!("Waiting for response");
+        info!("Sent stop command to VPN");
+        info!("Waiting for response");
         match rx.await.unwrap() {
             VpnServiceDisconnectResult::Success => {
-                println!("VPN stopped successfully");
+                info!("VPN stopped successfully");
             }
             VpnServiceDisconnectResult::NotRunning => {
-                println!("VPN can't stop - it's not running");
+                info!("VPN can't stop - it's not running");
             }
             VpnServiceDisconnectResult::Fail(err) => {
-                println!("VPN failed to stop: {err}");
+                warn!("VPN failed to stop: {err}");
             }
         };
     }
@@ -145,10 +139,10 @@ impl CommandInterfaceConnectionHandler {
             .send(VpnServiceCommand::Status(tx))
             .await
             .unwrap();
-        println!("Sent status command to VPN");
-        println!("Waiting for response");
+        info!("Sent status command to VPN");
+        info!("Waiting for response");
         let status = rx.await.unwrap();
-        println!("VPN status: {:?}", status);
+        info!("VPN status: {:?}", status);
         status
     }
 
@@ -157,10 +151,10 @@ impl CommandInterfaceConnectionHandler {
         tokio::spawn(async move {
             let mut buffer = [0; 1024];
             match socket.read(&mut buffer).await {
-                Ok(0) => println!("Received 0 bytes"),
+                Ok(0) => info!("Received 0 bytes"),
                 Ok(n) => {
                     let command = std::str::from_utf8(&buffer[..n]).unwrap().trim();
-                    println!("Command: Received command: {:?}", command);
+                    info!("Command: Received command: {:?}", command);
                     match command {
                         "connect" => {
                             self.handle_connect().await;
@@ -175,10 +169,10 @@ impl CommandInterfaceConnectionHandler {
                                 .await
                                 .unwrap();
                         }
-                        command => println!("Unknown command: {}", command),
+                        command => info!("Unknown command: {}", command),
                     }
                 }
-                Err(e) => println!("Failed to read from socket; err = {:?}", e),
+                Err(e) => error!("Failed to read from socket; err = {:?}", e),
             }
         })
     }

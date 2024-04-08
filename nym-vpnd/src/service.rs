@@ -4,6 +4,7 @@ use futures::SinkExt;
 use futures::{channel::mpsc::UnboundedSender, StreamExt};
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::oneshot;
+use tracing::{error, info};
 
 #[derive(Debug, Clone)]
 pub enum VpnState {
@@ -45,17 +46,20 @@ pub enum VpnServiceStatusResult {
 
 pub fn start_vpn_service(
     vpn_command_rx: Receiver<VpnServiceCommand>,
+    mut task_client: nym_task::TaskClient,
 ) -> std::thread::JoinHandle<()> {
-    println!("Starting VPN handler");
+    info!("Starting VPN handler");
+    task_client.mark_as_success();
     std::thread::spawn(move || {
         let vpn_rt = tokio::runtime::Runtime::new().unwrap();
         vpn_rt.block_on(async {
             // Listen to the command channel
-            println!("VPN: Listening for commands");
+            info!("VPN: Listening for commands");
             let vpn_service = NymVpnService::new(vpn_command_rx);
             vpn_service.run().await;
         });
     })
+    // TEMP
 }
 
 struct NymVpnService {
@@ -79,12 +83,8 @@ impl NymVpnService {
         self.set_shared_state(VpnState::Connecting);
 
         let mut nym_vpn = nym_vpn_lib::NymVpn::new(
-            nym_vpn_lib::gateway_directory::EntryPoint::Location {
-                location: "FR".to_string(),
-            },
-            nym_vpn_lib::gateway_directory::ExitPoint::Location {
-                location: "FR".to_string(),
-            },
+            nym_vpn_lib::gateway_directory::EntryPoint::Random,
+            nym_vpn_lib::gateway_directory::ExitPoint::Random,
         );
 
         nym_vpn.gateway_config = nym_vpn_lib::nym_config::OptionalSet::with_optional_env(
@@ -149,7 +149,7 @@ impl NymVpnService {
 
     async fn run(mut self) {
         while let Some(command) = self.vpn_command_rx.recv().await {
-            println!("VPN: Received command: {:?}", command);
+            info!("VPN: Received command: {:?}", command);
             match command {
                 VpnServiceCommand::Connect(tx) => {
                     let result = self.handle_connect().await;
@@ -185,11 +185,11 @@ impl VpnServiceStatusListener {
     ) {
         tokio::spawn(async move {
             while let Some(msg) = vpn_status_rx.next().await {
-                println!("Received status: {msg}");
+                info!("Received status: {msg}");
                 match msg.downcast_ref::<nym_vpn_lib::TaskStatus>().unwrap() {
                     nym_vpn_lib::TaskStatus::Ready
                     | nym_vpn_lib::TaskStatus::ReadyWithGateway(_) => {
-                        println!("VPN status: connected");
+                        info!("VPN status: connected");
                         self.set_shared_state(VpnState::Connected);
                     }
                 }
@@ -219,15 +219,15 @@ impl VpnServiceExitListener {
             match vpn_exit_rx.await {
                 Ok(exit_res) => match exit_res {
                     nym_vpn_lib::NymVpnExitStatusMessage::Stopped => {
-                        println!("VPN exit: stopped");
+                        info!("VPN exit: stopped");
                         self.set_shared_state(VpnState::NotConnected);
                     }
                     nym_vpn_lib::NymVpnExitStatusMessage::Failed(err) => {
-                        println!("VPN exit: fail: {err}");
+                        error!("VPN exit: fail: {err}");
                     }
                 },
                 Err(err) => {
-                    println!("exit listener fail: {err}");
+                    error!("exit listener fail: {err}");
                 }
             }
         });

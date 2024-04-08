@@ -50,6 +50,9 @@ pub fn setup_logging() {
 
 #[cfg(unix)]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    use nym_task::TaskManager;
+    use tracing::info;
+
     setup_logging();
     let args = CliArgs::parse();
     nym_vpn_lib::nym_config::defaults::setup_env(args.config_env_file.as_ref());
@@ -58,11 +61,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // separated. Looking ahead a little ideally it would be nice to be able for the command
     // interface to be able to forcefully terminate the vpn if needed.
 
-    println!("main: starting command handler");
-    let (command_handle, vpn_command_rx) = command_interface::start_command_interface();
+    let task_manager = TaskManager::new(10).named("nym_vpnd");
+    let task_client = task_manager.subscribe_named("vpn_service");
 
-    println!("main: starting VPN handler");
-    let vpn_handle = service::start_vpn_service(vpn_command_rx);
+    info!("Starting command handler");
+    let (command_handle, vpn_command_rx) =
+        command_interface::start_command_interface(task_manager);
+
+    info!("Starting VPN service");
+    let vpn_handle = service::start_vpn_service(vpn_command_rx, task_client);
 
     vpn_handle.join().unwrap();
     command_handle.join().unwrap();
