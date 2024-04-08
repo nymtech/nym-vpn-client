@@ -76,18 +76,18 @@ async fn run() -> Result<()> {
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
     setup_env(args.config_env_file.as_ref());
 
-    let config_path = args.config_path.or(mixnet_config_path());
+    let data_path = args.data_path.or(mixnet_data_path());
 
     match args.command {
-        Commands::Run(args) => run_vpn(args, config_path).await,
+        Commands::Run(args) => run_vpn(args, data_path).await,
         Commands::ImportCredential(args) => {
-            let config_path = config_path.ok_or(Error::ConfigPathNotSet)?;
-            import_credential(args, config_path).await
+            let data_path = data_path.ok_or(Error::ConfigPathNotSet)?;
+            import_credential(args, data_path).await
         }
     }
 }
 
-async fn run_vpn(args: commands::RunArgs, config_path: Option<PathBuf>) -> Result<()> {
+async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<()> {
     // Setup gateway configuration
     let gateway_config = override_from_env(&args, GatewayConfig::default());
     info!("nym-api: {}", gateway_config.api_url());
@@ -113,7 +113,7 @@ async fn run_vpn(args: commands::RunArgs, config_path: Option<PathBuf>) -> Resul
     let mut nym_vpn = NymVpn::new(entry_point, exit_point);
     nym_vpn.gateway_config = gateway_config;
     nym_vpn.wg_gateway_config = wg_gateway_config;
-    nym_vpn.mixnet_config_path = config_path;
+    nym_vpn.mixnet_data_path = data_path;
     nym_vpn.enable_wireguard = args.enable_wireguard;
     nym_vpn.private_key = args.private_key;
     nym_vpn.wg_ip = args.wg_ip;
@@ -130,23 +130,19 @@ async fn run_vpn(args: commands::RunArgs, config_path: Option<PathBuf>) -> Resul
     Ok(())
 }
 
-async fn import_credential(
-    args: commands::ImportCredentialArgs,
-    config_path: PathBuf,
-) -> Result<()> {
+async fn import_credential(args: commands::ImportCredentialArgs, data_path: PathBuf) -> Result<()> {
     let data: ImportCredentialTypeEnum = args.credential_type.into();
     let raw_credential = match data {
         ImportCredentialTypeEnum::Path(path) => fs::read(path)?,
         ImportCredentialTypeEnum::Data(data) => data,
     };
-    nym_vpn_lib::credentials::import_credential(raw_credential, config_path).await
+    nym_vpn_lib::credentials::import_credential(raw_credential, data_path).await
 }
 
-#[allow(unused)]
-fn mixnet_config_path() -> Option<PathBuf> {
+fn mixnet_data_path() -> Option<PathBuf> {
     let network_name =
         std::env::var(var_names::NETWORK_NAME).expect("NETWORK_NAME env var not set");
-    dirs::config_dir().map(|dir| dir.join(CONFIG_DIRECTORY_NAME).join(network_name))
+    dirs::data_dir().map(|dir| dir.join(CONFIG_DIRECTORY_NAME).join(network_name))
 }
 
 #[tokio::main]

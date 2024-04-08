@@ -33,7 +33,7 @@ pub(crate) struct CliArgs {
 
     /// Path to the data directory of the mixnet client.
     #[arg(long)]
-    pub(crate) config_path: Option<PathBuf>,
+    pub(crate) data_path: Option<PathBuf>,
 
     #[command(subcommand)]
     pub(crate) command: Commands,

@@ -92,7 +92,7 @@ pub struct NymVpn {
     pub wg_gateway_config: WgConfig,
 
     /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
-    pub mixnet_config_path: Option<PathBuf>,
+    pub mixnet_data_path: Option<PathBuf>,
 
     /// Mixnet public ID of the entry gateway.
     pub entry_point: EntryPoint,
@@ -165,7 +165,7 @@ impl NymVpn {
         Self {
             gateway_config: nym_gateway_directory::Config::default(),
             wg_gateway_config: wg_gateway_client::WgConfig::default(),
-            mixnet_config_path: None,
+            mixnet_data_path: None,
             entry_point,
             exit_point,
             enable_wireguard: false,
@@ -292,7 +292,7 @@ impl NymVpn {
             Duration::from_secs(10),
             setup_mixnet_client(
                 entry_gateway,
-                &self.mixnet_config_path,
+                &self.mixnet_data_path,
                 task_manager.subscribe_named("mixnet_client_main"),
                 self.enable_wireguard,
                 self.enable_two_hop,
