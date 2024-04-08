@@ -216,6 +216,7 @@ jobs:
           mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
           mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
           mv ${GITHUB_WORKSPACE}/lib/libwg.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv ${GITHUB_WORKSPACE}/lib/libwg.lib ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
 
       - name: Prepare desktop build
         shell: bash
