@@ -32,6 +32,9 @@ vergen = { version = "8.2.6", default-features = false, features = [
     "cargo",
 ] }
 
+[features]
+metrics-server = ["nym-vpn-lib/metrics-server"]
+
 # Debian
 [package.metadata.deb]
 name = "nym-vpn-cli"

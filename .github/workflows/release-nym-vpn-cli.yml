@@ -13,6 +13,11 @@ on:
         description: Publish Release
         required: true
         default: false
+      enable_metrics_server:
+        type: boolean
+        description: "Enable --features metrics-server"
+        required: true
+        default: false
   push:
     tags:
       - nym-vpn-cli-v[0-9]+.[0-9]+.[0-9]+*
@@ -148,6 +153,11 @@ jobs:
           echo "ARTIFACT_ARCHIVE=$artifact_archive" >> $GITHUB_ENV
           echo "ARTIFACT_CHECKSUM=$artifact_checksum" >> $GITHUB_ENV
 
+      - name: Set CARGO_FEATURES
+        if: inputs.enable_metrics_server == true
+        run: |
+          echo 'CARGO_FEATURES=--features metrics-server' >> $GITHUB_ENV
+
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
         if: contains(matrix.target, 'native')
@@ -234,7 +244,7 @@ jobs:
         if: contains(matrix.target, 'native') && !contains(matrix.os, 'windows')
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
-        run: cargo build --release --verbose
+        run: cargo build --release --verbose ${{ env.CARGO_FEATURES }}
 
       - name: Build Windows
         if: contains(matrix.os, 'windows')
