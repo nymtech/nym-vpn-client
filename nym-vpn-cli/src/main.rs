@@ -142,7 +142,6 @@ async fn import_credential(
     nym_vpn_lib::credentials::import_credential(raw_credential, config_path).await
 }
 
-#[allow(unused)]
 fn mixnet_config_path() -> Option<PathBuf> {
     let network_name =
         std::env::var(var_names::NETWORK_NAME).expect("NETWORK_NAME env var not set");
