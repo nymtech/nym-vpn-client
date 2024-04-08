@@ -204,7 +204,7 @@ jobs:
           ./build-windows-modules.sh
           mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
 
-      - name: Download/Unzip/Move wintun.zip and winpcap.zip
+      - name: Download/Unzip/Move wintun.zip and winpcap.zip, also move wireguard lib for windows
         if: contains(matrix.os, 'windows')
         shell: bash
         run: |
@@ -214,6 +214,7 @@ jobs:
           unzip ${GITHUB_WORKSPACE}/winpcap.zip
           mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
           mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv ${GITHUB_WORKSPACE}/lib/libwg.lib ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
 
       - name: Prepare desktop build
         shell: bash
