@@ -4,7 +4,7 @@ use futures::SinkExt;
 use futures::{channel::mpsc::UnboundedSender, StreamExt};
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::oneshot;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 #[derive(Debug, Clone)]
 pub enum VpnState {
@@ -185,13 +185,27 @@ impl VpnServiceStatusListener {
     ) {
         tokio::spawn(async move {
             while let Some(msg) = vpn_status_rx.next().await {
-                info!("Received status: {msg}");
-                match msg.downcast_ref::<nym_vpn_lib::TaskStatus>().unwrap() {
-                    nym_vpn_lib::TaskStatus::Ready
-                    | nym_vpn_lib::TaskStatus::ReadyWithGateway(_) => {
+                debug!("Received status: {msg}");
+                match msg.downcast_ref::<nym_vpn_lib::TaskStatus>() {
+                    Some(nym_vpn_lib::TaskStatus::Ready) => {
                         info!("VPN status: connected");
                         self.set_shared_state(VpnState::Connected);
+                        continue;
                     }
+                    Some(nym_vpn_lib::TaskStatus::ReadyWithGateway(_)) => {
+                        info!("VPN status: connected");
+                        self.set_shared_state(VpnState::Connected);
+                        continue;
+                    }
+                    None => {}
+                }
+                match msg.downcast_ref::<nym_vpn_lib::connection_monitor::ConnectionMonitorStatus>()
+                {
+                    Some(e) => {
+                        info!("VPN status: {e}");
+                        continue;
+                    }
+                    None => info!("VPN status: unknown: {msg}"),
                 }
             }
         });

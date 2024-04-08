@@ -15,7 +15,9 @@ use crate::service::{
     VpnServiceCommand, VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceStatusResult,
 };
 
-pub fn start_command_interface(mut task_manager: TaskManager) -> (std::thread::JoinHandle<()>, Receiver<VpnServiceCommand>) {
+pub fn start_command_interface(
+    mut task_manager: TaskManager,
+) -> (std::thread::JoinHandle<()>, Receiver<VpnServiceCommand>) {
     // Channel to send commands to the vpn service
     let (vpn_command_tx, vpn_command_rx) = tokio::sync::mpsc::channel(32);
 

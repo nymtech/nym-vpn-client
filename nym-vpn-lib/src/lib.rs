@@ -26,6 +26,7 @@ use tracing::warn;
 use util::wait_for_interrupt_and_signal;
 
 // Public re-export
+pub use nym_connection_monitor as connection_monitor;
 pub use nym_credential_storage as credential_storage;
 pub use nym_gateway_directory as gateway_directory;
 pub use nym_id as id;
@@ -45,7 +46,6 @@ use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
 
-// mod connection_monitor;
 mod platform;
 mod uniffi_custom_impls;
 mod util;

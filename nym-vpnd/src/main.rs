@@ -65,8 +65,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let task_client = task_manager.subscribe_named("vpn_service");
 
     info!("Starting command handler");
-    let (command_handle, vpn_command_rx) =
-        command_interface::start_command_interface(task_manager);
+    let (command_handle, vpn_command_rx) = command_interface::start_command_interface(task_manager);
 
     info!("Starting VPN service");
     let vpn_handle = service::start_vpn_service(vpn_command_rx, task_client);
