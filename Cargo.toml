@@ -57,15 +57,19 @@ tun2 = { version = "1.2.3", features = ["async"] }
 uniffi = { version = "0.27.0", features = ["cli"] }
 url = "2.4"
 
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
-nym-client-core = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
-nym-config = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
-nym-crypto = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
-nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
-nym-sdk = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
-nym-task = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
-nym-topology = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
+# TEMPORARY: c482569fdbdaa5768efaa2972301cc64b6a68e0f is
+# jon/sdk-handle-active-gateways branch. Switch back to develop as soon as that
+# PR is merged. I've been rebasing that PR on latest develop regularly in the
+# meantime.
+nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
+nym-client-core = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
+nym-config = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
+nym-crypto = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
+nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
+nym-sdk = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
+nym-task = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
+nym-topology = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
