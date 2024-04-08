@@ -77,6 +77,12 @@ jobs:
         if: contains(matrix.os, 'windows')
         uses: microsoft/setup-msbuild@v2
 
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
       - name: Get package version
         id: package-version
         uses: nicolaiunrein/cargo-get@master
@@ -106,7 +112,7 @@ jobs:
           elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
             platform_arch=ubuntu-20.04_x86_64
             rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
-          elif ${{ matrix.os == 'macos-14' }}; then
+          elif ${{ matrix.os == 'mac' }}; then
             platform_arch=macos_universal
             rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
           elif ${{ contains(matrix.os, 'windows') }}; then
