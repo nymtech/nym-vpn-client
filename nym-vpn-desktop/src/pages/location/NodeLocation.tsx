@@ -115,9 +115,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
 
   const handleCountrySelection = async (country: UiCountry) => {
     console.log(country);
-    const location: TNodeLocation = country.isFastest
-      ? 'Fastest'
-      : country.country;
+    const location = country.isFastest ? 'Fastest' : country.country;
 
     try {
       await invoke<void>('set_node_location', {
