@@ -10,20 +10,19 @@ use std::{
 use talpid_routing::RouteManager;
 use talpid_tunnel::tun_provider::TunProvider;
 use tap::TapFallible;
-use tokio::task::JoinHandle;
 
 use crate::{
     error::Result,
     init_wireguard_config,
     routing::{self, TunnelGatewayIp},
     tunnel::{setup_route_manager, start_tunnel, Tunnel},
+    tunnel_setup::WgTunnelSetup,
     util::handle_interrupt,
     wg_gateway_client::WgGatewayClient,
 };
 use nym_gateway_directory::{GatewayClient, NodeIdentity};
 
 pub struct WireguardSetup {
-    pub wireguard_waiting: Option<(Receiver<()>, JoinHandle<Result<()>>)>,
     pub route_manager: RouteManager,
     // The IP address of the gateway inside the tunnel. This will depend on if wireguard is
     // enabled
@@ -39,7 +38,6 @@ pub async fn empty_wireguard_setup() -> Result<(WireguardSetup, Receiver<()>)> {
 
     Ok((
         WireguardSetup {
-            wireguard_waiting: None,
             route_manager,
             tunnel_gateway_ip,
             tunnel_close_tx,
@@ -55,7 +53,7 @@ pub async fn create_wireguard_tunnel(
     gateway_client: &GatewayClient,
     wg_gateway_client: &WgGatewayClient,
     gateway_identity: &NodeIdentity,
-) -> Result<(WireguardSetup, Tunnel)> {
+) -> Result<(WireguardSetup, WgTunnelSetup, Tunnel)> {
     let (mut wireguard_setup, tunnel_close_rx) = empty_wireguard_setup().await?;
     let wireguard_config = Some(
         init_wireguard_config(
@@ -99,7 +97,10 @@ pub async fn create_wireguard_tunnel(
     let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
     let tunnel_handle = start_tunnel(&tunnel, tunnel_close_rx, finished_shutdown_tx)?;
 
-    wireguard_setup.wireguard_waiting = Some((finished_shutdown_rx, tunnel_handle));
+    let wireguard_waiting = WgTunnelSetup {
+        receiver: finished_shutdown_rx,
+        handle: tunnel_handle,
+    };
 
-    Ok((wireguard_setup, tunnel))
+    Ok((wireguard_setup, wireguard_waiting, tunnel))
 }

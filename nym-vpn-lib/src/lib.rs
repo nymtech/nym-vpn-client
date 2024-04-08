@@ -20,7 +20,7 @@ use std::time::Duration;
 use talpid_routing::RouteManager;
 use tap::TapFallible;
 use tokio::time::timeout;
-use tunnel_setup::{setup_tunnel, TunnelSetup};
+use tunnel_setup::{setup_tunnel, AllTunnelsSetup, TunnelSetup};
 use util::wait_for_interrupt_and_signal;
 
 // Public reexport onder gateway_directory name
@@ -100,9 +100,6 @@ pub struct NymVpn {
     /// Enable the wireguard traffic between the client and the entry gateway.
     pub enable_wireguard: bool,
 
-    /// Use wireguard tunnel in a tunnel mode.
-    pub tunnel_in_tunnel: bool,
-
     /// Associated private key.
     pub private_key: Option<String>,
 
@@ -170,7 +167,6 @@ impl NymVpn {
             entry_point,
             exit_point,
             enable_wireguard: false,
-            tunnel_in_tunnel: false,
             private_key: None,
             entry_wg_ip: None,
             exit_wg_ip: None,
@@ -340,30 +336,51 @@ impl NymVpn {
     // applications where the main way to interact with the running process is to send SIGINT
     // (ctrl-c)
     pub async fn run(&mut self) -> Result<()> {
-        let TunnelSetup {
-            mut tunnel,
-            task_manager,
-            route_manager,
-            wireguard_waiting,
-            tunnel_close_tx,
-            ..
-        } = setup_tunnel(self).await?.pop().unwrap();
+        let tunnels = setup_tunnel(self).await?;
 
-        // Finished starting everything, now wait for shutdown
-        wait_for_interrupt(task_manager).await;
-        handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
-            .await
-            .tap_err(|err| {
-                error!("Failed to handle interrupt: {err}");
-            })?;
+        // Finished starting everything, now wait for mixnet client shutdown
+        match tunnels {
+            AllTunnelsSetup::Mix(TunnelSetup {
+                route_manager,
+                tunnel_close_tx,
+                specific_setup,
+                ..
+            }) => {
+                wait_for_interrupt(specific_setup.task_manager).await;
+                handle_interrupt(route_manager, None, tunnel_close_tx)
+                    .await
+                    .tap_err(|err| {
+                        error!("Failed to handle interrupt: {err}");
+                    })?;
+            }
+            AllTunnelsSetup::Wg { entry, exit } => {
+                for TunnelSetup {
+                    mut tunnel,
+                    route_manager,
+                    tunnel_close_tx,
+                    specific_setup,
+                } in [entry, exit]
+                {
+                    handle_interrupt(
+                        route_manager,
+                        Some((specific_setup.receiver, specific_setup.handle)),
+                        tunnel_close_tx,
+                    )
+                    .await
+                    .tap_err(|err| {
+                        error!("Failed to handle interrupt: {err}");
+                    })?;
 
-        tunnel.dns_monitor.reset().tap_err(|err| {
-            error!("Failed to reset dns monitor: {err}");
-        })?;
-        tunnel.firewall.reset_policy().map_err(|err| {
-            error!("Failed to reset firewall policy: {err}");
-            Error::FirewallError(err.to_string())
-        })?;
+                    tunnel.dns_monitor.reset().tap_err(|err| {
+                        error!("Failed to reset dns monitor: {err}");
+                    })?;
+                    tunnel.firewall.reset_policy().map_err(|err| {
+                        error!("Failed to reset firewall policy: {err}");
+                        Error::FirewallError(err.to_string())
+                    })?;
+                }
+            }
+        }
 
         Ok(())
     }
@@ -377,46 +394,68 @@ impl NymVpn {
         vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let TunnelSetup {
-            mut tunnel,
-            mut task_manager,
-            route_manager,
-            wireguard_waiting,
-            tunnel_close_tx,
-            mixnet_connection_info,
-        } = setup_tunnel(self).await?.pop().unwrap();
-
-        if let Some(mixnet_connection_info) = mixnet_connection_info {
-            // Signal back that mixnet is ready and up with all cylinders firing
-            let start_status = TaskStatus::ReadyWithGateway(mixnet_connection_info.entry_gateway);
-            task_manager
-                .start_status_listener(vpn_status_tx, start_status)
-                .await;
-        }
+        let tunnels = setup_tunnel(self).await?;
 
         // Finished starting everything, now wait for mixnet client shutdown
-        let result = wait_for_interrupt_and_signal(task_manager, vpn_ctrl_rx).await;
-
-        handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
-            .await
-            .map_err(|err| {
-                error!("Failed to handle interrupt: {err}");
-                Box::new(NymVpnExitError::Generic { reason: err })
-            })?;
-        tunnel.dns_monitor.reset().map_err(|err| {
-            error!("Failed to reset dns monitor: {err}");
-            NymVpnExitError::FailedToResetDnsMonitor {
-                reason: err.to_string(),
+        match tunnels {
+            AllTunnelsSetup::Mix(TunnelSetup {
+                route_manager,
+                tunnel_close_tx,
+                mut specific_setup,
+                ..
+            }) => {
+                // Signal back that mixnet is ready and up with all cylinders firing
+                let start_status = TaskStatus::ReadyWithGateway(
+                    specific_setup.mixnet_connection_info.entry_gateway.clone(),
+                );
+                specific_setup
+                    .task_manager
+                    .start_status_listener(vpn_status_tx, start_status)
+                    .await;
+                let result =
+                    wait_for_interrupt_and_signal(specific_setup.task_manager, vpn_ctrl_rx).await;
+                handle_interrupt(route_manager, None, tunnel_close_tx)
+                    .await
+                    .map_err(|err| {
+                        error!("Failed to handle interrupt: {err}");
+                        Box::new(NymVpnExitError::Generic { reason: err })
+                    })?;
+                result
             }
-        })?;
-        tunnel.firewall.reset_policy().map_err(|err| {
-            error!("Failed to reset firewall policy: {err}");
-            NymVpnExitError::FailedToResetFirewallPolicy {
-                reason: err.to_string(),
+            AllTunnelsSetup::Wg { entry, exit } => {
+                for TunnelSetup {
+                    mut tunnel,
+                    route_manager,
+                    tunnel_close_tx,
+                    specific_setup,
+                } in [entry, exit]
+                {
+                    handle_interrupt(
+                        route_manager,
+                        Some((specific_setup.receiver, specific_setup.handle)),
+                        tunnel_close_tx,
+                    )
+                    .await
+                    .map_err(|err| {
+                        error!("Failed to handle interrupt: {err}");
+                        Box::new(NymVpnExitError::Generic { reason: err })
+                    })?;
+                    tunnel.dns_monitor.reset().map_err(|err| {
+                        error!("Failed to reset dns monitor: {err}");
+                        NymVpnExitError::FailedToResetDnsMonitor {
+                            reason: err.to_string(),
+                        }
+                    })?;
+                    tunnel.firewall.reset_policy().map_err(|err| {
+                        error!("Failed to reset firewall policy: {err}");
+                        NymVpnExitError::FailedToResetFirewallPolicy {
+                            reason: err.to_string(),
+                        }
+                    })?;
+                }
+                Ok(())
             }
-        })?;
-
-        result
+        }
     }
 }
 
