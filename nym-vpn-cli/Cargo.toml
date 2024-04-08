@@ -7,6 +7,7 @@ authors = ["Nym Technologies"]
 
 [dependencies]
 anyhow.workspace = true
+bs58.workspace = true
 clap = { version = "4.4.7", features = ["cargo", "derive"] }
 dirs = "5.0.1"
 ipnetwork.workspace = true

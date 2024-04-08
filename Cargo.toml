@@ -13,8 +13,10 @@ exclude = ["nym-vpn-desktop/src-tauri"]
 # nym-bin-common = { path = "../nym/common/bin-common" }
 # nym-client-core = { path = "../nym/common/client-core" }
 # nym-config = { path = "../nym/common/config" }
+# nym-credential-storage = { path = "../nym/common/credential-storage" }
 # nym-crypto = { path = "../nym/common/crypto" }
 # nym-explorer-client = { path = "../nym/explorer-api/explorer-client" }
+# nym-id = { path = "../nym/common/nym-id" }
 # nym-ip-packet-requests = { path = "../nym/common/ip-packet-requests" }
 # nym-node-requests = { path = "../nym/nym-node/nym-node-requests" }
 # nym-sdk = { path = "../nym/sdk/rust/nym-sdk" }
@@ -34,6 +36,7 @@ license = "GPL-3.0-only"
 [workspace.dependencies]
 anyhow = "1.0.71"
 bincode = "1.3.3"
+bs58 = "0.5.1"
 bytes = "1.0"
 futures = "0.3.15"
 hickory-resolver = "0.24.0"
@@ -64,8 +67,10 @@ url = "2.4"
 nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
 nym-client-core = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
 nym-config = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
 nym-crypto = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
 nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
+nym-id = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
 nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
 nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }
 nym-sdk = { git = "https://github.com/nymtech/nym", rev = "c482569fdbdaa5768efaa2972301cc64b6a68e0f" }

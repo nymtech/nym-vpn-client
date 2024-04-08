@@ -24,11 +24,13 @@ use tokio::time::timeout;
 use tracing::warn;
 use util::wait_for_interrupt_and_signal;
 
-// Public reexport onder gateway_directory name
+// Public re-export
+pub use nym_credential_storage as credential_storage;
 pub use nym_gateway_directory as gateway_directory;
+pub use nym_id as id;
 
 pub use nym_ip_packet_requests::IpPair;
-pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
+pub use nym_sdk::mixnet::{NodeIdentity, Recipient, StoragePaths};
 pub use nym_task::{
     manager::{SentStatus, TaskStatus},
     StatusReceiver,
@@ -42,16 +44,18 @@ use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
 
-pub mod config;
 mod connection_monitor;
+mod platform;
+mod uniffi_custom_impls;
+mod util;
+
+pub mod config;
+pub mod credentials;
 pub mod error;
 pub mod mixnet_connect;
 pub mod mixnet_processor;
-mod platform;
 pub mod routing;
 pub mod tunnel;
-mod uniffi_custom_impls;
-mod util;
 pub mod wg_gateway_client;
 
 async fn init_wireguard_config(

@@ -24,14 +24,6 @@ fn pretty_build_info_static() -> &'static str {
     PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info_local_vergen!().pretty_print())
 }
 
-#[derive(Subcommand)]
-pub(crate) enum Commands {
-    /// Run the client
-    Run(RunArgs),
-    // Import credential
-    //ImportCredential(ImportCredentialArgs),
-}
-
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about, long_version = pretty_build_info_static())]
 pub(crate) struct CliArgs {
@@ -39,16 +31,25 @@ pub(crate) struct CliArgs {
     #[arg(short, long, value_parser = check_path)]
     pub(crate) config_env_file: Option<PathBuf>,
 
+    /// Path to the data directory of the mixnet client.
+    #[arg(long)]
+    pub(crate) config_path: Option<PathBuf>,
+
     #[command(subcommand)]
     pub(crate) command: Commands,
 }
 
+#[derive(Subcommand)]
+pub(crate) enum Commands {
+    /// Run the client
+    Run(RunArgs),
+
+    /// Import credential
+    ImportCredential(ImportCredentialArgs),
+}
+
 #[derive(Args)]
 pub(crate) struct RunArgs {
-    /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
-    #[arg(long)]
-    pub(crate) mixnet_client_path: Option<PathBuf>,
-
     #[command(flatten)]
     pub(crate) entry: CliEntry,
 
@@ -139,6 +140,28 @@ pub(crate) struct CliExit {
     pub(crate) exit_gateway_country: Option<String>,
 }
 
+#[derive(Args)]
+pub(crate) struct ImportCredentialArgs {
+    #[command(flatten)]
+    pub(crate) credential_type: ImportCredentialType,
+
+    // currently hidden as there exists only a single serialization standard
+    #[arg(long, hide = true)]
+    pub(crate) version: Option<u8>,
+}
+
+#[derive(Args)]
+#[group(required = true, multiple = false)]
+pub(crate) struct ImportCredentialType {
+    /// Credential encoded using base58.
+    #[arg(long, value_parser = parse_encoded_credential_data)]
+    pub(crate) credential_data: Option<Vec<u8>>,
+
+    /// Path to the credential file.
+    #[arg(long, value_parser = check_path)]
+    pub(crate) credential_path: Option<PathBuf>,
+}
+
 fn validate_wg_ip(ip: &str) -> Result<Ipv4Addr, String> {
     let ip = Ipv4Addr::from_str(ip).map_err(|err| err.to_string())?;
     let network = Ipv4Network::from_str(WG_IP_SUBNET).unwrap();
@@ -200,4 +223,24 @@ fn check_path(path: &str) -> Result<PathBuf, String> {
         return Err(format!("Path {:?} is not a file", path));
     }
     Ok(path)
+}
+
+fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
+    bs58::decode(raw).into_vec()
+}
+
+// Workaround until clap supports enums for ArgGroups
+pub enum ImportCredentialTypeEnum {
+    Path(PathBuf),
+    Data(Vec<u8>),
+}
+
+impl From<ImportCredentialType> for ImportCredentialTypeEnum {
+    fn from(ict: ImportCredentialType) -> Self {
+        match (ict.credential_data, ict.credential_path) {
+            (Some(data), None) => ImportCredentialTypeEnum::Data(data),
+            (None, Some(path)) => ImportCredentialTypeEnum::Path(path),
+            _ => unreachable!(),
+        }
+    }
 }

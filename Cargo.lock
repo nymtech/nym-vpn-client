@@ -4525,6 +4525,7 @@ name = "nym-vpn-cli"
 version = "0.0.10-dev"
 dependencies = [
  "anyhow",
+ "bs58 0.5.1",
  "clap",
  "dirs 5.0.1",
  "ipnetwork",
@@ -4545,6 +4546,7 @@ dependencies = [
  "android_logger",
  "anyhow",
  "bincode",
+ "bs58 0.5.1",
  "bytes",
  "err-derive",
  "futures",
@@ -4559,9 +4561,11 @@ dependencies = [
  "nym-bin-common",
  "nym-client-core",
  "nym-config",
+ "nym-credential-storage",
  "nym-crypto",
  "nym-explorer-client",
  "nym-gateway-directory",
+ "nym-id",
  "nym-ip-packet-requests",
  "nym-node-requests",
  "nym-sdk",
