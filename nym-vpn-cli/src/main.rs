@@ -146,7 +146,7 @@ async fn import_credential(
 fn mixnet_config_path() -> Option<PathBuf> {
     let network_name =
         std::env::var(var_names::NETWORK_NAME).expect("NETWORK_NAME env var not set");
-    dirs::config_dir().map(|dir| dir.join(CONFIG_DIRECTORY_NAME).join(network_name))
+    dirs::data_dir().map(|dir| dir.join(CONFIG_DIRECTORY_NAME).join(network_name))
 }
 
 #[tokio::main]
