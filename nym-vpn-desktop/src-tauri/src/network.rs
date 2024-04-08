@@ -1,6 +1,10 @@
+use tracing::debug;
+
 // Setup sandbox environment. This is tempory until we switch to mainnet at which point we can
 // purge this function
 pub(crate) fn setup_sandbox_environment() {
+    debug!("Setting up sandbox environment");
+
     std::env::set_var("CONFIGURED", "true");
     std::env::set_var("RUST_LOG", "info");
     std::env::set_var("RUST_BACKTRACE", "1");
