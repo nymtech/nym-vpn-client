@@ -6,7 +6,6 @@ uniffi::setup_scaffolding!();
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
 use crate::mixnet_connect::setup_mixnet_client;
-use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::{WgConfig, WgGatewayClient};
 use futures::channel::{mpsc, oneshot};
@@ -21,7 +20,7 @@ use std::time::Duration;
 use talpid_routing::RouteManager;
 use tap::TapFallible;
 use tokio::time::timeout;
-use tracing::warn;
+use tunnel_setup::{setup_tunnel, TunnelSetup};
 use util::wait_for_interrupt_and_signal;
 
 // Public reexport onder gateway_directory name
@@ -50,9 +49,11 @@ pub mod mixnet_processor;
 mod platform;
 pub mod routing;
 pub mod tunnel;
+mod tunnel_setup;
 mod uniffi_custom_impls;
 mod util;
 pub mod wg_gateway_client;
+mod wireguard_setup;
 
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
@@ -99,11 +100,17 @@ pub struct NymVpn {
     /// Enable the wireguard traffic between the client and the entry gateway.
     pub enable_wireguard: bool,
 
+    /// Use wireguard tunnel in a tunnel mode.
+    pub tunnel_in_tunnel: bool,
+
     /// Associated private key.
     pub private_key: Option<String>,
 
-    /// The IP address of the wireguard interface.
-    pub wg_ip: Option<Ipv4Addr>,
+    /// The IP address of the entry wireguard interface.
+    pub entry_wg_ip: Option<Ipv4Addr>,
+
+    /// The IP address of the exit wireguard interface.
+    pub exit_wg_ip: Option<Ipv4Addr>,
 
     /// The IP addresses of the TUN device.
     pub nym_ips: Option<IpPair>,
@@ -163,8 +170,10 @@ impl NymVpn {
             entry_point,
             exit_point,
             enable_wireguard: false,
+            tunnel_in_tunnel: false,
             private_key: None,
-            wg_ip: None,
+            entry_wg_ip: None,
+            exit_wg_ip: None,
             nym_ips: None,
             nym_mtu: None,
             disable_routing: false,
@@ -327,183 +336,18 @@ impl NymVpn {
         Ok(our_mixnet_connection)
     }
 
-    async fn setup_tunnel(
-        &mut self,
-    ) -> Result<(
-        Tunnel,
-        TaskManager,
-        RouteManager,
-        Option<(oneshot::Receiver<()>, tokio::task::JoinHandle<Result<()>>)>,
-        oneshot::Sender<()>,
-        MixnetConnectionInfo,
-    )> {
-        // Create a gateway client that we use to interact with the entry gateway, in particular to
-        // handle wireguard registration
-        let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
-        let gateways = gateway_client
-            .lookup_described_gateways_with_location()
-            .await?;
-        log::info!("Got gateways {:?}", gateways);
-
-        let wg_gateway_client = WgGatewayClient::new(self.wg_gateway_config.clone())?;
-        log::info!("Created wg gateway client");
-
-        // If the entry or exit point relies on location, do a basic defensive consistency check on
-        // the fetched location data. If none of the gateways have location data, we can't proceed
-        // and it's likely the explorer-api isn't set correctly.
-        if (self.entry_point.is_location() || self.exit_point.is_location())
-            && gateways.iter().filter(|g| g.has_location()).count() == 0
-        {
-            return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
-        }
-
-        let entry_gateway_id = self.entry_point.lookup_gateway_identity(&gateways).await?;
-        log::info!("Gateway id {:?}", entry_gateway_id);
-        let exit_router_address = self.exit_point.lookup_router_address(&gateways)?;
-
-        info!("Using entry gateway: {entry_gateway_id}");
-        info!("Using exit router address {exit_router_address}");
-
-        let wireguard_config = if self.enable_wireguard {
-            let private_key = self
-                .private_key
-                .as_ref()
-                .expect("clap should enforce value when wireguard enabled");
-            let wg_ip = self
-                .wg_ip
-                .expect("clap should enforce value when wireguard enabled");
-            let wireguard_config = init_wireguard_config(
-                &gateway_client,
-                &wg_gateway_client,
-                &entry_gateway_id.to_base58_string(),
-                private_key,
-                wg_ip.into(),
-            )
-            .await?;
-            Some(wireguard_config)
-        } else {
-            None
-        };
-
-        // The IP address of the gateway inside the tunnel. This will depend on if wireguard is
-        // enabled
-        let tunnel_gateway_ip = routing::TunnelGatewayIp::new(wireguard_config.clone());
-        if self.enable_wireguard {
-            info!("Wireguard tunnel gateway ip: {tunnel_gateway_ip}");
-        }
-
-        // Get the IP address of the local LAN gateway
-        let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
-        debug!("default_lan_gateway_ip: {default_lan_gateway_ip}");
-
-        let task_manager = TaskManager::new(10);
-
-        info!("Setting up route manager");
-        let mut route_manager = setup_route_manager().await?;
-
-        // let route_manager_handle = route_manager.handle()?;
-        let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
-
-        info!("Creating tunnel");
-        let mut tunnel = match Tunnel::new(
-            wireguard_config.clone(),
-            route_manager.handle()?,
-            self.tun_provider.clone(),
-        ) {
-            Ok(tunnel) => tunnel,
-            Err(err) => {
-                error!("Failed to create tunnel: {err}");
-                debug!("{err:?}");
-                // Ignore if these fail since we're interesting in the original error anyway
-                handle_interrupt(route_manager, None, tunnel_close_tx)
-                    .await
-                    .tap_err(|err| {
-                        warn!("Failed to handle interrupt: {err}");
-                    })
-                    .ok();
-                return Err(err);
-            }
-        };
-
-        let wireguard_waiting = if self.enable_wireguard {
-            info!("Starting wireguard tunnel");
-            let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
-            let tunnel_handle = start_tunnel(&tunnel, tunnel_close_rx, finished_shutdown_tx)?;
-            Some((finished_shutdown_rx, tunnel_handle))
-        } else {
-            info!("Wireguard is disabled");
-            None
-        };
-
-        // Now it's time start all the stuff that needs running inside the tunnel, and that we need
-        // correctly unwind if it fails
-        // - Sets up mixnet client, and connects
-        // - Sets up routing
-        // - Starts processing packets
-        let mixnet_connection_info = match self
-            .setup_tunnel_services(
-                &mut route_manager,
-                &entry_gateway_id,
-                &exit_router_address,
-                &task_manager,
-                &gateway_client,
-                default_lan_gateway_ip,
-                tunnel_gateway_ip,
-            )
-            .await
-        {
-            Ok(mixnet_connection_info) => mixnet_connection_info,
-            Err(err) => {
-                error!("Failed to setup tunnel services: {err}");
-                debug!("{err:?}");
-                wait_for_interrupt(task_manager).await;
-                // Ignore if these fail since we're interesting in the original error anyway
-                handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
-                    .await
-                    .tap_err(|err| {
-                        warn!("Failed to handle interrupt: {err}");
-                    })
-                    .ok();
-                tunnel
-                    .dns_monitor
-                    .reset()
-                    .tap_err(|err| {
-                        warn!("Failed to reset dns monitor: {err}");
-                    })
-                    .ok();
-                tunnel
-                    .firewall
-                    .reset_policy()
-                    .tap_err(|err| {
-                        warn!("Failed to reset firewall policy: {err}");
-                    })
-                    .ok();
-                return Err(err);
-            }
-        };
-
-        Ok((
-            tunnel,
-            task_manager,
-            route_manager,
-            wireguard_waiting,
-            tunnel_close_tx,
-            mixnet_connection_info,
-        ))
-    }
-
     // Start the Nym VPN client, and wait for it to shutdown. The use case is in simple console
     // applications where the main way to interact with the running process is to send SIGINT
     // (ctrl-c)
     pub async fn run(&mut self) -> Result<()> {
-        let (
+        let TunnelSetup {
             mut tunnel,
             task_manager,
             route_manager,
             wireguard_waiting,
             tunnel_close_tx,
-            _mixnet_connection_info,
-        ) = self.setup_tunnel().await?;
+            ..
+        } = setup_tunnel(self).await?.pop().unwrap();
 
         // Finished starting everything, now wait for shutdown
         wait_for_interrupt(task_manager).await;
@@ -533,20 +377,22 @@ impl NymVpn {
         vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let (
+        let TunnelSetup {
             mut tunnel,
             mut task_manager,
             route_manager,
             wireguard_waiting,
             tunnel_close_tx,
             mixnet_connection_info,
-        ) = self.setup_tunnel().await?;
+        } = setup_tunnel(self).await?.pop().unwrap();
 
-        // Signal back that we are ready and up with all cylinders firing
-        let start_status = TaskStatus::ReadyWithGateway(mixnet_connection_info.entry_gateway);
-        task_manager
-            .start_status_listener(vpn_status_tx, start_status)
-            .await;
+        if let Some(mixnet_connection_info) = mixnet_connection_info {
+            // Signal back that mixnet is ready and up with all cylinders firing
+            let start_status = TaskStatus::ReadyWithGateway(mixnet_connection_info.entry_gateway);
+            task_manager
+                .start_status_listener(vpn_status_tx, start_status)
+                .await;
+        }
 
         // Finished starting everything, now wait for mixnet client shutdown
         let result = wait_for_interrupt_and_signal(task_manager, vpn_ctrl_rx).await;

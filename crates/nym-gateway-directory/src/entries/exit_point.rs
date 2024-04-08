@@ -11,6 +11,8 @@ use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use rand::seq::IteratorRandom;
 use serde::{Deserialize, Serialize};
 
+use super::described_gateway::{by_identity, by_location, LookupGateway};
+
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
 // gateway, we can refer to it by the gateway identity.
 // #[derive(Clone, Debug, Deserialize, Serialize, uniffi::Enum)]
@@ -77,6 +79,20 @@ impl ExitPoint {
                     }),
                 }
             }
+        }
+    }
+}
+
+#[async_trait::async_trait]
+impl LookupGateway for ExitPoint {
+    async fn lookup_gateway_identity(
+        &self,
+        gateways: &[DescribedGatewayWithLocation],
+    ) -> Result<NodeIdentity> {
+        match &self {
+            ExitPoint::Address { .. } => Err(Error::InvalidExitPointDescription),
+            ExitPoint::Gateway { identity } => by_identity(gateways, identity),
+            ExitPoint::Location { location } => by_location(gateways, location),
         }
     }
 }

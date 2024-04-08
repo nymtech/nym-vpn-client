@@ -3824,6 +3824,7 @@ dependencies = [
 name = "nym-gateway-directory"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "hickory-resolver",
  "itertools 0.12.1",
  "log",

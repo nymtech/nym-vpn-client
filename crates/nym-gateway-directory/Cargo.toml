@@ -5,6 +5,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+async-trait.workspace = true
 hickory-resolver.workspace = true
 itertools.workspace = true
 log.workspace = true

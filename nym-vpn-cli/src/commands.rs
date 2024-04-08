@@ -46,17 +46,30 @@ pub(crate) struct CliArgs {
         long,
         default_value_t = false,
         requires = "private_key",
-        requires = "wg_ip"
+        requires = "entry_wg_ip"
     )]
     pub(crate) enable_wireguard: bool,
+
+    /// Use wireguard tunnel in a tunnel mode.
+    #[arg(
+        long,
+        default_value_t = false,
+        requires = "enable_wireguard",
+        requires = "exit_wg_ip"
+    )]
+    pub(crate) tunnel_in_tunnel: bool,
 
     /// Associated private key.
     #[arg(long, requires = "enable_wireguard", requires = "wg_ip")]
     pub(crate) private_key: Option<String>,
 
-    /// The IP address of the wireguard interface used for the first hop to the entry gateway.
+    /// The IP address of the entry wireguard interface used for the first hop to the entry gateway.
     #[arg(long, value_parser = validate_wg_ip, requires = "enable_wireguard")]
-    pub(crate) wg_ip: Option<Ipv4Addr>,
+    pub(crate) entry_wg_ip: Option<Ipv4Addr>,
+
+    /// The IP address of the exit wireguard interface used for the first hop to the entry gateway.
+    #[arg(long, value_parser = validate_wg_ip, requires = "tunnel_in_tunnel")]
+    pub(crate) exit_wg_ip: Option<Ipv4Addr>,
 
     /// The IPv4 address of the nym TUN device that wraps IP packets in sphinx packets.
     #[arg(long, alias = "ipv4", value_parser = validate_ipv4, requires = "nym_ipv6")]
