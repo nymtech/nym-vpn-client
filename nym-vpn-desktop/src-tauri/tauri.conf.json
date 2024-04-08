@@ -6,9 +6,7 @@
     "distDir": "../dist",
     "withGlobalTauri": false
   },
-  "package": {
-    "productName": "nym-vpn"
-  },
+  "package": {"productName": "nym-vpn"},
   "tauri": {
     "updater": {
       "active": true,
@@ -18,24 +16,16 @@
     },
     "allowlist": {
       "all": false,
-      "process": {
-        "all": true
-      },
-      "shell": {
-        "all": false,
-        "open": true
-      }
+      "process": {"all": true},
+      "shell": {"all": false, "open": true}
     },
     "bundle": {
       "active": true,
       "targets": "all",
       "identifier": "net.nymtech.vpn",
       "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
+        "icons/32x32.png"     , "icons/128x128.png"   , "icons/128x128@2x.png",
+        "icons/icon.icns"     , "icons/icon.ico"
       ],
       "macOS": {
         "frameworks": [],
@@ -43,11 +33,10 @@
         "exceptionDomain": "",
         "signingIdentity": "Developer ID Application: Nym Technologies SA (VW5DZLFHM5)",
         "entitlements": null
-      }
+      },
+      "resources": ["wintun.dll", "vcruntime140.dll", "libwg.dll", "winfw.dll"]
     },
-    "security": {
-      "csp": null
-    },
+    "security": {"csp": null},
     "windows": [
       {
         "fullscreen": false,
