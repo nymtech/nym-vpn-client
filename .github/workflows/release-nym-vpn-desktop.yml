@@ -119,7 +119,7 @@ jobs:
             rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
           elif ${{ contains(matrix.os, 'windows') }}; then
             platform_arch=x86_64-pc-windows-msvc
-            rustflags="-L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x86_64-pc-windows-msvc -L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/ -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x64-Debug"
+            rustflags="-L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x86_64-pc-windows-msvc -L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/ -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri"
             sed -i 's/-dev/-1/g' nym-vpn-desktop/src-tauri/Cargo.toml
             version=$(sed 's/-dev/-1/g' <<< $version)
           else
@@ -202,7 +202,8 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
           ./build-windows-modules.sh
-          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug/winfw.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug/libwg.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
 
       - name: Download/Unzip/Move wintun.zip and winpcap.zip, also move wireguard lib for windows
         if: contains(matrix.os, 'windows')
@@ -350,7 +351,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         uses: actions/upload-artifact@v4
         with:
-          name: nym-vpn_${{ env.PKG_VERSION }}.exe
+          name: nym-vpn_${{ env.PKG_VERSION }}
           path: nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup.exe
           retention-days: 2
 
