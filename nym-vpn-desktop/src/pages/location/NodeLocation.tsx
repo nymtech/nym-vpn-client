@@ -7,8 +7,8 @@ import {
   CmdError,
   Country,
   NodeHop,
-  NodeLocation,
   StateDispatch,
+  NodeLocation as TNodeLocation,
   isCountry,
 } from '../../types';
 import { FastestFeatureEnabled } from '../../constants';
@@ -102,7 +102,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
   };
 
   const isCountrySelected = (
-    selectedNode: NodeLocation,
+    selectedNode: TNodeLocation,
     country: UiCountry,
   ): boolean => {
     if (selectedNode === 'Fastest' && country.isFastest) {
@@ -115,7 +115,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
 
   const handleCountrySelection = async (country: UiCountry) => {
     console.log(country);
-    const location: NodeLocation = country.isFastest
+    const location: TNodeLocation = country.isFastest
       ? 'Fastest'
       : country.country;
 
