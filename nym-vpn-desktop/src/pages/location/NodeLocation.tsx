@@ -7,8 +7,8 @@ import {
   CmdError,
   Country,
   NodeHop,
-  NodeLocation,
   StateDispatch,
+  NodeLocation as TNodeLocation,
   isCountry,
 } from '../../types';
 import { FastestFeatureEnabled } from '../../constants';
@@ -60,9 +60,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
           },
         });
       })
-      .catch((e: CmdError) =>
-        console.warn(`Failed to fetch countries: ${e.source} - ${e.message}`),
-      );
+      .catch((e: CmdError) => console.warn('Failed to fetch countries:', e));
     if (FastestFeatureEnabled) {
       invoke<Country>('get_fastest_node_location')
         .then((country) => {
@@ -104,7 +102,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
   };
 
   const isCountrySelected = (
-    selectedNode: NodeLocation,
+    selectedNode: TNodeLocation,
     country: UiCountry,
   ): boolean => {
     if (selectedNode === 'Fastest' && country.isFastest) {
@@ -117,9 +115,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
 
   const handleCountrySelection = async (country: UiCountry) => {
     console.log(country);
-    const location: NodeLocation = country.isFastest
-      ? 'Fastest'
-      : country.country;
+    const location = country.isFastest ? 'Fastest' : country.country;
 
     try {
       await invoke<void>('set_node_location', {

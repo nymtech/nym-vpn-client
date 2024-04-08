@@ -42,7 +42,7 @@ async function logJs(level: Level, message: string) {
   try {
     await invoke<void>('log_js', { level, message });
   } catch (e) {
-    console.error(`invoke log_js failed: ${e}`);
+    console.error('invoke log_js failed:', e);
   }
 }
 

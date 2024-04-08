@@ -16,7 +16,7 @@ async function initSentry() {
   try {
     version = await getVersion();
   } catch (e) {
-    console.warn(`failed to get app version from tauri: ${e}`);
+    console.warn('failed to get app version from tauri:', e);
   }
 
   if (!dsn) {
