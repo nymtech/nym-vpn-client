@@ -19,10 +19,15 @@ use serde::{Deserialize, Serialize};
 // #[derive(Clone, Debug, Deserialize, Serialize, uniffi::Enum)]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum EntryPoint {
+    // An explicit entry gateway identity.
     Gateway { identity: NodeIdentity },
+    // Select a random entry gateway in a specific location.
     // NOTE: Consider using a crate with strongly typed country codes instead of strings
     Location { location: String },
+    // Select a random entry gateway but increasey probability of selecting a low latency gateway
+    // as determined by ping times.
     RandomLowLatency,
+    // Select an entry gateway at random.
     Random,
 }
 
@@ -45,7 +50,7 @@ impl EntryPoint {
     pub async fn lookup_gateway_identity(
         &self,
         gateways: &[DescribedGatewayWithLocation],
-    ) -> Result<NodeIdentity> {
+    ) -> Result<(NodeIdentity, Option<String>)> {
         match &self {
             EntryPoint::Gateway { identity } => {
                 // Confirm up front that the gateway identity is in the list of gateways from the
@@ -54,9 +59,10 @@ impl EntryPoint {
                     .iter()
                     .find(|gateway| gateway.identity_key() == &identity.to_string())
                     .ok_or(Error::NoMatchingGateway)?;
-                Ok(*identity)
+                Ok((*identity, None))
             }
             EntryPoint::Location { location } => {
+                log::info!("Selecting a random entry gateway in location: {}", location);
                 // Caution: if an explorer-api for a different network was specified, then
                 // none of the gateways will have an associated location. There is a check
                 // against this earlier in the call stack to guard against this scenario.

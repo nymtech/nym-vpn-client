@@ -64,7 +64,7 @@ fn parse_exit_point(args: &commands::RunArgs) -> Result<ExitPoint> {
             location: exit_gateway_country.clone(),
         })
     } else {
-        Err(Error::MissingExitPointInformation)
+        Ok(ExitPoint::Random)
     }
 }
 

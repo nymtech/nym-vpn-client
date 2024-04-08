@@ -366,11 +366,18 @@ impl NymVpn {
             return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
         }
 
-        let entry_gateway_id = self.entry_point.lookup_gateway_identity(&gateways).await?;
+        let (entry_gateway_id, entry_location) =
+            self.entry_point.lookup_gateway_identity(&gateways).await?;
+        let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
         log::info!("Gateway id {:?}", entry_gateway_id);
-        let exit_router_address = self.exit_point.lookup_router_address(&gateways)?;
 
-        info!("Using entry gateway: {entry_gateway_id}");
+        let (exit_router_address, exit_location) =
+            self.exit_point.lookup_router_address(&gateways)?;
+        let exit_location_str = exit_location.as_deref().unwrap_or("unknown");
+        let exit_gateway_id = exit_router_address.gateway();
+
+        info!("Using entry gateway: {entry_gateway_id}, location: {entry_location_str}");
+        info!("Using exit gateway: {exit_gateway_id}, location: {exit_location_str}");
         info!("Using exit router address {exit_router_address}");
 
         let wireguard_config = if self.enable_wireguard {
