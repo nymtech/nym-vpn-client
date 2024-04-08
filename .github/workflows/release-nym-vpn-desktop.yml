@@ -21,23 +21,25 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-wireguard-go:
-    strategy:
-      matrix:
-        os: [ubuntu-22.04-arc, custom-runner-mac-m1]
-    uses: ./.github/workflows/build-wireguard-go.yml
-    with:
-      os: ${{ matrix.os }}
+  # build-wireguard-go:
+  #   strategy:
+  #     matrix:
+  #       os: [ubuntu-22.04-16-core, macos-14]
+  #   uses: ./.github/workflows/build-wireguard-go.yml
+  #   with:
+  #     os: ${{ matrix.os }}
 
   build-wireguard-go-windows:
     uses: ./.github/workflows/build-wireguard-go-windows.yml
 
   build:
-    needs: [build-wireguard-go, build-wireguard-go-windows]
+    # needs: [build-wireguard-go, build-wireguard-go-windows]
+    needs: [build-wireguard-go-windows]
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04-arc, custom-runner-mac-m1, custom-windows-11]
+        # os: [ubuntu-22.04-16-core, macos-14, custom-windows-11]
+        os: [custom-windows-11]
         target: [native]
     runs-on: ${{ matrix.os }}
     env:
@@ -151,12 +153,6 @@ jobs:
           # set gh outputs
           echo "pkg_version=$version" >> "$GITHUB_OUTPUT"
 
-      - name: Install rust toolchain
-        uses: brndnmtthws/rust-action-rustup@v1
-        with:
-          toolchain: stable
-          components: rustfmt, clippy
-
       - name: Install cargo-about
         run: cargo install --locked cargo-about
 
@@ -191,17 +187,6 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download/Unzip/Move wintun.zip and winpcap.zip
-        if: contains(matrix.os, 'windows')
-        shell: bash
-        run: |
-          curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
-          curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
-          unzip ${GITHUB_WORKSPACE}/wintun.zip
-          unzip ${GITHUB_WORKSPACE}/winpcap.zip
-          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/lib/
-          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${GITHUB_WORKSPACE}/lib/
-
       - name: Checkout mullvad libs for Windows
         if: contains(matrix.os, 'windows')
         uses: actions/checkout@v4
@@ -218,6 +203,18 @@ jobs:
           cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
           ./build-windows-modules.sh
           mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/lib/
+
+      - name: Download/Unzip/Move wintun.zip and winpcap.zip
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        run: |
+          curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
+          curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
+          unzip ${GITHUB_WORKSPACE}/wintun.zip
+          unzip ${GITHUB_WORKSPACE}/winpcap.zip
+          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/lib/
+          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${GITHUB_WORKSPACE}/lib/
+          cp -r ${GITHUB_WORKSPACE}/lib/* ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
 
       - name: Prepare desktop build
         shell: bash
@@ -325,7 +322,6 @@ jobs:
           cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/appimage/nym-vpn*.AppImage ${{ env.ARTIFACT_DIR }} || true
           cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/deb/nym-vpn*.deb ${{ env.ARTIFACT_DIR }} || true
           cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
-          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup ${{ env.ARTIFACT_DIR }} || true
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Prepare AppImage
@@ -343,10 +339,19 @@ jobs:
           retention-days: 2
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
+        if: "!contains(matrix.os , 'windows')"
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_ARCHIVE }}
           path: ${{ env.ARTIFACT_ARCHIVE }}
+          retention-days: 2
+
+      - name: Upload artifacts (${{ env.PLATFORM_ARCH }}) (Windows)
+        if: contains(matrix.os, 'windows')
+        uses: actions/upload-artifact@v4
+        with:
+          name: nym-vpn_${{ env.PKG_VERSION }}_x64-setup
+          path: nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup
           retention-days: 2
 
       # Build info, but for now it's just the version
