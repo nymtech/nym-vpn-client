@@ -119,7 +119,7 @@ jobs:
             rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
           elif ${{ contains(matrix.os, 'windows') }}; then
             platform_arch=x86_64-pc-windows-msvc
-            rustflags="-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
+            rustflags="-L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x86_64-pc-windows-msvc -L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/ -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x64-Debug"
             sed -i 's/-dev/-1/g' nym-vpn-desktop/src-tauri/Cargo.toml
             version=$(sed 's/-dev/-1/g' <<< $version)
           else
@@ -164,11 +164,11 @@ jobs:
           echo "ARCH_TARGET=universal-apple-darwin" >> $GITHUB_ENV
 
       ## Make sure not to use the full variable, windows recreate the entire path....
-      - name: Create directory for Windows
-        if: contains(matrix.os, 'windows')
-        shell: bash
-        run: |
-          mkdir -p ${GITHUB_WORKSPACE}/lib/
+      # - name: Create directory for Windows
+      #   if: contains(matrix.os, 'windows')
+      #   shell: bash
+      #   run: |
+      #     mkdir -p ${GITHUB_WORKSPACE}/lib/
 
       - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/download-artifact@v4
