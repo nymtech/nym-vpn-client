@@ -6,6 +6,7 @@ mod commands;
 use std::fs;
 use std::path::PathBuf;
 
+use commands::ImportCredentialTypeEnum;
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayConfig;
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
@@ -79,7 +80,10 @@ async fn run() -> Result<()> {
 
     match args.command {
         Commands::Run(args) => run_vpn(args, config_path).await,
-        Commands::ImportCredential(args) => import_credential(args, config_path).await,
+        Commands::ImportCredential(args) => {
+            let config_path = config_path.ok_or(Error::ConfigPathNotSet)?;
+            import_credential(args, config_path).await
+        }
     }
 }
 
@@ -128,16 +132,12 @@ async fn run_vpn(args: commands::RunArgs, config_path: Option<PathBuf>) -> Resul
 
 async fn import_credential(
     args: commands::ImportCredentialArgs,
-    config_path: Option<PathBuf>,
+    config_path: PathBuf,
 ) -> Result<()> {
-    let config_path = config_path.expect("config path not set");
-    let raw_credential = match args.credential_type.credential_data {
-        Some(data) => data,
-        None => fs::read(
-            args.credential_type
-                .credential_path
-                .expect("unreachable according to clap"),
-        )?,
+    let data: ImportCredentialTypeEnum = args.credential_type.into();
+    let raw_credential = match data {
+        ImportCredentialTypeEnum::Path(path) => fs::read(path)?,
+        ImportCredentialTypeEnum::Data(data) => data,
     };
     nym_vpn_lib::credentials::import_credential(raw_credential, config_path).await
 }

@@ -228,3 +228,19 @@ fn check_path(path: &str) -> Result<PathBuf, String> {
 fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
     bs58::decode(raw).into_vec()
 }
+
+// Workaround until clap supports enums for ArgGroups
+pub enum ImportCredentialTypeEnum {
+    Path(PathBuf),
+    Data(Vec<u8>),
+}
+
+impl From<ImportCredentialType> for ImportCredentialTypeEnum {
+    fn from(ict: ImportCredentialType) -> Self {
+        match (ict.credential_data, ict.credential_path) {
+            (Some(data), None) => ImportCredentialTypeEnum::Data(data),
+            (None, Some(path)) => ImportCredentialTypeEnum::Path(path),
+            _ => unreachable!(),
+        }
+    }
+}
