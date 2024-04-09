@@ -67,6 +67,10 @@ impl SharedMixnetClient {
         handle.disconnect().await;
         self
     }
+
+    pub fn inner(&self) -> Arc<tokio::sync::Mutex<Option<MixnetClient>>> {
+        self.0.clone()
+    }
 }
 
 async fn send_connect_to_ip_packet_router(

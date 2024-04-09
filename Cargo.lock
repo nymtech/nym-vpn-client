@@ -3687,6 +3687,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-connection-monitor"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "bytes",
+ "futures",
+ "nym-ip-packet-requests",
+ "nym-sdk",
+ "nym-task",
+ "pnet_packet",
+ "thiserror",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "nym-contracts-common"
 version = "0.5.0"
 source = "git+https://github.com/nymtech/nym?rev=c482569fdbdaa5768efaa2972301cc64b6a68e0f#c482569fdbdaa5768efaa2972301cc64b6a68e0f"
@@ -4561,6 +4577,7 @@ dependencies = [
  "nym-bin-common",
  "nym-client-core",
  "nym-config",
+ "nym-connection-monitor",
  "nym-credential-storage",
  "nym-crypto",
  "nym-explorer-client",

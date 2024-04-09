@@ -12,6 +12,7 @@ use crate::wg_gateway_client::{WgConfig, WgGatewayClient};
 use futures::channel::{mpsc, oneshot};
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
+use nym_connection_monitor::ConnectionMonitorTask;
 use nym_gateway_directory::{Config, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress};
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
@@ -44,7 +45,7 @@ use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
 
-mod connection_monitor;
+// mod connection_monitor;
 mod platform;
 mod uniffi_custom_impls;
 mod util;
@@ -250,7 +251,7 @@ impl NymVpn {
         let mixnet_client_sender = mixnet_client.split_sender().await;
 
         // Setup connection monitor shared tag and channels
-        let connection_monitor = connection_monitor::ConnectionMonitorTask::setup();
+        let connection_monitor = ConnectionMonitorTask::setup();
 
         let shadow_handle = mixnet_processor::start_processor(
             processor_config,
@@ -268,7 +269,7 @@ impl NymVpn {
             mixnet_client_sender,
             mixnet_client_address,
             our_ips,
-            exit_router,
+            exit_router.0,
             task_manager,
         );
 
@@ -316,8 +317,7 @@ impl NymVpn {
 
         // Check that we can ping ourselves before continuing
         info!("Sending mixnet ping to ourselves to verify mixnet connection");
-        connection_monitor::mixnet_beacon::self_ping_and_wait(nym_address, mixnet_client.clone())
-            .await?;
+        nym_connection_monitor::self_ping_and_wait(nym_address, mixnet_client.inner()).await?;
         info!("Successfully mixnet pinged ourselves");
 
         if let Err(err) = self
