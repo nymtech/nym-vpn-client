@@ -103,7 +103,7 @@ pub enum Error {
     #[error("mixnet client stopped returning responses")]
     NoMixnetMessagesReceived,
 
-    #[error("timeout waiting for connect response")]
+    #[error("timeout waiting for connect response from exit gateway (ipr)")]
     TimeoutWaitingForConnectResponse,
 
     #[error("connect request denied: {reason}")]
