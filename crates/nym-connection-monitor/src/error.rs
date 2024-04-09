@@ -3,8 +3,10 @@ pub enum Error {
     #[error("{0}")]
     NymSdkError(#[from] nym_sdk::Error),
 
-    #[error("timeout waiting for connect response")]
-    TimeoutWaitingForConnectResponse,
+    #[error(
+        "timeout waiting for mixnet self ping, the entry gateway is not routing our mixnet traffic"
+    )]
+    TimeoutWaitingForMixnetSelfPing,
 
     #[error("failed to serialize message")]
     FailedToSerializeMessage {

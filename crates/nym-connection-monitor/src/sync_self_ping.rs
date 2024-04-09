@@ -65,7 +65,7 @@ async fn wait_for_self_ping_return(
         tokio::select! {
             _ = &mut timeout => {
                 error!("Timed out waiting for mixnet self ping to return");
-                return Err(Error::TimeoutWaitingForConnectResponse);
+                return Err(Error::TimeoutWaitingForMixnetSelfPing);
             }
             Some(msgs) = mixnet_client.wait_for_messages() => {
                 for msg in msgs {
