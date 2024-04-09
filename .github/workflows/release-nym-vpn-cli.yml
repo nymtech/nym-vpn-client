@@ -124,7 +124,6 @@ jobs:
             wg_go_lib_name="wireguard-go_apple_universal"
           elif ${{ contains(matrix.os, 'windows') }}; then
             platform_arch=x86_64-pc-windows-msvc
-            rustflags="-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
             wg_go_lib_name="wireguard-go_$platform_arch"
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
@@ -239,8 +238,8 @@ jobs:
         shell: bash
         run: |
           cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
-          ./build-windows-modules.sh
-          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/lib/
+          CPP_BUILD_MODES=Release ./build-windows-modules.sh
+          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release ${GITHUB_WORKSPACE}/lib/
 
       - name: Build native
         if: contains(matrix.target, 'native') && !contains(matrix.os, 'windows')
@@ -251,7 +250,7 @@ jobs:
       - name: Build Windows
         if: contains(matrix.os, 'windows')
         env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Release"
         run: cargo build --release --verbose
 
       - name: Build universal (macos)
