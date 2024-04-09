@@ -413,7 +413,8 @@ impl NymVpn {
                     .start_status_listener(vpn_status_tx, start_status)
                     .await;
                 let result =
-                    wait_for_interrupt_and_signal(specific_setup.task_manager, vpn_ctrl_rx).await;
+                    wait_for_interrupt_and_signal(Some(specific_setup.task_manager), vpn_ctrl_rx)
+                        .await;
                 handle_interrupt(route_manager, None, tunnel_close_tx)
                     .await
                     .map_err(|err| {
@@ -423,6 +424,7 @@ impl NymVpn {
                 result
             }
             AllTunnelsSetup::Wg { entry, exit } => {
+                let result = wait_for_interrupt_and_signal(None, vpn_ctrl_rx).await;
                 for TunnelSetup {
                     mut tunnel,
                     route_manager,
@@ -453,7 +455,7 @@ impl NymVpn {
                         }
                     })?;
                 }
-                Ok(())
+                result
             }
         }
     }

@@ -18,9 +18,16 @@ pub(crate) async fn wait_for_interrupt(mut task_manager: nym_task::TaskManager) 
 }
 
 pub(crate) async fn wait_for_interrupt_and_signal(
-    mut task_manager: nym_task::TaskManager,
+    mut task_manager: Option<nym_task::TaskManager>,
     mut vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
 ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    let task_manager_wait = async {
+        if let Some(task_manager) = &mut task_manager {
+            task_manager.wait_for_error().await
+        } else {
+            std::future::pending().await
+        }
+    };
     let res = tokio::select! {
         biased;
         message = vpn_ctrl_rx.next() => {
@@ -35,7 +42,7 @@ pub(crate) async fn wait_for_interrupt_and_signal(
             }
             Ok(())
         }
-        Some(msg) = task_manager.wait_for_error() => {
+        Some(msg) = task_manager_wait => {
             log::info!("Task error: {:?}", msg);
             Err(msg)
         }
@@ -44,14 +51,15 @@ pub(crate) async fn wait_for_interrupt_and_signal(
             Ok(())
         },
     };
+    if let Some(mut task_manager) = task_manager {
+        info!("Sending shutdown signal");
+        task_manager.signal_shutdown().ok();
 
-    info!("Sending shutdown signal");
-    task_manager.signal_shutdown().ok();
+        info!("Waiting for tasks to finish... (Press ctrl-c to force)");
+        task_manager.wait_for_shutdown().await;
 
-    info!("Waiting for tasks to finish... (Press ctrl-c to force)");
-    task_manager.wait_for_shutdown().await;
-
-    info!("Stopping mixnet client");
+        info!("Stopping mixnet client");
+    }
     res
 }
 
