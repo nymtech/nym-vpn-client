@@ -1,7 +1,7 @@
 pub mod cli;
 pub mod connection;
+pub mod credentials;
 pub mod db;
 pub mod log;
 pub mod node_location;
 pub mod window;
-pub mod credentials;
