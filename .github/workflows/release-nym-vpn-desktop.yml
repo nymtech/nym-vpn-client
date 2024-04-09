@@ -446,7 +446,7 @@ jobs:
           sha256sum nym-vpn*.AppImage > nym-vpn_${PKG_VERSION}.AppImage.sha256sum
           popd
           pushd $WINDOWS_DIR
-          sha256sum nym-vpn*.exe > nym-vpn_${PKG_VERSION}_windows.sha256sum
+          sha256sum nym-vpn*.exe > nym-vpn_${PKG_VERSION}_x64-setup.exe.sha256sum
           popd
           rmdir nym-vpn-desktop_*tar.gz || true
           for file in nym-vpn-desktop_*tar.gz; do pushd $file; for f in nym-vpn-desktop_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
