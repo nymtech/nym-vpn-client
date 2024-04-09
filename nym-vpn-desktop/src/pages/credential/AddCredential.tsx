@@ -1,6 +1,8 @@
+import { invoke } from '@tauri-apps/api';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NymIcon } from '../../assets';
+import { CmdError } from '../../types';
 import { Button, PageAnim, TextArea } from '../../ui';
 
 function AddCredential() {
@@ -12,7 +14,14 @@ function AddCredential() {
     setPhrase(phrase);
   };
 
-  const handleClick = async () => {};
+  const handleClick = async () => {
+    await invoke('add_credential', { credential: phrase }).catch(
+      (e: CmdError) => {
+        console.warn('backend error:', e);
+      },
+    );
+    // TODO handle errors/bad credential
+  };
 
   return (
     <PageAnim className="h-full flex flex-col justify-end items-center gap-10">

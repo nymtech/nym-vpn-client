@@ -22,7 +22,7 @@ pub async fn add_credential(credential: String) -> Result<(), CmdError> {
     path.push(CREDENTIAL_DIR);
     info!("using path for credential: {:?}", path);
     check_dir(&path).await.map_err(|e| {
-        error!("Failed to check directory {:?}: {e}", path);
+        error!("failed to check directory {:?}: {e}", path);
         CmdError::new(
             CmdErrorSource::InternalError,
             "failed to import credential".to_string(),
@@ -31,12 +31,14 @@ pub async fn add_credential(credential: String) -> Result<(), CmdError> {
 
     import_credential_base58(&credential, path)
         .await
-        .map_err(|_| {
+        .map_err(|e| {
+            error!("failed to import credential: {:?}", e);
             CmdError::new(
                 CmdErrorSource::InternalError,
                 "failed to import credential".to_string(),
             )
         })?;
+    // TODO handle errors/bad credential
 
     Ok(())
 }
