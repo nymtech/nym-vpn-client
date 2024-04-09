@@ -112,8 +112,9 @@ jobs:
           elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
             platform_arch=ubuntu-20.04_x86_64
             rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
-          elif ${{ contains(matrix.os, 'mac') }}; then
+          elif ${{ (matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-14') && matrix.target == 'native' }}; then
             platform_arch=macos_universal
+            wg_go_lib_name="wireguard-go_apple_universal"
             rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
           elif ${{ contains(matrix.os, 'windows') }}; then
             platform_arch=x86_64-pc-windows-msvc
