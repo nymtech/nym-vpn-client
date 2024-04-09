@@ -288,3 +288,65 @@ fn is_public_ip(addr: IpAddr) -> bool {
         .iter()
         .any(|net| net.contains(addr))
 }
+
+#[derive(serde::Serialize)]
+enum AndroidControlMessageType {
+    // The VPN has been stopped successfully
+    StopSuccess,
+    // The VPN stopped, but with an error
+    StopError,
+    // The VPN sent an error, but has not stopped
+    Error,
+}
+
+#[derive(serde::Serialize)]
+struct AndroidControlMessage {
+    kind: AndroidControlMessageType,
+    message: Option<String>,
+}
+
+impl From<&NymVpnExitStatusMessage> for AndroidControlMessage {
+    fn from(status: &NymVpnExitStatusMessage) -> Self {
+        match status {
+            NymVpnExitStatusMessage::Stopped => AndroidControlMessage {
+                kind: AndroidControlMessageType::StopSuccess,
+                message: None,
+            },
+            NymVpnExitStatusMessage::Failed(error) => AndroidControlMessage {
+                kind: AndroidControlMessageType::StopError,
+                message: Some(error.to_string()),
+            },
+        }
+    }
+}
+
+impl From<&crate::Error> for AndroidControlMessage {
+    fn from(error: &crate::Error) -> Self {
+        match error {
+            crate::Error::StopError => AndroidControlMessage {
+                kind: AndroidControlMessageType::StopError,
+                message: Some(error.to_string()),
+            },
+            _ => AndroidControlMessage {
+                kind: AndroidControlMessageType::Error,
+                message: Some(error.to_string()),
+            },
+        }
+    }
+}
+
+fn send_android_control_message(exit_status_msg: &NymVpnExitStatusMessage) {
+    let android_control_message: AndroidControlMessage = exit_status_msg.into();
+    let android_control_message_str = match serde_json::to_string(&android_control_message) {
+        Ok(json) => json,
+        Err(_) => {
+            // If we fail to serialize, serialize a static message that we know will work
+            serde_json::to_string(&AndroidControlMessage {
+                kind: AndroidControlMessageType::StopError,
+                message: None,
+            })
+            .unwrap()
+        }
+    };
+    info!("ANDROID: {android_control_message_str}",);
+}
