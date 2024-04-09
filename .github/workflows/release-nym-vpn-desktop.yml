@@ -344,7 +344,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         uses: actions/upload-artifact@v4
         with:
-          name: nym-vpn_${{ env.PKG_VERSION }}
+          name: nym-vpn-desktop_${{ env.PKG_VERSION }}_windows
           path: nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup.exe
           retention-days: 2
 
