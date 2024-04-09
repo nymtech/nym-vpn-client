@@ -44,9 +44,11 @@ jobs:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
       UPDATER_BUNDLE_DIR: updater_bundle
       APPIMAGE_DIR: appimage
+      WINDOWS_DIR: windows
     outputs:
       pkg_version: ${{ steps.set_env.outputs.pkg_version }}
       appimage_dir: ${{ env.APPIMAGE_DIR }}
+      windows_dir: ${{ env.WINDOWS_DIR }}
 
     steps:
       - name: "Cleanup working directory"
@@ -293,7 +295,7 @@ jobs:
         shell: bash
         env:
           SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup.nsis.zip
-          TARGET_BUNDLE: updater_windows.tar.gz
+          TARGET_BUNDLE: updater_windows.nsis.zip
         run: |
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
@@ -347,7 +349,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         uses: actions/upload-artifact@v4
         with:
-          name: nym-vpn-desktop_${{ env.PKG_VERSION }}_windows
+          name: ${{ env.WINDOWS_DIR }}
           path: nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup.exe
           retention-days: 2
 
@@ -381,6 +383,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PKG_VERSION: ${{ needs.build.outputs.pkg_version }}
       APPIMAGE_DIR: ${{ needs.build.outputs.appimage_dir }}
+      WINDOWS_DIR: ${{ needs.build.outputs.windows_dir }}
     permissions:
       contents: write
     steps:
@@ -442,6 +445,9 @@ jobs:
           pushd $APPIMAGE_DIR
           sha256sum nym-vpn*.AppImage > nym-vpn_${PKG_VERSION}.AppImage.sha256sum
           popd
+          pushd $WINDOWS_DIR
+          sha256sum nym-vpn*.exe > nym-vpn_${PKG_VERSION}_x64-setup.exe.sha256sum
+          popd
           rmdir nym-vpn-desktop_*tar.gz || true
           for file in nym-vpn-desktop_*tar.gz; do pushd $file; for f in nym-vpn-desktop_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
@@ -471,8 +477,8 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
