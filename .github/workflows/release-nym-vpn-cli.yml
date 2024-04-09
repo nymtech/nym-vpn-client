@@ -124,6 +124,7 @@ jobs:
             wg_go_lib_name="wireguard-go_apple_universal"
           elif ${{ contains(matrix.os, 'windows') }}; then
             platform_arch=x86_64-pc-windows-msvc
+            rustflags="-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
             wg_go_lib_name="wireguard-go_$platform_arch"
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
@@ -146,12 +147,14 @@ jobs:
           echo " ✓ WG_GO_LIB_PATH: ${{ env.WG_GO_LIB_PATH }}"
           echo " ✓ ARTIFACT_DIR: $artifact_dir"
           echo " ✓ ARTIFACT_ARCHIVE: $artifact_archive"
+          echo " ✓ RUSTFLAGS: $rustflags"
           # set github env
           echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
           echo "WG_GO_LIB_NAME=$wg_go_lib_name" >> $GITHUB_ENV
           echo "ARTIFACT_DIR=$artifact_dir" >> $GITHUB_ENV
           echo "ARTIFACT_ARCHIVE=$artifact_archive" >> $GITHUB_ENV
           echo "ARTIFACT_CHECKSUM=$artifact_checksum" >> $GITHUB_ENV
+          echo "RUSTFLAGS=$rustflags" >> $GITHUB_ENV
 
       - name: Set CARGO_FEATURES
         if: inputs.enable_metrics_server == true
@@ -159,9 +162,9 @@ jobs:
           echo 'CARGO_FEATURES=--features metrics-server' >> $GITHUB_ENV
 
       - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        if: contains(matrix.target, 'native')
+        uses: brndnmtthws/rust-action-rustup@v1
         with:
+          toolchain: stable
           components: rustfmt, clippy
 
       - name: Install extra arch apple
@@ -171,7 +174,6 @@ jobs:
           rustup target add aarch64-apple-ios
           rustup target add x86_64-apple-ios
           rustup target add aarch64-apple-ios-sim
-
 
       ## Make sure not to use the full variable, windows recreate the entire path....
       - name: Create directory for Windows
@@ -391,4 +393,3 @@ jobs:
           echo "Creating release"
           echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/*
           gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/*
-
