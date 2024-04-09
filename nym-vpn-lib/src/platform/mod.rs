@@ -83,7 +83,7 @@ async fn wait_for_shutdown(
     handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
     let exit_status_msg = handle.vpn_exit_rx.await?;
     #[cfg(target_os = "android")]
-    send_android_control_message(&exit_status_msg);
+    print_android_control_message(&exit_status_msg);
     match exit_status_msg {
         NymVpnExitStatusMessage::Failed(error) => {
             error!(

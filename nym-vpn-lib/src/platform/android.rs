@@ -335,7 +335,7 @@ impl From<&crate::Error> for AndroidControlMessage {
     }
 }
 
-fn send_android_control_message(exit_status_msg: &NymVpnExitStatusMessage) {
+fn print_android_control_message(exit_status_msg: &NymVpnExitStatusMessage) {
     let android_control_message: AndroidControlMessage = exit_status_msg.into();
     let android_control_message_str = match serde_json::to_string(&android_control_message) {
         Ok(json) => json,
