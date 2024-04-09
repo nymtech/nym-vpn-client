@@ -18,8 +18,8 @@
     "build": "tsc && vite build",
     "build:app": "npm run tauri build",
     "preview": "vite preview",
-    "lint": "eslint --ext .ts,.tsx src/",
-    "lint:fix": "eslint --ext .js,.ts --fix src/",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix",
     "fmt": "prettier --write --ignore-unknown \"**/*\"",
     "fmt:check": "prettier --check --ignore-unknown \"**/*\"",
     "tscheck": "tsc --noEmit",
@@ -48,17 +48,16 @@
     "react-window": "^1.8.10"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@tauri-apps/cli": "^1.5.0",
     "@types/lodash-es": "^4.17.0",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
     "@types/react-router-dom": "^5.3.3",
     "@types/react-window": "^1.8.8",
-    "@typescript-eslint/eslint-plugin": "^6.8.0",
-    "@typescript-eslint/parser": "^6.8.0",
     "@vitejs/plugin-react-swc": "^3.3.2",
     "autoprefixer": "^10.4.16",
-    "eslint": "^8.52.0",
+    "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-import": "^2.29.0",
@@ -71,6 +70,7 @@
     "prettier": "^3.0.3",
     "tailwindcss": "^3.3.3",
     "typescript": "^5.0.2",
+    "typescript-eslint": "^7.6.0",
     "vite": "^5.0.5",
     "vite-plugin-svgr": "^4.2.0"
   }
