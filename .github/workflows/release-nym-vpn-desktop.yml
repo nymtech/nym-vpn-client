@@ -108,9 +108,11 @@ jobs:
 
           if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
             platform_arch=ubuntu-22.04_x86_64
+            wg_go_lib_name="wireguard-go_$platform_arch"
             rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
           elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
             platform_arch=ubuntu-20.04_x86_64
+            wg_go_lib_name="wireguard-go_$platform_arch"
             rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
           elif ${{ (matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-14') && matrix.target == 'native' }}; then
             platform_arch=macos_universal
@@ -118,6 +120,7 @@ jobs:
             rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
           elif ${{ contains(matrix.os, 'windows') }}; then
             platform_arch=x86_64-pc-windows-msvc
+            wg_go_lib_name="wireguard-go_$platform_arch"
             rustflags="-L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x86_64-pc-windows-msvc -L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/ -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x64-Debug"
             sed -i 's/-dev/-1/g' nym-vpn-desktop/src-tauri/Cargo.toml
             sed -i 's/"bundle": {/"bundle": {"resources": ["wintun.dll", "vcruntime140.dll", "libwg.dll", "winfw.dll"],/g' nym-vpn-desktop/src-tauri/tauri.conf.json
@@ -126,7 +129,6 @@ jobs:
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
           fi
-          wg_go_lib_name="wireguard-go_$platform_arch"
           artifact_dir="nym-vpn-desktop_${version}_$platform_arch"
           artifact_archive="$artifact_dir.tar.gz"
           artifact_checksum="$artifact_archive.sha256sum"
