@@ -4,3 +4,4 @@ pub mod db;
 pub mod log;
 pub mod node_location;
 pub mod window;
+pub mod credentials;
