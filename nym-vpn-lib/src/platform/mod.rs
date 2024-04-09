@@ -12,6 +12,7 @@ use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
 use nym_task::manager::TaskStatus;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use talpid_core::mpsc::Sender;
 use tokio::runtime::Runtime;
@@ -28,6 +29,7 @@ pub mod swift;
 
 lazy_static! {
     static ref VPN_SHUTDOWN_HANDLE: Mutex<Option<Arc<Notify>>> = Mutex::new(None);
+    static ref RUNNING: AtomicBool = AtomicBool::new(false);
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
 }
 
@@ -44,7 +46,8 @@ async fn set_shutdown_handle(handle: Arc<Notify>) -> Result<(), FFIError> {
 async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
     let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
     if let Some(sh) = &*guard {
-        sh.notify_waiters()
+        sh.notify_waiters();
+        sh.notified().await;
     } else {
         return Err(FFIError::VpnNotStarted);
     }
@@ -132,8 +135,18 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn, FFIError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
-    let vpn = sync_run_vpn(config)?;
-    RUNTIME.block_on(run_vpn(vpn))
+    if RUNNING.fetch_or(true, Ordering::Relaxed) {
+        return Err(FFIError::VpnAlreadyRunning);
+    }
+    let vpn = sync_run_vpn(config);
+    if vpn.is_err() {
+        RUNNING.store(false, Ordering::Relaxed);
+    }
+    let ret = RUNTIME.block_on(run_vpn(vpn?));
+    if ret.is_err() {
+        RUNNING.store(false, Ordering::Relaxed);
+    }
+    ret
 }
 
 async fn run_vpn(vpn: NymVpn) -> Result<(), FFIError> {
@@ -144,12 +157,13 @@ async fn run_vpn(vpn: NymVpn) -> Result<(), FFIError> {
         }
         Ok((stop_handle, handle)) => {
             RUNTIME.spawn(async move {
-                wait_for_shutdown(stop_handle, handle)
+                wait_for_shutdown(stop_handle.clone(), handle)
                     .await
                     .map_err(|err| {
                         warn!("error during vpn run: {}", err);
                     })
                     .ok();
+                stop_handle.notify_one();
             });
             Ok(())
         }
@@ -159,6 +173,9 @@ async fn run_vpn(vpn: NymVpn) -> Result<(), FFIError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn stopVPN() -> Result<(), FFIError> {
+    if !RUNNING.fetch_and(false, Ordering::Relaxed) {
+        return Err(FFIError::VpnNotRunning);
+    }
     RUNTIME.block_on(stop_vpn())
 }
 
