@@ -382,7 +382,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PKG_VERSION: ${{ needs.build.outputs.pkg_version }}
       APPIMAGE_DIR: ${{ needs.build.outputs.appimage_dir }}
-      WINDOWS_DIR: ${{ needs.build.outputs.appimage_dir }}
+      WINDOWS_DIR: ${{ needs.build.outputs.windows_dir }}
     permissions:
       contents: write
     steps:
