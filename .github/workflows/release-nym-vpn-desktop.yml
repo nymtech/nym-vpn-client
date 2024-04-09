@@ -123,10 +123,8 @@ jobs:
           elif ${{ contains(matrix.os, 'windows') }}; then
             platform_arch=x86_64-pc-windows-msvc
             wg_go_lib_name="wireguard-go_$platform_arch"
-            rustflags="-L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x86_64-pc-windows-msvc -L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/ -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x64-Debug"
-            sed -i 's/-dev/-1/g' nym-vpn-desktop/src-tauri/Cargo.toml
+            rustflags="-L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x86_64-pc-windows-msvc -L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/ -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x64-Release"
             sed -i 's/"bundle": {/"bundle": {"resources": ["wintun.dll", "vcruntime140.dll", "libwg.dll", "winfw.dll"],/g' nym-vpn-desktop/src-tauri/tauri.conf.json
-            version=$(sed 's/-dev/-1/g' <<< $version)
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
@@ -198,9 +196,9 @@ jobs:
         shell: bash
         run: |
           cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
-          ./build-windows-modules.sh
-          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
-          cp ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x64-Debug/winfw.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          CPP_BUILD_MODES=Release ./build-windows-modules.sh
+          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          cp ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x64-Release/winfw.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
 
       - name: Download/Unzip/Move wintun.zip and winpcap.zip, also move wireguard lib for windows
         if: contains(matrix.os, 'windows')
