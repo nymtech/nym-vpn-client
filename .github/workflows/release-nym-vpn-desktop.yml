@@ -119,6 +119,7 @@ jobs:
             platform_arch=x86_64-pc-windows-msvc
             rustflags="-L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x86_64-pc-windows-msvc -L ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/ -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x64-Debug"
             sed -i 's/-dev/-1/g' nym-vpn-desktop/src-tauri/Cargo.toml
+            sed -i 's/"bundle": {/"bundle": {"resources": ["wintun.dll", "vcruntime140.dll", "libwg.dll", "winfw.dll"],/g' nym-vpn-desktop/src-tauri/tauri.conf.json
             version=$(sed 's/-dev/-1/g' <<< $version)
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"

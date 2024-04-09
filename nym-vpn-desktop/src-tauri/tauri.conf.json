@@ -21,6 +21,10 @@
       "shell": {"all": false, "open": true}
     },
     "bundle": {
+      "resources": [
+        "wintun.dll"      , "vcruntime140.dll", "libwg.dll"       ,
+        "winfw.dll"
+      ],
       "active": true,
       "targets": "all",
       "identifier": "net.nymtech.vpn",
@@ -34,8 +38,7 @@
         "exceptionDomain": "",
         "signingIdentity": "Developer ID Application: Nym Technologies SA (VW5DZLFHM5)",
         "entitlements": null
-      },
-      "resources": ["wintun.dll", "vcruntime140.dll", "libwg.dll", "winfw.dll"]
+      }
     },
     "security": {"csp": null},
     "windows": [
