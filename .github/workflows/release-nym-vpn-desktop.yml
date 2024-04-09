@@ -48,6 +48,7 @@ jobs:
     outputs:
       pkg_version: ${{ steps.set_env.outputs.pkg_version }}
       appimage_dir: ${{ env.APPIMAGE_DIR }}
+      windows_dir: ${{ env.WINDOWS_DIR }}
 
     steps:
       - name: "Cleanup working directory"
