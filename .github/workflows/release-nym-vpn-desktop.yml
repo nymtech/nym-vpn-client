@@ -453,6 +453,7 @@ jobs:
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
           cat $APPIMAGE_DIR/*.sha256sum >> $GITHUB_ENV
+          cat $WINDOWS_DIR/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: AppImage installer bump version
