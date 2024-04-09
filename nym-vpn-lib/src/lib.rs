@@ -354,6 +354,7 @@ impl NymVpn {
                     })?;
             }
             AllTunnelsSetup::Wg { entry, exit } => {
+                wait_for_interrupt(TaskManager::new(10)).await;
                 for TunnelSetup {
                     mut tunnel,
                     route_manager,
