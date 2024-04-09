@@ -84,7 +84,7 @@ async fn wait_for_shutdown(
     match handle.vpn_exit_rx.await? {
         NymVpnExitStatusMessage::Failed(error) => {
             error!(
-                "{:?}",
+                "Stopped Nym VPN with error: {:?}",
                 error
                     .downcast_ref::<NymVpnExitError>()
                     .ok_or(crate::Error::StopError)?
