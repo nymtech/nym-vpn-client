@@ -26,7 +26,7 @@ function Home() {
           console.log(result);
         })
         .catch((e: CmdError) => {
-          console.warn(`backend error: ${e.source} - ${e.message}`);
+          console.warn('backend error:', e);
           dispatch({ type: 'set-error', error: e.message });
         });
     } else if (state === 'Disconnected') {
@@ -37,7 +37,7 @@ function Home() {
           console.log(result);
         })
         .catch((e: CmdError) => {
-          console.warn(`backend error: ${e.source} - ${e.message}`);
+          console.warn('backend error:', e);
           dispatch({ type: 'set-error', error: e.message });
         });
     }

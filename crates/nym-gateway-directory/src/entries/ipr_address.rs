@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{error::Result, Error};
-use nym_sdk::mixnet::Recipient;
+use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use nym_validator_client::models::DescribedGateway;
 
 #[derive(Debug, Copy, Clone)]
@@ -27,6 +27,10 @@ impl IpPacketRouterAddress {
             Recipient::try_from_base58_string(address)
                 .map_err(|_| Error::RecipientFormattingError)?,
         ))
+    }
+
+    pub fn gateway(&self) -> &NodeIdentity {
+        self.0.gateway()
     }
 }
 

@@ -154,6 +154,18 @@ pub enum Error {
 
     #[error("{0}")]
     GatewayDirectoryError(#[from] nym_gateway_directory::Error),
+
+    #[error("failed to import credential: {source}")]
+    FailedToImportCredential { source: nym_id::NymIdError },
+
+    #[error("failed decode base58 credential: {source}")]
+    FailedToDecodeBase58Credential { source: bs58::decode::Error },
+
+    #[error("config path not set")]
+    ConfigPathNotSet,
+
+    #[error("{0}")]
+    ConnectionMonitorError(#[from] nym_connection_monitor::Error),
 }
 
 // Result type based on our error type

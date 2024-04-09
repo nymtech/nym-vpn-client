@@ -25,28 +25,36 @@ where
         .ok_or(Error::FailedToSelectGatewayRandomly)
 }
 
-pub(crate) fn select_random_gateway_node<'a, I>(gateways: I) -> Result<NodeIdentity>
+pub(crate) fn select_random_gateway_node<'a, I>(
+    gateways: I,
+) -> Result<(NodeIdentity, Option<String>)>
 where
     I: IntoIterator<Item = &'a DescribedGatewayWithLocation>,
 {
     let random_gateway = select_random_described_gateway(gateways)?;
-    NodeIdentity::from_base58_string(random_gateway.identity_key())
-        .map_err(|_| Error::NodeIdentityFormattingError)
+    let id = NodeIdentity::from_base58_string(random_gateway.identity_key())
+        .map_err(|_| Error::NodeIdentityFormattingError)?;
+    Ok((id, random_gateway.two_letter_iso_country_code()))
 }
 
 pub(crate) async fn select_random_low_latency_gateway_node(
     gateways: &[DescribedGatewayWithLocation],
-) -> Result<NodeIdentity> {
+) -> Result<(NodeIdentity, Option<String>)> {
     let mut rng = rand::rngs::OsRng;
     let must_use_tls = FORCE_TLS_FOR_GATEWAY_SELECTION;
     let gateway_nodes: Vec<nym_topology::gateway::Node> = gateways
         .iter()
         .filter_map(|gateway| nym_topology::gateway::Node::try_from(&gateway.gateway).ok())
         .collect();
-    choose_gateway_by_latency(&mut rng, &gateway_nodes, must_use_tls)
+    let gateway = choose_gateway_by_latency(&mut rng, &gateway_nodes, must_use_tls)
         .await
         .map(|gateway| *gateway.identity())
-        .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })
+        .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })?;
+    let country = gateways
+        .iter()
+        .find(|g| g.identity_key() == &gateway.to_string())
+        .and_then(|gateway| gateway.two_letter_iso_country_code());
+    Ok((gateway, country))
 }
 
 pub(crate) fn list_all_country_iso_codes<'a, I>(gateways: I) -> Vec<String>
@@ -63,7 +71,7 @@ where
 pub(crate) async fn select_random_low_latency_described_gateway(
     gateways: &[DescribedGatewayWithLocation],
 ) -> Result<&DescribedGatewayWithLocation> {
-    let low_latency_gateway = select_random_low_latency_gateway_node(gateways).await?;
+    let (low_latency_gateway, _location) = select_random_low_latency_gateway_node(gateways).await?;
     gateways
         .iter()
         .find(|gateway| gateway.identity_key() == &low_latency_gateway.to_string())

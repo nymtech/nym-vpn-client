@@ -156,7 +156,7 @@ jobs:
         run: cargo install --locked cargo-about
 
       - name: Install extra arch macos
-        if: env.PLATFORM_ARCH == 'macos_universal'
+        if: env.PLATFORM_ARCH == 'apple_universal'
         run: |
           rustup target add x86_64-apple-darwin
           echo "CARGO_TARGET=--target universal-apple-darwin" >> $GITHUB_ENV

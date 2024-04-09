@@ -14,6 +14,7 @@ path = "uniffi-bindgen.rs"
 [dependencies]
 anyhow.workspace = true
 bincode.workspace = true
+bs58.workspace = true
 bytes.workspace = true
 futures.workspace = true
 hickory-resolver.workspace = true
@@ -52,8 +53,10 @@ talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", re
 nym-bin-common.workspace = true
 nym-client-core.workspace = true
 nym-config.workspace = true
+nym-credential-storage.workspace = true
 nym-crypto.workspace = true
 nym-explorer-client.workspace = true
+nym-id.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-node-requests.workspace = true
 nym-sdk.workspace = true
@@ -63,6 +66,7 @@ nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
 
 nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
+nym-connection-monitor = { path = "../crates/nym-connection-monitor" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.13.1"
@@ -76,3 +80,6 @@ oslog = "0.2.0"
 
 [build-dependencies]
 uniffi = { version = "0.27.0", features = ["build"] }
+
+[features]
+metrics-server = ["nym-client-core/metrics-server"]

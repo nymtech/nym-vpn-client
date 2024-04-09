@@ -3,15 +3,18 @@ name = "nym-vpn-cli"
 version = "0.0.10-dev"
 edition = "2021"
 license = "GPL-3.0-only"
+authors = ["Nym Technologies"]
 
 [dependencies]
 anyhow.workspace = true
+bs58.workspace = true
 clap = { version = "4.4.7", features = ["cargo", "derive"] }
+dirs = "5.0.1"
 ipnetwork.workspace = true
 log.workspace = true
 tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
-tracing.workspace = true
 tracing-subscriber.workspace = true
+tracing.workspace = true
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 
@@ -28,3 +31,12 @@ vergen = { version = "8.2.6", default-features = false, features = [
     "rustc",
     "cargo",
 ] }
+
+[features]
+metrics-server = ["nym-vpn-lib/metrics-server"]
+
+# Debian
+[package.metadata.deb]
+name = "nym-vpn-cli"
+maintainer-scripts = "debian"
+systemd-units = { enable = false }

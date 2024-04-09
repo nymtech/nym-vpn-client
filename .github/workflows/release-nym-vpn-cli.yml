@@ -13,6 +13,11 @@ on:
         description: Publish Release
         required: true
         default: false
+      enable_metrics_server:
+        type: boolean
+        description: "Enable --features metrics-server"
+        required: true
+        default: false
   push:
     tags:
       - nym-vpn-cli-v[0-9]+.[0-9]+.[0-9]+*
@@ -52,6 +57,8 @@ jobs:
         include:
           - os: ubuntu-20.04
             target: android
+          - os: macos-14
+            target: ios
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -105,16 +112,16 @@ jobs:
         run: |
           if ${{ contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native') }}; then
             platform_arch=ubuntu-22.04_x86_64
-            rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
+            wg_go_lib_name="wireguard-go_$platform_arch"
           elif ${{ contains(matrix.target, 'android') }}; then
             platform_arch=aarch64-linux-android
-            rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
-          elif ${{ matrix.os == 'custom-runner-mac-m1' }}; then
+            wg_go_lib_name="wireguard-go_$platform_arch"
+          elif ${{ (matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-14') && matrix.target == 'native' }}; then
             platform_arch=macos_universal
-            rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
-          elif ${{ matrix.os == 'macos-14' }}; then
-            platform_arch=macos_universal
-            rustflags="-L ${{ env.WG_GO_LIB_PATH }}"
+            wg_go_lib_name="wireguard-go_apple_universal"
+          elif ${{ matrix.target == 'ios' }}; then
+            platform_arch=ios_universal
+            wg_go_lib_name="wireguard-go_apple_universal"
           elif ${{ contains(matrix.os, 'windows') }}; then
             platform_arch=x86_64-pc-windows-msvc
             rustflags="-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
@@ -122,13 +129,16 @@ jobs:
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
           fi
-          wg_go_lib_name="wireguard-go_$platform_arch"
-          if ${{ contains(matrix.target, 'android') }}; then
+          if ${{ contains(matrix.target, 'android') || contains(matrix.target, 'ios') }}; then
             artifact_dir="nym-vpn-lib_${{ steps.package-version.outputs.metadata }}_$platform_arch"
           else
             artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
           fi
-          artifact_archive="$artifact_dir.tar.gz"
+          if ${{ contains(matrix.target, 'ios' )}}; then
+            artifact_archive="$artifact_dir.zip"
+          else
+            artifact_archive="$artifact_dir.tar.gz"
+          fi
           artifact_checksum="$artifact_archive.sha256sum"
           # debug
           echo " ✓ PLATFORM_ARCH: $platform_arch"
@@ -145,16 +155,24 @@ jobs:
           echo "ARTIFACT_CHECKSUM=$artifact_checksum" >> $GITHUB_ENV
           echo "RUSTFLAGS=$rustflags" >> $GITHUB_ENV
 
+      - name: Set CARGO_FEATURES
+        if: inputs.enable_metrics_server == true
+        run: |
+          echo 'CARGO_FEATURES=--features metrics-server' >> $GITHUB_ENV
+
       - name: Install rust toolchain
         uses: brndnmtthws/rust-action-rustup@v1
         with:
           toolchain: stable
           components: rustfmt, clippy
 
-      - name: Install extra arch macos
-        if: env.PLATFORM_ARCH == 'macos_universal'
+      - name: Install extra arch apple
+        if: contains(matrix.os, 'custom-runner-mac-m1') || contains(matrix.os, 'macos-14')
         run: |
           rustup target add x86_64-apple-darwin
+          rustup target add aarch64-apple-ios
+          rustup target add x86_64-apple-ios
+          rustup target add aarch64-apple-ios-sim
 
       ## Make sure not to use the full variable, windows recreate the entire path....
       - name: Create directory for Windows
@@ -178,6 +196,10 @@ jobs:
         if: contains(matrix.target, 'android')
         run: |
           cargo install cargo-ndk
+
+      - name: Setup cargo swift
+        if: contains(matrix.os, 'custom-runner-mac-m1') || contains(matrix.os, 'macos-14')
+        run: cargo install --git https://github.com/neacsu/cargo-swift.git
 
       - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/download-artifact@v4
@@ -220,12 +242,28 @@ jobs:
           mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/lib/
 
       - name: Build native
-        if: contains(matrix.target, 'native')
+        if: contains(matrix.target, 'native') && !contains(matrix.os, 'windows')
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: cargo build --release --verbose ${{ env.CARGO_FEATURES }}
+
+      - name: Build Windows
+        if: contains(matrix.os, 'windows')
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}/x86_64-pc-windows-msvc -L ${{ env.WG_GO_LIB_PATH }}/ -Clink-args=/LIBPATH:${{ env.WG_GO_LIB_PATH }}/x64-Debug"
         run: cargo build --release --verbose
 
       - name: Build universal (macos)
-        if: ${{ contains(matrix.os, 'custom-runner-mac-m1') || matrix.os == 'macos-14' }}
+        if: ${{ (contains(matrix.os, 'custom-runner-mac-m1') || matrix.os == 'macos-14') && matrix.target == 'native' }}
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: cargo build --release --verbose --target x86_64-apple-darwin
+
+      - name: Build iOS
+        if: ${{ matrix.target == 'ios' }}
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: (cd nym-vpn-lib; cargo swift package -p ios -n NymVpnLib --release)
 
       - name: Build Android
         if: contains(matrix.target, 'android')
@@ -243,12 +281,18 @@ jobs:
             cp target/aarch64-linux-android/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}
           elif ${{ contains(matrix.os, 'custom-runner-mac-m1') }}; then
             lipo -create -output ${{ env.ARTIFACT_DIR }}/nym-vpn-cli target/release/nym-vpn-cli target/x86_64-apple-darwin/release/nym-vpn-cli
-          elif ${{ matrix.os == 'macos-14'}}; then
+          elif ${{ matrix.os == 'macos-14' && matrix.target == 'native' }}; then
             lipo -create -output ${{ env.ARTIFACT_DIR }}/nym-vpn-cli target/release/nym-vpn-cli target/x86_64-apple-darwin/release/nym-vpn-cli
+          elif ${{ matrix.target == 'ios' }}; then
+            cp -R nym-vpn-lib/NymVpnLib/RustFramework.xcframework ${{ env.ARTIFACT_DIR }}
           else
             cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
           fi
-          tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
+          if ${{ contains(matrix.target, 'ios') }}; then
+            zip -r ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
+          else
+            tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
+          fi
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
         uses: actions/upload-artifact@v4
@@ -322,10 +366,13 @@ jobs:
       # Remove any empty artifact directories.
       - name: Generate checksums
         run: |
-          rmdir nym-vpn-cli_*tar.gz || true
-          for file in nym-vpn-cli_*tar.gz; do pushd $file; for f in nym-vpn-cli_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          rmdir nym-vpn-*.zip || true
+          rmdir nym-vpn-*.tar.gz || true
+          for file in nym-vpn-*tar.gz; do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          for file in nym-vpn-*zip; do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          cat nym-vpn-cli_*.tar.gz/*.sha256sum >> $GITHUB_ENV
+          cat nym-vpn-*.zip/*.sha256sum >> $GITHUB_ENV
+          cat nym-vpn-*.tar.gz/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
@@ -339,5 +386,5 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/*
