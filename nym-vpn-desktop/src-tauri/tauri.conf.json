@@ -21,10 +21,6 @@
       "shell": {"all": false, "open": true}
     },
     "bundle": {
-      "resources": [
-        "wintun.dll"      , "vcruntime140.dll", "libwg.dll"       ,
-        "winfw.dll"
-      ],
       "active": true,
       "targets": "all",
       "identifier": "net.nymtech.vpn",
