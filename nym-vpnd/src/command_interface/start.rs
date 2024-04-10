@@ -4,17 +4,23 @@
 use std::path::Path;
 
 use nym_task::TaskManager;
-use tokio::sync::mpsc::Receiver;
+use tokio::sync::mpsc::UnboundedReceiver;
+use tonic::transport::Server;
 use tracing::info;
 
 use crate::service::VpnServiceCommand;
 
+use super::listener::CommandInterface;
+
 pub(crate) fn start_command_interface(
     mut task_manager: TaskManager,
-) -> (std::thread::JoinHandle<()>, Receiver<VpnServiceCommand>) {
+) -> (
+    std::thread::JoinHandle<()>,
+    UnboundedReceiver<VpnServiceCommand>,
+) {
+    info!("Starting unix socket command interface");
     // Channel to send commands to the vpn service
-    let (vpn_command_tx, vpn_command_rx) = tokio::sync::mpsc::channel(32);
-
+    let (vpn_command_tx, vpn_command_rx) = tokio::sync::mpsc::unbounded_channel();
     let socket_path = Path::new("/var/run/nym-vpn.socket");
 
     let handle = std::thread::spawn(move || {
@@ -22,9 +28,16 @@ pub(crate) fn start_command_interface(
         command_rt.block_on(async {
             // Spawn command interface
             tokio::task::spawn(async {
-                super::listener::CommandInterface::new(vpn_command_tx, socket_path)
-                    .listen()
+                let c = CommandInterface::new(vpn_command_tx, socket_path);
+
+                let addr = "[::1]:50051".parse().unwrap();
+                Server::builder()
+                    .add_service(crate::vpn_daemon_server::VpnDaemonServer::new(c))
+                    .serve(addr)
                     .await
+                    .unwrap();
+
+                // c .listen() .await
             });
 
             // Using TaskManager::catch_interrupt() here is a bit of a hack that we use for now.

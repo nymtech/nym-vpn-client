@@ -4,6 +4,9 @@
 use std::sync::Arc;
 
 use futures::StreamExt;
+use nym_vpn_lib::{
+    connection_monitor::ConnectionMonitorStatus, SentStatus, StatusReceiver, TaskStatus,
+};
 use tracing::{debug, info};
 
 use super::vpn_service::VpnState;
@@ -17,36 +20,33 @@ impl VpnServiceStatusListener {
         Self { shared_vpn_state }
     }
 
-    pub(super) async fn start(
-        self,
-        mut vpn_status_rx: futures::channel::mpsc::Receiver<
-            Box<dyn std::error::Error + Send + Sync>,
-        >,
-    ) {
+    async fn handle_status_message(&self, msg: SentStatus) {
+        debug!("Received status: {msg}");
+        match msg.downcast_ref::<TaskStatus>() {
+            Some(TaskStatus::Ready) => {
+                info!("VPN status: connected");
+                self.set_shared_state(VpnState::Connected);
+                return;
+            }
+            Some(TaskStatus::ReadyWithGateway(_)) => {
+                info!("VPN status: connected");
+                self.set_shared_state(VpnState::Connected);
+                return;
+            }
+            None => {
+                info!("VPN status: unknown: {msg}");
+            }
+        }
+        match msg.downcast_ref::<ConnectionMonitorStatus>() {
+            Some(e) => info!("VPN status: {e}"),
+            None => info!("VPN status: unknown: {msg}"),
+        }
+    }
+
+    pub(super) async fn start(self, mut vpn_status_rx: StatusReceiver) {
         tokio::spawn(async move {
             while let Some(msg) = vpn_status_rx.next().await {
-                debug!("Received status: {msg}");
-                match msg.downcast_ref::<nym_vpn_lib::TaskStatus>() {
-                    Some(nym_vpn_lib::TaskStatus::Ready) => {
-                        info!("VPN status: connected");
-                        self.set_shared_state(VpnState::Connected);
-                        continue;
-                    }
-                    Some(nym_vpn_lib::TaskStatus::ReadyWithGateway(_)) => {
-                        info!("VPN status: connected");
-                        self.set_shared_state(VpnState::Connected);
-                        continue;
-                    }
-                    None => {}
-                }
-                match msg.downcast_ref::<nym_vpn_lib::connection_monitor::ConnectionMonitorStatus>()
-                {
-                    Some(e) => {
-                        info!("VPN status: {e}");
-                        continue;
-                    }
-                    None => info!("VPN status: unknown: {msg}"),
-                }
+                self.handle_status_message(msg).await;
             }
         });
     }
