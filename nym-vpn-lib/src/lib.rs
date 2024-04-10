@@ -498,6 +498,12 @@ impl NymVpn {
                         warn!("Failed to reset firewall policy: {err}");
                     })
                     .ok();
+                #[cfg(target_os = "android")]
+                if let Ok(mut tun_provider) = tunnel.tun_provider.lock().tap_err(|err| {
+                    warn!("Failed to access tun_provider for closing fd: {err}");
+                }) {
+                    tun_provider.close_tun();
+                }
                 return Err(err);
             }
         };
@@ -540,6 +546,12 @@ impl NymVpn {
             error!("Failed to reset firewall policy: {err}");
             Error::FirewallError(err.to_string())
         })?;
+        #[cfg(target_os = "android")]
+        if let Ok(mut tun_provider) = tunnel.tun_provider.lock().tap_err(|err| {
+            warn!("Failed to access tun_provider for closing fd: {err}");
+        }) {
+            tun_provider.close_tun();
+        }
 
         Ok(())
     }
@@ -589,6 +601,12 @@ impl NymVpn {
                 reason: err.to_string(),
             }
         })?;
+        #[cfg(target_os = "android")]
+        if let Ok(mut tun_provider) = tunnel.tun_provider.lock().tap_err(|err| {
+            warn!("Failed to access tun_provider for closing fd: {err}");
+        }) {
+            tun_provider.close_tun();
+        }
 
         result
     }
