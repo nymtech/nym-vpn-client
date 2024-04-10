@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use nym_sdk::mixnet::StoragePaths;
-use tracing::{debug, info};
+use tracing::debug;
 
 use crate::error::{Error, Result};
 
@@ -9,7 +9,10 @@ use crate::error::{Error, Result};
 pub async fn import_credential(credential: Vec<u8>, data_path: PathBuf) -> Result<()> {
     let storage_path = StoragePaths::new_from_dir(data_path)?;
     let credential_path = storage_path.credential_database_path;
-    debug!("Importing credential data into: {}", credential_path.display());
+    debug!(
+        "Importing credential data into: {}",
+        credential_path.display()
+    );
     let credentials_store =
         nym_credential_storage::initialise_persistent_storage(credential_path).await;
 
