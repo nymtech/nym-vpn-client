@@ -98,6 +98,7 @@ jobs:
 
       - name: Check tag name consistency
         if: github.event_name == 'push'
+        shell: bash
         run: |
           if [[ nym-vpn-cli-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
             exit 1
