@@ -4,11 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - "nym-vpn-desktop/src/**"
-      - "nym-vpn-desktop/package.json"
-      - "nym-vpn-desktop/index.html"
-      - "nym-vpn-desktop/.eslintrc.cjs"
-      - "nym-vpn-desktop/vite.config.ts"
+      - "nym-vpn-desktop/**"
       - ".github/workflows/ci-nym-vpn-desktop-js.yml"
 
 jobs:
