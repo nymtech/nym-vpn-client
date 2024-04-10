@@ -3,12 +3,8 @@ name: ci-nym-vpn-cli
 on:
   # push:
   pull_request:
-    paths:
-      - "nym-vpn-cli/**"
-      - "nym-vpn-lib/**"
-      - "wireguard/**"
-      - "Cargo.toml"
-      - ".github/workflows/ci-nym-vpn-cli.yml"
+    paths-ignore:
+      - "nym-vpn-desktop/**"
   workflow_dispatch:
 
 env:
