@@ -699,20 +699,21 @@ async fn run_nym_vpn(
     vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     vpn_exit_tx: oneshot::Sender<NymVpnExitStatusMessage>,
 ) {
-    let result = nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await;
-    if let Err(err) = result {
-        error!("Nym VPN returned error: {err}");
-        debug!("{err:?}");
-        vpn_exit_tx
-            .send(NymVpnExitStatusMessage::Failed(err))
-            .expect("Failed to send exit status");
-        return;
+    match nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await {
+        Ok(()) => {
+            log::info!("Nym VPN has shut down");
+            vpn_exit_tx
+                .send(NymVpnExitStatusMessage::Stopped)
+                .expect("Failed to send exit status");
+        }
+        Err(err) => {
+            error!("Nym VPN returned error: {err}");
+            debug!("{err:?}");
+            vpn_exit_tx
+                .send(NymVpnExitStatusMessage::Failed(err))
+                .expect("Failed to send exit status");
+        }
     }
-
-    log::info!("Nym VPN has shut down");
-    vpn_exit_tx
-        .send(NymVpnExitStatusMessage::Stopped)
-        .expect("Failed to send exit status");
 }
 
 pub struct NymVpnHandle {
