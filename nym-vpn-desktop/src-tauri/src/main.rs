@@ -73,6 +73,8 @@ async fn main() -> Result<()> {
             config_dir().ok_or(anyhow!("Failed to retrieve config directory path"))?;
         app_config_path.push(APP_DIR);
         AppStorage::<AppConfig>::new(app_config_path, APP_CONFIG_FILE, None)
+            .await
+            .inspect_err(|e| error!("Failed to init app config store: {e}"))?
     };
     debug!(
         "app_config_store: {}",
