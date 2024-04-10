@@ -4889,6 +4889,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-connection-monitor"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "bytes",
+ "futures",
+ "nym-ip-packet-requests",
+ "nym-sdk",
+ "nym-task",
+ "pnet_packet",
+ "thiserror",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "nym-contracts-common"
 version = "0.5.0"
 source = "git+https://github.com/nymtech/nym?rev=c482569fdbdaa5768efaa2972301cc64b6a68e0f#c482569fdbdaa5768efaa2972301cc64b6a68e0f"
@@ -5861,7 +5877,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-desktop"
-version = "0.0.12-dev"
+version = "0.0.13-dev"
 dependencies = [
  "anyhow",
  "build-info",
@@ -5899,6 +5915,7 @@ dependencies = [
  "android_logger",
  "anyhow",
  "bincode",
+ "bs58 0.5.1",
  "bytes",
  "err-derive",
  "futures",
@@ -5913,9 +5930,12 @@ dependencies = [
  "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?rev=c482569fdbdaa5768efaa2972301cc64b6a68e0f)",
  "nym-client-core",
  "nym-config",
+ "nym-connection-monitor",
+ "nym-credential-storage",
  "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?rev=c482569fdbdaa5768efaa2972301cc64b6a68e0f)",
  "nym-explorer-client",
  "nym-gateway-directory",
+ "nym-id",
  "nym-ip-packet-requests",
  "nym-node-requests 0.1.0 (git+https://github.com/nymtech/nym?rev=c482569fdbdaa5768efaa2972301cc64b6a68e0f)",
  "nym-sdk",
