@@ -6,27 +6,30 @@
     "distDir": "../dist",
     "withGlobalTauri": false
   },
-  "package": {"productName": "nym-vpn"},
+  "package": { "productName": "nym-vpn" },
   "tauri": {
     "updater": {
       "active": true,
       "dialog": true,
       "endpoints": ["https://nymvpn.net/api/updater/vpn"],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU3RjI2N0FFRUEyRERGOEQKUldTTjN5M3FybWZ5VjhxOFRsLzQ2c1N0NW1PVVNxVEVVQkszYjZHc3RtcEFDOW1ZN2lIN1NGdk0K",
-      "windows": {"installMode": "passive"}
+      "windows": { "installMode": "passive" }
     },
     "allowlist": {
       "all": false,
-      "process": {"all": true},
-      "shell": {"all": false, "open": true}
+      "process": { "all": true },
+      "shell": { "all": false, "open": true }
     },
     "bundle": {
       "active": true,
       "targets": ["deb", "appimage", "nsis", "app", "dmg", "updater"],
       "identifier": "net.nymtech.vpn",
       "icon": [
-        "icons/32x32.png"     , "icons/128x128.png"   , "icons/128x128@2x.png",
-        "icons/icon.icns"     , "icons/icon.ico"
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
       ],
       "macOS": {
         "frameworks": [],
@@ -36,7 +39,7 @@
         "entitlements": null
       }
     },
-    "security": {"csp": null},
+    "security": { "csp": null },
     "windows": [
       {
         "fullscreen": false,
