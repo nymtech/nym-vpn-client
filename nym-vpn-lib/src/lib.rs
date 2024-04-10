@@ -230,7 +230,7 @@ impl NymVpn {
             mixnet_client.gateway_ws_fd().await,
         );
         debug!("Routing config: {}", routing_config);
-        let mixnet_tun_dev = routing::setup_routing(
+        let mixnet_tun_dev = routing::setup_mixnet_routing(
             route_manager,
             routing_config,
             #[cfg(target_os = "ios")]

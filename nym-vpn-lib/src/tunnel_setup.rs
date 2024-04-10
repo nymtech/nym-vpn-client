@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::error::{Error, Result};
+use crate::routing::setup_wg_routing;
 use crate::tunnel::Tunnel;
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::WgGatewayClient;
@@ -85,30 +86,22 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
     let task_manager = TaskManager::new(10);
 
     if nym_vpn.enable_wireguard {
-        let (wireguard_setup, wireguard_waiting, tunnel) = create_wireguard_tunnel(
-            nym_vpn
-                .private_key
-                .as_ref()
-                .expect("clap should enforce value when wireguard enabled"),
-            nym_vpn
-                .entry_wg_ip
-                .expect("clap should enforce value when wireguard enabled"),
-            nym_vpn.tun_provider.clone(),
-            &gateway_client,
-            &wg_gateway_client,
-            &entry_gateway_id,
-        )
-        .await?;
-        let entry_tunnel_setup = TunnelSetup {
-            tunnel,
-            route_manager: wireguard_setup.route_manager,
-            tunnel_close_tx: wireguard_setup.tunnel_close_tx,
-            specific_setup: WgTunnelSetup {
-                receiver: wireguard_waiting.receiver,
-                handle: wireguard_waiting.handle,
-            },
-        };
-        let (wireguard_setup, wireguard_waiting, tunnel) = create_wireguard_tunnel(
+        let (wireguard_setup_entry, wireguard_waiting_entry, tunnel_entry) =
+            create_wireguard_tunnel(
+                nym_vpn
+                    .private_key
+                    .as_ref()
+                    .expect("clap should enforce value when wireguard enabled"),
+                nym_vpn
+                    .entry_wg_ip
+                    .expect("clap should enforce value when wireguard enabled"),
+                nym_vpn.tun_provider.clone(),
+                &gateway_client,
+                &wg_gateway_client,
+                &entry_gateway_id,
+            )
+            .await?;
+        let (wireguard_setup_exit, wireguard_waiting_exit, tunnel_exit) = create_wireguard_tunnel(
             nym_vpn
                 .private_key
                 .as_ref()
@@ -122,20 +115,33 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
             &exit_gateway_id,
         )
         .await?;
-        let exit_tunnel_setup = TunnelSetup {
-            tunnel,
-            route_manager: wireguard_setup.route_manager,
-            tunnel_close_tx: wireguard_setup.tunnel_close_tx,
+        setup_wg_routing(
+            tunnel_entry.config.clone().unwrap(),
+            tunnel_entry.route_manager_handle.clone(),
+            tunnel_exit.route_manager_handle.clone(),
+            &default_lan_gateway_ip,
+        )
+        .await?;
+        let entry = TunnelSetup {
+            tunnel: tunnel_entry,
+            route_manager: wireguard_setup_entry.route_manager,
+            tunnel_close_tx: wireguard_setup_entry.tunnel_close_tx,
             specific_setup: WgTunnelSetup {
-                receiver: wireguard_waiting.receiver,
-                handle: wireguard_waiting.handle,
+                receiver: wireguard_waiting_entry.receiver,
+                handle: wireguard_waiting_entry.handle,
+            },
+        };
+        let exit = TunnelSetup {
+            tunnel: tunnel_exit,
+            route_manager: wireguard_setup_exit.route_manager,
+            tunnel_close_tx: wireguard_setup_exit.tunnel_close_tx,
+            specific_setup: WgTunnelSetup {
+                receiver: wireguard_waiting_exit.receiver,
+                handle: wireguard_waiting_exit.handle,
             },
         };
 
-        Ok(AllTunnelsSetup::Wg {
-            entry: entry_tunnel_setup,
-            exit: exit_tunnel_setup,
-        })
+        Ok(AllTunnelsSetup::Wg { entry, exit })
     } else {
         info!("Wireguard is disabled");
         let (mut wireguard_setup, _) = empty_wireguard_setup().await?;
