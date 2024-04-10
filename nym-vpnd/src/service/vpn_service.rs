@@ -5,6 +5,8 @@ use std::sync::Arc;
 
 use futures::channel::mpsc::UnboundedSender;
 use futures::SinkExt;
+use nym_vpn_lib::gateway_directory;
+use nym_vpn_lib::nym_config::OptionalSet;
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::oneshot;
 use tracing::info;
@@ -66,21 +68,25 @@ impl NymVpnService {
     }
 
     async fn handle_connect(&mut self) -> VpnServiceConnectResult {
-        // Start the VPN
-        // TODO: all of this is hardcoded for now
         self.set_shared_state(VpnState::Connecting);
 
+        // TODO: read from config file
         let mut nym_vpn = nym_vpn_lib::NymVpn::new(
-            nym_vpn_lib::gateway_directory::EntryPoint::Random,
-            nym_vpn_lib::gateway_directory::ExitPoint::Random,
+            gateway_directory::EntryPoint::Random,
+            gateway_directory::ExitPoint::Random,
         );
 
-        nym_vpn.gateway_config = nym_vpn_lib::nym_config::OptionalSet::with_optional_env(
-            nym_vpn_lib::gateway_directory::Config::default(),
-            nym_vpn_lib::gateway_directory::Config::with_custom_api_url,
-            None,
-            "NYM_API",
-        );
+        nym_vpn.gateway_config = gateway_directory::Config::default()
+            .with_optional_env(
+                gateway_directory::Config::with_custom_api_url,
+                None,
+                "NYM_API",
+            )
+            .with_optional_env(
+                gateway_directory::Config::with_custom_explorer_url,
+                None,
+                "EXPLORER_API",
+            );
 
         let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn).unwrap();
 
