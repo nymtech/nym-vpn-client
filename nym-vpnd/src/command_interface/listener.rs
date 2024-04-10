@@ -14,6 +14,8 @@ use crate::{
     DisconnectRequest, DisconnectResponse,
 };
 
+use super::connection_handler::CommandInterfaceConnectionHandler;
+
 #[tonic::async_trait]
 impl VpnDaemon for CommandInterface {
     async fn vpn_connect(
@@ -22,12 +24,11 @@ impl VpnDaemon for CommandInterface {
     ) -> Result<tonic::Response<ConnectResponse>, tonic::Status> {
         info!("Got connect request: {:?}", request);
 
-        super::connection_handler::CommandInterfaceConnectionHandler::new(
-            self.vpn_command_tx.clone(),
-        )
-        .handle_connect()
-        .await;
+        CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_connect()
+            .await;
 
+        info!("Returning connect response");
         Ok(tonic::Response::new(ConnectResponse { success: true }))
     }
 
@@ -36,6 +37,12 @@ impl VpnDaemon for CommandInterface {
         request: tonic::Request<DisconnectRequest>,
     ) -> Result<tonic::Response<DisconnectResponse>, tonic::Status> {
         info!("Got disconnect request: {:?}", request);
+
+        CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_disconnect()
+            .await;
+
+        info!("Returning disconnect response");
         Ok(tonic::Response::new(DisconnectResponse { success: true }))
     }
 }
@@ -72,6 +79,7 @@ impl CommandInterface {
         }
     }
 
+    #[allow(unused)]
     pub(super) async fn listen(self) {
         self.remove_previous_socket_file();
         let listener = tokio::net::UnixListener::bind(&self.socket_path).unwrap();
@@ -79,10 +87,7 @@ impl CommandInterface {
 
         loop {
             let (socket, _) = listener.accept().await.unwrap();
-            super::connection_handler::CommandInterfaceConnectionHandler::new(
-                self.vpn_command_tx.clone(),
-            )
-            .handle(socket);
+            CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone()).handle(socket);
         }
     }
 }

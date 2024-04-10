@@ -356,7 +356,9 @@ impl NymVpn {
         let gateways = gateway_client
             .lookup_described_gateways_with_location()
             .await?;
-        log::info!("Got gateways {:?}", gateways);
+        // This info would be useful at at least debug level, but it's just so much data that it
+        // would be overwhelming
+        log::trace!("Got gateways {:?}", gateways);
 
         let wg_gateway_client = WgGatewayClient::new(self.wg_gateway_config.clone())?;
         log::info!("Created wg gateway client");
@@ -373,7 +375,6 @@ impl NymVpn {
         let (entry_gateway_id, entry_location) =
             self.entry_point.lookup_gateway_identity(&gateways).await?;
         let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
-        log::info!("Gateway id {:?}", entry_gateway_id);
 
         let (exit_router_address, exit_location) =
             self.exit_point.lookup_router_address(&gateways)?;

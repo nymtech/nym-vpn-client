@@ -38,7 +38,7 @@ impl CommandInterfaceConnectionHandler {
         };
     }
 
-    async fn handle_disconnect(&self) {
+    pub(crate) async fn handle_disconnect(&self) {
         let (tx, rx) = oneshot::channel();
         self.vpn_command_tx
             .send(VpnServiceCommand::Disconnect(tx))
@@ -71,7 +71,6 @@ impl CommandInterfaceConnectionHandler {
     }
 
     pub(super) fn handle(self, mut socket: tokio::net::UnixStream) -> tokio::task::JoinHandle<()> {
-        // let vpn_command_tx = self.vpn_command_tx.clone();
         tokio::spawn(async move {
             let mut buffer = [0; 1024];
             match socket.read(&mut buffer).await {

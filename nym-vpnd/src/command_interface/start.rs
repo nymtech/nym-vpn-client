@@ -5,9 +5,12 @@ use std::path::Path;
 
 use nym_task::TaskManager;
 use tokio::sync::mpsc::UnboundedReceiver;
+use tonic::transport::Server;
 use tracing::info;
 
 use crate::service::VpnServiceCommand;
+
+use super::listener::CommandInterface;
 
 pub(crate) fn start_command_interface(
     mut task_manager: TaskManager,
@@ -25,9 +28,16 @@ pub(crate) fn start_command_interface(
         command_rt.block_on(async {
             // Spawn command interface
             tokio::task::spawn(async {
-                super::listener::CommandInterface::new(vpn_command_tx, socket_path)
-                    .listen()
+                let c = CommandInterface::new(vpn_command_tx, socket_path);
+
+                let addr = "[::1]:50051".parse().unwrap();
+                Server::builder()
+                    .add_service(crate::vpn_daemon_server::VpnDaemonServer::new(c))
+                    .serve(addr)
                     .await
+                    .unwrap();
+
+                // c .listen() .await
             });
 
             // Using TaskManager::catch_interrupt() here is a bit of a hack that we use for now.
