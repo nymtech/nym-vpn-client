@@ -24,18 +24,10 @@ object ServiceManager {
         intent.component?.javaClass
         try {
             when (action) {
-                Action.START_FOREGROUND -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        context.startForegroundService(intent)
-                    } else context.startService(intent)
-                }
-
-                Action.START -> {
-                    Timber.d("Start intent")
-                    context.startService(intent)
-                }
-
-                Action.STOP -> context.startService(intent)
+                Action.START_FOREGROUND, Action.STOP_FOREGROUND -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else context.startService(intent)
+                Action.START, Action.STOP -> context.startService(intent)
             }
         } catch (e: Exception) {
             Timber.e(e.message)
@@ -62,11 +54,19 @@ object ServiceManager {
         )
     }
 
+    fun stopVpnServiceForeground(context: Context) {
+        actionOnService(
+            Action.STOP_FOREGROUND,
+            context,
+            NymVpnService::class.java
+        )
+    }
+
     fun stopVpnService(context: Context) {
         actionOnService(
             Action.STOP,
             context,
-            NymVpnService::class.java,
+            NymVpnService::class.java
         )
     }
 }

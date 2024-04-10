@@ -44,6 +44,7 @@ import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
@@ -168,6 +169,7 @@ fun MainScreen(
                 when (uiState.connectionState) {
                     is ConnectionState.Disconnected ->
                         MainStyledButton(
+                            testTag = Constants.CONNECT_TEST_TAG,
                             onClick = {
                                 if (appUiState.loggedIn) {
                                     if (notificationPermissionState != null &&
@@ -196,6 +198,7 @@ fun MainScreen(
 
                     is ConnectionState.Connected ->
                         MainStyledButton(
+                            testTag = Constants.DISCONNECT_TEST_TAG,
                             onClick = { viewModel.onDisconnect() },
                             content = {
                                 Text(

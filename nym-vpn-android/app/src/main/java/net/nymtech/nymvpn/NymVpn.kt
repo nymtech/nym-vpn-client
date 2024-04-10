@@ -3,6 +3,7 @@ package net.nymtech.nymvpn
 import android.app.Application
 import android.content.ComponentName
 import android.content.Context
+import android.os.StrictMode
 import android.service.quicksettings.TileService
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -20,7 +21,10 @@ class NymVpn : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        if (BuildConfig.DEBUG) Timber.plant(DebugTree()) else Timber.plant(ReleaseTree())
+        if (BuildConfig.DEBUG) {
+            Timber.plant(DebugTree())
+            StrictMode.enableDefaults();
+        } else Timber.plant(ReleaseTree())
     }
 
     companion object {

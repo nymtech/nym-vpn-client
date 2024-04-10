@@ -11,9 +11,7 @@ import android.os.Build
 import android.os.ParcelFileDescriptor
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -21,6 +19,7 @@ import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.tun_provider.TunConfig
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
+import net.nymtech.vpn_client.BuildConfig
 import net.nymtech.vpn_client.R
 import nym_vpn_lib.stopVpn
 import timber.log.Timber
@@ -32,14 +31,17 @@ import kotlin.properties.Delegates.observable
 class NymVpnService : VpnService() {
     companion object {
         init {
-            //Constants.setupEnvironmentSandbox()
-            Constants.setupEnvironmentMainnet()
+            if(BuildConfig.IS_SANDBOX) {
+                Constants.setupEnvironmentSandbox()
+            } else Constants.setupEnvironmentMainnet()
             System.loadLibrary(Constants.NYM_VPN_LIB)
             Timber.i("Loaded native library in service")
         }
     }
 
-    val scope = CoroutineScope(Dispatchers.IO)
+    var vpnFd : ParcelFileDescriptor? = null
+
+    private val scope = CoroutineScope(Dispatchers.IO)
 
     private var activeTunStatus by observable<CreateTunResult?>(null) { _, oldTunStatus, _ ->
         val oldTunFd = when (oldTunStatus) {
@@ -48,14 +50,15 @@ class NymVpnService : VpnService() {
             else -> null
         }
         if (oldTunFd != null) {
-            ParcelFileDescriptor.adoptFd(oldTunFd).close()
+            Timber.i("Closing file descriptor $oldTunFd")
+            ParcelFileDescriptor.adoptFd(oldTunFd)
         }
     }
 
     private val tunIsOpen
         get() = activeTunStatus?.isOpen ?: false
 
-    private var currentTunConfig: TunConfig? = null
+    private var currentTunConfig = defaultTunConfig()
 
     private var tunIsStale = false
 
@@ -63,36 +66,26 @@ class NymVpnService : VpnService() {
 
     val connectivityListener = ConnectivityListener()
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return when (intent?.action) {
+        when (intent?.action) {
             Action.START.name, Action.START_FOREGROUND.name -> {
                 NymVpnClient.setVpnState(VpnState.Connecting.InitializingClient)
                 currentTunConfig = defaultTunConfig()
                 Timber.i("VPN start")
                 if (prepare(this) == null) {
                     initVPN(this)
-                    GlobalScope.launch(Dispatchers.IO) {
+                    scope.launch {
                         NymVpnClient.connect()
                     }
                 }
-                START_STICKY
+                return START_STICKY
             }
-
-            Action.STOP.name -> {
-                Timber.d("VPN stop")
-                NymVpnClient.setVpnState(VpnState.Disconnecting)
-                GlobalScope.launch(Dispatchers.IO) {
-                    stopVpn()
-                    delay(1000)
-                    stopService()
-                }
-
-                START_NOT_STICKY
+            Action.STOP.name, Action.STOP_FOREGROUND.name  -> {
+                stopService()
+                return START_NOT_STICKY
             }
-
-            else -> START_NOT_STICKY
         }
+        return START_NOT_STICKY
     }
 
     private fun createNotificationChannel(): String {
@@ -115,7 +108,6 @@ class NymVpnService : VpnService() {
     }
 
     override fun onCreate() {
-        super.onCreate()
         connectivityListener.register(this)
         val channelId =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -135,15 +127,21 @@ class NymVpnService : VpnService() {
         startForeground(123, notification)
     }
 
-    override fun onDestroy() {
-        Timber.i("VpnService destroyed")
+    private fun stopService() {
+        NymVpnClient.setVpnState(VpnState.Disconnecting)
+        scope.launch {
+            stopVpn()
+            delay(1000)
+            NymVpnClient.setVpnState(VpnState.Down)
+        }
+        stopSelf()
     }
 
-    private fun stopService() {
-        NymVpnClient.setVpnState(VpnState.Down)
+    override fun onDestroy() {
         connectivityListener.unregister()
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        Timber.i("VpnService destroyed")
         scope.cancel()
-        stopSelf()
     }
 
     fun getTun(config: TunConfig): CreateTunResult {
@@ -164,12 +162,7 @@ class NymVpnService : VpnService() {
     }
 
     fun createTun() {
-        synchronized(this) {
-            activeTunStatus = currentTunConfig?.let {
-                Timber.d("Creating tun from config")
-                createTun(it)
-            }
-        }
+        synchronized(this) { activeTunStatus = createTun(currentTunConfig) }
     }
 
     fun recreateTunIfOpen(config: TunConfig) {
@@ -182,6 +175,8 @@ class NymVpnService : VpnService() {
     }
 
     fun closeTun() {
+        vpnFd?.close()
+        Timber.d("CLOSE TUN CALLED")
         synchronized(this) {
             activeTunStatus = null
         }
@@ -227,7 +222,8 @@ class NymVpnService : VpnService() {
             }
         }
         val vpnInterface = builder.establish()
-        val tunFd = vpnInterface?.detachFd() ?: return CreateTunResult.TunnelDeviceError
+        vpnFd = vpnInterface
+        val tunFd = vpnInterface?.fd ?: return CreateTunResult.TunnelDeviceError
         waitForTunnelUp(tunFd, config.routes.any { route -> route.isIpv6 })
 
         if (invalidDnsServerAddresses.isNotEmpty()) {

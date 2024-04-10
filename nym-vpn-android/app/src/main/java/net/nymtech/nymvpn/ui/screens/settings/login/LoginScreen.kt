@@ -36,6 +36,7 @@ import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
+import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.Event
 import net.nymtech.nymvpn.util.Result
 import net.nymtech.nymvpn.util.scaledHeight
@@ -140,6 +141,7 @@ fun LoginScreen(
                 .padding(bottom = 24.dp.scaledHeight())
         ) {
             MainStyledButton(
+                Constants.LOGIN_TEST_TAG,
                 onClick = {
                     viewModel.onLogin(recoveryPhrase).let {
                         when (it) {

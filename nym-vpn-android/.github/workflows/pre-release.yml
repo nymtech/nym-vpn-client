@@ -1,5 +1,5 @@
 # name of the workflow
-name: Android CI Tag Deployment - Pre
+name: Android CI Tag Deployment - Pre-release
 
 on:
   push:
@@ -82,23 +82,42 @@ jobs:
 
       # get release apk path
       # general or fdroid
-      - name: Get apk path
-        id: apk-path
-        run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/release/.*\.apk$' -type f | head -1)" >> $GITHUB_OUTPUT
+      - name: Get universal apk path
+        id: universal-path
+        run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/release/.*\universal.apk$' -type f | head -1)" >> $GITHUB_OUTPUT
+
+      - name: Get armeabi-v7a apk path
+        id: armv7-path
+        run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/release/.*\armeabi-v7a.apk$' -type f | head -1)" >> $GITHUB_OUTPUT
+
+      - name: Get arm-v8a apk path
+        id: armv8-path
+        run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/release/.*\arm64-v8a.apk$' -type f | head -1)" >> $GITHUB_OUTPUT
+
       - name: Get version code
         run: |
           version_code=$(grep "VERSION_CODE" buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
-      # Save the APK after the Build job is complete to publish it as a Github release in the next job
-      - name: Upload APK
+
+      # Save the APKs after the Build job is complete to publish it as a Github release in the next job
+      - name: Upload universal APK
         uses: actions/upload-artifact@v4.3.1
         with:
-          name: nymvpn
-          path: ${{ steps.apk-path.outputs.path }}
-      - name: Download APK from build
-        uses: actions/download-artifact@v4
+          name: nymvpn-universal
+          path: ${{ steps.universal-path.outputs.path }}
+
+      - name: Upload armv7 APK
+        uses: actions/upload-artifact@v4.3.1
         with:
-          name: nymvpn
+          name: nymvpn-armv7
+          path: ${{ steps.armv7-path.outputs.path }}
+
+      - name: Upload armv8 APK
+        uses: actions/upload-artifact@v4.3.1
+        with:
+          name: nymvpn-armv8
+          path: ${{ steps.armv8-path.outputs.path }}
+
       - name: Create Release with Fastlane changelog notes
         id: create_release
         uses: softprops/action-gh-release@v1
@@ -110,7 +129,11 @@ jobs:
           name: ${{ github.ref_name }}
           draft: false
           prerelease: true
-          files: ${{ github.workspace }}/${{ steps.apk-path.outputs.path }}
+          files: |
+            ${{ github.workspace }}/${{ steps.universal-path.outputs.path }}
+            ${{ github.workspace }}/${{ steps.armv8-path.outputs.path }}
+            ${{ github.workspace }}/${{ steps.armv7-path.outputs.path }}
+            
 
       - name: Install apksigner
         run: |
@@ -128,7 +151,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           body: >
-            SHA256 Checksum: <br /> ```${{ steps.checksum.outputs.checksum }}```
+            <br /> SHA256 fingerprint: <br /> ```${{ steps.checksum.outputs.checksum }}```
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           draft: false

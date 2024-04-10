@@ -17,19 +17,21 @@ package nym_vpn_lib;
 // compile the Rust component. The easiest way to ensure this is to bundle the Kotlin
 // helpers directly inline like we're doing here.
 
-import com.sun.jna.IntegerType
 import com.sun.jna.Library
+import com.sun.jna.IntegerType
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
+import com.sun.jna.Callback
 import com.sun.jna.ptr.*
-import java.net.URI
-import java.net.URL
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.CharBuffer
 import java.nio.charset.CodingErrorAction
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ConcurrentHashMap
+import java.net.URI
+import java.net.URL
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -37,29 +39,35 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Structure.FieldOrder("capacity", "len", "data")
 open class RustBuffer : Structure() {
-    @JvmField
-    var capacity: Int = 0
-    @JvmField
-    var len: Int = 0
-    @JvmField
-    var data: Pointer? = null
+    // Note: `capacity` and `len` are actually `ULong` values, but JVM only supports signed values.
+    // When dealing with these fields, make sure to call `toULong()`.
+    @JvmField var capacity: Long = 0
+    @JvmField var len: Long = 0
+    @JvmField var data: Pointer? = null
 
-    class ByValue : RustBuffer(), Structure.ByValue
-    class ByReference : RustBuffer(), Structure.ByReference
+    class ByValue: RustBuffer(), Structure.ByValue
+    class ByReference: RustBuffer(), Structure.ByReference
+
+   internal fun setValue(other: RustBuffer) {
+        capacity = other.capacity
+        len = other.len
+        data = other.data
+    }
 
     companion object {
-        internal fun alloc(size: Int = 0) = uniffiRustCall() { status ->
-            UniffiLib.INSTANCE.ffi_nym_vpn_lib_rustbuffer_alloc(size, status)
+        internal fun alloc(size: ULong = 0UL) = uniffiRustCall() { status ->
+            // Note: need to convert the size to a `Long` value to make this work with JVM.
+            UniffiLib.INSTANCE.ffi_nym_vpn_lib_rustbuffer_alloc(size.toLong(), status)
         }.also {
-            if (it.data == null) {
-                throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
-            }
+            if(it.data == null) {
+               throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
+           }
         }
 
-        internal fun create(capacity: Int, len: Int, data: Pointer?): RustBuffer.ByValue {
+        internal fun create(capacity: ULong, len: ULong, data: Pointer?): RustBuffer.ByValue {
             var buf = RustBuffer.ByValue()
-            buf.capacity = capacity
-            buf.len = len
+            buf.capacity = capacity.toLong()
+            buf.len = len.toLong()
             buf.data = data
             return buf
         }
@@ -89,9 +97,9 @@ class RustBufferByReference : ByReference(16) {
     fun setValue(value: RustBuffer.ByValue) {
         // NOTE: The offsets are as they are in the C-like struct.
         val pointer = getPointer()
-        pointer.setInt(0, value.capacity)
-        pointer.setInt(4, value.len)
-        pointer.setPointer(8, value.data)
+        pointer.setLong(0, value.capacity)
+        pointer.setLong(8, value.len)
+        pointer.setPointer(16, value.data)
     }
 
     /**
@@ -100,9 +108,9 @@ class RustBufferByReference : ByReference(16) {
     fun getValue(): RustBuffer.ByValue {
         val pointer = getPointer()
         val value = RustBuffer.ByValue()
-        value.writeField("capacity", pointer.getInt(0))
-        value.writeField("len", pointer.getInt(4))
-        value.writeField("data", pointer.getPointer(8))
+        value.writeField("capacity", pointer.getLong(0))
+        value.writeField("len", pointer.getLong(8))
+        value.writeField("data", pointer.getLong(16))
 
         return value
     }
@@ -116,14 +124,11 @@ class RustBufferByReference : ByReference(16) {
 
 @Structure.FieldOrder("len", "data")
 open class ForeignBytes : Structure() {
-    @JvmField
-    var len: Int = 0
-    @JvmField
-    var data: Pointer? = null
+    @JvmField var len: Int = 0
+    @JvmField var data: Pointer? = null
 
     class ByValue : ForeignBytes(), Structure.ByValue
 }
-
 // The FfiConverter interface handles converter types to and from the FFI
 //
 // All implementing objects should be public to support external types.  When a
@@ -146,7 +151,7 @@ public interface FfiConverter<KotlinType, FfiType> {
     // encoding, so we pessimistically allocate the largest size possible (3
     // bytes per codepoint).  Allocating extra bytes is not really a big deal
     // because the `RustBuffer` is short-lived.
-    fun allocationSize(value: KotlinType): Int
+    fun allocationSize(value: KotlinType): ULong
 
     // Write a Kotlin type to a `ByteBuffer`
     fun write(value: KotlinType, buf: ByteBuffer)
@@ -160,11 +165,11 @@ public interface FfiConverter<KotlinType, FfiType> {
     fun lowerIntoRustBuffer(value: KotlinType): RustBuffer.ByValue {
         val rbuf = RustBuffer.alloc(allocationSize(value))
         try {
-            val bbuf = rbuf.data!!.getByteBuffer(0, rbuf.capacity.toLong()).also {
+            val bbuf = rbuf.data!!.getByteBuffer(0, rbuf.capacity).also {
                 it.order(ByteOrder.BIG_ENDIAN)
             }
             write(value, bbuf)
-            rbuf.writeField("len", bbuf.position())
+            rbuf.writeField("len", bbuf.position().toLong())
             return rbuf
         } catch (e: Throwable) {
             RustBuffer.free(rbuf)
@@ -179,11 +184,11 @@ public interface FfiConverter<KotlinType, FfiType> {
     fun liftFromRustBuffer(rbuf: RustBuffer.ByValue): KotlinType {
         val byteBuf = rbuf.asByteBuffer()!!
         try {
-            val item = read(byteBuf)
-            if (byteBuf.hasRemaining()) {
-                throw RuntimeException("junk remaining in buffer after lifting, something is very wrong!!")
-            }
-            return item
+           val item = read(byteBuf)
+           if (byteBuf.hasRemaining()) {
+               throw RuntimeException("junk remaining in buffer after lifting, something is very wrong!!")
+           }
+           return item
         } finally {
             RustBuffer.free(rbuf)
         }
@@ -191,33 +196,43 @@ public interface FfiConverter<KotlinType, FfiType> {
 }
 
 // FfiConverter that uses `RustBuffer` as the FfiType
-public interface FfiConverterRustBuffer<KotlinType> : FfiConverter<KotlinType, RustBuffer.ByValue> {
+public interface FfiConverterRustBuffer<KotlinType>: FfiConverter<KotlinType, RustBuffer.ByValue> {
     override fun lift(value: RustBuffer.ByValue) = liftFromRustBuffer(value)
     override fun lower(value: KotlinType) = lowerIntoRustBuffer(value)
 }
-
 // A handful of classes and functions to support the generated data structures.
 // This would be a good candidate for isolating in its own ffi-support lib.
-// Error runtime.
+
+internal const val UNIFFI_CALL_SUCCESS = 0.toByte()
+internal const val UNIFFI_CALL_ERROR = 1.toByte()
+internal const val UNIFFI_CALL_UNEXPECTED_ERROR = 2.toByte()
+
 @Structure.FieldOrder("code", "error_buf")
 internal open class UniffiRustCallStatus : Structure() {
-    @JvmField
-    var code: Byte = 0
-    @JvmField
-    var error_buf: RustBuffer.ByValue = RustBuffer.ByValue()
+    @JvmField var code: Byte = 0
+    @JvmField var error_buf: RustBuffer.ByValue = RustBuffer.ByValue()
 
-    class ByValue : UniffiRustCallStatus(), Structure.ByValue
+    class ByValue: UniffiRustCallStatus(), Structure.ByValue
 
     fun isSuccess(): Boolean {
-        return code == 0.toByte()
+        return code == UNIFFI_CALL_SUCCESS
     }
 
     fun isError(): Boolean {
-        return code == 1.toByte()
+        return code == UNIFFI_CALL_ERROR
     }
 
     fun isPanic(): Boolean {
-        return code == 2.toByte()
+        return code == UNIFFI_CALL_UNEXPECTED_ERROR
+    }
+
+    companion object {
+        fun create(code: Byte, errorBuf: RustBuffer.ByValue): UniffiRustCallStatus.ByValue {
+            val callStatus = UniffiRustCallStatus.ByValue()
+            callStatus.code = code
+            callStatus.error_buf = errorBuf
+            return callStatus
+        }
     }
 }
 
@@ -233,10 +248,7 @@ interface UniffiRustCallStatusErrorHandler<E> {
 // synchronize itself
 
 // Call a rust function that returns a Result<>.  Pass in the Error class companion that corresponds to the Err
-private inline fun <U, E : Exception> uniffiRustCallWithError(
-    errorHandler: UniffiRustCallStatusErrorHandler<E>,
-    callback: (UniffiRustCallStatus) -> U
-): U {
+private inline fun <U, E: Exception> uniffiRustCallWithError(errorHandler: UniffiRustCallStatusErrorHandler<E>, callback: (UniffiRustCallStatus) -> U): U {
     var status = UniffiRustCallStatus();
     val return_value = callback(status)
     uniffiCheckCallStatus(errorHandler, status)
@@ -244,10 +256,7 @@ private inline fun <U, E : Exception> uniffiRustCallWithError(
 }
 
 // Check UniffiRustCallStatus and throw an error if the call wasn't successful
-private fun <E : Exception> uniffiCheckCallStatus(
-    errorHandler: UniffiRustCallStatusErrorHandler<E>,
-    status: UniffiRustCallStatus
-) {
+private fun<E: Exception> uniffiCheckCallStatus(errorHandler: UniffiRustCallStatusErrorHandler<E>, status: UniffiRustCallStatus) {
     if (status.isSuccess()) {
         return
     } else if (status.isError()) {
@@ -267,7 +276,7 @@ private fun <E : Exception> uniffiCheckCallStatus(
 }
 
 // UniffiRustCallStatusErrorHandler implementation for times when we don't expect a CALL_ERROR
-object UniffiNullRustCallStatusErrorHandler : UniffiRustCallStatusErrorHandler<InternalException> {
+object UniffiNullRustCallStatusErrorHandler: UniffiRustCallStatusErrorHandler<InternalException> {
     override fun lift(error_buf: RustBuffer.ByValue): InternalException {
         RustBuffer.free(error_buf)
         return InternalException("Unexpected CALL_ERROR")
@@ -279,93 +288,63 @@ private inline fun <U> uniffiRustCall(callback: (UniffiRustCallStatus) -> U): U 
     return uniffiRustCallWithError(UniffiNullRustCallStatusErrorHandler, callback);
 }
 
-// IntegerType that matches Rust's `usize` / C's `size_t`
-public class USize(value: Long = 0) : IntegerType(Native.SIZE_T_SIZE, value, true) {
-    // This is needed to fill in the gaps of IntegerType's implementation of Number for Kotlin.
-    override fun toByte() = toInt().toByte()
-
-    // Needed until https://youtrack.jetbrains.com/issue/KT-47902 is fixed.
-    @Deprecated("`toInt().toChar()` is deprecated")
-    override fun toChar() = toInt().toChar()
-    override fun toShort() = toInt().toShort()
-
-    fun writeToBuffer(buf: ByteBuffer) {
-        // Make sure we always write usize integers using native byte-order, since they may be
-        // casted to pointer values
-        buf.order(ByteOrder.nativeOrder())
-        try {
-            when (Native.SIZE_T_SIZE) {
-                4 -> buf.putInt(toInt())
-                8 -> buf.putLong(toLong())
-                else -> throw RuntimeException("Invalid SIZE_T_SIZE: ${Native.SIZE_T_SIZE}")
-            }
-        } finally {
-            buf.order(ByteOrder.BIG_ENDIAN)
-        }
-    }
-
-    companion object {
-        val size: Int
-            get() = Native.SIZE_T_SIZE
-
-        fun readFromBuffer(buf: ByteBuffer): USize {
-            // Make sure we always read usize integers using native byte-order, since they may be
-            // casted from pointer values
-            buf.order(ByteOrder.nativeOrder())
-            try {
-                return when (Native.SIZE_T_SIZE) {
-                    4 -> USize(buf.getInt().toLong())
-                    8 -> USize(buf.getLong())
-                    else -> throw RuntimeException("Invalid SIZE_T_SIZE: ${Native.SIZE_T_SIZE}")
-                }
-            } finally {
-                buf.order(ByteOrder.BIG_ENDIAN)
-            }
-        }
+internal inline fun<T> uniffiTraitInterfaceCall(
+    callStatus: UniffiRustCallStatus,
+    makeCall: () -> T,
+    writeReturn: (T) -> Unit,
+) {
+    try {
+        writeReturn(makeCall())
+    } catch(e: Exception) {
+        callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
+        callStatus.error_buf = FfiConverterString.lower(e.toString())
     }
 }
 
-
+internal inline fun<T, reified E: Throwable> uniffiTraitInterfaceCallWithError(
+    callStatus: UniffiRustCallStatus,
+    makeCall: () -> T,
+    writeReturn: (T) -> Unit,
+    lowerError: (E) -> RustBuffer.ByValue
+) {
+    try {
+        writeReturn(makeCall())
+    } catch(e: Exception) {
+        if (e is E) {
+            callStatus.code = UNIFFI_CALL_ERROR
+            callStatus.error_buf = lowerError(e)
+        } else {
+            callStatus.code = UNIFFI_CALL_UNEXPECTED_ERROR
+            callStatus.error_buf = FfiConverterString.lower(e.toString())
+        }
+    }
+}
 // Map handles to objects
 //
-// This is used when the Rust code expects an opaque pointer to represent some foreign object.
-// Normally we would pass a pointer to the object, but JNA doesn't support getting a pointer from an
-// object reference , nor does it support leaking a reference to Rust.
-//
-// Instead, this class maps USize values to objects so that we can pass a pointer-sized type to
-// Rust when it needs an opaque pointer.
-//
-// TODO: refactor callbacks to use this class
-internal class UniFfiHandleMap<T : Any> {
-    private val map = ConcurrentHashMap<USize, T>()
-
-    // Use AtomicInteger for our counter, since we may be on a 32-bit system.  4 billion possible
-    // values seems like enough. If somehow we generate 4 billion handles, then this will wrap
-    // around back to zero and we can assume the first handle generated will have been dropped by
-    // then.
-    private val counter = java.util.concurrent.atomic.AtomicInteger(0)
+// This is used pass an opaque 64-bit handle representing a foreign object to the Rust code.
+internal class UniffiHandleMap<T: Any> {
+    private val map = ConcurrentHashMap<Long, T>()
+    private val counter = java.util.concurrent.atomic.AtomicLong(0)
 
     val size: Int
         get() = map.size
 
-    fun insert(obj: T): USize {
-        val handle = USize(counter.getAndAdd(1).toLong())
+    // Insert a new object into the handle map and get a handle for it
+    fun insert(obj: T): Long {
+        val handle = counter.getAndAdd(1)
         map.put(handle, obj)
         return handle
     }
 
-    fun get(handle: USize): T? {
-        return map.get(handle)
+    // Get an object from the handle map
+    fun get(handle: Long): T {
+        return map.get(handle) ?: throw InternalException("UniffiHandleMap.get: Invalid handle")
     }
 
-    fun remove(handle: USize): T? {
-        return map.remove(handle)
+    // Remove an entry from the handlemap and get the Kotlin object back
+    fun remove(handle: Long): T {
+        return map.remove(handle) ?: throw InternalException("UniffiHandleMap: Invalid handle")
     }
-}
-
-// FFI type for Rust future continuations
-internal interface UniFffiRustFutureContinuationCallbackType : com.sun.jna.Callback {
-    fun callback(continuationHandle: USize, pollResult: Byte);
 }
 
 // Contains loading, initialization code,
@@ -385,6 +364,342 @@ private inline fun <reified Lib : Library> loadIndirect(
     return Native.load<Lib>(findLibraryName(componentName), Lib::class.java)
 }
 
+// Define FFI callback types
+internal interface UniffiRustFutureContinuationCallback : com.sun.jna.Callback {
+    fun callback(`data`: Long,`pollResult`: Byte,)
+}
+internal interface UniffiForeignFutureFree : com.sun.jna.Callback {
+    fun callback(`handle`: Long,)
+}
+internal interface UniffiCallbackInterfaceFree : com.sun.jna.Callback {
+    fun callback(`handle`: Long,)
+}
+@Structure.FieldOrder("handle", "free")
+internal open class UniffiForeignFuture(
+    @JvmField internal var `handle`: Long = 0.toLong(),
+    @JvmField internal var `free`: UniffiForeignFutureFree? = null,
+) : Structure() {
+    class UniffiByValue(
+        `handle`: Long = 0.toLong(),
+        `free`: UniffiForeignFutureFree? = null,
+    ): UniffiForeignFuture(`handle`,`free`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFuture) {
+        `handle` = other.`handle`
+        `free` = other.`free`
+    }
+
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructU8(
+    @JvmField internal var `returnValue`: Byte = 0.toByte(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Byte = 0.toByte(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructU8(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructU8) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteU8 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU8.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructI8(
+    @JvmField internal var `returnValue`: Byte = 0.toByte(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Byte = 0.toByte(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructI8(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructI8) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteI8 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI8.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructU16(
+    @JvmField internal var `returnValue`: Short = 0.toShort(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Short = 0.toShort(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructU16(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructU16) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteU16 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU16.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructI16(
+    @JvmField internal var `returnValue`: Short = 0.toShort(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Short = 0.toShort(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructI16(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructI16) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteI16 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI16.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructU32(
+    @JvmField internal var `returnValue`: Int = 0,
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Int = 0,
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructU32(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructU32) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteU32 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU32.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructI32(
+    @JvmField internal var `returnValue`: Int = 0,
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Int = 0,
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructI32(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructI32) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteI32 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI32.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructU64(
+    @JvmField internal var `returnValue`: Long = 0.toLong(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Long = 0.toLong(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructU64(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructU64) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteU64 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructU64.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructI64(
+    @JvmField internal var `returnValue`: Long = 0.toLong(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Long = 0.toLong(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructI64(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructI64) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteI64 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructI64.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructF32(
+    @JvmField internal var `returnValue`: Float = 0.0f,
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Float = 0.0f,
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructF32(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructF32) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteF32 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructF32.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructF64(
+    @JvmField internal var `returnValue`: Double = 0.0,
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Double = 0.0,
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructF64(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructF64) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteF64 : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructF64.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructPointer(
+    @JvmField internal var `returnValue`: Pointer = Pointer.NULL,
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: Pointer = Pointer.NULL,
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructPointer(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructPointer) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompletePointer : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructPointer.UniffiByValue,)
+}
+@Structure.FieldOrder("returnValue", "callStatus")
+internal open class UniffiForeignFutureStructRustBuffer(
+    @JvmField internal var `returnValue`: RustBuffer.ByValue = RustBuffer.ByValue(),
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `returnValue`: RustBuffer.ByValue = RustBuffer.ByValue(),
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructRustBuffer(`returnValue`,`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructRustBuffer) {
+        `returnValue` = other.`returnValue`
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteRustBuffer : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructRustBuffer.UniffiByValue,)
+}
+@Structure.FieldOrder("callStatus")
+internal open class UniffiForeignFutureStructVoid(
+    @JvmField internal var `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+) : Structure() {
+    class UniffiByValue(
+        `callStatus`: UniffiRustCallStatus.ByValue = UniffiRustCallStatus.ByValue(),
+    ): UniffiForeignFutureStructVoid(`callStatus`,), Structure.ByValue
+
+   internal fun uniffiSetValue(other: UniffiForeignFutureStructVoid) {
+        `callStatus` = other.`callStatus`
+    }
+
+}
+internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
+    fun callback(`callbackData`: Long,`result`: UniffiForeignFutureStructVoid.UniffiByValue,)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -392,305 +707,150 @@ internal interface UniffiLib : Library {
     companion object {
         internal val INSTANCE: UniffiLib by lazy {
             loadIndirect<UniffiLib>(componentName = "nym_vpn_lib")
-                .also { lib: UniffiLib ->
-                    uniffiCheckContractApiVersion(lib)
-                    uniffiCheckApiChecksums(lib)
+            .also { lib: UniffiLib ->
+                uniffiCheckContractApiVersion(lib)
+                uniffiCheckApiChecksums(lib)
                 }
         }
-
+        
     }
 
-    fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
-        `apiUrl`: RustBuffer.ByValue,
-        `explorerUrl`: RustBuffer.ByValue,
-        `exitOnly`: Byte,
-        uniffi_out_err: UniffiRustCallStatus,
+    fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`exitOnly`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-
-    fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
-        `apiUrl`: RustBuffer.ByValue,
-        `explorerUrl`: RustBuffer.ByValue,
-        uniffi_out_err: UniffiRustCallStatus,
+    fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-
-    fun uniffi_nym_vpn_lib_fn_func_runvpn(
-        `config`: RustBuffer.ByValue, uniffi_out_err: UniffiRustCallStatus,
+    fun uniffi_nym_vpn_lib_fn_func_runvpn(`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-
-    fun uniffi_nym_vpn_lib_fn_func_stopvpn(
-        uniffi_out_err: UniffiRustCallStatus,
+    fun uniffi_nym_vpn_lib_fn_func_stopvpn(uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-
-    fun ffi_nym_vpn_lib_rustbuffer_alloc(
-        `size`: Int, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-
-    fun ffi_nym_vpn_lib_rustbuffer_from_bytes(
-        `bytes`: ForeignBytes.ByValue, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-
-    fun ffi_nym_vpn_lib_rustbuffer_free(
-        `buf`: RustBuffer.ByValue, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-
-    fun ffi_nym_vpn_lib_rustbuffer_reserve(
-        `buf`: RustBuffer.ByValue, `additional`: Int, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-
-    fun ffi_nym_vpn_lib_rust_future_poll_u8(
-        `handle`: Pointer,
-        `callback`: UniFffiRustFutureContinuationCallbackType,
-        `callbackData`: USize,
+    fun ffi_nym_vpn_lib_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_cancel_u8(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_cancel_u8(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_free_u8(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_free_u8(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_complete_u8(
-        `handle`: Pointer, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-
-    fun ffi_nym_vpn_lib_rust_future_poll_i8(
-        `handle`: Pointer,
-        `callback`: UniFffiRustFutureContinuationCallbackType,
-        `callbackData`: USize,
+    fun ffi_nym_vpn_lib_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_cancel_i8(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_cancel_i8(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_free_i8(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_free_i8(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_complete_i8(
-        `handle`: Pointer, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Byte
-
-    fun ffi_nym_vpn_lib_rust_future_poll_u16(
-        `handle`: Pointer,
-        `callback`: UniFffiRustFutureContinuationCallbackType,
-        `callbackData`: USize,
+    fun ffi_nym_vpn_lib_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_cancel_u16(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_cancel_u16(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_free_u16(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_free_u16(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_complete_u16(
-        `handle`: Pointer, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Short
-
-    fun ffi_nym_vpn_lib_rust_future_poll_i16(
-        `handle`: Pointer,
-        `callback`: UniFffiRustFutureContinuationCallbackType,
-        `callbackData`: USize,
+    fun ffi_nym_vpn_lib_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_cancel_i16(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_cancel_i16(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_free_i16(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_free_i16(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_complete_i16(
-        `handle`: Pointer, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Short
-
-    fun ffi_nym_vpn_lib_rust_future_poll_u32(
-        `handle`: Pointer,
-        `callback`: UniFffiRustFutureContinuationCallbackType,
-        `callbackData`: USize,
+    fun ffi_nym_vpn_lib_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_cancel_u32(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_cancel_u32(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_free_u32(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_free_u32(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_complete_u32(
-        `handle`: Pointer, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-
-    fun ffi_nym_vpn_lib_rust_future_poll_i32(
-        `handle`: Pointer,
-        `callback`: UniFffiRustFutureContinuationCallbackType,
-        `callbackData`: USize,
+    fun ffi_nym_vpn_lib_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_cancel_i32(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_cancel_i32(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_free_i32(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_free_i32(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_complete_i32(
-        `handle`: Pointer, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
-
-    fun ffi_nym_vpn_lib_rust_future_poll_u64(
-        `handle`: Pointer,
-        `callback`: UniFffiRustFutureContinuationCallbackType,
-        `callbackData`: USize,
+    fun ffi_nym_vpn_lib_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_cancel_u64(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_cancel_u64(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_free_u64(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_free_u64(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_complete_u64(
-        `handle`: Pointer, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-
-    fun ffi_nym_vpn_lib_rust_future_poll_i64(
-        `handle`: Pointer,
-        `callback`: UniFffiRustFutureContinuationCallbackType,
-        `callbackData`: USize,
+    fun ffi_nym_vpn_lib_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_cancel_i64(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_cancel_i64(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_free_i64(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_free_i64(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_complete_i64(
-        `handle`: Pointer, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Long
-
-    fun ffi_nym_vpn_lib_rust_future_poll_f32(
-        `handle`: Pointer,
-        `callback`: UniFffiRustFutureContinuationCallbackType,
-        `callbackData`: USize,
+    fun ffi_nym_vpn_lib_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_cancel_f32(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_cancel_f32(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_free_f32(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_free_f32(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_complete_f32(
-        `handle`: Pointer, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Float
-
-    fun ffi_nym_vpn_lib_rust_future_poll_f64(
-        `handle`: Pointer,
-        `callback`: UniFffiRustFutureContinuationCallbackType,
-        `callbackData`: USize,
+    fun ffi_nym_vpn_lib_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_cancel_f64(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_cancel_f64(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_free_f64(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_free_f64(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_complete_f64(
-        `handle`: Pointer, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Double
-
-    fun ffi_nym_vpn_lib_rust_future_poll_pointer(
-        `handle`: Pointer,
-        `callback`: UniFffiRustFutureContinuationCallbackType,
-        `callbackData`: USize,
+    fun ffi_nym_vpn_lib_rust_future_poll_pointer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_cancel_pointer(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_cancel_pointer(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_free_pointer(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_free_pointer(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_complete_pointer(
-        `handle`: Pointer, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rust_future_complete_pointer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Pointer
-
-    fun ffi_nym_vpn_lib_rust_future_poll_rust_buffer(
-        `handle`: Pointer,
-        `callback`: UniFffiRustFutureContinuationCallbackType,
-        `callbackData`: USize,
+    fun ffi_nym_vpn_lib_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_cancel_rust_buffer(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_cancel_rust_buffer(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_free_rust_buffer(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_free_rust_buffer(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_complete_rust_buffer(
-        `handle`: Pointer, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-
-    fun ffi_nym_vpn_lib_rust_future_poll_void(
-        `handle`: Pointer,
-        `callback`: UniFffiRustFutureContinuationCallbackType,
-        `callbackData`: USize,
+    fun ffi_nym_vpn_lib_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_cancel_void(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_cancel_void(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_free_void(
-        `handle`: Pointer,
+    fun ffi_nym_vpn_lib_rust_future_free_void(`handle`: Long,
     ): Unit
-
-    fun ffi_nym_vpn_lib_rust_future_complete_void(
-        `handle`: Pointer, uniffi_out_err: UniffiRustCallStatus,
+    fun ffi_nym_vpn_lib_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-
     fun uniffi_nym_vpn_lib_checksum_func_getgatewaycountries(
     ): Short
-
     fun uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry(
     ): Short
-
     fun uniffi_nym_vpn_lib_checksum_func_runvpn(
     ): Short
-
     fun uniffi_nym_vpn_lib_checksum_func_stopvpn(
     ): Short
-
     fun ffi_nym_vpn_lib_uniffi_contract_version(
     ): Int
-
+    
 }
 
 private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
     // Get the bindings contract version from our ComponentInterface
-    val bindings_contract_version = 25
+    val bindings_contract_version = 26
     // Get the scaffolding contract version by calling the into the dylib
     val scaffolding_contract_version = lib.ffi_nym_vpn_lib_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
@@ -700,13 +860,13 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 45821.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 21142.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 48712.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 25285.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_runvpn() != 53939.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_runvpn() != 2496.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_stopvpn() != 23819.toShort()) {
@@ -729,7 +889,6 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
 // helper method to execute a block and destroy the object at the end.
 interface Disposable {
     fun destroy()
-
     companion object {
         fun destroy(vararg args: Any?) {
             args.filterIsInstance<Disposable>()
@@ -750,7 +909,10 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
         }
     }
 
-public object FfiConverterDouble : FfiConverter<Double, Double> {
+/** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
+object NoPointer
+
+public object FfiConverterDouble: FfiConverter<Double, Double> {
     override fun lift(value: Double): Double {
         return value
     }
@@ -763,14 +925,14 @@ public object FfiConverterDouble : FfiConverter<Double, Double> {
         return value
     }
 
-    override fun allocationSize(value: Double) = 8
+    override fun allocationSize(value: Double) = 8UL
 
     override fun write(value: Double, buf: ByteBuffer) {
         buf.putDouble(value)
     }
 }
 
-public object FfiConverterBoolean : FfiConverter<Boolean, Byte> {
+public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
     override fun lift(value: Byte): Boolean {
         return value.toInt() != 0
     }
@@ -783,20 +945,20 @@ public object FfiConverterBoolean : FfiConverter<Boolean, Byte> {
         return if (value) 1.toByte() else 0.toByte()
     }
 
-    override fun allocationSize(value: Boolean) = 1
+    override fun allocationSize(value: Boolean) = 1UL
 
     override fun write(value: Boolean, buf: ByteBuffer) {
         buf.put(lower(value))
     }
 }
 
-public object FfiConverterString : FfiConverter<String, RustBuffer.ByValue> {
+public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
     // store our length and avoid writing it out to the buffer.
     override fun lift(value: RustBuffer.ByValue): String {
         try {
-            val byteArr = ByteArray(value.len)
+            val byteArr = ByteArray(value.len.toInt())
             value.asByteBuffer()!!.get(byteArr)
             return byteArr.toString(Charsets.UTF_8)
         } finally {
@@ -823,7 +985,7 @@ public object FfiConverterString : FfiConverter<String, RustBuffer.ByValue> {
         val byteBuf = toUtf8(value)
         // Ideally we'd pass these bytes to `ffi_bytebuffer_from_bytes`, but doing so would require us
         // to copy them into a JNA `Memory`. So we might as well directly copy them into a `RustBuffer`.
-        val rbuf = RustBuffer.alloc(byteBuf.limit())
+        val rbuf = RustBuffer.alloc(byteBuf.limit().toULong())
         rbuf.asByteBuffer()!!.put(byteBuf)
         return rbuf
     }
@@ -831,9 +993,9 @@ public object FfiConverterString : FfiConverter<String, RustBuffer.ByValue> {
     // We aren't sure exactly how many bytes our string will be once it's UTF-8
     // encoded.  Allocate 3 bytes per UTF-16 code unit which will always be
     // enough.
-    override fun allocationSize(value: String): Int {
-        val sizeForLength = 4
-        val sizeForString = value.length * 3
+    override fun allocationSize(value: String): ULong {
+        val sizeForLength = 4UL
+        val sizeForString = value.length.toULong() * 3UL
         return sizeForLength + sizeForString
     }
 
@@ -845,18 +1007,19 @@ public object FfiConverterString : FfiConverter<String, RustBuffer.ByValue> {
 }
 
 
-data class Location(
-    var `twoLetterIsoCountryCode`: String,
-    var `threeLetterIsoCountryCode`: String,
-    var `countryName`: String,
-    var `latitude`: Double?,
-    var `longitude`: Double?
-) {
 
+data class Location (
+    var `twoLetterIsoCountryCode`: kotlin.String, 
+    var `threeLetterIsoCountryCode`: kotlin.String, 
+    var `countryName`: kotlin.String, 
+    var `latitude`: kotlin.Double?, 
+    var `longitude`: kotlin.Double?
+) {
+    
     companion object
 }
 
-public object FfiConverterTypeLocation : FfiConverterRustBuffer<Location> {
+public object FfiConverterTypeLocation: FfiConverterRustBuffer<Location> {
     override fun read(buf: ByteBuffer): Location {
         return Location(
             FfiConverterString.read(buf),
@@ -869,34 +1032,35 @@ public object FfiConverterTypeLocation : FfiConverterRustBuffer<Location> {
 
     override fun allocationSize(value: Location) = (
             FfiConverterString.allocationSize(value.`twoLetterIsoCountryCode`) +
-                    FfiConverterString.allocationSize(value.`threeLetterIsoCountryCode`) +
-                    FfiConverterString.allocationSize(value.`countryName`) +
-                    FfiConverterOptionalDouble.allocationSize(value.`latitude`) +
-                    FfiConverterOptionalDouble.allocationSize(value.`longitude`)
-            )
+            FfiConverterString.allocationSize(value.`threeLetterIsoCountryCode`) +
+            FfiConverterString.allocationSize(value.`countryName`) +
+            FfiConverterOptionalDouble.allocationSize(value.`latitude`) +
+            FfiConverterOptionalDouble.allocationSize(value.`longitude`)
+    )
 
     override fun write(value: Location, buf: ByteBuffer) {
-        FfiConverterString.write(value.`twoLetterIsoCountryCode`, buf)
-        FfiConverterString.write(value.`threeLetterIsoCountryCode`, buf)
-        FfiConverterString.write(value.`countryName`, buf)
-        FfiConverterOptionalDouble.write(value.`latitude`, buf)
-        FfiConverterOptionalDouble.write(value.`longitude`, buf)
+            FfiConverterString.write(value.`twoLetterIsoCountryCode`, buf)
+            FfiConverterString.write(value.`threeLetterIsoCountryCode`, buf)
+            FfiConverterString.write(value.`countryName`, buf)
+            FfiConverterOptionalDouble.write(value.`latitude`, buf)
+            FfiConverterOptionalDouble.write(value.`longitude`, buf)
     }
 }
 
 
-data class VpnConfig(
-    var `apiUrl`: Url,
-    var `explorerUrl`: Url,
-    var `entryGateway`: EntryPoint,
-    var `exitRouter`: ExitPoint,
-    var `enableTwoHop`: Boolean
-) {
 
+data class VpnConfig (
+    var `apiUrl`: Url, 
+    var `explorerUrl`: Url, 
+    var `entryGateway`: EntryPoint, 
+    var `exitRouter`: ExitPoint, 
+    var `enableTwoHop`: kotlin.Boolean
+) {
+    
     companion object
 }
 
-public object FfiConverterTypeVPNConfig : FfiConverterRustBuffer<VpnConfig> {
+public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
     override fun read(buf: ByteBuffer): VpnConfig {
         return VpnConfig(
             FfiConverterTypeUrl.read(buf),
@@ -909,115 +1073,106 @@ public object FfiConverterTypeVPNConfig : FfiConverterRustBuffer<VpnConfig> {
 
     override fun allocationSize(value: VpnConfig) = (
             FfiConverterTypeUrl.allocationSize(value.`apiUrl`) +
-                    FfiConverterTypeUrl.allocationSize(value.`explorerUrl`) +
-                    FfiConverterTypeEntryPoint.allocationSize(value.`entryGateway`) +
-                    FfiConverterTypeExitPoint.allocationSize(value.`exitRouter`) +
-                    FfiConverterBoolean.allocationSize(value.`enableTwoHop`)
-            )
+            FfiConverterTypeUrl.allocationSize(value.`explorerUrl`) +
+            FfiConverterTypeEntryPoint.allocationSize(value.`entryGateway`) +
+            FfiConverterTypeExitPoint.allocationSize(value.`exitRouter`) +
+            FfiConverterBoolean.allocationSize(value.`enableTwoHop`)
+    )
 
     override fun write(value: VpnConfig, buf: ByteBuffer) {
-        FfiConverterTypeUrl.write(value.`apiUrl`, buf)
-        FfiConverterTypeUrl.write(value.`explorerUrl`, buf)
-        FfiConverterTypeEntryPoint.write(value.`entryGateway`, buf)
-        FfiConverterTypeExitPoint.write(value.`exitRouter`, buf)
-        FfiConverterBoolean.write(value.`enableTwoHop`, buf)
+            FfiConverterTypeUrl.write(value.`apiUrl`, buf)
+            FfiConverterTypeUrl.write(value.`explorerUrl`, buf)
+            FfiConverterTypeEntryPoint.write(value.`entryGateway`, buf)
+            FfiConverterTypeExitPoint.write(value.`exitRouter`, buf)
+            FfiConverterBoolean.write(value.`enableTwoHop`, buf)
     }
 }
+
 
 
 sealed class EntryPoint {
-
+    
     data class Gateway(
-
-        val `identity`: NodeIdentity
-    ) : EntryPoint() {
+        val `identity`: NodeIdentity) : EntryPoint() {
         companion object
     }
-
+    
     data class Location(
-
-        val `location`: String
-    ) : EntryPoint() {
+        val `location`: kotlin.String) : EntryPoint() {
         companion object
     }
-
+    
     object RandomLowLatency : EntryPoint()
-
-
+    
+    
     object Random : EntryPoint()
+    
+    
 
-
+    
     companion object
 }
 
-public object FfiConverterTypeEntryPoint : FfiConverterRustBuffer<EntryPoint> {
+public object FfiConverterTypeEntryPoint : FfiConverterRustBuffer<EntryPoint>{
     override fun read(buf: ByteBuffer): EntryPoint {
-        return when (buf.getInt()) {
+        return when(buf.getInt()) {
             1 -> EntryPoint.Gateway(
                 FfiConverterTypeNodeIdentity.read(buf),
-            )
-
+                )
             2 -> EntryPoint.Location(
                 FfiConverterString.read(buf),
-            )
-
+                )
             3 -> EntryPoint.RandomLowLatency
             4 -> EntryPoint.Random
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
 
-    override fun allocationSize(value: EntryPoint) = when (value) {
+    override fun allocationSize(value: EntryPoint) = when(value) {
         is EntryPoint.Gateway -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                    4
-                            + FfiConverterTypeNodeIdentity.allocationSize(value.`identity`)
-                    )
+                4UL
+                + FfiConverterTypeNodeIdentity.allocationSize(value.`identity`)
+            )
         }
-
         is EntryPoint.Location -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                    4
-                            + FfiConverterString.allocationSize(value.`location`)
-                    )
+                4UL
+                + FfiConverterString.allocationSize(value.`location`)
+            )
         }
-
         is EntryPoint.RandomLowLatency -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                    4
-                    )
+                4UL
+            )
         }
-
         is EntryPoint.Random -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                    4
-                    )
+                4UL
+            )
         }
     }
 
     override fun write(value: EntryPoint, buf: ByteBuffer) {
-        when (value) {
+        when(value) {
             is EntryPoint.Gateway -> {
                 buf.putInt(1)
                 FfiConverterTypeNodeIdentity.write(value.`identity`, buf)
                 Unit
             }
-
             is EntryPoint.Location -> {
                 buf.putInt(2)
                 FfiConverterString.write(value.`location`, buf)
                 Unit
             }
-
             is EntryPoint.RandomLowLatency -> {
                 buf.putInt(3)
                 Unit
             }
-
             is EntryPoint.Random -> {
                 buf.putInt(4)
                 Unit
@@ -1027,92 +1182,83 @@ public object FfiConverterTypeEntryPoint : FfiConverterRustBuffer<EntryPoint> {
 }
 
 
+
+
+
 sealed class ExitPoint {
-
+    
     data class Address(
-
-        val `address`: Recipient
-    ) : ExitPoint() {
+        val `address`: Recipient) : ExitPoint() {
         companion object
     }
-
+    
     data class Gateway(
-
-        val `identity`: NodeIdentity
-    ) : ExitPoint() {
+        val `identity`: NodeIdentity) : ExitPoint() {
         companion object
     }
-
+    
     data class Location(
-
-        val `location`: String
-    ) : ExitPoint() {
+        val `location`: kotlin.String) : ExitPoint() {
         companion object
     }
+    
 
-
+    
     companion object
 }
 
-public object FfiConverterTypeExitPoint : FfiConverterRustBuffer<ExitPoint> {
+public object FfiConverterTypeExitPoint : FfiConverterRustBuffer<ExitPoint>{
     override fun read(buf: ByteBuffer): ExitPoint {
-        return when (buf.getInt()) {
+        return when(buf.getInt()) {
             1 -> ExitPoint.Address(
                 FfiConverterTypeRecipient.read(buf),
-            )
-
+                )
             2 -> ExitPoint.Gateway(
                 FfiConverterTypeNodeIdentity.read(buf),
-            )
-
+                )
             3 -> ExitPoint.Location(
                 FfiConverterString.read(buf),
-            )
-
+                )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
 
-    override fun allocationSize(value: ExitPoint) = when (value) {
+    override fun allocationSize(value: ExitPoint) = when(value) {
         is ExitPoint.Address -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                    4
-                            + FfiConverterTypeRecipient.allocationSize(value.`address`)
-                    )
+                4UL
+                + FfiConverterTypeRecipient.allocationSize(value.`address`)
+            )
         }
-
         is ExitPoint.Gateway -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                    4
-                            + FfiConverterTypeNodeIdentity.allocationSize(value.`identity`)
-                    )
+                4UL
+                + FfiConverterTypeNodeIdentity.allocationSize(value.`identity`)
+            )
         }
-
         is ExitPoint.Location -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
-                    4
-                            + FfiConverterString.allocationSize(value.`location`)
-                    )
+                4UL
+                + FfiConverterString.allocationSize(value.`location`)
+            )
         }
     }
 
     override fun write(value: ExitPoint, buf: ByteBuffer) {
-        when (value) {
+        when(value) {
             is ExitPoint.Address -> {
                 buf.putInt(1)
                 FfiConverterTypeRecipient.write(value.`address`, buf)
                 Unit
             }
-
             is ExitPoint.Gateway -> {
                 buf.putInt(2)
                 FfiConverterTypeNodeIdentity.write(value.`identity`, buf)
                 Unit
             }
-
             is ExitPoint.Location -> {
                 buf.putInt(3)
                 FfiConverterString.write(value.`location`, buf)
@@ -1123,161 +1269,181 @@ public object FfiConverterTypeExitPoint : FfiConverterRustBuffer<ExitPoint> {
 }
 
 
-sealed class FfiException : Exception() {
 
+
+
+
+
+sealed class FfiException: Exception() {
+    
     class InvalidValueUniffi(
-    ) : FfiException() {
+        ) : FfiException() {
         override val message
             get() = ""
     }
-
+    
     class FdNotFound(
-    ) : FfiException() {
+        ) : FfiException() {
         override val message
             get() = ""
     }
-
+    
     class VpnNotStopped(
-    ) : FfiException() {
+        ) : FfiException() {
         override val message
             get() = ""
     }
-
+    
     class VpnNotStarted(
-    ) : FfiException() {
+        ) : FfiException() {
         override val message
             get() = ""
     }
-
+    
+    class VpnAlreadyRunning(
+        ) : FfiException() {
+        override val message
+            get() = ""
+    }
+    
+    class VpnNotRunning(
+        ) : FfiException() {
+        override val message
+            get() = ""
+    }
+    
     class NoContext(
-    ) : FfiException() {
+        ) : FfiException() {
         override val message
             get() = ""
     }
-
+    
     class LibException(
-
-        val `inner`: String
-    ) : FfiException() {
+        
+        val `inner`: kotlin.String
+        ) : FfiException() {
         override val message
-            get() = "inner=${`inner`}"
+            get() = "inner=${ `inner` }"
     }
-
+    
     class GatewayDirectoryException(
-
-        val `inner`: String
-    ) : FfiException() {
+        
+        val `inner`: kotlin.String
+        ) : FfiException() {
         override val message
-            get() = "inner=${`inner`}"
+            get() = "inner=${ `inner` }"
     }
-
+    
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<FfiException> {
-        override fun lift(error_buf: RustBuffer.ByValue): FfiException =
-            FfiConverterTypeFFIError.lift(error_buf)
+        override fun lift(error_buf: RustBuffer.ByValue): FfiException = FfiConverterTypeFFIError.lift(error_buf)
     }
 
-
+    
 }
 
 public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
     override fun read(buf: ByteBuffer): FfiException {
+        
 
-
-        return when (buf.getInt()) {
+        return when(buf.getInt()) {
             1 -> FfiException.InvalidValueUniffi()
             2 -> FfiException.FdNotFound()
             3 -> FfiException.VpnNotStopped()
             4 -> FfiException.VpnNotStarted()
-            5 -> FfiException.NoContext()
-            6 -> FfiException.LibException(
+            5 -> FfiException.VpnAlreadyRunning()
+            6 -> FfiException.VpnNotRunning()
+            7 -> FfiException.NoContext()
+            8 -> FfiException.LibException(
                 FfiConverterString.read(buf),
-            )
-
-            7 -> FfiException.GatewayDirectoryException(
+                )
+            9 -> FfiException.GatewayDirectoryException(
                 FfiConverterString.read(buf),
-            )
-
+                )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
 
-    override fun allocationSize(value: FfiException): Int {
-        return when (value) {
+    override fun allocationSize(value: FfiException): ULong {
+        return when(value) {
             is FfiException.InvalidValueUniffi -> (
-                    // Add the size for the Int that specifies the variant plus the size needed for all fields
-                    4
-                    )
-
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
             is FfiException.FdNotFound -> (
-                    // Add the size for the Int that specifies the variant plus the size needed for all fields
-                    4
-                    )
-
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
             is FfiException.VpnNotStopped -> (
-                    // Add the size for the Int that specifies the variant plus the size needed for all fields
-                    4
-                    )
-
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
             is FfiException.VpnNotStarted -> (
-                    // Add the size for the Int that specifies the variant plus the size needed for all fields
-                    4
-                    )
-
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is FfiException.VpnAlreadyRunning -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is FfiException.VpnNotRunning -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
             is FfiException.NoContext -> (
-                    // Add the size for the Int that specifies the variant plus the size needed for all fields
-                    4
-                    )
-
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
             is FfiException.LibException -> (
-                    // Add the size for the Int that specifies the variant plus the size needed for all fields
-                    4
-                            + FfiConverterString.allocationSize(value.`inner`)
-                    )
-
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.`inner`)
+            )
             is FfiException.GatewayDirectoryException -> (
-                    // Add the size for the Int that specifies the variant plus the size needed for all fields
-                    4
-                            + FfiConverterString.allocationSize(value.`inner`)
-                    )
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+                + FfiConverterString.allocationSize(value.`inner`)
+            )
         }
     }
 
     override fun write(value: FfiException, buf: ByteBuffer) {
-        when (value) {
+        when(value) {
             is FfiException.InvalidValueUniffi -> {
                 buf.putInt(1)
                 Unit
             }
-
             is FfiException.FdNotFound -> {
                 buf.putInt(2)
                 Unit
             }
-
             is FfiException.VpnNotStopped -> {
                 buf.putInt(3)
                 Unit
             }
-
             is FfiException.VpnNotStarted -> {
                 buf.putInt(4)
                 Unit
             }
-
-            is FfiException.NoContext -> {
+            is FfiException.VpnAlreadyRunning -> {
                 buf.putInt(5)
                 Unit
             }
-
-            is FfiException.LibException -> {
+            is FfiException.VpnNotRunning -> {
                 buf.putInt(6)
+                Unit
+            }
+            is FfiException.NoContext -> {
+                buf.putInt(7)
+                Unit
+            }
+            is FfiException.LibException -> {
+                buf.putInt(8)
                 FfiConverterString.write(value.`inner`, buf)
                 Unit
             }
-
             is FfiException.GatewayDirectoryException -> {
-                buf.putInt(7)
+                buf.putInt(9)
                 FfiConverterString.write(value.`inner`, buf)
                 Unit
             }
@@ -1287,23 +1453,25 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
 }
 
 
-public object FfiConverterOptionalDouble : FfiConverterRustBuffer<Double?> {
-    override fun read(buf: ByteBuffer): Double? {
+
+
+public object FfiConverterOptionalDouble: FfiConverterRustBuffer<kotlin.Double?> {
+    override fun read(buf: ByteBuffer): kotlin.Double? {
         if (buf.get().toInt() == 0) {
             return null
         }
         return FfiConverterDouble.read(buf)
     }
 
-    override fun allocationSize(value: Double?): Int {
+    override fun allocationSize(value: kotlin.Double?): ULong {
         if (value == null) {
-            return 1
+            return 1UL
         } else {
-            return 1 + FfiConverterDouble.allocationSize(value)
+            return 1UL + FfiConverterDouble.allocationSize(value)
         }
     }
 
-    override fun write(value: Double?, buf: ByteBuffer) {
+    override fun write(value: kotlin.Double?, buf: ByteBuffer) {
         if (value == null) {
             buf.put(0)
         } else {
@@ -1314,7 +1482,9 @@ public object FfiConverterOptionalDouble : FfiConverterRustBuffer<Double?> {
 }
 
 
-public object FfiConverterSequenceTypeLocation : FfiConverterRustBuffer<List<Location>> {
+
+
+public object FfiConverterSequenceTypeLocation: FfiConverterRustBuffer<List<Location>> {
     override fun read(buf: ByteBuffer): List<Location> {
         val len = buf.getInt()
         return List<Location>(len) {
@@ -1322,37 +1492,42 @@ public object FfiConverterSequenceTypeLocation : FfiConverterRustBuffer<List<Loc
         }
     }
 
-    override fun allocationSize(value: List<Location>): Int {
-        val sizeForLength = 4
+    override fun allocationSize(value: List<Location>): ULong {
+        val sizeForLength = 4UL
         val sizeForItems = value.map { FfiConverterTypeLocation.allocationSize(it) }.sum()
         return sizeForLength + sizeForItems
     }
 
     override fun write(value: List<Location>, buf: ByteBuffer) {
         buf.putInt(value.size)
-        value.forEach {
+        value.iterator().forEach {
             FfiConverterTypeLocation.write(it, buf)
         }
     }
 }
 
 
+
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
  * It's also what we have an external type that references a custom type.
  */
-public typealias NodeIdentity = String
+public typealias NodeIdentity = kotlin.String
 public typealias FfiConverterTypeNodeIdentity = FfiConverterString
 
 
+
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
  * It's also what we have an external type that references a custom type.
  */
-public typealias Recipient = String
+public typealias Recipient = kotlin.String
 public typealias FfiConverterTypeRecipient = FfiConverterString
+
+
+
 
 
 /**
@@ -1363,7 +1538,8 @@ public typealias FfiConverterTypeRecipient = FfiConverterString
 public typealias Url = URL
 
 
-public object FfiConverterTypeUrl : FfiConverter<Url, RustBuffer.ByValue> {
+
+public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
     override fun lift(value: RustBuffer.ByValue): Url {
         val builtinValue = FfiConverterString.lift(value)
         return URI(builtinValue).toURL()
@@ -1379,7 +1555,7 @@ public object FfiConverterTypeUrl : FfiConverter<Url, RustBuffer.ByValue> {
         return URI(builtinValue).toURL()
     }
 
-    override fun allocationSize(value: Url): Int {
+    override fun allocationSize(value: Url): ULong {
         val builtinValue = value.toString()
         return FfiConverterString.allocationSize(builtinValue)
     }
@@ -1389,56 +1565,42 @@ public object FfiConverterTypeUrl : FfiConverter<Url, RustBuffer.ByValue> {
         FfiConverterString.write(builtinValue, buf)
     }
 }
-
-@Throws(FfiException::class)
-
-fun `getGatewayCountries`(`apiUrl`: Url, `explorerUrl`: Url, `exitOnly`: Boolean): List<Location> {
-    return FfiConverterSequenceTypeLocation.lift(
-        uniffiRustCallWithError(FfiException) { _status ->
-            UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
-                FfiConverterTypeUrl.lower(
-                    `apiUrl`
-                ),
-                FfiConverterTypeUrl.lower(`explorerUrl`),
-                FfiConverterBoolean.lower(`exitOnly`),
-                _status
-            )
-        })
-}
-
-@Throws(FfiException::class)
-
-fun `getLowLatencyEntryCountry`(`apiUrl`: Url, `explorerUrl`: Url): Location {
-    return FfiConverterTypeLocation.lift(
-        uniffiRustCallWithError(FfiException) { _status ->
-            UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
-                FfiConverterTypeUrl.lower(`apiUrl`),
-                FfiConverterTypeUrl.lower(`explorerUrl`),
-                _status
-            )
-        })
-}
-
-@Throws(FfiException::class)
-
-fun `runVpn`(`config`: VpnConfig) =
-
+    @Throws(FfiException::class) fun `getGatewayCountries`(`apiUrl`: Url, `explorerUrl`: Url, `exitOnly`: kotlin.Boolean): List<Location> {
+            return FfiConverterSequenceTypeLocation.lift(
     uniffiRustCallWithError(FfiException) { _status ->
-        UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_runvpn(
-            FfiConverterTypeVPNConfig.lower(
-                `config`
-            ), _status
-        )
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
+        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterTypeUrl.lower(`explorerUrl`),FfiConverterBoolean.lower(`exitOnly`),_status)
+}
+    )
     }
+    
 
-
-@Throws(FfiException::class)
-
-fun `stopVpn`() =
-
+    @Throws(FfiException::class) fun `getLowLatencyEntryCountry`(`apiUrl`: Url, `explorerUrl`: Url): Location {
+            return FfiConverterTypeLocation.lift(
     uniffiRustCallWithError(FfiException) { _status ->
-        UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_stopvpn(_status)
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
+        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterTypeUrl.lower(`explorerUrl`),_status)
+}
+    )
     }
+    
 
+    @Throws(FfiException::class) fun `runVpn`(`config`: VpnConfig)
+        = 
+    uniffiRustCallWithError(FfiException) { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_runvpn(
+        FfiConverterTypeVPNConfig.lower(`config`),_status)
+}
+    
+    
+
+    @Throws(FfiException::class) fun `stopVpn`()
+        = 
+    uniffiRustCallWithError(FfiException) { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_stopvpn(
+        _status)
+}
+    
+    
 
 

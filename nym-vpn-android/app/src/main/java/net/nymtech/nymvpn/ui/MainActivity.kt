@@ -14,7 +14,10 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -121,6 +124,11 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 TransparentSystemBars()
                 Scaffold(
+                    Modifier.semantics {
+                        // Enables testTag -> UiAutomator resource id
+                        @OptIn(ExperimentalComposeUiApi::class)
+                        testTagsAsResourceId = true
+                    },
                     topBar = { NavBar(appViewModel, navController) },
                     snackbarHost = {
                         SnackbarHost(snackbarHostState) { snackbarData: SnackbarData ->

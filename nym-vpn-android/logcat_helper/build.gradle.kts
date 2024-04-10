@@ -33,6 +33,9 @@ android {
             create(Constants.GENERAL) {
                 dimension = Constants.TYPE
             }
+            create(Constants.SANDBOX) {
+                dimension = Constants.TYPE
+            }
         }
     }
     compileOptions {

@@ -17,4 +17,9 @@ object Constants {
     const val SENTRY_PROD_ENV = "production"
 
     const val NYM_VPN_LIB_TAG = "libnymvpn"
+
+    //testing stuff
+    const val CONNECT_TEST_TAG = "connectTag"
+    const val LOGIN_TEST_TAG = "loginTag"
+    const val DISCONNECT_TEST_TAG = "disconnectTag"
 }

@@ -10,10 +10,6 @@ plugins {
 
 android {
 
-    android {
-        ndkVersion = sdkDirectory.resolve("ndk").listFilesOrdered().last().name
-    }
-
     project.tasks.preBuild.dependsOn(Constants.BUILD_LIB_TASK)
 
     namespace = "${Constants.NAMESPACE}.${Constants.VPN_LIB_NAME}"
@@ -23,17 +19,14 @@ android {
         minSdk = Constants.MIN_SDK
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-        ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86")
-        }
         buildConfigField("String", "API_URL", "\"${Constants.MAINNET_API_URL}\"")
         buildConfigField("String", "EXPLORER_URL", "\"${Constants.MAINNET_EXPLORER_URL}\"")
+        buildConfigField("Boolean", "IS_SANDBOX", "false")
     }
 
     buildTypes {
         release {
-            //TODO disable for now
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -50,6 +43,12 @@ android {
             }
             create(Constants.GENERAL) {
                 dimension = Constants.TYPE
+            }
+            create(Constants.SANDBOX) {
+                dimension = Constants.TYPE
+                buildConfigField("String", "API_URL", "\"${Constants.SANDBOX_API_URL}\"")
+                buildConfigField("String", "EXPLORER_URL", "\"${Constants.SANDBOX_EXPLORER_URL}\"")
+                buildConfigField("Boolean", "IS_SANDBOX", "true")
             }
         }
     }
@@ -68,6 +67,9 @@ android {
     buildFeatures {
         buildConfig = true
     }
+
+    ndkVersion = sdkDirectory.resolve("ndk").listFilesOrdered().last().name
+
 }
 
 dependencies {

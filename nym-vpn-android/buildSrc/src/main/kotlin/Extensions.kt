@@ -14,8 +14,9 @@ fun Project.getLocalProperty(key: String, file: String = "local.properties"): St
 }
 
 fun Project.isReleaseBuild(): Boolean {
-    return (gradle.startParameter.taskNames.size > 0 &&
-            gradle.startParameter.taskNames[0].contains(
-                "Release",
-            ))
+    return gradle.startParameter.taskNames.find { it.lowercase().contains("release") } != null
+}
+
+fun Project.isBundleBuild() : Boolean {
+    return gradle.startParameter.taskNames.find { it.lowercase().contains("bundle") } != null
 }

@@ -35,6 +35,8 @@ android {
             Constants.SENTRY_DSN,
             "\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\""
         )
+        buildConfigField("Boolean", Constants.OPT_IN_REPORTING, "false")
+        proguardFile("fdroid-rules.pro")
     }
 
     signingConfigs {
@@ -91,7 +93,7 @@ android {
                         generateChecksum = true
                     }
                     val fullName =
-                        "${Constants.APP_NAME}-${variant.flavorName}-${variant.buildType.name}-${variant.versionName}"
+                        "${Constants.APP_NAME}-${variant.flavorName}-${variant.buildType.name}-${variant.versionName}-${output.getFilter(com.android.build.OutputFile.ABI) ?: "universal"}"
                     variant.resValue("string", "fullVersionName", fullName)
                     val outputFileName =
                         "$fullName.apk"
@@ -99,10 +101,9 @@ android {
                 }
         }
         release {
-            //TODO fix release jni minifying
             isDebuggable = false
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -119,11 +120,12 @@ android {
     productFlavors {
         create(Constants.FDROID) {
             dimension = Constants.TYPE
-            proguardFile("fdroid-rules.pro")
-            buildConfigField("Boolean", Constants.OPT_IN_REPORTING, "false")
         }
         create(Constants.GENERAL) {
-            buildConfigField("Boolean", Constants.OPT_IN_REPORTING, "true")
+            dimension = Constants.TYPE
+            proguardFile("proguard-rules.pro")
+        }
+        create(Constants.SANDBOX) {
             dimension = Constants.TYPE
         }
     }
@@ -180,6 +182,19 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    if(isBundleBuild()) {
+        defaultConfig.ndk.abiFilters("arm64-v8a", "armeabi-v7a")
+    } else {
+        splits {
+            abi {
+                isEnable = true
+                reset()
+                include("armeabi-v7a", "arm64-v8a")
+                isUniversalApk = isReleaseBuild()
+            }
+        }
+    }
 }
 
 dependencies {
@@ -198,11 +213,14 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.window.core.android)
+
     testImplementation(libs.junit)
+    testImplementation(libs.java.client)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.androidx.uiautomator)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 

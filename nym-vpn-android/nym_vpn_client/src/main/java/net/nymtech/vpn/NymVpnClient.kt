@@ -127,6 +127,8 @@ object NymVpnClient : VpnClient {
                 when (it.level) {
                     LogLevel.ERROR -> {
                         if (it.tag.contains(Constants.NYM_VPN_LIB_TAG)) {
+                            //TODO temp ignore IPR IPv6 error
+                            if(it.message.contains("(IPR) not routing IPv6 traffic")) return@safeCollect
                             cancel()
                             setErrorState(it.message)
                             disconnect(context)
@@ -189,13 +191,13 @@ object NymVpnClient : VpnClient {
 
 
     override fun disconnect(context: Context) {
+        ServiceManager.stopVpnService(context)
         statusJob?.cancel()
         _state.value = _state.value.copy(
             statistics = _state.value.statistics.copy(
                 connectionSeconds = null
             ),
         )
-        ServiceManager.stopVpnService(context)
     }
 
     const val ENTRY_POINT_EXTRA_KEY = "entryPoint"

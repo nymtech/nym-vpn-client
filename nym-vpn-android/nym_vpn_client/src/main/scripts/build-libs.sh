@@ -11,7 +11,9 @@ export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin"
 bash $PWD/src/tools/nym-vpn-client/wireguard/build-wireguard-go.sh
 bash $PWD/src/tools/nym-vpn-client/wireguard/libwg/build-android.sh
 echo "Building nym-vpn-lib dep"
-(cd $PWD/src/tools/nym-vpn-client/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release)
+#fix emulators later
+#(cd $PWD/src/tools/nym-vpn-client/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release)
+(cd $PWD/src/tools/nym-vpn-client/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -o ../../../main/jniLibs build --release)
 #mv wireguard
 
 case  "$(uname -s)" in
@@ -20,7 +22,7 @@ case  "$(uname -s)" in
     MINGW*|MSYS_NT*) export RUSTFLAGS="-L ${PWD}/src/tools/nym-vpn-client/build/lib/x86_64-pc-windows-msvc";;
 esac
 
-(cd $PWD/src/tools/nym-vpn-client; cargo run --bin uniffi-bindgen generate --library ./target/aarch64-linux-android/debug/libnym_vpn_lib.so  --language kotlin --out-dir ../../main/java/net/nymtech/vpn -n)
+(cd $PWD/src/tools/nym-vpn-client; cargo run --bin uniffi-bindgen generate --library ./target/aarch64-linux-android/release/libnym_vpn_lib.so  --language kotlin --out-dir ../../main/java/net/nymtech/vpn -n)
 #fix package name
 sed -i 's/package nym-vpn-lib;/package nym_vpn_lib;/g' $PWD/src/main/java/net/nymtech/vpn/nym-vpn-lib/nym_vpn_lib.kt
 
