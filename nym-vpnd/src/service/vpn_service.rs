@@ -1,9 +1,16 @@
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use std::sync::Arc;
 
+use futures::channel::mpsc::UnboundedSender;
 use futures::SinkExt;
-use futures::{channel::mpsc::UnboundedSender, StreamExt};
 use tokio::sync::mpsc::Receiver;
 use tokio::sync::oneshot;
+use tracing::info;
+
+use super::exit_listener::VpnServiceExitListener;
+use super::status_listener::VpnServiceStatusListener;
 
 #[derive(Debug, Clone)]
 pub enum VpnState {
@@ -43,29 +50,14 @@ pub enum VpnServiceStatusResult {
     Disconnecting,
 }
 
-pub fn start_vpn_service(
-    vpn_command_rx: Receiver<VpnServiceCommand>,
-) -> std::thread::JoinHandle<()> {
-    println!("Starting VPN handler");
-    std::thread::spawn(move || {
-        let vpn_rt = tokio::runtime::Runtime::new().unwrap();
-        vpn_rt.block_on(async {
-            // Listen to the command channel
-            println!("VPN: Listening for commands");
-            let vpn_service = NymVpnService::new(vpn_command_rx);
-            vpn_service.run().await;
-        });
-    })
-}
-
-struct NymVpnService {
+pub(super) struct NymVpnService {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
     vpn_command_rx: Receiver<VpnServiceCommand>,
     vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
 }
 
 impl NymVpnService {
-    fn new(vpn_command_rx: Receiver<VpnServiceCommand>) -> Self {
+    pub(super) fn new(vpn_command_rx: Receiver<VpnServiceCommand>) -> Self {
         Self {
             shared_vpn_state: Arc::new(std::sync::Mutex::new(VpnState::NotConnected)),
             vpn_command_rx,
@@ -79,12 +71,8 @@ impl NymVpnService {
         self.set_shared_state(VpnState::Connecting);
 
         let mut nym_vpn = nym_vpn_lib::NymVpn::new(
-            nym_vpn_lib::gateway_directory::EntryPoint::Location {
-                location: "FR".to_string(),
-            },
-            nym_vpn_lib::gateway_directory::ExitPoint::Location {
-                location: "FR".to_string(),
-            },
+            nym_vpn_lib::gateway_directory::EntryPoint::Random,
+            nym_vpn_lib::gateway_directory::ExitPoint::Random,
         );
 
         nym_vpn.gateway_config = nym_vpn_lib::nym_config::OptionalSet::with_optional_env(
@@ -147,9 +135,9 @@ impl NymVpnService {
         }
     }
 
-    async fn run(mut self) {
+    pub(super) async fn run(mut self) {
         while let Some(command) = self.vpn_command_rx.recv().await {
-            println!("VPN: Received command: {:?}", command);
+            info!("VPN: Received command: {:?}", command);
             match command {
                 VpnServiceCommand::Connect(tx) => {
                     let result = self.handle_connect().await;
@@ -165,75 +153,5 @@ impl NymVpnService {
                 }
             }
         }
-    }
-}
-
-struct VpnServiceStatusListener {
-    shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
-}
-
-impl VpnServiceStatusListener {
-    fn new(shared_vpn_state: Arc<std::sync::Mutex<VpnState>>) -> Self {
-        Self { shared_vpn_state }
-    }
-
-    async fn start(
-        self,
-        mut vpn_status_rx: futures::channel::mpsc::Receiver<
-            Box<dyn std::error::Error + Send + Sync>,
-        >,
-    ) {
-        tokio::spawn(async move {
-            while let Some(msg) = vpn_status_rx.next().await {
-                println!("Received status: {msg}");
-                match msg.downcast_ref::<nym_vpn_lib::TaskStatus>().unwrap() {
-                    nym_vpn_lib::TaskStatus::Ready
-                    | nym_vpn_lib::TaskStatus::ReadyWithGateway(_) => {
-                        println!("VPN status: connected");
-                        self.set_shared_state(VpnState::Connected);
-                    }
-                }
-            }
-        });
-    }
-
-    fn set_shared_state(&self, state: VpnState) {
-        *self.shared_vpn_state.lock().unwrap() = state;
-    }
-}
-
-struct VpnServiceExitListener {
-    shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
-}
-
-impl VpnServiceExitListener {
-    fn new(shared_vpn_state: Arc<std::sync::Mutex<VpnState>>) -> Self {
-        Self { shared_vpn_state }
-    }
-
-    async fn start(
-        self,
-        vpn_exit_rx: futures::channel::oneshot::Receiver<nym_vpn_lib::NymVpnExitStatusMessage>,
-    ) {
-        tokio::spawn(async move {
-            match vpn_exit_rx.await {
-                Ok(exit_res) => match exit_res {
-                    nym_vpn_lib::NymVpnExitStatusMessage::Stopped => {
-                        println!("VPN exit: stopped");
-                        self.set_shared_state(VpnState::NotConnected);
-                    }
-                    nym_vpn_lib::NymVpnExitStatusMessage::Failed(err) => {
-                        println!("VPN exit: fail: {err}");
-                    }
-                },
-                Err(err) => {
-                    println!("exit listener fail: {err}");
-                }
-            }
-        });
-    }
-
-    fn set_shared_state(&self, state: VpnState) {
-        *self.shared_vpn_state.lock().unwrap() = state;
     }
 }

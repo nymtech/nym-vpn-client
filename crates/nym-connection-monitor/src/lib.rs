@@ -18,7 +18,7 @@ pub use error::Error;
 pub use icmp_beacon::{
     is_icmp_beacon_reply, is_icmp_v6_beacon_reply, IcmpBeaconReply, Icmpv6BeaconReply,
 };
-pub use monitor::ConnectionStatusEvent;
+pub use monitor::{ConnectionMonitorStatus, ConnectionStatusEvent};
 pub use sync_self_ping::self_ping_and_wait;
 
 fn create_icmp_beacon_identifier() -> u16 {

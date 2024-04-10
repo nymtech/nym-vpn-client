@@ -4622,6 +4622,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "futures",
+ "nym-task",
  "nym-vpn-lib",
  "reqwest",
  "tokio",
