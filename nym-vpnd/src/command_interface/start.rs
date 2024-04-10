@@ -4,17 +4,20 @@
 use std::path::Path;
 
 use nym_task::TaskManager;
-use tokio::sync::mpsc::Receiver;
+use tokio::sync::mpsc::UnboundedReceiver;
 use tracing::info;
 
 use crate::service::VpnServiceCommand;
 
 pub(crate) fn start_command_interface(
     mut task_manager: TaskManager,
-) -> (std::thread::JoinHandle<()>, Receiver<VpnServiceCommand>) {
+) -> (
+    std::thread::JoinHandle<()>,
+    UnboundedReceiver<VpnServiceCommand>,
+) {
+    info!("Starting unix socket command interface");
     // Channel to send commands to the vpn service
-    let (vpn_command_tx, vpn_command_rx) = tokio::sync::mpsc::channel(32);
-
+    let (vpn_command_tx, vpn_command_rx) = tokio::sync::mpsc::unbounded_channel();
     let socket_path = Path::new("/var/run/nym-vpn.socket");
 
     let handle = std::thread::spawn(move || {

@@ -1,10 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use tokio::io::AsyncWriteExt;
 use tokio::{
-    io::AsyncReadExt,
-    sync::{mpsc::Sender, oneshot},
+    io::{AsyncReadExt, AsyncWriteExt},
+    sync::{mpsc::UnboundedSender, oneshot},
 };
 use tracing::{error, info, warn};
 
@@ -13,11 +12,11 @@ use crate::service::{
 };
 
 pub(super) struct CommandInterfaceConnectionHandler {
-    vpn_command_tx: Sender<VpnServiceCommand>,
+    vpn_command_tx: UnboundedSender<VpnServiceCommand>,
 }
 
 impl CommandInterfaceConnectionHandler {
-    pub(super) fn new(vpn_command_tx: Sender<VpnServiceCommand>) -> Self {
+    pub(super) fn new(vpn_command_tx: UnboundedSender<VpnServiceCommand>) -> Self {
         Self { vpn_command_tx }
     }
 
@@ -26,7 +25,6 @@ impl CommandInterfaceConnectionHandler {
         let (tx, rx) = oneshot::channel();
         self.vpn_command_tx
             .send(VpnServiceCommand::Connect(tx))
-            .await
             .unwrap();
         info!("Sent start command to VPN");
         info!("Waiting for response");
@@ -44,7 +42,6 @@ impl CommandInterfaceConnectionHandler {
         let (tx, rx) = oneshot::channel();
         self.vpn_command_tx
             .send(VpnServiceCommand::Disconnect(tx))
-            .await
             .unwrap();
         info!("Sent stop command to VPN");
         info!("Waiting for response");
@@ -65,7 +62,6 @@ impl CommandInterfaceConnectionHandler {
         let (tx, rx) = oneshot::channel();
         self.vpn_command_tx
             .send(VpnServiceCommand::Status(tx))
-            .await
             .unwrap();
         info!("Sent status command to VPN");
         info!("Waiting for response");

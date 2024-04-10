@@ -7,7 +7,7 @@ use futures::channel::mpsc::UnboundedSender;
 use futures::SinkExt;
 use nym_vpn_lib::gateway_directory;
 use nym_vpn_lib::nym_config::OptionalSet;
-use tokio::sync::mpsc::Receiver;
+use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::oneshot;
 use tracing::info;
 
@@ -54,12 +54,12 @@ pub enum VpnServiceStatusResult {
 
 pub(super) struct NymVpnService {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
-    vpn_command_rx: Receiver<VpnServiceCommand>,
+    vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
     vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
 }
 
 impl NymVpnService {
-    pub(super) fn new(vpn_command_rx: Receiver<VpnServiceCommand>) -> Self {
+    pub(super) fn new(vpn_command_rx: UnboundedReceiver<VpnServiceCommand>) -> Self {
         Self {
             shared_vpn_state: Arc::new(std::sync::Mutex::new(VpnState::NotConnected)),
             vpn_command_rx,
