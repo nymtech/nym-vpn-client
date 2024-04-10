@@ -12,9 +12,12 @@ import android.os.ParcelFileDescriptor
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.tun_provider.TunConfig
 import net.nymtech.vpn.util.Action
@@ -26,6 +29,7 @@ import timber.log.Timber
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
+import java.util.concurrent.Executors
 import kotlin.properties.Delegates.observable
 
 class NymVpnService : VpnService() {
@@ -39,7 +43,7 @@ class NymVpnService : VpnService() {
         }
     }
 
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(Dispatchers.Default)
 
     private var activeTunStatus by observable<CreateTunResult?>(null) { _, oldTunStatus, _ ->
         val oldTunFd = when (oldTunStatus) {
@@ -62,6 +66,8 @@ class NymVpnService : VpnService() {
 
     protected var disallowedApps: List<String>? = null
 
+    val singleDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+
     val connectivityListener = ConnectivityListener()
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -72,8 +78,10 @@ class NymVpnService : VpnService() {
                 Timber.i("VPN start")
                 if (prepare(this) == null) {
                     scope.launch {
-                        initVPN(this@NymVpnService)
-                        NymVpnClient.connect()
+                        withContext(singleDispatcher) {
+                            initVPN(this@NymVpnService)
+                            NymVpnClient.connect()
+                        }
                     }
                 }
                 return START_STICKY
