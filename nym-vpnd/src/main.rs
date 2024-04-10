@@ -12,6 +12,8 @@ mod logging;
 #[cfg(unix)]
 mod service;
 
+tonic::include_proto!("vpnd");
+
 #[cfg(unix)]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     use clap::Parser;

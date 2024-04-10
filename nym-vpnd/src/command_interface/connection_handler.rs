@@ -20,7 +20,7 @@ impl CommandInterfaceConnectionHandler {
         Self { vpn_command_tx }
     }
 
-    async fn handle_connect(&self) {
+    pub(crate) async fn handle_connect(&self) {
         info!("Starting VPN");
         let (tx, rx) = oneshot::channel();
         self.vpn_command_tx

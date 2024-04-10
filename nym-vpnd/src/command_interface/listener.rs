@@ -9,7 +9,36 @@ use std::{
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::{error, info};
 
-use crate::service::VpnServiceCommand;
+use crate::{
+    service::VpnServiceCommand, vpn_daemon_server::VpnDaemon, ConnectRequest, ConnectResponse,
+    DisconnectRequest, DisconnectResponse,
+};
+
+#[tonic::async_trait]
+impl VpnDaemon for CommandInterface {
+    async fn vpn_connect(
+        &self,
+        request: tonic::Request<ConnectRequest>,
+    ) -> Result<tonic::Response<ConnectResponse>, tonic::Status> {
+        info!("Got connect request: {:?}", request);
+
+        super::connection_handler::CommandInterfaceConnectionHandler::new(
+            self.vpn_command_tx.clone(),
+        )
+        .handle_connect()
+        .await;
+
+        Ok(tonic::Response::new(ConnectResponse { success: true }))
+    }
+
+    async fn vpn_disconnect(
+        &self,
+        request: tonic::Request<DisconnectRequest>,
+    ) -> Result<tonic::Response<DisconnectResponse>, tonic::Status> {
+        info!("Got disconnect request: {:?}", request);
+        Ok(tonic::Response::new(DisconnectResponse { success: true }))
+    }
+}
 
 pub(super) struct CommandInterface {
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,

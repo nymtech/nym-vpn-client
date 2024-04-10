@@ -929,7 +929,7 @@ name = "cosmos-sdk-proto"
 version = "0.20.0"
 source = "git+https://github.com/jstuczyn/cosmos-rust?branch=nym-temp/all-validator-features#41ed4631e146268b0300033c8bbb993d79a49f58"
 dependencies = [
- "prost 0.12.3",
+ "prost 0.12.4",
  "prost-types 0.12.3",
  "tendermint-proto",
 ]
@@ -4510,7 +4510,7 @@ dependencies = [
  "nym-network-defaults",
  "nym-service-provider-directory-common",
  "nym-vesting-contract-common",
- "prost 0.12.3",
+ "prost 0.12.4",
  "reqwest",
  "serde",
  "serde_json",
@@ -4624,8 +4624,10 @@ dependencies = [
  "futures",
  "nym-task",
  "nym-vpn-lib",
+ "prost 0.12.4",
  "reqwest",
  "tokio",
+ "tonic 0.11.0",
  "tonic-build 0.11.0",
  "tracing",
  "tracing-subscriber",
@@ -5190,12 +5192,12 @@ dependencies = [
 
 [[package]]
 name = "prost"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "146c289cda302b98a28d40c8b3b90498d6e526dd24ac2ecea73e4e491685b94a"
+checksum = "d0f5d036824e4761737860779c906171497f6d55681139d8312388f8fe398922"
 dependencies = [
  "bytes",
- "prost-derive 0.12.3",
+ "prost-derive 0.12.4",
 ]
 
 [[package]]
@@ -5234,7 +5236,7 @@ dependencies = [
  "once_cell",
  "petgraph",
  "prettyplease 0.2.17",
- "prost 0.12.3",
+ "prost 0.12.4",
  "prost-types 0.12.3",
  "regex",
  "syn 2.0.58",
@@ -5257,12 +5259,12 @@ dependencies = [
 
 [[package]]
 name = "prost-derive"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efb6c9a1dd1def8e2124d17e83a20af56f1570d6c2d2bd9e266ccb768df3840e"
+checksum = "19de2de2a00075bf566bee3bd4db014b11587e84184d3f7a791bc17f1a8e9e48"
 dependencies = [
  "anyhow",
- "itertools 0.11.0",
+ "itertools 0.12.1",
  "proc-macro2",
  "quote",
  "syn 2.0.58",
@@ -5283,7 +5285,7 @@ version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "193898f59edcf43c26227dcd4c8427f00d99d61e95dcde58dabd49fa291d470e"
 dependencies = [
- "prost 0.12.3",
+ "prost 0.12.4",
 ]
 
 [[package]]
@@ -6597,7 +6599,7 @@ dependencies = [
  "talpid-windows-net",
  "talpid-wireguard",
  "tokio",
- "tonic",
+ "tonic 0.8.3",
  "tonic-build 0.8.4",
  "triggered",
  "trust-dns-server",
@@ -6651,7 +6653,7 @@ dependencies = [
  "talpid-types",
  "talpid-windows-net",
  "tokio",
- "tonic",
+ "tonic 0.8.3",
  "tonic-build 0.8.4",
  "triggered",
  "uuid 0.8.2",
@@ -6735,7 +6737,7 @@ dependencies = [
  "rand 0.8.5",
  "talpid-types",
  "tokio",
- "tonic",
+ "tonic 0.8.3",
  "tonic-build 0.8.4",
  "tower",
 ]
@@ -6841,7 +6843,7 @@ dependencies = [
  "k256",
  "num-traits",
  "once_cell",
- "prost 0.12.3",
+ "prost 0.12.4",
  "prost-types 0.12.3",
  "ripemd",
  "serde",
@@ -6881,7 +6883,7 @@ dependencies = [
  "flex-error",
  "num-derive",
  "num-traits",
- "prost 0.12.3",
+ "prost 0.12.4",
  "prost-types 0.12.3",
  "serde",
  "serde_bytes",
@@ -7214,6 +7216,33 @@ dependencies = [
  "tower-service",
  "tracing",
  "tracing-futures",
+]
+
+[[package]]
+name = "tonic"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "76c4eb7a4e9ef9d4763600161f12f5070b92a578e1b634db88a6887844c91a13"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "axum",
+ "base64 0.21.7",
+ "bytes",
+ "h2",
+ "http 0.2.12",
+ "http-body 0.4.6",
+ "hyper 0.14.28",
+ "hyper-timeout",
+ "percent-encoding",
+ "pin-project",
+ "prost 0.12.4",
+ "tokio",
+ "tokio-stream",
+ "tower",
+ "tower-layer",
+ "tower-service",
+ "tracing",
 ]
 
 [[package]]

@@ -3,10 +3,10 @@ package vpnd;
 
 service VpnDaemon {
   // Sends a command to connect
-  rpc Connect (ConnectRequest) returns (ConnectResponse) {}
+  rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
 
   // Sends a command to disconnect
-  rpc Disconnect (DisconnectRequest) returns (DisconnectResponse) {}
+  rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
 }
 
 message ConnectRequest {
