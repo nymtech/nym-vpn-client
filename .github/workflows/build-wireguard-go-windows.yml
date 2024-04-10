@@ -8,7 +8,7 @@ on: [workflow_dispatch, workflow_call]
 
 jobs:
   build:
-    runs-on: "custom-windows-11"
+    runs-on: "custom-windows-11-test"
 
     steps:
       - name: Checkout repo
