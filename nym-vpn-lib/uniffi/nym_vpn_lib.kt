@@ -1300,6 +1300,18 @@ sealed class FfiException: Exception() {
             get() = ""
     }
     
+    class VpnAlreadyRunning(
+        ) : FfiException() {
+        override val message
+            get() = ""
+    }
+    
+    class VpnNotRunning(
+        ) : FfiException() {
+        override val message
+            get() = ""
+    }
+    
     class NoContext(
         ) : FfiException() {
         override val message
@@ -1339,11 +1351,13 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
             2 -> FfiException.FdNotFound()
             3 -> FfiException.VpnNotStopped()
             4 -> FfiException.VpnNotStarted()
-            5 -> FfiException.NoContext()
-            6 -> FfiException.LibException(
+            5 -> FfiException.VpnAlreadyRunning()
+            6 -> FfiException.VpnNotRunning()
+            7 -> FfiException.NoContext()
+            8 -> FfiException.LibException(
                 FfiConverterString.read(buf),
                 )
-            7 -> FfiException.GatewayDirectoryException(
+            9 -> FfiException.GatewayDirectoryException(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
@@ -1365,6 +1379,14 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
                 4UL
             )
             is FfiException.VpnNotStarted -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is FfiException.VpnAlreadyRunning -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is FfiException.VpnNotRunning -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
             )
@@ -1403,17 +1425,25 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
                 buf.putInt(4)
                 Unit
             }
-            is FfiException.NoContext -> {
+            is FfiException.VpnAlreadyRunning -> {
                 buf.putInt(5)
                 Unit
             }
-            is FfiException.LibException -> {
+            is FfiException.VpnNotRunning -> {
                 buf.putInt(6)
+                Unit
+            }
+            is FfiException.NoContext -> {
+                buf.putInt(7)
+                Unit
+            }
+            is FfiException.LibException -> {
+                buf.putInt(8)
                 FfiConverterString.write(value.`inner`, buf)
                 Unit
             }
             is FfiException.GatewayDirectoryException -> {
-                buf.putInt(7)
+                buf.putInt(9)
                 FfiConverterString.write(value.`inner`, buf)
                 Unit
             }

@@ -378,6 +378,7 @@ fileprivate class UniffiHandleMap<T> {
     }
 }
 
+
 // Public interface members begin here.
 
 
@@ -489,6 +490,7 @@ public protocol OsTunProvider : AnyObject {
     func configureNym(config: NymConfig) throws  -> Int32
     
 }
+
 open class OsTunProviderImpl:
     OsTunProvider {
     fileprivate let pointer: UnsafeMutableRawPointer!
@@ -1245,6 +1247,8 @@ public enum FfiError {
     case FdNotFound
     case VpnNotStopped
     case VpnNotStarted
+    case VpnAlreadyRunning
+    case VpnNotRunning
     case LibError(inner: String
     )
     case GatewayDirectoryError(inner: String
@@ -1266,10 +1270,12 @@ public struct FfiConverterTypeFFIError: FfiConverterRustBuffer {
         case 2: return .FdNotFound
         case 3: return .VpnNotStopped
         case 4: return .VpnNotStarted
-        case 5: return .LibError(
+        case 5: return .VpnAlreadyRunning
+        case 6: return .VpnNotRunning
+        case 7: return .LibError(
             inner: try FfiConverterString.read(from: &buf)
             )
-        case 6: return .GatewayDirectoryError(
+        case 8: return .GatewayDirectoryError(
             inner: try FfiConverterString.read(from: &buf)
             )
 
@@ -1300,13 +1306,21 @@ public struct FfiConverterTypeFFIError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(4))
         
         
-        case let .LibError(inner):
+        case .VpnAlreadyRunning:
             writeInt(&buf, Int32(5))
+        
+        
+        case .VpnNotRunning:
+            writeInt(&buf, Int32(6))
+        
+        
+        case let .LibError(inner):
+            writeInt(&buf, Int32(7))
             FfiConverterString.write(inner, into: &buf)
             
         
         case let .GatewayDirectoryError(inner):
-            writeInt(&buf, Int32(6))
+            writeInt(&buf, Int32(8))
             FfiConverterString.write(inner, into: &buf)
             
         }
@@ -1524,6 +1538,7 @@ public func FfiConverterTypeIpAddr_lower(_ value: IpAddr) -> RustBuffer {
 }
 
 
+
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
@@ -1555,6 +1570,7 @@ public func FfiConverterTypeIpNetwork_lift(_ value: RustBuffer) throws -> IpNetw
 public func FfiConverterTypeIpNetwork_lower(_ value: IpNetwork) -> RustBuffer {
     return FfiConverterTypeIpNetwork.lower(value)
 }
+
 
 
 /**
@@ -1590,6 +1606,7 @@ public func FfiConverterTypeIpv4Addr_lower(_ value: Ipv4Addr) -> RustBuffer {
 }
 
 
+
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
@@ -1621,6 +1638,7 @@ public func FfiConverterTypeIpv6Addr_lift(_ value: RustBuffer) throws -> Ipv6Add
 public func FfiConverterTypeIpv6Addr_lower(_ value: Ipv6Addr) -> RustBuffer {
     return FfiConverterTypeIpv6Addr.lower(value)
 }
+
 
 
 /**
@@ -1656,6 +1674,7 @@ public func FfiConverterTypeNodeIdentity_lower(_ value: NodeIdentity) -> RustBuf
 }
 
 
+
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
@@ -1687,6 +1706,7 @@ public func FfiConverterTypePresharedKey_lift(_ value: RustBuffer) throws -> Pre
 public func FfiConverterTypePresharedKey_lower(_ value: PresharedKey) -> RustBuffer {
     return FfiConverterTypePresharedKey.lower(value)
 }
+
 
 
 /**
@@ -1722,6 +1742,7 @@ public func FfiConverterTypePrivateKey_lower(_ value: PrivateKey) -> RustBuffer 
 }
 
 
+
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
@@ -1753,6 +1774,7 @@ public func FfiConverterTypePublicKey_lift(_ value: RustBuffer) throws -> Public
 public func FfiConverterTypePublicKey_lower(_ value: PublicKey) -> RustBuffer {
     return FfiConverterTypePublicKey.lower(value)
 }
+
 
 
 /**
@@ -1788,6 +1810,7 @@ public func FfiConverterTypeRecipient_lower(_ value: Recipient) -> RustBuffer {
 }
 
 
+
 /**
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
@@ -1819,6 +1842,7 @@ public func FfiConverterTypeSocketAddr_lift(_ value: RustBuffer) throws -> Socke
 public func FfiConverterTypeSocketAddr_lower(_ value: SocketAddr) -> RustBuffer {
     return FfiConverterTypeSocketAddr.lower(value)
 }
+
 
 
 
@@ -1861,6 +1885,7 @@ public func FfiConverterTypeUrl_lift(_ value: RustBuffer) throws -> Url {
 public func FfiConverterTypeUrl_lower(_ value: Url) -> RustBuffer {
     return FfiConverterTypeUrl.lower(value)
 }
+
 public func getGatewayCountries(apiUrl: Url, explorerUrl: Url, exitOnly: Bool)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(

@@ -15,6 +15,12 @@ pub enum FFIError {
     #[error("VPN wasn't started properly")]
     VpnNotStarted,
 
+    #[error("VPN already running")]
+    VpnAlreadyRunning,
+
+    #[error("VPN not running")]
+    VpnNotRunning,
+
     #[cfg(target_os = "android")]
     #[error("Context was not initialised")]
     NoContext,
