@@ -25,7 +25,7 @@ pub enum Error {
     // We are not returning the underlying talpid_core::firewall:Error error as I ran into issues
     // with the Send marker trait not being implemented when building on Mac. Possibly we can fix
     // this in the future.
-    #[error("{0}")]
+    #[error("{0} - are you running as admin/root/sudo?")]
     FirewallError(String),
 
     #[error("{0}")]
