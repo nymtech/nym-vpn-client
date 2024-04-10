@@ -1,9 +1,46 @@
-use tracing::debug;
+use std::path::PathBuf;
+
+use anyhow::{Context, Result};
+use nym_vpn_lib::nym_config;
+use tokio::fs::read;
+use tracing::{debug, error, info, instrument};
+
+#[instrument]
+pub async fn setup_network_env(use_sandbox: bool, env_config_file: &Option<PathBuf>) -> Result<()> {
+    if use_sandbox {
+        info!("network environment: sandbox");
+        // TODO: instead bundle a sandbox env file we can use
+        setup_sandbox_environment();
+        return Ok(());
+    }
+
+    if let Some(file) = env_config_file {
+        debug!("provided env_config_file: {}", file.display());
+
+        // check if the file exists and is readable
+        read(file)
+            .await
+            .inspect_err(|e| error!("failed to read `env_config_file`: {e}"))
+            .context(format!(
+                "app config, failed to read the provided `env_config_file`: `{}`",
+                file.display()
+            ))?;
+
+        info!("network environment: custom env {}", file.display());
+        nym_config::defaults::setup_env(env_config_file.clone());
+        return Ok(());
+    }
+
+    info!("network environment: mainnet");
+    nym_config::defaults::setup_env::<PathBuf>(None);
+
+    Ok(())
+}
 
 // Setup sandbox environment. This is tempory until we switch to mainnet at which point we can
 // purge this function
-pub(crate) fn setup_sandbox_environment() {
-    debug!("Setting up sandbox environment");
+fn setup_sandbox_environment() {
+    debug!("setting up builtin sandbox environment");
 
     std::env::set_var("CONFIGURED", "true");
     std::env::set_var("RUST_LOG", "info");
