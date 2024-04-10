@@ -3,9 +3,8 @@ name: ci-nym-vpn-desktop-rust
 on:
   workflow_dispatch:
   pull_request:
-    paths:
-      - ".github/workflows/ci-nym-vpn-desktop-rust.yml"
-      - "!nym-vpn-cli"
+    paths-ignore:
+      - "nym-vpn-cli/**"
 
 env:
   CARGO_TERM_COLOR: always
