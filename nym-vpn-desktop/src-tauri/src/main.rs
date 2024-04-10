@@ -106,6 +106,7 @@ async fn main() -> Result<()> {
         }
 
         // Read the env variables in the provided file and export them all to the local environment.
+        debug!("Setting up environment: {:?}", app_config.env_config_file);
         nym_config::defaults::setup_env(app_config.env_config_file.clone());
     }
 

@@ -66,26 +66,26 @@ pub trait LookupGateway {
     async fn lookup_gateway_identity(
         &self,
         gateways: &[DescribedGatewayWithLocation],
-    ) -> Result<NodeIdentity>;
+    ) -> Result<(NodeIdentity, Option<String>)>;
 }
 
 pub fn by_identity(
     gateways: &[DescribedGatewayWithLocation],
     identity: &NodeIdentity,
-) -> Result<NodeIdentity> {
+) -> Result<(NodeIdentity, Option<String>)> {
     // Confirm up front that the gateway identity is in the list of gateways from the
     // directory.
     gateways
         .iter()
         .find(|gateway| gateway.identity_key() == &identity.to_string())
         .ok_or(Error::NoMatchingGateway)?;
-    Ok(*identity)
+    Ok((*identity, None))
 }
 
 pub fn by_location(
     gateways: &[DescribedGatewayWithLocation],
     location: &str,
-) -> Result<NodeIdentity> {
+) -> Result<(NodeIdentity, Option<String>)> {
     // Caution: if an explorer-api for a different network was specified, then
     // none of the gateways will have an associated location. There is a check
     // against this earlier in the call stack to guard against this scenario.
@@ -103,12 +103,14 @@ pub fn by_location(
 
 pub async fn by_random_low_latency(
     gateways: &[DescribedGatewayWithLocation],
-) -> Result<NodeIdentity> {
+) -> Result<(NodeIdentity, Option<String>)> {
     log::info!("Selecting a random low latency entry gateway");
     select_random_low_latency_gateway_node(gateways).await
 }
 
-pub fn by_random(gateways: &[DescribedGatewayWithLocation]) -> Result<NodeIdentity> {
+pub fn by_random(
+    gateways: &[DescribedGatewayWithLocation],
+) -> Result<(NodeIdentity, Option<String>)> {
     log::info!("Selecting a random entry gateway");
     select_random_gateway_node(gateways)
 }

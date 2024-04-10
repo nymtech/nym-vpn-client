@@ -3,13 +3,8 @@ name: ci-nym-vpn-desktop-js
 on:
   workflow_dispatch:
   pull_request:
-    paths:
-      - "nym-vpn-desktop/src/**"
-      - "nym-vpn-desktop/package.json"
-      - "nym-vpn-desktop/index.html"
-      - "nym-vpn-desktop/.eslintrc.cjs"
-      - "nym-vpn-desktop/vite.config.ts"
-      - ".github/workflows/ci-nym-vpn-desktop-js.yml"
+    paths-ignore:
+      - "nym-vpn-cli/**"
 
 jobs:
   check:

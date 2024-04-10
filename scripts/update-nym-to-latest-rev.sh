@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # File to update
-cargo_file="nym-vpn-lib/Cargo.toml"
+cargo_file="./Cargo.toml"
 
 # Check if the Cargo.toml file exists
 if [ ! -f "$cargo_file" ]; then
@@ -24,7 +24,7 @@ fi
 echo "Latest commit SHA: $latest_commit"
 
 # Update the Cargo.toml file with the latest commit SHA
-sed -i.bak -E "s/(nym-.* = \{ git = \"https:\/\/github\.com\/nymtech\/nym\", rev = \")([a-f0-9]+)/\1$latest_commit/" "$cargo_file"
+sed -i -E "s/(nym-.* = \{ git = \"https:\/\/github\.com\/nymtech\/nym\", rev = \")([a-f0-9]+)/\1$latest_commit/" "$cargo_file"
 
 if [ $? -eq 0 ]; then
     echo "Updated Cargo.toml with the latest commit SHA: $latest_commit"

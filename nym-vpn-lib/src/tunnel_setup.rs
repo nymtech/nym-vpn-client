@@ -68,16 +68,21 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
         return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
     }
 
-    let entry_gateway_id = nym_vpn
+    let (entry_gateway_id, entry_location) = nym_vpn
         .entry_point
         .lookup_gateway_identity(&gateways)
         .await?;
-    info!("Using entry gateway: {entry_gateway_id}");
-    let exit_gateway_id = nym_vpn
+    let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
+    log::info!("Entry gateway id {:?}", entry_gateway_id);
+    let (exit_gateway_id, exit_location) = nym_vpn
         .exit_point
         .lookup_gateway_identity(&gateways)
         .await?;
-    info!("Using exit gateway: {exit_gateway_id}");
+    let exit_location_str = exit_location.as_deref().unwrap_or("unknown");
+    log::info!("Exit gateway id {:?}", exit_gateway_id);
+
+    info!("Using entry gateway: {entry_gateway_id}, location: {entry_location_str}");
+    info!("Using exit gateway: {exit_gateway_id}, location: {exit_location_str}");
 
     // Get the IP address of the local LAN gateway
     let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
@@ -156,8 +161,8 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
         // - Sets up mixnet client, and connects
         // - Sets up routing
         // - Starts processing packets
-        let exit_router_address = nym_vpn.exit_point.lookup_router_address(&gateways)?;
-        info!("Using exit router address {exit_router_address}");
+
+        let (exit_router_address, _) = nym_vpn.exit_point.lookup_router_address(&gateways)?;
 
         let mixnet_connection_info = match nym_vpn
             .setup_tunnel_services(

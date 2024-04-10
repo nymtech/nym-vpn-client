@@ -3,15 +3,21 @@
 
 mod commands;
 
+use std::fs;
+use std::path::PathBuf;
+
+use commands::ImportCredentialTypeEnum;
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayConfig;
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
 use nym_vpn_lib::{NymVpn, Recipient};
 
-use crate::commands::{override_from_env, wg_override_from_env};
+use crate::commands::{override_from_env, wg_override_from_env, Commands};
 use clap::Parser;
 use log::*;
-use nym_vpn_lib::nym_config::defaults::setup_env;
+use nym_vpn_lib::nym_config::defaults::{setup_env, var_names};
+
+const CONFIG_DIRECTORY_NAME: &str = "nym-vpn-cli";
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -27,7 +33,7 @@ pub fn setup_logging() {
         .init();
 }
 
-fn parse_entry_point(args: &commands::CliArgs) -> Result<EntryPoint> {
+fn parse_entry_point(args: &commands::RunArgs) -> Result<EntryPoint> {
     if let Some(ref entry_gateway_id) = args.entry.entry_gateway_id {
         Ok(EntryPoint::Gateway {
             identity: NodeIdentity::from_base58_string(entry_gateway_id.clone())
@@ -44,7 +50,7 @@ fn parse_entry_point(args: &commands::CliArgs) -> Result<EntryPoint> {
     }
 }
 
-fn parse_exit_point(args: &commands::CliArgs) -> Result<ExitPoint> {
+fn parse_exit_point(args: &commands::RunArgs) -> Result<ExitPoint> {
     if let Some(ref exit_router_address) = args.exit.exit_router_address {
         Ok(ExitPoint::Address {
             address: Recipient::try_from_base58_string(exit_router_address.clone())
@@ -60,7 +66,7 @@ fn parse_exit_point(args: &commands::CliArgs) -> Result<ExitPoint> {
             location: exit_gateway_country.clone(),
         })
     } else {
-        Err(Error::MissingExitPointInformation)
+        Ok(ExitPoint::Random)
     }
 }
 
@@ -70,6 +76,18 @@ async fn run() -> Result<()> {
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
     setup_env(args.config_env_file.as_ref());
 
+    let data_path = args.data_path.or(mixnet_data_path());
+
+    match args.command {
+        Commands::Run(args) => run_vpn(args, data_path).await,
+        Commands::ImportCredential(args) => {
+            let data_path = data_path.ok_or(Error::ConfigPathNotSet)?;
+            import_credential(args, data_path).await
+        }
+    }
+}
+
+async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<()> {
     // Setup gateway configuration
     let gateway_config = override_from_env(&args, GatewayConfig::default());
     info!("nym-api: {}", gateway_config.api_url());
@@ -95,7 +113,7 @@ async fn run() -> Result<()> {
     let mut nym_vpn = NymVpn::new(entry_point, exit_point);
     nym_vpn.gateway_config = gateway_config;
     nym_vpn.wg_gateway_config = wg_gateway_config;
-    nym_vpn.mixnet_client_path = args.mixnet_client_path;
+    nym_vpn.mixnet_data_path = data_path;
     nym_vpn.enable_wireguard = args.enable_wireguard;
     nym_vpn.private_key = args.private_key;
     nym_vpn.entry_wg_ip = args.entry_wg_ip;
@@ -106,10 +124,26 @@ async fn run() -> Result<()> {
     nym_vpn.enable_two_hop = args.enable_two_hop;
     nym_vpn.enable_poisson_rate = args.enable_poisson_rate;
     nym_vpn.disable_background_cover_traffic = args.disable_background_cover_traffic;
+    nym_vpn.enable_credentials_mode = args.enable_credentials_mode;
 
     nym_vpn.run().await?;
 
     Ok(())
+}
+
+async fn import_credential(args: commands::ImportCredentialArgs, data_path: PathBuf) -> Result<()> {
+    let data: ImportCredentialTypeEnum = args.credential_type.into();
+    let raw_credential = match data {
+        ImportCredentialTypeEnum::Path(path) => fs::read(path)?,
+        ImportCredentialTypeEnum::Data(data) => data,
+    };
+    nym_vpn_lib::credentials::import_credential(raw_credential, data_path).await
+}
+
+fn mixnet_data_path() -> Option<PathBuf> {
+    let network_name =
+        std::env::var(var_names::NETWORK_NAME).expect("NETWORK_NAME env var not set");
+    dirs::data_dir().map(|dir| dir.join(CONFIG_DIRECTORY_NAME).join(network_name))
 }
 
 #[tokio::main]

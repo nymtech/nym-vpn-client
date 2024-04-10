@@ -67,6 +67,10 @@ impl SharedMixnetClient {
         handle.disconnect().await;
         self
     }
+
+    pub fn inner(&self) -> Arc<tokio::sync::Mutex<Option<MixnetClient>>> {
+        self.0.clone()
+    }
 }
 
 async fn send_connect_to_ip_packet_router(
@@ -247,6 +251,7 @@ fn true_to_disabled(val: bool) -> &'static str {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn setup_mixnet_client(
     mixnet_entry_gateway: &NodeIdentity,
     mixnet_client_key_storage_path: &Option<PathBuf>,
@@ -255,6 +260,7 @@ pub(crate) async fn setup_mixnet_client(
     enable_two_hop: bool,
     enable_poisson_rate: bool,
     disable_background_cover_traffic: bool,
+    enable_credentials_mode: bool,
 ) -> Result<SharedMixnetClient> {
     // Disable Poisson rate limiter by default
     let mut debug_config = nym_client_core::config::DebugConfig::default();
@@ -291,6 +297,7 @@ pub(crate) async fn setup_mixnet_client(
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(debug_config)
             .custom_shutdown(task_client)
+            .credentials_mode(enable_credentials_mode)
             .build()?
             .connect_to_mixnet()
             .await?
@@ -302,6 +309,7 @@ pub(crate) async fn setup_mixnet_client(
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(debug_config)
             .custom_shutdown(task_client)
+            .credentials_mode(enable_credentials_mode)
             .build()?
             .connect_to_mixnet()
             .await?

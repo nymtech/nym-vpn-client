@@ -24,7 +24,7 @@ export function useExit() {
           await processExit(0);
         })
         .catch(async (e: CmdError) => {
-          console.warn(`backend error: ${e.source} - ${e.message}`);
+          console.warn('backend error:', e);
           await processExit(1);
         });
     } else {

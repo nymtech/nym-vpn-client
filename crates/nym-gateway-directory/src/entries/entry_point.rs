@@ -16,10 +16,15 @@ use super::described_gateway::{
 // #[derive(Clone, Debug, Deserialize, Serialize, uniffi::Enum)]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum EntryPoint {
+    // An explicit entry gateway identity.
     Gateway { identity: NodeIdentity },
+    // Select a random entry gateway in a specific location.
     // NOTE: Consider using a crate with strongly typed country codes instead of strings
     Location { location: String },
+    // Select a random entry gateway but increasey probability of selecting a low latency gateway
+    // as determined by ping times.
     RandomLowLatency,
+    // Select an entry gateway at random.
     Random,
 }
 
@@ -45,7 +50,7 @@ impl LookupGateway for EntryPoint {
     async fn lookup_gateway_identity(
         &self,
         gateways: &[DescribedGatewayWithLocation],
-    ) -> Result<NodeIdentity> {
+    ) -> Result<(NodeIdentity, Option<String>)> {
         match &self {
             EntryPoint::Gateway { identity } => by_identity(gateways, identity),
             EntryPoint::Location { location } => by_location(gateways, location),

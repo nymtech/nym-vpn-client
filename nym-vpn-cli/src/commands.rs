@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use clap::{Args, Parser};
+use clap::{Args, Parser, Subcommand};
 use ipnetwork::{Ipv4Network, Ipv6Network};
 use nym_vpn_lib::gateway_directory::Config;
 use nym_vpn_lib::nym_config::defaults::var_names::{EXPLORER_API, NYM_API};
@@ -31,10 +31,25 @@ pub(crate) struct CliArgs {
     #[arg(short, long, value_parser = check_path)]
     pub(crate) config_env_file: Option<PathBuf>,
 
-    /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
+    /// Path to the data directory of the mixnet client.
     #[arg(long)]
-    pub(crate) mixnet_client_path: Option<PathBuf>,
+    pub(crate) data_path: Option<PathBuf>,
 
+    #[command(subcommand)]
+    pub(crate) command: Commands,
+}
+
+#[derive(Subcommand)]
+pub(crate) enum Commands {
+    /// Run the client
+    Run(RunArgs),
+
+    /// Import credential
+    ImportCredential(ImportCredentialArgs),
+}
+
+#[derive(Args)]
+pub(crate) struct RunArgs {
     #[command(flatten)]
     pub(crate) entry: CliEntry,
 
@@ -90,9 +105,13 @@ pub(crate) struct CliArgs {
     #[arg(long)]
     pub(crate) enable_poisson_rate: bool,
 
-    /// Disable constant rate background loop cover traffic
+    /// Disable constant rate background loop cover traffic.
     #[arg(long)]
     pub(crate) disable_background_cover_traffic: bool,
+
+    /// Enable credentials mode.
+    #[arg(long)]
+    pub(crate) enable_credentials_mode: bool,
 }
 
 #[derive(Args)]
@@ -112,7 +131,7 @@ pub(crate) struct CliEntry {
 }
 
 #[derive(Args)]
-#[group(required = true, multiple = false)]
+#[group(multiple = false)]
 pub(crate) struct CliExit {
     /// Mixnet recipient address.
     #[clap(long, alias = "exit-address")]
@@ -124,6 +143,28 @@ pub(crate) struct CliExit {
     /// Mixnet recipient address.
     #[clap(long, alias = "exit-country")]
     pub(crate) exit_gateway_country: Option<String>,
+}
+
+#[derive(Args)]
+pub(crate) struct ImportCredentialArgs {
+    #[command(flatten)]
+    pub(crate) credential_type: ImportCredentialType,
+
+    // currently hidden as there exists only a single serialization standard
+    #[arg(long, hide = true)]
+    pub(crate) version: Option<u8>,
+}
+
+#[derive(Args)]
+#[group(required = true, multiple = false)]
+pub(crate) struct ImportCredentialType {
+    /// Credential encoded using base58.
+    #[arg(long, value_parser = parse_encoded_credential_data)]
+    pub(crate) credential_data: Option<Vec<u8>>,
+
+    /// Path to the credential file.
+    #[arg(long, value_parser = check_path)]
+    pub(crate) credential_path: Option<PathBuf>,
 }
 
 fn validate_wg_ip(ip: &str) -> Result<Ipv4Addr, String> {
@@ -162,7 +203,7 @@ fn validate_ipv6(ip: &str) -> Result<Ipv6Addr, String> {
     Ok(ip)
 }
 
-pub fn override_from_env(_args: &CliArgs, config: Config) -> Config {
+pub fn override_from_env(_args: &RunArgs, config: Config) -> Config {
     config
         .with_optional_env(Config::with_custom_api_url, None, NYM_API)
         // TODO: there is a landmine here, if the user sets non-mainnet nym-api, but doesn't
@@ -171,7 +212,7 @@ pub fn override_from_env(_args: &CliArgs, config: Config) -> Config {
         .with_optional_env(Config::with_custom_explorer_url, None, EXPLORER_API)
 }
 
-pub fn wg_override_from_env(args: &CliArgs, mut config: WgConfig) -> WgConfig {
+pub fn wg_override_from_env(args: &RunArgs, mut config: WgConfig) -> WgConfig {
     if let Some(ref private_key) = args.private_key {
         config = config.with_local_private_key(private_key.clone());
     }
@@ -187,4 +228,24 @@ fn check_path(path: &str) -> Result<PathBuf, String> {
         return Err(format!("Path {:?} is not a file", path));
     }
     Ok(path)
+}
+
+fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
+    bs58::decode(raw).into_vec()
+}
+
+// Workaround until clap supports enums for ArgGroups
+pub enum ImportCredentialTypeEnum {
+    Path(PathBuf),
+    Data(Vec<u8>),
+}
+
+impl From<ImportCredentialType> for ImportCredentialTypeEnum {
+    fn from(ict: ImportCredentialType) -> Self {
+        match (ict.credential_data, ict.credential_path) {
+            (Some(data), None) => ImportCredentialTypeEnum::Data(data),
+            (None, Some(path)) => ImportCredentialTypeEnum::Path(path),
+            _ => unreachable!(),
+        }
+    }
 }

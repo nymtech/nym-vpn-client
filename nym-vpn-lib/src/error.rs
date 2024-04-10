@@ -25,7 +25,7 @@ pub enum Error {
     // We are not returning the underlying talpid_core::firewall:Error error as I ran into issues
     // with the Send marker trait not being implemented when building on Mac. Possibly we can fix
     // this in the future.
-    #[error("{0}")]
+    #[error("{0} - are you running as admin/root/sudo?")]
     FirewallError(String),
 
     #[error("{0}")]
@@ -103,7 +103,7 @@ pub enum Error {
     #[error("mixnet client stopped returning responses")]
     NoMixnetMessagesReceived,
 
-    #[error("timeout waiting for connect response")]
+    #[error("timeout waiting for connect response from exit gateway (ipr)")]
     TimeoutWaitingForConnectResponse,
 
     #[error("connect request denied: {reason}")]
@@ -154,6 +154,18 @@ pub enum Error {
 
     #[error("{0}")]
     GatewayDirectoryError(#[from] nym_gateway_directory::Error),
+
+    #[error("failed to import credential: {source}")]
+    FailedToImportCredential { source: nym_id::NymIdError },
+
+    #[error("failed decode base58 credential: {source}")]
+    FailedToDecodeBase58Credential { source: bs58::decode::Error },
+
+    #[error("config path not set")]
+    ConfigPathNotSet,
+
+    #[error("{0}")]
+    ConnectionMonitorError(#[from] nym_connection_monitor::Error),
 }
 
 // Result type based on our error type

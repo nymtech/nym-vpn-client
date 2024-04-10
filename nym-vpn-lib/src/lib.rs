@@ -11,6 +11,7 @@ use crate::wg_gateway_client::{WgConfig, WgGatewayClient};
 use futures::channel::{mpsc, oneshot};
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
+use nym_connection_monitor::ConnectionMonitorTask;
 use nym_gateway_directory::{Config, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress};
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
@@ -23,11 +24,14 @@ use tokio::time::timeout;
 use tunnel_setup::{setup_tunnel, AllTunnelsSetup, TunnelSetup};
 use util::wait_for_interrupt_and_signal;
 
-// Public reexport onder gateway_directory name
+// Public re-export
+pub use nym_connection_monitor as connection_monitor;
+pub use nym_credential_storage as credential_storage;
 pub use nym_gateway_directory as gateway_directory;
+pub use nym_id as id;
 
 pub use nym_ip_packet_requests::IpPair;
-pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
+pub use nym_sdk::mixnet::{NodeIdentity, Recipient, StoragePaths};
 pub use nym_task::{
     manager::{SentStatus, TaskStatus},
     StatusReceiver,
@@ -41,17 +45,18 @@ use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
 
-pub mod config;
-mod connection_monitor;
-pub mod error;
-pub mod mixnet_connect;
-pub mod mixnet_processor;
 mod platform;
-pub mod routing;
-pub mod tunnel;
 mod tunnel_setup;
 mod uniffi_custom_impls;
 mod util;
+
+pub mod config;
+pub mod credentials;
+pub mod error;
+pub mod mixnet_connect;
+pub mod mixnet_processor;
+pub mod routing;
+pub mod tunnel;
 pub mod wg_gateway_client;
 mod wireguard_setup;
 
@@ -89,7 +94,7 @@ pub struct NymVpn {
     pub wg_gateway_config: WgConfig,
 
     /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
-    pub mixnet_client_path: Option<PathBuf>,
+    pub mixnet_data_path: Option<PathBuf>,
 
     /// Mixnet public ID of the entry gateway.
     pub entry_point: EntryPoint,
@@ -128,6 +133,8 @@ pub struct NymVpn {
     /// Disable constant rate background loop cover traffic
     pub disable_background_cover_traffic: bool,
 
+    pub enable_credentials_mode: bool,
+
     tun_provider: Arc<Mutex<TunProvider>>,
 
     #[cfg(target_os = "ios")]
@@ -163,7 +170,7 @@ impl NymVpn {
         Self {
             gateway_config: nym_gateway_directory::Config::default(),
             wg_gateway_config: wg_gateway_client::WgConfig::default(),
-            mixnet_client_path: None,
+            mixnet_data_path: None,
             entry_point,
             exit_point,
             enable_wireguard: false,
@@ -176,6 +183,7 @@ impl NymVpn {
             enable_two_hop: false,
             enable_poisson_rate: false,
             disable_background_cover_traffic: false,
+            enable_credentials_mode: false,
             tun_provider,
             #[cfg(target_os = "ios")]
             ios_tun_provider,
@@ -200,7 +208,9 @@ impl NymVpn {
         default_lan_gateway_ip: routing::LanGatewayIp,
         tunnel_gateway_ip: routing::TunnelGatewayIp,
     ) -> Result<()> {
-        info!("Connecting to IP packet router");
+        let exit_gateway = exit_router.gateway().to_base58_string();
+        info!("Connecting to exit gateway: {exit_gateway}");
+        debug!("Connecting to exit IPR: {exit_router}");
         let our_ips = mixnet_connect::connect_to_ip_packet_router(
             mixnet_client.clone(),
             exit_router,
@@ -208,7 +218,7 @@ impl NymVpn {
             self.enable_two_hop,
         )
         .await?;
-        info!("Successfully connected to IP packet router!");
+        info!("Successfully connected to exit gateway");
         info!("Using mixnet VPN IP addresses: {our_ips}");
 
         // We need the IP of the gateway to correctly configure the routing table
@@ -246,7 +256,7 @@ impl NymVpn {
         let mixnet_client_sender = mixnet_client.split_sender().await;
 
         // Setup connection monitor shared tag and channels
-        let connection_monitor = connection_monitor::ConnectionMonitorTask::setup();
+        let connection_monitor = ConnectionMonitorTask::setup();
 
         let shadow_handle = mixnet_processor::start_processor(
             processor_config,
@@ -264,7 +274,7 @@ impl NymVpn {
             mixnet_client_sender,
             mixnet_client_address,
             our_ips,
-            exit_router,
+            exit_router.0,
             task_manager,
         );
 
@@ -283,16 +293,18 @@ impl NymVpn {
         tunnel_gateway_ip: routing::TunnelGatewayIp,
     ) -> Result<MixnetConnectionInfo> {
         info!("Setting up mixnet client");
+        info!("Connecting to entry gateway: {entry_gateway}");
         let mixnet_client = timeout(
             Duration::from_secs(10),
             setup_mixnet_client(
                 entry_gateway,
-                &self.mixnet_client_path,
+                &self.mixnet_data_path,
                 task_manager.subscribe_named("mixnet_client_main"),
                 self.enable_wireguard,
                 self.enable_two_hop,
                 self.enable_poisson_rate,
                 self.disable_background_cover_traffic,
+                self.enable_credentials_mode,
             ),
         )
         .await
@@ -303,14 +315,15 @@ impl NymVpn {
         let entry_gateway = nym_address.gateway().to_base58_string();
         let our_mixnet_connection = MixnetConnectionInfo {
             nym_address,
-            entry_gateway,
+            entry_gateway: entry_gateway.clone(),
         };
 
+        info!("Successfully connected to entry gateway: {entry_gateway}");
+
         // Check that we can ping ourselves before continuing
-        info!("Sending mixnet ping to ourselves");
-        connection_monitor::mixnet_beacon::self_ping_and_wait(nym_address, mixnet_client.clone())
-            .await?;
-        info!("Successfully pinged ourselves");
+        info!("Sending mixnet ping to ourselves to verify mixnet connection");
+        nym_connection_monitor::self_ping_and_wait(nym_address, mixnet_client.inner()).await?;
+        info!("Successfully mixnet pinged ourselves");
 
         if let Err(err) = self
             .setup_post_mixnet(
