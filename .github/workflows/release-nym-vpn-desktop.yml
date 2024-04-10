@@ -279,7 +279,7 @@ jobs:
         if: contains(matrix.os, 'mac')
         shell: bash
         env:
-          SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/nym-vpn.app.tar.gz
+          SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/macos/nym-vpn.app.tar.gz
           TARGET_BUNDLE: updater_universal.app.tar.gz
         run: |
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
