@@ -4626,6 +4626,7 @@ dependencies = [
  "nym-vpn-lib",
  "reqwest",
  "tokio",
+ "tonic-build 0.11.0",
  "tracing",
  "tracing-subscriber",
  "vergen",
@@ -5120,6 +5121,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "prettyplease"
+version = "0.2.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d3928fb5db768cb86f891ff014f0144589297e3c6a1aba6ed7cecfdace270c7"
+dependencies = [
+ "proc-macro2",
+ "syn 2.0.58",
+]
+
+[[package]]
 name = "proc-macro-error"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5200,11 +5211,33 @@ dependencies = [
  "log",
  "multimap",
  "petgraph",
- "prettyplease",
+ "prettyplease 0.1.25",
  "prost 0.11.9",
  "prost-types 0.11.9",
  "regex",
  "syn 1.0.109",
+ "tempfile",
+ "which",
+]
+
+[[package]]
+name = "prost-build"
+version = "0.12.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c55e02e35260070b6f716a2423c2ff1c3bb1642ddca6f99e1f26d06268a0e2d2"
+dependencies = [
+ "bytes",
+ "heck 0.4.1",
+ "itertools 0.11.0",
+ "log",
+ "multimap",
+ "once_cell",
+ "petgraph",
+ "prettyplease 0.2.17",
+ "prost 0.12.3",
+ "prost-types 0.12.3",
+ "regex",
+ "syn 2.0.58",
  "tempfile",
  "which",
 ]
@@ -6565,7 +6598,7 @@ dependencies = [
  "talpid-wireguard",
  "tokio",
  "tonic",
- "tonic-build",
+ "tonic-build 0.8.4",
  "triggered",
  "trust-dns-server",
  "tun",
@@ -6619,7 +6652,7 @@ dependencies = [
  "talpid-windows-net",
  "tokio",
  "tonic",
- "tonic-build",
+ "tonic-build 0.8.4",
  "triggered",
  "uuid 0.8.2",
  "which",
@@ -6703,7 +6736,7 @@ dependencies = [
  "talpid-types",
  "tokio",
  "tonic",
- "tonic-build",
+ "tonic-build 0.8.4",
  "tower",
 ]
 
@@ -7189,11 +7222,24 @@ version = "0.8.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5bf5e9b9c0f7e0a7c027dcfaba7b2c60816c7049171f679d99ee2ff65d0de8c4"
 dependencies = [
- "prettyplease",
+ "prettyplease 0.1.25",
  "proc-macro2",
- "prost-build",
+ "prost-build 0.11.9",
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "tonic-build"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be4ef6dd70a610078cb4e338a0f79d06bc759ff1b22d2120c2ff02ae264ba9c2"
+dependencies = [
+ "prettyplease 0.2.17",
+ "proc-macro2",
+ "prost-build 0.12.3",
+ "quote",
+ "syn 2.0.58",
 ]
 
 [[package]]

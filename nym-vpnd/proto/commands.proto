@@ -1,0 +1,25 @@
+syntax = "proto3";
+package vpnd;
+
+service VpnDaemon {
+  // Sends a command to connect
+  rpc Connect (ConnectRequest) returns (ConnectResponse) {}
+
+  // Sends a command to disconnect
+  rpc Disconnect (DisconnectRequest) returns (DisconnectResponse) {}
+}
+
+message ConnectRequest {
+}
+
+message ConnectResponse {
+  bool success = 1;
+}
+
+message DisconnectRequest {
+}
+
+message DisconnectResponse {
+  bool success = 1;
+}
+

@@ -3,7 +3,9 @@
 
 use vergen::EmitBuilder;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tonic_build::compile_protos("proto/commands.proto")?;
+
     EmitBuilder::builder()
         .all_build()
         .all_git()
@@ -11,4 +13,5 @@ fn main() {
         .all_cargo()
         .emit()
         .expect("failed to extract build metadata");
+    Ok(())
 }
