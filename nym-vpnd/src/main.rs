@@ -1,3 +1,6 @@
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 #![cfg_attr(not(unix), allow(dead_code))]
 
 #[cfg(unix)]

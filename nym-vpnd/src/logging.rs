@@ -1,3 +1,6 @@
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
         .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
