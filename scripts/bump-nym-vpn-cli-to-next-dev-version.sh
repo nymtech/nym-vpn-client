@@ -7,6 +7,8 @@ set -euo pipefail
 
 source "$(dirname "$0")/common.sh"
 
+NAME="nym-vpn-cli"
+
 get_current_version() {
     echo "$(cargo get package.version --entry="nym-vpn-cli")"
 }
@@ -34,6 +36,7 @@ main() {
     fi
 
     run_cargo_set_version "$next_version"
+    git_commit_new_dev_version "$next_version" "$NAME"
 }
 
 main

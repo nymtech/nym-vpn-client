@@ -51,6 +51,7 @@ main() {
 
     run_cargo_set_version "$next_version"
     run_npm_set_version "$next_version"
+    git_commit_new_dev_version "$next_version" "$NAME"
 }
 
 main

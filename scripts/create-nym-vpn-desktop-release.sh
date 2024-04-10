@@ -38,7 +38,7 @@ tag_release() {
     local version=$(cargo get package.version --entry src-tauri)
     local tag_name="$NAME-v$version"
     echo "New version: $version, Tag: $tag_name"
-    ask_and_tag_release "$tag_name" "$version"
+    ask_and_tag_release "$tag_name" "$version" "$NAME"
 }
 
 main() {
