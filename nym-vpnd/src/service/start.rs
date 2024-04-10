@@ -4,7 +4,7 @@
 use tokio::sync::mpsc::Receiver;
 use tracing::info;
 
-use super::service::NymVpnService;
+use super::vpn_service::NymVpnService;
 use super::VpnServiceCommand;
 
 pub(crate) fn start_vpn_service(

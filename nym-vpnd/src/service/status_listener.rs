@@ -6,7 +6,7 @@ use std::sync::Arc;
 use futures::StreamExt;
 use tracing::{debug, info};
 
-use super::service::VpnState;
+use super::vpn_service::VpnState;
 
 pub(super) struct VpnServiceStatusListener {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,

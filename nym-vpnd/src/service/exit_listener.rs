@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use tracing::{error, info};
 
-use super::service::VpnState;
+use super::vpn_service::VpnState;
 
 pub(super) struct VpnServiceExitListener {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
