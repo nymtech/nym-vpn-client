@@ -39,8 +39,6 @@ class NymVpnService : VpnService() {
         }
     }
 
-    var vpnFd : ParcelFileDescriptor? = null
-
     private val scope = CoroutineScope(Dispatchers.IO)
 
     private var activeTunStatus by observable<CreateTunResult?>(null) { _, oldTunStatus, _ ->
@@ -51,7 +49,7 @@ class NymVpnService : VpnService() {
         }
         if (oldTunFd != null) {
             Timber.i("Closing file descriptor $oldTunFd")
-            ParcelFileDescriptor.adoptFd(oldTunFd)
+            ParcelFileDescriptor.adoptFd(oldTunFd).close()
         }
     }
 
@@ -73,8 +71,8 @@ class NymVpnService : VpnService() {
                 currentTunConfig = defaultTunConfig()
                 Timber.i("VPN start")
                 if (prepare(this) == null) {
-                    initVPN(this)
                     scope.launch {
+                        initVPN(this@NymVpnService)
                         NymVpnClient.connect()
                     }
                 }
@@ -133,8 +131,8 @@ class NymVpnService : VpnService() {
             stopVpn()
             delay(1000)
             NymVpnClient.setVpnState(VpnState.Down)
+            stopSelf()
         }
-        stopSelf()
     }
 
     override fun onDestroy() {
@@ -175,7 +173,6 @@ class NymVpnService : VpnService() {
     }
 
     fun closeTun() {
-        vpnFd?.close()
         Timber.d("CLOSE TUN CALLED")
         synchronized(this) {
             activeTunStatus = null
@@ -222,8 +219,7 @@ class NymVpnService : VpnService() {
             }
         }
         val vpnInterface = builder.establish()
-        vpnFd = vpnInterface
-        val tunFd = vpnInterface?.fd ?: return CreateTunResult.TunnelDeviceError
+        val tunFd = vpnInterface?.detachFd() ?: return CreateTunResult.TunnelDeviceError
         waitForTunnelUp(tunFd, config.routes.any { route -> route.isIpv6 })
 
         if (invalidDnsServerAddresses.isNotEmpty()) {
