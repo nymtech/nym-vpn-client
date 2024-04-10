@@ -131,11 +131,13 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
 }
 
 async fn import_credential(args: commands::ImportCredentialArgs, data_path: PathBuf) -> Result<()> {
+    info!("Importing credential data into: {}", data_path.display());
     let data: ImportCredentialTypeEnum = args.credential_type.into();
     let raw_credential = match data {
         ImportCredentialTypeEnum::Path(path) => fs::read(path)?,
         ImportCredentialTypeEnum::Data(data) => data,
     };
+    fs::create_dir_all(&data_path)?;
     nym_vpn_lib::credentials::import_credential(raw_credential, data_path).await
 }
 

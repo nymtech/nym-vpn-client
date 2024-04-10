@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::path::PathBuf;
+
 use nym_ip_packet_requests::{
     response::DynamicConnectFailureReason, response::StaticConnectFailureReason,
 };
@@ -155,8 +157,11 @@ pub enum Error {
     #[error("{0}")]
     GatewayDirectoryError(#[from] nym_gateway_directory::Error),
 
-    #[error("failed to import credential: {source}")]
-    FailedToImportCredential { source: nym_id::NymIdError },
+    #[error("failed to import credential to: {location}: {source}")]
+    FailedToImportCredential {
+        location: PathBuf,
+        source: nym_id::NymIdError,
+    },
 
     #[error("failed decode base58 credential: {source}")]
     FailedToDecodeBase58Credential { source: bs58::decode::Error },
