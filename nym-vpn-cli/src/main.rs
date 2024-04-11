@@ -83,10 +83,10 @@ fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
     }
 
     #[cfg(unix)]
-    return nym_vpn_lib::util::unix_has_root();
+    return nym_vpn_lib::util::unix_has_root("nym-vpn-cli");
 
     #[cfg(windows)]
-    return nym_vpn_lib::util::win_has_admin();
+    return nym_vpn_lib::util::win_has_admin("nym-vpn-cli");
 
     // Assume we're all good on unknown platforms
     debug!("Platform not supported for root privilege check");
