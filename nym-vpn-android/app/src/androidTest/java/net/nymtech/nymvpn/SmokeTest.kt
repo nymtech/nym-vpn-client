@@ -17,7 +17,6 @@ import org.junit.Test
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-
 class SmokeTest {
 	@Test
 	fun openApp() {
