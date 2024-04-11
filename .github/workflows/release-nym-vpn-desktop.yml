@@ -266,7 +266,7 @@ jobs:
         shell: bash
         env:
           SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn*.AppImage.tar.gz
-          TARGET_BUNDLE: updater_amd64.AppImage.tar.gz
+          TARGET_BUNDLE: updater_linux_x86_64.AppImage.tar.gz
         run: |
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
@@ -280,7 +280,7 @@ jobs:
         shell: bash
         env:
           SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/macos/nym-vpn.app.tar.gz
-          TARGET_BUNDLE: updater_universal.app.tar.gz
+          TARGET_BUNDLE: updater_macos_universal.app.tar.gz
         run: |
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
@@ -294,7 +294,7 @@ jobs:
         shell: bash
         env:
           SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup.nsis.zip
-          TARGET_BUNDLE: updater_windows.nsis.zip
+          TARGET_BUNDLE: updater_windows_x86_64.nsis.zip
         run: |
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
