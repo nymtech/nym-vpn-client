@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package nym.vpn;
 
+message Empty {}
+
 message Gateway {
   string id = 1;
   Location location = 2;
@@ -15,7 +17,7 @@ message Node {
   oneof node {
     Location location = 1;
     Gateway gateway = 2;
-    bool fastest = 3;
+    Empty fastest = 3;
   }
 }
 
@@ -87,18 +89,18 @@ message SetUserCredentialsRequest {
 }
 
 service NymVpnService {
-  // rpc SetUserCredentials (SetUserCredentialsRequest) returns () {}
+  // rpc SetUserCredentials (SetUserCredentialsRequest) returns (Empty) {}
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
   rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
-  // rpc ListenToConnectionStatus () returns (stream ConnectionStatusUpdate) {}
+  // rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
   // // Cancel any connection pending state (connecting, disconnecting etc)
   // // and return to disconnected state
-  // rpc Cancel () returns () {}
-  // rpc GetEntryNodeLocations () returns (LocationListResponse) {}
-  // rpc GetExitNodeLocations () returns (LocationListResponse) {}
-  // rpc GetFastestEntryGateway () returns (GatewayResponse) {}
-  // rpc GetFastestExitGateway () returns (GatewayResponse) {}
-  // rpc SetVpnMode (SetVpnModeRequest) returns () {}
-  // rpc GetVpnMode () returns (GetVpnModeResponse) {}
+  // rpc Cancel (Empty) returns (Empty) {}
+  // rpc GetEntryNodeLocations (Empty) returns (LocationListResponse) {}
+  // rpc GetExitNodeLocations (Empty) returns (LocationListResponse) {}
+  // rpc GetFastestEntryGateway (Empty) returns (GatewayResponse) {}
+  // rpc GetFastestExitGateway (Empty) returns (GatewayResponse) {}
+  // rpc SetVpnMode (SetVpnModeRequest) returns (Empty) {}
+  // rpc GetVpnMode (Empty) returns (GetVpnModeResponse) {}
 }
 
