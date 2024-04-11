@@ -12,6 +12,8 @@ use crate::service::VpnServiceCommand;
 
 use super::listener::CommandInterface;
 
+use nym_vpn_proto::pb::nym_vpn_service_server::NymVpnServiceServer;
+
 pub(crate) fn start_command_interface(
     mut task_manager: TaskManager,
 ) -> (
@@ -32,7 +34,7 @@ pub(crate) fn start_command_interface(
 
                 let addr = "[::1]:50051".parse().unwrap();
                 Server::builder()
-                    .add_service(crate::nym_vpn_service_server::NymVpnServiceServer::new(c))
+                    .add_service(NymVpnServiceServer::new(c))
                     .serve(addr)
                     .await
                     .unwrap();

@@ -4682,6 +4682,7 @@ dependencies = [
  "futures",
  "nym-task",
  "nym-vpn-lib",
+ "nym-vpn-proto",
  "prost 0.12.4",
  "reqwest 0.12.3",
  "tokio",
