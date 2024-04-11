@@ -39,18 +39,22 @@ class NymVpnService : VpnService() {
 
 	private val scope = CoroutineScope(Dispatchers.Default)
 
-	private var activeTunStatus by observable<CreateTunResult?>(null) { _, oldTunStatus, _ ->
-		val oldTunFd =
-			when (oldTunStatus) {
-				is CreateTunResult.Success -> oldTunStatus.tunFd
-				is CreateTunResult.InvalidDnsServers -> oldTunStatus.tunFd
-				else -> null
-			}
-		if (oldTunFd != null) {
-			Timber.i("Closing file descriptor $oldTunFd")
-			ParcelFileDescriptor.adoptFd(oldTunFd).close()
-		}
-	}
+	private var activeTunStatus: CreateTunResult? = null
+
+	// Once we make sure Rust library doesn't close the fd first, we should re-use this code for closing fd,
+	// as it's more general, including for wireguard tunnels
+//	private var activeTunStatus by observable<CreateTunResult?>(null) { _, oldTunStatus, _ ->
+//		val oldTunFd =
+//			when (oldTunStatus) {
+//				is CreateTunResult.Success -> oldTunStatus.tunFd
+//				is CreateTunResult.InvalidDnsServers -> oldTunStatus.tunFd
+//				else -> null
+//			}
+//		if (oldTunFd != null) {
+//			Timber.i("Closing file descriptor $oldTunFd")
+//			ParcelFileDescriptor.adoptFd(oldTunFd).close()
+//		}
+//	}
 
 	private val tunIsOpen
 		get() = activeTunStatus?.isOpen ?: false
