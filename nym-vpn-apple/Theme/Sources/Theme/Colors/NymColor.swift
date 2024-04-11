@@ -27,15 +27,17 @@ public struct NymColor {
     public static let sysOnSecondary = Color(.sysOnSecondary)
     public static let sysOnSurface = Color(.sysOnSurface)
     public static let sysOutline = Color(.sysOutline)
+    public static let sysSecondary = Color(.sysSecondary)
     public static let sysOutlineVariant = Color(.sysOutlineVariant)
     public static let sysError = Color(.sysError)
-    
+
     // MARK: - Survey -
     public static let surveyText = Color(.surveyText)
 
     // MARK: - Key -
     public static let confirm = Color(.confirm)
     public static let statusGreen = Color(.statusGreen)
+    public static let disconnect = Color(.disconnect)
 
     // MARK: - Primary -
     public static let primaryOrange = Color(.primaryOrange)

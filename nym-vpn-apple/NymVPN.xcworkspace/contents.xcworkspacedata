@@ -8,6 +8,9 @@
       location = "group:Home">
    </FileRef>
    <FileRef
+      location = "group:MixnetLibrary">
+   </FileRef>
+   <FileRef
       location = "group:Services">
    </FileRef>
    <FileRef

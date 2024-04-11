@@ -41,7 +41,11 @@ extension FeedbackViewModel {
 
     func openExternalURL(urlString: String?) {
         guard let urlString, let url = URL(string: urlString) else { return }
+        #if os(iOS)
         UIApplication.shared.open(url)
+        #else
+        NSWorkspace.shared.open(url)
+        #endif
     }
 }
 

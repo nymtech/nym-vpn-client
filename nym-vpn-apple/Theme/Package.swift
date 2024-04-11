@@ -7,7 +7,8 @@ let package = Package(
     name: "Theme",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
         .library(

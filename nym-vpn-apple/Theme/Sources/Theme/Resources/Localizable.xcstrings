@@ -133,6 +133,17 @@
         }
       }
     },
+    "connectionTime" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connection time"
+          }
+        }
+      }
+    },
     "connectTo" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -151,6 +162,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dark theme"
+          }
+        }
+      }
+    },
+    "disconnect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect"
           }
         }
       }
@@ -206,6 +228,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Entry location selector"
+          }
+        }
+      }
+    },
+    "establishingConnection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Establishing connection"
           }
         }
       }
@@ -452,6 +485,17 @@
         }
       }
     },
+    "initializingClient" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Initializing client..."
+          }
+        }
+      }
+    },
     "lastHop" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -613,6 +657,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Settings"
+          }
+        }
+      }
+    },
+    "stop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop"
           }
         }
       }

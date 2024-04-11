@@ -2,6 +2,7 @@ import SwiftUI
 import AppSettings
 import Modifiers
 import Theme
+import TunnelStatus
 import UIComponents
 
 public struct HomeView: View {
@@ -47,11 +48,18 @@ private extension HomeView {
 
     @ViewBuilder
     func statusAreaSection() -> some View {
-        StatusButton(config: .disconnected, isSmallScreen: viewModel.isSmallScreen())
+        StatusButton(
+            config: viewModel.statusButtonConfig,
+            isSmallScreen: viewModel.isSmallScreen()
+        )
         Spacer()
             .frame(height: 8)
 
-        StatusInfoView(isSmallScreen: viewModel.isSmallScreen())
+        StatusInfoView(
+            timeConnected: $viewModel.timeConnected,
+            infoState: $viewModel.statusInfoState,
+            isSmallScreen: viewModel.isSmallScreen()
+        )
     }
 
     @ViewBuilder
@@ -128,10 +136,10 @@ private extension HomeView {
 
     @ViewBuilder
     func connectButton() -> some View {
-        ConnectButton()
+        ConnectButton(state: viewModel.connectButtonState)
             .padding(.horizontal, 16)
             .onTapGesture {
-                viewModel.connect()
+                viewModel.connectDisconnect()
             }
         if viewModel.isSmallScreen() {
             Spacer()

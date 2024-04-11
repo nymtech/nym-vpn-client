@@ -7,7 +7,8 @@ let package = Package(
     name: "Settings",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
         .library(
@@ -16,14 +17,15 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "Modifiers", path: "../Services"),
+        .package(path: "../Services"),
         .package(path: "../UIComponents")
     ],
     targets: [
         .target(
             name: "Settings",
             dependencies: [
-                "Modifiers",
+                .product(name: "Modifiers", package: "Services"),
+                .product(name: "AppVersionProvider", package: "Services"),
                 "UIComponents"
             ]
         ),

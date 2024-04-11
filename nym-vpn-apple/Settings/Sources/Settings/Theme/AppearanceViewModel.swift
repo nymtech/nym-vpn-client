@@ -33,8 +33,10 @@ extension AppearanceViewModel {
             return "lightThemeTitle".localizedString
         case .dark:
             return "darkThemeTitle".localizedString
+        #if os(iOS)
         case .automatic:
             return "automaticThemeTitle".localizedString
+        #endif
         }
     }
 
@@ -42,8 +44,10 @@ extension AppearanceViewModel {
         switch theme {
         case .light, .dark:
             return nil
+        #if os(iOS)
         case .automatic:
             return "automaticThemeSubtitle".localizedString
+        #endif
         }
     }
 }

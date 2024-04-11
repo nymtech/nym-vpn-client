@@ -144,6 +144,9 @@ type_name:
   min_length: 2
   max_length: 60
 
-warning_threshold: 15
+warning_threshold: 50
 
 reporter: "xcode"
+
+excluded:
+  - ${PWD}/MixnetLibrary/**

@@ -4,8 +4,9 @@ import UIComponents
 struct LegalViewModel {
     private let termsOfUseLink = "https://nymvpn.com/en/terms"
     private let privacyPolicyLink = "https://nymvpn.com/en/privacy?type=apps"
+    #if os(iOS)
     private let licencesLink = UIApplication.openSettingsURLString
-
+    #endif
     let title = "legal".localizedString
 
     @Binding var path: NavigationPath
@@ -25,8 +26,12 @@ extension LegalViewModel {
     }
 
     func openExternalURL(urlString: String?) {
+        #if os(iOS)
         guard let urlString, let url = URL(string: urlString) else { return }
         UIApplication.shared.open(url)
+        #else
+        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+        #endif
     }
 }
 
@@ -59,7 +64,11 @@ private extension LegalViewModel {
             title: "legal.licences".localizedString,
             position: SettingsListItemPosition(isFirst: false, isLast: true),
             action: {
+                #if os(iOS)
                 openExternalURL(urlString: licencesLink)
+                #else
+                openExternalURL(urlString: nil)
+                #endif
             }
         )
     }

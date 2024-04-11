@@ -3,36 +3,38 @@ import Theme
 
 public struct StatusInfoView: View {
     private let isSmallScreen: Bool
-    private let timer = Timer.publish(every: 0.3, on: .main, in: .common).autoconnect()
-    @State private var timeConnected = "00:00:00"
-    @State private var startDate = Date.now
 
-    public init(isSmallScreen: Bool) {
+    @Binding private var timeConnected: String
+    @Binding private var infoState: StatusInfoState
+
+    public init(
+        timeConnected: Binding<String>,
+        infoState: Binding<StatusInfoState>,
+        isSmallScreen: Bool
+    ) {
+        _timeConnected = timeConnected
+        _infoState = infoState
         self.isSmallScreen = isSmallScreen
     }
 
     public var body: some View {
-        // TODO: missing states
-        Text("Initializing client...")
+        infoLabel()
+        timeConnectedLabel(timeConnected: timeConnected)
+    }
+}
+
+private extension StatusInfoView {
+    @ViewBuilder func infoLabel() -> some View {
+        Text(infoState.localizedTitle)
             .foregroundStyle(NymColor.statusInfoText)
             .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.primary)
         Spacer()
             .frame(height: 8)
+    }
+
+    @ViewBuilder func timeConnectedLabel(timeConnected: String) -> some View {
         Text("\(timeConnected)")
             .foregroundStyle(NymColor.statusTimer)
             .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.primary)
-            .onReceive(timer) { _ in
-                timeConnected = differenceBetweenDates(startDate: startDate, currentDate: Date.now)
-            }
-    }
-}
-
-extension StatusInfoView {
-    // TODO: move to separate date formatter service
-    func differenceBetweenDates(startDate: Date, currentDate: Date) -> String {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute, .second]
-        formatter.zeroFormattingBehavior = .pad
-        return formatter.string(from: startDate, to: currentDate) ?? "00:00:00"
     }
 }

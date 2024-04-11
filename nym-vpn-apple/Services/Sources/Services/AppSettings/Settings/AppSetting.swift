@@ -2,7 +2,9 @@ import SwiftUI
 
 public struct AppSetting {
     public enum Appearance: Int, CaseIterable {
+        #if os(iOS)
         case automatic
+        #endif
         case light
         case dark
 
@@ -12,8 +14,10 @@ public struct AppSetting {
                 return .light
             case .dark:
                 return .dark
+            #if os(iOS)
             case .automatic:
                 return ColorScheme(.unspecified)
+            #endif
             }
         }
     }

@@ -7,7 +7,8 @@ let package = Package(
     name: "Home",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
         .library(
@@ -17,12 +18,14 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../UIComponents"),
-        .package(path: "../Settings")
+        .package(path: "../Settings"),
+        .package(name: "ConnectionManager", path: "../Services")
     ],
     targets: [
         .target(
             name: "Home",
             dependencies: [
+                "ConnectionManager",
                 "UIComponents",
                 "Settings"
             ],

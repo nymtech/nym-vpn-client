@@ -7,25 +7,22 @@ let package = Package(
     name: "Services",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
-        .library(
-            name: "AppSettings",
-            targets: ["AppSettings"]
-        ),
-        .library(
-            name: "AppVersionProvider",
-            targets: ["AppVersionProvider"]
-        ),
-        .library(
-            name: "Modifiers",
-            targets: ["Modifiers"]
-        ),
-        .library(
-            name: "Tunnels",
-            targets: ["Tunnels"]
-        )
+        .library(name: "AppSettings", targets: ["AppSettings"]),
+        .library( name: "AppVersionProvider", targets: ["AppVersionProvider"]),
+        .library(name: "ConnectionManager", targets: ["ConnectionManager"]),
+        .library(name: "Keychain", targets: ["Keychain"]),
+        .library(name: "Modifiers", targets: ["Modifiers"]),
+        .library(name: "Tunnels", targets: ["Tunnels"]),
+        .library(name: "TunnelStatus",targets: ["TunnelStatus"]),
+        .library(name: "TunnelWG", targets: ["TunnelWG"])
+    ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-log", from: "1.5.4"),
+        .package(url: "https://git.zx2c4.com/wireguard-apple", exact: "1.0.15-26")
     ],
     targets: [
         .target(
@@ -39,6 +36,20 @@ let package = Package(
             path: "Sources/Services/AppVersionProvider"
         ),
         .target(
+            name: "ConnectionManager",
+            dependencies: [
+                "Tunnels"
+            ],
+            path: "Sources/Services/ConnectionManager"
+        ),
+        .target(
+            name: "Keychain",
+            dependencies: [
+                .product(name: "Logging", package: "swift-log")
+            ],
+            path: "Sources/Services/Keychain"
+        ),
+        .target(
             name: "Modifiers",
             dependencies: [
                 "AppSettings"
@@ -47,8 +58,26 @@ let package = Package(
         ),
         .target(
             name: "Tunnels",
-            dependencies: [],
+            dependencies: [
+                "Keychain",
+                "TunnelStatus",
+                .product(name: "Logging", package: "swift-log"),
+            ],
             path: "Sources/Services/Tunnels"
+        ),
+        .target(
+            name: "TunnelStatus",
+            dependencies: [],
+            path: "Sources/Services/TunnelStatus"
+        ),
+        .target(
+            name: "TunnelWG",
+            dependencies: [
+                "Tunnels",
+                .product(name: "Logging", package: "swift-log"),
+                .product(name: "WireGuardKit", package: "wireguard-apple")
+            ],
+            path: "Sources/Services/TunnelWG"
         )
     ]
 )

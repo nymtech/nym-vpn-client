@@ -1,109 +1,211 @@
+import Combine
 import NetworkExtension
-import OSLog
+import Keychain
+import Logging
 
 public final class TunnelsManager: ObservableObject {
     public static let shared = TunnelsManager()
 
-    public var currentTunnel: Tunnel?
+    @Published public var isLoaded: Result<Void, Error>?
+    @Published public var activeTunnel: Tunnel?
+    public var tunnels = [Tunnel]()
+    public var logger = Logger(label: "TunnelsManager")
 
-    private var observers = [AnyObject]()
+    private var cancellables = Set<AnyCancellable>()
 
-    private init() {
-        setup()
+    init() {
+        loadTunnels()
+        observeTunnelStatuses()
     }
+}
 
-    public func loadConfigurations() {
-        NETunnelProviderManager.loadAllFromPreferences { [weak self] managers, error in
-            print("1. Loading VPN Configurations")
-            if let error {
-                print("Error: \(String(describing: error))")
-            }
-
-            managers?.forEach {
-                print("Found VPN Configuration")
-                print("\($0)")
-                self?.currentTunnel = Tunnel(tunnel: $0)
+// MARK: - Management -
+extension TunnelsManager {
+    func loadTunnels() {
+        loadAllTunnelManagers { [weak self] result in
+            switch result {
+            case .success(let loadedTunnels):
+                self?.activeTunnel = loadedTunnels.first { $0.tunnel.isEnabled }
+                self?.tunnels = loadedTunnels
+                self?.isLoaded = .success(())
+            case .failure(let error):
+                self?.logger.log(level: .error, "Failed loading tunnel managers with \(error)")
+                self?.isLoaded = .failure(error)
             }
         }
     }
 
-    public func test() {
-        loadConfigurations()
-        os_log("2 Starting test")
-        if currentTunnel == nil {
-            let manager = createTestManager()
-            manager.saveToPreferences { error in
-                if error == nil {
-                    print("3 Added config Successfully")
-                } else {
-                    print("3 Failure to add config")
+    public func add(
+        tunnelConfiguration: MixnetConfig,
+        onDemandOption: OnDemandRule = .off,
+        completionHandler: @escaping (Result<Tunnel, TunnelsManagerError>) -> Void
+    ) {
+        guard !tunnels.contains(where: { $0.name == tunnelConfiguration.name })
+        else {
+            completionHandler(.failure(TunnelsManagerError.alreadyExists))
+            return
+        }
+
+        let tunnelProviderManager = NETunnelProviderManager()
+        tunnelProviderManager.setTunnelConfiguration(tunnelConfiguration)
+        tunnelProviderManager.isEnabled = true
+        // TODO: add on demand rules support
+        // onDemandOption.apply(on: tunnelProviderManager)
+
+        let activeTunnel = tunnels.first { $0.status == .connected || $0.status == .connecting }
+        tunnelProviderManager.saveToPreferences { [weak self] error in
+            if let error = error {
+                self?.logger.log(level: .error, "Saving configuration failed: \(error)")
+                let protocolConfiguration = (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)
+                protocolConfiguration?.destroyConfigurationReference()
+                completionHandler(.failure(TunnelsManagerError.addTunnel(error: error)))
+                return
+            }
+
+            guard let self = self else { return }
+
+            #if os(iOS)
+            // HACK: In iOS, adding a tunnel causes deactivation of any currently active tunnel.
+            // This is an ugly hack to reactivate the tunnel that has been deactivated like that.
+            if let activeTunnel = activeTunnel {
+                if activeTunnel.status == .connected || activeTunnel.status == .connecting {
+                    self.connect(tunnel: activeTunnel)
+                }
+                if activeTunnel.status == .connected || activeTunnel.status == .connecting {
+                    activeTunnel.status = .restarting
                 }
             }
-        } else {
-            print("3 Current tunnel already exists")
-            currentTunnel?.tunnel.isEnabled = true
-        }
+            #endif
 
-        print("4 Connecting")
-        connect()
-    }
-
-    public func connect() {
-        do {
-            let options = [
-                NEVPNConnectionStartOptionUsername: "john",
-                NEVPNConnectionStartOptionPassword: "password"
-            ] as [String: NSObject]
-
-            try currentTunnel?.tunnel.connection.startVPNTunnel(options: options)
-        } catch {
-            print("FAILED to connect: \(error)")
+            let tunnel = Tunnel(tunnel: tunnelProviderManager)
+            self.tunnels.append(tunnel)
+            // self.tunnels.sort { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
+            completionHandler(.success(tunnel))
         }
     }
+}
 
-    public func disconnect() {
-        print("5 Disconnecting")
-        //        currentTunnel?.tunnel.connection.stopVPNTunnel()
+// MARK: - Connection -
+extension TunnelsManager {
+    public func connect(tunnel: Tunnel) {
+        guard tunnels.contains(tunnel) else { return } // Ensure it's not deleted
+        guard tunnel.status == .disconnected
+        else {
+            // activationDelegate?.tunnelActivationAttemptFailed(tunnel: tunnel, error: .tunnelIsNotInactive)
+            return
+        }
 
-        NEVPNManager.shared().loadFromPreferences { [weak self] error in
-            if let error {
-                print("Error: \(error)")
+        //        if let alreadyWaitingTunnel = tunnels.first(where: { $0.status == .waiting }) {
+        //            alreadyWaitingTunnel.status = .disconnected
+        //        }
+
+        //        if let tunnelInOperation = tunnels.first(where: { $0.status != .disconnected }) {
+        //            wg_log(.info, message: "Tunnel '\(tunnel.name)' waiting for deactivation of '\(tunnelInOperation.name)'")
+        //            tunnel.status = .waiting
+        //            activateWaitingTunnelOnDeactivation(of: tunnelInOperation)
+        //            if tunnelInOperation.status != .deactivating {
+        //                if tunnelInOperation.isActivateOnDemandEnabled {
+        //                    setOnDemandEnabled(false, on: tunnelInOperation) { [weak self] error in
+        //                        guard error == nil else {
+        //                            wg_log(.error, message: "Unable to activate tunnel '\(tunnel.name)' because on-demand could not be disabled on active tunnel '\(tunnel.name)'")
+        //                            return
+        //                        }
+        //                        self?.startDeactivation(of: tunnelInOperation)
+        //                    }
+        //                } else {
+        //                    startDeactivation(of: tunnelInOperation)
+        //                }
+        //            }
+        //            return
+        //        }
+
+        #if targetEnvironment(simulator)
+            tunnel.status = .connected
+        #else
+            tunnel.connect()
+        #endif
+    }
+
+    public func disconnect(tunnel: Tunnel) {
+        // tunnel.isAttemptingActivation = false
+        guard tunnel.status != .disconnected && tunnel.status != .disconnecting else { return }
+        #if targetEnvironment(simulator)
+            tunnel.status = .disconnected
+        #else
+            tunnel.disconnect()
+        #endif
+    }
+}
+
+private extension TunnelsManager {
+    func loadAllTunnelManagers(completionHandler: @escaping (Result<[Tunnel], TunnelsManagerError>) -> Void) {
+        NETunnelProviderManager.loadAllFromPreferences { managers, error in
+            if let error = error {
+                completionHandler(.failure(TunnelsManagerError.tunnelList(error: error)))
+                return
             }
-            self?.currentTunnel?.tunnel.connection.stopVPNTunnel()
-            NEVPNManager.shared().connection.stopVPNTunnel()
+
+            var tunnelManagers = managers ?? []
+            var refs: Set<Data> = []
+            var tunnelNames: Set<String> = []
+            for (index, tunnelManager) in tunnelManagers.enumerated().reversed() {
+                if let tunnelName = tunnelManager.localizedDescription {
+                    tunnelNames.insert(tunnelName)
+                }
+                guard let proto = tunnelManager.protocolConfiguration as? NETunnelProviderProtocol else { continue }
+                #if os(iOS)
+                let passwordRef = proto.verifyConfigurationReference() ? proto.passwordReference : nil
+                #elseif os(macOS)
+                let passwordRef: Data?
+                if proto.providerConfiguration?["UID"] as? uid_t == getuid() {
+                    passwordRef = proto.verifyConfigurationReference() ? proto.passwordReference : nil
+                } else {
+                    passwordRef = proto.passwordReference // To handle multiple users in macOS, we skip verifying
+                }
+                #else
+                #error("Unimplemented")
+                #endif
+                if let ref = passwordRef {
+                    refs.insert(ref)
+                } else {
+                    // wg_log(.info, message: "Removing orphaned tunnel with non-verifying keychain entry: \(tunnelManager.localizedDescription ?? "<unknown>")")
+                    tunnelManager.removeFromPreferences { _ in }
+                    tunnelManagers.remove(at: index)
+                }
+            }
+            Keychain.deleteReferences(except: refs)
+            let tunnels = tunnelManagers.map {
+                Tunnel(tunnel: $0)
+            }
+            completionHandler(.success(tunnels))
         }
     }
 }
 
+// MARK: - Observation -
 private extension TunnelsManager {
-    func createTestManager() -> NETunnelProviderManager {
-        let manager = NETunnelProviderManager()
-        manager.localizedDescription = "NymVPN Mixnet"
+    func observeTunnelStatuses() {
+        NotificationCenter.default.publisher(for: .NEVPNStatusDidChange)
+            .sink { [weak self] statusChangeNotification in
+                guard
+                    let self,
+                    let session = statusChangeNotification.object as? NETunnelProviderSession,
+                    let tunnelProvider = session.manager as? NETunnelProviderManager,
+                    let tunnel = self.tunnels.first(where: { $0.tunnel == tunnelProvider })
+                else {
+                    return
+                }
+                logger.log(
+                    level: .debug,
+                    "Tunnel '\(tunnel.name)' connection status changed to '\(tunnel.tunnel.connection.status)'"
+                )
 
-        let tunnelConfiguration = NETunnelProviderProtocol()
-        tunnelConfiguration.providerBundleIdentifier = "net.nymtech.vpn.network-extension"
-        tunnelConfiguration.serverAddress = "127.0.0.1:4009"
-        tunnelConfiguration.providerConfiguration = [:]
-
-        manager.protocolConfiguration = tunnelConfiguration
-        manager.isEnabled = true
-        return manager
-    }
-}
-
-private extension TunnelsManager {
-    func setup() {
-        registerNotifications()
-    }
-
-    func registerNotifications() {
-        let statusDidChangeNotification = NotificationCenter.default.addObserver(
-            forName: .NEVPNStatusDidChange,
-            object: nil,
-            queue: .main
-        ) { status in
-            print("VPN Status: \(status)")
-        }
-        observers.append(statusDidChangeNotification)
+                if tunnel.status == .restarting && session.status == .disconnected {
+                    tunnel.connect()
+                    return
+                }
+                tunnel.updateStatus()
+            }
+            .store(in: &cancellables)
     }
 }

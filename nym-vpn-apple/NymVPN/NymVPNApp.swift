@@ -1,12 +1,11 @@
 import SwiftUI
+import AppSettings
 import Home
 import Theme
-import AppSettings
 import Tunnels
 
 @main
 struct NymVPNApp: App {
-
     init() {
         setup()
     }

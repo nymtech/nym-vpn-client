@@ -1,5 +1,6 @@
 import SwiftUI
 import Theme
+import TunnelStatus
 
 public enum StatusButtonConfig: String {
     case connected
@@ -7,6 +8,19 @@ public enum StatusButtonConfig: String {
     case disconnecting
     case disconnected
     case error
+
+    public init(tunnelStatus: TunnelStatus) {
+        switch tunnelStatus {
+        case .connected:
+            self = .connected
+        case .connecting, .reasserting, .restarting:
+            self = .connecting
+        case .disconnected:
+            self = .disconnected
+        case .disconnecting:
+            self = .disconnecting
+        }
+    }
 
     var title: String {
         self.rawValue.localizedString

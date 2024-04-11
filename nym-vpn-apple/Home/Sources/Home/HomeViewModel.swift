@@ -1,27 +1,42 @@
+import Combine
 import SwiftUI
 import AppSettings
-import UIComponents
+import ConnectionManager
 import Tunnels
+import UIComponents
 
 public class HomeViewModel: HomeFlowState {
     private let appSettings: AppSettings
-    private let tunnelsManager: TunnelsManager
     private let screenSize: CGSize
+    private let dateFormatter = DateComponentsFormatter()
+
+    private var timer = Timer()
+    private var cancellables = Set<AnyCancellable>()
+    @ObservedObject private var connectionManager: ConnectionManager
+    @Published private var activeTunnel: Tunnel?
 
     @Published var selectedNetwork: NetworkButtonViewModel.ButtonType
+
+    // If no time connected is shown, should be set to empty string,
+    // so the time connected label would not disappear and re-center other UI elements.
+    @Published var timeConnected = " "
+    @Published var statusButtonConfig = StatusButtonConfig.disconnected
+    @Published var statusInfoState = StatusInfoState.initialising
+    @Published var connectButtonState = ConnectButtonState.connect
 
     public init(
         screenSize: CGSize,
         selectedNetwork: NetworkButtonViewModel.ButtonType,
         appSettings: AppSettings = AppSettings.shared,
-        tunnelsManager: TunnelsManager = TunnelsManager.shared
+        connectionManager: ConnectionManager = ConnectionManager.shared
     ) {
+        self.screenSize = screenSize
         self.selectedNetwork = selectedNetwork
         self.appSettings = appSettings
-        self.tunnelsManager = tunnelsManager
-        self.screenSize = screenSize
+        self.connectionManager = connectionManager
+        super.init()
 
-        tunnelsManager.loadConfigurations()
+        setup()
     }
 }
 
@@ -51,16 +66,71 @@ public extension HomeViewModel {
     func shouldShowEntryHop() -> Bool {
         appSettings.entryLocationSelectionIsOn
     }
+
+    func updateTimeConnected() {
+        guard
+            let activeTunnel,
+            activeTunnel.status == .connected,
+            let connectedDate = activeTunnel.tunnel.connection.connectedDate
+        else {
+            timeConnected = " "
+            return
+        }
+        timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? ""
+    }
 }
 
-// MARK: - Tunnel testing -
+// MARK: - Connection -
 
 public extension HomeViewModel {
-    func connect() {
-        if let tunnel = tunnelsManager.currentTunnel, tunnel.tunnel.connection.status == .connected {
-            tunnelsManager.disconnect()
-        } else {
-            tunnelsManager.test()
+    func connectDisconnect() {
+        connectionManager.connectDisconnect()
+    }
+}
+
+private extension HomeViewModel {
+    func setup() {
+        setupDateFormatter()
+        setupConnectedTimeTimer()
+        setupTunnelManagerObservers()
+    }
+
+    func setupTunnelManagerObservers() {
+        connectionManager.$isTunnelManagerLoaded.sink { [weak self] result in
+            switch result {
+            case .success, .none:
+                self?.statusInfoState = .unknown
+            case let .failure(error):
+                self?.statusInfoState = .error(message: error.localizedDescription)
+            }
         }
+        .store(in: &cancellables)
+
+        connectionManager.$currentTunnel.sink { [weak self] tunnel in
+            guard let tunnel else { return }
+            self?.activeTunnel = tunnel
+            self?.configureTunnelStatusObservation(with: tunnel)
+        }
+        .store(in: &cancellables)
+    }
+
+    func setupDateFormatter() {
+        dateFormatter.allowedUnits = [.hour, .minute, .second]
+        dateFormatter.zeroFormattingBehavior = .pad
+    }
+
+    func setupConnectedTimeTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
+            self?.updateTimeConnected()
+        }
+    }
+
+    func configureTunnelStatusObservation(with tunnel: Tunnel) {
+        tunnel.$status.sink { [weak self] status in
+            self?.statusButtonConfig = StatusButtonConfig(tunnelStatus: status)
+            self?.statusInfoState = StatusInfoState(tunnelStatus: status)
+            self?.connectButtonState = ConnectButtonState(tunnelStatus: status)
+        }
+        .store(in: &cancellables)
     }
 }
