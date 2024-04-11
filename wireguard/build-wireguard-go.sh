@@ -29,8 +29,6 @@ function is_docker_build {
 
 function win_deduce_lib_executable_path {
     msbuild_path="$(which msbuild.exe)"
-    echo -n "MSBuild path:"
-    echo -n "$msbuild_path"
     msbuild_dir=$(dirname "$msbuild_path")
     find "$msbuild_dir/../../../../" -name "lib.exe" | \
         grep -i "hostx64/x64" | \
@@ -50,6 +48,8 @@ function win_create_lib_file {
     done
 
     lib_path="$(win_deduce_lib_executable_path)"
+    echo "lib_path"
+    echo "$lib_path"
     "$lib_path" \
         "/def:exports.def" \
         "/out:libwg.lib" \
