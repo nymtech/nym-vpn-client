@@ -10,8 +10,8 @@ use tokio::sync::mpsc::UnboundedSender;
 use tracing::{error, info};
 
 use crate::{
-    service::VpnServiceCommand, ConnectRequest, ConnectResponse,
-    DisconnectRequest, DisconnectResponse,
+    service::VpnServiceCommand, ConnectRequest, ConnectResponse, DisconnectRequest,
+    DisconnectResponse,
 };
 
 use super::connection_handler::CommandInterfaceConnectionHandler;
