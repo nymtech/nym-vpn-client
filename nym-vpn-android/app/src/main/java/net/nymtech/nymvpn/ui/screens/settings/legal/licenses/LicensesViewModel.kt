@@ -12,15 +12,16 @@ import okio.source
 import javax.inject.Inject
 
 @HiltViewModel
-class LicensesViewModel @Inject constructor(
-    private val application: Application,
+class LicensesViewModel
+@Inject
+constructor(
+	private val application: Application,
 ) : ViewModel() {
+	private val _licences = MutableStateFlow<List<Artifact>>(emptyList())
+	val licenses = _licences.asStateFlow()
 
-    private val _licences = MutableStateFlow<List<Artifact>>(emptyList())
-    val licenses = _licences.asStateFlow()
-    fun loadLicensesFromAssets() =
-        viewModelScope.launch {
-            val source = application.assets.open("artifacts.json").source().buffer()
-            _licences.value = LicenseParser.decode(source)
-        }
+	fun loadLicensesFromAssets() = viewModelScope.launch {
+		val source = application.assets.open("artifacts.json").source().buffer()
+		_licences.value = LicenseParser.decode(source)
+	}
 }

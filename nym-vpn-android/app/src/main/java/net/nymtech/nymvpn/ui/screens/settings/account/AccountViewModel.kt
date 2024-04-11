@@ -11,21 +11,23 @@ import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
 
 @HiltViewModel
-class AccountViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository
+class AccountViewModel
+@Inject
+constructor(
+	private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
-
-    val uiState = settingsRepository.settingsFlow.map {
-        //TODO mocked for now
-        AccountUiState(
-            loading = false,
-            devices = emptyList(),
-            subscriptionDaysRemaining = 31,
-            subscriptionTotalDays = 31
-        )
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
-        AccountUiState()
-    )
+	val uiState =
+		settingsRepository.settingsFlow.map {
+			// TODO mocked for now
+			AccountUiState(
+				loading = false,
+				devices = emptyList(),
+				subscriptionDaysRemaining = 31,
+				subscriptionTotalDays = 31,
+			)
+		}.stateIn(
+			viewModelScope,
+			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
+			AccountUiState(),
+		)
 }

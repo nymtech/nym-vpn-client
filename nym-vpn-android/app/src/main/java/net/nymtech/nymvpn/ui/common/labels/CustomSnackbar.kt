@@ -20,26 +20,24 @@ import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun CustomSnackBar(
-    message: String,
-    isRtl: Boolean = true,
-    containerColor: Color = CustomColors.snackBarBackgroundColor
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp.scaledWidth())
-            .padding(top = 100.dp.scaledHeight()), contentAlignment = Alignment.TopCenter
-    ) {
-        Snackbar(containerColor = containerColor) {
-            CompositionLocalProvider(
-                LocalLayoutDirection provides
-                        if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
-            ) {
-                Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Center) {
-                    Text(message, color = CustomColors.snackbarTextColor)
-                }
-            }
-        }
-    }
+fun CustomSnackBar(message: String, isRtl: Boolean = true, containerColor: Color = CustomColors.snackBarBackgroundColor) {
+	Box(
+		modifier =
+		Modifier
+			.fillMaxSize()
+			.padding(horizontal = 24.dp.scaledWidth())
+			.padding(top = 100.dp.scaledHeight()),
+		contentAlignment = Alignment.TopCenter,
+	) {
+		Snackbar(containerColor = containerColor) {
+			CompositionLocalProvider(
+				LocalLayoutDirection provides
+					if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
+			) {
+				Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Center) {
+					Text(message, color = CustomColors.snackbarTextColor)
+				}
+			}
+		}
+	}
 }

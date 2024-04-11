@@ -42,7 +42,7 @@
     <string name="faq_link">https://nymtech.net</string>
     <string name="privacy_link">https://nymvpn.com/en/privacy?type=apps</string>
     <string name="terms_of_use">Terms of use</string>
-    <string name="privacy_policy">Privacy policy</string>
+    <string name="privacy_policy">Privacy statement</string>
     <string name="licenses">Licenses</string>
     <string name="open_github">Open a GitHub issue</string>
     <string name="send_feedback">Send us feedback</string>

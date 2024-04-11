@@ -24,48 +24,64 @@ import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun LicensesScreen(
-    appViewModel: AppViewModel,
-    viewModel: LicensesViewModel = hiltViewModel()
-) {
-    val context = LocalContext.current
-    val licenses by viewModel.licenses.collectAsStateWithLifecycle()
+fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hiltViewModel()) {
+	val context = LocalContext.current
+	val licenses by viewModel.licenses.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        viewModel.loadLicensesFromAssets()
-    }
+	LaunchedEffect(Unit) {
+		viewModel.loadLicensesFromAssets()
+	}
 
-    LazyColumn(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp.scaledWidth())
-    ) {
-        item {
-            Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())) {}
-        }
-        items(licenses) { it ->
-            SurfaceSelectionGroupButton(items =
-            listOf(
-                SelectionItem(
-                    //TODO refactor
-                    title = (if (it.name != null && it.name.length > 32) it.name.substring(
-                        0,
-                        29
-                    ).plus("...") else it.name
-                        ?: stringResource(id = R.string.unknown)),
-                    description = it.spdxLicenses?.joinToString(postfix = " ") { it.name } + if (it.unknownLicenses != null)
-                        it.unknownLicenses.joinToString { it.name } else "",
-                    onClick = {
-                        if (it.scm != null) appViewModel.openWebPage(it.scm.url)
-                        else appViewModel.showSnackbarMessage(context.getString(R.string.no_scm_found))
-                    }
-                )
-            ))
-        }
-        item {
-            Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())) {}
-        }
-    }
+	LazyColumn(
+		horizontalAlignment = Alignment.CenterHorizontally,
+		verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
+		modifier =
+		Modifier
+			.fillMaxSize()
+			.padding(horizontal = 24.dp.scaledWidth()),
+	) {
+		item {
+			Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())) {}
+		}
+		items(licenses) { it ->
+			SurfaceSelectionGroupButton(
+				items =
+				listOf(
+					SelectionItem(
+						// TODO refactor
+						title = (
+							if (it.name != null && it.name.length > 32) {
+								it.name.substring(
+									0,
+									29,
+								).plus("...")
+							} else {
+								it.name
+									?: stringResource(id = R.string.unknown)
+							}
+							),
+						description =
+						it.spdxLicenses?.joinToString(postfix = " ") { it.name } +
+							if (it.unknownLicenses != null) {
+								it.unknownLicenses.joinToString { it.name }
+							} else {
+								""
+							},
+						onClick = {
+							if (it.scm != null) {
+								appViewModel.openWebPage(it.scm.url)
+							} else {
+								appViewModel.showSnackbarMessage(
+									context.getString(R.string.no_scm_found),
+								)
+							}
+						},
+					),
+				),
+			)
+		}
+		item {
+			Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())) {}
+		}
+	}
 }

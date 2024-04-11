@@ -14,16 +14,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 @Composable
 fun SpinningIcon(icon: ImageVector) {
-    val infiniteTransition = rememberInfiniteTransition(label = "")
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(
-                durationMillis = 1000,
-                easing = FastOutLinearInEasing,
-            ),
-        ), label = "rotate"
-    )
-    Icon(icon, icon.name, modifier = Modifier.rotate(rotation))
+	val infiniteTransition = rememberInfiniteTransition(label = "")
+	val rotation by infiniteTransition.animateFloat(
+		initialValue = 0f,
+		targetValue = 360f,
+		animationSpec =
+		infiniteRepeatable(
+			animation =
+			tween(
+				durationMillis = 1000,
+				easing = FastOutLinearInEasing,
+			),
+		),
+		label = "rotate",
+	)
+	Icon(icon, icon.name, modifier = Modifier.rotate(rotation))
 }

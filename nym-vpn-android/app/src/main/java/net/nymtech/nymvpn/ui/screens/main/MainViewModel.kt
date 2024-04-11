@@ -26,78 +26,73 @@ import javax.inject.Inject
 class MainViewModel
 @Inject
 constructor(
-    private val gatewayRepository: GatewayRepository,
-    private val settingsRepository: SettingsRepository,
-    private val application: Application,
+	private val gatewayRepository: GatewayRepository,
+	private val settingsRepository: SettingsRepository,
+	private val application: Application,
 ) : ViewModel() {
+	val uiState =
+		combine(
+			gatewayRepository.gatewayFlow,
+			settingsRepository.settingsFlow,
+			NymVpnClient.stateFlow,
+		) { gateways, settings, clientState ->
+			val connectionTime =
+				clientState.statistics.connectionSeconds?.let {
+					NumberUtils.convertSecondsToTimeString(
+						it,
+					)
+				}
+			val connectionState = ConnectionState.from(clientState.vpnState)
+			val stateMessage =
+				clientState.errorState.let {
+					when (it) {
+						is ErrorState.LibraryError ->
+							StateMessage.Error(
+								StringValue.DynamicString(it.message),
+							)
+						ErrorState.None -> connectionState.stateMessage
+					}
+				}
+			MainUiState(
+				false,
+				lastHopCountry = gateways.lastHopCountry,
+				firstHopCounty = gateways.firstHopCountry,
+				connectionTime = connectionTime ?: "",
+				networkMode = settings.vpnMode,
+				connectionState = connectionState,
+				firstHopEnabled = settings.firstHopSelectionEnabled,
+				stateMessage = stateMessage,
+			)
+		}
+			.stateIn(
+				viewModelScope,
+				SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
+				MainUiState(),
+			)
 
-    val uiState =
-        combine(
-            gatewayRepository.gatewayFlow,
-            settingsRepository.settingsFlow,
-            NymVpnClient.stateFlow
-        ) { gateways,
-            settings,
-            clientState ->
-            val connectionTime =
-                clientState.statistics.connectionSeconds?.let {
-                    NumberUtils.convertSecondsToTimeString(
-                        it
-                    )
-                }
-            val connectionState = ConnectionState.from(clientState.vpnState)
-            val stateMessage = clientState.errorState.let {
-                when (it) {
-                    is ErrorState.LibraryError -> StateMessage.Error(StringValue.DynamicString(it.message))
-                    ErrorState.None -> connectionState.stateMessage
-                }
+	fun onTwoHopSelected() = viewModelScope.launch {
+		settingsRepository.setVpnMode(VpnMode.TWO_HOP_MIXNET)
+		NymVpn.requestTileServiceStateUpdate(application)
+	}
 
-            }
-            MainUiState(
-                false,
-                lastHopCountry = gateways.lastHopCountry,
-                firstHopCounty = gateways.firstHopCountry,
-                connectionTime = connectionTime ?: "",
-                networkMode = settings.vpnMode,
-                connectionState = connectionState,
-                firstHopEnabled = settings.firstHopSelectionEnabled,
-                stateMessage = stateMessage
-            )
-        }
-            .stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
-                MainUiState()
-            )
+	fun onFiveHopSelected() = viewModelScope.launch {
+		settingsRepository.setVpnMode(VpnMode.FIVE_HOP_MIXNET)
+		NymVpn.requestTileServiceStateUpdate(application)
+	}
 
-    fun onTwoHopSelected() =
-        viewModelScope.launch {
-            settingsRepository.setVpnMode(VpnMode.TWO_HOP_MIXNET)
-            NymVpn.requestTileServiceStateUpdate(application)
-        }
+	fun onConnect() = viewModelScope.launch(Dispatchers.IO) {
+		val entryCountry = gatewayRepository.getFirstHopCountry()
+		val exitCountry = gatewayRepository.getLastHopCountry()
+		val mode = settingsRepository.getVpnMode()
+		val entry = entryCountry.toEntryPoint()
+		val exit = exitCountry.toExitPoint()
+		NymVpnClient.configure(entry, exit, mode)
+		NymVpnClient.start(application)
+		NymVpn.requestTileServiceStateUpdate(application)
+	}
 
-    fun onFiveHopSelected() =
-        viewModelScope.launch {
-            settingsRepository.setVpnMode(VpnMode.FIVE_HOP_MIXNET)
-            NymVpn.requestTileServiceStateUpdate(application)
-        }
-
-    fun onConnect() =
-        viewModelScope.launch(Dispatchers.IO) {
-            val entryCountry = gatewayRepository.getFirstHopCountry()
-            val exitCountry = gatewayRepository.getLastHopCountry()
-            val mode = settingsRepository.getVpnMode()
-            val entry = entryCountry.toEntryPoint()
-            val exit = exitCountry.toExitPoint()
-            NymVpnClient.configure(entry, exit, mode)
-            NymVpnClient.start(application)
-            NymVpn.requestTileServiceStateUpdate(application)
-        }
-
-
-    fun onDisconnect() =
-        viewModelScope.launch {
-            NymVpnClient.disconnect(application)
-            NymVpn.requestTileServiceStateUpdate(application)
-        }
+	fun onDisconnect() = viewModelScope.launch {
+		NymVpnClient.disconnect(application)
+		NymVpn.requestTileServiceStateUpdate(application)
+	}
 }

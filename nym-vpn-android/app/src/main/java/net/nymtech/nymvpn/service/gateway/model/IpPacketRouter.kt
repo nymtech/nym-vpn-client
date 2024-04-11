@@ -7,5 +7,5 @@ import com.squareup.moshi.JsonClass
 @Keep
 @JsonClass(generateAdapter = true)
 data class IpPacketRouter(
-    @Json(name = "address") val address: String
+	@Json(name = "address") val address: String,
 )

@@ -10,15 +10,17 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.iconSize
 
 data class SelectionItem(
-    val leadingIcon: ImageVector? = null,
-    val trailing: (@Composable () -> Unit)? = {
-        Icon(
-            ImageVector.vectorResource(R.drawable.link_arrow_right), "arrow", Modifier.size(
-                iconSize
-            )
-        )
-    },
-    val title: String = "",
-    val description: String? = null,
-    val onClick: () -> Unit = {},
+	val leadingIcon: ImageVector? = null,
+	val trailing: (@Composable () -> Unit)? = {
+		Icon(
+			ImageVector.vectorResource(R.drawable.link_arrow_right),
+			"arrow",
+			Modifier.size(
+				iconSize,
+			),
+		)
+	},
+	val title: String = "",
+	val description: String? = null,
+	val onClick: () -> Unit = {},
 )

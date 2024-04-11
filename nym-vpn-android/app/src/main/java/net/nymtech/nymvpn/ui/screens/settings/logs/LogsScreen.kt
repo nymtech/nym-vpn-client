@@ -38,79 +38,85 @@ import net.nymtech.nymvpn.util.scaledWidth
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LogsScreen(appViewModel: AppViewModel) {
+	val logs =
+		remember {
+			appViewModel.logs
+		}
 
-    val logs = remember {
-        appViewModel.logs
-    }
+	val lazyColumnListState = rememberLazyListState()
+	val clipboardManager: ClipboardManager = LocalClipboardManager.current
+	val scope = rememberCoroutineScope()
 
-    val lazyColumnListState = rememberLazyListState()
-    val clipboardManager: ClipboardManager = LocalClipboardManager.current
-    val scope = rememberCoroutineScope()
+	LaunchedEffect(logs.size) {
+		scope.launch {
+			lazyColumnListState.animateScrollToItem(logs.size)
+		}
+	}
 
-
-    LaunchedEffect(logs.size) {
-        scope.launch {
-            lazyColumnListState.animateScrollToItem(logs.size)
-        }
-    }
-
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    appViewModel.saveLogsToFile()
-                },
-                shape = RoundedCornerShape(16.dp),
-                containerColor = MaterialTheme.colorScheme.primary
-            ) {
-                val icon = Icons.Filled.Save
-                Icon(
-                    imageVector = icon,
-                    contentDescription = icon.name,
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-        }
-    ) {
-        LazyColumn(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
-            state = lazyColumnListState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 5.dp)
-                .padding(horizontal = 24.dp.scaledWidth())
-        ) {
-            items(logs) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.Start),
-                    verticalAlignment = Alignment.Top,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable(interactionSource = remember { MutableInteractionSource() },
-                            indication = null, onClick = {
-                                clipboardManager.setText(annotatedString = AnnotatedString(it.toString()))
-                            })
-                ) {
-                    Text(
-                        text = it.tag,
-                        modifier = Modifier.fillMaxSize(0.3f),
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                    LogTypeLabel(color = Color(it.level.color())) {
-                        Text(
-                            text = it.level.signifier,
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
-                    Text(
-                        "${it.message} - ${it.time}",
-                        color = MaterialTheme.colorScheme.onBackground,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-            }
-        }
-    }
+	Scaffold(
+		floatingActionButton = {
+			FloatingActionButton(
+				onClick = {
+					appViewModel.saveLogsToFile()
+				},
+				shape = RoundedCornerShape(16.dp),
+				containerColor = MaterialTheme.colorScheme.primary,
+			) {
+				val icon = Icons.Filled.Save
+				Icon(
+					imageVector = icon,
+					contentDescription = icon.name,
+					tint = MaterialTheme.colorScheme.onPrimary,
+				)
+			}
+		},
+	) {
+		LazyColumn(
+			horizontalAlignment = Alignment.CenterHorizontally,
+			verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
+			state = lazyColumnListState,
+			modifier =
+			Modifier
+				.fillMaxSize()
+				.padding(top = 5.dp)
+				.padding(horizontal = 24.dp.scaledWidth()),
+		) {
+			items(logs) {
+				Row(
+					horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.Start),
+					verticalAlignment = Alignment.Top,
+					modifier =
+					Modifier
+						.fillMaxSize()
+						.clickable(
+							interactionSource = remember { MutableInteractionSource() },
+							indication = null,
+							onClick = {
+								clipboardManager.setText(
+									annotatedString = AnnotatedString(it.toString()),
+								)
+							},
+						),
+				) {
+					Text(
+						text = it.tag,
+						modifier = Modifier.fillMaxSize(0.3f),
+						style = MaterialTheme.typography.labelSmall,
+					)
+					LogTypeLabel(color = Color(it.level.color())) {
+						Text(
+							text = it.level.signifier,
+							textAlign = TextAlign.Center,
+							style = MaterialTheme.typography.labelSmall,
+						)
+					}
+					Text(
+						"${it.message} - ${it.time}",
+						color = MaterialTheme.colorScheme.onBackground,
+						style = MaterialTheme.typography.labelSmall,
+					)
+				}
+			}
+		}
+	}
 }

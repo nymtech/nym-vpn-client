@@ -1,4 +1,4 @@
-package net.nymtech.logcat_helper
+package net.nymtech.logcathelper
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -13,10 +13,10 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
-    @Test
-    fun useAppContext() {
-        // Context of the app under test.
-        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("net.nymtech.logcat_helper.test", appContext.packageName)
-    }
+	@Test
+	fun useAppContext() {
+		// Context of the app under test.
+		val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+		assertEquals("net.nymtech.logcat-helper.test", appContext.packageName)
+	}
 }

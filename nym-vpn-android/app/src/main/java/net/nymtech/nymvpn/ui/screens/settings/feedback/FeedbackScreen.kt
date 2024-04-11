@@ -37,111 +37,119 @@ import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
 fun FeedbackScreen(appViewModel: AppViewModel, viewModel: FeedbackViewModel = hiltViewModel()) {
+	val isErrorReportingEnabled by viewModel.isErrorReportingEnabled.collectAsStateWithLifecycle()
+	var showErrorReportingDialog by remember { mutableStateOf(false) }
 
-    val isErrorReportingEnabled by viewModel.isErrorReportingEnabled.collectAsStateWithLifecycle()
-    var showErrorReportingDialog by remember { mutableStateOf(false) }
+	val context = LocalContext.current
 
+	AnimatedVisibility(showErrorReportingDialog) {
+		AlertDialog(
+			containerColor = CustomColors.snackBarBackgroundColor,
+			onDismissRequest = { showErrorReportingDialog = false },
+			confirmButton = {
+				TextButton(
+					onClick = {
+						showErrorReportingDialog = false
+						viewModel.onErrorReportingSelected(!isErrorReportingEnabled)
+					},
+				) {
+					Text(text = stringResource(R.string.okay))
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = { showErrorReportingDialog = false }) {
+					Text(text = stringResource(R.string.cancel))
+				}
+			},
+			title = {
+				Text(
+					text = stringResource(R.string.error_reporting),
+					color = CustomColors.snackbarTextColor,
+				)
+			},
+			text = {
+				Text(
+					text = stringResource(R.string.error_reporting_alert),
+					color = CustomColors.snackbarTextColor,
+				)
+			},
+		)
+	}
 
-    val context = LocalContext.current
-
-    AnimatedVisibility(showErrorReportingDialog) {
-        AlertDialog(
-            containerColor = CustomColors.snackBarBackgroundColor,
-            onDismissRequest = { showErrorReportingDialog = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showErrorReportingDialog = false
-                        viewModel.onErrorReportingSelected(!isErrorReportingEnabled)
-                    },
-                ) {
-                    Text(text = stringResource(R.string.okay))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showErrorReportingDialog = false }) {
-                    Text(text = stringResource(R.string.cancel))
-                }
-            },
-            title = {
-                Text(
-                    text = stringResource(R.string.error_reporting),
-                    color = CustomColors.snackbarTextColor
-                )
-            },
-            text = {
-                Text(
-                    text = stringResource(R.string.error_reporting_alert),
-                    color = CustomColors.snackbarTextColor
-                )
-            },
-        )
-    }
-
-    Column(
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
-        modifier =
-        Modifier
-            .verticalScroll(rememberScrollState())
-            .fillMaxSize()
-            .padding(top = 24.dp.scaledHeight())
-            .padding(horizontal = 24.dp.scaledWidth())
-    ) {
-        SurfaceSelectionGroupButton(
-            listOf(
-                SelectionItem(
-                    leadingIcon = ImageVector.vectorResource(R.drawable.github),
-                    title = stringResource(R.string.open_github),
-                    onClick = { appViewModel.openWebPage(context.getString(R.string.github_issues_url)) }),
-            )
-        )
-        SurfaceSelectionGroupButton(
-            listOf(
-                SelectionItem(
-                    leadingIcon = ImageVector.vectorResource(R.drawable.send),
-                    title = stringResource(R.string.send_feedback),
-                    onClick = {
-                        appViewModel.launchEmail()
-                    })
-            )
-        )
-        SurfaceSelectionGroupButton(
-            listOf(
-                SelectionItem(
-                    leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
-                    title = stringResource(R.string.join_matrix),
-                    onClick = {
-                        appViewModel.openWebPage(context.getString(R.string.matrix_url))
-                    }),
-            )
-        )
-        SurfaceSelectionGroupButton(
-            listOf(
-                SelectionItem(
-                    leadingIcon = ImageVector.vectorResource(R.drawable.discord),
-                    title = stringResource(R.string.join_discord),
-                    onClick = {
-                        appViewModel.openWebPage(context.getString(R.string.discord_url))
-                    }),
-            )
-        )
-        SurfaceSelectionGroupButton(
-            listOf(
-                SelectionItem(
-                    ImageVector.vectorResource(R.drawable.error),
-                    title = stringResource(R.string.error_reporting),
-                    description = stringResource(R.string.error_reporting_description),
-                    trailing = {
-                        Switch(
-                            isErrorReportingEnabled,
-                            { showErrorReportingDialog = true },
-                            modifier = Modifier
-                                .height(32.dp.scaledHeight())
-                                .width(52.dp.scaledWidth())
-                        )
-                    })
-            )
-        )
-    }
+	Column(
+		horizontalAlignment = Alignment.Start,
+		verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
+		modifier =
+		Modifier
+			.verticalScroll(rememberScrollState())
+			.fillMaxSize()
+			.padding(top = 24.dp.scaledHeight())
+			.padding(horizontal = 24.dp.scaledWidth()),
+	) {
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
+					leadingIcon = ImageVector.vectorResource(R.drawable.github),
+					title = stringResource(R.string.open_github),
+					onClick = {
+						appViewModel.openWebPage(
+							context.getString(R.string.github_issues_url),
+						)
+					},
+				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
+					leadingIcon = ImageVector.vectorResource(R.drawable.send),
+					title = stringResource(R.string.send_feedback),
+					onClick = {
+						appViewModel.launchEmail()
+					},
+				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
+					leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
+					title = stringResource(R.string.join_matrix),
+					onClick = {
+						appViewModel.openWebPage(context.getString(R.string.matrix_url))
+					},
+				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
+					leadingIcon = ImageVector.vectorResource(R.drawable.discord),
+					title = stringResource(R.string.join_discord),
+					onClick = {
+						appViewModel.openWebPage(context.getString(R.string.discord_url))
+					},
+				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
+					ImageVector.vectorResource(R.drawable.error),
+					title = stringResource(R.string.error_reporting),
+					description = stringResource(R.string.error_reporting_description),
+					trailing = {
+						Switch(
+							isErrorReportingEnabled,
+							{ showErrorReportingDialog = true },
+							modifier =
+							Modifier
+								.height(32.dp.scaledHeight())
+								.width(52.dp.scaledWidth()),
+						)
+					},
+				),
+			),
+		)
+	}
 }

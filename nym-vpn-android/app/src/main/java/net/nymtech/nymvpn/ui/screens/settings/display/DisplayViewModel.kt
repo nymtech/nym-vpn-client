@@ -13,19 +13,21 @@ import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
 
 @HiltViewModel
-class DisplayViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository
+class DisplayViewModel
+@Inject
+constructor(
+	private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
+	val uiState =
+		settingsRepository.settingsFlow.map {
+			DisplayUiState(false, it.theme)
+		}.stateIn(
+			viewModelScope,
+			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
+			DisplayUiState(),
+		)
 
-    val uiState = settingsRepository.settingsFlow.map {
-        DisplayUiState(false, it.theme)
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
-        DisplayUiState()
-    )
-
-    fun onThemeChange(theme: Theme) = viewModelScope.launch {
-        settingsRepository.setTheme(theme)
-    }
+	fun onThemeChange(theme: Theme) = viewModelScope.launch {
+		settingsRepository.setTheme(theme)
+	}
 }

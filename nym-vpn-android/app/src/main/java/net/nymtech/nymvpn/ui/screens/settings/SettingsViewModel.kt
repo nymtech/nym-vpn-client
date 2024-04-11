@@ -12,23 +12,25 @@ import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository
+class SettingsViewModel
+@Inject
+constructor(
+	private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
+	val uiState =
+		settingsRepository.settingsFlow.map {
+			SettingsUiState(false, it.firstHopSelectionEnabled, it.autoStartEnabled)
+		}.stateIn(
+			viewModelScope,
+			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
+			SettingsUiState(),
+		)
 
-    val uiState = settingsRepository.settingsFlow.map {
-        SettingsUiState(false, it.firstHopSelectionEnabled, it.autoStartEnabled)
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
-        SettingsUiState()
-    )
+	fun onAutoConnectSelected(selected: Boolean) = viewModelScope.launch {
+		settingsRepository.setAutoStart(selected)
+	}
 
-    fun onAutoConnectSelected(selected: Boolean) = viewModelScope.launch {
-        settingsRepository.setAutoStart(selected)
-    }
-
-    fun onLogOutSelected() = viewModelScope.launch {
-        settingsRepository.setLoggedIn(false)
-    }
+	fun onLogOutSelected() = viewModelScope.launch {
+		settingsRepository.setLoggedIn(false)
+	}
 }

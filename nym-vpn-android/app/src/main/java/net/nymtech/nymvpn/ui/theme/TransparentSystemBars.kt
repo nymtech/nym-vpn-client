@@ -8,16 +8,16 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun TransparentSystemBars() {
-    //TODO fix
-    val systemUiController = rememberSystemUiController()
-    val useDarkIcons = !isSystemInDarkTheme()
+	// TODO fix
+	val systemUiController = rememberSystemUiController()
+	val useDarkIcons = !isSystemInDarkTheme()
 
-    DisposableEffect(systemUiController, useDarkIcons) {
-        systemUiController.setSystemBarsColor(
-            color = Color.Transparent,
-            darkIcons = useDarkIcons,
-        )
+	DisposableEffect(systemUiController, useDarkIcons) {
+		systemUiController.setSystemBarsColor(
+			color = Color.Transparent,
+			darkIcons = useDarkIcons,
+		)
 
-        onDispose {}
-    }
+		onDispose {}
+	}
 }

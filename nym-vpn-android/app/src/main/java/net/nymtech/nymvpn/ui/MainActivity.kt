@@ -52,145 +52,147 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+	@Inject
+	lateinit var dataStoreManager: DataStoreManager
 
-    @Inject
-    lateinit var dataStoreManager: DataStoreManager
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+		installSplashScreen()
 
-        installSplashScreen()
+		lifecycleScope.launch {
+			// init data
+			dataStoreManager.init()
+			// setup sentry
+			val reportingEnabled = dataStoreManager.getFromStore(DataStoreManager.ERROR_REPORTING)
+			if (reportingEnabled ?: BuildConfig.OPT_IN_REPORTING) {
+				if (reportingEnabled == null) {
+					dataStoreManager.saveToDataStore(
+						DataStoreManager.ERROR_REPORTING,
+						true,
+					)
+				}
+				SentryAndroid.init(this@MainActivity) { options ->
+					options.enableTracing = true
+					options.enableAllAutoBreadcrumbs(true)
+					options.isEnableUserInteractionTracing = true
+					options.isEnableUserInteractionBreadcrumbs = true
+					options.dsn = BuildConfig.SENTRY_DSN
+					options.sampleRate = 1.0
+					options.tracesSampleRate = 1.0
+					options.profilesSampleRate = 1.0
+					options.environment =
+						if (BuildConfig.DEBUG) Constants.SENTRY_DEV_ENV else Constants.SENTRY_PROD_ENV
+				}
+			}
+		}
 
-        lifecycleScope.launch {
-            //init data
-            dataStoreManager.init()
-            //setup sentry
-            val reportingEnabled = dataStoreManager.getFromStore(DataStoreManager.ERROR_REPORTING)
-            if (reportingEnabled ?: BuildConfig.OPT_IN_REPORTING) {
-                if (reportingEnabled == null) dataStoreManager.saveToDataStore(
-                    DataStoreManager.ERROR_REPORTING,
-                    true
-                )
-                SentryAndroid.init(this@MainActivity) { options ->
-                    options.enableTracing = true
-                    options.enableAllAutoBreadcrumbs(true)
-                    options.isEnableUserInteractionTracing = true
-                    options.isEnableUserInteractionBreadcrumbs = true
-                    options.dsn = BuildConfig.SENTRY_DSN
-                    options.sampleRate = 1.0
-                    options.tracesSampleRate = 1.0
-                    options.profilesSampleRate = 1.0
-                    options.environment =
-                        if (BuildConfig.DEBUG) Constants.SENTRY_DEV_ENV else Constants.SENTRY_PROD_ENV
-                }
-            }
-        }
+		setContent {
+			val appViewModel = hiltViewModel<AppViewModel>()
+			val uiState by appViewModel.uiState.collectAsStateWithLifecycle()
+			val navController = rememberNavController()
+			val snackbarHostState = remember { SnackbarHostState() }
 
-        setContent {
-            val appViewModel = hiltViewModel<AppViewModel>()
-            val uiState by appViewModel.uiState.collectAsStateWithLifecycle()
-            val navController = rememberNavController()
-            val snackbarHostState = remember { SnackbarHostState() }
+			LaunchedEffect(Unit) {
+				appViewModel.updateCountryListCache()
+				appViewModel.readLogCatOutput()
+			}
 
-            LaunchedEffect(Unit) {
-                appViewModel.updateCountryListCache()
-                appViewModel.readLogCatOutput()
-            }
+			fun showSnackBarMessage(message: StringValue) {
+				lifecycleScope.launch(Dispatchers.Main) {
+					val result =
+						snackbarHostState.showSnackbar(
+							message = message.asString(this@MainActivity),
+							duration = SnackbarDuration.Short,
+						)
+					when (result) {
+						SnackbarResult.ActionPerformed,
+						SnackbarResult.Dismissed,
+						-> {
+							snackbarHostState.currentSnackbarData?.dismiss()
+						}
+					}
+				}
+			}
 
-            fun showSnackBarMessage(message: StringValue) {
-                lifecycleScope.launch(Dispatchers.Main) {
-                    val result =
-                        snackbarHostState.showSnackbar(
-                            message = message.asString(this@MainActivity),
-                            duration = SnackbarDuration.Short,
-                        )
-                    when (result) {
-                        SnackbarResult.ActionPerformed,
-                        SnackbarResult.Dismissed -> {
-                            snackbarHostState.currentSnackbarData?.dismiss()
-                        }
-                    }
-                }
-            }
+			LaunchedEffect(uiState.snackbarMessageConsumed) {
+				if (!uiState.snackbarMessageConsumed) {
+					showSnackBarMessage(StringValue.DynamicString(uiState.snackbarMessage))
+					appViewModel.snackbarMessageConsumed()
+				}
+			}
 
-            LaunchedEffect(uiState.snackbarMessageConsumed) {
-                if (!uiState.snackbarMessageConsumed) {
-                    showSnackBarMessage(StringValue.DynamicString(uiState.snackbarMessage))
-                    appViewModel.snackbarMessageConsumed()
-                }
-            }
-
-            NymVPNTheme(theme = uiState.theme) {
-                // A surface container using the 'background' color from the theme
-                TransparentSystemBars()
-                Scaffold(
-                    Modifier.semantics {
-                        // Enables testTag -> UiAutomator resource id
-                        @OptIn(ExperimentalComposeUiApi::class)
-                        testTagsAsResourceId = true
-                    },
-                    topBar = { NavBar(appViewModel, navController) },
-                    snackbarHost = {
-                        SnackbarHost(snackbarHostState) { snackbarData: SnackbarData ->
-                            CustomSnackBar(message = snackbarData.visuals.message)
-                        }
-                    }
-                ) {
-
-                    NavHost(
-                        navController, startDestination = NavItem.Main.route,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(it)
-                    ) {
-                        composable(NavItem.Main.route) { MainScreen(navController, uiState) }
-                        composable(NavItem.Settings.route) {
-                            SettingsScreen(
-                                navController,
-                                appViewModel = appViewModel,
-                                appUiState = uiState
-                            )
-                        }
-                        composable(NavItem.Hop.Entry.route) {
-                            HopScreen(
-                                navController = navController,
-                                appViewModel = appViewModel,
-                                hopType = HopType.FIRST
-                            )
-                        }
-                        composable(NavItem.Hop.Exit.route) {
-                            HopScreen(
-                                navController = navController,
-                                appViewModel = appViewModel,
-                                hopType = HopType.LAST
-                            )
-                        }
-                        composable(NavItem.Settings.Display.route) { DisplayScreen() }
-                        composable(NavItem.Settings.Logs.route) { LogsScreen(appViewModel) }
-                        composable(NavItem.Settings.Support.route) { SupportScreen(appViewModel) }
-                        composable(NavItem.Settings.Feedback.route) { FeedbackScreen(appViewModel) }
-                        composable(NavItem.Settings.Legal.route) {
-                            LegalScreen(
-                                appViewModel,
-                                navController
-                            )
-                        }
-                        composable(NavItem.Settings.Login.route) {
-                            LoginScreen(
-                                navController,
-                                appViewModel
-                            )
-                        }
-                        composable(NavItem.Settings.Account.route) { AccountScreen(appViewModel) }
-                        composable(NavItem.Settings.Legal.Licenses.route) {
-                            LicensesScreen(
-                                appViewModel
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
+			NymVPNTheme(theme = uiState.theme) {
+				// A surface container using the 'background' color from the theme
+				TransparentSystemBars()
+				Scaffold(
+					Modifier.semantics {
+						// Enables testTag -> UiAutomator resource id
+						@OptIn(ExperimentalComposeUiApi::class)
+						testTagsAsResourceId = true
+					},
+					topBar = { NavBar(appViewModel, navController) },
+					snackbarHost = {
+						SnackbarHost(snackbarHostState) { snackbarData: SnackbarData ->
+							CustomSnackBar(message = snackbarData.visuals.message)
+						}
+					},
+				) {
+					NavHost(
+						navController,
+						startDestination = NavItem.Main.route,
+						modifier =
+						Modifier
+							.fillMaxSize()
+							.padding(it),
+					) {
+						composable(NavItem.Main.route) { MainScreen(navController, uiState) }
+						composable(NavItem.Settings.route) {
+							SettingsScreen(
+								navController,
+								appViewModel = appViewModel,
+								appUiState = uiState,
+							)
+						}
+						composable(NavItem.Hop.Entry.route) {
+							HopScreen(
+								navController = navController,
+								appViewModel = appViewModel,
+								hopType = HopType.FIRST,
+							)
+						}
+						composable(NavItem.Hop.Exit.route) {
+							HopScreen(
+								navController = navController,
+								appViewModel = appViewModel,
+								hopType = HopType.LAST,
+							)
+						}
+						composable(NavItem.Settings.Display.route) { DisplayScreen() }
+						composable(NavItem.Settings.Logs.route) { LogsScreen(appViewModel) }
+						composable(NavItem.Settings.Support.route) { SupportScreen(appViewModel) }
+						composable(NavItem.Settings.Feedback.route) { FeedbackScreen(appViewModel) }
+						composable(NavItem.Settings.Legal.route) {
+							LegalScreen(
+								appViewModel,
+								navController,
+							)
+						}
+						composable(NavItem.Settings.Login.route) {
+							LoginScreen(
+								navController,
+								appViewModel,
+							)
+						}
+						composable(NavItem.Settings.Account.route) { AccountScreen(appViewModel) }
+						composable(NavItem.Settings.Legal.Licenses.route) {
+							LicensesScreen(
+								appViewModel,
+							)
+						}
+					}
+				}
+			}
+		}
+	}
 }
-

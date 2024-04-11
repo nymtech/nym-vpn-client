@@ -5,6 +5,6 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class TunnelOptions(
-    val mtu: Int?,
-    val usePqSafePsk: Boolean
+	val mtu: Int?,
+	val usePqSafePsk: Boolean,
 ) : Parcelable

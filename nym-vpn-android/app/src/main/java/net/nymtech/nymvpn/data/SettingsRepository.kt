@@ -6,25 +6,29 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.model.VpnMode
 
 interface SettingsRepository {
-    suspend fun getTheme(): Theme
-    suspend fun setTheme(theme: Theme)
+	suspend fun getTheme(): Theme
 
-    suspend fun getVpnMode(): VpnMode
-    suspend fun setVpnMode(mode: VpnMode)
+	suspend fun setTheme(theme: Theme)
 
-    suspend fun isAutoStartEnabled(): Boolean
-    suspend fun setAutoStart(enabled: Boolean)
+	suspend fun getVpnMode(): VpnMode
 
-    suspend fun isLoggedIn(): Boolean
+	suspend fun setVpnMode(mode: VpnMode)
 
-    suspend fun setLoggedIn(loggedIn: Boolean)
+	suspend fun isAutoStartEnabled(): Boolean
 
-    suspend fun isErrorReportingEnabled(): Boolean
-    suspend fun setErrorReporting(enabled: Boolean)
+	suspend fun setAutoStart(enabled: Boolean)
 
-    suspend fun isFirstHopSelectionEnabled(): Boolean
+	suspend fun isLoggedIn(): Boolean
 
-    suspend fun setFirstHopSelection(enabled: Boolean)
+	suspend fun setLoggedIn(loggedIn: Boolean)
 
-    val settingsFlow: Flow<Settings>
+	suspend fun isErrorReportingEnabled(): Boolean
+
+	suspend fun setErrorReporting(enabled: Boolean)
+
+	suspend fun isFirstHopSelectionEnabled(): Boolean
+
+	suspend fun setFirstHopSelection(enabled: Boolean)
+
+	val settingsFlow: Flow<Settings>
 }

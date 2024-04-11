@@ -11,72 +11,71 @@ import kotlin.properties.Delegates.observable
 // If the ID object class (or any of its super-classes) overrides `hashCode` or `equals`,
 // unsubscribe might not work correctly.
 class EventNotifier<T>(private val initialValue: T) {
-    private val listeners = LinkedHashMap<Any, (T) -> Unit>()
+	private val listeners = LinkedHashMap<Any, (T) -> Unit>()
 
-    var latestEvent = initialValue
-        private set
+	var latestEvent = initialValue
+		private set
 
-    fun notify(event: T) {
-        synchronized(this) {
-            latestEvent = event
+	fun notify(event: T) {
+		synchronized(this) {
+			latestEvent = event
 
-            for (listener in listeners.values) {
-                listener(event)
-            }
-        }
-    }
+			for (listener in listeners.values) {
+				listener(event)
+			}
+		}
+	}
 
-    fun notifyIfChanged(event: T) {
-        synchronized(this) {
-            if (latestEvent != event) {
-                notify(event)
-            }
-        }
-    }
+	fun notifyIfChanged(event: T) {
+		synchronized(this) {
+			if (latestEvent != event) {
+				notify(event)
+			}
+		}
+	}
 
-    fun subscribe(id: Any, listener: (T) -> Unit) {
-        subscribe(id, true, listener)
-    }
+	fun subscribe(id: Any, listener: (T) -> Unit) {
+		subscribe(id, true, listener)
+	}
 
-    fun subscribe(id: Any, startWithLatestEvent: Boolean, listener: (T) -> Unit) {
-        synchronized(this) {
-            listeners.put(id, listener)
-            if (startWithLatestEvent) listener(latestEvent)
-        }
-    }
+	fun subscribe(id: Any, startWithLatestEvent: Boolean, listener: (T) -> Unit) {
+		synchronized(this) {
+			listeners.put(id, listener)
+			if (startWithLatestEvent) listener(latestEvent)
+		}
+	}
 
-    fun hasListeners(): Boolean {
-        synchronized(this) {
-            return !listeners.isEmpty()
-        }
-    }
+	fun hasListeners(): Boolean {
+		synchronized(this) {
+			return !listeners.isEmpty()
+		}
+	}
 
-    fun unsubscribe(id: Any) {
-        synchronized(this) {
-            listeners.remove(id)
-        }
-    }
+	fun unsubscribe(id: Any) {
+		synchronized(this) {
+			listeners.remove(id)
+		}
+	}
 
-    fun unsubscribeAll() {
-        synchronized(this) {
-            listeners.clear()
-        }
-    }
+	fun unsubscribeAll() {
+		synchronized(this) {
+			listeners.clear()
+		}
+	}
 
-    fun notifiable() = observable(latestEvent) { _, _, newValue ->
-        notify(newValue)
-    }
+	fun notifiable() = observable(latestEvent) { _, _, newValue ->
+		notify(newValue)
+	}
 }
 
-fun <T> autoSubscribable(id: Any, fallback: T, listener: (T) -> Unit) =
-    observable<EventNotifier<T>?>(null) { _, old, new ->
-        if (old != new) {
-            old?.unsubscribe(id)
+fun <T> autoSubscribable(id: Any, fallback: T, listener: (T) -> Unit) = observable<EventNotifier<T>?>(null) { _, old, new ->
+	if (old != new) {
+		old?.unsubscribe(id)
 
-            if (new == null) {
-                listener.invoke(fallback)
-            } else {
-                new.subscribe(id, listener)
-            }
-        }
-    }
+		if (new == null) {
+			listener.invoke(fallback)
+		} else {
+			new.subscribe(id, listener)
+		}
+	}
+}

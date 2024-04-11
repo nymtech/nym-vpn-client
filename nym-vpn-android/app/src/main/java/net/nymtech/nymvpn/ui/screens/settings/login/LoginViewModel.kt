@@ -10,21 +10,22 @@ import net.nymtech.nymvpn.util.Result
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository
+class LoginViewModel
+@Inject
+constructor(
+	private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
+	fun onLogin(recoveryPhrase: String): Result<Event> {
+		// TODO handle real login, mock for now
+		return if (recoveryPhrase == "") {
+			saveLogin()
+			Result.Success(Event.Message.None)
+		} else {
+			Result.Error(Event.Error.LoginFailed)
+		}
+	}
 
-    fun onLogin(recoveryPhrase: String): Result<Event> {
-        //TODO handle real login, mock for now
-        return if (recoveryPhrase == "") {
-            saveLogin()
-            Result.Success(Event.Message.None)
-        } else {
-            Result.Error(Event.Error.LoginFailed)
-        }
-    }
-
-    private fun saveLogin() = viewModelScope.launch {
-        settingsRepository.setLoggedIn(true)
-    }
+	private fun saveLogin() = viewModelScope.launch {
+		settingsRepository.setLoggedIn(true)
+	}
 }

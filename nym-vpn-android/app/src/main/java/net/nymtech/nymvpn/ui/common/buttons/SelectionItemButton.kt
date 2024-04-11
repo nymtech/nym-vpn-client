@@ -21,57 +21,59 @@ import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun SelectionItemButton(
-    leading: @Composable () -> Unit,
-    buttonText: String,
-    selected: Boolean,
-    trailingText: String?,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier =
-        Modifier
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() },
-                onClick = { onClick() })
-            .height(56.dp.scaledHeight()),
-        shape = RoundedCornerShape(10.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (!selected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                alpha = 0.16f
-            )
-        )
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            leading()
-            Text(
-                buttonText,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            trailingText?.let {
-                Row(
-                    modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        it,
-                        modifier = Modifier.padding(
-                            horizontal = 16.dp.scaledWidth(),
-                            vertical = 16.dp.scaledHeight()
-                        ),
-                        color =
-                        MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-            }
-        }
-
-    }
+fun SelectionItemButton(leading: @Composable () -> Unit, buttonText: String, selected: Boolean, trailingText: String?, onClick: () -> Unit) {
+	Card(
+		modifier =
+		Modifier
+			.clickable(
+				indication = null,
+				interactionSource = remember { MutableInteractionSource() },
+				onClick = { onClick() },
+			)
+			.height(56.dp.scaledHeight()),
+		shape = RoundedCornerShape(10.dp),
+		colors =
+		CardDefaults.cardColors(
+			containerColor =
+			if (!selected) {
+				MaterialTheme.colorScheme.background
+			} else {
+				MaterialTheme.colorScheme.onSurfaceVariant.copy(
+					alpha = 0.16f,
+				)
+			},
+		),
+	) {
+		Row(
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.Start,
+			modifier = Modifier.fillMaxWidth(),
+		) {
+			leading()
+			Text(
+				buttonText,
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onSurface,
+			)
+			trailingText?.let {
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					horizontalArrangement = Arrangement.End,
+					verticalAlignment = Alignment.CenterVertically,
+				) {
+					Text(
+						it,
+						modifier =
+						Modifier.padding(
+							horizontal = 16.dp.scaledWidth(),
+							vertical = 16.dp.scaledHeight(),
+						),
+						color =
+						MaterialTheme.colorScheme.onSurfaceVariant,
+						style = MaterialTheme.typography.labelSmall,
+					)
+				}
+			}
+		}
+	}
 }

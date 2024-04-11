@@ -7,11 +7,11 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class NymVpnClientTest {
-    @Test
-    fun useAppContext() {
-        //TODO write tests
-        // Context of the app under test.
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("net.nymtech.vpn_client.test", appContext.packageName)
-    }
+	@Test
+	fun useAppContext() {
+		// TODO write tests
+		// Context of the app under test.
+		val context = InstrumentationRegistry.getInstrumentation().targetContext
+		assertEquals("net.nymtech.vpn_client.test", appContext.packageName)
+	}
 }

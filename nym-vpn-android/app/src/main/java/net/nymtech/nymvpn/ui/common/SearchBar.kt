@@ -33,80 +33,82 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(onQuery: (queryString: String) -> Unit, placeholder: (@Composable () -> Unit)) {
-    // Immediately update and keep track of query from text field changes.
-    val space = " "
-    var query: String by rememberSaveable { mutableStateOf("") }
-    val interactionSource = remember { MutableInteractionSource() }
+	// Immediately update and keep track of query from text field changes.
+	val space = " "
+	var query: String by rememberSaveable { mutableStateOf("") }
+	val interactionSource = remember { MutableInteractionSource() }
 
-    val colors = OutlinedTextFieldDefaults.colors(
-        focusedTextColor = MaterialTheme.colorScheme.onSurface,
-        focusedBorderColor = MaterialTheme.colorScheme.outline,
-        focusedLeadingIconColor = MaterialTheme.colorScheme.onSurface,
-        focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
-        focusedLabelColor = MaterialTheme.colorScheme.onSurface,
-        cursorColor = MaterialTheme.colorScheme.onSurface,
-        focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface,
-        focusedSupportingTextColor = MaterialTheme.colorScheme.onSurface,
-        unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
-        focusedPrefixColor = MaterialTheme.colorScheme.onSurface,
-        focusedSuffixColor = MaterialTheme.colorScheme.onSurface
-    )
-    BasicTextField(
-        value = query,
-        textStyle = MaterialTheme.typography.bodyLarge.copy(
-            color = MaterialTheme.colorScheme.onBackground
-        ),
-        onValueChange = { onQueryChanged: String ->
-            // If user makes changes to text, immediately updated it.
-            query = onQueryChanged
-            onQuery(onQueryChanged)
-        },
-        singleLine = true,
-        cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
-        modifier =
-        Modifier
-            .fillMaxWidth()
-            .background(color = Color.Transparent, RoundedCornerShape(30.dp))
-    ) { innerTextField ->
-        OutlinedTextFieldDefaults.DecorationBox(
-            value = space + query,
-            leadingIcon = {
-                val icon = Icons.Rounded.Search
-                Icon(
-                    imageVector = icon,
-                    modifier = Modifier.size(iconSize),
-                    tint = MaterialTheme.colorScheme.onBackground,
-                    contentDescription = icon.name
-                )
-            },
-            label = {
-                Text(
-                    stringResource(R.string.search),
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            },
-            singleLine = true,
-            enabled = true,
-            innerTextField = {
-                if (query.isEmpty()) {
-                    placeholder()
-                }
-                innerTextField.invoke()
-            },
-            visualTransformation = VisualTransformation.None,
-            colors = colors,
-            interactionSource = interactionSource,
-            container = {
-                OutlinedTextFieldDefaults.ContainerBox(
-                    enabled = true,
-                    isError = false,
-                    colors = colors,
-                    interactionSource = interactionSource,
-                    focusedBorderThickness = 1.dp,
-                    unfocusedBorderThickness = 1.dp,
-                    shape = ShapeDefaults.Small
-                )
-            },
-        )
-    }
+	val colors =
+		OutlinedTextFieldDefaults.colors(
+			focusedTextColor = MaterialTheme.colorScheme.onSurface,
+			focusedBorderColor = MaterialTheme.colorScheme.outline,
+			focusedLeadingIconColor = MaterialTheme.colorScheme.onSurface,
+			focusedTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+			focusedLabelColor = MaterialTheme.colorScheme.onSurface,
+			cursorColor = MaterialTheme.colorScheme.onSurface,
+			focusedPlaceholderColor = MaterialTheme.colorScheme.onSurface,
+			focusedSupportingTextColor = MaterialTheme.colorScheme.onSurface,
+			unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
+			focusedPrefixColor = MaterialTheme.colorScheme.onSurface,
+			focusedSuffixColor = MaterialTheme.colorScheme.onSurface,
+		)
+	BasicTextField(
+		value = query,
+		textStyle =
+		MaterialTheme.typography.bodyLarge.copy(
+			color = MaterialTheme.colorScheme.onBackground,
+		),
+		onValueChange = { onQueryChanged: String ->
+			// If user makes changes to text, immediately updated it.
+			query = onQueryChanged
+			onQuery(onQueryChanged)
+		},
+		singleLine = true,
+		cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
+		modifier =
+		Modifier
+			.fillMaxWidth()
+			.background(color = Color.Transparent, RoundedCornerShape(30.dp)),
+	) { innerTextField ->
+		OutlinedTextFieldDefaults.DecorationBox(
+			value = space + query,
+			leadingIcon = {
+				val icon = Icons.Rounded.Search
+				Icon(
+					imageVector = icon,
+					modifier = Modifier.size(iconSize),
+					tint = MaterialTheme.colorScheme.onBackground,
+					contentDescription = icon.name,
+				)
+			},
+			label = {
+				Text(
+					stringResource(R.string.search),
+					modifier = Modifier.padding(start = 8.dp),
+				)
+			},
+			singleLine = true,
+			enabled = true,
+			innerTextField = {
+				if (query.isEmpty()) {
+					placeholder()
+				}
+				innerTextField.invoke()
+			},
+			visualTransformation = VisualTransformation.None,
+			colors = colors,
+			interactionSource = interactionSource,
+			container = {
+				OutlinedTextFieldDefaults.ContainerBox(
+					enabled = true,
+					isError = false,
+					colors = colors,
+					interactionSource = interactionSource,
+					focusedBorderThickness = 1.dp,
+					unfocusedBorderThickness = 1.dp,
+					shape = ShapeDefaults.Small,
+				)
+			},
+		)
+	}
 }

@@ -7,6 +7,6 @@ import com.squareup.moshi.JsonClass
 @Keep
 @JsonClass(generateAdapter = true)
 data class PledgeAmount(
-    @Json(name = "denom") val denom: String,
-    @Json(name = "amount") val amount: String,
+	@Json(name = "denom") val denom: String,
+	@Json(name = "amount") val amount: String,
 )

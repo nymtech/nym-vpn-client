@@ -5,20 +5,25 @@ import net.nymtech.nymvpn.data.model.Gateways
 import net.nymtech.vpn.model.Country
 
 interface GatewayRepository {
-    suspend fun getFirstHopCountry(): Country
-    suspend fun setFirstHopCountry(country: Country)
+	suspend fun getFirstHopCountry(): Country
 
-    suspend fun getLowLatencyCountry(): Country
-    suspend fun setLowLatencyCountry(country: Country)
+	suspend fun setFirstHopCountry(country: Country)
 
-    suspend fun getLastHopCountry(): Country
-    suspend fun setLastHopCountry(country: Country)
+	suspend fun getLowLatencyCountry(): Country
 
-    suspend fun setEntryCountries(countries: Set<Country>)
-    suspend fun getEntryCountries(): Set<Country>
+	suspend fun setLowLatencyCountry(country: Country)
 
-    suspend fun setExitCountries(countries: Set<Country>)
-    suspend fun getExitCountries(): Set<Country>
+	suspend fun getLastHopCountry(): Country
 
-    val gatewayFlow: Flow<Gateways>
+	suspend fun setLastHopCountry(country: Country)
+
+	suspend fun setEntryCountries(countries: Set<Country>)
+
+	suspend fun getEntryCountries(): Set<Country>
+
+	suspend fun setExitCountries(countries: Set<Country>)
+
+	suspend fun getExitCountries(): Set<Country>
+
+	val gatewayFlow: Flow<Gateways>
 }

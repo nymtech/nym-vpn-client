@@ -20,34 +20,34 @@ import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
 fun DisplayScreen(viewModel: DisplayViewModel = hiltViewModel()) {
+	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    Column(
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 24.dp.scaledHeight())
-            .padding(horizontal = 24.dp.scaledWidth())
-    ) {
-        RadioSurfaceButton(
-            title = stringResource(R.string.automatic),
-            description = stringResource(R.string.device_theme),
-            onClick = {
-                viewModel.onThemeChange(Theme.AUTOMATIC)
-            },
-            selected = uiState.theme == Theme.AUTOMATIC
-        )
-        RadioSurfaceButton(
-            title = stringResource(R.string.light_theme),
-            onClick = { viewModel.onThemeChange(Theme.LIGHT_MODE) },
-            selected = uiState.theme == Theme.LIGHT_MODE
-        )
-        RadioSurfaceButton(
-            title = stringResource(R.string.dark_theme),
-            onClick = { viewModel.onThemeChange(Theme.DARK_MODE) },
-            selected = uiState.theme == Theme.DARK_MODE
-        )
-    }
+	Column(
+		horizontalAlignment = Alignment.Start,
+		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
+		modifier =
+		Modifier
+			.fillMaxSize()
+			.padding(top = 24.dp.scaledHeight())
+			.padding(horizontal = 24.dp.scaledWidth()),
+	) {
+		RadioSurfaceButton(
+			title = stringResource(R.string.automatic),
+			description = stringResource(R.string.device_theme),
+			onClick = {
+				viewModel.onThemeChange(Theme.AUTOMATIC)
+			},
+			selected = uiState.theme == Theme.AUTOMATIC,
+		)
+		RadioSurfaceButton(
+			title = stringResource(R.string.light_theme),
+			onClick = { viewModel.onThemeChange(Theme.LIGHT_MODE) },
+			selected = uiState.theme == Theme.LIGHT_MODE,
+		)
+		RadioSurfaceButton(
+			title = stringResource(R.string.dark_theme),
+			onClick = { viewModel.onThemeChange(Theme.DARK_MODE) },
+			selected = uiState.theme == Theme.DARK_MODE,
+		)
+	}
 }

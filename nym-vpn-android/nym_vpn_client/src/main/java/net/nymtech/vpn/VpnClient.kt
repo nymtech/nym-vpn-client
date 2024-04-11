@@ -10,20 +10,21 @@ import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
 
 interface VpnClient {
+	fun configure(entryPoint: EntryPoint, exitPoint: ExitPoint, mode: VpnMode = VpnMode.TWO_HOP_MIXNET)
 
-    fun configure(
-        entryPoint: EntryPoint,
-        exitPoint: ExitPoint,
-        mode: VpnMode = VpnMode.TWO_HOP_MIXNET
-    )
+	fun prepare(context: Context): Intent?
 
-    fun prepare(context: Context): Intent?
-    fun start(context: Context)
-    fun startForeground(context: Context)
-    fun disconnect(context: Context)
-    val stateFlow: Flow<ClientState>
-    fun getState(): ClientState
-    suspend fun gateways(exitOnly: Boolean = false): Set<Country>
+	fun start(context: Context)
 
-    suspend fun getLowLatencyEntryCountryCode(): Country
+	fun startForeground(context: Context)
+
+	fun disconnect(context: Context)
+
+	val stateFlow: Flow<ClientState>
+
+	fun getState(): ClientState
+
+	suspend fun gateways(exitOnly: Boolean = false): Set<Country>
+
+	suspend fun getLowLatencyEntryCountryCode(): Country
 }

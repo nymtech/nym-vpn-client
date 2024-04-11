@@ -15,36 +15,35 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class AlwaysOnVpnService : LifecycleService() {
+	@Inject
+	lateinit var gatewayRepository: GatewayRepository
 
-    @Inject
-    lateinit var gatewayRepository: GatewayRepository
+	@Inject
+	lateinit var settingsRepository: SettingsRepository
 
-    @Inject
-    lateinit var settingsRepository: SettingsRepository
+	override fun onBind(intent: Intent): IBinder? {
+		super.onBind(intent)
+		// We don't provide binding, so return null
+		return null
+	}
 
-    override fun onBind(intent: Intent): IBinder? {
-        super.onBind(intent)
-        // We don't provide binding, so return null
-        return null
-    }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent == null || intent.component == null || intent.component!!.packageName != packageName) {
-            Timber.i("Always-on VPN requested start")
-            lifecycleScope.launch {
-                val entryCountry = gatewayRepository.getFirstHopCountry()
-                val exitCountry = gatewayRepository.getLastHopCountry()
-                val mode = settingsRepository.getVpnMode()
-                val entry = entryCountry.toEntryPoint()
-                val exit = exitCountry.toExitPoint()
-                NymVpnClient.configure(entry, exit, mode)
-                NymVpnClient.start(this@AlwaysOnVpnService)
-                NymVpn.requestTileServiceStateUpdate(this@AlwaysOnVpnService)
-            }
-            START_STICKY
-        } else {
-            START_NOT_STICKY
-        }
-        return super.onStartCommand(intent, flags, startId)
-    }
+	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+		if (intent == null || intent.component == null || intent.component!!.packageName != packageName) {
+			Timber.i("Always-on VPN requested start")
+			lifecycleScope.launch {
+				val entryCountry = gatewayRepository.getFirstHopCountry()
+				val exitCountry = gatewayRepository.getLastHopCountry()
+				val mode = settingsRepository.getVpnMode()
+				val entry = entryCountry.toEntryPoint()
+				val exit = exitCountry.toExitPoint()
+				NymVpnClient.configure(entry, exit, mode)
+				NymVpnClient.start(this@AlwaysOnVpnService)
+				NymVpn.requestTileServiceStateUpdate(this@AlwaysOnVpnService)
+			}
+			START_STICKY
+		} else {
+			START_NOT_STICKY
+		}
+		return super.onStartCommand(intent, flags, startId)
+	}
 }

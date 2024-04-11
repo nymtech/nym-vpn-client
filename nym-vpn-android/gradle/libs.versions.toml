@@ -23,7 +23,6 @@ lifecycle-runtime-compose = "2.7.0"
 activityCompose = "1.8.2"
 composeBom = "2024.04.00"
 datastorePreferences = "1.0.0"
-seleniumJava = "4.19.0"
 timber = "5.0.1"
 hiltAndroid = "2.51"
 kotlinx-serialization-json = "1.6.3"
@@ -40,6 +39,7 @@ gradlePlugins-gross = "0.1.0"
 gradlePlugins-sentry = "4.3.1"
 appcompat = "1.6.1"
 material = "1.11.0"
+gradlePlugins-ktlint="12.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -80,7 +80,6 @@ moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshiKotlin" }
 moshi-kotlin-codegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", version.ref = "moshiKotlinCodegen" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterMoshi" }
-selenium-java = { module = "org.seleniumhq.selenium:selenium-java", version.ref = "seleniumJava" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 
 #compose
@@ -112,4 +111,5 @@ gross = { id = "se.premex.gross", version.ref = "gradlePlugins-gross" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "gradlePlugins-kotlinxSerialization" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "gradlePlugins-detekt" }
 sentry = { id = "io.sentry.android.gradle", version.ref = "gradlePlugins-sentry" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "gradlePlugins-ktlint" }
 

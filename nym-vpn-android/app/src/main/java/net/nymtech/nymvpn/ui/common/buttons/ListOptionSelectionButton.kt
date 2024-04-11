@@ -29,84 +29,85 @@ import net.nymtech.nymvpn.util.scaledHeight
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListOptionSelectionButton(
-    label: String,
-    value: String,
-    onClick: () -> Unit,
-    leadingIcon: @Composable () -> Unit,
-    trailingIcon: ImageVector = ImageVector.vectorResource(R.drawable.link_arrow_right)
+	label: String,
+	value: String,
+	onClick: () -> Unit,
+	leadingIcon: @Composable () -> Unit,
+	trailingIcon: ImageVector = ImageVector.vectorResource(R.drawable.link_arrow_right),
 ) {
-
-    val interactionSource = remember { MutableInteractionSource() }
-    val colors = OutlinedTextFieldDefaults.colors(
-        disabledTextColor = MaterialTheme.colorScheme.onSurface,
-        disabledContainerColor = Color.Transparent,
-        disabledBorderColor = MaterialTheme.colorScheme.outline,
-        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface,
-        disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface,
-        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        disabledPlaceholderColor = MaterialTheme.colorScheme.onSurface,
-        disabledSupportingTextColor = MaterialTheme.colorScheme.onSurface,
-        unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
-        disabledPrefixColor = MaterialTheme.colorScheme.onSurface,
-        disabledSuffixColor = MaterialTheme.colorScheme.onSurface
-    )
-    BasicTextField(
-        value = value,
-        readOnly = true,
-        enabled = false,
-        onValueChange = {},
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp.scaledHeight())
-            .defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
-            .clickable(interactionSource = interactionSource, indication = null) { onClick() }
-    ) {
-        OutlinedTextFieldDefaults.DecorationBox(
-            value = value,
-            leadingIcon = {
-                leadingIcon()
-            },
-            trailingIcon = {
-                Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
-            },
-            label = {
-                Text(
-                    label,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            },
-            enabled = false,
-            contentPadding = PaddingValues(1.dp),
-            singleLine = true,
-            placeholder = {
-                Text(
-                    value,
-                    style = MaterialTheme.typography.bodyLarge,
-                    overflow = TextOverflow.Visible
-                )
-            },
-            visualTransformation = VisualTransformation.None,
-            innerTextField = {
-                Text(
-                    value,
-                    style = MaterialTheme.typography.bodyLarge,
-                    overflow = TextOverflow.Visible
-                )
-            },
-            interactionSource = interactionSource,
-            colors = colors,
-            container = {
-                OutlinedTextFieldDefaults.ContainerBox(
-                    enabled = false,
-                    false,
-                    interactionSource,
-                    colors,
-                    focusedBorderThickness = 1.dp,
-                    unfocusedBorderThickness = 1.dp,
-                    shape = ShapeDefaults.Small
-                )
-            },
-        )
-    }
+	val interactionSource = remember { MutableInteractionSource() }
+	val colors =
+		OutlinedTextFieldDefaults.colors(
+			disabledTextColor = MaterialTheme.colorScheme.onSurface,
+			disabledContainerColor = Color.Transparent,
+			disabledBorderColor = MaterialTheme.colorScheme.outline,
+			disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface,
+			disabledTrailingIconColor = MaterialTheme.colorScheme.onSurface,
+			disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+			disabledPlaceholderColor = MaterialTheme.colorScheme.onSurface,
+			disabledSupportingTextColor = MaterialTheme.colorScheme.onSurface,
+			unfocusedLabelColor = MaterialTheme.colorScheme.onSurface,
+			disabledPrefixColor = MaterialTheme.colorScheme.onSurface,
+			disabledSuffixColor = MaterialTheme.colorScheme.onSurface,
+		)
+	BasicTextField(
+		value = value,
+		readOnly = true,
+		enabled = false,
+		onValueChange = {},
+		modifier =
+		Modifier
+			.fillMaxWidth()
+			.height(60.dp.scaledHeight())
+			.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
+			.clickable(interactionSource = interactionSource, indication = null) { onClick() },
+	) {
+		OutlinedTextFieldDefaults.DecorationBox(
+			value = value,
+			leadingIcon = {
+				leadingIcon()
+			},
+			trailingIcon = {
+				Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
+			},
+			label = {
+				Text(
+					label,
+					style = MaterialTheme.typography.bodySmall,
+					modifier = Modifier.padding(start = 8.dp),
+				)
+			},
+			enabled = false,
+			contentPadding = PaddingValues(1.dp),
+			singleLine = true,
+			placeholder = {
+				Text(
+					value,
+					style = MaterialTheme.typography.bodyLarge,
+					overflow = TextOverflow.Visible,
+				)
+			},
+			visualTransformation = VisualTransformation.None,
+			innerTextField = {
+				Text(
+					value,
+					style = MaterialTheme.typography.bodyLarge,
+					overflow = TextOverflow.Visible,
+				)
+			},
+			interactionSource = interactionSource,
+			colors = colors,
+			container = {
+				OutlinedTextFieldDefaults.ContainerBox(
+					enabled = false,
+					false,
+					interactionSource,
+					colors,
+					focusedBorderThickness = 1.dp,
+					unfocusedBorderThickness = 1.dp,
+					shape = ShapeDefaults.Small,
+				)
+			},
+		)
+	}
 }

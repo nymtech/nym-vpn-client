@@ -28,64 +28,62 @@ import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun RadioSurfaceButton(
-    title: String,
-    onClick: () -> Unit,
-    selected: Boolean,
-    leadingIcon: ImageVector? = null,
-    description: String? = null
-) {
-    val border: BorderStroke? =
-        if (selected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
-    val interactionSource = remember { MutableInteractionSource() }
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(64.dp.scaledHeight())
-            .clickable(interactionSource = interactionSource, indication = null) {
-                onClick()
-            },
-        border = border,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(
-            modifier =
-            Modifier
-                .padding(end = 2.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.Start
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth())
-            ) {
-                RadioButton(
-                    selected = selected, onClick = { onClick() }, modifier = Modifier
-                        .size(
-                            iconSize
-                        )
-                        .padding(start = 16.dp.scaledWidth())
-                )
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp.scaledHeight()),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    leadingIcon?.let {
-                        Icon(leadingIcon, leadingIcon.name, Modifier.size(iconSize))
-                    }
-                    Column {
-                        Text(title, style = MaterialTheme.typography.bodyLarge)
-                        description?.let {
-                            Text(
-                                description,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
+fun RadioSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, leadingIcon: ImageVector? = null, description: String? = null) {
+	val border: BorderStroke? =
+		if (selected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+	val interactionSource = remember { MutableInteractionSource() }
+	Card(
+		modifier =
+		Modifier
+			.fillMaxWidth()
+			.height(64.dp.scaledHeight())
+			.clickable(interactionSource = interactionSource, indication = null) {
+				onClick()
+			},
+		border = border,
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+	) {
+		Column(
+			modifier =
+			Modifier
+				.padding(end = 2.dp)
+				.fillMaxSize(),
+			verticalArrangement = Arrangement.Center,
+			horizontalAlignment = Alignment.Start,
+		) {
+			Row(
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth()),
+			) {
+				RadioButton(
+					selected = selected,
+					onClick = { onClick() },
+					modifier =
+					Modifier
+						.size(
+							iconSize,
+						)
+						.padding(start = 16.dp.scaledWidth()),
+				)
+				Row(
+					horizontalArrangement = Arrangement.spacedBy(16.dp.scaledHeight()),
+					verticalAlignment = Alignment.CenterVertically,
+				) {
+					leadingIcon?.let {
+						Icon(leadingIcon, leadingIcon.name, Modifier.size(iconSize))
+					}
+					Column {
+						Text(title, style = MaterialTheme.typography.bodyLarge)
+						description?.let {
+							Text(
+								description,
+								color = MaterialTheme.colorScheme.onSurfaceVariant,
+								style = MaterialTheme.typography.bodyMedium,
+							)
+						}
+					}
+				}
+			}
+		}
+	}
 }

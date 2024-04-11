@@ -9,13 +9,13 @@ import androidx.compose.ui.Alignment
 
 @Composable
 fun GroupLabel(title: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
-    ) {
-        Text(
-            title,
-            style = MaterialTheme.typography.titleMedium
-        )
-    }
+	Row(
+		verticalAlignment = Alignment.CenterVertically,
+		horizontalArrangement = Arrangement.Start,
+	) {
+		Text(
+			title,
+			style = MaterialTheme.typography.titleMedium,
+		)
+	}
 }

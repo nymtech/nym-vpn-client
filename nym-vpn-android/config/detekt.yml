@@ -42,11 +42,14 @@ complexity:
     active: false
   LongMethod:
     active: false
+  CyclomaticComplexMethod:
+    ignoreAnnotated:
+        - 'Composable'
 
 coroutines:
   active: true
   GlobalCoroutineUsage:
-    active: true
+    active: false
   RedundantSuspendModifier:
     active: true
   SleepInsteadOfDelay:
@@ -129,7 +132,7 @@ style:
     excludeImportStatements: true
     excludeCommentStatements: false
   NoTabs:
-    active: true
+    active: false
   OptionalUnit:
     active: true
   PreferToOverPairSyntax:
@@ -207,6 +210,8 @@ compose:
     ignoreCallsWithArgumentNames: [ 'modifier', 'contentAlignment' ]
 
 naming:
+  FunctionParameterNaming:
+      active: false
   FunctionNaming:
     ignoreAnnotated:
       - Composable

@@ -25,55 +25,59 @@ import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
 fun SupportScreen(appViewModel: AppViewModel) {
-    val context = LocalContext.current
+	val context = LocalContext.current
 
-    Column(
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
-        modifier =
-        Modifier
-            .verticalScroll(rememberScrollState())
-            .fillMaxSize()
-            .padding(top = 24.dp.scaledHeight())
-            .padding(horizontal = 24.dp.scaledWidth())
-    ) {
-        SurfaceSelectionGroupButton(
-            listOf(
-                SelectionItem(
-                    leadingIcon = ImageVector.vectorResource(R.drawable.faq),
-                    title = stringResource(R.string.check_faq),
-                    onClick = { appViewModel.openWebPage(context.getString(R.string.faq_link)) }),
-            )
-        )
-        SurfaceSelectionGroupButton(
-            listOf(
-                SelectionItem(
-                    leadingIcon = Icons.Outlined.Email,
-                    title = stringResource(R.string.send_email),
-                    onClick = {
-                        appViewModel.launchEmail()
-                    }),
-            )
-        )
-        SurfaceSelectionGroupButton(
-            listOf(
-                SelectionItem(
-                    leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
-                    title = stringResource(R.string.join_matrix),
-                    onClick = {
-                        appViewModel.openWebPage(context.getString(R.string.matrix_url))
-                    }),
-            )
-        )
-        SurfaceSelectionGroupButton(
-            listOf(
-                SelectionItem(
-                    leadingIcon = ImageVector.vectorResource(R.drawable.discord),
-                    title = stringResource(R.string.join_discord),
-                    onClick = {
-                        appViewModel.openWebPage(context.getString(R.string.discord_url))
-                    }),
-            )
-        )
-    }
+	Column(
+		horizontalAlignment = Alignment.Start,
+		verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
+		modifier =
+		Modifier
+			.verticalScroll(rememberScrollState())
+			.fillMaxSize()
+			.padding(top = 24.dp.scaledHeight())
+			.padding(horizontal = 24.dp.scaledWidth()),
+	) {
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
+					leadingIcon = ImageVector.vectorResource(R.drawable.faq),
+					title = stringResource(R.string.check_faq),
+					onClick = { appViewModel.openWebPage(context.getString(R.string.faq_link)) },
+				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
+					leadingIcon = Icons.Outlined.Email,
+					title = stringResource(R.string.send_email),
+					onClick = {
+						appViewModel.launchEmail()
+					},
+				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
+					leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
+					title = stringResource(R.string.join_matrix),
+					onClick = {
+						appViewModel.openWebPage(context.getString(R.string.matrix_url))
+					},
+				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
+					leadingIcon = ImageVector.vectorResource(R.drawable.discord),
+					title = stringResource(R.string.join_discord),
+					onClick = {
+						appViewModel.openWebPage(context.getString(R.string.discord_url))
+					},
+				),
+			),
+		)
+	}
 }

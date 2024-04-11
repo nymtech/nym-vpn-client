@@ -12,31 +12,29 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
 
-
 @Module
 @InstallIn(SingletonComponent::class)
 class ServiceModule {
+	@Singleton
+	@Provides
+	fun provideMoshi(): Moshi {
+		return Moshi.Builder()
+			.add(KotlinJsonAdapterFactory())
+			.build()
+	}
 
-    @Singleton
-    @Provides
-    fun provideMoshi(): Moshi {
-        return Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
-    }
+	@Singleton
+	@Provides
+	fun provideRetrofit(moshi: Moshi): Retrofit {
+		return Retrofit.Builder()
+			.addConverterFactory(MoshiConverterFactory.create(moshi))
+			.baseUrl(Constants.SANDBOX_URL)
+			.build()
+	}
 
-    @Singleton
-    @Provides
-    fun provideRetrofit(moshi: Moshi): Retrofit {
-        return Retrofit.Builder()
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .baseUrl(Constants.SANDBOX_URL)
-            .build()
-    }
-
-    @Singleton
-    @Provides
-    fun provideGatewayService(retrofit: Retrofit): GatewayApiService {
-        return retrofit.create(GatewayApiService::class.java)
-    }
+	@Singleton
+	@Provides
+	fun provideGatewayService(retrofit: Retrofit): GatewayApiService {
+		return retrofit.create(GatewayApiService::class.java)
+	}
 }

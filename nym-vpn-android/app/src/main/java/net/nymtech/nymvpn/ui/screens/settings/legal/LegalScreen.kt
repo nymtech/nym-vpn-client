@@ -21,34 +21,37 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
-
 @Composable
 fun LegalScreen(appViewModel: AppViewModel, navController: NavController) {
+	val context = LocalContext.current
 
-    val context = LocalContext.current
-
-    Column(
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
-        modifier =
-        Modifier
-            .verticalScroll(rememberScrollState())
-            .fillMaxSize()
-            .padding(top = 24.dp.scaledHeight())
-            .padding(horizontal = 24.dp.scaledWidth())
-    ) {
-        SurfaceSelectionGroupButton(
-            listOf(
-                SelectionItem(title = stringResource(R.string.terms_of_use), onClick = {
-                    appViewModel.openWebPage(context.getString(R.string.terms_link))
-                }),
-                SelectionItem(
-                    title = stringResource(R.string.privacy_policy),
-                    onClick = { appViewModel.openWebPage(context.getString(R.string.privacy_link)) }),
-                SelectionItem(title = stringResource(R.string.licenses), onClick = {
-                    navController.navigate(NavItem.Settings.Legal.Licenses.route)
-                })
-            )
-        )
-    }
+	Column(
+		horizontalAlignment = Alignment.Start,
+		verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
+		modifier =
+		Modifier
+			.verticalScroll(rememberScrollState())
+			.fillMaxSize()
+			.padding(top = 24.dp.scaledHeight())
+			.padding(horizontal = 24.dp.scaledWidth()),
+	) {
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(title = stringResource(R.string.terms_of_use), onClick = {
+					appViewModel.openWebPage(context.getString(R.string.terms_link))
+				}),
+				SelectionItem(
+					title = stringResource(R.string.privacy_policy),
+					onClick = {
+						appViewModel.openWebPage(
+							context.getString(R.string.privacy_link),
+						)
+					},
+				),
+				SelectionItem(title = stringResource(R.string.licenses), onClick = {
+					navController.navigate(NavItem.Settings.Legal.Licenses.route)
+				}),
+			),
+		)
+	}
 }

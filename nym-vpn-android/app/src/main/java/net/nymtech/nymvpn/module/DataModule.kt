@@ -16,22 +16,21 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 class DataModule {
+	@Singleton
+	@Provides
+	fun providePreferencesDataStore(@ApplicationContext context: Context): DataStoreManager {
+		return DataStoreManager(context)
+	}
 
-    @Singleton
-    @Provides
-    fun providePreferencesDataStore(@ApplicationContext context: Context): DataStoreManager {
-        return DataStoreManager(context)
-    }
+	@Singleton
+	@Provides
+	fun provideSettingsRepository(dataStoreManager: DataStoreManager): SettingsRepository {
+		return DataStoreSettingsRepository(dataStoreManager)
+	}
 
-    @Singleton
-    @Provides
-    fun provideSettingsRepository(dataStoreManager: DataStoreManager): SettingsRepository {
-        return DataStoreSettingsRepository(dataStoreManager)
-    }
-
-    @Singleton
-    @Provides
-    fun provideGatewayRepository(dataStoreManager: DataStoreManager): GatewayRepository {
-        return DataStoreGatewayRepository(dataStoreManager)
-    }
+	@Singleton
+	@Provides
+	fun provideGatewayRepository(dataStoreManager: DataStoreManager): GatewayRepository {
+		return DataStoreGatewayRepository(dataStoreManager)
+	}
 }

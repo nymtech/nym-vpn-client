@@ -16,63 +16,73 @@ import net.nymtech.vpn.model.Country
 import javax.inject.Inject
 
 @HiltViewModel
-class HopViewModel @Inject constructor(
-    private val gatewayRepository: GatewayRepository
+class HopViewModel
+@Inject
+constructor(
+	private val gatewayRepository: GatewayRepository,
 ) : ViewModel() {
+	private val _uiState = MutableStateFlow(HopUiState())
 
-    private val _uiState = MutableStateFlow(HopUiState())
+	val uiState =
+		combine(
+			gatewayRepository.gatewayFlow,
+			_uiState,
+		) { gateway, state ->
+			val countryList =
+				when (_uiState.value.hopType) {
+					HopType.FIRST -> {
+						gateway.entryCountries
+					}
 
-    val uiState = combine(
-        gatewayRepository.gatewayFlow,
-        _uiState,
-    ) { gateway, state ->
-        val countryList = when (_uiState.value.hopType) {
-            HopType.FIRST -> {
-                gateway.entryCountries
-            }
+					HopType.LAST -> {
+						gateway.exitCountries
+					}
+				}
+			val searchedCountries =
+				if (state.query.isNotBlank()) {
+					countryList.filter { it.name.lowercase().contains(state.query) }.toSet()
+				} else {
+					countryList
+				}
+			HopUiState(countryList, _uiState.value.hopType, searchedCountries, state.selected)
+		}.stateIn(
+			viewModelScope,
+			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
+			HopUiState(),
+		)
 
-            HopType.LAST -> {
-                gateway.exitCountries
-            }
-        }
-        val searchedCountries = if (state.query.isNotBlank()) {
-            countryList.filter { it.name.lowercase().contains(state.query) }.toSet()
-        } else countryList
-        HopUiState(countryList, _uiState.value.hopType, searchedCountries, state.selected)
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
-        HopUiState()
-    )
+	fun onQueryChange(query: String) {
+		_uiState.value =
+			_uiState.value.copy(
+				query = query,
+			)
+	}
 
-    fun onQueryChange(query: String) {
-        _uiState.value = _uiState.value.copy(
-            query = query
-        )
-    }
+	fun init(hopType: HopType) {
+		_uiState.value =
+			_uiState.value.copy(
+				hopType = hopType,
+			)
+		setSelectedCountry()
+	}
 
-    fun init(hopType: HopType) {
-        _uiState.value = _uiState.value.copy(
-            hopType = hopType
-        )
-        setSelectedCountry()
-    }
+	private fun setSelectedCountry() = viewModelScope.launch {
+		val selectedCountry =
+			when (_uiState.value.hopType) {
+				HopType.FIRST -> gatewayRepository.getFirstHopCountry()
+				HopType.LAST -> gatewayRepository.getLastHopCountry()
+			}
+		_uiState.value =
+			_uiState.value.copy(
+				selected = selectedCountry,
+			)
+	}
 
-    private fun setSelectedCountry() = viewModelScope.launch {
-        val selectedCountry = when (_uiState.value.hopType) {
-            HopType.FIRST -> gatewayRepository.getFirstHopCountry()
-            HopType.LAST -> gatewayRepository.getLastHopCountry()
-        }
-        _uiState.value = _uiState.value.copy(
-            selected = selectedCountry
-        )
-    }
-
-    fun onSelected(country: Country) = viewModelScope.launch {
-        when (_uiState.value.hopType) {
-            HopType.FIRST -> gatewayRepository.setFirstHopCountry(country)
-            HopType.LAST -> gatewayRepository.setLastHopCountry(country)
-        }
-        NymVpn.requestTileServiceStateUpdate(NymVpn.instance)
-    }
+	fun onSelected(country: Country) = viewModelScope.launch {
+		when (_uiState.value.hopType) {
+			HopType.FIRST -> gatewayRepository.setFirstHopCountry(country)
+			HopType.LAST -> gatewayRepository.setLastHopCountry(country)
+		}
+		NymVpn.requestTileServiceStateUpdate(NymVpn.instance)
+	}
 }

@@ -7,6 +7,6 @@ import com.squareup.moshi.JsonClass
 @Keep
 @JsonClass(generateAdapter = true)
 data class Keys(
-    @Json(name = "ed25519") val ed25519: String,
-    @Json(name = "x25519") val x25519: String
+	@Json(name = "ed25519") val ed25519: String,
+	@Json(name = "x25519") val x25519: String,
 )

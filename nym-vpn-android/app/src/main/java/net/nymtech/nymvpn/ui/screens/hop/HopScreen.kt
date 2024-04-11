@@ -40,115 +40,125 @@ import net.nymtech.nymvpn.util.scaledWidth
 import net.nymtech.vpn.model.Country
 
 @Composable
-fun HopScreen(
-    navController: NavController,
-    hopType: HopType,
-    appViewModel: AppViewModel,
-    viewModel: HopViewModel = hiltViewModel(),
-) {
+fun HopScreen(navController: NavController, hopType: HopType, appViewModel: AppViewModel, viewModel: HopViewModel = hiltViewModel()) {
+	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+	val context = LocalContext.current
 
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
+	val countryComparator = compareBy<Country> { it.name }
 
-    val countryComparator = compareBy<Country> { it.name }
+	val sortedCountries =
+		remember(uiState.queriedCountries, countryComparator) {
+			uiState.queriedCountries.sortedWith(countryComparator)
+		}
 
-    val sortedCountries = remember(uiState.queriedCountries, countryComparator) {
-        uiState.queriedCountries.sortedWith(countryComparator)
-    }
+	LaunchedEffect(Unit) {
+		viewModel.init(hopType)
+		appViewModel.updateCountryListCache()
+	}
 
-    LaunchedEffect(Unit) {
-        viewModel.init(hopType)
-        appViewModel.updateCountryListCache()
-    }
-
-    LazyColumn(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp.scaledWidth(), vertical = 24.dp.scaledHeight())
-    ) {
-        item {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight()),
-                modifier = Modifier.padding(bottom = 24.dp.scaledHeight())
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp.scaledWidth(), vertical = 16.dp.scaledHeight())
-                )
-                SearchBar(
-                    onQuery = viewModel::onQueryChange,
-                    placeholder = {
-                        Text(
-                            stringResource(id = R.string.search_country),
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                    })
-            }
-        }
-        item {
-            if (uiState.countries.isNotEmpty()) {
-                val fastest = uiState.countries.firstOrNull { it.isLowLatency }
-                if (fastest != null) {
-                    val name = StringUtils.buildCountryNameString(fastest, context)
-                    val icon = ImageVector.vectorResource(R.drawable.bolt)
-                    SelectionItemButton(
-                        {
-                            Icon(
-                                icon,
-                                icon.name,
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp.scaledWidth(), 16.dp.scaledHeight())
-                                    .size(
-                                        iconSize
-                                    ),
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        },
-                        name,
-                        onClick = {
-                            viewModel.onSelected(fastest)
-                            navController.navigate(NavItem.Main.route)
-                        },
-                        selected = fastest == uiState.selected,
-                        trailingText =
-                        if (fastest == uiState.selected)
-                            stringResource(id = R.string.is_selected)
-                        else null
-                    )
-                }
-            }
-        }
-        items(sortedCountries) {
-            if (it.isLowLatency) return@items
-            val icon =
-                ImageVector.vectorResource(
-                    StringUtils.getFlagImageVectorByName(
-                        context,
-                        it.isoCode.lowercase()
-                    )
-                )
-            SelectionItemButton(
-                {
-                    Image(
-                        icon, icon.name, modifier = Modifier
-                            .padding(horizontal = 16.dp.scaledWidth(), 16.dp.scaledHeight())
-                            .size(
-                                iconSize
-                            )
-                    )
-                },
-                buttonText = it.name,
-                onClick = {
-                    viewModel.onSelected(it)
-                    navController.navigate(NavItem.Main.route)
-                },
-                selected = it == uiState.selected,
-                trailingText =
-                if (it == uiState.selected) stringResource(id = R.string.is_selected) else null
-            )
-        }
-    }
+	LazyColumn(
+		horizontalAlignment = Alignment.CenterHorizontally,
+		verticalArrangement = Arrangement.Top,
+		modifier =
+		Modifier
+			.fillMaxSize()
+			.padding(horizontal = 24.dp.scaledWidth(), vertical = 24.dp.scaledHeight()),
+	) {
+		item {
+			Column(
+				verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight()),
+				modifier = Modifier.padding(bottom = 24.dp.scaledHeight()),
+			) {
+				Box(
+					modifier =
+					Modifier
+						.fillMaxWidth()
+						.padding(
+							horizontal = 16.dp.scaledWidth(),
+							vertical = 16.dp.scaledHeight(),
+						),
+				)
+				SearchBar(
+					onQuery = viewModel::onQueryChange,
+					placeholder = {
+						Text(
+							stringResource(id = R.string.search_country),
+							color = MaterialTheme.colorScheme.outline,
+						)
+					},
+				)
+			}
+		}
+		item {
+			if (uiState.countries.isNotEmpty()) {
+				val fastest = uiState.countries.firstOrNull { it.isLowLatency }
+				if (fastest != null) {
+					val name = StringUtils.buildCountryNameString(fastest, context)
+					val icon = ImageVector.vectorResource(R.drawable.bolt)
+					SelectionItemButton(
+						{
+							Icon(
+								icon,
+								icon.name,
+								modifier =
+								Modifier
+									.padding(
+										horizontal = 16.dp.scaledWidth(),
+										16.dp.scaledHeight(),
+									)
+									.size(
+										iconSize,
+									),
+								tint = MaterialTheme.colorScheme.onSurface,
+							)
+						},
+						name,
+						onClick = {
+							viewModel.onSelected(fastest)
+							navController.navigate(NavItem.Main.route)
+						},
+						selected = fastest == uiState.selected,
+						trailingText =
+						if (fastest == uiState.selected) {
+							stringResource(id = R.string.is_selected)
+						} else {
+							null
+						},
+					)
+				}
+			}
+		}
+		items(sortedCountries) {
+			if (it.isLowLatency) return@items
+			val icon =
+				ImageVector.vectorResource(
+					StringUtils.getFlagImageVectorByName(
+						context,
+						it.isoCode.lowercase(),
+					),
+				)
+			SelectionItemButton(
+				{
+					Image(
+						icon,
+						icon.name,
+						modifier =
+						Modifier
+							.padding(horizontal = 16.dp.scaledWidth(), 16.dp.scaledHeight())
+							.size(
+								iconSize,
+							),
+					)
+				},
+				buttonText = it.name,
+				onClick = {
+					viewModel.onSelected(it)
+					navController.navigate(NavItem.Main.route)
+				},
+				selected = it == uiState.selected,
+				trailingText =
+				if (it == uiState.selected) stringResource(id = R.string.is_selected) else null,
+			)
+		}
+	}
 }

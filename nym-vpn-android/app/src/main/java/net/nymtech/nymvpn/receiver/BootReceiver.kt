@@ -13,26 +13,25 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class BootReceiver : BroadcastReceiver() {
+	@Inject
+	lateinit var gatewayRepository: GatewayRepository
 
-    @Inject
-    lateinit var gatewayRepository: GatewayRepository
+	@Inject
+	lateinit var settingsRepository: SettingsRepository
 
-    @Inject
-    lateinit var settingsRepository: SettingsRepository
-
-    override fun onReceive(context: Context?, intent: Intent?) = goAsync {
-        if (Intent.ACTION_BOOT_COMPLETED != intent?.action) return@goAsync
-        if (settingsRepository.isAutoStartEnabled()) {
-            val entryCountry = gatewayRepository.getFirstHopCountry()
-            val exitCountry = gatewayRepository.getLastHopCountry()
-            val mode = settingsRepository.getVpnMode()
-            context?.let { context ->
-                val entry = entryCountry.toEntryPoint()
-                val exit = exitCountry.toExitPoint()
-                NymVpnClient.configure(entry, exit, mode)
-                NymVpnClient.start(context)
-                NymVpn.requestTileServiceStateUpdate(context)
-            }
-        }
-    }
+	override fun onReceive(context: Context?, intent: Intent?) = goAsync {
+		if (Intent.ACTION_BOOT_COMPLETED != intent?.action) return@goAsync
+		if (settingsRepository.isAutoStartEnabled()) {
+			val entryCountry = gatewayRepository.getFirstHopCountry()
+			val exitCountry = gatewayRepository.getLastHopCountry()
+			val mode = settingsRepository.getVpnMode()
+			context?.let { context ->
+				val entry = entryCountry.toEntryPoint()
+				val exit = exitCountry.toExitPoint()
+				NymVpnClient.configure(entry, exit, mode)
+				NymVpnClient.start(context)
+				NymVpn.requestTileServiceStateUpdate(context)
+			}
+		}
+	}
 }
