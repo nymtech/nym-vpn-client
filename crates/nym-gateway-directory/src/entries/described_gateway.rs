@@ -39,7 +39,7 @@ impl DescribedGatewayWithLocation {
                 d.build_information
                     .build_timestamp
                     .parse()
-                    .map_or(false, |build_time| {
+                    .map_or(false, |build_time: DateTime| {
                         let expected_build_time: DateTime =
                             BUILD_TIME.parse().expect("Invalid timestamp");
                         build_time >= expected_build_time
