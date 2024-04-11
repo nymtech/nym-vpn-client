@@ -112,4 +112,3 @@ pub fn win_has_admin() -> Result<()> {
         return Err(Error::AdminPrivilegesRequired);
     }
 }
-
