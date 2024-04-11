@@ -10,14 +10,14 @@ use tokio::sync::mpsc::UnboundedSender;
 use tracing::{error, info};
 
 use crate::{
-    service::VpnServiceCommand, vpn_daemon_server::VpnDaemon, ConnectRequest, ConnectResponse,
+    service::VpnServiceCommand, ConnectRequest, ConnectResponse,
     DisconnectRequest, DisconnectResponse,
 };
 
 use super::connection_handler::CommandInterfaceConnectionHandler;
 
 #[tonic::async_trait]
-impl VpnDaemon for CommandInterface {
+impl crate::nym_vpn_service_server::NymVpnService for CommandInterface {
     async fn vpn_connect(
         &self,
         request: tonic::Request<ConnectRequest>,

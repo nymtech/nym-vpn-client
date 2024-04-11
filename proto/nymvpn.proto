@@ -20,12 +20,18 @@ message Node {
 }
 
 message ConnectRequest {
-  Node entry = 1;
-  Node exit = 2;
+  // Node entry = 1;
+  // Node exit = 2;
 }
 
 message ConnectResponse {
-  string message = 1;
+  bool success = 1;
+  // string message = 1;
+}
+
+message DisconnectRequest {}
+message DisconnectResponse {
+  bool success = 1;
 }
 
 enum VpnMode {
@@ -81,18 +87,18 @@ message SetUserCredentialsRequest {
 }
 
 service NymVpnService {
-  rpc SetUserCredentials (SetUserCredentialsRequest) returns () {}
-  rpc Connect (ConnectRequest) returns () {}
-  rpc Disconnect () returns () {}
-  rpc ListenToConnectionStatus () returns (stream ConnectionStatusUpdate) {}
-  // Cancel any connection pending state (connecting, disconnecting etc)
-  // and return to disconnected state
-  rpc Cancel () returns () {}
-  rpc GetEntryNodeLocations () returns (LocationListResponse) {}
-  rpc GetExitNodeLocations () returns (LocationListResponse) {}
-  rpc GetFastestEntryGateway () returns (GatewayResponse) {}
-  rpc GetFastestExitGateway () returns (GatewayResponse) {}
-  rpc SetVpnMode (SetVpnModeRequest) returns () {}
-  rpc GetVpnMode () returns (GetVpnModeResponse) {}
+  // rpc SetUserCredentials (SetUserCredentialsRequest) returns () {}
+  rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
+  rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
+  // rpc ListenToConnectionStatus () returns (stream ConnectionStatusUpdate) {}
+  // // Cancel any connection pending state (connecting, disconnecting etc)
+  // // and return to disconnected state
+  // rpc Cancel () returns () {}
+  // rpc GetEntryNodeLocations () returns (LocationListResponse) {}
+  // rpc GetExitNodeLocations () returns (LocationListResponse) {}
+  // rpc GetFastestEntryGateway () returns (GatewayResponse) {}
+  // rpc GetFastestExitGateway () returns (GatewayResponse) {}
+  // rpc SetVpnMode (SetVpnModeRequest) returns () {}
+  // rpc GetVpnMode () returns (GetVpnModeResponse) {}
 }
 

@@ -4,7 +4,7 @@
 use vergen::EmitBuilder;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tonic_build::compile_protos("../nym-vpnd/proto/commands.proto")?;
+    tonic_build::compile_protos("../proto/nymvpn.proto")?;
 
     EmitBuilder::builder()
         .all_build()
