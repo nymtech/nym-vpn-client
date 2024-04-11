@@ -32,7 +32,7 @@ pub(crate) fn start_command_interface(
 
                 let addr = "[::1]:50051".parse().unwrap();
                 Server::builder()
-                    .add_service(crate::vpn_daemon_server::VpnDaemonServer::new(c))
+                    .add_service(crate::nym_vpn_service_server::NymVpnServiceServer::new(c))
                     .serve(addr)
                     .await
                     .unwrap();
