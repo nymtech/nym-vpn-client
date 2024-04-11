@@ -8,12 +8,14 @@ license = "GPL-3.0-only"
 [dependencies]
 clap.workspace = true
 futures.workspace = true
+parity-tokio-ipc.workspace = true
 prost.workspace = true
 reqwest = { workspace = true, default-features = false, features = ["rustls-tls"] }
+thiserror.workspace = true
 tokio = { workspace = true, features = ["full"]}
 tonic.workspace = true
-tracing.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
+tracing.workspace = true
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-task.workspace = true

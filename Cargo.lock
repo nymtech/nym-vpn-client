@@ -4669,10 +4669,12 @@ name = "nym-vpnc"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "parity-tokio-ipc",
  "prost 0.12.4",
  "tokio",
  "tonic 0.11.0",
  "tonic-build 0.11.0",
+ "tower",
  "vergen",
 ]
 
@@ -4684,8 +4686,10 @@ dependencies = [
  "futures",
  "nym-task",
  "nym-vpn-lib",
+ "parity-tokio-ipc",
  "prost 0.12.4",
  "reqwest 0.12.3",
+ "thiserror",
  "tokio",
  "tonic 0.11.0",
  "tonic-build 0.11.0",
