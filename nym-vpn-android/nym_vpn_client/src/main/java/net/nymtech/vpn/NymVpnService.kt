@@ -3,7 +3,6 @@ package net.nymtech.vpn
 import android.content.Intent
 import android.net.VpnService
 import android.os.Build
-import android.os.ParcelFileDescriptor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
@@ -22,7 +21,6 @@ import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.util.concurrent.Executors
-import kotlin.properties.Delegates.observable
 
 class NymVpnService : VpnService() {
 	companion object {
@@ -43,18 +41,18 @@ class NymVpnService : VpnService() {
 
 	// Once we make sure Rust library doesn't close the fd first, we should re-use this code for closing fd,
 	// as it's more general, including for wireguard tunnels
-//	private var activeTunStatus by observable<CreateTunResult?>(null) { _, oldTunStatus, _ ->
-//		val oldTunFd =
-//			when (oldTunStatus) {
-//				is CreateTunResult.Success -> oldTunStatus.tunFd
-//				is CreateTunResult.InvalidDnsServers -> oldTunStatus.tunFd
-//				else -> null
-//			}
-//		if (oldTunFd != null) {
-//			Timber.i("Closing file descriptor $oldTunFd")
-//			ParcelFileDescriptor.adoptFd(oldTunFd).close()
-//		}
-//	}
+// 	private var activeTunStatus by observable<CreateTunResult?>(null) { _, oldTunStatus, _ ->
+// 		val oldTunFd =
+// 			when (oldTunStatus) {
+// 				is CreateTunResult.Success -> oldTunStatus.tunFd
+// 				is CreateTunResult.InvalidDnsServers -> oldTunStatus.tunFd
+// 				else -> null
+// 			}
+// 		if (oldTunFd != null) {
+// 			Timber.i("Closing file descriptor $oldTunFd")
+// 			ParcelFileDescriptor.adoptFd(oldTunFd).close()
+// 		}
+// 	}
 
 	private val tunIsOpen
 		get() = activeTunStatus?.isOpen ?: false
