@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build Signed APK
+    name: Android pre-release
 
     runs-on: ubuntu-latest
 
@@ -133,7 +133,7 @@ jobs:
             ${{ github.workspace }}/${{ steps.universal-path.outputs.path }}
             ${{ github.workspace }}/${{ steps.armv8-path.outputs.path }}
             ${{ github.workspace }}/${{ steps.armv7-path.outputs.path }}
-            
+
 
       - name: Install apksigner
         run: |
@@ -151,7 +151,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           body: |
-            SHA256 fingerprint: 
+            SHA256 fingerprint:
             ```${{ steps.checksum.outputs.checksum }}```
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
