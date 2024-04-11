@@ -3,9 +3,9 @@
 
 use clap::{Parser, Subcommand};
 
-use crate::nym_vpn_service_client::NymVpnServiceClient;
-
-tonic::include_proto!("nym.vpn");
+use nym_vpn_proto::pb::{
+    nym_vpn_service_client::NymVpnServiceClient, ConnectRequest, DisconnectRequest,
+};
 
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about)]
