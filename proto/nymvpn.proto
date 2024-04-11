@@ -69,7 +69,7 @@ message GatewayResponse {
 message ConnectionStatusUpdate {
   ConnectionStatus status = 1;
   repeated ConnectionProgress connection_progress = 2;
-  optional Error error = 3;
+  // optional Error error = 3;
 }
 
 message ConnectionProgress {
@@ -79,7 +79,7 @@ message ConnectionProgress {
 message Error {
   string message = 1;
   // ErrorType type = 2; // TOBE implemented
-  optional string source = 3;
+  // optional string source = 3;
 }
 
 message SetUserCredentialsRequest {
