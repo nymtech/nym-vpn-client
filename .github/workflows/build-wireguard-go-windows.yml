@@ -31,10 +31,14 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
+      - name: Echo
+        shell: bash
+        run: |
+          echo ${GITHUB_WORKSPACE}
+
       - name: Build wireguard
         shell: bash
         run: |
-          ls -lah ./
           ./wireguard/build-wireguard-go.sh
 
       - name: Upload artifacts (Windows)
