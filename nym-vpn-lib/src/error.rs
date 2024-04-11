@@ -171,6 +171,14 @@ pub enum Error {
 
     #[error("{0}")]
     ConnectionMonitorError(#[from] nym_connection_monitor::Error),
+
+    #[cfg(unix)]
+    #[error("sudo/root privileges required")]
+    RootPrivilegesRequired,
+
+    #[cfg(windows)]
+    #[error("administrator privileges required")]
+    AdminPrivilegesRequired,
 }
 
 // Result type based on our error type
