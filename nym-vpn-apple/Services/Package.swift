@@ -17,10 +17,12 @@ let package = Package(
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
-        .library(name: "TunnelStatus",targets: ["TunnelStatus"]),
+        .library(name: "TunnelStatus", targets: ["TunnelStatus"]),
+        .library(name: "TunnelMixnet", targets: ["TunnelMixnet"]),
         .library(name: "TunnelWG", targets: ["TunnelWG"])
     ],
     dependencies: [
+        .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
         .package(url: "https://github.com/apple/swift-log", from: "1.5.4"),
         .package(url: "https://git.zx2c4.com/wireguard-apple", exact: "1.0.15-26")
     ],
@@ -38,7 +40,8 @@ let package = Package(
         .target(
             name: "ConnectionManager",
             dependencies: [
-                "Tunnels"
+                "Tunnels",
+                "TunnelMixnet"
             ],
             path: "Sources/Services/ConnectionManager"
         ),
@@ -61,7 +64,7 @@ let package = Package(
             dependencies: [
                 "Keychain",
                 "TunnelStatus",
-                .product(name: "Logging", package: "swift-log"),
+                .product(name: "Logging", package: "swift-log")
             ],
             path: "Sources/Services/Tunnels"
         ),
@@ -69,6 +72,16 @@ let package = Package(
             name: "TunnelStatus",
             dependencies: [],
             path: "Sources/Services/TunnelStatus"
+        ),
+        .target(
+            name: "TunnelMixnet",
+            dependencies: [
+                "MixnetLibrary",
+                "Tunnels",
+                .product(name: "Logging", package: "swift-log")
+
+            ],
+            path: "Sources/Services/TunnelMixnet"
         ),
         .target(
             name: "TunnelWG",

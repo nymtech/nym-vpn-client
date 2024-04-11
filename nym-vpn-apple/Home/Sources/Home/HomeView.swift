@@ -75,26 +75,26 @@ private extension HomeView {
 
         NetworkButton(
             viewModel: NetworkButtonViewModel(
-                type: .mixnet,
+                type: .mixnet5hop,
                 selectedNetwork: $viewModel.selectedNetwork,
                 isSmallScreen: viewModel.isSmallScreen()
             )
         )
         .padding(EdgeInsets(top: 0, leading: 16, bottom: 12, trailing: 16))
         .onTapGesture {
-            viewModel.selectedNetwork = .mixnet
+            viewModel.selectedNetwork = .mixnet5hop
         }
 
         NetworkButton(
             viewModel: NetworkButtonViewModel(
-                type: .wireguard,
+                type: .mixnet2hop,
                 selectedNetwork: $viewModel.selectedNetwork,
                 isSmallScreen: viewModel.isSmallScreen()
             )
         )
         .padding(.horizontal, 16)
         .onTapGesture {
-            viewModel.selectedNetwork = .wireguard
+            viewModel.selectedNetwork = .mixnet2hop
         }
         Spacer()
             .frame(height: viewModel.isSmallScreen() ? 20 : 32)

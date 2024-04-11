@@ -2,6 +2,7 @@ import Combine
 import SwiftUI
 import AppSettings
 import ConnectionManager
+import TunnelMixnet
 import Tunnels
 import UIComponents
 
@@ -84,7 +85,18 @@ public extension HomeViewModel {
 
 public extension HomeViewModel {
     func connectDisconnect() {
-        connectionManager.connectDisconnect()
+        var config = MixnetConfig()
+
+        switch selectedNetwork {
+        case .mixnet2hop:
+            config = MixnetConfig(isTwoHopEnabled: true)
+        case .mixnet5hop:
+            config = MixnetConfig(isTwoHopEnabled: false)
+        case .wireguard:
+            break
+        }
+
+        connectionManager.connectDisconnect(with: config)
     }
 }
 

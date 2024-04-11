@@ -1,6 +1,17 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "2hopMixnetTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2-hop mixnet"
+          }
+        }
+      }
+    },
     "2hopWireGuardSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -463,6 +474,17 @@
         }
       }
     },
+    "initializingClient" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Initializing client..."
+          }
+        }
+      }
+    },
     "joinDiscord" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -481,17 +503,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Join us on Matrix"
-          }
-        }
-      }
-    },
-    "initializingClient" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Initializing client..."
           }
         }
       }

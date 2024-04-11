@@ -2,9 +2,9 @@ import Foundation
 import NetworkExtension
 
 public final class MixnetAdapter {
-    private let mixnetTunnelProvider: MixnetTunnelProvider
-
     private weak var packetTunnelProvider: NEPacketTunnelProvider?
+
+    public let mixnetTunnelProvider: MixnetTunnelProvider
 
     public var tunnelFileDescriptor: Int32? {
         var buf = [CChar](repeating: 0, count: Int(IFNAMSIZ))
@@ -26,19 +26,9 @@ public final class MixnetAdapter {
         setup()
     }
 
-    public func start() throws {
+    public func start(with vpnConfig: VpnConfig) throws {
         do {
-            try runVpn(
-                config:
-                    VpnConfig(
-                        apiUrl: "https://sandbox-nym-api1.nymtech.net/api",
-                        explorerUrl: "https://sandbox-explorer.nymtech.net/api",
-                        entryGateway: .location(location: "GB"),
-                        exitRouter: .location(location: "GB"),
-                        enableTwoHop: false,
-                        tunProvider: mixnetTunnelProvider
-                    )
-            )
+            try runVpn(config: vpnConfig)
         } catch let error {
             throw error
         }

@@ -99,10 +99,10 @@ private extension PacketTunnelProvider {
         if condition.wait(until: Date().addingTimeInterval(setTunnelNetworkSettingsTimeout)) {
             // TODO: handler error
             if let systemError = systemError {
-                //                throw WireGuardAdapterError.setNetworkSettings(systemError)
+                // throw WireGuardAdapterError.setNetworkSettings(systemError)
             }
         } else {
-            //            self.logHandler(.error, "setTunnelNetworkSettings timed out after 5 seconds; proceeding anyway")
+            // self.logHandler(.error, "setTunnelNetworkSettings timed out after 5 seconds; proceeding anyway")
         }
     }
 }

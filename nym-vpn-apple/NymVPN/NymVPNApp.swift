@@ -14,7 +14,7 @@ struct NymVPNApp: App {
         WindowGroup {
             GeometryReader { proxy in
                 NavigationStack {
-                    HomeView(viewModel: HomeViewModel(screenSize: proxy.size, selectedNetwork: .mixnet))
+                    HomeView(viewModel: HomeViewModel(screenSize: proxy.size, selectedNetwork: .mixnet5hop))
                 }
             }
             .environmentObject(AppSettings.shared)

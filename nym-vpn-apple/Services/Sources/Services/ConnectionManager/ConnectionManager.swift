@@ -1,4 +1,5 @@
 import Combine
+import TunnelMixnet
 import Tunnels
 import TunnelStatus
 
@@ -23,17 +24,13 @@ public final class ConnectionManager: ObservableObject {
         setup()
     }
 
-    // TODO: need param to separate mixnet/2hop/5hop
-    public func connectDisconnect() {
+    public func connectDisconnect(with config: MixnetConfig) {
         if
-            let activeTunnel = tunnelsManager.activeTunnel,
+            let activeTunnel = currentTunnel,
             activeTunnel.status == .connected || activeTunnel.status == .connecting {
-            print("🔥 Disconnect")
             disconnect(tunnel: activeTunnel)
         } else {
-            // TODO: separate mixnet/2hop/5hop
-            print("🔥 Connect")
-            connectMixnet()
+            connectMixnet(with: config)
         }
     }
 }
@@ -66,15 +63,14 @@ private extension ConnectionManager {
 
 // MARK: - Tunnel config -
 private extension ConnectionManager {
-    func addMixnetConfigurationAndConnect() {
-        guard let mixnetConfiguration = mixnetConfiguration() else { return }
-        tunnelsManager.add(tunnelConfiguration: mixnetConfiguration) { [weak self] result in
+    func addMixnetConfigurationAndConnect(with config: MixnetConfig) {
+        tunnelsManager.add(tunnelConfiguration: config) { [weak self] result in
             switch result {
             case .success(let tunnel):
-                print(tunnel)
                 self?.currentTunnel = tunnel
                 self?.tunnelsManager.connect(tunnel: tunnel)
             case .failure(let error):
+                // TODO: handle error
                 print("Error: \(error)")
             }
         }
@@ -82,14 +78,12 @@ private extension ConnectionManager {
 }
 
 private extension ConnectionManager {
-    func connectMixnet() {
-        guard let mixnetConfiguration = mixnetConfiguration() else { return }
-
-        if let tunnel = tunnelsManager.tunnels.first(where: { $0.name == mixnetConfiguration.name }) {
+    func connectMixnet(with config: MixnetConfig) {
+        if let tunnel = tunnelsManager.tunnels.first(where: { $0.name == config.name }) {
             currentTunnel = tunnel
             tunnelsManager.connect(tunnel: tunnel)
         } else {
-            addMixnetConfigurationAndConnect()
+            addMixnetConfigurationAndConnect(with: config)
         }
     }
 
@@ -97,17 +91,5 @@ private extension ConnectionManager {
 
     func disconnect(tunnel: Tunnel) {
         tunnelsManager.disconnect(tunnel: tunnel)
-    }
-}
-
-// MARK: - Testing -
-private extension ConnectionManager {
-    func mixnetConfiguration() -> MixnetConfig? {
-        MixnetConfig(
-            apiUrl: "https://sandbox-nym-api1.nymtech.net/api",
-            explorerURL: "https://sandbox-explorer.nymtech.net/api",
-            entryGateway: .location("DE"),
-            exitRouter: .location("DE")
-        )
     }
 }

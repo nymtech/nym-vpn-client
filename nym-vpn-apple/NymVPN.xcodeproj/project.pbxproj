@@ -10,6 +10,9 @@
 		D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
 		D9264E262B3DA062004594A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D9264E252B3DA062004594A8 /* Assets.xcassets */; };
 		D9281C452B877B8800834B53 /* Keychain in Frameworks */ = {isa = PBXBuildFile; productRef = D9281C442B877B8800834B53 /* Keychain */; };
+		D9309AF92BC81B7600C387F4 /* TunnelMixnet in Frameworks */ = {isa = PBXBuildFile; productRef = D9309AF82BC81B7600C387F4 /* TunnelMixnet */; };
+		D9309AFB2BC81B7C00C387F4 /* TunnelMixnet in Frameworks */ = {isa = PBXBuildFile; productRef = D9309AFA2BC81B7C00C387F4 /* TunnelMixnet */; };
+		D9309AFD2BC81B8000C387F4 /* TunnelMixnet in Frameworks */ = {isa = PBXBuildFile; productRef = D9309AFC2BC81B8000C387F4 /* TunnelMixnet */; };
 		D93214412B84D29200FFDC5E /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = D93214402B84D29200FFDC5E /* Logging */; };
 		D93214472B84EBEA00FFDC5E /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = D93214462B84EBEA00FFDC5E /* Logging */; };
 		D93B3A062BC6BD2A006AA558 /* Keychain in Frameworks */ = {isa = PBXBuildFile; productRef = D93B3A052BC6BD2A006AA558 /* Keychain */; };
@@ -217,6 +220,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9309AFD2BC81B8000C387F4 /* TunnelMixnet in Frameworks */,
 				D94F403D2BC7BDCF00912696 /* Tunnels in Frameworks */,
 				D94F40392BC7BDBD00912696 /* Logging in Frameworks */,
 				D94F40372BC7BDB900912696 /* Keychain in Frameworks */,
@@ -230,6 +234,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9309AF92BC81B7600C387F4 /* TunnelMixnet in Frameworks */,
 				D944053F2BAC4CBD0076EEDB /* SystemConfiguration.framework in Frameworks */,
 				D99820982BB6E8D9000C1FEE /* MixnetLibrary in Frameworks */,
 				D9BB53552BAC4AE500917C97 /* Tunnels in Frameworks */,
@@ -243,6 +248,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9309AFB2BC81B7C00C387F4 /* TunnelMixnet in Frameworks */,
 				D93B3A0D2BC6BD44006AA558 /* Tunnels in Frameworks */,
 				D93B3A082BC6BD2E006AA558 /* Logging in Frameworks */,
 				D93B3A0B2BC6BD3D006AA558 /* SystemConfiguration.framework in Frameworks */,
@@ -497,6 +503,7 @@
 				D94F40382BC7BDBD00912696 /* Logging */,
 				D94F403A2BC7BDC900912696 /* MixnetLibrary */,
 				D94F403C2BC7BDCF00912696 /* Tunnels */,
+				D9309AFC2BC81B8000C387F4 /* TunnelMixnet */,
 			);
 			productName = NymMixnetTunnelSystemExtensionMacOS;
 			productReference = D94F40292BC7BD0600912696 /* NymMixnetTunnelSystemExtensionMacOS.appex */;
@@ -521,6 +528,7 @@
 				D9281C442B877B8800834B53 /* Keychain */,
 				D9BB53542BAC4AE500917C97 /* Tunnels */,
 				D99820972BB6E8D9000C1FEE /* MixnetLibrary */,
+				D9309AF82BC81B7600C387F4 /* TunnelMixnet */,
 			);
 			productName = NymMixnetTunnel;
 			productReference = D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */;
@@ -544,6 +552,7 @@
 				D93B3A072BC6BD2E006AA558 /* Logging */,
 				D93B3A092BC6BD32006AA558 /* MixnetLibrary */,
 				D93B3A0C2BC6BD44006AA558 /* Tunnels */,
+				D9309AFA2BC81B7C00C387F4 /* TunnelMixnet */,
 			);
 			productName = NymMixnetTunnelmacOS;
 			productReference = D99095142BC6B54200C98E3F /* NymMixnetTunnelmacOS.appex */;
@@ -1574,6 +1583,18 @@
 		D9281C442B877B8800834B53 /* Keychain */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Keychain;
+		};
+		D9309AF82BC81B7600C387F4 /* TunnelMixnet */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TunnelMixnet;
+		};
+		D9309AFA2BC81B7C00C387F4 /* TunnelMixnet */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TunnelMixnet;
+		};
+		D9309AFC2BC81B8000C387F4 /* TunnelMixnet */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TunnelMixnet;
 		};
 		D93214402B84D29200FFDC5E /* Logging */ = {
 			isa = XCSwiftPackageProductDependency;

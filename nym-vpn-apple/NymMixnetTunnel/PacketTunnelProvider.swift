@@ -1,4 +1,5 @@
 import NetworkExtension
+import TunnelMixnet
 import Tunnels
 import MixnetLibrary
 
@@ -12,6 +13,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     }()
 
     override func startTunnel(options: [String: NSObject]?, completionHandler: @escaping (Error?) -> Void) {
+        guard
+            let tunnelProviderProtocol = self.protocolConfiguration as? NETunnelProviderProtocol,
+            let mixnetConfig = tunnelProviderProtocol.asMixnetConfig()
+        else {
+            completionHandler(PacketTunnelProviderError.invalidSavedConfiguration)
+            return
+        }
+
         let semaphore = DispatchSemaphore(value: 0)
 
         let callback: () -> Void = { [weak self] in
@@ -27,7 +36,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         mixnetTunnelProvider.nymOnConfigure = callback
         do {
-            try mixnetAdapter.start()
+            try mixnetAdapter.start(
+                with: mixnetConfig.asVpnConfig(mixnetTunnelProvider: mixnetAdapter.mixnetTunnelProvider)
+            )
         } catch let error {
             completionHandler(error)
         }
@@ -99,10 +110,10 @@ private extension PacketTunnelProvider {
         if condition.wait(until: Date().addingTimeInterval(setTunnelNetworkSettingsTimeout)) {
             // TODO: handle error
             if let systemError = systemError {
-//                throw WireGuardAdapterError.setNetworkSettings(systemError)
+                // throw WireGuardAdapterError.setNetworkSettings(systemError)
             }
         } else {
-//            self.logHandler(.error, "setTunnelNetworkSettings timed out after 5 seconds; proceeding anyway")
+            // self.logHandler(.error, "setTunnelNetworkSettings timed out after 5 seconds; proceeding anyway")
         }
     }
 }

@@ -3,12 +3,15 @@ import Theme
 
 public struct NetworkButtonViewModel {
     public enum ButtonType {
-        case mixnet
+        case mixnet5hop
+        case mixnet2hop
         case wireguard
 
         var imageName: String {
             switch self {
-            case .mixnet:
+            case .mixnet5hop:
+                return "mixnetIcon"
+            case .mixnet2hop:
                 return "mixnetIcon"
             case .wireguard:
                 return "wireguardIcon"
@@ -17,8 +20,10 @@ public struct NetworkButtonViewModel {
 
         var title: String {
             switch self {
-            case .mixnet:
+            case .mixnet5hop:
                 "5hopMixnetTitle".localizedString
+            case .mixnet2hop:
+                "2hopMixnetTitle".localizedString
             case .wireguard:
                 "2hopWireGuardTitle".localizedString
             }
@@ -26,8 +31,10 @@ public struct NetworkButtonViewModel {
 
         var subtitle: String {
             switch self {
-            case .mixnet:
+            case .mixnet5hop:
                 "5hopMixnetSubtitle".localizedString
+            case .mixnet2hop:
+                "2hopWireGuardSubtitle".localizedString
             case .wireguard:
                 "2hopWireGuardSubtitle".localizedString
             }
