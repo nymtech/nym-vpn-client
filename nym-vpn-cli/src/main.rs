@@ -70,11 +70,36 @@ fn parse_exit_point(args: &commands::RunArgs) -> Result<ExitPoint> {
     }
 }
 
+#[allow(unreachable_code)]
+fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
+    let needs_root = match &args.command {
+        Commands::Run(run_args) => !run_args.disable_routing,
+        Commands::ImportCredential(_) => true,
+    };
+
+    if !needs_root {
+        debug!("Root privileges not required for this command");
+        return Ok(());
+    }
+
+    #[cfg(unix)]
+    return nym_vpn_lib::util::unix_has_root("nym-vpn-cli");
+
+    #[cfg(windows)]
+    return nym_vpn_lib::util::win_has_admin("nym-vpn-cli");
+
+    // Assume we're all good on unknown platforms
+    debug!("Platform not supported for root privilege check");
+    Ok(())
+}
+
 async fn run() -> Result<()> {
     setup_logging();
     let args = commands::CliArgs::parse();
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
     setup_env(args.config_env_file.as_ref());
+
+    check_root_privileges(&args)?;
 
     let data_path = args.data_path.or(mixnet_data_path());
 

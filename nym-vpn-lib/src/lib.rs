@@ -48,7 +48,6 @@ use tun2::AsyncDevice;
 
 mod platform;
 mod uniffi_custom_impls;
-mod util;
 
 pub mod config;
 pub mod credentials;
@@ -57,6 +56,7 @@ pub mod mixnet_connect;
 pub mod mixnet_processor;
 pub mod routing;
 pub mod tunnel;
+pub mod util;
 pub mod wg_gateway_client;
 
 async fn init_wireguard_config(

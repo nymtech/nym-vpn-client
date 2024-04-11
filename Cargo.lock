@@ -2838,6 +2838,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "is_elevated"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5299060ff5db63e788015dcb9525ad9b84f4fd9717ed2cbdeba5018cbf42f9b5"
+dependencies = [
+ "winapi",
+]
+
+[[package]]
 name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4605,12 +4614,14 @@ dependencies = [
  "futures",
  "hickory-resolver",
  "ipnetwork",
+ "is_elevated",
  "itertools 0.12.1",
  "jnix",
  "lazy_static",
  "log",
  "netdev",
  "nix 0.23.2",
+ "nix 0.28.0",
  "nym-bin-common",
  "nym-client-core",
  "nym-config",
