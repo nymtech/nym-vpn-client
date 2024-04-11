@@ -78,6 +78,13 @@ rand = "0.7.3"
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 oslog = "0.2.0"
 
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.28.0", features = ["user"] }
+
+[target.'cfg(windows)'.dependencies]
+is_elevated = "0.1.2"
+
+
 [build-dependencies]
 uniffi = { version = "0.27.0", features = ["build"] }
 

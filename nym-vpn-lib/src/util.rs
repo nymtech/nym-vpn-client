@@ -92,3 +92,24 @@ pub(crate) async fn handle_interrupt(
     }
     Ok(())
 }
+
+#[cfg(unix)]
+pub fn unix_has_root() -> Result<()> {
+    if nix::unistd::geteuid().is_root() {
+        debug!("Root privileges acquired");
+        return Ok(());
+    } else {
+        return Err(Error::RootPrivilegesRequired);
+    }
+}
+
+#[cfg(windows)]
+pub fn win_has_admin() -> Result<()> {
+    if is_elevated::is_elevated() {
+        debug!("Admin privileges acquired");
+        return Ok(());
+    } else {
+        return Err(Error::AdminPrivilegesRequired);
+    }
+}
+

@@ -23,12 +23,6 @@ nym-vpn-lib = { path = "../nym-vpn-lib" }
 shadowsocks = { version = "~1.14.2" }
 shadowsocks-service = { version = "~1.14.3" }
 
-[target.'cfg(unix)'.dependencies]
-nix = { version = "0.28.0", features = ["user"] }
-
-[target.'cfg(windows)'.dependencies]
-is_elevated = "0.1.2"
-
 [build-dependencies]
 vergen = { workspace = true, default-features = false, features = [
     "build",

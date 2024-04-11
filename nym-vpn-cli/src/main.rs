@@ -70,26 +70,6 @@ fn parse_exit_point(args: &commands::RunArgs) -> Result<ExitPoint> {
     }
 }
 
-#[cfg(unix)]
-fn unix_has_root() -> Result<()> {
-    if nix::unistd::geteuid().is_root() {
-        debug!("Root privileges acquired");
-        return Ok(());
-    } else {
-        return Err(Error::RootPrivilegesRequired);
-    }
-}
-
-#[cfg(windows)]
-fn win_has_admin() -> Result<()> {
-    if is_elevated::is_elevated() {
-        debug!("Admin privileges acquired");
-        return Ok(());
-    } else {
-        return Err(Error::AdminPrivilegesRequired);
-    }
-}
-
 #[allow(unreachable_code)]
 fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
     let needs_root = match &args.command {
@@ -103,10 +83,10 @@ fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
     }
 
     #[cfg(unix)]
-    return unix_has_root();
+    return nym_vpn_lib::util::unix_has_root();
 
     #[cfg(windows)]
-    return win_has_admin();
+    return nym_vpn_lib::util::win_has_admin();
 
     // Assume we're all good on unknown platforms
     debug!("Platform not supported for root privilege check");
