@@ -72,6 +72,7 @@ nym-connection-monitor = { path = "../crates/nym-connection-monitor" }
 android_logger = "0.13.1"
 err-derive = "0.3.1"
 jnix = { version = "=0.5.0", features = ["derive"] }
+ndk-sys = "0.5.0"
 nix = "0.23"
 rand = "0.7.3"
 

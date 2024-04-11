@@ -9,6 +9,7 @@ use jnix::jni::{
     JNIEnv,
 };
 use jnix::{IntoJava, JnixEnv};
+use ndk_sys::{android_fdsan_error_level, android_fdsan_set_error_level};
 use nix::sys::{
     select::{pselect, FdSet},
     time::{TimeSpec, TimeValLike},
@@ -97,6 +98,9 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     }
 
     init_jni_logger();
+    unsafe {
+        android_fdsan_set_error_level(android_fdsan_error_level(0));
+    }
 
     let env = JnixEnv::from(env);
     let jvm = if let Ok(data) = env.get_java_vm() {
