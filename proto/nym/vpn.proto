@@ -88,7 +88,7 @@ message SetUserCredentialsRequest {
   string key = 1;
 }
 
-service NymVpn {
+service NymVpnd {
   // rpc SetUserCredentials (SetUserCredentialsRequest) returns (Empty) {}
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
   rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}

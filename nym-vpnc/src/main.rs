@@ -3,9 +3,7 @@
 
 use clap::{Parser, Subcommand};
 
-use nym_vpn_proto::{
-    nym_vpn_client::NymVpnClient, ConnectRequest, DisconnectRequest,
-};
+use nym_vpn_proto::{nym_vpnd_client::NymVpndClient, ConnectRequest, DisconnectRequest};
 
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about)]
@@ -31,7 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn connect() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = NymVpnClient::connect("http://[::1]:50051").await?;
+    let mut client = NymVpndClient::connect("http://[::1]:50051").await?;
     let request = tonic::Request::new(ConnectRequest {});
     let response = client.vpn_connect(request).await?;
     println!("RESPONSE={:?}", response);
@@ -39,7 +37,7 @@ async fn connect() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn disconnect() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = NymVpnClient::connect("http://[::1]:50051").await?;
+    let mut client = NymVpndClient::connect("http://[::1]:50051").await?;
     let request = tonic::Request::new(DisconnectRequest {});
     let response = client.vpn_disconnect(request).await?;
     println!("RESPONSE={:?}", response);
