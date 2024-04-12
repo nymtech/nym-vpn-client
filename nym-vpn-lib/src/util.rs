@@ -100,3 +100,27 @@ pub(crate) async fn handle_interrupt(
     }
     Ok(())
 }
+
+#[cfg(unix)]
+pub fn unix_has_root(binary_name: &str) -> Result<()> {
+    if nix::unistd::geteuid().is_root() {
+        debug!("Root privileges acquired");
+        Ok(())
+    } else {
+        Err(Error::RootPrivilegesRequired {
+            binary_name: binary_name.to_string(),
+        })
+    }
+}
+
+#[cfg(windows)]
+pub fn win_has_admin(binary_name: &str) -> Result<()> {
+    if is_elevated::is_elevated() {
+        debug!("Admin privileges acquired");
+        Ok(())
+    } else {
+        Err(Error::AdminPrivilegesRequired {
+            binary_name: binary_name.to_string(),
+        })
+    }
+}

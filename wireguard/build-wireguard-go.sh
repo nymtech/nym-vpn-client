@@ -48,11 +48,11 @@ function win_create_lib_file {
     done
 
     lib_path="$(win_deduce_lib_executable_path)"
+
     "$lib_path" \
         "/def:exports.def" \
         "/out:libwg.lib" \
         "/machine:X64"
-
 }
 
 function build_windows {

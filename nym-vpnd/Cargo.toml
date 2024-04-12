@@ -4,19 +4,23 @@ version = "0.1.0"
 edition = "2021"
 license = "GPL-3.0-only"
 
+
 [dependencies]
-clap = "4.5.1"
-futures = "0.3.15"
-reqwest = { version = "0.11.24", default-features = false, features = ["rustls"] }
+clap.workspace = true
+futures.workspace = true
+prost.workspace = true
+reqwest = { workspace = true, default-features = false, features = ["rustls-tls"] }
 tokio = { workspace = true, features = ["full"]}
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tonic.workspace = true
+tracing.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
+nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
 nym-task.workspace = true
 
 [build-dependencies]
-vergen = { version = "8.2.6", default-features = false, features = [
+vergen = { workspace = true, default-features = false, features = [
     "build",
     "git",
     "gitcl",

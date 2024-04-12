@@ -1,0 +1,28 @@
+[package]
+name = "nym-vpnc"
+version = "0.1.0"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { workspace = true, features = ["derive"] }
+prost.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"]}
+tonic.workspace = true
+
+nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
+
+[build-dependencies]
+vergen = { workspace = true, default-features = false, features = [
+    "build",
+    "git",
+    "gitcl",
+    "rustc",
+    "cargo",
+] }

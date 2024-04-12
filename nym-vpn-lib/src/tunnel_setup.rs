@@ -54,7 +54,9 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
     let gateways = gateway_client
         .lookup_described_gateways_with_location()
         .await?;
-    log::debug!("Got gateways {:?}", gateways);
+    // This info would be useful at at least debug level, but it's just so much data that it
+    // would be overwhelming
+    log::trace!("Got gateways {:?}", gateways);
 
     let wg_gateway_client = WgGatewayClient::new(nym_vpn.wg_gateway_config.clone())?;
     log::info!("Created wg gateway client");
@@ -73,13 +75,11 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
         .lookup_gateway_identity(&gateways)
         .await?;
     let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
-    log::info!("Entry gateway id {:?}", entry_gateway_id);
     let (exit_gateway_id, exit_location) = nym_vpn
         .exit_point
         .lookup_gateway_identity(&gateways)
         .await?;
     let exit_location_str = exit_location.as_deref().unwrap_or("unknown");
-    log::info!("Exit gateway id {:?}", exit_gateway_id);
 
     info!("Using entry gateway: {entry_gateway_id}, location: {entry_location_str}");
     info!("Using exit gateway: {exit_gateway_id}, location: {exit_location_str}");
