@@ -11,13 +11,14 @@ license.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap.workspace = true
+clap = { workspace = true, features = ["derive"] }
 prost.workspace = true
-tokio.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"]}
 tonic.workspace = true
 
+nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
+
 [build-dependencies]
-tonic-build.workspace = true
 vergen = { workspace = true, default-features = false, features = [
     "build",
     "git",

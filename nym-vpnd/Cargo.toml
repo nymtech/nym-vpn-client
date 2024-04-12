@@ -16,10 +16,10 @@ tracing.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
+nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
 nym-task.workspace = true
 
 [build-dependencies]
-tonic-build.workspace = true
 vergen = { workspace = true, default-features = false, features = [
     "build",
     "git",

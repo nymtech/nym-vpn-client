@@ -9,15 +9,17 @@ use std::{
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::{error, info};
 
-use crate::{
-    service::VpnServiceCommand, ConnectRequest, ConnectResponse, DisconnectRequest,
+use crate::service::VpnServiceCommand;
+
+use nym_vpn_proto::{
+    nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, DisconnectRequest,
     DisconnectResponse,
 };
 
 use super::connection_handler::CommandInterfaceConnectionHandler;
 
 #[tonic::async_trait]
-impl crate::nym_vpn_service_server::NymVpnService for CommandInterface {
+impl NymVpnd for CommandInterface {
     async fn vpn_connect(
         &self,
         request: tonic::Request<ConnectRequest>,
