@@ -21,25 +21,23 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  # build-wireguard-go:
-  #   strategy:
-  #     matrix:
-  #       os: [ubuntu-22.04-16-core, macos-14]
-  #   uses: ./.github/workflows/build-wireguard-go.yml
-  #   with:
-  #     os: ${{ matrix.os }}
+  build-wireguard-go:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04-16-core, macos-14]
+    uses: ./.github/workflows/build-wireguard-go.yml
+    with:
+      os: ${{ matrix.os }}
 
   build-wireguard-go-windows:
     uses: ./.github/workflows/build-wireguard-go-windows.yml
 
   build:
-    # needs: [build-wireguard-go, build-wireguard-go-windows]
-    needs: [build-wireguard-go-windows]
+    needs: [build-wireguard-go, build-wireguard-go-windows]
     strategy:
       fail-fast: false
       matrix:
-        # os: [ubuntu-22.04-16-core, macos-14, custom-windows-11-test]
-        os: [custom-windows-11-test]
+        os: [ubuntu-22.04-16-core, macos-14, custom-windows-11]
         target: [native]
     runs-on: ${{ matrix.os }}
     env:
