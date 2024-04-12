@@ -53,14 +53,14 @@ jobs:
       windows_dir: ${{ env.WINDOWS_DIR }}
 
     steps:
-      # - name: "Cleanup working directory"
-      #   if: contains(matrix.os, 'custom')
-      #   shell: bash
-      #   run: |
-      #     ls -la ./
-      #     rm -rf ./* || true
-      #     rm -rf ./.??* || true
-      #     ls -la ./
+      - name: "Cleanup working directory"
+        if: contains(matrix.os, 'custom')
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
 
       - name: Checkout repo
         uses: actions/checkout@v4
