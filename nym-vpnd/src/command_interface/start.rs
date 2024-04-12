@@ -13,12 +13,6 @@ use crate::service::VpnServiceCommand;
 
 use super::listener::CommandInterface;
 
-#[derive(thiserror::Error, Debug)]
-pub(crate) enum ControllerError {
-    #[error("security attributes error")]
-    SecurityAttributes(std::io::Error),
-}
-
 use std::pin::Pin;
 use std::task::Context;
 use std::task::Poll;
@@ -64,6 +58,19 @@ impl<T: AsyncRead + AsyncWrite + Unpin> AsyncWrite for StreamBox<T> {
     }
 }
 
+fn setup_incoming(
+    socket_path: &Path,
+) -> impl futures::Stream<Item = Result<impl AsyncRead + AsyncWrite, std::io::Error>> {
+    let mut endpoint = parity_tokio_ipc::Endpoint::new(socket_path.to_string_lossy().to_string());
+    endpoint.set_security_attributes(
+        parity_tokio_ipc::SecurityAttributes::allow_everyone_create()
+            .unwrap()
+            .set_mode(0o766)
+            .unwrap(),
+    );
+    endpoint.incoming().unwrap()
+}
+
 pub(crate) fn start_command_interface(
     mut task_manager: TaskManager,
 ) -> (
@@ -81,24 +88,10 @@ pub(crate) fn start_command_interface(
             // Spawn command interface
             tokio::task::spawn(async {
                 let c = CommandInterface::new(vpn_command_tx, socket_path);
-
-                let mut endpoint =
-                    parity_tokio_ipc::Endpoint::new(socket_path.to_string_lossy().to_string());
-                endpoint.set_security_attributes(
-                    parity_tokio_ipc::SecurityAttributes::allow_everyone_create()
-                        .unwrap()
-                        .set_mode(0o766)
-                        .unwrap(),
-                );
-
-                let incoming = endpoint.incoming().unwrap();
-
-                // let addr = "[::1]:50051".parse().unwrap();
-                // let addr = "127.0.0.1:50051".parse().unwrap();
+                let incoming = setup_incoming(socket_path).map_ok(StreamBox);
                 Server::builder()
                     .add_service(crate::nym_vpn_service_server::NymVpnServiceServer::new(c))
-                    // .serve(socket_path)
-                    .serve_with_incoming(incoming.map_ok(StreamBox))
+                    .serve_with_incoming(incoming)
                     .await
                     .unwrap();
 
