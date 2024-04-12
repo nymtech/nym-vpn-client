@@ -3,22 +3,21 @@
 
 use std::{env, sync::Arc};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use clap::Parser;
 use tauri::{api::path::config_dir, Manager};
-use tokio::{fs::try_exists, sync::Mutex};
+use tokio::sync::Mutex;
 use tracing::{debug, error, info, trace};
 
 use commands::db as cmd_db;
 use commands::*;
 use states::app::AppState;
 
-use nym_vpn_lib::nym_config;
-
 use crate::{
     cli::{print_build_info, Cli},
     db::Db,
     fs::{config::AppConfig, storage::AppStorage},
+    network::setup_network_env,
 };
 
 mod cli;
@@ -74,6 +73,8 @@ async fn main() -> Result<()> {
             config_dir().ok_or(anyhow!("Failed to retrieve config directory path"))?;
         app_config_path.push(APP_DIR);
         AppStorage::<AppConfig>::new(app_config_path, APP_CONFIG_FILE, None)
+            .await
+            .inspect_err(|e| error!("Failed to init app config store: {e}"))?
     };
     debug!(
         "app_config_store: {}",
@@ -83,32 +84,9 @@ async fn main() -> Result<()> {
     let app_config = app_config_store.read().await?;
     debug!("app_config: {app_config:?}");
 
-    // By default, mainnet is used. The network can be overridden by either setting the `--sandbox`
-    // flag or providing a custom env file.
-    if cli.sandbox {
-        // TODO: instead bundle a sandbox env file we can use
-        network::setup_sandbox_environment();
-    } else {
-        if let Some(env_config_file) = &app_config.env_config_file {
-            // check for the existence of the env_config_file if provided
-            debug!("provided env_config_file: {}", env_config_file.display());
-            if !(try_exists(env_config_file)
-                .await
-                .context("an error happened while reading env_config_file `{}`")?)
-            {
-                let err_message = format!(
-                    "app config, env_config_file `{}`: file not found",
-                    env_config_file.display()
-                );
-                error!(err_message);
-                return Err(anyhow!(err_message));
-            }
-        }
-
-        // Read the env variables in the provided file and export them all to the local environment.
-        debug!("Setting up environment: {:?}", app_config.env_config_file);
-        nym_config::defaults::setup_env(app_config.env_config_file.clone());
-    }
+    // use the provided network configuration file or sandbox if cli flag is set
+    // default to mainnet
+    setup_network_env(cli.sandbox, &app_config.env_config_file).await?;
 
     info!("Creating k/v embedded db");
     let db = Db::new()?;

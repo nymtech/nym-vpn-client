@@ -48,7 +48,6 @@ use tun2::AsyncDevice;
 
 mod platform;
 mod uniffi_custom_impls;
-mod util;
 
 pub mod config;
 pub mod credentials;
@@ -57,6 +56,7 @@ pub mod mixnet_connect;
 pub mod mixnet_processor;
 pub mod routing;
 pub mod tunnel;
+pub mod util;
 pub mod wg_gateway_client;
 
 async fn init_wireguard_config(
@@ -356,7 +356,9 @@ impl NymVpn {
         let gateways = gateway_client
             .lookup_described_gateways_with_location()
             .await?;
-        log::info!("Got gateways {:?}", gateways);
+        // This info would be useful at at least debug level, but it's just so much data that it
+        // would be overwhelming
+        log::trace!("Got gateways {:?}", gateways);
 
         let wg_gateway_client = WgGatewayClient::new(self.wg_gateway_config.clone())?;
         log::info!("Created wg gateway client");
@@ -373,7 +375,6 @@ impl NymVpn {
         let (entry_gateway_id, entry_location) =
             self.entry_point.lookup_gateway_identity(&gateways).await?;
         let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
-        log::info!("Gateway id {:?}", entry_gateway_id);
 
         let (exit_router_address, exit_location) =
             self.exit_point.lookup_router_address(&gateways)?;
@@ -699,20 +700,21 @@ async fn run_nym_vpn(
     vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     vpn_exit_tx: oneshot::Sender<NymVpnExitStatusMessage>,
 ) {
-    let result = nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await;
-    if let Err(err) = result {
-        error!("Nym VPN returned error: {err}");
-        debug!("{err:?}");
-        vpn_exit_tx
-            .send(NymVpnExitStatusMessage::Failed(err))
-            .expect("Failed to send exit status");
-        return;
+    match nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await {
+        Ok(()) => {
+            log::info!("Nym VPN has shut down");
+            vpn_exit_tx
+                .send(NymVpnExitStatusMessage::Stopped)
+                .expect("Failed to send exit status");
+        }
+        Err(err) => {
+            error!("Nym VPN returned error: {err}");
+            debug!("{err:?}");
+            vpn_exit_tx
+                .send(NymVpnExitStatusMessage::Failed(err))
+                .expect("Failed to send exit status");
+        }
     }
-
-    log::info!("Nym VPN has shut down");
-    vpn_exit_tx
-        .send(NymVpnExitStatusMessage::Stopped)
-        .expect("Failed to send exit status");
 }
 
 pub struct NymVpnHandle {

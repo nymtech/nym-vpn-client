@@ -8,8 +8,8 @@ authors = ["Nym Technologies"]
 [dependencies]
 anyhow.workspace = true
 bs58.workspace = true
-clap = { version = "4.4.7", features = ["cargo", "derive"] }
-dirs = "5.0.1"
+clap = { workspace = true, features = ["cargo", "derive"] }
+dirs.workspace = true
 ipnetwork.workspace = true
 log.workspace = true
 tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
@@ -24,7 +24,7 @@ shadowsocks = { version = "~1.14.2" }
 shadowsocks-service = { version = "~1.14.3" }
 
 [build-dependencies]
-vergen = { version = "8.2.6", default-features = false, features = [
+vergen = { workspace = true, default-features = false, features = [
     "build",
     "git",
     "gitcl",

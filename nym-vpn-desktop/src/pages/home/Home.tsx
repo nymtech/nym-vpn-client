@@ -2,10 +2,11 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { CmdError, StateDispatch } from '../../types';
 import { routes } from '../../router';
-import { Button, PageAnim } from '../../ui';
+import { Button } from '../../ui';
 import NetworkModeSelect from './NetworkModeSelect';
 import ConnectionStatus from './ConnectionStatus';
 import HopSelect from './HopSelect';
@@ -67,7 +68,12 @@ function Home() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col">
+    <motion.div
+      initial={{ opacity: 0, x: '-1rem' }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.2, ease: 'backOut' }}
+      className="h-full flex flex-col"
+    >
       <div className="grow">
         <ConnectionStatus />
       </div>
@@ -110,7 +116,7 @@ function Home() {
           {getButtonText()}
         </Button>
       </div>
-    </PageAnim>
+    </motion.div>
   );
 }
 

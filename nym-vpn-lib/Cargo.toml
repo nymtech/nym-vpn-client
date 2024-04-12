@@ -39,7 +39,7 @@ uniffi = { workspace = true, features = ["cli"] }
 url.workspace = true
 
 # Used in order to correctly import rustls for sub-dependencies
-reqwest = { version = "0.11.22", default_features = false, features = ["rustls-tls"] }
+reqwest = { workspace = true, default_features = false, features = ["rustls-tls"] }
 tokio-tungstenite = { version = "0.20.1", features = ["rustls"] }
 tungstenite = { version = "0.20.1", default-features = false, features = ["rustls"] }
 
@@ -77,6 +77,13 @@ rand = "0.7.3"
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 oslog = "0.2.0"
+
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.28.0", features = ["user"] }
+
+[target.'cfg(windows)'.dependencies]
+is_elevated = "0.1.2"
+
 
 [build-dependencies]
 uniffi = { version = "0.27.0", features = ["build"] }
