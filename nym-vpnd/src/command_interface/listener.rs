@@ -11,15 +11,15 @@ use tracing::{error, info};
 
 use crate::service::VpnServiceCommand;
 
-use nym_vpn_proto::pb::{
-    nym_vpn_service_server::NymVpnService, ConnectRequest, ConnectResponse, DisconnectRequest,
+use nym_vpn_proto::{
+    nym_vpn_server::NymVpn, ConnectRequest, ConnectResponse, DisconnectRequest,
     DisconnectResponse,
 };
 
 use super::connection_handler::CommandInterfaceConnectionHandler;
 
 #[tonic::async_trait]
-impl NymVpnService for CommandInterface {
+impl NymVpn for CommandInterface {
     async fn vpn_connect(
         &self,
         request: tonic::Request<ConnectRequest>,
