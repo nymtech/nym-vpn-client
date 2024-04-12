@@ -13,7 +13,7 @@ license.workspace = true
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
 prost.workspace = true
-tokio = { workspace = true, features = ["full"]}
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"]}
 tonic.workspace = true
 
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
