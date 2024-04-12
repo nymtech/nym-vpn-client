@@ -4,12 +4,11 @@
 use std::path::Path;
 
 use clap::{Parser, Subcommand};
+use nym_vpn_proto::{
+    nym_vpnd_client::NymVpndClient, ConnectRequest, DisconnectRequest, StatusRequest,
+};
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use tonic::transport::Endpoint;
-
-use crate::nym_vpn_service_client::NymVpnServiceClient;
-
-tonic::include_proto!("nym.vpn");
 
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about)]
@@ -44,8 +43,7 @@ async fn connect() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .await
         .unwrap();
-    // let mut client = NymVpnServiceClient::connect("http://[::1]:50051").await?;
-    let mut client = NymVpnServiceClient::new(endpoint);
+    let mut client = NymVpndClient::new(endpoint);
     let request = tonic::Request::new(ConnectRequest {});
     let response = client.vpn_connect(request).await?;
     println!("RESPONSE={:?}", response);
@@ -60,8 +58,7 @@ async fn disconnect() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .await
         .unwrap();
-    // let mut client = NymVpnServiceClient::connect("http://[::1]:50051").await?;
-    let mut client = NymVpnServiceClient::new(endpoint);
+    let mut client = NymVpndClient::new(endpoint);
     let request = tonic::Request::new(DisconnectRequest {});
     let response = client.vpn_disconnect(request).await?;
     println!("RESPONSE={:?}", response);
@@ -76,8 +73,7 @@ async fn status() -> Result<(), Box<dyn std::error::Error>> {
         }))
         .await
         .unwrap();
-    // let mut client = NymVpnServiceClient::connect("http://[::1]:50051").await?;
-    let mut client = NymVpnServiceClient::new(endpoint);
+    let mut client = NymVpndClient::new(endpoint);
     let request = tonic::Request::new(StatusRequest {});
     let response = client.vpn_status(request).await?;
     println!("RESPONSE={:?}", response);

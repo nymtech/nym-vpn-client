@@ -4,13 +4,13 @@
 use std::path::Path;
 
 use nym_task::TaskManager;
+use nym_vpn_proto::nym_vpnd_server::NymVpndServer;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tonic::transport::Server;
 use tracing::info;
 
-use crate::{nym_vpn_service_server::NymVpnServiceServer, service::VpnServiceCommand};
-
 use super::{incoming_stream::setup_incoming_stream, listener::CommandInterface};
+use crate::service::VpnServiceCommand;
 
 pub(crate) fn start_command_interface(
     mut task_manager: TaskManager,
@@ -31,7 +31,7 @@ pub(crate) fn start_command_interface(
                 let command_interface = CommandInterface::new(vpn_command_tx, socket_path);
                 let incoming = setup_incoming_stream(socket_path);
                 Server::builder()
-                    .add_service(NymVpnServiceServer::new(command_interface))
+                    .add_service(NymVpndServer::new(command_interface))
                     .serve_with_incoming(incoming)
                     .await
                     .unwrap();
