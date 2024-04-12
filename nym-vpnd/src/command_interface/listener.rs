@@ -10,8 +10,9 @@ use tokio::sync::mpsc::UnboundedSender;
 use tracing::{error, info};
 
 use crate::{
-    service::VpnServiceCommand, ConnectRequest, ConnectResponse, DisconnectRequest,
-    DisconnectResponse,
+    service::{VpnServiceCommand, VpnServiceStatusResult},
+    ConnectRequest, ConnectResponse, ConnectionStatus, DisconnectRequest, DisconnectResponse,
+    StatusRequest, StatusResponse,
 };
 
 use super::connection_handler::CommandInterfaceConnectionHandler;
@@ -45,6 +46,33 @@ impl crate::nym_vpn_service_server::NymVpnService for CommandInterface {
         info!("Returning disconnect response");
         Ok(tonic::Response::new(DisconnectResponse { success: true }))
     }
+
+    async fn vpn_status(
+        &self,
+        request: tonic::Request<StatusRequest>,
+    ) -> Result<tonic::Response<StatusResponse>, tonic::Status> {
+        info!("Got status request: {:?}", request);
+
+        let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_status()
+            .await;
+
+        info!("Returning status response");
+        Ok(tonic::Response::new(StatusResponse {
+            status: ConnectionStatus::from(status) as i32,
+        }))
+    }
+}
+
+impl From<VpnServiceStatusResult> for ConnectionStatus {
+    fn from(status: VpnServiceStatusResult) -> Self {
+        match status {
+            VpnServiceStatusResult::NotConnected => ConnectionStatus::NotConnected,
+            VpnServiceStatusResult::Connecting => ConnectionStatus::Connecting,
+            VpnServiceStatusResult::Connected => ConnectionStatus::Connected,
+            VpnServiceStatusResult::Disconnecting => ConnectionStatus::Disconnecting,
+        }
+    }
 }
 
 pub(super) struct CommandInterface {
@@ -76,18 +104,6 @@ impl CommandInterface {
                     err
                 );
             }
-        }
-    }
-
-    #[allow(unused)]
-    pub(super) async fn listen(self) {
-        self.remove_previous_socket_file();
-        let listener = tokio::net::UnixListener::bind(&self.socket_path).unwrap();
-        info!("Command interface listening on {:?}", self.socket_path);
-
-        loop {
-            let (socket, _) = listener.accept().await.unwrap();
-            CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone()).handle(socket);
         }
     }
 }

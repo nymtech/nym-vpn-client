@@ -3,73 +3,14 @@
 
 use std::path::Path;
 
-use futures::TryStreamExt;
 use nym_task::TaskManager;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tonic::transport::Server;
 use tracing::info;
 
-use crate::service::VpnServiceCommand;
+use crate::{nym_vpn_service_server::NymVpnServiceServer, service::VpnServiceCommand};
 
-use super::listener::CommandInterface;
-
-use std::pin::Pin;
-use std::task::Context;
-use std::task::Poll;
-use tokio::io::AsyncRead;
-use tokio::io::AsyncWrite;
-use tokio::io::ReadBuf;
-use tonic::transport::server::Connected;
-
-#[derive(Debug)]
-struct StreamBox<T: AsyncRead + AsyncWrite>(pub T);
-
-impl<T: AsyncRead + AsyncWrite> Connected for StreamBox<T> {
-    type ConnectInfo = Option<()>;
-
-    fn connect_info(&self) -> Self::ConnectInfo {
-        None
-    }
-}
-impl<T: AsyncRead + AsyncWrite + Unpin> AsyncRead for StreamBox<T> {
-    fn poll_read(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-        buf: &mut ReadBuf<'_>,
-    ) -> Poll<std::io::Result<()>> {
-        Pin::new(&mut self.0).poll_read(cx, buf)
-    }
-}
-impl<T: AsyncRead + AsyncWrite + Unpin> AsyncWrite for StreamBox<T> {
-    fn poll_write(
-        mut self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-        buf: &[u8],
-    ) -> Poll<std::io::Result<usize>> {
-        Pin::new(&mut self.0).poll_write(cx, buf)
-    }
-
-    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<std::io::Result<()>> {
-        Pin::new(&mut self.0).poll_flush(cx)
-    }
-
-    fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<std::io::Result<()>> {
-        Pin::new(&mut self.0).poll_shutdown(cx)
-    }
-}
-
-fn setup_incoming(
-    socket_path: &Path,
-) -> impl futures::Stream<Item = Result<impl AsyncRead + AsyncWrite, std::io::Error>> {
-    let mut endpoint = parity_tokio_ipc::Endpoint::new(socket_path.to_string_lossy().to_string());
-    endpoint.set_security_attributes(
-        parity_tokio_ipc::SecurityAttributes::allow_everyone_create()
-            .unwrap()
-            .set_mode(0o766)
-            .unwrap(),
-    );
-    endpoint.incoming().unwrap()
-}
+use super::{incoming_stream::setup_incoming_stream, listener::CommandInterface};
 
 pub(crate) fn start_command_interface(
     mut task_manager: TaskManager,
@@ -77,7 +18,7 @@ pub(crate) fn start_command_interface(
     std::thread::JoinHandle<()>,
     UnboundedReceiver<VpnServiceCommand>,
 ) {
-    info!("Starting unix socket command interface");
+    info!("Starting command interface");
     // Channel to send commands to the vpn service
     let (vpn_command_tx, vpn_command_rx) = tokio::sync::mpsc::unbounded_channel();
 
@@ -87,15 +28,13 @@ pub(crate) fn start_command_interface(
         command_rt.block_on(async {
             // Spawn command interface
             tokio::task::spawn(async {
-                let c = CommandInterface::new(vpn_command_tx, socket_path);
-                let incoming = setup_incoming(socket_path).map_ok(StreamBox);
+                let command_interface = CommandInterface::new(vpn_command_tx, socket_path);
+                let incoming = setup_incoming_stream(socket_path);
                 Server::builder()
-                    .add_service(crate::nym_vpn_service_server::NymVpnServiceServer::new(c))
+                    .add_service(NymVpnServiceServer::new(command_interface))
                     .serve_with_incoming(incoming)
                     .await
                     .unwrap();
-
-                // c .listen() .await
             });
 
             // Using TaskManager::catch_interrupt() here is a bit of a hack that we use for now.

@@ -22,6 +22,7 @@ struct CliArgs {
 enum Command {
     Connect,
     Disconnect,
+    Status,
 }
 
 #[tokio::main]
@@ -30,6 +31,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     match args.command {
         Command::Connect => connect().await?,
         Command::Disconnect => disconnect().await?,
+        Command::Status => status().await?,
     }
     Ok(())
 }
@@ -62,6 +64,22 @@ async fn disconnect() -> Result<(), Box<dyn std::error::Error>> {
     let mut client = NymVpnServiceClient::new(endpoint);
     let request = tonic::Request::new(DisconnectRequest {});
     let response = client.vpn_disconnect(request).await?;
+    println!("RESPONSE={:?}", response);
+    Ok(())
+}
+
+async fn status() -> Result<(), Box<dyn std::error::Error>> {
+    let socket_path = Path::new("/var/run/nym-vpn.socket");
+    let endpoint = Endpoint::from_static("http://[::1]:50051")
+        .connect_with_connector(tower::service_fn(move |_| {
+            IpcEndpoint::connect(socket_path)
+        }))
+        .await
+        .unwrap();
+    // let mut client = NymVpnServiceClient::connect("http://[::1]:50051").await?;
+    let mut client = NymVpnServiceClient::new(endpoint);
+    let request = tonic::Request::new(StatusRequest {});
+    let response = client.vpn_status(request).await?;
     println!("RESPONSE={:?}", response);
     Ok(())
 }
