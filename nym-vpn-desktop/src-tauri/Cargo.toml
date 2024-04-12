@@ -27,6 +27,7 @@ toml = "0.8.5"
 time = "0.3.9"
 # TODO use the crate once it's published, for now use local path
 nym-vpn-lib = { path = "../../nym-vpn-lib" }
+nym-vpn-proto = { path = "../../crates/nym-vpn-proto" }
 futures = "0.3.15"
 reqwest = { version = "0.11", features = ["json"] }
 itertools = "0.12"
@@ -34,6 +35,7 @@ clap = { version = "4.5", features = ["derive"] }
 build-info = "0.0.34"
 sled = "0.34.7"
 strum = { version = "0.26", features = ["derive"] }
+tonic =  { version = "0.11", features = ["channel"] }
 
 # TODO Ugly workaround to force a working setup for nym-vpn-lib
 # We should get rid of this ASAP

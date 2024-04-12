@@ -21,6 +21,7 @@ use crate::{
     cli::{print_build_info, Cli},
     db::{Db, Key},
     fs::{config::AppConfig, storage::AppStorage},
+    grpc::client::GrpcClient,
     network::setup_network_env,
 };
 
@@ -32,6 +33,7 @@ mod error;
 mod events;
 mod fs;
 mod gateway;
+mod grpc;
 mod network;
 mod states;
 mod vpn_client;
@@ -109,12 +111,19 @@ async fn main() -> Result<()> {
         BACKEND_DATA_PATH.to_string_lossy()
     );
 
+    let mut grpc_client = GrpcClient::new("http://[::1]:4000");
+    // try to connect to the gRPC server, if it succeeds, the
+    // client will be stored
+    grpc_client.try_connect().await.ok();
+
     info!("Starting tauri app");
+
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(app_state)))
         .manage(Arc::new(app_config))
-        .manage(Arc::new(cli))
+        .manage(Arc::new(cli.clone()))
         .manage(db.clone())
+        .manage(Arc::new(grpc_client))
         .setup(move |app| {
             info!("app setup");
 

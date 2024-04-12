@@ -8,7 +8,7 @@ use crate::{
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub fn cli_args(cli: State<'_, ManagedCli>) -> Result<Cli, CmdError> {
+pub fn cli_args(cli: State<'_, ManagedCli>) -> Result<&Cli, CmdError> {
     debug!("cli_args");
-    Ok(*cli.inner().clone())
+    Ok(cli.inner())
 }
