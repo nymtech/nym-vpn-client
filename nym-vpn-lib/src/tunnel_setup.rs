@@ -94,7 +94,7 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
         let (wireguard_setup_entry, wireguard_waiting_entry, tunnel_entry) =
             create_wireguard_tunnel(
                 nym_vpn
-                    .private_key
+                    .entry_private_key
                     .as_ref()
                     .expect("clap should enforce value when wireguard enabled"),
                 nym_vpn
@@ -108,7 +108,7 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
             .await?;
         let (wireguard_setup_exit, wireguard_waiting_exit, tunnel_exit) = create_wireguard_tunnel(
             nym_vpn
-                .private_key
+                .entry_private_key
                 .as_ref()
                 .expect("clap should enforce value when wireguard enabled"),
             nym_vpn

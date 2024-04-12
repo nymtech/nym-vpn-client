@@ -105,8 +105,11 @@ pub struct NymVpn {
     /// Enable the wireguard traffic between the client and the entry gateway.
     pub enable_wireguard: bool,
 
-    /// Associated private key.
-    pub private_key: Option<String>,
+    /// Associated entry private key.
+    pub entry_private_key: Option<String>,
+
+    /// Associated exit private key.
+    pub exit_private_key: Option<String>,
 
     /// The IP address of the entry wireguard interface.
     pub entry_wg_ip: Option<Ipv4Addr>,
@@ -174,7 +177,8 @@ impl NymVpn {
             entry_point,
             exit_point,
             enable_wireguard: false,
-            private_key: None,
+            entry_private_key: None,
+            exit_private_key: None,
             entry_wg_ip: None,
             exit_wg_ip: None,
             nym_ips: None,

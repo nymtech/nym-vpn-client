@@ -60,15 +60,20 @@ pub(crate) struct RunArgs {
     #[arg(
         long,
         default_value_t = false,
-        requires = "private_key",
+        requires = "entry_private_key",
+        requires = "exit_private_key",
         requires = "entry_wg_ip",
         requires = "exit_wg_ip"
     )]
     pub(crate) enable_wireguard: bool,
 
-    /// Associated private key.
-    #[arg(long, requires = "enable_wireguard", requires = "wg_ip")]
-    pub(crate) private_key: Option<String>,
+    /// Associated entry private key.
+    #[arg(long, requires = "enable_wireguard", requires = "entry_wg_ip")]
+    pub(crate) entry_private_key: Option<String>,
+
+    /// Associated exit private key.
+    #[arg(long, requires = "enable_wireguard", requires = "exit_wg_ip")]
+    pub(crate) exit_private_key: Option<String>,
 
     /// The IP address of the entry wireguard interface used for the first hop to the entry gateway.
     #[arg(long, value_parser = validate_wg_ip, requires = "enable_wireguard")]
@@ -213,8 +218,11 @@ pub fn override_from_env(_args: &RunArgs, config: Config) -> Config {
 }
 
 pub fn wg_override_from_env(args: &RunArgs, mut config: WgConfig) -> WgConfig {
-    if let Some(ref private_key) = args.private_key {
-        config = config.with_local_private_key(private_key.clone());
+    if let Some(ref private_key) = args.entry_private_key {
+        config = config.with_local_entry_private_key(private_key.clone());
+    }
+    if let Some(ref private_key) = args.exit_private_key {
+        config = config.with_local_exit_private_key(private_key.clone());
     }
     config
 }

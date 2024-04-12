@@ -115,7 +115,8 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
     nym_vpn.wg_gateway_config = wg_gateway_config;
     nym_vpn.mixnet_data_path = data_path;
     nym_vpn.enable_wireguard = args.enable_wireguard;
-    nym_vpn.private_key = args.private_key;
+    nym_vpn.entry_private_key = args.entry_private_key;
+    nym_vpn.exit_private_key = args.exit_private_key;
     nym_vpn.entry_wg_ip = args.entry_wg_ip;
     nym_vpn.exit_wg_ip = args.exit_wg_ip;
     nym_vpn.nym_ips = nym_ips;
