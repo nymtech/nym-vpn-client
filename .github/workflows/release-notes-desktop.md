@@ -19,7 +19,8 @@ The tar archive contains
 
 ### Windows
 
-- _Coming soon..._
+- First release of desktop client for Windows
+- Run as administrator
 
 ## SHA256 Checksums
 
