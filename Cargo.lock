@@ -3933,6 +3933,7 @@ dependencies = [
 name = "nym-gateway-directory"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "hickory-resolver",
  "itertools 0.12.1",
  "log",

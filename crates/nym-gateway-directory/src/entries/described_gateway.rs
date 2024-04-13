@@ -1,8 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use chrono::{DateTime, Utc};
 use nym_explorer_client::Location;
-use nym_validator_client::nyxd::bip32::secp256k1::pkcs8::der::DateTime;
 use nym_validator_client::{client::IdentityKey, models::DescribedGateway};
 
 const BUILD_VERSION: &str = "1.1.34";
@@ -36,14 +36,14 @@ impl DescribedGatewayWithLocation {
             .self_described
             .as_ref()
             .map(|d| {
-                d.build_information
-                    .build_timestamp
-                    .parse()
-                    .map_or(false, |build_time: DateTime| {
-                        let expected_build_time: DateTime =
+                d.build_information.build_timestamp.parse().map_or(
+                    false,
+                    |build_time: DateTime<Utc>| {
+                        let expected_build_time: DateTime<Utc> =
                             BUILD_TIME.parse().expect("Invalid timestamp");
                         build_time >= expected_build_time
-                    })
+                    },
+                )
             })
             .is_some()
     }
