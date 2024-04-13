@@ -13,7 +13,10 @@ use futures::channel::{mpsc, oneshot};
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_connection_monitor::ConnectionMonitorTask;
-use nym_gateway_directory::{Config, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress};
+use nym_gateway_directory::{
+    Config, DescribedGatewayWithLocation, EntryPoint, ExitPoint, GatewayClient,
+    IpPacketRouterAddress,
+};
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
@@ -372,12 +375,24 @@ impl NymVpn {
             return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
         }
 
+        //filter so we are only getting exit gateways with current api version
+        let working_exit_gateways: Vec<DescribedGatewayWithLocation> = gateways
+            .clone()
+            .into_iter()
+            .filter(|gateway| gateway.has_current_api_version())
+            .collect();
+
+        if working_exit_gateways.len() == 0 {
+            return Err(Error::CountryExitGatewaysOutdated);
+        }
+
         let (entry_gateway_id, entry_location) =
             self.entry_point.lookup_gateway_identity(&gateways).await?;
         let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
 
-        let (exit_router_address, exit_location) =
-            self.exit_point.lookup_router_address(&gateways)?;
+        let (exit_router_address, exit_location) = self
+            .exit_point
+            .lookup_router_address(&working_exit_gateways)?;
         let exit_location_str = exit_location.as_deref().unwrap_or("unknown");
         let exit_gateway_id = exit_router_address.gateway();
 
