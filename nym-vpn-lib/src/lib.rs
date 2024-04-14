@@ -379,7 +379,7 @@ impl NymVpn {
         let working_exit_gateways: Vec<DescribedGatewayWithLocation> = gateways
             .clone()
             .into_iter()
-            .filter(|gateway| gateway.has_current_api_version())
+            .filter(|gateway| gateway.is_current_build())
             .collect();
 
         if working_exit_gateways.is_empty() {

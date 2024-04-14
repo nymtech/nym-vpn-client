@@ -72,7 +72,7 @@ impl ExitPoint {
                     .clone()
                     .filter(|gateway| {
                         gateway.is_two_letter_iso_country_code(location)
-                            && gateway.has_current_api_version()
+                            && gateway.is_current_build()
                     })
                     .choose(&mut rand::thread_rng())
                     .ok_or(Error::NoMatchingExitGatewayForLocation {
@@ -88,7 +88,7 @@ impl ExitPoint {
                 log::info!("Selecting a random exit gateway");
                 let gateway = gateways
                     .iter()
-                    .filter(|g| g.has_ip_packet_router() && g.has_current_api_version())
+                    .filter(|g| g.has_ip_packet_router() && g.is_current_build())
                     .choose(&mut rand::thread_rng())
                     .ok_or(Error::FailedToSelectGatewayRandomly)?;
                 Ok((

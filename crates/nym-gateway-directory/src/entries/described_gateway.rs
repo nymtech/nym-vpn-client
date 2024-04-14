@@ -27,11 +27,11 @@ impl DescribedGatewayWithLocation {
             .is_some()
     }
 
-    pub fn has_current_api_version(&self) -> bool {
-        self.has_v6_exit_build_timestamp() && self.has_current_build_version()
+    pub fn is_current_build(&self) -> bool {
+        self.has_current_build_timestamp() && self.has_current_build_version()
     }
 
-    fn has_v6_exit_build_timestamp(&self) -> bool {
+    fn has_current_build_timestamp(&self) -> bool {
         let expected_build_time: DateTime<Utc> = BUILD_TIME.parse().expect("Invalid timestamp");
         self.build_timestamp()
             .map_or(false, |d| d >= expected_build_time)
