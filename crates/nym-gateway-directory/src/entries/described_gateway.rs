@@ -32,20 +32,19 @@ impl DescribedGatewayWithLocation {
     }
 
     fn has_v6_exit_build_timestamp(&self) -> bool {
-        self.gateway
-            .self_described
-            .as_ref()
-            .map(|d| {
-                d.build_information.build_timestamp.parse().map_or(
-                    false,
-                    |build_time: DateTime<Utc>| {
-                        let expected_build_time: DateTime<Utc> =
-                            BUILD_TIME.parse().expect("Invalid timestamp");
-                        build_time >= expected_build_time
-                    },
-                )
-            })
-            .is_some()
+        let expected_build_time: DateTime<Utc> = BUILD_TIME.parse().expect("Invalid timestamp");
+        self.build_timestamp()
+            .map_or(false, |d| d >= expected_build_time)
+    }
+
+    fn build_timestamp(&self) -> Option<DateTime<Utc>> {
+        self.gateway.self_described.as_ref().map(|d| {
+            d.build_information
+                .build_timestamp
+                .parse::<DateTime<Utc>>()
+                .ok()
+                .map_or(None, |d| Some(d))
+        })?
     }
 
     //can make this more flexible with backwards compatibility
