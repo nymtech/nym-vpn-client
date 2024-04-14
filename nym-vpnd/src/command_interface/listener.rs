@@ -15,7 +15,7 @@ use tokio::sync::mpsc::UnboundedSender;
 use tracing::{error, info};
 
 use super::connection_handler::CommandInterfaceConnectionHandler;
-use crate::service::{VpnServiceCommand, VpnServiceStatusResult};
+use crate::service::{VpnServiceCommand, VpnServiceConnectResult, VpnServiceStatusResult};
 
 enum ListenerType {
     Path(PathBuf),
@@ -81,12 +81,14 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ConnectResponse>, tonic::Status> {
         info!("Got connect request: {:?}", request);
 
-        CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_connect()
             .await;
 
         info!("Returning connect response");
-        Ok(tonic::Response::new(ConnectResponse { success: true }))
+        Ok(tonic::Response::new(ConnectResponse {
+            success: status.is_success(),
+        }))
     }
 
     async fn vpn_disconnect(
@@ -95,12 +97,14 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<DisconnectResponse>, tonic::Status> {
         info!("Got disconnect request: {:?}", request);
 
-        CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_disconnect()
             .await;
 
         info!("Returning disconnect response");
-        Ok(tonic::Response::new(DisconnectResponse { success: true }))
+        Ok(tonic::Response::new(DisconnectResponse {
+            success: status.is_success(),
+        }))
     }
 
     async fn vpn_status(

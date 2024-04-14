@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use futures::channel::mpsc::UnboundedSender;
@@ -36,12 +37,24 @@ pub enum VpnServiceConnectResult {
     Fail(String),
 }
 
+impl VpnServiceConnectResult {
+    pub fn is_success(&self) -> bool {
+        matches!(self, VpnServiceConnectResult::Success)
+    }
+}
+
 #[derive(Debug)]
 pub enum VpnServiceDisconnectResult {
     Success,
     NotRunning,
     #[allow(unused)]
     Fail(String),
+}
+
+impl VpnServiceDisconnectResult {
+    pub fn is_success(&self) -> bool {
+        matches!(self, VpnServiceDisconnectResult::Success)
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -52,29 +65,122 @@ pub enum VpnServiceStatusResult {
     Disconnecting,
 }
 
+// Config file saves as toml file
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct NymVpnServiceConfig {
+    entry_point: gateway_directory::EntryPoint,
+    exit_point: gateway_directory::ExitPoint,
+}
+
+impl Default for NymVpnServiceConfig {
+    fn default() -> Self {
+        Self {
+            entry_point: gateway_directory::EntryPoint::Random,
+            exit_point: gateway_directory::ExitPoint::Random,
+        }
+    }
+}
+
 pub(super) struct NymVpnService {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
     vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
     vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
+    config_file: PathBuf,
+    #[allow(unused)]
+    data_dir: PathBuf,
 }
+
+const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
+const DEFAULT_CONFIG_FILE: &str = "/etc/nym/nym-vpnd.toml";
 
 impl NymVpnService {
     pub(super) fn new(vpn_command_rx: UnboundedReceiver<VpnServiceCommand>) -> Self {
+        let config_file = std::env::var("NYM_VPND_CONFIG_FILE")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| PathBuf::from(DEFAULT_CONFIG_FILE));
+        let data_dir = std::env::var("NYM_VPND_DATA_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|_| PathBuf::from(DEFAULT_DATA_DIR));
         Self {
             shared_vpn_state: Arc::new(std::sync::Mutex::new(VpnState::NotConnected)),
             vpn_command_rx,
             vpn_ctrl_sender: None,
+            config_file,
+            data_dir,
         }
+    }
+
+    fn try_setup_config(
+        &self,
+    ) -> std::result::Result<NymVpnServiceConfig, VpnServiceConnectResult> {
+        // If the config file does not exit, create it
+        let config = if self.config_file.exists() {
+            let config: NymVpnServiceConfig = match std::fs::read_to_string(&self.config_file) {
+                Ok(content) => match toml::from_str(&content) {
+                    Ok(config) => config,
+                    Err(err) => {
+                        return Err(VpnServiceConnectResult::Fail(format!(
+                            "Failed to parse config file {:?}: {:?}",
+                            self.config_file, err
+                        )));
+                    }
+                },
+                Err(err) => {
+                    return Err(VpnServiceConnectResult::Fail(format!(
+                        "Failed to read config file {:?}: {:?}",
+                        self.config_file, err
+                    )));
+                }
+            };
+            config
+        } else {
+            let config = NymVpnServiceConfig::default();
+            let config_str = toml::to_string(&config).unwrap();
+            // Create path
+            match self.config_file.parent() {
+                Some(parent) => {
+                    if let Err(err) = std::fs::create_dir_all(parent) {
+                        return Err(VpnServiceConnectResult::Fail(format!(
+                            "Failed to create parent directory {:?}: {:?}",
+                            parent, err
+                        )));
+                    }
+                }
+                None => {
+                    return Err(VpnServiceConnectResult::Fail(format!(
+                        "Failed to get parent directory of {:?}",
+                        self.config_file
+                    )));
+                }
+            }
+            match std::fs::write(&self.config_file, config_str) {
+                Ok(_) => {
+                    info!("Config file created at {:?}", self.config_file);
+                }
+                Err(err) => {
+                    return Err(VpnServiceConnectResult::Fail(format!(
+                        "Failed to create config file {:?}: {:?}",
+                        self.config_file, err
+                    )));
+                }
+            }
+            config
+        };
+        Ok(config)
     }
 
     async fn handle_connect(&mut self) -> VpnServiceConnectResult {
         self.set_shared_state(VpnState::Connecting);
 
-        // TODO: read from config file
-        let mut nym_vpn = nym_vpn_lib::NymVpn::new(
-            gateway_directory::EntryPoint::Random,
-            gateway_directory::ExitPoint::Random,
-        );
+        let config = match self.try_setup_config() {
+            Ok(config) => config,
+            Err(err) => {
+                self.set_shared_state(VpnState::NotConnected);
+                return err;
+            }
+        };
+
+        let mut nym_vpn = nym_vpn_lib::NymVpn::new(config.entry_point, config.exit_point);
 
         nym_vpn.gateway_config = gateway_directory::Config::default()
             .with_optional_env(
@@ -141,7 +247,7 @@ impl NymVpnService {
         }
     }
 
-    pub(super) async fn run(mut self) {
+    pub(super) async fn run(mut self) -> anyhow::Result<()> {
         while let Some(command) = self.vpn_command_rx.recv().await {
             info!("VPN: Received command: {:?}", command);
             match command {
@@ -159,5 +265,6 @@ impl NymVpnService {
                 }
             }
         }
+        Ok(())
     }
 }

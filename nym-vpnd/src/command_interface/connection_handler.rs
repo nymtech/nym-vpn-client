@@ -17,7 +17,7 @@ impl CommandInterfaceConnectionHandler {
         Self { vpn_command_tx }
     }
 
-    pub(crate) async fn handle_connect(&self) {
+    pub(crate) async fn handle_connect(&self) -> VpnServiceConnectResult {
         info!("Starting VPN");
         let (tx, rx) = oneshot::channel();
         self.vpn_command_tx
@@ -25,34 +25,38 @@ impl CommandInterfaceConnectionHandler {
             .unwrap();
         info!("Sent start command to VPN");
         info!("Waiting for response");
-        match rx.await.unwrap() {
+        let result = rx.await.unwrap();
+        match result {
             VpnServiceConnectResult::Success => {
                 info!("VPN started successfully");
             }
-            VpnServiceConnectResult::Fail(err) => {
+            VpnServiceConnectResult::Fail(ref err) => {
                 info!("VPN failed to start: {err}");
             }
         };
+        result
     }
 
-    pub(crate) async fn handle_disconnect(&self) {
+    pub(crate) async fn handle_disconnect(&self) -> VpnServiceDisconnectResult{
         let (tx, rx) = oneshot::channel();
         self.vpn_command_tx
             .send(VpnServiceCommand::Disconnect(tx))
             .unwrap();
         info!("Sent stop command to VPN");
         info!("Waiting for response");
-        match rx.await.unwrap() {
+        let result = rx.await.unwrap();
+        match result {
             VpnServiceDisconnectResult::Success => {
                 info!("VPN stopped successfully");
             }
             VpnServiceDisconnectResult::NotRunning => {
                 info!("VPN can't stop - it's not running");
             }
-            VpnServiceDisconnectResult::Fail(err) => {
+            VpnServiceDisconnectResult::Fail(ref err) => {
                 warn!("VPN failed to stop: {err}");
             }
         };
+        result
     }
 
     pub(crate) async fn handle_status(&self) -> VpnServiceStatusResult {
