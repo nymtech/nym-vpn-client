@@ -382,7 +382,7 @@ impl NymVpn {
             .filter(|gateway| gateway.has_current_api_version())
             .collect();
 
-        if working_exit_gateways.len() == 0 {
+        if working_exit_gateways.is_empty() {
             return Err(Error::CountryExitGatewaysOutdated);
         }
 

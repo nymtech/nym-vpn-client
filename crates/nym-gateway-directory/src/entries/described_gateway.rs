@@ -43,7 +43,6 @@ impl DescribedGatewayWithLocation {
                 .build_timestamp
                 .parse::<DateTime<Utc>>()
                 .ok()
-                .map_or(None, |d| Some(d))
         })?
     }
 
