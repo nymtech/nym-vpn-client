@@ -18,7 +18,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     use nym_task::TaskManager;
     use nym_vpn_lib::nym_config::defaults::setup_env;
 
-    use crate::{cli::CliArgs, logging::setup_logging};
+    use crate::{
+        cli::CliArgs, command_interface::start_command_interface, logging::setup_logging,
+        service::start_vpn_service,
+    };
 
     setup_logging();
     let args = CliArgs::parse();
@@ -32,10 +35,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // interface to be able to forcefully terminate the vpn if needed.
 
     // Start the command interface that listens for commands from the outside
-    let (command_handle, vpn_command_rx) = command_interface::start_command_interface(task_manager);
+    let (command_handle, vpn_command_rx) = start_command_interface(task_manager, &args);
 
     // Start the VPN service that wraps the actual VPN
-    let vpn_handle = service::start_vpn_service(vpn_command_rx, service_task_client);
+    let vpn_handle = start_vpn_service(vpn_command_rx, service_task_client);
 
     vpn_handle.join().unwrap();
     command_handle.join().unwrap();

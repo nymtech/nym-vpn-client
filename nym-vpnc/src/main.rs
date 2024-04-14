@@ -8,12 +8,16 @@ use nym_vpn_proto::{
     nym_vpnd_client::NymVpndClient, ConnectRequest, DisconnectRequest, StatusRequest,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
-use tonic::transport::{Channel, Endpoint};
+use tonic::transport::{Channel as TonicChannel, Endpoint as TonicEndpoint};
 
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about)]
 struct CliArgs {
-    #[clap(subcommand)]
+    /// Use HTTP instead of socket file for IPC with the daemon.
+    #[arg(long)]
+    http: bool,
+
+    #[command(subcommand)]
     command: Command,
 }
 
@@ -28,9 +32,9 @@ enum Command {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = CliArgs::parse();
     match args.command {
-        Command::Connect => connect().await?,
-        Command::Disconnect => disconnect().await?,
-        Command::Status => status().await?,
+        Command::Connect => connect(&args).await?,
+        Command::Disconnect => disconnect(&args).await?,
+        Command::Status => status(&args).await?,
     }
     Ok(())
 }
@@ -39,8 +43,9 @@ fn get_socket_path() -> PathBuf {
     Path::new("/var/run/nym-vpn.socket").to_path_buf()
 }
 
-async fn get_channel() -> Channel {
-    Endpoint::from_static("http://[::1]:50051")
+async fn get_channel() -> TonicChannel {
+    // NOTE: the uri here is ignored
+    TonicEndpoint::from_static("http://[::1]:53181")
         .connect_with_connector(tower::service_fn(move |_| {
             IpcEndpoint::connect(get_socket_path())
         }))
@@ -48,32 +53,34 @@ async fn get_channel() -> Channel {
         .unwrap()
 }
 
-async fn connect() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = NymVpndClient::new(get_channel().await);
+async fn get_client(args: &CliArgs) -> NymVpndClient<TonicChannel> {
+    if args.http {
+        NymVpndClient::connect("http://[::1]:53181").await.unwrap()
+    } else {
+        NymVpndClient::new(get_channel().await)
+    }
+}
+
+async fn connect(args: &CliArgs) -> Result<(), Box<dyn std::error::Error>> {
+    let mut client = get_client(args).await;
     let request = tonic::Request::new(ConnectRequest {});
-    let response = client.vpn_connect(request).await?;
-    println!("RESPONSE={:?}", response);
-    let inner = response.into_inner();
-    println!("{:?}", inner);
+    let response = client.vpn_connect(request).await?.into_inner();
+    println!("{:?}", response);
     Ok(())
 }
 
-async fn disconnect() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = NymVpndClient::new(get_channel().await);
+async fn disconnect(args: &CliArgs) -> Result<(), Box<dyn std::error::Error>> {
+    let mut client = get_client(args).await;
     let request = tonic::Request::new(DisconnectRequest {});
-    let response = client.vpn_disconnect(request).await?;
-    println!("RESPONSE={:?}", response);
-    let inner = response.into_inner();
-    println!("{:?}", inner);
+    let response = client.vpn_disconnect(request).await?.into_inner();
+    println!("{:?}", response);
     Ok(())
 }
 
-async fn status() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = NymVpndClient::new(get_channel().await);
+async fn status(args: &CliArgs) -> Result<(), Box<dyn std::error::Error>> {
+    let mut client = get_client(args).await;
     let request = tonic::Request::new(StatusRequest {});
-    let response = client.vpn_status(request).await?;
-    println!("RESPONSE={:?}", response);
-    let inner = response.into_inner();
-    println!("{:?}", inner);
+    let response = client.vpn_status(request).await?.into_inner();
+    println!("{:?}", response);
     Ok(())
 }
