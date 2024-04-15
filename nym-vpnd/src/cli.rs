@@ -22,7 +22,7 @@ pub(crate) struct CliArgs {
     pub(crate) enable_http_listener: bool,
 
     #[arg(long)]
-    pub(crate) disable_path_listener: bool,
+    pub(crate) disable_socket_listener: bool,
 }
 
 fn check_path(path: &str) -> Result<PathBuf, String> {

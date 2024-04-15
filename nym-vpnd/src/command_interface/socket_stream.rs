@@ -45,7 +45,7 @@ impl<T: AsyncRead + AsyncWrite + Unpin> AsyncWrite for StreamBox<T> {
     }
 }
 
-pub(super) fn setup_incoming(
+fn setup_incoming(
     socket_path: &Path,
 ) -> impl futures::Stream<Item = Result<impl AsyncRead + AsyncWrite, std::io::Error>> {
     let mut endpoint = parity_tokio_ipc::Endpoint::new(socket_path.to_string_lossy().to_string());
@@ -58,7 +58,7 @@ pub(super) fn setup_incoming(
     endpoint.incoming().unwrap()
 }
 
-pub(super) fn setup_incoming_stream(
+pub(super) fn setup_socket_stream(
     socket_path: &Path,
 ) -> impl futures::Stream<Item = Result<StreamBox<impl AsyncRead + AsyncWrite>, std::io::Error>> {
     setup_incoming(socket_path).map_ok(StreamBox)
