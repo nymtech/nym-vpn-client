@@ -1,15 +1,17 @@
 use bytes::{Bytes, BytesMut};
 use futures::StreamExt;
-use nym_gateway_directory::{DescribedGatewayWithLocation, GatewayClient};
+use nym_connection_monitor::ConnectionStatusEvent;
+use nym_gateway_directory::{DescribedGatewayWithLocation, GatewayClient, IpPacketRouterAddress};
 use nym_ip_packet_requests::{
     codec::MultiIpPacketCodec,
     response::{InfoLevel, IpPacketResponse, IpPacketResponseData},
 };
 use nym_sdk::mixnet::{InputMessage, MixnetClientBuilder, Recipient};
-use nym_task::{connections::TransmissionLane, TaskManager};
+use nym_task::connections::TransmissionLane;
 use nym_vpn_lib::{
     error::*,
     gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint},
+    mixnet_connect::SharedMixnetClient,
     nym_config::{
         defaults::{
             setup_env,
@@ -38,7 +40,7 @@ async fn run() -> anyhow::Result<PingResult> {
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
     // setup_env(args.config_env_file.as_ref());
     setup_env::<PathBuf>(None);
-    let result = do_ping(EntryPoint::Random, ExitPoint::Random).await;
+    let result = ping(EntryPoint::Random, ExitPoint::Random).await;
     match result {
         Ok(ref result) => {
             println!("{:#?}", result);
@@ -50,24 +52,23 @@ async fn run() -> anyhow::Result<PingResult> {
     result
 }
 
-#[derive(Debug)]
+#[allow(unused)]
+#[derive(Debug, Clone)]
 struct PingResult {
     entry_gateway: String,
     exit_gateway: String,
     outcome: PingOutcome,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum PingOutcome {
     EntryGatewayNotConnected,
     EntryGatewayNotRouting,
     ExitGatewayNotConnected,
-    ExitGatewayTunNotResponding,
-    ExitGatewayNotRoutingExternal,
-    FullyOperational,
+    IpPingReplies(#[allow(unused)] IpPingReplies),
 }
 
-async fn do_ping(entry_point: EntryPoint, exit_point: ExitPoint) -> anyhow::Result<PingResult> {
+async fn ping(entry_point: EntryPoint, exit_point: ExitPoint) -> anyhow::Result<PingResult> {
     let gateway_config = GatewayConfig::default()
         .with_optional_env(GatewayConfig::with_custom_api_url, None, NYM_API)
         .with_optional_env(GatewayConfig::with_custom_explorer_url, None, EXPLORER_API);
@@ -79,13 +80,6 @@ async fn do_ping(entry_point: EntryPoint, exit_point: ExitPoint) -> anyhow::Resu
             .map(|url| url.to_string())
             .unwrap_or("unavailable".to_string())
     );
-
-    // let (vpn_ctrl_tx, vpn_ctrl_rx) =
-    //     futures::channel::mpsc::unbounded::<nym_vpn_lib::NymVpnCtrlMessage>();
-    // let (vpn_status_tx, vpn_status_rx) =
-    //     futures::channel::mpsc::channel::<nym_vpn_lib::SentStatus>(128);
-    // let (vpn_exit_tx, vpn_exit_rx) =
-    //     futures::channel::oneshot::channel::<nym_vpn_lib::NymVpnExitStatusMessage>();
 
     let gateway_client = GatewayClient::new(gateway_config.clone())?;
     let gateways = gateway_client
@@ -102,8 +96,6 @@ async fn do_ping(entry_point: EntryPoint, exit_point: ExitPoint) -> anyhow::Resu
     let (exit_router_address, _exit_location) =
         exit_point.lookup_router_address(&working_exit_gateways)?;
 
-    let task_manager = TaskManager::new(10).named("ip_pinger");
-
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     debug_config
         .traffic
@@ -114,8 +106,6 @@ async fn do_ping(entry_point: EntryPoint, exit_point: ExitPoint) -> anyhow::Resu
         .request_gateway(entry_gateway_id.to_string())
         .network_details(nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env())
         .debug_config(debug_config)
-        .custom_shutdown(task_manager.subscribe_named("mixnet_client_main"))
-        // .credentials_mode(enable_credentials_mode)
         .build()?
         .connect_to_mixnet()
         .await;
@@ -130,25 +120,42 @@ async fn do_ping(entry_point: EntryPoint, exit_point: ExitPoint) -> anyhow::Resu
 
     let nym_address = *mixnet_client.nym_address();
     let entry_gateway = nym_address.gateway().to_base58_string();
+    let exit_gateway = exit_router_address.gateway().to_base58_string();
 
     info!("Successfully connected to entry gateway: {entry_gateway}");
     info!("Our nym address: {nym_address}");
 
+    let shared_mixnet_client = SharedMixnetClient::new(mixnet_client);
+
+    // Now that we have a connected mixnet client, we can start pinging
+    let outcome = do_ping(shared_mixnet_client.clone(), exit_router_address).await;
+
+    let mixnet_client = shared_mixnet_client.lock().await.take().unwrap();
+    mixnet_client.disconnect().await;
+
+    outcome.map(|outcome| PingResult {
+        entry_gateway: entry_gateway.clone(),
+        exit_gateway: exit_gateway.clone(),
+        outcome,
+    })
+}
+
+async fn do_ping(
+    shared_mixnet_client: SharedMixnetClient,
+    exit_router_address: IpPacketRouterAddress,
+) -> anyhow::Result<PingOutcome> {
+    // --- Step 1 ---
     info!("Sending mixnet ping to ourselves to verify mixnet connection");
-    let shared_mixnet_client = nym_vpn_lib::mixnet_connect::SharedMixnetClient::new(mixnet_client);
+    let nym_address = shared_mixnet_client.nym_address().await;
     if nym_connection_monitor::self_ping_and_wait(nym_address, shared_mixnet_client.inner())
         .await
         .is_err()
     {
-        shared_mixnet_client.disconnect().await;
-        return Ok(PingResult {
-            entry_gateway,
-            exit_gateway: exit_router_address.gateway().to_base58_string(),
-            outcome: PingOutcome::EntryGatewayNotRouting,
-        });
+        return Ok(PingOutcome::EntryGatewayNotRouting);
     }
     info!("Successfully mixnet pinged ourselves");
 
+    // --- Step 2 ---
     let exit_gateway = exit_router_address.gateway().to_base58_string();
     info!("Connecting to exit gateway: {exit_gateway}");
     let enable_two_hop = false;
@@ -160,102 +167,121 @@ async fn do_ping(entry_point: EntryPoint, exit_point: ExitPoint) -> anyhow::Resu
     )
     .await
     else {
-        shared_mixnet_client.disconnect().await;
-        return Ok(PingResult {
-            entry_gateway,
-            exit_gateway,
-            outcome: PingOutcome::ExitGatewayNotConnected,
-        });
+        return Ok(PingOutcome::ExitGatewayNotConnected);
     };
     info!("Successfully connected to exit gateway");
     info!("Using mixnet VPN IP addresses: {our_ips}");
 
-    // Perform ICMP connectivity check for exit gateway
+    // --- Step 3 ---
+    // Perform ICMP connectivity checks for exit gateway
 
     // Create ICMP/IPv4 echo request packet
-    let sequence_number = 1;
-    let icmp_identifier = icmp_identifier();
-    let icmp_echo_request = nym_connection_monitor::packet_helpers::create_icmpv4_echo_request(
-        sequence_number,
-        icmp_identifier,
-    )?;
-    let destination = "10.0.0.1".parse::<Ipv4Addr>()?;
-    let ipv4_packet = nym_connection_monitor::packet_helpers::wrap_icmp_in_ipv4(
-        icmp_echo_request,
-        our_ips.ipv4,
-        destination,
-    )?;
+    for ii in 0..10 {
+        let sequence_number = ii;
+        let icmp_identifier = icmp_identifier();
+        let icmp_echo_request = nym_connection_monitor::packet_helpers::create_icmpv4_echo_request(
+            sequence_number,
+            icmp_identifier,
+        )?;
+        let destination = "10.0.0.1".parse::<Ipv4Addr>()?;
+        let ipv4_packet = nym_connection_monitor::packet_helpers::wrap_icmp_in_ipv4(
+            icmp_echo_request,
+            our_ips.ipv4,
+            destination,
+        )?;
 
-    // Wrap the IPv4 packet in a MultiIpPacket
-    let bundled_packet =
-        MultiIpPacketCodec::bundle_one_packet(ipv4_packet.packet().to_vec().into());
+        // Wrap the IPv4 packet in a MultiIpPacket
+        let bundled_packet =
+            MultiIpPacketCodec::bundle_one_packet(ipv4_packet.packet().to_vec().into());
 
-    // Wrap into a mixnet input message addressed to the IPR
-    let two_hop = true;
-    let mixnet_message = create_input_message(exit_router_address.0, bundled_packet, two_hop)?;
+        // Wrap into a mixnet input message addressed to the IPR
+        let two_hop = true;
+        let mixnet_message = create_input_message(exit_router_address.0, bundled_packet, two_hop)?;
 
-    shared_mixnet_client.send(mixnet_message).await?;
+        shared_mixnet_client.send(mixnet_message).await?;
+    }
 
     // Listen for reply
+    // HACK: take it out of the shared mixnet client
     let mut mixnet_client = shared_mixnet_client.inner().lock().await.take().unwrap();
     let mut multi_ip_packet_decoder =
         MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
 
-    tokio::select! {
-        _ = tokio::time::sleep(Duration::from_secs(10)) => {
-            error!("Timeout waiting for ICMP echo reply from exit gateway");
-        }
-        Some(reconstructed_message) = mixnet_client.next() => {
-            match IpPacketResponse::from_reconstructed_message(&reconstructed_message) {
-                Ok(response) => match response.data {
-                    IpPacketResponseData::Data(data_response) => {
-                        let mut bytes = BytesMut::from(&*data_response.ip_packet);
-                        while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
-                            if let Some(connection_event) = nym_vpn_lib::mixnet_processor::check_for_icmp_beacon_reply(
-                                &packet,
-                                icmp_identifier,
-                                our_ips,
-                            ) {
-                                info!("Received ICMP echo reply from exit gateway");
-                                info!("Connection event: {:?}", connection_event);
-                                return Ok(PingResult {
-                                    entry_gateway,
-                                    exit_gateway,
-                                    outcome: PingOutcome::FullyOperational,
-                                });
+    let mut registered_replies = IpPingReplies {
+        ipr_tun_ip_v4: false,
+        ipr_tun_ip_v6: false,
+        external_ip_v4: false,
+        external_ip_v6: false,
+    };
+
+    loop {
+        tokio::select! {
+            _ = tokio::time::sleep(Duration::from_secs(2)) => {
+                info!("Finished waiting for ICMP echo reply from exit gateway");
+                break;
+            }
+            Some(reconstructed_message) = mixnet_client.next() => {
+                match IpPacketResponse::from_reconstructed_message(&reconstructed_message) {
+                    Ok(response) => match response.data {
+                        IpPacketResponseData::Data(data_response) => {
+                            let mut bytes = BytesMut::from(&*data_response.ip_packet);
+                            while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
+                                if let Some(connection_event) = nym_vpn_lib::mixnet_processor::check_for_icmp_beacon_reply(
+                                    &packet,
+                                    icmp_identifier(),
+                                    our_ips,
+                                ) {
+                                    info!("Received ICMP echo reply from exit gateway");
+                                    info!("Connection event: {:?}", connection_event);
+                                    match connection_event {
+                                        ConnectionStatusEvent::MixnetSelfPing => {},
+                                        ConnectionStatusEvent::Icmpv4IprTunDevicePingReply => registered_replies.ipr_tun_ip_v4 = true,
+                                        ConnectionStatusEvent::Icmpv6IprTunDevicePingReply => registered_replies.ipr_tun_ip_v6 = true,
+                                        ConnectionStatusEvent::Icmpv4IprExternalPingReply => registered_replies.external_ip_v4 = true,
+                                        ConnectionStatusEvent::Icmpv6IprExternalPingReply => registered_replies.external_ip_v6 = true,
+                                    }
+                                }
                             }
                         }
-                    }
-                    IpPacketResponseData::Info(info) => {
-                        let msg = format!("Received info response from the mixnet: {}", info.reply);
-                        match info.level {
-                            InfoLevel::Info => info!("{msg}"),
-                            InfoLevel::Warn => warn!("{msg}"),
-                            InfoLevel::Error => error!("{msg}"),
+                        IpPacketResponseData::Info(info) => {
+                            let msg = format!("Received info response from the mixnet: {}", info.reply);
+                            match info.level {
+                                InfoLevel::Info => info!("{msg}"),
+                                InfoLevel::Warn => warn!("{msg}"),
+                                InfoLevel::Error => error!("{msg}"),
+                            }
                         }
+                        _ => {
+                            info!("Ignoring: {:?}", response);
+                        }
+                    },
+                    Err(err) => {
+                        warn!("Failed to parse mixnet message: {err}");
                     }
-                    _ => {
-                        info!("Ignoring: {:?}", response);
-                    }
-                },
-                Err(err) => {
-                    warn!("Failed to parse mixnet message: {err}");
                 }
             }
         }
     }
 
-    mixnet_client.disconnect().await;
-
-    Ok(PingResult {
-        entry_gateway,
-        exit_gateway,
-        outcome: PingOutcome::ExitGatewayTunNotResponding,
-    })
+    // HACK: put it back in the shared mixnet client, so it can be properly disconnected
+    shared_mixnet_client
+        .inner()
+        .lock()
+        .await
+        .replace(mixnet_client);
+    Ok(PingOutcome::IpPingReplies(registered_replies))
 }
 
 fn icmp_identifier() -> u16 {
     8475
+}
+
+#[derive(Debug, Clone)]
+struct IpPingReplies {
+    ipr_tun_ip_v4: bool,
+    ipr_tun_ip_v6: bool,
+    external_ip_v4: bool,
+    external_ip_v6: bool,
 }
 
 fn create_input_message(
