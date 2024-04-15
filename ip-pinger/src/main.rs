@@ -1,6 +1,7 @@
 use bytes::Bytes;
 use clap::{Args, Parser, Subcommand};
 use futures::channel::{mpsc, oneshot};
+use futures::StreamExt;
 use ipnetwork::{Ipv4Network, Ipv6Network};
 use log::{debug, error, info};
 use nym_connection_monitor::ConnectionMonitorTask;
@@ -158,6 +159,12 @@ async fn run_vpn() -> Result<()> {
     shared_mixnet_client.send(mixnet_message).await?;
 
     // Listen for reply
+    let mut mixnet_client = shared_mixnet_client.inner().lock().await.take().unwrap();
+
+    tokio::select! {
+        Some(reconstructed_message) = mixnet_client.next() => {
+        }
+    }
 
     Ok(())
 }
