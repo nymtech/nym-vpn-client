@@ -12,213 +12,205 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.nymtech.logcathelper.LogcatHelper
 import net.nymtech.logcathelper.model.LogLevel
 import net.nymtech.vpn.model.ClientState
-import net.nymtech.vpn.model.Country
+import net.nymtech.vpn.model.Environment
 import net.nymtech.vpn.model.ErrorState
 import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.ServiceManager
 import net.nymtech.vpn.util.safeCollect
-import net.nymtech.vpn_client.BuildConfig
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
 import nym_vpn_lib.FfiException
 import nym_vpn_lib.VpnConfig
-import nym_vpn_lib.getGatewayCountries
-import nym_vpn_lib.getLowLatencyEntryCountry
 import nym_vpn_lib.runVpn
 import timber.log.Timber
-import java.net.URL
 
-// TODO change to builder pattern?
-object NymVpnClient : VpnClient {
-	private val apiUrl = URL(BuildConfig.API_URL)
-	private val explorerUrl = URL(BuildConfig.EXPLORER_URL)
-	private val scope = CoroutineScope(Dispatchers.IO)
-
-	private val _state = MutableStateFlow(ClientState())
-	override val stateFlow: Flow<ClientState> = _state.asStateFlow()
-
-	override fun getState(): ClientState {
-		return _state.value
+object NymVpnClient {
+	private object MySingletonInit {
+		lateinit var entryPoint: EntryPoint
+		lateinit var exitPoint: ExitPoint
+		lateinit var mode: VpnMode
+		lateinit var environment: Environment
 	}
 
-	override suspend fun gateways(exitOnly: Boolean): Set<Country> {
-		return withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
-			getGatewayCountries(apiUrl, explorerUrl, exitOnly).map {
-				Country(isoCode = it.twoLetterIsoCountryCode)
-			}.toSet()
+	fun init(
+		entryPoint: EntryPoint = EntryPoint.Location(
+			Constants.DEFAULT_COUNTRY_ISO,
+		),
+		exitPoint: ExitPoint = ExitPoint.Location(
+			Constants.DEFAULT_COUNTRY_ISO,
+		),
+		mode: VpnMode = VpnMode.TWO_HOP_MIXNET,
+		environment: Environment = Environment.MAINNET,
+	): VpnClient { // mimic a constructor, if you want
+		synchronized(MySingletonInit) {
+			MySingletonInit.entryPoint = entryPoint
+			MySingletonInit.exitPoint = exitPoint
+			MySingletonInit.mode = mode
+			MySingletonInit.environment = environment
+			when (MySingletonInit.environment) {
+				Environment.MAINNET -> Constants.setupEnvironmentMainnet()
+				Environment.SANDBOX -> Constants.setupEnvironmentSandbox()
+			}
+
+			return NymVpn
 		}
 	}
+	internal object NymVpn : VpnClient {
 
-	override suspend fun getLowLatencyEntryCountryCode(): Country {
-		return withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
-			Country(
-				isoCode =
-				getLowLatencyEntryCountry(
-					apiUrl,
-					explorerUrl,
-				).twoLetterIsoCountryCode,
-				isLowLatency = true,
-			)
+		override var entryPoint: EntryPoint = MySingletonInit.entryPoint
+		override var exitPoint: ExitPoint = MySingletonInit.exitPoint
+		override var mode: VpnMode = MySingletonInit.mode
+		private val environment: Environment = MySingletonInit.environment
+
+		private val scope = CoroutineScope(Dispatchers.IO)
+
+		private var job: Job? = null
+
+		private val _state = MutableStateFlow(ClientState())
+		override val stateFlow: Flow<ClientState> = _state.asStateFlow()
+
+		override fun start(context: Context, foreground: Boolean) {
+			clearErrorStatus()
+			job = collectLogStatus(context)
+			if (foreground) ServiceManager.startVpnServiceForeground(context) else ServiceManager.startVpnService(context)
 		}
-	}
 
-	private var statusJob: Job? = null
+		override fun stop(context: Context, foreground: Boolean) {
+			ServiceManager.stopVpnService(context)
+			job?.cancel()
+			_state.value =
+				_state.value.copy(
+					statistics =
+					_state.value.statistics.copy(
+						connectionSeconds = null,
+					),
+				)
+		}
 
-	override fun configure(entryPoint: EntryPoint, exitPoint: ExitPoint, mode: VpnMode) {
-		_state.value =
-			_state.value.copy(
-				entryPoint = entryPoint,
-				exitPoint = exitPoint,
-				mode = mode,
-			)
-	}
+		override fun prepare(context: Context): Intent? {
+			return VpnService.prepare(context)
+		}
+		override fun getState(): ClientState {
+			return _state.value
+		}
 
-	override fun prepare(context: Context): Intent? {
-		return VpnService.prepare(context)
-	}
+		@Synchronized
+		private fun clearErrorStatus() {
+			_state.value =
+				_state.value.copy(
+					errorState = ErrorState.None,
+				)
+		}
 
-	override fun start(context: Context) {
-		clearErrorStatus()
-		statusJob = collectLogStatus(context)
-		ServiceManager.startVpnService(context)
-	}
+		@Synchronized
+		private fun setErrorState(message: String) {
+			_state.value =
+				_state.value.copy(
+					errorState = ErrorState.LibraryError(message),
+				)
+		}
 
-	override fun startForeground(context: Context) {
-		clearErrorStatus()
-		statusJob = collectLogStatus(context)
-		ServiceManager.startVpnServiceForeground(context)
-	}
+		@Synchronized
+		internal fun setVpnState(state: VpnState) {
+			_state.value =
+				_state.value.copy(
+					vpnState = state,
+				)
+		}
 
-	internal fun connect() {
-		// TODO refactor
-		if (_state.value.exitPoint != null && _state.value.entryPoint != null) {
+		private fun isTwoHop(mode: VpnMode): Boolean = when (mode) {
+			VpnMode.TWO_HOP_MIXNET -> true
+			else -> false
+		}
+
+		internal fun connect() {
 			try {
 				runVpn(
 					VpnConfig(
-						apiUrl,
-						explorerUrl,
-						_state.value.entryPoint!!,
-						_state.value.exitPoint!!,
-						isTwoHop(_state.value.mode),
+						environment.apiUrl,
+						environment.explorerUrl,
+						entryPoint,
+						exitPoint,
+						isTwoHop(mode),
 					),
 				)
 			} catch (e: FfiException) {
 				Timber.e(e)
 			}
 		}
-	}
 
-	private fun isTwoHop(mode: VpnMode): Boolean = when (mode) {
-		VpnMode.TWO_HOP_MIXNET -> true
-		else -> false
-	}
-
-	private fun collectLogStatus(context: Context) = scope.launch {
-		launch {
-			callbackFlow {
-				LogcatHelper.logs {
-					trySend(it)
-				}
-				awaitClose { cancel() }
-			}.safeCollect {
-				when (it.level) {
-					LogLevel.ERROR -> {
-						if (it.tag.contains(Constants.NYM_VPN_LIB_TAG)) {
-							// TODO temp ignore IPR IPv6 error
-							if (it.message.contains(
-									"(IPR) not routing IPv6 traffic",
-								)
-							) {
-								return@safeCollect
-							}
-							cancel()
-							setErrorState(it.message)
-							disconnect(context)
-							statusJob?.cancel()
+		private fun collectLogStatus(context: Context) = scope.launch {
+			launch {
+				callbackFlow {
+					LogcatHelper.logs {
+						if (it.level != LogLevel.DEBUG) {
+							trySend(it)
 						}
 					}
+					awaitClose { cancel() }
+				}.buffer(capacity = 100).safeCollect {
+					if (it.tag.contains(Constants.NYM_VPN_LIB_TAG)) {
+						when (it.level) {
+							LogLevel.ERROR -> {
+								// TODO let user know only ipv6 or ipv4 is working
+								if (it.message.contains(
+										"(IPR) not routing IPv6 traffic",
+									) ||
+									it.message.contains("(IPR) not routing IPv4 traffic") ||
+									it.message.contains("(IPR) not responding to IPv6 traffic") ||
+									it.message.contains("(IPR) not responding to IPv4 traffic")
+								) {
+									return@safeCollect
+								}
+								setErrorState(it.message)
+								stop(context, true)
+							}
 
-					LogLevel.INFO -> {
-						parseLibInfo(it.message)
+							LogLevel.INFO -> {
+								parseLibInfo(it.message)
+							}
+							else -> Unit
+						}
 					}
+				}
+			}
+			launch {
+				var seconds = 0L
+				do {
+					if (_state.value.vpnState == VpnState.Up) {
+						_state.value =
+							_state.value.copy(
+								statistics =
+								_state.value.statistics.copy(
+									connectionSeconds = seconds,
+								),
+							)
+						seconds++
+					}
+					delay(1000)
+				} while (true)
+			}
+		}
 
-					else -> Unit
+		private fun parseLibInfo(message: String) {
+			// TODO make this more robust in the future
+			with(message) {
+				when {
+					contains("Mixnet processor is running") -> setVpnState(VpnState.Up)
+					contains("Setting up connection monitor") -> setVpnState(VpnState.Up)
+					contains(
+						"Obtaining initial network topology",
+					) -> setVpnState(VpnState.Connecting.EstablishingConnection)
 				}
 			}
 		}
-		launch {
-			var seconds = 0L
-			do {
-				if (_state.value.vpnState == VpnState.Up) {
-					_state.value =
-						_state.value.copy(
-							statistics =
-							_state.value.statistics.copy(
-								connectionSeconds = seconds,
-							),
-						)
-					seconds++
-				}
-				delay(1000)
-			} while (true)
-		}
 	}
-
-	private fun parseLibInfo(message: String) {
-		// TODO make this more robust in the future
-		with(message) {
-			when {
-				contains("Mixnet processor is running") -> setVpnState(VpnState.Up)
-				contains("Nym VPN has shut down") -> setVpnState(VpnState.Down)
-				contains(
-					"Connecting to IP packet router",
-				) -> setVpnState(VpnState.Connecting.EstablishingConnection)
-			}
-		}
-	}
-
-	private fun clearErrorStatus() {
-		_state.value =
-			_state.value.copy(
-				errorState = ErrorState.None,
-			)
-	}
-
-	private fun setErrorState(message: String) {
-		_state.value =
-			_state.value.copy(
-				errorState = ErrorState.LibraryError(message),
-			)
-	}
-
-	internal fun setVpnState(state: VpnState) {
-		_state.value =
-			_state.value.copy(
-				vpnState = state,
-			)
-	}
-
-	override fun disconnect(context: Context) {
-		ServiceManager.stopVpnService(context)
-		statusJob?.cancel()
-		_state.value =
-			_state.value.copy(
-				statistics =
-				_state.value.statistics.copy(
-					connectionSeconds = null,
-				),
-			)
-	}
-
-	const val ENTRY_POINT_EXTRA_KEY = "entryPoint"
-	const val EXIT_POINT_EXTRA_KEY = "exitPoint"
-	const val TWO_HOP_EXTRA_KEY = "twoHop"
 }

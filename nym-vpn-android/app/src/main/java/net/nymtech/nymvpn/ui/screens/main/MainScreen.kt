@@ -154,14 +154,14 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: 
 					ListOptionSelectionButton(
 						label = stringResource(R.string.first_hop),
 						value = firstHopName,
-						onClick = { navController.navigate(NavItem.Hop.Entry.route) },
+						onClick = { if (uiState.connectionState is ConnectionState.Disconnected) navController.navigate(NavItem.Hop.Entry.route) },
 						leadingIcon = firstHopIcon,
 					)
 				}
 				ListOptionSelectionButton(
 					label = stringResource(R.string.last_hop),
 					value = lastHopName,
-					onClick = { navController.navigate(NavItem.Hop.Exit.route) },
+					onClick = { if (uiState.connectionState is ConnectionState.Disconnected) navController.navigate(NavItem.Hop.Exit.route) },
 					leadingIcon = lastHopIcon,
 				)
 			}

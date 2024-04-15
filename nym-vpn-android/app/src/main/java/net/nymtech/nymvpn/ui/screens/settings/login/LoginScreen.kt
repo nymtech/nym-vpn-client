@@ -147,7 +147,10 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
 					viewModel.onLogin(recoveryPhrase).let {
 						when (it) {
 							is Result.Success -> {
-								navController.navigate(NavItem.Main.route)
+								navController.navigate(NavItem.Main.route) {
+									// clear backstack after login
+									popUpTo(0)
+								}
 								appViewModel.showSnackbarMessage(
 									context.getString(R.string.credential_successful),
 								)

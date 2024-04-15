@@ -6,8 +6,11 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.service.gateway.GatewayApiService
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.vpn.NymVpnClient
+import net.nymtech.vpn.VpnClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
@@ -36,5 +39,11 @@ class ServiceModule {
 	@Provides
 	fun provideGatewayService(retrofit: Retrofit): GatewayApiService {
 		return retrofit.create(GatewayApiService::class.java)
+	}
+
+	@Singleton
+	@Provides
+	fun provideVpnClient(): VpnClient {
+		return NymVpnClient.init(environment = NymVpn.environment)
 	}
 }

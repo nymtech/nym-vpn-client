@@ -42,6 +42,8 @@ complexity:
     active: false
   LongMethod:
     active: false
+  ComplexCondition:
+      threshold: 5
   CyclomaticComplexMethod:
     ignoreAnnotated:
         - 'Composable'

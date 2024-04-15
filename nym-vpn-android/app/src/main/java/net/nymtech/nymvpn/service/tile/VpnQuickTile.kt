@@ -12,7 +12,7 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.vpn.NymVpnClient
+import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.model.VpnState
 import timber.log.Timber
@@ -23,7 +23,11 @@ class VpnQuickTile : TileService() {
 	@Inject
 	lateinit var gatewayRepository: GatewayRepository
 
+	@Inject
 	lateinit var settingsRepository: SettingsRepository
+
+	@Inject
+	lateinit var vpnClient: VpnClient
 
 	private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -32,7 +36,7 @@ class VpnQuickTile : TileService() {
 		Timber.d("Quick tile listening called")
 		setTileText()
 		scope.launch {
-			NymVpnClient.stateFlow.collect {
+			vpnClient.stateFlow.collect {
 				when (it.vpnState) {
 					VpnState.Up -> {
 						setActive()
@@ -76,17 +80,16 @@ class VpnQuickTile : TileService() {
 		setTileText()
 		Timber.i("Tile clicked")
 		unlockAndRun {
-			when (NymVpnClient.getState().vpnState) {
-				VpnState.Up -> NymVpnClient.disconnect(this)
+			when (vpnClient.getState().vpnState) {
+				VpnState.Up -> vpnClient.stop(this, true)
 				VpnState.Down -> {
 					scope.launch {
-						val entryCountry = gatewayRepository.getFirstHopCountry()
-						val exitCountry = gatewayRepository.getLastHopCountry()
-						val mode = settingsRepository.getVpnMode()
-						val entry = entryCountry.toEntryPoint()
-						val exit = exitCountry.toExitPoint()
-						NymVpnClient.configure(entry, exit, mode)
-						NymVpnClient.start(this@VpnQuickTile)
+						vpnClient.apply {
+							this.mode = settingsRepository.getVpnMode()
+							this.exitPoint = gatewayRepository.getLastHopCountry().toExitPoint()
+							this.entryPoint = gatewayRepository.getFirstHopCountry().toEntryPoint()
+						}
+						vpnClient.start(this@VpnQuickTile, true)
 						NymVpn.requestTileServiceStateUpdate(this@VpnQuickTile)
 					}
 				}

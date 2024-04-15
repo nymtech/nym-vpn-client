@@ -8,7 +8,7 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.util.goAsync
-import net.nymtech.vpn.NymVpnClient
+import net.nymtech.vpn.VpnClient
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -19,6 +19,9 @@ class BootReceiver : BroadcastReceiver() {
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
 
+	@Inject
+	lateinit var vpnClient: VpnClient
+
 	override fun onReceive(context: Context?, intent: Intent?) = goAsync {
 		if (Intent.ACTION_BOOT_COMPLETED != intent?.action) return@goAsync
 		if (settingsRepository.isAutoStartEnabled()) {
@@ -28,8 +31,11 @@ class BootReceiver : BroadcastReceiver() {
 			context?.let { context ->
 				val entry = entryCountry.toEntryPoint()
 				val exit = exitCountry.toExitPoint()
-				NymVpnClient.configure(entry, exit, mode)
-				NymVpnClient.start(context)
+				vpnClient.apply {
+					this.mode = mode
+					this.exitPoint = exit
+					this.entryPoint = entry
+				}.start(context, true)
 				NymVpn.requestTileServiceStateUpdate(context)
 			}
 		}

@@ -14,7 +14,7 @@ import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.tun_provider.TunConfig
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
-import net.nymtech.vpn_client.BuildConfig
+import nym_vpn_lib.FfiException
 import nym_vpn_lib.stopVpn
 import timber.log.Timber
 import java.net.Inet4Address
@@ -25,11 +25,6 @@ import java.util.concurrent.Executors
 class NymVpnService : VpnService() {
 	companion object {
 		init {
-			if (BuildConfig.IS_SANDBOX) {
-				Constants.setupEnvironmentSandbox()
-			} else {
-				Constants.setupEnvironmentMainnet()
-			}
 			System.loadLibrary(Constants.NYM_VPN_LIB)
 			Timber.i("Loaded native library in service")
 		}
@@ -63,21 +58,21 @@ class NymVpnService : VpnService() {
 
 	protected var disallowedApps: List<String>? = null
 
-	val singleDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+	private val singleDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
 	val connectivityListener = ConnectivityListener()
 
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 		when (intent?.action) {
 			Action.START.name, Action.START_FOREGROUND.name -> {
-				NymVpnClient.setVpnState(VpnState.Connecting.InitializingClient)
 				currentTunConfig = defaultTunConfig()
-				Timber.i("VPN start")
+				Timber.i("VPN start called")
 				if (prepare(this) == null) {
 					scope.launch {
 						withContext(singleDispatcher) {
+							NymVpnClient.NymVpn.setVpnState(VpnState.Connecting.InitializingClient)
 							initVPN(this@NymVpnService)
-							NymVpnClient.connect()
+							NymVpnClient.NymVpn.connect()
 						}
 					}
 				}
@@ -94,24 +89,28 @@ class NymVpnService : VpnService() {
 	override fun onCreate() {
 		connectivityListener.register(this)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			NotificationService.createNotificationChannel(this@NymVpnService)
+			NotificationManager.createNotificationChannel(this@NymVpnService)
 		}
-		val notification = NotificationService.createVpnRunningNotification(this@NymVpnService)
+		val notification = NotificationManager.createVpnRunningNotification(this@NymVpnService)
 		startForeground(123, notification)
 	}
 
 	private fun stopService() {
-		NymVpnClient.setVpnState(VpnState.Disconnecting)
 		scope.launch {
-			stopVpn()
+			try {
+				NymVpnClient.NymVpn.setVpnState(VpnState.Disconnecting)
+				stopVpn()
+			} catch (e: FfiException) {
+				Timber.e(e)
+			}
 			delay(1000)
-			NymVpnClient.setVpnState(VpnState.Down)
 			stopSelf()
 		}
 	}
 
 	override fun onDestroy() {
 		connectivityListener.unregister()
+		NymVpnClient.NymVpn.setVpnState(VpnState.Down)
 		stopForeground(STOP_FOREGROUND_REMOVE)
 		Timber.i("VpnService destroyed")
 		scope.cancel()
@@ -161,7 +160,7 @@ class NymVpnService : VpnService() {
 	}
 
 	private fun createTun(config: TunConfig): CreateTunResult {
-		if (VpnService.prepare(this) != null) {
+		if (prepare(this) != null) {
 			Timber.w("VPN permission denied")
 			// VPN permission wasn't granted
 			return CreateTunResult.PermissionDenied

@@ -12,6 +12,7 @@ import net.nymtech.nymvpn.service.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.log.DebugTree
 import net.nymtech.nymvpn.util.log.ReleaseTree
 import net.nymtech.nymvpn.util.navigationBarHeight
+import net.nymtech.vpn.model.Environment
 import timber.log.Timber
 
 @HiltAndroidApp
@@ -30,6 +31,8 @@ class NymVpn : Application() {
 	companion object {
 		lateinit var instance: NymVpn
 			private set
+
+		val environment = if (BuildConfig.IS_SANDBOX) Environment.SANDBOX else Environment.MAINNET
 
 		private const val BASELINE_HEIGHT = 2201
 		private const val BASELINE_WIDTH = 1080

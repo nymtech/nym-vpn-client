@@ -34,6 +34,7 @@ android {
 			Constants.SENTRY_DSN,
 			"\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\"",
 		)
+		buildConfigField("Boolean", "IS_SANDBOX", "false")
 		buildConfigField("Boolean", Constants.OPT_IN_REPORTING, "false")
 		proguardFile("fdroid-rules.pro")
 	}
@@ -131,6 +132,7 @@ android {
 			proguardFile("proguard-rules.pro")
 		}
 		create(Constants.SANDBOX) {
+			buildConfigField("Boolean", "IS_SANDBOX", "true")
 			dimension = Constants.TYPE
 		}
 	}

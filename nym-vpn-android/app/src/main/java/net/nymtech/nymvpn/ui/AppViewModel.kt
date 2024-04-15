@@ -26,7 +26,8 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
 import net.nymtech.nymvpn.util.log.NymLibException
-import net.nymtech.vpn.NymVpnClient
+import net.nymtech.vpn.NymApi
+import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.model.Country
 import nym_vpn_lib.FfiException
 import timber.log.Timber
@@ -40,6 +41,8 @@ constructor(
 	private val settingsRepository: SettingsRepository,
 	private val gatewayRepository: GatewayRepository,
 	private val application: Application,
+	private val vpnClient: VpnClient,
+	private val nymApi: NymApi,
 ) : ViewModel() {
 	private val _uiState = MutableStateFlow(AppUiState())
 
@@ -47,13 +50,14 @@ constructor(
 	private val logsBuffer = mutableListOf<LogMessage>()
 
 	val uiState =
-		combine(_uiState, settingsRepository.settingsFlow) { state, settings ->
+		combine(_uiState, settingsRepository.settingsFlow, vpnClient.stateFlow) { state, settings, vpnState ->
 			AppUiState(
 				false,
 				settings.theme,
 				settings.loggedIn,
 				state.snackbarMessage,
 				state.snackbarMessageConsumed,
+				vpnState.vpnState,
 			)
 		}.stateIn(
 			viewModelScope,
@@ -129,7 +133,7 @@ constructor(
 
 	private suspend fun updateEntryCountriesCache() {
 		try {
-			val entryCountries = NymVpnClient.gateways(false)
+			val entryCountries = nymApi.gateways(false)
 			gatewayRepository.setEntryCountries(entryCountries)
 		} catch (e: FfiException) {
 			Timber.e(e)
@@ -138,7 +142,7 @@ constructor(
 
 	private suspend fun updateExitCountriesCache() {
 		try {
-			val exitCountries = NymVpnClient.gateways(true)
+			val exitCountries = nymApi.gateways(true)
 			gatewayRepository.setExitCountries(exitCountries)
 		} catch (e: FfiException) {
 			Timber.e(e)
@@ -147,7 +151,7 @@ constructor(
 
 	private suspend fun setFirstHopToLowLatency() {
 		runCatching {
-			NymVpnClient.getLowLatencyEntryCountryCode()
+			nymApi.getLowLatencyEntryCountry()
 		}.onFailure {
 			Timber.e(it)
 		}.onSuccess {

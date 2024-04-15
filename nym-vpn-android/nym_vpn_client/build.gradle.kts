@@ -19,9 +19,6 @@ android {
 		minSdk = Constants.MIN_SDK
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		consumerProguardFiles("consumer-rules.pro")
-		buildConfigField("String", "API_URL", "\"${Constants.MAINNET_API_URL}\"")
-		buildConfigField("String", "EXPLORER_URL", "\"${Constants.MAINNET_EXPLORER_URL}\"")
-		buildConfigField("Boolean", "IS_SANDBOX", "false")
 	}
 
 	buildTypes {
@@ -46,9 +43,6 @@ android {
 			}
 			create(Constants.SANDBOX) {
 				dimension = Constants.TYPE
-				buildConfigField("String", "API_URL", "\"${Constants.SANDBOX_API_URL}\"")
-				buildConfigField("String", "EXPLORER_URL", "\"${Constants.SANDBOX_EXPLORER_URL}\"")
-				buildConfigField("Boolean", "IS_SANDBOX", "true")
 			}
 		}
 	}

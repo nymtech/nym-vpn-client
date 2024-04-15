@@ -17,7 +17,7 @@ import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.NumberUtils
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpn.NymVpnClient
+import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.model.ErrorState
 import net.nymtech.vpn.model.VpnMode
 import javax.inject.Inject
@@ -29,12 +29,13 @@ constructor(
 	private val gatewayRepository: GatewayRepository,
 	private val settingsRepository: SettingsRepository,
 	private val application: Application,
+	private val vpnClient: VpnClient,
 ) : ViewModel() {
 	val uiState =
 		combine(
 			gatewayRepository.gatewayFlow,
 			settingsRepository.settingsFlow,
-			NymVpnClient.stateFlow,
+			vpnClient.stateFlow,
 		) { gateways, settings, clientState ->
 			val connectionTime =
 				clientState.statistics.connectionSeconds?.let {
@@ -86,13 +87,16 @@ constructor(
 		val mode = settingsRepository.getVpnMode()
 		val entry = entryCountry.toEntryPoint()
 		val exit = exitCountry.toExitPoint()
-		NymVpnClient.configure(entry, exit, mode)
-		NymVpnClient.start(application)
+		vpnClient.apply {
+			this.exitPoint = exit
+			this.entryPoint = entry
+			this.mode = mode
+		}.start(application)
 		NymVpn.requestTileServiceStateUpdate(application)
 	}
 
 	fun onDisconnect() = viewModelScope.launch {
-		NymVpnClient.disconnect(application)
+		vpnClient.stop(application)
 		NymVpn.requestTileServiceStateUpdate(application)
 	}
 }

@@ -10,9 +10,9 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import net.nymtech.vpn_client.R
 
-internal object NotificationService {
+internal object NotificationManager {
 
-	const val VPN_CHANNEL_ID = "vpnChannel"
+	private const val VPN_CHANNEL_ID = "vpnChannel"
 	fun createNotificationChannel(context: Context) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			// Create the NotificationChannel.

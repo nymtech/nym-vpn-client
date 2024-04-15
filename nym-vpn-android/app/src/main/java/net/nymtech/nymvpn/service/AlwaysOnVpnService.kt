@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.vpn.NymVpnClient
+import net.nymtech.vpn.VpnClient
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -20,6 +20,9 @@ class AlwaysOnVpnService : LifecycleService() {
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
+
+	@Inject
+	lateinit var vpnClient: VpnClient
 
 	override fun onBind(intent: Intent): IBinder? {
 		super.onBind(intent)
@@ -36,8 +39,12 @@ class AlwaysOnVpnService : LifecycleService() {
 				val mode = settingsRepository.getVpnMode()
 				val entry = entryCountry.toEntryPoint()
 				val exit = exitCountry.toExitPoint()
-				NymVpnClient.configure(entry, exit, mode)
-				NymVpnClient.start(this@AlwaysOnVpnService)
+				vpnClient.apply {
+					this.mode = mode
+					this.entryPoint = entry
+					this.exitPoint = exit
+				}
+				vpnClient.start(this@AlwaysOnVpnService, true)
 				NymVpn.requestTileServiceStateUpdate(this@AlwaysOnVpnService)
 			}
 			START_STICKY

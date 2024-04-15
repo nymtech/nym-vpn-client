@@ -35,6 +35,7 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.vpn.model.VpnState
 
 @Composable
 fun SettingsScreen(
@@ -117,6 +118,7 @@ fun SettingsScreen(
 							Modifier
 								.height(32.dp.scaledHeight())
 								.width(52.dp.scaledWidth()),
+							enabled = (appUiState.vpnState is VpnState.Down),
 						)
 					},
 					stringResource(R.string.entry_location),
