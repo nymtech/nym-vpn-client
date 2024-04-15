@@ -21,10 +21,13 @@ log.workspace = true
 tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
 tracing-subscriber.workspace = true
 tracing.workspace = true
+bytes.workspace = true
+pnet_packet.workspace = true
 
 nym-client-core.workspace = true
 nym-connection-monitor = { path = "../crates/nym-connection-monitor" }
 nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
+nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
 nym-task.workspace = true
 nym-vpn-lib = { path = "../nym-vpn-lib" }
