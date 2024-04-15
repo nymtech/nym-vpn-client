@@ -4665,6 +4665,7 @@ name = "nym-vpnd"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "dirs 5.0.1",
  "futures",
  "nym-task",
  "nym-vpn-lib",
