@@ -15,7 +15,7 @@ use tokio::sync::mpsc::UnboundedSender;
 use tracing::{error, info};
 
 use super::connection_handler::CommandInterfaceConnectionHandler;
-use crate::service::{VpnServiceCommand, VpnServiceConnectResult, VpnServiceStatusResult};
+use crate::service::{VpnServiceCommand, VpnServiceStatusResult};
 
 enum ListenerType {
     Path(PathBuf),

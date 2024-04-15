@@ -12,6 +12,7 @@ use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::oneshot;
 use tracing::info;
 
+use super::config::{DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR};
 use super::exit_listener::VpnServiceExitListener;
 use super::status_listener::VpnServiceStatusListener;
 
@@ -89,9 +90,6 @@ pub(super) struct NymVpnService {
     #[allow(unused)]
     data_dir: PathBuf,
 }
-
-const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
-const DEFAULT_CONFIG_FILE: &str = "/etc/nym/nym-vpnd.toml";
 
 impl NymVpnService {
     pub(super) fn new(vpn_command_rx: UnboundedReceiver<VpnServiceCommand>) -> Self {
