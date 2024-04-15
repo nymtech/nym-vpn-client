@@ -11,12 +11,13 @@ license.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow.workspace = true
 clap = { workspace = true, features = ["derive"] }
 parity-tokio-ipc.workspace = true
 prost.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"]}
 tonic.workspace = true
-tower = "0.4.13"
+tower.workspace = true
 
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
 

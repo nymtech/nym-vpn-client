@@ -29,7 +29,7 @@ enum Command {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
     match args.command {
         Command::Connect => connect(&args).await?,
@@ -53,15 +53,19 @@ async fn get_channel() -> TonicChannel {
         .unwrap()
 }
 
+fn default_endpoint() -> String {
+    "http://[::1]:53181".to_string()
+}
+
 async fn get_client(args: &CliArgs) -> NymVpndClient<TonicChannel> {
     if args.http {
-        NymVpndClient::connect("http://[::1]:53181").await.unwrap()
+        NymVpndClient::connect(default_endpoint()).await.unwrap()
     } else {
         NymVpndClient::new(get_channel().await)
     }
 }
 
-async fn connect(args: &CliArgs) -> Result<(), Box<dyn std::error::Error>> {
+async fn connect(args: &CliArgs) -> anyhow::Result<()> {
     let mut client = get_client(args).await;
     let request = tonic::Request::new(ConnectRequest {});
     let response = client.vpn_connect(request).await?.into_inner();
@@ -69,7 +73,7 @@ async fn connect(args: &CliArgs) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-async fn disconnect(args: &CliArgs) -> Result<(), Box<dyn std::error::Error>> {
+async fn disconnect(args: &CliArgs) -> anyhow::Result<()> {
     let mut client = get_client(args).await;
     let request = tonic::Request::new(DisconnectRequest {});
     let response = client.vpn_disconnect(request).await?.into_inner();
@@ -77,7 +81,7 @@ async fn disconnect(args: &CliArgs) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-async fn status(args: &CliArgs) -> Result<(), Box<dyn std::error::Error>> {
+async fn status(args: &CliArgs) -> anyhow::Result<()> {
     let mut client = get_client(args).await;
     let request = tonic::Request::new(StatusRequest {});
     let response = client.vpn_status(request).await?.into_inner();
