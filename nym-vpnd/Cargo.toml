@@ -6,14 +6,17 @@ license = "GPL-3.0-only"
 
 
 [dependencies]
+anyhow.workspace = true
 clap.workspace = true
 dirs.workspace = true
 futures.workspace = true
 parity-tokio-ipc.workspace = true
 prost.workspace = true
 reqwest = { workspace = true, default-features = false, features = ["rustls-tls"] }
+serde.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["full"]}
+toml.workspace = true
 tonic.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
