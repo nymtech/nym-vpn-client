@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
-use std::future::Future;
-use std::path::PathBuf;
-use std::str::FromStr;
+use crate::credentials::{import_credential_base58, import_credential_file};
 use crate::gateway_directory::GatewayClient;
 use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location};
 use crate::{
@@ -14,15 +12,17 @@ use crate::{
 use futures::{StreamExt, TryFutureExt};
 use lazy_static::lazy_static;
 use log::*;
+use nix::libc::res_init;
 use nym_task::manager::TaskStatus;
+use std::future::Future;
+use std::path::PathBuf;
+use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use nix::libc::res_init;
 use talpid_core::mpsc::Sender;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
 use url::Url;
-use crate::credentials::{import_credential_base58, import_credential_file};
 
 use self::error::FFIError;
 
@@ -158,9 +158,9 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
 #[uniffi::export]
 pub fn importCredential(credential: String, dataPath: String) -> Result<(), FFIError> {
     let path_result = PathBuf::from_str(&*dataPath);
-    let path_buf= match path_result {
+    let path_buf = match path_result {
         Ok(p) => p,
-        Err(err) => return Err(FFIError::InvalidPath)
+        Err(err) => return Err(FFIError::InvalidPath),
     };
     import_credential_base58(&*credential, path_buf).map_err(|_| FFIError::InvalidCredential)?
 }
@@ -170,17 +170,16 @@ pub fn importCredential(credential: String, dataPath: String) -> Result<(), FFIE
 pub fn importCredentialFile(filePath: String, dataPath: String) -> Result<(), FFIError> {
     let file_path_result = PathBuf::from_str(&*dataPath);
     let data_path_result = PathBuf::from_str(&*dataPath);
-    let file_path= match file_path_result {
+    let file_path = match file_path_result {
         Ok(p) => p,
-        Err(err) => return Err(FFIError::InvalidPath)
+        Err(err) => return Err(FFIError::InvalidPath),
     };
-    let data_path =match data_path_result {
+    let data_path = match data_path_result {
         Ok(p) => p,
-        Err(err) => return Err(FFIError::InvalidPath)
+        Err(err) => return Err(FFIError::InvalidPath),
     };
-    import_credential_file(file_path,data_path).map_err(|_| FFIError::InvalidCredential)?
+    import_credential_file(file_path, data_path).map_err(|_| FFIError::InvalidCredential)?
 }
-
 
 async fn run_vpn(vpn: NymVpn) -> Result<(), FFIError> {
     match _async_run_vpn(vpn).await {
