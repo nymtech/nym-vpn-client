@@ -17,6 +17,7 @@ use super::{
 use crate::{cli::CliArgs, service::VpnServiceCommand};
 
 fn spawn_uri_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, addr: SocketAddr) {
+    info!("Starting HTTP listener on: {addr}");
     tokio::task::spawn(async move {
         let command_interface = CommandInterface::new_with_uri(vpn_command_tx, addr);
         Server::builder()
@@ -28,6 +29,7 @@ fn spawn_uri_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, addr: 
 }
 
 fn spawn_socket_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, socket_path: PathBuf) {
+    info!("Starting socket listener on: {}", socket_path.display());
     tokio::task::spawn(async move {
         let command_interface = CommandInterface::new_with_path(vpn_command_tx, &socket_path);
         let incoming = setup_socket_stream(&socket_path);
