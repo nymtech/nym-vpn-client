@@ -1,10 +1,17 @@
 use bytes::{Bytes, BytesMut};
 use futures::StreamExt;
-use nym_connection_monitor::ConnectionStatusEvent;
+use nym_connection_monitor::{
+    packet_helpers::{
+        create_icmpv4_echo_request, create_icmpv6_echo_request, wrap_icmp_in_ipv4,
+        wrap_icmp_in_ipv6,
+    },
+    ConnectionStatusEvent,
+};
 use nym_gateway_directory::{DescribedGatewayWithLocation, GatewayClient, IpPacketRouterAddress};
 use nym_ip_packet_requests::{
     codec::MultiIpPacketCodec,
     response::{InfoLevel, IpPacketResponse, IpPacketResponseData},
+    IpPair,
 };
 use nym_sdk::mixnet::{InputMessage, MixnetClientBuilder, Recipient};
 use nym_task::connections::TransmissionLane;
@@ -21,7 +28,11 @@ use nym_vpn_lib::{
     },
 };
 use pnet_packet::Packet;
-use std::{net::Ipv4Addr, path::PathBuf, time::Duration};
+use std::{
+    net::{Ipv4Addr, Ipv6Addr},
+    path::PathBuf,
+    time::Duration,
+};
 use tokio_util::codec::Decoder;
 use tracing::*;
 
@@ -38,7 +49,7 @@ async fn main() -> anyhow::Result<()> {
 async fn run() -> anyhow::Result<PingResult> {
     setup_logging();
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
-    // setup_env(args.config_env_file.as_ref());
+    // mainnet by default
     setup_env::<PathBuf>(None);
     let result = ping(EntryPoint::Random, ExitPoint::Random).await;
     match result {
@@ -174,34 +185,49 @@ async fn do_ping(
 
     // --- Step 3 ---
     // Perform ICMP connectivity checks for exit gateway
-
-    // Create ICMP/IPv4 echo request packet
+    let ipr_tun_ip_v4 = Ipv4Addr::new(10, 0, 0, 1);
+    let ipr_tun_ip_v6 = Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);
+    let external_ip_v4 = Ipv4Addr::new(8, 8, 8, 8);
+    let external_ip_v6 = Ipv6Addr::new(0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8888);
+    info!("Sending ICMP echo requests to: {ipr_tun_ip_v4}, {ipr_tun_ip_v6}, {external_ip_v4}, {external_ip_v6}");
     for ii in 0..10 {
-        let sequence_number = ii;
-        let icmp_identifier = icmp_identifier();
-        let icmp_echo_request = nym_connection_monitor::packet_helpers::create_icmpv4_echo_request(
-            sequence_number,
-            icmp_identifier,
-        )?;
-        let destination = "10.0.0.1".parse::<Ipv4Addr>()?;
-        let ipv4_packet = nym_connection_monitor::packet_helpers::wrap_icmp_in_ipv4(
-            icmp_echo_request,
-            our_ips.ipv4,
-            destination,
-        )?;
-
-        // Wrap the IPv4 packet in a MultiIpPacket
-        let bundled_packet =
-            MultiIpPacketCodec::bundle_one_packet(ipv4_packet.packet().to_vec().into());
-
-        // Wrap into a mixnet input message addressed to the IPR
-        let two_hop = true;
-        let mixnet_message = create_input_message(exit_router_address.0, bundled_packet, two_hop)?;
-
-        shared_mixnet_client.send(mixnet_message).await?;
+        // HACK: there is hidden hardcoded assumption about these IPs inside
+        // `check_for_icmp_beacon_reply`
+        send_ping_v4(
+            shared_mixnet_client.clone(),
+            our_ips,
+            ii,
+            ipr_tun_ip_v4,
+            exit_router_address,
+        )
+        .await?;
+        send_ping_v4(
+            shared_mixnet_client.clone(),
+            our_ips,
+            ii,
+            external_ip_v4,
+            exit_router_address,
+        )
+        .await?;
+        send_ping_v6(
+            shared_mixnet_client.clone(),
+            our_ips,
+            ii,
+            ipr_tun_ip_v6,
+            exit_router_address,
+        )
+        .await?;
+        send_ping_v6(
+            shared_mixnet_client.clone(),
+            our_ips,
+            ii,
+            external_ip_v6,
+            exit_router_address,
+        )
+        .await?;
     }
 
-    // Listen for reply
+    // Listen for replies
     // HACK: take it out of the shared mixnet client
     let mut mixnet_client = shared_mixnet_client.inner().lock().await.take().unwrap();
     let mut multi_ip_packet_decoder =
@@ -270,6 +296,58 @@ async fn do_ping(
         .await
         .replace(mixnet_client);
     Ok(PingOutcome::IpPingReplies(registered_replies))
+}
+
+async fn send_ping_v4(
+    shared_mixnet_client: SharedMixnetClient,
+    our_ips: IpPair,
+    sequence_number: u16,
+    destination: Ipv4Addr,
+    exit_router_address: IpPacketRouterAddress,
+) -> anyhow::Result<()> {
+    let icmp_identifier = icmp_identifier();
+    let icmp_echo_request = create_icmpv4_echo_request(sequence_number, icmp_identifier)?;
+    let ipv4_packet = wrap_icmp_in_ipv4(icmp_echo_request, our_ips.ipv4, destination)?;
+
+    // Wrap the IPv4 packet in a MultiIpPacket
+    let bundled_packet =
+        MultiIpPacketCodec::bundle_one_packet(ipv4_packet.packet().to_vec().into());
+
+    // Wrap into a mixnet input message addressed to the IPR
+    let two_hop = true;
+    let mixnet_message = create_input_message(exit_router_address.0, bundled_packet, two_hop)?;
+
+    shared_mixnet_client.send(mixnet_message).await?;
+    Ok(())
+}
+
+async fn send_ping_v6(
+    shared_mixnet_client: SharedMixnetClient,
+    our_ips: IpPair,
+    sequence_number: u16,
+    destination: Ipv6Addr,
+    exit_router_address: IpPacketRouterAddress,
+) -> anyhow::Result<()> {
+    let icmp_identifier = icmp_identifier();
+    let icmp_echo_request = create_icmpv6_echo_request(
+        sequence_number,
+        icmp_identifier,
+        &our_ips.ipv6,
+        &destination,
+    )?;
+    let ipv6_packet = wrap_icmp_in_ipv6(icmp_echo_request, our_ips.ipv6, destination)?;
+
+    // Wrap the IPv6 packet in a MultiIpPacket
+    let bundled_packet =
+        MultiIpPacketCodec::bundle_one_packet(ipv6_packet.packet().to_vec().into());
+
+    // Wrap into a mixnet input message addressed to the IPR
+    let two_hop = true;
+    let mixnet_message = create_input_message(exit_router_address.0, bundled_packet, two_hop)?;
+
+    // Send across the mixnet
+    shared_mixnet_client.send(mixnet_message).await?;
+    Ok(())
 }
 
 fn icmp_identifier() -> u16 {
