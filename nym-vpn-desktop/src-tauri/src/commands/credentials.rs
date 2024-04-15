@@ -4,7 +4,7 @@ use tracing::{debug, error, info, instrument};
 
 use crate::{
     error::{CmdError, CmdErrorSource},
-    fs::utils::check_dir,
+    fs::util::check_dir,
     APP_DIR,
 };
 
