@@ -40,7 +40,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 fn get_socket_path() -> PathBuf {
-    Path::new("/var/run/nym-vpn.socket").to_path_buf()
+    Path::new("/var/run/nym-vpn.sock").to_path_buf()
 }
 
 async fn get_channel() -> TonicChannel {
