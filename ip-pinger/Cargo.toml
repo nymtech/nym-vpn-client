@@ -13,16 +13,17 @@ license.workspace = true
 [dependencies]
 anyhow.workspace = true
 bs58.workspace = true
+bytes.workspace = true
 clap = { workspace = true, features = ["cargo", "derive"] }
 dirs.workspace = true
 futures.workspace = true
 ipnetwork.workspace = true
 log.workspace = true
+pnet_packet.workspace = true
 tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
+tokio-util.workspace = true
 tracing-subscriber.workspace = true
 tracing.workspace = true
-bytes.workspace = true
-pnet_packet.workspace = true
 
 nym-client-core.workspace = true
 nym-connection-monitor = { path = "../crates/nym-connection-monitor" }

@@ -2794,6 +2794,7 @@ dependencies = [
  "nym-vpn-lib",
  "pnet_packet",
  "tokio",
+ "tokio-util",
  "tracing",
  "tracing-subscriber",
 ]

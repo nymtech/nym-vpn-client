@@ -259,7 +259,7 @@ impl MixnetProcessor {
     }
 }
 
-fn check_for_icmp_beacon_reply(
+pub fn check_for_icmp_beacon_reply(
     packet: &Bytes,
     icmp_beacon_identifier: u16,
     our_ips: IpPair,
