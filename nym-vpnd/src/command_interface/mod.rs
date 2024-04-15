@@ -3,8 +3,8 @@
 
 mod config;
 mod connection_handler;
-mod incoming_stream;
 mod listener;
+mod socket_stream;
 mod start;
 
 pub(crate) use start::start_command_interface;

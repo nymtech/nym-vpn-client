@@ -11,8 +11,8 @@ use tracing::info;
 
 use super::{
     config::{default_socket_path, default_uri_addr},
-    incoming_stream::setup_socket_stream,
     listener::CommandInterface,
+    socket_stream::setup_socket_stream,
 };
 use crate::{cli::CliArgs, service::VpnServiceCommand};
 
