@@ -20,5 +20,5 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class net.nymtech.logcat-helper.** { *; }
+-keep class net.nymtech.logcathelper.** { *; }
 -dontwarn java.lang.invoke.StringConcatFactory
