@@ -9,12 +9,10 @@ use crate::{
     spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
     NymVpnHandle,
 };
-use futures::{StreamExt, TryFutureExt};
+use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
-use nix::libc::res_init;
 use nym_task::manager::TaskStatus;
-use std::future::Future;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -157,28 +155,48 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn importCredential(credential: String, dataPath: String) -> Result<(), FFIError> {
-    let path_result = PathBuf::from_str(&*dataPath);
+    RUNTIME.block_on(import_credential_from_string(&credential, &dataPath))
+}
+
+async fn import_credential_from_string(credential: &str, data_path: &str) -> Result<(), FFIError> {
+    let path_result = PathBuf::from_str(data_path);
     let path_buf = match path_result {
         Ok(p) => p,
-        Err(err) => return Err(FFIError::InvalidPath),
+        Err(_) => return Err(FFIError::InvalidPath),
     };
-    import_credential_base58(&*credential, path_buf).map_err(|_| FFIError::InvalidCredential)?
+    match import_credential_base58(credential, path_buf).await {
+        Ok(_) => Ok(()),
+        Err(_) => Err(FFIError::InvalidCredential),
+    }
 }
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn importCredentialFile(filePath: String, dataPath: String) -> Result<(), FFIError> {
-    let file_path_result = PathBuf::from_str(&*dataPath);
-    let data_path_result = PathBuf::from_str(&*dataPath);
+pub fn importCredentialFile(
+    #[allow(non_snake_case)] filePath: String,
+    #[allow(non_snake_case)] dataPath: String,
+) -> Result<(), FFIError> {
+    RUNTIME.block_on(import_credential_from_file(&filePath, &dataPath))
+}
+
+async fn import_credential_from_file(
+    #[allow(non_snake_case)] file_path: &str,
+    #[allow(non_snake_case)] data_path: &str,
+) -> Result<(), FFIError> {
+    let file_path_result = PathBuf::from_str(file_path);
+    let data_path_result = PathBuf::from_str(data_path);
     let file_path = match file_path_result {
         Ok(p) => p,
-        Err(err) => return Err(FFIError::InvalidPath),
+        Err(_) => return Err(FFIError::InvalidPath),
     };
     let data_path = match data_path_result {
         Ok(p) => p,
-        Err(err) => return Err(FFIError::InvalidPath),
+        Err(_) => return Err(FFIError::InvalidPath),
     };
-    import_credential_file(file_path, data_path).map_err(|_| FFIError::InvalidCredential)?
+    match import_credential_file(file_path, data_path).await {
+        Ok(_) => Ok(()),
+        Err(_) => Err(FFIError::InvalidCredential),
+    }
 }
 
 async fn run_vpn(vpn: NymVpn) -> Result<(), FFIError> {
