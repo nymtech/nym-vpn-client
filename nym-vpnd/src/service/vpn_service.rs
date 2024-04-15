@@ -12,7 +12,7 @@ use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::oneshot;
 use tracing::info;
 
-use super::config::{DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR};
+use super::config::{DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR};
 use super::exit_listener::VpnServiceExitListener;
 use super::status_listener::VpnServiceStatusListener;
 
@@ -34,7 +34,6 @@ pub enum VpnServiceCommand {
 #[derive(Debug)]
 pub enum VpnServiceConnectResult {
     Success,
-    #[allow(unused)]
     Fail(String),
 }
 
@@ -91,11 +90,37 @@ pub(super) struct NymVpnService {
     data_dir: PathBuf,
 }
 
+#[derive(thiserror::Error, Debug)]
+enum ConfigSetupError {
+    #[error("failed to parse config file {file}: {error}")]
+    FailedToParse {
+        file: PathBuf,
+        error: toml::de::Error,
+    },
+    #[error("failed to read config file {file}: {error}")]
+    FailedToReadConfig {
+        file: PathBuf,
+        error: std::io::Error,
+    },
+    #[error("failed to get parent directory of {file}")]
+    FailedToGetParentDirectory { file: PathBuf },
+
+    #[error("failed to create directory {dir}: {error}")]
+    FailedToCreateDirectory { dir: PathBuf, error: std::io::Error },
+
+    #[error("failed to write file {file}: {error}")]
+    FailedToWriteFile {
+        file: PathBuf,
+        error: std::io::Error,
+    },
+}
+
 impl NymVpnService {
     pub(super) fn new(vpn_command_rx: UnboundedReceiver<VpnServiceCommand>) -> Self {
-        let config_file = std::env::var("NYM_VPND_CONFIG_FILE")
+        let config_dir = std::env::var("NYM_VPND_CONFIG_DIR")
             .map(PathBuf::from)
-            .unwrap_or_else(|_| PathBuf::from(DEFAULT_CONFIG_FILE));
+            .unwrap_or_else(|_| PathBuf::from(DEFAULT_CONFIG_DIR));
+        let config_file = config_dir.join(DEFAULT_CONFIG_FILE);
         let data_dir = std::env::var("NYM_VPND_DATA_DIR")
             .map(PathBuf::from)
             .unwrap_or_else(|_| PathBuf::from(DEFAULT_DATA_DIR));
@@ -108,26 +133,24 @@ impl NymVpnService {
         }
     }
 
-    fn try_setup_config(
-        &self,
-    ) -> std::result::Result<NymVpnServiceConfig, VpnServiceConnectResult> {
+    fn try_setup_config(&self) -> std::result::Result<NymVpnServiceConfig, ConfigSetupError> {
         // If the config file does not exit, create it
         let config = if self.config_file.exists() {
             let config: NymVpnServiceConfig = match std::fs::read_to_string(&self.config_file) {
                 Ok(content) => match toml::from_str(&content) {
                     Ok(config) => config,
-                    Err(err) => {
-                        return Err(VpnServiceConnectResult::Fail(format!(
-                            "Failed to parse config file {:?}: {:?}",
-                            self.config_file, err
-                        )));
+                    Err(error) => {
+                        return Err(ConfigSetupError::FailedToParse {
+                            file: self.config_file.clone(),
+                            error,
+                        });
                     }
                 },
-                Err(err) => {
-                    return Err(VpnServiceConnectResult::Fail(format!(
-                        "Failed to read config file {:?}: {:?}",
-                        self.config_file, err
-                    )));
+                Err(error) => {
+                    return Err(ConfigSetupError::FailedToReadConfig {
+                        file: self.config_file.clone(),
+                        error,
+                    });
                 }
             };
             config
@@ -136,30 +159,29 @@ impl NymVpnService {
             let config_str = toml::to_string(&config).unwrap();
             // Create path
             match self.config_file.parent() {
-                Some(parent) => {
-                    if let Err(err) = std::fs::create_dir_all(parent) {
-                        return Err(VpnServiceConnectResult::Fail(format!(
-                            "Failed to create parent directory {:?}: {:?}",
-                            parent, err
-                        )));
+                Some(dir) => {
+                    if let Err(error) = std::fs::create_dir_all(dir) {
+                        return Err(ConfigSetupError::FailedToCreateDirectory {
+                            dir: dir.to_path_buf(),
+                            error,
+                        });
                     }
                 }
                 None => {
-                    return Err(VpnServiceConnectResult::Fail(format!(
-                        "Failed to get parent directory of {:?}",
-                        self.config_file
-                    )));
+                    return Err(ConfigSetupError::FailedToGetParentDirectory {
+                        file: self.config_file.clone(),
+                    });
                 }
             }
             match std::fs::write(&self.config_file, config_str) {
                 Ok(_) => {
                     info!("Config file created at {:?}", self.config_file);
                 }
-                Err(err) => {
-                    return Err(VpnServiceConnectResult::Fail(format!(
-                        "Failed to create config file {:?}: {:?}",
-                        self.config_file, err
-                    )));
+                Err(error) => {
+                    return Err(ConfigSetupError::FailedToWriteFile {
+                        file: self.config_file.clone(),
+                        error,
+                    });
                 }
             }
             config
@@ -174,7 +196,7 @@ impl NymVpnService {
             Ok(config) => config,
             Err(err) => {
                 self.set_shared_state(VpnState::NotConnected);
-                return err;
+                return VpnServiceConnectResult::Fail(err.to_string());
             }
         };
 
