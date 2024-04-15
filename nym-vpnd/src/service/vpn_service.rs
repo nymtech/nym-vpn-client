@@ -12,7 +12,10 @@ use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::oneshot;
 use tracing::info;
 
-use super::config::{DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR};
+use super::config::{
+    create_config_file, read_config_file, ConfigSetupError, NymVpnServiceConfig,
+    DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR,
+};
 use super::exit_listener::VpnServiceExitListener;
 use super::status_listener::VpnServiceStatusListener;
 
@@ -65,22 +68,6 @@ pub enum VpnServiceStatusResult {
     Disconnecting,
 }
 
-// Config file saves as toml file
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-struct NymVpnServiceConfig {
-    entry_point: gateway_directory::EntryPoint,
-    exit_point: gateway_directory::ExitPoint,
-}
-
-impl Default for NymVpnServiceConfig {
-    fn default() -> Self {
-        Self {
-            entry_point: gateway_directory::EntryPoint::Random,
-            exit_point: gateway_directory::ExitPoint::Random,
-        }
-    }
-}
-
 pub(super) struct NymVpnService {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
     vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
@@ -88,31 +75,6 @@ pub(super) struct NymVpnService {
     config_file: PathBuf,
     #[allow(unused)]
     data_dir: PathBuf,
-}
-
-#[derive(thiserror::Error, Debug)]
-enum ConfigSetupError {
-    #[error("failed to parse config file {file}: {error}")]
-    FailedToParse {
-        file: PathBuf,
-        error: toml::de::Error,
-    },
-    #[error("failed to read config file {file}: {error}")]
-    FailedToReadConfig {
-        file: PathBuf,
-        error: std::io::Error,
-    },
-    #[error("failed to get parent directory of {file}")]
-    FailedToGetParentDirectory { file: PathBuf },
-
-    #[error("failed to create directory {dir}: {error}")]
-    FailedToCreateDirectory { dir: PathBuf, error: std::io::Error },
-
-    #[error("failed to write file {file}: {error}")]
-    FailedToWriteFile {
-        file: PathBuf,
-        error: std::io::Error,
-    },
 }
 
 impl NymVpnService {
@@ -136,55 +98,9 @@ impl NymVpnService {
     fn try_setup_config(&self) -> std::result::Result<NymVpnServiceConfig, ConfigSetupError> {
         // If the config file does not exit, create it
         let config = if self.config_file.exists() {
-            let config: NymVpnServiceConfig = match std::fs::read_to_string(&self.config_file) {
-                Ok(content) => match toml::from_str(&content) {
-                    Ok(config) => config,
-                    Err(error) => {
-                        return Err(ConfigSetupError::FailedToParse {
-                            file: self.config_file.clone(),
-                            error,
-                        });
-                    }
-                },
-                Err(error) => {
-                    return Err(ConfigSetupError::FailedToReadConfig {
-                        file: self.config_file.clone(),
-                        error,
-                    });
-                }
-            };
-            config
+            read_config_file(&self.config_file)?
         } else {
-            let config = NymVpnServiceConfig::default();
-            let config_str = toml::to_string(&config).unwrap();
-            // Create path
-            match self.config_file.parent() {
-                Some(dir) => {
-                    if let Err(error) = std::fs::create_dir_all(dir) {
-                        return Err(ConfigSetupError::FailedToCreateDirectory {
-                            dir: dir.to_path_buf(),
-                            error,
-                        });
-                    }
-                }
-                None => {
-                    return Err(ConfigSetupError::FailedToGetParentDirectory {
-                        file: self.config_file.clone(),
-                    });
-                }
-            }
-            match std::fs::write(&self.config_file, config_str) {
-                Ok(_) => {
-                    info!("Config file created at {:?}", self.config_file);
-                }
-                Err(error) => {
-                    return Err(ConfigSetupError::FailedToWriteFile {
-                        file: self.config_file.clone(),
-                        error,
-                    });
-                }
-            }
-            config
+            create_config_file(&self.config_file, NymVpnServiceConfig::default())?
         };
         Ok(config)
     }

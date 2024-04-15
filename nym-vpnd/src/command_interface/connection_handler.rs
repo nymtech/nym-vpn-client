@@ -37,7 +37,7 @@ impl CommandInterfaceConnectionHandler {
         result
     }
 
-    pub(crate) async fn handle_disconnect(&self) -> VpnServiceDisconnectResult{
+    pub(crate) async fn handle_disconnect(&self) -> VpnServiceDisconnectResult {
         let (tx, rx) = oneshot::channel();
         self.vpn_command_tx
             .send(VpnServiceCommand::Disconnect(tx))
