@@ -104,14 +104,28 @@ async fn run_vpn() -> Result<()> {
         .connect_to_mixnet()
         .await?;
 
-    let nym_address = mixnet_client.nym_address();
+    let nym_address = mixnet_client.nym_address().clone();
     let entry_gateway = nym_address.gateway().to_base58_string();
 
     info!("Successfully connected to entry gateway: {entry_gateway}");
 
-    // Perform mixnet connectivity check for entry gateway by looping a few messages to ourselves
+    info!("Sending mixnet ping to ourselves to verify mixnet connection");
+    let shared_mixnet_client = nym_vpn_lib::mixnet_connect::SharedMixnetClient::new(mixnet_client);
+    nym_connection_monitor::self_ping_and_wait(nym_address, shared_mixnet_client.inner()).await?;
+    info!("Successfully mixnet pinged ourselves");
 
-    // Connect to exit gateway
+    let exit_gateway = exit_router_address.gateway().to_base58_string();
+    info!("Connecting to exit gateway: {exit_gateway}");
+    let enable_two_hop = false;
+    let our_ips = nym_vpn_lib::mixnet_connect::connect_to_ip_packet_router(
+        shared_mixnet_client,
+        &exit_router_address,
+        None,
+        enable_two_hop,
+    )
+    .await?;
+    info!("Successfully connected to exit gateway");
+    info!("Using mixnet VPN IP addresses: {our_ips}");
 
     // Perform ICMP connectivity check for exit gateway
 
