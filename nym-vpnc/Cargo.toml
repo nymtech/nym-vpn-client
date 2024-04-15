@@ -12,9 +12,11 @@ license.workspace = true
 
 [dependencies]
 clap = { workspace = true, features = ["derive"] }
+parity-tokio-ipc.workspace = true
 prost.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"]}
 tonic.workspace = true
+tower = "0.4.13"
 
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
 

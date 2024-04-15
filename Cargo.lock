@@ -4652,9 +4652,11 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "nym-vpn-proto",
+ "parity-tokio-ipc",
  "prost 0.12.4",
  "tokio",
  "tonic 0.11.0",
+ "tower",
  "vergen",
 ]
 
@@ -4667,8 +4669,10 @@ dependencies = [
  "nym-task",
  "nym-vpn-lib",
  "nym-vpn-proto",
+ "parity-tokio-ipc",
  "prost 0.12.4",
  "reqwest",
+ "thiserror",
  "tokio",
  "tonic 0.11.0",
  "tracing",
