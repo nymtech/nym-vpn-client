@@ -26,6 +26,7 @@ use tracing::{debug, error, info};
 
 use nym_gateway_directory::IpPacketRouterAddress;
 
+use crate::credentials;
 use crate::error::{Error, Result};
 
 #[derive(Clone)]
@@ -289,6 +290,13 @@ pub(crate) async fn setup_mixnet_client(
     debug!("mixnet client has wireguard_mode={enable_wireguard}");
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
         debug!("Using custom key storage path: {:?}", path);
+        let gateway_id = mixnet_entry_gateway.to_base58_string();
+        credentials::check_imported_credential(path.to_path_buf(), &gateway_id)
+            .await
+            .map_err(|err| {
+                error!("Credential check: {err}");
+                Error::InvalidCredential
+            })?;
         let key_storage_path = StoragePaths::new_from_dir(path)?;
         MixnetClientBuilder::new_with_default_storage(key_storage_path)
             .await?

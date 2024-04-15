@@ -183,6 +183,9 @@ pub enum Error {
     #[cfg(windows)]
     #[error("administrator privileges required, try rerunning with administrator privileges: `runas /user:Administrator {binary_name} run`")]
     AdminPrivilegesRequired { binary_name: String },
+
+    #[error("invalid credential")]
+    InvalidCredential,
 }
 
 // Result type based on our error type
