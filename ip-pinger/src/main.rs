@@ -5,22 +5,23 @@ use nym_connection_monitor::{
         create_icmpv4_echo_request, create_icmpv6_echo_request, wrap_icmp_in_ipv4,
         wrap_icmp_in_ipv6,
     },
-    self_ping_and_wait, ConnectionStatusEvent,
+    self_ping_and_wait,
 };
 use nym_gateway_directory::{
     DescribedGatewayWithLocation, GatewayClient as GatewayDirectoryClient, IpPacketRouterAddress,
 };
 use nym_ip_packet_requests::{
     codec::MultiIpPacketCodec,
-    response::{InfoLevel, IpPacketResponse, IpPacketResponseData},
+    response::{DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData},
     IpPair,
 };
-use nym_sdk::mixnet::{InputMessage, MixnetClientBuilder, Recipient};
+use nym_sdk::mixnet::{InputMessage, MixnetClientBuilder, Recipient, ReconstructedMessage};
 use nym_task::connections::TransmissionLane;
 use nym_vpn_lib::{
     error::*,
     gateway_directory::{Config as GatewayDirectoryConfig, EntryPoint, ExitPoint},
     mixnet_connect::{connect_to_ip_packet_router, SharedMixnetClient},
+    mixnet_processor::check_for_icmp_beacon_reply,
     nym_config::{
         defaults::{
             setup_env,
@@ -208,6 +209,31 @@ async fn send_icmp_pings(
     Ok(())
 }
 
+fn unpack_data_response(reconstructed_message: &ReconstructedMessage) -> Option<DataResponse> {
+    match IpPacketResponse::from_reconstructed_message(&reconstructed_message) {
+        Ok(response) => match response.data {
+            IpPacketResponseData::Data(data_response) => Some(data_response),
+            IpPacketResponseData::Info(info) => {
+                let msg = format!("Received info response from the mixnet: {}", info.reply);
+                match info.level {
+                    InfoLevel::Info => info!("{msg}"),
+                    InfoLevel::Warn => warn!("{msg}"),
+                    InfoLevel::Error => error!("{msg}"),
+                }
+                None
+            }
+            _ => {
+                info!("Ignoring: {:?}", response);
+                None
+            }
+        },
+        Err(err) => {
+            warn!("Failed to parse mixnet message: {err}");
+            None
+        }
+    }
+}
+
 async fn listen_for_icmp_ping_replies(
     shared_mixnet_client: SharedMixnetClient,
     our_ips: IpPair,
@@ -216,13 +242,7 @@ async fn listen_for_icmp_ping_replies(
     let mut mixnet_client = shared_mixnet_client.inner().lock().await.take().unwrap();
     let mut multi_ip_packet_decoder =
         MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
-
-    let mut registered_replies = IpPingReplies {
-        ipr_tun_ip_v4: false,
-        ipr_tun_ip_v6: false,
-        external_ip_v4: false,
-        external_ip_v6: false,
-    };
+    let mut registered_replies = IpPingReplies::new();
 
     loop {
         tokio::select! {
@@ -231,42 +251,17 @@ async fn listen_for_icmp_ping_replies(
                 break;
             }
             Some(reconstructed_message) = mixnet_client.next() => {
-                match IpPacketResponse::from_reconstructed_message(&reconstructed_message) {
-                    Ok(response) => match response.data {
-                        IpPacketResponseData::Data(data_response) => {
-                            let mut bytes = BytesMut::from(&*data_response.ip_packet);
-                            while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
-                                if let Some(connection_event) = nym_vpn_lib::mixnet_processor::check_for_icmp_beacon_reply(
-                                    &packet,
-                                    icmp_identifier(),
-                                    our_ips,
-                                ) {
-                                    info!("Received ICMP echo reply from exit gateway");
-                                    info!("Connection event: {:?}", connection_event);
-                                    match connection_event {
-                                        ConnectionStatusEvent::MixnetSelfPing => {},
-                                        ConnectionStatusEvent::Icmpv4IprTunDevicePingReply => registered_replies.ipr_tun_ip_v4 = true,
-                                        ConnectionStatusEvent::Icmpv6IprTunDevicePingReply => registered_replies.ipr_tun_ip_v6 = true,
-                                        ConnectionStatusEvent::Icmpv4IprExternalPingReply => registered_replies.external_ip_v4 = true,
-                                        ConnectionStatusEvent::Icmpv6IprExternalPingReply => registered_replies.external_ip_v6 = true,
-                                    }
-                                }
-                            }
-                        }
-                        IpPacketResponseData::Info(info) => {
-                            let msg = format!("Received info response from the mixnet: {}", info.reply);
-                            match info.level {
-                                InfoLevel::Info => info!("{msg}"),
-                                InfoLevel::Warn => warn!("{msg}"),
-                                InfoLevel::Error => error!("{msg}"),
-                            }
-                        }
-                        _ => {
-                            info!("Ignoring: {:?}", response);
-                        }
-                    },
-                    Err(err) => {
-                        warn!("Failed to parse mixnet message: {err}");
+                let Some(data_response) = unpack_data_response(&reconstructed_message) else {
+                    continue;
+                };
+
+                // IP packets are bundled together in a mixnet message
+                let mut bytes = BytesMut::from(&*data_response.ip_packet);
+                while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
+                    if let Some(event) = check_for_icmp_beacon_reply(&packet, icmp_identifier(), our_ips) {
+                        info!("Received ICMP echo reply from exit gateway");
+                        info!("Connection event: {:?}", event);
+                        registered_replies.register_event(&event);
                     }
                 }
             }
