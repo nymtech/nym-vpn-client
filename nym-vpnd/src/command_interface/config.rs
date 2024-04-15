@@ -1,5 +1,7 @@
-use std::{net::SocketAddr, path::{Path, PathBuf}};
-
+use std::{
+    net::SocketAddr,
+    path::{Path, PathBuf},
+};
 
 pub(super) fn default_socket_path() -> PathBuf {
     #[cfg(unix)]
@@ -12,4 +14,3 @@ pub(super) fn default_socket_path() -> PathBuf {
 pub(super) fn default_uri_addr() -> SocketAddr {
     "[::1]:53181".parse().unwrap()
 }
-
