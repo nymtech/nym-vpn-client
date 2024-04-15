@@ -122,7 +122,6 @@ fn mixnet_debug_config() -> nym_client_core::config::DebugConfig {
     debug_config
 }
 
-
 async fn do_ping(
     shared_mixnet_client: SharedMixnetClient,
     exit_router_address: IpPacketRouterAddress,
