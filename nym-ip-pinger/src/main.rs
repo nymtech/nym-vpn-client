@@ -5,7 +5,7 @@ use nym_vpn_lib::{
 use std::path::PathBuf;
 use tracing::*;
 
-use ip_pinger::PingResult;
+use nym_ip_pinger::PingResult;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -36,7 +36,7 @@ async fn run() -> anyhow::Result<PingResult> {
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
     // mainnet by default
     setup_env::<PathBuf>(None);
-    let result = ip_pinger::ping(EntryPoint::Random, ExitPoint::Random).await;
+    let result = nym_ip_pinger::ping(EntryPoint::Random, ExitPoint::Random).await;
     match result {
         Ok(ref result) => {
             println!("{:#?}", result);

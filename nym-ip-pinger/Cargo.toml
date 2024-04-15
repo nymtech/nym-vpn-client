@@ -1,5 +1,5 @@
 [package]
-name = "ip-pinger"
+name = "nym-ip-pinger"
 version = "0.1.0"
 authors.workspace = true
 repository.workspace = true

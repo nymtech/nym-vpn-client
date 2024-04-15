@@ -2774,32 +2774,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c429fffa658f288669529fc26565f728489a2e39bc7b24a428aaaf51355182e"
 
 [[package]]
-name = "ip-pinger"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bs58 0.5.1",
- "bytes",
- "clap",
- "dirs 5.0.1",
- "futures",
- "ipnetwork",
- "log",
- "nym-client-core",
- "nym-connection-monitor",
- "nym-gateway-directory",
- "nym-ip-packet-requests",
- "nym-sdk",
- "nym-task",
- "nym-vpn-lib",
- "pnet_packet",
- "tokio",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "ipconfig"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4055,6 +4029,32 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-util",
+]
+
+[[package]]
+name = "nym-ip-pinger"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bs58 0.5.1",
+ "bytes",
+ "clap",
+ "dirs 5.0.1",
+ "futures",
+ "ipnetwork",
+ "log",
+ "nym-client-core",
+ "nym-connection-monitor",
+ "nym-gateway-directory",
+ "nym-ip-packet-requests",
+ "nym-sdk",
+ "nym-task",
+ "nym-vpn-lib",
+ "pnet_packet",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
