@@ -1,7 +1,8 @@
 use anyhow::anyhow;
 use clap::Parser;
+use nym_config::defaults::setup_env;
+use nym_gateway_directory::EntryPoint;
 use nym_gateway_directory::NodeIdentity;
-use nym_vpn_lib::{gateway_directory::EntryPoint, nym_config::defaults::setup_env};
 use rand::seq::IteratorRandom;
 use std::path::PathBuf;
 use tracing::*;
@@ -56,7 +57,7 @@ async fn run() -> anyhow::Result<ProbeResult> {
     if !args.no_log {
         setup_logging();
     }
-    debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
+    debug!("{:?}", nym_bin_common::bin_info!());
     setup_env(args.config_env_file.as_ref());
 
     let gateway = if let Some(gateway) = args.gateway {

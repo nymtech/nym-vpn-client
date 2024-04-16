@@ -1,14 +1,20 @@
 use bytes::Bytes;
-use nym_connection_monitor::packet_helpers::{
-    create_icmpv4_echo_request, create_icmpv6_echo_request, wrap_icmp_in_ipv4, wrap_icmp_in_ipv6,
+use nym_connection_monitor::{
+    is_icmp_beacon_reply, is_icmp_v6_beacon_reply,
+    packet_helpers::{
+        create_icmpv4_echo_request, create_icmpv6_echo_request, wrap_icmp_in_ipv4,
+        wrap_icmp_in_ipv6,
+    },
+    ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply,
 };
 use nym_gateway_directory::IpPacketRouterAddress;
 use nym_ip_packet_requests::{codec::MultiIpPacketCodec, IpPair};
 use nym_sdk::mixnet::{InputMessage, Recipient};
 use nym_task::connections::TransmissionLane;
-use nym_vpn_lib::{error::*, mixnet_connect::SharedMixnetClient};
 use pnet_packet::Packet;
 use std::net::{Ipv4Addr, Ipv6Addr};
+
+use crate::{ipr_connect::SharedMixnetClient, Result};
 
 pub fn icmp_identifier() -> u16 {
     8475
@@ -85,4 +91,36 @@ fn create_input_message(
         packet_type,
         hops,
     ))
+}
+
+pub fn check_for_icmp_beacon_reply(
+    packet: &Bytes,
+    icmp_beacon_identifier: u16,
+    our_ips: IpPair,
+) -> Option<ConnectionStatusEvent> {
+    match is_icmp_beacon_reply(packet, icmp_beacon_identifier, our_ips.ipv4) {
+        Some(IcmpBeaconReply::TunDeviceReply) => {
+            log::debug!("Received ping response from ipr tun device");
+            return Some(ConnectionStatusEvent::Icmpv4IprTunDevicePingReply);
+        }
+        Some(IcmpBeaconReply::ExternalPingReply(_source)) => {
+            log::debug!("Received ping response from an external ip through the ipr");
+            return Some(ConnectionStatusEvent::Icmpv4IprExternalPingReply);
+        }
+        None => {}
+    }
+
+    match is_icmp_v6_beacon_reply(packet, icmp_beacon_identifier, our_ips.ipv6) {
+        Some(Icmpv6BeaconReply::TunDeviceReply) => {
+            log::debug!("Received ping v6 response from ipr tun device");
+            return Some(ConnectionStatusEvent::Icmpv6IprTunDevicePingReply);
+        }
+        Some(Icmpv6BeaconReply::ExternalPingReply(_source)) => {
+            log::debug!("Received ping v6 response from an external ip through the ipr");
+            return Some(ConnectionStatusEvent::Icmpv6IprExternalPingReply);
+        }
+        None => {}
+    }
+
+    None
 }

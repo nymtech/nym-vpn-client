@@ -12,6 +12,7 @@ license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
 clap = { workspace = true, features = ["cargo", "derive"] }
@@ -23,15 +24,17 @@ pnet_packet.workspace = true
 rand.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+thiserror.workspace = true
 tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
 tokio-util.workspace = true
 tracing-subscriber.workspace = true
 tracing.workspace = true
 
+nym-bin-common.workspace = true
 nym-client-core.workspace = true
+nym-config.workspace = true
 nym-connection-monitor = { path = "../nym-connection-monitor" }
 nym-gateway-directory = { path = "../nym-gateway-directory" }
 nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
 nym-task.workspace = true
-nym-vpn-lib = { path = "../../nym-vpn-lib" }
