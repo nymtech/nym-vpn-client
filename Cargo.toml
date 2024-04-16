@@ -3,7 +3,7 @@ resolver = "2"
 members = [
     "crates/nym-connection-monitor",
     "crates/nym-gateway-directory",
-    "crates/nym-ip-pinger",
+    "crates/nym-gateway-probe",
     "crates/nym-vpn-proto",
     "nym-vpn-cli",
     "nym-vpn-lib",

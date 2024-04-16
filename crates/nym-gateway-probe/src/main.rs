@@ -6,7 +6,7 @@ use rand::seq::IteratorRandom;
 use std::path::PathBuf;
 use tracing::*;
 
-use nym_ip_pinger::PingResult;
+use nym_gateway_probe::PingResult;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -55,7 +55,7 @@ async fn run() -> anyhow::Result<PingResult> {
         fetch_random_gateway_with_ipr().await?
     };
 
-    let result = nym_ip_pinger::probe(gateway).await;
+    let result = nym_gateway_probe::probe(gateway).await;
     match result {
         Ok(ref result) => {
             println!("{:#?}", result);
@@ -70,7 +70,7 @@ async fn run() -> anyhow::Result<PingResult> {
 async fn fetch_random_gateway_with_ipr() -> anyhow::Result<EntryPoint> {
     // We're fetching gateways with IPR, since they are more interesting to ping, but we can probe
     // gateways without an IPR as well
-    let gateways = nym_ip_pinger::fetch_gateways_with_ipr().await?;
+    let gateways = nym_gateway_probe::fetch_gateways_with_ipr().await?;
     let gateway = gateways
         .iter()
         .choose(&mut rand::thread_rng())

@@ -3952,6 +3952,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-gateway-probe"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bs58 0.5.1",
+ "bytes",
+ "clap",
+ "dirs 5.0.1",
+ "futures",
+ "ipnetwork",
+ "log",
+ "nym-client-core",
+ "nym-connection-monitor",
+ "nym-gateway-directory",
+ "nym-ip-packet-requests",
+ "nym-sdk",
+ "nym-task",
+ "nym-vpn-lib",
+ "pnet_packet",
+ "rand 0.7.3",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "nym-gateway-requests"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=cb929b251ed36144dd0a5168440197fd85ae9a16#cb929b251ed36144dd0a5168440197fd85ae9a16"
@@ -4029,33 +4056,6 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-util",
-]
-
-[[package]]
-name = "nym-ip-pinger"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bs58 0.5.1",
- "bytes",
- "clap",
- "dirs 5.0.1",
- "futures",
- "ipnetwork",
- "log",
- "nym-client-core",
- "nym-connection-monitor",
- "nym-gateway-directory",
- "nym-ip-packet-requests",
- "nym-sdk",
- "nym-task",
- "nym-vpn-lib",
- "pnet_packet",
- "rand 0.7.3",
- "tokio",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
