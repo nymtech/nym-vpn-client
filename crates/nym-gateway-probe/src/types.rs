@@ -1,13 +1,13 @@
 use nym_connection_monitor::ConnectionStatusEvent;
 
 #[derive(Debug, Clone)]
-pub struct PingResult {
+pub struct ProbeResult {
     pub gateway: String,
-    pub outcome: PingOutcome,
+    pub outcome: ProbeOutcome,
 }
 
 #[derive(Debug, Clone)]
-pub struct PingOutcome {
+pub struct ProbeOutcome {
     pub as_entry: Entry,
     pub as_exit: Option<Exit>,
 }

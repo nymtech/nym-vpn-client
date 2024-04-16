@@ -34,7 +34,7 @@ use crate::{
 mod icmp;
 mod types;
 
-pub use types::{IpPingReplies, PingOutcome, PingResult};
+pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
 
 pub async fn fetch_gateways() -> anyhow::Result<Vec<DescribedGatewayWithLocation>> {
     lookup_gateways().await
@@ -45,7 +45,7 @@ pub async fn fetch_gateways_with_ipr() -> anyhow::Result<Vec<DescribedGatewayWit
     Ok(extract_out_exit_gateways(gateways).await)
 }
 
-pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<PingResult> {
+pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     // Setup the entry gateways
     let gateways = lookup_gateways().await?;
     let (entry_gateway_id, _) = entry_point.lookup_gateway_identity(&gateways).await?;
@@ -70,9 +70,9 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<PingResult> {
         .await;
 
     let Ok(mixnet_client) = mixnet_client else {
-        return Ok(PingResult {
+        return Ok(ProbeResult {
             gateway: entry_gateway_id.to_string(),
-            outcome: PingOutcome {
+            outcome: ProbeOutcome {
                 as_entry: Entry {
                     can_connect: false,
                     can_route: false,
@@ -97,7 +97,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<PingResult> {
     let mixnet_client = shared_mixnet_client.lock().await.take().unwrap();
     mixnet_client.disconnect().await;
 
-    outcome.map(|outcome| PingResult {
+    outcome.map(|outcome| ProbeResult {
         gateway: entry_gateway.clone(),
         outcome,
     })
@@ -147,7 +147,7 @@ fn mixnet_debug_config() -> nym_client_core::config::DebugConfig {
 async fn do_ping(
     shared_mixnet_client: SharedMixnetClient,
     exit_router_address: Option<IpPacketRouterAddress>,
-) -> anyhow::Result<PingOutcome> {
+) -> anyhow::Result<ProbeOutcome> {
     // Step 1: confirm that the entry gateway is routing our mixnet traffic
     info!("Sending mixnet ping to ourselves to verify mixnet connection");
     if self_ping_and_wait(
@@ -157,7 +157,7 @@ async fn do_ping(
     .await
     .is_err()
     {
-        return Ok(PingOutcome {
+        return Ok(ProbeOutcome {
             as_entry: Entry {
                 can_connect: true,
                 can_route: false,
@@ -168,7 +168,7 @@ async fn do_ping(
     info!("Successfully mixnet pinged ourselves");
 
     let Some(exit_router_address) = exit_router_address else {
-        return Ok(PingOutcome {
+        return Ok(ProbeOutcome {
             as_entry: Entry {
                 can_connect: true,
                 can_route: true,
@@ -190,7 +190,7 @@ async fn do_ping(
     )
     .await
     else {
-        return Ok(PingOutcome {
+        return Ok(ProbeOutcome {
             as_entry: Entry {
                 can_connect: true,
                 can_route: true,
@@ -264,7 +264,7 @@ async fn send_icmp_pings(
 async fn listen_for_icmp_ping_replies(
     shared_mixnet_client: SharedMixnetClient,
     our_ips: IpPair,
-) -> anyhow::Result<PingOutcome> {
+) -> anyhow::Result<ProbeOutcome> {
     // HACK: take it out of the shared mixnet client
     let mut mixnet_client = shared_mixnet_client.inner().lock().await.take().unwrap();
     let mut multi_ip_packet_decoder =
@@ -302,7 +302,7 @@ async fn listen_for_icmp_ping_replies(
         .await
         .replace(mixnet_client);
 
-    Ok(PingOutcome {
+    Ok(ProbeOutcome {
         as_entry: Entry {
             can_connect: true,
             can_route: true,

@@ -6,17 +6,7 @@ use rand::seq::IteratorRandom;
 use std::path::PathBuf;
 use tracing::*;
 
-use nym_gateway_probe::PingResult;
-
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    if let Err(err) = run().await {
-        error!("Exit with error: {err}");
-        eprintln!("An error occurred: {err}");
-        std::process::exit(1)
-    }
-    Ok(())
-}
+use nym_gateway_probe::ProbeResult;
 
 #[derive(Parser)]
 #[clap(author, version, about)]
@@ -27,6 +17,16 @@ struct CliArgs {
 
     #[arg(long, short)]
     gateway: Option<String>,
+}
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    if let Err(err) = run().await {
+        error!("Exit with error: {err}");
+        eprintln!("An error occurred: {err}");
+        std::process::exit(1)
+    }
+    Ok(())
 }
 
 fn setup_logging() {
@@ -43,7 +43,7 @@ fn setup_logging() {
         .init();
 }
 
-async fn run() -> anyhow::Result<PingResult> {
+async fn run() -> anyhow::Result<ProbeResult> {
     setup_logging();
     let args = CliArgs::parse();
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
