@@ -18,7 +18,7 @@ use pnet_packet::{
 
 use crate::error::{Error, Result};
 
-pub(crate) fn create_icmpv4_echo_request(
+pub fn create_icmpv4_echo_request(
     sequence_number: u16,
     identifier: u16,
 ) -> Result<EchoRequestPacket<'static>> {
@@ -41,7 +41,7 @@ pub(crate) fn create_icmpv4_echo_request(
     Ok(icmp_echo_request.consume_to_immutable())
 }
 
-pub(crate) fn create_icmpv6_echo_request(
+pub fn create_icmpv6_echo_request(
     sequence_number: u16,
     identifier: u16,
     source: &Ipv6Addr,
@@ -67,7 +67,7 @@ pub(crate) fn create_icmpv6_echo_request(
     Ok(icmp_echo_request.consume_to_immutable())
 }
 
-pub(crate) fn wrap_icmp_in_ipv4(
+pub fn wrap_icmp_in_ipv4(
     icmp_echo_request: EchoRequestPacket,
     source: Ipv4Addr,
     destination: Ipv4Addr,
@@ -96,7 +96,7 @@ pub(crate) fn wrap_icmp_in_ipv4(
     Ok(ipv4_packet.consume_to_immutable())
 }
 
-pub(crate) fn wrap_icmp_in_ipv6(
+pub fn wrap_icmp_in_ipv6(
     icmp_echo_request: icmpv6::echo_request::EchoRequestPacket,
     source: Ipv6Addr,
     destination: Ipv6Addr,

@@ -43,6 +43,12 @@ impl Display for EntryPoint {
 }
 
 impl EntryPoint {
+    pub fn from_base58_string(base58: &str) -> Result<Self> {
+        let identity = NodeIdentity::from_base58_string(base58)
+            .map_err(|_| Error::NodeIdentityFormattingError)?;
+        Ok(EntryPoint::Gateway { identity })
+    }
+
     pub fn is_location(&self) -> bool {
         matches!(self, EntryPoint::Location { .. })
     }
