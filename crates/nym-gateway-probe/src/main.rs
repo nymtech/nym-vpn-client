@@ -1,7 +1,6 @@
 use anyhow::anyhow;
 use clap::Parser;
 use nym_gateway_directory::NodeIdentity;
-// use nym_vpn_lib::{gateway_directory::EntryPoint, nym_config::defaults::setup_env};
 use nym_config::defaults::setup_env;
 use nym_gateway_directory::EntryPoint;
 use rand::seq::IteratorRandom;

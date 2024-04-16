@@ -10,17 +10,8 @@ pub enum Error {
     #[error("{0}")]
     IO(#[from] std::io::Error),
 
-    #[error("invalid WireGuard Key")]
-    InvalidWireGuardKey,
-
     #[error("{0}")]
     AddrParseError(#[from] std::net::AddrParseError),
-
-    // We are not returning the underlying talpid_core::firewall:Error error as I ran into issues
-    // with the Send marker trait not being implemented when building on Mac. Possibly we can fix
-    // this in the future.
-    #[error("{0} - are you running as admin/root/sudo?")]
-    FirewallError(String),
 
     #[error("{0}")]
     JoinError(#[from] tokio::task::JoinError),
@@ -28,45 +19,8 @@ pub enum Error {
     #[error("{0}")]
     CanceledError(#[from] futures::channel::oneshot::Canceled),
 
-    #[error("failed to send close message to wireguard tunnel")]
-    FailedToSendWireguardTunnelClose,
-
-    #[error("failed to send shutdown message to wireguard tunnel")]
-    FailedToSendWireguardShutdown,
-
     #[error("{0}")]
     SDKError(#[from] nym_sdk::Error),
-
-    #[error("identity not formatted correctly")]
-    NodeIdentityFormattingError,
-
-    #[error("recipient is not formatted correctly")]
-    RecipientFormattingError,
-
-    // #[error("{0}")]
-    // ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
-
-    // #[error(transparent)]
-    // ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
-    #[error("missing Gateway exit information")]
-    MissingExitPointInformation,
-
-    #[error("missing Gateway entry information")]
-    MissingEntryPointInformation,
-
-    // #[error("{0}")]
-    // KeyRecoveryError(#[from] nym_crypto::asymmetric::encryption::KeyRecoveryError),
-
-    // #[error("{0}")]
-    // NymNodeApiClientError(#[from] nym_node_requests::api::client::NymNodeApiClientError),
-    #[error("gateway was requested by location, but we don't have any location data - is the explorer-api set correctly?")]
-    RequestedGatewayByLocationWithoutLocationDataAvailable,
-
-    #[error("invalid Gateway API response")]
-    InvalidGatewayAPIResponse,
-
-    #[error("could not obtain the default interface")]
-    DefaultInterfaceError,
 
     #[error("received response with version v{received}, the client is too new and can only understand v{expected}")]
     ReceivedResponseWithOldVersion { expected: u8, received: u8 },
@@ -92,63 +46,17 @@ pub enum Error {
     #[error("connect request denied: {reason}")]
     DynamicConnectRequestDenied { reason: DynamicConnectFailureReason },
 
-    #[error("deadlock when trying to aquire mixnet client mutes")]
-    MixnetClientDeadlock,
-
-    #[error("timeout waiting for mixnet client to start")]
-    StartMixnetTimeout,
-
-    #[error("vpn could not be started")]
-    NotStarted,
-
-    #[error("vpn errored on stop")]
-    StopError,
-
     #[error("failed to serialize message")]
     FailedToSerializeMessage {
         #[from]
         source: bincode::Error,
     },
 
-    #[error("failed to create icmp echo request packet")]
-    IcmpEchoRequestPacketCreationFailure,
-
-    #[error("failed to create icmp packet")]
-    IcmpPacketCreationFailure,
-
-    #[error("failed to create ipv4 packet")]
-    Ipv4PacketCreationFailure,
-
-    #[error("gateway does not contain a two character country ISO")]
-    CountryCodeNotFound,
-
-    #[error("failed to find an exit gateway for country that is running a working version")]
-    CountryExitGatewaysOutdated,
-
     #[error("{0}")]
     GatewayDirectoryError(#[from] nym_gateway_directory::Error),
 
-    // #[error("failed to import credential to: {location}: {source}")]
-    // FailedToImportCredential {
-    //     location: PathBuf,
-    //     source: nym_id::NymIdError,
-    // },
-    #[error("failed decode base58 credential: {source}")]
-    FailedToDecodeBase58Credential { source: bs58::decode::Error },
-
-    #[error("config path not set")]
-    ConfigPathNotSet,
-
     #[error("{0}")]
     ConnectionMonitorError(#[from] nym_connection_monitor::Error),
-
-    #[cfg(unix)]
-    #[error("sudo/root privileges required, try rerunning with sudo: `sudo -E {binary_name} run`")]
-    RootPrivilegesRequired { binary_name: String },
-
-    #[cfg(windows)]
-    #[error("administrator privileges required, try rerunning with administrator privileges: `runas /user:Administrator {binary_name} run`")]
-    AdminPrivilegesRequired { binary_name: String },
 }
 
 // Result type based on our error type

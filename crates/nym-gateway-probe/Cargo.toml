@@ -38,4 +38,3 @@ nym-gateway-directory = { path = "../nym-gateway-directory" }
 nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
 nym-task.workspace = true
-# nym-vpn-lib = { path = "../../nym-vpn-lib" }
