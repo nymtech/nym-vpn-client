@@ -21,6 +21,8 @@ ipnetwork.workspace = true
 log.workspace = true
 pnet_packet.workspace = true
 rand.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
 tokio-util.workspace = true
 tracing-subscriber.workspace = true

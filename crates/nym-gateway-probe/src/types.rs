@@ -1,18 +1,19 @@
 use nym_connection_monitor::ConnectionStatusEvent;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProbeResult {
     pub gateway: String,
     pub outcome: ProbeOutcome,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProbeOutcome {
     pub as_entry: Entry,
     pub as_exit: Option<Exit>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Entry {
     pub can_connect: bool,
     pub can_route: bool,
@@ -41,7 +42,7 @@ impl Entry {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Exit {
     pub can_connect: bool,
     pub can_route_ip_v4: bool,

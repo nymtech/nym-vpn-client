@@ -58,7 +58,8 @@ async fn run() -> anyhow::Result<ProbeResult> {
     let result = nym_gateway_probe::probe(gateway).await;
     match result {
         Ok(ref result) => {
-            println!("{:#?}", result);
+            let json = serde_json::to_string_pretty(result)?;
+            println!("{}", json);
         }
         Err(ref err) => {
             println!("Error: {err}");
