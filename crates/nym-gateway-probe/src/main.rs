@@ -17,6 +17,9 @@ struct CliArgs {
 
     #[arg(long, short)]
     gateway: Option<String>,
+
+    #[arg(long, short)]
+    no_log: bool,
 }
 
 #[tokio::main]
@@ -44,8 +47,10 @@ fn setup_logging() {
 }
 
 async fn run() -> anyhow::Result<ProbeResult> {
-    setup_logging();
     let args = CliArgs::parse();
+    if !args.no_log {
+        setup_logging();
+    }
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
     setup_env(args.config_env_file.as_ref());
 
