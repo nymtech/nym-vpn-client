@@ -73,10 +73,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
         return Ok(ProbeResult {
             gateway: entry_gateway_id.to_string(),
             outcome: ProbeOutcome {
-                as_entry: Entry {
-                    can_connect: false,
-                    can_route: false,
-                },
+                as_entry: Entry::fail_to_connect(),
                 as_exit: None,
             },
         });
@@ -84,7 +81,6 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
 
     let nym_address = *mixnet_client.nym_address();
     let entry_gateway = nym_address.gateway().to_base58_string();
-    // let exit_gateway = exit_router_address.map(|ipr| ipr.gateway().to_base58_string());
 
     info!("Successfully connected to entry gateway: {entry_gateway}");
     info!("Our nym address: {nym_address}");
@@ -158,10 +154,7 @@ async fn do_ping(
     .is_err()
     {
         return Ok(ProbeOutcome {
-            as_entry: Entry {
-                can_connect: true,
-                can_route: false,
-            },
+            as_entry: Entry::fail_to_route(),
             as_exit: None,
         });
     }
@@ -169,10 +162,7 @@ async fn do_ping(
 
     let Some(exit_router_address) = exit_router_address else {
         return Ok(ProbeOutcome {
-            as_entry: Entry {
-                can_connect: true,
-                can_route: true,
-            },
+            as_entry: Entry::success(),
             as_exit: None,
         });
     };
@@ -191,17 +181,8 @@ async fn do_ping(
     .await
     else {
         return Ok(ProbeOutcome {
-            as_entry: Entry {
-                can_connect: true,
-                can_route: true,
-            },
-            as_exit: Some(Exit {
-                can_connect: false,
-                can_route_ip_v4: false,
-                can_route_ip_external_v4: false,
-                can_route_ip_v6: false,
-                can_route_ip_external_v6: false,
-            }),
+            as_entry: Entry::success(),
+            as_exit: Some(Exit::fail_to_connect()),
         });
     };
     info!("Successfully connected to exit gateway");
@@ -303,10 +284,7 @@ async fn listen_for_icmp_ping_replies(
         .replace(mixnet_client);
 
     Ok(ProbeOutcome {
-        as_entry: Entry {
-            can_connect: true,
-            can_route: true,
-        },
+        as_entry: Entry::success(),
         as_exit: Some(Exit {
             can_connect: true,
             can_route_ip_v4: registered_replies.ipr_tun_ip_v4,
