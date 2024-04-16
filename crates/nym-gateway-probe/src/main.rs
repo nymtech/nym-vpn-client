@@ -24,10 +24,15 @@ struct CliArgs {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    if let Err(err) = run().await {
-        error!("Exit with error: {err}");
-        eprintln!("An error occurred: {err}");
-        std::process::exit(1)
+    match run().await {
+        Ok(ref result) => {
+            let json = serde_json::to_string_pretty(result)?;
+            println!("{}", json);
+        }
+        Err(err) => {
+            eprintln!("An error occurred: {err}");
+            std::process::exit(1)
+        }
     }
     Ok(())
 }
@@ -60,17 +65,7 @@ async fn run() -> anyhow::Result<ProbeResult> {
         fetch_random_gateway_with_ipr().await?
     };
 
-    let result = nym_gateway_probe::probe(gateway).await;
-    match result {
-        Ok(ref result) => {
-            let json = serde_json::to_string_pretty(result)?;
-            println!("{}", json);
-        }
-        Err(ref err) => {
-            println!("Error: {err}");
-        }
-    };
-    result
+    nym_gateway_probe::probe(gateway).await
 }
 
 async fn fetch_random_gateway_with_ipr() -> anyhow::Result<EntryPoint> {
