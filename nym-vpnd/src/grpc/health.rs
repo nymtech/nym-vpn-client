@@ -1,3 +1,6 @@
+use std::time::Duration;
+
+use tokio::{sync::mpsc, time::sleep};
 use tonic::{Request, Response, Status};
 
 use nym_vpn_proto::{
@@ -6,6 +9,8 @@ use nym_vpn_proto::{
 };
 use tokio_stream::wrappers::ReceiverStream;
 use tracing::info;
+
+const HEALTH_CHECK_INTERVAL: Duration = Duration::from_secs(5);
 
 #[derive(Debug, Default)]
 pub struct HealthService {}
@@ -34,6 +39,21 @@ impl Health for HealthService {
     ) -> Result<Response<Self::WatchStream>, Status> {
         info!("received request {:?}", request);
 
-        unimplemented!()
+        let (tx, rx) = mpsc::channel(32);
+
+        tokio::spawn(async move {
+            loop {
+                // TODO check if the `NymVpnd` service is running/healthy
+                tx.send(Ok(HealthCheckResponse {
+                    status: ServingStatus::Serving as i32,
+                }))
+                .await
+                .unwrap();
+
+                sleep(HEALTH_CHECK_INTERVAL).await;
+            }
+        });
+
+        Ok(Response::new(ReceiverStream::new(rx)))
     }
 }
