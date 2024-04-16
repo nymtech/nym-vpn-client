@@ -7,6 +7,8 @@ use ts_rs::TS;
 #[derive(Error, Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum CmdErrorSource {
+    #[error("daemon error")]
+    DaemonError,
     #[error("internal error")]
     InternalError,
     #[error("caller error")]

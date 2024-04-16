@@ -1,8 +1,7 @@
-use std::sync::Arc;
 use crate::db::{Db, Key};
 use crate::fs::path::BACKEND_DATA_PATH;
-use crate::ENV_DISABLE_DATA_STORAGE;
 use crate::grpc::client::GrpcClient;
+use crate::ENV_DISABLE_DATA_STORAGE;
 use crate::{
     error::{CmdError, CmdErrorSource},
     events::{AppHandleEventEmitter, ConnectProgressMsg},
@@ -11,7 +10,8 @@ use crate::{
         SharedAppState,
     },
 };
-use nym_vpn_proto::{ConnectRequest, DisconnectRequest};
+use nym_vpn_proto::{ConnectRequest, DisconnectRequest, StatusRequest};
+use std::sync::Arc;
 use tauri::State;
 use tonic::Request;
 use tracing::{debug, error, instrument, trace};
@@ -20,10 +20,30 @@ use tracing::{debug, error, instrument, trace};
 #[tauri::command]
 pub async fn get_connection_state(
     state: State<'_, SharedAppState>,
+    grpc_client_state: State<'_, Arc<GrpcClient>>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("get_connection_state");
-    let app_state = state.lock().await;
-    Ok(app_state.state.clone())
+
+    let mut grpc_client = grpc_client_state.client().map_err(|_| {
+        let error_msg = "not connected to nym daemon".to_string();
+        error!(error_msg);
+        CmdError::new(CmdErrorSource::DaemonError, error_msg)
+    })?;
+
+    let request = Request::new(StatusRequest {});
+    let response = grpc_client.vpn_status(request).await.map_err(|e| {
+        error!("grpc vpn_status: {}", e);
+        CmdError::new(
+            CmdErrorSource::DaemonError,
+            format!("failed to get connection status: {e}"),
+        )
+    })?;
+    debug!("grpc response: {:?}", response);
+
+    let status = ConnectionState::from(response.into_inner().status());
+    let mut app_state = state.lock().await;
+    app_state.state = status.clone();
+    Ok(status)
 }
 
 #[instrument(skip_all)]
@@ -38,7 +58,7 @@ pub async fn connect(
     let mut grpc_client = grpc_client_state.client().map_err(|_| {
         error!("not connected to nym daemon");
         CmdError::new(
-            CmdErrorSource::InternalError,
+            CmdErrorSource::DaemonError,
             "not connected to nym daemon".to_string(),
         )
     })?;
@@ -71,7 +91,7 @@ pub async fn connect(
         debug!("update connection state [Disconnected]");
         app_state.state = ConnectionState::Disconnected;
         app.emit_disconnected(Some(error_msg.clone()));
-        CmdError::new(CmdErrorSource::InternalError, error_msg)
+        CmdError::new(CmdErrorSource::DaemonError, error_msg)
     })?;
     debug!("grpc response: {:?}", response);
 
@@ -97,7 +117,7 @@ pub async fn disconnect(
     let mut grpc_client = grpc_client_state.client().map_err(|_| {
         let error_msg = "not connected to nym daemon".to_string();
         error!(error_msg);
-        CmdError::new(CmdErrorSource::InternalError, error_msg)
+        CmdError::new(CmdErrorSource::DaemonError, error_msg)
     })?;
 
     // switch to "Disconnecting" state
@@ -112,7 +132,7 @@ pub async fn disconnect(
         // TODO handle error properly
         // just switch back to "Connected" state for now
         app_state.state = ConnectionState::Connected;
-        CmdError::new(CmdErrorSource::InternalError, error_msg)
+        CmdError::new(CmdErrorSource::DaemonError, error_msg)
     })?;
     debug!("grpc response: {:?}", response);
 

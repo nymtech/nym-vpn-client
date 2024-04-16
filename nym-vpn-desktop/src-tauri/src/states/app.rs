@@ -2,6 +2,7 @@ use std::fmt;
 
 use futures::channel::mpsc::UnboundedSender;
 use nym_vpn_lib::NymVpnCtrlMessage;
+use nym_vpn_proto::ConnectionStatus;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use tracing::trace;
@@ -106,6 +107,19 @@ impl fmt::Display for NodeLocation {
         match self {
             NodeLocation::Fastest => write!(f, "NodeLocation: Fastest"),
             NodeLocation::Country(country) => write!(f, "NodeLocation: {}", country),
+        }
+    }
+}
+
+impl From<ConnectionStatus> for ConnectionState {
+    fn from(status: ConnectionStatus) -> Self {
+        match status {
+            ConnectionStatus::Connected => ConnectionState::Connected,
+            ConnectionStatus::NotConnected => ConnectionState::Disconnected,
+            ConnectionStatus::Connecting => ConnectionState::Connecting,
+            ConnectionStatus::Disconnecting => ConnectionState::Disconnecting,
+            ConnectionStatus::Unknown => ConnectionState::Unknown,
+            ConnectionStatus::StatusUnspecified => ConnectionState::Unknown,
         }
     }
 }
