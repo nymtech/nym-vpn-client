@@ -4,7 +4,7 @@
 use std::{net::SocketAddr, path::PathBuf};
 
 use nym_task::TaskManager;
-use nym_vpn_proto::nym_vpnd_server::NymVpndServer;
+use nym_vpn_proto::{health_server::HealthServer, nym_vpnd_server::NymVpndServer};
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tonic::transport::Server;
 use tracing::info;
@@ -14,14 +14,16 @@ use super::{
     listener::CommandInterface,
     socket_stream::setup_socket_stream,
 };
-use crate::{cli::CliArgs, service::VpnServiceCommand};
+use crate::{cli::CliArgs, grpc::health::HealthService, service::VpnServiceCommand};
 
 fn spawn_uri_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, addr: SocketAddr) {
     info!("Starting HTTP listener on: {addr}");
     tokio::task::spawn(async move {
         let command_interface = CommandInterface::new_with_uri(vpn_command_tx, addr);
+        let health_service = HealthService::default();
         Server::builder()
             .add_service(NymVpndServer::new(command_interface))
+            .add_service(HealthServer::new(health_service))
             .serve(addr)
             .await
             .unwrap();
@@ -32,9 +34,11 @@ fn spawn_socket_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, soc
     info!("Starting socket listener on: {}", socket_path.display());
     tokio::task::spawn(async move {
         let command_interface = CommandInterface::new_with_path(vpn_command_tx, &socket_path);
+        let health_service = HealthService::default();
         let incoming = setup_socket_stream(&socket_path);
         Server::builder()
             .add_service(NymVpndServer::new(command_interface))
+            .add_service(HealthServer::new(health_service))
             .serve_with_incoming(incoming)
             .await
             .unwrap();
