@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use clap::Parser;
 use nym_gateway_directory::NodeIdentity;
 use nym_vpn_lib::{gateway_directory::EntryPoint, nym_config::defaults::setup_env};
 use rand::seq::IteratorRandom;
@@ -17,6 +18,17 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[derive(Parser)]
+#[clap(author, version, about)]
+struct CliArgs {
+    /// Path pointing to an env file describing the network.
+    #[arg(short, long)]
+    config_env_file: Option<PathBuf>,
+
+    #[arg(long, short)]
+    gateway: Option<String>,
+}
+
 fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
         .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
@@ -33,12 +45,15 @@ fn setup_logging() {
 
 async fn run() -> anyhow::Result<PingResult> {
     setup_logging();
+    let args = CliArgs::parse();
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
-    // mainnet by default
-    setup_env::<PathBuf>(None);
+    setup_env(args.config_env_file.as_ref());
 
-    // Just pick a random gateway to probe.
-    let gateway = fetch_random_gateway().await?;
+    let gateway = if let Some(gateway) = args.gateway {
+        EntryPoint::from_base58_string(&gateway)?
+    } else {
+        fetch_random_gateway().await?
+    };
 
     let result = nym_ip_pinger::probe(gateway).await;
     match result {
