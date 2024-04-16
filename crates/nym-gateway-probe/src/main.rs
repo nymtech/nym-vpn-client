@@ -1,8 +1,8 @@
 use anyhow::anyhow;
 use clap::Parser;
-use nym_gateway_directory::NodeIdentity;
 use nym_config::defaults::setup_env;
 use nym_gateway_directory::EntryPoint;
+use nym_gateway_directory::NodeIdentity;
 use rand::seq::IteratorRandom;
 use std::path::PathBuf;
 use tracing::*;
