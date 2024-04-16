@@ -4051,6 +4051,7 @@ dependencies = [
  "nym-task",
  "nym-vpn-lib",
  "pnet_packet",
+ "rand 0.7.3",
  "tokio",
  "tokio-util",
  "tracing",

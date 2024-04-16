@@ -26,21 +26,34 @@ use std::{
 use tokio_util::codec::Decoder;
 use tracing::*;
 
-use crate::icmp::{icmp_identifier, send_ping_v4, send_ping_v6};
+use crate::{
+    icmp::{icmp_identifier, send_ping_v4, send_ping_v6},
+    types::{Entry, Exit},
+};
 
 mod icmp;
 mod types;
 
 pub use types::{IpPingReplies, PingOutcome, PingResult};
 
-pub async fn ping(entry_point: EntryPoint, exit_point: ExitPoint) -> anyhow::Result<PingResult> {
+pub async fn fetch_gateways() -> anyhow::Result<Vec<DescribedGatewayWithLocation>> {
+    lookup_gateways().await
+}
+
+pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<PingResult> {
     // Setup the entry gateways
     let gateways = lookup_gateways().await?;
     let (entry_gateway_id, _) = entry_point.lookup_gateway_identity(&gateways).await?;
 
-    // Setup the exit gateway
+    // Setup the exit gateway to be the same as entry gateway.
+    let exit_point = ExitPoint::Gateway {
+        identity: entry_gateway_id,
+    };
     let exit_gateways = extract_out_exit_gateways(gateways.clone()).await;
-    let (exit_router_address, _) = exit_point.lookup_router_address(&exit_gateways)?;
+    let exit_router_address = exit_point
+        .lookup_router_address(&exit_gateways)
+        .map(|(address, _)| address)
+        .ok();
 
     // Connect to the mixnet
     let mixnet_client = MixnetClientBuilder::new_ephemeral()
@@ -53,15 +66,20 @@ pub async fn ping(entry_point: EntryPoint, exit_point: ExitPoint) -> anyhow::Res
 
     let Ok(mixnet_client) = mixnet_client else {
         return Ok(PingResult {
-            entry_gateway: entry_gateway_id.to_string(),
-            exit_gateway: exit_router_address.gateway().to_base58_string(),
-            outcome: PingOutcome::EntryGatewayNotConnected,
+            gateway: entry_gateway_id.to_string(),
+            outcome: PingOutcome {
+                as_entry: Entry {
+                    can_connect: false,
+                    can_route: false,
+                },
+                as_exit: None,
+            },
         });
     };
 
     let nym_address = *mixnet_client.nym_address();
     let entry_gateway = nym_address.gateway().to_base58_string();
-    let exit_gateway = exit_router_address.gateway().to_base58_string();
+    // let exit_gateway = exit_router_address.map(|ipr| ipr.gateway().to_base58_string());
 
     info!("Successfully connected to entry gateway: {entry_gateway}");
     info!("Our nym address: {nym_address}");
@@ -75,8 +93,7 @@ pub async fn ping(entry_point: EntryPoint, exit_point: ExitPoint) -> anyhow::Res
     mixnet_client.disconnect().await;
 
     outcome.map(|outcome| PingResult {
-        entry_gateway: entry_gateway.clone(),
-        exit_gateway: exit_gateway.clone(),
+        gateway: entry_gateway.clone(),
         outcome,
     })
 }
@@ -124,7 +141,7 @@ fn mixnet_debug_config() -> nym_client_core::config::DebugConfig {
 
 async fn do_ping(
     shared_mixnet_client: SharedMixnetClient,
-    exit_router_address: IpPacketRouterAddress,
+    exit_router_address: Option<IpPacketRouterAddress>,
 ) -> anyhow::Result<PingOutcome> {
     // Step 1: confirm that the entry gateway is routing our mixnet traffic
     info!("Sending mixnet ping to ourselves to verify mixnet connection");
@@ -135,9 +152,25 @@ async fn do_ping(
     .await
     .is_err()
     {
-        return Ok(PingOutcome::EntryGatewayNotRouting);
+        return Ok(PingOutcome {
+            as_entry: Entry {
+                can_connect: true,
+                can_route: false,
+            },
+            as_exit: None,
+        });
     }
     info!("Successfully mixnet pinged ourselves");
+
+    let Some(exit_router_address) = exit_router_address else {
+        return Ok(PingOutcome {
+            as_entry: Entry {
+                can_connect: true,
+                can_route: true,
+            },
+            as_exit: None,
+        });
+    };
 
     // Step 2: connect to the exit gateway
     info!(
@@ -152,7 +185,19 @@ async fn do_ping(
     )
     .await
     else {
-        return Ok(PingOutcome::ExitGatewayNotConnected);
+        return Ok(PingOutcome {
+            as_entry: Entry {
+                can_connect: true,
+                can_route: true,
+            },
+            as_exit: Some(Exit {
+                can_connect: false,
+                can_route_ip_v4: false,
+                can_route_ip_external_v4: false,
+                can_route_ip_v6: false,
+                can_route_ip_external_v6: false,
+            }),
+        });
     };
     info!("Successfully connected to exit gateway");
     info!("Using mixnet VPN IP addresses: {our_ips}");
@@ -251,7 +296,20 @@ async fn listen_for_icmp_ping_replies(
         .lock()
         .await
         .replace(mixnet_client);
-    Ok(PingOutcome::IpPingReplies(registered_replies))
+
+    Ok(PingOutcome {
+        as_entry: Entry {
+            can_connect: true,
+            can_route: true,
+        },
+        as_exit: Some(Exit {
+            can_connect: true,
+            can_route_ip_v4: registered_replies.ipr_tun_ip_v4,
+            can_route_ip_external_v4: registered_replies.external_ip_v4,
+            can_route_ip_v6: registered_replies.ipr_tun_ip_v6,
+            can_route_ip_external_v6: registered_replies.external_ip_v6,
+        }),
+    })
 }
 
 fn unpack_data_response(reconstructed_message: &ReconstructedMessage) -> Option<DataResponse> {

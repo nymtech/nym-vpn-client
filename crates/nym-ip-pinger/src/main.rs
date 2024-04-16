@@ -1,7 +1,7 @@
-use nym_vpn_lib::{
-    gateway_directory::{EntryPoint, ExitPoint},
-    nym_config::defaults::setup_env,
-};
+use anyhow::anyhow;
+use nym_gateway_directory::NodeIdentity;
+use nym_vpn_lib::{gateway_directory::EntryPoint, nym_config::defaults::setup_env};
+use rand::seq::IteratorRandom;
 use std::path::PathBuf;
 use tracing::*;
 
@@ -36,7 +36,11 @@ async fn run() -> anyhow::Result<PingResult> {
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
     // mainnet by default
     setup_env::<PathBuf>(None);
-    let result = nym_ip_pinger::ping(EntryPoint::Random, ExitPoint::Random).await;
+
+    // Just pick a random gateway to probe.
+    let gateway = fetch_random_gateway().await?;
+
+    let result = nym_ip_pinger::probe(gateway).await;
     match result {
         Ok(ref result) => {
             println!("{:#?}", result);
@@ -46,4 +50,14 @@ async fn run() -> anyhow::Result<PingResult> {
         }
     };
     result
+}
+
+async fn fetch_random_gateway() -> anyhow::Result<EntryPoint> {
+    let gateways = nym_ip_pinger::fetch_gateways().await?;
+    let gateway = gateways
+        .iter()
+        .choose(&mut rand::thread_rng())
+        .ok_or(anyhow!("No gateways returned by nym-api"))?;
+    let identity = NodeIdentity::from_base58_string(gateway.identity_key())?;
+    Ok(EntryPoint::Gateway { identity })
 }

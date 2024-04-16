@@ -1,20 +1,30 @@
 use nym_connection_monitor::ConnectionStatusEvent;
 
-#[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct PingResult {
-    pub entry_gateway: String,
-    pub exit_gateway: String,
+    pub gateway: String,
     pub outcome: PingOutcome,
 }
 
-#[allow(unused)]
 #[derive(Debug, Clone)]
-pub enum PingOutcome {
-    EntryGatewayNotConnected,
-    EntryGatewayNotRouting,
-    ExitGatewayNotConnected,
-    IpPingReplies(IpPingReplies),
+pub struct PingOutcome {
+    pub as_entry: Entry,
+    pub as_exit: Option<Exit>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Entry {
+    pub can_connect: bool,
+    pub can_route: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct Exit {
+    pub can_connect: bool,
+    pub can_route_ip_v4: bool,
+    pub can_route_ip_external_v4: bool,
+    pub can_route_ip_v6: bool,
+    pub can_route_ip_external_v6: bool,
 }
 
 #[allow(unused)]
