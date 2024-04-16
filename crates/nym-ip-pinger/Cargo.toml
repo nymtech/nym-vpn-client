@@ -26,9 +26,9 @@ tracing-subscriber.workspace = true
 tracing.workspace = true
 
 nym-client-core.workspace = true
-nym-connection-monitor = { path = "../crates/nym-connection-monitor" }
-nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
+nym-connection-monitor = { path = "../nym-connection-monitor" }
+nym-gateway-directory = { path = "../nym-gateway-directory" }
 nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
 nym-task.workspace = true
-nym-vpn-lib = { path = "../nym-vpn-lib" }
+nym-vpn-lib = { path = "../../nym-vpn-lib" }
