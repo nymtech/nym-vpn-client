@@ -1,8 +1,16 @@
 use bytes::BytesMut;
 use futures::StreamExt;
+use nym_config::{
+    defaults::{
+        var_names::{EXPLORER_API, NYM_API},
+        NymNetworkDetails,
+    },
+    OptionalSet,
+};
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
-    DescribedGatewayWithLocation, GatewayClient as GatewayDirectoryClient, IpPacketRouterAddress,
+    Config as GatewayDirectoryConfig, DescribedGatewayWithLocation, EntryPoint, ExitPoint,
+    GatewayClient as GatewayDirectoryClient, IpPacketRouterAddress,
 };
 use nym_ip_packet_requests::{
     codec::MultiIpPacketCodec,
@@ -10,15 +18,6 @@ use nym_ip_packet_requests::{
     IpPair,
 };
 use nym_sdk::mixnet::{MixnetClientBuilder, ReconstructedMessage};
-use nym_vpn_lib::{
-    gateway_directory::{Config as GatewayDirectoryConfig, EntryPoint, ExitPoint},
-    mixnet_connect::{connect_to_ip_packet_router, SharedMixnetClient},
-    mixnet_processor::check_for_icmp_beacon_reply,
-    nym_config::{
-        defaults::var_names::{EXPLORER_API, NYM_API},
-        OptionalSet,
-    },
-};
 use std::{
     net::{Ipv4Addr, Ipv6Addr},
     time::Duration,
@@ -27,13 +26,17 @@ use tokio_util::codec::Decoder;
 use tracing::*;
 
 use crate::{
-    icmp::{icmp_identifier, send_ping_v4, send_ping_v6},
+    icmp::{check_for_icmp_beacon_reply, icmp_identifier, send_ping_v4, send_ping_v6},
+    ipr_connect::{connect_to_ip_packet_router, SharedMixnetClient},
     types::{Entry, Exit},
 };
 
+mod error;
 mod icmp;
+mod ipr_connect;
 mod types;
 
+pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
 
 pub async fn fetch_gateways() -> anyhow::Result<Vec<DescribedGatewayWithLocation>> {
@@ -63,7 +66,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     // Connect to the mixnet
     let mixnet_client = MixnetClientBuilder::new_ephemeral()
         .request_gateway(entry_gateway_id.to_string())
-        .network_details(nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env())
+        .network_details(NymNetworkDetails::new_from_env())
         .debug_config(mixnet_debug_config())
         .build()?
         .connect_to_mixnet()

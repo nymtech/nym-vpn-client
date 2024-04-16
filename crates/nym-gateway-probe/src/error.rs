@@ -1,7 +1,5 @@
-// Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
-
-use std::path::PathBuf;
 
 use nym_ip_packet_requests::{
     response::DynamicConnectFailureReason, response::StaticConnectFailureReason,
@@ -18,20 +16,11 @@ pub enum Error {
     #[error("{0}")]
     AddrParseError(#[from] std::net::AddrParseError),
 
-    #[error("{0}")]
-    RoutingError(#[from] talpid_routing::Error),
-
-    #[error("{0}")]
-    DNSError(#[from] talpid_core::dns::Error),
-
     // We are not returning the underlying talpid_core::firewall:Error error as I ran into issues
     // with the Send marker trait not being implemented when building on Mac. Possibly we can fix
     // this in the future.
     #[error("{0} - are you running as admin/root/sudo?")]
     FirewallError(String),
-
-    #[error("{0}")]
-    WireguardError(#[from] talpid_wireguard::Error),
 
     #[error("{0}")]
     JoinError(#[from] tokio::task::JoinError),
@@ -51,41 +40,30 @@ pub enum Error {
     #[error("identity not formatted correctly")]
     NodeIdentityFormattingError,
 
-    #[error("failed setting up local TUN network device: {0}")]
-    TunError(#[from] tun2::Error),
-
-    #[error("{0}")]
-    WireguardConfigError(#[from] talpid_wireguard::config::Error),
-
     #[error("recipient is not formatted correctly")]
     RecipientFormattingError,
 
-    #[error("{0}")]
-    ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
+    // #[error("{0}")]
+    // ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 
-    #[error(transparent)]
-    ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
-
+    // #[error(transparent)]
+    // ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
     #[error("missing Gateway exit information")]
     MissingExitPointInformation,
 
     #[error("missing Gateway entry information")]
     MissingEntryPointInformation,
 
-    #[error("{0}")]
-    KeyRecoveryError(#[from] nym_crypto::asymmetric::encryption::KeyRecoveryError),
+    // #[error("{0}")]
+    // KeyRecoveryError(#[from] nym_crypto::asymmetric::encryption::KeyRecoveryError),
 
-    #[error("{0}")]
-    NymNodeApiClientError(#[from] nym_node_requests::api::client::NymNodeApiClientError),
-
+    // #[error("{0}")]
+    // NymNodeApiClientError(#[from] nym_node_requests::api::client::NymNodeApiClientError),
     #[error("gateway was requested by location, but we don't have any location data - is the explorer-api set correctly?")]
     RequestedGatewayByLocationWithoutLocationDataAvailable,
 
     #[error("invalid Gateway API response")]
     InvalidGatewayAPIResponse,
-
-    #[error("{0}")]
-    WireguardTypesError(#[from] nym_wireguard_types::error::Error),
 
     #[error("could not obtain the default interface")]
     DefaultInterfaceError,
@@ -126,17 +104,6 @@ pub enum Error {
     #[error("vpn errored on stop")]
     StopError,
 
-    #[cfg(any(unix, target_os = "android"))]
-    #[error("{0}")]
-    TunProvider(#[from] talpid_tunnel::tun_provider::Error),
-
-    #[error("{0}")]
-    TalpidCoreMpsc(#[from] talpid_core::mpsc::Error),
-
-    #[cfg(target_os = "ios")]
-    #[error("{0}")]
-    UniffiError(#[from] crate::platform::error::FFIError),
-
     #[error("failed to serialize message")]
     FailedToSerializeMessage {
         #[from]
@@ -161,12 +128,11 @@ pub enum Error {
     #[error("{0}")]
     GatewayDirectoryError(#[from] nym_gateway_directory::Error),
 
-    #[error("failed to import credential to: {location}: {source}")]
-    FailedToImportCredential {
-        location: PathBuf,
-        source: nym_id::NymIdError,
-    },
-
+    // #[error("failed to import credential to: {location}: {source}")]
+    // FailedToImportCredential {
+    //     location: PathBuf,
+    //     source: nym_id::NymIdError,
+    // },
     #[error("failed decode base58 credential: {source}")]
     FailedToDecodeBase58Credential { source: bs58::decode::Error },
 
