@@ -40,6 +40,11 @@ pub async fn fetch_gateways() -> anyhow::Result<Vec<DescribedGatewayWithLocation
     lookup_gateways().await
 }
 
+pub async fn fetch_gateways_with_ipr() -> anyhow::Result<Vec<DescribedGatewayWithLocation>> {
+    let gateways = lookup_gateways().await?;
+    Ok(extract_out_exit_gateways(gateways).await)
+}
+
 pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<PingResult> {
     // Setup the entry gateways
     let gateways = lookup_gateways().await?;

@@ -52,7 +52,7 @@ async fn run() -> anyhow::Result<PingResult> {
     let gateway = if let Some(gateway) = args.gateway {
         EntryPoint::from_base58_string(&gateway)?
     } else {
-        fetch_random_gateway().await?
+        fetch_random_gateway_with_ipr().await?
     };
 
     let result = nym_ip_pinger::probe(gateway).await;
@@ -67,8 +67,10 @@ async fn run() -> anyhow::Result<PingResult> {
     result
 }
 
-async fn fetch_random_gateway() -> anyhow::Result<EntryPoint> {
-    let gateways = nym_ip_pinger::fetch_gateways().await?;
+async fn fetch_random_gateway_with_ipr() -> anyhow::Result<EntryPoint> {
+    // We're fetching gateways with IPR, since they are more interesting to ping, but we can probe
+    // gateways without an IPR as well
+    let gateways = nym_ip_pinger::fetch_gateways_with_ipr().await?;
     let gateway = gateways
         .iter()
         .choose(&mut rand::thread_rng())
