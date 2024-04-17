@@ -63,7 +63,6 @@ function LicenseList({ language }: Props) {
   useEffect(() => {
     const setItemSizeFn = async () => {
       const os = await platform();
-      console.log(os);
       if (os === 'linux') {
         setItemSize(rootFontSize * heightFactorLinux);
       } else {
