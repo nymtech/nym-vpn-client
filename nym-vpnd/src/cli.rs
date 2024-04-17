@@ -11,12 +11,18 @@ fn pretty_build_info_static() -> &'static str {
     PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info_local_vergen!().pretty_print())
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone, Debug)]
 #[clap(author = "Nymtech", version, about, long_version = pretty_build_info_static())]
 pub(crate) struct CliArgs {
     /// Path pointing to an env file describing the network.
     #[arg(short, long, value_parser = check_path)]
     pub(crate) config_env_file: Option<PathBuf>,
+
+    #[arg(long)]
+    pub(crate) enable_http_listener: bool,
+
+    #[arg(long)]
+    pub(crate) disable_socket_listener: bool,
 }
 
 fn check_path(path: &str) -> Result<PathBuf, String> {

@@ -1,46 +1,71 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::Path;
+use std::{net::SocketAddr, path::PathBuf};
 
 use nym_task::TaskManager;
-use tokio::sync::mpsc::UnboundedReceiver;
+use nym_vpn_proto::nym_vpnd_server::NymVpndServer;
+use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tonic::transport::Server;
 use tracing::info;
 
-use crate::service::VpnServiceCommand;
+use super::{
+    config::{default_socket_path, default_uri_addr},
+    listener::CommandInterface,
+    socket_stream::setup_socket_stream,
+};
+use crate::{cli::CliArgs, service::VpnServiceCommand};
 
-use super::listener::CommandInterface;
+fn spawn_uri_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, addr: SocketAddr) {
+    info!("Starting HTTP listener on: {addr}");
+    tokio::task::spawn(async move {
+        let command_interface = CommandInterface::new_with_uri(vpn_command_tx, addr);
+        Server::builder()
+            .add_service(NymVpndServer::new(command_interface))
+            .serve(addr)
+            .await
+            .unwrap();
+    });
+}
 
-use nym_vpn_proto::nym_vpnd_server::NymVpndServer;
+fn spawn_socket_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, socket_path: PathBuf) {
+    info!("Starting socket listener on: {}", socket_path.display());
+    tokio::task::spawn(async move {
+        let command_interface = CommandInterface::new_with_path(vpn_command_tx, &socket_path);
+        let incoming = setup_socket_stream(&socket_path);
+        Server::builder()
+            .add_service(NymVpndServer::new(command_interface))
+            .serve_with_incoming(incoming)
+            .await
+            .unwrap();
+    });
+}
 
 pub(crate) fn start_command_interface(
     mut task_manager: TaskManager,
+    args: &CliArgs,
 ) -> (
     std::thread::JoinHandle<()>,
     UnboundedReceiver<VpnServiceCommand>,
 ) {
-    info!("Starting unix socket command interface");
+    info!("Starting command interface");
     // Channel to send commands to the vpn service
     let (vpn_command_tx, vpn_command_rx) = tokio::sync::mpsc::unbounded_channel();
-    let socket_path = Path::new("/var/run/nym-vpn.socket");
+
+    let args = args.clone();
+    let socket_path = default_socket_path();
+    let uri_addr = default_uri_addr();
 
     let handle = std::thread::spawn(move || {
         let command_rt = tokio::runtime::Runtime::new().unwrap();
-        command_rt.block_on(async {
-            // Spawn command interface
-            tokio::task::spawn(async {
-                let c = CommandInterface::new(vpn_command_tx, socket_path);
+        command_rt.block_on(async move {
+            if !args.disable_socket_listener {
+                spawn_socket_listener(vpn_command_tx.clone(), socket_path.to_path_buf());
+            }
 
-                let addr = "[::1]:50051".parse().unwrap();
-                Server::builder()
-                    .add_service(NymVpndServer::new(c))
-                    .serve(addr)
-                    .await
-                    .unwrap();
-
-                // c .listen() .await
-            });
+            if args.enable_http_listener {
+                spawn_uri_listener(vpn_command_tx.clone(), uri_addr);
+            }
 
             // Using TaskManager::catch_interrupt() here is a bit of a hack that we use for now.
             // The real solution is to:

@@ -11,9 +11,9 @@ mod error;
 mod icmp_beacon;
 mod mixnet_beacon;
 mod monitor;
-mod packet_helpers;
 mod sync_self_ping;
 
+pub mod packet_helpers;
 pub use error::Error;
 pub use icmp_beacon::{
     is_icmp_beacon_reply, is_icmp_v6_beacon_reply, IcmpBeaconReply, Icmpv6BeaconReply,

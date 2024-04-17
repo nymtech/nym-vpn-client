@@ -45,9 +45,9 @@ enum VpnMode {
 
 enum ConnectionStatus {
   STATUS_UNSPECIFIED = 0;
-  CONNECTED = 1;
-  DISCONNECTED = 2;
-  CONNECTING = 3;
+  NOT_CONNECTED = 1;
+  CONNECTING = 2;
+  CONNECTED = 3;
   DISCONNECTING = 4;
   UNKNOWN = 5; // errored pending state etc
 }
@@ -66,6 +66,11 @@ message GetVpnModeResponse {
 
 message GatewayResponse {
   Gateway gateways = 1;
+}
+
+message StatusRequest {}
+message StatusResponse {
+  ConnectionStatus status = 1;
 }
 
 message ConnectionStatusUpdate {
@@ -92,6 +97,7 @@ service NymVpnd {
   // rpc SetUserCredentials (SetUserCredentialsRequest) returns (Empty) {}
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
   rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
+  rpc VpnStatus (StatusRequest) returns (StatusResponse) {}
   // rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
   // // Cancel any connection pending state (connecting, disconnecting etc)
   // // and return to disconnected state

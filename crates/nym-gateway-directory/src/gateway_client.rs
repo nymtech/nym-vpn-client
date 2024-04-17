@@ -146,7 +146,7 @@ impl GatewayClient {
         let described_gateways = self.lookup_described_gateways_with_location().await?;
         Ok(described_gateways
             .into_iter()
-            .filter(|gateway| gateway.has_ip_packet_router())
+            .filter(|gateway| gateway.has_ip_packet_router() && gateway.is_current_build())
             .collect())
     }
 

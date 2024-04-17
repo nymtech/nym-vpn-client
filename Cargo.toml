@@ -3,9 +3,11 @@ resolver = "2"
 members = [
     "crates/nym-connection-monitor",
     "crates/nym-gateway-directory",
+    "crates/nym-gateway-probe",
     "crates/nym-vpn-proto",
     "nym-vpn-cli",
-    "nym-vpn-lib", "nym-vpnc",
+    "nym-vpn-lib",
+    "nym-vpnc",
     "nym-vpnd",
 ]
 exclude = ["nym-vpn-desktop/src-tauri"]
@@ -50,10 +52,11 @@ itertools = "0.12.1"
 lazy_static = "1.4.0"
 log = "0.4.20"
 netdev = "0.24.0"
+parity-tokio-ipc = "0.9.0"
 pnet_packet = "0.34.0"
 prost = "0.12.4"
 rand = "0.7.3"
-reqwest = { version = "0.12.3", default-features = false }
+reqwest = { version = "0.11.22", default-features = false }
 serde = "1.0.192"
 serde_json = "1.0.91"
 signature = "1"
@@ -61,8 +64,10 @@ tap = "1.0.1"
 thiserror = "1.0.38"
 tokio = { version = "1.8" }
 tokio-util = { version = "0.7.10", features = ["codec"] }
+toml = "0.8.12"
 tonic = "0.11.0"
 tonic-build = "0.11.0"
+tower = "0.4.13"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tun2 = { version = "1.2.3", features = ["async"] }
@@ -70,21 +75,17 @@ uniffi = { version = "0.27.0", features = ["cli"] }
 url = "2.4"
 vergen = { version = "8.2.6", default-features = false }
 
-# TEMPORARY: 8f751c14aa00bff48b810574e982be0966395aa5 is
-# jon/sdk-handle-active-gateways branch. Switch back to develop as soon as that
-# PR is merged. I've been rebasing that PR on latest develop regularly in the
-# meantime.
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
-nym-client-core = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
-nym-config = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
-nym-crypto = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
-nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
-nym-id = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
-nym-sdk = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
-nym-task = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
-nym-topology = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "8f751c14aa00bff48b810574e982be0966395aa5" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }
+nym-client-core = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }
+nym-config = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }
+nym-crypto = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }
+nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }
+nym-id = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }
+nym-sdk = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }
+nym-task = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }
+nym-topology = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "fd238b1" }

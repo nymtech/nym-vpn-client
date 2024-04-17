@@ -11,7 +11,7 @@ use crate::{routing, MixnetConnectionInfo, NymVpn};
 use futures::channel::oneshot;
 use log::*;
 use log::{debug, error, info};
-use nym_gateway_directory::{GatewayClient, LookupGateway};
+use nym_gateway_directory::{DescribedGatewayWithLocation, GatewayClient, LookupGateway};
 use nym_task::TaskManager;
 use talpid_routing::RouteManager;
 use tap::TapFallible;
@@ -70,6 +70,17 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
         return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
     }
 
+    //filter so we are only getting exit gateways with current api version
+    let working_exit_gateways: Vec<DescribedGatewayWithLocation> = gateways
+        .clone()
+        .into_iter()
+        .filter(|gateway| gateway.is_current_build())
+        .collect();
+
+    if working_exit_gateways.is_empty() {
+        return Err(Error::CountryExitGatewaysOutdated);
+    }
+
     let (entry_gateway_id, entry_location) = nym_vpn
         .entry_point
         .lookup_gateway_identity(&gateways)
@@ -77,7 +88,7 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
     let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
     let (exit_gateway_id, exit_location) = nym_vpn
         .exit_point
-        .lookup_gateway_identity(&gateways)
+        .lookup_gateway_identity(&working_exit_gateways)
         .await?;
     let exit_location_str = exit_location.as_deref().unwrap_or("unknown");
 

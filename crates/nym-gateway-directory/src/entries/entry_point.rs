@@ -3,7 +3,7 @@
 
 use std::fmt::{Display, Formatter};
 
-use crate::{error::Result, DescribedGatewayWithLocation};
+use crate::{error::Result, DescribedGatewayWithLocation, Error};
 use nym_sdk::mixnet::NodeIdentity;
 use serde::{Deserialize, Serialize};
 
@@ -40,6 +40,12 @@ impl Display for EntryPoint {
 }
 
 impl EntryPoint {
+    pub fn from_base58_string(base58: &str) -> Result<Self> {
+        let identity = NodeIdentity::from_base58_string(base58)
+            .map_err(|_| Error::NodeIdentityFormattingError)?;
+        Ok(EntryPoint::Gateway { identity })
+    }
+
     pub fn is_location(&self) -> bool {
         matches!(self, EntryPoint::Location { .. })
     }

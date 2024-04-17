@@ -5,9 +5,13 @@ use crate::{
     error::{Error, Result},
     helpers::*,
 };
+use chrono::{DateTime, Utc};
 use nym_explorer_client::Location;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_validator_client::{client::IdentityKey, models::DescribedGateway};
+
+const BUILD_VERSION: &str = "1.1.34";
+const BUILD_TIME: &str = "2024-03-25T10:47:53.981548588Z";
 
 #[derive(Clone, Debug)]
 pub struct DescribedGatewayWithLocation {
@@ -25,6 +29,34 @@ impl DescribedGatewayWithLocation {
             .self_described
             .as_ref()
             .and_then(|d| d.ip_packet_router.as_ref())
+            .is_some()
+    }
+
+    pub fn is_current_build(&self) -> bool {
+        self.has_current_build_timestamp() && self.has_current_build_version()
+    }
+
+    fn has_current_build_timestamp(&self) -> bool {
+        let expected_build_time: DateTime<Utc> = BUILD_TIME.parse().expect("Invalid timestamp");
+        self.build_timestamp()
+            .map_or(false, |d| d >= expected_build_time)
+    }
+
+    fn build_timestamp(&self) -> Option<DateTime<Utc>> {
+        self.gateway.self_described.as_ref().map(|d| {
+            d.build_information
+                .build_timestamp
+                .parse::<DateTime<Utc>>()
+                .ok()
+        })?
+    }
+
+    //can make this more flexible with backwards compatibility
+    fn has_current_build_version(&self) -> bool {
+        self.gateway
+            .self_described
+            .as_ref()
+            .map(|d| d.build_information.build_version == BUILD_VERSION)
             .is_some()
     }
 

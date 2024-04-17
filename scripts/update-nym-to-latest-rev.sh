@@ -13,7 +13,7 @@ fi
 api_url="https://api.github.com/repos/nymtech/nym/commits/develop"
 
 # Fetch the latest commit SHA from the develop branch
-latest_commit=$(curl -s $api_url | jq -r '.sha')
+latest_commit=$(curl -s $api_url | jq -r '.sha' | cut -c 1-7)
 
 # Check if we got a valid commit SHA
 if [[ -z "$latest_commit" || "$latest_commit" == "null" ]]; then

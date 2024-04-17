@@ -136,6 +136,7 @@ pub enum Error {
     #[cfg(target_os = "ios")]
     #[error("{0}")]
     UniffiError(#[from] crate::platform::error::FFIError),
+
     #[error("failed to serialize message")]
     FailedToSerializeMessage {
         #[from]
@@ -153,6 +154,9 @@ pub enum Error {
 
     #[error("gateway does not contain a two character country ISO")]
     CountryCodeNotFound,
+
+    #[error("failed to find an exit gateway for country that is running a working version")]
+    CountryExitGatewaysOutdated,
 
     #[error("{0}")]
     GatewayDirectoryError(#[from] nym_gateway_directory::Error),
