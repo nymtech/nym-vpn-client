@@ -211,6 +211,7 @@ fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
 
 pub async fn setup_wg_routing(
     entry_config: talpid_wireguard::config::Config,
+    exit_config: talpid_wireguard::config::Config,
     entry_route_manager_handle: RouteManagerHandle,
     exit_route_manager_handle: RouteManagerHandle,
     lan_gateway_ip: &LanGatewayIp,
@@ -218,9 +219,9 @@ pub async fn setup_wg_routing(
     let mut routes = vec![];
     routes.push((
         "0.0.0.0/0".to_string(),
-        Node::address(entry_config.ipv4_gateway.into()),
+        Node::address(exit_config.ipv4_gateway.into()),
     ));
-    if let Some(ip) = entry_config.ipv6_gateway {
+    if let Some(ip) = exit_config.ipv6_gateway {
         routes.push(("::/0".to_string(), Node::address(ip.into())));
     }
     let routes = routes.into_iter().flat_map(|(network, node)| {
@@ -228,10 +229,36 @@ pub async fn setup_wg_routing(
             .into_iter()
             .map(move |ip| RequiredRoute::new(ip, node.clone()))
     });
-    entry_route_manager_handle
+    log::info!("Routes for exit {:?}", routes);
+    exit_route_manager_handle
         .add_routes(routes.collect())
         .await?;
 
+    let mut routes = vec![];
+    if let Some(addr) = exit_config
+        .tunnel
+        .addresses
+        .iter()
+        .find(|addr| addr.is_ipv4())
+    {
+        routes.push(RequiredRoute::new(
+            IpNetwork::from(*addr),
+            Node::address(entry_config.ipv4_gateway.into()),
+        ));
+    }
+    if let Some(addr) = exit_config
+        .tunnel
+        .addresses
+        .iter()
+        .find(|addr| addr.is_ipv6())
+    {
+        if let Some(gatway_addr) = entry_config.ipv6_gateway {
+            routes.push(RequiredRoute::new(
+                IpNetwork::from(*addr),
+                Node::address(gatway_addr.into()),
+            ))
+        };
+    }
     let default_node_ipv4 = lan_gateway_ip
         .0
         .gateway
@@ -246,7 +273,6 @@ pub async fn setup_wg_routing(
         .and_then(|g| g.ipv6.first().map(|a| IpAddr::from(*a)))
         .map(|addr| Node::new(addr, lan_gateway_ip.0.name.clone()))
         .unwrap_or(Node::device(lan_gateway_ip.0.name.clone()));
-    let mut routes = vec![];
     if let Some(addr) = entry_config
         .tunnel
         .addresses
@@ -269,7 +295,9 @@ pub async fn setup_wg_routing(
             default_node_ipv6,
         ));
     }
-    exit_route_manager_handle
+
+    log::info!("Routes for entry {:?}", routes);
+    entry_route_manager_handle
         .add_routes(routes.into_iter().collect())
         .await?;
 

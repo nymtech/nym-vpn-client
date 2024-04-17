@@ -91,6 +91,20 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
     let task_manager = TaskManager::new(10);
 
     if nym_vpn.enable_wireguard {
+        let (wireguard_setup_exit, wireguard_waiting_exit, tunnel_exit) = create_wireguard_tunnel(
+            nym_vpn
+                .entry_private_key
+                .as_ref()
+                .expect("clap should enforce value when wireguard enabled"),
+            nym_vpn
+                .exit_wg_ip
+                .expect("clap should enforce value when wireguard enabled"),
+            nym_vpn.tun_provider.clone(),
+            &gateway_client,
+            &wg_gateway_client,
+            &exit_gateway_id,
+        )
+        .await?;
         let (wireguard_setup_entry, wireguard_waiting_entry, tunnel_entry) =
             create_wireguard_tunnel(
                 nym_vpn
@@ -106,22 +120,9 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
                 &entry_gateway_id,
             )
             .await?;
-        let (wireguard_setup_exit, wireguard_waiting_exit, tunnel_exit) = create_wireguard_tunnel(
-            nym_vpn
-                .entry_private_key
-                .as_ref()
-                .expect("clap should enforce value when wireguard enabled"),
-            nym_vpn
-                .exit_wg_ip
-                .expect("clap should enforce value when wireguard enabled"),
-            nym_vpn.tun_provider.clone(),
-            &gateway_client,
-            &wg_gateway_client,
-            &exit_gateway_id,
-        )
-        .await?;
         setup_wg_routing(
             tunnel_entry.config.clone().unwrap(),
+            tunnel_exit.config.clone().unwrap(),
             tunnel_entry.route_manager_handle.clone(),
             tunnel_exit.route_manager_handle.clone(),
             &default_lan_gateway_ip,
