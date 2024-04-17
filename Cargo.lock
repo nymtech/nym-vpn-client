@@ -3962,7 +3962,6 @@ dependencies = [
  "clap",
  "dirs 5.0.1",
  "futures",
- "ipnetwork",
  "log",
  "nym-bin-common",
  "nym-client-core",
