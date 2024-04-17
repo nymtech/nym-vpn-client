@@ -3,13 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PrivacyPolicyUrl, ToSUrl } from '../../../constants';
 import { routes } from '../../../router';
-import { useExit } from '../../../state';
-import { MsIcon, PageAnim, SettingsMenuCard } from '../../../ui';
+import { MsIcon, PageAnim } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
 
 function Legal() {
   const { t } = useTranslation('settings');
-  const { exit } = useExit();
   const navigate = useNavigate();
 
   return (
@@ -42,7 +40,6 @@ function Legal() {
           },
         ]}
       />
-      <SettingsMenuCard title={t('quit')} onClick={exit} />
     </PageAnim>
   );
 }
