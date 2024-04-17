@@ -18,7 +18,6 @@ bytes.workspace = true
 clap = { workspace = true, features = ["cargo", "derive"] }
 dirs.workspace = true
 futures.workspace = true
-ipnetwork.workspace = true
 log.workspace = true
 pnet_packet.workspace = true
 rand.workspace = true
