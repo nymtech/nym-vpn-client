@@ -9,8 +9,8 @@ import { routes } from '../../../../router';
 import { PageAnim, SettingsMenuCard } from '../../../../ui';
 import { CodeDependency } from '../../../../types';
 
-const heightFactor = 8;
-const heightFactorMacos = 6;
+const heightFactorLinux = 8;
+const heightFactor = 6;
 
 const Row = ({
   style,
@@ -63,8 +63,9 @@ function LicenseList({ language }: Props) {
   useEffect(() => {
     const setItemSizeFn = async () => {
       const os = await platform();
-      if (os === 'darwin') {
-        setItemSize(rootFontSize * heightFactorMacos);
+      console.log(os);
+      if (os === 'linux') {
+        setItemSize(rootFontSize * heightFactorLinux);
       } else {
         setItemSize(rootFontSize * heightFactor);
       }
