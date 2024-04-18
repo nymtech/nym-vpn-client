@@ -4,19 +4,7 @@ use nym_ip_packet_requests::{
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    // #[error("{0}")]
-    // IO(#[from] std::io::Error),
-    //
-    // #[error("{0}")]
-    // AddrParseError(#[from] std::net::AddrParseError),
-    //
-    // #[error("{0}")]
-    // JoinError(#[from] tokio::task::JoinError),
-    //
-    // #[error("{0}")]
-    // CanceledError(#[from] futures::channel::oneshot::Canceled),
-
-    #[error("{0}")]
+    #[error(transparent)]
     SdkError(#[from] nym_sdk::Error),
 
     #[error("received response with version v{received}, the client is too new and can only understand v{expected}")]
@@ -42,17 +30,6 @@ pub enum Error {
 
     #[error("connect request denied: {reason}")]
     DynamicConnectRequestDenied { reason: DynamicConnectFailureReason },
-    // #[error("failed to serialize message")]
-    // FailedToSerializeMessage {
-    //     #[from]
-    //     source: bincode::Error,
-    // },
-    //
-    // #[error("{0}")]
-    // GatewayDirectoryError(#[from] nym_gateway_directory::Error),
-    //
-    // #[error("{0}")]
-    // ConnectionMonitorError(#[from] nym_connection_monitor::Error),
 }
 
 // Result type based on our error type
