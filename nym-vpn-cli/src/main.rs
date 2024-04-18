@@ -163,7 +163,7 @@ async fn import_credential(args: commands::ImportCredentialArgs, data_path: Path
         ImportCredentialTypeEnum::Data(data) => data,
     };
     fs::create_dir_all(&data_path)?;
-    nym_vpn_lib::credentials::import_credential(raw_credential, data_path).await
+    Ok(nym_vpn_lib::credentials::import_credential(raw_credential, data_path).await?)
 }
 
 fn mixnet_data_path() -> Option<PathBuf> {

@@ -186,6 +186,9 @@ pub enum Error {
 
     #[error("invalid credential")]
     InvalidCredential,
+
+    #[error(transparent)]
+    CredentialError(#[from] crate::credentials::CredentialError),
 }
 
 // Result type based on our error type
