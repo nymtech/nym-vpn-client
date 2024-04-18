@@ -102,6 +102,6 @@ async fn verify_credential(
         info!("Successfully verified credential");
         Ok(())
     } else {
-        return Err(CredentialError::FailedToVerifyCredential);
+        Err(CredentialError::FailedToVerifyCredential)
     }
 }
