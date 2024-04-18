@@ -295,7 +295,7 @@ pub(crate) async fn setup_mixnet_client(
             credentials::check_imported_credential(path.to_path_buf(), &gateway_id).await
         {
             // UGLY: flow needs to restructured to sort this out, but I don't want to refactor all that just before release.
-            task_client.mark_as_success();
+            task_client.disarm();
             return Err(Error::InvalidCredential { reason: err });
         };
         let key_storage_path = StoragePaths::new_from_dir(path)?;
