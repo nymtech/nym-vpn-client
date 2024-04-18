@@ -42,9 +42,10 @@ val primary = Color(0xFFFB6E4E)
 val secondary = Color(0XFF625B71)
 
 object CustomColors {
+	val outlineVariant = Color(0xFF49454F)
 	val confirm = Color(0xFF2BC761)
 	val statusGreen = Color(0x1A47C45D)
-	val statusDefaultDark = Color(0x31303329)
+	val statusDefaultDark = Color(0xFF313033).copy(alpha = 0.16f)
 	val statusDefaultLight = Color(0xFF625B71).copy(alpha = 0.16f)
 	val disconnect = Color(0xFF7075FF)
 	val error = Color(0xFFE33B5A)

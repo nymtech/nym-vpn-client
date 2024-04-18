@@ -6,16 +6,25 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,12 +44,12 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
-import net.nymtech.nymvpn.ui.common.buttons.ListOptionSelectionButton
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.RadioSurfaceButton
 import net.nymtech.nymvpn.ui.common.functions.countryIcon
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
+import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.theme.CustomColors
@@ -150,19 +159,64 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: 
 				modifier = Modifier.padding(horizontal = 24.dp.scaledWidth()),
 			) {
 				GroupLabel(title = stringResource(R.string.connect_to))
+				val trailingIcon = ImageVector.vectorResource(R.drawable.link_arrow_right)
+				val selectionEnabled = uiState.connectionState is ConnectionState.Disconnected
 				if (uiState.firstHopEnabled) {
-					ListOptionSelectionButton(
-						label = stringResource(R.string.first_hop),
+					CustomTextField(
 						value = firstHopName,
-						onClick = { if (uiState.connectionState is ConnectionState.Disconnected) navController.navigate(NavItem.Hop.Entry.route) },
-						leadingIcon = firstHopIcon,
+						readOnly = true,
+						enabled = false,
+						label = {
+							Text(
+								stringResource(R.string.first_hop),
+								style = MaterialTheme.typography.bodySmall,
+							)
+						},
+						leading = firstHopIcon,
+						trailing = {
+							Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
+						},
+						modifier = Modifier
+							.fillMaxWidth()
+							.heightIn(60.dp.scaledHeight())
+							.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
+							.clickable(
+								remember { MutableInteractionSource() },
+								indication = if (selectionEnabled) rememberRipple() else null,
+							) {
+								if (selectionEnabled) {
+									navController.navigate(
+										NavItem.Hop.Entry.route,
+									)
+								}
+							},
 					)
 				}
-				ListOptionSelectionButton(
-					label = stringResource(R.string.last_hop),
+				CustomTextField(
 					value = lastHopName,
-					onClick = { if (uiState.connectionState is ConnectionState.Disconnected) navController.navigate(NavItem.Hop.Exit.route) },
-					leadingIcon = lastHopIcon,
+					readOnly = true,
+					enabled = false,
+					label = {
+						Text(
+							stringResource(R.string.last_hop),
+							style = MaterialTheme.typography.bodySmall,
+						)
+					},
+					leading = lastHopIcon,
+					trailing = {
+						Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
+					},
+					modifier = Modifier
+						.fillMaxWidth()
+						.heightIn(60.dp.scaledHeight())
+						.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
+						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) rememberRipple() else null) {
+							if (selectionEnabled) {
+								navController.navigate(
+									NavItem.Hop.Exit.route,
+								)
+							}
+						},
 				)
 			}
 			Box(modifier = Modifier.padding(horizontal = 24.dp.scaledWidth())) {
@@ -171,7 +225,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: 
 						MainStyledButton(
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
-								if (appUiState.loggedIn) {
+								if (appUiState.settings.loggedIn) {
 									if (notificationPermissionState != null &&
 										!notificationPermissionState.status.isGranted
 									) {

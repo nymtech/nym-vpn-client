@@ -36,11 +36,13 @@
     <string name="logs">Logs</string>
     <string name="feedback">Feedback</string>
     <string name="support">Support</string>
-    <string name="error_reporting">Error reporting</string>
-    <string name="error_reporting_description">Help us improve NymVPN</string>
+    <string name="error_reporting">Share anonymous error reports</string>
+	<string name="sentry">Sentry</string>
+	<string name="via">via</string>
+    <string name="required_app_restart">applies on app restart</string>
     <string name="legal">Legal</string>
-    <string name="faq_link">https://nymtech.net</string>
-    <string name="privacy_link">https://nymvpn.com/en/privacy?type=apps</string>
+    <string name="faq_link" translatable="false">https://nymtech.net</string>
+    <string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
     <string name="terms_of_use">Terms of use</string>
     <string name="privacy_policy">Privacy statement</string>
     <string name="licenses">Licenses</string>
@@ -50,17 +52,17 @@
     <string name="check_faq">Check the FAQ</string>
     <string name="join_matrix">Join us on Matrix</string>
     <string name="join_discord">Join us on Discord</string>
-    <string name="matrix_url">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
-    <string name="discord_url">https://discord.com/invite/nym</string>
-    <string name="faq_url">https://nymvpn.com/en/support</string>
-    <string name="support_email">support@nymvpn.com</string>
-    <string name="github_issues_url">https://github.com/nymtech/nymvpn-android/issues/new/choose</string>
+    <string name="matrix_url" translatable="false">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
+    <string name="discord_url" translatable="false">https://discord.com/invite/nym</string>
+    <string name="faq_url" translatable="false">https://nymvpn.com/en/support</string>
+    <string name="support_email" translatable="false">support@nymvpn.com</string>
+    <string name="github_issues_url" translatable="false">https://github.com/nymtech/nymvpn-android/issues/new/choose</string>
     <string name="email_subject">NymVPN Support</string>
     <string name="email_chooser">Send an email…</string>
     <string name="login">Login</string>
     <string name="add_credential">Add credential</string>
     <string name="add_cred_to_connect">Add credential to connect</string>
-    <string name="welcome">Welcome!</string>
+    <string name="welcome_exclaim">Welcome!</string>
     <string name="credential_message">Enter your credential to get started</string>
     <string name="credential_disclaimer">To generate a new credential, please use the link provided in the alpha phase invitation email.</string>
     <string name="credential_label">Credential</string>
@@ -77,13 +79,12 @@
     <string name="macos">macOS</string>
     <string name="linux">Linux</string>
     <string name="ios">iOS</string>
-    <string name="log_out">Log out</string>
     <string name="credential_successful">Credential added successfully</string>
     <string name="no_browser_detected">No browser detected</string>
     <string name="no_email_detected">No email app detected</string>
     <string name="unknown">Unknown</string>
     <string name="no_scm_found">Source code url not found</string>
-    <string name="terms_link">https://nymvpn.com/en/terms</string>
+    <string name="terms_link" translatable="false">https://nymvpn.com/en/terms</string>
     <string name="two_hop">2-hop</string>
     <string name="five_hop">5-hop</string>
     <string name="mode">Mode</string>
@@ -92,4 +93,17 @@
     <string name="error_reporting_alert">Changes to error reporting will not fully take effect until the app has been restarted.</string>
     <string name="feature_in_progress">This feature is still in progress.</string>
     <string name="logs_saved">Logs saved to downloads folder</string>
+	<string name="sentry_url">https://sentry.io</string>
+	<string name="anonymous_analytics">Anonymous analytics</string>
+	<string name="anonymous_analytics_description">Help us improve NymVPN</string>
+	<string name="alpha_help_message">Help us refine our app during the alpha phase! Your feedback is crucial for identifying and resolving issues.</string>
+	<string name="opt_in_message_first">Opt-in for anonymous error monitoring</string>
+	<string name="opt_in_message_second">and analytics at will—you can opt out anytime. Thanks for your support!</string>
+	<string name="to_alpha">to NymVPN alpha</string>
+	<string name="welcome">Welcome</string>
+	<string name="cont">Continue</string>
+	<string name="continue_agree">By continuing, you agree to NymVPN\'s</string>
+	<string name="and_acknowledge">and acknowledge NymVPN\'s</string>
+	<string name="share_anonymous_analytics">Share anonymous product analytics</string>
+	<string name="anonymous_error_reports">Anonymous error reports</string>
 </resources>

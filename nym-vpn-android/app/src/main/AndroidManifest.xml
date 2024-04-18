@@ -21,15 +21,23 @@
         android:theme="@style/Theme.AppSplashScreen"
         tools:node="merge"
         tools:targetApi="33">
+		<activity
+			android:name=".ui.SplashActivity"
+			android:exported="true"
+			android:theme="@style/Theme.AppSplashScreen">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
         <activity
             android:name=".ui.MainActivity"
             android:configChanges="orientation|keyboardHidden"
             android:exported="true"
+			android:theme="@style/Theme.NymVPN"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
             </intent-filter>
         </activity>

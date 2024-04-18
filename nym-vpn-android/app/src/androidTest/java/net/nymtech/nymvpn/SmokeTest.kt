@@ -55,9 +55,9 @@ class SmokeTest {
 		acceptNotificationPermission()
 		connect()
 		allowVpnPermission()
-		connect()
+		connectWithPermissions()
 		disconnect()
-		connect()
+		connectWithPermissions()
 		disconnect()
 	}
 
@@ -77,11 +77,17 @@ class SmokeTest {
 		waitForIdle()
 	}
 
+	private fun UiDevice.connectWithPermissions() {
+		connect()
+		wait(Until.hasObject(By.res(Constants.DISCONNECT_TEST_TAG)), 15000)
+	}
+
 	private fun UiDevice.connect() {
 		// Open a show from one of the carousels'
-		waitForIdle()
+		wait(Until.hasObject(By.res(Constants.LOGIN_TEST_TAG)), 5000)
+
 		kotlin.runCatching {
-			SystemClock.sleep(5000)
+			SystemClock.sleep(2000)
 			findObject(By.res(Constants.CONNECT_TEST_TAG)).click()
 		}
 		waitForIdle()

@@ -2,7 +2,6 @@ package net.nymtech.nymvpn.data.datastore
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.model.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -61,11 +60,19 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 
 	override suspend fun isErrorReportingEnabled(): Boolean {
 		return dataStoreManager.getFromStore(DataStoreManager.ERROR_REPORTING)
-			?: BuildConfig.OPT_IN_REPORTING
+			?: Settings.REPORTING_DEFAULT
 	}
 
 	override suspend fun setErrorReporting(enabled: Boolean) {
 		dataStoreManager.saveToDataStore(DataStoreManager.ERROR_REPORTING, enabled)
+	}
+
+	override suspend fun setAnalytics(enabled: Boolean) {
+		dataStoreManager.saveToDataStore(DataStoreManager.ANALYTICS, enabled)
+	}
+
+	override suspend fun isAnalyticsEnabled(): Boolean {
+		return dataStoreManager.getFromStore(DataStoreManager.ANALYTICS) ?: Settings.REPORTING_DEFAULT
 	}
 
 	override suspend fun isFirstHopSelectionEnabled(): Boolean {
@@ -75,6 +82,14 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 
 	override suspend fun setFirstHopSelection(enabled: Boolean) {
 		dataStoreManager.saveToDataStore(DataStoreManager.FIRST_HOP_SELECTION, enabled)
+	}
+
+	override suspend fun isAnalyticsShown(): Boolean {
+		return dataStoreManager.getFromStore(DataStoreManager.ANALYTICS_SHOWN) ?: Settings.ANALYTICS_SHOWN_DEFAULT
+	}
+
+	override suspend fun setAnalyticsShown(shown: Boolean) {
+		dataStoreManager.saveToDataStore(DataStoreManager.ANALYTICS_SHOWN, shown)
 	}
 
 	override val settingsFlow: Flow<Settings> =
@@ -93,11 +108,14 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 							?: Settings.AUTO_START_DEFAULT,
 						errorReportingEnabled =
 						pref[DataStoreManager.ERROR_REPORTING]
-							?: BuildConfig.OPT_IN_REPORTING,
+							?: Settings.REPORTING_DEFAULT,
+						analyticsEnabled = pref[DataStoreManager.ANALYTICS]
+							?: Settings.REPORTING_DEFAULT,
 						firstHopSelectionEnabled =
 						pref[DataStoreManager.FIRST_HOP_SELECTION]
 							?: Settings.FIRST_HOP_SELECTION_DEFAULT,
 						loggedIn = pref[DataStoreManager.LOGGED_IN] ?: Settings.LOGGED_IN_DEFAULT,
+						isAnalyticsShown = pref[DataStoreManager.ANALYTICS_SHOWN] ?: Settings.ANALYTICS_SHOWN_DEFAULT,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

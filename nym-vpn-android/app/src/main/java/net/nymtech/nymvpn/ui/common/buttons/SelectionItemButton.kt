@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -16,32 +17,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun SelectionItemButton(leading: @Composable () -> Unit, buttonText: String, selected: Boolean, trailingText: String?, onClick: () -> Unit) {
+fun SelectionItemButton(leading: @Composable () -> Unit, buttonText: String, trailingText: String?, onClick: () -> Unit) {
 	Card(
 		modifier =
-		Modifier
+		Modifier.clip(RoundedCornerShape(8.dp))
 			.clickable(
-				indication = null,
+				indication = rememberRipple(),
 				interactionSource = remember { MutableInteractionSource() },
 				onClick = { onClick() },
 			)
 			.height(56.dp.scaledHeight()),
-		shape = RoundedCornerShape(10.dp),
 		colors =
 		CardDefaults.cardColors(
-			containerColor =
-			if (!selected) {
-				MaterialTheme.colorScheme.background
-			} else {
-				MaterialTheme.colorScheme.onSurfaceVariant.copy(
-					alpha = 0.16f,
-				)
-			},
+			containerColor = MaterialTheme.colorScheme.background,
 		),
 	) {
 		Row(
@@ -52,7 +46,7 @@ fun SelectionItemButton(leading: @Composable () -> Unit, buttonText: String, sel
 			leading()
 			Text(
 				buttonText,
-				style = MaterialTheme.typography.bodyMedium,
+				style = MaterialTheme.typography.bodyLarge,
 				color = MaterialTheme.colorScheme.onSurface,
 			)
 			trailingText?.let {

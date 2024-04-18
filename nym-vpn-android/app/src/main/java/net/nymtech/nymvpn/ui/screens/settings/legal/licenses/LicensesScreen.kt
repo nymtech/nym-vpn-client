@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,24 +51,31 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 				listOf(
 					SelectionItem(
 						// TODO refactor
-						title = (
-							if (it.name != null && it.name.length > 32) {
-								it.name.substring(
-									0,
-									29,
-								).plus("...")
-							} else {
-								it.name
-									?: stringResource(id = R.string.unknown)
-							}
-							),
-						description =
-						it.spdxLicenses?.joinToString(postfix = " ") { it.name } +
-							if (it.unknownLicenses != null) {
-								it.unknownLicenses.joinToString { it.name }
-							} else {
-								""
-							},
+						title = {
+							Text(
+								if (it.name != null && it.name.length > 32) {
+									it.name.substring(
+										0,
+										29,
+									).plus("...")
+								} else {
+									it.name
+										?: stringResource(id = R.string.unknown)
+								},
+								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+							)
+						},
+						description = {
+							Text(
+								it.spdxLicenses?.joinToString(postfix = " ") { it.name } +
+									if (it.unknownLicenses != null) {
+										it.unknownLicenses.joinToString { it.name }
+									} else {
+										""
+									},
+								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+							)
+						},
 						onClick = {
 							if (it.scm != null) {
 								appViewModel.openWebPage(it.scm.url)

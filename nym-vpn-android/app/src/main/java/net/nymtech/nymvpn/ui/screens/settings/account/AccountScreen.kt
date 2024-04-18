@@ -157,8 +157,10 @@ fun AccountScreen(appViewModel: AppViewModel, viewModel: AccountViewModel = hilt
 								Icon(Icons.Filled.Clear, Icons.Filled.Clear.name)
 							}
 						},
-						title = it.name,
-						description = it.type.formattedName().asString(context),
+						title = { Text(it.name, style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+						description = {
+							Text(it.type.formattedName().asString(context), style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline))
+						},
 					)
 				},
 			)

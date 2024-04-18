@@ -60,12 +60,18 @@ val Typography =
 			fontWeight = FontWeight(400),
 			textAlign = TextAlign.Center,
 		),
-		labelLarge =
-		TextStyle(
-			fontSize = 14.sp.scaled(),
-			lineHeight = 20.sp.scaled(),
+		labelMedium = TextStyle(
+			fontSize = 14.sp,
+			lineHeight = 20.sp,
 			fontWeight = FontWeight(700),
 			textAlign = TextAlign.Center,
-			letterSpacing = 0.1.sp.scaled(),
+			letterSpacing = 0.1.sp,
+		),
+		labelLarge =
+		TextStyle(
+			fontSize = 18.sp,
+			lineHeight = 24.sp,
+			fontWeight = FontWeight(700),
+			textAlign = TextAlign.Center,
 		),
 	)

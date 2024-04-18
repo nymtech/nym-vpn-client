@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,20 +39,26 @@ fun LegalScreen(appViewModel: AppViewModel, navController: NavController) {
 	) {
 		SurfaceSelectionGroupButton(
 			listOf(
-				SelectionItem(title = stringResource(R.string.terms_of_use), onClick = {
-					appViewModel.openWebPage(context.getString(R.string.terms_link))
-				}),
 				SelectionItem(
-					title = stringResource(R.string.privacy_policy),
+					title = { Text(stringResource(R.string.terms_of_use), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					onClick = {
+						appViewModel.openWebPage(context.getString(R.string.terms_link))
+					},
+				),
+				SelectionItem(
+					title = { Text(stringResource(R.string.privacy_policy), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
 						appViewModel.openWebPage(
 							context.getString(R.string.privacy_link),
 						)
 					},
 				),
-				SelectionItem(title = stringResource(R.string.licenses), onClick = {
-					navController.navigate(NavItem.Settings.Legal.Licenses.route)
-				}),
+				SelectionItem(
+					title = { Text(stringResource(R.string.licenses), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					onClick = {
+						navController.navigate(NavItem.Settings.Legal.Licenses.route)
+					},
+				),
 			),
 		)
 	}

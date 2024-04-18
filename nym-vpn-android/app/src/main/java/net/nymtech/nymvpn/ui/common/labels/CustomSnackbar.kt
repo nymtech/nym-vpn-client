@@ -13,20 +13,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.theme.CustomColors
-import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun CustomSnackBar(message: String, isRtl: Boolean = true, containerColor: Color = CustomColors.snackBarBackgroundColor) {
+fun CustomSnackBar(message: String, paddingTop: Dp, isRtl: Boolean = true, containerColor: Color = CustomColors.snackBarBackgroundColor) {
 	Box(
 		modifier =
 		Modifier
 			.fillMaxSize()
-			.padding(horizontal = 24.dp.scaledWidth())
-			.padding(top = 100.dp.scaledHeight()),
+			.padding(horizontal = 24.dp.scaledWidth()).padding(top = paddingTop + 10.dp),
 		contentAlignment = Alignment.TopCenter,
 	) {
 		Snackbar(containerColor = containerColor) {

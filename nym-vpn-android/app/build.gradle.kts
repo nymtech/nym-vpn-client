@@ -35,7 +35,6 @@ android {
 			"\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\"",
 		)
 		buildConfigField("Boolean", "IS_SANDBOX", "false")
-		buildConfigField("Boolean", Constants.OPT_IN_REPORTING, "false")
 		proguardFile("fdroid-rules.pro")
 	}
 
@@ -47,10 +46,11 @@ android {
 					try {
 						load(file("signing.properties").reader())
 					} catch (_: Exception) {
-						load(file("signing_template.properties").reader())
+						// can't find signing file, use debug
+						this@create.initWith(signingConfigs.getByName("debug"))
+						return@create
 					}
 				}
-
 			// try to get secrets from env first for pipeline build, then properties file for local
 			// build
 			storeFile =
@@ -226,7 +226,6 @@ dependencies {
 	debugImplementation(libs.androidx.ui.test.manifest)
 
 	// util
-	implementation(libs.accompanist.systemuicontroller)
 	implementation(libs.accompanist.permissions)
 	implementation(libs.lifecycle.runtime.compose)
 	implementation(libs.kotlinx.serialization)

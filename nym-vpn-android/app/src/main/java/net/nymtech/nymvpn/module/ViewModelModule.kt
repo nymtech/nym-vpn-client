@@ -5,8 +5,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.scopes.ViewModelScoped
-import net.nymtech.vpn.NymApi
 import net.nymtech.nymvpn.NymVpn
+import net.nymtech.vpn.NymApi
 
 @Module
 @InstallIn(ViewModelComponent::class)

@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.nymtech.logcathelper.LogcatHelper
 import net.nymtech.logcathelper.model.LogLevel
 import net.nymtech.logcathelper.model.LogMessage
@@ -53,11 +54,10 @@ constructor(
 		combine(_uiState, settingsRepository.settingsFlow, vpnClient.stateFlow) { state, settings, vpnState ->
 			AppUiState(
 				false,
-				settings.theme,
-				settings.loggedIn,
 				state.snackbarMessage,
 				state.snackbarMessageConsumed,
 				vpnState.vpnState,
+				settings,
 			)
 		}.stateIn(
 			viewModelScope,
@@ -118,6 +118,14 @@ constructor(
 		}
 	}
 
+	suspend fun isAnalyticsShown() = withContext(viewModelScope.coroutineContext + Dispatchers.Main) {
+		settingsRepository.isAnalyticsEnabled()
+	}
+
+	fun setAnalyticsShown() = viewModelScope.launch {
+		settingsRepository.setAnalyticsShown(true)
+	}
+
 	fun onEntryLocationSelected(selected: Boolean) = viewModelScope.launch {
 		settingsRepository.setFirstHopSelection(selected)
 		gatewayRepository.setFirstHopCountry(Country(isDefault = true))
@@ -129,6 +137,14 @@ constructor(
 		if (firstHop.isDefault || firstHop.isLowLatency) {
 			setFirstHopToLowLatency()
 		}
+	}
+
+	fun onErrorReportingSelected() = viewModelScope.launch {
+		settingsRepository.setErrorReporting(!uiState.value.settings.errorReportingEnabled)
+	}
+
+	fun onAnalyticsReportingSelected() = viewModelScope.launch {
+		settingsRepository.setAnalytics(!uiState.value.settings.analyticsEnabled)
 	}
 
 	private suspend fun updateEntryCountriesCache() {

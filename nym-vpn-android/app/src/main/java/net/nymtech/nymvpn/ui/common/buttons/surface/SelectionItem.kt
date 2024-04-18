@@ -20,7 +20,8 @@ data class SelectionItem(
 			),
 		)
 	},
-	val title: String = "",
-	val description: String? = null,
+	val title: (@Composable () -> Unit),
+	val description: (@Composable () -> Unit)? = null,
 	val onClick: () -> Unit = {},
+	val height: Int = 64,
 )

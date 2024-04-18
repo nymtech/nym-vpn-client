@@ -20,6 +20,7 @@ enum class Screen {
 	LOGIN,
 	ACCOUNT,
 	LICENSES,
+	ANALYTICS,
 }
 
 enum class HopType {
@@ -43,6 +44,12 @@ sealed class NavItem(
 ) {
 	data object Main :
 		NavItem(Screen.MAIN.name, StringValue.StringResource(R.string.app_name), null, settingsIcon)
+
+	data object Analytics : NavItem(
+		Screen.ANALYTICS.name,
+		StringValue.DynamicString(""),
+		backIcon,
+	)
 
 	data object Settings :
 		NavItem(Screen.SETTINGS.name, StringValue.StringResource(R.string.settings), backIcon) {
@@ -112,6 +119,7 @@ sealed class NavItem(
 		fun from(route: String?): NavItem {
 			return when (route) {
 				Main.route -> Main
+				Analytics.route -> Analytics
 				Settings.route -> Settings
 				Hop.Entry.route -> Hop.Entry
 				Hop.Exit.route -> Hop.Exit

@@ -9,19 +9,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
@@ -30,67 +29,52 @@ fun SurfaceSelectionGroupButton(items: List<SelectionItem>) {
 	val interactionSource = remember { MutableInteractionSource() }
 	Card(
 		modifier = Modifier.fillMaxWidth(),
+		shape = RoundedCornerShape(8.dp),
 		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
 	) {
 		items.mapIndexed { index, it ->
 			Box(
 				contentAlignment = Alignment.Center,
 				modifier =
-				Modifier.clickable(
-					interactionSource = interactionSource,
-					indication = null,
-				) {
-					it.onClick()
-				},
+				Modifier
+					.clickable(
+						interactionSource = interactionSource,
+						indication = null,
+					) {
+						it.onClick()
+					}.fillMaxWidth()
+					.width(360.dp.scaledWidth())
+					.height(it.height.dp.scaledHeight())
+					.padding(vertical = 8.dp.scaledHeight()),
 			) {
 				Row(
 					verticalAlignment = Alignment.CenterVertically,
-					horizontalArrangement = Arrangement.Center,
-					modifier =
-					Modifier
-						.height(64.dp.scaledHeight())
-						.padding(
-							top = 4.dp.scaledHeight(),
-							bottom = 4.dp.scaledHeight(),
-							end = 24.dp.scaledWidth(),
-						),
+					horizontalArrangement = Arrangement.SpaceBetween,
+					modifier = Modifier.fillMaxWidth(),
 				) {
-					it.leadingIcon?.let { icon ->
-						Icon(
-							icon,
-							icon.name,
-							modifier =
-							Modifier
-								.padding(start = 16.dp.scaledWidth())
-								.size(
-									iconSize,
-								),
-						)
-					}
 					Row(
-						horizontalArrangement = Arrangement.spacedBy(16.dp.scaledHeight()),
 						verticalAlignment = Alignment.CenterVertically,
+						horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth()),
+						modifier = Modifier.padding(start = 16.dp.scaledWidth()),
 					) {
-						Column {
-							Text(
-								it.title,
-								style = MaterialTheme.typography.bodyLarge,
-								modifier = Modifier.padding(start = 16.dp.scaledWidth()),
+						it.leadingIcon?.let { icon ->
+							Icon(
+								icon,
+								icon.name,
 							)
-							it.description?.let { description ->
-								val descriptionTypography = MaterialTheme.typography.bodyMedium
-								Text(
-									description,
-									color = MaterialTheme.colorScheme.onSurfaceVariant,
-									style = descriptionTypography,
-									modifier = Modifier.padding(start = 16.dp.scaledWidth()),
-								)
-							}
+						}
+						Column(
+							horizontalAlignment = Alignment.Start,
+							verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
+							modifier = Modifier.width(236.dp.scaledWidth()),
+						) {
+							it.title()
+							it.description?.let { it() }
 						}
 					}
-					Row(
-						modifier = Modifier.fillMaxWidth(),
-						horizontalArrangement = Arrangement.End,
+					Box(
+						modifier = Modifier
+							.padding(start = 16.dp.scaledWidth(), end = 24.dp.scaledWidth()),
 					) {
 						it.trailing?.let {
 							it()
@@ -98,7 +82,7 @@ fun SurfaceSelectionGroupButton(items: List<SelectionItem>) {
 					}
 				}
 			}
-			if (index + 1 != items.size) HorizontalDivider()
+			if (index + 1 != items.size) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 		}
 	}
 }

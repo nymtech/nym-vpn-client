@@ -54,7 +54,7 @@ constructor(
 	fun onQueryChange(query: String) {
 		_uiState.value =
 			_uiState.value.copy(
-				query = query,
+				query = query.lowercase(),
 			)
 	}
 

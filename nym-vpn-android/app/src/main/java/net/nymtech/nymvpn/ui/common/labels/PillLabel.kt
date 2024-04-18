@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.util.scaledHeight
+import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
 fun PillLabel(text: String, backgroundColor: Color, textColor: Color) {
@@ -22,7 +23,7 @@ fun PillLabel(text: String, backgroundColor: Color, textColor: Color) {
 		modifier =
 		Modifier
 			.height(56.dp.scaledHeight())
-			.width(159.dp),
+			.width(158.dp.scaledWidth()),
 		shape = RoundedCornerShape(size = 50.dp),
 		color = backgroundColor,
 	) {

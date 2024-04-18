@@ -8,6 +8,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +43,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 			listOf(
 				SelectionItem(
 					leadingIcon = ImageVector.vectorResource(R.drawable.faq),
-					title = stringResource(R.string.check_faq),
+					title = { Text(stringResource(R.string.check_faq), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { appViewModel.openWebPage(context.getString(R.string.faq_link)) },
 				),
 			),
@@ -50,7 +52,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 			listOf(
 				SelectionItem(
 					leadingIcon = Icons.Outlined.Email,
-					title = stringResource(R.string.send_email),
+					title = { Text(stringResource(R.string.send_email), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
 						appViewModel.launchEmail()
 					},
@@ -61,7 +63,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 			listOf(
 				SelectionItem(
 					leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
-					title = stringResource(R.string.join_matrix),
+					title = { Text(stringResource(R.string.join_matrix), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
 						appViewModel.openWebPage(context.getString(R.string.matrix_url))
 					},
@@ -72,7 +74,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 			listOf(
 				SelectionItem(
 					leadingIcon = ImageVector.vectorResource(R.drawable.discord),
-					title = stringResource(R.string.join_discord),
+					title = { Text(stringResource(R.string.join_discord), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
 						appViewModel.openWebPage(context.getString(R.string.discord_url))
 					},

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +35,7 @@ import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
+import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.Event
 import net.nymtech.nymvpn.util.Result
@@ -79,9 +79,8 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
 			contentScale = ContentScale.None,
 			modifier =
 			Modifier
-				.padding(5.dp.scaledHeight())
-				.width(120.dp)
-				.height(120.dp),
+				.width(80.dp)
+				.height(80.dp),
 		)
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,
@@ -94,7 +93,7 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
 				),
 		) {
 			Text(
-				text = stringResource(id = R.string.welcome),
+				text = stringResource(id = R.string.welcome_exclaim),
 				style = MaterialTheme.typography.headlineSmall,
 				color = MaterialTheme.colorScheme.onBackground,
 			)
@@ -111,63 +110,68 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
 				textAlign = TextAlign.Center,
 			)
 		}
-		val isLoginError = error is Event.Error.LoginFailed
-		OutlinedTextField(
-			value = recoveryPhrase,
-			onValueChange = {
-				if (isLoginError) error = Event.Error.None
-				recoveryPhrase = it
-			},
-			label = { Text(text = stringResource(id = R.string.credential_label)) },
-			minLines = 3,
-			maxLines = 3,
-			isError = isLoginError,
-			supportingText = {
-				if (isLoginError) {
-					Text(
-						modifier = Modifier.fillMaxWidth(),
-						text = error.message.asString(context),
-						color = MaterialTheme.colorScheme.error,
-					)
-				}
-			},
-			modifier =
-			Modifier
-				.width(342.dp.scaledWidth())
-				.height(196.dp.scaledHeight()),
-		)
-		Box(
-			modifier =
-			Modifier
-				.padding(bottom = 24.dp.scaledHeight()),
+		Column(
+			horizontalAlignment = Alignment.CenterHorizontally,
+			verticalArrangement = Arrangement.spacedBy(32.dp, Alignment.Top),
 		) {
-			MainStyledButton(
-				Constants.LOGIN_TEST_TAG,
-				onClick = {
-					viewModel.onLogin(recoveryPhrase).let {
-						when (it) {
-							is Result.Success -> {
-								navController.navigate(NavItem.Main.route) {
-									// clear backstack after login
-									popUpTo(0)
-								}
-								appViewModel.showSnackbarMessage(
-									context.getString(R.string.credential_successful),
-								)
-							}
-
-							is Result.Error -> error = it.error
-						}
+			val isLoginError = error is Event.Error.LoginFailed
+			CustomTextField(
+				value = recoveryPhrase,
+				onValueChange = {
+					if (isLoginError) error = Event.Error.None
+					recoveryPhrase = it
+				},
+				modifier = Modifier
+					.width(358.dp.scaledWidth())
+					.height(212.dp.scaledHeight()),
+				supportingText = {
+					if (isLoginError) {
+						Text(
+							modifier = Modifier.fillMaxWidth(),
+							text = error.message.asString(context),
+							color = MaterialTheme.colorScheme.error,
+						)
 					}
 				},
-				content = {
-					Text(
-						stringResource(id = R.string.add_credential),
-						style = MaterialTheme.typography.labelLarge,
-					)
-				},
-				color = MaterialTheme.colorScheme.primary,
+				isError = isLoginError,
+				label = { Text(text = stringResource(id = R.string.credential_label)) },
+				textStyle = MaterialTheme.typography.bodyMedium.copy(
+					color = MaterialTheme.colorScheme.onSurface,
+				),
 			)
+			Box(
+				modifier =
+				Modifier
+					.padding(bottom = 24.dp.scaledHeight()),
+			) {
+				MainStyledButton(
+					Constants.LOGIN_TEST_TAG,
+					onClick = {
+						viewModel.onLogin(recoveryPhrase).let {
+							when (it) {
+								is Result.Success -> {
+									navController.navigate(NavItem.Main.route) {
+										// clear backstack after login
+										popUpTo(0)
+									}
+									appViewModel.showSnackbarMessage(
+										context.getString(R.string.credential_successful),
+									)
+								}
+
+								is Result.Error -> error = it.error
+							}
+						}
+					},
+					content = {
+						Text(
+							stringResource(id = R.string.add_credential),
+							style = MaterialTheme.typography.labelLarge,
+						)
+					},
+					color = MaterialTheme.colorScheme.primary,
+				)
+			}
 		}
 	}
 }

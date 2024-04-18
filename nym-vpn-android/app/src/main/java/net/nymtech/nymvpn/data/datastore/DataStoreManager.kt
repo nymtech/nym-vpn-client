@@ -21,8 +21,10 @@ class DataStoreManager(private val context: Context) {
 		val VPN_MODE = stringPreferencesKey("VPN_MODE")
 		val FIRST_HOP_SELECTION = booleanPreferencesKey("FIRST_HOP_SELECTION")
 		val ERROR_REPORTING = booleanPreferencesKey("ERROR_REPORTING")
+		val ANALYTICS = booleanPreferencesKey("ANALYTICS")
 		val AUTO_START = booleanPreferencesKey("AUTO_START")
 		val LOGGED_IN = booleanPreferencesKey("LOGGED_IN")
+		val ANALYTICS_SHOWN = booleanPreferencesKey("ANALYTICS_SHOWN")
 
 		// GatewayCountries
 		val FIRST_HOP_COUNTRY = stringPreferencesKey("FIRST_HOP_COUNTRY")

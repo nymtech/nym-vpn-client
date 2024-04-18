@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -40,6 +41,7 @@ fun RadioSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, le
 			.clickable(interactionSource = interactionSource, indication = null) {
 				onClick()
 			},
+		shape = RoundedCornerShape(8.dp),
 		border = border,
 		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
 	) {
@@ -73,7 +75,7 @@ fun RadioSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, le
 						Icon(leadingIcon, leadingIcon.name, Modifier.size(iconSize))
 					}
 					Column {
-						Text(title, style = MaterialTheme.typography.bodyLarge)
+						Text(title, style = MaterialTheme.typography.titleMedium)
 						description?.let {
 							Text(
 								description,

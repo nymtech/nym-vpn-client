@@ -13,12 +13,16 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -26,13 +30,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.BuildConfig
-import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
+import net.nymtech.nymvpn.ui.screens.analytics.AnalyticsScreen
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
@@ -45,53 +47,23 @@ import net.nymtech.nymvpn.ui.screens.settings.login.LoginScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
-import net.nymtech.nymvpn.ui.theme.TransparentSystemBars
-import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-	@Inject
-	lateinit var dataStoreManager: DataStoreManager
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
-		installSplashScreen()
-
-		lifecycleScope.launch {
-			// init data
-			dataStoreManager.init()
-			// setup sentry
-			val reportingEnabled = dataStoreManager.getFromStore(DataStoreManager.ERROR_REPORTING)
-			if (reportingEnabled ?: BuildConfig.OPT_IN_REPORTING) {
-				if (reportingEnabled == null) {
-					dataStoreManager.saveToDataStore(
-						DataStoreManager.ERROR_REPORTING,
-						true,
-					)
-				}
-				SentryAndroid.init(this@MainActivity) { options ->
-					options.enableTracing = true
-					options.enableAllAutoBreadcrumbs(true)
-					options.isEnableUserInteractionTracing = true
-					options.isEnableUserInteractionBreadcrumbs = true
-					options.dsn = BuildConfig.SENTRY_DSN
-					options.sampleRate = 1.0
-					options.tracesSampleRate = 1.0
-					options.profilesSampleRate = 1.0
-					options.environment =
-						if (BuildConfig.DEBUG) Constants.SENTRY_DEV_ENV else Constants.SENTRY_PROD_ENV
-				}
-			}
-		}
+		val isAnalyticsShown = intent.extras?.getBoolean(SplashActivity.IS_ANALYTICS_SHOWN_INTENT_KEY)
 
 		setContent {
 			val appViewModel = hiltViewModel<AppViewModel>()
-			val uiState by appViewModel.uiState.collectAsStateWithLifecycle()
+			val uiState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
 			val navController = rememberNavController()
 			val snackbarHostState = remember { SnackbarHostState() }
+			var navHeight by remember { mutableStateOf(0.dp) }
+			val density = LocalDensity.current
 
 			LaunchedEffect(Unit) {
 				appViewModel.updateCountryListCache()
@@ -122,36 +94,46 @@ class MainActivity : ComponentActivity() {
 				}
 			}
 
-			NymVPNTheme(theme = uiState.theme) {
-				// A surface container using the 'background' color from the theme
-				TransparentSystemBars()
+			NymVPNTheme(theme = uiState.settings.theme) {
 				Scaffold(
 					Modifier.semantics {
 						// Enables testTag -> UiAutomator resource id
 						@OptIn(ExperimentalComposeUiApi::class)
 						testTagsAsResourceId = true
 					},
-					topBar = { NavBar(appViewModel, navController) },
+					topBar = {
+						NavBar(
+							appViewModel,
+							navController,
+							Modifier
+								.onGloballyPositioned {
+									navHeight = with(density) {
+										it.size.height.toDp()
+									}
+								},
+						)
+					},
 					snackbarHost = {
 						SnackbarHost(snackbarHostState) { snackbarData: SnackbarData ->
-							CustomSnackBar(message = snackbarData.visuals.message)
+							CustomSnackBar(message = snackbarData.visuals.message, paddingTop = navHeight)
 						}
 					},
 				) {
 					NavHost(
 						navController,
-						startDestination = NavItem.Main.route,
+						startDestination = if (isAnalyticsShown == true) NavItem.Main.route else NavItem.Analytics.route,
 						modifier =
 						Modifier
 							.fillMaxSize()
 							.padding(it),
 					) {
 						composable(NavItem.Main.route) { MainScreen(navController, uiState) }
+						composable(NavItem.Analytics.route) { AnalyticsScreen(navController, appViewModel, uiState) }
 						composable(NavItem.Settings.route) {
 							SettingsScreen(
 								navController,
 								appViewModel = appViewModel,
-								appUiState = uiState,
+								uiState,
 							)
 						}
 						composable(NavItem.Hop.Entry.route) {

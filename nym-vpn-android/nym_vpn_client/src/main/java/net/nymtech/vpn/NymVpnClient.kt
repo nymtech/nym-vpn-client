@@ -33,7 +33,7 @@ import nym_vpn_lib.runVpn
 import timber.log.Timber
 
 object NymVpnClient {
-	private object MySingletonInit {
+	private object NymVpnClientInit {
 		lateinit var entryPoint: EntryPoint
 		lateinit var exitPoint: ExitPoint
 		lateinit var mode: VpnMode
@@ -49,13 +49,13 @@ object NymVpnClient {
 		),
 		mode: VpnMode = VpnMode.TWO_HOP_MIXNET,
 		environment: Environment = Environment.MAINNET,
-	): VpnClient { // mimic a constructor, if you want
-		synchronized(MySingletonInit) {
-			MySingletonInit.entryPoint = entryPoint
-			MySingletonInit.exitPoint = exitPoint
-			MySingletonInit.mode = mode
-			MySingletonInit.environment = environment
-			when (MySingletonInit.environment) {
+	): VpnClient {
+		synchronized(NymVpnClientInit) {
+			NymVpnClientInit.entryPoint = entryPoint
+			NymVpnClientInit.exitPoint = exitPoint
+			NymVpnClientInit.mode = mode
+			NymVpnClientInit.environment = environment
+			when (NymVpnClientInit.environment) {
 				Environment.MAINNET -> Constants.setupEnvironmentMainnet()
 				Environment.SANDBOX -> Constants.setupEnvironmentSandbox()
 			}
@@ -65,10 +65,10 @@ object NymVpnClient {
 	}
 	internal object NymVpn : VpnClient {
 
-		override var entryPoint: EntryPoint = MySingletonInit.entryPoint
-		override var exitPoint: ExitPoint = MySingletonInit.exitPoint
-		override var mode: VpnMode = MySingletonInit.mode
-		private val environment: Environment = MySingletonInit.environment
+		override var entryPoint: EntryPoint = NymVpnClientInit.entryPoint
+		override var exitPoint: ExitPoint = NymVpnClientInit.exitPoint
+		override var mode: VpnMode = NymVpnClientInit.mode
+		private val environment: Environment = NymVpnClientInit.environment
 
 		private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -160,20 +160,11 @@ object NymVpnClient {
 					if (it.tag.contains(Constants.NYM_VPN_LIB_TAG)) {
 						when (it.level) {
 							LogLevel.ERROR -> {
-								// TODO let user know only ipv6 or ipv4 is working
-								if (it.message.contains(
-										"(IPR) not routing IPv6 traffic",
-									) ||
-									it.message.contains("(IPR) not routing IPv4 traffic") ||
-									it.message.contains("(IPR) not responding to IPv6 traffic") ||
-									it.message.contains("(IPR) not responding to IPv4 traffic")
-								) {
-									return@safeCollect
+								if (it.message.contains("Stopped Nym VPN")) {
+									setErrorState(it.message)
+									stop(context, true)
 								}
-								setErrorState(it.message)
-								stop(context, true)
 							}
-
 							LogLevel.INFO -> {
 								parseLibInfo(it.message)
 							}

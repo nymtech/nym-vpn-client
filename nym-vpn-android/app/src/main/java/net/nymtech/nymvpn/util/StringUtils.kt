@@ -27,9 +27,9 @@ object StringUtils {
 		val resourceId =
 			context.resources.getIdentifier(flagAssetName, "drawable", context.packageName)
 		return if (resourceId == 0) {
-			// TODO add a unknown icon flag
 			Timber.e("Cannot find flag for countryIso: $name")
-			0
+			// use our unknown flag drawable
+			return context.resources.getIdentifier("flag_unknown", "drawable", context.packageName)
 		} else {
 			resourceId
 		}
