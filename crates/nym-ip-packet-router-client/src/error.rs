@@ -33,6 +33,9 @@ pub enum Error {
 
     #[error("failed to get version from message")]
     NoVersionInMessage,
+
+    #[error("already connected to the mixnet")]
+    AlreadyConnected,
 }
 
 // Result type based on our error type

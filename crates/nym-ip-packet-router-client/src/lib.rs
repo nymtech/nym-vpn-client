@@ -68,19 +68,27 @@ impl SharedMixnetClient {
 
 pub struct IprClient {
     mixnet_client: SharedMixnetClient,
+    connected: bool,
 }
 
 impl IprClient {
     pub fn new(mixnet_client: SharedMixnetClient) -> Self {
-        Self { mixnet_client }
+        Self {
+            mixnet_client,
+            connected: false,
+        }
     }
 
     pub async fn connect(
-        &self,
+        &mut self,
         ip_packet_router_address: &IpPacketRouterAddress,
         ips: Option<IpPair>,
         enable_two_hop: bool,
     ) -> Result<IpPair> {
+        if self.connected {
+            return Err(Error::AlreadyConnected);
+        }
+
         debug!("Sending connect request");
         let request_id = self
             .send_connect_request(ip_packet_router_address, ips, enable_two_hop)
@@ -213,7 +221,10 @@ impl IprClient {
         }
     }
 
-    async fn handle_static_connect_response(&self, response: StaticConnectResponse) -> Result<()> {
+    async fn handle_static_connect_response(
+        &mut self,
+        response: StaticConnectResponse,
+    ) -> Result<()> {
         debug!("Handling static connect response");
         let mixnet_client_address = self.mixnet_client.nym_address().await;
         if response.reply_to != mixnet_client_address {
@@ -221,7 +232,10 @@ impl IprClient {
             return Err(Error::GotReplyIntendedForWrongAddress);
         }
         match response.reply {
-            StaticConnectResponseReply::Success => Ok(()),
+            StaticConnectResponseReply::Success => {
+                self.connected = true;
+                Ok(())
+            }
             StaticConnectResponseReply::Failure(reason) => {
                 Err(Error::StaticConnectRequestDenied { reason })
             }
@@ -229,7 +243,7 @@ impl IprClient {
     }
 
     async fn handle_dynamic_connect_response(
-        &self,
+        &mut self,
         response: DynamicConnectResponse,
     ) -> Result<IpPair> {
         debug!("Handling dynamic connect response");
@@ -239,7 +253,10 @@ impl IprClient {
             return Err(Error::GotReplyIntendedForWrongAddress);
         }
         match response.reply {
-            DynamicConnectResponseReply::Success(r) => Ok(r.ips),
+            DynamicConnectResponseReply::Success(r) => {
+                self.connected = true;
+                Ok(r.ips)
+            }
             DynamicConnectResponseReply::Failure(reason) => {
                 Err(Error::DynamicConnectRequestDenied { reason })
             }
