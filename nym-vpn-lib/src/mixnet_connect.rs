@@ -256,7 +256,7 @@ fn true_to_disabled(val: bool) -> &'static str {
 pub(crate) async fn setup_mixnet_client(
     mixnet_entry_gateway: &NodeIdentity,
     mixnet_client_key_storage_path: &Option<PathBuf>,
-    task_client: nym_task::TaskClient,
+    mut task_client: nym_task::TaskClient,
     enable_wireguard: bool,
     enable_two_hop: bool,
     enable_poisson_rate: bool,
@@ -291,12 +291,13 @@ pub(crate) async fn setup_mixnet_client(
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
         debug!("Using custom key storage path: {:?}", path);
         let gateway_id = mixnet_entry_gateway.to_base58_string();
-        credentials::check_imported_credential(path.to_path_buf(), &gateway_id)
-            .await
-            .map_err(|err| {
-                error!("Credential check: {err}");
-                Error::InvalidCredential
-            })?;
+        if let Err(err) =
+            credentials::check_imported_credential(path.to_path_buf(), &gateway_id).await
+        {
+            // UGLY: flow needs to restructured to sort this out, but I don't want to refactor all that just before release.
+            task_client.mark_as_success();
+            return Err(Error::InvalidCredential { reason: err });
+        };
         let key_storage_path = StoragePaths::new_from_dir(path)?;
         MixnetClientBuilder::new_with_default_storage(key_storage_path)
             .await?
