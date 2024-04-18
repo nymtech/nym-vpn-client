@@ -26,7 +26,7 @@ use tracing::{debug, error, info};
 
 use nym_gateway_directory::IpPacketRouterAddress;
 
-use crate::credentials;
+use crate::credentials::check_imported_credential;
 use crate::error::{Error, Result};
 
 #[derive(Clone)]
@@ -290,14 +290,15 @@ pub(crate) async fn setup_mixnet_client(
     debug!("mixnet client has wireguard_mode={enable_wireguard}");
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
         debug!("Using custom key storage path: {:?}", path);
+
         let gateway_id = mixnet_entry_gateway.to_base58_string();
-        if let Err(err) =
-            credentials::check_imported_credential(path.to_path_buf(), &gateway_id).await
-        {
-            // UGLY: flow needs to restructured to sort this out, but I don't want to refactor all that just before release.
+        if let Err(err) = check_imported_credential(path.to_path_buf(), &gateway_id).await {
+            // UGLY: flow needs to restructured to sort this out, but I don't want to refactor all
+            // that just before release.
             task_client.disarm();
             return Err(Error::InvalidCredential { reason: err });
         };
+
         let key_storage_path = StoragePaths::new_from_dir(path)?;
         MixnetClientBuilder::new_with_default_storage(key_storage_path)
             .await?
