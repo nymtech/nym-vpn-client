@@ -3971,6 +3971,7 @@ dependencies = [
  "nym-connection-monitor",
  "nym-gateway-directory",
  "nym-ip-packet-requests",
+ "nym-ip-packet-router-client",
  "nym-sdk",
  "nym-task",
  "pnet_packet",
@@ -4075,6 +4076,20 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-util",
+]
+
+[[package]]
+name = "nym-ip-packet-router-client"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "nym-gateway-directory",
+ "nym-ip-packet-requests",
+ "nym-sdk",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

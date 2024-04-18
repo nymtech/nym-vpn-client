@@ -11,6 +11,7 @@ use nym_ip_packet_requests::{
     response::{DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData},
     IpPair,
 };
+use nym_ip_packet_router_client::{IprClient, SharedMixnetClient};
 use nym_sdk::mixnet::{MixnetClientBuilder, ReconstructedMessage};
 use std::{
     net::{Ipv4Addr, Ipv6Addr},
@@ -21,13 +22,11 @@ use tracing::*;
 
 use crate::{
     icmp::{check_for_icmp_beacon_reply, icmp_identifier, send_ping_v4, send_ping_v6},
-    ipr_connect::{IprClient, SharedMixnetClient},
     types::{Entry, Exit},
 };
 
 mod error;
 mod icmp;
-mod ipr_connect;
 mod types;
 
 pub use error::{Error, Result};

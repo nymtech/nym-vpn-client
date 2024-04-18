@@ -9,12 +9,13 @@ use nym_connection_monitor::{
 };
 use nym_gateway_directory::IpPacketRouterAddress;
 use nym_ip_packet_requests::{codec::MultiIpPacketCodec, IpPair};
+use nym_ip_packet_router_client::SharedMixnetClient;
 use nym_sdk::mixnet::{InputMessage, Recipient};
 use nym_task::connections::TransmissionLane;
 use pnet_packet::Packet;
 use std::net::{Ipv4Addr, Ipv6Addr};
 
-use crate::{ipr_connect::SharedMixnetClient, Result};
+use crate::Result;
 
 pub fn icmp_identifier() -> u16 {
     8475

@@ -10,12 +10,14 @@ use nym_ip_packet_requests::{
         DynamicConnectResponse, IpPacketResponse, IpPacketResponseData, StaticConnectResponse,
     },
 };
-use nym_sdk::mixnet::{MixnetClient, MixnetMessageSender, Recipient};
+use nym_sdk::mixnet::{MixnetClient, MixnetMessageSender, Recipient, TransmissionLane};
 use tracing::{debug, error};
 
 use nym_gateway_directory::IpPacketRouterAddress;
 
-use crate::{Error, Result};
+mod error;
+
+pub use crate::error::{Error, Result};
 
 #[derive(Clone)]
 pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
@@ -127,7 +129,7 @@ impl IprClient {
             .send(nym_sdk::mixnet::InputMessage::new_regular_with_custom_hops(
                 ip_packet_router_address.0,
                 request.to_bytes().unwrap(),
-                nym_task::connections::TransmissionLane::General,
+                TransmissionLane::General,
                 None,
                 hops,
             ))
@@ -159,14 +161,14 @@ impl IprClient {
                             if let Some(version) = msg.message.first() {
                                 match version.cmp(&nym_ip_packet_requests::CURRENT_VERSION) {
                                     Ordering::Greater => {
-                                        log::error!("Received packet with newer version: v{version}, is your client up to date?");
+                                        error!("Received packet with newer version: v{version}, is your client up to date?");
                                         return Err(Error::ReceivedResponseWithNewVersion {
                                             expected: nym_ip_packet_requests::CURRENT_VERSION,
                                             received: *version,
                                         });
                                     }
                                     Ordering::Less => {
-                                        log::error!("Received packet with older version: v{version}, you client appears to be too new for the exit gateway or exit ip-packet-router?");
+                                        error!("Received packet with older version: v{version}, you client appears to be too new for the exit gateway or exit ip-packet-router?");
                                         return Err(Error::ReceivedResponseWithOldVersion {
                                             expected: nym_ip_packet_requests::CURRENT_VERSION,
                                             received: *version,
