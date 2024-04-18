@@ -83,36 +83,40 @@ async fn fetch_valid_credential(
         gateway_id
     );
 
-    let stored_issued_credential = credentials_store
-        .get_next_unspent_credential(gateway_id)
-        .await?
-        .ok_or(anyhow!("No unspent credentials found"))?;
+    let max_attempts = 100;
+    for _ in 0..max_attempts {
+        let stored_issued_credential = credentials_store
+            .get_next_unspent_credential(gateway_id)
+            .await?
+            .ok_or(anyhow!("No unspent credentials found"))?;
 
-    debug!("Found unspent credential: {}", stored_issued_credential.id);
+        debug!("Found unspent credential: {}", stored_issued_credential.id);
 
-    let credential_id = stored_issued_credential.id;
-    let issued_credential =
-        IssuedBandwidthCredential::unpack_v1(&stored_issued_credential.credential_data)?;
+        let credential_id = stored_issued_credential.id;
+        let issued_credential =
+            IssuedBandwidthCredential::unpack_v1(&stored_issued_credential.credential_data)?;
 
-    let valid_credential = match issued_credential.variant_data() {
-        BandwidthCredentialIssuedDataVariant::Voucher(_) => {
-            debug!("Credential {credential_id} is a voucher");
-            issued_credential
-        }
-        BandwidthCredentialIssuedDataVariant::FreePass(freepass_info) => {
-            debug!("Credential {credential_id} is a free pass");
-            if freepass_info.expired() {
-                warn!(
-                    "the free pass (id: {credential_id}) has already expired! The expiration was set to {}",
-                    freepass_info.expiry_date()
-                );
-                credentials_store.mark_expired(credential_id).await?;
-                bail!("credential {credential_id} has already expired");
+        match issued_credential.variant_data() {
+            BandwidthCredentialIssuedDataVariant::Voucher(_) => {
+                debug!("Credential {credential_id} is a voucher");
+                return Ok((issued_credential, credential_id));
             }
-            issued_credential
-        }
-    };
-    Ok((valid_credential, credential_id))
+            BandwidthCredentialIssuedDataVariant::FreePass(freepass_info) => {
+                debug!("Credential {credential_id} is a free pass");
+                if freepass_info.expired() {
+                    warn!(
+                        "the free pass (id: {credential_id}) has already expired! The expiration was set to {}",
+                        freepass_info.expiry_date()
+                    );
+                    // Mark it as expired and try again
+                    credentials_store.mark_expired(credential_id).await?;
+                } else {
+                    return Ok((issued_credential, credential_id));
+                }
+            }
+        };
+    }
+    Err(anyhow!("No unspent credentials found"))
 }
 
 enum CoconutClients {
