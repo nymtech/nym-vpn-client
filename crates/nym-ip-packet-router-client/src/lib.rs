@@ -10,7 +10,9 @@ use nym_ip_packet_requests::{
         DynamicConnectResponse, IpPacketResponse, IpPacketResponseData, StaticConnectResponse,
     },
 };
-use nym_sdk::mixnet::{MixnetClient, MixnetMessageSender, Recipient, TransmissionLane};
+use nym_sdk::mixnet::{
+    MixnetClient, MixnetMessageSender, Recipient, ReconstructedMessage, TransmissionLane,
+};
 use tracing::{debug, error};
 
 use nym_gateway_directory::IpPacketRouterAddress;
@@ -138,6 +140,40 @@ impl IprClient {
         Ok(request_id)
     }
 
+    fn check_ipr_message_version(&self, message: &ReconstructedMessage) -> Result<()> {
+        // Assuing it's a IPR message, it will have a version as its first byte
+        if let Some(version) = message.message.first() {
+            match version.cmp(&nym_ip_packet_requests::CURRENT_VERSION) {
+                Ordering::Greater => {
+                    error!(
+                        "Received packet with newer version: v{version}, \
+                        is your client up to date?"
+                    );
+                    Err(Error::ReceivedResponseWithNewVersion {
+                        expected: nym_ip_packet_requests::CURRENT_VERSION,
+                        received: *version,
+                    })
+                }
+                Ordering::Less => {
+                    error!(
+                        "Received packet with older version: v{version}, you client appears \
+                        to be too new for the exit gateway or exit ip-packet-router?"
+                    );
+                    Err(Error::ReceivedResponseWithOldVersion {
+                        expected: nym_ip_packet_requests::CURRENT_VERSION,
+                        received: *version,
+                    })
+                }
+                Ordering::Equal => {
+                    // We're good
+                    Ok(())
+                }
+            }
+        } else {
+            Err(Error::NoVersionInMessage)
+        }
+    }
+
     async fn wait_for_connect_response(&self, request_id: u64) -> Result<IpPacketResponse> {
         let timeout = tokio::time::sleep(Duration::from_secs(5));
         tokio::pin!(timeout);
@@ -156,29 +192,7 @@ impl IprClient {
                 msgs = mixnet_client.wait_for_messages() => {
                     if let Some(msgs) = msgs {
                         for msg in msgs {
-
-                            // Handle if the response is from an IPR running an older or newer version
-                            if let Some(version) = msg.message.first() {
-                                match version.cmp(&nym_ip_packet_requests::CURRENT_VERSION) {
-                                    Ordering::Greater => {
-                                        error!("Received packet with newer version: v{version}, is your client up to date?");
-                                        return Err(Error::ReceivedResponseWithNewVersion {
-                                            expected: nym_ip_packet_requests::CURRENT_VERSION,
-                                            received: *version,
-                                        });
-                                    }
-                                    Ordering::Less => {
-                                        error!("Received packet with older version: v{version}, you client appears to be too new for the exit gateway or exit ip-packet-router?");
-                                        return Err(Error::ReceivedResponseWithOldVersion {
-                                            expected: nym_ip_packet_requests::CURRENT_VERSION,
-                                            received: *version,
-                                        });
-                                    }
-                                    Ordering::Equal => {
-                                        // We're good
-                                    }
-                                }
-                            }
+                            self.check_ipr_message_version(&msg)?;
 
                             debug!("MixnetProcessor: Got message while waiting for connect response");
                             let Ok(response) = IpPacketResponse::from_reconstructed_message(&msg) else {

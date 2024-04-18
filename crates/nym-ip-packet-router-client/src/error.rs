@@ -30,6 +30,9 @@ pub enum Error {
 
     #[error("connect request denied: {reason}")]
     DynamicConnectRequestDenied { reason: DynamicConnectFailureReason },
+
+    #[error("failed to get version from message")]
+    NoVersionInMessage,
 }
 
 // Result type based on our error type
