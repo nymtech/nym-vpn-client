@@ -35,7 +35,7 @@ pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialErro
         .ok_or(CredentialError::NoNyxdEndpointsFound)?
         .nyxd_url();
 
-    info!("Connecting to nyx validator at: {}", nyxd_url);
+    debug!("Connecting to nyx validator at: {}", nyxd_url);
     Ok(NyxdClient::connect(config, nyxd_url.as_str())?)
 }
 
