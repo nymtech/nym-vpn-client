@@ -21,7 +21,7 @@ use tracing::*;
 
 use crate::{
     icmp::{check_for_icmp_beacon_reply, icmp_identifier, send_ping_v4, send_ping_v6},
-    ipr_connect::{connect_to_ip_packet_router, SharedMixnetClient},
+    ipr_connect::{IprClient, SharedMixnetClient},
     types::{Entry, Exit},
 };
 
@@ -170,14 +170,8 @@ async fn do_ping(
         "Connecting to exit gateway: {}",
         exit_router_address.gateway().to_base58_string()
     );
-    let Ok(our_ips) = connect_to_ip_packet_router(
-        shared_mixnet_client.clone(),
-        &exit_router_address,
-        None,
-        false,
-    )
-    .await
-    else {
+    let ipr_client = IprClient::new(shared_mixnet_client.clone());
+    let Ok(our_ips) = ipr_client.connect(&exit_router_address, None, false).await else {
         return Ok(ProbeOutcome {
             as_entry: Entry::success(),
             as_exit: Some(Exit::fail_to_connect()),
