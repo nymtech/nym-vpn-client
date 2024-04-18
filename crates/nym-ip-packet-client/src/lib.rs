@@ -69,6 +69,7 @@ impl SharedMixnetClient {
 pub struct IprClient {
     mixnet_client: SharedMixnetClient,
     connected: bool,
+    // incoming_messages: Receiver<ReconstructedMessage>,
 }
 
 impl IprClient {
@@ -76,6 +77,7 @@ impl IprClient {
         Self {
             mixnet_client,
             connected: false,
+            // incoming_messages: todo!(),
         }
     }
 
