@@ -17,7 +17,7 @@ pub(super) async fn get_credentials_store(
 ) -> Result<(PersistentStorage, PathBuf), CredentialError> {
     let storage_path = StoragePaths::new_from_dir(data_path)?;
     let credential_db_path = storage_path.credential_database_path;
-    info!("Credential store: {}", credential_db_path.display());
+    debug!("Credential store: {}", credential_db_path.display());
     Ok((
         nym_credential_storage::initialise_persistent_storage(credential_db_path.clone()).await,
         credential_db_path,

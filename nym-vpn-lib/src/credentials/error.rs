@@ -24,7 +24,7 @@ pub enum CredentialError {
     #[error("failed decode base58 credential: {source}")]
     FailedToDecodeBase58Credential { source: bs58::decode::Error },
 
-    #[error("failed to get next usable credential from {location}: {reason}")]
+    #[error("failed to get next usable credential: {reason}")]
     FailedToGetNextUsableCredential {
         location: std::path::PathBuf,
         reason: String,
