@@ -6,7 +6,7 @@
     "distDir": "../dist",
     "withGlobalTauri": false
   },
-  "package": { "productName": "NymVPN" },
+  "package": { "productName": "nym-vpn" },
   "tauri": {
     "updater": {
       "active": true,
