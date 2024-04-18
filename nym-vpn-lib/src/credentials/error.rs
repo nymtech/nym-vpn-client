@@ -1,5 +1,17 @@
 #[derive(Debug, thiserror::Error)]
 pub enum CredentialError {
+    #[error(transparent)]
+    CoconutApiError(#[from] nym_validator_client::coconut::CoconutApiError),
+
+    #[error(transparent)]
+    NymSdkError(#[from] nym_sdk::Error),
+
+    #[error(transparent)]
+    NymCredentialsError(#[from] nym_credentials::Error),
+
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
+
     #[error("the free pass has already expired! The expiration was set to {expiry_date}")]
     FreepassExpired { expiry_date: String },
 
@@ -32,16 +44,4 @@ pub enum CredentialError {
 
     #[error("failed to query contract")]
     FailedToQueryContract,
-
-    #[error("{0}")]
-    CoconutApiError(#[from] nym_validator_client::coconut::CoconutApiError),
-
-    #[error("{0}")]
-    NymSdkError(#[from] nym_sdk::Error),
-
-    #[error("{0}")]
-    NymCredentialsError(#[from] nym_credentials::Error),
-
-    #[error("{0}")]
-    IoError(#[from] std::io::Error),
 }
