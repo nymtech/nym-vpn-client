@@ -15,6 +15,7 @@ import {
   ThemeMode,
   UiTheme,
   VpnMode,
+  WindowSize,
 } from '../types';
 
 export type StateAction =
@@ -48,7 +49,8 @@ export type StateAction =
   | { type: 'set-fastest-node-location'; country: Country }
   | { type: 'set-root-font-size'; size: number }
   | { type: 'set-code-deps-js'; dependencies: CodeDependency[] }
-  | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] };
+  | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
+  | { type: 'set-window-size'; size: WindowSize };
 
 export const initialState: AppState = {
   initialized: false,
@@ -225,6 +227,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         codeDepsRust: action.dependencies,
+      };
+    case 'set-window-size':
+      return {
+        ...state,
+        windowSize: action.size,
       };
 
     case 'reset':

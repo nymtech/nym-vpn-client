@@ -17,4 +17,5 @@ export type DbKey =
   | 'UiRootFontSize'
   | 'VpnMode'
   | 'EntryNodeLocation'
-  | 'ExitNodeLocation';
+  | 'ExitNodeLocation'
+  | 'WindowSize';
