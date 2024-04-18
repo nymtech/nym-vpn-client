@@ -8,7 +8,7 @@ use nym_validator_client::{
     nyxd::{error::NyxdError, Config as NyxdClientConfig, NyxdClient},
     QueryHttpRpcNyxdClient,
 };
-use tracing::info;
+use tracing::{debug, info};
 
 use super::CredentialError;
 
