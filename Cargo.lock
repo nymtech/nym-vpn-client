@@ -3941,6 +3941,7 @@ dependencies = [
  "log",
  "nym-client-core",
  "nym-explorer-client",
+ "nym-harbour-master-client",
  "nym-sdk",
  "nym-topology",
  "nym-validator-client",
@@ -4016,6 +4017,17 @@ dependencies = [
  "cw4",
  "schemars",
  "serde",
+]
+
+[[package]]
+name = "nym-harbour-master-client"
+version = "0.1.0"
+dependencies = [
+ "nym-http-api-client",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]

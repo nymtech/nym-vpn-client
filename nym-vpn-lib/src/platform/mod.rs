@@ -201,6 +201,7 @@ async fn get_gateway_countries(
     let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
+        harbour_master_url: None,
     };
     let gateway_client = GatewayClient::new(config)?;
 
@@ -225,6 +226,7 @@ async fn get_low_latency_entry_country(
     let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
+        harbour_master_url: None,
     };
     let gateway_client = GatewayClient::new(config)?;
     let described = gateway_client.lookup_low_latency_entry_gateway().await?;
