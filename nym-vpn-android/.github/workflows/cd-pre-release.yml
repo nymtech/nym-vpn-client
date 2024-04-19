@@ -51,6 +51,11 @@ jobs:
       - name: Add cargo-ndk
         run: |
           cargo install cargo-ndk
+
+      - name: Install deps
+        run: |
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
+
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
       # Here we need to decode keystore.jks from base64 string and place it

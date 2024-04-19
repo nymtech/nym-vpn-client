@@ -28,10 +28,10 @@ sed -i 's/package nym-vpn-lib;/package nym_vpn_lib;/g' $PWD/src/main/java/net/ny
 
 mv $PWD/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so $PWD/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so
 mv $PWD/src/main/jniLibs/armeabi-v7a/libnym_vpn_lib.so $PWD/src/main/jniLibs/armeabi-v7a/libnym_vpn_lib.so
-mv $PWD/src/main/jniLibs/x86/libnym_vpn_lib.so $PWD/src/main/jniLibs/x86/libnym_vpn_lib.so
-mv $PWD/src/main/jniLibs/x86_64/libnym_vpn_lib.so $PWD/src/main/jniLibs/x86_64/libnym_vpn_lib.so
+#mv $PWD/src/main/jniLibs/x86/libnym_vpn_lib.so $PWD/src/main/jniLibs/x86/libnym_vpn_lib.so
+#mv $PWD/src/main/jniLibs/x86_64/libnym_vpn_lib.so $PWD/src/main/jniLibs/x86_64/libnym_vpn_lib.so
 
 mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/arm64-v8a/libwg.so $PWD/src/main/jniLibs/arm64-v8a/
 mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/armeabi-v7a/libwg.so $PWD/src/main/jniLibs/armeabi-v7a/
-mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/x86/libwg.so $PWD/src/main/jniLibs/x86/
-mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/x86_64/libwg.so $PWD/src/main/jniLibs/x86_64/
+#mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/x86/libwg.so $PWD/src/main/jniLibs/x86/
+#mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/x86_64/libwg.so $PWD/src/main/jniLibs/x86_64/

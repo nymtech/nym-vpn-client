@@ -46,9 +46,7 @@ android {
 					try {
 						load(file("signing.properties").reader())
 					} catch (_: Exception) {
-						// can't find signing file, use debug
-						this@create.initWith(signingConfigs.getByName("debug"))
-						return@create
+						load(file("signing_template.properties").reader())
 					}
 				}
 			// try to get secrets from env first for pipeline build, then properties file for local
