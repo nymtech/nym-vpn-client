@@ -5,6 +5,7 @@ use futures::channel::oneshot::{Receiver, Sender};
 use futures::channel::{mpsc, oneshot};
 use log::*;
 use std::collections::HashSet;
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 use talpid_core::dns::DnsMonitor;
 use talpid_core::firewall::Firewall;
@@ -85,6 +86,7 @@ pub fn start_tunnel(
     let route_manager = tunnel.route_manager_handle.clone();
     // We only start the tunnel when we have wireguard enabled, and then we have the config
     let config = tunnel.config.as_ref().unwrap().clone();
+    let id: Option<String> = config.tunnel.addresses.first().map(|a| a.to_string());
     let tun_provider = Arc::clone(&tunnel.tun_provider);
     let handle = tokio::task::spawn_blocking(move || -> Result<(), crate::error::Error> {
         let (event_tx, _) = mpsc::unbounded();
@@ -96,7 +98,11 @@ pub fn start_tunnel(
                     let _ = rx.await;
                 })
             };
-        let resource_dir = std::env::temp_dir().join("nym-wg");
+        let mut resource_dir = std::env::temp_dir().join("nym-wg");
+        if let Some(id) = id {
+            resource_dir = resource_dir.join(id);
+        }
+        std::fs::create_dir_all(&resource_dir).unwrap();
         debug!("Tunnel resource dir: {:?}", resource_dir);
         let args = TunnelArgs {
             runtime: tokio::runtime::Handle::current(),
@@ -108,7 +114,12 @@ pub fn start_tunnel(
             route_manager,
         };
         info!("Starting wireguard monitor");
-        let monitor = WireguardMonitor::start(config, None, None, args)?;
+        let monitor = WireguardMonitor::start(
+            config,
+            None,
+            Some(&Path::new(&resource_dir.join("logs"))),
+            args,
+        )?;
         debug!("Wireguard monitor started, blocking current thread until shutdown");
         if let Err(e) = monitor.wait() {
             error!("Tunnel disconnected with error {:?}", e);
