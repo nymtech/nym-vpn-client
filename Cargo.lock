@@ -4019,6 +4019,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-harbour-master-client"
+version = "0.1.0"
+dependencies = [
+ "nym-http-api-client",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=b8b66fa#b8b66fa4ad53aaf75ccecfe24491c04e2cbce58a"
