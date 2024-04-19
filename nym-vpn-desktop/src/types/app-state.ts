@@ -1,3 +1,4 @@
+import { PhysicalSize } from '@tauri-apps/api/window';
 import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
@@ -27,6 +28,8 @@ export type CodeDependency = {
   copyright?: string;
 };
 
+export type WindowSize = PhysicalSize;
+
 export type AppState = {
   // initial loading phase when the app is starting and fetching data from the backend
   initialized: boolean;
@@ -54,6 +57,7 @@ export type AppState = {
   rootFontSize: number;
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
+  windowSize?: WindowSize | null;
 };
 
 export type ConnectionEventPayload = {

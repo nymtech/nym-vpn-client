@@ -4,6 +4,7 @@ import { appWindow } from '@tauri-apps/api/window';
 import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
+import logu from '../log';
 import {
   CodeDependency,
   ConnectionState,
@@ -13,6 +14,7 @@ import {
   ThemeMode,
   UiTheme,
   VpnMode,
+  WindowSize,
 } from '../types';
 import fireRequests, { TauriReq } from './helper';
 
@@ -206,6 +208,18 @@ async function init(dispatch: StateDispatch) {
     },
   };
 
+  const getWindowSizeRq: TauriReq<() => Promise<WindowSize | undefined>> = {
+    name: 'getWindowSize',
+    request: () => kvGet<WindowSize>('WindowSize'),
+    onFulfilled: (size) => {
+      if (size) {
+        appWindow.setSize(size);
+        dispatch({ type: 'set-window-size', size });
+        logu.debug(`restored window size to ${size.width}x${size.height}`);
+      }
+    },
+  };
+
   const getDepsRustRq: TauriReq<() => Promise<CodeDependency[] | undefined>> = {
     name: 'getDepsRustRq',
     request: () => getRustLicenses(),
@@ -245,6 +259,7 @@ async function init(dispatch: StateDispatch) {
     getMonitoringRq,
     getDepsRustRq,
     getDepsJsRq,
+    getWindowSizeRq,
   ]);
 }
 
