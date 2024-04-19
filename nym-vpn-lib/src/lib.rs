@@ -432,7 +432,7 @@ impl NymVpn {
         let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
         debug!("default_lan_gateway_ip: {default_lan_gateway_ip}");
 
-        let task_manager = TaskManager::new(10).named("nym_vpn_lib");
+        let mut task_manager = TaskManager::new(10).named("nym_vpn_lib");
 
         info!("Setting up route manager");
         let mut route_manager = setup_route_manager().await?;
@@ -492,7 +492,9 @@ impl NymVpn {
             Err(err) => {
                 error!("Failed to setup tunnel services: {err}");
                 debug!("{err:?}");
-                wait_for_interrupt(task_manager).await;
+                task_manager.signal_shutdown().ok();
+                task_manager.wait_for_shutdown().await;
+                info!("Interrupt handled");
                 // Ignore if these fail since we're interesting in the original error anyway
                 handle_interrupt(route_manager, wireguard_waiting, tunnel_close_tx)
                     .await

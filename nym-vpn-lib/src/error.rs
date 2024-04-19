@@ -183,6 +183,14 @@ pub enum Error {
     #[cfg(windows)]
     #[error("administrator privileges required, try rerunning with administrator privileges: `runas /user:Administrator {binary_name} run`")]
     AdminPrivilegesRequired { binary_name: String },
+
+    #[error("invalid credential: {reason}")]
+    InvalidCredential {
+        reason: crate::credentials::CredentialError,
+    },
+
+    #[error(transparent)]
+    CredentialError(#[from] crate::credentials::CredentialError),
 }
 
 // Result type based on our error type

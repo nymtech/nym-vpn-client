@@ -14,7 +14,7 @@ pub(crate) fn start_vpn_service(
     info!("Starting VPN service");
 
     // TODO: join up the task handling in vpn library with the daemon
-    task_client.mark_as_success();
+    task_client.disarm();
 
     std::thread::spawn(move || {
         let vpn_rt = tokio::runtime::Runtime::new().unwrap();
