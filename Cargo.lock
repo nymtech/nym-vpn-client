@@ -3941,6 +3941,7 @@ dependencies = [
  "log",
  "nym-client-core",
  "nym-explorer-client",
+ "nym-harbour-master-client",
  "nym-sdk",
  "nym-topology",
  "nym-validator-client",

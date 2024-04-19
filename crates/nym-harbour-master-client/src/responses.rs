@@ -10,12 +10,6 @@ pub struct PagedResult<T> {
     pub items: Vec<T>,
 }
 
-// #[derive(Debug, Clone, Deserialize, Serialize)]
-// pub struct Status {
-//     pub message: String,
-//     pub timestamp: String,
-// }
-
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Gateway {
     pub gateway_identity_key: String,

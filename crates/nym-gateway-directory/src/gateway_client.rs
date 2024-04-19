@@ -8,6 +8,9 @@ use crate::{
 };
 use itertools::Itertools;
 use nym_explorer_client::{ExplorerClient, Location, PrettyDetailedGatewayBond};
+use nym_harbour_master_client::{
+    Gateway as HmGateway, HarbourMasterApiClientExt, PagedResult as HmPagedResult,
+};
 use nym_validator_client::{models::DescribedGateway, NymApiClient};
 use std::net::IpAddr;
 use tracing::info;
@@ -17,6 +20,7 @@ use url::Url;
 pub struct Config {
     pub api_url: Url,
     pub explorer_url: Option<Url>,
+    pub harbour_master_url: Option<Url>,
 }
 
 impl Default for Config {
@@ -39,6 +43,7 @@ impl Default for Config {
         Config {
             api_url: default_api_url,
             explorer_url: default_explorer_url,
+            harbour_master_url: None,
         }
     }
 }
@@ -61,11 +66,21 @@ impl Config {
         self.explorer_url = Some(explorer_url);
         self
     }
+
+    pub fn harbour_master_url(&self) -> Option<&Url> {
+        self.harbour_master_url.as_ref()
+    }
+
+    pub fn with_custom_harbour_master_url(mut self, harbour_master_url: Url) -> Self {
+        self.harbour_master_url = Some(harbour_master_url);
+        self
+    }
 }
 
 pub struct GatewayClient {
     api_client: NymApiClient,
     explorer_client: Option<ExplorerClient>,
+    harbour_master_client: Option<nym_harbour_master_client::Client>,
 }
 
 impl GatewayClient {
@@ -76,10 +91,16 @@ impl GatewayClient {
         } else {
             None
         };
+        let harbour_master_client = if let Some(url) = config.harbour_master_url {
+            Some(nym_harbour_master_client::Client::new_url(url, None)?)
+        } else {
+            None
+        };
 
         Ok(GatewayClient {
             api_client,
             explorer_client,
+            harbour_master_client,
         })
     }
 
@@ -99,6 +120,20 @@ impl GatewayClient {
                     .get_gateways()
                     .await
                     .map_err(|error| Error::FailedFetchLocationData { error }),
+            )
+        } else {
+            None
+        }
+    }
+
+    #[allow(unused)]
+    async fn lookup_gateways_in_harbour_master(&self) -> Option<Result<HmPagedResult<HmGateway>>> {
+        if let Some(harbour_master_client) = &self.harbour_master_client {
+            Some(
+                harbour_master_client
+                    .get_gateways()
+                    .await
+                    .map_err(Error::HarbourMasterApiError),
             )
         } else {
             None
