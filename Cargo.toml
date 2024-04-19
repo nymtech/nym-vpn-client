@@ -4,6 +4,7 @@ members = [
     "crates/nym-connection-monitor",
     "crates/nym-gateway-directory",
     "crates/nym-gateway-probe",
+    "crates/nym-harbour-master-client",
     "crates/nym-vpn-proto",
     "nym-vpn-cli",
     "nym-vpn-lib",
@@ -20,6 +21,7 @@ exclude = ["nym-vpn-desktop/src-tauri"]
 # nym-credential-storage = { path = "../nym/common/credential-storage" }
 # nym-crypto = { path = "../nym/common/crypto" }
 # nym-explorer-client = { path = "../nym/explorer-api/explorer-client" }
+# nym-http-api-client = { path = "../nym/common/http-api-client" }
 # nym-id = { path = "../nym/common/nym-id" }
 # nym-ip-packet-requests = { path = "../nym/common/ip-packet-requests" }
 # nym-node-requests = { path = "../nym/nym-node/nym-node-requests" }
@@ -83,6 +85,7 @@ nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "b8b66f
 nym-credentials = { git = "https://github.com/nymtech/nym", rev = "b8b66fa" }
 nym-crypto = { git = "https://github.com/nymtech/nym", rev = "b8b66fa" }
 nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "b8b66fa" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "b8b66fa" }
 nym-id = { git = "https://github.com/nymtech/nym", rev = "b8b66fa" }
 nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "b8b66fa" }
 nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "b8b66fa" }
