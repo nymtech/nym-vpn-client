@@ -13,5 +13,4 @@ nym-http-api-client.workspace = true
 reqwest = { workspace = true, features = ["rustls-tls"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
-tokio = { workspace = true, features = ["full"] }
 thiserror.workspace = true
