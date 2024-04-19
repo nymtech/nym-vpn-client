@@ -94,11 +94,12 @@ pub async fn connect(
     } else {
         info!("5-hop mode enabled");
     }
-    info!("wireguard 1st hop disabled");
     vpn_config.enable_wireguard = false;
     // !! release app_state mutex
     // TODO: replace with automatic drop through scope
     drop(app_state);
+
+    vpn_config.enable_credentials_mode = true;
 
     // spawn the VPN client and start a new connection
     let NymVpnHandle {

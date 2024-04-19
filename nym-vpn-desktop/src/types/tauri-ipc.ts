@@ -18,4 +18,5 @@ export type DbKey =
   | 'VpnMode'
   | 'EntryNodeLocation'
   | 'ExitNodeLocation'
-  | 'WindowSize';
+  | 'WindowSize'
+  | 'ImportedCredential';

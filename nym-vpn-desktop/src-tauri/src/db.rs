@@ -42,6 +42,8 @@ pub enum Key {
     ExitNodeLocation,
     #[strum(serialize = "window_size")]
     WindowSize,
+    #[strum(serialize = "imported_credential")]
+    ImportedCredential,
 }
 
 impl Display for Key {
