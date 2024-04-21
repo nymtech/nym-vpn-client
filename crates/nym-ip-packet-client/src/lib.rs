@@ -130,7 +130,7 @@ impl IprClient {
             .await?;
 
         debug!("Waiting for reply...");
-        let response = self.wait_for_connect_response(request_id).await?;
+        let response = wait_for_connect_response(self.mixnet_client.clone(), request_id).await?;
 
         match response.data {
             IpPacketResponseData::StaticConnect(resp) if ips.is_some() => {
@@ -183,67 +183,6 @@ impl IprClient {
         Ok(request_id)
     }
 
-    fn check_ipr_message_version(&self, message: &ReconstructedMessage) -> Result<()> {
-        // Assuing it's a IPR message, it will have a version as its first byte
-        if let Some(version) = message.message.first() {
-            match version.cmp(&nym_ip_packet_requests::CURRENT_VERSION) {
-                Ordering::Greater => Err(Error::ReceivedResponseWithNewVersion {
-                    expected: nym_ip_packet_requests::CURRENT_VERSION,
-                    received: *version,
-                }),
-                Ordering::Less => Err(Error::ReceivedResponseWithOldVersion {
-                    expected: nym_ip_packet_requests::CURRENT_VERSION,
-                    received: *version,
-                }),
-                Ordering::Equal => {
-                    // We're good
-                    Ok(())
-                }
-            }
-        } else {
-            Err(Error::NoVersionInMessage)
-        }
-    }
-
-    async fn wait_for_connect_response(&self, request_id: u64) -> Result<IpPacketResponse> {
-        let timeout = tokio::time::sleep(Duration::from_secs(5));
-        tokio::pin!(timeout);
-
-        // Connecting is basically synchronous from the perspective of the mixnet client, so it's safe
-        // to just grab ahold of the mutex and keep it until we get the response.
-        let mut mixnet_client_handle = self.mixnet_client.lock().await;
-        let mixnet_client = mixnet_client_handle.as_mut().unwrap();
-
-        loop {
-            tokio::select! {
-                _ = &mut timeout => {
-                    error!("Timed out waiting for reply to connect request");
-                    return Err(Error::TimeoutWaitingForConnectResponse);
-                }
-                msgs = mixnet_client.wait_for_messages() => {
-                    if let Some(msgs) = msgs {
-                        for msg in msgs {
-                            self.check_ipr_message_version(&msg)?;
-
-                            debug!("MixnetProcessor: Got message while waiting for connect response");
-                            let Ok(response) = IpPacketResponse::from_reconstructed_message(&msg) else {
-                                // This is ok, it's likely just one of our self-pings
-                                debug!("Failed to deserialize reconstructed message");
-                                continue;
-                            };
-                            if response.id() == Some(request_id) {
-                                debug!("Got response with matching id");
-                                return Ok(response);
-                            }
-                        }
-                    } else {
-                        return Err(Error::NoMixnetMessagesReceived);
-                    }
-                }
-            }
-        }
-    }
-
     async fn handle_static_connect_response(
         &mut self,
         response: StaticConnectResponse,
@@ -283,5 +222,69 @@ impl IprClient {
     #[allow(dead_code)]
     pub async fn listen_for_ip_packet_router_responses(&self) -> Result<()> {
         todo!()
+    }
+}
+
+async fn wait_for_connect_response(
+    mixnet_client: SharedMixnetClient,
+    request_id: u64,
+) -> Result<IpPacketResponse> {
+    let timeout = tokio::time::sleep(Duration::from_secs(5));
+    tokio::pin!(timeout);
+
+    // Connecting is basically synchronous from the perspective of the mixnet client, so it's safe
+    // to just grab ahold of the mutex and keep it until we get the response.
+    let mut mixnet_client_handle = mixnet_client.lock().await;
+    let mixnet_client = mixnet_client_handle.as_mut().unwrap();
+
+    loop {
+        tokio::select! {
+            _ = &mut timeout => {
+                error!("Timed out waiting for reply to connect request");
+                return Err(Error::TimeoutWaitingForConnectResponse);
+            }
+            msgs = mixnet_client.wait_for_messages() => {
+                if let Some(msgs) = msgs {
+                    for msg in msgs {
+                        check_ipr_message_version(&msg)?;
+
+                        debug!("MixnetProcessor: Got message while waiting for connect response");
+                        let Ok(response) = IpPacketResponse::from_reconstructed_message(&msg) else {
+                            // This is ok, it's likely just one of our self-pings
+                            debug!("Failed to deserialize reconstructed message");
+                            continue;
+                        };
+                        if response.id() == Some(request_id) {
+                            debug!("Got response with matching id");
+                            return Ok(response);
+                        }
+                    }
+                } else {
+                    return Err(Error::NoMixnetMessagesReceived);
+                }
+            }
+        }
+    }
+}
+
+fn check_ipr_message_version(message: &ReconstructedMessage) -> Result<()> {
+    // Assuing it's a IPR message, it will have a version as its first byte
+    if let Some(version) = message.message.first() {
+        match version.cmp(&nym_ip_packet_requests::CURRENT_VERSION) {
+            Ordering::Greater => Err(Error::ReceivedResponseWithNewVersion {
+                expected: nym_ip_packet_requests::CURRENT_VERSION,
+                received: *version,
+            }),
+            Ordering::Less => Err(Error::ReceivedResponseWithOldVersion {
+                expected: nym_ip_packet_requests::CURRENT_VERSION,
+                received: *version,
+            }),
+            Ordering::Equal => {
+                // We're good
+                Ok(())
+            }
+        }
+    } else {
+        Err(Error::NoVersionInMessage)
     }
 }
