@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Notification } from './type';
 import { NotificationContext } from './notification';
 
-type Timeout = NodeJS.Timeout;
+type Timeout = ReturnType<typeof setTimeout>;
 
 export type NotificationProps = {
   children: React.ReactNode;
@@ -19,8 +19,12 @@ function NotificationProvider({ children }: NotificationProps) {
 
   const transitionRef = useRef<Timeout | null>(null);
 
-  const push = (notification: Notification) => {
-    setStack([...stack, notification]);
+  const push = (notification: Notification | Notification[]) => {
+    if (Array.isArray(notification)) {
+      setStack([...stack, ...notification]);
+    } else {
+      setStack([...stack, notification]);
+    }
   };
 
   const shift = useCallback(() => {

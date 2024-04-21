@@ -11,8 +11,8 @@ export type NotificationState = {
   readonly current: Notification | null;
   // Moves to the next notification in the stack
   next: () => void;
-  // Adds a notification to the end of the stack
-  push: (notification: Notification) => void;
+  // Adds a notification/s to the end of the stack
+  push: (notification: Notification | Notification[]) => void;
   // Removes all notifications from the stack
   clear: () => void;
 };
