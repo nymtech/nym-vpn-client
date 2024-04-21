@@ -4,7 +4,7 @@ import { NotificationContext } from './notification';
 
 type Timeout = ReturnType<typeof setTimeout>;
 
-export type NotificationProps = {
+export type NotificationProviderProps = {
   children: React.ReactNode;
 };
 
@@ -12,7 +12,7 @@ export type NotificationProps = {
 // snackbar animation (defined in Snackbar.tsx)
 const transitionDuration = 300; // ms
 
-function NotificationProvider({ children }: NotificationProps) {
+function NotificationProvider({ children }: NotificationProviderProps) {
   const [stack, setStack] = useState<Notification[]>([]);
   const [current, setCurrent] = useState<Notification | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
