@@ -3,6 +3,7 @@ import { Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
+import { NotificationProvider } from './contexts';
 import router from './router';
 import { sleep } from './helpers';
 import { MainStateProvider } from './state';
@@ -46,9 +47,11 @@ function App() {
   return (
     <MainStateProvider>
       <ThemeSetter>
-        <Suspense fallback={<RouteLoading />}>
-          <RouterProvider router={router} />
-        </Suspense>
+        <NotificationProvider>
+          <Suspense fallback={<RouteLoading />}>
+            <RouterProvider router={router} />
+          </Suspense>
+        </NotificationProvider>
       </ThemeSetter>
     </MainStateProvider>
   );

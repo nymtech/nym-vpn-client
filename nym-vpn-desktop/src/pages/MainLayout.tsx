@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { routes } from '../router';
-import { TopBar } from '../ui';
+import { Notifications, TopBar } from '../ui';
 
 function MainLayout() {
   const location = useLocation();
@@ -15,6 +15,7 @@ function MainLayout() {
       ])}
     >
       <TopBar />
+      <Notifications />
       <div
         className={clsx([
           'h-full flex flex-col overflow-auto overscroll-auto p-4',
