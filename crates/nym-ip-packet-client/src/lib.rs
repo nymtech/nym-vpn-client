@@ -13,7 +13,9 @@ use nym_ip_packet_requests::{
 use nym_sdk::mixnet::{
     MixnetClient, MixnetMessageSender, Recipient, ReconstructedMessage, TransmissionLane,
 };
-use tracing::{debug, error};
+use tokio::sync::mpsc::{Receiver, Sender};
+use tokio::sync::oneshot;
+use tracing::{debug, error, info};
 
 use nym_gateway_directory::IpPacketRouterAddress;
 
@@ -77,16 +79,23 @@ enum ConnectionState {
 
 pub struct IprClient {
     mixnet_client: SharedMixnetClient,
+    nym_address: Recipient,
     connected: ConnectionState,
-    // incoming_messages: Receiver<ReconstructedMessage>,
 }
 
 impl IprClient {
-    pub fn new(mixnet_client: SharedMixnetClient) -> Self {
+    pub async fn new(mixnet_client: SharedMixnetClient) -> Self {
+        let nym_address = *mixnet_client
+            .inner()
+            .lock()
+            .await
+            .as_ref()
+            .unwrap()
+            .nym_address();
         Self {
             mixnet_client,
+            nym_address,
             connected: ConnectionState::Disconnected,
-            // incoming_messages: todo!(),
         }
     }
 
@@ -129,22 +138,24 @@ impl IprClient {
             .send_connect_request(ip_packet_router_address, ips, enable_two_hop)
             .await?;
 
+        // WIP(JON): we spawn a short lived mixnet listener task here while we gradually implement
+        // all aspects of the IPR client. The correct thing is for the top-level application to start
+        // the listener and use the same one for the duration of the application.
         debug!("Waiting for reply...");
-        let response = wait_for_connect_response(self.mixnet_client.clone(), request_id).await?;
+        let mixnet_client = self.mixnet_client.clone();
+        let (outbound_mix_message_tx, outbound_mix_message_rx) = tokio::sync::mpsc::channel(16);
+        let (should_stop_tx, should_stop_rx) = tokio::sync::oneshot::channel();
+        tokio::task::spawn(async move {
+            start_mixnet_listener(mixnet_client, outbound_mix_message_tx, should_stop_rx)
+                .await
+                .unwrap();
+        });
 
-        match response.data {
-            IpPacketResponseData::StaticConnect(resp) if ips.is_some() => {
-                self.handle_static_connect_response(resp).await?;
-                Ok(ips.unwrap())
-            }
-            IpPacketResponseData::DynamicConnect(resp) if ips.is_none() => {
-                self.handle_dynamic_connect_response(resp).await
-            }
-            response => {
-                error!("Unexpected response: {:?}", response);
-                Err(Error::UnexpectedConnectResponse)
-            }
-        }
+        let response = self
+            .listen_for_connect_response(outbound_mix_message_rx, request_id, ips)
+            .await;
+        should_stop_tx.send(()).unwrap();
+        response
     }
 
     async fn send_connect_request(
@@ -154,19 +165,14 @@ impl IprClient {
         enable_two_hop: bool,
     ) -> Result<u64> {
         let hops = enable_two_hop.then_some(0);
-        let mixnet_client_address = self.mixnet_client.nym_address().await;
+        // let mixnet_client_address = self.mixnet_client.nym_address().await;
         let (request, request_id) = if let Some(ips) = ips {
             debug!("Sending static connect request with ips: {ips}");
-            IpPacketRequest::new_static_connect_request(
-                ips,
-                mixnet_client_address,
-                hops,
-                None,
-                None,
-            )
+            IpPacketRequest::new_static_connect_request(ips, self.nym_address, hops, None, None)
         } else {
             debug!("Sending dynamic connect request");
-            IpPacketRequest::new_dynamic_connect_request(mixnet_client_address, hops, None, None)
+            // IpPacketRequest::new_dynamic_connect_request(mixnet_client_address, hops, None, None)
+            IpPacketRequest::new_dynamic_connect_request(self.nym_address, hops, None, None)
         };
         debug!("Sent connect request with version v{}", request.version);
 
@@ -183,13 +189,10 @@ impl IprClient {
         Ok(request_id)
     }
 
-    async fn handle_static_connect_response(
-        &mut self,
-        response: StaticConnectResponse,
-    ) -> Result<()> {
+    async fn handle_static_connect_response(&self, response: StaticConnectResponse) -> Result<()> {
         debug!("Handling static connect response");
-        let mixnet_client_address = self.mixnet_client.nym_address().await;
-        if response.reply_to != mixnet_client_address {
+        // let mixnet_client_address = self.mixnet_client.nym_address().await;
+        if response.reply_to != self.nym_address {
             error!("Got reply intended for wrong address");
             return Err(Error::GotReplyIntendedForWrongAddress);
         }
@@ -202,12 +205,12 @@ impl IprClient {
     }
 
     async fn handle_dynamic_connect_response(
-        &mut self,
+        &self,
         response: DynamicConnectResponse,
     ) -> Result<IpPair> {
         debug!("Handling dynamic connect response");
-        let mixnet_client_address = self.mixnet_client.nym_address().await;
-        if response.reply_to != mixnet_client_address {
+        // let mixnet_client_address = self.mixnet_client.nym_address().await;
+        if response.reply_to != self.nym_address {
             error!("Got reply intended for wrong address");
             return Err(Error::GotReplyIntendedForWrongAddress);
         }
@@ -219,19 +222,65 @@ impl IprClient {
         }
     }
 
-    #[allow(dead_code)]
-    pub async fn listen_for_ip_packet_router_responses(&self) -> Result<()> {
-        todo!()
+    async fn handle_ip_packet_router_response(
+        &self,
+        response: IpPacketResponse,
+        ips: Option<IpPair>,
+    ) -> Result<IpPair> {
+        match response.data {
+            IpPacketResponseData::StaticConnect(resp) if ips.is_some() => {
+                self.handle_static_connect_response(resp).await?;
+                Ok(ips.unwrap())
+            }
+            IpPacketResponseData::DynamicConnect(resp) if ips.is_none() => {
+                self.handle_dynamic_connect_response(resp).await
+            }
+            response => {
+                error!("Unexpected response: {:?}", response);
+                Err(Error::UnexpectedConnectResponse)
+            }
+        }
+    }
+
+    pub async fn listen_for_connect_response(
+        &self,
+        mut outbound_mix_message_rx: Receiver<IpPacketResponse>,
+        request_id: u64,
+        ips: Option<IpPair>,
+    ) -> Result<IpPair> {
+        let timeout = tokio::time::sleep(Duration::from_secs(5));
+        tokio::pin!(timeout);
+
+        loop {
+            tokio::select! {
+                _ = &mut timeout => {
+                    error!("Timed out waiting for reply to connect request");
+                    return Err(Error::TimeoutWaitingForConnectResponse);
+                }
+                response = outbound_mix_message_rx.recv() => {
+                    match response {
+                        None => {
+                            error!("Channel closed while waiting for response");
+                            panic!();
+                        }
+                        Some(response) => {
+                            if response.id() == Some(request_id) {
+                                debug!("Got response with matching id");
+                                return self.handle_ip_packet_router_response(response, ips).await;
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
-async fn wait_for_connect_response(
+async fn start_mixnet_listener(
     mixnet_client: SharedMixnetClient,
-    request_id: u64,
-) -> Result<IpPacketResponse> {
-    let timeout = tokio::time::sleep(Duration::from_secs(5));
-    tokio::pin!(timeout);
-
+    outbound_mix_message_tx: Sender<IpPacketResponse>,
+    mut should_stop: oneshot::Receiver<()>,
+) -> Result<()> {
     // Connecting is basically synchronous from the perspective of the mixnet client, so it's safe
     // to just grab ahold of the mutex and keep it until we get the response.
     let mut mixnet_client_handle = mixnet_client.lock().await;
@@ -239,25 +288,26 @@ async fn wait_for_connect_response(
 
     loop {
         tokio::select! {
-            _ = &mut timeout => {
-                error!("Timed out waiting for reply to connect request");
-                return Err(Error::TimeoutWaitingForConnectResponse);
+            _ = &mut should_stop => {
+                info!("Instructed to stop the mixnet listener");
+                return Ok(());
             }
             msgs = mixnet_client.wait_for_messages() => {
                 if let Some(msgs) = msgs {
                     for msg in msgs {
+                        // Confirm that the version is correct
                         check_ipr_message_version(&msg)?;
 
+                        // Then we deserialize the message
                         debug!("MixnetProcessor: Got message while waiting for connect response");
                         let Ok(response) = IpPacketResponse::from_reconstructed_message(&msg) else {
                             // This is ok, it's likely just one of our self-pings
                             debug!("Failed to deserialize reconstructed message");
                             continue;
                         };
-                        if response.id() == Some(request_id) {
-                            debug!("Got response with matching id");
-                            return Ok(response);
-                        }
+
+                        // The we forward it to the IPR client
+                        outbound_mix_message_tx.send(response).await.unwrap();
                     }
                 } else {
                     return Err(Error::NoMixnetMessagesReceived);
