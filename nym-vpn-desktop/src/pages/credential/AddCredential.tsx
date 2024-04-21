@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { NymDarkOutlineIcon, NymIcon } from '../../assets';
-import { useMainState } from '../../contexts';
+import { useMainState, useNotifications } from '../../contexts';
 import { routes } from '../../router';
 import { CmdError } from '../../types';
 import { Button, PageAnim, TextArea } from '../../ui';
@@ -14,6 +14,7 @@ function AddCredential() {
   const [credential, setCredential] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const { push } = useNotifications();
   const navigate = useNavigate();
   const { t } = useTranslation('addCredential');
 
@@ -27,8 +28,12 @@ function AddCredential() {
   const handleClick = async () => {
     await invoke('add_credential', { credential: credential })
       .then(() => {
-        // TODO open snackbar message
         navigate(routes.root);
+        push({
+          text: t('added-notification'),
+          position: 'top',
+          closeIcon: true,
+        });
       })
       .catch((e: CmdError) => {
         console.warn('backend error:', e);
