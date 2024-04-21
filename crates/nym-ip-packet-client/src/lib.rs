@@ -66,9 +66,18 @@ impl SharedMixnetClient {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
+enum ConnectionState {
+    Disconnected,
+    Connecting,
+    Connected,
+    #[allow(unused)]
+    Disconnecting,
+}
+
 pub struct IprClient {
     mixnet_client: SharedMixnetClient,
-    connected: bool,
+    connected: ConnectionState,
     // incoming_messages: Receiver<ReconstructedMessage>,
 }
 
@@ -76,7 +85,7 @@ impl IprClient {
     pub fn new(mixnet_client: SharedMixnetClient) -> Self {
         Self {
             mixnet_client,
-            connected: false,
+            connected: ConnectionState::Disconnected,
             // incoming_messages: todo!(),
         }
     }
@@ -87,11 +96,35 @@ impl IprClient {
         ips: Option<IpPair>,
         enable_two_hop: bool,
     ) -> Result<IpPair> {
-        if self.connected {
+        if self.connected != ConnectionState::Disconnected {
             return Err(Error::AlreadyConnected);
         }
 
         debug!("Sending connect request");
+        self.connected = ConnectionState::Connecting;
+        match self
+            .connect_inner(ip_packet_router_address, ips, enable_two_hop)
+            .await
+        {
+            Ok(ips) => {
+                debug!("Successfully connected to the ip-packet-router");
+                self.connected = ConnectionState::Connected;
+                Ok(ips)
+            }
+            Err(err) => {
+                error!("Failed to connect to the ip-packet-router: {:?}", err);
+                self.connected = ConnectionState::Disconnected;
+                Err(err)
+            }
+        }
+    }
+
+    async fn connect_inner(
+        &mut self,
+        ip_packet_router_address: &IpPacketRouterAddress,
+        ips: Option<IpPair>,
+        enable_two_hop: bool,
+    ) -> Result<IpPair> {
         let request_id = self
             .send_connect_request(ip_packet_router_address, ips, enable_two_hop)
             .await?;
@@ -154,26 +187,14 @@ impl IprClient {
         // Assuing it's a IPR message, it will have a version as its first byte
         if let Some(version) = message.message.first() {
             match version.cmp(&nym_ip_packet_requests::CURRENT_VERSION) {
-                Ordering::Greater => {
-                    error!(
-                        "Received packet with newer version: v{version}, \
-                        is your client up to date?"
-                    );
-                    Err(Error::ReceivedResponseWithNewVersion {
-                        expected: nym_ip_packet_requests::CURRENT_VERSION,
-                        received: *version,
-                    })
-                }
-                Ordering::Less => {
-                    error!(
-                        "Received packet with older version: v{version}, you client appears \
-                        to be too new for the exit gateway or exit ip-packet-router?"
-                    );
-                    Err(Error::ReceivedResponseWithOldVersion {
-                        expected: nym_ip_packet_requests::CURRENT_VERSION,
-                        received: *version,
-                    })
-                }
+                Ordering::Greater => Err(Error::ReceivedResponseWithNewVersion {
+                    expected: nym_ip_packet_requests::CURRENT_VERSION,
+                    received: *version,
+                }),
+                Ordering::Less => Err(Error::ReceivedResponseWithOldVersion {
+                    expected: nym_ip_packet_requests::CURRENT_VERSION,
+                    received: *version,
+                }),
                 Ordering::Equal => {
                     // We're good
                     Ok(())
@@ -234,10 +255,7 @@ impl IprClient {
             return Err(Error::GotReplyIntendedForWrongAddress);
         }
         match response.reply {
-            StaticConnectResponseReply::Success => {
-                self.connected = true;
-                Ok(())
-            }
+            StaticConnectResponseReply::Success => Ok(()),
             StaticConnectResponseReply::Failure(reason) => {
                 Err(Error::StaticConnectRequestDenied { reason })
             }
@@ -255,10 +273,7 @@ impl IprClient {
             return Err(Error::GotReplyIntendedForWrongAddress);
         }
         match response.reply {
-            DynamicConnectResponseReply::Success(r) => {
-                self.connected = true;
-                Ok(r.ips)
-            }
+            DynamicConnectResponseReply::Success(r) => Ok(r.ips),
             DynamicConnectResponseReply::Failure(reason) => {
                 Err(Error::DynamicConnectRequestDenied { reason })
             }
