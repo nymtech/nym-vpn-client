@@ -18,7 +18,7 @@ import { StateDispatch } from '../../../types';
 import { PageAnim, SettingsMenuCard, Switch } from '../../../ui';
 import { DiscordIcon, ElementIcon, GitHubIcon } from '../../../assets';
 
-const ThrottleDelay = 1000; // ms
+const ThrottleDelay = 10000; // ms
 
 function Feedback() {
   const state = useMainState();
