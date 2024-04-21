@@ -8,6 +8,7 @@ export type SnackbarProps = {
   open: boolean;
   onClose: () => void;
   text: string;
+  // Number of ms to wait before automatically close the snackbar
   autoHideDuration?: number;
   closeIcon?: boolean;
   clickAway?: boolean;
@@ -38,8 +39,8 @@ function Snackbar({
       transition={{ duration: 0.1 }}
       exit={{ opacity: 0 }}
       className={clsx([
-        'fixed z-50 inset-x-0 mx-5 px-5 py-4',
-        position === 'top' ? 'top-6' : 'bottom-6',
+        'fixed z-50 inset-x-0 mx-6 px-5 py-4',
+        position === 'top' ? 'top-20' : 'bottom-6',
         'flex justify-between items-center rounded-lg',
         'text-baltic-sea dark:text-mercury-pinkish bg-seashell dark:bg-poivre-noir',
       ])}
