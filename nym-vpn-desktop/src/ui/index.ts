@@ -12,6 +12,7 @@ export { default as Snackbar } from './Snackbar';
 export { default as PageAnim } from './PageAnim';
 export { default as RouteLoading } from './RouteLoading';
 export { default as FlagIcon } from './FlagIcon';
+export { default as Notifications } from './Notifications';
 export * from './Button';
 export * from './FlagIcon';
 export * from './MsIcon';
