@@ -11,7 +11,8 @@ use nym_ip_packet_requests::{
     },
 };
 use nym_sdk::mixnet::{
-    MixnetClient, MixnetMessageSender, Recipient, ReconstructedMessage, TransmissionLane,
+    MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, ReconstructedMessage,
+    TransmissionLane,
 };
 use tokio::sync::mpsc::{Receiver, Sender};
 use tokio::sync::oneshot;
@@ -78,13 +79,16 @@ enum ConnectionState {
 }
 
 pub struct IprClient {
+    // TODO: remove
     mixnet_client: SharedMixnetClient,
+    mixnet_sender: MixnetClientSender,
     nym_address: Recipient,
     connected: ConnectionState,
 }
 
 impl IprClient {
     pub async fn new(mixnet_client: SharedMixnetClient) -> Self {
+        let mixnet_sender = mixnet_client.lock().await.as_ref().unwrap().split_sender();
         let nym_address = *mixnet_client
             .inner()
             .lock()
@@ -94,6 +98,7 @@ impl IprClient {
             .nym_address();
         Self {
             mixnet_client,
+            mixnet_sender,
             nym_address,
             connected: ConnectionState::Disconnected,
         }
@@ -165,18 +170,16 @@ impl IprClient {
         enable_two_hop: bool,
     ) -> Result<u64> {
         let hops = enable_two_hop.then_some(0);
-        // let mixnet_client_address = self.mixnet_client.nym_address().await;
         let (request, request_id) = if let Some(ips) = ips {
             debug!("Sending static connect request with ips: {ips}");
             IpPacketRequest::new_static_connect_request(ips, self.nym_address, hops, None, None)
         } else {
             debug!("Sending dynamic connect request");
-            // IpPacketRequest::new_dynamic_connect_request(mixnet_client_address, hops, None, None)
             IpPacketRequest::new_dynamic_connect_request(self.nym_address, hops, None, None)
         };
         debug!("Sent connect request with version v{}", request.version);
 
-        self.mixnet_client
+        self.mixnet_sender
             .send(nym_sdk::mixnet::InputMessage::new_regular_with_custom_hops(
                 ip_packet_router_address.0,
                 request.to_bytes().unwrap(),
@@ -191,7 +194,6 @@ impl IprClient {
 
     async fn handle_static_connect_response(&self, response: StaticConnectResponse) -> Result<()> {
         debug!("Handling static connect response");
-        // let mixnet_client_address = self.mixnet_client.nym_address().await;
         if response.reply_to != self.nym_address {
             error!("Got reply intended for wrong address");
             return Err(Error::GotReplyIntendedForWrongAddress);
@@ -209,7 +211,6 @@ impl IprClient {
         response: DynamicConnectResponse,
     ) -> Result<IpPair> {
         debug!("Handling dynamic connect response");
-        // let mixnet_client_address = self.mixnet_client.nym_address().await;
         if response.reply_to != self.nym_address {
             error!("Got reply intended for wrong address");
             return Err(Error::GotReplyIntendedForWrongAddress);
