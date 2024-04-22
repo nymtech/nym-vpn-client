@@ -370,10 +370,14 @@ impl NymVpn {
                         error!("Failed to handle interrupt: {err}");
                     })?;
             }
-            AllTunnelsSetup::Wg { entry, exit } => {
+            AllTunnelsSetup::Wg {
+                entry,
+                exit,
+                mut firewall,
+                mut dns_monitor,
+            } => {
                 wait_for_interrupt(TaskManager::new(10)).await;
                 for TunnelSetup {
-                    mut tunnel,
                     route_manager,
                     tunnel_close_tx,
                     specific_setup,
@@ -388,15 +392,15 @@ impl NymVpn {
                     .tap_err(|err| {
                         error!("Failed to handle interrupt: {err}");
                     })?;
-
-                    tunnel.dns_monitor.reset().tap_err(|err| {
-                        error!("Failed to reset dns monitor: {err}");
-                    })?;
-                    tunnel.firewall.reset_policy().map_err(|err| {
-                        error!("Failed to reset firewall policy: {err}");
-                        Error::FirewallError(err.to_string())
-                    })?;
                 }
+
+                dns_monitor.reset().tap_err(|err| {
+                    error!("Failed to reset dns monitor: {err}");
+                })?;
+                firewall.reset_policy().map_err(|err| {
+                    error!("Failed to reset firewall policy: {err}");
+                    Error::FirewallError(err.to_string())
+                })?;
             }
         }
 
@@ -441,10 +445,14 @@ impl NymVpn {
                     })?;
                 result
             }
-            AllTunnelsSetup::Wg { entry, exit } => {
+            AllTunnelsSetup::Wg {
+                entry,
+                exit,
+                mut firewall,
+                mut dns_monitor,
+            } => {
                 let result = wait_for_interrupt_and_signal(None, vpn_ctrl_rx).await;
                 for TunnelSetup {
-                    mut tunnel,
                     route_manager,
                     tunnel_close_tx,
                     specific_setup,
@@ -460,19 +468,19 @@ impl NymVpn {
                         error!("Failed to handle interrupt: {err}");
                         Box::new(NymVpnExitError::Generic { reason: err })
                     })?;
-                    tunnel.dns_monitor.reset().map_err(|err| {
-                        error!("Failed to reset dns monitor: {err}");
-                        NymVpnExitError::FailedToResetDnsMonitor {
-                            reason: err.to_string(),
-                        }
-                    })?;
-                    tunnel.firewall.reset_policy().map_err(|err| {
-                        error!("Failed to reset firewall policy: {err}");
-                        NymVpnExitError::FailedToResetFirewallPolicy {
-                            reason: err.to_string(),
-                        }
-                    })?;
                 }
+                dns_monitor.reset().map_err(|err| {
+                    error!("Failed to reset dns monitor: {err}");
+                    NymVpnExitError::FailedToResetDnsMonitor {
+                        reason: err.to_string(),
+                    }
+                })?;
+                firewall.reset_policy().map_err(|err| {
+                    error!("Failed to reset firewall policy: {err}");
+                    NymVpnExitError::FailedToResetFirewallPolicy {
+                        reason: err.to_string(),
+                    }
+                })?;
                 result
             }
         }

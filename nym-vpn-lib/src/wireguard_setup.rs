@@ -55,18 +55,17 @@ pub async fn create_wireguard_tunnel(
     gateway_identity: &NodeIdentity,
 ) -> Result<(WireguardSetup, WgTunnelSetup, Tunnel)> {
     let (mut wireguard_setup, tunnel_close_rx) = empty_wireguard_setup().await?;
-    let wireguard_config = Some(
-        init_wireguard_config(
-            gateway_client,
-            wg_gateway_client,
-            &gateway_identity.to_base58_string(),
-            private_key,
-            wg_ip.into(),
-        )
-        .await?,
-    );
+    let wireguard_config = init_wireguard_config(
+        gateway_client,
+        wg_gateway_client,
+        &gateway_identity.to_base58_string(),
+        private_key,
+        wg_ip.into(),
+    )
+    .await?;
 
-    wireguard_setup.tunnel_gateway_ip = routing::TunnelGatewayIp::new(wireguard_config.clone());
+    wireguard_setup.tunnel_gateway_ip =
+        routing::TunnelGatewayIp::new(Some(wireguard_config.clone()));
 
     info!("Creating tunnel");
     let tunnel = match Tunnel::new(
