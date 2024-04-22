@@ -113,7 +113,7 @@ polkit_action="<?xml version=\"1.0\" encoding=\"UTF-8\"?>
  <icon_name>nym-vpn</icon_name>
  <action id=\"net.nymtech.nymvpn\">
  <description>NymVPN</description>
- <message>NymVPN requires root privileges for tunnel purposes</message>
+ <message>NymVPN requires root privileges to create a local virtual network device and set system routing rules</message>
  <defaults>
  <allow_any>no</allow_any>
  <allow_inactive>auth_admin</allow_inactive>
