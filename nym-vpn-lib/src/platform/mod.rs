@@ -154,7 +154,7 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn importCredential(credential: String, dataPath: String) -> Result<(), FFIError> {
+pub fn importCredential(#[allow(non_snake_case)] credential: String, #[allow(non_snake_case)] dataPath: String) -> Result<(), FFIError> {
     RUNTIME.block_on(import_credential_from_string(&credential, &dataPath))
 }
 
