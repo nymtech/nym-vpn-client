@@ -2,16 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
-use crate::credentials::{
-    check_credential_base58, import_credential_base58, import_credential_file,
-};
+use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
 use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location};
 use crate::{
     spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
     NymVpnHandle,
 };
-use futures::{StreamExt, TryFutureExt};
+use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
 use nym_task::manager::TaskStatus;
@@ -174,14 +172,15 @@ async fn import_credential_from_string(credential: &str, path: &str) -> Result<(
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn checkCredential(credential: String, path: String) -> Result<(), FFIError> {
-    RUNTIME.block_on(check__credential_string(&credential))
+pub fn checkCredential(credential: String) -> Result<(), FFIError> {
+    RUNTIME.block_on(check_credential_string(&credential))
 }
 
-async fn check__credential_string(credential: &str) -> Result<(), FFIError> {
-    check_credential_base58(credential)
-        .map_err(|err| FFIError::InvalidCredential)
-        .await?
+async fn check_credential_string(credential: &str) -> Result<(), FFIError> {
+    match check_credential_base58(credential).await {
+        Ok(_) => Ok(()),
+        Err(_) => Err(FFIError::InvalidCredential),
+    }
 }
 
 async fn run_vpn(vpn: NymVpn) -> Result<(), FFIError> {
