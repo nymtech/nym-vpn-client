@@ -6,7 +6,7 @@ on:
       tag_name:
         description: "Tag name for release"
         required: true
-        default: 'nym-gateway-probe-latest'
+        default: "nym-gateway-probe-latest"
       publish:
         type: boolean
         description: "Publish Release"
@@ -20,11 +20,12 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, macos-14, custom-windows-11]
     steps:
-      - name: Cleanup working directory
-        if: contains(matrix.os, 'custom')
-        run: |
-          rm -rf * .??* || true
       - name: Checkout repo
         uses: actions/checkout@v4
 
@@ -43,11 +44,13 @@ jobs:
         run: |
           expected_tag="nym-gateway-probe-v${{ steps.package-version.outputs.metadata }}"
           [[ "${expected_tag}" != "${{ github.ref_name }}" ]] && exit 1
+
       - name: Set environment for build
         run: |
           echo "ARTIFACT_DIR=nym-gateway-probe_${{ steps.package-version.outputs.metadata }}_${{ matrix.os }}" >> $GITHUB_ENV
           echo "ARTIFACT_ARCHIVE=${ARTIFACT_DIR}.tar.gz" >> $GITHUB_ENV
           echo "ARTIFACT_CHECKSUM=${ARTIFACT_ARCHIVE}.sha256sum" >> $GITHUB_ENV
+
       - name: Install rust toolchain
         uses: actions/setup-rust@v1
         with:
@@ -71,6 +74,7 @@ jobs:
               exit 1
               ;;
           esac
+
       - name: Build
         run: cargo build -p nym-gateway-probe --release --verbose
 
@@ -79,6 +83,7 @@ jobs:
           mkdir -p "${{ env.ARTIFACT_DIR }}"
           cp target/release/nym-gateway-probe "${{ env.ARTIFACT_DIR }}"
           tar -cvzf "${{ env.ARTIFACT_ARCHIVE }}" "${{ env.ARTIFACT_DIR }}"
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
