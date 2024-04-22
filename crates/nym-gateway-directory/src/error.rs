@@ -68,6 +68,9 @@ pub enum Error {
 
     #[error("failed to select gateway randomly")]
     FailedToSelectGatewayRandomly,
+
+    #[error("tunnel in a tunnel works for gateway id or location")]
+    InvalidExitPointDescription,
 }
 
 // Result type based on our error type

@@ -1,8 +1,13 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::{
+    error::{Error, Result},
+    helpers::*,
+};
 use chrono::{DateTime, Utc};
 use nym_explorer_client::Location;
+use nym_sdk::mixnet::NodeIdentity;
 use nym_validator_client::{client::IdentityKey, models::DescribedGateway};
 
 const BUILD_VERSION: &str = "1.1.34";
@@ -86,4 +91,58 @@ impl From<DescribedGateway> for DescribedGatewayWithLocation {
             location: None,
         }
     }
+}
+
+#[async_trait::async_trait]
+pub trait LookupGateway {
+    async fn lookup_gateway_identity(
+        &self,
+        gateways: &[DescribedGatewayWithLocation],
+    ) -> Result<(NodeIdentity, Option<String>)>;
+}
+
+pub fn by_identity(
+    gateways: &[DescribedGatewayWithLocation],
+    identity: &NodeIdentity,
+) -> Result<(NodeIdentity, Option<String>)> {
+    // Confirm up front that the gateway identity is in the list of gateways from the
+    // directory.
+    gateways
+        .iter()
+        .find(|gateway| gateway.identity_key() == &identity.to_string())
+        .ok_or(Error::NoMatchingGateway)?;
+    Ok((*identity, None))
+}
+
+pub fn by_location(
+    gateways: &[DescribedGatewayWithLocation],
+    location: &str,
+) -> Result<(NodeIdentity, Option<String>)> {
+    // Caution: if an explorer-api for a different network was specified, then
+    // none of the gateways will have an associated location. There is a check
+    // against this earlier in the call stack to guard against this scenario.
+    let gateways_with_specified_location = gateways
+        .iter()
+        .filter(|g| g.is_two_letter_iso_country_code(location));
+    if gateways_with_specified_location.clone().count() == 0 {
+        return Err(Error::NoMatchingEntryGatewayForLocation {
+            requested_location: location.to_string(),
+            available_countries: list_all_country_iso_codes(gateways),
+        });
+    }
+    select_random_gateway_node(gateways_with_specified_location)
+}
+
+pub async fn by_random_low_latency(
+    gateways: &[DescribedGatewayWithLocation],
+) -> Result<(NodeIdentity, Option<String>)> {
+    log::info!("Selecting a random low latency entry gateway");
+    select_random_low_latency_gateway_node(gateways).await
+}
+
+pub fn by_random(
+    gateways: &[DescribedGatewayWithLocation],
+) -> Result<(NodeIdentity, Option<String>)> {
+    log::info!("Selecting a random entry gateway");
+    select_random_gateway_node(gateways)
 }
