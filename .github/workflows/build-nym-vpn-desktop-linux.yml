@@ -10,7 +10,7 @@ env:
 
 jobs:
   build-wireguard-go-linux:
-    uses: ./.github/workflows/linux/build-wireguard-go-linux.yml
+    uses: ./.github/workflows/build-wireguard-go-linux.yml
 
   build-linux:
     needs: build-wireguard-go-linux
