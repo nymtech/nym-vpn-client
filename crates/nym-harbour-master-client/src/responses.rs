@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use tracing::warn;
 
 // TODO: these should have their own crate shared with the harbourmaster service
 
@@ -76,8 +77,15 @@ impl Gateway {
         let Some(ref last_probe_result) = self.last_probe_result else {
             return false;
         };
-        let probe_outcome: ProbeResult = serde_json::from_value(last_probe_result.clone()).unwrap();
-        probe_outcome.is_fully_operational_entry()
+        let probe_outcome: Result<ProbeResult, _> =
+            serde_json::from_value(last_probe_result.clone());
+        match probe_outcome {
+            Ok(gateway) => gateway.is_fully_operational_entry(),
+            Err(err) => {
+                warn!("failed to parse probe result: {:?}", err);
+                false
+            }
+        }
     }
 
     pub fn is_fully_operational_exit(&self) -> bool {
@@ -85,7 +93,14 @@ impl Gateway {
         let Some(last_probe_result) = self.last_probe_result.as_ref() else {
             return false;
         };
-        let probe_outcome: ProbeResult = serde_json::from_value(last_probe_result.clone()).unwrap();
-        probe_outcome.is_fully_operational_exit()
+        let probe_outcome: Result<ProbeResult, _> =
+            serde_json::from_value(last_probe_result.clone());
+        match probe_outcome {
+            Ok(gateway) => gateway.is_fully_operational_exit(),
+            Err(err) => {
+                warn!("failed to parse probe result: {:?}", err);
+                false
+            }
+        }
     }
 }

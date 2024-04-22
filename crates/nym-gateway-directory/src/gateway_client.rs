@@ -17,7 +17,7 @@ use nym_harbour_master_client::{
 };
 use nym_validator_client::{models::DescribedGateway, NymApiClient};
 use std::net::IpAddr;
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 use url::Url;
 
 const MAINNET_HARBOUR_MASTER_URL: &str = "https://harbourmaster.nymtech.net";
@@ -172,7 +172,7 @@ impl GatewayClient {
     }
 
     async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {
-        log::info!("Fetching gateways from nym-api...");
+        info!("Fetching gateways from nym-api...");
         self.api_client
             .get_cached_described_gateways()
             .await
@@ -180,8 +180,8 @@ impl GatewayClient {
     }
 
     async fn lookup_gateways_in_explorer(&self) -> Option<Result<Vec<PrettyDetailedGatewayBond>>> {
-        log::info!("Fetching gateway geo-locations from nym-explorer...");
         if let Some(explorer_client) = &self.explorer_client {
+            info!("Fetching gateway geo-locations from nym-explorer...");
             Some(
                 explorer_client
                     .get_gateways()
@@ -189,20 +189,21 @@ impl GatewayClient {
                     .map_err(|error| Error::FailedFetchLocationData { error }),
             )
         } else {
+            info!("Explorer not configured, skipping...");
             None
         }
     }
 
-    async fn lookup_gateways_in_harbour_master(&self) -> Option<Result<HmPagedResult<HmGateway>>> {
-        log::info!("Fetching gateway status from harbourmaster...");
+    async fn lookup_gateways_in_harbour_master(&self) -> Option<Result<Vec<HmGateway>>> {
         if let Some(harbour_master_client) = &self.harbour_master_client {
-            Some(
-                harbour_master_client
-                    .get_gateways()
-                    .await
-                    .map_err(Error::HarbourMasterApiError),
-            )
+            info!("Fetching gateway status from harbourmaster...");
+            let gateways = harbour_master_client
+                .get_gateways()
+                .await
+                .map_err(Error::HarbourMasterApiError);
+            Some(gateways)
         } else {
+            info!("Harbourmaster not configured, skipping...");
             None
         }
     }
@@ -229,7 +230,7 @@ impl GatewayClient {
                 // If there was an error fetching the location data, log it and keep on going
                 // without location data. This is not a fatal error since we can still refer to the
                 // gateways by identity.
-                log::warn!("{error}");
+                warn!("{error}");
                 described_gateways
                     .into_iter()
                     .map(DescribedGatewayWithLocation::from)
@@ -247,9 +248,10 @@ impl GatewayClient {
         &self,
     ) -> Result<Vec<DescribedGatewayWithLocation>> {
         let described_gateways = self.lookup_described_gateways_with_location().await?;
+        // In case harbourmaster is not availabe, just ignore it and assume all gateways are good.
         let entry_gateways =
             if let Some(Ok(hm_gateways)) = self.lookup_gateways_in_harbour_master().await {
-                filter_on_harbour_master_entry_data(described_gateways, hm_gateways.items)
+                filter_on_harbour_master_entry_data(described_gateways, hm_gateways)
             } else {
                 described_gateways
             };
@@ -261,9 +263,10 @@ impl GatewayClient {
     ) -> Result<Vec<DescribedGatewayWithLocation>> {
         let described_gateways = self.lookup_described_gateways_with_location().await?;
         let exit_gateways = filter_on_exit_gateways(described_gateways);
+        // In case harbourmaster is not availabe, just ignore it and assume all gateways are good.
         let exit_gateways =
             if let Some(Ok(hm_gateways)) = self.lookup_gateways_in_harbour_master().await {
-                filter_on_harbour_master_exit_data(exit_gateways, hm_gateways.items)
+                filter_on_harbour_master_exit_data(exit_gateways, hm_gateways)
             } else {
                 exit_gateways
             };

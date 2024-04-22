@@ -117,7 +117,7 @@ pub(crate) fn filter_on_harbour_master_entry_data(
         .map(|gateway| gateway.gateway_identity_key)
         .collect();
     log::info!(
-        "Filtering out {} out of {} entry gateways not fully operational",
+        "Filtering out {} out of {} entry gateways as not fully operational",
         gateways.len() - hm_gateway_ids.len(),
         gateways.len(),
     );
@@ -137,7 +137,7 @@ pub(crate) fn filter_on_harbour_master_exit_data(
         .map(|gateway| gateway.gateway_identity_key)
         .collect();
     log::info!(
-        "Filtering out {} out of {} exit gateways not fully operational",
+        "Filtering out {} out of {} exit gateways as not fully operational",
         gateways.len() - hm_gateway_ids.len(),
         gateways.len(),
     );
