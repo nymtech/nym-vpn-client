@@ -102,9 +102,9 @@ jobs:
         run: |
           echo "Generate build info"
           ${{ env.SRC_APPIMAGE }} --build-info > build-info.txt
-          mkdir ${{ env.LINUX_UPLOAD_DIR }}
+          mkdir ${{ env.UPLOAD_DIR }}
           echo "Move AppImage"
-          cp -vpr ${{ env.SRC_APPIMAGE }} ${{ env.LINUX_UPLOAD_DIR }}
+          cp -vpr ${{ env.SRC_APPIMAGE }} ${{ env.UPLOAD_DIR }}
           echo "Move updater bundle and signature"
           cp -vpr ${{ env.SRC_UPDATE_BUNDLE }}     ${{ env.UPLOAD_DIR }}/${{ env.UPDATER_BUNDLE_NAME }}
           cp -vpr ${{ env.SRC_UPDATE_BUNDLE }}.sig ${{ env.UPLOAD_DIR }}/${{ env.UPDATER_BUNDLE_NAME }}.sig
