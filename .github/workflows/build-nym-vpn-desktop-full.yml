@@ -1,2 +1,14 @@
 name: build-nym-vpn-desktop-full
 on: [workflow_dispatch, workflow_call]
+
+jobs:
+  build-full:
+    runs-on: ubuntu-22.04-16-core
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            nym-vpn-desktop
+            nym-vpn-lib
+            crates
