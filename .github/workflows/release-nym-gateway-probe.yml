@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-14, custom-windows-11]
+        os: [ubuntu-22.04, macos-14]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -52,9 +52,11 @@ jobs:
           echo "ARTIFACT_CHECKSUM=${ARTIFACT_ARCHIVE}.sha256sum" >> $GITHUB_ENV
 
       - name: Install rust toolchain
-        uses: actions/setup-rust@v1
+        uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: stable
+          override: true
           components: rustfmt, clippy
 
       - name: Setup architecture
@@ -65,9 +67,6 @@ jobs:
               ;;
             macos-14)
               rustup target add x86_64-apple-darwin
-              ;;
-            custom-windows-11)
-              echo "running on windows 11"
               ;;
             *)
               echo "Unsupported OS or architecture" >&2
