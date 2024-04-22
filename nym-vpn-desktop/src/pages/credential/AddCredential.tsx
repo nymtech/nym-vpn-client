@@ -53,7 +53,7 @@ function AddCredential() {
         <h2 className="text-center dark:text-laughing-jack">
           {t('description1')}
         </h2>
-        <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-4/5">
+        <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-5/6">
           {t('description2')}
         </p>
       </div>
@@ -70,7 +70,7 @@ function AddCredential() {
           <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            transition={{ duration: 0.15, ease: 'easeInOut' }}
             className="text-teaberry h-3"
           >
             {error}

@@ -99,6 +99,7 @@ pub async fn connect(
     // TODO: replace with automatic drop through scope
     drop(app_state);
 
+    info!("credential mode enabled");
     vpn_config.enable_credentials_mode = true;
 
     // spawn the VPN client and start a new connection

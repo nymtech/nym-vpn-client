@@ -79,7 +79,7 @@ function Home() {
     <motion.div
       initial={{ opacity: 0, x: '-1rem' }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.2, ease: 'backOut' }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
       className="h-full flex flex-col"
     >
       <div className="grow">
