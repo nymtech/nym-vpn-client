@@ -1,5 +1,9 @@
+use std::time::SystemTime;
+
 use serde::{Deserialize, Serialize};
-use tracing::warn;
+use tracing::{debug, error, warn};
+
+const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 
 // TODO: these should have their own crate shared with the harbourmaster service
 
@@ -73,34 +77,78 @@ pub struct Exit {
 
 impl Gateway {
     pub fn is_fully_operational_entry(&self) -> bool {
-        // TODO: check if result is outdated
+        if !is_recently_updated(&self.last_updated_utc) {
+            debug!(
+                "Gateway {} has not been updated recently",
+                self.gateway_identity_key
+            );
+            return false;
+        }
+
         let Some(ref last_probe_result) = self.last_probe_result else {
+            debug!("Gateway {} has no probe result", self.gateway_identity_key);
             return false;
         };
         let probe_outcome: Result<ProbeResult, _> =
             serde_json::from_value(last_probe_result.clone());
         match probe_outcome {
-            Ok(gateway) => gateway.is_fully_operational_entry(),
+            Ok(gateway) => {
+                let is_fully_operational = gateway.is_fully_operational_entry();
+                if !is_fully_operational {
+                    debug!(
+                        "Gateway {} is not fully operational as entry node",
+                        self.gateway_identity_key
+                    );
+                }
+                is_fully_operational
+            }
             Err(err) => {
-                warn!("failed to parse probe result: {:?}", err);
+                warn!("Failed to parse probe result: {:?}", err);
                 false
             }
         }
     }
 
     pub fn is_fully_operational_exit(&self) -> bool {
-        // TODO: check if result is outdated
+        if !is_recently_updated(&self.last_updated_utc) {
+            debug!(
+                "Gateway {} has not been updated recently",
+                self.gateway_identity_key
+            );
+            return false;
+        }
+
         let Some(last_probe_result) = self.last_probe_result.as_ref() else {
+            debug!("Gateway {} has no probe result", self.gateway_identity_key);
             return false;
         };
         let probe_outcome: Result<ProbeResult, _> =
             serde_json::from_value(last_probe_result.clone());
         match probe_outcome {
-            Ok(gateway) => gateway.is_fully_operational_exit(),
+            Ok(gateway) => {
+                let is_fully_operational = gateway.is_fully_operational_exit();
+                if !is_fully_operational {
+                    debug!(
+                        "Gateway {} is not fully operational as exit node",
+                        self.gateway_identity_key
+                    );
+                }
+                is_fully_operational
+            }
             Err(err) => {
                 warn!("failed to parse probe result: {:?}", err);
                 false
             }
         }
+    }
+}
+
+fn is_recently_updated(last_updated_utc: &str) -> bool {
+    if let Ok(last_updated) = last_updated_utc.parse::<chrono::DateTime<chrono::Utc>>() {
+        let now = chrono::Utc::now();
+        let duration = now - last_updated;
+        duration.num_minutes() < MAX_PROBE_RESULT_AGE_MINUTES
+    } else {
+        false
     }
 }

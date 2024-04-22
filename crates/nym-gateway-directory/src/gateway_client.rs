@@ -16,11 +16,12 @@ use nym_harbour_master_client::{
     Gateway as HmGateway, HarbourMasterApiClientExt, PagedResult as HmPagedResult,
 };
 use nym_validator_client::{models::DescribedGateway, NymApiClient};
-use std::net::IpAddr;
+use std::{net::IpAddr, time::Duration};
 use tracing::{debug, info, warn};
 use url::Url;
 
 const MAINNET_HARBOUR_MASTER_URL: &str = "https://harbourmaster.nymtech.net";
+const HARBOUR_MASTER_CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Clone, Debug)]
 pub struct Config {
@@ -159,7 +160,10 @@ impl GatewayClient {
             None
         };
         let harbour_master_client = if let Some(url) = config.harbour_master_url {
-            Some(nym_harbour_master_client::Client::new_url(url, None)?)
+            Some(nym_harbour_master_client::Client::new_url(
+                url,
+                Some(HARBOUR_MASTER_CLIENT_TIMEOUT),
+            )?)
         } else {
             None
         };
@@ -212,20 +216,27 @@ impl GatewayClient {
         &self,
     ) -> Result<Vec<DescribedGatewayWithLocation>> {
         let described_gateways = self.lookup_described_gateways().await?;
+        debug!("Got {} gateways from nym-api", described_gateways.len());
         let described_gateways_location = match self.lookup_gateways_in_explorer().await {
-            Some(Ok(gateway_locations)) => described_gateways
-                .into_iter()
-                .map(|gateway| {
-                    let location = gateway_locations
-                        .iter()
-                        .find(|gateway_location| {
-                            gateway_location.gateway.identity_key
-                                == gateway.bond.gateway.identity_key
-                        })
-                        .and_then(|gateway_location| gateway_location.location.clone());
-                    DescribedGatewayWithLocation { gateway, location }
-                })
-                .collect(),
+            Some(Ok(gateway_locations)) => {
+                debug!(
+                    "Got {} gateway locations from nym-explorer",
+                    gateway_locations.len()
+                );
+                described_gateways
+                    .into_iter()
+                    .map(|gateway| {
+                        let location = gateway_locations
+                            .iter()
+                            .find(|gateway_location| {
+                                gateway_location.gateway.identity_key
+                                    == gateway.bond.gateway.identity_key
+                            })
+                            .and_then(|gateway_location| gateway_location.location.clone());
+                        DescribedGatewayWithLocation { gateway, location }
+                    })
+                    .collect()
+            }
             Some(Err(error)) => {
                 // If there was an error fetching the location data, log it and keep on going
                 // without location data. This is not a fatal error since we can still refer to the
@@ -248,10 +259,18 @@ impl GatewayClient {
         &self,
     ) -> Result<Vec<DescribedGatewayWithLocation>> {
         let described_gateways = self.lookup_described_gateways_with_location().await?;
-        // In case harbourmaster is not availabe, just ignore it and assume all gateways are good.
+        debug!(
+            "After merging with geo data, got {} entry gateways",
+            described_gateways.len()
+        );
         let entry_gateways =
             if let Some(Ok(hm_gateways)) = self.lookup_gateways_in_harbour_master().await {
-                filter_on_harbour_master_entry_data(described_gateways, hm_gateways)
+                let gateways = filter_on_harbour_master_entry_data(described_gateways, hm_gateways);
+                debug!(
+                    "After filtering on harbourmaster data, got {} entry gateways",
+                    gateways.len()
+                );
+                gateways
             } else {
                 described_gateways
             };
@@ -262,11 +281,23 @@ impl GatewayClient {
         &self,
     ) -> Result<Vec<DescribedGatewayWithLocation>> {
         let described_gateways = self.lookup_described_gateways_with_location().await?;
+        debug!(
+            "After merging with geo data, got {} exit gateways",
+            described_gateways.len()
+        );
         let exit_gateways = filter_on_exit_gateways(described_gateways);
-        // In case harbourmaster is not availabe, just ignore it and assume all gateways are good.
+        debug!(
+            "After filtering on exit gateway capability, got {} exit gateways",
+            exit_gateways.len()
+        );
         let exit_gateways =
             if let Some(Ok(hm_gateways)) = self.lookup_gateways_in_harbour_master().await {
-                filter_on_harbour_master_exit_data(exit_gateways, hm_gateways)
+                let gateways = filter_on_harbour_master_exit_data(exit_gateways, hm_gateways);
+                debug!(
+                    "After filtering on harbourmaster data, got {} exit gateways",
+                    gateways.len()
+                );
+                gateways
             } else {
                 exit_gateways
             };

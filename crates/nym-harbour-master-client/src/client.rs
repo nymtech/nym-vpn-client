@@ -38,7 +38,9 @@ pub trait HarbourMasterApiClientExt: ApiClient {
         let mut gateways = Vec::new();
         let mut page = 0;
         loop {
-            let result = self.get_gateways_page(page).await?;
+            let result = self.get_gateways_page(page).await.inspect_err(|e| {
+                error!("Failed to fetch gateways: {}", e);
+            })?;
             debug!(
                 "Got page={}, size={}, total={}, items.len()={}",
                 result.page,
