@@ -6,6 +6,7 @@ use tracing::{debug, error, info, instrument, trace};
 
 use crate::country::FASTEST_NODE_LOCATION;
 use crate::db::{Db, Key};
+use crate::fs::path::BACKEND_DATA_PATH;
 use crate::states::app::NodeLocation;
 use crate::{
     error::{CmdError, CmdErrorSource},
@@ -99,8 +100,11 @@ pub async fn connect(
     // TODO: replace with automatic drop through scope
     drop(app_state);
 
-    info!("credential mode enabled");
-    vpn_config.enable_credentials_mode = true;
+    debug!(
+        "using path for mixnet data: {}",
+        BACKEND_DATA_PATH.to_string_lossy()
+    );
+    vpn_config.mixnet_data_path = Some(BACKEND_DATA_PATH.clone());
 
     // spawn the VPN client and start a new connection
     let NymVpnHandle {
