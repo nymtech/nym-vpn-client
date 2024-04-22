@@ -1,12 +1,6 @@
 use bytes::BytesMut;
 use futures::StreamExt;
-use nym_config::{
-    defaults::{
-        var_names::{EXPLORER_API, NYM_API},
-        NymNetworkDetails,
-    },
-    OptionalSet,
-};
+use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
     Config as GatewayDirectoryConfig, DescribedGatewayWithLocation, EntryPoint, ExitPoint,
