@@ -6,7 +6,7 @@ on:
       tag_name:
         description: "Tag name for release"
         required: true
-        default: 'v0.0.0'
+        default: 'nym-gateway-probe-latest'
       publish:
         type: boolean
         description: "Publish Release"
@@ -20,29 +20,6 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-wireguard-go:
-    strategy:
-      matrix:
-        os: [ubuntu-22.04, macos-14]
-    uses: ./.github/workflows/build-wireguard-go.yml
-    with:
-      os: ${{ matrix.os }}
-
-  build-wireguard-go-windows:
-    uses: ./.github/workflows/build-wireguard-go-windows.yml
-
-  build:
-    needs: [build-wireguard-go, build-wireguard-go-windows]
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-22.04, macos-14, custom-windows-11]
-        target: [native]
-        include:
-    runs-on: ${{ matrix.os }}
-    env:
-      WG_GO_LIB_PATH: ${{ github.workspace }}/lib
-
     steps:
       - name: Cleanup working directory
         if: contains(matrix.os, 'custom')
@@ -84,14 +61,13 @@ jobs:
         run: |
           case ${{ matrix.os }} in
             ubuntu-22.04)
-              echo "WG_GO_LIB_NAME=wireguard-go_ubuntu-22.04_x86_64" >> $GITHUB_ENV
+              echo "running on ubuntu 22.04"
               ;;
             macos-14)
-              echo "WG_GO_LIB_NAME=wireguard-go_apple_universal" >> $GITHUB_ENV
               rustup target add x86_64-apple-darwin
               ;;
             custom-windows-11)
-              echo "WG_GO_LIB_NAME=wireguard-go_x86_64-pc-windows-msvc" >> $GITHUB_ENV
+              echo "running on windows 11"
               ;;
             *)
               echo "Unsupported OS or architecture" >&2
@@ -99,14 +75,8 @@ jobs:
               ;;
           esac
 
-      - name: Download wireguard-go artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.WG_GO_LIB_NAME }}
-          path: ${{ env.WG_GO_LIB_PATH }}
-
       - name: Build
-        run: cargo build --release --verbose
+        run: cargo build -p nym-gateway-probe --release --verbose
 
       - name: Create archive
         run: |
