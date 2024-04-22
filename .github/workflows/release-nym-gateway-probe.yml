@@ -1,0 +1,133 @@
+name: release-nym-gateway-probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag name for release"
+        required: true
+        default: 'v0.0.0'
+      publish:
+        type: boolean
+        description: "Publish Release"
+        required: true
+        default: false
+  push:
+    tags:
+      - nym-gateway-probe-v[0-9]+.[0-9]+.[0-9]+*
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-wireguard-go:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, macos-14]
+    uses: ./.github/workflows/build-wireguard-go.yml
+    with:
+      os: ${{ matrix.os }}
+
+  build-wireguard-go-windows:
+    uses: ./.github/workflows/build-wireguard-go-windows.yml
+
+  build:
+    needs: [build-wireguard-go, build-wireguard-go-windows]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-14, custom-windows-11]
+        target: [native]
+        include:
+    runs-on: ${{ matrix.os }}
+    env:
+      WG_GO_LIB_PATH: ${{ github.workspace }}/lib
+
+    steps:
+      - name: Cleanup working directory
+        if: contains(matrix.os, 'custom')
+        run: |
+          rm -rf * .??* || true
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        if: contains(matrix.os, 'ubuntu')
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
+
+      - name: Get package version
+        uses: nicolaiunrein/cargo-get@master
+        id: package-version
+        with:
+          subcommand: 'package.version --entry="nym-gateway-probe"'
+
+      - name: Check tag name consistency
+        if: github.event_name == 'push'
+        run: |
+          expected_tag="nym-gateway-probe-v${{ steps.package-version.outputs.metadata }}"
+          [[ "${expected_tag}" != "${{ github.ref_name }}" ]] && exit 1
+
+      - name: Set environment for build
+        run: |
+          echo "ARTIFACT_DIR=nym-gateway-probe_${{ steps.package-version.outputs.metadata }}_${{ matrix.os }}" >> $GITHUB_ENV
+          echo "ARTIFACT_ARCHIVE=${ARTIFACT_DIR}.tar.gz" >> $GITHUB_ENV
+          echo "ARTIFACT_CHECKSUM=${ARTIFACT_ARCHIVE}.sha256sum" >> $GITHUB_ENV
+
+      - name: Install rust toolchain
+        uses: actions/setup-rust@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Setup architecture
+        run: |
+          case ${{ matrix.os }} in
+            ubuntu-22.04)
+              echo "WG_GO_LIB_NAME=wireguard-go_ubuntu-22.04_x86_64" >> $GITHUB_ENV
+              ;;
+            macos-14)
+              echo "WG_GO_LIB_NAME=wireguard-go_apple_universal" >> $GITHUB_ENV
+              rustup target add x86_64-apple-darwin
+              ;;
+            custom-windows-11)
+              echo "WG_GO_LIB_NAME=wireguard-go_x86_64-pc-windows-msvc" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "Unsupported OS or architecture" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Download wireguard-go artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WG_GO_LIB_NAME }}
+          path: ${{ env.WG_GO_LIB_PATH }}
+
+      - name: Build
+        run: cargo build --release --verbose
+
+      - name: Create archive
+        run: |
+          mkdir -p "${{ env.ARTIFACT_DIR }}"
+          cp target/release/nym-gateway-probe "${{ env.ARTIFACT_DIR }}"
+          tar -cvzf "${{ env.ARTIFACT_ARCHIVE }}" "${{ env.ARTIFACT_DIR }}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: "${{ env.ARTIFACT_ARCHIVE }}"
+          path: "${{ env.ARTIFACT_ARCHIVE }}"
+          retention-days: 2
+
+  publish:
+    if: github.event_name != 'workflow_dispatch' || inputs.publish == true
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare and publish release
+        run: |
+          tag_name="${{ github.event.inputs.tag_name }}"
+          gh release create "$tag_name" --notes "Automated release $tag_name" --title "$tag_name Release" ${{ env.ARTIFACT_ARCHIVE }}
