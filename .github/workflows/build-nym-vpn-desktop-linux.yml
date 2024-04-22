@@ -103,8 +103,8 @@ jobs:
           echo "Move AppImage"
           cp -vpr ${{ env.SRC_APPIMAGE }} ${{ env.LINUX_UPLOAD_DIR }}
           echo "Move updater bundle and signature"
-          cp -vpr ${{ env.SRC_UPDATE_BUNDLE }}     ${{ env.UPLOAD_DIR }}/${{ UPDATER_BUNDLE_NAME }}
-          cp -vpr ${{ env.SRC_UPDATE_BUNDLE }}.sig ${{ env.UPLOAD_DIR }}/${{ UPDATER_BUNDLE_NAME }}.sig
+          cp -vpr ${{ env.SRC_UPDATE_BUNDLE }}     ${{ env.UPLOAD_DIR }}/${{ env.UPDATER_BUNDLE_NAME }}
+          cp -vpr ${{ env.SRC_UPDATE_BUNDLE }}.sig ${{ env.UPLOAD_DIR }}/${{ env.UPDATER_BUNDLE_NAME }}.sig
           echo "Move debian pkg"
           cp -vpr ${{ env.SRC_DEB }} ${{ env.UPLOAD_DIR }}
 
