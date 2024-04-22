@@ -118,18 +118,7 @@ impl NymVpnService {
 
         let mut nym_vpn = nym_vpn_lib::NymVpn::new(config.entry_point, config.exit_point);
 
-        nym_vpn.gateway_config = gateway_directory::Config::default()
-            .with_optional_env(
-                gateway_directory::Config::with_custom_api_url,
-                None,
-                "NYM_API",
-            )
-            .with_optional_env(
-                gateway_directory::Config::with_custom_explorer_url,
-                None,
-                "EXPLORER_API",
-            );
-
+        nym_vpn.gateway_config = gateway_directory::Config::new_from_env();
         let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn).unwrap();
 
         let nym_vpn_lib::NymVpnHandle {

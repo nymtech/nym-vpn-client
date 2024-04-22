@@ -103,18 +103,19 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
 }
 
 async fn lookup_gateways() -> anyhow::Result<Vec<DescribedGatewayWithLocation>> {
-    let gateway_config = GatewayDirectoryConfig::default()
-        .with_optional_env(GatewayDirectoryConfig::with_custom_api_url, None, NYM_API)
-        .with_optional_env(
-            GatewayDirectoryConfig::with_custom_explorer_url,
-            None,
-            EXPLORER_API,
-        );
+    let gateway_config = GatewayDirectoryConfig::new_from_env();
     info!("nym-api: {}", gateway_config.api_url());
     info!(
         "explorer-api: {}",
         gateway_config
             .explorer_url()
+            .map(|url| url.to_string())
+            .unwrap_or("unavailable".to_string())
+    );
+    info!(
+        "harbour-master: {}",
+        gateway_config
+            .harbour_master_url()
             .map(|url| url.to_string())
             .unwrap_or("unavailable".to_string())
     );

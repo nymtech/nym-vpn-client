@@ -16,6 +16,8 @@ use std::net::IpAddr;
 use tracing::info;
 use url::Url;
 
+const MAINNET_HARBOUR_MASTER_URL: &str = "https://harbourmaster.nymtech.net";
+
 #[derive(Clone, Debug)]
 pub struct Config {
     pub api_url: Url,
@@ -25,8 +27,14 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        let network_defaults = nym_sdk::NymNetworkDetails::default();
-        let default_api_url = network_defaults
+        Self::new_mainnet()
+    }
+}
+
+impl Config {
+    fn new_mainnet() -> Self {
+        let mainnet_network_defaults = nym_sdk::NymNetworkDetails::default();
+        let default_api_url = mainnet_network_defaults
             .endpoints
             .first()
             .expect("rust sdk mainnet default incorrectly configured")
@@ -35,20 +43,75 @@ impl Default for Config {
             .expect("rust sdk mainnet default missing api_url")
             .parse()
             .expect("rust sdk mainnet default api_url not parseable");
-        let default_explorer_url = network_defaults.explorer_api.clone().map(|url| {
+        let default_explorer_url = mainnet_network_defaults.explorer_api.clone().map(|url| {
             url.parse()
                 .expect("rust sdk mainnet default explorer url not parseable")
         });
+        let default_harbour_master_url = Some(
+            MAINNET_HARBOUR_MASTER_URL
+                .parse()
+                .expect("mainnet default harbour master url not parseable"),
+        );
 
         Config {
             api_url: default_api_url,
             explorer_url: default_explorer_url,
-            harbour_master_url: None,
+            harbour_master_url: default_harbour_master_url,
         }
     }
-}
 
-impl Config {
+    pub fn new_from_env() -> Self {
+        let network = nym_sdk::NymNetworkDetails::new_from_env();
+        let api_url = network
+            .endpoints
+            .first()
+            .expect("network environment endpoints not correctly configured")
+            .api_url
+            .clone()
+            .expect("network environment missing api_url")
+            .parse()
+            .expect("network environment api_url not parseable");
+        let explorer_url = network.explorer_api.clone().map(|url| {
+            url.parse()
+                .expect("network environment explorer url not parseable")
+        });
+
+        // Since harbourmatser isn't part of the standard nym network details, we need to handle it
+        // as a special case.
+        let harbour_master_url = if network.network_name == "mainnet" {
+            Some(
+                MAINNET_HARBOUR_MASTER_URL
+                    .parse()
+                    .expect("mainnet default harbour master url not parseable"),
+            )
+        } else {
+            std::env::var("HARBOUR_MASTER_URL").ok().map(|url| {
+                url.parse()
+                    .expect("HARBOUR_MASTER_URL env variable not a valid URL")
+            })
+        };
+
+        Config {
+            api_url,
+            explorer_url,
+            harbour_master_url,
+        }
+    }
+
+    // If you want to use a custom API URL, you are _very_ likely to also want to custom URLs
+    // for the explorer and harbour master as well.
+    pub fn new_from_urls(
+        api_url: Url,
+        explorer_url: Option<Url>,
+        harbour_master_url: Option<Url>,
+    ) -> Self {
+        Config {
+            api_url,
+            explorer_url,
+            harbour_master_url,
+        }
+    }
+
     pub fn api_url(&self) -> &Url {
         &self.api_url
     }
