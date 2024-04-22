@@ -4,14 +4,16 @@
 use std::fmt::{Display, Formatter};
 
 use crate::{
-    error::Result, helpers::list_all_country_iso_codes, DescribedGatewayWithLocation, Error,
-    IpPacketRouterAddress,
+    entries::described_gateway::{by_location_described, by_random_described},
+    error::Result,
+    DescribedGatewayWithLocation, Error, IpPacketRouterAddress,
 };
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
-use rand::seq::IteratorRandom;
 use serde::{Deserialize, Serialize};
 
-use super::described_gateway::{by_identity, by_location, by_random, LookupGateway};
+use super::described_gateway::{
+    by_identity, by_location, by_random, verify_identity, LookupGateway,
+};
 
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
 // gateway, we can refer to it by the gateway identity.
@@ -58,10 +60,7 @@ impl ExitPoint {
                 Ok((IpPacketRouterAddress(*address), None))
             }
             ExitPoint::Gateway { identity } => {
-                let gateway = gateways
-                    .iter()
-                    .find(|gateway| gateway.identity_key() == &identity.to_string())
-                    .ok_or(Error::NoMatchingGateway)?;
+                let gateway = by_identity(gateways, identity)?;
                 Ok((
                     IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
                     gateway.two_letter_iso_country_code(),
@@ -69,18 +68,13 @@ impl ExitPoint {
             }
             ExitPoint::Location { location } => {
                 log::info!("Selecting a random exit gateway in location: {}", location);
-                let exit_gateways = gateways.iter().filter(|g| g.has_ip_packet_router());
-                let gateway = exit_gateways
-                    .clone()
-                    .filter(|gateway| {
-                        gateway.is_two_letter_iso_country_code(location)
-                            && gateway.is_current_build()
-                    })
-                    .choose(&mut rand::thread_rng())
-                    .ok_or(Error::NoMatchingExitGatewayForLocation {
-                        requested_location: location.to_string(),
-                        available_countries: list_all_country_iso_codes(exit_gateways),
-                    })?;
+                let exit_gateways = gateways
+                    .iter()
+                    .filter(|g| g.has_ip_packet_router())
+                    .filter(|g| g.is_current_build())
+                    .cloned()
+                    .collect::<Vec<_>>();
+                let gateway = by_location_described(&exit_gateways, location)?;
                 Ok((
                     IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
                     gateway.two_letter_iso_country_code(),
@@ -88,11 +82,13 @@ impl ExitPoint {
             }
             ExitPoint::Random => {
                 log::info!("Selecting a random exit gateway");
-                let gateway = gateways
+                let exit_gateways = gateways
                     .iter()
-                    .filter(|g| g.has_ip_packet_router() && g.is_current_build())
-                    .choose(&mut rand::thread_rng())
-                    .ok_or(Error::FailedToSelectGatewayRandomly)?;
+                    .filter(|g| g.has_ip_packet_router())
+                    .filter(|g| g.is_current_build())
+                    .cloned()
+                    .collect::<Vec<_>>();
+                let gateway = by_random_described(&exit_gateways)?;
                 Ok((
                     IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
                     gateway.two_letter_iso_country_code(),
@@ -110,9 +106,12 @@ impl LookupGateway for ExitPoint {
     ) -> Result<(NodeIdentity, Option<String>)> {
         match &self {
             ExitPoint::Address { .. } => Err(Error::InvalidExitPointDescription),
-            ExitPoint::Gateway { identity } => by_identity(gateways, identity),
+            ExitPoint::Gateway { identity } => verify_identity(gateways, identity),
             ExitPoint::Location { location } => by_location(gateways, location),
-            ExitPoint::Random => by_random(gateways),
+            ExitPoint::Random => {
+                log::info!("Selecting a random exit gateway");
+                by_random(gateways)
+            }
         }
     }
 }
