@@ -3,7 +3,7 @@ on: [workflow_dispatch, workflow_call]
 
 env:
   CARGO_TERM_COLOR: always
-  WG_GO_LIB_PATH: lib
+  WG_GO_LIB_PATH: ${{ github.workspace }}/lib
   UPDATER_BUNDLE_NAME: updater_linux_x86_64.AppImage.tar.gz
   UPLOAD_DIR: linux_artifacts
 
