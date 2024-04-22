@@ -1,1 +1,2 @@
-### PLACEHOLDER FOR SPLIT WORKFLOW
+name: build-nym-vpn-desktop-full
+on: [workflow_dispatch, workflow_call]
