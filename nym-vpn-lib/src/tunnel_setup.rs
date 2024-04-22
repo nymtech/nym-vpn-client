@@ -1,15 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
-
 use crate::error::{Error, Result};
 use crate::routing::setup_wg_routing;
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::WgGatewayClient;
 use crate::wireguard_setup::{create_wireguard_tunnel, empty_wireguard_setup};
 use crate::{routing, MixnetConnectionInfo, NymVpn};
-use futures::channel::{mpsc, oneshot};
+use futures::channel::oneshot;
 use log::*;
 use log::{debug, error, info};
 use nym_gateway_directory::{DescribedGatewayWithLocation, GatewayClient, LookupGateway};
@@ -51,12 +49,14 @@ pub enum AllTunnelsSetup {
     },
 }
 
-fn init_firewall_dns() -> Result<(Firewall, DnsMonitor)> {
+fn init_firewall_dns(
+    #[cfg(target_os = "linux")] route_manager_handle: talpid_routing::RouteManagerHandle,
+) -> Result<(Firewall, DnsMonitor)> {
     #[cfg(target_os = "macos")]
     {
-        let (command_tx, _) = mpsc::unbounded();
-        let command_tx = Arc::new(command_tx);
-        let weak_command_tx = Arc::downgrade(&command_tx);
+        let (command_tx, _) = futures::channel::mpsc::unbounded();
+        let command_tx = std::sync::Arc::new(command_tx);
+        let weak_command_tx = std::sync::Arc::downgrade(&command_tx);
         debug!("Starting firewall");
         let firewall =
             Firewall::new().map_err(|err| crate::error::Error::FirewallError(err.to_string()))?;
@@ -144,8 +144,6 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
 
     let task_manager = TaskManager::new(10);
 
-    let (mut firewall, mut dns_monitor) = init_firewall_dns()?;
-
     if nym_vpn.enable_wireguard {
         let (mut wireguard_setup_exit, wireguard_waiting_exit, tunnel_exit) =
             create_wireguard_tunnel(
@@ -162,6 +160,10 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
                 &exit_gateway_id,
             )
             .await?;
+        let (firewall, dns_monitor) = init_firewall_dns(
+            #[cfg(target_os = "linux")]
+            tunnel_exit.route_manager_handle.clone(),
+        )?;
         let (wireguard_setup_entry, wireguard_waiting_entry, tunnel_entry) =
             create_wireguard_tunnel(
                 nym_vpn
@@ -211,6 +213,10 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
     } else {
         info!("Wireguard is disabled");
         let (mut wireguard_setup, _) = empty_wireguard_setup().await?;
+        let (mut firewall, mut dns_monitor) = init_firewall_dns(
+            #[cfg(target_os = "linux")]
+            wireguard_setup.route_manager.handle()?,
+        )?;
 
         // Now it's time start all the stuff that needs running inside the tunnel, and that we need
         // correctly unwind if it fails
