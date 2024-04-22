@@ -1,7 +1,5 @@
-use std::time::SystemTime;
-
 use serde::{Deserialize, Serialize};
-use tracing::{debug, error, warn};
+use tracing::{debug, warn};
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 

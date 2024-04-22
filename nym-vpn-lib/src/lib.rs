@@ -14,10 +14,7 @@ use gateway_directory::GatewayQueryResult;
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_connection_monitor::ConnectionMonitorTask;
-use nym_gateway_directory::{
-    Config, DescribedGatewayWithLocation, EntryPoint, ExitPoint, GatewayClient,
-    IpPacketRouterAddress,
-};
+use nym_gateway_directory::{Config, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress};
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;

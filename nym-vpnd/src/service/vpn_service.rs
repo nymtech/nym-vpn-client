@@ -7,7 +7,6 @@ use std::sync::Arc;
 use futures::channel::mpsc::UnboundedSender;
 use futures::SinkExt;
 use nym_vpn_lib::gateway_directory;
-use nym_vpn_lib::nym_config::OptionalSet;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::oneshot;
 use tracing::info;

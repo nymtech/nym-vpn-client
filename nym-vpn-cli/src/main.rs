@@ -12,7 +12,7 @@ use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayConfig;
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
 use nym_vpn_lib::{NymVpn, Recipient};
 
-use crate::commands::{override_from_env, wg_override_from_env, Commands};
+use crate::commands::{wg_override_from_env, Commands};
 use clap::Parser;
 use log::*;
 use nym_vpn_lib::nym_config::defaults::{setup_env, var_names};

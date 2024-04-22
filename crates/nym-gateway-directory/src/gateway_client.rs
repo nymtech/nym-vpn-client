@@ -12,9 +12,7 @@ use crate::{
 };
 use itertools::Itertools;
 use nym_explorer_client::{ExplorerClient, Location, PrettyDetailedGatewayBond};
-use nym_harbour_master_client::{
-    Gateway as HmGateway, HarbourMasterApiClientExt, PagedResult as HmPagedResult,
-};
+use nym_harbour_master_client::{Gateway as HmGateway, HarbourMasterApiClientExt};
 use nym_validator_client::{models::DescribedGateway, NymApiClient};
 use std::{net::IpAddr, time::Duration};
 use tracing::{debug, info, warn};
