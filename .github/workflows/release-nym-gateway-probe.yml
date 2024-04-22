@@ -52,10 +52,13 @@ jobs:
           echo "ARTIFACT_CHECKSUM=${ARTIFACT_ARCHIVE}.sha256sum" >> $GITHUB_ENV
 
       - name: Install rust toolchain
-        uses: actions/setup-rust@v1
+        uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: stable
+          override: true
           components: rustfmt, clippy
+
 
       - name: Setup architecture
         run: |
@@ -65,9 +68,6 @@ jobs:
               ;;
             macos-14)
               rustup target add x86_64-apple-darwin
-              ;;
-            custom-windows-11)
-              echo "running on windows 11"
               ;;
             *)
               echo "Unsupported OS or architecture" >&2
