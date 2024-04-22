@@ -23,6 +23,12 @@ use url::Url;
 const MAINNET_HARBOUR_MASTER_URL: &str = "https://harbourmaster.nymtech.net";
 const HARBOUR_MASTER_CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
+#[derive(Debug)]
+pub struct GatewayQueryResult {
+    pub entry_gateways: Vec<DescribedGatewayWithLocation>,
+    pub exit_gateways: Vec<DescribedGatewayWithLocation>,
+}
+
 #[derive(Clone, Debug)]
 pub struct Config {
     pub api_url: Url,
@@ -302,6 +308,46 @@ impl GatewayClient {
                 exit_gateways
             };
         Ok(exit_gateways)
+    }
+
+    pub async fn lookup_described_entry_and_exit_gateways_with_location(
+        &self,
+    ) -> Result<GatewayQueryResult> {
+        let all_gateways = self.lookup_described_gateways_with_location().await?;
+        debug!(
+            "After merging with geo data, got {} gateways",
+            all_gateways.len()
+        );
+        let exit_gateways = filter_on_exit_gateways(all_gateways.clone());
+        debug!(
+            "After filtering on exit gateway capability, got {} exit gateways",
+            exit_gateways.len()
+        );
+
+        if let Some(Ok(hm_gateways)) = self.lookup_gateways_in_harbour_master().await {
+            let entry_gateways =
+                filter_on_harbour_master_entry_data(all_gateways, hm_gateways.clone());
+            debug!(
+                "After filtering on harbourmaster data, got {} entry gateways",
+                entry_gateways.len()
+            );
+
+            let exit_gateways = filter_on_harbour_master_exit_data(exit_gateways, hm_gateways);
+            debug!(
+                "After filtering on harbourmaster data, got {} exit gateways",
+                exit_gateways.len()
+            );
+
+            Ok(GatewayQueryResult {
+                entry_gateways,
+                exit_gateways,
+            })
+        } else {
+            Ok(GatewayQueryResult {
+                entry_gateways: all_gateways,
+                exit_gateways,
+            })
+        }
     }
 
     pub async fn lookup_low_latency_entry_gateway(&self) -> Result<DescribedGatewayWithLocation> {

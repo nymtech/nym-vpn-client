@@ -116,15 +116,18 @@ pub(crate) fn filter_on_harbour_master_entry_data(
         .filter(|gateway| gateway.is_fully_operational_entry())
         .map(|gateway| gateway.gateway_identity_key)
         .collect();
+    let no_gateways_before_filtering = gateways.len();
+    let filtered_gateways: Vec<_> = gateways
+        .into_iter()
+        .filter(|gateway| hm_gateway_ids.contains(gateway.identity_key()))
+        .collect();
+    let no_gateways_after_filtering = filtered_gateways.len();
     log::info!(
         "Filtering out {} out of {} entry gateways as not fully operational",
-        gateways.len() - hm_gateway_ids.len(),
-        gateways.len(),
+        no_gateways_before_filtering - no_gateways_after_filtering,
+        no_gateways_before_filtering,
     );
-    gateways
-        .into_iter()
-        .filter(|gateway| hm_gateway_ids.contains(&gateway.identity_key()))
-        .collect()
+    filtered_gateways
 }
 
 pub(crate) fn filter_on_harbour_master_exit_data(
@@ -136,13 +139,16 @@ pub(crate) fn filter_on_harbour_master_exit_data(
         .filter(|gateway| gateway.is_fully_operational_exit())
         .map(|gateway| gateway.gateway_identity_key)
         .collect();
+    let no_gateways_before_filtering = gateways.len();
+    let filtered_gateways: Vec<_> = gateways
+        .into_iter()
+        .filter(|gateway| hm_gateway_ids.contains(gateway.identity_key()))
+        .collect();
+    let no_gateways_after_filtering = filtered_gateways.len();
     log::info!(
         "Filtering out {} out of {} exit gateways as not fully operational",
-        gateways.len() - hm_gateway_ids.len(),
-        gateways.len(),
+        no_gateways_before_filtering - no_gateways_after_filtering,
+        no_gateways_before_filtering,
     );
-    gateways
-        .into_iter()
-        .filter(|gateway| hm_gateway_ids.contains(&gateway.identity_key()))
-        .collect()
+    filtered_gateways
 }

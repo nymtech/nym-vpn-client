@@ -10,6 +10,7 @@ use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::{WgConfig, WgGatewayClient};
 use futures::channel::{mpsc, oneshot};
+use gateway_directory::GatewayQueryResult;
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_connection_monitor::ConnectionMonitorTask;
@@ -356,11 +357,11 @@ impl NymVpn {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
         let gateway_directory_client = GatewayClient::new(self.gateway_config.clone())?;
-        let entry_gateways = gateway_directory_client
-            .lookup_described_entry_gateways_with_location()
-            .await?;
-        let exit_gateways = gateway_directory_client
-            .lookup_described_exit_gateways_with_location()
+        let GatewayQueryResult {
+            entry_gateways,
+            exit_gateways,
+        } = gateway_directory_client
+            .lookup_described_entry_and_exit_gateways_with_location()
             .await?;
 
         // This info would be useful at at least debug level, but it's just so much data that it
