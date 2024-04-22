@@ -10,9 +10,7 @@ env:
 
 jobs:
   build-wireguard-go-linux:
-    uses: ./.github/workflows/build-wireguard-go.yml
-    with:
-      os: ubuntu-22.04
+    uses: ./.github/workflows/build-wireguard-go-linux.yml
 
   build-linux:
     needs: build-wireguard-go-linux
@@ -63,7 +61,7 @@ jobs:
             exit 1
           fi
 
-      - name: Download wireguard-go artifacts (${{ env.PLATFORM_ARCH }})
+      - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.WG_GO_LIB_NAME }}
