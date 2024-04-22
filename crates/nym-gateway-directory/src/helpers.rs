@@ -8,6 +8,7 @@ use hickory_resolver::{
 };
 use itertools::Itertools;
 use nym_client_core::init::helpers::choose_gateway_by_latency;
+use nym_harbour_master_client::Gateway as HmGateway;
 use nym_sdk::mixnet::NodeIdentity;
 use rand::seq::IteratorRandom;
 use std::net::IpAddr;
@@ -95,4 +96,59 @@ pub(crate) async fn try_resolve_hostname(hostname: &str) -> Result<IpAddr> {
         .iter()
         .next()
         .ok_or(Error::ResolvedHostnameButNoIp(hostname.to_string()))
+}
+
+pub(crate) fn filter_on_exit_gateways(
+    gateways: Vec<DescribedGatewayWithLocation>,
+) -> Vec<DescribedGatewayWithLocation> {
+    gateways
+        .into_iter()
+        .filter(|gateway| gateway.has_ip_packet_router() && gateway.is_current_build())
+        .collect()
+}
+
+pub(crate) fn filter_on_harbour_master_entry_data(
+    gateways: Vec<DescribedGatewayWithLocation>,
+    hm_gateways: Vec<HmGateway>,
+) -> Vec<DescribedGatewayWithLocation> {
+    let hm_gateway_ids: Vec<_> = hm_gateways
+        .into_iter()
+        .filter(|gateway| gateway.is_fully_operational_entry())
+        .map(|gateway| gateway.gateway_identity_key)
+        .collect();
+    let no_gateways_before_filtering = gateways.len();
+    let filtered_gateways: Vec<_> = gateways
+        .into_iter()
+        .filter(|gateway| hm_gateway_ids.contains(gateway.identity_key()))
+        .collect();
+    let no_gateways_after_filtering = filtered_gateways.len();
+    log::info!(
+        "Filtering out {} out of {} entry gateways as not fully operational",
+        no_gateways_before_filtering - no_gateways_after_filtering,
+        no_gateways_before_filtering,
+    );
+    filtered_gateways
+}
+
+pub(crate) fn filter_on_harbour_master_exit_data(
+    gateways: Vec<DescribedGatewayWithLocation>,
+    hm_gateways: Vec<HmGateway>,
+) -> Vec<DescribedGatewayWithLocation> {
+    let hm_gateway_ids: Vec<_> = hm_gateways
+        .into_iter()
+        .filter(|gateway| gateway.is_fully_operational_exit())
+        .map(|gateway| gateway.gateway_identity_key)
+        .collect();
+    let no_gateways_before_filtering = gateways.len();
+    let filtered_gateways: Vec<_> = gateways
+        .into_iter()
+        .filter(|gateway| hm_gateway_ids.contains(gateway.identity_key()))
+        .collect();
+    let no_gateways_after_filtering = filtered_gateways.len();
+    log::info!(
+        "Filtering out {} out of {} exit gateways as not fully operational",
+        no_gateways_before_filtering - no_gateways_after_filtering,
+        no_gateways_before_filtering,
+    );
+    filtered_gateways
 }

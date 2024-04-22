@@ -12,7 +12,7 @@ pub use crate::{
         exit_point::ExitPoint, ipr_address::IpPacketRouterAddress,
     },
     error::Error,
-    gateway_client::{Config, GatewayClient},
+    gateway_client::{Config, GatewayClient, GatewayQueryResult},
 };
 
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
