@@ -3,7 +3,11 @@
 
 use crate::{
     error::Result,
-    helpers::{select_random_low_latency_described_gateway, try_resolve_hostname},
+    helpers::{
+        filter_on_exit_gateways, filter_on_harbour_master_entry_data,
+        filter_on_harbour_master_exit_data, select_random_low_latency_described_gateway,
+        try_resolve_hostname,
+    },
     DescribedGatewayWithLocation, Error,
 };
 use itertools::Itertools;
@@ -13,7 +17,7 @@ use nym_harbour_master_client::{
 };
 use nym_validator_client::{models::DescribedGateway, NymApiClient};
 use std::net::IpAddr;
-use tracing::info;
+use tracing::{debug, info};
 use url::Url;
 
 const MAINNET_HARBOUR_MASTER_URL: &str = "https://harbourmaster.nymtech.net";
@@ -189,8 +193,8 @@ impl GatewayClient {
         }
     }
 
-    #[allow(unused)]
     async fn lookup_gateways_in_harbour_master(&self) -> Option<Result<HmPagedResult<HmGateway>>> {
+        log::info!("Fetching gateway status from harbourmaster...");
         if let Some(harbour_master_client) = &self.harbour_master_client {
             Some(
                 harbour_master_client
@@ -207,7 +211,7 @@ impl GatewayClient {
         &self,
     ) -> Result<Vec<DescribedGatewayWithLocation>> {
         let described_gateways = self.lookup_described_gateways().await?;
-        match self.lookup_gateways_in_explorer().await {
+        let described_gateways_location = match self.lookup_gateways_in_explorer().await {
             Some(Ok(gateway_locations)) => described_gateways
                 .into_iter()
                 .map(|gateway| {
@@ -218,7 +222,7 @@ impl GatewayClient {
                                 == gateway.bond.gateway.identity_key
                         })
                         .and_then(|gateway_location| gateway_location.location.clone());
-                    Ok(DescribedGatewayWithLocation { gateway, location })
+                    DescribedGatewayWithLocation { gateway, location }
                 })
                 .collect(),
             Some(Err(error)) => {
@@ -226,37 +230,57 @@ impl GatewayClient {
                 // without location data. This is not a fatal error since we can still refer to the
                 // gateways by identity.
                 log::warn!("{error}");
-                Ok(described_gateways
+                described_gateways
                     .into_iter()
                     .map(DescribedGatewayWithLocation::from)
-                    .collect())
+                    .collect::<Vec<_>>()
             }
-            None => Ok(described_gateways
+            None => described_gateways
                 .into_iter()
                 .map(DescribedGatewayWithLocation::from)
-                .collect()),
-        }
+                .collect(),
+        };
+        Ok(described_gateways_location)
+    }
+
+    pub async fn lookup_described_entry_gateways_with_location(
+        &self,
+    ) -> Result<Vec<DescribedGatewayWithLocation>> {
+        let described_gateways = self.lookup_described_gateways_with_location().await?;
+        let entry_gateways =
+            if let Some(Ok(hm_gateways)) = self.lookup_gateways_in_harbour_master().await {
+                filter_on_harbour_master_entry_data(described_gateways, hm_gateways.items)
+            } else {
+                described_gateways
+            };
+        Ok(entry_gateways)
     }
 
     pub async fn lookup_described_exit_gateways_with_location(
         &self,
     ) -> Result<Vec<DescribedGatewayWithLocation>> {
         let described_gateways = self.lookup_described_gateways_with_location().await?;
-        Ok(described_gateways
-            .into_iter()
-            .filter(|gateway| gateway.has_ip_packet_router() && gateway.is_current_build())
-            .collect())
+        let exit_gateways = filter_on_exit_gateways(described_gateways);
+        let exit_gateways =
+            if let Some(Ok(hm_gateways)) = self.lookup_gateways_in_harbour_master().await {
+                filter_on_harbour_master_exit_data(exit_gateways, hm_gateways.items)
+            } else {
+                exit_gateways
+            };
+        Ok(exit_gateways)
     }
 
     pub async fn lookup_low_latency_entry_gateway(&self) -> Result<DescribedGatewayWithLocation> {
-        let described_gateways = self.lookup_described_gateways_with_location().await?;
+        debug!("Fetching low latency entry gateway...");
+        let described_gateways = self.lookup_described_entry_gateways_with_location().await?;
         select_random_low_latency_described_gateway(&described_gateways)
             .await
             .cloned()
     }
 
     pub async fn lookup_all_countries(&self) -> Result<Vec<Location>> {
-        let described_gateways = self.lookup_described_gateways_with_location().await?;
+        debug!("Fetching all country names from gateways...");
+        let described_gateways = self.lookup_described_entry_gateways_with_location().await?;
         Ok(described_gateways
             .into_iter()
             .filter_map(|gateway| gateway.location)
@@ -265,7 +289,8 @@ impl GatewayClient {
     }
 
     pub async fn lookup_all_countries_iso(&self) -> Result<Vec<Location>> {
-        let described_gateways = self.lookup_described_gateways_with_location().await?;
+        debug!("Fetching all country ISO codes from gateways...");
+        let described_gateways = self.lookup_described_entry_gateways_with_location().await?;
         Ok(described_gateways
             .into_iter()
             .filter_map(|gateway| gateway.location)
@@ -274,6 +299,7 @@ impl GatewayClient {
     }
 
     pub async fn lookup_all_exit_countries_iso(&self) -> Result<Vec<Location>> {
+        debug!("Fetching all exit country ISO codes from gateways...");
         let described_gateways = self.lookup_described_exit_gateways_with_location().await?;
         Ok(described_gateways
             .into_iter()
@@ -283,6 +309,7 @@ impl GatewayClient {
     }
 
     pub async fn lookup_all_exit_countries(&self) -> Result<Vec<Location>> {
+        debug!("Fetching all exit country names from gateways...");
         let described_gateways = self.lookup_described_exit_gateways_with_location().await?;
         Ok(described_gateways
             .into_iter()

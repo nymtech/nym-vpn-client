@@ -355,13 +355,18 @@ impl NymVpn {
     )> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
-        let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
-        let gateways = gateway_client
-            .lookup_described_gateways_with_location()
+        let gateway_directory_client = GatewayClient::new(self.gateway_config.clone())?;
+        let entry_gateways = gateway_directory_client
+            .lookup_described_entry_gateways_with_location()
             .await?;
+        let exit_gateways = gateway_directory_client
+            .lookup_described_exit_gateways_with_location()
+            .await?;
+
         // This info would be useful at at least debug level, but it's just so much data that it
         // would be overwhelming
-        log::trace!("Got gateways {:?}", gateways);
+        log::trace!("Got entry gateways {:?}", entry_gateways);
+        log::trace!("Got exit gateways {:?}", exit_gateways);
 
         let wg_gateway_client = WgGatewayClient::new(self.wg_gateway_config.clone())?;
         log::info!("Created wg gateway client");
@@ -369,30 +374,25 @@ impl NymVpn {
         // If the entry or exit point relies on location, do a basic defensive consistency check on
         // the fetched location data. If none of the gateways have location data, we can't proceed
         // and it's likely the explorer-api isn't set correctly.
-        if (self.entry_point.is_location() || self.exit_point.is_location())
-            && gateways.iter().filter(|g| g.has_location()).count() == 0
-        {
-            return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
-        }
+        //if self.entry_point.is_location()
+        //    && entry_gateways.iter().filter(|g| g.has_location()).count() == 0
+        //{
+        //    return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
+        //}
+        //if self.exit_point.is_location()
+        //    && exit_gateways.iter().filter(|g| g.has_location()).count() == 0
+        //{
+        //    return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
+        //}
 
-        //filter so we are only getting exit gateways with current api version
-        let working_exit_gateways: Vec<DescribedGatewayWithLocation> = gateways
-            .clone()
-            .into_iter()
-            .filter(|gateway| gateway.is_current_build())
-            .collect();
-
-        if working_exit_gateways.is_empty() {
-            return Err(Error::CountryExitGatewaysOutdated);
-        }
-
-        let (entry_gateway_id, entry_location) =
-            self.entry_point.lookup_gateway_identity(&gateways).await?;
+        let (entry_gateway_id, entry_location) = self
+            .entry_point
+            .lookup_gateway_identity(&entry_gateways)
+            .await?;
         let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
 
-        let (exit_router_address, exit_location) = self
-            .exit_point
-            .lookup_router_address(&working_exit_gateways)?;
+        let (exit_router_address, exit_location) =
+            self.exit_point.lookup_router_address(&exit_gateways)?;
         let exit_location_str = exit_location.as_deref().unwrap_or("unknown");
         let exit_gateway_id = exit_router_address.gateway();
 
@@ -409,7 +409,7 @@ impl NymVpn {
                 .wg_ip
                 .expect("clap should enforce value when wireguard enabled");
             let wireguard_config = init_wireguard_config(
-                &gateway_client,
+                &gateway_directory_client,
                 &wg_gateway_client,
                 &entry_gateway_id.to_base58_string(),
                 private_key,
@@ -482,7 +482,7 @@ impl NymVpn {
                 &entry_gateway_id,
                 &exit_router_address,
                 &task_manager,
-                &gateway_client,
+                &gateway_directory_client,
                 default_lan_gateway_ip,
                 tunnel_gateway_ip,
             )
