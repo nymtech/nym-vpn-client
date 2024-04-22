@@ -86,8 +86,13 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
             payload.width !== state.windowSize?.width ||
             payload.height !== state.windowSize?.height
           ) {
-            kvSet<WindowSize>('WindowSize', payload);
-            dispatch({ type: 'set-window-size', size: payload });
+            const size: WindowSize = {
+              type: 'Physical',
+              width: payload.width,
+              height: payload.height,
+            };
+            kvSet<WindowSize>('WindowSize', size);
+            dispatch({ type: 'set-window-size', size });
           }
         },
         200,
