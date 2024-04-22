@@ -9,7 +9,6 @@ use crate::wireguard_setup::{create_wireguard_tunnel, empty_wireguard_setup};
 use crate::{routing, MixnetConnectionInfo, NymVpn};
 use futures::channel::oneshot;
 use log::*;
-use log::{debug, error, info};
 use nym_gateway_directory::{DescribedGatewayWithLocation, GatewayClient, LookupGateway};
 use nym_task::TaskManager;
 use talpid_core::dns::DnsMonitor;
