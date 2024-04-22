@@ -103,7 +103,10 @@ async fn main() -> Result<()> {
 
     // initialize backend data directory
     check_dir(&BACKEND_DATA_PATH).await?;
-    debug!("using path for backend data: {}", BACKEND_DATA_PATH.to_string_lossy());
+    debug!(
+        "using path for backend data: {}",
+        BACKEND_DATA_PATH.to_string_lossy()
+    );
 
     info!("Starting tauri app");
     tauri::Builder::default()
