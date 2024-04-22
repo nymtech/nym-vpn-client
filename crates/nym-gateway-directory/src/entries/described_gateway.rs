@@ -133,7 +133,7 @@ pub fn by_location(
         .iter()
         .filter(|g| g.is_two_letter_iso_country_code(location));
     if gateways_with_specified_location.clone().count() == 0 {
-        return Err(Error::NoMatchingEntryGatewayForLocation {
+        return Err(Error::NoMatchingGatewayForLocation {
             requested_location: location.to_string(),
             available_countries: list_all_country_iso_codes(gateways),
         });
@@ -152,7 +152,7 @@ pub fn by_location_described(
         .iter()
         .filter(|g| g.is_two_letter_iso_country_code(location));
     if gateways_with_specified_location.clone().count() == 0 {
-        return Err(Error::NoMatchingEntryGatewayForLocation {
+        return Err(Error::NoMatchingGatewayForLocation {
             requested_location: location.to_string(),
             available_countries: list_all_country_iso_codes(gateways),
         });

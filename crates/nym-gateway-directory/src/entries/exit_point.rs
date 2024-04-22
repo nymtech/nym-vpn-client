@@ -107,7 +107,18 @@ impl LookupGateway for ExitPoint {
         match &self {
             ExitPoint::Address { .. } => Err(Error::InvalidExitPointDescription),
             ExitPoint::Gateway { identity } => verify_identity(gateways, identity),
-            ExitPoint::Location { location } => by_location(gateways, location),
+            ExitPoint::Location { location } => {
+                by_location(gateways, location).map_err(|e| match e {
+                    Error::NoMatchingGatewayForLocation {
+                        requested_location,
+                        available_countries,
+                    } => Error::NoMatchingExitGatewayForLocation {
+                        requested_location,
+                        available_countries,
+                    },
+                    e => e,
+                })
+            }
             ExitPoint::Random => {
                 log::info!("Selecting a random exit gateway");
                 by_random(gateways)

@@ -59,7 +59,18 @@ impl LookupGateway for EntryPoint {
     ) -> Result<(NodeIdentity, Option<String>)> {
         match &self {
             EntryPoint::Gateway { identity } => verify_identity(gateways, identity),
-            EntryPoint::Location { location } => by_location(gateways, location),
+            EntryPoint::Location { location } => {
+                by_location(gateways, location).map_err(|err| match err {
+                    Error::NoMatchingGatewayForLocation {
+                        requested_location,
+                        available_countries,
+                    } => Error::NoMatchingEntryGatewayForLocation {
+                        requested_location,
+                        available_countries,
+                    },
+                    err => err,
+                })
+            }
             EntryPoint::RandomLowLatency => by_random_low_latency(gateways).await,
             EntryPoint::Random => {
                 log::info!("Selecting a random entry gateway");
