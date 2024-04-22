@@ -369,20 +369,6 @@ impl NymVpn {
         let wg_gateway_client = WgGatewayClient::new(self.wg_gateway_config.clone())?;
         log::info!("Created wg gateway client");
 
-        // If the entry or exit point relies on location, do a basic defensive consistency check on
-        // the fetched location data. If none of the gateways have location data, we can't proceed
-        // and it's likely the explorer-api isn't set correctly.
-        //if self.entry_point.is_location()
-        //    && entry_gateways.iter().filter(|g| g.has_location()).count() == 0
-        //{
-        //    return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
-        //}
-        //if self.exit_point.is_location()
-        //    && exit_gateways.iter().filter(|g| g.has_location()).count() == 0
-        //{
-        //    return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
-        //}
-
         let (entry_gateway_id, entry_location) = self
             .entry_point
             .lookup_gateway_identity(&entry_gateways)

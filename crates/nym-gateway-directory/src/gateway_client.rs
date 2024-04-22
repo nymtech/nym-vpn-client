@@ -107,7 +107,7 @@ impl Config {
         }
     }
 
-    // If you want to use a custom API URL, you are _very_ likely to also want to custom URLs
+    // If you want to use a custom API URL, you are _very_ likely to also want to use custom URLs
     // for the explorer and harbour master as well.
     pub fn new_from_urls(
         api_url: Url,
@@ -259,6 +259,7 @@ impl GatewayClient {
         Ok(described_gateways_location)
     }
 
+    // TODO: deprecated. Use the one that returns both entry and exit gateways instead
     pub async fn lookup_described_entry_gateways_with_location(
         &self,
     ) -> Result<Vec<DescribedGatewayWithLocation>> {
@@ -281,6 +282,7 @@ impl GatewayClient {
         Ok(entry_gateways)
     }
 
+    // TODO: deprecated. Use the one that returns both entry and exit gateways instead
     pub async fn lookup_described_exit_gateways_with_location(
         &self,
     ) -> Result<Vec<DescribedGatewayWithLocation>> {
