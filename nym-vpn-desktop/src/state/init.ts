@@ -4,7 +4,6 @@ import { appWindow } from '@tauri-apps/api/window';
 import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
-import logu from '../log';
 import {
   CodeDependency,
   ConnectionState,
@@ -213,9 +212,7 @@ async function init(dispatch: StateDispatch) {
     request: () => kvGet<WindowSize>('WindowSize'),
     onFulfilled: (size) => {
       if (size) {
-        appWindow.setSize(size);
         dispatch({ type: 'set-window-size', size });
-        logu.debug(`restored window size to ${size.width}x${size.height}`);
       }
     },
   };
