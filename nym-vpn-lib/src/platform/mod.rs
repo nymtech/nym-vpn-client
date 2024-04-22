@@ -2,14 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
-use crate::credentials::{import_credential_base58, import_credential_file};
+use crate::credentials::{
+    check_credential_base58, import_credential_base58, import_credential_file,
+};
 use crate::gateway_directory::GatewayClient;
 use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location};
 use crate::{
     spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
     NymVpnHandle,
 };
-use futures::StreamExt;
+use futures::{StreamExt, TryFutureExt};
 use lazy_static::lazy_static;
 use log::*;
 use nym_task::manager::TaskStatus;
@@ -177,7 +179,9 @@ pub fn checkCredential(credential: String, path: String) -> Result<(), FFIError>
 }
 
 async fn check__credential_string(credential: &str) -> Result<(), FFIError> {
-    Ok(())
+    check_credential_base58(credential)
+        .map_err(|err| FFIError::InvalidCredential)
+        .await?
 }
 
 async fn run_vpn(vpn: NymVpn) -> Result<(), FFIError> {
@@ -200,8 +204,6 @@ async fn run_vpn(vpn: NymVpn) -> Result<(), FFIError> {
         }
     }
 }
-
-
 
 #[allow(non_snake_case)]
 #[uniffi::export]
