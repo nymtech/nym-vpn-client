@@ -154,12 +154,12 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn importCredential(#[allow(non_snake_case)] credential: String, #[allow(non_snake_case)] dataPath: String) -> Result<(), FFIError> {
-    RUNTIME.block_on(import_credential_from_string(&credential, &dataPath))
+pub fn importCredential(credential: String, path: String) -> Result<(), FFIError> {
+    RUNTIME.block_on(import_credential_from_string(&credential, &path))
 }
 
-async fn import_credential_from_string(credential: &str, data_path: &str) -> Result<(), FFIError> {
-    let path_result = PathBuf::from_str(data_path);
+async fn import_credential_from_string(credential: &str, path: &str) -> Result<(), FFIError> {
+    let path_result = PathBuf::from_str(path);
     let path_buf = match path_result {
         Ok(p) => p,
         Err(_) => return Err(FFIError::InvalidPath),
@@ -172,31 +172,12 @@ async fn import_credential_from_string(credential: &str, data_path: &str) -> Res
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn importCredentialFile(
-    #[allow(non_snake_case)] filePath: String,
-    #[allow(non_snake_case)] dataPath: String,
-) -> Result<(), FFIError> {
-    RUNTIME.block_on(import_credential_from_file(&filePath, &dataPath))
+pub fn checkCredential(credential: String, path: String) -> Result<(), FFIError> {
+    RUNTIME.block_on(check__credential_string(&credential))
 }
 
-async fn import_credential_from_file(
-    #[allow(non_snake_case)] file_path: &str,
-    #[allow(non_snake_case)] data_path: &str,
-) -> Result<(), FFIError> {
-    let file_path_result = PathBuf::from_str(file_path);
-    let data_path_result = PathBuf::from_str(data_path);
-    let file_path = match file_path_result {
-        Ok(p) => p,
-        Err(_) => return Err(FFIError::InvalidPath),
-    };
-    let data_path = match data_path_result {
-        Ok(p) => p,
-        Err(_) => return Err(FFIError::InvalidPath),
-    };
-    match import_credential_file(file_path, data_path).await {
-        Ok(_) => Ok(()),
-        Err(_) => Err(FFIError::InvalidCredential),
-    }
+async fn check__credential_string(credential: &str) -> Result<(), FFIError> {
+    Ok(())
 }
 
 async fn run_vpn(vpn: NymVpn) -> Result<(), FFIError> {
@@ -219,6 +200,8 @@ async fn run_vpn(vpn: NymVpn) -> Result<(), FFIError> {
         }
     }
 }
+
+
 
 #[allow(non_snake_case)]
 #[uniffi::export]
