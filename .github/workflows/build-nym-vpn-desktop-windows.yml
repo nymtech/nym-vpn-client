@@ -68,14 +68,14 @@ jobs:
       - name: Download/Unzip/Move wintun.zip and winpcap.zip, also move wireguard lib for windows
         shell: bash
         run: |
-          curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
-          curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
-          unzip ${GITHUB_WORKSPACE}/wintun.zip
-          unzip ${GITHUB_WORKSPACE}/winpcap.zip
-          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${{ env.TAURI_SRC }}
-          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${{ env.TAURI_SRC }}
-          mv ${GITHUB_WORKSPACE}/lib/libwg.dll ${{ env.TAURI_SRC }}
-          mv ${GITHUB_WORKSPACE}/lib/libwg.lib ${{ env.TAURI_SRC }}
+          curl --output ${{ github.workspace }}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
+          curl --output ${{ github.workspace }}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
+          unzip ${{ github.workspace }}/wintun.zip
+          unzip ${{ github.workspace }}/winpcap.zip
+          mv ${{ github.workspace }}/wintun/bin/amd64/wintun.dll ${{ env.TAURI_SRC }}
+          mv ${{ github.workspace }}/WpdPack/Lib/x64/Packet.lib ${{ env.TAURI_SRC }}
+          mv ${{ github.workspace }}/lib/libwg.dll ${{ env.TAURI_SRC }}
+          mv ${{ github.workspace }}/lib/libwg.lib ${{ env.TAURI_SRC }}
 
       - name: Generate licenses file (Js & Rust) and install JS dependencies
         working-directory: nym-vpn-desktop
