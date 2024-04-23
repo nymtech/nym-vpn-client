@@ -9,7 +9,7 @@ use std::{
 
 use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, ConnectionStatus, DisconnectRequest,
-    DisconnectResponse, StatusRequest, StatusResponse,
+    DisconnectResponse, Error as ProtoError, StatusRequest, StatusResponse,
 };
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::{error, info};
@@ -117,9 +117,19 @@ impl NymVpnd for CommandInterface {
             .handle_status()
             .await;
 
+        let error = match status {
+            VpnServiceStatusResult::NotConnected => None,
+            VpnServiceStatusResult::Connecting => None,
+            VpnServiceStatusResult::Connected => None,
+            VpnServiceStatusResult::Disconnecting => None,
+            VpnServiceStatusResult::ConnectionFailed(ref reason) => Some(reason.clone()),
+        }
+        .map(|reason| ProtoError { message: reason });
+
         info!("Returning status response");
         Ok(tonic::Response::new(StatusResponse {
             status: ConnectionStatus::from(status) as i32,
+            error,
         }))
     }
 }

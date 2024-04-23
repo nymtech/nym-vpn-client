@@ -72,6 +72,7 @@ message GatewayResponse {
 message StatusRequest {}
 message StatusResponse {
   ConnectionStatus status = 1;
+  optional Error error = 2;
 }
 
 message ConnectionStatusUpdate {
