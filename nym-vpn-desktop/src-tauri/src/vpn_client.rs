@@ -104,7 +104,7 @@ fn setup_gateway_client_config(
 
     let mut wg_config = WgGatewayClientConfig::default();
     if let Some(key) = private_key {
-        wg_config = wg_config.with_local_private_key(key.into());
+        wg_config = wg_config.with_local_entry_private_key(key.into());
     }
     (config, wg_config)
 }
