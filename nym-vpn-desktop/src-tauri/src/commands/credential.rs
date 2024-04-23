@@ -1,16 +1,14 @@
 use nym_vpn_lib::credentials::import_credential_base58;
-use tauri::State;
 use tracing::{debug, error, instrument};
 
 use crate::{
-    db::{Db, Key},
     error::{CmdError, CmdErrorSource},
     fs::path::BACKEND_DATA_PATH,
 };
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn add_credential(credential: String, db: State<'_, Db>) -> Result<(), CmdError> {
+pub async fn add_credential(credential: String) -> Result<(), CmdError> {
     debug!("add_credential");
 
     debug!(
@@ -28,9 +26,6 @@ pub async fn add_credential(credential: String, db: State<'_, Db>) -> Result<(),
                 "failed to import credential".to_string(),
             )
         })?;
-
-    db.insert(Key::ImportedCredential, true)
-        .map_err(|_| CmdError::new(CmdErrorSource::InternalError, "Cache error".to_string()))?;
 
     Ok(())
 }

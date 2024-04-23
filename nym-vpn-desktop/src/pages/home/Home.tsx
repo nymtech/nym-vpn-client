@@ -4,7 +4,6 @@ import { invoke } from '@tauri-apps/api';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useMainDispatch, useMainState } from '../../contexts';
-import { kvGet } from '../../kvStore';
 import { CmdError, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { Button } from '../../ui';
@@ -32,13 +31,6 @@ function Home() {
           dispatch({ type: 'set-error', error: e.message });
         });
     } else if (state === 'Disconnected') {
-      const importedCredential = await kvGet<boolean | null>(
-        'ImportedCredential',
-      );
-      if (!importedCredential) {
-        navigate(routes.credential);
-        return;
-      }
       dispatch({ type: 'connect' });
       invoke('connect')
         .then((result) => {
