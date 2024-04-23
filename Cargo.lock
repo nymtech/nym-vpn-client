@@ -4702,6 +4702,7 @@ name = "nym-vpnc"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bs58 0.5.1",
  "clap",
  "nym-vpn-proto",
  "parity-tokio-ipc",

@@ -136,12 +136,14 @@ impl NymVpnd for CommandInterface {
 
     async fn import_user_credential(
         &self,
-        _request: tonic::Request<ImportUserCredentialRequest>,
+        request: tonic::Request<ImportUserCredentialRequest>,
     ) -> Result<tonic::Response<ImportUserCredentialResponse>, tonic::Status> {
         info!("Got import credential request");
 
+        let credential = request.into_inner().credential;
+
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_import_credential("".to_string())
+            .handle_import_credential(credential)
             .await;
 
         info!("Returning import credential response");

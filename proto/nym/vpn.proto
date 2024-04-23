@@ -96,7 +96,7 @@ message SetUserCredentialsRequest {
 }
 
 message ImportUserCredentialRequest {
-  string credential = 1;
+  bytes credential = 1;
 }
 
 message ImportUserCredentialResponse {

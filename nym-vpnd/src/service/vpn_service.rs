@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use futures::channel::mpsc::UnboundedSender;
 use futures::SinkExt;
-use nym_vpn_lib::credentials::import_credential_base58;
+use nym_vpn_lib::credentials::import_credential;
 use nym_vpn_lib::gateway_directory::{self};
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::oneshot;
@@ -34,10 +34,9 @@ pub enum VpnServiceCommand {
     Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
-    #[allow(unused)]
     ImportCredential(
         oneshot::Sender<VpnServiceImportUserCredentialResult>,
-        String,
+        Vec<u8>,
     ),
 }
 
@@ -85,7 +84,6 @@ pub enum VpnServiceStatusResult {
     ConnectionFailed(String),
 }
 
-#[allow(unused)]
 #[derive(Debug)]
 pub enum VpnServiceImportUserCredentialResult {
     Success,
@@ -220,8 +218,9 @@ impl NymVpnService {
 
     async fn handle_import_credential(
         &mut self,
-        credential: String,
+        credential: Vec<u8>,
     ) -> VpnServiceImportUserCredentialResult {
+        // BUG: this is not correct after a connect/disconnect cycle
         let is_running = self.vpn_ctrl_sender.is_some();
         if is_running {
             return VpnServiceImportUserCredentialResult::Fail(
@@ -229,7 +228,7 @@ impl NymVpnService {
             );
         }
 
-        match import_credential_base58(&credential, self.data_dir.clone()).await {
+        match import_credential(credential, self.data_dir.clone()).await {
             Ok(()) => VpnServiceImportUserCredentialResult::Success,
             Err(err) => VpnServiceImportUserCredentialResult::Fail(err.to_string()),
         }

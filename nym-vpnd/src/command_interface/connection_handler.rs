@@ -75,7 +75,7 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_import_credential(
         &self,
-        credential: String,
+        credential: Vec<u8>,
     ) -> VpnServiceImportUserCredentialResult {
         let (tx, rx) = oneshot::channel();
         self.vpn_command_tx
