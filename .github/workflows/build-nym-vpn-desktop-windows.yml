@@ -5,7 +5,7 @@ env:
   CARGO_TERM_COLOR: always
   LIBS_PATH: ${{ github.workspace }}/lib
   WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
-  MULLVAD_LIB_NAME: mullvad-libs-x64-release
+  MULLVAD_LIB_NAME: winfw.dll
   UPDATER_BUNDLE_NAME: updater_linux_x86_64.AppImage.tar.gz
   UPLOAD_DIR: windows_artifacts
   TAURI_SRC: ${{ github.workspace }}/nym-vpn-desktop/src-tauri/
