@@ -44,8 +44,8 @@ enum VpnMode {
 }
 
 enum ConnectionStatus {
-  UNKNOWN = 0;
-  STATUS_UNSPECIFIED = 1;
+  STATUS_UNSPECIFIED = 0;
+  UNKNOWN = 1;
   NOT_CONNECTED = 2;
   CONNECTING = 3;
   CONNECTED = 4;
