@@ -48,7 +48,7 @@ impl CommandInterface {
         }
     }
 
-    fn remove_previous_socket_file(&self) {
+    pub(super) fn remove_previous_socket_file(&self) {
         if let ListenerType::Path(ref socket_path) = self.listener {
             match fs::remove_file(socket_path) {
                 Ok(_) => info!(
