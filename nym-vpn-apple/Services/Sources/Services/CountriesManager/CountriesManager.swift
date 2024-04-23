@@ -13,7 +13,7 @@ public final class CountriesManager: ObservableObject {
 
     public func fetchCountries(shouldFetchEntryCountries: Bool) throws {
         guard !isLoading else { return }
-        print("🇬🇧 Fetching countries 🇬🇧")
+
         isLoading = true
 
         Task {

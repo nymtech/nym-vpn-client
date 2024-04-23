@@ -57,6 +57,29 @@ private extension MixnetAdapter {
         setenv("CONFIGURED", "true", 1)
         setenv("RUST_LOG", "info", 1)
         setenv("RUST_BACKTRACE", "1", 1)
+        setenv("NETWORK_NAME", "mainnet", 1)
+        setenv("BECH32_PREFIX", "n", 1)
+        setenv("MIX_DENOM", "unym", 1)
+        setenv("MIX_DENOM_DISPLAY", "nym", 1)
+        setenv("STAKE_DENOM", "unyx", 1)
+        setenv("STAKE_DENOM_DISPLAY", "nyx", 1)
+        setenv("DENOMS_EXPONENT", "6", 1)
+
+        setenv("REWARDING_VALIDATOR_ADDRESS", "n10yyd98e2tuwu0f7ypz9dy3hhjw7v772q6287gy", 1)
+        setenv("MIXNET_CONTRACT_ADDRESS", "n17srjznxl9dvzdkpwpw24gg668wc73val88a6m5ajg6ankwvz9wtst0cznr", 1)
+        setenv("VESTING_CONTRACT_ADDRESS", "n1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrq73f2nw", 1)
+
+        setenv("STATISTICS_SERVICE_DOMAIN_ADDRESS", "https://mainnet-stats.nymte.ch:8090", 1)
+        setenv("EXPLORER_API", "https://explorer.nymtech.net/api/", 1)
+        setenv("NYXD", "https://rpc.nymtech.net", 1)
+        setenv("NYXD_WS", "wss://rpc.nymtech.net/websocket", 1)
+        setenv("NYM_API", "https://validator.nymtech.net/api/", 1)
+    }
+
+    func setupSandboxEnvironmentVariables() {
+        setenv("CONFIGURED", "true", 1)
+        setenv("RUST_LOG", "info", 1)
+        setenv("RUST_BACKTRACE", "1", 1)
         setenv("NETWORK_NAME", "sandbox", 1)
         setenv("BECH32_PREFIX", "n", 1)
         setenv("MIX_DENOM", "unym", 1)
