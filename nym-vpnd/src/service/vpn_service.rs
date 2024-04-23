@@ -187,19 +187,26 @@ impl NymVpnService {
         *self.shared_vpn_state.lock().unwrap() = state;
     }
 
-    async fn handle_disconnect(&mut self) -> VpnServiceDisconnectResult {
-        // To handle the mutable borrow we set the state separate from the sending the stop
-        // message, including the logical check for the ctrl sender twice.
-        let is_running = self.vpn_ctrl_sender.is_some();
+    fn is_running(&self) -> bool {
+        self.vpn_ctrl_sender
+            .as_ref()
+            .map(|s| !s.is_closed())
+            .unwrap_or(false)
+    }
 
-        if is_running {
+    async fn handle_disconnect(&mut self) -> VpnServiceDisconnectResult {
+        // To handle the mutable borrow we set the state separate from the sending the stop message
+        if self.is_running() {
             self.set_shared_state(VpnState::Disconnecting);
+        } else {
+            return VpnServiceDisconnectResult::NotRunning;
         }
 
         if let Some(ref mut vpn_ctrl_sender) = self.vpn_ctrl_sender {
-            let _ = vpn_ctrl_sender
+            vpn_ctrl_sender
                 .send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
-                .await;
+                .await
+                .ok();
             VpnServiceDisconnectResult::Success
         } else {
             VpnServiceDisconnectResult::NotRunning
@@ -220,9 +227,7 @@ impl NymVpnService {
         &mut self,
         credential: Vec<u8>,
     ) -> VpnServiceImportUserCredentialResult {
-        // BUG: this is not correct after a connect/disconnect cycle
-        let is_running = self.vpn_ctrl_sender.is_some();
-        if is_running {
+        if self.is_running() {
             return VpnServiceImportUserCredentialResult::Fail(
                 "Can't import credential while VPN is running".to_string(),
             );
