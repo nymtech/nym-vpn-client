@@ -34,7 +34,6 @@ pub struct MixTunnelSetup {
 impl TunnelSpecifcSetup for MixTunnelSetup {}
 
 pub struct WgTunnelSetup {
-    pub route_manager: Arc<RwLock<RouteManager>>,
     pub receiver: oneshot::Receiver<()>,
     pub tunnel_close_tx: oneshot::Sender<()>,
     pub handle: tokio::task::JoinHandle<Result<()>>,
@@ -45,6 +44,7 @@ impl TunnelSpecifcSetup for WgTunnelSetup {}
 pub enum AllTunnelsSetup {
     Mix(TunnelSetup<MixTunnelSetup>),
     Wg {
+        route_manager: Arc<RwLock<RouteManager>>,
         entry: TunnelSetup<WgTunnelSetup>,
         exit: TunnelSetup<WgTunnelSetup>,
         firewall: Firewall,
@@ -184,7 +184,6 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
         .await?;
         let entry = TunnelSetup {
             specific_setup: WgTunnelSetup {
-                route_manager: route_manager.clone(),
                 tunnel_close_tx: wireguard_waiting_entry.tunnel_close_tx,
                 receiver: wireguard_waiting_entry.receiver,
                 handle: wireguard_waiting_entry.handle,
@@ -192,7 +191,6 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
         };
         let exit = TunnelSetup {
             specific_setup: WgTunnelSetup {
-                route_manager,
                 tunnel_close_tx: wireguard_waiting_exit.tunnel_close_tx,
                 receiver: wireguard_waiting_exit.receiver,
                 handle: wireguard_waiting_exit.handle,
@@ -200,6 +198,7 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
         };
 
         Ok(AllTunnelsSetup::Wg {
+            route_manager,
             entry,
             exit,
             firewall,

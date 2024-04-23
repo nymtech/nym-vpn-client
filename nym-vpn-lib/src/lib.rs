@@ -362,6 +362,7 @@ impl NymVpn {
                     })?;
             }
             AllTunnelsSetup::Wg {
+                route_manager,
                 entry,
                 exit,
                 mut firewall,
@@ -369,7 +370,7 @@ impl NymVpn {
             } => {
                 wait_for_interrupt(TaskManager::new(10)).await;
                 handle_interrupt(
-                    entry.specific_setup.route_manager.clone(),
+                    route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
                 .await
@@ -426,6 +427,7 @@ impl NymVpn {
                 result
             }
             AllTunnelsSetup::Wg {
+                route_manager,
                 entry,
                 exit,
                 mut firewall,
@@ -433,7 +435,7 @@ impl NymVpn {
             } => {
                 let result = wait_for_interrupt_and_signal(None, vpn_ctrl_rx).await;
                 handle_interrupt(
-                    entry.specific_setup.route_manager.clone(),
+                    route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
                 .await
