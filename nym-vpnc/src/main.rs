@@ -148,14 +148,13 @@ async fn import_credential(
     import_args: &ImportCredentialArgs,
 ) -> anyhow::Result<()> {
     let import_type: ImportCredentialTypeEnum = import_args.credential_type.clone().into();
-    let request = match import_type {
-        ImportCredentialTypeEnum::Path(_path) => todo!(),
-        ImportCredentialTypeEnum::Data(data) => {
-            let bin = parse_encoded_credential_data(&data)?;
-            tonic::Request::new(ImportUserCredentialRequest { credential: bin })
-        }
+    let raw_credential = match import_type {
+        ImportCredentialTypeEnum::Path(path) => std::fs::read(path)?,
+        ImportCredentialTypeEnum::Data(data) => parse_encoded_credential_data(&data)?,
     };
-
+    let request = tonic::Request::new(ImportUserCredentialRequest {
+        credential: raw_credential,
+    });
     let mut client = get_client(args).await?;
     let response = client.import_user_credential(request).await?.into_inner();
     println!("{:?}", response);
