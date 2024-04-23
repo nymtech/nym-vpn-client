@@ -12,6 +12,7 @@ license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+bs58.workspace = true
 clap = { workspace = true, features = ["derive"] }
 parity-tokio-ipc.workspace = true
 prost.workspace = true

@@ -5,7 +5,8 @@ use tokio::sync::{mpsc::UnboundedSender, oneshot};
 use tracing::{info, warn};
 
 use crate::service::{
-    VpnServiceCommand, VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceStatusResult,
+    ConnectArgs, VpnServiceCommand, VpnServiceConnectResult, VpnServiceDisconnectResult,
+    VpnServiceImportUserCredentialResult, VpnServiceStatusResult,
 };
 
 pub(super) struct CommandInterfaceConnectionHandler {
@@ -20,8 +21,9 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_connect(&self) -> VpnServiceConnectResult {
         info!("Starting VPN");
         let (tx, rx) = oneshot::channel();
+        let connect_args = ConnectArgs::Default;
         self.vpn_command_tx
-            .send(VpnServiceCommand::Connect(tx))
+            .send(VpnServiceCommand::Connect(tx, connect_args))
             .unwrap();
         info!("Sent start command to VPN");
         info!("Waiting for response");
@@ -69,5 +71,20 @@ impl CommandInterfaceConnectionHandler {
         let status = rx.await.unwrap();
         info!("VPN status: {:?}", status);
         status
+    }
+
+    pub(crate) async fn handle_import_credential(
+        &self,
+        credential: Vec<u8>,
+    ) -> VpnServiceImportUserCredentialResult {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::ImportCredential(tx, credential))
+            .unwrap();
+        info!("Sent import credential command to VPN");
+        info!("Waiting for response");
+        let result = rx.await.unwrap();
+        info!("VPN import credential result: {:?}", result);
+        result
     }
 }

@@ -90,3 +90,12 @@ pub(super) fn read_config_file(
         error,
     })
 }
+
+pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError> {
+    fs::create_dir_all(data_dir).map_err(|error| ConfigSetupError::CreateDirectory {
+        dir: data_dir.clone(),
+        error,
+    })?;
+    info!("Data directory created at {:?}", data_dir);
+    Ok(())
+}

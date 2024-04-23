@@ -32,6 +32,7 @@ fn spawn_socket_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, soc
     info!("Starting socket listener on: {}", socket_path.display());
     tokio::task::spawn(async move {
         let command_interface = CommandInterface::new_with_path(vpn_command_tx, &socket_path);
+        command_interface.remove_previous_socket_file();
         let incoming = setup_socket_stream(&socket_path);
         Server::builder()
             .add_service(NymVpndServer::new(command_interface))

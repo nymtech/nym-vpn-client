@@ -6,13 +6,14 @@ use std::sync::Arc;
 
 use futures::channel::mpsc::UnboundedSender;
 use futures::SinkExt;
-use nym_vpn_lib::gateway_directory;
+use nym_vpn_lib::credentials::import_credential;
+use nym_vpn_lib::gateway_directory::{self};
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::oneshot;
 use tracing::info;
 
 use super::config::{
-    create_config_file, read_config_file, ConfigSetupError, NymVpnServiceConfig,
+    create_config_file, create_data_dir, read_config_file, ConfigSetupError, NymVpnServiceConfig,
     DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR,
 };
 use super::exit_listener::VpnServiceExitListener;
@@ -24,13 +25,28 @@ pub enum VpnState {
     Connecting,
     Connected,
     Disconnecting,
+    #[allow(unused)]
+    ConnectionFailed(String),
 }
 
 #[derive(Debug)]
 pub enum VpnServiceCommand {
-    Connect(oneshot::Sender<VpnServiceConnectResult>),
+    Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
+    ImportCredential(
+        oneshot::Sender<VpnServiceImportUserCredentialResult>,
+        Vec<u8>,
+    ),
+}
+
+#[derive(Debug)]
+pub enum ConnectArgs {
+    // Read the entry and exit points from the config file.
+    Default,
+
+    #[allow(unused)]
+    Custom(String, String),
 }
 
 #[derive(Debug)]
@@ -59,12 +75,25 @@ impl VpnServiceDisconnectResult {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum VpnServiceStatusResult {
     NotConnected,
     Connecting,
     Connected,
     Disconnecting,
+    ConnectionFailed(String),
+}
+
+#[derive(Debug)]
+pub enum VpnServiceImportUserCredentialResult {
+    Success,
+    Fail(String),
+}
+
+impl VpnServiceImportUserCredentialResult {
+    pub fn is_success(&self) -> bool {
+        matches!(self, VpnServiceImportUserCredentialResult::Success)
+    }
 }
 
 pub(super) struct NymVpnService {
@@ -72,7 +101,6 @@ pub(super) struct NymVpnService {
     vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
     vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
     config_file: PathBuf,
-    #[allow(unused)]
     data_dir: PathBuf,
 }
 
@@ -104,8 +132,10 @@ impl NymVpnService {
         Ok(config)
     }
 
-    async fn handle_connect(&mut self) -> VpnServiceConnectResult {
+    async fn handle_connect(&mut self, _connect_args: ConnectArgs) -> VpnServiceConnectResult {
         self.set_shared_state(VpnState::Connecting);
+
+        // TODO: use connect_args here
 
         let config = match self.try_setup_config() {
             Ok(config) => config,
@@ -115,9 +145,22 @@ impl NymVpnService {
             }
         };
 
-        let mut nym_vpn = nym_vpn_lib::NymVpn::new(config.entry_point, config.exit_point);
+        // Make sure the data dir exists
+        match create_data_dir(&self.data_dir) {
+            Ok(()) => {}
+            Err(err) => {
+                self.set_shared_state(VpnState::NotConnected);
+                return VpnServiceConnectResult::Fail(format!(
+                    "Failed to create data directory {:?}: {}",
+                    self.data_dir, err
+                ));
+            }
+        }
 
+        let mut nym_vpn = nym_vpn_lib::NymVpn::new(config.entry_point, config.exit_point);
         nym_vpn.gateway_config = gateway_directory::Config::new_from_env();
+        nym_vpn.mixnet_data_path = Some(self.data_dir.clone());
+
         let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn).unwrap();
 
         let nym_vpn_lib::NymVpnHandle {
@@ -140,6 +183,7 @@ impl NymVpnService {
     }
 
     fn set_shared_state(&self, state: VpnState) {
+        info!("VPN: Setting shared state to {:?}", state);
         *self.shared_vpn_state.lock().unwrap() = state;
     }
 
@@ -163,11 +207,30 @@ impl NymVpnService {
     }
 
     async fn handle_status(&self) -> VpnServiceStatusResult {
-        match *self.shared_vpn_state.lock().unwrap() {
+        match self.shared_vpn_state.lock().unwrap().clone() {
             VpnState::NotConnected => VpnServiceStatusResult::NotConnected,
             VpnState::Connecting => VpnServiceStatusResult::Connecting,
             VpnState::Connected => VpnServiceStatusResult::Connected,
             VpnState::Disconnecting => VpnServiceStatusResult::Disconnecting,
+            VpnState::ConnectionFailed(reason) => VpnServiceStatusResult::ConnectionFailed(reason),
+        }
+    }
+
+    async fn handle_import_credential(
+        &mut self,
+        credential: Vec<u8>,
+    ) -> VpnServiceImportUserCredentialResult {
+        // BUG: this is not correct after a connect/disconnect cycle
+        let is_running = self.vpn_ctrl_sender.is_some();
+        if is_running {
+            return VpnServiceImportUserCredentialResult::Fail(
+                "Can't import credential while VPN is running".to_string(),
+            );
+        }
+
+        match import_credential(credential, self.data_dir.clone()).await {
+            Ok(()) => VpnServiceImportUserCredentialResult::Success,
+            Err(err) => VpnServiceImportUserCredentialResult::Fail(err.to_string()),
         }
     }
 
@@ -175,8 +238,8 @@ impl NymVpnService {
         while let Some(command) = self.vpn_command_rx.recv().await {
             info!("VPN: Received command: {:?}", command);
             match command {
-                VpnServiceCommand::Connect(tx) => {
-                    let result = self.handle_connect().await;
+                VpnServiceCommand::Connect(tx, connect_args) => {
+                    let result = self.handle_connect(connect_args).await;
                     tx.send(result).unwrap();
                 }
                 VpnServiceCommand::Disconnect(tx) => {
@@ -185,6 +248,10 @@ impl NymVpnService {
                 }
                 VpnServiceCommand::Status(tx) => {
                     let result = self.handle_status().await;
+                    tx.send(result).unwrap();
+                }
+                VpnServiceCommand::ImportCredential(tx, credential) => {
+                    let result = self.handle_import_credential(credential).await;
                     tx.send(result).unwrap();
                 }
             }

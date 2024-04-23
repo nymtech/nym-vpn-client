@@ -4,9 +4,10 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 use nym_vpn_proto::{
-    nym_vpnd_client::NymVpndClient, ConnectRequest, DisconnectRequest, StatusRequest,
+    nym_vpnd_client::NymVpndClient, ConnectRequest, DisconnectRequest, ImportUserCredentialRequest,
+    StatusRequest,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use tonic::transport::{Channel as TonicChannel, Endpoint as TonicEndpoint};
@@ -27,6 +28,49 @@ enum Command {
     Connect,
     Disconnect,
     Status,
+    ImportCredential(ImportCredentialArgs),
+}
+
+#[derive(Args)]
+pub(crate) struct ImportCredentialArgs {
+    #[command(flatten)]
+    pub(crate) credential_type: ImportCredentialType,
+
+    // currently hidden as there exists only a single serialization standard
+    #[arg(long, hide = true)]
+    pub(crate) version: Option<u8>,
+}
+
+#[derive(Args, Clone)]
+#[group(required = true, multiple = false)]
+pub(crate) struct ImportCredentialType {
+    /// Credential encoded using base58.
+    #[arg(long)]
+    pub(crate) credential_data: Option<String>,
+
+    /// Path to the credential file.
+    #[arg(long)]
+    pub(crate) credential_path: Option<PathBuf>,
+}
+
+fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
+    bs58::decode(raw).into_vec()
+}
+
+// Workaround until clap supports enums for ArgGroups
+pub(crate) enum ImportCredentialTypeEnum {
+    Path(PathBuf),
+    Data(String),
+}
+
+impl From<ImportCredentialType> for ImportCredentialTypeEnum {
+    fn from(ict: ImportCredentialType) -> Self {
+        match (ict.credential_data, ict.credential_path) {
+            (Some(data), None) => ImportCredentialTypeEnum::Data(data),
+            (None, Some(path)) => ImportCredentialTypeEnum::Path(path),
+            _ => unreachable!(),
+        }
+    }
 }
 
 #[tokio::main]
@@ -36,6 +80,7 @@ async fn main() -> anyhow::Result<()> {
         Command::Connect => connect(&args).await?,
         Command::Disconnect => disconnect(&args).await?,
         Command::Status => status(&args).await?,
+        Command::ImportCredential(ref import_args) => import_credential(&args, import_args).await?,
     }
     Ok(())
 }
@@ -94,6 +139,25 @@ async fn status(args: &CliArgs) -> anyhow::Result<()> {
     let mut client = get_client(args).await?;
     let request = tonic::Request::new(StatusRequest {});
     let response = client.vpn_status(request).await?.into_inner();
+    println!("{:?}", response);
+    Ok(())
+}
+
+async fn import_credential(
+    args: &CliArgs,
+    import_args: &ImportCredentialArgs,
+) -> anyhow::Result<()> {
+    let import_type: ImportCredentialTypeEnum = import_args.credential_type.clone().into();
+    let request = match import_type {
+        ImportCredentialTypeEnum::Path(_path) => todo!(),
+        ImportCredentialTypeEnum::Data(data) => {
+            let bin = parse_encoded_credential_data(&data)?;
+            tonic::Request::new(ImportUserCredentialRequest { credential: bin })
+        }
+    };
+
+    let mut client = get_client(args).await?;
+    let response = client.import_user_credential(request).await?.into_inner();
     println!("{:?}", response);
     Ok(())
 }

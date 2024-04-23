@@ -9,7 +9,8 @@ use std::{
 
 use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, ConnectionStatus, DisconnectRequest,
-    DisconnectResponse, StatusRequest, StatusResponse,
+    DisconnectResponse, Error as ProtoError, ImportUserCredentialRequest,
+    ImportUserCredentialResponse, StatusRequest, StatusResponse,
 };
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::{error, info};
@@ -48,7 +49,7 @@ impl CommandInterface {
         }
     }
 
-    fn remove_previous_socket_file(&self) {
+    pub(super) fn remove_previous_socket_file(&self) {
         if let ListenerType::Path(ref socket_path) = self.listener {
             match fs::remove_file(socket_path) {
                 Ok(_) => info!(
@@ -117,9 +118,37 @@ impl NymVpnd for CommandInterface {
             .handle_status()
             .await;
 
+        let error = match status {
+            VpnServiceStatusResult::NotConnected => None,
+            VpnServiceStatusResult::Connecting => None,
+            VpnServiceStatusResult::Connected => None,
+            VpnServiceStatusResult::Disconnecting => None,
+            VpnServiceStatusResult::ConnectionFailed(ref reason) => Some(reason.clone()),
+        }
+        .map(|reason| ProtoError { message: reason });
+
         info!("Returning status response");
         Ok(tonic::Response::new(StatusResponse {
             status: ConnectionStatus::from(status) as i32,
+            error,
+        }))
+    }
+
+    async fn import_user_credential(
+        &self,
+        request: tonic::Request<ImportUserCredentialRequest>,
+    ) -> Result<tonic::Response<ImportUserCredentialResponse>, tonic::Status> {
+        info!("Got import credential request");
+
+        let credential = request.into_inner().credential;
+
+        let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_import_credential(credential)
+            .await;
+
+        info!("Returning import credential response");
+        Ok(tonic::Response::new(ImportUserCredentialResponse {
+            success: status.is_success(),
         }))
     }
 }
@@ -131,6 +160,7 @@ impl From<VpnServiceStatusResult> for ConnectionStatus {
             VpnServiceStatusResult::Connecting => ConnectionStatus::Connecting,
             VpnServiceStatusResult::Connected => ConnectionStatus::Connected,
             VpnServiceStatusResult::Disconnecting => ConnectionStatus::Disconnecting,
+            VpnServiceStatusResult::ConnectionFailed(_reason) => ConnectionStatus::ConnectionFailed,
         }
     }
 }
