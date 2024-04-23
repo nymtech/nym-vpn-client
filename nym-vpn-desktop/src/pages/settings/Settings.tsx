@@ -65,7 +65,7 @@ function Settings() {
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
-      {import.meta.env.APP_CREDENTIAL === 'true' && (
+      {import.meta.env.APP_DISABLE_DATA_STORAGE !== 'true' && (
         <Button onClick={async () => navigate(routes.credential)}>
           {t('add-credential-button')}
         </Button>
