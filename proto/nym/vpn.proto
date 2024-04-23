@@ -44,12 +44,13 @@ enum VpnMode {
 }
 
 enum ConnectionStatus {
-  STATUS_UNSPECIFIED = 0;
-  NOT_CONNECTED = 1;
-  CONNECTING = 2;
-  CONNECTED = 3;
-  DISCONNECTING = 4;
-  UNKNOWN = 5; // errored pending state etc
+  UNKNOWN = 0;
+  STATUS_UNSPECIFIED = 1;
+  NOT_CONNECTED = 2;
+  CONNECTING = 3;
+  CONNECTED = 4;
+  DISCONNECTING = 5;
+  CONNECTION_FAILED = 6;
 }
 
 message LocationListResponse {

@@ -131,6 +131,7 @@ impl From<VpnServiceStatusResult> for ConnectionStatus {
             VpnServiceStatusResult::Connecting => ConnectionStatus::Connecting,
             VpnServiceStatusResult::Connected => ConnectionStatus::Connected,
             VpnServiceStatusResult::Disconnecting => ConnectionStatus::Disconnecting,
+            VpnServiceStatusResult::ConnectionFailed(_reason) => ConnectionStatus::ConnectionFailed,
         }
     }
 }

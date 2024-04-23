@@ -24,6 +24,8 @@ pub enum VpnState {
     Connecting,
     Connected,
     Disconnecting,
+    #[allow(unused)]
+    ConnectionFailed(String),
 }
 
 #[derive(Debug)]
@@ -70,12 +72,13 @@ impl VpnServiceDisconnectResult {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum VpnServiceStatusResult {
     NotConnected,
     Connecting,
     Connected,
     Disconnecting,
+    ConnectionFailed(String),
 }
 
 #[allow(unused)]
@@ -196,18 +199,16 @@ impl NymVpnService {
     }
 
     async fn handle_status(&self) -> VpnServiceStatusResult {
-        match *self.shared_vpn_state.lock().unwrap() {
+        match self.shared_vpn_state.lock().unwrap().clone() {
             VpnState::NotConnected => VpnServiceStatusResult::NotConnected,
             VpnState::Connecting => VpnServiceStatusResult::Connecting,
             VpnState::Connected => VpnServiceStatusResult::Connected,
             VpnState::Disconnecting => VpnServiceStatusResult::Disconnecting,
+            VpnState::ConnectionFailed(reason) => VpnServiceStatusResult::ConnectionFailed(reason),
         }
     }
 
-    async fn handle_import_credential(
-        &mut self,
-        _credential: String,
-    ) -> VpnImportCredentialResult {
+    async fn handle_import_credential(&mut self, _credential: String) -> VpnImportCredentialResult {
         todo!()
     }
 
