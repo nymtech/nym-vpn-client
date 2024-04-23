@@ -82,8 +82,34 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ConnectResponse>, tonic::Status> {
         info!("Got connect request: {:?}", request);
 
+        let entry = if let Some(entry) = request.into_inner().entry {
+            if let Some(node_enum) = entry.node_enum {
+                match node_enum {
+                    nym_vpn_proto::node::NodeEnum::Location(location) => {
+                        info!(
+                            "Connecting to entry node in country: {:?}",
+                            location.two_letter_iso_country_code
+                        );
+                        location.two_letter_iso_country_code.to_string()
+                    }
+                    nym_vpn_proto::node::NodeEnum::Gateway(gateway) => {
+                        info!("Connecting to entry node with gateway id: {:?}", gateway.id);
+                        todo!()
+                    }
+                    nym_vpn_proto::node::NodeEnum::LowLatency(_) => {
+                        info!("Connecting to low latency entry node");
+                        todo!()
+                    }
+                }
+            } else {
+                "random".to_string()
+            }
+        } else {
+            "random".to_string()
+        };
+
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_connect()
+            .handle_connect(entry)
             .await;
 
         info!("Returning connect response");

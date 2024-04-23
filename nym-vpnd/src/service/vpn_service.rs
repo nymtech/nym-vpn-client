@@ -44,9 +44,13 @@ pub enum VpnServiceCommand {
 pub enum ConnectArgs {
     // Read the entry and exit points from the config file.
     Default,
+    Custom(CustomConnectArgs),
+}
 
-    #[allow(unused)]
-    Custom(String, String),
+#[derive(Debug)]
+pub struct CustomConnectArgs {
+    pub entry: String,
+    // pub exit: String,
 }
 
 #[derive(Debug)]
@@ -132,11 +136,18 @@ impl NymVpnService {
         Ok(config)
     }
 
-    async fn handle_connect(&mut self, _connect_args: ConnectArgs) -> VpnServiceConnectResult {
+    async fn handle_connect(&mut self, connect_args: ConnectArgs) -> VpnServiceConnectResult {
         self.set_shared_state(VpnState::Connecting);
 
-        // TODO: use connect_args here
+        let entry = match connect_args {
+            ConnectArgs::Default => None,
+            ConnectArgs::Custom(CustomConnectArgs { entry }) => {
+                info!("Using custom entry point: {}", entry);
+                Some(entry)
+            }
+        };
 
+        // TODO: pass in location to the config file
         let config = match self.try_setup_config() {
             Ok(config) => config,
             Err(err) => {

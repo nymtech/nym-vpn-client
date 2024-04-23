@@ -14,7 +14,7 @@ message Location {
 }
 
 message Node {
-  oneof node {
+  oneof node_enum {
     Gateway gateway = 1;
     Location location = 2;
     Empty low_latency = 3;

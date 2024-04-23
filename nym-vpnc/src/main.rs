@@ -119,9 +119,22 @@ async fn get_client(args: &CliArgs) -> anyhow::Result<NymVpndClient<TonicChannel
     }
 }
 
+fn new_entry_node_location(country_code: &str) -> nym_vpn_proto::Node {
+    nym_vpn_proto::Node {
+        node_enum: Some(nym_vpn_proto::node::NodeEnum::Location(
+            nym_vpn_proto::Location {
+                two_letter_iso_country_code: country_code.to_string(),
+            },
+        )),
+    }
+}
+
 async fn connect(args: &CliArgs) -> anyhow::Result<()> {
     let mut client = get_client(args).await?;
-    let request = tonic::Request::new(ConnectRequest {});
+    let country_code = "DE";
+    let request = tonic::Request::new(ConnectRequest {
+        entry: Some(new_entry_node_location(country_code)),
+    });
     let response = client.vpn_connect(request).await?.into_inner();
     println!("{:?}", response);
     Ok(())
