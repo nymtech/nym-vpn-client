@@ -19,7 +19,6 @@ pub enum EntryPoint {
     // An explicit entry gateway identity.
     Gateway { identity: NodeIdentity },
     // Select a random entry gateway in a specific location.
-    // NOTE: Consider using a crate with strongly typed country codes instead of strings
     Location { location: String },
     // Select a random entry gateway but increasey probability of selecting a low latency gateway
     // as determined by ping times.

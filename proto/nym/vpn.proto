@@ -4,26 +4,41 @@ package nym.vpn;
 
 message Empty {}
 
+// Represents the identity of a gateway
 message Gateway {
   string id = 1;
-  // Location location = 2;
+}
+
+// Represents a nym-address of the form id.enc@gateway
+message Address {
+  string nym_address = 1;
 }
 
 message Location {
   string two_letter_iso_country_code = 1;
 }
 
-message Node {
-  oneof node_enum {
+message EntryNode {
+  oneof entry_node_enum {
     Gateway gateway = 1;
     Location location = 2;
-    Empty low_latency = 3;
+    Empty random_low_latency = 3;
+    Empty random = 4;
+  }
+}
+
+message ExitNode {
+  oneof exit_node_enum {
+    Address address = 1;
+    Gateway gateway = 2;
+    Location location = 3;
+    Empty random = 4;
   }
 }
 
 message ConnectRequest {
-  Node entry = 1;
-  // Node exit = 2;
+  EntryNode entry = 1;
+  ExitNode exit = 2;
 }
 
 message ConnectResponse {
