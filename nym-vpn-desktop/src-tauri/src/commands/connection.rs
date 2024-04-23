@@ -102,7 +102,7 @@ pub async fn connect(
     // TODO: replace with automatic drop through scope
     drop(app_state);
 
-    if env::var(ENV_DISABLE_DATA_STORAGE).is_ok_and(|v| v != "true") {
+    if !env::var(ENV_DISABLE_DATA_STORAGE).is_ok_and(|v| v == "true") {
         debug!(
             "using path for mixnet data: {}",
             BACKEND_DATA_PATH.to_string_lossy()
