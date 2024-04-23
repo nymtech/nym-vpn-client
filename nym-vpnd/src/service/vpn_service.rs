@@ -34,7 +34,10 @@ pub enum VpnServiceCommand {
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
     #[allow(unused)]
-    ImportCredential(oneshot::Sender<VpnImportCredentialResult>, String),
+    ImportCredential(
+        oneshot::Sender<VpnServiceImportUserCredentialResult>,
+        String,
+    ),
 }
 
 #[derive(Debug)]
@@ -83,9 +86,15 @@ pub enum VpnServiceStatusResult {
 
 #[allow(unused)]
 #[derive(Debug)]
-pub enum VpnImportCredentialResult {
+pub enum VpnServiceImportUserCredentialResult {
     Success,
     Fail(String),
+}
+
+impl VpnServiceImportUserCredentialResult {
+    pub fn is_success(&self) -> bool {
+        matches!(self, VpnServiceImportUserCredentialResult::Success)
+    }
 }
 
 pub(super) struct NymVpnService {
@@ -208,7 +217,10 @@ impl NymVpnService {
         }
     }
 
-    async fn handle_import_credential(&mut self, _credential: String) -> VpnImportCredentialResult {
+    async fn handle_import_credential(
+        &mut self,
+        _credential: String,
+    ) -> VpnServiceImportUserCredentialResult {
         todo!()
     }
 

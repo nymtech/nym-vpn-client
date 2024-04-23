@@ -9,7 +9,8 @@ use std::{
 
 use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, ConnectionStatus, DisconnectRequest,
-    DisconnectResponse, Error as ProtoError, StatusRequest, StatusResponse,
+    DisconnectResponse, Error as ProtoError, ImportUserCredentialRequest,
+    ImportUserCredentialResponse, StatusRequest, StatusResponse,
 };
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::{error, info};
@@ -130,6 +131,22 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(StatusResponse {
             status: ConnectionStatus::from(status) as i32,
             error,
+        }))
+    }
+
+    async fn import_user_credential(
+        &self,
+        _request: tonic::Request<ImportUserCredentialRequest>,
+    ) -> Result<tonic::Response<ImportUserCredentialResponse>, tonic::Status> {
+        info!("Got import credential request");
+
+        let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_import_credential("".to_string())
+            .await;
+
+        info!("Returning import credential response");
+        Ok(tonic::Response::new(ImportUserCredentialResponse {
+            success: status.is_success(),
         }))
     }
 }

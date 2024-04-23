@@ -95,11 +95,19 @@ message SetUserCredentialsRequest {
   string key = 1;
 }
 
+message ImportUserCredentialRequest {
+  string credential = 1;
+}
+
+message ImportUserCredentialResponse {
+  bool success = 1;
+}
+
 service NymVpnd {
-  // rpc SetUserCredentials (SetUserCredentialsRequest) returns (Empty) {}
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
   rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
   rpc VpnStatus (StatusRequest) returns (StatusResponse) {}
+  rpc ImportUserCredential (ImportUserCredentialRequest) returns (ImportUserCredentialResponse) {}
   // rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
   // // Cancel any connection pending state (connecting, disconnecting etc)
   // // and return to disconnected state

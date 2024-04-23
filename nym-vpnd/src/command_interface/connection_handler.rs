@@ -6,7 +6,7 @@ use tracing::{info, warn};
 
 use crate::service::{
     ConnectArgs, VpnServiceCommand, VpnServiceConnectResult, VpnServiceDisconnectResult,
-    VpnServiceStatusResult,
+    VpnServiceImportUserCredentialResult, VpnServiceStatusResult,
 };
 
 pub(super) struct CommandInterfaceConnectionHandler {
@@ -71,5 +71,20 @@ impl CommandInterfaceConnectionHandler {
         let status = rx.await.unwrap();
         info!("VPN status: {:?}", status);
         status
+    }
+
+    pub(crate) async fn handle_import_credential(
+        &self,
+        credential: String,
+    ) -> VpnServiceImportUserCredentialResult {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::ImportCredential(tx, credential))
+            .unwrap();
+        info!("Sent import credential command to VPN");
+        info!("Waiting for response");
+        let result = rx.await.unwrap();
+        info!("VPN import credential result: {:?}", result);
+        result
     }
 }
