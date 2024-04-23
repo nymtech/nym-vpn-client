@@ -16,7 +16,7 @@ use nym_gateway_directory::{Config, EntryPoint, ExitPoint, GatewayClient, IpPack
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
 use talpid_routing::RouteManager;
 use tap::TapFallible;
@@ -210,7 +210,6 @@ impl NymVpn {
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
-        tunnel_gateway_ip: routing::TunnelGatewayIp,
     ) -> Result<()> {
         let exit_gateway = exit_router.gateway().to_base58_string();
         info!("Connecting to exit gateway: {exit_gateway}");
@@ -239,7 +238,6 @@ impl NymVpn {
             our_ips,
             entry_mixnet_gateway_ip,
             default_lan_gateway_ip,
-            tunnel_gateway_ip,
             #[cfg(target_os = "android")]
             mixnet_client.gateway_ws_fd().await,
         );
@@ -294,7 +292,6 @@ impl NymVpn {
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
-        tunnel_gateway_ip: routing::TunnelGatewayIp,
     ) -> Result<MixnetConnectionInfo> {
         info!("Setting up mixnet client");
         info!("Connecting to entry gateway: {entry_gateway}");
@@ -337,7 +334,6 @@ impl NymVpn {
                 task_manager,
                 gateway_client,
                 default_lan_gateway_ip,
-                tunnel_gateway_ip,
             )
             .await
         {
@@ -357,14 +353,9 @@ impl NymVpn {
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
-            AllTunnelsSetup::Mix(TunnelSetup {
-                route_manager,
-                tunnel_close_tx,
-                specific_setup,
-                ..
-            }) => {
+            AllTunnelsSetup::Mix(TunnelSetup { specific_setup, .. }) => {
                 wait_for_interrupt(specific_setup.task_manager).await;
-                handle_interrupt(route_manager, None, tunnel_close_tx)
+                handle_interrupt(Arc::new(RwLock::new(specific_setup.route_manager)), None)
                     .await
                     .tap_err(|err| {
                         error!("Failed to handle interrupt: {err}");
@@ -377,22 +368,14 @@ impl NymVpn {
                 mut dns_monitor,
             } => {
                 wait_for_interrupt(TaskManager::new(10)).await;
-                for TunnelSetup {
-                    route_manager,
-                    tunnel_close_tx,
-                    specific_setup,
-                } in [entry, exit]
-                {
-                    handle_interrupt(
-                        route_manager,
-                        Some((specific_setup.receiver, specific_setup.handle)),
-                        tunnel_close_tx,
-                    )
-                    .await
-                    .tap_err(|err| {
-                        error!("Failed to handle interrupt: {err}");
-                    })?;
-                }
+                handle_interrupt(
+                    entry.specific_setup.route_manager.clone(),
+                    Some([entry.specific_setup, exit.specific_setup]),
+                )
+                .await
+                .tap_err(|err| {
+                    error!("Failed to handle interrupt: {err}");
+                })?;
 
                 dns_monitor.reset().tap_err(|err| {
                     error!("Failed to reset dns monitor: {err}");
@@ -421,10 +404,7 @@ impl NymVpn {
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
             AllTunnelsSetup::Mix(TunnelSetup {
-                route_manager,
-                tunnel_close_tx,
-                mut specific_setup,
-                ..
+                mut specific_setup, ..
             }) => {
                 // Signal back that mixnet is ready and up with all cylinders firing
                 let start_status = TaskStatus::ReadyWithGateway(
@@ -437,7 +417,7 @@ impl NymVpn {
                 let result =
                     wait_for_interrupt_and_signal(Some(specific_setup.task_manager), vpn_ctrl_rx)
                         .await;
-                handle_interrupt(route_manager, None, tunnel_close_tx)
+                handle_interrupt(Arc::new(RwLock::new(specific_setup.route_manager)), None)
                     .await
                     .map_err(|err| {
                         error!("Failed to handle interrupt: {err}");
@@ -452,23 +432,15 @@ impl NymVpn {
                 mut dns_monitor,
             } => {
                 let result = wait_for_interrupt_and_signal(None, vpn_ctrl_rx).await;
-                for TunnelSetup {
-                    route_manager,
-                    tunnel_close_tx,
-                    specific_setup,
-                } in [entry, exit]
-                {
-                    handle_interrupt(
-                        route_manager,
-                        Some((specific_setup.receiver, specific_setup.handle)),
-                        tunnel_close_tx,
-                    )
-                    .await
-                    .map_err(|err| {
-                        error!("Failed to handle interrupt: {err}");
-                        Box::new(NymVpnExitError::Generic { reason: err })
-                    })?;
-                }
+                handle_interrupt(
+                    entry.specific_setup.route_manager.clone(),
+                    Some([entry.specific_setup, exit.specific_setup]),
+                )
+                .await
+                .map_err(|err| {
+                    error!("Failed to handle interrupt: {err}");
+                    Box::new(NymVpnExitError::Generic { reason: err })
+                })?;
                 dns_monitor.reset().map_err(|err| {
                     error!("Failed to reset dns monitor: {err}");
                     NymVpnExitError::FailedToResetDnsMonitor {

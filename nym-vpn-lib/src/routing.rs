@@ -35,7 +35,6 @@ pub struct RoutingConfig {
 
     pub(crate) entry_mixnet_gateway_ip: IpAddr,
     pub(crate) lan_gateway_ip: LanGatewayIp,
-    pub(crate) tunnel_gateway_ip: TunnelGatewayIp,
     pub(crate) enable_wireguard: bool,
     pub(crate) disable_routing: bool,
     #[cfg(target_os = "android")]
@@ -48,13 +47,12 @@ impl Display for RoutingConfig {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "mixnet_tun_config: {:?}\ntun_ips: {:?}\nmtu: {}\nentry_mixnet_gateway_ip: {:?}\nlan_gateway_ip: {:?}\ntunnel_gateway_ip: {:?}\nenable_wireguard: {:?}\ndisable_routing: {:?}",
+            "mixnet_tun_config: {:?}\ntun_ips: {:?}\nmtu: {}\nentry_mixnet_gateway_ip: {:?}\nlan_gateway_ip: {:?}\nenable_wireguard: {:?}\ndisable_routing: {:?}",
             self.mixnet_tun_config,
             self.tun_ips,
             self.mtu,
             self.entry_mixnet_gateway_ip,
             self.lan_gateway_ip,
-            self.tunnel_gateway_ip,
             self.enable_wireguard,
             self.disable_routing
         )
@@ -67,7 +65,6 @@ impl RoutingConfig {
         tun_ips: IpPair,
         entry_mixnet_gateway_ip: IpAddr,
         lan_gateway_ip: LanGatewayIp,
-        tunnel_gateway_ip: TunnelGatewayIp,
         #[cfg(target_os = "android")] gateway_ws_fd: Option<RawFd>,
     ) -> Self {
         debug!("TUN device IPs: {}", tun_ips);
@@ -89,7 +86,6 @@ impl RoutingConfig {
             mtu,
             entry_mixnet_gateway_ip,
             lan_gateway_ip,
-            tunnel_gateway_ip,
             enable_wireguard: vpn.enable_wireguard,
             disable_routing: vpn.disable_routing,
             #[cfg(target_os = "android")]
@@ -116,22 +112,16 @@ impl RoutingConfig {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct TunnelGatewayIp {
     pub ipv4: Ipv4Addr,
     pub ipv6: Option<Ipv6Addr>,
 }
 
 impl TunnelGatewayIp {
-    pub fn new(wireguard_config: Option<WireguardConfig>) -> Self {
-        let ipv4 = wireguard_config
-            .as_ref()
-            .map(|c| c.0.ipv4_gateway)
-            .unwrap_or(Ipv4Addr::new(10, 1, 0, 1));
-        let ipv6 = wireguard_config
-            .as_ref()
-            .map(|c| c.0.ipv6_gateway)
-            .unwrap_or(None);
+    pub fn new(wireguard_config: &WireguardConfig) -> Self {
+        let ipv4 = wireguard_config.0.ipv4_gateway;
+        let ipv6 = wireguard_config.0.ipv6_gateway;
         Self { ipv4, ipv6 }
     }
 }
@@ -169,19 +159,12 @@ impl std::fmt::Display for LanGatewayIp {
 }
 
 #[cfg_attr(not(target_os = "windows"), allow(unused_variables))]
-fn get_tunnel_nodes(
-    iface_name: &str,
-    ipv4_gateway: Ipv4Addr,
-    ipv6_gateway: Option<Ipv6Addr>,
-) -> (Node, Node) {
+fn get_tunnel_nodes(iface_name: &str) -> (Node, Node) {
     #[cfg(windows)]
     {
+        let ipv4_gateway = Ipv4Addr::new(10, 1, 0, 1);
         let v4 = Node::new(ipv4_gateway.into(), iface_name.to_string());
-        let v6 = if let Some(ipv6_gateway) = ipv6_gateway.as_ref() {
-            Node::new((*ipv6_gateway).into(), iface_name.to_string())
-        } else {
-            Node::device(iface_name.to_string())
-        };
+        let v6 = Node::device(iface_name.to_string());
         (v4, v6)
     }
 
@@ -340,11 +323,7 @@ pub async fn setup_mixnet_routing(
         return Ok(dev);
     }
 
-    let (node_v4, node_v6) = get_tunnel_nodes(
-        &device_name,
-        config.tunnel_gateway_ip.ipv4,
-        config.tunnel_gateway_ip.ipv6,
-    );
+    let (node_v4, node_v6) = get_tunnel_nodes(&device_name);
     debug!("Using node_v4: {:?}", node_v4);
     debug!("Using node_v6: {:?}", node_v6);
 

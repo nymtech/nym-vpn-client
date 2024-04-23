@@ -1,60 +1,35 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::channel::oneshot::{self, Receiver, Sender};
+use futures::channel::oneshot;
 use log::*;
 use std::{
     net::Ipv4Addr,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, RwLock},
 };
 use talpid_routing::RouteManager;
 use talpid_tunnel::tun_provider::TunProvider;
 use tap::TapFallible;
 
 use crate::{
-    error::Result,
+    error::{Error, Result},
     init_wireguard_config,
-    routing::{self, TunnelGatewayIp},
-    tunnel::{setup_route_manager, start_tunnel, Tunnel},
+    tunnel::{start_tunnel, Tunnel},
     tunnel_setup::WgTunnelSetup,
     util::handle_interrupt,
     wg_gateway_client::WgGatewayClient,
 };
 use nym_gateway_directory::{GatewayClient, NodeIdentity};
 
-pub struct WireguardSetup {
-    pub route_manager: RouteManager,
-    // The IP address of the gateway inside the tunnel. This will depend on if wireguard is
-    // enabled
-    pub tunnel_gateway_ip: TunnelGatewayIp,
-    pub tunnel_close_tx: Sender<()>,
-}
-
-pub async fn empty_wireguard_setup() -> Result<(WireguardSetup, Receiver<()>)> {
-    info!("Setting up route manager");
-    let route_manager = setup_route_manager().await?;
-    let tunnel_gateway_ip = routing::TunnelGatewayIp::new(None);
-    let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
-
-    Ok((
-        WireguardSetup {
-            route_manager,
-            tunnel_gateway_ip,
-            tunnel_close_tx,
-        },
-        tunnel_close_rx,
-    ))
-}
-
 pub async fn create_wireguard_tunnel(
     private_key: &str,
     wg_ip: Ipv4Addr,
+    route_manager: Arc<RwLock<RouteManager>>,
     tun_provider: Arc<Mutex<TunProvider>>,
     gateway_client: &GatewayClient,
     wg_gateway_client: &WgGatewayClient,
     gateway_identity: &NodeIdentity,
-) -> Result<(WireguardSetup, WgTunnelSetup, Tunnel)> {
-    let (mut wireguard_setup, tunnel_close_rx) = empty_wireguard_setup().await?;
+) -> Result<(WgTunnelSetup, Tunnel)> {
     let wireguard_config = init_wireguard_config(
         gateway_client,
         wg_gateway_client,
@@ -63,31 +38,25 @@ pub async fn create_wireguard_tunnel(
         wg_ip.into(),
     )
     .await?;
+    let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
 
-    wireguard_setup.tunnel_gateway_ip =
-        routing::TunnelGatewayIp::new(Some(wireguard_config.clone()));
-
+    let handle = route_manager
+        .read()
+        .map_err(|_| Error::RouteManagerPoisonedLock)?
+        .handle()?;
     info!("Creating tunnel");
-    let tunnel = match Tunnel::new(
-        wireguard_config.clone(),
-        wireguard_setup.route_manager.handle()?,
-        tun_provider,
-    ) {
+    let tunnel = match Tunnel::new(wireguard_config.clone(), handle, tun_provider) {
         Ok(tunnel) => tunnel,
         Err(err) => {
             error!("Failed to create tunnel: {err}");
             debug!("{err:?}");
             // Ignore if these fail since we're interesting in the original error anyway
-            handle_interrupt(
-                wireguard_setup.route_manager,
-                None,
-                wireguard_setup.tunnel_close_tx,
-            )
-            .await
-            .tap_err(|err| {
-                warn!("Failed to handle interrupt: {err}");
-            })
-            .ok();
+            handle_interrupt(route_manager, None)
+                .await
+                .tap_err(|err| {
+                    warn!("Failed to handle interrupt: {err}");
+                })
+                .ok();
             return Err(err);
         }
     };
@@ -97,9 +66,11 @@ pub async fn create_wireguard_tunnel(
     let tunnel_handle = start_tunnel(&tunnel, tunnel_close_rx, finished_shutdown_tx)?;
 
     let wireguard_waiting = WgTunnelSetup {
+        route_manager,
         receiver: finished_shutdown_rx,
+        tunnel_close_tx,
         handle: tunnel_handle,
     };
 
-    Ok((wireguard_setup, wireguard_waiting, tunnel))
+    Ok((wireguard_waiting, tunnel))
 }

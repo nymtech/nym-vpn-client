@@ -1,11 +1,10 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{error::*, NymVpnCtrlMessage};
-use futures::{
-    channel::{mpsc, oneshot},
-    StreamExt,
-};
+use std::sync::{Arc, RwLock};
+
+use crate::{error::*, tunnel_setup::WgTunnelSetup, NymVpnCtrlMessage};
+use futures::{channel::mpsc, StreamExt};
 use log::*;
 use talpid_routing::RouteManager;
 #[cfg(target_os = "linux")]
@@ -65,38 +64,56 @@ pub(crate) async fn wait_for_interrupt_and_signal(
 
 #[cfg_attr(target_os = "windows", allow(unused_mut))]
 pub(crate) async fn handle_interrupt(
-    mut route_manager: RouteManager,
-    wireguard_waiting: Option<(oneshot::Receiver<()>, tokio::task::JoinHandle<Result<()>>)>,
-    tunnel_close_tx: oneshot::Sender<()>,
+    route_manager: Arc<RwLock<RouteManager>>,
+    wireguard_waiting: Option<[WgTunnelSetup; 2]>,
 ) -> Result<()> {
-    let is_wireguard_waiting = wireguard_waiting.is_some();
+    let (tunnel_close_tx, finished_shutdown_rx, tunnel_handle) = match wireguard_waiting {
+        Some([entry_setup, exit_setup]) => (
+            Some([entry_setup.tunnel_close_tx, exit_setup.tunnel_close_tx]),
+            Some([entry_setup.receiver, exit_setup.receiver]),
+            Some([entry_setup.handle, exit_setup.handle]),
+        ),
+        None => (None, None, None),
+    };
 
     let sig_handle = tokio::task::spawn_blocking(move || -> Result<()> {
         debug!("Received interrupt signal");
-        route_manager.clear_routes()?;
-        #[cfg(target_os = "linux")]
-        if let Err(error) =
-            tokio::runtime::Handle::current().block_on(route_manager.clear_routing_rules())
-        {
-            error!(
-                "{}",
-                error.display_chain_with_msg("Failed to clear routing rules")
-            );
+        if let Ok(mut route_manager) = route_manager.write() {
+            route_manager.clear_routes()?;
+            #[cfg(target_os = "linux")]
+            if let Err(error) =
+                tokio::runtime::Handle::current().block_on(route_manager.clear_routing_rules())
+            {
+                error!(
+                    "{}",
+                    error.display_chain_with_msg("Failed to clear routing rules")
+                );
+            }
+        } else {
+            error!("Router manager lock was poisoned, routing table couldn't be cleaned");
         }
-        if is_wireguard_waiting {
-            tunnel_close_tx
-                .send(())
-                .map_err(|_| Error::FailedToSendWireguardTunnelClose)?;
+        if let Some([entry_tx, exit_tx]) = tunnel_close_tx {
+            let ret1 = entry_tx.send(());
+            let ret2 = exit_tx.send(());
+            if ret1.is_err() || ret2.is_err() {
+                return Err(Error::FailedToSendWireguardTunnelClose);
+            }
         }
         Ok(())
     });
 
-    if let Some((finished_shutdown_rx, tunnel_handle)) = wireguard_waiting {
-        tunnel_handle.await??;
-        sig_handle.await??;
-        finished_shutdown_rx.await?;
-    } else {
-        sig_handle.await??;
+    if let Some([h1, h2]) = tunnel_handle {
+        let ret1 = h1.await;
+        let ret2 = h2.await;
+        ret1??;
+        ret2??;
+    }
+    sig_handle.await??;
+    if let Some([rx1, rx2]) = finished_shutdown_rx {
+        let ret1 = rx1.await;
+        let ret2 = rx2.await;
+        ret1?;
+        ret2?;
     }
     Ok(())
 }

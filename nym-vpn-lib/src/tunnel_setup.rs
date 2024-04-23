@@ -1,11 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::{Arc, RwLock};
+
 use crate::error::{Error, Result};
 use crate::routing::setup_wg_routing;
+use crate::tunnel::setup_route_manager;
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::WgGatewayClient;
-use crate::wireguard_setup::{create_wireguard_tunnel, empty_wireguard_setup};
+use crate::wireguard_setup::create_wireguard_tunnel;
 use crate::{routing, MixnetConnectionInfo, NymVpn};
 use futures::channel::oneshot;
 use log::*;
@@ -17,14 +20,13 @@ use talpid_routing::RouteManager;
 use tap::TapFallible;
 
 pub struct TunnelSetup<T: TunnelSpecifcSetup> {
-    pub route_manager: RouteManager,
-    pub tunnel_close_tx: oneshot::Sender<()>,
     pub specific_setup: T,
 }
 
 pub trait TunnelSpecifcSetup {}
 
 pub struct MixTunnelSetup {
+    pub route_manager: RouteManager,
     pub mixnet_connection_info: MixnetConnectionInfo,
     pub task_manager: TaskManager,
 }
@@ -32,7 +34,9 @@ pub struct MixTunnelSetup {
 impl TunnelSpecifcSetup for MixTunnelSetup {}
 
 pub struct WgTunnelSetup {
+    pub route_manager: Arc<RwLock<RouteManager>>,
     pub receiver: oneshot::Receiver<()>,
+    pub tunnel_close_tx: oneshot::Sender<()>,
     pub handle: tokio::task::JoinHandle<Result<()>>,
 }
 
@@ -142,43 +146,49 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
     debug!("default_lan_gateway_ip: {default_lan_gateway_ip}");
 
     let task_manager = TaskManager::new(10);
+    info!("Setting up route manager");
+    let mut route_manager = setup_route_manager().await?;
 
     if nym_vpn.enable_wireguard {
-        let (mut wireguard_setup_exit, wireguard_waiting_exit, tunnel_exit) =
-            create_wireguard_tunnel(
-                nym_vpn
-                    .exit_private_key
-                    .as_ref()
-                    .expect("clap should enforce value when wireguard enabled"),
-                nym_vpn
-                    .exit_wg_ip
-                    .expect("clap should enforce value when wireguard enabled"),
-                nym_vpn.tun_provider.clone(),
-                &gateway_client,
-                &wg_gateway_client,
-                &exit_gateway_id,
-            )
-            .await?;
+        let route_manager = Arc::new(RwLock::new(route_manager));
+        let (wireguard_waiting_exit, tunnel_exit) = create_wireguard_tunnel(
+            nym_vpn
+                .exit_private_key
+                .as_ref()
+                .expect("clap should enforce value when wireguard enabled"),
+            nym_vpn
+                .exit_wg_ip
+                .expect("clap should enforce value when wireguard enabled"),
+            route_manager.clone(),
+            nym_vpn.tun_provider.clone(),
+            &gateway_client,
+            &wg_gateway_client,
+            &exit_gateway_id,
+        )
+        .await?;
         let (firewall, dns_monitor) = init_firewall_dns(
             #[cfg(target_os = "linux")]
             tunnel_exit.route_manager_handle.clone(),
         )?;
-        let (wireguard_setup_entry, wireguard_waiting_entry, tunnel_entry) =
-            create_wireguard_tunnel(
-                nym_vpn
-                    .entry_private_key
-                    .as_ref()
-                    .expect("clap should enforce value when wireguard enabled"),
-                nym_vpn
-                    .entry_wg_ip
-                    .expect("clap should enforce value when wireguard enabled"),
-                nym_vpn.tun_provider.clone(),
-                &gateway_client,
-                &wg_gateway_client,
-                &entry_gateway_id,
-            )
-            .await?;
-        wireguard_setup_exit.route_manager.clear_routes()?;
+        let (wireguard_waiting_entry, tunnel_entry) = create_wireguard_tunnel(
+            nym_vpn
+                .entry_private_key
+                .as_ref()
+                .expect("clap should enforce value when wireguard enabled"),
+            nym_vpn
+                .entry_wg_ip
+                .expect("clap should enforce value when wireguard enabled"),
+            route_manager.clone(),
+            nym_vpn.tun_provider.clone(),
+            &gateway_client,
+            &wg_gateway_client,
+            &entry_gateway_id,
+        )
+        .await?;
+        route_manager
+            .write()
+            .map_err(|_| Error::RouteManagerPoisonedLock)?
+            .clear_routes()?;
         setup_wg_routing(
             tunnel_entry.config.clone(),
             tunnel_exit.config.clone(),
@@ -187,17 +197,17 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
         )
         .await?;
         let entry = TunnelSetup {
-            route_manager: wireguard_setup_entry.route_manager,
-            tunnel_close_tx: wireguard_setup_entry.tunnel_close_tx,
             specific_setup: WgTunnelSetup {
+                route_manager: route_manager.clone(),
+                tunnel_close_tx: wireguard_waiting_entry.tunnel_close_tx,
                 receiver: wireguard_waiting_entry.receiver,
                 handle: wireguard_waiting_entry.handle,
             },
         };
         let exit = TunnelSetup {
-            route_manager: wireguard_setup_exit.route_manager,
-            tunnel_close_tx: wireguard_setup_exit.tunnel_close_tx,
             specific_setup: WgTunnelSetup {
+                route_manager,
+                tunnel_close_tx: wireguard_waiting_exit.tunnel_close_tx,
                 receiver: wireguard_waiting_exit.receiver,
                 handle: wireguard_waiting_exit.handle,
             },
@@ -211,10 +221,9 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
         })
     } else {
         info!("Wireguard is disabled");
-        let (mut wireguard_setup, _) = empty_wireguard_setup().await?;
         let (mut firewall, mut dns_monitor) = init_firewall_dns(
             #[cfg(target_os = "linux")]
-            wireguard_setup.route_manager.handle()?,
+            route_manager.handle()?,
         )?;
 
         // Now it's time start all the stuff that needs running inside the tunnel, and that we need
@@ -225,34 +234,29 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
 
         let (exit_router_address, _) = nym_vpn.exit_point.lookup_router_address(&gateways)?;
 
-        let mixnet_connection_info = match nym_vpn
+        let ret = nym_vpn
             .setup_tunnel_services(
-                &mut wireguard_setup.route_manager,
+                &mut route_manager,
                 &entry_gateway_id,
                 &exit_router_address,
                 &task_manager,
                 &gateway_client,
                 default_lan_gateway_ip,
-                wireguard_setup.tunnel_gateway_ip,
             )
-            .await
-        {
+            .await;
+        let mixnet_connection_info = match ret {
             Ok(mixnet_connection_info) => mixnet_connection_info,
             Err(err) => {
                 error!("Failed to setup tunnel services: {err}");
                 debug!("{err:?}");
                 wait_for_interrupt(task_manager).await;
                 // Ignore if these fail since we're interesting in the original error anyway
-                handle_interrupt(
-                    wireguard_setup.route_manager,
-                    None,
-                    wireguard_setup.tunnel_close_tx,
-                )
-                .await
-                .tap_err(|err| {
-                    warn!("Failed to handle interrupt: {err}");
-                })
-                .ok();
+                handle_interrupt(Arc::new(RwLock::new(route_manager)), None)
+                    .await
+                    .tap_err(|err| {
+                        warn!("Failed to handle interrupt: {err}");
+                    })
+                    .ok();
                 dns_monitor
                     .reset()
                     .tap_err(|err| {
@@ -270,9 +274,8 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
         };
 
         Ok(AllTunnelsSetup::Mix(TunnelSetup {
-            route_manager: wireguard_setup.route_manager,
-            tunnel_close_tx: wireguard_setup.tunnel_close_tx,
             specific_setup: MixTunnelSetup {
+                route_manager,
                 mixnet_connection_info,
                 task_manager,
             },
