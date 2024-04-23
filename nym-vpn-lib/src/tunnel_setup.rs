@@ -149,7 +149,7 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
             nym_vpn.tun_provider.clone(),
             &gateway_directory_client,
             &wg_gateway_client,
-            &exit_gateway_id,
+            exit_gateway_id,
         )
         .await?;
         let (firewall, dns_monitor) = init_firewall_dns(
