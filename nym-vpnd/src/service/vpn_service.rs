@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use futures::channel::mpsc::UnboundedSender;
 use futures::SinkExt;
-use nym_vpn_lib::gateway_directory;
+use nym_vpn_lib::gateway_directory::{self};
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::oneshot;
 use tracing::info;
@@ -28,9 +28,18 @@ pub enum VpnState {
 
 #[derive(Debug)]
 pub enum VpnServiceCommand {
-    Connect(oneshot::Sender<VpnServiceConnectResult>),
+    Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
+}
+
+#[derive(Debug)]
+pub enum ConnectArgs {
+    // Read the entry and exit points from the config file.
+    Default,
+
+    #[allow(unused)]
+    Custom(String, String),
 }
 
 #[derive(Debug)]
@@ -104,8 +113,10 @@ impl NymVpnService {
         Ok(config)
     }
 
-    async fn handle_connect(&mut self) -> VpnServiceConnectResult {
+    async fn handle_connect(&mut self, _connect_args: ConnectArgs) -> VpnServiceConnectResult {
         self.set_shared_state(VpnState::Connecting);
+
+        // TODO: use connect_args here
 
         let config = match self.try_setup_config() {
             Ok(config) => config,
@@ -175,8 +186,8 @@ impl NymVpnService {
         while let Some(command) = self.vpn_command_rx.recv().await {
             info!("VPN: Received command: {:?}", command);
             match command {
-                VpnServiceCommand::Connect(tx) => {
-                    let result = self.handle_connect().await;
+                VpnServiceCommand::Connect(tx, connect_args) => {
+                    let result = self.handle_connect(connect_args).await;
                     tx.send(result).unwrap();
                 }
                 VpnServiceCommand::Disconnect(tx) => {

@@ -5,7 +5,8 @@ use tokio::sync::{mpsc::UnboundedSender, oneshot};
 use tracing::{info, warn};
 
 use crate::service::{
-    VpnServiceCommand, VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceStatusResult,
+    ConnectArgs, VpnServiceCommand, VpnServiceConnectResult, VpnServiceDisconnectResult,
+    VpnServiceStatusResult,
 };
 
 pub(super) struct CommandInterfaceConnectionHandler {
@@ -20,8 +21,9 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_connect(&self) -> VpnServiceConnectResult {
         info!("Starting VPN");
         let (tx, rx) = oneshot::channel();
+        let connect_args = ConnectArgs::Default;
         self.vpn_command_tx
-            .send(VpnServiceCommand::Connect(tx))
+            .send(VpnServiceCommand::Connect(tx, connect_args))
             .unwrap();
         info!("Sent start command to VPN");
         info!("Waiting for response");
