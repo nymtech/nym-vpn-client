@@ -27,6 +27,12 @@ export type CodeDependency = {
   copyright?: string;
 };
 
+export type WindowSize = {
+  type: 'Physical' | 'Logical';
+  width: number;
+  height: number;
+};
+
 export type AppState = {
   // initial loading phase when the app is starting and fetching data from the backend
   initialized: boolean;
@@ -54,6 +60,7 @@ export type AppState = {
   rootFontSize: number;
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
+  windowSize?: WindowSize | null;
 };
 
 export type ConnectionEventPayload = {

@@ -186,6 +186,14 @@ pub enum Error {
 
     #[error("poisoned route manager lock")]
     RouteManagerPoisonedLock,
+
+    #[error("invalid credential: {reason}")]
+    InvalidCredential {
+        reason: crate::credentials::CredentialError,
+    },
+
+    #[error(transparent)]
+    CredentialError(#[from] crate::credentials::CredentialError),
 }
 
 // Result type based on our error type

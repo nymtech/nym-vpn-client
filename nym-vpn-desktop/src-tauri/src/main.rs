@@ -10,12 +10,14 @@ use tokio::sync::Mutex;
 use tracing::{debug, error, info, trace};
 
 use commands::db as cmd_db;
+use commands::window as cmd_window;
 use commands::*;
 use states::app::AppState;
 
+use crate::window::WindowSize;
 use crate::{
     cli::{print_build_info, Cli},
-    db::Db,
+    db::{Db, Key},
     fs::{config::AppConfig, storage::AppStorage},
     network::setup_network_env,
 };
@@ -31,6 +33,7 @@ mod http;
 mod network;
 mod states;
 mod vpn_client;
+mod window;
 
 pub const APP_DIR: &str = "nym-vpn";
 const APP_CONFIG_FILE: &str = "config.toml";
@@ -102,9 +105,20 @@ async fn main() -> Result<()> {
         .manage(Arc::new(Mutex::new(app_state)))
         .manage(Arc::new(app_config))
         .manage(Arc::new(cli))
-        .manage(db)
+        .manage(db.clone())
         .setup(move |app| {
             info!("app setup");
+
+            // restore any previously saved window size
+            let window_size = db.get_typed::<WindowSize>(Key::WindowSize)?;
+            if let Some(s) = window_size {
+                debug!("restoring window size: {:?}", s);
+                let main_win = app.get_window("main").expect("failed to get main window");
+                main_win
+                    .set_size(s)
+                    .inspect_err(|e| error!("failed to set window size {}", e))?;
+            }
+
             let env_nosplash = env::var(ENV_APP_NOSPLASH).map(|_| true).unwrap_or(false);
             trace!("env APP_NOSPLASH: {}", env_nosplash);
 
@@ -134,7 +148,7 @@ async fn main() -> Result<()> {
             node_location::set_node_location,
             node_location::get_fastest_node_location,
             node_location::get_countries,
-            window::show_main_window,
+            cmd_window::show_main_window,
             commands::cli::cli_args,
             log::log_js,
         ])

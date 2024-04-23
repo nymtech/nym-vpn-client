@@ -8,7 +8,7 @@ use nym_sdk::mixnet::NodeIdentity;
 use serde::{Deserialize, Serialize};
 
 use super::described_gateway::{
-    by_identity, by_location, by_random, by_random_low_latency, LookupGateway,
+    by_location, by_random, by_random_low_latency, verify_identity, LookupGateway,
 };
 
 // The entry point is always a gateway identity, or some other entry that can be resolved to a
@@ -58,10 +58,24 @@ impl LookupGateway for EntryPoint {
         gateways: &[DescribedGatewayWithLocation],
     ) -> Result<(NodeIdentity, Option<String>)> {
         match &self {
-            EntryPoint::Gateway { identity } => by_identity(gateways, identity),
-            EntryPoint::Location { location } => by_location(gateways, location),
+            EntryPoint::Gateway { identity } => verify_identity(gateways, identity),
+            EntryPoint::Location { location } => {
+                by_location(gateways, location).map_err(|err| match err {
+                    Error::NoMatchingGatewayForLocation {
+                        requested_location,
+                        available_countries,
+                    } => Error::NoMatchingEntryGatewayForLocation {
+                        requested_location,
+                        available_countries,
+                    },
+                    err => err,
+                })
+            }
             EntryPoint::RandomLowLatency => by_random_low_latency(gateways).await,
-            EntryPoint::Random => by_random(gateways),
+            EntryPoint::Random => {
+                log::info!("Selecting a random entry gateway");
+                by_random(gateways)
+            }
         }
     }
 }

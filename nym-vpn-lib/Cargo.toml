@@ -30,6 +30,7 @@ serde_json.workspace = true
 signature.workspace = true
 tap.workspace = true
 thiserror.workspace = true
+time.workspace = true
 tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
 tokio-util = { workspace = true, features = ["codec"] }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
@@ -50,10 +51,12 @@ talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev =
 talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "a76d598a7a33e9668f16105b68f6a608b72c9a89" }
 talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "a76d598a7a33e9668f16105b68f6a608b72c9a89" }
 
+nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
 nym-client-core.workspace = true
 nym-config.workspace = true
 nym-credential-storage.workspace = true
+nym-credentials.workspace = true
 nym-crypto.workspace = true
 nym-explorer-client.workspace = true
 nym-id.workspace = true

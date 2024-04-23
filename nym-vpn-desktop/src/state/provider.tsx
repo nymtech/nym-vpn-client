@@ -14,7 +14,7 @@ type Props = {
 export function MainStateProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  useTauriEvents(dispatch);
+  useTauriEvents(dispatch, state);
 
   // initialize app state
   useEffect(() => {

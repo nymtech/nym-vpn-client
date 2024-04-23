@@ -1,11 +1,15 @@
+import * as _ from 'lodash-es';
 import { useCallback, useEffect } from 'react';
-import { listen } from '@tauri-apps/api/event';
-import { appWindow } from '@tauri-apps/api/window';
+import { EventCallback, listen } from '@tauri-apps/api/event';
+import { PhysicalSize, appWindow } from '@tauri-apps/api/window';
 import dayjs from 'dayjs';
+import { kvSet } from '../kvStore';
 import {
+  AppState,
   ConnectionEventPayload,
   ProgressEventPayload,
   StateDispatch,
+  WindowSize,
 } from '../types';
 import { ConnectionEvent, ProgressEvent } from '../constants';
 
@@ -18,7 +22,7 @@ function handleError(dispatch: StateDispatch, error?: string | null) {
   dispatch({ type: 'set-error', error });
 }
 
-export function useTauriEvents(dispatch: StateDispatch) {
+export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
   const registerStateListener = useCallback(() => {
     return listen<ConnectionEventPayload>(ConnectionEvent, (event) => {
       console.log(
@@ -74,20 +78,49 @@ export function useTauriEvents(dispatch: StateDispatch) {
     });
   }, [dispatch]);
 
+  const registerWindowResizedListener = useCallback(() => {
+    return appWindow.onResized(
+      _.debounce<EventCallback<PhysicalSize>>(
+        ({ payload }) => {
+          if (
+            payload.width !== state.windowSize?.width ||
+            payload.height !== state.windowSize?.height
+          ) {
+            const size: WindowSize = {
+              type: 'Physical',
+              width: payload.width,
+              height: payload.height,
+            };
+            kvSet<WindowSize>('WindowSize', size);
+            dispatch({ type: 'set-window-size', size });
+          }
+        },
+        200,
+        {
+          leading: false,
+          trailing: true,
+        },
+      ),
+    );
+  }, [dispatch, state.windowSize]);
+
   // register/unregister event listener
   useEffect(() => {
     const unlistenState = registerStateListener();
     const unlistenProgress = registerProgressListener();
     const unlistenThemeChanges = registerThemeChangedListener();
+    const unlistenWindowResized = registerWindowResizedListener();
 
     return () => {
       unlistenState.then((f) => f());
       unlistenProgress.then((f) => f());
       unlistenThemeChanges.then((f) => f());
+      unlistenWindowResized.then((f) => f());
     };
   }, [
     registerStateListener,
     registerProgressListener,
     registerThemeChangedListener,
+    registerWindowResizedListener,
   ]);
 }

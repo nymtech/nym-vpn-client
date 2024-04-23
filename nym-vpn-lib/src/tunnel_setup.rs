@@ -6,13 +6,13 @@ use std::sync::{Arc, RwLock};
 use crate::error::{Error, Result};
 use crate::routing::setup_wg_routing;
 use crate::tunnel::setup_route_manager;
-use crate::util::{handle_interrupt, wait_for_interrupt};
+use crate::util::handle_interrupt;
 use crate::wg_gateway_client::WgGatewayClient;
 use crate::wireguard_setup::create_wireguard_tunnel;
 use crate::{routing, MixnetConnectionInfo, NymVpn};
 use futures::channel::oneshot;
 use log::*;
-use nym_gateway_directory::{DescribedGatewayWithLocation, GatewayClient, LookupGateway};
+use nym_gateway_directory::{GatewayClient, GatewayQueryResult, LookupGateway};
 use nym_task::TaskManager;
 use talpid_core::dns::DnsMonitor;
 use talpid_core::firewall::Firewall;
@@ -96,56 +96,42 @@ fn init_firewall_dns(
 pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
     // Create a gateway client that we use to interact with the entry gateway, in particular to
     // handle wireguard registration
-    let gateway_client = GatewayClient::new(nym_vpn.gateway_config.clone())?;
-    let gateways = gateway_client
-        .lookup_described_gateways_with_location()
+    let gateway_directory_client = GatewayClient::new(nym_vpn.gateway_config.clone())?;
+    let GatewayQueryResult {
+        entry_gateways,
+        exit_gateways,
+    } = gateway_directory_client
+        .lookup_described_entry_and_exit_gateways_with_location()
         .await?;
+
     // This info would be useful at at least debug level, but it's just so much data that it
     // would be overwhelming
-    log::trace!("Got gateways {:?}", gateways);
+    log::trace!("Got entry gateways {:?}", entry_gateways);
+    log::trace!("Got exit gateways {:?}", exit_gateways);
 
     let wg_gateway_client = WgGatewayClient::new(nym_vpn.wg_gateway_config.clone())?;
     log::info!("Created wg gateway client");
 
-    // If the entry or exit point relies on location, do a basic defensive consistency check on
-    // the fetched location data. If none of the gateways have location data, we can't proceed
-    // and it's likely the explorer-api isn't set correctly.
-    if (nym_vpn.entry_point.is_location() || nym_vpn.exit_point.is_location())
-        && gateways.iter().filter(|g| g.has_location()).count() == 0
-    {
-        return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
-    }
-
-    //filter so we are only getting exit gateways with current api version
-    let working_exit_gateways: Vec<DescribedGatewayWithLocation> = gateways
-        .clone()
-        .into_iter()
-        .filter(|gateway| gateway.is_current_build())
-        .collect();
-
-    if working_exit_gateways.is_empty() {
-        return Err(Error::CountryExitGatewaysOutdated);
-    }
-
     let (entry_gateway_id, entry_location) = nym_vpn
         .entry_point
-        .lookup_gateway_identity(&gateways)
+        .lookup_gateway_identity(&entry_gateways)
         .await?;
     let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
-    let (exit_gateway_id, exit_location) = nym_vpn
-        .exit_point
-        .lookup_gateway_identity(&working_exit_gateways)
-        .await?;
+
+    let (exit_router_address, exit_location) =
+        nym_vpn.exit_point.lookup_router_address(&exit_gateways)?;
     let exit_location_str = exit_location.as_deref().unwrap_or("unknown");
+    let exit_gateway_id = exit_router_address.gateway();
 
     info!("Using entry gateway: {entry_gateway_id}, location: {entry_location_str}");
     info!("Using exit gateway: {exit_gateway_id}, location: {exit_location_str}");
+    info!("Using exit router address {exit_router_address}");
 
     // Get the IP address of the local LAN gateway
     let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
     debug!("default_lan_gateway_ip: {default_lan_gateway_ip}");
 
-    let task_manager = TaskManager::new(10);
+    let mut task_manager = TaskManager::new(10).named("nym_vpn_lib");
     info!("Setting up route manager");
     let mut route_manager = setup_route_manager().await?;
 
@@ -161,7 +147,7 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
                 .expect("clap should enforce value when wireguard enabled"),
             route_manager.clone(),
             nym_vpn.tun_provider.clone(),
-            &gateway_client,
+            &gateway_directory_client,
             &wg_gateway_client,
             &exit_gateway_id,
         )
@@ -180,7 +166,7 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
                 .expect("clap should enforce value when wireguard enabled"),
             route_manager.clone(),
             nym_vpn.tun_provider.clone(),
-            &gateway_client,
+            &gateway_directory_client,
             &wg_gateway_client,
             &entry_gateway_id,
         )
@@ -231,16 +217,13 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
         // - Sets up mixnet client, and connects
         // - Sets up routing
         // - Starts processing packets
-
-        let (exit_router_address, _) = nym_vpn.exit_point.lookup_router_address(&gateways)?;
-
         let ret = nym_vpn
             .setup_tunnel_services(
                 &mut route_manager,
                 &entry_gateway_id,
                 &exit_router_address,
                 &task_manager,
-                &gateway_client,
+                &gateway_directory_client,
                 default_lan_gateway_ip,
             )
             .await;
@@ -249,7 +232,9 @@ pub async fn setup_tunnel(nym_vpn: &mut NymVpn) -> Result<AllTunnelsSetup> {
             Err(err) => {
                 error!("Failed to setup tunnel services: {err}");
                 debug!("{err:?}");
-                wait_for_interrupt(task_manager).await;
+                task_manager.signal_shutdown().ok();
+                task_manager.wait_for_shutdown().await;
+                info!("Interrupt handled");
                 // Ignore if these fail since we're interesting in the original error anyway
                 handle_interrupt(Arc::new(RwLock::new(route_manager)), None)
                     .await

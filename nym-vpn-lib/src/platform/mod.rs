@@ -127,6 +127,7 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn, FFIError> {
     );
     vpn.gateway_config.api_url = config.api_url;
     vpn.gateway_config.explorer_url = Some(config.explorer_url);
+    vpn.gateway_config.harbour_master_url = None;
     vpn.enable_two_hop = config.enable_two_hop;
 
     Ok(vpn)
@@ -201,6 +202,7 @@ async fn get_gateway_countries(
     let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
+        harbour_master_url: None,
     };
     let gateway_client = GatewayClient::new(config)?;
 
@@ -225,6 +227,7 @@ async fn get_low_latency_entry_country(
     let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
+        harbour_master_url: None,
     };
     let gateway_client = GatewayClient::new(config)?;
     let described = gateway_client.lookup_low_latency_entry_gateway().await?;

@@ -18,7 +18,9 @@
     "allowlist": {
       "all": false,
       "process": { "all": true },
-      "shell": { "all": false, "open": true }
+      "shell": { "all": false, "open": true },
+      "os": { "all": true },
+      "window": { "setSize": true }
     },
     "bundle": {
       "active": true,

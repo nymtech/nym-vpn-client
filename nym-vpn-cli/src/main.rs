@@ -12,7 +12,7 @@ use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayConfig;
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
 use nym_vpn_lib::{NymVpn, Recipient};
 
-use crate::commands::{override_from_env, wg_override_from_env, Commands};
+use crate::commands::{wg_override_from_env, Commands};
 use clap::Parser;
 use log::*;
 use nym_vpn_lib::nym_config::defaults::{setup_env, var_names};
@@ -113,13 +113,20 @@ async fn run() -> Result<()> {
 }
 
 async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<()> {
-    // Setup gateway configuration
-    let gateway_config = override_from_env(&args, GatewayConfig::default());
+    // Setup gateway directory configuration
+    let gateway_config = GatewayConfig::new_from_env();
     info!("nym-api: {}", gateway_config.api_url());
     info!(
         "explorer-api: {}",
         gateway_config
             .explorer_url()
+            .map(|url| url.to_string())
+            .unwrap_or("unavailable".to_string())
+    );
+    info!(
+        "harbour-master: {}",
+        gateway_config
+            .harbour_master_url()
             .map(|url| url.to_string())
             .unwrap_or("unavailable".to_string())
     );
@@ -165,7 +172,7 @@ async fn import_credential(args: commands::ImportCredentialArgs, data_path: Path
         ImportCredentialTypeEnum::Data(data) => data,
     };
     fs::create_dir_all(&data_path)?;
-    nym_vpn_lib::credentials::import_credential(raw_credential, data_path).await
+    Ok(nym_vpn_lib::credentials::import_credential(raw_credential, data_path).await?)
 }
 
 fn mixnet_data_path() -> Option<PathBuf> {

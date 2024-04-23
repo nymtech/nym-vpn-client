@@ -17,6 +17,12 @@ pub enum Error {
     #[error(transparent)]
     ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
 
+    #[error(transparent)]
+    HarbourMasterError(#[from] nym_harbour_master_client::HarbourMasterError),
+
+    #[error(transparent)]
+    HarbourMasterApiError(#[from] nym_harbour_master_client::HarbourMasterApiError),
+
     #[error("failed to fetch location data from explorer-api: {error}")]
     FailedFetchLocationData {
         error: nym_explorer_client::ExplorerApiError,
@@ -44,6 +50,12 @@ pub enum Error {
 
     #[error("no matching gateway found")]
     NoMatchingGateway,
+
+    #[error("no gateway available for location {requested_location}, available countries: {available_countries:?}")]
+    NoMatchingGatewayForLocation {
+        requested_location: String,
+        available_countries: Vec<String>,
+    },
 
     #[error("no entry gateway available for location {requested_location}, available countries: {available_countries:?}")]
     NoMatchingEntryGatewayForLocation {

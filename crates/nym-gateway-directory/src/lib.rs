@@ -14,7 +14,7 @@ pub use crate::{
         ipr_address::IpPacketRouterAddress,
     },
     error::Error,
-    gateway_client::{Config, GatewayClient},
+    gateway_client::{Config, GatewayClient, GatewayQueryResult},
 };
 
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};

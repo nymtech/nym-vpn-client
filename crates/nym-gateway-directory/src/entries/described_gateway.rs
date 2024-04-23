@@ -101,17 +101,25 @@ pub trait LookupGateway {
     ) -> Result<(NodeIdentity, Option<String>)>;
 }
 
-pub fn by_identity(
+pub fn verify_identity(
     gateways: &[DescribedGatewayWithLocation],
     identity: &NodeIdentity,
 ) -> Result<(NodeIdentity, Option<String>)> {
-    // Confirm up front that the gateway identity is in the list of gateways from the
-    // directory.
+    // Confirm that the gateway exists in the list of gateways
+    let _ = by_identity(gateways, identity)?;
+
+    Ok((*identity, None))
+}
+
+pub fn by_identity(
+    gateways: &[DescribedGatewayWithLocation],
+    identity: &NodeIdentity,
+) -> Result<DescribedGatewayWithLocation> {
     gateways
         .iter()
         .find(|gateway| gateway.identity_key() == &identity.to_string())
-        .ok_or(Error::NoMatchingGateway)?;
-    Ok((*identity, None))
+        .cloned()
+        .ok_or(Error::NoMatchingGateway)
 }
 
 pub fn by_location(
@@ -125,12 +133,31 @@ pub fn by_location(
         .iter()
         .filter(|g| g.is_two_letter_iso_country_code(location));
     if gateways_with_specified_location.clone().count() == 0 {
-        return Err(Error::NoMatchingEntryGatewayForLocation {
+        return Err(Error::NoMatchingGatewayForLocation {
             requested_location: location.to_string(),
             available_countries: list_all_country_iso_codes(gateways),
         });
     }
     select_random_gateway_node(gateways_with_specified_location)
+}
+
+pub fn by_location_described(
+    gateways: &[DescribedGatewayWithLocation],
+    location: &str,
+) -> Result<DescribedGatewayWithLocation> {
+    // Caution: if an explorer-api for a different network was specified, then
+    // none of the gateways will have an associated location. There is a check
+    // against this earlier in the call stack to guard against this scenario.
+    let gateways_with_specified_location = gateways
+        .iter()
+        .filter(|g| g.is_two_letter_iso_country_code(location));
+    if gateways_with_specified_location.clone().count() == 0 {
+        return Err(Error::NoMatchingGatewayForLocation {
+            requested_location: location.to_string(),
+            available_countries: list_all_country_iso_codes(gateways),
+        });
+    }
+    select_random_described_gateway(gateways_with_specified_location).cloned()
 }
 
 pub async fn by_random_low_latency(
@@ -143,6 +170,11 @@ pub async fn by_random_low_latency(
 pub fn by_random(
     gateways: &[DescribedGatewayWithLocation],
 ) -> Result<(NodeIdentity, Option<String>)> {
-    log::info!("Selecting a random entry gateway");
     select_random_gateway_node(gateways)
+}
+
+pub fn by_random_described(
+    gateways: &[DescribedGatewayWithLocation],
+) -> Result<DescribedGatewayWithLocation> {
+    select_random_described_gateway(gateways).cloned()
 }

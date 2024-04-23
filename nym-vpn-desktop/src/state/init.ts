@@ -13,6 +13,7 @@ import {
   ThemeMode,
   UiTheme,
   VpnMode,
+  WindowSize,
 } from '../types';
 import fireRequests, { TauriReq } from './helper';
 
@@ -206,6 +207,16 @@ async function init(dispatch: StateDispatch) {
     },
   };
 
+  const getWindowSizeRq: TauriReq<() => Promise<WindowSize | undefined>> = {
+    name: 'getWindowSize',
+    request: () => kvGet<WindowSize>('WindowSize'),
+    onFulfilled: (size) => {
+      if (size) {
+        dispatch({ type: 'set-window-size', size });
+      }
+    },
+  };
+
   const getDepsRustRq: TauriReq<() => Promise<CodeDependency[] | undefined>> = {
     name: 'getDepsRustRq',
     request: () => getRustLicenses(),
@@ -245,6 +256,7 @@ async function init(dispatch: StateDispatch) {
     getMonitoringRq,
     getDepsRustRq,
     getDepsJsRq,
+    getWindowSizeRq,
   ]);
 }
 
