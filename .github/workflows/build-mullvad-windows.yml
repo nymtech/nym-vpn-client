@@ -1,0 +1,40 @@
+name: build-mullvad-windows
+on: [workflow_dispatch, workflow_call]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: "custom-windows-11"
+
+    steps:
+      - name: Checkout mullvad libs for Windows
+        uses: actions/checkout@v4
+        with:
+          repository: nymtech/nym-vpn-mullvad-libs
+          ref: main
+          path: "nym-vpn-mullvad-libs"
+          submodules: true
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v2
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build/Move winfw.dll from mullvad
+        shell: bash
+        run: |
+          cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
+          CPP_BUILD_MODES=Release ./build-windows-modules.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mullvad-libs-x64-release
+          path: |
+            ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release
+          retention-days: 10

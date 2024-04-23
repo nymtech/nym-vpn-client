@@ -32,4 +32,4 @@ jobs:
           name: wireguard-go_ubuntu-22.04_x86_64
           path: |
             build/lib/x86_64-unknown-linux-gnu
-          retention-days: 1
+          retention-days: 10

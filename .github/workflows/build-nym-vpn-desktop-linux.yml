@@ -16,8 +16,8 @@ jobs:
     needs: build-wireguard-go-linux
     runs-on: ubuntu-22.04-16-core
     outputs:
-      pkg_version: ${{ steps.set_env.outputs.pkg_version }}
-      appimage_dir: ${{ env.APPIMAGE_DIR }}
+      PKG_VERSION: ${{ steps.set_env.outputs.PKG_VERSION }}
+      UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -39,9 +39,6 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
-      - name: Install cargo-about
-        run: cargo install --locked cargo-about
-
       - name: Install Node
         uses: actions/setup-node@v4
         with:
@@ -52,14 +49,6 @@ jobs:
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: package.version --entry nym-vpn-desktop/src-tauri
-
-      - name: Check tag name consistency
-        if: github.event_name == 'push'
-        shell: bash
-        run: |
-          if [[ nym-vpn-desktop-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
-            exit 1
-          fi
 
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
@@ -88,9 +77,6 @@ jobs:
           ls -la target/release/ || true
           ls -la target/release/bundle || true
           ls -la target/release/bundle/* || true
-          ls -la target/${{ env.ARCH_TARGET }}/release/ || true
-          ls -la target/${{ env.ARCH_TARGET }}/release/bundle || true
-          ls -la target/${{ env.ARCH_TARGET }}/release/bundle/* || true
 
       - name: Move things around to prepare for upload
         env:
