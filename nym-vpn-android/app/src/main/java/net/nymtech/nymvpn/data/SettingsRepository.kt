@@ -3,9 +3,21 @@ package net.nymtech.nymvpn.data
 import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.data.model.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.VpnMode
 
 interface SettingsRepository {
+
+	suspend fun init()
+
+	suspend fun getFirstHopCountry(): Country
+
+	suspend fun setFirstHopCountry(country: Country)
+
+	suspend fun getLastHopCountry(): Country
+
+	suspend fun setLastHopCountry(country: Country)
+
 	suspend fun getTheme(): Theme
 
 	suspend fun setTheme(theme: Theme)
@@ -17,10 +29,6 @@ interface SettingsRepository {
 	suspend fun isAutoStartEnabled(): Boolean
 
 	suspend fun setAutoStart(enabled: Boolean)
-
-	suspend fun isLoggedIn(): Boolean
-
-	suspend fun setLoggedIn(loggedIn: Boolean)
 
 	suspend fun isErrorReportingEnabled(): Boolean
 

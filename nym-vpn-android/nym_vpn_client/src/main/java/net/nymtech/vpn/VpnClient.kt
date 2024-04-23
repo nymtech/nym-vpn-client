@@ -13,7 +13,7 @@ interface VpnClient {
 	var entryPoint: EntryPoint
 	var exitPoint: ExitPoint
 	var mode: VpnMode
-	fun start(context: Context, foreground: Boolean = false)
+	fun start(context: Context, credential: String, foreground: Boolean = false)
 
 	fun stop(context: Context, foreground: Boolean = false)
 

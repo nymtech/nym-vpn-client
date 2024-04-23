@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.ui.HopType
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.Country
@@ -19,7 +20,8 @@ import javax.inject.Inject
 class HopViewModel
 @Inject
 constructor(
-	private val gatewayRepository: GatewayRepository,
+	gatewayRepository: GatewayRepository,
+	private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 	private val _uiState = MutableStateFlow(HopUiState())
 
@@ -69,8 +71,8 @@ constructor(
 	private fun setSelectedCountry() = viewModelScope.launch {
 		val selectedCountry =
 			when (_uiState.value.hopType) {
-				HopType.FIRST -> gatewayRepository.getFirstHopCountry()
-				HopType.LAST -> gatewayRepository.getLastHopCountry()
+				HopType.FIRST -> settingsRepository.getFirstHopCountry()
+				HopType.LAST -> settingsRepository.getLastHopCountry()
 			}
 		_uiState.value =
 			_uiState.value.copy(
@@ -80,8 +82,8 @@ constructor(
 
 	fun onSelected(country: Country) = viewModelScope.launch {
 		when (_uiState.value.hopType) {
-			HopType.FIRST -> gatewayRepository.setFirstHopCountry(country)
-			HopType.LAST -> gatewayRepository.setLastHopCountry(country)
+			HopType.FIRST -> settingsRepository.setFirstHopCountry(country)
+			HopType.LAST -> settingsRepository.setLastHopCountry(country)
 		}
 		NymVpn.requestTileServiceStateUpdate(NymVpn.instance)
 	}

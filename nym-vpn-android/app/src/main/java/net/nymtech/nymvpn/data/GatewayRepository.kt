@@ -5,17 +5,10 @@ import net.nymtech.nymvpn.data.model.Gateways
 import net.nymtech.vpn.model.Country
 
 interface GatewayRepository {
-	suspend fun getFirstHopCountry(): Country
-
-	suspend fun setFirstHopCountry(country: Country)
 
 	suspend fun getLowLatencyCountry(): Country
 
 	suspend fun setLowLatencyCountry(country: Country)
-
-	suspend fun getLastHopCountry(): Country
-
-	suspend fun setLastHopCountry(country: Country)
 
 	suspend fun setEntryCountries(countries: Set<Country>)
 

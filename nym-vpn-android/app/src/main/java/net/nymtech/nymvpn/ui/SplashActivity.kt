@@ -13,8 +13,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.BuildConfig
+import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.util.Constants
 import javax.inject.Inject
 
@@ -23,7 +23,7 @@ import javax.inject.Inject
 class SplashActivity : ComponentActivity() {
 
 	@Inject
-	lateinit var dataStoreManager: DataStoreManager
+	lateinit var gatewayRepository: GatewayRepository
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
@@ -36,7 +36,7 @@ class SplashActivity : ComponentActivity() {
 		lifecycleScope.launch {
 			repeatOnLifecycle(Lifecycle.State.CREATED) {
 				// init data
-				dataStoreManager.init()
+				settingsRepository.init()
 
 				configureSentry()
 

@@ -10,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -205,31 +204,32 @@ fun SettingsScreen(
 						)
 					},
 				),
-				SelectionItem(
-					Icons.Outlined.Analytics,
-					title = {
-						Text(
-							stringResource(R.string.anonymous_analytics),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-						)
-					},
-					description = {
-						Text(
-							stringResource(id = R.string.anonymous_analytics_description),
-							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-						)
-					},
-					trailing = {
-						Switch(
-							appUiState.settings.analyticsEnabled,
-							{ appViewModel.onAnalyticsReportingSelected() },
-							modifier =
-							Modifier
-								.height(32.dp.scaledHeight())
-								.width(52.dp.scaledWidth()),
-						)
-					},
-				),
+				// TODO disable until api ready
+// 				SelectionItem(
+// 					Icons.Outlined.Analytics,
+// 					title = {
+// 						Text(
+// 							stringResource(R.string.anonymous_analytics),
+// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+// 						)
+// 					},
+// 					description = {
+// 						Text(
+// 							stringResource(id = R.string.anonymous_analytics_description),
+// 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+// 						)
+// 					},
+// 					trailing = {
+// 						Switch(
+// 							appUiState.settings.analyticsEnabled,
+// 							{ appViewModel.onAnalyticsReportingSelected() },
+// 							modifier =
+// 							Modifier
+// 								.height(32.dp.scaledHeight())
+// 								.width(52.dp.scaledWidth()),
+// 						)
+// 					},
+// 				),
 			),
 		)
 		SurfaceSelectionGroupButton(

@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.util
 
 object Constants {
+
 	const val SUBSCRIPTION_TIMEOUT = 5_000L
 	const val LOG_BUFFER_DELAY = 3_000L
 	const val LOG_BUFFER_SIZE = 5_000L

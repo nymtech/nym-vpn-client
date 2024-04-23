@@ -243,6 +243,7 @@ dependencies {
 
 	// storage
 	implementation(libs.androidx.datastore.preferences)
+	implementation(libs.androidx.security.crypto)
 
 	// splash
 	implementation(libs.androidx.core.splashscreen)

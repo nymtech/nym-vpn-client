@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -22,9 +21,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -158,23 +159,24 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 							)
 						},
 					),
-					SelectionItem(
-						Icons.Outlined.Analytics,
-						title = {
-							Text(stringResource(R.string.share_anonymous_analytics), style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSurface))
-						},
-						trailing = {
-							Switch(
-								appUiState.settings.analyticsEnabled,
-								{ appViewModel.onAnalyticsReportingSelected() },
-								modifier =
-								Modifier
-									.height(32.dp.scaledHeight())
-									.width(52.dp.scaledWidth()),
-							)
-						},
-						height = 80,
-					),
+					// TODO disable until api ready
+// 					SelectionItem(
+// 						Icons.Outlined.Analytics,
+// 						title = {
+// 							Text(stringResource(R.string.share_anonymous_analytics), style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSurface))
+// 						},
+// 						trailing = {
+// 							Switch(
+// 								appUiState.settings.analyticsEnabled,
+// 								{ appViewModel.onAnalyticsReportingSelected() },
+// 								modifier =
+// 								Modifier
+// 									.height(32.dp.scaledHeight())
+// 									.width(52.dp.scaledWidth()),
+// 							)
+// 						},
+// 						height = 80,
+// 					),
 				),
 			)
 			MainStyledButton(onClick = {
@@ -188,7 +190,12 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 			})
 			ClickableText(
 				text = termsMessage,
-				style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.outline, textAlign = TextAlign.Center),
+				style = MaterialTheme.typography.labelMedium.copy(
+					color = MaterialTheme.colorScheme.outline,
+					fontWeight = FontWeight(500),
+					letterSpacing = 0.5.sp,
+					textAlign = TextAlign.Center,
+				),
 				modifier = Modifier.padding(bottom = 24.dp.scaledHeight()),
 			) {
 				termsMessage.getStringAnnotations(tag = "terms", it, it).firstOrNull()?.let { annotation ->

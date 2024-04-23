@@ -10,7 +10,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.data.GatewayRepository
+import net.nymtech.nymvpn.data.SecretsRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.model.VpnMode
@@ -21,7 +21,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class VpnQuickTile : TileService() {
 	@Inject
-	lateinit var gatewayRepository: GatewayRepository
+	lateinit var secretsRepository: SecretsRepository
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
@@ -84,13 +84,15 @@ class VpnQuickTile : TileService() {
 				VpnState.Up -> vpnClient.stop(this, true)
 				VpnState.Down -> {
 					scope.launch {
-						vpnClient.apply {
-							this.mode = settingsRepository.getVpnMode()
-							this.exitPoint = gatewayRepository.getLastHopCountry().toExitPoint()
-							this.entryPoint = gatewayRepository.getFirstHopCountry().toEntryPoint()
+						val credential = secretsRepository.getCredential()
+						if (credential != null) {
+							vpnClient.apply {
+								this.mode = settingsRepository.getVpnMode()
+								this.exitPoint = settingsRepository.getLastHopCountry().toExitPoint()
+								this.entryPoint = settingsRepository.getFirstHopCountry().toEntryPoint()
+							}.start(this@VpnQuickTile, credential, true)
+							NymVpn.requestTileServiceStateUpdate(this@VpnQuickTile)
 						}
-						vpnClient.start(this@VpnQuickTile, true)
-						NymVpn.requestTileServiceStateUpdate(this@VpnQuickTile)
 					}
 				}
 
@@ -100,8 +102,8 @@ class VpnQuickTile : TileService() {
 	}
 
 	private fun setTileText() = scope.launch {
-		val firstHopCountry = gatewayRepository.getFirstHopCountry()
-		val lastHopCountry = gatewayRepository.getLastHopCountry()
+		val firstHopCountry = settingsRepository.getFirstHopCountry()
+		val lastHopCountry = settingsRepository.getLastHopCountry()
 		val mode = settingsRepository.getVpnMode()
 		val isTwoHop = mode == VpnMode.TWO_HOP_MIXNET
 		setTitle(

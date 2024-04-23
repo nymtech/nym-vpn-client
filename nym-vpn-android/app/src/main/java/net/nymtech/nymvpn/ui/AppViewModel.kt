@@ -1,11 +1,18 @@
 package net.nymtech.nymvpn.ui
 
+import android.app.AlarmManager
 import android.app.Application
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateListOf
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,6 +52,9 @@ constructor(
 	private val vpnClient: VpnClient,
 	private val nymApi: NymApi,
 ) : ViewModel() {
+
+	private val alarmManager: AlarmManager = application.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
 	private val _uiState = MutableStateFlow(AppUiState())
 
 	val logs = mutableStateListOf<LogMessage>()
@@ -112,7 +122,7 @@ constructor(
 		viewModelScope.launch(Dispatchers.IO) {
 			updateExitCountriesCache()
 			updateEntryCountriesCache()
-			if (!settingsRepository.isFirstHopSelectionEnabled() || gatewayRepository.getFirstHopCountry().isDefault) {
+			if (!settingsRepository.isFirstHopSelectionEnabled() || settingsRepository.getFirstHopCountry().isDefault) {
 				updateFirstHopDefaultCountry()
 			}
 		}
@@ -128,12 +138,12 @@ constructor(
 
 	fun onEntryLocationSelected(selected: Boolean) = viewModelScope.launch {
 		settingsRepository.setFirstHopSelection(selected)
-		gatewayRepository.setFirstHopCountry(Country(isDefault = true))
+		settingsRepository.setFirstHopCountry(Country(isDefault = true))
 		updateFirstHopDefaultCountry()
 	}
 
 	private suspend fun updateFirstHopDefaultCountry() {
-		val firstHop = gatewayRepository.getFirstHopCountry()
+		val firstHop = settingsRepository.getFirstHopCountry()
 		if (firstHop.isDefault || firstHop.isLowLatency) {
 			setFirstHopToLowLatency()
 		}
@@ -171,21 +181,45 @@ constructor(
 		}.onFailure {
 			Timber.e(it)
 		}.onSuccess {
-			gatewayRepository.setFirstHopCountry(it)
+			settingsRepository.setFirstHopCountry(it)
 		}
 	}
 
 	fun openWebPage(url: String) {
 		try {
 			val webpage: Uri = Uri.parse(url)
-			val intent =
-				Intent(Intent.ACTION_VIEW, webpage).apply {
-					addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-				}
-			application.startActivity(intent)
+			Intent(Intent.ACTION_VIEW, webpage).apply {
+				addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+			}.also {
+				application.startActivity(it)
+			}
 		} catch (e: ActivityNotFoundException) {
 			Timber.e(e)
 			showSnackbarMessage(application.getString(R.string.no_browser_detected))
+		}
+	}
+
+	@RequiresApi(Build.VERSION_CODES.S)
+	fun isAlarmPermissionGranted(): Boolean {
+		return alarmManager.canScheduleExactAlarms()
+	}
+
+	@RequiresApi(Build.VERSION_CODES.S)
+	fun requestAlarmPermission() {
+		when {
+			alarmManager.canScheduleExactAlarms() -> {
+				// permission granted
+				Timber.d("Permission already granted for alarms")
+			}
+			else -> {
+				// open alarm permission screen
+				Intent().apply {
+					addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+					action = ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+				}.also {
+					application.startActivity(it)
+				}
+			}
 		}
 	}
 

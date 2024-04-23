@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.data.model
 
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.VpnMode
 
 data class Settings(
@@ -10,13 +11,13 @@ data class Settings(
 	val errorReportingEnabled: Boolean = REPORTING_DEFAULT,
 	val analyticsEnabled: Boolean = REPORTING_DEFAULT,
 	val firstHopSelectionEnabled: Boolean = FIRST_HOP_SELECTION_DEFAULT,
-	val loggedIn: Boolean = LOGGED_IN_DEFAULT,
 	val isAnalyticsShown: Boolean = ANALYTICS_SHOWN_DEFAULT,
+	val firstHopCountry: Country = Country(),
+	val lastHopCountry: Country = Country(),
 ) {
 	companion object {
 		const val FIRST_HOP_SELECTION_DEFAULT = false
 		const val AUTO_START_DEFAULT = false
-		const val LOGGED_IN_DEFAULT = false
 		const val REPORTING_DEFAULT = false
 		const val ANALYTICS_SHOWN_DEFAULT = false
 	}

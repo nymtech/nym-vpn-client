@@ -29,8 +29,4 @@ constructor(
 	fun onAutoConnectSelected(selected: Boolean) = viewModelScope.launch {
 		settingsRepository.setAutoStart(selected)
 	}
-
-	fun onLogOutSelected() = viewModelScope.launch {
-		settingsRepository.setLoggedIn(false)
-	}
 }

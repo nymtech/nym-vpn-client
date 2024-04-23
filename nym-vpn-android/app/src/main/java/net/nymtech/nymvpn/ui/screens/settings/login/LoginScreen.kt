@@ -147,7 +147,7 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
 				MainStyledButton(
 					Constants.LOGIN_TEST_TAG,
 					onClick = {
-						viewModel.onLogin(recoveryPhrase).let {
+						viewModel.onImportCredential(recoveryPhrase).let {
 							when (it) {
 								is Result.Success -> {
 									navController.navigate(NavItem.Main.route) {

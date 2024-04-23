@@ -23,6 +23,7 @@ lifecycle-runtime-compose = "2.7.0"
 activityCompose = "1.8.2"
 composeBom = "2024.04.00"
 datastorePreferences = "1.0.0"
+securityCrypto = "1.1.0-alpha06"
 timber = "5.0.1"
 hiltAndroid = "2.51"
 kotlinx-serialization-json = "1.6.3"
@@ -45,6 +46,7 @@ gradlePlugins-ktlint="12.1.0"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }

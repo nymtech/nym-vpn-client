@@ -127,7 +127,7 @@ class MainActivity : ComponentActivity() {
 							.fillMaxSize()
 							.padding(it),
 					) {
-						composable(NavItem.Main.route) { MainScreen(navController, uiState) }
+						composable(NavItem.Main.route) { MainScreen(navController, appViewModel, uiState) }
 						composable(NavItem.Analytics.route) { AnalyticsScreen(navController, appViewModel, uiState) }
 						composable(NavItem.Settings.route) {
 							SettingsScreen(

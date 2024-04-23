@@ -29,6 +29,7 @@ import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
 import nym_vpn_lib.FfiException
 import nym_vpn_lib.VpnConfig
+import nym_vpn_lib.checkCredential
 import nym_vpn_lib.runVpn
 import timber.log.Timber
 
@@ -77,7 +78,14 @@ object NymVpnClient {
 		private val _state = MutableStateFlow(ClientState())
 		override val stateFlow: Flow<ClientState> = _state.asStateFlow()
 
-		override fun start(context: Context, foreground: Boolean) {
+		override fun start(context: Context, credential: String, foreground: Boolean) {
+			try {
+				checkCredential(credential)
+				Timber.i("Credential is valid")
+			} catch (e: FfiException.InvalidCredential) {
+				Timber.e(e)
+				return
+			}
 			clearErrorStatus()
 			job = collectLogStatus(context)
 			if (foreground) ServiceManager.startVpnServiceForeground(context) else ServiceManager.startVpnService(context)

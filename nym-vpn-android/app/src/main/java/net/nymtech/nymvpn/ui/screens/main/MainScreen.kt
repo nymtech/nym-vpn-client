@@ -41,6 +41,7 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
@@ -60,7 +61,7 @@ import net.nymtech.vpn.model.VpnMode
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiState: AppUiState, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 
@@ -224,7 +225,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: 
 						MainStyledButton(
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
-								if (appUiState.settings.loggedIn) {
+								if (viewModel.isCredentialImported()) {
 									if (notificationPermissionState != null &&
 										!notificationPermissionState.status.isGranted
 									) {
@@ -234,6 +235,9 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, viewModel: 
 										return@MainStyledButton vpnActivityResultState.launch(
 											vpnIntent,
 										)
+									}
+									if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !appViewModel.isAlarmPermissionGranted()) {
+										return@MainStyledButton appViewModel.requestAlarmPermission()
 									}
 									viewModel.onConnect()
 								} else {
