@@ -31,6 +31,8 @@ pub enum VpnServiceCommand {
     Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
+    #[allow(unused)]
+    ImportCredential(oneshot::Sender<VpnImportCredentialResult>, String),
 }
 
 #[derive(Debug)]
@@ -74,6 +76,13 @@ pub enum VpnServiceStatusResult {
     Connecting,
     Connected,
     Disconnecting,
+}
+
+#[allow(unused)]
+#[derive(Debug)]
+pub enum VpnImportCredentialResult {
+    Success,
+    Fail(String),
 }
 
 pub(super) struct NymVpnService {
@@ -195,6 +204,13 @@ impl NymVpnService {
         }
     }
 
+    async fn handle_import_credential(
+        &mut self,
+        _credential: String,
+    ) -> VpnImportCredentialResult {
+        todo!()
+    }
+
     pub(super) async fn run(mut self) -> anyhow::Result<()> {
         while let Some(command) = self.vpn_command_rx.recv().await {
             info!("VPN: Received command: {:?}", command);
@@ -209,6 +225,10 @@ impl NymVpnService {
                 }
                 VpnServiceCommand::Status(tx) => {
                     let result = self.handle_status().await;
+                    tx.send(result).unwrap();
+                }
+                VpnServiceCommand::ImportCredential(tx, credential) => {
+                    let result = self.handle_import_credential(credential).await;
                     tx.send(result).unwrap();
                 }
             }
