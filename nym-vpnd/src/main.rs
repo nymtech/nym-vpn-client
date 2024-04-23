@@ -11,7 +11,6 @@ mod command_interface;
 mod logging;
 #[cfg(unix)]
 mod service;
-mod grpc;
 
 #[cfg(unix)]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
