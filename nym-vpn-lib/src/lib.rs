@@ -60,6 +60,8 @@ pub mod tunnel;
 pub mod util;
 pub mod wg_gateway_client;
 
+const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
+
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
     wg_gateway_client: &WgGatewayClient,
@@ -291,7 +293,7 @@ impl NymVpn {
         info!("Setting up mixnet client");
         info!("Connecting to entry gateway: {entry_gateway}");
         let mixnet_client = timeout(
-            Duration::from_secs(10),
+            Duration::from_secs(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS),
             setup_mixnet_client(
                 entry_gateway,
                 &self.mixnet_data_path,
@@ -304,7 +306,7 @@ impl NymVpn {
             ),
         )
         .await
-        .map_err(|_| Error::StartMixnetTimeout)??;
+        .map_err(|_| Error::StartMixnetTimeout(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS))??;
 
         // Now that we have a connection, collection some info about that and return
         let nym_address = mixnet_client.nym_address().await;
