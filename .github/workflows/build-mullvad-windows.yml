@@ -4,6 +4,9 @@ on: [workflow_dispatch, workflow_call]
 env:
   CARGO_TERM_COLOR: always
 
+# '' are required around any ${{ github.workspace }} because windows uses \ and bash does not recognize it
+# ....
+
 jobs:
   build:
     runs-on: "custom-windows-11"
@@ -28,7 +31,7 @@ jobs:
       - name: Build/Move winfw.dll from mullvad
         shell: bash
         run: |
-          cd ${{ github.workspace }}/nym-vpn-mullvad-libs
+          cd '${{ github.workspace }}/nym-vpn-mullvad-libs'
           CPP_BUILD_MODES=Release ./build-windows-modules.sh
 
       - name: Upload artifacts
@@ -36,5 +39,5 @@ jobs:
         with:
           name: winfw.dll
           path: |
-            ${{ github.workspace }}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release/winfw.dll
+            '${{ github.workspace }}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release/winfw.dll'
           retention-days: 10
