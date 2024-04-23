@@ -6,7 +6,8 @@ use std::path::{Path, PathBuf};
 use anyhow::Context;
 use clap::{Parser, Subcommand};
 use nym_vpn_proto::{
-    nym_vpnd_client::NymVpndClient, ConnectRequest, DisconnectRequest, StatusRequest,
+    nym_vpnd_client::NymVpndClient, ConnectRequest, DisconnectRequest, ImportUserCredentialRequest,
+    StatusRequest,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use tonic::transport::{Channel as TonicChannel, Endpoint as TonicEndpoint};
@@ -27,6 +28,7 @@ enum Command {
     Connect,
     Disconnect,
     Status,
+    ImportCredential,
 }
 
 #[tokio::main]
@@ -36,6 +38,7 @@ async fn main() -> anyhow::Result<()> {
         Command::Connect => connect(&args).await?,
         Command::Disconnect => disconnect(&args).await?,
         Command::Status => status(&args).await?,
+        Command::ImportCredential => import_credential(&args).await?,
     }
     Ok(())
 }
@@ -94,6 +97,16 @@ async fn status(args: &CliArgs) -> anyhow::Result<()> {
     let mut client = get_client(args).await?;
     let request = tonic::Request::new(StatusRequest {});
     let response = client.vpn_status(request).await?.into_inner();
+    println!("{:?}", response);
+    Ok(())
+}
+
+async fn import_credential(args: &CliArgs) -> anyhow::Result<()> {
+    let mut client = get_client(args).await?;
+    let request = tonic::Request::new(ImportUserCredentialRequest {
+        credential: "some_credential".to_string(),
+    });
+    let response = client.import_user_credential(request).await?.into_inner();
     println!("{:?}", response);
     Ok(())
 }
