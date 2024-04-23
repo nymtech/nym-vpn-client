@@ -4,8 +4,7 @@ on: [workflow_dispatch, workflow_call]
 env:
   CARGO_TERM_COLOR: always
 
-# '' are required around any ${{ github.workspace }} because windows uses \ and bash does not recognize it
-# ....
+# https://github.com/actions/runner-images/issues/1794#issuecomment-707217728
 
 jobs:
   build:
@@ -32,18 +31,19 @@ jobs:
         shell: bash
         run: |
           echo ${GITHUB_WORKSPACE}
-          echo ${{ github.workspace }}
+          echo ${GITHUB_WORKSPACE}
 
       - name: Build/Move winfw.dll from mullvad
         shell: bash
         run: |
-          cd '${{ github.workspace }}/nym-vpn-mullvad-libs'
+          cd '${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs'
           CPP_BUILD_MODES=Release ./build-windows-modules.sh
+          ls -lah windows
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: winfw.dll
           path: |
-            '${{ github.workspace }}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release/winfw.dll'
+            '${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release/winfw.dll'
           retention-days: 10
