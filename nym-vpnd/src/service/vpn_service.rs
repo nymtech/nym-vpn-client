@@ -12,7 +12,7 @@ use tokio::sync::oneshot;
 use tracing::info;
 
 use super::config::{
-    create_config_file, read_config_file, ConfigSetupError, NymVpnServiceConfig,
+    create_config_file, create_data_dir, read_config_file, ConfigSetupError, NymVpnServiceConfig,
     DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR,
 };
 use super::exit_listener::VpnServiceExitListener;
@@ -81,7 +81,6 @@ pub(super) struct NymVpnService {
     vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
     vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
     config_file: PathBuf,
-    #[allow(unused)]
     data_dir: PathBuf,
 }
 
@@ -126,9 +125,22 @@ impl NymVpnService {
             }
         };
 
-        let mut nym_vpn = nym_vpn_lib::NymVpn::new(config.entry_point, config.exit_point);
+        // Make sure the data dir exists
+        match create_data_dir(&self.data_dir) {
+            Ok(()) => {}
+            Err(err) => {
+                self.set_shared_state(VpnState::NotConnected);
+                return VpnServiceConnectResult::Fail(format!(
+                    "Failed to create data directory {:?}: {}",
+                    self.data_dir, err
+                ));
+            }
+        }
 
+        let mut nym_vpn = nym_vpn_lib::NymVpn::new(config.entry_point, config.exit_point);
         nym_vpn.gateway_config = gateway_directory::Config::new_from_env();
+        nym_vpn.mixnet_data_path = Some(self.data_dir.clone());
+
         let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn).unwrap();
 
         let nym_vpn_lib::NymVpnHandle {
@@ -151,6 +163,7 @@ impl NymVpnService {
     }
 
     fn set_shared_state(&self, state: VpnState) {
+        info!("VPN: Setting shared state to {:?}", state);
         *self.shared_vpn_state.lock().unwrap() = state;
     }
 
