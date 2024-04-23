@@ -18,7 +18,7 @@ jobs:
     uses: ./.github/workflows/build-mullvad-windows.yml
 
   build-windows:
-    needs: build-wireguard-go-windows
+    needs: [build-wireguard-go-windows,build-mullvad-windows]
     runs-on: custom-windows-11
     outputs:
       PKG_VERSION: ${{ steps.package-version.outputs.metadata }}
