@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 use futures::channel::mpsc::UnboundedSender;
 use futures::SinkExt;
+use nym_vpn_lib::credentials::import_credential_base58;
 use nym_vpn_lib::gateway_directory::{self};
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::oneshot;
@@ -219,9 +220,19 @@ impl NymVpnService {
 
     async fn handle_import_credential(
         &mut self,
-        _credential: String,
+        credential: String,
     ) -> VpnServiceImportUserCredentialResult {
-        todo!()
+        let is_running = self.vpn_ctrl_sender.is_some();
+        if is_running {
+            return VpnServiceImportUserCredentialResult::Fail(
+                "Can't import credential while VPN is running".to_string(),
+            );
+        }
+
+        match import_credential_base58(&credential, self.data_dir.clone()).await {
+            Ok(()) => VpnServiceImportUserCredentialResult::Success,
+            Err(err) => VpnServiceImportUserCredentialResult::Fail(err.to_string()),
+        }
     }
 
     pub(super) async fn run(mut self) -> anyhow::Result<()> {
