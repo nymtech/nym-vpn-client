@@ -51,6 +51,12 @@ pub enum Error {
     #[error("no matching gateway found")]
     NoMatchingGateway,
 
+    #[error("no gateway available for location {requested_location}, available countries: {available_countries:?}")]
+    NoMatchingGatewayForLocation {
+        requested_location: String,
+        available_countries: Vec<String>,
+    },
+
     #[error("no entry gateway available for location {requested_location}, available countries: {available_countries:?}")]
     NoMatchingEntryGatewayForLocation {
         requested_location: String,
@@ -68,6 +74,9 @@ pub enum Error {
 
     #[error("failed to select gateway randomly")]
     FailedToSelectGatewayRandomly,
+
+    #[error("tunnel in a tunnel works for gateway id or location")]
+    InvalidExitPointDescription,
 }
 
 // Result type based on our error type

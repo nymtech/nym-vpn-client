@@ -4,7 +4,7 @@ use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
     Config as GatewayDirectoryConfig, DescribedGatewayWithLocation, EntryPoint, ExitPoint,
-    GatewayClient as GatewayDirectoryClient, IpPacketRouterAddress,
+    GatewayClient as GatewayDirectoryClient, IpPacketRouterAddress, LookupGateway,
 };
 use nym_ip_packet_requests::{
     codec::MultiIpPacketCodec,
