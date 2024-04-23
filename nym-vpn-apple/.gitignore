@@ -58,3 +58,5 @@ Carthage/Build/
 
 nym-vpn-client/
 MixnetLibrary/Libs
+
+.sentryclirc

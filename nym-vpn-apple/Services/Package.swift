@@ -18,6 +18,7 @@ let package = Package(
         .library(name: "CountriesManager", targets: ["CountriesManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
+        .library(name: "SentryManager", targets: ["SentryManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
         .library(name: "TunnelStatus", targets: ["TunnelStatus"]),
         .library(name: "TunnelMixnet", targets: ["TunnelMixnet"]),
@@ -26,7 +27,8 @@ let package = Package(
     dependencies: [
         .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
         .package(url: "https://github.com/apple/swift-log", from: "1.5.4"),
-        .package(url: "https://git.zx2c4.com/wireguard-apple", exact: "1.0.15-26")
+        .package(url: "https://git.zx2c4.com/wireguard-apple", exact: "1.0.15-26"),
+        .package(url: "https://github.com/getsentry/sentry-cocoa", from: "8.0.0")
     ],
     targets: [
         .target(
@@ -73,6 +75,14 @@ let package = Package(
                 "AppSettings"
             ],
             path: "Sources/Services/Modifiers"
+        ),
+        .target(
+            name: "SentryManager",
+            dependencies: [
+                "AppSettings",
+                .product(name: "Sentry", package: "sentry-cocoa")
+            ],
+            path: "Sources/Services/SentryManager"
         ),
         .target(
             name: "Tunnels",

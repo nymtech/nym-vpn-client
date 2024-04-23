@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		879945902A074AE4A361BDE5 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 039BC834E17A4D65A7B58E47 /* Sentry */; };
 		D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
 		D9264E262B3DA062004594A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D9264E252B3DA062004594A8 /* Assets.xcassets */; };
 		D9281C452B877B8800834B53 /* Keychain in Frameworks */ = {isa = PBXBuildFile; productRef = D9281C442B877B8800834B53 /* Keychain */; };
@@ -60,6 +61,7 @@
 		D99A148C2B35A74200F2728B /* Theme in Frameworks */ = {isa = PBXBuildFile; productRef = D99A148B2B35A74200F2728B /* Theme */; };
 		D9BB534F2BAB16D500917C97 /* WireGuardKit in Frameworks */ = {isa = PBXBuildFile; productRef = D9BB534E2BAB16D500917C97 /* WireGuardKit */; };
 		D9BB53552BAC4AE500917C97 /* Tunnels in Frameworks */ = {isa = PBXBuildFile; productRef = D9BB53542BAC4AE500917C97 /* Tunnels */; };
+		D9BD6A142BD84EF400B42D6F /* SentryManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9BD6A132BD84EF400B42D6F /* SentryManager */; };
 		D9CD835D2B6C32D4008DA864 /* Modifiers in Frameworks */ = {isa = PBXBuildFile; productRef = D9CD835C2B6C32D4008DA864 /* Modifiers */; };
 		D9DB4D652BAB0F37005E8E02 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */; };
 		D9DB4D682BAB0F37005E8E02 /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9DB4D672BAB0F37005E8E02 /* PacketTunnelProvider.swift */; };
@@ -269,6 +271,7 @@
 				D97065E12B8DD44A00C27A9B /* TunnelStatus in Frameworks */,
 				D968BDC92B6AEA9D003F42E5 /* AppSettings in Frameworks */,
 				D99A148C2B35A74200F2728B /* Theme in Frameworks */,
+				D9BD6A142BD84EF400B42D6F /* SentryManager in Frameworks */,
 				D99A148A2B35A73F00F2728B /* Home in Frameworks */,
 				D974C03B2BBED2460011924A /* ConnectionManager in Frameworks */,
 				D95E2E0F2B837CE4009F9E2F /* WireGuardKit in Frameworks */,
@@ -287,6 +290,7 @@
 				D9DB4D722BAB11E3005E8E02 /* Keychain in Frameworks */,
 				D9BB534F2BAB16D500917C97 /* WireGuardKit in Frameworks */,
 				D9DB4D652BAB0F37005E8E02 /* NetworkExtension.framework in Frameworks */,
+				879945902A074AE4A361BDE5 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -568,6 +572,7 @@
 				D99A14872B359C8800F2728B /* Run Swiftlint */,
 				D954C0B32B51C17200C6BAAC /* Embed Foundation Extensions */,
 				D99820962BB6E73C000C1FEE /* Embed Frameworks */,
+				B4B27B828CC645368A4EC7F5 /* Upload Debug Symbols to Sentry */,
 			);
 			buildRules = (
 			);
@@ -588,6 +593,7 @@
 				D93214402B84D29200FFDC5E /* Logging */,
 				D97065E02B8DD44A00C27A9B /* TunnelStatus */,
 				D974C03A2BBED2460011924A /* ConnectionManager */,
+				D9BD6A132BD84EF400B42D6F /* SentryManager */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -763,6 +769,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		B4B27B828CC645368A4EC7F5 /* Upload Debug Symbols to Sentry */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
+			);
+			name = "Upload Debug Symbols to Sentry";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script is responsable to upload debug symbols and source context for Sentry.\nif which sentry-cli >/dev/null; then\nexport SENTRY_ORG=nymtech\nexport SENTRY_PROJECT=nym-vpn-ios\nERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)\nif [ ! $? -eq 0 ]; then\necho \"warning: sentry-cli - $ERROR\"\nfi\nelse\necho \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi\n";
+		};
 		D99A14872B359C8800F2728B /* Run Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -1291,6 +1312,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 24;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1330,6 +1352,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 24;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1553,6 +1576,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		2572D4170A084192AAA88AD8 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa/";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 		D932143F2B84D29200FFDC5E /* XCRemoteSwiftPackageReference "swift-log" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-log";
@@ -1580,6 +1611,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		039BC834E17A4D65A7B58E47 /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2572D4170A084192AAA88AD8 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
+		};
 		D9281C442B877B8800834B53 /* Keychain */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Keychain;
@@ -1722,6 +1758,10 @@
 		D9BB53542BAC4AE500917C97 /* Tunnels */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Tunnels;
+		};
+		D9BD6A132BD84EF400B42D6F /* SentryManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SentryManager;
 		};
 		D9CD835C2B6C32D4008DA864 /* Modifiers */ = {
 			isa = XCSwiftPackageProductDependency;

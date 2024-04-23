@@ -15,10 +15,15 @@ public final class AppSettings: ObservableObject {
             isEntryLocationSelectionOnPublisher = isEntryLocationSelectionOn
         }
     }
-    @AppStorage(AppSettingKey.errorReporting.rawValue) public var isErrorReportingOn = false
+    @AppStorage(AppSettingKey.errorReporting.rawValue) public var isErrorReportingOn = false {
+        didSet {
+            isErrorReportingOnPublisher = isErrorReportingOn
+        }
+    }
 
     // Observed values for view models
     @Published public var isEntryLocationSelectionOnPublisher = false
+    @Published public var isErrorReportingOnPublisher = false
 }
 
 enum AppSettingKey: String {

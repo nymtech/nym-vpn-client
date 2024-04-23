@@ -1,6 +1,7 @@
 import SwiftUI
 import AppSettings
 import Home
+import SentryManager
 import Theme
 
 @main
@@ -31,5 +32,6 @@ struct NymVPNApp: App {
 private extension NymVPNApp {
     func setup() {
         ThemeConfiguration.setup()
+        SentryManager.shared.setup()
     }
 }

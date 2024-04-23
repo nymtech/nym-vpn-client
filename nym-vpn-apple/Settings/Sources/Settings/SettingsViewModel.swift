@@ -122,6 +122,20 @@ private extension SettingsViewModel {
                     action: { [weak self] in
                         self?.navigateToSupport()
                     }
+                ),
+                SettingsListItemViewModel(
+                    accessory: .toggle(
+                        viewModel: ToggleViewModel(
+                            isOn: appSettings.isErrorReportingOn,
+                            action: { [weak self] isOn in
+                                self?.appSettings.isErrorReportingOn = isOn
+                            }
+                        )
+                    ),
+                    title: "settings.anonymousErrorReports.title".localizedString,
+                    subtitle: "settings.anonymousErrorReports.subtitle".localizedString,
+                    imageName: "errorReport",
+                    action: {}
                 )
             ]
         )

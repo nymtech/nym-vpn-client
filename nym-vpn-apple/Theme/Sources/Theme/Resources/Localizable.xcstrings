@@ -672,6 +672,28 @@
         }
       }
     },
+    "settings.anonymousErrorReports.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(via Sentry)"
+          }
+        }
+      }
+    },
+    "settings.anonymousErrorReports.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonymous error reports"
+          }
+        }
+      }
+    },
     "stop" : {
       "extractionState" : "manual",
       "localizations" : {
