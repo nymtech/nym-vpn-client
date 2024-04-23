@@ -36,7 +36,7 @@ jobs:
       - name: Build/Move winfw.dll from mullvad
         shell: bash
         run: |
-          cd '${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs'
+          cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
           CPP_BUILD_MODES=Release ./build-windows-modules.sh
           ls -lah windows
 
@@ -45,5 +45,5 @@ jobs:
         with:
           name: winfw.dll
           path: |
-            '${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release/winfw.dll'
+            ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release/winfw.dll
           retention-days: 10
