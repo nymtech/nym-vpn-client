@@ -19,15 +19,16 @@ let package = Package(
     dependencies: [
         .package(path: "../UIComponents"),
         .package(path: "../Settings"),
-        .package(name: "ConnectionManager", path: "../Services")
+        .package(path: "../Services")
     ],
     targets: [
         .target(
             name: "Home",
             dependencies: [
-                "ConnectionManager",
                 "UIComponents",
-                "Settings"
+                "Settings",
+                .product(name: "CountriesManager", package: "Services"),
+                .product(name: "ConnectionManager", package: "Services")
             ],
             path: "Sources"
         ),

@@ -12,8 +12,10 @@ let package = Package(
     ],
     products: [
         .library(name: "AppSettings", targets: ["AppSettings"]),
-        .library( name: "AppVersionProvider", targets: ["AppVersionProvider"]),
+        .library(name: "AppVersionProvider", targets: ["AppVersionProvider"]),
         .library(name: "ConnectionManager", targets: ["ConnectionManager"]),
+        .library(name: "Constants", targets: ["Constants"]),
+        .library(name: "CountriesManager", targets: ["CountriesManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
@@ -46,6 +48,19 @@ let package = Package(
             path: "Sources/Services/ConnectionManager"
         ),
         .target(
+            name: "Constants",
+            dependencies: [],
+            path: "Sources/Services/Constants"
+        ),
+        .target(
+            name: "CountriesManager",
+            dependencies: [
+                "Constants",
+                "MixnetLibrary"
+            ],
+            path: "Sources/Services/CountriesManager"
+        ),
+        .target(
             name: "Keychain",
             dependencies: [
                 .product(name: "Logging", package: "swift-log")
@@ -76,10 +91,11 @@ let package = Package(
         .target(
             name: "TunnelMixnet",
             dependencies: [
+                "Constants",
+                "CountriesManager",
                 "MixnetLibrary",
                 "Tunnels",
                 .product(name: "Logging", package: "swift-log")
-
             ],
             path: "Sources/Services/TunnelMixnet"
         ),

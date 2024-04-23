@@ -3,6 +3,7 @@
 
 // swiftlint:disable all
 import Foundation
+import Foundation
 
 // Depending on the consumer's build setup, the low-level FFI code
 // might be in a separate module, or it might be compiled inline into
@@ -1844,26 +1845,35 @@ public func FfiConverterTypeSocketAddr_lower(_ value: SocketAddr) -> RustBuffer 
 
 
 
+
+
 /**
- * Typealias from the type name used in the UDL file to the builtin type.  This
+ * Typealias from the type name used in the UDL file to the custom type.  This
  * is needed because the UDL type name is used in function/method signatures.
  */
-public typealias Url = String
+public typealias Url = URL
+
+
 public struct FfiConverterTypeUrl: FfiConverter {
+
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Url {
-        return try FfiConverterString.read(from: &buf)
+        let builtinValue = try FfiConverterString.read(from: &buf)
+        return URL(string: builtinValue)!
     }
 
     public static func write(_ value: Url, into buf: inout [UInt8]) {
-        return FfiConverterString.write(value, into: &buf)
+        let builtinValue = String(describing: value)
+        return FfiConverterString.write(builtinValue, into: &buf)
     }
 
     public static func lift(_ value: RustBuffer) throws -> Url {
-        return try FfiConverterString.lift(value)
+        let builtinValue = try FfiConverterString.lift(value)
+        return URL(string: builtinValue)!
     }
 
     public static func lower(_ value: Url) -> RustBuffer {
-        return FfiConverterString.lower(value)
+        let builtinValue = String(describing: value)
+        return FfiConverterString.lower(builtinValue)
     }
 }
 

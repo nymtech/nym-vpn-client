@@ -260,7 +260,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fastest"
+            "value" : "Lowest ping"
           }
         }
       }
@@ -452,7 +452,18 @@
         }
       }
     },
-    "firstHop" : {
+    "firstHopSelection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First hop selection"
+          }
+        }
+      }
+    },
+    "home.entryHop" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -463,13 +474,13 @@
         }
       }
     },
-    "firstHopSelection" : {
+    "home.exitHop" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "First hop selection"
+            "value" : "Last hop"
           }
         }
       }
@@ -503,17 +514,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Join us on Matrix"
-          }
-        }
-      }
-    },
-    "lastHop" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Last hop"
           }
         }
       }
@@ -557,7 +557,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Privacy policy"
+            "value" : "Privacy statement"
           }
         }
       }

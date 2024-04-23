@@ -103,8 +103,8 @@ private extension FeedbackViewModel {
     func errorReportingSectionViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
             accessory: .toggle(
-                viewModel: ToggleViewModel(isOn: appSettings.errorReportingIsOn) { isOn in
-                    appSettings.errorReportingIsOn = isOn
+                viewModel: ToggleViewModel(isOn: appSettings.isErrorReportingOn) { isOn in
+                    appSettings.isErrorReportingOn = isOn
                 }
             ),
             title: "feedback.errorReportingTitle".localizedString,

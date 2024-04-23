@@ -42,7 +42,6 @@ opt_in_rules:
   - function_default_parameter_at_end
   - identical_operands
   - implicit_return
-  - indentation_width
   - joined_default_parameter
   - last_where
   - legacy_random
@@ -107,9 +106,6 @@ function_parameter_count:
 identifier_name:
   min_length: 2
   max_length: 60
-
-indentation_width:
-  indentation_width: 4
 
 legacy_hashing: error
 

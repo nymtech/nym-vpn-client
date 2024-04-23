@@ -1290,7 +1290,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1329,7 +1329,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 24;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1371,7 +1371,7 @@
 				INFOPLIST_FILE = NymWGTunnel/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NymWG;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1406,7 +1406,7 @@
 				INFOPLIST_FILE = NymWGTunnel/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NymWG;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

@@ -17,15 +17,16 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "Modifiers", path: "../Services"),
+        .package(path: "../Services"),
         .package(path: "../Theme")
     ],
     targets: [
         .target(
             name: "UIComponents",
             dependencies: [
-                "Modifiers",
-                "Theme"
+                "Theme",
+                .product(name: "CountriesManager", package: "Services"),
+                .product(name: "Modifiers", package: "Services")
             ],
             resources: [
                 .process("Resources/Assets.xcassets")

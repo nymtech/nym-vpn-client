@@ -4,7 +4,7 @@ import AppVersionProvider
 import UIComponents
 
 public class SettingsViewModel: SettingsFlowState {
-    @ObservedObject private var appSettings: AppSettings
+    private var appSettings: AppSettings
 
     let settingsTitle = "settings".localizedString
 
@@ -63,8 +63,8 @@ private extension SettingsViewModel {
                 ),
                 SettingsListItemViewModel(
                     accessory: .toggle(
-                        viewModel: ToggleViewModel(isOn: appSettings.entryLocationSelectionIsOn) { [weak self] isOn in
-                            self?.appSettings.entryLocationSelectionIsOn = isOn
+                        viewModel: ToggleViewModel(isOn: appSettings.isEntryLocationSelectionOn) { [weak self] isOn in
+                            self?.appSettings.isEntryLocationSelectionOn = isOn
                         }
                     ),
                     title: "entryLocationTitle".localizedString,

@@ -2,7 +2,6 @@ import SwiftUI
 import AppSettings
 import Home
 import Theme
-import Tunnels
 
 @main
 struct NymVPNApp: App {
@@ -12,13 +11,19 @@ struct NymVPNApp: App {
 
     var body: some Scene {
         WindowGroup {
-            GeometryReader { proxy in
+//            GeometryReader { proxy in
                 NavigationStack {
-                    HomeView(viewModel: HomeViewModel(screenSize: proxy.size, selectedNetwork: .mixnet5hop))
+                    HomeView(viewModel: HomeViewModel(selectedNetwork: .mixnet5hop))
+//                        .onChange(
+//                            of: proxy.size,
+//                            perform: { newSize in
+//                                guard newSize != viewModel.screenSize else { return }
+//                                viewModel.screenSize = newSize
+//                            }
+//                        )
                 }
-            }
+//            }
             .environmentObject(AppSettings.shared)
-            .environmentObject(TunnelsManager.shared)
         }
     }
 }

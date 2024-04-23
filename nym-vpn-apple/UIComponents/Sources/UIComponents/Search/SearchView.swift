@@ -2,27 +2,37 @@ import SwiftUI
 import Theme
 
 public struct SearchView: View {
-    @ObservedObject private var viewModel: SearchViewModel
+    private let strokeTitle = "search".localizedString
+    private let searchCountryTitle = "searchCountry".localizedString
+    private let searchImageName = "searchIcon"
 
-    public init(viewModel: SearchViewModel) {
-        self.viewModel = viewModel
+    @FocusState private var isSearchFocused: Bool
+
+    @Binding var searchText: String
+
+    public init(searchText: Binding<String>) {
+        _searchText = searchText
     }
 
     public var body: some View {
-        StrokeBorderView(strokeTitle: viewModel.strokeTitle) {
+        StrokeBorderView(strokeTitle: strokeTitle) {
             HStack {
                 searchImage()
                 searchTextfield()
                 Spacer()
             }
         }
+        .onTapGesture {
+            isSearchFocused = true
+        }
+        .defersSystemGestures(on: .`vertical`)
     }
 }
 
 extension SearchView {
     @ViewBuilder
     func searchImage() -> some View {
-        Image(viewModel.searchImageName, bundle: .module)
+        Image(searchImageName, bundle: .module)
             .resizable()
             .frame(width: 24, height: 24)
             .cornerRadius(50)
@@ -32,14 +42,15 @@ extension SearchView {
     @ViewBuilder
     func searchTextfield() -> some View {
         ZStack(alignment: .leading) {
-            if viewModel.searchText.isEmpty {
-                Text(viewModel.searchCountryTitle)
+            if searchText.isEmpty {
+                Text(searchCountryTitle)
                     .foregroundStyle(NymColor.sysOutline)
                     .textStyle(.Body.Large.primary)
             }
-            TextField("", text: $viewModel.searchText)
+            TextField("", text: $searchText)
                 .foregroundStyle(NymColor.sysOnSurface)
                 .textStyle(.Body.Large.primary)
+                .focused($isSearchFocused)
         }
     }
 }

@@ -4,10 +4,25 @@ public final class AppSettings: ObservableObject {
     public static let shared = AppSettings()
 
     #if os(iOS)
-    @AppStorage("currentAppearance") public var currentAppearance: AppSetting.Appearance = .automatic
+    @AppStorage(AppSettingKey.currentAppearance.rawValue)
+    public var currentAppearance: AppSetting.Appearance = .automatic
     #else
-    @AppStorage("currentAppearance") public var currentAppearance: AppSetting.Appearance = .light
+    @AppStorage(AppSettingKey.currentAppearance.rawValue)
+    public var currentAppearance: AppSetting.Appearance = .light
     #endif
-    @AppStorage("entryLocation") public var entryLocationSelectionIsOn = false
-    @AppStorage("errorReporting") public var errorReportingIsOn = false
+    @AppStorage(AppSettingKey.entryLocation.rawValue) public var isEntryLocationSelectionOn = false {
+        didSet {
+            isEntryLocationSelectionOnPublisher = isEntryLocationSelectionOn
+        }
+    }
+    @AppStorage(AppSettingKey.errorReporting.rawValue) public var isErrorReportingOn = false
+
+    // Observed values for view models
+    @Published public var isEntryLocationSelectionOnPublisher = false
+}
+
+enum AppSettingKey: String {
+    case currentAppearance
+    case entryLocation
+    case errorReporting
 }

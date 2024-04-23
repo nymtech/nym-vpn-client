@@ -1,5 +1,4 @@
 import SwiftUI
-import AppSettings
 import Modifiers
 import Theme
 import UIComponents

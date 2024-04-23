@@ -22,28 +22,20 @@ public struct CountryCellButton: View {
         .contentShape(
             RoundedRectangle(cornerRadius: 8)
         )
-
-        .frame(width: 360, height: 56, alignment: .center)
+        .frame(height: 56, alignment: .center)
         .background(viewModel.backgroundColor)
         .cornerRadius(8)
+        .padding(.horizontal, 24)
     }
 }
 
 private extension CountryCellButton {
-    @ViewBuilder
-    func boltImage() -> some View {
-        Image(viewModel.boltImageName, bundle: .module)
-            .resizable()
-            .frame(width: 24, height: 24)
-            .foregroundStyle(NymColor.sysOnSurface)
-    }
 
     @ViewBuilder
     func flagOrBoltImage() -> some View {
         switch viewModel.type {
         case .fastest:
-            boltImage()
-                .padding(.horizontal, 16)
+            BoltImage()
         case .country:
             FlagImage(countryCode: viewModel.type.country.code)
         }

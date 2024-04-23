@@ -2,20 +2,27 @@ import Combine
 import SwiftUI
 import AppSettings
 import ConnectionManager
+import CountriesManager
 import TunnelMixnet
 import Tunnels
 import UIComponents
 
 public class HomeViewModel: HomeFlowState {
-    private let appSettings: AppSettings
-    private let screenSize: CGSize
     private let dateFormatter = DateComponentsFormatter()
 
     private var timer = Timer()
     private var cancellables = Set<AnyCancellable>()
-    @ObservedObject private var connectionManager: ConnectionManager
     @Published private var activeTunnel: Tunnel?
 
+    let title = "NymVPN".localizedString
+    let connectToLocalizedTitle = "connectTo".localizedString
+    let networkSelectLocalizedTitle = "selectNetwork".localizedString
+
+    var appSettings: AppSettings
+    var connectionManager: ConnectionManager
+    var countriesManager: CountriesManager
+    var entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
+    var exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
     @Published var selectedNetwork: NetworkButtonViewModel.ButtonType
 
     // If no time connected is shown, should be set to empty string,
@@ -24,17 +31,18 @@ public class HomeViewModel: HomeFlowState {
     @Published var statusButtonConfig = StatusButtonConfig.disconnected
     @Published var statusInfoState = StatusInfoState.initialising
     @Published var connectButtonState = ConnectButtonState.connect
+    public var screenSize: CGSize?
 
     public init(
-        screenSize: CGSize,
         selectedNetwork: NetworkButtonViewModel.ButtonType,
         appSettings: AppSettings = AppSettings.shared,
-        connectionManager: ConnectionManager = ConnectionManager.shared
+        connectionManager: ConnectionManager = ConnectionManager.shared,
+        countriesManager: CountriesManager = CountriesManager.shared
     ) {
-        self.screenSize = screenSize
         self.selectedNetwork = selectedNetwork
         self.appSettings = appSettings
         self.connectionManager = connectionManager
+        self.countriesManager = countriesManager
         super.init()
 
         setup()
@@ -49,11 +57,11 @@ public extension HomeViewModel {
     }
 
     func navigateToFirstHopSelection() {
-        path.append(HomeLink.firstHop(text: ""))
+        path.append(HomeLink.entryHop)
     }
 
     func navigateToLastHopSelection() {
-        path.append(HomeLink.lastHop)
+        path.append(HomeLink.exitHop)
     }
 }
 
@@ -61,11 +69,12 @@ public extension HomeViewModel {
 
 public extension HomeViewModel {
     func isSmallScreen() -> Bool {
-        screenSize.width <= 375 && screenSize.height <= 647
+        guard let screenSize else { return false }
+        return screenSize.width <= 375 && screenSize.height <= 647
     }
 
     func shouldShowEntryHop() -> Bool {
-        appSettings.entryLocationSelectionIsOn
+        appSettings.isEntryLocationSelectionOn && !(countriesManager.entryCountries?.isEmpty ?? false)
     }
 
     func updateTimeConnected() {
@@ -85,13 +94,26 @@ public extension HomeViewModel {
 
 public extension HomeViewModel {
     func connectDisconnect() {
-        var config = MixnetConfig()
+        guard let exitRouter = connectionManager.exitRouter
+        else {
+            // TODO: show error if no exit router
+            return
+        }
+        var config = MixnetConfig(exitRouter: exitRouter)
 
         switch selectedNetwork {
         case .mixnet2hop:
-            config = MixnetConfig(isTwoHopEnabled: true)
+            config = MixnetConfig(
+                entryGateway: connectionManager.entryGateway,
+                exitRouter: exitRouter,
+                isTwoHopEnabled: true
+            )
         case .mixnet5hop:
-            config = MixnetConfig(isTwoHopEnabled: false)
+            config = MixnetConfig(
+                entryGateway: connectionManager.entryGateway,
+                exitRouter: exitRouter,
+                isTwoHopEnabled: false
+            )
         case .wireguard:
             break
         }
@@ -100,11 +122,14 @@ public extension HomeViewModel {
     }
 }
 
+// MARK: - Configuration -
 private extension HomeViewModel {
     func setup() {
         setupDateFormatter()
         setupConnectedTimeTimer()
         setupTunnelManagerObservers()
+        setupAppSettingsObserver()
+        fetchCountries()
     }
 
     func setupTunnelManagerObservers() {
@@ -137,6 +162,13 @@ private extension HomeViewModel {
         }
     }
 
+    func setupAppSettingsObserver() {
+        appSettings.$isEntryLocationSelectionOnPublisher.sink { [weak self] _ in
+            self?.fetchCountries()
+        }
+        .store(in: &cancellables)
+    }
+
     func configureTunnelStatusObservation(with tunnel: Tunnel) {
         tunnel.$status.sink { [weak self] status in
             self?.statusButtonConfig = StatusButtonConfig(tunnelStatus: status)
@@ -144,5 +176,14 @@ private extension HomeViewModel {
             self?.connectButtonState = ConnectButtonState(tunnelStatus: status)
         }
         .store(in: &cancellables)
+    }
+
+    func fetchCountries() {
+        do {
+            try countriesManager.fetchCountries(shouldFetchEntryCountries: shouldShowEntryHop())
+        } catch let error {
+            print("🔥 ERROR: \(error.localizedDescription)")
+            statusInfoState = .error(message: error.localizedDescription)
+        }
     }
 }

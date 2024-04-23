@@ -1,9 +1,12 @@
 import SwiftUI
 import AppSettings
+import ConnectionManager
+import CountriesManager
 import Settings
 
 struct HomeFlowCoordinator<Content: View>: View {
     @ObservedObject var state: HomeFlowState
+
     let isSmallScreen: Bool
     let content: () -> Content
 
@@ -20,12 +23,32 @@ struct HomeFlowCoordinator<Content: View>: View {
 private extension HomeFlowCoordinator {
     @ViewBuilder private func linkDestination(link: HomeLink) -> some View {
         switch link {
-        case .firstHop(text: _):
-            HopListView(viewModel: HopListViewModel(path: $state.path, type: .first, isSmallScreen: isSmallScreen))
-        case .lastHop:
-            HopListView(viewModel: HopListViewModel(path: $state.path, type: .last))
+        case .entryHop:
+            entryHop()
+        case .exitHop:
+            exitHop()
         case .settings:
-            SettingsView(viewModel: SettingsViewModel(path: $state.path))
+            SettingsView(viewModel: SettingsViewModel(path: $state.path, appSettings: AppSettings.shared))
         }
+    }
+}
+
+private extension HomeFlowCoordinator {
+    private func entryHop() -> some View {
+        let viewModel = HopListViewModel(
+            type: .entry,
+            path: $state.path,
+            isSmallScreen: false
+        )
+        return HopListView(viewModel: viewModel)
+    }
+
+    private func exitHop() -> some View {
+        let viewModel = HopListViewModel(
+            type: .exit,
+            path: $state.path,
+            isSmallScreen: false
+        )
+        return HopListView(viewModel: viewModel)
     }
 }

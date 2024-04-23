@@ -1,8 +1,9 @@
 import Foundation
+import CountriesManager
 
 enum HomeLink: Hashable, Identifiable {
-    case firstHop(text: String?)
-    case lastHop
+    case entryHop
+    case exitHop
     case settings
 
     var id: String {

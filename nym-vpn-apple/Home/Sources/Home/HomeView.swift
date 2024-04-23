@@ -1,19 +1,22 @@
 import SwiftUI
-import AppSettings
 import Modifiers
 import Theme
 import TunnelStatus
 import UIComponents
 
 public struct HomeView: View {
-    @ObservedObject private var viewModel: HomeViewModel
+    @StateObject private var viewModel: HomeViewModel
 
     public init(viewModel: HomeViewModel) {
-        self.viewModel = viewModel
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     public var body: some View {
-        HomeFlowCoordinator(state: viewModel, isSmallScreen: viewModel.isSmallScreen(), content: content)
+        HomeFlowCoordinator(
+            state: viewModel,
+            isSmallScreen: viewModel.isSmallScreen(),
+            content: content
+        )
     }
 }
 
@@ -26,7 +29,7 @@ private extension HomeView {
             statusAreaSection()
             Spacer()
             networkSection()
-            connectionSection()
+            hopSection()
             connectButton()
         }
         .appearanceUpdate()
@@ -40,7 +43,7 @@ private extension HomeView {
     @ViewBuilder
     func navbar() -> some View {
         CustomNavBar(
-            title: "NymVPN".localizedString,
+            title: viewModel.title,
             rightButton: CustomNavBarButton(type: .settings, action: { viewModel.navigateToSettings() }),
             isSmallScreen: viewModel.isSmallScreen()
         )
@@ -65,7 +68,7 @@ private extension HomeView {
     @ViewBuilder
     func networkSection() -> some View {
         HStack {
-            Text("selectNetwork".localizedString)
+            Text(viewModel.networkSelectLocalizedTitle)
                 .textStyle(.Title.Medium.primary)
             Spacer()
         }
@@ -101,9 +104,9 @@ private extension HomeView {
     }
 
     @ViewBuilder
-    func connectionSection() -> some View {
+    func hopSection() -> some View {
         HStack {
-            Text("connectTo".localizedString)
+            Text(viewModel.connectToLocalizedTitle)
                 .foregroundStyle(NymColor.sysOnSurfaceWhite)
                 .textStyle(.Title.Medium.primary)
             Spacer()
@@ -114,24 +117,33 @@ private extension HomeView {
             .frame(height: 20)
 
         VStack {
-            if viewModel.shouldShowEntryHop() {
-                HopButton(hopType: .first, country: Country(name: "Germany", code: "de"))
-                    .onTapGesture {
-                        viewModel.navigateToFirstHopSelection()
-                    }
-                Spacer()
-                    .frame(height: 20)
-            }
-
-            HopButton(hopType: .last, country: Country(name: "Switzerland", code: "ch"))
-                .onTapGesture {
-                    viewModel.navigateToLastHopSelection()
-                }
+            entryHop()
+            exitHop()
         }
         .padding(.horizontal, 16)
 
         Spacer()
             .frame(height: viewModel.isSmallScreen() ? 20 : 32)
+    }
+
+    @ViewBuilder func entryHop() -> some View {
+        if viewModel.shouldShowEntryHop() {
+            HopButton(viewModel: viewModel.entryHopButtonViewModel)
+                .animation(.default, value: viewModel.connectionManager.entryGateway)
+                .onTapGesture {
+                    viewModel.navigateToFirstHopSelection()
+                }
+            Spacer()
+                .frame(height: 20)
+        }
+    }
+
+    @ViewBuilder func exitHop() -> some View {
+        HopButton(viewModel: viewModel.exitHopButtonViewModel)
+            .animation(.default, value: viewModel.connectionManager.exitRouter)
+            .onTapGesture {
+                viewModel.navigateToLastHopSelection()
+            }
     }
 
     @ViewBuilder

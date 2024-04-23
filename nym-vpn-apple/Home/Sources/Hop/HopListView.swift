@@ -1,12 +1,13 @@
 import SwiftUI
+import CountriesManager
 import Theme
 import UIComponents
 
 public struct HopListView: View {
-    private let viewModel: HopListViewModel
+    @StateObject private var viewModel: HopListViewModel
 
     public init(viewModel: HopListViewModel) {
-        self.viewModel = viewModel
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     public var body: some View {
@@ -15,19 +16,16 @@ public struct HopListView: View {
             Spacer()
                 .frame(height: 24)
 
-            countryButton()
-            Spacer()
-                .frame(height: 24)
-
-            countryButton2()
-            Spacer()
-                .frame(height: 24)
-
             searchView()
             Spacer()
                 .frame(height: 24)
 
-            availableCountryList()
+            ScrollView {
+                quickestConnection()
+                availableCountryList()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea(.all)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -49,88 +47,50 @@ private extension HopListView {
     }
 
     @ViewBuilder
-    func countryButton() -> some View {
-        CountryCellButton(
-            viewModel: CountryCellButtonViewModel(
-                type: .fastest(
-                    country: Country(name: "Germany", code: "de")
-                ),
-                isSelected: false
-            )
-        )
-        .padding(.horizontal, 15)
-    }
-
-    @ViewBuilder
-    func countryButton2() -> some View {
-        CountryCellButton(
-            viewModel: CountryCellButtonViewModel(
-                type: .country(
-                    country: Country(name: "Germany", code: "de")
-                ),
-                isSelected: true
-            )
-        )
-        .padding(.horizontal, 15)
-    }
-
-    @ViewBuilder
     func searchView() -> some View {
-        SearchView(viewModel: SearchViewModel())
-            .padding(.horizontal, 40)
+        SearchView(searchText: $viewModel.searchText)
+            .padding(.horizontal, 24)
+    }
+
+    @ViewBuilder
+    func quickestConnection() -> some View {
+        if let country = viewModel.quickestCountry {
+            CountryCellButton(
+                viewModel:
+                    CountryCellButtonViewModel(
+                        type: .fastest(country: country),
+                        isSelected: false
+                    )
+            )
+            .onTapGesture {
+                viewModel.quickestConnectionSelect(with: country)
+            }
+        }
     }
 
     @ViewBuilder
     func availableCountryList() -> some View {
-        ScrollView {
-            switzerland()
-            germany()
-            switzerland()
-            germany()
-            switzerland()
-            germany()
-            switzerland()
-            germany()
-            switzerland()
-            germany()
-            switzerland()
-            germany()
-            switzerland()
-            germany()
-            switzerland()
-            germany()
-            switzerland()
-            germany()
+        if let countries = viewModel.countries {
+            ForEach(countries, id: \.name) { country in
+                countryButton(with: country)
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea(.all)
     }
 
     @ViewBuilder
-    func germany() -> some View {
+    func countryButton(with country: Country) -> some View {
         CountryCellButton(
             viewModel: CountryCellButtonViewModel(
                 type: .country(
-                    country: Country(name: "Germany", code: "de")
+                    country: country
                 ),
                 isSelected: false
             )
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(.all)
-    }
-
-    @ViewBuilder
-    func switzerland() -> some View {
-        CountryCellButton(
-            viewModel: CountryCellButtonViewModel(
-                type: .country(
-                    country: Country(name: "Switzerland", code: "ch")
-                ),
-                isSelected: false
-            )
-        )
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea(.all)
+        .onTapGesture {
+            viewModel.connectionSelect(with: country)
+        }
     }
 }
