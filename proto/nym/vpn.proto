@@ -2,27 +2,27 @@ syntax = "proto3";
 
 package nym.vpn;
 
-// message Empty {}
+message Empty {}
 
-// message Gateway {
-//   string id = 1;
-//   Location location = 2;
-// }
-//
-// message Location {
-//   string two_letter_country_code = 1;
-// }
-//
-// message Node {
-//   oneof node {
-//     Location location = 1;
-//     Gateway gateway = 2;
-//     Empty fastest = 3;
-//   }
-// }
+message Gateway {
+  string id = 1;
+  // Location location = 2;
+}
+
+message Location {
+  string two_letter_iso_country_code = 1;
+}
+
+message Node {
+  oneof node {
+    Gateway gateway = 1;
+    Location location = 2;
+    Empty low_latency = 3;
+  }
+}
 
 message ConnectRequest {
-  // Node entry = 1;
+  Node entry = 1;
   // Node exit = 2;
 }
 
