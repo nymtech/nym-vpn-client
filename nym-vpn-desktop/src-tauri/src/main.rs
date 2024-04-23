@@ -14,6 +14,8 @@ use commands::window as cmd_window;
 use commands::*;
 use states::app::AppState;
 
+use crate::fs::path::BACKEND_DATA_PATH;
+use crate::fs::util::check_dir;
 use crate::window::WindowSize;
 use crate::{
     cli::{print_build_info, Cli},
@@ -38,6 +40,7 @@ mod window;
 pub const APP_DIR: &str = "nym-vpn";
 const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
+const ENV_DISABLE_DATA_STORAGE: &str = "APP_DISABLE_DATA_STORAGE";
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -99,8 +102,14 @@ async fn main() -> Result<()> {
         e
     })?;
 
-    info!("Starting tauri app");
+    // initialize backend data directory
+    check_dir(&BACKEND_DATA_PATH).await?;
+    debug!(
+        "using path for backend data: {}",
+        BACKEND_DATA_PATH.to_string_lossy()
+    );
 
+    info!("Starting tauri app");
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(app_state)))
         .manage(Arc::new(app_config))
@@ -151,6 +160,7 @@ async fn main() -> Result<()> {
             cmd_window::show_main_window,
             commands::cli::cli_args,
             log::log_js,
+            credential::add_credential,
         ])
         .run(context)
         .expect("error while running tauri application");
