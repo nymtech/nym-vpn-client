@@ -45,4 +45,11 @@ vergen = { workspace = true, default-features = false, features = [
 [package.metadata.deb]
 name = "nym-vpnd"
 maintainer-scripts = "debian"
-systemd-units = { enable = false }
+
+[package.metadata.deb.systemd-units]
+unit-name = "nym-vpnd"
+enable = true
+start = true
+restart-after-upgrade = false
+stop-on-upgrade = true
+unit-scripts = "linux/unit-scripts"
