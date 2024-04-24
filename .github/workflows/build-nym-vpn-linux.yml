@@ -4,7 +4,7 @@ on: [workflow_dispatch, workflow_call]
 env:
   CARGO_TERM_COLOR: always
   CARGO_TARGET: release
-  WG_GO_LIB_PATH: ${GITHUB_WORKSPACE}/lib
+  WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib/x86_64-unknown-linux-gnu
   WG_GO_LIB_NAME: wireguard-go_ubuntu-22.04_x86_64
   UPLOAD_DIR: linux_artifacts
 
