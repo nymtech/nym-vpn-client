@@ -57,7 +57,7 @@ jobs:
         id: package-version
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry $PKG_VERSION_PATHING
+          subcommand: package.version --entry ${{ env.PKG_VERSION_PATHING }}
 
       - name: Check tag name consistency
         if: github.event_name == 'push'
