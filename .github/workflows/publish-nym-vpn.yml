@@ -8,11 +8,16 @@ on:
         description: "Tag name for release"
         required: false
         default: nightly
-      publish:
-        type: boolean
-        description: Publish Release
+      binary:
         required: true
-        default: false
+        description: "Binary"
+        type: choice
+        options:
+          - nym-gateway-probe
+          - nym-vpn-cli
+          - nym-vpnc
+          - nym-vpnd
+
   push:
     tags:
       - nym-gateway-probe-v[0-9]+.[0-9]+.[0-9]+*
@@ -45,25 +50,15 @@ jobs:
         id: package-version-nym-gateway-probe
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry crates/nym-gateway-probe
+          subcommand: package.version --entry ${{ github.event.inputs.binary }}
 
-      - name: Get package version
-        id: package-version-nym-vpn-cli
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: package.version --entry nym-vpn-cli
-
-      - name: Get package version
-        id: package-version-nym-vpnc
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: package.version --entry nym-vpnc
-
-      - name: Get package version
-        id: package-version-nym-vpnd
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: package.version --entry nym-vpnd
+      - name: Check tag name consistency
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          if [[ ${{ github.event.inputs.binary }}-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
+            exit 1
+          fi
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -83,23 +78,31 @@ jobs:
         id: set_tag
         run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
-      - name: Generate checksums
+      - name: Generate checksum and keep only the correct binary
         run: |
-          for f in ${{ env.UPLOAD_DIR }}; do sha256sum ${f} > "${f}.sha256sum"; done;
+          for f in ${{ env.UPLOAD_DIR }};
+          do
+            if [[ "${f}" != "${{ github.event.inputs.binary }}"]];
+            then
+              rm -rf ${f}
+              continue
+            fi;
+            sha256sum ${f} > "${f}.sha256sum";
+          done;
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - if: env.TAG_NAME == 'nightly'
         run: |
-          (echo "SUBJECT=nym-vpn-v${{ env.TAG_NAME }} nightly prerelease build";
+          (echo "SUBJECT=${{ github.event.inputs.binary }}-v${{ env.TAG_NAME }} nightly prerelease build";
            echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
-          gh release delete nightly --yes || true
-          git push origin :nightly || true
+          gh release delete ${{ github.event.inputs.binary }}-nightly --yes || true
+          git push origin :${{ github.event.inputs.binary }}-nightly || true
 
       - name: Publish release
         run: |
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/*
+          gh release create $TAG_NAME $PRERELEASE --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
