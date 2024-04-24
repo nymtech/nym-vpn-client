@@ -23,9 +23,7 @@ fn spawn_uri_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, addr: 
         health_reporter
             .set_serving::<NymVpndServer<CommandInterface>>()
             .await;
-
         let command_interface = CommandInterface::new_with_uri(vpn_command_tx, addr);
-
         Server::builder()
             .add_service(health_service)
             .add_service(NymVpndServer::new(command_interface))
@@ -42,7 +40,6 @@ fn spawn_socket_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, soc
         health_reporter
             .set_serving::<NymVpndServer<CommandInterface>>()
             .await;
-
         let command_interface = CommandInterface::new_with_path(vpn_command_tx, &socket_path);
         let incoming = setup_socket_stream(&socket_path);
         Server::builder()

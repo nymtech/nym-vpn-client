@@ -71,6 +71,7 @@ tokio-util = { version = "0.7.10", features = ["codec"] }
 toml = "0.8.12"
 tonic = "0.11.0"
 tonic-build = "0.11.0"
+tonic-health = "0.11.0"
 tower = "0.4.13"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
