@@ -89,4 +89,3 @@ async fn import_credential(
 fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
     bs58::decode(raw).into_vec()
 }
-

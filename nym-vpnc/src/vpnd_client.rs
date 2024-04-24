@@ -15,7 +15,9 @@ pub(crate) enum ClientType {
     Ipc,
 }
 
-pub(crate) async fn get_client(client_type: ClientType) -> anyhow::Result<NymVpndClient<TonicChannel>> {
+pub(crate) async fn get_client(
+    client_type: ClientType,
+) -> anyhow::Result<NymVpndClient<TonicChannel>> {
     match client_type {
         ClientType::Http => get_http_client().await,
         ClientType::Ipc => get_ipc_client().await,

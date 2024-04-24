@@ -10,4 +10,3 @@ pub(crate) fn get_socket_path() -> PathBuf {
 pub(crate) fn default_endpoint() -> String {
     "http://[::1]:53181".to_string()
 }
-
