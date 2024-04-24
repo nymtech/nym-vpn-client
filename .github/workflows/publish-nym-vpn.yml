@@ -82,11 +82,10 @@ jobs:
         run: |
           for f in ${{ env.UPLOAD_DIR }};
           do
-            if [[ "${f}" != "${{ github.event.inputs.binary }}"]];
-            then
+            if [[ "${f}" != "${{ github.event.inputs.binary }}"]]; then
               rm -rf ${f}
               continue
-            fi;
+            fi
             sha256sum ${f} > "${f}.sha256sum";
           done;
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
