@@ -46,7 +46,7 @@ jobs:
       - name: Sanitazing for path for crates...
         run: |
           if [[ ${{ github.event.inputs.binary }} == *"gateway"* ]]; then
-            echo PKG_VERSION_PATHING="${{ github.event.inputs.binary }}" >> $GITHUB_ENV
+            echo crates/PKG_VERSION_PATHING="${{ github.event.inputs.binary }}" >> $GITHUB_ENV
           else
             echo PKG_VERSION_PATHING="${{ github.event.inputs.binary }}" >> $GITHUB_ENV
           fi
