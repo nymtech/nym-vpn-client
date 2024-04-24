@@ -9,21 +9,16 @@ public struct SettingsList: View {
     }
 
     public var body: some View {
-        ScrollView {
+        ForEach(viewModel.sections, id: \.self) { section in
+            VStack(spacing: 0) {
+                ForEach(Array(section.settingsViewModels.enumerated()), id: \.element) { index, viewModel in
+                    SettingsListItem(viewModel: updatePosition(for: viewModel, with: index, section: section))
+                }
+            }
             Spacer()
                 .frame(height: 24)
-
-            ForEach(viewModel.sections, id: \.self) { section in
-                VStack(spacing: 0) {
-                    ForEach(Array(section.settingsViewModels.enumerated()), id: \.element) { index, viewModel in
-                        SettingsListItem(viewModel: updatePosition(for: viewModel, with: index, section: section))
-                    }
-                }
-                Spacer()
-                    .frame(height: 24)
-            }
-            appVersionText()
         }
+        appVersionText()
     }
 }
 

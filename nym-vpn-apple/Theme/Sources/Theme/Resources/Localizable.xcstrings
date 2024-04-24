@@ -56,6 +56,61 @@
         }
       }
     },
+    "addCredentials.addCredential.Title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add credential"
+          }
+        }
+      }
+    },
+    "addCredentials.getStarted.Title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your credential to get started"
+          }
+        }
+      }
+    },
+    "addCredentials.welcome.Title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome!"
+          }
+        }
+      }
+    },
+    "addCredentialsGetStarted.Subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To generate a new credential, please use the link provided in the alpha phase invitation email."
+          }
+        }
+      }
+    },
+    "addCredtenials.credential" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Credential"
+          }
+        }
+      }
+    },
     "autoConnectSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -668,6 +723,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Settings"
+          }
+        }
+      }
+    },
+    "settings.addCredential" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add credential to connect"
           }
         }
       }

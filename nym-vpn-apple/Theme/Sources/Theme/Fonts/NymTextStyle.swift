@@ -29,6 +29,14 @@ extension NymTextStyle {
         }
     }
 
+    public struct Headline {
+        public struct Small {
+            public static var primary: NymTextStyle {
+                NymTextStyle(nymFont: .lato(size: 24, weight: .regular))
+            }
+        }
+    }
+
     // MARK: - Label -
     public struct Label {
         public struct Huge {

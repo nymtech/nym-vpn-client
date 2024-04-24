@@ -21,7 +21,13 @@ private extension SettingsView {
     func content() -> some View {
         VStack {
             navbar()
-            settingsList()
+            ScrollView {
+                addCredentialsButton()
+        
+                Spacer()
+                    .frame(height: 24)
+                settingsList()
+            }
             Spacer()
         }
         .appearanceUpdate()
@@ -40,6 +46,16 @@ private extension SettingsView {
             title: viewModel.settingsTitle,
             leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateHome() })
         )
+    }
+
+    @ViewBuilder
+    func addCredentialsButton() -> some View {
+        GenericButton(title: "settings.addCredential".localizedString)
+            .frame(height: 64)
+            .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
+            .onTapGesture {
+                viewModel.navigateToAddCredentials()
+            }
     }
 
     @ViewBuilder

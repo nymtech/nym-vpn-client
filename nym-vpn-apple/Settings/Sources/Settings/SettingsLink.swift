@@ -1,6 +1,7 @@
 import Foundation
 
 enum SettingsLink: Hashable, Identifiable {
+    case addCredentials
     case theme
     case feedback
     case support

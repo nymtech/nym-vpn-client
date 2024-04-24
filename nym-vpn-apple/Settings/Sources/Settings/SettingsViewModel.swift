@@ -12,7 +12,7 @@ public class SettingsViewModel: SettingsFlowState {
         [
             connectionSection(),
             themeSection(),
-            logsSection(),
+//            logsSection(),
             feedbackSection(),
             legalSection()
         ]
@@ -29,6 +29,10 @@ public class SettingsViewModel: SettingsFlowState {
 
     func appVersion() -> String {
         AppVersionProvider.appVersion()
+    }
+
+    func navigateToAddCredentials() {
+        path.append(SettingsLink.addCredentials)
     }
 }
 
@@ -54,13 +58,13 @@ private extension SettingsViewModel {
     func connectionSection() -> SettingsSection {
         .connection(
             viewModels: [
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "autoConnectTitle".localizedString,
-                    subtitle: "autoConnectSubtitle".localizedString,
-                    imageName: "autoConnect",
-                    action: {}
-                ),
+//                SettingsListItemViewModel(
+//                    accessory: .arrow,
+//                    title: "autoConnectTitle".localizedString,
+//                    subtitle: "autoConnectSubtitle".localizedString,
+//                    imageName: "autoConnect",
+//                    action: {}
+//                ),
                 SettingsListItemViewModel(
                     accessory: .toggle(
                         viewModel: ToggleViewModel(isOn: appSettings.isEntryLocationSelectionOn) { [weak self] isOn in
