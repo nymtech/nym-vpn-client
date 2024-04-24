@@ -1,6 +1,6 @@
 use futures::SinkExt;
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
-use nym_vpn_lib::{NymVpnCtrlMessage, NymVpnHandle};
+use nym_vpn_lib::{NymVpnCtrlMessage, NymVpnHandle, SpecificVpn};
 use tauri::State;
 use tracing::{debug, error, info, instrument, trace};
 
@@ -94,8 +94,6 @@ pub async fn connect(
     } else {
         info!("5-hop mode enabled");
     }
-    info!("wireguard 1st hop disabled");
-    vpn_config.enable_wireguard = false;
     // !! release app_state mutex
     // TODO: replace with automatic drop through scope
     drop(app_state);
@@ -105,7 +103,7 @@ pub async fn connect(
         vpn_ctrl_tx,
         vpn_status_rx,
         vpn_exit_rx,
-    } = match nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config).map_err(|e| {
+    } = match nym_vpn_lib::spawn_nym_vpn_with_new_runtime(SpecificVpn::Mix(vpn_config)).map_err(|e| {
         CmdError::new(
             CmdErrorSource::InternalError,
             format!("fail to initialize Nym VPN client: {}", e),

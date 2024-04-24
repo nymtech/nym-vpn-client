@@ -22,7 +22,7 @@ use tun2::AbstractDevice;
 
 use crate::config::WireguardConfig;
 use crate::error::Result;
-use crate::NymVpn;
+use crate::{MixnetVpn, NymVpn};
 
 const DEFAULT_TUN_MTU: u16 = 1500;
 
@@ -35,7 +35,6 @@ pub struct RoutingConfig {
 
     pub(crate) entry_mixnet_gateway_ip: IpAddr,
     pub(crate) lan_gateway_ip: LanGatewayIp,
-    pub(crate) enable_wireguard: bool,
     pub(crate) disable_routing: bool,
     #[cfg(target_os = "android")]
     pub(crate) gateway_ws_fd: Option<RawFd>,
@@ -47,13 +46,12 @@ impl Display for RoutingConfig {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "mixnet_tun_config: {:?}\ntun_ips: {:?}\nmtu: {}\nentry_mixnet_gateway_ip: {:?}\nlan_gateway_ip: {:?}\nenable_wireguard: {:?}\ndisable_routing: {:?}",
+            "mixnet_tun_config: {:?}\ntun_ips: {:?}\nmtu: {}\nentry_mixnet_gateway_ip: {:?}\nlan_gateway_ip: {:?}\ndisable_routing: {:?}",
             self.mixnet_tun_config,
             self.tun_ips,
             self.mtu,
             self.entry_mixnet_gateway_ip,
             self.lan_gateway_ip,
-            self.enable_wireguard,
             self.disable_routing
         )
     }
@@ -61,7 +59,7 @@ impl Display for RoutingConfig {
 
 impl RoutingConfig {
     pub fn new(
-        vpn: &NymVpn,
+        vpn: &NymVpn<MixnetVpn>,
         tun_ips: IpPair,
         entry_mixnet_gateway_ip: IpAddr,
         lan_gateway_ip: LanGatewayIp,
@@ -86,7 +84,6 @@ impl RoutingConfig {
             mtu,
             entry_mixnet_gateway_ip,
             lan_gateway_ip,
-            enable_wireguard: vpn.enable_wireguard,
             disable_routing: vpn.disable_routing,
             #[cfg(target_os = "android")]
             gateway_ws_fd,
@@ -105,10 +102,6 @@ impl RoutingConfig {
 
     pub fn entry_mixnet_gateway_ip(&self) -> IpAddr {
         self.entry_mixnet_gateway_ip
-    }
-
-    pub fn enable_wireguard(&self) -> bool {
-        self.enable_wireguard
     }
 }
 
@@ -294,7 +287,7 @@ pub async fn setup_mixnet_routing(
     // re-enabled then config.lan_gateway_ip.0.name needs to be set correctly on Windows. The
     // correct one should be something along the lines of "Ethernet" or "Wi-Fi". Check the name
     // with `netsh interface show interfaces`
-    if (!config.enable_wireguard && cfg!(not(target_os = "windows"))) || cfg!(target_os = "linux") {
+    if cfg!(not(target_os = "windows")) || cfg!(target_os = "linux") {
         let entry_mixnet_gateway_ip = config.entry_mixnet_gateway_ip.to_string();
         let default_node = if let Some(addr) = config.lan_gateway_ip.0.gateway.and_then(|g| {
             g.ipv4

@@ -9,7 +9,7 @@ use std::path::PathBuf;
 use commands::ImportCredentialTypeEnum;
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayConfig;
-use nym_vpn_lib::{error::*, IpPair, NodeIdentity};
+use nym_vpn_lib::{error::*, IpPair, NodeIdentity, SpecificVpn};
 use nym_vpn_lib::{NymVpn, Recipient};
 
 use crate::commands::{wg_override_from_env, Commands};
@@ -113,20 +113,13 @@ async fn run() -> Result<()> {
 }
 
 async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<()> {
-    // Setup gateway directory configuration
+    // Setup gateway configuration
     let gateway_config = GatewayConfig::new_from_env();
     info!("nym-api: {}", gateway_config.api_url());
     info!(
         "explorer-api: {}",
         gateway_config
             .explorer_url()
-            .map(|url| url.to_string())
-            .unwrap_or("unavailable".to_string())
-    );
-    info!(
-        "harbour-master: {}",
-        gateway_config
-            .harbour_master_url()
             .map(|url| url.to_string())
             .unwrap_or("unavailable".to_string())
     );
@@ -142,22 +135,32 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         None
     };
 
-    let mut nym_vpn = NymVpn::new(entry_point, exit_point);
-    nym_vpn.gateway_config = gateway_config;
-    nym_vpn.wg_gateway_config = wg_gateway_config;
-    nym_vpn.mixnet_data_path = data_path;
-    nym_vpn.enable_wireguard = args.enable_wireguard;
-    nym_vpn.entry_private_key = args.entry_private_key;
-    nym_vpn.exit_private_key = args.exit_private_key;
-    nym_vpn.entry_wg_ip = args.entry_wg_ip;
-    nym_vpn.exit_wg_ip = args.exit_wg_ip;
-    nym_vpn.nym_ips = nym_ips;
-    nym_vpn.nym_mtu = args.nym_mtu;
-    nym_vpn.disable_routing = args.disable_routing;
-    nym_vpn.enable_two_hop = args.enable_two_hop;
-    nym_vpn.enable_poisson_rate = args.enable_poisson_rate;
-    nym_vpn.disable_background_cover_traffic = args.disable_background_cover_traffic;
-    nym_vpn.enable_credentials_mode = args.enable_credentials_mode;
+    let mut nym_vpn = if args.enable_wireguard {
+        let mut nym_vpn = NymVpn::new_wireguard_vpn(entry_point, exit_point);
+        nym_vpn.gateway_config = gateway_config;
+        nym_vpn.nym_ips = nym_ips;
+        nym_vpn.nym_mtu = args.nym_mtu;
+        nym_vpn.disable_routing = args.disable_routing;
+        nym_vpn.enable_two_hop = args.enable_two_hop;
+        nym_vpn.vpn_config.wg_gateway_config = wg_gateway_config;
+        nym_vpn.vpn_config.entry_private_key = args.entry_private_key;
+        nym_vpn.vpn_config.exit_private_key = args.exit_private_key;
+        nym_vpn.vpn_config.entry_wg_ip = args.entry_wg_ip;
+        nym_vpn.vpn_config.exit_wg_ip = args.exit_wg_ip;
+        SpecificVpn::Wg(nym_vpn)
+    } else {
+        let mut nym_vpn = NymVpn::new_mixnet_vpn(entry_point, exit_point);
+        nym_vpn.gateway_config = gateway_config;
+        nym_vpn.nym_ips = nym_ips;
+        nym_vpn.nym_mtu = args.nym_mtu;
+        nym_vpn.disable_routing = args.disable_routing;
+        nym_vpn.enable_two_hop = args.enable_two_hop;
+        nym_vpn.vpn_config.mixnet_data_path = data_path;
+        nym_vpn.vpn_config.enable_poisson_rate = args.enable_poisson_rate;
+        nym_vpn.vpn_config.disable_background_cover_traffic = args.disable_background_cover_traffic;
+        nym_vpn.vpn_config.enable_credentials_mode = args.enable_credentials_mode;
+        SpecificVpn::Mix(nym_vpn)
+    };
 
     nym_vpn.run().await?;
 

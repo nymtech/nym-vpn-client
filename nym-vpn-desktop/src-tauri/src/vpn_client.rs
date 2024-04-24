@@ -3,6 +3,7 @@ use crate::states::{app::ConnectionState, SharedAppState};
 use anyhow::Result;
 use futures::channel::oneshot::Receiver as OneshotReceiver;
 use futures::StreamExt;
+use nym_vpn_lib::MixnetVpn;
 use nym_vpn_lib::gateway_directory::{Config as GatewayClientConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::nym_config::defaults::var_names::{EXPLORER_API, NYM_API};
 use nym_vpn_lib::nym_config::OptionalSet;
@@ -110,10 +111,9 @@ fn setup_gateway_client_config(
 }
 
 #[instrument(skip_all)]
-pub fn create_vpn_config(entry_point: EntryPoint, exit_point: ExitPoint) -> NymVpn {
-    let mut nym_vpn = NymVpn::new(entry_point, exit_point);
-    let (config, wg_config) = setup_gateway_client_config(None);
+pub fn create_vpn_config(entry_point: EntryPoint, exit_point: ExitPoint) -> NymVpn<MixnetVpn> {
+    let mut nym_vpn = NymVpn::new_mixnet_vpn(entry_point, exit_point);
+    let (config, _) = setup_gateway_client_config(None);
     nym_vpn.gateway_config = config;
-    nym_vpn.wg_gateway_config = wg_config;
     nym_vpn
 }

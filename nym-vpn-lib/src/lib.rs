@@ -86,24 +86,23 @@ struct ShadowHandle {
     _inner: Option<JoinHandle<Result<AsyncDevice>>>,
 }
 
-pub struct NymVpn {
-    /// Gateway configuration
-    pub gateway_config: Config,
-
-    /// Wireguard Gateway configuration
-    pub wg_gateway_config: WgConfig,
-
+pub struct MixnetVpn {
     /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
     pub mixnet_data_path: Option<PathBuf>,
 
-    /// Mixnet public ID of the entry gateway.
-    pub entry_point: EntryPoint,
+    /// Enable Poission process rate limiting of outbound traffic.
+    pub enable_poisson_rate: bool,
 
-    /// Mixnet recipient address.
-    pub exit_point: ExitPoint,
+    /// Disable constant rate background loop cover traffic
+    pub disable_background_cover_traffic: bool,
 
     /// Enable the wireguard traffic between the client and the entry gateway.
-    pub enable_wireguard: bool,
+    pub enable_credentials_mode: bool,
+}
+
+pub struct WireguardVpn {
+    /// Wireguard Gateway configuration
+    pub wg_gateway_config: WgConfig,
 
     /// Associated entry private key.
     pub entry_private_key: Option<String>,
@@ -116,6 +115,34 @@ pub struct NymVpn {
 
     /// The IP address of the exit wireguard interface.
     pub exit_wg_ip: Option<Ipv4Addr>,
+}
+
+pub trait Vpn {}
+
+impl Vpn for MixnetVpn {}
+impl Vpn for WireguardVpn {}
+
+pub enum SpecificVpn {
+    Wg(NymVpn<WireguardVpn>),
+    Mix(NymVpn<MixnetVpn>),
+}
+
+pub struct NymVpn<T: Vpn> {
+    /// Gateway configuration
+    pub gateway_config: Config,
+
+    /// Mixnet public ID of the entry gateway.
+    pub entry_point: EntryPoint,
+
+    /// Mixnet recipient address.
+    pub exit_point: ExitPoint,
+
+    /// Enable two-hop mixnet traffic. This means that traffic jumps directly from entry gateway to
+    /// exit gateway.
+    pub enable_two_hop: bool,
+
+    /// VPN configuration, depending on the type used
+    pub vpn_config: T,
 
     /// The IP addresses of the TUN device.
     pub nym_ips: Option<IpPair>,
@@ -125,18 +152,6 @@ pub struct NymVpn {
 
     /// Disable routing all traffic through the VPN TUN device.
     pub disable_routing: bool,
-
-    /// Enable two-hop mixnet traffic. This means that traffic jumps directly from entry gateway to
-    /// exit gateway.
-    pub enable_two_hop: bool,
-
-    /// Enable Poission process rate limiting of outbound traffic.
-    pub enable_poisson_rate: bool,
-
-    /// Disable constant rate background loop cover traffic
-    pub disable_background_cover_traffic: bool,
-
-    pub enable_credentials_mode: bool,
 
     tun_provider: Arc<Mutex<TunProvider>>,
 
@@ -152,8 +167,8 @@ pub struct MixnetConnectionInfo {
     pub entry_gateway: String,
 }
 
-impl NymVpn {
-    pub fn new(
+impl NymVpn<WireguardVpn> {
+    pub fn new_wireguard_vpn(
         entry_point: EntryPoint,
         exit_point: ExitPoint,
         #[cfg(target_os = "android")] android_context: talpid_types::android::AndroidContext,
@@ -172,32 +187,63 @@ impl NymVpn {
 
         Self {
             gateway_config: nym_gateway_directory::Config::default(),
-            wg_gateway_config: wg_gateway_client::WgConfig::default(),
-            mixnet_data_path: None,
             entry_point,
             exit_point,
-            enable_wireguard: false,
-            entry_private_key: None,
-            exit_private_key: None,
-            entry_wg_ip: None,
-            exit_wg_ip: None,
             nym_ips: None,
             nym_mtu: None,
             disable_routing: false,
             enable_two_hop: false,
-            enable_poisson_rate: false,
-            disable_background_cover_traffic: false,
-            enable_credentials_mode: false,
+            vpn_config: WireguardVpn {
+                wg_gateway_config: WgConfig::default(),
+                entry_private_key: None,
+                exit_private_key: None,
+                entry_wg_ip: None,
+                exit_wg_ip: None,
+            },
             tun_provider,
             #[cfg(target_os = "ios")]
             ios_tun_provider,
             shadow_handle: ShadowHandle { _inner: None },
         }
     }
+}
 
-    pub(crate) fn set_shadow_handle(&mut self, shadow_handle: JoinHandle<Result<AsyncDevice>>) {
-        self.shadow_handle = ShadowHandle {
-            _inner: Some(shadow_handle),
+impl NymVpn<MixnetVpn> {
+    pub fn new_mixnet_vpn(
+        entry_point: EntryPoint,
+        exit_point: ExitPoint,
+        #[cfg(target_os = "android")] android_context: talpid_types::android::AndroidContext,
+        #[cfg(target_os = "ios")] ios_tun_provider: Arc<dyn OSTunProvider>,
+    ) -> Self {
+        let tun_provider = Arc::new(Mutex::new(TunProvider::new(
+            #[cfg(target_os = "android")]
+            android_context,
+            #[cfg(target_os = "android")]
+            false,
+            #[cfg(target_os = "android")]
+            None,
+            #[cfg(target_os = "android")]
+            vec![],
+        )));
+
+        Self {
+            gateway_config: nym_gateway_directory::Config::default(),
+            entry_point,
+            exit_point,
+            nym_ips: None,
+            nym_mtu: None,
+            disable_routing: false,
+            enable_two_hop: false,
+            vpn_config: MixnetVpn {
+                mixnet_data_path: None,
+                enable_poisson_rate: false,
+                disable_background_cover_traffic: false,
+                enable_credentials_mode: false,
+            },
+            tun_provider,
+            #[cfg(target_os = "ios")]
+            ios_tun_provider,
+            shadow_handle: ShadowHandle { _inner: None },
         }
     }
 
@@ -299,13 +345,13 @@ impl NymVpn {
             Duration::from_secs(10),
             setup_mixnet_client(
                 entry_gateway,
-                &self.mixnet_data_path,
+                &self.vpn_config.mixnet_data_path,
                 task_manager.subscribe_named("mixnet_client_main"),
-                self.enable_wireguard,
+                false,
                 self.enable_two_hop,
-                self.enable_poisson_rate,
-                self.disable_background_cover_traffic,
-                self.enable_credentials_mode,
+                self.vpn_config.enable_poisson_rate,
+                self.vpn_config.disable_background_cover_traffic,
+                self.vpn_config.enable_credentials_mode,
             ),
         )
         .await
@@ -343,6 +389,36 @@ impl NymVpn {
             return Err(err);
         };
         Ok(our_mixnet_connection)
+    }
+}
+
+impl<T: Vpn> NymVpn<T> {
+    pub(crate) fn set_shadow_handle(&mut self, shadow_handle: JoinHandle<Result<AsyncDevice>>) {
+        self.shadow_handle = ShadowHandle {
+            _inner: Some(shadow_handle),
+        }
+    }
+}
+impl SpecificVpn {
+    pub fn gateway_config(&self) -> Config {
+        match self {
+            SpecificVpn::Wg(vpn) => vpn.gateway_config.clone(),
+            SpecificVpn::Mix(vpn) => vpn.gateway_config.clone(),
+        }
+    }
+
+    pub fn entry_point(&self) -> EntryPoint {
+        match self {
+            SpecificVpn::Wg(vpn) => vpn.entry_point.clone(),
+            SpecificVpn::Mix(vpn) => vpn.entry_point.clone(),
+        }
+    }
+
+    pub fn exit_point(&self) -> ExitPoint {
+        match self {
+            SpecificVpn::Wg(vpn) => vpn.exit_point.clone(),
+            SpecificVpn::Mix(vpn) => vpn.exit_point.clone(),
+        }
     }
 
     // Start the Nym VPN client, and wait for it to shutdown. The use case is in simple console
@@ -506,7 +582,7 @@ pub enum NymVpnExitStatusMessage {
 /// vpn_config.enable_two_hop = true;
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
 /// ```
-pub fn spawn_nym_vpn(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
+pub fn spawn_nym_vpn(nym_vpn: SpecificVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
     let (vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
     let (vpn_exit_tx, vpn_exit_rx) = oneshot::channel();
@@ -538,7 +614,7 @@ pub fn spawn_nym_vpn(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
 /// vpn_config.enable_two_hop = true;
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config);
 /// ```
-pub fn spawn_nym_vpn_with_new_runtime(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
+pub fn spawn_nym_vpn_with_new_runtime(nym_vpn: SpecificVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
     let (vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
     let (vpn_exit_tx, vpn_exit_rx) = oneshot::channel();
@@ -561,7 +637,7 @@ pub fn spawn_nym_vpn_with_new_runtime(nym_vpn: NymVpn) -> Result<NymVpnHandle> {
 }
 
 async fn run_nym_vpn(
-    mut nym_vpn: NymVpn,
+    mut nym_vpn: SpecificVpn,
     vpn_status_tx: nym_task::StatusSender,
     vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     vpn_exit_tx: oneshot::Sender<NymVpnExitStatusMessage>,
