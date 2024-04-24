@@ -1,142 +1,67 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-use std::path::{Path, PathBuf};
-
-use anyhow::Context;
-use clap::{Args, Parser, Subcommand};
+use anyhow::Result;
+use clap::Parser;
 use nym_vpn_proto::{
-    nym_vpnd_client::NymVpndClient, ConnectRequest, DisconnectRequest, ImportUserCredentialRequest,
-    StatusRequest,
+    ConnectRequest, DisconnectRequest, ImportUserCredentialRequest, StatusRequest,
 };
-use parity_tokio_ipc::Endpoint as IpcEndpoint;
-use tonic::transport::{Channel as TonicChannel, Endpoint as TonicEndpoint};
+use vpnd_client::ClientType;
 
-#[derive(Parser)]
-#[clap(author = "Nymtech", version, about)]
-struct CliArgs {
-    /// Use HTTP instead of socket file for IPC with the daemon.
-    #[arg(long)]
-    http: bool,
+use crate::{
+    cli::{Command, ImportCredentialTypeEnum},
+    protobuf_conversion::{into_entry_point, into_exit_point},
+};
 
-    #[command(subcommand)]
-    command: Command,
-}
-
-#[derive(Subcommand)]
-enum Command {
-    Connect,
-    Disconnect,
-    Status,
-    ImportCredential(ImportCredentialArgs),
-}
-
-#[derive(Args)]
-pub(crate) struct ImportCredentialArgs {
-    #[command(flatten)]
-    pub(crate) credential_type: ImportCredentialType,
-
-    // currently hidden as there exists only a single serialization standard
-    #[arg(long, hide = true)]
-    pub(crate) version: Option<u8>,
-}
-
-#[derive(Args, Clone)]
-#[group(required = true, multiple = false)]
-pub(crate) struct ImportCredentialType {
-    /// Credential encoded using base58.
-    #[arg(long)]
-    pub(crate) credential_data: Option<String>,
-
-    /// Path to the credential file.
-    #[arg(long)]
-    pub(crate) credential_path: Option<PathBuf>,
-}
-
-fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
-    bs58::decode(raw).into_vec()
-}
-
-// Workaround until clap supports enums for ArgGroups
-pub(crate) enum ImportCredentialTypeEnum {
-    Path(PathBuf),
-    Data(String),
-}
-
-impl From<ImportCredentialType> for ImportCredentialTypeEnum {
-    fn from(ict: ImportCredentialType) -> Self {
-        match (ict.credential_data, ict.credential_path) {
-            (Some(data), None) => ImportCredentialTypeEnum::Data(data),
-            (None, Some(path)) => ImportCredentialTypeEnum::Path(path),
-            _ => unreachable!(),
-        }
-    }
-}
+mod cli;
+mod config;
+mod protobuf_conversion;
+mod vpnd_client;
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let args = CliArgs::parse();
+async fn main() -> Result<()> {
+    let args = cli::CliArgs::parse();
+    let client_type = if args.http {
+        vpnd_client::ClientType::Http
+    } else {
+        vpnd_client::ClientType::Ipc
+    };
     match args.command {
-        Command::Connect => connect(&args).await?,
-        Command::Disconnect => disconnect(&args).await?,
-        Command::Status => status(&args).await?,
-        Command::ImportCredential(ref import_args) => import_credential(&args, import_args).await?,
+        Command::Connect(ref connect_args) => connect(client_type, connect_args).await?,
+        Command::Disconnect => disconnect(client_type).await?,
+        Command::Status => status(client_type).await?,
+        Command::ImportCredential(ref import_args) => {
+            import_credential(client_type, import_args).await?
+        }
     }
     Ok(())
 }
 
-fn get_socket_path() -> PathBuf {
-    Path::new("/var/run/nym-vpn.sock").to_path_buf()
-}
+async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Result<()> {
+    let entry = cli::parse_entry_point(connect_args)?;
+    let exit = cli::parse_exit_point(connect_args)?;
 
-async fn get_channel(socket_path: PathBuf) -> anyhow::Result<TonicChannel> {
-    // NOTE: the uri here is ignored
-    Ok(TonicEndpoint::from_static("http://[::1]:53181")
-        .connect_with_connector(tower::service_fn(move |_| {
-            IpcEndpoint::connect(socket_path.clone())
-        }))
-        .await?)
-}
+    let request = tonic::Request::new(ConnectRequest {
+        entry: entry.map(into_entry_point),
+        exit: exit.map(into_exit_point),
+    });
 
-fn default_endpoint() -> String {
-    "http://[::1]:53181".to_string()
-}
-
-async fn get_client(args: &CliArgs) -> anyhow::Result<NymVpndClient<TonicChannel>> {
-    if args.http {
-        let endpoint = default_endpoint();
-        let client = NymVpndClient::connect(endpoint.clone())
-            .await
-            .with_context(|| format!("Failed to connect to: {}", endpoint))?;
-        Ok(client)
-    } else {
-        let socket_path = get_socket_path();
-        let channel = get_channel(socket_path.clone())
-            .await
-            .with_context(|| format!("Failed to connect to: {:?}", socket_path))?;
-        let client = NymVpndClient::new(channel);
-        Ok(client)
-    }
-}
-
-async fn connect(args: &CliArgs) -> anyhow::Result<()> {
-    let mut client = get_client(args).await?;
-    let request = tonic::Request::new(ConnectRequest {});
+    let mut client = vpnd_client::get_client(client_type).await?;
     let response = client.vpn_connect(request).await?.into_inner();
     println!("{:?}", response);
     Ok(())
 }
 
-async fn disconnect(args: &CliArgs) -> anyhow::Result<()> {
-    let mut client = get_client(args).await?;
+async fn disconnect(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(DisconnectRequest {});
     let response = client.vpn_disconnect(request).await?.into_inner();
     println!("{:?}", response);
     Ok(())
 }
 
-async fn status(args: &CliArgs) -> anyhow::Result<()> {
-    let mut client = get_client(args).await?;
+async fn status(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(StatusRequest {});
     let response = client.vpn_status(request).await?.into_inner();
     println!("{:?}", response);
@@ -144,9 +69,9 @@ async fn status(args: &CliArgs) -> anyhow::Result<()> {
 }
 
 async fn import_credential(
-    args: &CliArgs,
-    import_args: &ImportCredentialArgs,
-) -> anyhow::Result<()> {
+    client_type: ClientType,
+    import_args: &cli::ImportCredentialArgs,
+) -> Result<()> {
     let import_type: ImportCredentialTypeEnum = import_args.credential_type.clone().into();
     let raw_credential = match import_type {
         ImportCredentialTypeEnum::Path(path) => std::fs::read(path)?,
@@ -155,8 +80,12 @@ async fn import_credential(
     let request = tonic::Request::new(ImportUserCredentialRequest {
         credential: raw_credential,
     });
-    let mut client = get_client(args).await?;
+    let mut client = vpnd_client::get_client(client_type).await?;
     let response = client.import_user_credential(request).await?.into_inner();
     println!("{:?}", response);
     Ok(())
+}
+
+fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
+    bs58::decode(raw).into_vec()
 }

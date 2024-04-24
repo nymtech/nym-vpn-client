@@ -4704,6 +4704,7 @@ dependencies = [
  "anyhow",
  "bs58 0.5.1",
  "clap",
+ "nym-gateway-directory",
  "nym-vpn-proto",
  "parity-tokio-ipc",
  "prost 0.12.4",

@@ -129,10 +129,11 @@ pub(crate) struct CliExit {
     #[clap(long, alias = "exit-address")]
     pub(crate) exit_router_address: Option<String>,
 
+    /// Mixnet public ID of the exit gateway.
     #[clap(long, alias = "exit-id")]
     pub(crate) exit_gateway_id: Option<String>,
 
-    /// Mixnet recipient address.
+    /// Auto-select exit gateway by country ISO.
     #[clap(long, alias = "exit-country")]
     pub(crate) exit_gateway_country: Option<String>,
 }

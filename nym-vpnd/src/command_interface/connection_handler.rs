@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 use tracing::{info, warn};
 
@@ -18,10 +19,14 @@ impl CommandInterfaceConnectionHandler {
         Self { vpn_command_tx }
     }
 
-    pub(crate) async fn handle_connect(&self) -> VpnServiceConnectResult {
+    pub(crate) async fn handle_connect(
+        &self,
+        entry: Option<EntryPoint>,
+        exit: Option<ExitPoint>,
+    ) -> VpnServiceConnectResult {
         info!("Starting VPN");
         let (tx, rx) = oneshot::channel();
-        let connect_args = ConnectArgs::Default;
+        let connect_args = ConnectArgs { entry, exit };
         self.vpn_command_tx
             .send(VpnServiceCommand::Connect(tx, connect_args))
             .unwrap();

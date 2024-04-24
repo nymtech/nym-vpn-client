@@ -7,14 +7,14 @@ use std::sync::Arc;
 use futures::channel::mpsc::UnboundedSender;
 use futures::SinkExt;
 use nym_vpn_lib::credentials::import_credential;
-use nym_vpn_lib::gateway_directory::{self};
+use nym_vpn_lib::gateway_directory::{self, EntryPoint};
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::oneshot;
 use tracing::info;
 
 use super::config::{
-    create_config_file, create_data_dir, read_config_file, ConfigSetupError, NymVpnServiceConfig,
-    DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR,
+    create_config_file, create_data_dir, read_config_file, write_config_file, ConfigSetupError,
+    NymVpnServiceConfig, DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR,
 };
 use super::exit_listener::VpnServiceExitListener;
 use super::status_listener::VpnServiceStatusListener;
@@ -29,6 +29,7 @@ pub enum VpnState {
     ConnectionFailed(String),
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum VpnServiceCommand {
     Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
@@ -41,12 +42,9 @@ pub enum VpnServiceCommand {
 }
 
 #[derive(Debug)]
-pub enum ConnectArgs {
-    // Read the entry and exit points from the config file.
-    Default,
-
-    #[allow(unused)]
-    Custom(String, String),
+pub struct ConnectArgs {
+    pub entry: Option<gateway_directory::EntryPoint>,
+    pub exit: Option<gateway_directory::ExitPoint>,
 }
 
 #[derive(Debug)]
@@ -122,22 +120,36 @@ impl NymVpnService {
         }
     }
 
-    fn try_setup_config(&self) -> std::result::Result<NymVpnServiceConfig, ConfigSetupError> {
+    fn try_setup_config(
+        &self,
+        entry: Option<gateway_directory::EntryPoint>,
+        exit: Option<gateway_directory::ExitPoint>,
+    ) -> std::result::Result<NymVpnServiceConfig, ConfigSetupError> {
         // If the config file does not exit, create it
         let config = if self.config_file.exists() {
-            read_config_file(&self.config_file)?
+            let mut read_config = read_config_file(&self.config_file)?;
+            read_config.entry_point = entry.unwrap_or(read_config.entry_point);
+            read_config.exit_point = exit.unwrap_or(read_config.exit_point);
+            write_config_file(&self.config_file, &read_config)?;
+            read_config
         } else {
-            create_config_file(&self.config_file, NymVpnServiceConfig::default())?
+            let config = NymVpnServiceConfig {
+                entry_point: entry.unwrap_or(EntryPoint::Random),
+                ..Default::default()
+            };
+            create_config_file(&self.config_file, config)?
         };
         Ok(config)
     }
 
-    async fn handle_connect(&mut self, _connect_args: ConnectArgs) -> VpnServiceConnectResult {
+    async fn handle_connect(&mut self, connect_args: ConnectArgs) -> VpnServiceConnectResult {
         self.set_shared_state(VpnState::Connecting);
 
-        // TODO: use connect_args here
+        let ConnectArgs { entry, exit } = connect_args;
+        info!("Using entry point: {:?}", entry);
+        info!("Using exit point: {:?}", exit);
 
-        let config = match self.try_setup_config() {
+        let config = match self.try_setup_config(entry, exit) {
             Ok(config) => config,
             Err(err) => {
                 self.set_shared_state(VpnState::NotConnected);
