@@ -1,8 +1,13 @@
 [package]
 name = "nym-vpnd"
 version = "0.1.0"
-edition = "2021"
-license = "GPL-3.0-only"
+description = "Nym VPN daemon"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
 
 
 [dependencies]
@@ -35,3 +40,9 @@ vergen = { workspace = true, default-features = false, features = [
     "rustc",
     "cargo",
 ] }
+
+# Debian
+[package.metadata.deb]
+name = "nym-vpnd"
+maintainer-scripts = "debian"
+systemd-units = { enable = false }
