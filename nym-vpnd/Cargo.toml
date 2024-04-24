@@ -52,4 +52,4 @@ enable = true
 start = true
 restart-after-upgrade = false
 stop-on-upgrade = true
-unit-scripts = "linux/systemd"
+unit-scripts = "linux/unit-scripts"
