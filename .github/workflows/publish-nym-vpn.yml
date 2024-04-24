@@ -38,16 +38,13 @@ jobs:
     runs-on: ubuntu-22.04-16-core
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}
-      tag-nym-gateway-probe: ${{ steps.package-version-nym-gateway-probe.outputs.metadata }}
-      tag-nym-vpn-cli: ${{ steps.package-version-nym-vpn-cli.outputs.metadata }}
-      tag-nym-vpnc: ${{ steps.package-version-nym-vpnc.outputs.metadata }}
-      tag-nym-vpnd: ${{ steps.package-version-nym-vpnd.outputs.metadata }}
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Get package version
-        id: package-version-nym-gateway-probe
+        id: package-version
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: package.version --entry ${{ github.event.inputs.binary }}
