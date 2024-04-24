@@ -1,7 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
+use anyhow::{anyhow, Result};
 use clap::{Args, Parser, Subcommand};
+use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -130,5 +132,46 @@ impl From<ImportCredentialType> for ImportCredentialTypeEnum {
             (None, Some(path)) => ImportCredentialTypeEnum::Path(path),
             _ => unreachable!(),
         }
+    }
+}
+
+pub(crate) fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {
+    if let Some(ref entry_gateway_id) = args.entry.entry_gateway_id {
+        Ok(Some(EntryPoint::Gateway {
+            identity: NodeIdentity::from_base58_string(entry_gateway_id.clone())
+                .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+        }))
+    } else if let Some(ref entry_gateway_country) = args.entry.entry_gateway_country {
+        Ok(Some(EntryPoint::Location {
+            location: entry_gateway_country.clone(),
+        }))
+    } else if args.entry.entry_gateway_low_latency {
+        Ok(Some(EntryPoint::RandomLowLatency))
+    } else if args.entry.entry_gateway_random {
+        Ok(Some(EntryPoint::Random))
+    } else {
+        Ok(None)
+    }
+}
+
+pub(crate) fn parse_exit_point(args: &ConnectArgs) -> Result<Option<ExitPoint>> {
+    if let Some(ref exit_router_address) = args.exit.exit_router_address {
+        Ok(Some(ExitPoint::Address {
+            address: Recipient::try_from_base58_string(exit_router_address.clone())
+                .map_err(|_| anyhow!("Failed to parse exit node address"))?,
+        }))
+    } else if let Some(ref exit_router_id) = args.exit.exit_gateway_id {
+        Ok(Some(ExitPoint::Gateway {
+            identity: NodeIdentity::from_base58_string(exit_router_id.clone())
+                .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+        }))
+    } else if let Some(ref exit_gateway_country) = args.exit.exit_gateway_country {
+        Ok(Some(ExitPoint::Location {
+            location: exit_gateway_country.clone(),
+        }))
+    } else if args.exit.exit_gateway_random {
+        Ok(Some(ExitPoint::Random))
+    } else {
+        Ok(None)
     }
 }
