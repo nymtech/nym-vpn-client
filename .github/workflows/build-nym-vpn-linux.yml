@@ -43,7 +43,7 @@ jobs:
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
-          npm run tauri build -- ${{ env.CARGO_TARGET }}
+          cargo build --${{ env.CARGO_TARGET }}
           ls -la target/release/ || true
 
       - name: Move things around to prepare for upload
