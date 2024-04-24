@@ -3,6 +3,7 @@ on: [workflow_dispatch, workflow_call]
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_TARGET: release
   LIBS_PATH: ${GITHUB_WORKSPACE}/lib
   WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
   MULLVAD_LIB_NAME: winfw.dll
