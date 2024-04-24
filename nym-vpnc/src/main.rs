@@ -1,11 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use anyhow::{anyhow, Context};
 use clap::Parser;
-use cli::Command;
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
 use nym_vpn_proto::{
     nym_vpnd_client::NymVpndClient, ConnectRequest, DisconnectRequest, ImportUserCredentialRequest,
@@ -14,9 +13,26 @@ use nym_vpn_proto::{
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use tonic::transport::{Channel as TonicChannel, Endpoint as TonicEndpoint};
 
-use crate::cli::ImportCredentialTypeEnum;
+use crate::{
+    cli::{Command, ImportCredentialTypeEnum},
+    protob_conversion::{into_entry_point, into_exit_point},
+};
 
 mod cli;
+mod config;
+mod protob_conversion;
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let args = cli::CliArgs::parse();
+    match args.command {
+        Command::Connect(ref connect_args) => connect(&args, connect_args).await?,
+        Command::Disconnect => disconnect(&args).await?,
+        Command::Status => status(&args).await?,
+        Command::ImportCredential(ref import_args) => import_credential(&args, import_args).await?,
+    }
+    Ok(())
+}
 
 fn parse_entry_point(args: &cli::ConnectArgs) -> anyhow::Result<Option<EntryPoint>> {
     if let Some(ref entry_gateway_id) = args.entry.entry_gateway_id {
@@ -63,22 +79,6 @@ fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
     bs58::decode(raw).into_vec()
 }
 
-#[tokio::main]
-async fn main() -> anyhow::Result<()> {
-    let args = cli::CliArgs::parse();
-    match args.command {
-        Command::Connect(ref connect_args) => connect(&args, connect_args).await?,
-        Command::Disconnect => disconnect(&args).await?,
-        Command::Status => status(&args).await?,
-        Command::ImportCredential(ref import_args) => import_credential(&args, import_args).await?,
-    }
-    Ok(())
-}
-
-fn get_socket_path() -> PathBuf {
-    Path::new("/var/run/nym-vpn.sock").to_path_buf()
-}
-
 async fn get_channel(socket_path: PathBuf) -> anyhow::Result<TonicChannel> {
     // NOTE: the uri here is ignored
     Ok(TonicEndpoint::from_static("http://[::1]:53181")
@@ -100,7 +100,7 @@ async fn get_client(args: &cli::CliArgs) -> anyhow::Result<NymVpndClient<TonicCh
             .with_context(|| format!("Failed to connect to: {}", endpoint))?;
         Ok(client)
     } else {
-        let socket_path = get_socket_path();
+        let socket_path = config::get_socket_path();
         let channel = get_channel(socket_path.clone())
             .await
             .with_context(|| format!("Failed to connect to: {:?}", socket_path))?;
@@ -109,79 +109,7 @@ async fn get_client(args: &cli::CliArgs) -> anyhow::Result<NymVpndClient<TonicCh
     }
 }
 
-#[allow(unused)]
-fn new_entry_node_location(country_code: &str) -> nym_vpn_proto::EntryNode {
-    nym_vpn_proto::EntryNode {
-        entry_node_enum: Some(nym_vpn_proto::entry_node::EntryNodeEnum::Location(
-            nym_vpn_proto::Location {
-                two_letter_iso_country_code: country_code.to_string(),
-            },
-        )),
-    }
-}
-
-fn into_entry_point(entry: EntryPoint) -> nym_vpn_proto::EntryNode {
-    match entry {
-        EntryPoint::Gateway { identity } => nym_vpn_proto::EntryNode {
-            entry_node_enum: Some(nym_vpn_proto::entry_node::EntryNodeEnum::Gateway(
-                nym_vpn_proto::Gateway {
-                    id: identity.to_base58_string(),
-                },
-            )),
-        },
-        EntryPoint::Location { location } => nym_vpn_proto::EntryNode {
-            entry_node_enum: Some(nym_vpn_proto::entry_node::EntryNodeEnum::Location(
-                nym_vpn_proto::Location {
-                    two_letter_iso_country_code: location,
-                },
-            )),
-        },
-        EntryPoint::RandomLowLatency => nym_vpn_proto::EntryNode {
-            entry_node_enum: Some(nym_vpn_proto::entry_node::EntryNodeEnum::RandomLowLatency(
-                nym_vpn_proto::Empty {},
-            )),
-        },
-        EntryPoint::Random => nym_vpn_proto::EntryNode {
-            entry_node_enum: Some(nym_vpn_proto::entry_node::EntryNodeEnum::Random(
-                nym_vpn_proto::Empty {},
-            )),
-        },
-    }
-}
-
-fn into_exit_point(exit: ExitPoint) -> nym_vpn_proto::ExitNode {
-    match exit {
-        ExitPoint::Address { address } => nym_vpn_proto::ExitNode {
-            exit_node_enum: Some(nym_vpn_proto::exit_node::ExitNodeEnum::Address(
-                nym_vpn_proto::Address {
-                    nym_address: address.to_string(),
-                },
-            )),
-        },
-        ExitPoint::Gateway { identity } => nym_vpn_proto::ExitNode {
-            exit_node_enum: Some(nym_vpn_proto::exit_node::ExitNodeEnum::Gateway(
-                nym_vpn_proto::Gateway {
-                    id: identity.to_base58_string(),
-                },
-            )),
-        },
-        ExitPoint::Location { location } => nym_vpn_proto::ExitNode {
-            exit_node_enum: Some(nym_vpn_proto::exit_node::ExitNodeEnum::Location(
-                nym_vpn_proto::Location {
-                    two_letter_iso_country_code: location,
-                },
-            )),
-        },
-        ExitPoint::Random => nym_vpn_proto::ExitNode {
-            exit_node_enum: Some(nym_vpn_proto::exit_node::ExitNodeEnum::Random(
-                nym_vpn_proto::Empty {},
-            )),
-        },
-    }
-}
-
 async fn connect(args: &cli::CliArgs, connect_args: &cli::ConnectArgs) -> anyhow::Result<()> {
-    // Setup connect arguments
     let entry = parse_entry_point(connect_args)?;
     let exit = parse_exit_point(connect_args)?;
 
