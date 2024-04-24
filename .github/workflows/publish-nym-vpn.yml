@@ -1,0 +1,109 @@
+name: publish-nym-vpn.yml
+on:
+  schedule:
+    - cron: "4 4 * * *"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag name for release"
+        required: false
+        default: nightly
+      publish:
+        type: boolean
+        description: Publish Release
+        required: true
+        default: false
+  push:
+    tags:
+      - nym-gateway-probe-v[0-9]+.[0-9]+.[0-9]+*
+      - nym-vpn-cli-v[0-9]+.[0-9]+.[0-9]+*
+      - nym-vpnc-v[0-9]+.[0-9]+.[0-9]+*
+      - nym-vpnd-v[0-9]+.[0-9]+.[0-9]+*
+
+env:
+  CARGO_TERM_COLOR: always
+  UPLOAD_DIR: linux_artifacts
+
+jobs:
+  build-nym-vpn-linux:
+    uses: ./.github/workflows/build-nym-vpn-linux.yml
+
+  publish:
+    needs: build-nym-vpn-linux
+    runs-on: ubuntu-22.04-16-core
+    outputs:
+      tag: ${{ steps.set_tag.outputs.tag }}
+      tag-nym-gateway-probe: ${{ steps.package-version-nym-gateway-probe.outputs.metadata }}
+      tag-nym-vpn-cli: ${{ steps.package-version-nym-vpn-cli.outputs.metadata }}
+      tag-nym-vpnc: ${{ steps.package-version-nym-vpnc.outputs.metadata }}
+      tag-nym-vpnd: ${{ steps.package-version-nym-vpnd.outputs.metadata }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get package version
+        id: package-version-nym-gateway-probe
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry crates/nym-gateway-probe
+
+      - name: Get package version
+        id: package-version-nym-vpn-cli
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-cli
+
+      - name: Get package version
+        id: package-version-nym-vpnc
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpnc
+
+      - name: Get package version
+        id: package-version-nym-vpnd
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpnd
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR }}
+          path: ${{ env.UPLOAD_DIR }}
+
+      # Setup TAG_NAME, which is used as a general "name"
+      - if: github.event_name == 'workflow_dispatch'
+        run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+      - if: github.event_name == 'schedule'
+        run: echo 'TAG_NAME=nightly' >> $GITHUB_ENV
+      - if: github.event_name == 'push'
+        run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Set tag
+        id: set_tag
+        run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate checksums
+        run: |
+          for f in ${{ env.UPLOAD_DIR }}; do sha256sum ${f} > "${f}.sha256sum"; done;
+          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
+          cat ${{ env.UPLOAD_DIR }}/*.sha256sum >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - if: env.TAG_NAME == 'nightly'
+        run: |
+          (echo "SUBJECT=nym-vpn-v${{ env.TAG_NAME }} nightly prerelease build";
+           echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
+          gh release delete nightly --yes || true
+          git push origin :nightly || true
+
+      - name: Publish release
+        run: |
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/*
+
+  gen-hashes:
+    uses: ./.github/workflows/gen-hashes-json.yml
+    needs: publish
+    with:
+      release_tag: ${{ needs.publish.outputs.tag }}
+    secrets: inherit
