@@ -1,2 +1,3 @@
 tonic::include_proto!("nym.vpn");
-tonic::include_proto!("nym.health");
+
+pub const FILE_DESCRIPTOR_SET: &[u8] = tonic::include_file_descriptor_set!("vpn_descriptor");
