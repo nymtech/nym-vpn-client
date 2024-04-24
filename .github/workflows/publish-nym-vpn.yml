@@ -43,11 +43,21 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Sanitazing for path for crates...
+        run: |
+          if [[ ${{ github.event.inputs.binary }} == *"gateway"* ]]; then
+            echo "${{ github.event.inputs.binary }}" >> $PKG_VERSION_PATHING
+          else
+            echo "${{ github.event.inputs.binary }}" >> $PKG_VERSION_PATHING
+          fi
+          echo $PKG_VERSION_PATHING
+
+
       - name: Get package version
         id: package-version
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry ${{ github.event.inputs.binary }}
+          subcommand: package.version --entry $PKG_VERSION_PATHING
 
       - name: Check tag name consistency
         if: github.event_name == 'push'
