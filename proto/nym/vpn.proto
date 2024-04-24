@@ -2,24 +2,24 @@ syntax = "proto3";
 
 package nym.vpn;
 
-message Empty {}
+// message Empty {}
 
-message Gateway {
-  string id = 1;
-  Location location = 2;
-}
-
-message Location {
-  string two_letter_country_code = 1;
-}
-
-message Node {
-  oneof node {
-    Location location = 1;
-    Gateway gateway = 2;
-    Empty fastest = 3;
-  }
-}
+// message Gateway {
+//   string id = 1;
+//   Location location = 2;
+// }
+//
+// message Location {
+//   string two_letter_country_code = 1;
+// }
+//
+// message Node {
+//   oneof node {
+//     Location location = 1;
+//     Gateway gateway = 2;
+//     Empty fastest = 3;
+//   }
+// }
 
 message ConnectRequest {
   // Node entry = 1;
@@ -36,12 +36,12 @@ message DisconnectResponse {
   bool success = 1;
 }
 
-enum VpnMode {
-  MODE_UNSPECIFIED = 0;
-  MIXNET_FIVE_HOP = 1;
-  MIXNET_TWO_HOP = 2;
-  WIREGUARD_TWO_HOP = 3;
-}
+// enum VpnMode {
+//   MODE_UNSPECIFIED = 0;
+//   MIXNET_FIVE_HOP = 1;
+//   MIXNET_TWO_HOP = 2;
+//   WIREGUARD_TWO_HOP = 3;
+// }
 
 enum ConnectionStatus {
   STATUS_UNSPECIFIED = 0;
@@ -53,21 +53,21 @@ enum ConnectionStatus {
   CONNECTION_FAILED = 6;
 }
 
-message LocationListResponse {
-  repeated Location location = 1;
-}
-
-message SetVpnModeRequest {
-  VpnMode mode = 1;
-}
-
-message GetVpnModeResponse {
-  VpnMode mode = 1;
-}
-
-message GatewayResponse {
-  Gateway gateways = 1;
-}
+// message LocationListResponse {
+//   repeated Location location = 1;
+// }
+//
+// message SetVpnModeRequest {
+//   VpnMode mode = 1;
+// }
+//
+// message GetVpnModeResponse {
+//   VpnMode mode = 1;
+// }
+//
+// message GatewayResponse {
+//   Gateway gateways = 1;
+// }
 
 message StatusRequest {}
 message StatusResponse {
@@ -75,24 +75,20 @@ message StatusResponse {
   Error error = 2;
 }
 
-message ConnectionStatusUpdate {
-  ConnectionStatus status = 1;
-  repeated ConnectionProgress connection_progress = 2;
-  // optional Error error = 3;
-}
-
-message ConnectionProgress {
-  string message = 1;
-}
+// message ConnectionStatusUpdate {
+//   ConnectionStatus status = 1;
+//   repeated ConnectionProgress connection_progress = 2;
+//   // optional Error error = 3;
+// }
+//
+// message ConnectionProgress {
+//   string message = 1;
+// }
 
 message Error {
   string message = 1;
   // ErrorType type = 2; // TOBE implemented
   // optional string source = 3;
-}
-
-message SetUserCredentialsRequest {
-  string key = 1;
 }
 
 message ImportUserCredentialRequest {
