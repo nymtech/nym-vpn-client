@@ -1,7 +1,7 @@
+use crate::country::FASTEST_NODE_LOCATION;
 use crate::db::{Db, Key};
-use crate::fs::path::BACKEND_DATA_PATH;
 use crate::grpc::client::GrpcClient;
-use crate::ENV_DISABLE_DATA_STORAGE;
+use crate::states::app::NodeLocation;
 use crate::{
     error::{CmdError, CmdErrorSource},
     events::{AppHandleEventEmitter, ConnectProgressMsg},
@@ -10,7 +10,11 @@ use crate::{
         SharedAppState,
     },
 };
-use nym_vpn_proto::{ConnectRequest, DisconnectRequest, StatusRequest};
+use nym_vpn_proto::entry_node::EntryNodeEnum;
+use nym_vpn_proto::exit_node::ExitNodeEnum;
+use nym_vpn_proto::{
+    ConnectRequest, DisconnectRequest, EntryNode, ExitNode, Location, StatusRequest,
+};
 use std::sync::Arc;
 use tauri::State;
 use tonic::Request;
@@ -82,7 +86,54 @@ pub async fn connect(
 
     let mut app_state = state.lock().await;
 
-    let request = Request::new(ConnectRequest {});
+    let entry_node = match &app_state.entry_node_location {
+        NodeLocation::Country(country) => {
+            debug!("entry node location set, using: {}", country);
+            EntryNode {
+                entry_node_enum: Some(EntryNodeEnum::Location(Location {
+                    two_letter_iso_country_code: country.code.clone(),
+                })),
+            }
+        }
+        NodeLocation::Fastest => {
+            debug!(
+                "entry node location set to `Fastest`, using: {}",
+                FASTEST_NODE_LOCATION.clone()
+            );
+            EntryNode {
+                entry_node_enum: Some(EntryNodeEnum::Location(Location {
+                    two_letter_iso_country_code: FASTEST_NODE_LOCATION.code.clone(),
+                })),
+            }
+        }
+    };
+
+    let exit_node = match &app_state.exit_node_location {
+        NodeLocation::Country(country) => {
+            debug!("exit node location set, using: {}", country);
+            ExitNode {
+                exit_node_enum: Some(ExitNodeEnum::Location(Location {
+                    two_letter_iso_country_code: country.code.clone(),
+                })),
+            }
+        }
+        NodeLocation::Fastest => {
+            debug!(
+                "exit node location set to `Fastest`, using: {}",
+                FASTEST_NODE_LOCATION.clone()
+            );
+            ExitNode {
+                exit_node_enum: Some(ExitNodeEnum::Location(Location {
+                    two_letter_iso_country_code: FASTEST_NODE_LOCATION.code.clone(),
+                })),
+            }
+        }
+    };
+
+    let request = Request::new(ConnectRequest {
+        entry: Some(entry_node),
+        exit: Some(exit_node),
+    });
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
     let response = grpc_client.vpn_connect(request).await.map_err(|e| {
