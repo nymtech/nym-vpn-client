@@ -13,8 +13,8 @@ use tokio::sync::oneshot;
 use tracing::info;
 
 use super::config::{
-    create_config_file, create_data_dir, read_config_file, ConfigSetupError, NymVpnServiceConfig,
-    DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR,
+    create_config_file, create_data_dir, read_config_file, write_config_file, ConfigSetupError,
+    NymVpnServiceConfig, DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR,
 };
 use super::exit_listener::VpnServiceExitListener;
 use super::status_listener::VpnServiceStatusListener;
@@ -29,6 +29,7 @@ pub enum VpnState {
     ConnectionFailed(String),
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum VpnServiceCommand {
     Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
@@ -129,6 +130,7 @@ impl NymVpnService {
             let mut read_config = read_config_file(&self.config_file)?;
             read_config.entry_point = entry.unwrap_or(read_config.entry_point);
             read_config.exit_point = exit.unwrap_or(read_config.exit_point);
+            write_config_file(&self.config_file, &read_config)?;
             read_config
         } else {
             let config = NymVpnServiceConfig {
