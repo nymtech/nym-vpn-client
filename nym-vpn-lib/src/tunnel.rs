@@ -70,7 +70,6 @@ pub fn start_tunnel(
             retry_attempt: 3,
             route_manager,
         };
-        info!("Starting wireguard monitor");
         let monitor = WireguardMonitor::start(
             config,
             None,

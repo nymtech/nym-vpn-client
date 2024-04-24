@@ -13,7 +13,7 @@ use std::{collections::HashSet, net::IpAddr};
 use ipnetwork::IpNetwork;
 use netdev::interface::get_default_interface;
 use nym_ip_packet_requests::IpPair;
-use talpid_routing::{Node, RequiredRoute, RouteManager, RouteManagerHandle};
+use talpid_routing::{Node, RequiredRoute, RouteManager};
 #[cfg(target_os = "android")]
 use talpid_tunnel::tun_provider::TunProvider;
 use tap::TapFallible;
@@ -175,8 +175,16 @@ fn get_tunnel_nodes(iface_name: &str) -> (Node, Node) {
     }
 }
 
+pub(crate) fn catch_all_ipv4() -> IpNetwork {
+    "0.0.0.0/0".parse().unwrap()
+}
+
+pub(crate) fn catch_all_ipv6() -> IpNetwork {
+    "::/0".parse().unwrap()
+}
+
 /// Replace default (0-prefix) routes with more specific routes.
-fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
+pub(crate) fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
     #[cfg(not(target_os = "linux"))]
     if network.prefix() == 0 {
         if network.is_ipv4() {
@@ -190,61 +198,6 @@ fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
 
     #[cfg(target_os = "linux")]
     vec![network]
-}
-
-pub async fn setup_wg_routing(
-    entry_config: talpid_wireguard::config::Config,
-    exit_config: talpid_wireguard::config::Config,
-    entry_route_manager_handle: RouteManagerHandle,
-    exit_route_manager_handle: RouteManagerHandle,
-) -> Result<()> {
-    let mut routes = vec![];
-    routes.push((
-        "0.0.0.0/0".to_string(),
-        Node::address(exit_config.ipv4_gateway.into()),
-    ));
-    if let Some(ip) = exit_config.ipv6_gateway {
-        routes.push(("::/0".to_string(), Node::address(ip.into())));
-    }
-    let routes = routes.into_iter().flat_map(|(network, node)| {
-        replace_default_prefixes(network.parse().unwrap())
-            .into_iter()
-            .map(move |ip| RequiredRoute::new(ip, node.clone()))
-    });
-    log::info!("Routes for exit {:?}", routes);
-    exit_route_manager_handle
-        .add_routes(routes.collect())
-        .await?;
-    let mut routes_to_add = vec![];
-    if let Some(peer) = exit_config
-        .peers
-        .iter()
-        .find(|peer| peer.endpoint.is_ipv4())
-    {
-        routes_to_add.push(RequiredRoute::new(
-            IpNetwork::from(peer.endpoint.ip()),
-            Node::address(entry_config.ipv4_gateway.into()),
-        ));
-    }
-    if let Some(peer) = exit_config
-        .peers
-        .iter()
-        .find(|peer| peer.endpoint.is_ipv6())
-    {
-        if let Some(gatway_addr) = entry_config.ipv6_gateway {
-            routes_to_add.push(RequiredRoute::new(
-                IpNetwork::from(peer.endpoint.ip()),
-                Node::address(gatway_addr.into()),
-            ));
-        };
-    }
-
-    log::info!("Routes for entry {:?}", routes_to_add);
-    entry_route_manager_handle
-        .add_routes(routes_to_add.into_iter().collect())
-        .await?;
-
-    Ok(())
 }
 
 pub async fn setup_mixnet_routing(
@@ -328,8 +281,8 @@ pub async fn setup_mixnet_routing(
     debug!("Using node_v6: {:?}", node_v6);
 
     let mut routes = [
-        ("0.0.0.0/0".to_string(), node_v4),
-        ("::/0".to_string(), node_v6),
+        (catch_all_ipv4().to_string(), node_v4),
+        (catch_all_ipv6().to_string(), node_v6),
     ]
     .to_vec();
 
