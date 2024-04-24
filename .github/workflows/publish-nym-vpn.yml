@@ -1,4 +1,4 @@
-name: build-nym-vpn-desktop-apple
+name: publish-nym-vpn.yml
 on: [workflow_dispatch, workflow_call]
 
 jobs:
