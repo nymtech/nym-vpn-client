@@ -18,6 +18,11 @@ on:
         description: "Enable --features metrics-server"
         required: true
         default: false
+      enable_deb:
+        type: boolean
+        description: "Enable building deb packages"
+        required: true
+        default: false
   push:
     tags:
       - nym-vpn-cli-v[0-9]+.[0-9]+.[0-9]+*
@@ -192,6 +197,11 @@ jobs:
         run: |
           cargo install cargo-ndk
 
+      - name: Setup cargo deb
+        if: inputs.enable_deb == true && contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
+        run: |
+          cargo install --locked cargo-deb
+
       - name: Setup cargo swift
         if: contains(matrix.os, 'custom-runner-mac-m1') || contains(matrix.os, 'macos-14')
         run: cargo install --git https://github.com/neacsu/cargo-swift.git
@@ -266,6 +276,15 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: (cd nym-vpn-lib; cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --release)
 
+      - name: Build deb packages
+        if: inputs.enable_deb == true && contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: |
+          cargo deb -p nym-vpnd
+          cargo deb -p nym-vpnc
+          cargo deb -p nym-vpn-cli
+
       - name: Run tests
         if: ${{ contains(matrix.os, 'native') }}
         env:
@@ -298,6 +317,17 @@ jobs:
         with:
           name: ${{ env.ARTIFACT_ARCHIVE }}
           path: ${{ env.ARTIFACT_ARCHIVE }}
+          retention-days: 2
+
+      - name: Upload deb packages
+        if: inputs.enable_deb == true && contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
+        uses: actions/upload-artifact@v4
+        with:
+          name: nym-vpn-debs
+          path: |
+            target/debian/nym-vpnc*deb
+            target/debian/nym-vpnd*deb
+            target/debian/nym-vpn-cli*deb
           retention-days: 2
 
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
