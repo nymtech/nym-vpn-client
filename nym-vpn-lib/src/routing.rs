@@ -214,10 +214,8 @@ pub async fn setup_mixnet_routing(
                 .expect("access should not be passed to mullvad yet");
 
             let fd = tun_provider.get_tun(tun_config)?.as_raw_fd();
-            if !config.enable_wireguard {
-                if let Some(raw_fd) = config.gateway_ws_fd {
-                    tun_provider.bypass(raw_fd)?;
-                }
+            if let Some(raw_fd) = config.gateway_ws_fd {
+                tun_provider.bypass(raw_fd)?;
             }
             fd
         };
