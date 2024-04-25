@@ -37,6 +37,8 @@ jobs:
   publish:
     needs: build-nym-vpn-linux
     runs-on: ubuntu-22.04-16-core
+    permissions:
+      contents: write
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}
 
