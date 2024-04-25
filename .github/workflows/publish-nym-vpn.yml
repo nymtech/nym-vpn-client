@@ -54,7 +54,6 @@ jobs:
           else
             echo "BINARY=${{ github.event.inputs.binary }}" >> $GITHUB_ENV
           fi
-          echo ${{ env.BINARY }}
 
       # This need to be edited in case of other binary comming from crates/ to match
       - name: Sanitazing for path for crates...
@@ -107,7 +106,8 @@ jobs:
           cat ${{ env.UPLOAD_DIR }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-      - if: env.TAG_NAME == 'nightly'
+      - name: Setting subject, prerelease and notes files
+        if: env.TAG_NAME == 'nightly'
         run: |
           (echo "SUBJECT=${{ env.BINARY }}-v${{ steps.package-version.outputs.metadata }} nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
@@ -116,11 +116,12 @@ jobs:
           git push origin :${{ env.BINARY }}-nightly || true
       # Once we consider these actually release builds, remove --prerelease
       # from PRERELEASE here
-      - if: env.TAG_NAME != 'nightly-desktop'
+      - name: Removing --prerelease if needed
+        if: env.TAG_NAME != 'nightly'
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE='
-           echo 'NOTES_FILE=release-notes-desktop.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes/${{ env.BINARY }}.md') >> $GITHUB_ENV
 
       - name: Publish release
         run: |

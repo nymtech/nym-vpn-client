@@ -1,1 +1,1 @@
-# Test release
+# nym-gateway-probe release notes
