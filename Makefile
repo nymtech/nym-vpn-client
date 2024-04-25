@@ -25,7 +25,7 @@ DESKTOP_PUBLIC_DIR=nym-vpn-desktop/public
 
 all: build-wireguard build-cli local-install
 
-deb: build-wireguard build-deb build-deb-vpnd build-deb-vpnc
+deb: build-wireguard build-deb-vpn-cli build-deb-vpnd build-deb-vpnc
 
 build-wireguard:
 	./wireguard/build-wireguard-go.sh
@@ -55,13 +55,13 @@ generate-licenses-cli-json:
 generate-licenses-desktop-json:
 	cargo about generate --all-features -m $(DESKTOP_RUST_DIR)/Cargo.toml --format json -o $(DESKTOP_PUBLIC_DIR)/licenses-rust.json
 
-build-deb:
+build-deb-vpn-cli:
 	RUSTFLAGS="-L $(CURDIR)/build/lib/$(ARCH)" cargo deb -p nym-vpn-cli
 
 build-deb-vpnd:
-	RUSTFLAGS="-L $(CURDIR)/build/lib/$(ARCH)" cargo deb -p nym-vpn-vpnd
+	RUSTFLAGS="-L $(CURDIR)/build/lib/$(ARCH)" cargo deb -p nym-vpnd
 
 build-deb-vpnc:
-	RUSTFLAGS="-L $(CURDIR)/build/lib/$(ARCH)" cargo deb -p nym-vpn-vpnc
+	RUSTFLAGS="-L $(CURDIR)/build/lib/$(ARCH)" cargo deb -p nym-vpnc
 
-.PHONY: build-wireguard build-cli build-desktop local-install build-deb
+.PHONY: build-wireguard build-cli build-desktop local-install deb build-deb-vpn-cli build-deb-vpnd build-deb-vpnc
