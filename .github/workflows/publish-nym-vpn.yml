@@ -50,7 +50,7 @@ jobs:
           else
             echo PKG_VERSION_PATHING="${{ github.event.inputs.binary }}" >> $GITHUB_ENV
           fi
-          echo $PKG_VERSION_PATHING
+          echo ${{ env.PKG_VERSION_PATHING }}
 
 
       - name: Get package version
@@ -87,14 +87,13 @@ jobs:
 
       - name: Generate checksum and keep only the correct binary
         run: |
-          for f in ${{ env.UPLOAD_DIR }};
-          do
+          for f in ${{ env.UPLOAD_DIR }}; do
             if [[ "${f}" != "${{ github.event.inputs.binary }}"]]; then
               rm -rf ${f}
               continue
             fi
             sha256sum ${f} > "${f}.sha256sum";
-          done;
+          done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
