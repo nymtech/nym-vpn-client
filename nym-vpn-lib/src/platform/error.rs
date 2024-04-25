@@ -6,6 +6,12 @@ pub enum FFIError {
     #[error("Invalid value passed in uniffi")]
     InvalidValueUniffi,
 
+    #[error("Invalid credential passed in uniffi")]
+    InvalidCredential,
+
+    #[error("Invalid path")]
+    InvalidPath,
+
     #[error("Could not obtain a fd")]
     FdNotFound,
 

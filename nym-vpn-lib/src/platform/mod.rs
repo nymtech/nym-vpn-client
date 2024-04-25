@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
+use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
 use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location};
 use crate::{
@@ -12,6 +13,8 @@ use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
 use nym_task::manager::TaskStatus;
+use std::path::PathBuf;
+use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use talpid_core::mpsc::Sender;
@@ -148,6 +151,37 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
         RUNNING.store(false, Ordering::Relaxed);
     }
     ret
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn importCredential(credential: String, path: String) -> Result<(), FFIError> {
+    RUNTIME.block_on(import_credential_from_string(&credential, &path))
+}
+
+async fn import_credential_from_string(credential: &str, path: &str) -> Result<(), FFIError> {
+    let path_result = PathBuf::from_str(path);
+    let path_buf = match path_result {
+        Ok(p) => p,
+        Err(_) => return Err(FFIError::InvalidPath),
+    };
+    match import_credential_base58(credential, path_buf).await {
+        Ok(_) => Ok(()),
+        Err(_) => Err(FFIError::InvalidCredential),
+    }
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn checkCredential(credential: String) -> Result<(), FFIError> {
+    RUNTIME.block_on(check_credential_string(&credential))
+}
+
+async fn check_credential_string(credential: &str) -> Result<(), FFIError> {
+    match check_credential_base58(credential).await {
+        Ok(_) => Ok(()),
+        Err(_) => Err(FFIError::InvalidCredential),
+    }
 }
 
 async fn run_vpn(vpn: NymVpn) -> Result<(), FFIError> {
