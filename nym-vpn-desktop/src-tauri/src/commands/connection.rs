@@ -18,7 +18,7 @@ use nym_vpn_proto::{
 use std::sync::Arc;
 use tauri::State;
 use tonic::Request;
-use tracing::{debug, error, instrument, trace};
+use tracing::{debug, error, info, instrument, trace};
 
 #[instrument(skip_all)]
 #[tauri::command]
@@ -130,9 +130,21 @@ pub async fn connect(
         }
     };
 
+    let two_hop_mod = if let VpnMode::TwoHop = app_state.vpn_mode {
+        info!("2-hop mode enabled");
+        true
+    } else {
+        info!("5-hop mode enabled");
+        false
+    };
     let request = Request::new(ConnectRequest {
         entry: Some(entry_node),
         exit: Some(exit_node),
+        disable_routing: false,
+        enable_two_hop: two_hop_mod,
+        enable_poisson_rate: false,
+        disable_background_cover_traffic: false,
+        enable_credentials_mode: true,
     });
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
