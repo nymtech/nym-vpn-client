@@ -76,15 +76,15 @@ jobs:
 
       # Setup TAG_NAME, which is used as a general "name"
       - if: github.event_name == 'workflow_dispatch'
-        run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+        run: echo "TAG_NAME=${{ github.event.inputs.binary }}-${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
       - if: github.event_name == 'schedule'
-        run: echo 'TAG_NAME=nightly' >> $GITHUB_ENV
+        run: echo 'TAG_NAME=${{ github.event.inputs.binary }}-nightly' >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
-      - name: Set tag
-        id: set_tag
-        run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
+      # - name: Set tag
+      #   id: set_tag
+      #   run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
       - name: Generate checksum and keep only the correct binary
         run: |
