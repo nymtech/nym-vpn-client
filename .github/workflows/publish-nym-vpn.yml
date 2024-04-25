@@ -28,6 +28,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR: linux_artifacts
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build-nym-vpn-linux:
