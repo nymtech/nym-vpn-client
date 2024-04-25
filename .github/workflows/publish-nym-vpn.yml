@@ -98,16 +98,17 @@ jobs:
           cat ${{ env.UPLOAD_DIR }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-      - if: env.TAG_NAME == 'nightly'
+      - name: Deleting old nightly release if present and tag is nightly
+        if: env.TAG_NAME == 'nightly'
         run: |
-          (echo "SUBJECT=${{ github.event.inputs.binary }}-v${{ env.TAG_NAME }} nightly prerelease build";
+          (echo "SUBJECT=${{ github.event.inputs.binary }}-v${{ steps.package-version.outputs.metadata }} nightly prerelease build";
            echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
           gh release delete ${{ github.event.inputs.binary }}-nightly --yes || true
           git push origin :${{ github.event.inputs.binary }}-nightly || true
 
       - name: Publish release
         run: |
-          gh release create $TAG_NAME $PRERELEASE --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/*
+          gh release create $TAG_NAME $PRERELEASE --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR }}/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
