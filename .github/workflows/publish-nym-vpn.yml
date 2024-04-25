@@ -1,7 +1,5 @@
 name: publish-nym-vpn.yml
 on:
-  schedule:
-    - cron: "4 4 * * *"
   workflow_dispatch:
     inputs:
       tag_name:
