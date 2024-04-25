@@ -7,17 +7,17 @@
     "title": "Entry location selector",
     "desc": "Manually select your entry hop"
   },
+  "error-monitoring": {
+    "title": "Anonymous error reports",
+    "desc": "Help us improve NymVPN"
+  },
+  "monitoring-alert": "You must restart the app for the change to take effect.",
   "feedback": {
     "title": "Feedback",
     "github": "Open a GitHub issue",
     "send": "Send us feedback",
     "matrix": "Join us on Matrix",
-    "discord": "Join us on Discord",
-    "error-monitoring": {
-      "title": "Turn on error monitoring",
-      "desc": "Help us improve NymVPN"
-    },
-    "monitoring-alert": "You must restart the application for the change to take effect."
+    "discord": "Join us on Discord"
   },
   "support": {
     "title": "Support",

@@ -29,7 +29,7 @@ impl VpnServiceExitListener {
                     }
                     nym_vpn_lib::NymVpnExitStatusMessage::Failed(err) => {
                         error!("VPN exit: fail: {err}");
-                        self.set_shared_state(VpnState::NotConnected);
+                        self.set_shared_state(VpnState::ConnectionFailed(err.to_string()));
                     }
                 },
                 Err(err) => {

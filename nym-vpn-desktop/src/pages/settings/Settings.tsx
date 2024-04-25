@@ -1,44 +1,71 @@
-import { useEffect, useState } from 'react';
+import { useCallback } from 'react';
+import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
-import { useMainDispatch, useMainState } from '../../contexts';
+import {
+  useMainDispatch,
+  useMainState,
+  useNotifications,
+} from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
 import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
 import SettingsGroup from './SettingsGroup';
 
+const ThrottleDelay = 10000; // ms
+
 function Settings() {
-  const state = useMainState();
+  const { entrySelector, autoConnect, version, monitoring } = useMainState();
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
-
-  const [entrySelector, setEntrySelector] = useState(state.entrySelector);
-  const [autoConnect, setAutoConnect] = useState(state.autoConnect);
   const { exit } = useExit();
-
-  useEffect(() => {
-    setEntrySelector(state.entrySelector);
-    setAutoConnect(state.autoConnect);
-  }, [state]);
+  const { push } = useNotifications();
 
   const handleEntrySelectorChange = async () => {
-    const isSelected = !state.entrySelector;
-    dispatch({ type: 'set-entry-selector', entrySelector: isSelected });
-    kvSet('EntryLocationEnabled', isSelected);
+    const isChecked = !entrySelector;
+    dispatch({ type: 'set-entry-selector', entrySelector: isChecked });
+    kvSet('EntryLocationEnabled', isChecked);
   };
 
   const handleAutoConnectChanged = async () => {
-    const isSelected = !state.autoConnect;
-    dispatch({ type: 'set-auto-connect', autoConnect: isSelected });
-    kvSet('Autoconnect', isSelected);
+    const isChecked = !autoConnect;
+    dispatch({ type: 'set-auto-connect', autoConnect: isChecked });
+    kvSet('Autoconnect', isChecked);
+  };
+
+  // notify the user at most once per every 10s when he toggles monitoring
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const showMonitoringAlert = useCallback(
+    _.throttle(
+      () => {
+        push({
+          text: t('monitoring-alert'),
+          position: 'top',
+          closeIcon: true,
+        });
+      },
+      ThrottleDelay,
+      {
+        leading: true,
+        trailing: false,
+      },
+    ),
+    [],
+  );
+
+  const handleMonitoringChanged = async () => {
+    const isChecked = !monitoring;
+    showMonitoringAlert();
+    dispatch({ type: 'set-monitoring', monitoring: isChecked });
+    kvSet('Monitoring', isChecked);
   };
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
-      {import.meta.env.APP_CREDENTIAL === 'true' && (
+      {import.meta.env.APP_DISABLE_DATA_STORAGE !== 'true' && (
         <Button onClick={async () => navigate(routes.credential)}>
           {t('add-credential-button')}
         </Button>
@@ -118,6 +145,15 @@ function Settings() {
               />
             ),
           },
+          {
+            title: t('error-monitoring.title'),
+            desc: t('error-monitoring.desc'),
+            leadingIcon: 'bug_report',
+            onClick: handleMonitoringChanged,
+            trailing: (
+              <Switch checked={monitoring} onChange={handleMonitoringChanged} />
+            ),
+          },
         ]}
       />
       <SettingsMenuCard
@@ -129,7 +165,7 @@ function Settings() {
       />
       <SettingsMenuCard title={t('quit')} onClick={exit} />
       <div className="flex grow flex-col justify-end text-comet text-sm tracking-tight leading-tight mb-4">
-        Version {state.version}
+        Version {version}
       </div>
     </PageAnim>
   );

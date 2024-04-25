@@ -42,28 +42,26 @@ function SettingsGroup({ settings }: Props) {
         >
           <div
             role={setting.disabled ? 'none' : 'button'}
-            className="flex flex-1 items-center justify-between gap-4"
+            className="flex flex-1 items-center justify-between gap-4 overflow-hidden"
           >
             {setting.leadingIcon && (
               <span className="font-icon text-2xl select-none dark:text-mercury-pinkish">
                 {setting.leadingIcon}
               </span>
             )}
-            <div className="flex flex-1 items-center">
-              <div className="text-sm">
-                <RadioGroup.Label
-                  as="p"
-                  className="text-base text-baltic-sea dark:text-mercury-pinkish select-none"
-                >
-                  {setting.title}
-                </RadioGroup.Label>
-                <RadioGroup.Description
-                  as="span"
-                  className="text-sm text-cement-feet dark:text-mercury-mist select-none"
-                >
-                  <span>{setting.desc}</span>
-                </RadioGroup.Description>
-              </div>
+            <div className="flex flex-col flex-1 justify-center min-w-4">
+              <RadioGroup.Label
+                as="div"
+                className="text-base text-baltic-sea dark:text-mercury-pinkish select-none truncate"
+              >
+                {setting.title}
+              </RadioGroup.Label>
+              <RadioGroup.Description
+                as="div"
+                className="text-sm text-cement-feet dark:text-mercury-mist select-none truncate"
+              >
+                <span>{setting.desc}</span>
+              </RadioGroup.Description>
             </div>
             {setting.trailing}
           </div>

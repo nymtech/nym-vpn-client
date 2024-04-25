@@ -1,12 +1,15 @@
 use futures::SinkExt;
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 use nym_vpn_lib::{NymVpnCtrlMessage, NymVpnHandle};
+use std::env;
 use tauri::State;
 use tracing::{debug, error, info, instrument, trace};
 
 use crate::country::FASTEST_NODE_LOCATION;
 use crate::db::{Db, Key};
+use crate::fs::path::BACKEND_DATA_PATH;
 use crate::states::app::NodeLocation;
+use crate::ENV_DISABLE_DATA_STORAGE;
 use crate::{
     error::{CmdError, CmdErrorSource},
     events::{AppHandleEventEmitter, ConnectProgressMsg},
@@ -94,11 +97,18 @@ pub async fn connect(
     } else {
         info!("5-hop mode enabled");
     }
-    info!("wireguard 1st hop disabled");
     vpn_config.enable_wireguard = false;
     // !! release app_state mutex
     // TODO: replace with automatic drop through scope
     drop(app_state);
+
+    if !env::var(ENV_DISABLE_DATA_STORAGE).is_ok_and(|v| v == "true") {
+        debug!(
+            "using path for mixnet data: {}",
+            BACKEND_DATA_PATH.to_string_lossy()
+        );
+        vpn_config.mixnet_data_path = Some(BACKEND_DATA_PATH.clone());
+    }
 
     // spawn the VPN client and start a new connection
     let NymVpnHandle {

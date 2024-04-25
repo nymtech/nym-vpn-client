@@ -4,8 +4,8 @@
   "status": {
     "connected": "Connected",
     "disconnected": "Disconnected",
-    "connecting": "Connecting…",
-    "disconnecting": "Disconnecting…",
+    "connecting": "Connecting",
+    "disconnecting": "Disconnecting",
     "unknown": "Unknown"
   },
   "last-hop": "Last hop",

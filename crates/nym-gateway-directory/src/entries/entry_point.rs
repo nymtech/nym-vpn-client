@@ -3,16 +3,13 @@
 
 use std::fmt::{Display, Formatter};
 
-use crate::{
-    error::Result,
-    helpers::{
-        list_all_country_iso_codes, select_random_gateway_node,
-        select_random_low_latency_gateway_node,
-    },
-    DescribedGatewayWithLocation, Error,
-};
+use crate::{error::Result, DescribedGatewayWithLocation, Error};
 use nym_sdk::mixnet::NodeIdentity;
 use serde::{Deserialize, Serialize};
+
+use super::described_gateway::{
+    by_location, by_random, by_random_low_latency, verify_identity, LookupGateway,
+};
 
 // The entry point is always a gateway identity, or some other entry that can be resolved to a
 // gateway identity.
@@ -22,7 +19,6 @@ pub enum EntryPoint {
     // An explicit entry gateway identity.
     Gateway { identity: NodeIdentity },
     // Select a random entry gateway in a specific location.
-    // NOTE: Consider using a crate with strongly typed country codes instead of strings
     Location { location: String },
     // Select a random entry gateway but increasey probability of selecting a low latency gateway
     // as determined by ping times.
@@ -52,44 +48,32 @@ impl EntryPoint {
     pub fn is_location(&self) -> bool {
         matches!(self, EntryPoint::Location { .. })
     }
+}
 
-    pub async fn lookup_gateway_identity(
+#[async_trait::async_trait]
+impl LookupGateway for EntryPoint {
+    async fn lookup_gateway_identity(
         &self,
         gateways: &[DescribedGatewayWithLocation],
     ) -> Result<(NodeIdentity, Option<String>)> {
         match &self {
-            EntryPoint::Gateway { identity } => {
-                // Confirm up front that the gateway identity is in the list of gateways from the
-                // directory.
-                gateways
-                    .iter()
-                    .find(|gateway| gateway.identity_key() == &identity.to_string())
-                    .ok_or(Error::NoMatchingGateway)?;
-                Ok((*identity, None))
-            }
+            EntryPoint::Gateway { identity } => verify_identity(gateways, identity),
             EntryPoint::Location { location } => {
-                log::info!("Selecting a random entry gateway in location: {}", location);
-                // Caution: if an explorer-api for a different network was specified, then
-                // none of the gateways will have an associated location. There is a check
-                // against this earlier in the call stack to guard against this scenario.
-                let gateways_with_specified_location = gateways
-                    .iter()
-                    .filter(|g| g.is_two_letter_iso_country_code(location));
-                if gateways_with_specified_location.clone().count() == 0 {
-                    return Err(Error::NoMatchingEntryGatewayForLocation {
-                        requested_location: location.to_string(),
-                        available_countries: list_all_country_iso_codes(gateways),
-                    });
-                }
-                select_random_gateway_node(gateways_with_specified_location)
+                by_location(gateways, location).map_err(|err| match err {
+                    Error::NoMatchingGatewayForLocation {
+                        requested_location,
+                        available_countries,
+                    } => Error::NoMatchingEntryGatewayForLocation {
+                        requested_location,
+                        available_countries,
+                    },
+                    err => err,
+                })
             }
-            EntryPoint::RandomLowLatency => {
-                log::info!("Selecting a random low latency entry gateway");
-                select_random_low_latency_gateway_node(gateways).await
-            }
+            EntryPoint::RandomLowLatency => by_random_low_latency(gateways).await,
             EntryPoint::Random => {
                 log::info!("Selecting a random entry gateway");
-                select_random_gateway_node(gateways)
+                by_random(gateways)
             }
         }
     }

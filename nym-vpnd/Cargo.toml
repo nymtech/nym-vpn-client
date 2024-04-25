@@ -1,8 +1,13 @@
 [package]
 name = "nym-vpnd"
 version = "0.1.0"
-edition = "2021"
-license = "GPL-3.0-only"
+description = "Nym VPN daemon"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
 
 
 [dependencies]
@@ -20,6 +25,11 @@ toml.workspace = true
 tonic.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
+tonic-health.workspace = true
+tonic-reflection.workspace = true
+
+# match the version required by tonic
+http = "0.2.12"
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
@@ -33,3 +43,16 @@ vergen = { workspace = true, default-features = false, features = [
     "rustc",
     "cargo",
 ] }
+
+# Debian
+[package.metadata.deb]
+name = "nym-vpnd"
+maintainer-scripts = "debian"
+
+[package.metadata.deb.systemd-units]
+unit-name = "nym-vpnd"
+enable = true
+start = true
+restart-after-upgrade = false
+stop-on-upgrade = true
+unit-scripts = "linux/unit-scripts"

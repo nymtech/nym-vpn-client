@@ -10,12 +10,16 @@ use tokio::sync::Mutex;
 use tracing::{debug, error, info, trace};
 
 use commands::db as cmd_db;
+use commands::window as cmd_window;
 use commands::*;
 use states::app::AppState;
 
+use crate::fs::path::BACKEND_DATA_PATH;
+use crate::fs::util::check_dir;
+use crate::window::WindowSize;
 use crate::{
     cli::{print_build_info, Cli},
-    db::Db,
+    db::{Db, Key},
     fs::{config::AppConfig, storage::AppStorage},
     network::setup_network_env,
 };
@@ -31,10 +35,12 @@ mod http;
 mod network;
 mod states;
 mod vpn_client;
+mod window;
 
 pub const APP_DIR: &str = "nym-vpn";
 const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
+const ENV_DISABLE_DATA_STORAGE: &str = "APP_DISABLE_DATA_STORAGE";
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -96,15 +102,32 @@ async fn main() -> Result<()> {
         e
     })?;
 
-    info!("Starting tauri app");
+    // initialize backend data directory
+    check_dir(&BACKEND_DATA_PATH).await?;
+    debug!(
+        "using path for backend data: {}",
+        BACKEND_DATA_PATH.to_string_lossy()
+    );
 
+    info!("Starting tauri app");
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(app_state)))
         .manage(Arc::new(app_config))
         .manage(Arc::new(cli))
-        .manage(db)
+        .manage(db.clone())
         .setup(move |app| {
             info!("app setup");
+
+            // restore any previously saved window size
+            let window_size = db.get_typed::<WindowSize>(Key::WindowSize)?;
+            if let Some(s) = window_size {
+                debug!("restoring window size: {:?}", s);
+                let main_win = app.get_window("main").expect("failed to get main window");
+                main_win
+                    .set_size(s)
+                    .inspect_err(|e| error!("failed to set window size {}", e))?;
+            }
+
             let env_nosplash = env::var(ENV_APP_NOSPLASH).map(|_| true).unwrap_or(false);
             trace!("env APP_NOSPLASH: {}", env_nosplash);
 
@@ -134,9 +157,10 @@ async fn main() -> Result<()> {
             node_location::set_node_location,
             node_location::get_fastest_node_location,
             node_location::get_countries,
-            window::show_main_window,
+            cmd_window::show_main_window,
             commands::cli::cli_args,
             log::log_js,
+            credential::add_credential,
         ])
         .run(context)
         .expect("error while running tauri application");

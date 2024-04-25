@@ -12,7 +12,7 @@ function ConnectionStatus() {
   const { t } = useTranslation('home');
 
   useEffect(() => {
-    // Quickly hide and show badge when state changes  to trigger
+    // Quickly hide and show badge when state changes to trigger
     // the animation of state transitions
     setShowBadge(false);
     const timer = setTimeout(() => {
@@ -20,7 +20,7 @@ function ConnectionStatus() {
     }, 1);
 
     return () => clearTimeout(timer);
-  }, [state]);
+  }, [state.state]);
 
   return (
     <div className="h-full min-h-52 flex flex-col justify-center items-center gap-y-2">

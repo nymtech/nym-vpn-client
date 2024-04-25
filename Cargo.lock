@@ -756,9 +756,9 @@ dependencies = [
 
 [[package]]
 name = "chrono"
-version = "0.4.37"
+version = "0.4.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a0d04d43504c61aa6c7531f1871dd0d418d91130162063b789da00fd7057a5e"
+checksum = "a21f936df1771bf62b77f047b726c4625ff2e8aa607c01ec06e5a05bd8463401"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
@@ -3935,6 +3935,7 @@ dependencies = [
 name = "nym-gateway-directory"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "chrono",
  "hickory-resolver",
  "itertools 0.12.1",
@@ -4023,11 +4024,13 @@ dependencies = [
 name = "nym-harbour-master-client"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "nym-http-api-client",
  "reqwest",
  "serde",
  "serde_json",
  "thiserror",
+ "tracing",
 ]
 
 [[package]]
@@ -4602,7 +4605,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-cli"
-version = "0.1.1-dev"
+version = "0.1.2-dev"
 dependencies = [
  "anyhow",
  "bs58 0.5.1",
@@ -4692,6 +4695,7 @@ dependencies = [
  "prost 0.12.4",
  "tonic 0.11.0",
  "tonic-build 0.11.0",
+ "tonic-reflection",
 ]
 
 [[package]]
@@ -4699,7 +4703,9 @@ name = "nym-vpnc"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bs58 0.5.1",
  "clap",
+ "nym-gateway-directory",
  "nym-vpn-proto",
  "parity-tokio-ipc",
  "prost 0.12.4",
@@ -4717,6 +4723,7 @@ dependencies = [
  "clap",
  "dirs 5.0.1",
  "futures",
+ "http 0.2.12",
  "nym-task",
  "nym-vpn-lib",
  "nym-vpn-proto",
@@ -4728,6 +4735,8 @@ dependencies = [
  "tokio",
  "toml 0.8.12",
  "tonic 0.11.0",
+ "tonic-health",
+ "tonic-reflection",
  "tracing",
  "tracing-subscriber",
  "vergen",
@@ -7393,6 +7402,32 @@ dependencies = [
  "prost-build 0.12.3",
  "quote",
  "syn 2.0.58",
+]
+
+[[package]]
+name = "tonic-health"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2cef6e24bc96871001a7e48e820ab240b3de2201e59b517cf52835df2f1d2350"
+dependencies = [
+ "async-stream",
+ "prost 0.12.4",
+ "tokio",
+ "tokio-stream",
+ "tonic 0.11.0",
+]
+
+[[package]]
+name = "tonic-reflection"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "548c227bd5c0fae5925812c4ec6c66ffcfced23ea370cb823f4d18f0fc1cb6a7"
+dependencies = [
+ "prost 0.12.4",
+ "prost-types 0.12.3",
+ "tokio",
+ "tokio-stream",
+ "tonic 0.11.0",
 ]
 
 [[package]]

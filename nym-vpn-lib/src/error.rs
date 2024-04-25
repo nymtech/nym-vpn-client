@@ -117,8 +117,8 @@ pub enum Error {
     #[error("deadlock when trying to aquire mixnet client mutes")]
     MixnetClientDeadlock,
 
-    #[error("timeout waiting for mixnet client to start")]
-    StartMixnetTimeout,
+    #[error("timeout after waiting {0}s for mixnet client to start")]
+    StartMixnetTimeout(u64),
 
     #[error("vpn could not be started")]
     NotStarted,

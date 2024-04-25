@@ -10,13 +10,11 @@ use crate::tunnel::{setup_route_manager, start_tunnel, Tunnel};
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::{WgConfig, WgGatewayClient};
 use futures::channel::{mpsc, oneshot};
+use gateway_directory::{GatewayQueryResult, LookupGateway};
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_connection_monitor::ConnectionMonitorTask;
-use nym_gateway_directory::{
-    Config, DescribedGatewayWithLocation, EntryPoint, ExitPoint, GatewayClient,
-    IpPacketRouterAddress,
-};
+use nym_gateway_directory::{Config, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress};
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
@@ -61,6 +59,8 @@ pub mod routing;
 pub mod tunnel;
 pub mod util;
 pub mod wg_gateway_client;
+
+const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
 
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
@@ -293,7 +293,7 @@ impl NymVpn {
         info!("Setting up mixnet client");
         info!("Connecting to entry gateway: {entry_gateway}");
         let mixnet_client = timeout(
-            Duration::from_secs(10),
+            Duration::from_secs(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS),
             setup_mixnet_client(
                 entry_gateway,
                 &self.mixnet_data_path,
@@ -306,7 +306,7 @@ impl NymVpn {
             ),
         )
         .await
-        .map_err(|_| Error::StartMixnetTimeout)??;
+        .map_err(|_| Error::StartMixnetTimeout(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS))??;
 
         // Now that we have a connection, collection some info about that and return
         let nym_address = mixnet_client.nym_address().await;
@@ -355,44 +355,30 @@ impl NymVpn {
     )> {
         // Create a gateway client that we use to interact with the entry gateway, in particular to
         // handle wireguard registration
-        let gateway_client = GatewayClient::new(self.gateway_config.clone())?;
-        let gateways = gateway_client
-            .lookup_described_gateways_with_location()
+        let gateway_directory_client = GatewayClient::new(self.gateway_config.clone())?;
+        let GatewayQueryResult {
+            entry_gateways,
+            exit_gateways,
+        } = gateway_directory_client
+            .lookup_described_entry_and_exit_gateways_with_location()
             .await?;
+
         // This info would be useful at at least debug level, but it's just so much data that it
         // would be overwhelming
-        log::trace!("Got gateways {:?}", gateways);
+        log::trace!("Got entry gateways {:?}", entry_gateways);
+        log::trace!("Got exit gateways {:?}", exit_gateways);
 
         let wg_gateway_client = WgGatewayClient::new(self.wg_gateway_config.clone())?;
         log::info!("Created wg gateway client");
 
-        // If the entry or exit point relies on location, do a basic defensive consistency check on
-        // the fetched location data. If none of the gateways have location data, we can't proceed
-        // and it's likely the explorer-api isn't set correctly.
-        if (self.entry_point.is_location() || self.exit_point.is_location())
-            && gateways.iter().filter(|g| g.has_location()).count() == 0
-        {
-            return Err(Error::RequestedGatewayByLocationWithoutLocationDataAvailable);
-        }
-
-        //filter so we are only getting exit gateways with current api version
-        let working_exit_gateways: Vec<DescribedGatewayWithLocation> = gateways
-            .clone()
-            .into_iter()
-            .filter(|gateway| gateway.is_current_build())
-            .collect();
-
-        if working_exit_gateways.is_empty() {
-            return Err(Error::CountryExitGatewaysOutdated);
-        }
-
-        let (entry_gateway_id, entry_location) =
-            self.entry_point.lookup_gateway_identity(&gateways).await?;
+        let (entry_gateway_id, entry_location) = self
+            .entry_point
+            .lookup_gateway_identity(&entry_gateways)
+            .await?;
         let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
 
-        let (exit_router_address, exit_location) = self
-            .exit_point
-            .lookup_router_address(&working_exit_gateways)?;
+        let (exit_router_address, exit_location) =
+            self.exit_point.lookup_router_address(&exit_gateways)?;
         let exit_location_str = exit_location.as_deref().unwrap_or("unknown");
         let exit_gateway_id = exit_router_address.gateway();
 
@@ -409,7 +395,7 @@ impl NymVpn {
                 .wg_ip
                 .expect("clap should enforce value when wireguard enabled");
             let wireguard_config = init_wireguard_config(
-                &gateway_client,
+                &gateway_directory_client,
                 &wg_gateway_client,
                 &entry_gateway_id.to_base58_string(),
                 private_key,
@@ -482,7 +468,7 @@ impl NymVpn {
                 &entry_gateway_id,
                 &exit_router_address,
                 &task_manager,
-                &gateway_client,
+                &gateway_directory_client,
                 default_lan_gateway_ip,
                 tunnel_gateway_ip,
             )

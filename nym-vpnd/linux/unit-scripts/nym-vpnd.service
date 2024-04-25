@@ -1,0 +1,14 @@
+[Unit]
+Description=nym-vpnd daemon
+Before=network-online.target
+StartLimitBurst=6
+StartLimitIntervalSec=24
+After=NetworkManager.service systemd-resolved.service
+
+[Service]
+ExecStart=/usr/bin/nym-vpnd
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
