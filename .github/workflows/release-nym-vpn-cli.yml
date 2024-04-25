@@ -324,7 +324,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nym-vpn-debs
-          path: target/debian/*deb
+          path: |
+            target/debian/nym-vpnc*deb
+            target/debian/nym-vpnd*deb
+            target/debian/nym-vpn-cli*deb
           retention-days: 2
 
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
