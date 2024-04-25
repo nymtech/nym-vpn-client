@@ -80,7 +80,6 @@ async fn init_wireguard_config(
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
     let wireguard_config = WireguardConfig::init(wireguard_private_key, &wg_gateway_data)?;
-    info!("Wireguard config: \n{wireguard_config}");
     Ok(wireguard_config)
 }
 

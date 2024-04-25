@@ -155,11 +155,14 @@ async fn setup_wg_tunnel(
         peer.allowed_ips
             .append(&mut replace_default_prefixes(catch_all_ipv6()));
     });
+    info!("Entry wireguard config: \n{entry_wireguard_config}");
+    info!("Exit wireguard config: \n{exit_wireguard_config}");
     let (firewall, dns_monitor) = init_firewall_dns(
         #[cfg(target_os = "linux")]
         route_manager.handle()?,
     )?;
     let route_manager = Arc::new(RwLock::new(route_manager));
+    std::env::set_var("TALPID_FORCE_USERSPACE_WIREGUARD", "1");
     let wireguard_waiting_entry = create_wireguard_tunnel(
         route_manager.clone(),
         nym_vpn.tun_provider.clone(),
