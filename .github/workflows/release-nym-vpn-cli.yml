@@ -283,6 +283,7 @@ jobs:
         run: |
           cargo deb -p nym-vpnd
           cargo deb -p nym-vpnc
+          cargo deb -p nym-vpn-cli
 
       - name: Run tests
         if: ${{ contains(matrix.os, 'native') }}
