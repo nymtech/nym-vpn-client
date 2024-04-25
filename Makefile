@@ -1,49 +1,39 @@
 # Detect the OS and architecture
-OS := $(shell uname -s)
-ARCH := $(shell uname -m)
-
-# Adjust the ARCH variable based on detected values
-ifeq ($(OS),Linux)
-  ifeq ($(ARCH),x86_64)
-    ARCH := x86_64-unknown-linux-gnu
-  else ifeq ($(ARCH),aarch64)
-    ARCH := aarch64-unknown-linux-gnu
-  # Add more architectures as needed
-  endif
-endif
-ifeq ($(OS),Darwin)
-  ifeq ($(ARCH),x86_64)
-    ARCH := x86_64-apple-darwin
-  else ifeq ($(ARCH),arm64)
-    ARCH := aarch64-apple-darwin
-  # Add more architectures as needed
-  endif
-endif
+include platform.mk
 
 DESKTOP_RUST_DIR=nym-vpn-desktop/src-tauri
 DESKTOP_PUBLIC_DIR=nym-vpn-desktop/public
 
-all: build-wireguard build-cli local-install
+.PHONY: all deb local-install
+
+# Main targets
+all: build-wireguard build-vpn-cli local-install
 
 deb: build-wireguard build-deb-vpn-cli build-deb-vpnd build-deb-vpnc
 
+# WireGuard build
 build-wireguard:
 	./wireguard/build-wireguard-go.sh
 
-build-cli:
+# CLI build
+build-vpn-cli:
 	RUSTFLAGS="-L $(CURDIR)/build/lib/$(ARCH)" cargo build --release
 
-build-desktop:
+# Desktop application build
+build-vpn-desktop:
 	npm install --prefix nym-vpn-desktop
 	npm run --prefix nym-vpn-desktop tauri build
 
+# Development build for the desktop app
 dev-desktop:
 	npm run --prefix nym-vpn-desktop dev:app
 
-local-install:
+# Local installation of the CLI
+local-install: build-vpn-cli
 	mkdir -p bin
 	cp -f target/release/nym-vpn-cli bin/nym-vpn-cli
 
+# License generation
 generate-licenses: generate-licenses-cli generate-licenses-cli-json generate-licenses-desktop generate-licenses-desktop-json
 
 generate-licenses-cli:
@@ -55,6 +45,7 @@ generate-licenses-cli-json:
 generate-licenses-desktop-json:
 	cargo about generate --all-features -m $(DESKTOP_RUST_DIR)/Cargo.toml --format json -o $(DESKTOP_PUBLIC_DIR)/licenses-rust.json
 
+# Debian package builds
 build-deb-vpn-cli:
 	RUSTFLAGS="-L $(CURDIR)/build/lib/$(ARCH)" cargo deb -p nym-vpn-cli
 
@@ -64,4 +55,4 @@ build-deb-vpnd:
 build-deb-vpnc:
 	RUSTFLAGS="-L $(CURDIR)/build/lib/$(ARCH)" cargo deb -p nym-vpnc
 
-.PHONY: build-wireguard build-cli build-desktop local-install deb build-deb-vpn-cli build-deb-vpnd build-deb-vpnc
+
