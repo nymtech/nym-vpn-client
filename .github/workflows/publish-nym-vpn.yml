@@ -107,7 +107,7 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Setting subject, prerelease and notes files
-        if: env.TAG_NAME == 'nightly'
+        if: ${{ contains(env.TAG_NAME, 'nightly') }}
         run: |
           (echo "SUBJECT=${{ env.BINARY }}-v${{ steps.package-version.outputs.metadata }} nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
@@ -117,7 +117,7 @@ jobs:
       # Once we consider these actually release builds, remove --prerelease
       # from PRERELEASE here
       - name: Removing --prerelease if needed
-        if: env.TAG_NAME != 'nightly'
+        if: ${{ !contains(env.TAG_NAME, 'nightly') }}
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE='
