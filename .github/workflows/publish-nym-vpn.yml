@@ -92,7 +92,7 @@ jobs:
               rm -rf ${f}
               continue
             fi
-            sha256sum ${f} > "${f}.sha256sum";
+            sha256sum ${f} > "${f}.sha256sum"
           done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR }}/*.sha256sum >> $GITHUB_ENV
