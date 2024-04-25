@@ -49,7 +49,7 @@ jobs:
       - name: Binary name
         run: |
           echo "Checking if tag exists or workflow was manually launched. Setting BINARY var"
-          if [[ -z ${{ github.event.inputs.binary }} ]]; then
+          if [[ -z "${{ github.event.inputs.binary }}" ]]; then
             echo "BINARY=$(echo ${{ github.ref_name }} | sed -E 's/-v[0-9]+.[0-9]+.[0-9]+*//g')" >> $GITHUB_ENV
           else
             echo "BINARY=${{ github.event.inputs.binary }}" >> $GITHUB_ENV
