@@ -4,26 +4,41 @@ package nym.vpn;
 
 message Empty {}
 
+// Represents the identity of a gateway
 message Gateway {
   string id = 1;
-  Location location = 2;
+}
+
+// Represents a nym-address of the form id.enc@gateway
+message Address {
+  string nym_address = 1;
 }
 
 message Location {
-  string two_letter_country_code = 1;
+  string two_letter_iso_country_code = 1;
 }
 
-message Node {
-  oneof node {
-    Location location = 1;
+message EntryNode {
+  oneof entry_node_enum {
+    Gateway gateway = 1;
+    Location location = 2;
+    Empty random_low_latency = 3;
+    Empty random = 4;
+  }
+}
+
+message ExitNode {
+  oneof exit_node_enum {
+    Address address = 1;
     Gateway gateway = 2;
-    Empty fastest = 3;
+    Location location = 3;
+    Empty random = 4;
   }
 }
 
 message ConnectRequest {
-  // Node entry = 1;
-  // Node exit = 2;
+  EntryNode entry = 1;
+  ExitNode exit = 2;
 }
 
 message ConnectResponse {
@@ -36,52 +51,54 @@ message DisconnectResponse {
   bool success = 1;
 }
 
-enum VpnMode {
-  MODE_UNSPECIFIED = 0;
-  MIXNET_FIVE_HOP = 1;
-  MIXNET_TWO_HOP = 2;
-  WIREGUARD_TWO_HOP = 3;
-}
+// enum VpnMode {
+//   MODE_UNSPECIFIED = 0;
+//   MIXNET_FIVE_HOP = 1;
+//   MIXNET_TWO_HOP = 2;
+//   WIREGUARD_TWO_HOP = 3;
+// }
 
 enum ConnectionStatus {
   STATUS_UNSPECIFIED = 0;
-  NOT_CONNECTED = 1;
-  CONNECTING = 2;
-  CONNECTED = 3;
-  DISCONNECTING = 4;
-  UNKNOWN = 5; // errored pending state etc
+  UNKNOWN = 1;
+  NOT_CONNECTED = 2;
+  CONNECTING = 3;
+  CONNECTED = 4;
+  DISCONNECTING = 5;
+  CONNECTION_FAILED = 6;
 }
 
-message LocationListResponse {
-  repeated Location location = 1;
-}
-
-message SetVpnModeRequest {
-  VpnMode mode = 1;
-}
-
-message GetVpnModeResponse {
-  VpnMode mode = 1;
-}
-
-message GatewayResponse {
-  Gateway gateways = 1;
-}
+// message LocationListResponse {
+//   repeated Location location = 1;
+// }
+//
+// message SetVpnModeRequest {
+//   VpnMode mode = 1;
+// }
+//
+// message GetVpnModeResponse {
+//   VpnMode mode = 1;
+// }
+//
+// message GatewayResponse {
+//   Gateway gateways = 1;
+// }
 
 message StatusRequest {}
 message StatusResponse {
   ConnectionStatus status = 1;
+  Error error = 2;
 }
 
-message ConnectionStatusUpdate {
-  ConnectionStatus status = 1;
-  repeated ConnectionProgress connection_progress = 2;
-  // optional Error error = 3;
-}
-
-message ConnectionProgress {
-  string message = 1;
-}
+// message ConnectionStatusUpdate {
+//   ConnectionStatus status = 1;
+//   repeated ConnectionProgress connection_progress = 2;
+//   // optional Error error = 3;
+// }
+//
+// message ConnectionProgress {
+//   string message = 1;
+// }
 
 message Error {
   string message = 1;
@@ -89,15 +106,19 @@ message Error {
   // optional string source = 3;
 }
 
-message SetUserCredentialsRequest {
-  string key = 1;
+message ImportUserCredentialRequest {
+  bytes credential = 1;
+}
+
+message ImportUserCredentialResponse {
+  bool success = 1;
 }
 
 service NymVpnd {
-  // rpc SetUserCredentials (SetUserCredentialsRequest) returns (Empty) {}
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
   rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
   rpc VpnStatus (StatusRequest) returns (StatusResponse) {}
+  rpc ImportUserCredential (ImportUserCredentialRequest) returns (ImportUserCredentialResponse) {}
   // rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
   // // Cancel any connection pending state (connecting, disconnecting etc)
   // // and return to disconnected state

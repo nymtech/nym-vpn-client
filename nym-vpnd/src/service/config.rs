@@ -90,3 +90,25 @@ pub(super) fn read_config_file(
         error,
     })
 }
+
+pub(super) fn write_config_file(
+    config_file: &PathBuf,
+    config: &NymVpnServiceConfig,
+) -> Result<(), ConfigSetupError> {
+    let config_str = toml::to_string(config).unwrap();
+    fs::write(config_file, config_str).map_err(|error| ConfigSetupError::WriteFile {
+        file: config_file.clone(),
+        error,
+    })?;
+    info!("Config file updated at {:?}", config_file);
+    Ok(())
+}
+
+pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError> {
+    fs::create_dir_all(data_dir).map_err(|error| ConfigSetupError::CreateDirectory {
+        dir: data_dir.clone(),
+        error,
+    })?;
+    info!("Data directory created at {:?}", data_dir);
+    Ok(())
+}

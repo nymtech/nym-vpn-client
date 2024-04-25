@@ -1,12 +1,15 @@
 use futures::SinkExt;
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 use nym_vpn_lib::{NymVpnCtrlMessage, NymVpnHandle, SpecificVpn};
+use std::env;
 use tauri::State;
 use tracing::{debug, error, info, instrument, trace};
 
 use crate::country::FASTEST_NODE_LOCATION;
 use crate::db::{Db, Key};
+use crate::fs::path::BACKEND_DATA_PATH;
 use crate::states::app::NodeLocation;
+use crate::ENV_DISABLE_DATA_STORAGE;
 use crate::{
     error::{CmdError, CmdErrorSource},
     events::{AppHandleEventEmitter, ConnectProgressMsg},
@@ -98,17 +101,27 @@ pub async fn connect(
     // TODO: replace with automatic drop through scope
     drop(app_state);
 
+    if !env::var(ENV_DISABLE_DATA_STORAGE).is_ok_and(|v| v == "true") {
+        debug!(
+            "using path for mixnet data: {}",
+            BACKEND_DATA_PATH.to_string_lossy()
+        );
+        vpn_config.mixnet_data_path = Some(BACKEND_DATA_PATH.clone());
+    }
+
     // spawn the VPN client and start a new connection
     let NymVpnHandle {
         vpn_ctrl_tx,
         vpn_status_rx,
         vpn_exit_rx,
-    } = match nym_vpn_lib::spawn_nym_vpn_with_new_runtime(SpecificVpn::Mix(vpn_config)).map_err(|e| {
-        CmdError::new(
-            CmdErrorSource::InternalError,
-            format!("fail to initialize Nym VPN client: {}", e),
-        )
-    }) {
+    } = match nym_vpn_lib::spawn_nym_vpn_with_new_runtime(SpecificVpn::Mix(vpn_config)).map_err(
+        |e| {
+            CmdError::new(
+                CmdErrorSource::InternalError,
+                format!("fail to initialize Nym VPN client: {}", e),
+            )
+        },
+    ) {
         Ok(handle) => handle,
         Err(e) => {
             error!(e.message);

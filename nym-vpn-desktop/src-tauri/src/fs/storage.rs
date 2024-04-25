@@ -4,9 +4,7 @@ use std::{fmt, path::PathBuf, str};
 use tokio::fs;
 use tracing::{debug, error, instrument};
 
-use crate::fs::util::check_dir;
-
-use super::util::check_file;
+use super::util::{check_dir, check_file};
 
 #[derive(Debug, Clone)]
 pub struct AppStorage<T>
