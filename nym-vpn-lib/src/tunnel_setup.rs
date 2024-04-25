@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::{Arc, RwLock};
-
 use crate::error::Result;
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
 use crate::tunnel::setup_route_manager;
@@ -48,7 +46,7 @@ impl TunnelSpecifcSetup for WgTunnelSetup {}
 pub enum AllTunnelsSetup {
     Mix(TunnelSetup<MixTunnelSetup>),
     Wg {
-        route_manager: Arc<RwLock<RouteManager>>,
+        route_manager: RouteManager,
         entry: TunnelSetup<WgTunnelSetup>,
         exit: TunnelSetup<WgTunnelSetup>,
         firewall: Firewall,
@@ -161,16 +159,15 @@ async fn setup_wg_tunnel(
         #[cfg(target_os = "linux")]
         route_manager.handle()?,
     )?;
-    let route_manager = Arc::new(RwLock::new(route_manager));
     std::env::set_var("TALPID_FORCE_USERSPACE_WIREGUARD", "1");
     let wireguard_waiting_entry = create_wireguard_tunnel(
-        route_manager.clone(),
+        &route_manager,
         nym_vpn.tun_provider.clone(),
         entry_wireguard_config,
     )
     .await?;
     let wireguard_waiting_exit = create_wireguard_tunnel(
-        route_manager.clone(),
+        &route_manager,
         nym_vpn.tun_provider.clone(),
         exit_wireguard_config,
     )
@@ -230,7 +227,7 @@ async fn setup_mix_tunnel(
             task_manager.wait_for_shutdown().await;
             info!("Interrupt handled");
             // Ignore if these fail since we're interesting in the original error anyway
-            handle_interrupt(Arc::new(RwLock::new(route_manager)), None)
+            handle_interrupt(route_manager, None)
                 .await
                 .tap_err(|err| {
                     warn!("Failed to handle interrupt: {err}");

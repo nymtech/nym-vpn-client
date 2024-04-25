@@ -16,7 +16,7 @@ use nym_gateway_directory::{Config, EntryPoint, ExitPoint, GatewayClient, IpPack
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use talpid_routing::RouteManager;
 use tap::TapFallible;
@@ -444,7 +444,7 @@ impl SpecificVpn {
         match tunnels {
             AllTunnelsSetup::Mix(TunnelSetup { specific_setup, .. }) => {
                 wait_for_interrupt(specific_setup.task_manager).await;
-                handle_interrupt(Arc::new(RwLock::new(specific_setup.route_manager)), None)
+                handle_interrupt(specific_setup.route_manager, None)
                     .await
                     .tap_err(|err| {
                         error!("Failed to handle interrupt: {err}");
@@ -507,7 +507,7 @@ impl SpecificVpn {
                 let result =
                     wait_for_interrupt_and_signal(Some(specific_setup.task_manager), vpn_ctrl_rx)
                         .await;
-                handle_interrupt(Arc::new(RwLock::new(specific_setup.route_manager)), None)
+                handle_interrupt(specific_setup.route_manager, None)
                     .await
                     .map_err(|err| {
                         error!("Failed to handle interrupt: {err}");
