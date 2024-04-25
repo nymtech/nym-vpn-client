@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use netdev::Interface;
-use talpid_core::dns::DnsMonitor;
 use std::fmt::{Display, Formatter};
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(target_os = "android")]
@@ -10,6 +9,7 @@ use std::os::fd::{AsRawFd, RawFd};
 #[cfg(target_os = "android")]
 use std::sync::{Arc, Mutex};
 use std::{collections::HashSet, net::IpAddr};
+use talpid_core::dns::DnsMonitor;
 
 use ipnetwork::IpNetwork;
 use netdev::interface::get_default_interface;
