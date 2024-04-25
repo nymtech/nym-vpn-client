@@ -54,8 +54,6 @@ jobs:
             echo PKG_VERSION_PATHING="${{ github.event.inputs.binary }}" >> $GITHUB_ENV
           fi
           echo ${{ env.PKG_VERSION_PATHING }}
-
-
       - name: Get package version
         id: package-version
         uses: nicolaiunrein/cargo-get@master
@@ -69,7 +67,6 @@ jobs:
           if [[ ${{ github.event.inputs.binary }}-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
             exit 1
           fi
-
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -100,7 +97,6 @@ jobs:
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
-
       - name: Deleting old nightly release if present and tag is nightly
         if: env.TAG_NAME == 'nightly'
         run: |
@@ -108,11 +104,9 @@ jobs:
            echo 'PRERELEASE=--prerelease') >> $GITHUB_ENV
           gh release delete ${{ github.event.inputs.binary }}-nightly --yes || true
           git push origin :${{ github.event.inputs.binary }}-nightly || true
-
       - name: Publish release
         run: |
           gh release create $TAG_NAME $PRERELEASE --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR }}/*
-
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
     needs: publish
