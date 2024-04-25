@@ -126,7 +126,7 @@ jobs:
       - name: Publish release
         run: |
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
-          gh release create $TAG_NAME ${{ env.PRERELEASE }} --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR }}/*
+          gh release create $TAG_NAME ${{ env.PRERELEASE }} --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR }}/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
