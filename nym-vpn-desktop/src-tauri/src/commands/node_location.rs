@@ -1,20 +1,20 @@
-use futures::future;
-use itertools::Itertools;
+use nym_vpn_lib::gateway_directory::{Config, GatewayClient};
+use reqwest::Url;
 use serde::{Deserialize, Serialize};
+use std::env;
 use tauri::State;
-use tracing::{debug, error, instrument, trace};
+use tracing::{debug, instrument};
 use ts_rs::TS;
 
 use crate::{
-    country::{Country, FASTEST_NODE_LOCATION},
+    country::Country,
     db::{Db, Key},
     error::{CmdError, CmdErrorSource},
-    http::{
-        client::{HttpError, HTTP_CLIENT},
-        explorer_api, nym_api,
-    },
     states::{app::NodeLocation, SharedAppState},
 };
+
+const NYM_API_SANDBOX_URL: &str = "https://sandbox-nym-api1.nymtech.net/api";
+const NYM_EXPLORER_SANDBOX_URL: &str = "https://sandbox-explorer.nymtech.net/api";
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
 pub enum NodeType {
@@ -68,7 +68,7 @@ pub async fn set_node_location(
 #[tauri::command]
 pub async fn get_fastest_node_location() -> Result<Country, CmdError> {
     debug!("get_fastest_node_location");
-    Ok(FASTEST_NODE_LOCATION.clone())
+    get_low_latency_entry_country().await
 }
 
 #[instrument(skip(app_state))]
@@ -89,164 +89,74 @@ pub async fn get_node_location(
 pub async fn get_countries(node_type: NodeType) -> Result<Vec<Country>, CmdError> {
     debug!("get_countries");
     match node_type {
-        NodeType::Entry => get_entry_countries().await,
-        NodeType::Exit => get_exit_countries().await,
+        NodeType::Entry => get_gateway_countries(false).await,
+        NodeType::Exit => get_gateway_countries(true).await,
     }
 }
 
-#[instrument(skip_all)]
-pub async fn get_entry_countries() -> Result<Vec<Country>, CmdError> {
-    debug!("get_entry_countries");
-    let response = explorer_api::get_gateways().await.map_err(|_| {
-        CmdError::new(
-            CmdErrorSource::InternalError,
-            "failed to fetch node locations".to_string(),
-        )
-    })?;
-
-    let json = explorer_api::deserialize_json(response)
-        .await
-        .map_err(|_| {
-            CmdError::new(
-                CmdErrorSource::InternalError,
-                "failed to fetch node locations".to_string(),
-            )
-        })?;
-
-    debug!("parsing json list");
-    let list = json
-        .into_iter()
-        .filter_map(|gateway| gateway.location)
-        // remove any duplicate two letter country code
-        .unique_by(|location| location.two_letter_iso_country_code.clone())
-        // mapping to a list of Country
-        .map(|location| {
-            let mut name = location.country_name;
-            // TODO yes this is what we get from the API for UK
-            // let's use something more friendly
-            if name == "United Kingdom of Great Britain and Northern Ireland" {
-                name = "United Kingdom".to_string();
-            }
-
-            Country {
-                name,
-                code: location.two_letter_iso_country_code,
-            }
-        })
-        // sort countries by name
-        .sorted_by(|a, b| a.name.cmp(&b.name))
-        .collect::<Vec<_>>();
-
-    debug!("fetched countries count [{}]", list.len());
-    trace!("fetched countries {list:#?}");
-
-    Ok(list)
+fn get_api_url() -> Result<Url, CmdError> {
+    Url::parse(&env::var("NYM_API").unwrap_or_else(|_| NYM_API_SANDBOX_URL.to_string())).map_err(
+        |_| CmdError {
+            source: CmdErrorSource::InternalError,
+            message: "Failed to parse api_url".to_string(),
+        },
+    )
 }
 
 #[instrument(skip_all)]
-pub async fn get_exit_countries() -> Result<Vec<Country>, CmdError> {
-    debug!("get_exit_countries");
-
-    // future::join_all will collects the responses in the same
-    // order
-    let urls = vec![explorer_api::get_url(), nym_api::get_url()];
-
-    debug!("fetching countries from Explorer and Nym api");
-    // concurrently fetch both explorer and nym APIs
-    let responses = future::join_all(urls.into_iter().map(|url| {
-        let client = &HTTP_CLIENT;
-        async move {
-            client.get(&url).send().await.map_err(|e| {
-                error!("HTTP request GET {url} failed: {e}");
-                HttpError::RequestError(e.status())
-            })
-        }
-    }))
-    .await;
-    trace!("fetching done");
-
-    // filter out any failed requests
-    let mut responses = responses
-        .into_iter()
-        .filter_map(|res| res.ok())
-        .collect::<Vec<_>>();
-
-    // if one of the requests failed, return an error
-    if responses.len() != 2 {
-        return Err(CmdError::new(
-            CmdErrorSource::InternalError,
-            "failed to fetch node locations".to_string(),
-        ));
-    }
-    let explorer_response = responses.remove(0);
-    let nym_api_response = responses.remove(0);
-
-    debug!("deserializing json responses");
-    let explorer_json = explorer_api::deserialize_json(explorer_response)
-        .await
-        .map_err(|_| {
-            CmdError::new(
-                CmdErrorSource::InternalError,
-                "failed to fetch node locations".to_string(),
-            )
+async fn get_low_latency_entry_country() -> Result<Country, CmdError> {
+    let api_url = get_api_url()?;
+    let explorer_url = get_explorer_url()?;
+    let config = Config {
+        api_url,
+        explorer_url: Some(explorer_url),
+        harbour_master_url: None,
+    };
+    let gateway_client = GatewayClient::new(config)?;
+    let described = gateway_client.lookup_low_latency_entry_gateway().await?;
+    let country = described
+        .location()
+        .map(|l| Country {
+            name: l.country_name.to_string(),
+            code: l.two_letter_iso_country_code.to_string(),
+        })
+        .ok_or(CmdError {
+            source: CmdErrorSource::InternalError,
+            message: "Failed to get low latency country".to_string(),
         })?;
 
-    let nym_api_json = nym_api::deserialize_json(nym_api_response)
-        .await
-        .map_err(|_| {
-            CmdError::new(
-                CmdErrorSource::InternalError,
-                "failed to fetch node locations".to_string(),
-            )
-        })?;
+    Ok(country)
+}
 
-    debug!("parsing responses");
-    let list = nym_api_json
+fn get_explorer_url() -> Result<Url, CmdError> {
+    Url::parse(&env::var("EXPLORER_API").unwrap_or_else(|_| NYM_EXPLORER_SANDBOX_URL.to_string()))
+        .map_err(|_| CmdError {
+            source: CmdErrorSource::InternalError,
+            message: "Failed to parse explorer_url".to_string(),
+        })
+}
+
+#[instrument(skip_all)]
+async fn get_gateway_countries(exit_only: bool) -> Result<Vec<Country>, CmdError> {
+    let api_url = get_api_url()?;
+    let explorer_url = get_explorer_url()?;
+
+    let config = Config {
+        api_url,
+        explorer_url: Some(explorer_url),
+        harbour_master_url: None,
+    };
+    let gateway_client = GatewayClient::new(config)?;
+    let locations = if !exit_only {
+        gateway_client.lookup_all_countries().await?
+    } else {
+        gateway_client.lookup_all_exit_countries().await?
+    };
+    Ok(locations
         .into_iter()
-        // only retain gateways with IP packet router
-        // mapping to a list of identity keys
-        .filter_map(|gateway| {
-            gateway
-                .self_described
-                .and_then(|desc| desc.ip_packet_router)
-                .map(|_| gateway.bond.gateway().identity_key.clone())
+        .map(|l| Country {
+            name: l.country_name,
+            code: l.two_letter_iso_country_code,
         })
-        // remove any duplicate identity key
-        .unique()
-        // find the corresponding country code in the explorer response
-        // for each identity key
-        // mapping to a list of locations
-        .filter_map(|identity_key| {
-            explorer_json.iter().find_map(|gateway| {
-                if gateway.gateway.identity_key == identity_key {
-                    gateway.location.clone()
-                } else {
-                    None
-                }
-            })
-        })
-        // remove any duplicate two letter country code
-        .unique_by(|location| location.two_letter_iso_country_code.clone())
-        // mapping to a list of Country
-        .map(|location| {
-            let mut name = location.country_name;
-            // TODO yes this is what we get from the API for UK
-            // let's use something more friendly
-            if name == "United Kingdom of Great Britain and Northern Ireland" {
-                name = "United Kingdom".to_string();
-            }
-
-            Country {
-                name,
-                code: location.two_letter_iso_country_code,
-            }
-        })
-        // sort countries by name
-        .sorted_by(|a, b| a.name.cmp(&b.name))
-        .collect::<Vec<_>>();
-
-    debug!("fetched countries count [{}]", list.len());
-    trace!("fetched countries {list:#?}");
-
-    Ok(list)
+        .collect())
 }
