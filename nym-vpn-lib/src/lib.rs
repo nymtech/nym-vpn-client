@@ -443,13 +443,16 @@ impl SpecificVpn {
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
-            AllTunnelsSetup::Mix(TunnelSetup { specific_setup, .. }) => {
+            AllTunnelsSetup::Mix(TunnelSetup { mut specific_setup, .. }) => {
                 wait_for_interrupt(specific_setup.task_manager).await;
                 handle_interrupt(Arc::new(RwLock::new(specific_setup.route_manager)), None)
                     .await
                     .tap_err(|err| {
                         error!("Failed to handle interrupt: {err}");
                     })?;
+                specific_setup.dns_monitor.reset().tap_err(|err| {
+                    error!("Failed to reset dns monitor: {err}");
+                })?;
             }
             AllTunnelsSetup::Wg {
                 route_manager,
