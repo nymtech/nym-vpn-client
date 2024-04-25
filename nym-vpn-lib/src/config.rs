@@ -45,7 +45,7 @@ impl WireguardConfig {
         };
         let peers = vec![PeerConfig {
             public_key: gateway_data.public_key.clone(),
-            allowed_ips: vec!["10.1.0.1".parse().unwrap()],
+            allowed_ips: vec![gateway_data.private_ip.into()],
             endpoint: gateway_data.endpoint,
             psk: None,
         }];

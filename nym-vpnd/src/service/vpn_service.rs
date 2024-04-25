@@ -169,11 +169,12 @@ impl NymVpnService {
             }
         }
 
-        let mut nym_vpn = nym_vpn_lib::NymVpn::new(config.entry_point, config.exit_point);
+        let mut nym_vpn =
+            nym_vpn_lib::NymVpn::new_mixnet_vpn(config.entry_point, config.exit_point);
         nym_vpn.gateway_config = gateway_directory::Config::new_from_env();
-        nym_vpn.mixnet_data_path = Some(self.data_dir.clone());
+        nym_vpn.vpn_config.mixnet_data_path = Some(self.data_dir.clone());
 
-        let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn).unwrap();
+        let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn.into()).unwrap();
 
         let nym_vpn_lib::NymVpnHandle {
             vpn_ctrl_tx,

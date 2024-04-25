@@ -97,7 +97,6 @@ pub async fn connect(
     } else {
         info!("5-hop mode enabled");
     }
-    vpn_config.enable_wireguard = false;
     // !! release app_state mutex
     // TODO: replace with automatic drop through scope
     drop(app_state);
@@ -107,7 +106,7 @@ pub async fn connect(
             "using path for mixnet data: {}",
             BACKEND_DATA_PATH.to_string_lossy()
         );
-        vpn_config.mixnet_data_path = Some(BACKEND_DATA_PATH.clone());
+        vpn_config.vpn_config.mixnet_data_path = Some(BACKEND_DATA_PATH.clone());
     }
 
     // spawn the VPN client and start a new connection
@@ -115,7 +114,7 @@ pub async fn connect(
         vpn_ctrl_tx,
         vpn_status_rx,
         vpn_exit_rx,
-    } = match nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config).map_err(|e| {
+    } = match nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config.into()).map_err(|e| {
         CmdError::new(
             CmdErrorSource::InternalError,
             format!("fail to initialize Nym VPN client: {}", e),

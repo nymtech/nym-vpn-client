@@ -95,16 +95,11 @@ pub struct NymConfig {
 
 impl From<RoutingConfig> for NymConfig {
     fn from(value: RoutingConfig) -> Self {
-        let entry_mixnet_gateway_ip = if value.enable_wireguard() {
-            Some(value.entry_mixnet_gateway_ip())
-        } else {
-            None
-        };
         NymConfig {
             ipv4_addr: value.tun_ips().ipv4,
             ipv6_addr: value.tun_ips().ipv6,
             mtu: value.mtu(),
-            entry_mixnet_gateway_ip,
+            entry_mixnet_gateway_ip: None,
         }
     }
 }

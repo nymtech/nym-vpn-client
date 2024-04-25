@@ -184,6 +184,9 @@ pub enum Error {
     #[error("administrator privileges required, try rerunning with administrator privileges: `runas /user:Administrator {binary_name} run`")]
     AdminPrivilegesRequired { binary_name: String },
 
+    #[error("poisoned route manager lock")]
+    RouteManagerPoisonedLock,
+
     #[error("invalid credential: {reason}")]
     InvalidCredential {
         reason: crate::credentials::CredentialError,

@@ -57,18 +57,28 @@ pub(crate) struct RunArgs {
     #[arg(
         long,
         default_value_t = false,
-        requires = "private_key",
-        requires = "wg_ip"
+        requires = "entry_private_key",
+        requires = "exit_private_key",
+        requires = "entry_wg_ip",
+        requires = "exit_wg_ip"
     )]
     pub(crate) enable_wireguard: bool,
 
-    /// Associated private key.
-    #[arg(long, requires = "enable_wireguard", requires = "wg_ip")]
-    pub(crate) private_key: Option<String>,
+    /// Associated entry private key.
+    #[arg(long, requires = "enable_wireguard", requires = "entry_wg_ip")]
+    pub(crate) entry_private_key: Option<String>,
 
-    /// The IP address of the wireguard interface used for the first hop to the entry gateway.
+    /// Associated exit private key.
+    #[arg(long, requires = "enable_wireguard", requires = "exit_wg_ip")]
+    pub(crate) exit_private_key: Option<String>,
+
+    /// The IP address of the entry wireguard interface used for the first hop to the entry gateway.
     #[arg(long, value_parser = validate_wg_ip, requires = "enable_wireguard")]
-    pub(crate) wg_ip: Option<Ipv4Addr>,
+    pub(crate) entry_wg_ip: Option<Ipv4Addr>,
+
+    /// The IP address of the exit wireguard interface used for the first hop to the entry gateway.
+    #[arg(long, value_parser = validate_wg_ip, requires = "enable_wireguard")]
+    pub(crate) exit_wg_ip: Option<Ipv4Addr>,
 
     /// The IPv4 address of the nym TUN device that wraps IP packets in sphinx packets.
     #[arg(long, alias = "ipv4", value_parser = validate_ipv4, requires = "nym_ipv6")]
@@ -197,8 +207,11 @@ fn validate_ipv6(ip: &str) -> Result<Ipv6Addr, String> {
 }
 
 pub fn wg_override_from_env(args: &RunArgs, mut config: WgConfig) -> WgConfig {
-    if let Some(ref private_key) = args.private_key {
-        config = config.with_local_private_key(private_key.clone());
+    if let Some(ref private_key) = args.entry_private_key {
+        config = config.with_local_entry_private_key(private_key.clone());
+    }
+    if let Some(ref private_key) = args.exit_private_key {
+        config = config.with_local_exit_private_key(private_key.clone());
     }
     config
 }
