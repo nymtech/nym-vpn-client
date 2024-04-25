@@ -7,7 +7,8 @@ use std::sync::Arc;
 use futures::channel::mpsc::UnboundedSender;
 use futures::SinkExt;
 use nym_vpn_lib::credentials::import_credential;
-use nym_vpn_lib::gateway_directory::{self, EntryPoint};
+use nym_vpn_lib::gateway_directory::{self, EntryPoint, ExitPoint};
+use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::oneshot;
 use tracing::info;
@@ -45,6 +46,16 @@ pub enum VpnServiceCommand {
 pub struct ConnectArgs {
     pub entry: Option<gateway_directory::EntryPoint>,
     pub exit: Option<gateway_directory::ExitPoint>,
+    pub options: ConnectOptions,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct ConnectOptions {
+    pub(crate) disable_routing: bool,
+    pub(crate) enable_two_hop: bool,
+    pub(crate) enable_poisson_rate: bool,
+    pub(crate) disable_background_cover_traffic: bool,
+    pub(crate) enable_credentials_mode: bool,
 }
 
 #[derive(Debug)]
@@ -124,6 +135,7 @@ impl NymVpnService {
         &self,
         entry: Option<gateway_directory::EntryPoint>,
         exit: Option<gateway_directory::ExitPoint>,
+        connect_options: ConnectOptions,
     ) -> std::result::Result<NymVpnServiceConfig, ConfigSetupError> {
         // If the config file does not exit, create it
         let config = if self.config_file.exists() {
@@ -135,7 +147,8 @@ impl NymVpnService {
         } else {
             let config = NymVpnServiceConfig {
                 entry_point: entry.unwrap_or(EntryPoint::Random),
-                ..Default::default()
+                exit_point: exit.unwrap_or(ExitPoint::Random),
+                connect_options,
             };
             create_config_file(&self.config_file, config)?
         };
@@ -145,11 +158,16 @@ impl NymVpnService {
     async fn handle_connect(&mut self, connect_args: ConnectArgs) -> VpnServiceConnectResult {
         self.set_shared_state(VpnState::Connecting);
 
-        let ConnectArgs { entry, exit } = connect_args;
+        let ConnectArgs {
+            entry,
+            exit,
+            options,
+        } = connect_args;
         info!("Using entry point: {:?}", entry);
         info!("Using exit point: {:?}", exit);
+        info!("Using options: {:?}", options);
 
-        let config = match self.try_setup_config(entry, exit) {
+        let config = match self.try_setup_config(entry, exit, options) {
             Ok(config) => config,
             Err(err) => {
                 self.set_shared_state(VpnState::NotConnected);
@@ -173,6 +191,12 @@ impl NymVpnService {
             nym_vpn_lib::NymVpn::new_mixnet_vpn(config.entry_point, config.exit_point);
         nym_vpn.gateway_config = gateway_directory::Config::new_from_env();
         nym_vpn.vpn_config.mixnet_data_path = Some(self.data_dir.clone());
+        nym_vpn.disable_routing = config.connect_options.disable_routing;
+        nym_vpn.enable_two_hop = config.connect_options.enable_two_hop;
+        nym_vpn.vpn_config.enable_poisson_rate = config.connect_options.enable_poisson_rate;
+        nym_vpn.vpn_config.disable_background_cover_traffic =
+            config.connect_options.disable_background_cover_traffic;
+        nym_vpn.vpn_config.enable_credentials_mode = config.connect_options.enable_credentials_mode;
 
         let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn.into()).unwrap();
 

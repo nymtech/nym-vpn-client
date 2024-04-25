@@ -39,6 +39,11 @@ message ExitNode {
 message ConnectRequest {
   EntryNode entry = 1;
   ExitNode exit = 2;
+  bool disable_routing = 3;
+  bool enable_two_hop = 4;
+  bool enable_poisson_rate = 5;
+  bool disable_background_cover_traffic = 6;
+  bool enable_credentials_mode = 7;
 }
 
 message ConnectResponse {
