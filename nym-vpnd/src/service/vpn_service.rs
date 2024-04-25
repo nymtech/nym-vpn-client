@@ -174,9 +174,7 @@ impl NymVpnService {
         nym_vpn.gateway_config = gateway_directory::Config::new_from_env();
         nym_vpn.vpn_config.mixnet_data_path = Some(self.data_dir.clone());
 
-        let handle =
-            nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn_lib::SpecificVpn::Mix(nym_vpn))
-                .unwrap();
+        let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn.into()).unwrap();
 
         let nym_vpn_lib::NymVpnHandle {
             vpn_ctrl_tx,

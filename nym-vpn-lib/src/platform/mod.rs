@@ -143,7 +143,7 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
     if vpn.is_err() {
         RUNNING.store(false, Ordering::Relaxed);
     }
-    let ret = RUNTIME.block_on(run_vpn(SpecificVpn::Mix(vpn?)));
+    let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
     if ret.is_err() {
         RUNNING.store(false, Ordering::Relaxed);
     }

@@ -129,6 +129,18 @@ pub enum SpecificVpn {
     Mix(NymVpn<MixnetVpn>),
 }
 
+impl From<NymVpn<WireguardVpn>> for SpecificVpn {
+    fn from(value: NymVpn<WireguardVpn>) -> Self {
+        Self::Wg(value)
+    }
+}
+
+impl From<NymVpn<MixnetVpn>> for SpecificVpn {
+    fn from(value: NymVpn<MixnetVpn>) -> Self {
+        Self::Mix(value)
+    }
+}
+
 pub struct NymVpn<T: Vpn> {
     /// Gateway configuration
     pub gateway_config: Config,
@@ -579,10 +591,10 @@ pub enum NymVpnExitStatusMessage {
 /// use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 /// use nym_vpn_lib::NodeIdentity;
 ///
-/// let mut vpn_config = nym_vpn_lib::NymVpn::new(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
+/// let mut vpn_config = nym_vpn_lib::NymVpn::new_mixnet_vpn(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
 /// ExitPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()).unwrap()});
 /// vpn_config.enable_two_hop = true;
-/// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config);
+/// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config.into());
 /// ```
 pub fn spawn_nym_vpn(nym_vpn: SpecificVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
@@ -611,10 +623,10 @@ pub fn spawn_nym_vpn(nym_vpn: SpecificVpn) -> Result<NymVpnHandle> {
 /// use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 /// use nym_vpn_lib::NodeIdentity;
 ///
-/// let mut vpn_config = nym_vpn_lib::NymVpn::new(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
+/// let mut vpn_config = nym_vpn_lib::NymVpn::new_mixnet_vpn(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
 /// ExitPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()).unwrap()});
 /// vpn_config.enable_two_hop = true;
-/// let vpn_handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config);
+/// let vpn_handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config.into());
 /// ```
 pub fn spawn_nym_vpn_with_new_runtime(nym_vpn: SpecificVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();

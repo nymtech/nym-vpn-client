@@ -142,7 +142,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         None
     };
 
-    let mut nym_vpn = if args.enable_wireguard {
+    let mut nym_vpn: SpecificVpn = if args.enable_wireguard {
         let mut nym_vpn = NymVpn::new_wireguard_vpn(entry_point, exit_point);
         nym_vpn.gateway_config = gateway_config;
         nym_vpn.nym_ips = nym_ips;
@@ -154,7 +154,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.vpn_config.exit_private_key = args.exit_private_key;
         nym_vpn.vpn_config.entry_wg_ip = args.entry_wg_ip;
         nym_vpn.vpn_config.exit_wg_ip = args.exit_wg_ip;
-        SpecificVpn::Wg(nym_vpn)
+        nym_vpn.into()
     } else {
         let mut nym_vpn = NymVpn::new_mixnet_vpn(entry_point, exit_point);
         nym_vpn.gateway_config = gateway_config;
@@ -166,7 +166,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.vpn_config.enable_poisson_rate = args.enable_poisson_rate;
         nym_vpn.vpn_config.disable_background_cover_traffic = args.disable_background_cover_traffic;
         nym_vpn.vpn_config.enable_credentials_mode = args.enable_credentials_mode;
-        SpecificVpn::Mix(nym_vpn)
+        nym_vpn.into()
     };
 
     nym_vpn.run().await?;

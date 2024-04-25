@@ -114,14 +114,12 @@ pub async fn connect(
         vpn_ctrl_tx,
         vpn_status_rx,
         vpn_exit_rx,
-    } = match nym_vpn_lib::spawn_nym_vpn_with_new_runtime(SpecificVpn::Mix(vpn_config)).map_err(
-        |e| {
-            CmdError::new(
-                CmdErrorSource::InternalError,
-                format!("fail to initialize Nym VPN client: {}", e),
-            )
-        },
-    ) {
+    } = match nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config.into()).map_err(|e| {
+        CmdError::new(
+            CmdErrorSource::InternalError,
+            format!("fail to initialize Nym VPN client: {}", e),
+        )
+    }) {
         Ok(handle) => handle,
         Err(e) => {
             error!(e.message);
