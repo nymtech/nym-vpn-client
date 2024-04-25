@@ -1,7 +1,6 @@
 package net.nymtech.nymvpn.ui
 
 import android.app.AlarmManager
-import android.app.Application
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -11,8 +10,6 @@ import android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateListOf
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +21,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.nymtech.logcathelper.LogcatHelper
 import net.nymtech.logcathelper.model.LogLevel
 import net.nymtech.logcathelper.model.LogMessage
@@ -36,8 +32,6 @@ import net.nymtech.nymvpn.util.FileUtils
 import net.nymtech.nymvpn.util.log.NymLibException
 import net.nymtech.vpn.NymApi
 import net.nymtech.vpn.VpnClient
-import net.nymtech.vpn.model.Country
-import nym_vpn_lib.FfiException
 import timber.log.Timber
 import java.time.Instant
 import javax.inject.Inject
@@ -48,12 +42,9 @@ class AppViewModel
 constructor(
 	private val settingsRepository: SettingsRepository,
 	private val gatewayRepository: GatewayRepository,
-	private val application: Application,
 	private val vpnClient: VpnClient,
 	private val nymApi: NymApi,
 ) : ViewModel() {
-
-	private val alarmManager: AlarmManager = application.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
 	private val _uiState = MutableStateFlow(AppUiState())
 
@@ -110,26 +101,11 @@ constructor(
 		LogcatHelper.clear()
 	}
 
-	fun saveLogsToFile() {
+	fun saveLogsToFile(context: Context) {
 		val fileName = "${Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.txt"
 		val content = logs.joinToString(separator = "\n")
-		FileUtils.saveFileToDownloads(application.applicationContext, content, fileName)
-		showSnackbarMessage(application.getString(R.string.logs_saved))
-	}
-
-	fun updateCountryListCache() {
-		Timber.i("Updating gateways country list")
-		viewModelScope.launch(Dispatchers.IO) {
-			updateExitCountriesCache()
-			updateEntryCountriesCache()
-			if (!settingsRepository.isFirstHopSelectionEnabled() || settingsRepository.getFirstHopCountry().isDefault) {
-				updateFirstHopDefaultCountry()
-			}
-		}
-	}
-
-	suspend fun isAnalyticsShown() = withContext(viewModelScope.coroutineContext + Dispatchers.Main) {
-		settingsRepository.isAnalyticsEnabled()
+		FileUtils.saveFileToDownloads(context, content, fileName)
+		showSnackbarMessage(context.getString(R.string.logs_saved))
 	}
 
 	fun setAnalyticsShown() = viewModelScope.launch {
@@ -138,15 +114,7 @@ constructor(
 
 	fun onEntryLocationSelected(selected: Boolean) = viewModelScope.launch {
 		settingsRepository.setFirstHopSelection(selected)
-		settingsRepository.setFirstHopCountry(Country(isDefault = true))
-		updateFirstHopDefaultCountry()
-	}
-
-	private suspend fun updateFirstHopDefaultCountry() {
-		val firstHop = settingsRepository.getFirstHopCountry()
-		if (firstHop.isDefault || firstHop.isLowLatency) {
-			setFirstHopToLowLatency()
-		}
+		setFirstHopToLowLatency()
 	}
 
 	fun onErrorReportingSelected() = viewModelScope.launch {
@@ -157,27 +125,9 @@ constructor(
 		settingsRepository.setAnalytics(!uiState.value.settings.analyticsEnabled)
 	}
 
-	private suspend fun updateEntryCountriesCache() {
-		try {
-			val entryCountries = nymApi.gateways(false)
-			gatewayRepository.setEntryCountries(entryCountries)
-		} catch (e: FfiException) {
-			Timber.e(e)
-		}
-	}
-
-	private suspend fun updateExitCountriesCache() {
-		try {
-			val exitCountries = nymApi.gateways(true)
-			gatewayRepository.setExitCountries(exitCountries)
-		} catch (e: FfiException) {
-			Timber.e(e)
-		}
-	}
-
 	private suspend fun setFirstHopToLowLatency() {
 		runCatching {
-			nymApi.getLowLatencyEntryCountry()
+			gatewayRepository.getLowLatencyCountry()
 		}.onFailure {
 			Timber.e(it)
 		}.onSuccess {
@@ -185,27 +135,30 @@ constructor(
 		}
 	}
 
-	fun openWebPage(url: String) {
+	fun openWebPage(url: String, context: Context) {
 		try {
 			val webpage: Uri = Uri.parse(url)
 			Intent(Intent.ACTION_VIEW, webpage).apply {
 				addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 			}.also {
-				application.startActivity(it)
+				context.startActivity(it)
 			}
 		} catch (e: ActivityNotFoundException) {
 			Timber.e(e)
-			showSnackbarMessage(application.getString(R.string.no_browser_detected))
+			showSnackbarMessage(context.getString(R.string.no_browser_detected))
 		}
 	}
 
 	@RequiresApi(Build.VERSION_CODES.S)
-	fun isAlarmPermissionGranted(): Boolean {
+	fun isAlarmPermissionGranted(context: Context): Boolean {
+		val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 		return alarmManager.canScheduleExactAlarms()
 	}
 
 	@RequiresApi(Build.VERSION_CODES.S)
-	fun requestAlarmPermission() {
+	fun requestAlarmPermission(context: Context) {
+		val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
 		when {
 			alarmManager.canScheduleExactAlarms() -> {
 				// permission granted
@@ -217,38 +170,38 @@ constructor(
 					addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 					action = ACTION_REQUEST_SCHEDULE_EXACT_ALARM
 				}.also {
-					application.startActivity(it)
+					context.startActivity(it)
 				}
 			}
 		}
 	}
 
-	fun launchEmail() {
+	fun launchEmail(context: Context) {
 		try {
 			val intent =
 				Intent(Intent.ACTION_SENDTO).apply {
 					type = Constants.EMAIL_MIME_TYPE
 					putExtra(
 						Intent.EXTRA_EMAIL,
-						arrayOf(application.getString(R.string.support_email)),
+						arrayOf(context.getString(R.string.support_email)),
 					)
 					putExtra(
 						Intent.EXTRA_SUBJECT,
-						application.getString(R.string.email_subject),
+						context.getString(R.string.email_subject),
 					)
 					addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 				}
-			application.startActivity(
+			context.startActivity(
 				Intent.createChooser(
 					intent,
-					application.getString(R.string.email_chooser),
+					context.getString(R.string.email_chooser),
 				).apply {
 					addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 				},
 			)
 		} catch (e: ActivityNotFoundException) {
 			Timber.e(e)
-			showSnackbarMessage(application.getString(R.string.no_email_detected))
+			showSnackbarMessage(context.getString(R.string.no_email_detected))
 		}
 	}
 
@@ -269,10 +222,10 @@ constructor(
 			)
 	}
 
-	fun showFeatureInProgressMessage() {
+	fun showFeatureInProgressMessage(context: Context) {
 		Toast.makeText(
-			application.applicationContext,
-			application.getString(R.string.feature_in_progress),
+			context,
+			context.getString(R.string.feature_in_progress),
 			Toast.LENGTH_LONG,
 		).show()
 	}

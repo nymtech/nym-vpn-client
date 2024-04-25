@@ -11,12 +11,12 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -32,6 +32,7 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.util.scaledHeight
@@ -39,6 +40,8 @@ import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
 fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, appUiState: AppUiState) {
+	val context = LocalContext.current
+
 	val errorReportingDescription = buildAnnotatedString {
 		append("(")
 		append(stringResource(id = R.string.via))
@@ -119,7 +122,7 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 				style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center),
 			) {
 				analyticsMessage.getStringAnnotations(tag = "sentry", it, it).firstOrNull()?.let { annotation ->
-					appViewModel.openWebPage(annotation.item)
+					appViewModel.openWebPage(annotation.item, context)
 				}
 			}
 		}
@@ -143,15 +146,15 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 								style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
 							) {
 								errorReportingDescription.getStringAnnotations(tag = "sentry", it, it).firstOrNull()?.let { annotation ->
-									appViewModel.openWebPage(annotation.item)
+									appViewModel.openWebPage(annotation.item, context)
 								}
 							}
 						},
 						height = 80,
 						trailing = {
-							Switch(
+							ScaledSwitch(
 								appUiState.settings.errorReportingEnabled,
-								{ appViewModel.onErrorReportingSelected() },
+								onClick = { appViewModel.onErrorReportingSelected() },
 								modifier =
 								Modifier
 									.height(32.dp.scaledHeight())
@@ -166,7 +169,7 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 // 							Text(stringResource(R.string.share_anonymous_analytics), style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSurface))
 // 						},
 // 						trailing = {
-// 							Switch(
+// 							ScaledSwitch(
 // 								appUiState.settings.analyticsEnabled,
 // 								{ appViewModel.onAnalyticsReportingSelected() },
 // 								modifier =
@@ -199,10 +202,10 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 				modifier = Modifier.padding(bottom = 24.dp.scaledHeight()),
 			) {
 				termsMessage.getStringAnnotations(tag = "terms", it, it).firstOrNull()?.let { annotation ->
-					appViewModel.openWebPage(annotation.item)
+					appViewModel.openWebPage(annotation.item, context)
 				}
 				termsMessage.getStringAnnotations(tag = "privacy", it, it).firstOrNull()?.let { annotation ->
-					appViewModel.openWebPage(annotation.item)
+					appViewModel.openWebPage(annotation.item, context)
 				}
 			}
 		}

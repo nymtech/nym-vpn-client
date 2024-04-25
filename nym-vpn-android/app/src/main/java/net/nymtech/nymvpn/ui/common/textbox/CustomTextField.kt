@@ -20,10 +20,10 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 @Composable
 fun CustomTextField(
 	value: String,
+	modifier: Modifier = Modifier,
 	textStyle: TextStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
 	label: @Composable (() -> Unit),
 	onValueChange: (value: String) -> Unit = {},
-	modifier: Modifier = Modifier,
 	singleLine: Boolean = false,
 	placeholder: @Composable (() -> Unit)? = null,
 	supportingText: @Composable (() -> Unit)? = null,
@@ -58,6 +58,7 @@ fun CustomTextField(
 				}
 				it.invoke()
 			},
+			contentPadding = OutlinedTextFieldDefaults.contentPadding(top = 0.dp, bottom = 0.dp),
 			leadingIcon = leading,
 			trailingIcon = trailing,
 			singleLine = singleLine,

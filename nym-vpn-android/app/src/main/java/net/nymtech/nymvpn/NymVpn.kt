@@ -2,16 +2,15 @@ package net.nymtech.nymvpn
 
 import android.app.Application
 import android.content.ComponentName
-import android.content.Context
 import android.os.StrictMode
 import android.service.quicksettings.TileService
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import dagger.hilt.android.HiltAndroidApp
 import net.nymtech.nymvpn.service.tile.VpnQuickTile
+import net.nymtech.nymvpn.util.actionBarSize
 import net.nymtech.nymvpn.util.log.DebugTree
 import net.nymtech.nymvpn.util.log.ReleaseTree
-import net.nymtech.nymvpn.util.navigationBarHeight
 import net.nymtech.vpn.model.Environment
 import timber.log.Timber
 
@@ -41,7 +40,7 @@ class NymVpn : Application() {
 		fun resizeHeight(dp: Dp): Dp {
 			val displayMetrics = instance.resources.displayMetrics
 			val density = displayMetrics.density
-			val height = displayMetrics.heightPixels - instance.navigationBarHeight
+			val height = displayMetrics.heightPixels - instance.actionBarSize
 			val resizeHeightPercentage =
 				(height.toFloat() / BASELINE_HEIGHT) * (BASELINE_DENSITY.toFloat() / density)
 			return dp * resizeHeightPercentage
@@ -50,7 +49,7 @@ class NymVpn : Application() {
 		fun resizeHeight(textUnit: TextUnit): TextUnit {
 			val displayMetrics = instance.resources.displayMetrics
 			val density = displayMetrics.density
-			val height = displayMetrics.heightPixels - instance.navigationBarHeight
+			val height = displayMetrics.heightPixels - instance.actionBarSize
 			val resizeHeightPercentage =
 				(height.toFloat() / BASELINE_HEIGHT) * (BASELINE_DENSITY.toFloat() / density)
 			return textUnit * resizeHeightPercentage * 1.1
@@ -65,10 +64,10 @@ class NymVpn : Application() {
 			return dp * resizeWidthPercentage
 		}
 
-		fun requestTileServiceStateUpdate(context: Context) {
+		fun requestTileServiceStateUpdate() {
 			TileService.requestListeningState(
-				context,
-				ComponentName(context, VpnQuickTile::class.java),
+				instance,
+				ComponentName(instance, VpnQuickTile::class.java),
 			)
 		}
 	}

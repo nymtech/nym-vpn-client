@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
@@ -40,7 +40,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
@@ -61,7 +60,7 @@ import net.nymtech.vpn.model.VpnMode
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiState: AppUiState, viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 
@@ -176,9 +175,10 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 						trailing = {
 							Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
 						},
+						singleLine = true,
 						modifier = Modifier
 							.fillMaxWidth()
-							.heightIn(60.dp.scaledHeight())
+							.height(60.dp.scaledHeight())
 							.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
 							.clickable(
 								remember { MutableInteractionSource() },
@@ -206,9 +206,10 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 					trailing = {
 						Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
 					},
+					singleLine = true,
 					modifier = Modifier
 						.fillMaxWidth()
-						.heightIn(60.dp.scaledHeight())
+						.height(60.dp.scaledHeight())
 						.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
 						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) rememberRipple() else null) {
 							if (selectionEnabled) {
@@ -236,8 +237,8 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 											vpnIntent,
 										)
 									}
-									if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !appViewModel.isAlarmPermissionGranted()) {
-										return@MainStyledButton appViewModel.requestAlarmPermission()
+									if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !appViewModel.isAlarmPermissionGranted(context)) {
+										return@MainStyledButton appViewModel.requestAlarmPermission(context)
 									}
 									viewModel.onConnect()
 								} else {

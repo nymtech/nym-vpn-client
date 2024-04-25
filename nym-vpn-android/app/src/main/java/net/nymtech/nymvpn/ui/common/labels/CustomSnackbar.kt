@@ -25,7 +25,7 @@ fun CustomSnackBar(message: String, paddingTop: Dp, isRtl: Boolean = true, conta
 		modifier =
 		Modifier
 			.fillMaxSize()
-			.padding(horizontal = 24.dp.scaledWidth()).padding(top = paddingTop + 10.dp),
+			.padding(horizontal = 24.dp.scaledWidth()).padding(top = paddingTop),
 		contentAlignment = Alignment.TopCenter,
 	) {
 		Snackbar(containerColor = containerColor) {

@@ -110,7 +110,7 @@ fun AccountScreen(appViewModel: AppViewModel, viewModel: AccountViewModel = hilt
 					)
 					Box(modifier = Modifier.width(100.dp.scaledWidth())) {
 						MainStyledButton(
-							onClick = { appViewModel.showFeatureInProgressMessage() },
+							onClick = { appViewModel.showFeatureInProgressMessage(context) },
 							content = {
 								Text(
 									stringResource(id = R.string.top_up),
@@ -136,7 +136,7 @@ fun AccountScreen(appViewModel: AppViewModel, viewModel: AccountViewModel = hilt
 			) {
 				GroupLabel(title = stringResource(R.string.devices))
 				IconButton(onClick = {
-					appViewModel.showFeatureInProgressMessage()
+					appViewModel.showFeatureInProgressMessage(context)
 				}, modifier = Modifier.padding(start = 24.dp)) {
 					Icon(
 						Icons.Filled.Add,

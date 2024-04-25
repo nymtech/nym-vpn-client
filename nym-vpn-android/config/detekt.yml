@@ -192,11 +192,11 @@ compose:
   ComposableEventParameterNaming:
     active: true
   ComposableParametersOrdering:
-    active: true
+    active: false
   ModifierHeightWithText:
-    active: true
+    active: false
   ModifierParameterPosition:
-    active: true
+    active: false
   ModifierDefaultValue:
     active: true
   MissingModifierDefaultValue:

@@ -1,9 +1,7 @@
 package net.nymtech.nymvpn.util
 
-import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.res.Resources
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import kotlinx.coroutines.CoroutineScope
@@ -41,21 +39,13 @@ fun BroadcastReceiver.goAsync(context: CoroutineContext = EmptyCoroutineContext,
 	}
 }
 
+val Context.actionBarSize
+	get() = theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))
+		.let { attrs -> attrs.getDimension(0, 0F).toInt().also { attrs.recycle() } }
+
 suspend inline fun <T> Flow<T>.safeCollect(crossinline action: suspend (T) -> Unit) {
 	collect {
 		coroutineContext.ensureActive()
 		action(it)
 	}
 }
-
-val Context.navigationBarHeight: Int
-	@SuppressLint("DiscouragedApi", "InternalInsetResource")
-	get() {
-		val resources: Resources = resources
-		val resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
-		return if (resourceId > 0) {
-			resources.getDimensionPixelSize(resourceId)
-		} else {
-			0
-		}
-	}

@@ -1,8 +1,10 @@
 package net.nymtech.nymvpn.ui.common.labels
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -18,18 +20,19 @@ import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun PillLabel(text: String, backgroundColor: Color, textColor: Color) {
+fun PillLabel(text: String, backgroundColor: Color, textColor: Color, trailing: (@Composable () -> Unit)? = null) {
 	Surface(
 		modifier =
 		Modifier
 			.height(56.dp.scaledHeight())
-			.width(158.dp.scaledWidth()),
+			.width(IntrinsicSize.Min),
 		shape = RoundedCornerShape(size = 50.dp),
 		color = backgroundColor,
 	) {
-		Column(
-			horizontalAlignment = Alignment.CenterHorizontally,
-			verticalArrangement = Arrangement.SpaceEvenly,
+		Row(
+			horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
+			verticalAlignment = Alignment.CenterVertically,
+			modifier = Modifier.padding(horizontal = 24.dp.scaledWidth()),
 		) {
 			Text(
 				text,
@@ -37,6 +40,9 @@ fun PillLabel(text: String, backgroundColor: Color, textColor: Color) {
 				color = textColor,
 				style = MaterialTheme.typography.labelLarge,
 			)
+			trailing?.let {
+				trailing()
+			}
 		}
 	}
 }

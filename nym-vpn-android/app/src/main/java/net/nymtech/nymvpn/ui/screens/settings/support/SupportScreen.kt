@@ -44,7 +44,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 				SelectionItem(
 					leadingIcon = ImageVector.vectorResource(R.drawable.faq),
 					title = { Text(stringResource(R.string.check_faq), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { appViewModel.openWebPage(context.getString(R.string.faq_link)) },
+					onClick = { appViewModel.openWebPage(context.getString(R.string.faq_url), context) },
 				),
 			),
 		)
@@ -54,7 +54,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					leadingIcon = Icons.Outlined.Email,
 					title = { Text(stringResource(R.string.send_email), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.launchEmail()
+						appViewModel.launchEmail(context)
 					},
 				),
 			),
@@ -65,7 +65,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
 					title = { Text(stringResource(R.string.join_matrix), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.openWebPage(context.getString(R.string.matrix_url))
+						appViewModel.openWebPage(context.getString(R.string.matrix_url), context)
 					},
 				),
 			),
@@ -76,7 +76,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					leadingIcon = ImageVector.vectorResource(R.drawable.discord),
 					title = { Text(stringResource(R.string.join_discord), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.openWebPage(context.getString(R.string.discord_url))
+						appViewModel.openWebPage(context.getString(R.string.discord_url), context)
 					},
 				),
 			),

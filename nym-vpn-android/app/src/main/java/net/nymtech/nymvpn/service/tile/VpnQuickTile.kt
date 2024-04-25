@@ -8,13 +8,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SecretsRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.model.VpnState
+import net.nymtech.vpn.util.InvalidCredentialException
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -29,7 +29,7 @@ class VpnQuickTile : TileService() {
 	@Inject
 	lateinit var vpnClient: VpnClient
 
-	private val scope = CoroutineScope(Dispatchers.IO)
+	private val scope = CoroutineScope(Dispatchers.Main)
 
 	override fun onStartListening() {
 		super.onStartListening()
@@ -60,11 +60,6 @@ class VpnQuickTile : TileService() {
 		}
 	}
 
-	override fun onTileAdded() {
-		super.onTileAdded()
-		setTileText()
-	}
-
 	override fun onDestroy() {
 		super.onDestroy()
 		scope.cancel()
@@ -75,27 +70,38 @@ class VpnQuickTile : TileService() {
 		scope.cancel()
 	}
 
+	override fun onTileAdded() {
+		super.onTileAdded()
+		onStartListening()
+	}
+
 	override fun onClick() {
 		super.onClick()
 		setTileText()
-		Timber.i("Tile clicked")
 		unlockAndRun {
 			when (vpnClient.getState().vpnState) {
-				VpnState.Up -> vpnClient.stop(this, true)
+				VpnState.Up -> {
+					scope.launch {
+						setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
+						vpnClient.stop(this@VpnQuickTile, true)
+					}
+				}
 				VpnState.Down -> {
 					scope.launch {
 						val credential = secretsRepository.getCredential()
 						if (credential != null) {
-							vpnClient.apply {
-								this.mode = settingsRepository.getVpnMode()
-								this.exitPoint = settingsRepository.getLastHopCountry().toExitPoint()
-								this.entryPoint = settingsRepository.getFirstHopCountry().toEntryPoint()
-							}.start(this@VpnQuickTile, credential, true)
-							NymVpn.requestTileServiceStateUpdate(this@VpnQuickTile)
+							try {
+								vpnClient.apply {
+									this.mode = settingsRepository.getVpnMode()
+									this.exitPoint = settingsRepository.getLastHopCountry().toExitPoint()
+									this.entryPoint = settingsRepository.getFirstHopCountry().toEntryPoint()
+								}.start(this@VpnQuickTile, credential, true)
+							} catch (e: InvalidCredentialException) {
+								Timber.w(e)
+							}
 						}
 					}
 				}
-
 				else -> Unit
 			}
 		}

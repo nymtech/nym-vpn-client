@@ -15,7 +15,9 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.vpn.NymApi
 import javax.inject.Inject
 
 @SuppressLint("CustomSplashScreen")
@@ -24,6 +26,12 @@ class SplashActivity : ComponentActivity() {
 
 	@Inject
 	lateinit var gatewayRepository: GatewayRepository
+
+	@Inject
+	lateinit var countryCacheService: CountryCacheService
+
+	@Inject
+	lateinit var nymApi: NymApi
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
@@ -41,6 +49,9 @@ class SplashActivity : ComponentActivity() {
 				configureSentry()
 
 				val isAnalyticsShown = settingsRepository.isAnalyticsShown()
+
+				countryCacheService.updateEntryCountriesCache()
+				countryCacheService.updateExitCountriesCache()
 
 				val intent = Intent(this@SplashActivity, MainActivity::class.java).apply {
 					putExtra(IS_ANALYTICS_SHOWN_INTENT_KEY, isAnalyticsShown)

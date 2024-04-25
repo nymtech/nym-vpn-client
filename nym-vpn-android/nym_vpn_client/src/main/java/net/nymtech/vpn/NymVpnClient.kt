@@ -23,6 +23,7 @@ import net.nymtech.vpn.model.ErrorState
 import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.util.Constants
+import net.nymtech.vpn.util.InvalidCredentialException
 import net.nymtech.vpn.util.ServiceManager
 import net.nymtech.vpn.util.safeCollect
 import nym_vpn_lib.EntryPoint
@@ -39,6 +40,15 @@ object NymVpnClient {
 		lateinit var exitPoint: ExitPoint
 		lateinit var mode: VpnMode
 		lateinit var environment: Environment
+	}
+
+	fun validateCredential(credential: String): Result<Unit> {
+		return try {
+			checkCredential(credential)
+			Result.success(Unit)
+		} catch (_: FfiException.InvalidCredential) {
+			Result.failure(InvalidCredentialException("Credential invalid"))
+		}
 	}
 
 	fun init(
@@ -78,13 +88,10 @@ object NymVpnClient {
 		private val _state = MutableStateFlow(ClientState())
 		override val stateFlow: Flow<ClientState> = _state.asStateFlow()
 
+		@Throws(InvalidCredentialException::class)
 		override fun start(context: Context, credential: String, foreground: Boolean) {
-			try {
-				checkCredential(credential)
-				Timber.i("Credential is valid")
-			} catch (e: FfiException.InvalidCredential) {
-				Timber.e(e)
-				return
+			validateCredential(credential).onFailure {
+				throw it
 			}
 			clearErrorStatus()
 			job = collectLogStatus(context)
@@ -119,10 +126,10 @@ object NymVpnClient {
 		}
 
 		@Synchronized
-		private fun setErrorState(message: String) {
+		private fun setErrorState(errorState: ErrorState) {
 			_state.value =
 				_state.value.copy(
-					errorState = ErrorState.LibraryError(message),
+					errorState = errorState,
 				)
 		}
 
@@ -139,7 +146,7 @@ object NymVpnClient {
 			else -> false
 		}
 
-		internal fun connect() {
+		internal fun connect(context: Context) {
 			try {
 				runVpn(
 					VpnConfig(
@@ -152,6 +159,8 @@ object NymVpnClient {
 				)
 			} catch (e: FfiException) {
 				Timber.e(e)
+				stop(context)
+				setErrorState(ErrorState.StartFailed)
 			}
 		}
 
@@ -169,7 +178,7 @@ object NymVpnClient {
 						when (it.level) {
 							LogLevel.ERROR -> {
 								if (it.message.contains("Stopped Nym VPN")) {
-									setErrorState(it.message)
+									setErrorState(ErrorState.CoreLibraryError(it.message))
 									stop(context, true)
 								}
 							}

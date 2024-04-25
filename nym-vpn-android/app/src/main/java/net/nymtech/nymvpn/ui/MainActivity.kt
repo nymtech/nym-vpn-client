@@ -32,6 +32,7 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.screens.analytics.AnalyticsScreen
@@ -48,9 +49,14 @@ import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.util.StringValue
+import timber.log.Timber
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+	@Inject
+	lateinit var countryCacheService: CountryCacheService
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -66,8 +72,9 @@ class MainActivity : ComponentActivity() {
 			val density = LocalDensity.current
 
 			LaunchedEffect(Unit) {
-				appViewModel.updateCountryListCache()
+				Timber.d("UPDATING...")
 				appViewModel.readLogCatOutput()
+				countryCacheService.updateLowLatencyEntryCountryCache()
 			}
 
 			fun showSnackBarMessage(message: StringValue) {
@@ -127,7 +134,7 @@ class MainActivity : ComponentActivity() {
 							.fillMaxSize()
 							.padding(it),
 					) {
-						composable(NavItem.Main.route) { MainScreen(navController, appViewModel, uiState) }
+						composable(NavItem.Main.route) { MainScreen(navController, appViewModel) }
 						composable(NavItem.Analytics.route) { AnalyticsScreen(navController, appViewModel, uiState) }
 						composable(NavItem.Settings.route) {
 							SettingsScreen(
@@ -139,14 +146,12 @@ class MainActivity : ComponentActivity() {
 						composable(NavItem.Hop.Entry.route) {
 							HopScreen(
 								navController = navController,
-								appViewModel = appViewModel,
 								hopType = HopType.FIRST,
 							)
 						}
 						composable(NavItem.Hop.Exit.route) {
 							HopScreen(
 								navController = navController,
-								appViewModel = appViewModel,
 								hopType = HopType.LAST,
 							)
 						}

@@ -7,8 +7,7 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SecretsRepository
 import net.nymtech.nymvpn.util.Event
 import net.nymtech.nymvpn.util.Result
-import nym_vpn_lib.FfiException
-import nym_vpn_lib.checkCredential
+import net.nymtech.vpn.NymVpnClient
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -19,13 +18,11 @@ constructor(
 	private val secretsRepository: SecretsRepository,
 ) : ViewModel() {
 	fun onImportCredential(credential: String): Result<Event> {
-		return try {
-			checkCredential(credential)
+		return if (NymVpnClient.validateCredential(credential).isSuccess) {
 			Timber.i("Credential valid")
 			saveCredential(credential)
 			Result.Success(Event.Message.None)
-		} catch (e: FfiException.InvalidCredential) {
-			Timber.e(e)
+		} else {
 			Result.Error(Event.Error.LoginFailed)
 		}
 	}

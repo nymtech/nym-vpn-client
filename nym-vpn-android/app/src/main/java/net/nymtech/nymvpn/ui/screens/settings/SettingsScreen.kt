@@ -12,13 +12,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.SpanStyle
@@ -34,6 +34,7 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.util.scaledHeight
@@ -47,6 +48,8 @@ fun SettingsScreen(
 	appUiState: AppUiState,
 	viewModel: SettingsViewModel = hiltViewModel(),
 ) {
+	val context = LocalContext.current
+
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
 	Column(
@@ -98,9 +101,9 @@ fun SettingsScreen(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.auto),
 					{
-						Switch(
+						ScaledSwitch(
 							uiState.isAutoConnectEnabled,
-							{ viewModel.onAutoConnectSelected(it) },
+							onClick = { viewModel.onAutoConnectSelected(it) },
 							modifier =
 							Modifier
 								.height(32.dp.scaledHeight())
@@ -128,9 +131,9 @@ fun SettingsScreen(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.two),
 					{
-						Switch(
+						ScaledSwitch(
 							uiState.isFirstHopSelectionEnabled,
-							{ appViewModel.onEntryLocationSelected(it) },
+							onClick = { appViewModel.onEntryLocationSelected(it) },
 							modifier =
 							Modifier
 								.height(32.dp.scaledHeight())
@@ -189,14 +192,14 @@ fun SettingsScreen(
 							style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
 						) {
 							errorReportingDescription.getStringAnnotations(tag = "sentry", it, it).firstOrNull()?.let { annotation ->
-								appViewModel.openWebPage(annotation.item)
+								appViewModel.openWebPage(annotation.item, context)
 							}
 						}
 					},
 					trailing = {
-						Switch(
-							appUiState.settings.errorReportingEnabled,
-							{ appViewModel.onErrorReportingSelected() },
+						ScaledSwitch(
+							checked = appUiState.settings.errorReportingEnabled,
+							onClick = { appViewModel.onErrorReportingSelected() },
 							modifier =
 							Modifier
 								.height(32.dp.scaledHeight())
@@ -220,7 +223,7 @@ fun SettingsScreen(
 // 						)
 // 					},
 // 					trailing = {
-// 						Switch(
+// 						ScaledSwitch(
 // 							appUiState.settings.analyticsEnabled,
 // 							{ appViewModel.onAnalyticsReportingSelected() },
 // 							modifier =

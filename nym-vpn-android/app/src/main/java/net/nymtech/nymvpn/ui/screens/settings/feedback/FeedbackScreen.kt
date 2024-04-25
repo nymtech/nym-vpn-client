@@ -79,6 +79,7 @@ fun FeedbackScreen(appViewModel: AppViewModel) {
 					onClick = {
 						appViewModel.openWebPage(
 							context.getString(R.string.github_issues_url),
+							context,
 						)
 					},
 				),
@@ -91,7 +92,7 @@ fun FeedbackScreen(appViewModel: AppViewModel) {
 					title = { Text(stringResource(R.string.send_feedback), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 
 					onClick = {
-						appViewModel.launchEmail()
+						appViewModel.launchEmail(context)
 					},
 				),
 			),
@@ -102,7 +103,7 @@ fun FeedbackScreen(appViewModel: AppViewModel) {
 					leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
 					title = { Text(stringResource(R.string.join_matrix), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.openWebPage(context.getString(R.string.matrix_url))
+						appViewModel.openWebPage(context.getString(R.string.matrix_url), context)
 					},
 				),
 			),
@@ -113,7 +114,7 @@ fun FeedbackScreen(appViewModel: AppViewModel) {
 					leadingIcon = ImageVector.vectorResource(R.drawable.discord),
 					title = { Text(stringResource(R.string.join_discord), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.openWebPage(context.getString(R.string.discord_url))
+						appViewModel.openWebPage(context.getString(R.string.discord_url), context)
 					},
 				),
 			),

@@ -1,6 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings.legal.licenses
 
-import android.app.Application
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,14 +14,12 @@ import javax.inject.Inject
 @HiltViewModel
 class LicensesViewModel
 @Inject
-constructor(
-	private val application: Application,
-) : ViewModel() {
+constructor() : ViewModel() {
 	private val _licences = MutableStateFlow<List<Artifact>>(emptyList())
 	val licenses = _licences.asStateFlow()
 
-	fun loadLicensesFromAssets() = viewModelScope.launch {
-		val source = application.assets.open("artifacts.json").source().buffer()
+	fun loadLicensesFromAssets(context: Context) = viewModelScope.launch {
+		val source = context.assets.open("artifacts.json").source().buffer()
 		_licences.value = LicenseParser.decode(source)
 	}
 }

@@ -42,7 +42,7 @@ fun LegalScreen(appViewModel: AppViewModel, navController: NavController) {
 				SelectionItem(
 					title = { Text(stringResource(R.string.terms_of_use), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.openWebPage(context.getString(R.string.terms_link))
+						appViewModel.openWebPage(context.getString(R.string.terms_link), context)
 					},
 				),
 				SelectionItem(
@@ -50,6 +50,7 @@ fun LegalScreen(appViewModel: AppViewModel, navController: NavController) {
 					onClick = {
 						appViewModel.openWebPage(
 							context.getString(R.string.privacy_link),
+							context,
 						)
 					},
 				),

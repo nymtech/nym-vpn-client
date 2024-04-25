@@ -28,6 +28,14 @@ class DataStoreManager(private val context: Context) {
 		}
 	}
 
+	suspend fun <T> clear(key: Preferences.Key<T>) {
+		try {
+			context.dataStore.edit { it.remove(key) }
+		} catch (e: IOException) {
+			Timber.e(e)
+		}
+	}
+
 	fun <T> getFromStoreFlow(key: Preferences.Key<T>) = context.dataStore.data.map { it[key] }
 
 	suspend fun <T> getFromStore(key: Preferences.Key<T>): T? {

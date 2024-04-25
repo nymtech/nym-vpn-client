@@ -4,6 +4,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import net.nymtech.nymvpn.ui.common.animations.Pulse
 import net.nymtech.nymvpn.ui.common.labels.PillLabel
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.theme.CustomColors
@@ -31,7 +32,6 @@ fun ConnectionStateDisplay(connectionState: ConnectionState) {
 				},
 				textColor = MaterialTheme.colorScheme.onSecondary,
 			)
-
 		is ConnectionState.Connecting ->
 			PillLabel(
 				text = text,
@@ -42,6 +42,7 @@ fun ConnectionStateDisplay(connectionState: ConnectionState) {
 					CustomColors.statusDefaultLight
 				},
 				textColor = MaterialTheme.colorScheme.onBackground,
+				trailing = { Pulse() },
 			)
 
 		ConnectionState.Disconnecting ->
@@ -54,6 +55,7 @@ fun ConnectionStateDisplay(connectionState: ConnectionState) {
 					CustomColors.statusDefaultLight
 				},
 				textColor = MaterialTheme.colorScheme.onBackground,
+				trailing = { Pulse() },
 			)
 	}
 }

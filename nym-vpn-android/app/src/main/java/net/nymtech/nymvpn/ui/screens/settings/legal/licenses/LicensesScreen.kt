@@ -31,7 +31,7 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 	val licenses by viewModel.licenses.collectAsStateWithLifecycle()
 
 	LaunchedEffect(Unit) {
-		viewModel.loadLicensesFromAssets()
+		viewModel.loadLicensesFromAssets(context)
 	}
 
 	LazyColumn(
@@ -78,7 +78,7 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 						},
 						onClick = {
 							if (it.scm != null) {
-								appViewModel.openWebPage(it.scm.url)
+								appViewModel.openWebPage(it.scm.url, context)
 							} else {
 								appViewModel.showSnackbarMessage(
 									context.getString(R.string.no_scm_found),

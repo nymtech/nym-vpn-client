@@ -9,11 +9,13 @@ import dagger.hilt.components.SingletonComponent
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SecretsRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.SharedStateRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreGatewayRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.data.datastore.DataStoreSettingsRepository
 import net.nymtech.nymvpn.data.datastore.EncryptedPreferences
 import net.nymtech.nymvpn.data.datastore.SecretsPreferencesRepository
+import net.nymtech.nymvpn.data.datastore.SharedStatePreferencesRepository
 import javax.inject.Singleton
 
 @Module
@@ -47,5 +49,11 @@ class DataModule {
 	@Provides
 	fun provideSecretsRepository(encryptedPreferences: EncryptedPreferences): SecretsRepository {
 		return SecretsPreferencesRepository(encryptedPreferences)
+	}
+
+	@Singleton
+	@Provides
+	fun provideSharedStateRepository(dataStoreManager: DataStoreManager): SharedStateRepository {
+		return SharedStatePreferencesRepository(dataStoreManager)
 	}
 }

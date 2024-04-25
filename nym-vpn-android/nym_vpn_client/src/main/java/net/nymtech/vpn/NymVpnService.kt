@@ -72,9 +72,11 @@ class NymVpnService : VpnService() {
 						withContext(singleDispatcher) {
 							NymVpnClient.NymVpn.setVpnState(VpnState.Connecting.InitializingClient)
 							initVPN(this@NymVpnService)
-							NymVpnClient.NymVpn.connect()
+							NymVpnClient.NymVpn.connect(this@NymVpnService)
 						}
 					}
+				} else {
+					stopSelf()
 				}
 				return START_STICKY
 			}

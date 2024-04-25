@@ -7,8 +7,13 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import net.nymtech.nymvpn.NymVpn
-import net.nymtech.nymvpn.service.gateway.GatewayApiService
+import net.nymtech.nymvpn.data.GatewayRepository
+import net.nymtech.nymvpn.service.country.CountryCacheService
+import net.nymtech.nymvpn.service.country.CountryDataStoreCacheService
+import net.nymtech.nymvpn.service.gateway.GatewayLibService
+import net.nymtech.nymvpn.service.gateway.GatewayService
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.vpn.NymApi
 import net.nymtech.vpn.NymVpnClient
 import net.nymtech.vpn.VpnClient
 import retrofit2.Retrofit
@@ -35,10 +40,28 @@ class ServiceModule {
 			.build()
 	}
 
+// 	@Singleton
+// 	@Provides
+// 	fun provideGatewayService(retrofit: Retrofit): GatewayService {
+// 		return retrofit.create(GatewayApiService::class.java)
+// 	}
+
 	@Singleton
 	@Provides
-	fun provideGatewayService(retrofit: Retrofit): GatewayApiService {
-		return retrofit.create(GatewayApiService::class.java)
+	fun provideNymApi(): NymApi {
+		return NymApi(NymVpn.environment)
+	}
+
+	@Singleton
+	@Provides
+	fun provideGatewayService(nymApi: NymApi): GatewayService {
+		return GatewayLibService(nymApi)
+	}
+
+	@Singleton
+	@Provides
+	fun provideCountryCacheService(gatewayService: GatewayService, gatewayRepository: GatewayRepository): CountryCacheService {
+		return CountryDataStoreCacheService(gatewayRepository, gatewayService)
 	}
 
 	@Singleton

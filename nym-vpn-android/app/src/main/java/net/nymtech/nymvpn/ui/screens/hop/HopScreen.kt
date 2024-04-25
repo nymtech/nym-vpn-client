@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,11 +37,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.HopType
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
+import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
@@ -48,7 +49,7 @@ import net.nymtech.nymvpn.util.scaledWidth
 import net.nymtech.vpn.model.Country
 
 @Composable
-fun HopScreen(navController: NavController, hopType: HopType, appViewModel: AppViewModel, viewModel: HopViewModel = hiltViewModel()) {
+fun HopScreen(navController: NavController, hopType: HopType, viewModel: HopViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 
@@ -61,7 +62,7 @@ fun HopScreen(navController: NavController, hopType: HopType, appViewModel: AppV
 
 	LaunchedEffect(Unit) {
 		viewModel.init(hopType)
-		appViewModel.updateCountryListCache()
+		viewModel.updateCountryCache(hopType)
 	}
 
 	LazyColumn(
@@ -69,13 +70,14 @@ fun HopScreen(navController: NavController, hopType: HopType, appViewModel: AppV
 		verticalArrangement = Arrangement.Top,
 		modifier =
 		Modifier
-			.fillMaxSize()
-			.padding(vertical = 24.dp.scaledHeight()),
+			.fillMaxSize(),
 	) {
 		item {
 			Column(
 				verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight()),
-				modifier = Modifier.padding(bottom = 24.dp.scaledHeight()).padding(horizontal = 24.dp.scaledWidth()),
+				modifier = Modifier
+					.padding(bottom = 24.dp.scaledHeight())
+					.padding(horizontal = 24.dp.scaledWidth()),
 			) {
 				Box(
 					modifier =
@@ -95,6 +97,7 @@ fun HopScreen(navController: NavController, hopType: HopType, appViewModel: AppV
 					},
 					modifier = Modifier
 						.fillMaxWidth()
+						.height(56.dp.scaledHeight())
 						.background(color = Color.Transparent, RoundedCornerShape(30.dp)),
 					placeholder = {
 						Text(
@@ -160,6 +163,13 @@ fun HopScreen(navController: NavController, hopType: HopType, appViewModel: AppV
 						},
 					)
 				}
+			} else {
+				Text(
+					stringResource(id = R.string.country_load_failure),
+					style = MaterialTheme.typography.bodyMedium.copy(
+						color = CustomColors.error,
+					),
+				)
 			}
 		}
 		items(sortedCountries) {

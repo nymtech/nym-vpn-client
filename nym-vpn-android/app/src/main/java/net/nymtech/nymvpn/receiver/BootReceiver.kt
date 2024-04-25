@@ -9,6 +9,8 @@ import net.nymtech.nymvpn.data.SecretsRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.util.goAsync
 import net.nymtech.vpn.VpnClient
+import net.nymtech.vpn.util.InvalidCredentialException
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -34,12 +36,16 @@ class BootReceiver : BroadcastReceiver() {
 				context?.let { context ->
 					val entry = entryCountry.toEntryPoint()
 					val exit = exitCountry.toExitPoint()
-					vpnClient.apply {
-						this.mode = mode
-						this.exitPoint = exit
-						this.entryPoint = entry
-					}.start(context, credential, true)
-					NymVpn.requestTileServiceStateUpdate(context)
+					try {
+						vpnClient.apply {
+							this.mode = mode
+							this.exitPoint = exit
+							this.entryPoint = entry
+						}.start(context, credential, true)
+						NymVpn.requestTileServiceStateUpdate()
+					} catch (e: InvalidCredentialException) {
+						Timber.w(e)
+					}
 				}
 			}
 		}

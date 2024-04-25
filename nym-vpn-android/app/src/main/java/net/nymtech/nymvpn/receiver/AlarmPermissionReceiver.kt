@@ -10,6 +10,8 @@ import androidx.annotation.RequiresApi
 import timber.log.Timber
 
 class AlarmPermissionReceiver : BroadcastReceiver() {
+
+	// TODO this is not working yet, perhaps not needed
 	@RequiresApi(Build.VERSION_CODES.S)
 	override fun onReceive(context: Context, intent: Intent) {
 		val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager

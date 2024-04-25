@@ -10,6 +10,7 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SecretsRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.vpn.VpnClient
+import net.nymtech.vpn.util.InvalidCredentialException
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -42,13 +43,16 @@ class AlwaysOnVpnService : LifecycleService() {
 					val mode = settingsRepository.getVpnMode()
 					val entry = entryCountry.toEntryPoint()
 					val exit = exitCountry.toExitPoint()
-					vpnClient.apply {
-						this.mode = mode
-						this.entryPoint = entry
-						this.exitPoint = exit
+					try {
+						vpnClient.apply {
+							this.mode = mode
+							this.entryPoint = entry
+							this.exitPoint = exit
+						}.start(this@AlwaysOnVpnService, credential, true)
+					} catch (e: InvalidCredentialException) {
+						Timber.w(e)
 					}
-					vpnClient.start(this@AlwaysOnVpnService, credential, true)
-					NymVpn.requestTileServiceStateUpdate(this@AlwaysOnVpnService)
+					NymVpn.requestTileServiceStateUpdate()
 				}
 			}
 		}

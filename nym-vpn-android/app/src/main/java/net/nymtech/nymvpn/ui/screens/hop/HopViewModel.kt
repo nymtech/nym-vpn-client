@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui.screens.hop
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -11,6 +12,7 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.ui.HopType
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.Country
@@ -22,6 +24,7 @@ class HopViewModel
 constructor(
 	gatewayRepository: GatewayRepository,
 	private val settingsRepository: SettingsRepository,
+	private val countryCacheService: CountryCacheService,
 ) : ViewModel() {
 	private val _uiState = MutableStateFlow(HopUiState())
 
@@ -68,6 +71,13 @@ constructor(
 		setSelectedCountry()
 	}
 
+	fun updateCountryCache(hopType: HopType) = viewModelScope.launch(Dispatchers.IO) {
+		when (hopType) {
+			HopType.FIRST -> countryCacheService.updateEntryCountriesCache()
+			HopType.LAST -> countryCacheService.updateExitCountriesCache()
+		}
+	}
+
 	private fun setSelectedCountry() = viewModelScope.launch {
 		val selectedCountry =
 			when (_uiState.value.hopType) {
@@ -85,6 +95,6 @@ constructor(
 			HopType.FIRST -> settingsRepository.setFirstHopCountry(country)
 			HopType.LAST -> settingsRepository.setLastHopCountry(country)
 		}
-		NymVpn.requestTileServiceStateUpdate(NymVpn.instance)
+		NymVpn.requestTileServiceStateUpdate()
 	}
 }
