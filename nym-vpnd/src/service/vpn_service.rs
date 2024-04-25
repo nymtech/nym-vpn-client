@@ -201,7 +201,8 @@ impl NymVpnService {
         nym_vpn.disable_routing = options.disable_routing;
         nym_vpn.enable_two_hop = options.enable_two_hop;
         nym_vpn.vpn_config.enable_poisson_rate = options.enable_poisson_rate;
-        nym_vpn.vpn_config.disable_background_cover_traffic = options.disable_background_cover_traffic;
+        nym_vpn.vpn_config.disable_background_cover_traffic =
+            options.disable_background_cover_traffic;
         nym_vpn.vpn_config.enable_credentials_mode = options.enable_credentials_mode;
 
         let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn.into()).unwrap();
