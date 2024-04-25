@@ -28,6 +28,9 @@ tracing.workspace = true
 tonic-health.workspace = true
 tonic-reflection.workspace = true
 
+# match the version required by tonic
+http = "0.2.12"
+
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
 nym-task.workspace = true

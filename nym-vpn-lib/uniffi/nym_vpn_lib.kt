@@ -700,6 +700,10 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 
 
 
+
+
+
+
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -715,10 +719,14 @@ internal interface UniffiLib : Library {
         
     }
 
+    fun uniffi_nym_vpn_lib_fn_func_checkcredential(`credential`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`exitOnly`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_nym_vpn_lib_fn_func_importcredential(`credential`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
     fun uniffi_nym_vpn_lib_fn_func_runvpn(`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_nym_vpn_lib_fn_func_stopvpn(uniffi_out_err: UniffiRustCallStatus, 
@@ -835,9 +843,13 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
+    fun uniffi_nym_vpn_lib_checksum_func_checkcredential(
+    ): Short
     fun uniffi_nym_vpn_lib_checksum_func_getgatewaycountries(
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry(
+    ): Short
+    fun uniffi_nym_vpn_lib_checksum_func_importcredential(
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_runvpn(
     ): Short
@@ -860,10 +872,16 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_checkcredential() != 37960.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 21142.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 25285.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_nym_vpn_lib_checksum_func_importcredential() != 47691.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_runvpn() != 2496.toShort()) {
@@ -1282,6 +1300,18 @@ sealed class FfiException: Exception() {
             get() = ""
     }
     
+    class InvalidCredential(
+        ) : FfiException() {
+        override val message
+            get() = ""
+    }
+    
+    class InvalidPath(
+        ) : FfiException() {
+        override val message
+            get() = ""
+    }
+    
     class FdNotFound(
         ) : FfiException() {
         override val message
@@ -1348,16 +1378,18 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
 
         return when(buf.getInt()) {
             1 -> FfiException.InvalidValueUniffi()
-            2 -> FfiException.FdNotFound()
-            3 -> FfiException.VpnNotStopped()
-            4 -> FfiException.VpnNotStarted()
-            5 -> FfiException.VpnAlreadyRunning()
-            6 -> FfiException.VpnNotRunning()
-            7 -> FfiException.NoContext()
-            8 -> FfiException.LibException(
+            2 -> FfiException.InvalidCredential()
+            3 -> FfiException.InvalidPath()
+            4 -> FfiException.FdNotFound()
+            5 -> FfiException.VpnNotStopped()
+            6 -> FfiException.VpnNotStarted()
+            7 -> FfiException.VpnAlreadyRunning()
+            8 -> FfiException.VpnNotRunning()
+            9 -> FfiException.NoContext()
+            10 -> FfiException.LibException(
                 FfiConverterString.read(buf),
                 )
-            9 -> FfiException.GatewayDirectoryException(
+            11 -> FfiException.GatewayDirectoryException(
                 FfiConverterString.read(buf),
                 )
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
@@ -1367,6 +1399,14 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
     override fun allocationSize(value: FfiException): ULong {
         return when(value) {
             is FfiException.InvalidValueUniffi -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is FfiException.InvalidCredential -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is FfiException.InvalidPath -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
             )
@@ -1413,37 +1453,45 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
                 buf.putInt(1)
                 Unit
             }
-            is FfiException.FdNotFound -> {
+            is FfiException.InvalidCredential -> {
                 buf.putInt(2)
                 Unit
             }
-            is FfiException.VpnNotStopped -> {
+            is FfiException.InvalidPath -> {
                 buf.putInt(3)
                 Unit
             }
-            is FfiException.VpnNotStarted -> {
+            is FfiException.FdNotFound -> {
                 buf.putInt(4)
                 Unit
             }
-            is FfiException.VpnAlreadyRunning -> {
+            is FfiException.VpnNotStopped -> {
                 buf.putInt(5)
                 Unit
             }
-            is FfiException.VpnNotRunning -> {
+            is FfiException.VpnNotStarted -> {
                 buf.putInt(6)
                 Unit
             }
-            is FfiException.NoContext -> {
+            is FfiException.VpnAlreadyRunning -> {
                 buf.putInt(7)
                 Unit
             }
-            is FfiException.LibException -> {
+            is FfiException.VpnNotRunning -> {
                 buf.putInt(8)
+                Unit
+            }
+            is FfiException.NoContext -> {
+                buf.putInt(9)
+                Unit
+            }
+            is FfiException.LibException -> {
+                buf.putInt(10)
                 FfiConverterString.write(value.`inner`, buf)
                 Unit
             }
             is FfiException.GatewayDirectoryException -> {
-                buf.putInt(9)
+                buf.putInt(11)
                 FfiConverterString.write(value.`inner`, buf)
                 Unit
             }
@@ -1565,6 +1613,15 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
         FfiConverterString.write(builtinValue, buf)
     }
 }
+    @Throws(FfiException::class) fun `checkCredential`(`credential`: kotlin.String)
+        = 
+    uniffiRustCallWithError(FfiException) { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_checkcredential(
+        FfiConverterString.lower(`credential`),_status)
+}
+    
+    
+
     @Throws(FfiException::class) fun `getGatewayCountries`(`apiUrl`: Url, `explorerUrl`: Url, `exitOnly`: kotlin.Boolean): List<Location> {
             return FfiConverterSequenceTypeLocation.lift(
     uniffiRustCallWithError(FfiException) { _status ->
@@ -1583,6 +1640,15 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
 }
     )
     }
+    
+
+    @Throws(FfiException::class) fun `importCredential`(`credential`: kotlin.String, `path`: kotlin.String)
+        = 
+    uniffiRustCallWithError(FfiException) { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_importcredential(
+        FfiConverterString.lower(`credential`),FfiConverterString.lower(`path`),_status)
+}
+    
     
 
     @Throws(FfiException::class) fun `runVpn`(`config`: VpnConfig)

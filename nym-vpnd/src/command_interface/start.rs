@@ -4,10 +4,10 @@
 use std::{net::SocketAddr, path::PathBuf};
 
 use nym_task::TaskManager;
-use nym_vpn_proto::{nym_vpnd_server::NymVpndServer, FILE_DESCRIPTOR_SET};
+use nym_vpn_proto::{nym_vpnd_server::NymVpndServer, VPN_FD_SET};
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tonic::transport::Server;
-use tracing::info;
+use tracing::{debug, debug_span, info, info_span, trace, trace_span, Span};
 
 use super::{
     config::{default_socket_path, default_uri_addr},
@@ -15,6 +15,24 @@ use super::{
     socket_stream::setup_socket_stream,
 };
 use crate::{cli::CliArgs, service::VpnServiceCommand};
+
+fn grpc_span(req: &http::Request<()>) -> Span {
+    let service = req.uri().path().trim_start_matches('/');
+    let method = service.split('/').last().unwrap_or(service);
+    if service.contains("grpc.reflection.v1") {
+        let span = trace_span!("grpc_reflection");
+        trace!(target: "grpc_reflection", "← {} {:?}", method, req.body());
+        return span;
+    }
+    if service.contains("grpc.health.v1") {
+        let span = debug_span!("grpc_health");
+        debug!(target: "grpc_health", "← {} {:?}", method, req.body());
+        return span;
+    }
+    let span = info_span!("grpc_vpnd");
+    info!(target: "grpc_vpnd", "← {} {:?}", method, req.body());
+    span
+}
 
 fn spawn_uri_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, addr: SocketAddr) {
     info!("Starting HTTP listener on: {addr}");
@@ -24,12 +42,13 @@ fn spawn_uri_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, addr: 
             .set_serving::<NymVpndServer<CommandInterface>>()
             .await;
         let reflection_service = tonic_reflection::server::Builder::configure()
-            .register_encoded_file_descriptor_set(FILE_DESCRIPTOR_SET)
+            .register_encoded_file_descriptor_set(VPN_FD_SET)
             .build()
             .unwrap();
         let command_interface = CommandInterface::new_with_uri(vpn_command_tx, addr);
 
         Server::builder()
+            .trace_fn(grpc_span)
             .add_service(health_service)
             .add_service(reflection_service)
             .add_service(NymVpndServer::new(command_interface))
@@ -47,7 +66,7 @@ fn spawn_socket_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, soc
             .set_serving::<NymVpndServer<CommandInterface>>()
             .await;
         let reflection_service = tonic_reflection::server::Builder::configure()
-            .register_encoded_file_descriptor_set(FILE_DESCRIPTOR_SET)
+            .register_encoded_file_descriptor_set(VPN_FD_SET)
             .build()
             .unwrap();
         let command_interface = CommandInterface::new_with_path(vpn_command_tx, &socket_path);
@@ -55,6 +74,7 @@ fn spawn_socket_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, soc
         let incoming = setup_socket_stream(&socket_path);
 
         Server::builder()
+            .trace_fn(grpc_span)
             .add_service(health_service)
             .add_service(reflection_service)
             .add_service(NymVpndServer::new(command_interface))
