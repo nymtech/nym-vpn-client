@@ -1,4 +1,5 @@
 import Foundation
+import Constants
 import NetworkExtension
 import MixnetLibrary
 
@@ -28,22 +29,18 @@ public final class MixnetAdapter {
     }
 
     public func start(with vpnConfig: VpnConfig) throws {
-        Task {
-            do {
-                try runVpn(config: vpnConfig)
-            } catch let error {
-                throw error
-            }
+        do {
+            try runVpn(config: vpnConfig)
+        } catch let error {
+            throw error
         }
     }
 
     public func stop() throws {
-        Task {
-            do {
-                try stopVpn()
-            } catch let error {
-                throw error
-            }
+        do {
+            try stopVpn()
+        } catch let error {
+            throw error
         }
     }
 }
@@ -70,10 +67,10 @@ private extension MixnetAdapter {
         setenv("VESTING_CONTRACT_ADDRESS", "n1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrq73f2nw", 1)
 
         setenv("STATISTICS_SERVICE_DOMAIN_ADDRESS", "https://mainnet-stats.nymte.ch:8090", 1)
-        setenv("EXPLORER_API", "https://explorer.nymtech.net/api/", 1)
+        setenv("EXPLORER_API", Constants.explorerUrl.rawValue, 1)
         setenv("NYXD", "https://rpc.nymtech.net", 1)
         setenv("NYXD_WS", "wss://rpc.nymtech.net/websocket", 1)
-        setenv("NYM_API", "https://validator.nymtech.net/api/", 1)
+        setenv("NYM_API", Constants.apiUrl.rawValue, 1)
     }
 
     func setupSandboxEnvironmentVariables() {
@@ -104,9 +101,9 @@ private extension MixnetAdapter {
         setenv("EPHEMERA_CONTRACT_ADDRESS", "n19lc9u84cz0yz3fww5283nucc9yvr8gsjmgeul0", 1)
 
         setenv("STATISTICS_SERVICE_DOMAIN_ADDRESS", "http://0.0.0.0", 1)
-        setenv("EXPLORER_API", "https://sandbox-explorer.nymtech.net/api", 1)
+        setenv("EXPLORER_API", Constants.sandboxExplorerUrl.rawValue, 1)
         setenv("NYXD", "https://rpc.sandbox.nymtech.net", 1)
         setenv("NYXD_WS", "wss://rpc.sandbox.nymtech.net/websocket", 1)
-        setenv("NYM_API", "https://sandbox-nym-api1.nymtech.net/api", 1)
+        setenv("NYM_API", Constants.sandboxApiUrl.rawValue, 1)
     }
 }
