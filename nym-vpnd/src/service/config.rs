@@ -109,6 +109,6 @@ pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError
         dir: data_dir.clone(),
         error,
     })?;
-    info!("Data directory created at {:?}", data_dir);
+    info!("Making sure data dir exists at {:?}", data_dir);
     Ok(())
 }
