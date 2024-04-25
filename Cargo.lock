@@ -4723,6 +4723,7 @@ dependencies = [
  "clap",
  "dirs 5.0.1",
  "futures",
+ "http 0.2.12",
  "nym-task",
  "nym-vpn-lib",
  "nym-vpn-proto",
