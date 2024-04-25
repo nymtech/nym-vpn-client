@@ -1,14 +1,134 @@
 name: publish-nym-vpn.yml
-on: [workflow_dispatch, workflow_call]
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag name for release"
+        required: false
+        default: nightly
+      binary:
+        required: true
+        description: "Binary"
+        type: choice
+        options:
+          - nym-gateway-probe
+          - nym-vpn-cli
+          - nym-vpnc
+          - nym-vpnd
+
+  push:
+    tags:
+      - nym-gateway-probe-v[0-9]+.[0-9]+.[0-9]+*
+      - nym-vpn-cli-v[0-9]+.[0-9]+.[0-9]+*
+      - nym-vpnc-v[0-9]+.[0-9]+.[0-9]+*
+      - nym-vpnd-v[0-9]+.[0-9]+.[0-9]+*
+
+env:
+  CARGO_TERM_COLOR: always
+  UPLOAD_DIR: linux_artifacts
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  build-apple:
+  build-nym-vpn-linux:
+    uses: ./.github/workflows/build-nym-vpn-linux.yml
+
+  publish:
+    needs: build-nym-vpn-linux
     runs-on: ubuntu-22.04-16-core
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.set_tag.outputs.tag }}
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Binary name
+        run: |
+          echo "Checking if tag exists or workflow was manually launched. Setting BINARY var"
+          if [[ -z "${{ github.event.inputs.binary }}" ]]; then
+            echo "BINARY=$(echo ${{ github.ref_name }} | sed -E 's/-v[0-9]+.[0-9]+.[0-9]+*//g')" >> $GITHUB_ENV
+          else
+            echo "BINARY=${{ github.event.inputs.binary }}" >> $GITHUB_ENV
+          fi
+
+      # This need to be edited in case of other binary comming from crates/ to match
+      - name: Sanitazing for path for crates...
+        run: |
+          if [[ ${{ env.BINARY }} == *"gateway"* ]]; then
+            echo PKG_VERSION_PATHING="crates/${{ env.BINARY }}" >> $GITHUB_ENV
+          else
+            echo PKG_VERSION_PATHING="${{ env.BINARY }}" >> $GITHUB_ENV
+          fi
+          echo ${{ env.PKG_VERSION_PATHING }}
+
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
         with:
-          sparse-checkout: |
-            nym-vpn-desktop
-            nym-vpn-lib
-            crates
+          subcommand: package.version --entry ${{ env.PKG_VERSION_PATHING }}
+
+      - name: Check tag name consistency
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          if [[ ${{ env.BINARY }}-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
+            exit 1
+          fi
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR }}
+          path: ${{ env.UPLOAD_DIR }}
+
+      # Setup TAG_NAME, which is used as a general "name"
+      - if: github.event_name == 'workflow_dispatch'
+        run: echo "TAG_NAME=${{ env.BINARY }}-${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+      - if: github.event_name == 'schedule'
+        run: echo 'TAG_NAME=nightly' >> $GITHUB_ENV
+      - if: github.event_name == 'push'
+        run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Generate checksum and keep only the correct binary
+        run: |
+          for f in ${{ env.UPLOAD_DIR }}/*; do
+            if [[ "${f}" != *"${{ env.BINARY }}"* ]]; then
+              rm -rf ${f}
+              continue
+            fi
+            sha256sum ${f} > "${f}.sha256sum"
+          done
+          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
+          cat ${{ env.UPLOAD_DIR }}/*.sha256sum >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - name: Setting subject, prerelease and notes files
+        if: ${{ contains(env.TAG_NAME, 'nightly') }}
+        run: |
+          (echo "SUBJECT=${{ env.BINARY }}-v${{ steps.package-version.outputs.metadata }} nightly prerelease build";
+           echo 'PRERELEASE=--prerelease';
+           echo 'NOTES_FILE=release-notes/${{ env.BINARY }}.md') >> $GITHUB_ENV
+          gh release delete ${{ env.BINARY }}-nightly --yes || true
+          git push origin :${{ env.BINARY }}-nightly || true
+      # Once we consider these actually release builds, remove --prerelease
+      # from PRERELEASE here
+      - name: Removing --prerelease if needed
+        if: ${{ !contains(env.TAG_NAME, 'nightly') }}
+        run: |
+          (echo "SUBJECT=$TAG_NAME"
+           echo 'PRERELEASE='
+           echo 'NOTES_FILE=release-notes/${{ env.BINARY }}.md') >> $GITHUB_ENV
+
+      - name: Publish release
+        run: |
+          envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
+          gh release create $TAG_NAME ${{ env.PRERELEASE }} --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR }}/*
+
+  gen-hashes:
+    uses: ./.github/workflows/gen-hashes-json.yml
+    needs: publish
+    with:
+      release_tag: ${{ needs.publish.outputs.tag }}
+    secrets: inherit

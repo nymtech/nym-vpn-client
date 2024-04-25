@@ -1,0 +1,1 @@
+# nym-vpnd release notes

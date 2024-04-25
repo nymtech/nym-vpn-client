@@ -1,1 +1,124 @@
-### PLACEHOLDER FOR SPLIT WORKFLOW
+name: build-nym-vpn-desktop-windows
+on: [workflow_dispatch, workflow_call]
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TARGET: release
+  LIBS_PATH: ${GITHUB_WORKSPACE}/lib
+  WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
+  MULLVAD_LIB_NAME: winfw.dll
+  UPDATER_BUNDLE_NAME: updater_linux_x86_64.AppImage.tar.gz
+  UPLOAD_DIR: windows_artifacts
+  TAURI_SRC: ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+
+jobs:
+  build-wireguard-go-windows:
+    uses: ./.github/workflows/build-wireguard-go-windows.yml
+
+  build-mullvad-windows:
+    uses: ./.github/workflows/build-mullvad-windows.yml
+
+  build-windows:
+    needs: [build-wireguard-go-windows,build-mullvad-windows]
+    runs-on: custom-windows-11
+    outputs:
+      PKG_VERSION: ${{ steps.package-version.outputs.metadata }}
+      UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            nym-vpn-desktop
+            nym-vpn-lib
+            crates
+
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-desktop/src-tauri
+
+      - name: Download wireguard-go-windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WG_GO_LIB_NAME }}
+          path: ${{ env.LIBS_PATH }}/
+
+      - name: Download mullvad lib artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.MULLVAD_LIB_NAME }}
+          path: ${{ env.LIBS_PATH }}/
+
+      - name: Download/Unzip/Move wintun.zip and winpcap.zip, also move wireguard lib for windows
+        shell: bash
+        run: |
+          curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
+          curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
+          unzip ${GITHUB_WORKSPACE}/wintun.zip
+          unzip ${GITHUB_WORKSPACE}/winpcap.zip
+          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${{ env.TAURI_SRC }}
+          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${{ env.TAURI_SRC }}
+          mv ${GITHUB_WORKSPACE}/lib/libwg.dll ${{ env.TAURI_SRC }}
+          mv ${GITHUB_WORKSPACE}/lib/libwg.lib ${{ env.TAURI_SRC }}
+
+      - name: Generate licenses file (Js & Rust) and install JS dependencies
+        working-directory: nym-vpn-desktop
+        run: |
+          rm public/licenses-js.json || true
+          npm run gen:licenses:js
+          rm public/licenses-rust.json || true
+          npm run gen:licenses:rust
+          npm ci
+
+      - name: Build desktop client
+        working-directory: nym-vpn-desktop/src-tauri
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
+          RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-Release"
+        run: |
+          sed -i 's/"bundle": {/"bundle": {"resources": ["wintun.dll", "vcruntime140.dll", "libwg.dll", "winfw.dll"],/g' nym-vpn-desktop/src-tauri/tauri.conf.json
+          npm run tauri build -- ${{ env.CARGO_TARGET }}
+          ls -la target/release/ || true
+          ls -la target/release/bundle || true
+          ls -la target/release/bundle/* || true
+
+      - name: Move things around to prepare for upload
+        env:
+          UPLOADER_SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
+          UPLOADER_TARGET_BUNDLE: updater_windows_x86_64.nsis.zip
+          BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
+        run: |
+          echo "moving updater bundle and signature into ${{ env.UPLOAD_DIR }}"
+          rm -rf ${{ env.UPLOAD_DIR }} || true
+          mkdir ${{ env.UPLOAD_DIR }}
+          mv ${{ env.UPLOADER_SRC_BUNDLE }}     ${{ env.UPLOAD_DIR }}/${UPLOADER_TARGET_BUNDLE}
+          mv ${{ env.UPLOADER_SRC_BUNDLE }}.sig ${{ env.UPLOAD_DIR }}/${UPLOADER_TARGET_BUNDLE}.sig
+          echo "moving setup.exe into ${{ env.UPLOAD_DIR }}"
+          mv ${{ env.UPLOADER_SRC_BUNDLE }}
+          ls -la ${{ env.BINARY }} ${{ env.UPLOAD_DIR }}/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR }}
+          path: ${{ env.UPLOAD_DIR }}
+          retention-days: 1
