@@ -1,7 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::{IpAddr, Ipv4Addr};
 use std::sync::{Arc, RwLock};
 
 use crate::error::Result;
@@ -205,10 +204,6 @@ async fn setup_mix_tunnel(
         route_manager.handle()?,
     )?;
 
-    let interface = "tun0";
-    let dns_entres = vec![IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1))];
-    dns_monitor.set(interface, &dns_entres)?;
-
     // Now it's time start all the stuff that needs running inside the tunnel, and that we need
     // correctly unwind if it fails
     // - Sets up mixnet client, and connects
@@ -222,6 +217,7 @@ async fn setup_mix_tunnel(
             &task_manager,
             &gateway_directory_client,
             default_lan_gateway_ip,
+            &mut dns_monitor,
         )
         .await;
     let mixnet_connection_info = match ret {

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use netdev::Interface;
+use talpid_core::dns::DnsMonitor;
 use std::fmt::{Display, Formatter};
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(target_os = "android")]
@@ -199,6 +200,7 @@ pub async fn setup_mixnet_routing(
     #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
         dyn crate::platform::swift::OSTunProvider,
     >,
+    dns_monitor: &mut DnsMonitor,
 ) -> Result<tun2::AsyncDevice> {
     debug!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
@@ -316,6 +318,8 @@ pub async fn setup_mixnet_routing(
     info!("Adding routes to route manager");
     debug!("Routes: {:#?}", routes.clone().collect::<HashSet<_>>());
     route_manager.add_routes(routes.collect()).await?;
+
+    dns_monitor.set(&device_name, &[IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1))])?;
 
     Ok(dev)
 }
