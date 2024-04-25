@@ -6,8 +6,6 @@ use std::{fs, path::PathBuf};
 use nym_vpn_lib::gateway_directory;
 use tracing::info;
 
-use super::ConnectOptions;
-
 pub(super) const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
 pub(super) const DEFAULT_CONFIG_DIR: &str = "/etc/nym";
 pub(super) const DEFAULT_CONFIG_FILE: &str = "nym-vpnd.toml";
@@ -43,7 +41,6 @@ pub(super) enum ConfigSetupError {
 pub(super) struct NymVpnServiceConfig {
     pub(super) entry_point: gateway_directory::EntryPoint,
     pub(super) exit_point: gateway_directory::ExitPoint,
-    pub(super) connect_options: ConnectOptions,
 }
 
 impl Default for NymVpnServiceConfig {
@@ -51,7 +48,6 @@ impl Default for NymVpnServiceConfig {
         Self {
             entry_point: gateway_directory::EntryPoint::Random,
             exit_point: gateway_directory::ExitPoint::Random,
-            connect_options: ConnectOptions::default(),
         }
     }
 }
@@ -113,6 +109,6 @@ pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError
         dir: data_dir.clone(),
         error,
     })?;
-    info!("Data directory created at {:?}", data_dir);
+    info!("Making sure data dir exists at {:?}", data_dir);
     Ok(())
 }

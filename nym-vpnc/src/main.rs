@@ -44,11 +44,11 @@ async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Re
     let request = tonic::Request::new(ConnectRequest {
         entry: entry.map(into_entry_point),
         exit: exit.map(into_exit_point),
-        disable_routing: false,
-        enable_two_hop: false,
-        enable_poisson_rate: false,
-        disable_background_cover_traffic: false,
-        enable_credentials_mode: false,
+        disable_routing: connect_args.disable_routing,
+        enable_two_hop: connect_args.enable_two_hop,
+        enable_poisson_rate: connect_args.enable_poisson_rate,
+        disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
+        enable_credentials_mode: connect_args.enable_credentials_mode,
     });
 
     let mut client = vpnd_client::get_client(client_type).await?;
