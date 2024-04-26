@@ -439,6 +439,7 @@ impl SpecificVpn {
     // (ctrl-c)
     pub async fn run(&mut self) -> Result<()> {
         let tunnels = setup_tunnel(self).await?;
+        info!("Nym VPN is now running");
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
