@@ -31,7 +31,7 @@ mod db;
 mod error;
 mod events;
 mod fs;
-mod http;
+mod gateway;
 mod network;
 mod states;
 mod vpn_client;

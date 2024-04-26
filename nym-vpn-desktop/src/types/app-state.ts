@@ -57,6 +57,8 @@ export type AppState = {
   fastestNodeLocation: Country;
   entryCountryList: Country[];
   exitCountryList: Country[];
+  entryCountriesLoading: boolean;
+  exitCountriesLoading: boolean;
   rootFontSize: number;
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
