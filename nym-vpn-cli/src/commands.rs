@@ -166,8 +166,8 @@ pub(crate) struct ImportCredentialArgs {
 #[group(required = true, multiple = false)]
 pub(crate) struct ImportCredentialType {
     /// Credential encoded using base58.
-    #[arg(long, value_parser = parse_encoded_credential_data)]
-    pub(crate) credential_data: Option<Vec<u8>>,
+    #[arg(long)]
+    pub(crate) credential_data: Option<String>,
 
     /// Path to the credential file.
     #[arg(long, value_parser = check_path)]
@@ -231,14 +231,10 @@ fn check_path(path: &str) -> Result<PathBuf, String> {
     Ok(path)
 }
 
-fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
-    bs58::decode(raw).into_vec()
-}
-
 // Workaround until clap supports enums for ArgGroups
 pub enum ImportCredentialTypeEnum {
     Path(PathBuf),
-    Data(Vec<u8>),
+    Data(String),
 }
 
 impl From<ImportCredentialType> for ImportCredentialTypeEnum {

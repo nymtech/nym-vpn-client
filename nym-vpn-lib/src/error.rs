@@ -168,7 +168,10 @@ pub enum Error {
     },
 
     #[error("failed decode base58 credential: {source}")]
-    FailedToDecodeBase58Credential { source: bs58::decode::Error },
+    FailedToDecodeBase58Credential {
+        #[from]
+        source: bs58::decode::Error,
+    },
 
     #[error("config path not set")]
     ConfigPathNotSet,
