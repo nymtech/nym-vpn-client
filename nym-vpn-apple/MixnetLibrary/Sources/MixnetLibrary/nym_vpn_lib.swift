@@ -1244,6 +1244,8 @@ public enum FfiError {
 
 
     case InvalidValueUniffi
+    case InvalidCredential
+    case InvalidPath
     case FdNotFound
     case VpnNotStopped
     case VpnNotStarted
@@ -1267,15 +1269,17 @@ public struct FfiConverterTypeFFIError: FfiConverterRustBuffer {
 
 
         case 1: return .InvalidValueUniffi
-        case 2: return .FdNotFound
-        case 3: return .VpnNotStopped
-        case 4: return .VpnNotStarted
-        case 5: return .VpnAlreadyRunning
-        case 6: return .VpnNotRunning
-        case 7: return .LibError(
+        case 2: return .InvalidCredential
+        case 3: return .InvalidPath
+        case 4: return .FdNotFound
+        case 5: return .VpnNotStopped
+        case 6: return .VpnNotStarted
+        case 7: return .VpnAlreadyRunning
+        case 8: return .VpnNotRunning
+        case 9: return .LibError(
             inner: try FfiConverterString.read(from: &buf)
         )
-        case 8: return .GatewayDirectoryError(
+        case 10: return .GatewayDirectoryError(
             inner: try FfiConverterString.read(from: &buf)
         )
 
@@ -1294,33 +1298,41 @@ public struct FfiConverterTypeFFIError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(1))
 
 
-        case .FdNotFound:
+        case .InvalidCredential:
             writeInt(&buf, Int32(2))
 
 
-        case .VpnNotStopped:
+        case .InvalidPath:
             writeInt(&buf, Int32(3))
 
 
-        case .VpnNotStarted:
+        case .FdNotFound:
             writeInt(&buf, Int32(4))
 
 
-        case .VpnAlreadyRunning:
+        case .VpnNotStopped:
             writeInt(&buf, Int32(5))
 
 
-        case .VpnNotRunning:
+        case .VpnNotStarted:
             writeInt(&buf, Int32(6))
 
 
-        case let .LibError(inner):
+        case .VpnAlreadyRunning:
             writeInt(&buf, Int32(7))
+
+
+        case .VpnNotRunning:
+            writeInt(&buf, Int32(8))
+
+
+        case let .LibError(inner):
+            writeInt(&buf, Int32(9))
             FfiConverterString.write(inner, into: &buf)
 
 
         case let .GatewayDirectoryError(inner):
-            writeInt(&buf, Int32(8))
+            writeInt(&buf, Int32(10))
             FfiConverterString.write(inner, into: &buf)
 
         }
@@ -1886,6 +1898,12 @@ public func FfiConverterTypeUrl_lower(_ value: Url) -> RustBuffer {
     return FfiConverterTypeUrl.lower(value)
 }
 
+public func checkCredential(credential: String)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    uniffi_nym_vpn_lib_fn_func_checkcredential(
+        FfiConverterString.lower(credential),$0
+    )
+}
+}
 public func getGatewayCountries(apiUrl: Url, explorerUrl: Url, exitOnly: Bool)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
         uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
@@ -1902,6 +1920,13 @@ public func getLowLatencyEntryCountry(apiUrl: Url, explorerUrl: Url)throws  -> L
             FfiConverterTypeUrl.lower(explorerUrl),$0
         )
     })
+}
+public func importCredential(credential: String, path: String)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    uniffi_nym_vpn_lib_fn_func_importcredential(
+        FfiConverterString.lower(credential),
+        FfiConverterString.lower(path),$0
+    )
+}
 }
 public func runVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_runvpn(
@@ -1930,10 +1955,16 @@ private var initializationResult: InitializationResult {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
+    if (uniffi_nym_vpn_lib_checksum_func_checkcredential() != 37960) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 21142) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 25285) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 47691) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_runvpn() != 2496) {

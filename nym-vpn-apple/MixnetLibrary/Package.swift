@@ -24,8 +24,8 @@ let package = Package(
         ),
         .binaryTarget(
             name: "NymVpnLib",
-            url: "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-cli-v0.1.1/nym-vpn-lib_0.1.1_ios_universal.zip",
-            checksum: "ca037b95cbaf4d9186faccf7168e71708b8db766f82216d931aff38f1ce54fc5"
+            url: "https://github.com/nymtech/nym-vpn-client/releases/download/nightly/nym-vpn-lib_0.1.2-dev_ios_universal.zip",
+            checksum: "6863281969e3238cee095815aa6699d771ec8d137d93ba44d5e255ead7edd81c"
         ),
 // TODO: remove local target after finishing testing
 //        .binaryTarget(

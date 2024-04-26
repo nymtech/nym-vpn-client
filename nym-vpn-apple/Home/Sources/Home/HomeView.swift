@@ -38,6 +38,12 @@ private extension HomeView {
             NymColor.background
                 .ignoresSafeArea()
         }
+        .onAppear {
+            viewModel.configureConnectedTimeTimer()
+        }
+        .onDisappear {
+            viewModel.stopConnectedTimeTimerUpdates()
+        }
     }
 
     @ViewBuilder

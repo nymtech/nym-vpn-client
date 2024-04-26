@@ -24,4 +24,13 @@ public enum ExitRouter: Codable, Equatable {
             return true
         }
     }
+
+    public var isCountry: Bool {
+        switch self {
+        case .country:
+            return true
+        case .lowLatencyCountry, .randomLowLatency:
+            return false
+        }
+    }
 }

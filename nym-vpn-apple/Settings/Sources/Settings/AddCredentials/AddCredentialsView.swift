@@ -33,6 +33,9 @@ struct AddCredentialsView: View {
                 NymColor.background
                     .ignoresSafeArea()
             }
+            .onAppear {
+                isFocused = true
+            }
         }
     }
 }

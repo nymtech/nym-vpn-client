@@ -78,15 +78,28 @@ public extension HomeViewModel {
     }
 
     func updateTimeConnected() {
+        let emptyTime = " "
         guard
             let activeTunnel,
             activeTunnel.status == .connected,
             let connectedDate = activeTunnel.tunnel.connection.connectedDate
         else {
-            timeConnected = " "
+
+            guard timeConnected != emptyTime else { return }
+            timeConnected = emptyTime
             return
         }
-        timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? ""
+        timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTime
+    }
+
+    func configureConnectedTimeTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
+            self?.updateTimeConnected()
+        }
+    }
+
+    func stopConnectedTimeTimerUpdates() {
+        timer.invalidate()
     }
 }
 
@@ -126,7 +139,6 @@ public extension HomeViewModel {
 private extension HomeViewModel {
     func setup() {
         setupDateFormatter()
-        setupConnectedTimeTimer()
         setupTunnelManagerObservers()
         setupAppSettingsObserver()
         fetchCountries()
@@ -154,12 +166,6 @@ private extension HomeViewModel {
     func setupDateFormatter() {
         dateFormatter.allowedUnits = [.hour, .minute, .second]
         dateFormatter.zeroFormattingBehavior = .pad
-    }
-
-    func setupConnectedTimeTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
-            self?.updateTimeConnected()
-        }
     }
 
     func setupAppSettingsObserver() {

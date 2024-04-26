@@ -143,10 +143,16 @@ private extension ConnectionManager {
             let firstExitCountry = exitCountries.first,
             let lowLatencyCountry = countriesManager.lowLatencyCountry
         else {
+            // TODO
+            exitRouter = .country(code: "AU")
             return
         }
-        exitRouter = .country(code: firstExitCountry.code)
-        entryGateway = .lowLatencyCountry(code: lowLatencyCountry.code)
+        if let unwrappedExitRouter = exitRouter, !unwrappedExitRouter.isCountry {
+            exitRouter = .country(code: firstExitCountry.code)
+        }
+        if let unwrappedEntryGateway = entryGateway, !unwrappedEntryGateway.isCountry {
+            entryGateway = .lowLatencyCountry(code: lowLatencyCountry.code)
+        }
     }
 
     func updateCountriesExitOnly() {
@@ -155,6 +161,8 @@ private extension ConnectionManager {
             exitRouter = .randomLowLatency
             return
         }
+
+        guard let unwrappedExitRouter = exitRouter, unwrappedExitRouter.isQuickest else { return }
         entryGateway = .randomLowLatency
         exitRouter = .lowLatencyCountry(code: lowLatencyCountry.code)
     }
