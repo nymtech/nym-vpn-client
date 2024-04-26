@@ -323,7 +323,7 @@ pub async fn setup_mixnet_routing(
 
     // Set the DNS server
     let dns_server = dns.unwrap_or(DEFAULT_DNS_SERVER);
-    dns_monitor.set(&device_name, &[dns_server])?;
+    tokio::task::block_in_place(move || dns_monitor.set(&device_name, &[dns_server]))?;
 
     Ok(dev)
 }
