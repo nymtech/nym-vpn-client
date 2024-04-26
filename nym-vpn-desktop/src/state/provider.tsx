@@ -3,7 +3,7 @@ import React, { useEffect, useReducer } from 'react';
 import { MainDispatchContext, MainStateContext } from '../contexts';
 import { sleep } from '../helpers';
 import { Cli } from '../types';
-import init from './init';
+import { initFirstBatch, initSecondBatch } from './init';
 import { initialState, reducer } from './main';
 import { useTauriEvents } from './useTauriEvents';
 
@@ -18,7 +18,11 @@ export function MainStateProvider({ children }: Props) {
 
   // initialize app state
   useEffect(() => {
-    init(dispatch).then(async () => {
+    // this first batch is needed to ensure the app is fully
+    // initialized and ready, once done splash screen is removed
+    // and the UI is shown
+    initFirstBatch(dispatch).then(async () => {
+      console.log('init of 1st batch done');
       dispatch({ type: 'init-done' });
       const args = await invoke<Cli>(`cli_args`);
       // skip the animation if NOSPLASH is set
@@ -39,6 +43,12 @@ export function MainStateProvider({ children }: Props) {
         await sleep(300);
         splash.remove();
       }
+    });
+
+    // this second batch is not needed for the app to be fully
+    // functional, and continue loading in the background
+    initSecondBatch(dispatch).then(() => {
+      console.log('init of 2nd batch done');
     });
   }, []);
 

@@ -64,7 +64,7 @@ const getTheme = async () => {
   return { winTheme, themeMode };
 };
 
-async function init(dispatch: StateDispatch) {
+export async function initFirstBatch(dispatch: StateDispatch) {
   const initStateRq: TauriReq<typeof getInitialConnectionState> = {
     name: 'get_connection_state',
     request: () => getInitialConnectionState(),
@@ -78,34 +78,6 @@ async function init(dispatch: StateDispatch) {
     request: () => getSessionStartTime(),
     onFulfilled: (startTime) => {
       dispatch({ type: 'set-connection-start-time', startTime });
-    },
-  };
-
-  const getEntryCountriesRq: TauriReq<typeof getEntryCountries> = {
-    name: 'get_countries',
-    request: () => getEntryCountries(),
-    onFulfilled: (countries) => {
-      dispatch({
-        type: 'set-country-list',
-        payload: {
-          hop: 'entry',
-          countries,
-        },
-      });
-    },
-  };
-
-  const getExitCountriesRq: TauriReq<typeof getExitCountries> = {
-    name: 'get_countries',
-    request: () => getExitCountries(),
-    onFulfilled: (countries) => {
-      dispatch({
-        type: 'set-country-list',
-        payload: {
-          hop: 'exit',
-          countries,
-        },
-      });
     },
   };
 
@@ -134,14 +106,6 @@ async function init(dispatch: StateDispatch) {
           location: location === 'Fastest' ? 'Fastest' : location.Country,
         },
       });
-    },
-  };
-
-  const getFastestLocationRq: TauriReq<typeof getFastestNodeLocation> = {
-    name: 'get_fastest_node_location',
-    request: () => getFastestNodeLocation(),
-    onFulfilled: (country) => {
-      dispatch({ type: 'set-fastest-node-location', country });
     },
   };
 
@@ -247,11 +211,8 @@ async function init(dispatch: StateDispatch) {
     initStateRq,
     getVpnModeRq,
     syncConTimeRq,
-    getEntryCountriesRq,
-    getExitCountriesRq,
     getEntryLocationRq,
     getExitLocationRq,
-    getFastestLocationRq,
     getVersionRq,
     getThemeRq,
     getRootFontSizeRq,
@@ -263,4 +224,46 @@ async function init(dispatch: StateDispatch) {
   ]);
 }
 
-export default init;
+export async function initSecondBatch(dispatch: StateDispatch) {
+  const getEntryCountriesRq: TauriReq<typeof getEntryCountries> = {
+    name: 'get_countries',
+    request: () => getEntryCountries(),
+    onFulfilled: (countries) => {
+      dispatch({
+        type: 'set-country-list',
+        payload: {
+          hop: 'entry',
+          countries,
+        },
+      });
+    },
+  };
+
+  const getExitCountriesRq: TauriReq<typeof getExitCountries> = {
+    name: 'get_countries',
+    request: () => getExitCountries(),
+    onFulfilled: (countries) => {
+      dispatch({
+        type: 'set-country-list',
+        payload: {
+          hop: 'exit',
+          countries,
+        },
+      });
+    },
+  };
+
+  const getFastestLocationRq: TauriReq<typeof getFastestNodeLocation> = {
+    name: 'get_fastest_node_location',
+    request: () => getFastestNodeLocation(),
+    onFulfilled: (country) => {
+      dispatch({ type: 'set-fastest-node-location', country });
+    },
+  };
+
+  await fireRequests([
+    getEntryCountriesRq,
+    getExitCountriesRq,
+    getFastestLocationRq,
+  ]);
+}
