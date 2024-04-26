@@ -18,8 +18,8 @@ use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
+use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
-use tap::TapFallible;
 use tokio::time::timeout;
 use tunnel_setup::{setup_tunnel, AllTunnelsSetup, TunnelSetup};
 use util::wait_for_interrupt_and_signal;
@@ -164,6 +164,9 @@ pub struct NymVpn<T: Vpn> {
     /// The MTU of the TUN device.
     pub nym_mtu: Option<u16>,
 
+    /// The DNS server to use
+    pub dns: Option<IpAddr>,
+
     /// Disable routing all traffic through the VPN TUN device.
     pub disable_routing: bool,
 
@@ -205,6 +208,7 @@ impl NymVpn<WireguardVpn> {
             exit_point,
             nym_ips: None,
             nym_mtu: None,
+            dns: None,
             disable_routing: false,
             enable_two_hop: false,
             vpn_config: WireguardVpn {
@@ -246,6 +250,7 @@ impl NymVpn<MixnetVpn> {
             exit_point,
             nym_ips: None,
             nym_mtu: None,
+            dns: None,
             disable_routing: false,
             enable_two_hop: false,
             vpn_config: MixnetVpn {
@@ -270,6 +275,7 @@ impl NymVpn<MixnetVpn> {
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
+        dns_monitor: &mut DnsMonitor,
     ) -> Result<()> {
         let exit_gateway = exit_router.gateway().to_base58_string();
         info!("Connecting to exit gateway: {exit_gateway}");
@@ -307,6 +313,8 @@ impl NymVpn<MixnetVpn> {
             routing_config,
             #[cfg(target_os = "ios")]
             self.ios_tun_provider.clone(),
+            dns_monitor,
+            self.dns,
         )
         .await?;
 
@@ -352,6 +360,7 @@ impl NymVpn<MixnetVpn> {
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
+        dns_monitor: &mut DnsMonitor,
     ) -> Result<MixnetConnectionInfo> {
         info!("Setting up mixnet client");
         info!("Connecting to entry gateway: {entry_gateway}");
@@ -394,6 +403,7 @@ impl NymVpn<MixnetVpn> {
                 task_manager,
                 gateway_client,
                 default_lan_gateway_ip,
+                dns_monitor,
             )
             .await
         {
@@ -443,13 +453,18 @@ impl SpecificVpn {
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
-            AllTunnelsSetup::Mix(TunnelSetup { specific_setup, .. }) => {
+            AllTunnelsSetup::Mix(TunnelSetup {
+                mut specific_setup, ..
+            }) => {
                 wait_for_interrupt(specific_setup.task_manager).await;
                 handle_interrupt(Arc::new(RwLock::new(specific_setup.route_manager)), None)
                     .await
-                    .tap_err(|err| {
+                    .inspect_err(|err| {
                         error!("Failed to handle interrupt: {err}");
                     })?;
+                specific_setup.dns_monitor.reset().inspect_err(|err| {
+                    error!("Failed to reset dns monitor: {err}");
+                })?;
             }
             AllTunnelsSetup::Wg {
                 route_manager,
@@ -464,11 +479,11 @@ impl SpecificVpn {
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
                 .await
-                .tap_err(|err| {
+                .inspect_err(|err| {
                     error!("Failed to handle interrupt: {err}");
                 })?;
 
-                dns_monitor.reset().tap_err(|err| {
+                dns_monitor.reset().inspect_err(|err| {
                     error!("Failed to reset dns monitor: {err}");
                 })?;
                 firewall.reset_policy().map_err(|err| {
@@ -514,6 +529,9 @@ impl SpecificVpn {
                         error!("Failed to handle interrupt: {err}");
                         Box::new(NymVpnExitError::Generic { reason: err })
                     })?;
+                specific_setup.dns_monitor.reset().inspect_err(|err| {
+                    error!("Failed to reset dns monitor: {err}");
+                })?;
                 result
             }
             AllTunnelsSetup::Wg {

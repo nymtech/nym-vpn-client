@@ -94,3 +94,7 @@ pub(crate) fn into_exit_point(exit: ExitPoint) -> nym_vpn_proto::ExitNode {
         ExitPoint::Random => new_exit_node_random(),
     }
 }
+
+pub(crate) fn ipaddr_into_string(ip: std::net::IpAddr) -> nym_vpn_proto::Dns {
+    nym_vpn_proto::Dns { ip: ip.to_string() }
+}

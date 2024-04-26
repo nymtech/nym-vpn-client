@@ -4,7 +4,7 @@
 use anyhow::{anyhow, Result};
 use clap::{Args, Parser, Subcommand};
 use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity, Recipient};
-use std::path::PathBuf;
+use std::{net::IpAddr, path::PathBuf};
 
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about)]
@@ -32,6 +32,10 @@ pub(crate) struct ConnectArgs {
 
     #[command(flatten)]
     pub(crate) exit: CliExit,
+
+    /// Set the IP address of the DNS server to use.
+    #[arg(long)]
+    pub(crate) dns: Option<IpAddr>,
 
     /// Disable routing all traffic through the nym TUN device. When the flag is set, the nym TUN
     /// device will be created, but to route traffic through it you will need to do it manually,

@@ -9,6 +9,7 @@ use std::os::fd::{AsRawFd, RawFd};
 #[cfg(target_os = "android")]
 use std::sync::{Arc, Mutex};
 use std::{collections::HashSet, net::IpAddr};
+use talpid_core::dns::DnsMonitor;
 
 use ipnetwork::IpNetwork;
 use netdev::interface::get_default_interface;
@@ -25,6 +26,7 @@ use crate::error::Result;
 use crate::{MixnetVpn, NymVpn};
 
 const DEFAULT_TUN_MTU: u16 = 1500;
+const DEFAULT_DNS_SERVER: IpAddr = IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1));
 
 #[derive(Clone)]
 pub struct RoutingConfig {
@@ -199,6 +201,8 @@ pub async fn setup_mixnet_routing(
     #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
         dyn crate::platform::swift::OSTunProvider,
     >,
+    dns_monitor: &mut DnsMonitor,
+    dns: Option<IpAddr>,
 ) -> Result<tun2::AsyncDevice> {
     debug!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
@@ -316,6 +320,10 @@ pub async fn setup_mixnet_routing(
     info!("Adding routes to route manager");
     debug!("Routes: {:#?}", routes.clone().collect::<HashSet<_>>());
     route_manager.add_routes(routes.collect()).await?;
+
+    // Set the DNS server
+    let dns_server = dns.unwrap_or(DEFAULT_DNS_SERVER);
+    dns_monitor.set(&device_name, &[dns_server])?;
 
     Ok(dev)
 }
