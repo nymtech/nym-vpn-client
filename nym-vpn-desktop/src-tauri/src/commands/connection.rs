@@ -1,6 +1,6 @@
 use futures::SinkExt;
-use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
-use nym_vpn_lib::{NymVpnCtrlMessage, NymVpnHandle};
+use nym_vpn_lib::gateway_directory::{Config as GatewayClientConfig, EntryPoint, ExitPoint};
+use nym_vpn_lib::{NymVpn, NymVpnCtrlMessage, NymVpnHandle};
 use std::env;
 use tauri::State;
 use tracing::{debug, error, info, instrument, trace};
@@ -17,7 +17,7 @@ use crate::{
         app::{ConnectionState, VpnMode},
         SharedAppState,
     },
-    vpn_client::{create_vpn_config, spawn_exit_listener, spawn_status_listener},
+    vpn_client::{spawn_exit_listener, spawn_status_listener},
 };
 
 #[instrument(skip_all)]
@@ -90,7 +90,8 @@ pub async fn connect(
         }
     };
 
-    let mut vpn_config = create_vpn_config(entry_point, exit_point);
+    let mut vpn_config = NymVpn::new_mixnet_vpn(entry_point, exit_point);
+    vpn_config.gateway_config = GatewayClientConfig::new_from_env();
     if let VpnMode::TwoHop = app_state.vpn_mode {
         info!("2-hop mode enabled");
         vpn_config.enable_two_hop = true;
