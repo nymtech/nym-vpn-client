@@ -16,7 +16,7 @@ use nym_gateway_directory::{Config, EntryPoint, ExitPoint, GatewayClient, IpPack
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use talpid_routing::RouteManager;
 use tap::TapFallible;
@@ -68,6 +68,7 @@ async fn init_wireguard_config(
     entry_gateway_identity: &str,
     wireguard_private_key: &str,
     wireguard_ip: IpAddr,
+    mtu: u16,
 ) -> Result<WireguardConfig> {
     // First we need to register with the gateway to setup keys and IP assignment
     info!("Registering with wireguard gateway");
@@ -79,8 +80,7 @@ async fn init_wireguard_config(
         .await?;
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
-    let wireguard_config = WireguardConfig::init(wireguard_private_key, &wg_gateway_data)?;
-    info!("Wireguard config: \n{wireguard_config}");
+    let wireguard_config = WireguardConfig::init(wireguard_private_key, &wg_gateway_data, mtu)?;
     Ok(wireguard_config)
 }
 
@@ -440,12 +440,13 @@ impl SpecificVpn {
     // (ctrl-c)
     pub async fn run(&mut self) -> Result<()> {
         let tunnels = setup_tunnel(self).await?;
+        info!("Nym VPN is now running");
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
             AllTunnelsSetup::Mix(TunnelSetup { specific_setup, .. }) => {
                 wait_for_interrupt(specific_setup.task_manager).await;
-                handle_interrupt(Arc::new(RwLock::new(specific_setup.route_manager)), None)
+                handle_interrupt(specific_setup.route_manager, None)
                     .await
                     .tap_err(|err| {
                         error!("Failed to handle interrupt: {err}");
@@ -508,7 +509,7 @@ impl SpecificVpn {
                 let result =
                     wait_for_interrupt_and_signal(Some(specific_setup.task_manager), vpn_ctrl_rx)
                         .await;
-                handle_interrupt(Arc::new(RwLock::new(specific_setup.route_manager)), None)
+                handle_interrupt(specific_setup.route_manager, None)
                     .await
                     .map_err(|err| {
                         error!("Failed to handle interrupt: {err}");

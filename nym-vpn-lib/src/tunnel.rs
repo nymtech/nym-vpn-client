@@ -26,12 +26,12 @@ impl Tunnel {
         config: WireguardConfig,
         route_manager_handle: RouteManagerHandle,
         tun_provider: Arc<Mutex<TunProvider>>,
-    ) -> Result<Self, crate::error::Error> {
-        Ok(Tunnel {
+    ) -> Self {
+        Tunnel {
             config: config.0,
             route_manager_handle,
             tun_provider,
-        })
+        }
     }
 }
 

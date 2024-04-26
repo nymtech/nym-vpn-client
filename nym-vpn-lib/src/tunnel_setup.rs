@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::{Arc, RwLock};
-
 use crate::error::Result;
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
 use crate::tunnel::setup_route_manager;
@@ -48,7 +46,7 @@ impl TunnelSpecifcSetup for WgTunnelSetup {}
 pub enum AllTunnelsSetup {
     Mix(TunnelSetup<MixTunnelSetup>),
     Wg {
-        route_manager: Arc<RwLock<RouteManager>>,
+        route_manager: RouteManager,
         entry: TunnelSetup<WgTunnelSetup>,
         exit: TunnelSetup<WgTunnelSetup>,
         firewall: Firewall,
@@ -106,6 +104,15 @@ async fn setup_wg_tunnel(
 ) -> Result<AllTunnelsSetup> {
     let wg_gateway_client = WgGatewayClient::new(nym_vpn.vpn_config.wg_gateway_config.clone())?;
     log::info!("Created wg gateway client");
+    // MTU is computed as (MTU of wire interface) - ((IP header size) + (UDP header size) + (WireGuard metadata size))
+    // The IP header size is 20 for IPv4 and 40 for IPv6
+    // The UDP header size is 8
+    // The Wireguard metadata size is 32
+    // Entry tunnel will only deal with IPv4 => 1500 - (20 + 8 + 32)
+    let entry_mtu = 1440;
+    // Exit tunnel will deal with both v4 and v6, and it's "wire" interface is entry tunnel's MTU
+    // 1440 - (40 + 8 + 32)
+    let exit_mtu = 1360;
 
     let mut entry_wireguard_config = init_wireguard_config(
         &gateway_directory_client,
@@ -121,6 +128,7 @@ async fn setup_wg_tunnel(
             .entry_wg_ip
             .expect("clap should enforce value when wireguard enabled")
             .into(),
+        entry_mtu,
     )
     .await?;
     let mut exit_wireguard_config = init_wireguard_config(
@@ -137,6 +145,7 @@ async fn setup_wg_tunnel(
             .exit_wg_ip
             .expect("clap should enforce value when wireguard enabled")
             .into(),
+        exit_mtu,
     )
     .await?;
     entry_wireguard_config.0.peers.iter_mut().for_each(|peer| {
@@ -155,19 +164,21 @@ async fn setup_wg_tunnel(
         peer.allowed_ips
             .append(&mut replace_default_prefixes(catch_all_ipv6()));
     });
+    info!("Entry wireguard config: \n{entry_wireguard_config}");
+    info!("Exit wireguard config: \n{exit_wireguard_config}");
     let (firewall, dns_monitor) = init_firewall_dns(
         #[cfg(target_os = "linux")]
         route_manager.handle()?,
     )?;
-    let route_manager = Arc::new(RwLock::new(route_manager));
+    std::env::set_var("TALPID_FORCE_USERSPACE_WIREGUARD", "1");
     let wireguard_waiting_entry = create_wireguard_tunnel(
-        route_manager.clone(),
+        &route_manager,
         nym_vpn.tun_provider.clone(),
         entry_wireguard_config,
     )
     .await?;
     let wireguard_waiting_exit = create_wireguard_tunnel(
-        route_manager.clone(),
+        &route_manager,
         nym_vpn.tun_provider.clone(),
         exit_wireguard_config,
     )
@@ -227,7 +238,7 @@ async fn setup_mix_tunnel(
             task_manager.wait_for_shutdown().await;
             info!("Interrupt handled");
             // Ignore if these fail since we're interesting in the original error anyway
-            handle_interrupt(Arc::new(RwLock::new(route_manager)), None)
+            handle_interrupt(route_manager, None)
                 .await
                 .tap_err(|err| {
                     warn!("Failed to handle interrupt: {err}");
