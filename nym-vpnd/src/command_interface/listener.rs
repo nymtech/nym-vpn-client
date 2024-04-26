@@ -19,7 +19,7 @@ use nym_vpn_proto::{
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::{error, info};
 
-use super::connection_handler::CommandInterfaceConnectionHandler;
+use super::{connection_handler::CommandInterfaceConnectionHandler, error::CommandInterfaceError};
 use crate::service::{ConnectOptions, VpnServiceCommand, VpnServiceStatusResult};
 
 enum ListenerType {
@@ -171,7 +171,10 @@ impl NymVpnd for CommandInterface {
             None
         };
 
-        let options = ConnectOptions::from(connect_request);
+        let options = ConnectOptions::try_from(connect_request).map_err(|err| {
+            error!("Failed to parse connect options: {:?}", err);
+            tonic::Status::invalid_argument("Invalid connect options")
+        })?;
 
         let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_connect(entry, exit, options)
@@ -256,14 +259,30 @@ impl From<VpnServiceStatusResult> for ConnectionStatus {
     }
 }
 
-impl From<ConnectRequest> for ConnectOptions {
-    fn from(request: ConnectRequest) -> Self {
-        ConnectOptions {
+impl TryFrom<ConnectRequest> for ConnectOptions {
+    type Error = CommandInterfaceError;
+
+    fn try_from(request: ConnectRequest) -> Result<Self, Self::Error> {
+        // Parse the inner DNS IP address if it exists, but make sure to keep the outer Option.
+        let dns = request
+            .dns
+            .map(|dns| {
+                dns.ip
+                    .parse()
+                    .map_err(|err| CommandInterfaceError::FailedToParseDnsIp {
+                        ip: dns.ip.clone(),
+                        source: err,
+                    })
+            })
+            .transpose()?;
+
+        Ok(ConnectOptions {
+            dns,
             disable_routing: request.disable_routing,
             enable_two_hop: request.enable_two_hop,
             enable_poisson_rate: request.enable_poisson_rate,
             disable_background_cover_traffic: request.disable_background_cover_traffic,
             enable_credentials_mode: request.enable_credentials_mode,
-        }
+        })
     }
 }
