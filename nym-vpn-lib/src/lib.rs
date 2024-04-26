@@ -68,6 +68,7 @@ async fn init_wireguard_config(
     entry_gateway_identity: &str,
     wireguard_private_key: &str,
     wireguard_ip: IpAddr,
+    mtu: u16,
 ) -> Result<WireguardConfig> {
     // First we need to register with the gateway to setup keys and IP assignment
     info!("Registering with wireguard gateway");
@@ -79,7 +80,7 @@ async fn init_wireguard_config(
         .await?;
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
-    let wireguard_config = WireguardConfig::init(wireguard_private_key, &wg_gateway_data)?;
+    let wireguard_config = WireguardConfig::init(wireguard_private_key, &wg_gateway_data, mtu)?;
     Ok(wireguard_config)
 }
 

@@ -34,7 +34,7 @@ impl WireguardConfig {
         )?))
     }
 
-    pub fn init(private_key: &str, gateway_data: &GatewayData) -> Result<Self> {
+    pub fn init(private_key: &str, gateway_data: &GatewayData, mtu: u16) -> Result<Self> {
         let tunnel = TunnelConfig {
             private_key: PrivateKey::from(
                 *PublicKey::from_base64(private_key)
@@ -59,7 +59,8 @@ impl WireguardConfig {
             fwmark: Some(TUNNEL_FWMARK),
         };
         let generic_options = GenericTunnelOptions { enable_ipv6: false };
-        let wg_options = TunnelOptions::default();
+        let mut wg_options = TunnelOptions::default();
+        wg_options.mtu = Some(mtu);
         let config = Self::new(
             tunnel,
             peers,
