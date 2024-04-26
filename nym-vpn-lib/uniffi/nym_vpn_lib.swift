@@ -1428,6 +1428,27 @@ fileprivate struct FfiConverterOptionTypePresharedKey: FfiConverterRustBuffer {
     }
 }
 
+fileprivate struct FfiConverterOptionTypeUrl: FfiConverterRustBuffer {
+    typealias SwiftType = Url?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeUrl.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeUrl.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
 fileprivate struct FfiConverterSequenceTypeLocation: FfiConverterRustBuffer {
     typealias SwiftType = [Location]
 
@@ -1904,20 +1925,22 @@ public func checkCredential(credential: String)throws  {try rustCallWithError(Ff
     )
 }
 }
-public func getGatewayCountries(apiUrl: Url, explorerUrl: Url, exitOnly: Bool)throws  -> [Location] {
+public func getGatewayCountries(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?, exitOnly: Bool)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
         FfiConverterTypeUrl.lower(apiUrl),
         FfiConverterTypeUrl.lower(explorerUrl),
+        FfiConverterOptionTypeUrl.lower(harbourMasterUrl),
         FfiConverterBool.lower(exitOnly),$0
     )
 })
 }
-public func getLowLatencyEntryCountry(apiUrl: Url, explorerUrl: Url)throws  -> Location {
+public func getLowLatencyEntryCountry(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?)throws  -> Location {
     return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
         FfiConverterTypeUrl.lower(apiUrl),
-        FfiConverterTypeUrl.lower(explorerUrl),$0
+        FfiConverterTypeUrl.lower(explorerUrl),
+        FfiConverterOptionTypeUrl.lower(harbourMasterUrl),$0
     )
 })
 }
@@ -1958,10 +1981,10 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_checkcredential() != 37960) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 21142) {
+    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 4475) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 25285) {
+    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 20907) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 47691) {
