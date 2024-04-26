@@ -14,11 +14,11 @@ pub static GATEWAY_CLIENT: Lazy<Option<GatewayClient>> = Lazy::new(|| {
         .ok()
 });
 
-#[instrument(skip_all)]
+#[instrument]
 pub async fn get_low_latency_entry_country() -> Result<Country> {
     let client = GATEWAY_CLIENT
         .as_ref()
-        .ok_or(anyhow!("no location found"))?;
+        .ok_or(anyhow!("gateway client error"))?;
     let described = client
         .lookup_low_latency_entry_gateway()
         .await
@@ -36,11 +36,11 @@ pub async fn get_low_latency_entry_country() -> Result<Country> {
     Ok(country)
 }
 
-#[instrument(skip_all)]
+#[instrument]
 pub async fn get_gateway_countries(exit_only: bool) -> Result<Vec<Country>> {
     let client = GATEWAY_CLIENT
         .as_ref()
-        .ok_or(anyhow!("no location found"))?;
+        .ok_or(anyhow!("gateway client error"))?;
     let locations = match exit_only {
         true => client.lookup_all_exit_countries().await?,
         false => client.lookup_all_countries().await?,
