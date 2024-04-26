@@ -9,14 +9,11 @@ pub fn show_main_window(window: tauri::Window) -> Result<(), CmdError> {
     debug!("show_window");
     let main_window = window.get_window("main").ok_or(CmdError::new(
         CmdErrorSource::InternalError,
-        "Failed to get the app window".to_string(),
+        "Failed to get the app window",
     ))?;
     let is_visible = main_window.is_visible().map_err(|e| {
         error!("Failed to get `main` window visibility: {}", e);
-        CmdError::new(
-            CmdErrorSource::InternalError,
-            "Failed to show app window".to_string(),
-        )
+        CmdError::new(CmdErrorSource::InternalError, "Failed to show app window")
     })?;
 
     if is_visible {
@@ -27,10 +24,7 @@ pub fn show_main_window(window: tauri::Window) -> Result<(), CmdError> {
     info!("showing `main` window");
     main_window.show().map_err(|e| {
         error!("Failed to show `main` window: {}", e);
-        CmdError::new(
-            CmdErrorSource::InternalError,
-            "Failed to show app window".to_string(),
-        )
+        CmdError::new(CmdErrorSource::InternalError, "Failed to show app window")
     })?;
     Ok(())
 }
