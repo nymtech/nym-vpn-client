@@ -73,7 +73,7 @@ val Typography =
 			fontWeight = FontWeight(700),
 			textAlign = TextAlign.Center,
 			letterSpacing = 0.1.sp,
-		)
+		),
 	)
 
 object CustomTypography {

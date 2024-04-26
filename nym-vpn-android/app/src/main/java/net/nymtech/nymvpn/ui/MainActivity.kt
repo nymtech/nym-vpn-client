@@ -32,7 +32,6 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.screens.analytics.AnalyticsScreen
@@ -49,8 +48,6 @@ import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.util.StringValue
-import timber.log.Timber
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {

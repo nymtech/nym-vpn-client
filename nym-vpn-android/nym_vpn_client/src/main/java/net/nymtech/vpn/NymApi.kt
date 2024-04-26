@@ -22,7 +22,7 @@ class NymApi(private val environment: Environment) {
 				nym_vpn_lib.getLowLatencyEntryCountry(
 					environment.apiUrl,
 					environment.explorerUrl,
-					environment.harbourMasterUrl
+					environment.harbourMasterUrl,
 				).twoLetterIsoCountryCode,
 				isLowLatency = true,
 			)
