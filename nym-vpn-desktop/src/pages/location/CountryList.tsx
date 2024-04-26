@@ -7,14 +7,24 @@ interface CountryListProps {
   countries: UiCountry[];
   onSelect: (country: UiCountry) => void;
   isSelected: (country: UiCountry) => boolean;
+  loading: boolean;
 }
 
 export default function CountryList({
   countries,
   onSelect,
   isSelected,
+  loading,
 }: CountryListProps) {
   const { t } = useTranslation('nodeLocation');
+
+  if (loading && countries.length === 0) {
+    return (
+      <p className="flex justify-center dark:text-mercury-pinkish">
+        {t('list-loading')}
+      </p>
+    );
+  }
 
   return (
     <ul className="flex flex-col w-full items-stretch gap-1">

@@ -29,6 +29,8 @@ function NodeLocation({ node }: { node: NodeHop }) {
     entryCountryList,
     exitCountryList,
     fastestNodeLocation,
+    entryCountriesLoading,
+    exitCountriesLoading,
   } = useMainState();
 
   // the countries list used for UI rendering, Fastest country is at first position
@@ -146,6 +148,9 @@ function NodeLocation({ node }: { node: NodeHop }) {
         <span className="mt-2" />
         <CountryList
           countries={filteredCountries}
+          loading={
+            node === 'entry' ? entryCountriesLoading : exitCountriesLoading
+          }
           onSelect={handleCountrySelection}
           isSelected={(country: UiCountry) => {
             return isCountrySelected(

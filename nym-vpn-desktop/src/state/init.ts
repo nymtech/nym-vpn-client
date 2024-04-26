@@ -236,6 +236,10 @@ export async function initSecondBatch(dispatch: StateDispatch) {
           countries,
         },
       });
+      dispatch({
+        type: 'set-countries-loading',
+        payload: { hop: 'entry', loading: false },
+      });
     },
   };
 
@@ -249,6 +253,10 @@ export async function initSecondBatch(dispatch: StateDispatch) {
           hop: 'exit',
           countries,
         },
+      });
+      dispatch({
+        type: 'set-countries-loading',
+        payload: { hop: 'exit', loading: false },
       });
     },
   };
