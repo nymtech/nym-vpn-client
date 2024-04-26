@@ -36,20 +36,24 @@ export function mockTauriIPC() {
       return new Promise<Country[]>((resolve) =>
         resolve([
           {
-            name: 'United States',
-            code: 'US',
-          },
-          {
             name: 'France',
             code: 'FR',
+          },
+          {
+            name: 'Germany',
+            code: 'DE',
           },
           {
             name: 'Switzerland',
             code: 'CH',
           },
           {
-            name: 'Germany',
-            code: 'DE',
+            name: 'United States',
+            code: 'US',
+          },
+          {
+            name: 'Unknown country with a very long nammmmmmmmeeeeeeeeeeeeeeee',
+            code: 'UN',
           },
         ]),
       );
