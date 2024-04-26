@@ -55,9 +55,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-	@Inject
-	lateinit var countryCacheService: CountryCacheService
-
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
@@ -72,9 +69,7 @@ class MainActivity : ComponentActivity() {
 			val density = LocalDensity.current
 
 			LaunchedEffect(Unit) {
-				Timber.d("UPDATING...")
 				appViewModel.readLogCatOutput()
-				countryCacheService.updateLowLatencyEntryCountryCache()
 			}
 
 			fun showSnackBarMessage(message: StringValue) {

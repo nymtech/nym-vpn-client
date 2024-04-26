@@ -16,7 +16,7 @@ fun StatusInfoLabel(message: String, textColor: Color) {
 	Text(
 		message,
 		color = textColor,
-		style = MaterialTheme.typography.labelMedium,
+		style = MaterialTheme.typography.labelLarge,
 		modifier =
 		Modifier
 			.padding(horizontal = 24.dp.scaledWidth())

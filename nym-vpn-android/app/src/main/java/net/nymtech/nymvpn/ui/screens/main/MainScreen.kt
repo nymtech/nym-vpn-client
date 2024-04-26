@@ -52,6 +52,7 @@ import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
@@ -248,7 +249,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 							content = {
 								Text(
 									stringResource(id = R.string.connect),
-									style = MaterialTheme.typography.labelLarge,
+									style = CustomTypography.labelHuge,
 								)
 							},
 						)
@@ -267,7 +268,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 							content = {
 								Text(
 									stringResource(id = R.string.disconnect),
-									style = MaterialTheme.typography.labelLarge,
+									style = CustomTypography.labelHuge,
 								)
 							},
 							color = CustomColors.disconnect,

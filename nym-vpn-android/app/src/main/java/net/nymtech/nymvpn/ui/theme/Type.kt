@@ -61,17 +61,26 @@ val Typography =
 			textAlign = TextAlign.Center,
 		),
 		labelMedium = TextStyle(
+			fontSize = 12.sp.scaled(),
+			lineHeight = 16.sp.scaled(),
+			fontWeight = FontWeight(500),
+			textAlign = TextAlign.Center,
+			letterSpacing = 0.5.sp,
+		),
+		labelLarge = TextStyle(
 			fontSize = 14.sp.scaled(),
 			lineHeight = 20.sp.scaled(),
 			fontWeight = FontWeight(700),
 			textAlign = TextAlign.Center,
-			letterSpacing = 0.1.sp.scaled(),
-		),
-		labelLarge =
-		TextStyle(
-			fontSize = 18.sp.scaled(),
-			lineHeight = 24.sp.scaled(),
-			fontWeight = FontWeight(700),
-			textAlign = TextAlign.Center,
-		),
+			letterSpacing = 0.1.sp,
+		)
 	)
+
+object CustomTypography {
+	val labelHuge = TextStyle(
+		fontSize = 18.sp,
+		lineHeight = 24.sp,
+		fontWeight = FontWeight(700),
+		textAlign = TextAlign.Center,
+	)
+}

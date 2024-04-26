@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import io.sentry.android.core.SentryAndroid
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.data.GatewayRepository
@@ -50,8 +51,14 @@ class SplashActivity : ComponentActivity() {
 
 				val isAnalyticsShown = settingsRepository.isAnalyticsShown()
 
-				countryCacheService.updateEntryCountriesCache()
-				countryCacheService.updateExitCountriesCache()
+				launch(Dispatchers.IO) {
+					countryCacheService.updateEntryCountriesCache()
+					countryCacheService.updateExitCountriesCache()
+				}
+
+				launch(Dispatchers.IO) {
+					countryCacheService.updateLowLatencyEntryCountryCache()
+				}
 
 				val intent = Intent(this@SplashActivity, MainActivity::class.java).apply {
 					putExtra(IS_ANALYTICS_SHOWN_INTENT_KEY, isAnalyticsShown)

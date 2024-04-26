@@ -37,6 +37,7 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
@@ -114,7 +115,7 @@ fun AccountScreen(appViewModel: AppViewModel, viewModel: AccountViewModel = hilt
 							content = {
 								Text(
 									stringResource(id = R.string.top_up),
-									style = MaterialTheme.typography.labelLarge,
+									style = CustomTypography.labelHuge,
 								)
 							},
 						)

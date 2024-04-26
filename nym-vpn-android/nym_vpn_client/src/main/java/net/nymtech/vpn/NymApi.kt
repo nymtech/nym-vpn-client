@@ -9,7 +9,7 @@ import nym_vpn_lib.getGatewayCountries
 class NymApi(private val environment: Environment) {
 	suspend fun gateways(exitOnly: Boolean): Set<Country> {
 		return withContext(Dispatchers.IO) {
-			getGatewayCountries(environment.apiUrl, environment.explorerUrl, exitOnly).map {
+			getGatewayCountries(environment.apiUrl, environment.explorerUrl, environment.harbourMasterUrl, exitOnly).map {
 				Country(isoCode = it.twoLetterIsoCountryCode)
 			}.toSet()
 		}
@@ -22,6 +22,7 @@ class NymApi(private val environment: Environment) {
 				nym_vpn_lib.getLowLatencyEntryCountry(
 					environment.apiUrl,
 					environment.explorerUrl,
+					environment.harbourMasterUrl
 				).twoLetterIsoCountryCode,
 				isLowLatency = true,
 			)

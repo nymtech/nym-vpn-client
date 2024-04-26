@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
@@ -38,7 +39,7 @@ fun PillLabel(text: String, backgroundColor: Color, textColor: Color, trailing: 
 				text,
 				textAlign = TextAlign.Center,
 				color = textColor,
-				style = MaterialTheme.typography.labelLarge,
+				style = CustomTypography.labelHuge,
 			)
 			trailing?.let {
 				trailing()

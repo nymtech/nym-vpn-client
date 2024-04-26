@@ -36,6 +36,7 @@ import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.Event
 import net.nymtech.nymvpn.util.Result
@@ -166,7 +167,7 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
 					content = {
 						Text(
 							stringResource(id = R.string.add_credential),
-							style = MaterialTheme.typography.labelLarge,
+							style = CustomTypography.labelHuge,
 						)
 					},
 					color = MaterialTheme.colorScheme.primary,

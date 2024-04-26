@@ -37,6 +37,7 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 import net.nymtech.vpn.model.VpnState
@@ -68,7 +69,7 @@ fun SettingsScreen(
 			content = {
 				Text(
 					stringResource(id = R.string.add_cred_to_connect),
-					style = MaterialTheme.typography.labelLarge,
+					style = CustomTypography.labelHuge,
 				)
 			},
 			color = MaterialTheme.colorScheme.primary,

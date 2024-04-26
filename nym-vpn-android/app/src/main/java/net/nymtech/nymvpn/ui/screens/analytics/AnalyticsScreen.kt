@@ -35,6 +35,7 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
@@ -189,14 +190,12 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 					popUpTo(0)
 				}
 			}, content = {
-				Text(stringResource(id = R.string.cont), style = MaterialTheme.typography.labelLarge.copy(color = MaterialTheme.colorScheme.onPrimary))
+				Text(stringResource(id = R.string.cont), style = CustomTypography.labelHuge.copy(color = MaterialTheme.colorScheme.onPrimary))
 			})
 			ClickableText(
 				text = termsMessage,
 				style = MaterialTheme.typography.labelMedium.copy(
 					color = MaterialTheme.colorScheme.outline,
-					fontWeight = FontWeight(500),
-					letterSpacing = 0.5.sp,
 					textAlign = TextAlign.Center,
 				),
 				modifier = Modifier.padding(bottom = 24.dp.scaledHeight()),
