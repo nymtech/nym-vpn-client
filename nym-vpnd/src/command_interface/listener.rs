@@ -88,75 +88,19 @@ impl NymVpnd for CommandInterface {
 
         let connect_request = request.into_inner();
 
-        let entry = match connect_request
+        let entry = connect_request
             .entry
             .clone()
             .and_then(|e| e.entry_node_enum)
-        {
-            Some(nym_vpn_proto::entry_node::EntryNodeEnum::Location(location)) => {
-                info!(
-                    "Connecting to entry node in country: {:?}",
-                    location.two_letter_iso_country_code
-                );
-                Some(EntryPoint::Location {
-                    location: location.two_letter_iso_country_code.to_string(),
-                })
-            }
-            Some(nym_vpn_proto::entry_node::EntryNodeEnum::Gateway(gateway)) => {
-                info!("Connecting to entry node with gateway id: {:?}", gateway.id);
-                let identity = NodeIdentity::from_base58_string(&gateway.id).map_err(|err| {
-                    error!("Failed to parse gateway id: {:?}", err);
-                    tonic::Status::invalid_argument("Invalid gateway id")
-                })?;
-                Some(EntryPoint::Gateway { identity })
-            }
-            Some(nym_vpn_proto::entry_node::EntryNodeEnum::RandomLowLatency(_)) => {
-                info!("Connecting to low latency entry node");
-                Some(EntryPoint::RandomLowLatency)
-            }
-            Some(nym_vpn_proto::entry_node::EntryNodeEnum::Random(_)) => {
-                info!("Connecting to random entry node");
-                Some(EntryPoint::Random)
-            }
-            None => None,
-        };
+            .map(parse_entry_point)
+            .transpose()?;
 
-        let exit = match connect_request.exit.clone().and_then(|e| e.exit_node_enum) {
-            Some(nym_vpn_proto::exit_node::ExitNodeEnum::Address(address)) => {
-                info!(
-                    "Connecting to exit node at address: {:?}",
-                    address.nym_address
-                );
-                let address = Recipient::try_from_base58_string(address.nym_address.clone())
-                    .map_err(|err| {
-                        error!("Failed to parse exit node address: {:?}", err);
-                        tonic::Status::invalid_argument("Invalid exit node address")
-                    })?;
-                Some(ExitPoint::Address { address })
-            }
-            Some(nym_vpn_proto::exit_node::ExitNodeEnum::Gateway(gateway)) => {
-                info!("Connecting to exit node with gateway id: {:?}", gateway.id);
-                let identity = NodeIdentity::from_base58_string(&gateway.id).map_err(|err| {
-                    error!("Failed to parse gateway id: {:?}", err);
-                    tonic::Status::invalid_argument("Invalid gateway id")
-                })?;
-                Some(ExitPoint::Gateway { identity })
-            }
-            Some(nym_vpn_proto::exit_node::ExitNodeEnum::Location(location)) => {
-                info!(
-                    "Connecting to exit node in country: {:?}",
-                    location.two_letter_iso_country_code
-                );
-                Some(ExitPoint::Location {
-                    location: location.two_letter_iso_country_code.to_string(),
-                })
-            }
-            Some(nym_vpn_proto::exit_node::ExitNodeEnum::Random(_)) => {
-                info!("Connecting to low latency exit node");
-                Some(ExitPoint::Random)
-            }
-            None => None,
-        };
+        let exit = connect_request
+            .exit
+            .clone()
+            .and_then(|e| e.exit_node_enum)
+            .map(parse_exit_point)
+            .transpose()?;
 
         let options = ConnectOptions::try_from(connect_request).map_err(|err| {
             error!("Failed to parse connect options: {:?}", err);
@@ -232,6 +176,78 @@ impl NymVpnd for CommandInterface {
             success: status.is_success(),
         }))
     }
+}
+
+fn parse_entry_point(
+    entry: nym_vpn_proto::entry_node::EntryNodeEnum,
+) -> Result<EntryPoint, tonic::Status> {
+    Ok(match entry {
+        nym_vpn_proto::entry_node::EntryNodeEnum::Location(location) => {
+            info!(
+                "Connecting to entry node in country: {:?}",
+                location.two_letter_iso_country_code
+            );
+            EntryPoint::Location {
+                location: location.two_letter_iso_country_code.to_string(),
+            }
+        }
+        nym_vpn_proto::entry_node::EntryNodeEnum::Gateway(gateway) => {
+            info!("Connecting to entry node with gateway id: {:?}", gateway.id);
+            let identity = NodeIdentity::from_base58_string(&gateway.id).map_err(|err| {
+                error!("Failed to parse gateway id: {:?}", err);
+                tonic::Status::invalid_argument("Invalid gateway id")
+            })?;
+            EntryPoint::Gateway { identity }
+        }
+        nym_vpn_proto::entry_node::EntryNodeEnum::RandomLowLatency(_) => {
+            info!("Connecting to low latency entry node");
+            EntryPoint::RandomLowLatency
+        }
+        nym_vpn_proto::entry_node::EntryNodeEnum::Random(_) => {
+            info!("Connecting to random entry node");
+            EntryPoint::Random
+        }
+    })
+}
+
+fn parse_exit_point(
+    exit: nym_vpn_proto::exit_node::ExitNodeEnum,
+) -> Result<ExitPoint, tonic::Status> {
+    Ok(match exit {
+        nym_vpn_proto::exit_node::ExitNodeEnum::Address(address) => {
+            info!(
+                "Connecting to exit node at address: {:?}",
+                address.nym_address
+            );
+            let address =
+                Recipient::try_from_base58_string(address.nym_address.clone()).map_err(|err| {
+                    error!("Failed to parse exit node address: {:?}", err);
+                    tonic::Status::invalid_argument("Invalid exit node address")
+                })?;
+            ExitPoint::Address { address }
+        }
+        nym_vpn_proto::exit_node::ExitNodeEnum::Gateway(gateway) => {
+            info!("Connecting to exit node with gateway id: {:?}", gateway.id);
+            let identity = NodeIdentity::from_base58_string(&gateway.id).map_err(|err| {
+                error!("Failed to parse gateway id: {:?}", err);
+                tonic::Status::invalid_argument("Invalid gateway id")
+            })?;
+            ExitPoint::Gateway { identity }
+        }
+        nym_vpn_proto::exit_node::ExitNodeEnum::Location(location) => {
+            info!(
+                "Connecting to exit node in country: {:?}",
+                location.two_letter_iso_country_code
+            );
+            ExitPoint::Location {
+                location: location.two_letter_iso_country_code.to_string(),
+            }
+        }
+        nym_vpn_proto::exit_node::ExitNodeEnum::Random(_) => {
+            info!("Connecting to low latency exit node");
+            ExitPoint::Random
+        }
+    })
 }
 
 impl From<VpnServiceStatusResult> for ConnectionStatus {
