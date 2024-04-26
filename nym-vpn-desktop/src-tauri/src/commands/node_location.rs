@@ -1,7 +1,5 @@
 use nym_vpn_lib::gateway_directory::{Config, GatewayClient};
-use reqwest::Url;
 use serde::{Deserialize, Serialize};
-use std::env;
 use tauri::State;
 use tracing::{debug, instrument};
 use ts_rs::TS;
@@ -12,9 +10,6 @@ use crate::{
     error::{CmdError, CmdErrorSource},
     states::{app::NodeLocation, SharedAppState},
 };
-
-const NYM_API_SANDBOX_URL: &str = "https://sandbox-nym-api1.nymtech.net/api";
-const NYM_EXPLORER_SANDBOX_URL: &str = "https://sandbox-explorer.nymtech.net/api";
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
 pub enum NodeType {
@@ -94,24 +89,9 @@ pub async fn get_countries(node_type: NodeType) -> Result<Vec<Country>, CmdError
     }
 }
 
-fn get_api_url() -> Result<Url, CmdError> {
-    Url::parse(&env::var("NYM_API").unwrap_or_else(|_| NYM_API_SANDBOX_URL.to_string())).map_err(
-        |_| CmdError {
-            source: CmdErrorSource::InternalError,
-            message: "Failed to parse api_url".to_string(),
-        },
-    )
-}
-
 #[instrument(skip_all)]
 async fn get_low_latency_entry_country() -> Result<Country, CmdError> {
-    let api_url = get_api_url()?;
-    let explorer_url = get_explorer_url()?;
-    let config = Config {
-        api_url,
-        explorer_url: Some(explorer_url),
-        harbour_master_url: None,
-    };
+    let config = Config::new_from_env();
     let gateway_client = GatewayClient::new(config)?;
     let described = gateway_client.lookup_low_latency_entry_gateway().await?;
     let country = described
@@ -128,24 +108,9 @@ async fn get_low_latency_entry_country() -> Result<Country, CmdError> {
     Ok(country)
 }
 
-fn get_explorer_url() -> Result<Url, CmdError> {
-    Url::parse(&env::var("EXPLORER_API").unwrap_or_else(|_| NYM_EXPLORER_SANDBOX_URL.to_string()))
-        .map_err(|_| CmdError {
-            source: CmdErrorSource::InternalError,
-            message: "Failed to parse explorer_url".to_string(),
-        })
-}
-
 #[instrument(skip_all)]
 async fn get_gateway_countries(exit_only: bool) -> Result<Vec<Country>, CmdError> {
-    let api_url = get_api_url()?;
-    let explorer_url = get_explorer_url()?;
-
-    let config = Config {
-        api_url,
-        explorer_url: Some(explorer_url),
-        harbour_master_url: None,
-    };
+    let config = Config::new_from_env();
     let gateway_client = GatewayClient::new(config)?;
     let locations = if !exit_only {
         gateway_client.lookup_all_countries().await?
