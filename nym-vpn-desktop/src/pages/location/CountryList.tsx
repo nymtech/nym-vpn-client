@@ -36,30 +36,33 @@ export default function CountryList({
               onClick={() => onSelect(uiCountry)}
             >
               {!uiCountry.isFastest && (
-                <div className="flex flex-row items-center m-1 gap-3 p-1 cursor-pointer">
+                <div className="flex flex-row items-center m-1 gap-3 p-1 cursor-pointer overflow-hidden">
                   <FlagIcon
                     code={uiCountry.country.code.toLowerCase() as countryCode}
                     alt={uiCountry.country.code}
                     className="h-6"
                   />
-                  <div className="flex items-center dark:text-mercury-pinkish text-base cursor-pointer">
+                  <div className="dark:text-mercury-pinkish text-base cursor-pointer truncate">
                     {uiCountry.country.name}
                   </div>
                 </div>
               )}
               {uiCountry.isFastest && (
-                <div className="flex flex-row items-center m-1 gap-3 p-1 cursor-pointer">
+                <div className="flex flex-row items-center m-1 gap-3 p-1 cursor-pointer overflow-hidden">
                   <div className="w-7 max-h-6 flex justify-center items-center">
                     <MsIcon icon="bolt" />
                   </div>
-                  <div className="cursor-pointer text-base">{`${t('fastest', {
-                    ns: 'common',
-                  })} (${uiCountry.country.name})`}</div>
+                  <div className="cursor-pointer text-base truncate">{`${t(
+                    'fastest',
+                    {
+                      ns: 'common',
+                    },
+                  )} (${uiCountry.country.name})`}</div>
                 </div>
               )}
               <div
                 className={clsx([
-                  'pr-4 flex items-center font-medium text-xs cursor-pointer',
+                  'pr-4 ml-2 flex items-center font-medium text-xs cursor-pointer',
                   'text-cement-feet dark:text-mercury-mist',
                 ])}
               >

@@ -114,7 +114,6 @@ function NodeLocation({ node }: { node: NodeHop }) {
   };
 
   const handleCountrySelection = async (country: UiCountry) => {
-    console.log(country);
     const location = country.isFastest ? 'Fastest' : country.country;
 
     try {
