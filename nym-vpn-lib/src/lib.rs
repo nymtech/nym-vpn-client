@@ -20,7 +20,6 @@ use std::sync::{Arc, Mutex, RwLock};
 use std::time::Duration;
 use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
-use tap::TapFallible;
 use tokio::time::timeout;
 use tunnel_setup::{setup_tunnel, AllTunnelsSetup, TunnelSetup};
 use util::wait_for_interrupt_and_signal;
@@ -460,10 +459,10 @@ impl SpecificVpn {
                 wait_for_interrupt(specific_setup.task_manager).await;
                 handle_interrupt(Arc::new(RwLock::new(specific_setup.route_manager)), None)
                     .await
-                    .tap_err(|err| {
+                    .inspect_err(|err| {
                         error!("Failed to handle interrupt: {err}");
                     })?;
-                specific_setup.dns_monitor.reset().tap_err(|err| {
+                specific_setup.dns_monitor.reset().inspect_err(|err| {
                     error!("Failed to reset dns monitor: {err}");
                 })?;
             }
@@ -480,11 +479,11 @@ impl SpecificVpn {
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
                 .await
-                .tap_err(|err| {
+                .inspect_err(|err| {
                     error!("Failed to handle interrupt: {err}");
                 })?;
 
-                dns_monitor.reset().tap_err(|err| {
+                dns_monitor.reset().inspect_err(|err| {
                     error!("Failed to reset dns monitor: {err}");
                 })?;
                 firewall.reset_policy().map_err(|err| {
@@ -530,6 +529,9 @@ impl SpecificVpn {
                         error!("Failed to handle interrupt: {err}");
                         Box::new(NymVpnExitError::Generic { reason: err })
                     })?;
+                specific_setup.dns_monitor.reset().inspect_err(|err| {
+                    error!("Failed to reset dns monitor: {err}");
+                })?;
                 result
             }
             AllTunnelsSetup::Wg {
