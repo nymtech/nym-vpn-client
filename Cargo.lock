@@ -4605,7 +4605,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-cli"
-version = "0.1.2-dev"
+version = "0.1.2-rc.0"
 dependencies = [
  "anyhow",
  "bs58 0.5.1",
@@ -4700,7 +4700,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnc"
-version = "0.1.0"
+version = "0.1.1-rc.0"
 dependencies = [
  "anyhow",
  "bs58 0.5.1",
@@ -4717,7 +4717,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd"
-version = "0.1.0"
+version = "0.1.1-rc.0"
 dependencies = [
  "anyhow",
  "clap",
