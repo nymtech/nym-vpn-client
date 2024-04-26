@@ -18,20 +18,17 @@ package nym_vpn_lib;
 // helpers directly inline like we're doing here.
 
 import com.sun.jna.Library
-import com.sun.jna.IntegerType
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
-import com.sun.jna.Callback
 import com.sun.jna.ptr.*
+import java.net.URI
+import java.net.URL
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.CharBuffer
 import java.nio.charset.CodingErrorAction
-import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ConcurrentHashMap
-import java.net.URI
-import java.net.URL
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
 // A rust-owned buffer is represented by its capacity, its current length, and a
@@ -716,28 +713,28 @@ internal interface UniffiLib : Library {
                 uniffiCheckApiChecksums(lib)
                 }
         }
-        
+
     }
 
-    fun uniffi_nym_vpn_lib_fn_func_checkcredential(`credential`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_checkcredential(`credential`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus,
     ): Unit
-    fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,`exitOnly`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,`exitOnly`: Byte,uniffi_out_err: UniffiRustCallStatus,
     ): RustBuffer.ByValue
-    fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus,
     ): RustBuffer.ByValue
-    fun uniffi_nym_vpn_lib_fn_func_importcredential(`credential`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_importcredential(`credential`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus,
     ): Unit
-    fun uniffi_nym_vpn_lib_fn_func_runvpn(`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_runvpn(`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus,
     ): Unit
-    fun uniffi_nym_vpn_lib_fn_func_stopvpn(uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_stopvpn(uniffi_out_err: UniffiRustCallStatus,
     ): Unit
-    fun ffi_nym_vpn_lib_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rustbuffer_alloc(`size`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): RustBuffer.ByValue
-    fun ffi_nym_vpn_lib_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,uniffi_out_err: UniffiRustCallStatus,
     ): RustBuffer.ByValue
-    fun ffi_nym_vpn_lib_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rustbuffer_free(`buf`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus,
     ): Unit
-    fun ffi_nym_vpn_lib_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): RustBuffer.ByValue
     fun ffi_nym_vpn_lib_rust_future_poll_u8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
@@ -745,7 +742,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_free_u8(`handle`: Long,
     ): Unit
-    fun ffi_nym_vpn_lib_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rust_future_complete_u8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): Byte
     fun ffi_nym_vpn_lib_rust_future_poll_i8(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
@@ -753,7 +750,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_free_i8(`handle`: Long,
     ): Unit
-    fun ffi_nym_vpn_lib_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rust_future_complete_i8(`handle`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): Byte
     fun ffi_nym_vpn_lib_rust_future_poll_u16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
@@ -761,7 +758,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_free_u16(`handle`: Long,
     ): Unit
-    fun ffi_nym_vpn_lib_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rust_future_complete_u16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): Short
     fun ffi_nym_vpn_lib_rust_future_poll_i16(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
@@ -769,7 +766,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_free_i16(`handle`: Long,
     ): Unit
-    fun ffi_nym_vpn_lib_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rust_future_complete_i16(`handle`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): Short
     fun ffi_nym_vpn_lib_rust_future_poll_u32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
@@ -777,7 +774,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_free_u32(`handle`: Long,
     ): Unit
-    fun ffi_nym_vpn_lib_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rust_future_complete_u32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): Int
     fun ffi_nym_vpn_lib_rust_future_poll_i32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
@@ -785,7 +782,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_free_i32(`handle`: Long,
     ): Unit
-    fun ffi_nym_vpn_lib_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rust_future_complete_i32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): Int
     fun ffi_nym_vpn_lib_rust_future_poll_u64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
@@ -793,7 +790,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_free_u64(`handle`: Long,
     ): Unit
-    fun ffi_nym_vpn_lib_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rust_future_complete_u64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): Long
     fun ffi_nym_vpn_lib_rust_future_poll_i64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
@@ -801,7 +798,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_free_i64(`handle`: Long,
     ): Unit
-    fun ffi_nym_vpn_lib_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rust_future_complete_i64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): Long
     fun ffi_nym_vpn_lib_rust_future_poll_f32(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
@@ -809,7 +806,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_free_f32(`handle`: Long,
     ): Unit
-    fun ffi_nym_vpn_lib_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rust_future_complete_f32(`handle`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): Float
     fun ffi_nym_vpn_lib_rust_future_poll_f64(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
@@ -817,7 +814,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_free_f64(`handle`: Long,
     ): Unit
-    fun ffi_nym_vpn_lib_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rust_future_complete_f64(`handle`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): Double
     fun ffi_nym_vpn_lib_rust_future_poll_pointer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
@@ -825,7 +822,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_free_pointer(`handle`: Long,
     ): Unit
-    fun ffi_nym_vpn_lib_rust_future_complete_pointer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rust_future_complete_pointer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): Pointer
     fun ffi_nym_vpn_lib_rust_future_poll_rust_buffer(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
@@ -833,7 +830,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_free_rust_buffer(`handle`: Long,
     ): Unit
-    fun ffi_nym_vpn_lib_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rust_future_complete_rust_buffer(`handle`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): RustBuffer.ByValue
     fun ffi_nym_vpn_lib_rust_future_poll_void(`handle`: Long,`callback`: UniffiRustFutureContinuationCallback,`callbackData`: Long,
     ): Unit
@@ -841,7 +838,7 @@ internal interface UniffiLib : Library {
     ): Unit
     fun ffi_nym_vpn_lib_rust_future_free_void(`handle`: Long,
     ): Unit
-    fun ffi_nym_vpn_lib_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus, 
+    fun ffi_nym_vpn_lib_rust_future_complete_void(`handle`: Long,uniffi_out_err: UniffiRustCallStatus,
     ): Unit
     fun uniffi_nym_vpn_lib_checksum_func_checkcredential(
     ): Short
@@ -857,7 +854,7 @@ internal interface UniffiLib : Library {
     ): Short
     fun ffi_nym_vpn_lib_uniffi_contract_version(
     ): Int
-    
+
 }
 
 private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
@@ -1027,13 +1024,13 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 
 
 data class Location (
-    var `twoLetterIsoCountryCode`: kotlin.String, 
-    var `threeLetterIsoCountryCode`: kotlin.String, 
-    var `countryName`: kotlin.String, 
-    var `latitude`: kotlin.Double?, 
+    var `twoLetterIsoCountryCode`: kotlin.String,
+    var `threeLetterIsoCountryCode`: kotlin.String,
+    var `countryName`: kotlin.String,
+    var `latitude`: kotlin.Double?,
     var `longitude`: kotlin.Double?
 ) {
-    
+
     companion object
 }
 
@@ -1068,13 +1065,13 @@ public object FfiConverterTypeLocation: FfiConverterRustBuffer<Location> {
 
 
 data class VpnConfig (
-    var `apiUrl`: Url, 
-    var `explorerUrl`: Url, 
-    var `entryGateway`: EntryPoint, 
-    var `exitRouter`: ExitPoint, 
+    var `apiUrl`: Url,
+    var `explorerUrl`: Url,
+    var `entryGateway`: EntryPoint,
+    var `exitRouter`: ExitPoint,
     var `enableTwoHop`: kotlin.Boolean
 ) {
-    
+
     companion object
 }
 
@@ -1109,25 +1106,25 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
 
 
 sealed class EntryPoint {
-    
+
     data class Gateway(
         val `identity`: NodeIdentity) : EntryPoint() {
         companion object
     }
-    
+
     data class Location(
         val `location`: kotlin.String) : EntryPoint() {
         companion object
     }
-    
-    object RandomLowLatency : EntryPoint()
-    
-    
-    object Random : EntryPoint()
-    
-    
 
-    
+    object RandomLowLatency : EntryPoint()
+
+
+    object Random : EntryPoint()
+
+
+
+
     companion object
 }
 
@@ -1204,24 +1201,24 @@ public object FfiConverterTypeEntryPoint : FfiConverterRustBuffer<EntryPoint>{
 
 
 sealed class ExitPoint {
-    
+
     data class Address(
         val `address`: Recipient) : ExitPoint() {
         companion object
     }
-    
+
     data class Gateway(
         val `identity`: NodeIdentity) : ExitPoint() {
         companion object
     }
-    
+
     data class Location(
         val `location`: kotlin.String) : ExitPoint() {
         companion object
     }
-    
 
-    
+
+
     companion object
 }
 
@@ -1293,88 +1290,88 @@ public object FfiConverterTypeExitPoint : FfiConverterRustBuffer<ExitPoint>{
 
 
 sealed class FfiException: Exception() {
-    
+
     class InvalidValueUniffi(
         ) : FfiException() {
         override val message
             get() = ""
     }
-    
+
     class InvalidCredential(
         ) : FfiException() {
         override val message
             get() = ""
     }
-    
+
     class InvalidPath(
         ) : FfiException() {
         override val message
             get() = ""
     }
-    
+
     class FdNotFound(
         ) : FfiException() {
         override val message
             get() = ""
     }
-    
+
     class VpnNotStopped(
         ) : FfiException() {
         override val message
             get() = ""
     }
-    
+
     class VpnNotStarted(
         ) : FfiException() {
         override val message
             get() = ""
     }
-    
+
     class VpnAlreadyRunning(
         ) : FfiException() {
         override val message
             get() = ""
     }
-    
+
     class VpnNotRunning(
         ) : FfiException() {
         override val message
             get() = ""
     }
-    
+
     class NoContext(
         ) : FfiException() {
         override val message
             get() = ""
     }
-    
+
     class LibException(
-        
+
         val `inner`: kotlin.String
         ) : FfiException() {
         override val message
             get() = "inner=${ `inner` }"
     }
-    
+
     class GatewayDirectoryException(
-        
+
         val `inner`: kotlin.String
         ) : FfiException() {
         override val message
             get() = "inner=${ `inner` }"
     }
-    
+
 
     companion object ErrorHandler : UniffiRustCallStatusErrorHandler<FfiException> {
         override fun lift(error_buf: RustBuffer.ByValue): FfiException = FfiConverterTypeFFIError.lift(error_buf)
     }
 
-    
+
 }
 
 public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
     override fun read(buf: ByteBuffer): FfiException {
-        
+
 
         return when(buf.getInt()) {
             1 -> FfiException.InvalidValueUniffi()
@@ -1643,13 +1640,13 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
     }
 }
     @Throws(FfiException::class) fun `checkCredential`(`credential`: kotlin.String)
-        = 
+        =
     uniffiRustCallWithError(FfiException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_checkcredential(
         FfiConverterString.lower(`credential`),_status)
 }
-    
-    
+
+
 
     @Throws(FfiException::class) fun `getGatewayCountries`(`apiUrl`: Url, `explorerUrl`: Url, `harbourMasterUrl`: Url?, `exitOnly`: kotlin.Boolean): List<Location> {
             return FfiConverterSequenceTypeLocation.lift(
@@ -1659,7 +1656,7 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
 }
     )
     }
-    
+
 
     @Throws(FfiException::class) fun `getLowLatencyEntryCountry`(`apiUrl`: Url, `explorerUrl`: Url, `harbourMasterUrl`: Url?): Location {
             return FfiConverterTypeLocation.lift(
@@ -1669,33 +1666,33 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
 }
     )
     }
-    
+
 
     @Throws(FfiException::class) fun `importCredential`(`credential`: kotlin.String, `path`: kotlin.String)
-        = 
+        =
     uniffiRustCallWithError(FfiException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_importcredential(
         FfiConverterString.lower(`credential`),FfiConverterString.lower(`path`),_status)
 }
-    
-    
+
+
 
     @Throws(FfiException::class) fun `runVpn`(`config`: VpnConfig)
-        = 
+        =
     uniffiRustCallWithError(FfiException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_runvpn(
         FfiConverterTypeVPNConfig.lower(`config`),_status)
 }
-    
-    
+
+
 
     @Throws(FfiException::class) fun `stopVpn`()
-        = 
+        =
     uniffiRustCallWithError(FfiException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_stopvpn(
         _status)
 }
-    
-    
+
+
 
 

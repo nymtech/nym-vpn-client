@@ -27,14 +27,17 @@ import net.nymtech.logcathelper.model.LogMessage
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
 import net.nymtech.nymvpn.util.log.NymLibException
 import net.nymtech.vpn.NymApi
 import net.nymtech.vpn.VpnClient
+import net.nymtech.vpn.model.Country
 import timber.log.Timber
 import java.time.Instant
 import javax.inject.Inject
+import javax.inject.Provider
 
 @HiltViewModel
 class AppViewModel
@@ -42,7 +45,8 @@ class AppViewModel
 constructor(
 	private val settingsRepository: SettingsRepository,
 	private val gatewayRepository: GatewayRepository,
-	private val vpnClient: VpnClient,
+	private val countryCacheService: CountryCacheService,
+	private val vpnClient: Provider<VpnClient>,
 	private val nymApi: NymApi,
 ) : ViewModel() {
 
@@ -52,7 +56,7 @@ constructor(
 	private val logsBuffer = mutableListOf<LogMessage>()
 
 	val uiState =
-		combine(_uiState, settingsRepository.settingsFlow, vpnClient.stateFlow) { state, settings, vpnState ->
+		combine(_uiState, settingsRepository.settingsFlow, vpnClient.get().stateFlow) { state, settings, vpnState ->
 			AppUiState(
 				false,
 				state.snackbarMessage,
@@ -112,7 +116,7 @@ constructor(
 		settingsRepository.setAnalyticsShown(true)
 	}
 
-	fun onEntryLocationSelected(selected: Boolean) = viewModelScope.launch {
+	fun onEntryLocationSelected(selected: Boolean) = viewModelScope.launch(Dispatchers.IO) {
 		settingsRepository.setFirstHopSelection(selected)
 		setFirstHopToLowLatency()
 	}
@@ -131,7 +135,7 @@ constructor(
 		}.onFailure {
 			Timber.e(it)
 		}.onSuccess {
-			settingsRepository.setFirstHopCountry(it)
+			settingsRepository.setFirstHopCountry(it ?: Country(isDefault = true))
 		}
 	}
 

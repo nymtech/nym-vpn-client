@@ -33,8 +33,8 @@ data class Country(
 	}
 
 	companion object {
-		fun from(string: String?): Country {
-			return string?.let { Json.decodeFromString<Country>(string) } ?: Country()
+		fun from(string: String?): Country? {
+			return string?.let { Json.decodeFromString<Country>(string) }
 		}
 
 		fun fromCollectionString(string: String?): Set<Country> {

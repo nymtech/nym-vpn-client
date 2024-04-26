@@ -12,6 +12,7 @@ import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.util.InvalidCredentialException
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Provider
 
 @AndroidEntryPoint
 class BootReceiver : BroadcastReceiver() {
@@ -20,24 +21,24 @@ class BootReceiver : BroadcastReceiver() {
 	lateinit var settingsRepository: SettingsRepository
 
 	@Inject
-	lateinit var secretsRepository: SecretsRepository
+	lateinit var secretsRepository: Provider<SecretsRepository>
 
 	@Inject
-	lateinit var vpnClient: VpnClient
+	lateinit var vpnClient: Provider<VpnClient>
 
 	override fun onReceive(context: Context?, intent: Intent?) = goAsync {
 		if (Intent.ACTION_BOOT_COMPLETED != intent?.action) return@goAsync
 		if (settingsRepository.isAutoStartEnabled()) {
 			val entryCountry = settingsRepository.getFirstHopCountry()
 			val exitCountry = settingsRepository.getLastHopCountry()
-			val credential = secretsRepository.getCredential()
+			val credential = secretsRepository.get().getCredential()
 			val mode = settingsRepository.getVpnMode()
 			if (credential != null) {
 				context?.let { context ->
 					val entry = entryCountry.toEntryPoint()
 					val exit = exitCountry.toExitPoint()
 					try {
-						vpnClient.apply {
+						vpnClient.get().apply {
 							this.mode = mode
 							this.exitPoint = exit
 							this.entryPoint = entry

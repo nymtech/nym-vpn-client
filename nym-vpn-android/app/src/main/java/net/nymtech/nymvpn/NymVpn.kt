@@ -7,6 +7,8 @@ import android.service.quicksettings.TileService
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import net.nymtech.nymvpn.service.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.actionBarSize
 import net.nymtech.nymvpn.util.log.DebugTree
@@ -16,6 +18,7 @@ import timber.log.Timber
 
 @HiltAndroidApp
 class NymVpn : Application() {
+
 	override fun onCreate() {
 		super.onCreate()
 		instance = this
@@ -27,7 +30,15 @@ class NymVpn : Application() {
 		}
 	}
 
+	override fun onLowMemory() {
+		super.onLowMemory()
+		applicationScope.cancel("onLowMemory() called by system")
+		applicationScope = MainScope()
+	}
+
 	companion object {
+
+		var applicationScope = MainScope()
 		lateinit var instance: NymVpn
 			private set
 

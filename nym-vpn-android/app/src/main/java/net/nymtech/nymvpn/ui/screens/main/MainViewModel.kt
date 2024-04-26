@@ -8,10 +8,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SecretsRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.ui.model.ConnectionState
@@ -25,22 +24,21 @@ import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.util.InvalidCredentialException
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Provider
 
 @HiltViewModel
 class MainViewModel
 @Inject
 constructor(
-	private val gatewayRepository: GatewayRepository,
 	private val settingsRepository: SettingsRepository,
-	private val secretsRepository: SecretsRepository,
-	private val vpnClient: VpnClient,
+	private val secretsRepository: Provider<SecretsRepository>,
+	private val vpnClient: Provider<VpnClient>,
 ) : ViewModel() {
 	val uiState =
 		combine(
-			gatewayRepository.gatewayFlow,
 			settingsRepository.settingsFlow,
-			vpnClient.stateFlow,
-		) { gateways, settings, clientState ->
+			vpnClient.get().stateFlow,
+		) { settings, clientState ->
 			val connectionTime =
 				clientState.statistics.connectionSeconds?.let {
 					NumberUtils.convertSecondsToTimeString(
@@ -87,14 +85,14 @@ constructor(
 		NymVpn.requestTileServiceStateUpdate()
 	}
 
-	fun isCredentialImported(): Boolean {
-		return runBlocking {
-			secretsRepository.getCredential() != null
+	suspend fun isCredentialImported(): Boolean {
+		return withContext(Dispatchers.IO) {
+			secretsRepository.get().getCredential() != null
 		}
 	}
 
 	fun onConnect() = viewModelScope.launch(Dispatchers.IO) {
-		val credential = secretsRepository.getCredential()
+		val credential = secretsRepository.get().getCredential()
 		if (credential != null) {
 			val entryCountry = settingsRepository.getFirstHopCountry()
 			val exitCountry = settingsRepository.getLastHopCountry()
@@ -102,7 +100,7 @@ constructor(
 			val entry = entryCountry.toEntryPoint()
 			val exit = exitCountry.toExitPoint()
 			try {
-				vpnClient.apply {
+				vpnClient.get().apply {
 					this.exitPoint = exit
 					this.entryPoint = entry
 					this.mode = mode
@@ -115,7 +113,7 @@ constructor(
 	}
 
 	fun onDisconnect() = viewModelScope.launch {
-		vpnClient.stop(NymVpn.instance)
+		vpnClient.get().stop(NymVpn.instance)
 		NymVpn.requestTileServiceStateUpdate()
 	}
 }

@@ -14,6 +14,7 @@ import timber.log.Timber
 class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager) :
 	SettingsRepository {
 
+	private val default = Country(isDefault = true)
 	companion object {
 		val FIRST_HOP_COUNTRY = stringPreferencesKey("FIRST_HOP_COUNTRY")
 		val LAST_HOP_COUNTRY = stringPreferencesKey("LAST_HOP_COUNTRY")
@@ -60,7 +61,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 
 	override suspend fun getFirstHopCountry(): Country {
 		val country = dataStoreManager.getFromStore(FIRST_HOP_COUNTRY)
-		return Country.from(country)
+		return Country.from(country) ?: default
 	}
 
 	override suspend fun setFirstHopCountry(country: Country) {
@@ -73,7 +74,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 
 	override suspend fun getLastHopCountry(): Country {
 		val country = dataStoreManager.getFromStore(LAST_HOP_COUNTRY)
-		return Country.from(country)
+		return Country.from(country) ?: default
 	}
 
 	override suspend fun setLastHopCountry(country: Country) {
@@ -146,8 +147,8 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						pref[FIRST_HOP_SELECTION]
 							?: Settings.FIRST_HOP_SELECTION_DEFAULT,
 						isAnalyticsShown = pref[ANALYTICS_SHOWN] ?: Settings.ANALYTICS_SHOWN_DEFAULT,
-						firstHopCountry = Country.from(pref[FIRST_HOP_COUNTRY]),
-						lastHopCountry = Country.from(pref[LAST_HOP_COUNTRY]),
+						firstHopCountry = Country.from(pref[FIRST_HOP_COUNTRY]) ?: default,
+						lastHopCountry = Country.from(pref[LAST_HOP_COUNTRY]) ?: default,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

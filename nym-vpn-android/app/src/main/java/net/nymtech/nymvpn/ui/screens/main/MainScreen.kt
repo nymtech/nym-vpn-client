@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,6 +40,7 @@ import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
@@ -64,6 +66,7 @@ import net.nymtech.vpn.model.VpnMode
 fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
+	val scope = rememberCoroutineScope()
 
 	val notificationPermissionState =
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -227,23 +230,25 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 						MainStyledButton(
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
-								if (viewModel.isCredentialImported()) {
-									if (notificationPermissionState != null &&
-										!notificationPermissionState.status.isGranted
-									) {
-										return@MainStyledButton notificationPermissionState.launchPermissionRequest()
+								scope.launch {
+									if (viewModel.isCredentialImported()) {
+										if (notificationPermissionState != null &&
+											!notificationPermissionState.status.isGranted
+										) {
+											return@launch notificationPermissionState.launchPermissionRequest()
+										}
+										if (vpnIntent != null) {
+											return@launch vpnActivityResultState.launch(
+												vpnIntent,
+											)
+										}
+										if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !appViewModel.isAlarmPermissionGranted(context)) {
+											return@launch appViewModel.requestAlarmPermission(context)
+										}
+										viewModel.onConnect()
+									} else {
+										navController.navigate(NavItem.Settings.Login.route)
 									}
-									if (vpnIntent != null) {
-										return@MainStyledButton vpnActivityResultState.launch(
-											vpnIntent,
-										)
-									}
-									if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !appViewModel.isAlarmPermissionGranted(context)) {
-										return@MainStyledButton appViewModel.requestAlarmPermission(context)
-									}
-									viewModel.onConnect()
-								} else {
-									navController.navigate(NavItem.Settings.Login.route)
 								}
 							},
 							content = {

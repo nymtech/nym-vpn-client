@@ -78,7 +78,7 @@ constructor(
 		}
 	}
 
-	private fun setSelectedCountry() = viewModelScope.launch {
+	private fun setSelectedCountry() = viewModelScope.launch(Dispatchers.IO) {
 		val selectedCountry =
 			when (_uiState.value.hopType) {
 				HopType.FIRST -> settingsRepository.getFirstHopCountry()
@@ -90,7 +90,7 @@ constructor(
 			)
 	}
 
-	fun onSelected(country: Country) = viewModelScope.launch {
+	fun onSelected(country: Country) = viewModelScope.launch(Dispatchers.IO) {
 		when (_uiState.value.hopType) {
 			HopType.FIRST -> settingsRepository.setFirstHopCountry(country)
 			HopType.LAST -> settingsRepository.setLastHopCountry(country)

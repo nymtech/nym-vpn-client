@@ -5,6 +5,7 @@ import android.os.IBinder
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SecretsRepository
@@ -13,6 +14,7 @@ import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.util.InvalidCredentialException
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Provider
 
 @AndroidEntryPoint
 class AlwaysOnVpnService : LifecycleService() {
@@ -21,10 +23,10 @@ class AlwaysOnVpnService : LifecycleService() {
 	lateinit var settingsRepository: SettingsRepository
 
 	@Inject
-	lateinit var secretsRepository: SecretsRepository
+	lateinit var secretsRepository: Provider<SecretsRepository>
 
 	@Inject
-	lateinit var vpnClient: VpnClient
+	lateinit var vpnClient: Provider<VpnClient>
 
 	override fun onBind(intent: Intent): IBinder? {
 		super.onBind(intent)
@@ -35,8 +37,8 @@ class AlwaysOnVpnService : LifecycleService() {
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 		if (intent == null || intent.component == null || intent.component!!.packageName != packageName) {
 			Timber.i("Always-on VPN requested start")
-			lifecycleScope.launch {
-				val credential = secretsRepository.getCredential()
+			lifecycleScope.launch(Dispatchers.IO) {
+				val credential = secretsRepository.get().getCredential()
 				if (credential != null) {
 					val entryCountry = settingsRepository.getFirstHopCountry()
 					val exitCountry = settingsRepository.getLastHopCountry()
@@ -44,7 +46,7 @@ class AlwaysOnVpnService : LifecycleService() {
 					val entry = entryCountry.toEntryPoint()
 					val exit = exitCountry.toExitPoint()
 					try {
-						vpnClient.apply {
+						vpnClient.get().apply {
 							this.mode = mode
 							this.entryPoint = entry
 							this.exitPoint = exit

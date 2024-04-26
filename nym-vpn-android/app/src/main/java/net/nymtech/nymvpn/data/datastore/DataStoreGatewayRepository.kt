@@ -16,7 +16,7 @@ class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager)
 		val EXIT_COUNTRIES = stringPreferencesKey("EXIT_COUNTRIES")
 	}
 
-	override suspend fun getLowLatencyCountry(): Country {
+	override suspend fun getLowLatencyCountry(): Country? {
 		val country = dataStoreManager.getFromStore(LOW_LATENCY_COUNTRY)
 		return Country.from(country)
 	}

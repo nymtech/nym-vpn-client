@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SecretsRepository
 import net.nymtech.nymvpn.data.SettingsRepository
@@ -17,17 +18,18 @@ import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.util.InvalidCredentialException
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Provider
 
 @AndroidEntryPoint
 class VpnQuickTile : TileService() {
 	@Inject
-	lateinit var secretsRepository: SecretsRepository
+	lateinit var secretsRepository: Provider<SecretsRepository>
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
 
 	@Inject
-	lateinit var vpnClient: VpnClient
+	lateinit var vpnClient: Provider<VpnClient>
 
 	private val scope = CoroutineScope(Dispatchers.Main)
 
@@ -36,7 +38,7 @@ class VpnQuickTile : TileService() {
 		Timber.d("Quick tile listening called")
 		setTileText()
 		scope.launch {
-			vpnClient.stateFlow.collect {
+			vpnClient.get().stateFlow.collect {
 				when (it.vpnState) {
 					VpnState.Up -> {
 						setActive()
@@ -79,19 +81,21 @@ class VpnQuickTile : TileService() {
 		super.onClick()
 		setTileText()
 		unlockAndRun {
-			when (vpnClient.getState().vpnState) {
+			when (vpnClient.get().getState().vpnState) {
 				VpnState.Up -> {
 					scope.launch {
 						setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
-						vpnClient.stop(this@VpnQuickTile, true)
+						vpnClient.get().stop(this@VpnQuickTile, true)
 					}
 				}
 				VpnState.Down -> {
 					scope.launch {
-						val credential = secretsRepository.getCredential()
+						val credential = withContext(Dispatchers.IO) {
+							secretsRepository.get().getCredential()
+						}
 						if (credential != null) {
 							try {
-								vpnClient.apply {
+								vpnClient.get().apply {
 									this.mode = settingsRepository.getVpnMode()
 									this.exitPoint = settingsRepository.getLastHopCountry().toExitPoint()
 									this.entryPoint = settingsRepository.getFirstHopCountry().toEntryPoint()
