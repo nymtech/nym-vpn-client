@@ -26,6 +26,7 @@ use crate::error::Result;
 use crate::{MixnetVpn, NymVpn};
 
 const DEFAULT_TUN_MTU: u16 = 1500;
+const DEFAULT_DNS_SERVER: IpAddr = IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1));
 
 #[derive(Clone)]
 pub struct RoutingConfig {
@@ -201,6 +202,7 @@ pub async fn setup_mixnet_routing(
         dyn crate::platform::swift::OSTunProvider,
     >,
     dns_monitor: &mut DnsMonitor,
+    dns: Option<IpAddr>,
 ) -> Result<tun2::AsyncDevice> {
     debug!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
@@ -319,7 +321,9 @@ pub async fn setup_mixnet_routing(
     debug!("Routes: {:#?}", routes.clone().collect::<HashSet<_>>());
     route_manager.add_routes(routes.collect()).await?;
 
-    dns_monitor.set(&device_name, &[IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1))])?;
+    // Set the DNS server
+    let dns_server = dns.unwrap_or(DEFAULT_DNS_SERVER);
+    dns_monitor.set(&device_name, &[dns_server])?;
 
     Ok(dev)
 }

@@ -147,6 +147,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.gateway_config = gateway_config;
         nym_vpn.nym_ips = nym_ips;
         nym_vpn.nym_mtu = args.nym_mtu;
+        nym_vpn.dns = args.dns;
         nym_vpn.disable_routing = args.disable_routing;
         nym_vpn.enable_two_hop = args.enable_two_hop;
         nym_vpn.vpn_config.wg_gateway_config = wg_gateway_config;
@@ -160,6 +161,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.gateway_config = gateway_config;
         nym_vpn.nym_ips = nym_ips;
         nym_vpn.nym_mtu = args.nym_mtu;
+        nym_vpn.dns = args.dns;
         nym_vpn.disable_routing = args.disable_routing;
         nym_vpn.enable_two_hop = args.enable_two_hop;
         nym_vpn.vpn_config.mixnet_data_path = data_path;

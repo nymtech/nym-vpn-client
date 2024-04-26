@@ -165,6 +165,9 @@ pub struct NymVpn<T: Vpn> {
     /// The MTU of the TUN device.
     pub nym_mtu: Option<u16>,
 
+    /// The DNS server to use
+    pub dns: Option<IpAddr>,
+
     /// Disable routing all traffic through the VPN TUN device.
     pub disable_routing: bool,
 
@@ -206,6 +209,7 @@ impl NymVpn<WireguardVpn> {
             exit_point,
             nym_ips: None,
             nym_mtu: None,
+            dns: None,
             disable_routing: false,
             enable_two_hop: false,
             vpn_config: WireguardVpn {
@@ -247,6 +251,7 @@ impl NymVpn<MixnetVpn> {
             exit_point,
             nym_ips: None,
             nym_mtu: None,
+            dns: None,
             disable_routing: false,
             enable_two_hop: false,
             vpn_config: MixnetVpn {
@@ -310,6 +315,7 @@ impl NymVpn<MixnetVpn> {
             #[cfg(target_os = "ios")]
             self.ios_tun_provider.clone(),
             dns_monitor,
+            self.dns,
         )
         .await?;
 

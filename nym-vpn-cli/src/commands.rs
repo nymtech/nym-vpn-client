@@ -5,7 +5,7 @@ use clap::{Args, Parser, Subcommand};
 use ipnetwork::{Ipv4Network, Ipv6Network};
 use nym_vpn_lib::{nym_bin_common::bin_info_local_vergen, wg_gateway_client::WgConfig};
 use std::{
-    net::{Ipv4Addr, Ipv6Addr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,
     str::FromStr,
     sync::OnceLock,
@@ -91,6 +91,10 @@ pub(crate) struct RunArgs {
     /// The MTU of the nym TUN device that wraps IP packets in sphinx packets.
     #[arg(long, alias = "mtu")]
     pub(crate) nym_mtu: Option<u16>,
+
+    /// The DNS server to use
+    #[arg(long)]
+    pub(crate) dns: Option<IpAddr>,
 
     /// Disable routing all traffic through the nym TUN device. When the flag is set, the nym TUN
     /// device will be created, but to route traffic through it you will need to do it manually,
