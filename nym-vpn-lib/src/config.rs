@@ -59,8 +59,10 @@ impl WireguardConfig {
             fwmark: Some(TUNNEL_FWMARK),
         };
         let generic_options = GenericTunnelOptions { enable_ipv6: false };
-        let mut wg_options = TunnelOptions::default();
-        wg_options.mtu = Some(mtu);
+        let wg_options = TunnelOptions {
+            mtu: Some(mtu),
+            ..Default::default()
+        };
         let config = Self::new(
             tunnel,
             peers,
