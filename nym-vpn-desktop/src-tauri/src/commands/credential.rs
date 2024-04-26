@@ -21,10 +21,7 @@ pub async fn add_credential(credential: String) -> Result<(), CmdError> {
             error!("failed to import credential: {:?}", e);
             // TODO improve error handling, distinguish between
             // errors linked to user responsibility or internal errors
-            CmdError::new(
-                CmdErrorSource::InternalError,
-                "failed to import credential".to_string(),
-            )
+            CmdError::new(CmdErrorSource::InternalError, "failed to import credential")
         })?;
 
     Ok(())
