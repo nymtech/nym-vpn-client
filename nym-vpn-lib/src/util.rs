@@ -74,7 +74,7 @@ pub(crate) async fn handle_interrupt(
         None => (None, None, None),
     };
 
-    let sig_handle = tokio::task::spawn_blocking(move || -> Result<()> {
+    let sig_handle = tokio::task::spawn_blocking(move || -> Result<RouteManager> {
         debug!("Received interrupt signal");
         route_manager.clear_routes()?;
         #[cfg(target_os = "linux")]
@@ -94,7 +94,7 @@ pub(crate) async fn handle_interrupt(
                 return Err(Error::FailedToSendWireguardTunnelClose);
             }
         }
-        Ok(())
+        Ok(route_manager)
     });
 
     if let Some([h1, h2]) = tunnel_handle {
@@ -103,13 +103,14 @@ pub(crate) async fn handle_interrupt(
         ret1??;
         ret2??;
     }
-    sig_handle.await??;
+    let route_manager = sig_handle.await??;
     if let Some([rx1, rx2]) = finished_shutdown_rx {
         let ret1 = rx1.await;
         let ret2 = rx2.await;
         ret1?;
         ret2?;
     }
+    tokio::task::spawn_blocking(|| drop(route_manager)).await?;
     Ok(())
 }
 
