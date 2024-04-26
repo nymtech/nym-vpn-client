@@ -4,6 +4,8 @@ import MixnetLibrary
 
 public final class CountriesManager: ObservableObject {
     private var isLoading = false
+    private var lastHopStore = LastHopStore(lastFetchDate: Date())
+    private var entryLastHopStore = EntryLastHopStore(lastFetchDate: Date())
 
     public static let shared = CountriesManager()
 
@@ -12,12 +14,16 @@ public final class CountriesManager: ObservableObject {
     @Published public var lowLatencyCountry: Country?
 
     public func fetchCountries(shouldFetchEntryCountries: Bool) throws {
-        guard !isLoading else { return }
+        guard !isLoading, needReload(shouldFetchEntryCountries: shouldFetchEntryCountries)
+        else {
+            loadTemporaryCountries(shouldFetchEntryCountries: shouldFetchEntryCountries)
+            return
+        }
         isLoading = true
 
         Task {
             if shouldFetchEntryCountries {
-                try fetchEntryCountries()
+                try fetchEntryExitCountries()
             } else {
                 try fetchExitCountries()
             }
@@ -34,8 +40,9 @@ public final class CountriesManager: ObservableObject {
     }
 }
 
+// MARK: - Fetching -
 private extension CountriesManager {
-    func fetchEntryCountries() throws {
+    func fetchEntryExitCountries() throws {
         guard
             let apiURL = URL(string: Constants.apiUrl.rawValue),
             let explorerURL = URL(string: Constants.explorerUrl.rawValue)
@@ -50,6 +57,10 @@ private extension CountriesManager {
         )
         let newEntryCountries = convertToCountriesAndSort(from: locations)
         let newExitCountries = convertToCountriesAndSort(from: locations)
+
+        entryLastHopStore.entryCountries = newEntryCountries
+        entryLastHopStore.exitCountries = newExitCountries
+        entryLastHopStore.lastFetchDate = Date()
 
         entryCountries = newEntryCountries
         exitCountries = newExitCountries
@@ -71,6 +82,9 @@ private extension CountriesManager {
         )
         let newExitCountries = convertToCountriesAndSort(from: locations)
 
+        lastHopStore.countries = newExitCountries
+        lastHopStore.lastFetchDate = Date()
+
         entryCountries = nil
         exitCountries = newExitCountries
         isLoading = false
@@ -84,11 +98,55 @@ private extension CountriesManager {
         else {
             return
         }
-
+        entryLastHopStore.lowLatencyCountry = lowLatencyCountry
+        lastHopStore.lowLatencyCountry = lowLatencyCountry
         lowLatencyCountry = Country(name: location.countryName, code: location.twoLetterIsoCountryCode)
     }
 }
 
+// MARK: - Temp storage -
+private extension CountriesManager {
+    func needReload(shouldFetchEntryCountries: Bool) -> Bool {
+        if shouldFetchEntryCountries {
+            guard let countries = entryLastHopStore.entryCountries, !countries.isEmpty else { return true }
+        } else {
+            guard let countries = lastHopStore.countries, !countries.isEmpty else { return true }
+        }
+
+        if shouldFetchEntryCountries {
+            let lastFetchDate = entryLastHopStore.lastFetchDate
+            return isLongerThan10Minutes(date: lastFetchDate)
+        } else {
+            let lastFetchDate = lastHopStore.lastFetchDate
+            return isLongerThan10Minutes(date: lastFetchDate)
+        }
+    }
+
+    func isLongerThan10Minutes(date: Date) -> Bool {
+        let difference = Date().timeIntervalSince(date)
+        if difference > 600 {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    func loadTemporaryCountries(shouldFetchEntryCountries: Bool) {
+        Task { @MainActor in
+            if shouldFetchEntryCountries {
+                exitCountries = entryLastHopStore.exitCountries
+                entryCountries = entryLastHopStore.entryCountries
+                lowLatencyCountry = entryLastHopStore.lowLatencyCountry
+            } else {
+                exitCountries = lastHopStore.countries
+                entryCountries = nil
+                lowLatencyCountry = lastHopStore.lowLatencyCountry
+            }
+        }
+    }
+}
+
+// MARK: - ConvertToCountry -
 private extension CountriesManager {
     func convertToCountriesAndSort(from locations: [Location]) -> [Country] {
         locations.map {

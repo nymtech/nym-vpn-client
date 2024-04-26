@@ -1,4 +1,5 @@
 import SwiftUI
+import AppSettings
 import ConnectionManager
 import CountriesManager
 import UIComponents
@@ -7,17 +8,24 @@ public class HopListViewModel: ObservableObject {
     let type: HopType
     let isSmallScreen: Bool
 
+    var appSettings: AppSettings
     var connectionManager: ConnectionManager
     var countriesManager: CountriesManager
     @Binding var path: NavigationPath
 
     @Published var quickestCountry: Country?
     @Published var countries: [Country]?
-    @Published var searchText: String = ""
+    @Published var searchText: String = "" {
+        didSet {
+            updateQuickestCountry()
+            updateCountries()
+        }
+    }
 
     public init(
         type: HopType,
         path: Binding<NavigationPath>,
+        appSettings: AppSettings = AppSettings.shared,
         connectionManager: ConnectionManager = ConnectionManager.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
         isSmallScreen: Bool = false
@@ -25,6 +33,7 @@ public class HopListViewModel: ObservableObject {
         _path = path
         self.type = type
         self.isSmallScreen = isSmallScreen
+        self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
 
@@ -67,36 +76,48 @@ extension HopListViewModel {
     }
 
     func updateQuickestCountry() {
-        guard type == .entry,
-              let country = countriesManager.lowLatencyCountry
-        else {
-            quickestCountry = nil
-            return
-        }
+        Task {
+            guard type == .entry || (type == .exit && !appSettings.isEntryLocationSelectionOn),
+                  let country = countriesManager.lowLatencyCountry
+            else {
+                quickestCountry = nil
+                return
+            }
 
-        if !searchText.isEmpty,
-           !country.name.contains(searchText) {
-            print("contains")
-            quickestCountry = nil
-        } else {
-            quickestCountry = country
+            let newCountry: Country?
+            if !searchText.isEmpty,
+               !country.name.contains(searchText) {
+                newCountry = nil
+            } else {
+                newCountry = country
+            }
+
+            Task { @MainActor in
+                quickestCountry = newCountry
+            }
         }
     }
 
     func updateCountries() {
-        switch type {
-        case .entry:
-            countries = !searchText.isEmpty ? countriesManager.entryCountries?.filter {
-                $0.name.contains(
-                    searchText
-                )
-            } : countriesManager.entryCountries
-        case .exit:
-            countries = !searchText.isEmpty ? countriesManager.exitCountries?.filter {
-                $0.name.contains(
-                    searchText
-                )
-            } : countriesManager.exitCountries
+        Task {
+            let newCountries: [Country]?
+            switch type {
+            case .entry:
+                newCountries = !searchText.isEmpty ? countriesManager.entryCountries?.filter {
+                    $0.name.contains(
+                        searchText
+                    )
+                } : countriesManager.entryCountries
+            case .exit:
+                newCountries = !searchText.isEmpty ? countriesManager.exitCountries?.filter {
+                    $0.name.contains(
+                        searchText
+                    )
+                } : countriesManager.exitCountries
+            }
+            Task { @MainActor in
+                countries = newCountries
+            }
         }
     }
 }

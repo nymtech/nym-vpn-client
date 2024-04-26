@@ -25,6 +25,7 @@ public class HopButtonViewModel: ObservableObject {
         self.countriesManager = countriesManager
 
         setupConnectionManagerObserver()
+        updateData()
     }
 }
 

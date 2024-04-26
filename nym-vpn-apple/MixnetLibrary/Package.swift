@@ -24,10 +24,10 @@ let package = Package(
         ),
         .binaryTarget(
             name: "NymVpnLib",
-            url: "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-cli-v0.1.0/nym-vpn-lib_0.1.0_ios_universal.zip",
-            checksum: "1c21c3b23a9c9a43e735952f481f4ed39f0dc0135329293fbb45177759ced57c"
+            url: "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-cli-v0.1.1/nym-vpn-lib_0.1.1_ios_universal.zip",
+            checksum: "ca037b95cbaf4d9186faccf7168e71708b8db766f82216d931aff38f1ce54fc5"
         ),
-//        // TODO: remove local target after finishing testing
+// TODO: remove local target after finishing testing
 //        .binaryTarget(
 //            name: "NymVpnLib",
 //            path: "Libs/RustFramework.xcframework"

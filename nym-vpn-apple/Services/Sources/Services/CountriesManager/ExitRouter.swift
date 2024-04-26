@@ -2,6 +2,8 @@ public enum ExitRouter: Codable, Equatable {
     case country(code: String)
     // Fictional, just country under the hood, while we get the actual functionality implemented
     case lowLatencyCountry(code: String)
+    // Fictional, while we get the actual functionality implemented
+    case randomLowLatency
 
     public var countryCode: String? {
         switch self {
@@ -9,6 +11,8 @@ public enum ExitRouter: Codable, Equatable {
             return countryCode
         case let .lowLatencyCountry(code: countryCode):
             return countryCode
+        case .randomLowLatency:
+            return nil
         }
     }
 
@@ -16,7 +20,7 @@ public enum ExitRouter: Codable, Equatable {
         switch self {
         case .country:
             return false
-        case .lowLatencyCountry:
+        case .lowLatencyCountry, .randomLowLatency:
             return true
         }
     }

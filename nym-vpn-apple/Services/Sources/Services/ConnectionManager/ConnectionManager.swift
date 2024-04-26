@@ -37,9 +37,8 @@ public final class ConnectionManager: ObservableObject {
     }
 
     public func connectDisconnect(with config: MixnetConfig) {
-        if
-            let activeTunnel = currentTunnel,
-            activeTunnel.status == .connected || activeTunnel.status == .connecting {
+        if let activeTunnel = currentTunnel,
+           activeTunnel.status == .connected || activeTunnel.status == .connecting {
             disconnect(tunnel: activeTunnel)
         } else {
             connectMixnet(with: config)
@@ -151,7 +150,11 @@ private extension ConnectionManager {
     }
 
     func updateCountriesExitOnly() {
-        guard let lowLatencyCountry = countriesManager.lowLatencyCountry else { return }
+        guard let lowLatencyCountry = countriesManager.lowLatencyCountry
+        else {
+            exitRouter = .randomLowLatency
+            return
+        }
         entryGateway = .randomLowLatency
         exitRouter = .lowLatencyCountry(code: lowLatencyCountry.code)
     }
