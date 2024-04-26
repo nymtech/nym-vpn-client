@@ -35,6 +35,7 @@ mod network;
 mod states;
 mod vpn_client;
 mod window;
+mod gateway;
 
 pub const APP_DIR: &str = "nym-vpn";
 const APP_CONFIG_FILE: &str = "config.toml";

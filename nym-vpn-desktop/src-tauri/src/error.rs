@@ -32,15 +32,6 @@ impl CmdError {
     }
 }
 
-impl From<nym_vpn_lib::gateway_directory::Error> for CmdError {
-    fn from(value: nym_vpn_lib::gateway_directory::Error) -> Self {
-        CmdError {
-            source: CmdErrorSource::InternalError,
-            message: value.to_string(),
-        }
-    }
-}
-
 impl Display for CmdError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}: {}", self.source, self.message)
