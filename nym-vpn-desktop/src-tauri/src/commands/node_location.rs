@@ -42,7 +42,7 @@ pub async fn set_node_location(
             db.insert(Key::EntryNodeLocation, &location).map_err(|_| {
                 CmdError::new(
                     CmdErrorSource::InternalError,
-                    "Failed to save location in db".to_string(),
+                    "Failed to save location in db",
                 )
             })?;
         }
@@ -50,7 +50,7 @@ pub async fn set_node_location(
             db.insert(Key::ExitNodeLocation, &location).map_err(|_| {
                 CmdError::new(
                     CmdErrorSource::InternalError,
-                    "Failed to save location in db".to_string(),
+                    "Failed to save location in db",
                 )
             })?;
         }
@@ -67,7 +67,7 @@ pub async fn get_fastest_node_location() -> Result<Country, CmdError> {
         error!("failed to get fastest node location: {}", e);
         CmdError::new(
             CmdErrorSource::InternalError,
-            "failed to get fastest node location".to_string(),
+            "failed to get fastest node location",
         )
     })
 }
@@ -94,14 +94,14 @@ pub async fn get_countries(node_type: NodeType) -> Result<Vec<Country>, CmdError
             error!("failed to get node locations: {}", e);
             CmdError::new(
                 CmdErrorSource::InternalError,
-                "failed to get node locations".to_string(),
+                "failed to get node locations",
             )
         }),
         NodeType::Exit => get_gateway_countries(true).await.map_err(|e| {
             error!("failed to get node locations: {}", e);
             CmdError::new(
                 CmdErrorSource::InternalError,
-                "failed to get node locations".to_string(),
+                "failed to get node locations",
             )
         }),
     }
