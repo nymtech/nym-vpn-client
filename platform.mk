@@ -7,7 +7,7 @@ $(info Detected Architecture: $(ARCH))
 
 # Define architecture mappings for Linux
 LINUX_ARCH_MAP := x86_64=x86_64-unknown-linux-gnu aarch64=aarch64-unknown-linux-gnu
-DARWIN_ARCH_MAP := x86_64=x86_64-apple-darwin arm64=arm64-apple-darwin
+DARWIN_ARCH_MAP := x86_64=x86_64-apple-darwin arm64=aarch64-apple-darwin
 
 # Function to adjust architecture based on OS
 define adjust_arch
