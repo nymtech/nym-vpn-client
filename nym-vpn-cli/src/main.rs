@@ -181,10 +181,14 @@ async fn import_credential(args: commands::ImportCredentialArgs, data_path: Path
     let data: ImportCredentialTypeEnum = args.credential_type.into();
     let raw_credential = match data {
         ImportCredentialTypeEnum::Path(path) => fs::read(path)?,
-        ImportCredentialTypeEnum::Data(data) => data,
+        ImportCredentialTypeEnum::Data(data) => parse_encoded_credential_data(&data)?,
     };
     fs::create_dir_all(&data_path)?;
     Ok(nym_vpn_lib::credentials::import_credential(raw_credential, data_path).await?)
+}
+
+fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
+    bs58::decode(raw).into_vec()
 }
 
 fn mixnet_data_path() -> Option<PathBuf> {
