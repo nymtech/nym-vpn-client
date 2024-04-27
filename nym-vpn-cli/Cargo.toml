@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-cli"
-version = "0.1.2-rc.0"
+version = "0.1.2-rc.1"
 edition = "2021"
 license = "GPL-3.0-only"
 authors = ["Nym Technologies"]
