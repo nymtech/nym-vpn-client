@@ -30,37 +30,35 @@ jobs:
     strategy:
       matrix:
         # os: [ ubuntu-22.04, custom-runner-mac-m1]
-        # os: [ubuntu-22.04, macos-14]
-        os: [ubuntu-22.04-arc]
+        os: [ubuntu-22.04, macos-14]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
 
-  # build-wireguard-go-android:
-  #   uses: ./.github/workflows/build-wireguard-go-android.yml
-  #
-  # build-wireguard-go-windows:
-  #   uses: ./.github/workflows/build-wireguard-go-windows.yml
+  build-wireguard-go-android:
+    uses: ./.github/workflows/build-wireguard-go-android.yml
+
+  build-wireguard-go-windows:
+    uses: ./.github/workflows/build-wireguard-go-windows.yml
 
   build:
     needs:
       [
         build-wireguard-go,
-        # build-wireguard-go-android,
-        # build-wireguard-go-windows,
+        build-wireguard-go-android,
+        build-wireguard-go-windows,
       ]
     strategy:
       fail-fast: false
       matrix:
         # os: [ ubuntu-22.04, custom-runner-mac-m1, custom-windows-11 ]
-        # os: [ubuntu-22.04, macos-14, custom-windows-11]
-        os: [ubuntu-22.04-arc]
+        os: [ubuntu-22.04, macos-14, custom-windows-11]
         target: [native]
-        # include:
-        #   - os: ubuntu-20.04
-        #     target: android
-        #   - os: macos-14
-        #     target: ios
+        include:
+          - os: ubuntu-20.04
+            target: android
+          - os: macos-14
+            target: ios
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
@@ -398,13 +396,13 @@ jobs:
           rmdir nym-vpn-*.zip || true
           rmdir nym-vpn-*.tar.gz || true
           for dir in *tar.gz; do echo " -- Printing: $dir"; ls -al $dir; done
-          # for dir in *zip; do echo $dir; ls -al $dir; done
+          for dir in *zip; do echo $dir; ls -al $dir; done
           echo " -- Printing: $DEBIAN_PACKAGES"; ls -al $DEBIAN_PACKAGES
           for dir in nym-vpn-*tar.gz; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
-          # for dir in nym-vpn-*zip; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          for dir in nym-vpn-*zip; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           pushd $DEBIAN_PACKAGES; for f in *deb; do sha256sum ${f} > "${f}.sha256sum"; done; popd
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          # cat nym-vpn-*.zip/*.sha256sum >> $GITHUB_ENV
+          cat nym-vpn-*.zip/*.sha256sum >> $GITHUB_ENV
           cat nym-vpn-*.tar.gz/*.sha256sum >> $GITHUB_ENV
           cat $DEBIAN_PACKAGES/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
@@ -423,4 +421,4 @@ jobs:
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
           echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/* $DEBIAN_PACKAGES/*
-          # gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/* $DEBIAN_PACKAGES/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/* $DEBIAN_PACKAGES/*
