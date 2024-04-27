@@ -18,11 +18,6 @@ on:
         description: "Enable --features metrics-server"
         required: true
         default: false
-      enable_deb:
-        type: boolean
-        description: "Enable building deb packages"
-        required: true
-        default: false
   push:
     tags:
       - nym-vpn-cli-v[0-9]+.[0-9]+.[0-9]+*
@@ -88,6 +83,12 @@ jobs:
       - name: Setup MSBuild.exe
         if: contains(matrix.os, 'windows')
         uses: microsoft/setup-msbuild@v2
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
 
       - name: Get package version
         id: package-version
@@ -160,12 +161,6 @@ jobs:
         run: |
           echo 'CARGO_FEATURES=--features metrics-server' >> $GITHUB_ENV
 
-      - name: Install rust toolchain
-        uses: brndnmtthws/rust-action-rustup@v1
-        with:
-          toolchain: stable
-          components: rustfmt, clippy
-
       - name: Install extra arch apple
         if: contains(matrix.os, 'custom-runner-mac-m1') || contains(matrix.os, 'macos-14')
         run: |
@@ -198,7 +193,7 @@ jobs:
           cargo install cargo-ndk
 
       - name: Setup cargo deb
-        if: inputs.enable_deb == true && contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
+        if: contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
         run: |
           cargo install --locked cargo-deb
 
@@ -277,7 +272,7 @@ jobs:
         run: (cd nym-vpn-lib; cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --release)
 
       - name: Build deb packages
-        if: inputs.enable_deb == true && contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
+        if: contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
@@ -320,10 +315,10 @@ jobs:
           retention-days: 2
 
       - name: Upload deb packages
-        if: inputs.enable_deb == true && contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
+        if: contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
         uses: actions/upload-artifact@v4
         with:
-          name: nym-vpn-debs
+          name: debian-packages
           path: |
             target/debian/nym-vpnc*deb
             target/debian/nym-vpnd*deb
@@ -394,17 +389,27 @@ jobs:
       # includes the tar.gz suffix.
       # Remove any empty artifact directories.
       - name: Generate checksums
+        env:
+          DEBIAN_PACKAGES: debian-packages
         run: |
+          ls -al
           rmdir nym-vpn-*.zip || true
           rmdir nym-vpn-*.tar.gz || true
-          for file in nym-vpn-*tar.gz; do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
-          for file in nym-vpn-*zip; do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          for dir in *tar.gz; do echo " -- Printing: $dir"; ls -al $dir; done
+          for dir in *zip; do echo $dir; ls -al $dir; done
+          echo " -- Printing: $DEBIAN_PACKAGES"; ls -al $DEBIAN_PACKAGES
+          for dir in nym-vpn-*tar.gz; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          for dir in nym-vpn-*zip; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          pushd $DEBIAN_PACKAGES; for f in *deb; do sha256sum ${f} > "${f}.sha256sum"; done; popd
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-*.zip/*.sha256sum >> $GITHUB_ENV
           cat nym-vpn-*.tar.gz/*.sha256sum >> $GITHUB_ENV
+          cat $DEBIAN_PACKAGES/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
+        env:
+          DEBIAN_PACKAGES: debian-packages
         run: |
           echo "build info"
           echo "$BUILD_INFO"
@@ -415,5 +420,5 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/* $DEBIAN_PACKAGES/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/* $DEBIAN_PACKAGES/*
