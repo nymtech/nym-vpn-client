@@ -320,6 +320,7 @@ jobs:
         if: contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
         uses: actions/upload-artifact@v4
         with:
+          name: debian-packages
           path: |
             target/debian/nym-vpnc*deb
             target/debian/nym-vpnd*deb
@@ -394,10 +395,10 @@ jobs:
           ls -al
           rmdir nym-vpn-*.zip || true
           rmdir nym-vpn-*.tar.gz || true
-          for dir in *tar.gz; do echo $dir; ls dir; done
+          for dir in *tar.gz; do echo " -- Printing: $dir"; ls dir; done
           for dir in *zip; do echo $dir; ls dir; done
-          for file in nym-vpn-*tar.gz; do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
-          for file in nym-vpn-*zip; do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          for dii in nym-vpn-*tar.gz; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          for dir in nym-vpn-*zip; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-*.zip/*.sha256sum >> $GITHUB_ENV
           cat nym-vpn-*.tar.gz/*.sha256sum >> $GITHUB_ENV
