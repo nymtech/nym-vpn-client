@@ -46,8 +46,8 @@ jobs:
     needs:
       [
         build-wireguard-go,
-        build-wireguard-go-android,
-        build-wireguard-go-windows,
+        # build-wireguard-go-android,
+        # build-wireguard-go-windows,
       ]
     strategy:
       fail-fast: false
