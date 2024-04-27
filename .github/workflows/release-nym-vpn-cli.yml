@@ -391,20 +391,26 @@ jobs:
       # includes the tar.gz suffix.
       # Remove any empty artifact directories.
       - name: Generate checksums
+        env: DEBIAN_PACKAGES=debian-packages
         run: |
           ls -al
           rmdir nym-vpn-*.zip || true
           rmdir nym-vpn-*.tar.gz || true
-          for dir in *tar.gz; do echo " -- Printing: $dir"; ls $dir; done
-          for dir in *zip; do echo $dir; ls dir; done
+          for dir in *tar.gz; do echo " -- Printing: $dir"; ls -al $dir; done
+          for dir in *zip; do echo $dir; ls -al $dir; done
+          echo " -- Printing: $DEBIAN_PACKAGES"
+          ls -al $DEBIAN_PACKAGES
           for dir in nym-vpn-*tar.gz; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           for dir in nym-vpn-*zip; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          pushd $DEBIAN_PACKAGES; for f in *deb; do sha256sum ${f} > "${f}.sha256sum"; done; popd
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-*.zip/*.sha256sum >> $GITHUB_ENV
           cat nym-vpn-*.tar.gz/*.sha256sum >> $GITHUB_ENV
+          cat $DEBIAN_PACKAGES/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
+        env: DEBIAN_PACKAGES=debian-packages
         run: |
           echo "build info"
           echo "$BUILD_INFO"
@@ -415,5 +421,5 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/*
-          # gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/* $DEBIAN_PACKAGES/*
+          # gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/* $DEBIAN_PACKAGES/*
