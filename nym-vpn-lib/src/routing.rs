@@ -26,7 +26,15 @@ use crate::error::Result;
 use crate::{MixnetVpn, NymVpn};
 
 const DEFAULT_TUN_MTU: u16 = 1500;
-const DEFAULT_DNS_SERVER: IpAddr = IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1));
+
+fn default_dns_servers() -> Vec<IpAddr> {
+    vec![
+        IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)),
+        IpAddr::V4(Ipv4Addr::new(1, 0, 0, 1)),
+        IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111)),
+        IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1001)),
+    ]
+}
 
 #[derive(Clone)]
 pub struct RoutingConfig {
@@ -322,8 +330,8 @@ pub async fn setup_mixnet_routing(
     route_manager.add_routes(routes.collect()).await?;
 
     // Set the DNS server
-    let dns_server = dns.unwrap_or(DEFAULT_DNS_SERVER);
-    tokio::task::block_in_place(move || dns_monitor.set(&device_name, &[dns_server]))?;
+    let dns_servers = dns.map(|dns| vec![dns]).unwrap_or(default_dns_servers());
+    tokio::task::block_in_place(move || dns_monitor.set(&device_name, &dns_servers))?;
 
     Ok(dev)
 }
