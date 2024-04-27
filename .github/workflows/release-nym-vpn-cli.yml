@@ -395,7 +395,7 @@ jobs:
           ls -al
           rmdir nym-vpn-*.zip || true
           rmdir nym-vpn-*.tar.gz || true
-          for dir in *tar.gz; do echo " -- Printing: $dir"; ls dir; done
+          for dir in *tar.gz; do echo " -- Printing: $dir"; ls $dir; done
           for dir in *zip; do echo $dir; ls dir; done
           for dii in nym-vpn-*tar.gz; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           for dir in nym-vpn-*zip; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
