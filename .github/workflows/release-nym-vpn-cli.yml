@@ -391,7 +391,8 @@ jobs:
       # includes the tar.gz suffix.
       # Remove any empty artifact directories.
       - name: Generate checksums
-        env: DEBIAN_PACKAGES=debian-packages
+        env:
+          DEBIAN_PACKAGES: debian-packages
         run: |
           ls -al
           rmdir nym-vpn-*.zip || true
@@ -410,7 +411,8 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
-        env: DEBIAN_PACKAGES=debian-packages
+        env:
+          DEBIAN_PACKAGES: debian-packages
         run: |
           echo "build info"
           echo "$BUILD_INFO"
