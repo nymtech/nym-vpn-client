@@ -52,13 +52,14 @@ jobs:
       fail-fast: false
       matrix:
         # os: [ ubuntu-22.04, custom-runner-mac-m1, custom-windows-11 ]
-        os: [ubuntu-22.04, macos-14, custom-windows-11]
+        # os: [ubuntu-22.04, macos-14, custom-windows-11]
+        os: [ubuntu-22.04]
         target: [native]
-        include:
-          - os: ubuntu-20.04
-            target: android
-          - os: macos-14
-            target: ios
+        # include:
+        #   - os: ubuntu-20.04
+        #     target: android
+        #   - os: macos-14
+        #     target: ios
     runs-on: ${{ matrix.os }}
     env:
       WG_GO_LIB_PATH: ${{ github.workspace }}/lib
