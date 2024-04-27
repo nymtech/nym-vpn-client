@@ -391,8 +391,11 @@ jobs:
       # Remove any empty artifact directories.
       - name: Generate checksums
         run: |
+          ls -al
           rmdir nym-vpn-*.zip || true
           rmdir nym-vpn-*.tar.gz || true
+          for dir in *tar.gz; do echo $dir; ls dir; done
+          for dir in *zip; do echo $dir; ls dir; done
           for file in nym-vpn-*tar.gz; do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           for file in nym-vpn-*zip; do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
@@ -412,4 +415,4 @@ jobs:
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
           echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/*
+          # gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/*
