@@ -30,16 +30,17 @@ jobs:
     strategy:
       matrix:
         # os: [ ubuntu-22.04, custom-runner-mac-m1]
-        os: [ubuntu-22.04, macos-14]
+        # os: [ubuntu-22.04, macos-14]
+        os: [ubuntu-22.04-arc]
     uses: ./.github/workflows/build-wireguard-go.yml
     with:
       os: ${{ matrix.os }}
 
-  build-wireguard-go-android:
-    uses: ./.github/workflows/build-wireguard-go-android.yml
-
-  build-wireguard-go-windows:
-    uses: ./.github/workflows/build-wireguard-go-windows.yml
+  # build-wireguard-go-android:
+  #   uses: ./.github/workflows/build-wireguard-go-android.yml
+  #
+  # build-wireguard-go-windows:
+  #   uses: ./.github/workflows/build-wireguard-go-windows.yml
 
   build:
     needs:
