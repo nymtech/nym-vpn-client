@@ -86,6 +86,12 @@ jobs:
         if: contains(matrix.os, 'windows')
         uses: microsoft/setup-msbuild@v2
 
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
       - name: Get package version
         id: package-version
         uses: nicolaiunrein/cargo-get@master
@@ -156,12 +162,6 @@ jobs:
         if: inputs.enable_metrics_server == true
         run: |
           echo 'CARGO_FEATURES=--features metrics-server' >> $GITHUB_ENV
-
-      - name: Install rust toolchain
-        uses: brndnmtthws/rust-action-rustup@v1
-        with:
-          toolchain: stable
-          components: rustfmt, clippy
 
       - name: Install extra arch apple
         if: contains(matrix.os, 'custom-runner-mac-m1') || contains(matrix.os, 'macos-14')
