@@ -15,6 +15,9 @@ use super::CredentialError;
 pub(super) async fn get_credentials_store(
     data_path: PathBuf,
 ) -> Result<(PersistentStorage, PathBuf), CredentialError> {
+    // Create data_path if it doesn't exist
+    std::fs::create_dir_all(&data_path)?;
+
     let storage_path = StoragePaths::new_from_dir(data_path)?;
     let credential_db_path = storage_path.credential_database_path;
     debug!("Credential store: {}", credential_db_path.display());
