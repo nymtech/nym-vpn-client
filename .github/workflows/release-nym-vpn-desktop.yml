@@ -343,7 +343,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.DEB_DIR }}
-          path: nym-vpn-desktop/src-tauri/target/${{ env ARCH_TARGET }}/release/bundle/deb/nym-vpn*deb
+          path: nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn*deb
           retention-days: 2
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
