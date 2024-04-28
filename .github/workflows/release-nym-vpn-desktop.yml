@@ -198,8 +198,8 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
           CPP_BUILD_MODES=Release ./build-windows-modules.sh
-          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
-          cp ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x64-Release/winfw.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv -v ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          cp -v ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x64-Release/winfw.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
 
       - name: Download/Unzip/Move wintun.zip and winpcap.zip, also move wireguard lib for windows
         if: contains(matrix.os, 'windows')
@@ -209,10 +209,10 @@ jobs:
           curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
           unzip ${GITHUB_WORKSPACE}/wintun.zip
           unzip ${GITHUB_WORKSPACE}/winpcap.zip
-          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
-          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
-          mv ${GITHUB_WORKSPACE}/lib/libwg.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
-          mv ${GITHUB_WORKSPACE}/lib/libwg.lib ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv -v ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv -v ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv -v ${GITHUB_WORKSPACE}/lib/libwg.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv -v ${GITHUB_WORKSPACE}/lib/libwg.lib ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
 
       - name: Prepare desktop build
         shell: bash
@@ -271,8 +271,8 @@ jobs:
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
           mkdir $UPDATER_BUNDLE_DIR
-          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
-          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
+          mv -v ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
+          mv -v ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
           ls -la $UPDATER_BUNDLE_DIR
 
       - name: Move updater bundle artifacts (Macos)
@@ -285,8 +285,8 @@ jobs:
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
           mkdir $UPDATER_BUNDLE_DIR
-          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
-          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
+          mv -v ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
+          mv -v ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
           ls -la $UPDATER_BUNDLE_DIR
 
       - name: Move updater bundle artifacts (Windows)
@@ -299,8 +299,8 @@ jobs:
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
           mkdir $UPDATER_BUNDLE_DIR
-          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
-          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
+          mv -v ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
+          mv -v ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
           ls -la $UPDATER_BUNDLE_DIR
 
       - name: Upload updater bundle (${{ env.PLATFORM_ARCH }})
@@ -326,7 +326,7 @@ jobs:
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
           mkdir $APPIMAGE_DIR
-          mv nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*.AppImage $APPIMAGE_DIR/nym-vpn_${PKG_VERSION}.AppImage
+          mv -v nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*.AppImage $APPIMAGE_DIR/nym-vpn_${PKG_VERSION}.AppImage
 
       - name: Upload AppImage
         if: contains(matrix.os, 'ubuntu-22.04')
@@ -464,7 +464,7 @@ jobs:
           sed -i "s/^tag=.*$/tag=$TAG_NAME/" $appimg_installer
           sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
           mkdir installer
-          cp $appimg_installer installer
+          cp -v $appimg_installer installer
 
       - name: Publish release
         run: |
