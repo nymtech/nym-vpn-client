@@ -45,10 +45,12 @@ jobs:
       UPDATER_BUNDLE_DIR: updater_bundle
       APPIMAGE_DIR: appimage
       WINDOWS_DIR: windows
+      DEB_DIR: deb
     outputs:
       pkg_version: ${{ steps.set_env.outputs.pkg_version }}
       appimage_dir: ${{ env.APPIMAGE_DIR }}
       windows_dir: ${{ env.WINDOWS_DIR }}
+      deb_dir: ${{ env.DEB_DIR }}
 
     steps:
       - name: "Cleanup working directory"
@@ -313,13 +315,13 @@ jobs:
           path: ${{ env.UPDATER_BUNDLE_DIR }}
           retention-days: 2
 
-      - name: Create archive
+      # For mac it's important to create a tar archive to avoid stripping file attributes
+      - name: Create archive (mac)
+        if: "contains(matrix.os, 'mac')"
         shell: bash
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/appimage/nym-vpn*.AppImage ${{ env.ARTIFACT_DIR }} || true
-          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/deb/nym-vpn*.deb ${{ env.ARTIFACT_DIR }} || true
-          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }}
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Prepare AppImage
@@ -336,8 +338,16 @@ jobs:
           path: ${{ env.APPIMAGE_DIR }}
           retention-days: 2
 
+      - name: Upload deb
+        if: "contains(matrix.os , 'ubuntu-22.04')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.DEB_DIR }}
+          path: nym-vpn-desktop/src-tauri/target/${{ env ARCH_TARGET }}/release/bundle/deb/nym-vpn*deb
+          retention-days: 2
+
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
-        if: "!contains(matrix.os , 'windows')"
+        if: "contains(matrix.os , 'mac')"
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_ARCHIVE }}
@@ -352,7 +362,6 @@ jobs:
           path: nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup.exe
           retention-days: 2
 
-      # Build info, but for now it's just the version
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
@@ -383,6 +392,7 @@ jobs:
       PKG_VERSION: ${{ needs.build.outputs.pkg_version }}
       APPIMAGE_DIR: ${{ needs.build.outputs.appimage_dir }}
       WINDOWS_DIR: ${{ needs.build.outputs.windows_dir }}
+      DEB_DIR: ${{ needs.build.outputs.deb_dir }}
     permissions:
       contents: write
     steps:
@@ -447,12 +457,16 @@ jobs:
           pushd $WINDOWS_DIR
           sha256sum nym-vpn*.exe > nym-vpn_${PKG_VERSION}_x64-setup.exe.sha256sum
           popd
+          pushd $DEB_DIR
+          for f in nym-vpn*.deb; do sha256sum {f} > ${f}.sha256sum; done
+          popd
           rmdir nym-vpn-desktop_*tar.gz || true
           for file in nym-vpn-desktop_*tar.gz; do pushd $file; for f in nym-vpn-desktop_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
           cat $APPIMAGE_DIR/*.sha256sum >> $GITHUB_ENV
           cat $WINDOWS_DIR/*.sha256sum >> $GITHUB_ENV
+          cat $DEB_DIR/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: AppImage installer bump version
@@ -477,8 +491,8 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/* $DEB_DIR/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/* $DEB_DIR/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
