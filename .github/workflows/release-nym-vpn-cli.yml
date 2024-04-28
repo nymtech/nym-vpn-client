@@ -298,7 +298,7 @@ jobs:
             lipo -create -output ${{ env.ARTIFACT_DIR }}/nym-vpn-cli target/release/nym-vpn-cli target/x86_64-apple-darwin/release/nym-vpn-cli
           elif ${{ matrix.target == 'ios' }}; then
             cp -R -v nym-vpn-lib/NymVpnLib/RustFramework.xcframework ${{ env.ARTIFACT_DIR }}
-          elif ${{ contains(matrix.os, 'ubuntu') && matrix.target = 'native' }}; then
+          elif ${{ contains(matrix.os, 'ubuntu') && matrix.target == 'native' }}; then
             cp -v target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
             cp -v target/release/nym-vpnc ${{ env.ARTIFACT_DIR }}
             cp -v target/release/nym-vpnd ${{ env.ARTIFACT_DIR }}
