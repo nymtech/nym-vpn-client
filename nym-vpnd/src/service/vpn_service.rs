@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::IpAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -51,6 +52,7 @@ pub struct ConnectArgs {
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct ConnectOptions {
+    pub(crate) dns: Option<IpAddr>,
     pub(crate) disable_routing: bool,
     pub(crate) enable_two_hop: bool,
     pub(crate) enable_poisson_rate: bool,
@@ -198,6 +200,7 @@ impl NymVpnService {
             nym_vpn_lib::NymVpn::new_mixnet_vpn(config.entry_point, config.exit_point);
         nym_vpn.gateway_config = gateway_directory::Config::new_from_env();
         nym_vpn.vpn_config.mixnet_data_path = Some(self.data_dir.clone());
+        nym_vpn.dns = options.dns;
         nym_vpn.disable_routing = options.disable_routing;
         nym_vpn.enable_two_hop = options.enable_two_hop;
         nym_vpn.vpn_config.enable_poisson_rate = options.enable_poisson_rate;

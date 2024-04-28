@@ -5,7 +5,7 @@ use clap::{Args, Parser, Subcommand};
 use ipnetwork::{Ipv4Network, Ipv6Network};
 use nym_vpn_lib::{nym_bin_common::bin_info_local_vergen, wg_gateway_client::WgConfig};
 use std::{
-    net::{Ipv4Addr, Ipv6Addr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,
     str::FromStr,
     sync::OnceLock,
@@ -92,6 +92,10 @@ pub(crate) struct RunArgs {
     #[arg(long, alias = "mtu")]
     pub(crate) nym_mtu: Option<u16>,
 
+    /// The DNS server to use
+    #[arg(long)]
+    pub(crate) dns: Option<IpAddr>,
+
     /// Disable routing all traffic through the nym TUN device. When the flag is set, the nym TUN
     /// device will be created, but to route traffic through it you will need to do it manually,
     /// e.g. ping -Itun0.
@@ -162,8 +166,8 @@ pub(crate) struct ImportCredentialArgs {
 #[group(required = true, multiple = false)]
 pub(crate) struct ImportCredentialType {
     /// Credential encoded using base58.
-    #[arg(long, value_parser = parse_encoded_credential_data)]
-    pub(crate) credential_data: Option<Vec<u8>>,
+    #[arg(long)]
+    pub(crate) credential_data: Option<String>,
 
     /// Path to the credential file.
     #[arg(long, value_parser = check_path)]
@@ -227,14 +231,10 @@ fn check_path(path: &str) -> Result<PathBuf, String> {
     Ok(path)
 }
 
-fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
-    bs58::decode(raw).into_vec()
-}
-
 // Workaround until clap supports enums for ArgGroups
 pub enum ImportCredentialTypeEnum {
     Path(PathBuf),
-    Data(Vec<u8>),
+    Data(String),
 }
 
 impl From<ImportCredentialType> for ImportCredentialTypeEnum {

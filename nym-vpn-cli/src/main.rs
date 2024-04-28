@@ -147,6 +147,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.gateway_config = gateway_config;
         nym_vpn.nym_ips = nym_ips;
         nym_vpn.nym_mtu = args.nym_mtu;
+        nym_vpn.dns = args.dns;
         nym_vpn.disable_routing = args.disable_routing;
         nym_vpn.enable_two_hop = args.enable_two_hop;
         nym_vpn.vpn_config.wg_gateway_config = wg_gateway_config;
@@ -160,6 +161,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.gateway_config = gateway_config;
         nym_vpn.nym_ips = nym_ips;
         nym_vpn.nym_mtu = args.nym_mtu;
+        nym_vpn.dns = args.dns;
         nym_vpn.disable_routing = args.disable_routing;
         nym_vpn.enable_two_hop = args.enable_two_hop;
         nym_vpn.vpn_config.mixnet_data_path = data_path;
@@ -179,10 +181,14 @@ async fn import_credential(args: commands::ImportCredentialArgs, data_path: Path
     let data: ImportCredentialTypeEnum = args.credential_type.into();
     let raw_credential = match data {
         ImportCredentialTypeEnum::Path(path) => fs::read(path)?,
-        ImportCredentialTypeEnum::Data(data) => data,
+        ImportCredentialTypeEnum::Data(data) => parse_encoded_credential_data(&data)?,
     };
     fs::create_dir_all(&data_path)?;
     Ok(nym_vpn_lib::credentials::import_credential(raw_credential, data_path).await?)
+}
+
+fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
+    bs58::decode(raw).into_vec()
 }
 
 fn mixnet_data_path() -> Option<PathBuf> {

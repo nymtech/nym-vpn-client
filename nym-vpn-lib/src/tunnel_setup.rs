@@ -31,6 +31,7 @@ pub struct MixTunnelSetup {
     pub route_manager: RouteManager,
     pub mixnet_connection_info: MixnetConnectionInfo,
     pub task_manager: TaskManager,
+    pub dns_monitor: DnsMonitor,
 }
 
 impl TunnelSpecifcSetup for MixTunnelSetup {}
@@ -227,6 +228,7 @@ async fn setup_mix_tunnel(
             &task_manager,
             &gateway_directory_client,
             default_lan_gateway_ip,
+            &mut dns_monitor,
         )
         .await;
     let mixnet_connection_info = match ret {
@@ -265,6 +267,7 @@ async fn setup_mix_tunnel(
             route_manager,
             mixnet_connection_info,
             task_manager,
+            dns_monitor,
         },
     }))
 }
