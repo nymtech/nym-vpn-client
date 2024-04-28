@@ -291,15 +291,19 @@ jobs:
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
           if ${{ contains(matrix.target, 'android') }}; then
-            cp target/aarch64-linux-android/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}
+            cp -v target/aarch64-linux-android/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}
           elif ${{ contains(matrix.os, 'custom-runner-mac-m1') }}; then
             lipo -create -output ${{ env.ARTIFACT_DIR }}/nym-vpn-cli target/release/nym-vpn-cli target/x86_64-apple-darwin/release/nym-vpn-cli
           elif ${{ matrix.os == 'macos-14' && matrix.target == 'native' }}; then
             lipo -create -output ${{ env.ARTIFACT_DIR }}/nym-vpn-cli target/release/nym-vpn-cli target/x86_64-apple-darwin/release/nym-vpn-cli
           elif ${{ matrix.target == 'ios' }}; then
-            cp -R nym-vpn-lib/NymVpnLib/RustFramework.xcframework ${{ env.ARTIFACT_DIR }}
+            cp -R -v nym-vpn-lib/NymVpnLib/RustFramework.xcframework ${{ env.ARTIFACT_DIR }}
+          elif ${{ contains(matrix.os, 'ubuntu') && matrix.target == 'native' }}; then
+            cp -v target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
+            cp -v target/release/nym-vpnc ${{ env.ARTIFACT_DIR }}
+            cp -v target/release/nym-vpnd ${{ env.ARTIFACT_DIR }}
           else
-            cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
+            cp -v target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
           fi
           if ${{ contains(matrix.target, 'ios') }}; then
             zip -r ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
@@ -392,12 +396,8 @@ jobs:
         env:
           DEBIAN_PACKAGES: debian-packages
         run: |
-          ls -al
           rmdir nym-vpn-*.zip || true
           rmdir nym-vpn-*.tar.gz || true
-          for dir in *tar.gz; do echo " -- Printing: $dir"; ls -al $dir; done
-          for dir in *zip; do echo $dir; ls -al $dir; done
-          echo " -- Printing: $DEBIAN_PACKAGES"; ls -al $DEBIAN_PACKAGES
           for dir in nym-vpn-*tar.gz; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           for dir in nym-vpn-*zip; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           pushd $DEBIAN_PACKAGES; for f in *deb; do sha256sum ${f} > "${f}.sha256sum"; done; popd
