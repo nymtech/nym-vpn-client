@@ -462,7 +462,7 @@ jobs:
           pushd $DEB_DIR
           echo deb-dir
           ls -al
-          for f in nym-vpn*.deb; do sha256sum {f} > ${f}.sha256sum; done
+          for f in nym-vpn*.deb; do sha256sum ${f} > ${f}.sha256sum; done
           popd
           rmdir nym-vpn-desktop_*tar.gz || true
           ls -d nym-vpn-desktop_*tar.gz
