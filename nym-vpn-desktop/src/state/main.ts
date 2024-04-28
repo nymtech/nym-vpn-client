@@ -81,6 +81,8 @@ export const initialState: AppState = {
   rootFontSize: DefaultRootFontSize,
   codeDepsRust: [],
   codeDepsJs: [],
+  fetchEntryCountries: async () => {},
+  fetchExitCountries: async () => {},
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
