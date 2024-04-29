@@ -131,7 +131,7 @@ jobs:
             exit 1
           fi
           if ${{ contains(matrix.target, 'android') || contains(matrix.target, 'ios') }}; then
-            artifact_dir="nym-vpn-lib_${{ steps.package-version.outputs.metadata }}_$platform_arch"
+            artifact_dir="nym-vpn-lib_${{ steps.package-version.outputs.metadata }}"
           else
             artifact_dir="nym-vpn-cli_${{ steps.package-version.outputs.metadata }}_$platform_arch"
           fi
@@ -269,7 +269,7 @@ jobs:
         if: contains(matrix.target, 'android')
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
-        run: (cd nym-vpn-lib; cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --release)
+        run: (cd nym-vpn-lib; cargo ndk -t arm64-v8a -t armeabi-v7a -o ../target/releases build --release)
 
       - name: Build deb packages
         if: contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
@@ -291,7 +291,8 @@ jobs:
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
           if ${{ contains(matrix.target, 'android') }}; then
-            cp -v target/aarch64-linux-android/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}
+            cp -v target/arm64-v8a/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}/_arm64-v8a
+            cp -v target/armeabi-v7a/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}/_armeabi-v7a
           elif ${{ contains(matrix.os, 'custom-runner-mac-m1') }}; then
             lipo -create -output ${{ env.ARTIFACT_DIR }}/nym-vpn-cli target/release/nym-vpn-cli target/x86_64-apple-darwin/release/nym-vpn-cli
           elif ${{ matrix.os == 'macos-14' && matrix.target == 'native' }}; then

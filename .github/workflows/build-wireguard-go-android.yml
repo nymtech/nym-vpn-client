@@ -28,7 +28,13 @@ jobs:
           image: quay.io/mullvad/mullvad-android-app-build@sha256:afa84a78b428163b4585d04259fad801df2ebf5ab079f53b3a90892afd18dd9f
           options: --rm -v ${{ github.workspace }}/workspace:/workspace --env ANDROID_NDK_HOME="/opt/android/android-ndk-r20b"
           run: /workspace/wireguard/libwg/build-android.sh
-
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wireguard-go_armv7-linux-androideabi
+          path: |
+            workspace/build/lib/armv7-linux-androideabi
+          retention-days: 1
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
