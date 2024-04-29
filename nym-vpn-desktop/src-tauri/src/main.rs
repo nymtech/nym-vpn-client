@@ -3,19 +3,6 @@
 
 use std::{env, sync::Arc};
 
-use anyhow::{anyhow, Result};
-use clap::Parser;
-use tauri::{api::path::config_dir, Manager};
-use tokio::sync::Mutex;
-use tracing::{debug, error, info, trace};
-
-use commands::db as cmd_db;
-use commands::window as cmd_window;
-use commands::*;
-use states::app::AppState;
-
-use crate::fs::path::BACKEND_DATA_PATH;
-use crate::fs::util::check_dir;
 use crate::window::WindowSize;
 use crate::{
     cli::{print_build_info, Cli},
@@ -24,6 +11,16 @@ use crate::{
     grpc::client::GrpcClient,
     network::setup_network_env,
 };
+
+use anyhow::{anyhow, Result};
+use clap::Parser;
+use commands::db as cmd_db;
+use commands::window as cmd_window;
+use commands::*;
+use states::app::AppState;
+use tauri::{api::path::config_dir, Manager};
+use tokio::sync::Mutex;
+use tracing::{debug, error, info, trace};
 
 mod cli;
 mod commands;
@@ -102,13 +99,6 @@ async fn main() -> Result<()> {
         error!("failed to create app state from saved app data and config: {e}");
         e
     })?;
-
-    // initialize backend data directory
-    check_dir(&BACKEND_DATA_PATH).await?;
-    debug!(
-        "using path for backend data: {}",
-        BACKEND_DATA_PATH.to_string_lossy()
-    );
 
     let mut grpc_client = GrpcClient::new("http://[::1]:4000");
     // try to connect to the gRPC server, if it succeeds, the

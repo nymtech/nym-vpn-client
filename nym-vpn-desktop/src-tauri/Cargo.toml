@@ -36,6 +36,7 @@ build-info = "0.0.34"
 sled = "0.34.7"
 strum = { version = "0.26", features = ["derive"] }
 tonic =  { version = "0.11", features = ["channel"] }
+bs58 = "0.5.1"
 
 # TODO Ugly workaround to force a working setup for nym-vpn-lib
 # We should get rid of this ASAP
