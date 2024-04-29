@@ -1072,7 +1072,8 @@ data class VpnConfig (
     var `explorerUrl`: Url, 
     var `entryGateway`: EntryPoint, 
     var `exitRouter`: ExitPoint, 
-    var `enableTwoHop`: kotlin.Boolean
+    var `enableTwoHop`: kotlin.Boolean, 
+    var `credentialDataPath`: PathBuf?
 ) {
     
     companion object
@@ -1086,6 +1087,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeEntryPoint.read(buf),
             FfiConverterTypeExitPoint.read(buf),
             FfiConverterBoolean.read(buf),
+            FfiConverterOptionalTypePathBuf.read(buf),
         )
     }
 
@@ -1094,7 +1096,8 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeUrl.allocationSize(value.`explorerUrl`) +
             FfiConverterTypeEntryPoint.allocationSize(value.`entryGateway`) +
             FfiConverterTypeExitPoint.allocationSize(value.`exitRouter`) +
-            FfiConverterBoolean.allocationSize(value.`enableTwoHop`)
+            FfiConverterBoolean.allocationSize(value.`enableTwoHop`) +
+            FfiConverterOptionalTypePathBuf.allocationSize(value.`credentialDataPath`)
     )
 
     override fun write(value: VpnConfig, buf: ByteBuffer) {
@@ -1103,6 +1106,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeEntryPoint.write(value.`entryGateway`, buf)
             FfiConverterTypeExitPoint.write(value.`exitRouter`, buf)
             FfiConverterBoolean.write(value.`enableTwoHop`, buf)
+            FfiConverterOptionalTypePathBuf.write(value.`credentialDataPath`, buf)
     }
 }
 
@@ -1532,6 +1536,35 @@ public object FfiConverterOptionalDouble: FfiConverterRustBuffer<kotlin.Double?>
 
 
 
+public object FfiConverterOptionalTypePathBuf: FfiConverterRustBuffer<PathBuf?> {
+    override fun read(buf: ByteBuffer): PathBuf? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypePathBuf.read(buf)
+    }
+
+    override fun allocationSize(value: PathBuf?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypePathBuf.allocationSize(value)
+        }
+    }
+
+    override fun write(value: PathBuf?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypePathBuf.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeUrl: FfiConverterRustBuffer<Url?> {
     override fun read(buf: ByteBuffer): Url? {
         if (buf.get().toInt() == 0) {
@@ -1592,6 +1625,16 @@ public object FfiConverterSequenceTypeLocation: FfiConverterRustBuffer<List<Loca
  */
 public typealias NodeIdentity = kotlin.String
 public typealias FfiConverterTypeNodeIdentity = FfiConverterString
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias PathBuf = kotlin.String
+public typealias FfiConverterTypePathBuf = FfiConverterString
 
 
 
