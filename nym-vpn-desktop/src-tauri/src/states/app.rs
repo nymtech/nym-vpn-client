@@ -5,7 +5,6 @@ use nym_vpn_lib::NymVpnCtrlMessage;
 use nym_vpn_proto::ConnectionStatus;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
-use tracing::trace;
 use ts_rs::TS;
 
 use crate::{
@@ -62,16 +61,7 @@ pub struct AppState {
     pub connection_start_time: Option<OffsetDateTime>,
     pub vpn_ctrl_tx: Option<UnboundedSender<NymVpnCtrlMessage>>,
     pub dns_server: Option<String>,
-}
-
-impl AppState {
-    pub fn set_connected(&mut self, start_time: OffsetDateTime, _gateway: String) {
-        trace!("update connection state [Connected]");
-        // TODO: once the frontend can handle it, set the gateway as part of the connection state
-        //self.state = ConnectionState::Connected(ConnectionInfo { gateway });
-        self.state = ConnectionState::Connected;
-        self.connection_start_time = Some(start_time);
-    }
+    pub vpn_status_watchdog: Option<tokio::task::JoinHandle<()>>,
 }
 
 impl TryFrom<(&Db, &AppConfig, &Cli)> for AppState {
@@ -124,6 +114,8 @@ impl From<ConnectionStatus> for ConnectionState {
             ConnectionStatus::Disconnecting => ConnectionState::Disconnecting,
             ConnectionStatus::Unknown => ConnectionState::Unknown,
             ConnectionStatus::StatusUnspecified => ConnectionState::Unknown,
+            // this variant means "Not connected, but with an error"
+            // so it should be treated as disconnected
             ConnectionStatus::ConnectionFailed => ConnectionState::Disconnected,
         }
     }

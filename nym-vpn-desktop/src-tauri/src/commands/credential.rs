@@ -14,11 +14,11 @@ use crate::{
 #[tauri::command]
 pub async fn add_credential(
     credential: String,
-    grpc_client_state: State<'_, Arc<GrpcClient>>,
+    grpc_client: State<'_, Arc<GrpcClient>>,
 ) -> Result<(), CmdError> {
     debug!("add_credential");
 
-    let mut grpc_client = grpc_client_state.client().map_err(|_| {
+    let mut vpnd = grpc_client.vpnd().map_err(|_| {
         error!("not connected to nym daemon");
         CmdError::new(CmdErrorSource::DaemonError, "not connected to nym daemon")
     })?;
@@ -29,16 +29,13 @@ pub async fn add_credential(
             CmdError::new(CmdErrorSource::CallerError, "bad credential format")
         })?,
     });
-    let response = grpc_client
-        .import_user_credential(request)
-        .await
-        .map_err(|e| {
-            error!("grpc error: {}", e);
-            CmdError::new(
-                CmdErrorSource::DaemonError,
-                &format!("failed to import user credential: {e}"),
-            )
-        })?;
+    let response = vpnd.import_user_credential(request).await.map_err(|e| {
+        error!("grpc error: {}", e);
+        CmdError::new(
+            CmdErrorSource::DaemonError,
+            &format!("failed to import user credential: {e}"),
+        )
+    })?;
 
     match response.get_ref().success {
         true => {

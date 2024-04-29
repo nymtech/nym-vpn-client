@@ -31,7 +31,7 @@ pub struct Cli {
     pub daemon: Option<String>,
 
     /// IP address of the DNS server to use when connected to the VPN
-    #[arg(short, long)]
+    #[arg(short = 'D', long)]
     pub dns: Option<String>,
 }
 

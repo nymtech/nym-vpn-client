@@ -33,7 +33,7 @@ mod gateway;
 mod grpc;
 mod network;
 mod states;
-mod vpn_client;
+mod vpnd;
 mod window;
 
 pub const APP_DIR: &str = "nym-vpn";
@@ -112,7 +112,7 @@ async fn main() -> Result<()> {
         .manage(Arc::new(app_config))
         .manage(Arc::new(cli.clone()))
         .manage(db.clone())
-        .manage(Arc::new(grpc_client))
+        .manage(Arc::new(grpc_client.clone()))
         .setup(move |app| {
             info!("app setup");
 
@@ -140,6 +140,12 @@ async fn main() -> Result<()> {
 
                 main_win.show().expect("failed to show main window");
             }
+
+            let handle = app.handle();
+            tokio::spawn(async move {
+                vpnd::vpn_status_watchdog(&handle, &grpc_client).await.ok();
+            });
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

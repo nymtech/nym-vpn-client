@@ -2,6 +2,7 @@ use crate::country::FASTEST_NODE_LOCATION;
 use crate::db::{Db, Key};
 use crate::grpc::client::GrpcClient;
 use crate::states::app::NodeLocation;
+use crate::vpnd;
 use crate::{
     error::{CmdError, CmdErrorSource},
     events::{AppHandleEventEmitter, ConnectProgressMsg},
@@ -24,17 +25,17 @@ use tracing::{debug, error, info, instrument, trace};
 #[tauri::command]
 pub async fn get_connection_state(
     state: State<'_, SharedAppState>,
-    grpc_client_state: State<'_, Arc<GrpcClient>>,
+    grpc_client: State<'_, Arc<GrpcClient>>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("get_connection_state");
 
-    let mut grpc_client = grpc_client_state.client().map_err(|_| {
+    let mut vpnd = grpc_client.vpnd().map_err(|_| {
         error!("not connected to nym daemon");
         CmdError::new(CmdErrorSource::DaemonError, "not connected to nym daemon")
     })?;
 
     let request = Request::new(StatusRequest {});
-    let response = grpc_client.vpn_status(request).await.map_err(|e| {
+    let response = vpnd.vpn_status(request).await.map_err(|e| {
         error!("grpc vpn_status: {}", e);
         CmdError::new(
             CmdErrorSource::DaemonError,
@@ -51,14 +52,34 @@ pub async fn get_connection_state(
 
 #[instrument(skip_all)]
 #[tauri::command]
+pub async fn start_vpn_status_watchdog(
+    app: tauri::AppHandle,
+    grpc_client: State<'_, Arc<GrpcClient>>,
+) -> Result<(), CmdError> {
+    debug!("start_vpn_status_watchdog");
+
+    vpnd::vpn_status_watchdog(&app, grpc_client.inner().as_ref())
+        .await
+        .map_err(|e| {
+            error!("vpn_status_watchdog: {}", e);
+            CmdError::new(
+                CmdErrorSource::DaemonError,
+                &format!("failed to start vpn status watchdog: {e}"),
+            )
+        })?;
+    Ok(())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
 pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
-    grpc_client_state: State<'_, Arc<GrpcClient>>,
+    grpc_client: State<'_, Arc<GrpcClient>>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("connect");
 
-    let mut grpc_client = grpc_client_state.client().map_err(|_| {
+    let mut vpnd = grpc_client.vpnd().map_err(|_| {
         error!("not connected to nym daemon");
         CmdError::new(CmdErrorSource::DaemonError, "not connected to nym daemon")
     })?;
@@ -148,7 +169,7 @@ pub async fn connect(
     });
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
-    let response = grpc_client.vpn_connect(request).await.map_err(|e| {
+    let response = vpnd.vpn_connect(request).await.map_err(|e| {
         let error_msg = format!("failed to connect: {e}");
         error!("grpc vpn_connect: {}", e);
         debug!("update connection state [Disconnected]");
@@ -166,7 +187,7 @@ pub async fn connect(
 pub async fn disconnect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
-    grpc_client_state: State<'_, Arc<GrpcClient>>,
+    grpc_client: State<'_, Arc<GrpcClient>>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("disconnect");
     let mut app_state = state.lock().await;
@@ -177,7 +198,7 @@ pub async fn disconnect(
         ));
     };
 
-    let mut grpc_client = grpc_client_state.client().map_err(|_| {
+    let mut vpnd = grpc_client.vpnd().map_err(|_| {
         error!("not connected to nym daemon");
         CmdError::new(CmdErrorSource::DaemonError, "not connected to nym daemon")
     })?;
@@ -188,7 +209,7 @@ pub async fn disconnect(
     app.emit_disconnecting();
 
     let request = Request::new(DisconnectRequest {});
-    let response = grpc_client.vpn_disconnect(request).await.map_err(|e| {
+    let response = vpnd.vpn_disconnect(request).await.map_err(|e| {
         let error_msg = format!("failed to disconnect: {e}");
         error!("grpc vpn_disconnect: {}", e);
         // TODO handle error properly

@@ -1,24 +1,33 @@
 use anyhow::{anyhow, Result};
-use nym_vpn_proto::nym_vpnd_client::NymVpndClient;
+use nym_vpn_proto::{health_client::HealthClient, nym_vpnd_client::NymVpndClient};
 use tonic::transport::Channel;
 use tracing::error;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct GrpcClient {
-    pub client: Option<NymVpndClient<Channel>>,
+    pub vpnd: Option<NymVpndClient<Channel>>,
+    pub health: Option<HealthClient<Channel>>,
     pub endpoint: String,
 }
 
 impl GrpcClient {
     pub fn new(address: &str) -> Self {
         Self {
-            client: None,
+            vpnd: None,
+            health: None,
             endpoint: address.to_string(),
         }
     }
 
     pub async fn try_connect(&mut self) -> Result<()> {
-        self.client = Some(
+        self.health = Some(
+            HealthClient::connect(self.endpoint.clone())
+                .await
+                .inspect_err(|e| {
+                    error!("failed to connect to the daemon: {:?}", e);
+                })?,
+        );
+        self.vpnd = Some(
             NymVpndClient::connect(self.endpoint.clone())
                 .await
                 .inspect_err(|e| {
@@ -28,9 +37,17 @@ impl GrpcClient {
         Ok(())
     }
 
-    pub fn client(&self) -> Result<NymVpndClient<Channel>> {
+    pub fn vpnd(&self) -> Result<NymVpndClient<Channel>> {
         let client = self
-            .client
+            .vpnd
+            .clone()
+            .ok_or_else(|| anyhow!("gRPC client not connected"))?;
+        Ok(client)
+    }
+
+    pub fn health(&self) -> Result<HealthClient<Channel>> {
+        let client = self
+            .health
             .clone()
             .ok_or_else(|| anyhow!("gRPC client not connected"))?;
         Ok(client)
