@@ -1,7 +1,6 @@
-import { useCallback } from 'react';
-import * as _ from 'lodash-es';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useThrottle } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import {
@@ -37,24 +36,13 @@ function Settings() {
   };
 
   // notify the user at most once per every 10s when he toggles monitoring
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const showMonitoringAlert = useCallback(
-    _.throttle(
-      () => {
-        push({
-          text: t('monitoring-alert'),
-          position: 'top',
-          closeIcon: true,
-        });
-      },
-      ThrottleDelay,
-      {
-        leading: true,
-        trailing: false,
-      },
-    ),
-    [],
-  );
+  const showMonitoringAlert = useThrottle(() => {
+    push({
+      text: t('monitoring-alert'),
+      position: 'top',
+      closeIcon: true,
+    });
+  }, ThrottleDelay);
 
   const handleMonitoringChanged = async () => {
     const isChecked = !monitoring;
