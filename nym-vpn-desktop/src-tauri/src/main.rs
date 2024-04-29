@@ -98,7 +98,7 @@ async fn main() -> Result<()> {
     info!("Creating k/v embedded db");
     let db = Db::new()?;
 
-    let app_state = AppState::try_from((&db, &app_config)).map_err(|e| {
+    let app_state = AppState::try_from((&db, &app_config, &cli)).map_err(|e| {
         error!("failed to create app state from saved app data and config: {e}");
         e
     })?;

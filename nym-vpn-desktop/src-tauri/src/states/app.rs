@@ -1,5 +1,6 @@
 use std::fmt;
 
+use anyhow::anyhow;
 use futures::channel::mpsc::UnboundedSender;
 use nym_vpn_lib::NymVpnCtrlMessage;
 use nym_vpn_proto::ConnectionStatus;
@@ -9,7 +10,8 @@ use tracing::trace;
 use ts_rs::TS;
 
 use crate::{
-    country::{Country, DEFAULT_ENTRY_COUNTRY, DEFAULT_EXIT_COUNTRY},
+    cli::Cli,
+    country::{Country, DEFAULT_COUNTRY_CODE},
     db::{Db, Key},
     fs::config::AppConfig,
 };
@@ -60,6 +62,7 @@ pub struct AppState {
     pub tunnel: Option<TunnelConfig>,
     pub connection_start_time: Option<OffsetDateTime>,
     pub vpn_ctrl_tx: Option<UnboundedSender<NymVpnCtrlMessage>>,
+    pub dns_server: Option<String>,
 }
 
 impl AppState {
@@ -72,23 +75,45 @@ impl AppState {
     }
 }
 
-impl TryFrom<(&Db, &AppConfig)> for AppState {
+impl TryFrom<(&Db, &AppConfig, &Cli)> for AppState {
     type Error = anyhow::Error;
 
-    fn try_from(store: (&Db, &AppConfig)) -> Result<Self, Self::Error> {
+    fn try_from(store: (&Db, &AppConfig, &Cli)) -> Result<Self, Self::Error> {
+        // retrieve default entry and exit node locations set from
+        // the config file
+        let default_entry_node_location = Country::try_from(
+            store
+                .1
+                .default_entry_node_location_code
+                .as_deref()
+                .unwrap_or(DEFAULT_COUNTRY_CODE),
+        )
+        .map_err(|e| anyhow!("failed to retrieve default entry node location: {e}"))?;
+
+        let default_exit_node_location = Country::try_from(
+            store
+                .1
+                .default_exit_node_location_code
+                .as_deref()
+                .unwrap_or(DEFAULT_COUNTRY_CODE),
+        )
+        .map_err(|e| anyhow!("failed to retrieve default exit node location: {e}"))?;
+
         // retrieve the saved app data from the embedded db
         let entry_node_location = store.0.get_typed::<NodeLocation>(Key::EntryNodeLocation)?;
         let exit_node_location = store.0.get_typed::<NodeLocation>(Key::ExitNodeLocation)?;
         let vpn_mode = store.0.get_typed::<VpnMode>(Key::VpnMode)?;
+        let dns_server: Option<String> = store.2.dns.clone().or(store.1.dns_server.clone());
 
         // restore any state from the saved app data (previous user session)
         // fallback to config file for locations if not present
         Ok(AppState {
             entry_node_location: entry_node_location
-                .unwrap_or(NodeLocation::Country(DEFAULT_ENTRY_COUNTRY.clone())),
+                .unwrap_or(NodeLocation::Country(default_entry_node_location)),
             exit_node_location: exit_node_location
-                .unwrap_or(NodeLocation::Country(DEFAULT_EXIT_COUNTRY.clone())),
+                .unwrap_or(NodeLocation::Country(default_exit_node_location)),
             vpn_mode: vpn_mode.unwrap_or_default(),
+            dns_server,
             ..Default::default()
         })
     }

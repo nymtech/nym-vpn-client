@@ -29,6 +29,10 @@ pub struct Cli {
     /// Address of NymVpn daemon to connect to (gRPC server endpoint)
     #[arg(short, long)]
     pub daemon: Option<String>,
+
+    /// IP address of the DNS server to use when connected to the VPN
+    #[arg(short, long)]
+    pub dns: Option<String>,
 }
 
 pub fn print_build_info(package_info: &PackageInfo) {

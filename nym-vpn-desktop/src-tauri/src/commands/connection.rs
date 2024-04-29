@@ -141,7 +141,10 @@ pub async fn connect(
         enable_poisson_rate: false,
         disable_background_cover_traffic: false,
         enable_credentials_mode: true,
-        dns: None,
+        dns: app_state
+            .dns_server
+            .clone()
+            .map(|ip| nym_vpn_proto::Dns { ip }),
     });
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
