@@ -1,6 +1,5 @@
 use std::fmt;
 
-use anyhow::anyhow;
 use futures::channel::mpsc::UnboundedSender;
 use nym_vpn_lib::NymVpnCtrlMessage;
 use nym_vpn_proto::ConnectionStatus;
@@ -11,7 +10,7 @@ use ts_rs::TS;
 
 use crate::{
     cli::Cli,
-    country::{Country, DEFAULT_COUNTRY_CODE},
+    country::{Country, DEFAULT_ENTRY_COUNTRY, DEFAULT_EXIT_COUNTRY},
     db::{Db, Key},
     fs::config::AppConfig,
 };
@@ -79,26 +78,6 @@ impl TryFrom<(&Db, &AppConfig, &Cli)> for AppState {
     type Error = anyhow::Error;
 
     fn try_from(store: (&Db, &AppConfig, &Cli)) -> Result<Self, Self::Error> {
-        // retrieve default entry and exit node locations set from
-        // the config file
-        let default_entry_node_location = Country::try_from(
-            store
-                .1
-                .default_entry_node_location_code
-                .as_deref()
-                .unwrap_or(DEFAULT_COUNTRY_CODE),
-        )
-        .map_err(|e| anyhow!("failed to retrieve default entry node location: {e}"))?;
-
-        let default_exit_node_location = Country::try_from(
-            store
-                .1
-                .default_exit_node_location_code
-                .as_deref()
-                .unwrap_or(DEFAULT_COUNTRY_CODE),
-        )
-        .map_err(|e| anyhow!("failed to retrieve default exit node location: {e}"))?;
-
         // retrieve the saved app data from the embedded db
         let entry_node_location = store.0.get_typed::<NodeLocation>(Key::EntryNodeLocation)?;
         let exit_node_location = store.0.get_typed::<NodeLocation>(Key::ExitNodeLocation)?;
@@ -109,9 +88,9 @@ impl TryFrom<(&Db, &AppConfig, &Cli)> for AppState {
         // fallback to config file for locations if not present
         Ok(AppState {
             entry_node_location: entry_node_location
-                .unwrap_or(NodeLocation::Country(default_entry_node_location)),
+                .unwrap_or(NodeLocation::Country(DEFAULT_ENTRY_COUNTRY.clone())),
             exit_node_location: exit_node_location
-                .unwrap_or(NodeLocation::Country(default_exit_node_location)),
+                .unwrap_or(NodeLocation::Country(DEFAULT_EXIT_COUNTRY.clone())),
             vpn_mode: vpn_mode.unwrap_or_default(),
             dns_server,
             ..Default::default()
