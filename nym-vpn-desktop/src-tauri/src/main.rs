@@ -42,7 +42,6 @@ mod window;
 pub const APP_DIR: &str = "nym-vpn";
 const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
-const ENV_DISABLE_DATA_STORAGE: &str = "APP_DISABLE_DATA_STORAGE";
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()

@@ -29,9 +29,8 @@ pub async fn get_connection_state(
     debug!("get_connection_state");
 
     let mut grpc_client = grpc_client_state.client().map_err(|_| {
-        let error_msg = "not connected to nym daemon".to_string();
-        error!(error_msg);
-        CmdError::new(CmdErrorSource::DaemonError, error_msg)
+        error!("not connected to nym daemon");
+        CmdError::new(CmdErrorSource::DaemonError, "not connected to nym daemon")
     })?;
 
     let request = Request::new(StatusRequest {});
@@ -39,7 +38,7 @@ pub async fn get_connection_state(
         error!("grpc vpn_status: {}", e);
         CmdError::new(
             CmdErrorSource::DaemonError,
-            format!("failed to get connection status: {e}"),
+            &format!("failed to get connection status: {e}"),
         )
     })?;
     debug!("grpc response: {:?}", response);
@@ -61,10 +60,7 @@ pub async fn connect(
 
     let mut grpc_client = grpc_client_state.client().map_err(|_| {
         error!("not connected to nym daemon");
-        CmdError::new(
-            CmdErrorSource::DaemonError,
-            "not connected to nym daemon".to_string(),
-        )
+        CmdError::new(CmdErrorSource::DaemonError, "not connected to nym daemon")
     })?;
 
     {
@@ -145,6 +141,7 @@ pub async fn connect(
         enable_poisson_rate: false,
         disable_background_cover_traffic: false,
         enable_credentials_mode: true,
+        dns: None,
     });
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
@@ -154,7 +151,7 @@ pub async fn connect(
         debug!("update connection state [Disconnected]");
         app_state.state = ConnectionState::Disconnected;
         app.emit_disconnected(Some(error_msg.clone()));
-        CmdError::new(CmdErrorSource::DaemonError, error_msg)
+        CmdError::new(CmdErrorSource::DaemonError, &error_msg)
     })?;
     debug!("grpc response: {:?}", response);
 
@@ -178,9 +175,8 @@ pub async fn disconnect(
     };
 
     let mut grpc_client = grpc_client_state.client().map_err(|_| {
-        let error_msg = "not connected to nym daemon".to_string();
-        error!(error_msg);
-        CmdError::new(CmdErrorSource::DaemonError, error_msg)
+        error!("not connected to nym daemon");
+        CmdError::new(CmdErrorSource::DaemonError, "not connected to nym daemon")
     })?;
 
     // switch to "Disconnecting" state
@@ -195,7 +191,7 @@ pub async fn disconnect(
         // TODO handle error properly
         // just switch back to "Connected" state for now
         app_state.state = ConnectionState::Connected;
-        CmdError::new(CmdErrorSource::DaemonError, error_msg)
+        CmdError::new(CmdErrorSource::DaemonError, &error_msg)
     })?;
     debug!("grpc response: {:?}", response);
 

@@ -120,6 +120,7 @@ impl From<ConnectionStatus> for ConnectionState {
             ConnectionStatus::Disconnecting => ConnectionState::Disconnecting,
             ConnectionStatus::Unknown => ConnectionState::Unknown,
             ConnectionStatus::StatusUnspecified => ConnectionState::Unknown,
+            ConnectionStatus::ConnectionFailed => ConnectionState::Disconnected,
         }
     }
 }
