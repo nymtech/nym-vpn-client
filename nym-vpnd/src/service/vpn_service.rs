@@ -202,7 +202,7 @@ impl NymVpnService {
         nym_vpn.vpn_config.mixnet_data_path = Some(self.data_dir.clone());
         nym_vpn.dns = options.dns;
         nym_vpn.disable_routing = options.disable_routing;
-        nym_vpn.enable_two_hop = options.enable_two_hop;
+        nym_vpn.vpn_config.enable_two_hop = options.enable_two_hop;
         nym_vpn.vpn_config.enable_poisson_rate = options.enable_poisson_rate;
         nym_vpn.vpn_config.disable_background_cover_traffic =
             options.disable_background_cover_traffic;

@@ -754,6 +754,55 @@ public func FfiConverterTypeLocation_lower(_ value: Location) -> RustBuffer {
 }
 
 
+public struct MixnetConfig {
+    public var enableTwoHop: Bool
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(enableTwoHop: Bool) {
+        self.enableTwoHop = enableTwoHop
+    }
+}
+
+
+
+extension MixnetConfig: Equatable, Hashable {
+    public static func ==(lhs: MixnetConfig, rhs: MixnetConfig) -> Bool {
+        if lhs.enableTwoHop != rhs.enableTwoHop {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(enableTwoHop)
+    }
+}
+
+
+public struct FfiConverterTypeMixnetConfig: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MixnetConfig {
+        return
+            try MixnetConfig(
+                enableTwoHop: FfiConverterBool.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: MixnetConfig, into buf: inout [UInt8]) {
+        FfiConverterBool.write(value.enableTwoHop, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeMixnetConfig_lift(_ buf: RustBuffer) throws -> MixnetConfig {
+    return try FfiConverterTypeMixnetConfig.lift(buf)
+}
+
+public func FfiConverterTypeMixnetConfig_lower(_ value: MixnetConfig) -> RustBuffer {
+    return FfiConverterTypeMixnetConfig.lower(value)
+}
+
+
 public struct NymConfig {
     public var ipv4Addr: Ipv4Addr
     public var ipv6Addr: Ipv6Addr
@@ -962,17 +1011,17 @@ public struct VpnConfig {
     public var explorerUrl: Url
     public var entryGateway: EntryPoint
     public var exitRouter: ExitPoint
-    public var enableTwoHop: Bool
+    public var connectionConfig: ConnectionConfig
     public var tunProvider: OsTunProvider
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(apiUrl: Url, explorerUrl: Url, entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider) {
+    public init(apiUrl: Url, explorerUrl: Url, entryGateway: EntryPoint, exitRouter: ExitPoint, connectionConfig: ConnectionConfig, tunProvider: OsTunProvider) {
         self.apiUrl = apiUrl
         self.explorerUrl = explorerUrl
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
-        self.enableTwoHop = enableTwoHop
+        self.connectionConfig = connectionConfig
         self.tunProvider = tunProvider
     }
 }
@@ -987,7 +1036,7 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
                 explorerUrl: FfiConverterTypeUrl.read(from: &buf), 
                 entryGateway: FfiConverterTypeEntryPoint.read(from: &buf), 
                 exitRouter: FfiConverterTypeExitPoint.read(from: &buf), 
-                enableTwoHop: FfiConverterBool.read(from: &buf), 
+                connectionConfig: FfiConverterTypeConnectionConfig.read(from: &buf), 
                 tunProvider: FfiConverterTypeOSTunProvider.read(from: &buf)
         )
     }
@@ -997,7 +1046,7 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
         FfiConverterTypeUrl.write(value.explorerUrl, into: &buf)
         FfiConverterTypeEntryPoint.write(value.entryGateway, into: &buf)
         FfiConverterTypeExitPoint.write(value.exitRouter, into: &buf)
-        FfiConverterBool.write(value.enableTwoHop, into: &buf)
+        FfiConverterTypeConnectionConfig.write(value.connectionConfig, into: &buf)
         FfiConverterTypeOSTunProvider.write(value.tunProvider, into: &buf)
     }
 }
@@ -1091,6 +1140,140 @@ public func FfiConverterTypeWgConfig_lift(_ buf: RustBuffer) throws -> WgConfig 
 public func FfiConverterTypeWgConfig_lower(_ value: WgConfig) -> RustBuffer {
     return FfiConverterTypeWgConfig.lower(value)
 }
+
+
+public struct WireguardConfig {
+    public var entryPrivateKey: PrivateKey
+    public var entryIp: Ipv4Addr
+    public var exitPrivateKey: PrivateKey
+    public var exitIp: Ipv4Addr
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(entryPrivateKey: PrivateKey, entryIp: Ipv4Addr, exitPrivateKey: PrivateKey, exitIp: Ipv4Addr) {
+        self.entryPrivateKey = entryPrivateKey
+        self.entryIp = entryIp
+        self.exitPrivateKey = exitPrivateKey
+        self.exitIp = exitIp
+    }
+}
+
+
+
+extension WireguardConfig: Equatable, Hashable {
+    public static func ==(lhs: WireguardConfig, rhs: WireguardConfig) -> Bool {
+        if lhs.entryPrivateKey != rhs.entryPrivateKey {
+            return false
+        }
+        if lhs.entryIp != rhs.entryIp {
+            return false
+        }
+        if lhs.exitPrivateKey != rhs.exitPrivateKey {
+            return false
+        }
+        if lhs.exitIp != rhs.exitIp {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(entryPrivateKey)
+        hasher.combine(entryIp)
+        hasher.combine(exitPrivateKey)
+        hasher.combine(exitIp)
+    }
+}
+
+
+public struct FfiConverterTypeWireguardConfig: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> WireguardConfig {
+        return
+            try WireguardConfig(
+                entryPrivateKey: FfiConverterTypePrivateKey.read(from: &buf), 
+                entryIp: FfiConverterTypeIpv4Addr.read(from: &buf), 
+                exitPrivateKey: FfiConverterTypePrivateKey.read(from: &buf), 
+                exitIp: FfiConverterTypeIpv4Addr.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: WireguardConfig, into buf: inout [UInt8]) {
+        FfiConverterTypePrivateKey.write(value.entryPrivateKey, into: &buf)
+        FfiConverterTypeIpv4Addr.write(value.entryIp, into: &buf)
+        FfiConverterTypePrivateKey.write(value.exitPrivateKey, into: &buf)
+        FfiConverterTypeIpv4Addr.write(value.exitIp, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeWireguardConfig_lift(_ buf: RustBuffer) throws -> WireguardConfig {
+    return try FfiConverterTypeWireguardConfig.lift(buf)
+}
+
+public func FfiConverterTypeWireguardConfig_lower(_ value: WireguardConfig) -> RustBuffer {
+    return FfiConverterTypeWireguardConfig.lower(value)
+}
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum ConnectionConfig {
+    
+    case mixnet(MixnetConfig
+    )
+    case wireguard(WireguardConfig
+    )
+}
+
+
+public struct FfiConverterTypeConnectionConfig: FfiConverterRustBuffer {
+    typealias SwiftType = ConnectionConfig
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ConnectionConfig {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .mixnet(try FfiConverterTypeMixnetConfig.read(from: &buf)
+        )
+        
+        case 2: return .wireguard(try FfiConverterTypeWireguardConfig.read(from: &buf)
+        )
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: ConnectionConfig, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case let .mixnet(v1):
+            writeInt(&buf, Int32(1))
+            FfiConverterTypeMixnetConfig.write(v1, into: &buf)
+            
+        
+        case let .wireguard(v1):
+            writeInt(&buf, Int32(2))
+            FfiConverterTypeWireguardConfig.write(v1, into: &buf)
+            
+        }
+    }
+}
+
+
+public func FfiConverterTypeConnectionConfig_lift(_ buf: RustBuffer) throws -> ConnectionConfig {
+    return try FfiConverterTypeConnectionConfig.lift(buf)
+}
+
+public func FfiConverterTypeConnectionConfig_lower(_ value: ConnectionConfig) -> RustBuffer {
+    return FfiConverterTypeConnectionConfig.lower(value)
+}
+
+
+
+extension ConnectionConfig: Equatable, Hashable {}
+
+
 
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.

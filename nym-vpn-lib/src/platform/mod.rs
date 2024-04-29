@@ -6,18 +6,21 @@ use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
 use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location};
 use crate::{
-    spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
+    spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
     NymVpnHandle, SpecificVpn,
 };
 use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
+use nym_gateway_directory::Config;
 use nym_task::manager::TaskStatus;
+use std::net::Ipv4Addr;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use talpid_core::mpsc::Sender;
+use talpid_types::net::wireguard::PrivateKey;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
 use url::Url;
@@ -103,35 +106,76 @@ async fn wait_for_shutdown(
 }
 
 #[derive(uniffi::Record)]
+pub struct MixnetConfig {
+    pub enable_two_hop: bool,
+}
+
+#[derive(uniffi::Record)]
+pub struct WireguardConfig {
+    pub entry_private_key: PrivateKey,
+    pub entry_ip: Ipv4Addr,
+    pub exit_private_key: PrivateKey,
+    pub exit_ip: Ipv4Addr,
+}
+
+#[derive(uniffi::Enum)]
+pub enum ConnectionConfig {
+    Mixnet(MixnetConfig),
+    Wireguard(WireguardConfig),
+}
+
+#[derive(uniffi::Record)]
 pub struct VPNConfig {
     pub api_url: Url,
     pub explorer_url: Url,
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
-    pub enable_two_hop: bool,
+    pub connection_config: ConnectionConfig,
     #[cfg(target_os = "ios")]
     pub tun_provider: Arc<dyn crate::OSTunProvider>,
 }
 
-fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
+fn sync_run_vpn(config: VPNConfig) -> Result<SpecificVpn, FFIError> {
     #[cfg(any(target_os = "ios", target_os = "macos"))]
     crate::platform::swift::init_logs();
 
     #[cfg(target_os = "android")]
     let context = crate::platform::android::get_context().ok_or(FFIError::NoContext)?;
 
-    let mut vpn = NymVpn::new_mixnet_vpn(
-        config.entry_gateway.into(),
-        config.exit_router.into(),
-        #[cfg(target_os = "android")]
-        context,
-        #[cfg(target_os = "ios")]
-        config.tun_provider,
-    );
-    vpn.gateway_config.api_url = config.api_url;
-    vpn.gateway_config.explorer_url = Some(config.explorer_url);
-    vpn.gateway_config.harbour_master_url = None;
-    vpn.enable_two_hop = config.enable_two_hop;
+    let mut vpn = match config.connection_config {
+        ConnectionConfig::Mixnet(mix_config) => {
+            let mut vpn = NymVpn::new_mixnet_vpn(
+                config.entry_gateway.into(),
+                config.exit_router.into(),
+                #[cfg(target_os = "android")]
+                context,
+                #[cfg(target_os = "ios")]
+                config.tun_provider,
+            );
+            vpn.vpn_config.enable_two_hop = mix_config.enable_two_hop;
+            SpecificVpn::Mix(vpn)
+        }
+        ConnectionConfig::Wireguard(wg_config) => {
+            let mut vpn = NymVpn::new_wireguard_vpn(
+                config.entry_gateway.into(),
+                config.exit_router.into(),
+                #[cfg(target_os = "android")]
+                context,
+                #[cfg(target_os = "ios")]
+                config.tun_provider,
+            );
+            vpn.vpn_config.entry_private_key = Some(wg_config.entry_private_key.to_string());
+            vpn.vpn_config.entry_wg_ip = Some(wg_config.entry_ip);
+            vpn.vpn_config.exit_private_key = Some(wg_config.exit_private_key.to_string());
+            vpn.vpn_config.exit_wg_ip = Some(wg_config.exit_ip);
+            SpecificVpn::Wg(vpn)
+        }
+    };
+    vpn.set_gateway_config(Config {
+        api_url: config.api_url,
+        explorer_url: Some(config.explorer_url),
+        harbour_master_url: None,
+    });
 
     Ok(vpn)
 }

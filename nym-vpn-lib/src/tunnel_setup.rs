@@ -275,7 +275,7 @@ async fn setup_mix_tunnel(
 pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> {
     // Create a gateway client that we use to interact with the entry gateway, in particular to
     // handle wireguard registration
-    let gateway_directory_client = GatewayClient::new(nym_vpn.gateway_config())?;
+    let gateway_directory_client = GatewayClient::new(nym_vpn.gateway_config().clone())?;
     let GatewayQueryResult {
         entry_gateways,
         exit_gateways,

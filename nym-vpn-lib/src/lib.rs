@@ -100,6 +100,10 @@ pub struct MixnetVpn {
 
     /// Enable the wireguard traffic between the client and the entry gateway.
     pub enable_credentials_mode: bool,
+
+    /// Enable two-hop mixnet traffic. This means that traffic jumps directly from entry gateway to
+    /// exit gateway.
+    pub enable_two_hop: bool,
 }
 
 pub struct WireguardVpn {
@@ -150,10 +154,6 @@ pub struct NymVpn<T: Vpn> {
 
     /// Mixnet recipient address.
     pub exit_point: ExitPoint,
-
-    /// Enable two-hop mixnet traffic. This means that traffic jumps directly from entry gateway to
-    /// exit gateway.
-    pub enable_two_hop: bool,
 
     /// VPN configuration, depending on the type used
     pub vpn_config: T,
@@ -210,7 +210,6 @@ impl NymVpn<WireguardVpn> {
             nym_mtu: None,
             dns: None,
             disable_routing: false,
-            enable_two_hop: false,
             vpn_config: WireguardVpn {
                 wg_gateway_config: WgConfig::default(),
                 entry_private_key: None,
@@ -252,12 +251,12 @@ impl NymVpn<MixnetVpn> {
             nym_mtu: None,
             dns: None,
             disable_routing: false,
-            enable_two_hop: false,
             vpn_config: MixnetVpn {
                 mixnet_data_path: None,
                 enable_poisson_rate: false,
                 disable_background_cover_traffic: false,
                 enable_credentials_mode: false,
+                enable_two_hop: false,
             },
             tun_provider,
             #[cfg(target_os = "ios")]
@@ -284,7 +283,7 @@ impl NymVpn<MixnetVpn> {
             mixnet_client.clone(),
             exit_router,
             self.nym_ips,
-            self.enable_two_hop,
+            self.vpn_config.enable_two_hop,
         )
         .await?;
         info!("Successfully connected to exit gateway");
@@ -333,7 +332,7 @@ impl NymVpn<MixnetVpn> {
             mixnet_tun_dev,
             mixnet_client,
             task_manager,
-            self.enable_two_hop,
+            self.vpn_config.enable_two_hop,
             our_ips,
             &connection_monitor,
         )
@@ -371,7 +370,7 @@ impl NymVpn<MixnetVpn> {
                 &self.vpn_config.mixnet_data_path,
                 task_manager.subscribe_named("mixnet_client_main"),
                 false,
-                self.enable_two_hop,
+                self.vpn_config.enable_two_hop,
                 self.vpn_config.enable_poisson_rate,
                 self.vpn_config.disable_background_cover_traffic,
                 self.vpn_config.enable_credentials_mode,
@@ -424,24 +423,31 @@ impl<T: Vpn> NymVpn<T> {
     }
 }
 impl SpecificVpn {
-    pub fn gateway_config(&self) -> Config {
+    pub fn gateway_config(&self) -> &Config {
         match self {
-            SpecificVpn::Wg(vpn) => vpn.gateway_config.clone(),
-            SpecificVpn::Mix(vpn) => vpn.gateway_config.clone(),
+            SpecificVpn::Wg(vpn) => &vpn.gateway_config,
+            SpecificVpn::Mix(vpn) => &vpn.gateway_config,
         }
     }
 
-    pub fn entry_point(&self) -> EntryPoint {
+    pub fn set_gateway_config(&mut self, config: Config) {
         match self {
-            SpecificVpn::Wg(vpn) => vpn.entry_point.clone(),
-            SpecificVpn::Mix(vpn) => vpn.entry_point.clone(),
+            SpecificVpn::Wg(vpn) => vpn.gateway_config = config,
+            SpecificVpn::Mix(vpn) => vpn.gateway_config = config,
         }
     }
 
-    pub fn exit_point(&self) -> ExitPoint {
+    pub fn entry_point(&self) -> &EntryPoint {
         match self {
-            SpecificVpn::Wg(vpn) => vpn.exit_point.clone(),
-            SpecificVpn::Mix(vpn) => vpn.exit_point.clone(),
+            SpecificVpn::Wg(vpn) => &vpn.entry_point,
+            SpecificVpn::Mix(vpn) => &vpn.entry_point,
+        }
+    }
+
+    pub fn exit_point(&self) -> &ExitPoint {
+        match self {
+            SpecificVpn::Wg(vpn) => &vpn.exit_point,
+            SpecificVpn::Mix(vpn) => &vpn.exit_point,
         }
     }
 

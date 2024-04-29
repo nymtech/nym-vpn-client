@@ -1067,12 +1067,37 @@ public object FfiConverterTypeLocation: FfiConverterRustBuffer<Location> {
 
 
 
+data class MixnetConfig (
+    var `enableTwoHop`: kotlin.Boolean
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeMixnetConfig: FfiConverterRustBuffer<MixnetConfig> {
+    override fun read(buf: ByteBuffer): MixnetConfig {
+        return MixnetConfig(
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: MixnetConfig) = (
+            FfiConverterBoolean.allocationSize(value.`enableTwoHop`)
+    )
+
+    override fun write(value: MixnetConfig, buf: ByteBuffer) {
+            FfiConverterBoolean.write(value.`enableTwoHop`, buf)
+    }
+}
+
+
+
 data class VpnConfig (
     var `apiUrl`: Url, 
     var `explorerUrl`: Url, 
     var `entryGateway`: EntryPoint, 
     var `exitRouter`: ExitPoint, 
-    var `enableTwoHop`: kotlin.Boolean
+    var `connectionConfig`: ConnectionConfig
 ) {
     
     companion object
@@ -1085,7 +1110,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeUrl.read(buf),
             FfiConverterTypeEntryPoint.read(buf),
             FfiConverterTypeExitPoint.read(buf),
-            FfiConverterBoolean.read(buf),
+            FfiConverterTypeConnectionConfig.read(buf),
         )
     }
 
@@ -1094,7 +1119,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeUrl.allocationSize(value.`explorerUrl`) +
             FfiConverterTypeEntryPoint.allocationSize(value.`entryGateway`) +
             FfiConverterTypeExitPoint.allocationSize(value.`exitRouter`) +
-            FfiConverterBoolean.allocationSize(value.`enableTwoHop`)
+            FfiConverterTypeConnectionConfig.allocationSize(value.`connectionConfig`)
     )
 
     override fun write(value: VpnConfig, buf: ByteBuffer) {
@@ -1102,9 +1127,113 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeUrl.write(value.`explorerUrl`, buf)
             FfiConverterTypeEntryPoint.write(value.`entryGateway`, buf)
             FfiConverterTypeExitPoint.write(value.`exitRouter`, buf)
-            FfiConverterBoolean.write(value.`enableTwoHop`, buf)
+            FfiConverterTypeConnectionConfig.write(value.`connectionConfig`, buf)
     }
 }
+
+
+
+data class WireguardConfig (
+    var `entryPrivateKey`: PrivateKey, 
+    var `entryIp`: Ipv4Addr, 
+    var `exitPrivateKey`: PrivateKey, 
+    var `exitIp`: Ipv4Addr
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeWireguardConfig: FfiConverterRustBuffer<WireguardConfig> {
+    override fun read(buf: ByteBuffer): WireguardConfig {
+        return WireguardConfig(
+            FfiConverterTypePrivateKey.read(buf),
+            FfiConverterTypeIpv4Addr.read(buf),
+            FfiConverterTypePrivateKey.read(buf),
+            FfiConverterTypeIpv4Addr.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: WireguardConfig) = (
+            FfiConverterTypePrivateKey.allocationSize(value.`entryPrivateKey`) +
+            FfiConverterTypeIpv4Addr.allocationSize(value.`entryIp`) +
+            FfiConverterTypePrivateKey.allocationSize(value.`exitPrivateKey`) +
+            FfiConverterTypeIpv4Addr.allocationSize(value.`exitIp`)
+    )
+
+    override fun write(value: WireguardConfig, buf: ByteBuffer) {
+            FfiConverterTypePrivateKey.write(value.`entryPrivateKey`, buf)
+            FfiConverterTypeIpv4Addr.write(value.`entryIp`, buf)
+            FfiConverterTypePrivateKey.write(value.`exitPrivateKey`, buf)
+            FfiConverterTypeIpv4Addr.write(value.`exitIp`, buf)
+    }
+}
+
+
+
+sealed class ConnectionConfig {
+    
+    data class Mixnet(
+        val v1: MixnetConfig) : ConnectionConfig() {
+        companion object
+    }
+    
+    data class Wireguard(
+        val v1: WireguardConfig) : ConnectionConfig() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeConnectionConfig : FfiConverterRustBuffer<ConnectionConfig>{
+    override fun read(buf: ByteBuffer): ConnectionConfig {
+        return when(buf.getInt()) {
+            1 -> ConnectionConfig.Mixnet(
+                FfiConverterTypeMixnetConfig.read(buf),
+                )
+            2 -> ConnectionConfig.Wireguard(
+                FfiConverterTypeWireguardConfig.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: ConnectionConfig) = when(value) {
+        is ConnectionConfig.Mixnet -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeMixnetConfig.allocationSize(value.v1)
+            )
+        }
+        is ConnectionConfig.Wireguard -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeWireguardConfig.allocationSize(value.v1)
+            )
+        }
+    }
+
+    override fun write(value: ConnectionConfig, buf: ByteBuffer) {
+        when(value) {
+            is ConnectionConfig.Mixnet -> {
+                buf.putInt(1)
+                FfiConverterTypeMixnetConfig.write(value.v1, buf)
+                Unit
+            }
+            is ConnectionConfig.Wireguard -> {
+                buf.putInt(2)
+                FfiConverterTypeWireguardConfig.write(value.v1, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
 
 
 
@@ -1590,8 +1719,28 @@ public object FfiConverterSequenceTypeLocation: FfiConverterRustBuffer<List<Loca
  * is needed because the UDL type name is used in function/method signatures.
  * It's also what we have an external type that references a custom type.
  */
+public typealias Ipv4Addr = kotlin.String
+public typealias FfiConverterTypeIpv4Addr = FfiConverterString
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
 public typealias NodeIdentity = kotlin.String
 public typealias FfiConverterTypeNodeIdentity = FfiConverterString
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias PrivateKey = kotlin.String
+public typealias FfiConverterTypePrivateKey = FfiConverterString
 
 
 
