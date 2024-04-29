@@ -1,8 +1,10 @@
 import { invoke } from '@tauri-apps/api';
-import React, { useEffect, useReducer } from 'react';
+import React, { useCallback, useEffect, useReducer } from 'react';
+import { CountryCacheDuration } from '../constants';
 import { MainDispatchContext, MainStateContext } from '../contexts';
 import { sleep } from '../helpers';
-import { Cli } from '../types';
+import { useThrottle } from '../hooks';
+import { Cli, Country, NodeHop } from '../types';
 import { initFirstBatch, initSecondBatch } from './init';
 import { initialState, reducer } from './main';
 import { useTauriEvents } from './useTauriEvents';
@@ -52,8 +54,37 @@ export function MainStateProvider({ children }: Props) {
     });
   }, []);
 
+  const fetchEntryCountries = useThrottle(
+    async () => fetchCountries('entry'),
+    CountryCacheDuration,
+  );
+
+  const fetchExitCountries = useThrottle(
+    async () => fetchCountries('exit'),
+    CountryCacheDuration,
+  );
+
+  const fetchCountries = useCallback(async (node: NodeHop) => {
+    try {
+      const countries = await invoke<Country[]>('get_countries', {
+        nodeType: node === 'entry' ? 'Entry' : 'Exit',
+      });
+      dispatch({
+        type: 'set-country-list',
+        payload: {
+          hop: node,
+          countries,
+        },
+      });
+    } catch (e) {
+      console.warn('Failed to fetch countries:', e);
+    }
+  }, []);
+
   return (
-    <MainStateContext.Provider value={state}>
+    <MainStateContext.Provider
+      value={{ ...state, fetchEntryCountries, fetchExitCountries }}
+    >
       <MainDispatchContext.Provider value={dispatch}>
         {children}
       </MainDispatchContext.Provider>
