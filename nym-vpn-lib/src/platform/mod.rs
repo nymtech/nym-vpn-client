@@ -111,6 +111,7 @@ pub struct VPNConfig {
     pub enable_two_hop: bool,
     #[cfg(target_os = "ios")]
     pub tun_provider: Arc<dyn crate::OSTunProvider>,
+    pub credential_data_path: Option<PathBuf>,
 }
 
 fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
@@ -120,6 +121,8 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
     #[cfg(target_os = "android")]
     let context = crate::platform::android::get_context().ok_or(FFIError::NoContext)?;
 
+    let credential_data_path = config.credential_data_path.clone();
+
     let mut vpn = NymVpn::new_mixnet_vpn(
         config.entry_gateway.into(),
         config.exit_router.into(),
@@ -127,12 +130,13 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
         context,
         #[cfg(target_os = "ios")]
         config.tun_provider,
+        credential_data_path,
     );
     vpn.gateway_config.api_url = config.api_url;
     vpn.gateway_config.explorer_url = Some(config.explorer_url);
     vpn.gateway_config.harbour_master_url = None;
     vpn.enable_two_hop = config.enable_two_hop;
-
+    vpn.vpn_config.mixnet_data_path = config.credential_data_path.clone();
     Ok(vpn)
 }
 
