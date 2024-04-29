@@ -121,8 +121,6 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
     #[cfg(target_os = "android")]
     let context = crate::platform::android::get_context().ok_or(FFIError::NoContext)?;
 
-    let credential_data_path = config.credential_data_path.clone();
-
     let mut vpn = NymVpn::new_mixnet_vpn(
         config.entry_gateway.into(),
         config.exit_router.into(),
@@ -130,7 +128,6 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
         context,
         #[cfg(target_os = "ios")]
         config.tun_provider,
-        credential_data_path,
     );
     vpn.gateway_config.api_url = config.api_url;
     vpn.gateway_config.explorer_url = Some(config.explorer_url);
