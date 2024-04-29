@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use itertools::Itertools;
 use nym_vpn_lib::gateway_directory::{Config, GatewayClient};
 use once_cell::sync::Lazy;
 use tracing::{error, instrument};
@@ -51,5 +52,6 @@ pub async fn get_gateway_countries(exit_only: bool) -> Result<Vec<Country>> {
             name: l.country_name,
             code: l.two_letter_iso_country_code,
         })
+        .sorted_by(|a, b| a.name.cmp(&b.name))
         .collect())
 }
