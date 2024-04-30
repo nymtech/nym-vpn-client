@@ -70,20 +70,23 @@ fn vpn_status_watchdog_task(
                     trace!("vpn status error: {e}");
                 });
 
-            let app_state = state.lock().await;
+            let mut app_state = state.lock().await;
             let current_state = app_state.state.clone();
+            app_state.state = status.clone();
             // release the lock asap
             drop(app_state);
 
             if current_state != status {
-                let mut app_state = state.lock().await;
-                app_state.state = status.clone();
+                error.as_ref().inspect(|e| warn!("vpn status error: {}", e));
 
                 match status {
                     ConnectionState::Connected => {
                         info!("vpn status → [Connected]");
                         let now = OffsetDateTime::now_utc();
+                        let mut app_state = state.lock().await;
+                        app_state.state = status.clone();
                         app_state.connection_start_time = Some(now);
+                        drop(app_state);
                         app.emit_all(
                             EVENT_CONNECTION_STATE,
                             ConnectionEventPayload::new(
@@ -96,7 +99,10 @@ fn vpn_status_watchdog_task(
                     }
                     ConnectionState::Disconnected => {
                         info!("vpn status → [Disconnected]");
+                        let mut app_state = state.lock().await;
+                        app_state.state = status.clone();
                         app_state.connection_start_time = None;
+                        drop(app_state);
                         app.emit_all(
                             EVENT_CONNECTION_STATE,
                             ConnectionEventPayload::new(ConnectionState::Disconnected, error, None),
@@ -133,7 +139,6 @@ fn vpn_status_watchdog_task(
                     }
                 }
             }
-
             sleep(VPN_STATUS_POLL_INTERVAL).await;
         }
     })

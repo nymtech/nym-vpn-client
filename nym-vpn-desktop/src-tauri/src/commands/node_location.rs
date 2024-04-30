@@ -35,6 +35,7 @@ pub async fn set_node_location(
             state.exit_node_location = location.clone();
         }
     }
+    drop(state);
 
     debug!("saving new location in db");
     match node_type {

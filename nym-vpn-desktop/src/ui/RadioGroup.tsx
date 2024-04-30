@@ -1,4 +1,4 @@
-import React, { Key, useEffect, useState } from 'react';
+import React, { Key, useState } from 'react';
 import { RadioGroup as HuRadioGroup } from '@headlessui/react';
 import clsx from 'clsx';
 
@@ -30,10 +30,6 @@ function RadioGroup<K extends Key>({
 }: RadioGroupProps<K>) {
   const [selected, setSelected] = useState(defaultValue || options[0]);
 
-  useEffect(() => {
-    setSelected(defaultValue || options[0]);
-  }, [defaultValue, options]);
-
   const handleChange = (value: K) => {
     setSelected(value);
     onChange(value);
@@ -62,7 +58,7 @@ function RadioGroup<K extends Key>({
                   !checked &&
                     'border border-white dark:border-baltic-sea-jaguar hover:border-platinum dark:hover:border-baltic-sea-jaguar',
                   'hover:bg-platinum dark:hover:bg-onyx',
-                  'transition',
+                  'transition-noborder',
                   option.cursor === 'default' && 'cursor-default',
                   option.cursor === 'pointer' && 'cursor-pointer',
                   option.cursor === 'not-allowed' && 'cursor-not-allowed',

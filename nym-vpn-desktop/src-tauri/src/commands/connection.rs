@@ -101,9 +101,18 @@ pub async fn connect(
     app.emit_connecting();
     app.emit_connection_progress(ConnectProgressMsg::Initializing);
 
-    let mut app_state = state.lock().await;
+    let app_state = state.lock().await;
+    let entry_location = app_state.entry_node_location.clone();
+    let exit_location = app_state.exit_node_location.clone();
+    let vpn_mode = app_state.vpn_mode.clone();
+    let dns = app_state
+        .dns_server
+        .clone()
+        .map(|ip| nym_vpn_proto::Dns { ip });
+    // release the lock
+    drop(app_state);
 
-    let entry_node = match &app_state.entry_node_location {
+    let entry_node = match entry_location {
         NodeLocation::Country(country) => {
             debug!("entry node location set, using: {}", country);
             EntryNode {
@@ -125,7 +134,7 @@ pub async fn connect(
         }
     };
 
-    let exit_node = match &app_state.exit_node_location {
+    let exit_node = match exit_location {
         NodeLocation::Country(country) => {
             debug!("exit node location set, using: {}", country);
             ExitNode {
@@ -147,7 +156,7 @@ pub async fn connect(
         }
     };
 
-    let two_hop_mod = if let VpnMode::TwoHop = app_state.vpn_mode {
+    let two_hop_mod = if let VpnMode::TwoHop = vpn_mode {
         info!("2-hop mode enabled");
         true
     } else {
@@ -162,14 +171,14 @@ pub async fn connect(
         enable_poisson_rate: false,
         disable_background_cover_traffic: false,
         enable_credentials_mode: true,
-        dns: app_state
-            .dns_server
-            .clone()
-            .map(|ip| nym_vpn_proto::Dns { ip }),
+        dns,
     });
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
-    let response = vpnd.vpn_connect(request).await.map_err(|e| {
+    let response = vpnd.vpn_connect(request).await;
+
+    let mut app_state = state.lock().await;
+    let response = response.map_err(|e| {
         let error_msg = format!("failed to connect: {e}");
         error!("grpc vpn_connect: {}", e);
         debug!("update connection state [Disconnected]");
@@ -255,6 +264,7 @@ pub async fn set_vpn_mode(
         return Err(CmdError::new(CmdErrorSource::CallerError, &err_message));
     }
     state.vpn_mode = mode.clone();
+    drop(state);
 
     debug!("saving vpn mode in db");
     db.insert(Key::VpnMode, &mode).map_err(|_| {

@@ -52,4 +52,11 @@
   .dot {
     clip-path: circle(0.3rem);
   }
+
+  .transition-noborder {
+    transition-property: color, background-color, text-decoration-color, fill,
+      stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
 }

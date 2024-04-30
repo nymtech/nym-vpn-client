@@ -29,9 +29,6 @@ function NetworkModeSelect() {
 
   const vpnModes = useMemo<RadioGroupOption<VpnMode>[]>(() => {
     const getCursorMode = (): RadioGroupOptionCursor => {
-      if (state.state !== 'Disconnected' || loading) {
-        return 'not-allowed';
-      }
       return state.state === 'Disconnected' ? 'pointer' : 'default';
     };
 
