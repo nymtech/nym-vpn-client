@@ -2,7 +2,7 @@ use crate::country::FASTEST_NODE_LOCATION;
 use crate::db::{Db, Key};
 use crate::grpc::client::GrpcClient;
 use crate::states::app::NodeLocation;
-use crate::vpnd;
+use crate::vpn_status;
 use crate::{
     error::{CmdError, CmdErrorSource},
     events::{AppHandleEventEmitter, ConnectProgressMsg},
@@ -19,7 +19,7 @@ use nym_vpn_proto::{
 use std::sync::Arc;
 use tauri::State;
 use tonic::Request;
-use tracing::{debug, error, info, instrument, trace};
+use tracing::{debug, error, info, instrument, trace, warn};
 
 #[instrument(skip_all)]
 #[tauri::command]
@@ -30,8 +30,8 @@ pub async fn get_connection_state(
     debug!("get_connection_state");
 
     let mut vpnd = grpc_client.vpnd().map_err(|_| {
-        error!("not connected to nym daemon");
-        CmdError::new(CmdErrorSource::DaemonError, "not connected to nym daemon")
+        warn!("not connected to the daemon");
+        CmdError::new(CmdErrorSource::DaemonError, "not connected to the daemon")
     })?;
 
     let request = Request::new(StatusRequest {});
@@ -58,7 +58,7 @@ pub async fn start_vpn_status_watchdog(
 ) -> Result<(), CmdError> {
     debug!("start_vpn_status_watchdog");
 
-    vpnd::vpn_status_watchdog(&app, grpc_client.inner().as_ref())
+    vpn_status::vpn_status_watchdog(&app, grpc_client.inner().as_ref())
         .await
         .map_err(|e| {
             error!("vpn_status_watchdog: {}", e);
@@ -80,8 +80,8 @@ pub async fn connect(
     debug!("connect");
 
     let mut vpnd = grpc_client.vpnd().map_err(|_| {
-        error!("not connected to nym daemon");
-        CmdError::new(CmdErrorSource::DaemonError, "not connected to nym daemon")
+        warn!("not connected to the daemon");
+        CmdError::new(CmdErrorSource::DaemonError, "not connected to the daemon")
     })?;
 
     {
@@ -199,8 +199,8 @@ pub async fn disconnect(
     };
 
     let mut vpnd = grpc_client.vpnd().map_err(|_| {
-        error!("not connected to nym daemon");
-        CmdError::new(CmdErrorSource::DaemonError, "not connected to nym daemon")
+        warn!("not connected to the daemon");
+        CmdError::new(CmdErrorSource::DaemonError, "not connected to the daemon")
     })?;
 
     // switch to "Disconnecting" state

@@ -3,6 +3,7 @@
 
 use std::{env, sync::Arc};
 
+use crate::vpn_status::vpn_status_watchdog;
 use crate::window::WindowSize;
 use crate::{
     cli::{print_build_info, Cli},
@@ -14,6 +15,7 @@ use crate::{
 
 use anyhow::{anyhow, Result};
 use clap::Parser;
+use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
 use commands::window as cmd_window;
 use commands::*;
@@ -33,7 +35,7 @@ mod gateway;
 mod grpc;
 mod network;
 mod states;
-mod vpnd;
+mod vpn_status;
 mod window;
 
 pub const APP_DIR: &str = "nym-vpn";
@@ -100,9 +102,7 @@ async fn main() -> Result<()> {
         e
     })?;
 
-    let mut grpc_client = GrpcClient::new("http://[::1]:4000");
-    // try to connect to the gRPC server, if it succeeds, the
-    // client will be stored
+    let mut grpc_client = GrpcClient::new("http://[::1]:53181");
     grpc_client.try_connect().await.ok();
 
     info!("Starting tauri app");
@@ -142,8 +142,15 @@ async fn main() -> Result<()> {
             }
 
             let handle = app.handle();
+            let mut c_grpc_client = grpc_client.clone();
             tokio::spawn(async move {
-                vpnd::vpn_status_watchdog(&handle, &grpc_client).await.ok();
+                info!("watching grpc connection with the daemon server");
+                c_grpc_client.watch(&handle).await.ok();
+            });
+
+            let handle = app.handle();
+            tokio::spawn(async move {
+                vpn_status_watchdog(&handle, &grpc_client).await.ok();
             });
 
             Ok(())
@@ -154,6 +161,7 @@ async fn main() -> Result<()> {
             connection::connect,
             connection::disconnect,
             connection::get_connection_start_time,
+            connection::start_vpn_status_watchdog,
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_flush,
@@ -165,6 +173,7 @@ async fn main() -> Result<()> {
             commands::cli::cli_args,
             log::log_js,
             credential::add_credential,
+            cmd_daemon::vpnd_check
         ])
         .run(context)
         .expect("error while running tauri application");
