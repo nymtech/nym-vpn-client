@@ -7,10 +7,10 @@ use ipnetwork::IpNetwork;
 use nym_explorer_client::Location as ExpLocation;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::path::PathBuf;
 use std::str::FromStr;
 use talpid_types::net::wireguard::{PresharedKey, PrivateKey, PublicKey};
 use url::Url;
-use std::path::PathBuf;
 
 uniffi::custom_type!(Ipv4Addr, String);
 uniffi::custom_type!(Ipv6Addr, String);
