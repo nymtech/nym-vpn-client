@@ -1,9 +1,9 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::time::Duration;
 use std::{env, sync::Arc};
 
-use crate::vpn_status::vpn_status_watchdog;
 use crate::window::WindowSize;
 use crate::{
     cli::{print_build_info, Cli},
@@ -22,6 +22,7 @@ use commands::*;
 use states::app::AppState;
 use tauri::{api::path::config_dir, Manager};
 use tokio::sync::Mutex;
+use tokio::time::sleep;
 use tracing::{debug, error, info, trace};
 
 mod cli;
@@ -41,6 +42,7 @@ mod window;
 pub const APP_DIR: &str = "nym-vpn";
 const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
+const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -102,8 +104,7 @@ async fn main() -> Result<()> {
         e
     })?;
 
-    let mut grpc_client = GrpcClient::new("http://[::1]:53181");
-    grpc_client.try_connect().await.ok();
+    let grpc = GrpcClient::new("http://[::1]:53181");
 
     info!("Starting tauri app");
 
@@ -112,7 +113,7 @@ async fn main() -> Result<()> {
         .manage(Arc::new(app_config))
         .manage(Arc::new(cli.clone()))
         .manage(db.clone())
-        .manage(Arc::new(grpc_client.clone()))
+        .manage(Arc::new(grpc.clone()))
         .setup(move |app| {
             info!("app setup");
 
@@ -142,15 +143,24 @@ async fn main() -> Result<()> {
             }
 
             let handle = app.handle();
-            let mut c_grpc_client = grpc_client.clone();
+            let mut c_grpc = grpc.clone();
             tokio::spawn(async move {
-                info!("watching grpc connection with the daemon server");
-                c_grpc_client.watch(&handle).await.ok();
+                info!("starting vpnd health watch");
+                loop {
+                    c_grpc.watch(&handle).await.ok();
+                    sleep(VPND_RETRY_INTERVAL).await;
+                    debug!("vpnd health watch retry");
+                }
             });
 
             let handle = app.handle();
+            let c_grpc = grpc.clone();
             tokio::spawn(async move {
-                vpn_status_watchdog(&handle, &grpc_client).await.ok();
+                loop {
+                    vpn_status::watchdog(&handle, &c_grpc).await.ok();
+                    sleep(VPND_RETRY_INTERVAL).await;
+                    debug!("vpn status watch retry");
+                }
             });
 
             Ok(())
@@ -161,7 +171,6 @@ async fn main() -> Result<()> {
             connection::connect,
             connection::disconnect,
             connection::get_connection_start_time,
-            connection::start_vpn_status_watchdog,
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_flush,

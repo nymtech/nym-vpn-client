@@ -23,8 +23,6 @@ pub enum VpndStatus {
 
 #[derive(Debug, Default, Clone)]
 pub struct GrpcClient {
-    pub vpnd: Option<NymVpndClient<Channel>>,
-    pub health: Option<HealthClient<Channel>>,
     pub endpoint: String,
     status: ServingStatus,
 }
@@ -34,48 +32,29 @@ impl GrpcClient {
         Self {
             endpoint: address.to_string(),
             status: ServingStatus::Unknown,
-            ..Default::default()
         }
-    }
-
-    /// Try to connect to the grpc servers and set Vpnd and Health service clients
-    #[instrument(skip_all)]
-    pub async fn try_connect(&mut self) -> Result<()> {
-        self.health = Some(
-            HealthClient::connect(self.endpoint.clone())
-                .await
-                .inspect_err(|e| {
-                    error!("failed to connect to the daemon: {:?}", e);
-                })?,
-        );
-        self.vpnd = Some(
-            NymVpndClient::connect(self.endpoint.clone())
-                .await
-                .inspect_err(|e| {
-                    error!("failed to connect to the daemon: {:?}", e);
-                })?,
-        );
-        Ok(())
     }
 
     /// Get the Vpnd service client
     #[instrument(skip_all)]
-    pub fn vpnd(&self) -> Result<NymVpndClient<Channel>> {
-        let client = self
-            .vpnd
-            .clone()
-            .ok_or_else(|| anyhow!("gRPC client not connected"))?;
-        Ok(client)
+    pub async fn vpnd(&self) -> Result<NymVpndClient<Channel>> {
+        NymVpndClient::connect(self.endpoint.clone())
+            .await
+            .inspect_err(|e| {
+                warn!("failed to connect to the daemon: {:?}", e);
+            })
+            .map_err(|e| anyhow!("failed to connect to the daemon: {}", e))
     }
 
-    /// Get the health service client
+    /// Get the Health service client
     #[instrument(skip_all)]
-    fn health(&self) -> Result<HealthClient<Channel>> {
-        let client = self
-            .health
-            .clone()
-            .ok_or_else(|| anyhow!("gRPC client not connected"))?;
-        Ok(client)
+    pub async fn health(&self) -> Result<HealthClient<Channel>> {
+        HealthClient::connect(self.endpoint.clone())
+            .await
+            .inspect_err(|e| {
+                warn!("failed to connect to the daemon: {:?}", e);
+            })
+            .map_err(|e| anyhow!("failed to connect to the daemon: {}", e))
     }
 
     /// Get latest reported connection status with the grpc server
@@ -87,9 +66,7 @@ impl GrpcClient {
     /// Check the connection with the grpc server
     #[instrument(skip_all)]
     pub async fn check(&mut self) -> Result<VpndStatus> {
-        let mut health = self.health().inspect_err(|_| {
-            warn!("not connected to the daemon");
-        })?;
+        let mut health = self.health().await?;
 
         let request = Request::new(HealthCheckRequest {
             service: VPND_SERVICE.into(),
@@ -110,9 +87,7 @@ impl GrpcClient {
     /// Watch the connection with the grpc server
     #[instrument(skip_all)]
     pub async fn watch(&mut self, app: &AppHandle) -> Result<()> {
-        let mut health = self.health().inspect_err(|_| {
-            warn!("not connected to the daemon");
-        })?;
+        let mut health = self.health().await?;
 
         let request = Request::new(HealthCheckRequest {
             service: VPND_SERVICE.into(),
@@ -127,13 +102,20 @@ impl GrpcClient {
 
         let (tx, mut rx) = mpsc::channel(32);
         tokio::spawn(async move {
-            while let Some(res) = stream
-                .message()
-                .await
-                .inspect_err(|e| error!("health check response: {}", e))
-                .unwrap()
-            {
-                tx.send(res.status()).await.unwrap();
+            loop {
+                match stream.message().await {
+                    Ok(Some(res)) => {
+                        tx.send(res.status()).await.unwrap();
+                    }
+                    Ok(None) => {
+                        warn!("watch health stream closed by the server");
+                        tx.send(ServingStatus::NotServing).await.unwrap();
+                        return;
+                    }
+                    Err(e) => {
+                        warn!("watch health stream get a grpc error: {}", e);
+                    }
+                }
             }
         });
 

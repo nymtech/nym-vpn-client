@@ -14,11 +14,11 @@ use crate::{
 #[tauri::command]
 pub async fn add_credential(
     credential: String,
-    grpc_client: State<'_, Arc<GrpcClient>>,
+    grpc: State<'_, Arc<GrpcClient>>,
 ) -> Result<(), CmdError> {
     debug!("add_credential");
 
-    let mut vpnd = grpc_client.vpnd().map_err(|_| {
+    let mut vpnd = grpc.vpnd().await.map_err(|_| {
         error!("not connected to nym daemon");
         CmdError::new(CmdErrorSource::DaemonError, "not connected to nym daemon")
     })?;

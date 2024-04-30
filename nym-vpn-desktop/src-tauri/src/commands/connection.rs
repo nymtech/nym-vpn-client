@@ -2,7 +2,6 @@ use crate::country::FASTEST_NODE_LOCATION;
 use crate::db::{Db, Key};
 use crate::grpc::client::GrpcClient;
 use crate::states::app::NodeLocation;
-use crate::vpn_status;
 use crate::{
     error::{CmdError, CmdErrorSource},
     events::{AppHandleEventEmitter, ConnectProgressMsg},
@@ -25,11 +24,11 @@ use tracing::{debug, error, info, instrument, trace, warn};
 #[tauri::command]
 pub async fn get_connection_state(
     state: State<'_, SharedAppState>,
-    grpc_client: State<'_, Arc<GrpcClient>>,
+    grpc: State<'_, Arc<GrpcClient>>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("get_connection_state");
 
-    let mut vpnd = grpc_client.vpnd().map_err(|_| {
+    let mut vpnd = grpc.vpnd().await.map_err(|_| {
         warn!("not connected to the daemon");
         CmdError::new(CmdErrorSource::DaemonError, "not connected to the daemon")
     })?;
@@ -52,34 +51,14 @@ pub async fn get_connection_state(
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn start_vpn_status_watchdog(
-    app: tauri::AppHandle,
-    grpc_client: State<'_, Arc<GrpcClient>>,
-) -> Result<(), CmdError> {
-    debug!("start_vpn_status_watchdog");
-
-    vpn_status::vpn_status_watchdog(&app, grpc_client.inner().as_ref())
-        .await
-        .map_err(|e| {
-            error!("vpn_status_watchdog: {}", e);
-            CmdError::new(
-                CmdErrorSource::DaemonError,
-                &format!("failed to start vpn status watchdog: {e}"),
-            )
-        })?;
-    Ok(())
-}
-
-#[instrument(skip_all)]
-#[tauri::command]
 pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
-    grpc_client: State<'_, Arc<GrpcClient>>,
+    grpc: State<'_, Arc<GrpcClient>>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("connect");
 
-    let mut vpnd = grpc_client.vpnd().map_err(|_| {
+    let mut vpnd = grpc.vpnd().await.map_err(|_| {
         warn!("not connected to the daemon");
         CmdError::new(CmdErrorSource::DaemonError, "not connected to the daemon")
     })?;
@@ -196,7 +175,7 @@ pub async fn connect(
 pub async fn disconnect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
-    grpc_client: State<'_, Arc<GrpcClient>>,
+    grpc: State<'_, Arc<GrpcClient>>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("disconnect");
     let mut app_state = state.lock().await;
@@ -207,7 +186,7 @@ pub async fn disconnect(
         ));
     };
 
-    let mut vpnd = grpc_client.vpnd().map_err(|_| {
+    let mut vpnd = grpc.vpnd().await.map_err(|_| {
         warn!("not connected to the daemon");
         CmdError::new(CmdErrorSource::DaemonError, "not connected to the daemon")
     })?;
