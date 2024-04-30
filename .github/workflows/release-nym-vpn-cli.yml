@@ -207,6 +207,13 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
+      - name: Download wireguard-go artifacts armv7-linux-androideabi
+        if: contains(matrix.target, 'android')
+        uses: actions/download-artifact@v4
+        with:
+          name: wireguard-go_armv7-linux-androideabi
+          path: ${{ env.WG_GO_LIB_PATH }}
+
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') || contains(matrix.os, 'windows')
