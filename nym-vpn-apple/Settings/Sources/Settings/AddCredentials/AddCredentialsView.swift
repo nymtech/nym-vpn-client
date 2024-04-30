@@ -51,7 +51,6 @@ private extension AddCredentialsView {
 
     @ViewBuilder
     func content() -> some View {
-        VStack {
             Spacer()
             getStartedSection()
                 .onTapGesture {
@@ -78,7 +77,6 @@ private extension AddCredentialsView {
                 Spacer()
                     .frame(height: 330)
             }
-        }
     }
 
     @ViewBuilder
@@ -127,7 +125,7 @@ private extension AddCredentialsView {
 
     @ViewBuilder
     func inputView() -> some View {
-        VStack(alignment: .leading) {
+        LazyVStack(alignment: .leading) {
             TextField(viewModel.credentialsPlaceholderTitle, text: $viewModel.credentialText, axis: .vertical)
                 .textStyle(NymTextStyle.Body.Large.regular)
                 .padding(16)

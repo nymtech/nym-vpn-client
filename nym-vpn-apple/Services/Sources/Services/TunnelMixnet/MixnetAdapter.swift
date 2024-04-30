@@ -67,7 +67,7 @@ private extension MixnetAdapter {
         setenv("VESTING_CONTRACT_ADDRESS", "n1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrq73f2nw", 1)
 
         setenv("STATISTICS_SERVICE_DOMAIN_ADDRESS", "https://mainnet-stats.nymte.ch:8090", 1)
-        setenv("EXPLORER_API", Constants.explorerUrl.rawValue, 1)
+        setenv("EXPLORER_API", Constants.explorerURL.rawValue, 1)
         setenv("NYXD", "https://rpc.nymtech.net", 1)
         setenv("NYXD_WS", "wss://rpc.nymtech.net/websocket", 1)
         setenv("NYM_API", Constants.apiUrl.rawValue, 1)
@@ -101,7 +101,7 @@ private extension MixnetAdapter {
         setenv("EPHEMERA_CONTRACT_ADDRESS", "n19lc9u84cz0yz3fww5283nucc9yvr8gsjmgeul0", 1)
 
         setenv("STATISTICS_SERVICE_DOMAIN_ADDRESS", "http://0.0.0.0", 1)
-        setenv("EXPLORER_API", Constants.sandboxExplorerUrl.rawValue, 1)
+        setenv("EXPLORER_API", Constants.sandboxExplorerURL.rawValue, 1)
         setenv("NYXD", "https://rpc.sandbox.nymtech.net", 1)
         setenv("NYXD_WS", "wss://rpc.sandbox.nymtech.net/websocket", 1)
         setenv("NYM_API", Constants.sandboxApiUrl.rawValue, 1)

@@ -3,6 +3,7 @@ import SwiftUI
 import AppSettings
 import ConnectionManager
 import CountriesManager
+import CredentialsManager
 import Settings
 import TunnelMixnet
 import Tunnels
@@ -22,6 +23,7 @@ public class HomeViewModel: HomeFlowState {
     var appSettings: AppSettings
     var connectionManager: ConnectionManager
     var countriesManager: CountriesManager
+    var credentialsManager: CredentialsManager
     var entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
     var exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
     @Published var selectedNetwork: NetworkButtonViewModel.ButtonType
@@ -38,12 +40,14 @@ public class HomeViewModel: HomeFlowState {
         selectedNetwork: NetworkButtonViewModel.ButtonType,
         appSettings: AppSettings = AppSettings.shared,
         connectionManager: ConnectionManager = ConnectionManager.shared,
-        countriesManager: CountriesManager = CountriesManager.shared
+        countriesManager: CountriesManager = CountriesManager.shared,
+        credentialsManager: CredentialsManager = CredentialsManager.shared
     ) {
         self.selectedNetwork = selectedNetwork
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
+        self.credentialsManager = credentialsManager
         super.init()
 
         setup()
@@ -121,29 +125,37 @@ public extension HomeViewModel {
 
         guard let exitRouter = connectionManager.exitRouter
         else {
-            // TODO: show error if no exit router
+            statusInfoState = .error(message: "TODO")
             return
         }
-        var config = MixnetConfig(exitRouter: exitRouter)
 
-        switch selectedNetwork {
-        case .mixnet2hop:
-            config = MixnetConfig(
-                entryGateway: connectionManager.entryGateway,
-                exitRouter: exitRouter,
-                isTwoHopEnabled: true
-            )
-        case .mixnet5hop:
-            config = MixnetConfig(
-                entryGateway: connectionManager.entryGateway,
-                exitRouter: exitRouter,
-                isTwoHopEnabled: false
-            )
-        case .wireguard:
-            break
+        do {
+            let credentialURL = try credentialsManager.dataFolderURL()
+            var config = MixnetConfig(exitRouter: exitRouter, credentialsDataPath: credentialURL.path())
+
+            switch selectedNetwork {
+            case .mixnet2hop:
+                config = MixnetConfig(
+                    entryGateway: connectionManager.entryGateway,
+                    exitRouter: exitRouter,
+                    isTwoHopEnabled: true,
+                    credentialsDataPath: credentialURL.path()
+                )
+            case .mixnet5hop:
+                config = MixnetConfig(
+                    entryGateway: connectionManager.entryGateway,
+                    exitRouter: exitRouter,
+                    isTwoHopEnabled: false, 
+                    credentialsDataPath: credentialURL.path()
+                )
+            case .wireguard:
+                break
+            }
+
+            connectionManager.connectDisconnect(with: config)
+        } catch let error {
+            statusInfoState = .error(message: error.localizedDescription)
         }
-
-        connectionManager.connectDisconnect(with: config)
     }
 }
 

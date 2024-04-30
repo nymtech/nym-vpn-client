@@ -45,7 +45,8 @@ private extension CountriesManager {
     func fetchEntryExitCountries() throws {
         guard
             let apiURL = URL(string: Constants.apiUrl.rawValue),
-            let explorerURL = URL(string: Constants.explorerUrl.rawValue)
+            let explorerURL = URL(string: Constants.explorerURL.rawValue),
+            let harbourMasterURL = URL(string: Constants.harbourURL.rawValue)
         else {
             throw GeneralNymError.invalidUrl
         }
@@ -53,6 +54,7 @@ private extension CountriesManager {
         let locations = try getGatewayCountries(
             apiUrl: apiURL,
             explorerUrl: explorerURL,
+            harbourMasterUrl: harbourMasterURL,
             exitOnly: false
         )
         let newEntryCountries = convertToCountriesAndSort(from: locations)
@@ -70,7 +72,8 @@ private extension CountriesManager {
     func fetchExitCountries() throws {
         guard
             let apiURL = URL(string: Constants.apiUrl.rawValue),
-            let explorerURL = URL(string: Constants.explorerUrl.rawValue)
+            let explorerURL = URL(string: Constants.explorerURL.rawValue),
+            let harbourMasterURL = URL(string: Constants.harbourURL.rawValue)
         else {
             throw GeneralNymError.invalidUrl
         }
@@ -78,6 +81,7 @@ private extension CountriesManager {
         let locations = try getGatewayCountries(
             apiUrl: apiURL,
             explorerUrl: explorerURL,
+            harbourMasterUrl: harbourMasterURL,
             exitOnly: true
         )
         let newExitCountries = convertToCountriesAndSort(from: locations)
@@ -93,8 +97,13 @@ private extension CountriesManager {
     func fetchLowLatencyEntryCountry() {
         guard
             let apiURL = URL(string: Constants.apiUrl.rawValue),
-            let explorerURL = URL(string: Constants.explorerUrl.rawValue),
-            let location = try? getLowLatencyEntryCountry(apiUrl: apiURL, explorerUrl: explorerURL)
+            let explorerURL = URL(string: Constants.explorerURL.rawValue),
+            let harbourMasterURL = URL(string: Constants.harbourURL.rawValue),
+            let location = try? getLowLatencyEntryCountry(
+                apiUrl: apiURL,
+                explorerUrl: explorerURL,
+                harbourMasterUrl: harbourMasterURL
+            )
         else {
             return
         }
