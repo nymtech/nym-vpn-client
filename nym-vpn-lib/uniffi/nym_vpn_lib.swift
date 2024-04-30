@@ -964,16 +964,18 @@ public struct VpnConfig {
     public var exitRouter: ExitPoint
     public var enableTwoHop: Bool
     public var tunProvider: OsTunProvider
+    public var credentialDataPath: PathBuf?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(apiUrl: Url, explorerUrl: Url, entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider) {
+    public init(apiUrl: Url, explorerUrl: Url, entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?) {
         self.apiUrl = apiUrl
         self.explorerUrl = explorerUrl
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
         self.enableTwoHop = enableTwoHop
         self.tunProvider = tunProvider
+        self.credentialDataPath = credentialDataPath
     }
 }
 
@@ -988,7 +990,8 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
                 entryGateway: FfiConverterTypeEntryPoint.read(from: &buf), 
                 exitRouter: FfiConverterTypeExitPoint.read(from: &buf), 
                 enableTwoHop: FfiConverterBool.read(from: &buf), 
-                tunProvider: FfiConverterTypeOSTunProvider.read(from: &buf)
+                tunProvider: FfiConverterTypeOSTunProvider.read(from: &buf), 
+                credentialDataPath: FfiConverterOptionTypePathBuf.read(from: &buf)
         )
     }
 
@@ -999,6 +1002,7 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
         FfiConverterTypeExitPoint.write(value.exitRouter, into: &buf)
         FfiConverterBool.write(value.enableTwoHop, into: &buf)
         FfiConverterTypeOSTunProvider.write(value.tunProvider, into: &buf)
+        FfiConverterOptionTypePathBuf.write(value.credentialDataPath, into: &buf)
     }
 }
 
@@ -1244,6 +1248,8 @@ public enum FfiError {
     
     
     case InvalidValueUniffi
+    case InvalidCredential
+    case InvalidPath
     case FdNotFound
     case VpnNotStopped
     case VpnNotStarted
@@ -1267,15 +1273,17 @@ public struct FfiConverterTypeFFIError: FfiConverterRustBuffer {
 
         
         case 1: return .InvalidValueUniffi
-        case 2: return .FdNotFound
-        case 3: return .VpnNotStopped
-        case 4: return .VpnNotStarted
-        case 5: return .VpnAlreadyRunning
-        case 6: return .VpnNotRunning
-        case 7: return .LibError(
+        case 2: return .InvalidCredential
+        case 3: return .InvalidPath
+        case 4: return .FdNotFound
+        case 5: return .VpnNotStopped
+        case 6: return .VpnNotStarted
+        case 7: return .VpnAlreadyRunning
+        case 8: return .VpnNotRunning
+        case 9: return .LibError(
             inner: try FfiConverterString.read(from: &buf)
             )
-        case 8: return .GatewayDirectoryError(
+        case 10: return .GatewayDirectoryError(
             inner: try FfiConverterString.read(from: &buf)
             )
 
@@ -1294,33 +1302,41 @@ public struct FfiConverterTypeFFIError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(1))
         
         
-        case .FdNotFound:
+        case .InvalidCredential:
             writeInt(&buf, Int32(2))
         
         
-        case .VpnNotStopped:
+        case .InvalidPath:
             writeInt(&buf, Int32(3))
         
         
-        case .VpnNotStarted:
+        case .FdNotFound:
             writeInt(&buf, Int32(4))
         
         
-        case .VpnAlreadyRunning:
+        case .VpnNotStopped:
             writeInt(&buf, Int32(5))
         
         
-        case .VpnNotRunning:
+        case .VpnNotStarted:
             writeInt(&buf, Int32(6))
         
         
-        case let .LibError(inner):
+        case .VpnAlreadyRunning:
             writeInt(&buf, Int32(7))
+        
+        
+        case .VpnNotRunning:
+            writeInt(&buf, Int32(8))
+        
+        
+        case let .LibError(inner):
+            writeInt(&buf, Int32(9))
             FfiConverterString.write(inner, into: &buf)
             
         
         case let .GatewayDirectoryError(inner):
-            writeInt(&buf, Int32(8))
+            writeInt(&buf, Int32(10))
             FfiConverterString.write(inner, into: &buf)
             
         }
@@ -1395,6 +1411,27 @@ fileprivate struct FfiConverterOptionTypeIpv6Addr: FfiConverterRustBuffer {
     }
 }
 
+fileprivate struct FfiConverterOptionTypePathBuf: FfiConverterRustBuffer {
+    typealias SwiftType = PathBuf?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypePathBuf.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypePathBuf.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
 fileprivate struct FfiConverterOptionTypePresharedKey: FfiConverterRustBuffer {
     typealias SwiftType = PresharedKey?
 
@@ -1411,6 +1448,27 @@ fileprivate struct FfiConverterOptionTypePresharedKey: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTypePresharedKey.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeUrl: FfiConverterRustBuffer {
+    typealias SwiftType = Url?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeUrl.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeUrl.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -1679,6 +1737,40 @@ public func FfiConverterTypeNodeIdentity_lower(_ value: NodeIdentity) -> RustBuf
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
  */
+public typealias PathBuf = String
+public struct FfiConverterTypePathBuf: FfiConverter {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PathBuf {
+        return try FfiConverterString.read(from: &buf)
+    }
+
+    public static func write(_ value: PathBuf, into buf: inout [UInt8]) {
+        return FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func lift(_ value: RustBuffer) throws -> PathBuf {
+        return try FfiConverterString.lift(value)
+    }
+
+    public static func lower(_ value: PathBuf) -> RustBuffer {
+        return FfiConverterString.lower(value)
+    }
+}
+
+
+public func FfiConverterTypePathBuf_lift(_ value: RustBuffer) throws -> PathBuf {
+    return try FfiConverterTypePathBuf.lift(value)
+}
+
+public func FfiConverterTypePathBuf_lower(_ value: PathBuf) -> RustBuffer {
+    return FfiConverterTypePathBuf.lower(value)
+}
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ */
 public typealias PresharedKey = String
 public struct FfiConverterTypePresharedKey: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PresharedKey {
@@ -1886,22 +1978,37 @@ public func FfiConverterTypeUrl_lower(_ value: Url) -> RustBuffer {
     return FfiConverterTypeUrl.lower(value)
 }
 
-public func getGatewayCountries(apiUrl: Url, explorerUrl: Url, exitOnly: Bool)throws  -> [Location] {
+public func checkCredential(credential: String)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    uniffi_nym_vpn_lib_fn_func_checkcredential(
+        FfiConverterString.lower(credential),$0
+    )
+}
+}
+public func getGatewayCountries(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?, exitOnly: Bool)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
         FfiConverterTypeUrl.lower(apiUrl),
         FfiConverterTypeUrl.lower(explorerUrl),
+        FfiConverterOptionTypeUrl.lower(harbourMasterUrl),
         FfiConverterBool.lower(exitOnly),$0
     )
 })
 }
-public func getLowLatencyEntryCountry(apiUrl: Url, explorerUrl: Url)throws  -> Location {
+public func getLowLatencyEntryCountry(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?)throws  -> Location {
     return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
         FfiConverterTypeUrl.lower(apiUrl),
-        FfiConverterTypeUrl.lower(explorerUrl),$0
+        FfiConverterTypeUrl.lower(explorerUrl),
+        FfiConverterOptionTypeUrl.lower(harbourMasterUrl),$0
     )
 })
+}
+public func importCredential(credential: String, path: String)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    uniffi_nym_vpn_lib_fn_func_importcredential(
+        FfiConverterString.lower(credential),
+        FfiConverterString.lower(path),$0
+    )
+}
 }
 public func runVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_runvpn(
@@ -1930,10 +2037,16 @@ private var initializationResult: InitializationResult {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 21142) {
+    if (uniffi_nym_vpn_lib_checksum_func_checkcredential() != 37960) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 25285) {
+    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 4475) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 20907) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 47691) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_runvpn() != 2496) {
