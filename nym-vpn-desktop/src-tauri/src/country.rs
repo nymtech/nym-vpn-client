@@ -4,57 +4,26 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-// TODO use hardcoded country list for now
-pub static COUNTRIES: Lazy<Vec<Country>> = Lazy::new(|| {
-    vec![
-        Country {
-            name: "France".to_string(),
-            code: "FR".to_string(),
-        },
-        Country {
-            name: "Germany".to_string(),
-            code: "DE".to_string(),
-        },
-        Country {
-            name: "Ireland".to_string(),
-            code: "IE".to_string(),
-        },
-        Country {
-            name: "Japan".to_string(),
-            code: "JP".to_string(),
-        },
-        Country {
-            name: "United Kingdom".to_string(),
-            code: "GB".to_string(),
-        },
-    ]
-});
-
 pub static FASTEST_NODE_LOCATION: Lazy<Country> = Lazy::new(|| Country {
-    code: "DE".to_string(),
-    name: "Germany".to_string(),
+    code: String::from("DE"),
+    name: String::from("Germany"),
 });
 
-pub const DEFAULT_COUNTRY_CODE: &str = "FR";
+// TODO use countries requested from the backend instead of hardcoded ones
+pub static DEFAULT_ENTRY_COUNTRY: Lazy<Country> = Lazy::new(|| Country {
+    code: String::from("FR"),
+    name: String::from("France"),
+});
+pub static DEFAULT_EXIT_COUNTRY: Lazy<Country> = Lazy::new(|| Country {
+    code: String::from("CH"),
+    name: String::from("Switzerland"),
+});
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[ts(export)]
 pub struct Country {
     pub name: String,
     pub code: String,
-}
-
-// retrieve a country from two letters code
-impl TryFrom<&str> for Country {
-    type Error = String;
-
-    fn try_from(code: &str) -> Result<Self, Self::Error> {
-        let country = COUNTRIES
-            .iter()
-            .find(|c| c.code == code)
-            .ok_or(format!("No matching country for code [{code}]"))?;
-        Ok(country.clone())
-    }
 }
 
 impl fmt::Display for Country {
@@ -65,9 +34,6 @@ impl fmt::Display for Country {
 
 impl Default for Country {
     fn default() -> Self {
-        Country {
-            name: "France".to_string(),
-            code: "FR".to_string(),
-        }
+        DEFAULT_ENTRY_COUNTRY.clone()
     }
 }
