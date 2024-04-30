@@ -4,13 +4,13 @@ use nym_vpn_proto::{
     nym_vpnd_client::NymVpndClient, HealthCheckRequest,
 };
 use serde::{Deserialize, Serialize};
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 use tokio::sync::mpsc;
 use tonic::{transport::Channel, Request};
 use tracing::{debug, error, instrument, warn};
 use ts_rs::TS;
 
-use crate::events::AppHandleEventEmitter;
+use crate::{events::AppHandleEventEmitter, states::SharedAppState};
 
 const VPND_SERVICE: &str = "nym.vpn.NymVpnd";
 
@@ -24,14 +24,12 @@ pub enum VpndStatus {
 #[derive(Debug, Default, Clone)]
 pub struct GrpcClient {
     pub endpoint: String,
-    status: ServingStatus,
 }
 
 impl GrpcClient {
     pub fn new(address: &str) -> Self {
         Self {
             endpoint: address.to_string(),
-            status: ServingStatus::Unknown,
         }
     }
 
@@ -57,15 +55,9 @@ impl GrpcClient {
             .map_err(|e| anyhow!("failed to connect to the daemon: {}", e))
     }
 
-    /// Get latest reported connection status with the grpc server
-    #[instrument(skip_all)]
-    pub fn status(&self) -> VpndStatus {
-        self.status.into()
-    }
-
     /// Check the connection with the grpc server
     #[instrument(skip_all)]
-    pub async fn check(&mut self) -> Result<VpndStatus> {
+    pub async fn check(&self, app_state: &SharedAppState) -> Result<VpndStatus> {
         let mut health = self.health().await?;
 
         let request = Request::new(HealthCheckRequest {
@@ -79,15 +71,17 @@ impl GrpcClient {
             })?
             .into_inner();
         let status = response.status();
-        self.status = status;
+        let mut state = app_state.lock().await;
+        state.vpnd_status = status.into();
 
         Ok(status.into())
     }
 
     /// Watch the connection with the grpc server
     #[instrument(skip_all)]
-    pub async fn watch(&mut self, app: &AppHandle) -> Result<()> {
+    pub async fn watch(&self, app: &AppHandle) -> Result<()> {
         let mut health = self.health().await?;
+        let app_state = app.state::<SharedAppState>();
 
         let request = Request::new(HealthCheckRequest {
             service: VPND_SERVICE.into(),
@@ -121,8 +115,9 @@ impl GrpcClient {
 
         while let Some(status) = rx.recv().await {
             debug!("health check status: {:?}", status);
-            self.status = status;
             app.emit_vpnd_status(status.into());
+            let mut state = app_state.lock().await;
+            state.vpnd_status = status.into();
         }
 
         Ok(())

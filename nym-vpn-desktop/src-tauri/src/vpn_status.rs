@@ -1,7 +1,7 @@
 use crate::events::{ConnectionEventPayload, EVENT_CONNECTION_STATE};
 use crate::grpc::client::GrpcClient;
 use crate::states::{app::ConnectionState, SharedAppState};
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use nym_vpn_proto::StatusRequest;
 use std::time::Duration;
 use tauri::Manager;
@@ -11,30 +11,6 @@ use tonic::Request;
 use tracing::{info, instrument, trace, warn};
 
 const VPN_STATUS_POLL_INTERVAL: Duration = Duration::from_secs(1);
-
-#[instrument(skip_all)]
-async fn check_status_watchdog(app: &tauri::AppHandle) -> Result<bool> {
-    let m_state = app
-        .try_state::<SharedAppState>()
-        .ok_or(anyhow!("no managed state"))?;
-
-    let state = m_state.lock().await;
-    if let Some(handle) = state.vpn_status_watchdog.as_ref() {
-        return match handle.is_finished() {
-            true => {
-                info!("vpn status watchdog already running but finished");
-                Ok(false)
-            }
-            false => {
-                info!("vpn status watchdog already running");
-                Ok(true)
-            }
-        };
-    }
-
-    info!("vpn status watchdog is not started yet");
-    return Ok(false);
-}
 
 #[instrument(skip_all)]
 pub async fn watchdog(app: &tauri::AppHandle, grpc: &GrpcClient) -> Result<()> {

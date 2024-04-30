@@ -12,6 +12,7 @@ use crate::{
     country::{Country, DEFAULT_ENTRY_COUNTRY, DEFAULT_EXIT_COUNTRY},
     db::{Db, Key},
     fs::config::AppConfig,
+    grpc::client::VpndStatus,
 };
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
@@ -52,6 +53,7 @@ pub struct TunnelConfig {
 
 #[derive(Debug, Default)]
 pub struct AppState {
+    pub vpnd_status: VpndStatus,
     pub state: ConnectionState,
     pub error: Option<String>,
     pub vpn_mode: VpnMode,
@@ -61,7 +63,6 @@ pub struct AppState {
     pub connection_start_time: Option<OffsetDateTime>,
     pub vpn_ctrl_tx: Option<UnboundedSender<NymVpnCtrlMessage>>,
     pub dns_server: Option<String>,
-    pub vpn_status_watchdog: Option<tokio::task::JoinHandle<()>>,
 }
 
 impl TryFrom<(&Db, &AppConfig, &Cli)> for AppState {

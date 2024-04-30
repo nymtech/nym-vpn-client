@@ -149,7 +149,7 @@ async fn main() -> Result<()> {
             }
 
             let handle = app.handle();
-            let mut c_grpc = grpc.clone();
+            let c_grpc = grpc.clone();
             tokio::spawn(async move {
                 info!("starting vpnd health watch");
                 loop {
@@ -188,7 +188,7 @@ async fn main() -> Result<()> {
             commands::cli::cli_args,
             log::log_js,
             credential::add_credential,
-            cmd_daemon::vpnd_check
+            cmd_daemon::daemon_status
         ])
         .run(context)
         .expect("error while running tauri application");
