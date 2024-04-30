@@ -8,6 +8,10 @@ public class SettingsViewModel: SettingsFlowState {
 
     let settingsTitle = "settings".localizedString
 
+    var shouldShowAddCredentials: Bool {
+        !appSettings.isCredentialImported
+    }
+
     var sections: [SettingsSection] {
         [
             connectionSection(),

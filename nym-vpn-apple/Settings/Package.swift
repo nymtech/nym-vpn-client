@@ -17,16 +17,22 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../MixnetLibrary"),
         .package(path: "../Services"),
-        .package(path: "../UIComponents")
+        .package(path: "../UIComponents"),
+        .package(path: "../Theme")
     ],
     targets: [
         .target(
             name: "Settings",
             dependencies: [
-                .product(name: "Modifiers", package: "Services"),
+                .product(name: "AppSettings", package: "Services"),
                 .product(name: "AppVersionProvider", package: "Services"),
-                "UIComponents"
+                .product(name: "CredentialsManager", package: "Services"),
+                .product(name: "MixnetLibrary", package: "MixnetLibrary"),
+                .product(name: "Modifiers", package: "Services"),
+                .product(name: "Theme", package: "Theme"),
+                .product(name: "UIComponents", package: "UIComponents")
             ]
         ),
         .testTarget(

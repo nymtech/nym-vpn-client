@@ -30,7 +30,7 @@ extension NETunnelProviderProtocol {
     }
 
     public func asMixnetConfig(called name: String? = nil) -> MixnetConfig? {
-        guard 
+        guard
             let passwordReference,
             let encodedConfig = Keychain.openReference(called: passwordReference),
             let configData = encodedConfig.data(using: .utf8),

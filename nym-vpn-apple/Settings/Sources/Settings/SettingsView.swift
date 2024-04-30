@@ -50,12 +50,14 @@ private extension SettingsView {
 
     @ViewBuilder
     func addCredentialsButton() -> some View {
-        GenericButton(title: "settings.addCredential".localizedString)
-            .frame(height: 64)
-            .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
-            .onTapGesture {
-                viewModel.navigateToAddCredentials()
-            }
+        if viewModel.shouldShowAddCredentials {
+            GenericButton(title: "settings.addCredential".localizedString)
+                .frame(height: 64)
+                .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
+                .onTapGesture {
+                    viewModel.navigateToAddCredentials()
+                }
+        }
     }
 
     @ViewBuilder

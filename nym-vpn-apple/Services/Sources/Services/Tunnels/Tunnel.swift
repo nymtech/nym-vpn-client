@@ -27,6 +27,8 @@ public final class Tunnel: NSObject, ObservableObject {
     func connect(recursionCount: UInt = 0, lastError: Error? = nil) {
         if recursionCount >= 8 {
             logger.log(level: .error, "Connecting failed after 8 attempts. Last error: \(String(describing: lastError))")
+            // TODO: throw error to the UI
+            // TODO: catch error invalid credential - remove credential is imported afterwards
             return
         }
 

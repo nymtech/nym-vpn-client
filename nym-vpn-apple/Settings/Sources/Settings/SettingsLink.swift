@@ -1,6 +1,6 @@
 import Foundation
 
-enum SettingsLink: Hashable, Identifiable {
+public enum SettingsLink: Hashable, Identifiable {
     case addCredentials
     case theme
     case feedback
@@ -9,7 +9,7 @@ enum SettingsLink: Hashable, Identifiable {
     case survey
     case surveySuccess
 
-    var id: String {
+    public var id: String {
         String(describing: self)
     }
 }

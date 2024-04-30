@@ -3,6 +3,7 @@
 import Foundation
 import Security
 import Logging
+import Constants
 
 public class Keychain {
     private static var logger = Logger(label: "KeychainLogger")
@@ -49,7 +50,7 @@ public class Keychain {
         ]
 
         #if os(iOS)
-        items[kSecAttrAccessGroup] = "group.net.nymtech.vpn"
+        items[kSecAttrAccessGroup] = Constants.groupID.rawValue
         items[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlock
         #elseif os(macOS)
         items[kSecAttrSynchronizable] = false

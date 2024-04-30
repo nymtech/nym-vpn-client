@@ -1,4 +1,5 @@
 import SwiftUI
+import CredentialsManager
 import Modifiers
 import Theme
 import UIComponents
@@ -11,31 +12,30 @@ struct AddCredentialsView: View {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
 
-    // TODO: update performance
     var body: some View {
-        GeometryReader { geometry in
-            VStack {
-                navbar()
-                    ScrollView {
+        VStack {
+            navbar()
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack {
                         content()
-                        // TODO: get height of navBar()
-                        .frame(minHeight: geometry.size.height - 56) // minus height of the CustomNavBar()
-                        .offset(y: isFocused ? -130 : 0)
                     }
-                    .onTapGesture {
-                        isFocused = false
-                    }
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                }
+                .onTapGesture {
+                    isFocused = false
+                }
             }
-            .navigationBarBackButtonHidden(true)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .ignoresSafeArea(edges: [.bottom])
-            .background {
-                NymColor.background
-                    .ignoresSafeArea()
-            }
-            .onAppear {
-                isFocused = true
-            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .ignoresSafeArea(edges: [.bottom])
+        .background {
+            NymColor.background
+                .ignoresSafeArea()
+        }
+        .onAppear {
+            isFocused = true
         }
     }
 }
@@ -52,9 +52,7 @@ private extension AddCredentialsView {
     @ViewBuilder
     func content() -> some View {
         VStack {
-            Rectangle()
-                .foregroundColor(.clear)
-
+            Spacer()
             getStartedSection()
                 .onTapGesture {
                     isFocused = false
@@ -65,19 +63,22 @@ private extension AddCredentialsView {
                     guard !isFocused else { return }
                     isFocused = true
                 }
+            if !viewModel.errorMessageTitle.isEmpty {
+                errorMessageView(title: viewModel.errorMessageTitle)
+            }
             Spacer()
-                .frame(height: 16)
+                .frame(height: 8)
 
             addCredentialButton()
             Spacer()
                 .frame(height: 24)
-        }
-    }
 
-    @ViewBuilder
-    func addCredentialButton() -> some View {
-        GenericButton(title: viewModel.addCredentialButtonTitle)
-            .padding(.horizontal, 16)
+            if isFocused {
+                // TODO: update with keyboard height
+                Spacer()
+                    .frame(height: 330)
+            }
+        }
     }
 
     @ViewBuilder
@@ -153,6 +154,27 @@ private extension AddCredentialsView {
                 .background(NymColor.background)
                 .position(x: 50, y: 0)
         }
-        .padding(EdgeInsets(top: 12, leading: 12, bottom: viewModel.error != .noError ? 4 : 12, trailing: 12))
+        .padding(EdgeInsets(top: 12, leading: 12, bottom: viewModel.bottomPadding, trailing: 12))
+    }
+
+    @ViewBuilder
+    func errorMessageView(title: String) -> some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(NymColor.sysError)
+                .textStyle(NymTextStyle.Body.Small.primary)
+            Spacer()
+        }
+        .padding(EdgeInsets(top: 0, leading: 28, bottom: 16, trailing: 28))
+    }
+
+    @ViewBuilder
+    func addCredentialButton() -> some View {
+        GenericButton(title: viewModel.addCredentialButtonTitle)
+            .padding(.horizontal, 16)
+            .onTapGesture {
+                viewModel.importCredentials()
+                isFocused = false
+            }
     }
 }

@@ -20,6 +20,7 @@ public final class AppSettings: ObservableObject {
             isErrorReportingOnPublisher = isErrorReportingOn
         }
     }
+    @AppStorage(AppSettingKey.credenitalExists.rawValue) public var isCredentialImported = false
 
     // Observed values for view models
     @Published public var isEntryLocationSelectionOnPublisher = false
@@ -30,4 +31,5 @@ enum AppSettingKey: String {
     case currentAppearance
     case entryLocation
     case errorReporting
+    case credenitalExists
 }

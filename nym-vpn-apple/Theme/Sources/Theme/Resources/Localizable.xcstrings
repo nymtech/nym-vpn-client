@@ -67,6 +67,39 @@
         }
       }
     },
+    "addCredentials.error.cannotCreateDB" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cannot create credentials database"
+          }
+        }
+      }
+    },
+    "addCredentials.error.invalidCredential" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Invalid credentials"
+          }
+        }
+      }
+    },
+    "addCredentials.error.unknownError" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown error"
+          }
+        }
+      }
+    },
     "addCredentials.getStarted.Title" : {
       "extractionState" : "manual",
       "localizations" : {

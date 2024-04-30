@@ -1,6 +1,16 @@
 {
   "images" : [
     {
+      "filename" : "Vector 1.svg",
+      "idiom" : "universal"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
       "filename" : "Vector.svg",
       "idiom" : "universal"
     }

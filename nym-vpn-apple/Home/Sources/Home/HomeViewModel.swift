@@ -3,6 +3,7 @@ import SwiftUI
 import AppSettings
 import ConnectionManager
 import CountriesManager
+import Settings
 import TunnelMixnet
 import Tunnels
 import UIComponents
@@ -63,6 +64,11 @@ public extension HomeViewModel {
     func navigateToLastHopSelection() {
         path.append(HomeLink.exitHop)
     }
+
+    func navigateToAddCredentials() {
+        path.append(HomeLink.settings)
+        path.append(SettingsLink.addCredentials)
+    }
 }
 
 // MARK: - Helpers -
@@ -107,6 +113,12 @@ public extension HomeViewModel {
 
 public extension HomeViewModel {
     func connectDisconnect() {
+        guard appSettings.isCredentialImported
+        else {
+            navigateToAddCredentials()
+            return
+        }
+
         guard let exitRouter = connectionManager.exitRouter
         else {
             // TODO: show error if no exit router
@@ -188,7 +200,6 @@ private extension HomeViewModel {
         do {
             try countriesManager.fetchCountries(shouldFetchEntryCountries: shouldShowEntryHop())
         } catch let error {
-            print("🔥 ERROR: \(error.localizedDescription)")
             statusInfoState = .error(message: error.localizedDescription)
         }
     }

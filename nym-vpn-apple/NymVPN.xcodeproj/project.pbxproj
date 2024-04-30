@@ -34,6 +34,8 @@
 		D94301322BC530F60031048B /* TunnelWG in Frameworks */ = {isa = PBXBuildFile; productRef = D94301312BC530F60031048B /* TunnelWG */; };
 		D94301342BC532420031048B /* Logging in Frameworks */ = {isa = PBXBuildFile; productRef = D94301332BC532420031048B /* Logging */; };
 		D944053F2BAC4CBD0076EEDB /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
+		D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D94866FE2BE035C300F5331B /* CredentialsManager */; };
+		D94867012BE035FB00F5331B /* Constants in Frameworks */ = {isa = PBXBuildFile; productRef = D94867002BE035FB00F5331B /* Constants */; };
 		D94F402A2BC7BD0600912696 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */; };
 		D94F402D2BC7BD0600912696 /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94F402C2BC7BD0600912696 /* PacketTunnelProvider.swift */; };
 		D94F40322BC7BD0600912696 /* NymMixnetTunnelSystemExtensionMacOS.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D94F40292BC7BD0600912696 /* NymMixnetTunnelSystemExtensionMacOS.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -271,6 +273,8 @@
 				D97065E12B8DD44A00C27A9B /* TunnelStatus in Frameworks */,
 				D968BDC92B6AEA9D003F42E5 /* AppSettings in Frameworks */,
 				D99A148C2B35A74200F2728B /* Theme in Frameworks */,
+				D94867012BE035FB00F5331B /* Constants in Frameworks */,
+				D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */,
 				D9BD6A142BD84EF400B42D6F /* SentryManager in Frameworks */,
 				D99A148A2B35A73F00F2728B /* Home in Frameworks */,
 				D974C03B2BBED2460011924A /* ConnectionManager in Frameworks */,
@@ -594,6 +598,8 @@
 				D97065E02B8DD44A00C27A9B /* TunnelStatus */,
 				D974C03A2BBED2460011924A /* ConnectionManager */,
 				D9BD6A132BD84EF400B42D6F /* SentryManager */,
+				D94866FE2BE035C300F5331B /* CredentialsManager */,
+				D94867002BE035FB00F5331B /* Constants */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -1695,6 +1701,14 @@
 			isa = XCSwiftPackageProductDependency;
 			package = D932143F2B84D29200FFDC5E /* XCRemoteSwiftPackageReference "swift-log" */;
 			productName = Logging;
+		};
+		D94866FE2BE035C300F5331B /* CredentialsManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CredentialsManager;
+		};
+		D94867002BE035FB00F5331B /* Constants */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Constants;
 		};
 		D94F40362BC7BDB900912696 /* Keychain */ = {
 			isa = XCSwiftPackageProductDependency;

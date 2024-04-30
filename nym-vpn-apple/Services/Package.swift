@@ -16,6 +16,7 @@ let package = Package(
         .library(name: "ConnectionManager", targets: ["ConnectionManager"]),
         .library(name: "Constants", targets: ["Constants"]),
         .library(name: "CountriesManager", targets: ["CountriesManager"]),
+        .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
@@ -63,8 +64,17 @@ let package = Package(
             path: "Sources/Services/CountriesManager"
         ),
         .target(
+            name: "CredentialsManager",
+            dependencies: [
+                "Constants",
+                "MixnetLibrary"
+            ],
+            path: "Sources/Services/CredentialsManager"
+        ),
+        .target(
             name: "Keychain",
             dependencies: [
+                "Constants",
                 .product(name: "Logging", package: "swift-log")
             ],
             path: "Sources/Services/Keychain"
