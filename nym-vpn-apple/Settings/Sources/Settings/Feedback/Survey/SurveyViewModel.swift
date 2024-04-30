@@ -1,4 +1,5 @@
 import SwiftUI
+import SentryManager
 import Theme
 import UIComponents
 
@@ -9,6 +10,8 @@ final class SurveyViewModel: ObservableObject {
     let provideFeedbackQuestionText = "feedback.survey.askFeedback".localizedString
     let yourFeedbackPlacholderText = "feedback.survey.yourFeedback".localizedString
     let submitButtonTitle = "feedback.survey.submit".localizedString
+
+    var sentryManager: SentryManager
 
     @Binding var path: NavigationPath
 
@@ -24,8 +27,9 @@ final class SurveyViewModel: ObservableObject {
         error == .missingRecommendation && selectedRecommendation == nil
     }
 
-    init(path: Binding<NavigationPath>) {
+    init(path: Binding<NavigationPath>, sentryManager: SentryManager = SentryManager.shared) {
         _path = path
+        self.sentryManager = sentryManager
     }
 
     func submit() {
@@ -35,7 +39,12 @@ final class SurveyViewModel: ObservableObject {
             error = .missingFeedback
         } else {
             error = .noError
-            // TODO: submit feedback to server
+            guard let selectedRecommendation = selectedRecommendation
+            else {
+                error = .missingRecommendation
+                return
+            }
+            sentryManager.submitFeedback(recommendation: selectedRecommendation.title, message: feedbackText)
             navigateToSurveySuccess()
         }
     }

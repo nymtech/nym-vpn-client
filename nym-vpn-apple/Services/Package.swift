@@ -27,6 +27,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
+        .package(name: "Theme", path: "../Theme"),
         .package(url: "https://github.com/apple/swift-log", from: "1.5.4"),
         .package(url: "https://git.zx2c4.com/wireguard-apple", exact: "1.0.15-26"),
         .package(url: "https://github.com/getsentry/sentry-cocoa", from: "8.0.0")
@@ -67,7 +68,8 @@ let package = Package(
             name: "CredentialsManager",
             dependencies: [
                 "Constants",
-                "MixnetLibrary"
+                "MixnetLibrary",
+                "Theme"
             ],
             path: "Sources/Services/CredentialsManager"
         ),

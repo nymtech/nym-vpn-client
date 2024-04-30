@@ -27,11 +27,6 @@ let package = Package(
             url: "https://github.com/nymtech/nym-vpn-client/releases/download/nightly/nym-vpn-lib_0.1.3-dev_ios_universal.zip",
             checksum: "beacbd482eacff81a89216cbd195e6651821bd766f1a7a1d26b97a26851fb43a"
         ),
-// TODO: remove local target after finishing testing
-//        .binaryTarget(
-//            name: "NymVpnLib",
-//            path: "Libs/RustFramework.xcframework"
-//        ),
         .testTarget(
             name: "MixnetLibraryTests",
             dependencies: ["MixnetLibrary"]

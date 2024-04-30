@@ -19,6 +19,26 @@ public final class SentryManager {
     }
 }
 
+public extension SentryManager {
+    func submitFeedback(recommendation: String, message: String) {
+        let initialIsErrorReporingOnValue = appSettings.isErrorReportingOn
+        appSettings.isErrorReportingOn = true
+
+        Task {
+            try await Task.sleep(for: .seconds(3))
+            let eventId = SentrySDK.capture(message: "Feedback submission")
+            let userFeedback = UserFeedback(eventId: eventId)
+            userFeedback.comments = "1. \(recommendation) \n 2.\(message)"
+            SentrySDK.capture(userFeedback: userFeedback)
+
+            try await Task.sleep(for: .seconds(4))
+            Task { @MainActor in
+                appSettings.isErrorReportingOn = initialIsErrorReporingOnValue
+            }
+        }
+    }
+}
+
 extension SentryManager {
     func setupObservers() {
         appSettings.$isErrorReportingOnPublisher.sink { [weak self] _ in

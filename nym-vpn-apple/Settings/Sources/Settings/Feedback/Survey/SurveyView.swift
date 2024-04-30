@@ -5,6 +5,7 @@ import UIComponents
 
 struct SurveyView: View {
     @StateObject private var viewModel: SurveyViewModel
+    @FocusState private var isFocused: Bool
 
     init(viewModel: SurveyViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -28,6 +29,15 @@ struct SurveyView: View {
                 submitButton()
                 Spacer()
                     .frame(height: 24)
+
+                if isFocused {
+                    // TODO: update with keyboard height
+                    Spacer()
+                        .frame(height: 330)
+                }
+            }
+            .onTapGesture {
+                isFocused = false
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -85,6 +95,7 @@ private extension SurveyView {
                 )
                 .padding(.horizontal, 12)
                 .onTapGesture {
+                    isFocused = false
                     viewModel.selectedRecommendation = type
                 }
                 Spacer()
@@ -111,6 +122,7 @@ private extension SurveyView {
                 .lineLimit(6, reservesSpace: true)
             Spacer()
         }
+        .focused($isFocused)
         .contentShape(
             RoundedRectangle(cornerRadius: 8)
                 .inset(by: 0.5)

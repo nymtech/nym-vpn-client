@@ -12,7 +12,7 @@ public final class SurveyButtonViewModel: ObservableObject {
             self
         }
 
-        var title: String {
+        public var title: String {
             switch self {
             case .notAtAll:
                 "feedback.survey.notAtAll".localizedString
