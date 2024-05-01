@@ -30,7 +30,7 @@ jobs:
       - name: Build/Move winfw.dll from mullvad
         shell: bash
         run: |
-          cd ${{ github.workspace }}/nym-vpn-mullvad-libs
+          cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
           CPP_BUILD_MODES=Release ./build-windows-modules.sh
           ls -lah windows
 
