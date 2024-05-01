@@ -6,7 +6,7 @@ env:
   CARGO_TARGET: release
   LIBS_PATH: '${{ github.workspace }}/lib'
   WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
-  MULLVAD_LIB_NAME: winfw.dll
+  MULLVAD_LIB_NAME: winfw
   UPDATER_BUNDLE_NAME: updater_linux_x86_64.AppImage.tar.gz
   UPLOAD_DIR: windows_artifacts
   TAURI_SRC: '${{ github.workspace }}/nym-vpn-desktop/src-tauri/'
@@ -60,10 +60,16 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.LIBS_PATH }}/
 
-      - name: Download mullvad lib artifacts
+      - name: Download mullvad lib artifact (winfw.lib)
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.MULLVAD_LIB_NAME }}
+          name: ${{ env.MULLVAD_LIB_NAME }}.lib
+          path: ${{ env.TAURI_SRC }}/
+
+      - name: Download mullvad lib artifact (winfw.lib)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.MULLVAD_LIB_NAME }}.dll
           path: ${{ env.TAURI_SRC }}/
 
       - name: Download/Unzip/Move wintun.zip, winpcap.zip also move wireguard lib for windows
