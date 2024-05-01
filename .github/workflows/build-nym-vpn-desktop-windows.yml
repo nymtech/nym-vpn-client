@@ -78,6 +78,11 @@ jobs:
           mv ${GITHUB_WORKSPACE}/lib/libwg.dll ${{ env.TAURI_SRC }}
           mv ${GITHUB_WORKSPACE}/lib/libwg.lib ${{ env.TAURI_SRC }}
 
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v2
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Generate licenses file (Js & Rust) and install JS dependencies
         working-directory: nym-vpn-desktop
         shell: bash
