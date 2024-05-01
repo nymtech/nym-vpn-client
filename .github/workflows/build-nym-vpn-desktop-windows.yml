@@ -80,6 +80,7 @@ jobs:
 
       - name: Generate licenses file (Js & Rust) and install JS dependencies
         working-directory: nym-vpn-desktop
+        shell: bash
         run: |
           rm public/licenses-js.json || true
           npm run gen:licenses:js
