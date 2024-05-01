@@ -73,10 +73,10 @@ jobs:
           curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
           unzip ${GITHUB_WORKSPACE}/wintun.zip
           unzip ${GITHUB_WORKSPACE}/winpcap.zip
-          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${{ env.TAURI_SRC }}
-          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${{ env.TAURI_SRC }}
-          mv ${GITHUB_WORKSPACE}/lib/libwg.dll ${{ env.TAURI_SRC }}
-          mv ${GITHUB_WORKSPACE}/lib/libwg.lib ${{ env.TAURI_SRC }}
+          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll '${{ env.TAURI_SRC }}'
+          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib '${{ env.TAURI_SRC }}'
+          mv ${GITHUB_WORKSPACE}/lib/libwg.dll '${{ env.TAURI_SRC }}'
+          mv ${GITHUB_WORKSPACE}/lib/libwg.lib '${{ env.TAURI_SRC }}'
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
