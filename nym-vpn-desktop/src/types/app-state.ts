@@ -33,10 +33,13 @@ export type WindowSize = {
   height: number;
 };
 
+export type DaemonStatus = 'Ok' | 'NotOk';
+
 export type AppState = {
   // initial loading phase when the app is starting and fetching data from the backend
   initialized: boolean;
   state: ConnectionState;
+  daemonStatus: DaemonStatus;
   version: string | null;
   loading: boolean;
   error?: string | null;

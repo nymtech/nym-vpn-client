@@ -7,11 +7,12 @@ import { kvSet } from '../kvStore';
 import {
   AppState,
   ConnectionEventPayload,
+  DaemonStatus,
   ProgressEventPayload,
   StateDispatch,
   WindowSize,
 } from '../types';
-import { ConnectionEvent, ProgressEvent } from '../constants';
+import { ConnectionEvent, DaemonEvent, ProgressEvent } from '../constants';
 
 function handleError(dispatch: StateDispatch, error?: string | null) {
   if (!error) {
@@ -23,6 +24,16 @@ function handleError(dispatch: StateDispatch, error?: string | null) {
 }
 
 export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
+  const registerDaemonListener = useCallback(() => {
+    return listen<DaemonStatus>(DaemonEvent, (event) => {
+      console.log(`received event ${event.event}, status: ${event.payload}`);
+      dispatch({
+        type: 'set-daemon-status',
+        status: event.payload,
+      });
+    });
+  }, [dispatch]);
+
   const registerStateListener = useCallback(() => {
     return listen<ConnectionEventPayload>(ConnectionEvent, (event) => {
       console.log(
@@ -106,18 +117,21 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
 
   // register/unregister event listener
   useEffect(() => {
+    const unlistenDaemon = registerDaemonListener();
     const unlistenState = registerStateListener();
     const unlistenProgress = registerProgressListener();
     const unlistenThemeChanges = registerThemeChangedListener();
     const unlistenWindowResized = registerWindowResizedListener();
 
     return () => {
+      unlistenDaemon.then((f) => f());
       unlistenState.then((f) => f());
       unlistenProgress.then((f) => f());
       unlistenThemeChanges.then((f) => f());
       unlistenWindowResized.then((f) => f());
     };
   }, [
+    registerDaemonListener,
     registerStateListener,
     registerProgressListener,
     registerThemeChangedListener,

@@ -10,6 +10,7 @@ import {
   ConnectProgressMsg,
   ConnectionState,
   Country,
+  DaemonStatus,
   NodeHop,
   NodeLocation,
   ThemeMode,
@@ -21,6 +22,7 @@ import {
 export type StateAction =
   | { type: 'init-done' }
   | { type: 'change-connection-state'; state: ConnectionState }
+  | { type: 'set-daemon-status'; status: DaemonStatus }
   | { type: 'set-vpn-mode'; mode: VpnMode }
   | { type: 'set-entry-selector'; entrySelector: boolean }
   | { type: 'set-error'; error: string }
@@ -59,6 +61,7 @@ export type StateAction =
 export const initialState: AppState = {
   initialized: false,
   state: 'Disconnected',
+  daemonStatus: 'NotOk',
   version: null,
   loading: false,
   vpnMode: 'TwoHop',
@@ -91,6 +94,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         initialized: true,
+      };
+    case 'set-daemon-status':
+      return {
+        ...state,
+        daemonStatus: action.status,
       };
     case 'set-node-location':
       if (action.payload.hop === 'entry') {
