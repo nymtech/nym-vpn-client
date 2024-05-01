@@ -135,7 +135,7 @@ jobs:
         env:
           UPLOADER_SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
           UPLOADER_TARGET_BUNDLE: updater_windows_x86_64.nsis.zip
-          BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
+          BINARY: '${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.exe'
         run: |
           echo "moving updater bundle and signature into ${{ env.UPLOAD_DIR_UPDATER }}"
           rm -rf ${{ env.UPLOAD_DIR_UPDATER }} || true
