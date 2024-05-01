@@ -4,12 +4,12 @@ on: [workflow_dispatch, workflow_call]
 env:
   CARGO_TERM_COLOR: always
   CARGO_TARGET: release
-  LIBS_PATH: ${{ github.workspace }}/lib
+  LIBS_PATH: '${{ github.workspace }}/lib'
   WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
   MULLVAD_LIB_NAME: winfw.dll
   UPDATER_BUNDLE_NAME: updater_linux_x86_64.AppImage.tar.gz
   UPLOAD_DIR: windows_artifacts
-  TAURI_SRC: ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+  TAURI_SRC: '${{ github.workspace }}/nym-vpn-desktop/src-tauri/'
 
 jobs:
   build-wireguard-go-windows:
