@@ -101,6 +101,7 @@ jobs:
 
       - name: Build desktop client
         working-directory: nym-vpn-desktop/src-tauri
+        shell: bash
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
@@ -116,6 +117,7 @@ jobs:
           ls -la target/release/bundle/* || true
 
       - name: Move things around to prepare for upload
+        shell: bash
         env:
           UPLOADER_SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
           UPLOADER_TARGET_BUNDLE: updater_windows_x86_64.nsis.zip
