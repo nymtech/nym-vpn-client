@@ -133,17 +133,17 @@ jobs:
       - name: Move things around to prepare for upload
         shell: bash
         env:
-          UPLOADER_SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
-          UPLOADER_TARGET_BUNDLE: updater_windows_x86_64.nsis.zip
-          BINARY: '${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.exe'
+          WINDOWS_BUILT_NAME: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
+          WINDOWS_ARTIFACT_NAME: updater_windows_x86_64.nsis.zip
+          BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
         run: |
           echo "moving updater bundle and signature into ${{ env.UPLOAD_DIR_UPDATER }}"
           rm -rf ${{ env.UPLOAD_DIR_UPDATER }} || true
           mkdir ${{ env.UPLOAD_DIR_UPDATER }}
-          mv ${{ env.UPLOADER_SRC_BUNDLE }}     ${{ env.UPLOAD_DIR_UPDATER }}/${UPLOADER_TARGET_BUNDLE}
-          mv ${{ env.UPLOADER_SRC_BUNDLE }}.sig ${{ env.UPLOAD_DIR_UPDATER }}/${UPLOADER_TARGET_BUNDLE}.sig
+          mv '${{ env.WINDOWS_BUILT_NAME }}'     ${{ env.UPLOAD_DIR_UPDATER }}/${WINDOWS_ARTIFACT_NAME}
+          mv '${{ env.WINDOWS_BUILT_NAME }}.sig' ${{ env.UPLOAD_DIR_UPDATER }}/${WINDOWS_ARTIFACT_NAME}.sig
           echo "moving setup.exe into ${{ env.UPLOAD_DIR_WINDOWS }}"
-          mv ${{ env.BINARY }} ${{ env.UPLOAD_DIR_WINDOWS }}/
+          mv '${{ env.BINARY }}' ${{ env.UPLOAD_DIR_WINDOWS }}/
 
       - name: Upload artifact updater
         uses: actions/upload-artifact@v4
