@@ -66,7 +66,7 @@ jobs:
           name: ${{ env.MULLVAD_LIB_NAME }}
           path: ${{ env.LIBS_PATH }}/
 
-      - name: Download/Unzip/Move wintun.zip and winpcap.zip, also move wireguard lib for windows
+      - name: Download/Unzip/Move wintun.zip, winpcap.zip also move wireguard lib, winfw.dll (mullvad) for windows
         shell: bash
         run: |
           curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
@@ -75,8 +75,10 @@ jobs:
           unzip ${GITHUB_WORKSPACE}/winpcap.zip
           mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll '${{ env.TAURI_SRC }}'
           mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib '${{ env.TAURI_SRC }}'
-          mv ${GITHUB_WORKSPACE}/lib/libwg.dll '${{ env.TAURI_SRC }}'
-          mv ${GITHUB_WORKSPACE}/lib/libwg.lib '${{ env.TAURI_SRC }}'
+          mv '${{ env.LIBS_PATH }}/libwg.dll' '${{ env.TAURI_SRC }}'
+          mv '${{ env.LIBS_PATH }}/libwg.lib' '${{ env.TAURI_SRC }}'
+          mv '${{ env.LIBS_PATH }}/x64-Release/winfw.dll' '${{ env.TAURI_SRC }}'
+
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v2
@@ -111,7 +113,7 @@ jobs:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
-          RUSTFLAGS: "-L ${{ env.LIBS_PATH }}/x86_64-pc-windows-msvc -L ${{ env.LIBS_PATH }} -Clink-args=/LIBPATH:${{ env.LIBS_PATH }}/x64-Release"
+          RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-Release"
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
         run: |
