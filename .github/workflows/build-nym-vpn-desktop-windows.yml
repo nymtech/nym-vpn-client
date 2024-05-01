@@ -143,8 +143,7 @@ jobs:
           mv ${{ env.UPLOADER_SRC_BUNDLE }}     ${{ env.UPLOAD_DIR_UPDATER }}/${UPLOADER_TARGET_BUNDLE}
           mv ${{ env.UPLOADER_SRC_BUNDLE }}.sig ${{ env.UPLOAD_DIR_UPDATER }}/${UPLOADER_TARGET_BUNDLE}.sig
           echo "moving setup.exe into ${{ env.UPLOAD_DIR_WINDOWS }}"
-          mv ${{ env.UPLOADER_SRC_BUNDLE }}
-          ls -la ${{ env.BINARY }} ${{ env.UPLOAD_DIR_WINDOWS }}/
+          mv ${{ env.BINARY }} ${{ env.UPLOAD_DIR_WINDOWS }}/
 
       - name: Upload artifact updater
         uses: actions/upload-artifact@v4
