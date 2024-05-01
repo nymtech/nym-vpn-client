@@ -143,6 +143,8 @@ jobs:
           mv '${{ env.WINDOWS_BUILT_NAME }}'     ${{ env.UPLOAD_DIR_UPDATER }}/${WINDOWS_ARTIFACT_NAME}
           mv '${{ env.WINDOWS_BUILT_NAME }}.sig' ${{ env.UPLOAD_DIR_UPDATER }}/${WINDOWS_ARTIFACT_NAME}.sig
           echo "moving setup.exe into ${{ env.UPLOAD_DIR_WINDOWS }}"
+          rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
+          mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
           mv '${{ env.BINARY }}' ${{ env.UPLOAD_DIR_WINDOWS }}/
 
       - name: Upload artifact updater
