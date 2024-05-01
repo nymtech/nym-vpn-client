@@ -8,7 +8,8 @@ env:
   WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
   MULLVAD_LIB_NAME: winfw
   UPDATER_BUNDLE_NAME: updater_linux_x86_64.AppImage.tar.gz
-  UPLOAD_DIR: windows_artifacts
+  UPLOAD_DIR_UPDATER: updater_artifacts
+  UPLOAD_DIR_WINDOWS: windows_artifacts
   TAURI_SRC: '${{ github.workspace }}/nym-vpn-desktop/src-tauri/'
 
 jobs:
@@ -23,7 +24,8 @@ jobs:
     runs-on: custom-windows-11
     outputs:
       PKG_VERSION: ${{ steps.package-version.outputs.metadata }}
-      UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR }}
+      UPLOAD_DIR_UPDATER: ${{ env.UPLOAD_DIR_UPDATER }}
+      UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
 
     steps:
       - name: Checkout repo
@@ -135,18 +137,25 @@ jobs:
           UPLOADER_TARGET_BUNDLE: updater_windows_x86_64.nsis.zip
           BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
         run: |
-          echo "moving updater bundle and signature into ${{ env.UPLOAD_DIR }}"
-          rm -rf ${{ env.UPLOAD_DIR }} || true
-          mkdir ${{ env.UPLOAD_DIR }}
-          mv ${{ env.UPLOADER_SRC_BUNDLE }}     ${{ env.UPLOAD_DIR }}/${UPLOADER_TARGET_BUNDLE}
-          mv ${{ env.UPLOADER_SRC_BUNDLE }}.sig ${{ env.UPLOAD_DIR }}/${UPLOADER_TARGET_BUNDLE}.sig
-          echo "moving setup.exe into ${{ env.UPLOAD_DIR }}"
+          echo "moving updater bundle and signature into ${{ env.UPLOAD_DIR_UPDATER }}"
+          rm -rf ${{ env.UPLOAD_DIR_UPDATER }} || true
+          mkdir ${{ env.UPLOAD_DIR_UPDATER }}
+          mv ${{ env.UPLOADER_SRC_BUNDLE }}     ${{ env.UPLOAD_DIR_UPDATER }}/${UPLOADER_TARGET_BUNDLE}
+          mv ${{ env.UPLOADER_SRC_BUNDLE }}.sig ${{ env.UPLOAD_DIR_UPDATER }}/${UPLOADER_TARGET_BUNDLE}.sig
+          echo "moving setup.exe into ${{ env.UPLOAD_DIR_WINDOWS }}"
           mv ${{ env.UPLOADER_SRC_BUNDLE }}
-          ls -la ${{ env.BINARY }} ${{ env.UPLOAD_DIR }}/
+          ls -la ${{ env.BINARY }} ${{ env.UPLOAD_DIR_WINDOWS }}/
 
-      - name: Upload artifacts
+      - name: Upload artifact updater
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.UPLOAD_DIR }}
-          path: ${{ env.UPLOAD_DIR }}
+          name: ${{ env.UPLOAD_DIR_UPDATER }}
+          path: ${{ env.UPLOAD_DIR_UPDATER }}
+          retention-days: 1
+
+      - name: Upload artifact windows
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_WINDOWS }}
+          path: ${{ env.UPLOAD_DIR_WINDOWS }}
           retention-days: 1
