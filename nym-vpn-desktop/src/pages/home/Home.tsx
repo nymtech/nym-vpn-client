@@ -12,8 +12,14 @@ import ConnectionStatus from './ConnectionStatus';
 import HopSelect from './HopSelect';
 
 function Home() {
-  const { state, loading, entryNodeLocation, exitNodeLocation, entrySelector } =
-    useMainState();
+  const {
+    state,
+    loading,
+    entryNodeLocation,
+    exitNodeLocation,
+    entrySelector,
+    daemonStatus,
+  } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
   const { t } = useTranslation('home');
@@ -111,7 +117,7 @@ function Home() {
         <Button
           onClick={handleClick}
           color={getButtonColor()}
-          disabled={loading}
+          disabled={loading || daemonStatus !== 'Ok'}
         >
           {getButtonText()}
         </Button>

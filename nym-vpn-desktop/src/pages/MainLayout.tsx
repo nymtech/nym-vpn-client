@@ -1,10 +1,12 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
+import { useMainState } from '../contexts';
 import { routes } from '../router';
-import { Notifications, TopBar } from '../ui';
+import { DaemonDot, Notifications, TopBar } from '../ui';
 
 function MainLayout() {
   const location = useLocation();
+  const { daemonStatus } = useMainState();
 
   return (
     <div
@@ -16,6 +18,7 @@ function MainLayout() {
     >
       <TopBar />
       <Notifications />
+      <DaemonDot status={daemonStatus} />
       <div
         className={clsx([
           'h-full flex flex-col overflow-auto overscroll-auto p-4',

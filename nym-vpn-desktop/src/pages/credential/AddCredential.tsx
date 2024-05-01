@@ -10,7 +10,7 @@ import { CmdError } from '../../types';
 import { Button, PageAnim, TextArea } from '../../ui';
 
 function AddCredential() {
-  const { uiTheme } = useMainState();
+  const { uiTheme, daemonStatus } = useMainState();
   const [credential, setCredential] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -79,7 +79,9 @@ function AddCredential() {
           <div className="h-3"></div>
         )}
       </div>
-      <Button onClick={handleClick}>{t('add-button')}</Button>
+      <Button onClick={handleClick} disabled={daemonStatus !== 'Ok'}>
+        {t('add-button')}
+      </Button>
     </PageAnim>
   );
 }

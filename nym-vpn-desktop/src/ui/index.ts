@@ -1,5 +1,6 @@
 export { default as Button } from './Button';
 export { default as MsIcon } from './MsIcon';
+export { default as DaemonDot } from './DaemonDot';
 export { default as RadioGroup } from './RadioGroup';
 export { default as Switch } from './Switch';
 export { default as SettingsMenuCard } from './SettingsMenuCard';
