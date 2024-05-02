@@ -1,0 +1,62 @@
+{
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:1420",
+    "distDir": "../dist",
+    "withGlobalTauri": false
+  },
+  "package": { "productName": "nymvpn-x" },
+  "tauri": {
+    "updater": {
+      "active": true,
+      "dialog": true,
+      "endpoints": ["https://nymvpn.net/api/updater/vpn"],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU3RjI2N0FFRUEyRERGOEQKUldTTjN5M3FybWZ5VjhxOFRsLzQ2c1N0NW1PVVNxVEVVQkszYjZHc3RtcEFDOW1ZN2lIN1NGdk0K",
+      "windows": { "installMode": "passive" }
+    },
+    "allowlist": {
+      "all": false,
+      "process": { "all": true },
+      "shell": { "all": false, "open": true },
+      "os": { "all": true },
+      "window": { "setSize": true }
+    },
+    "bundle": {
+      "active": true,
+      "targets": ["deb", "appimage", "nsis", "app", "dmg", "updater"],
+      "identifier": "net.nymtech.vpn",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "macOS": {
+        "frameworks": [],
+        "minimumSystemVersion": "",
+        "exceptionDomain": "",
+        "signingIdentity": "Developer ID Application: Nym Technologies SA (VW5DZLFHM5)",
+        "entitlements": null
+      }
+    },
+    "security": { "csp": null },
+    "windows": [
+      {
+        "fullscreen": false,
+        "resizable": true,
+        "visible": false,
+        "center": true,
+        "title": "NymVPN",
+        "hiddenTitle": true,
+        "width": 410,
+        "height": 888,
+        "minWidth": 160,
+        "minHeight": 346,
+        "maxWidth": 600,
+        "maxHeight": 1299
+      }
+    ]
+  }
+}
