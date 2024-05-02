@@ -28,6 +28,7 @@ let package = Package(
             dependencies: [
                 .product(name: "AppSettings", package: "Services"),
                 .product(name: "AppVersionProvider", package: "Services"),
+                .product(name: "Constants", package: "Services"),
                 .product(name: "CredentialsManager", package: "Services"),
                 .product(name: "KeyboardManager", package: "Services"),
                 .product(name: "SentryManager", package: "Services"),

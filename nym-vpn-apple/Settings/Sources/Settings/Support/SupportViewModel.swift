@@ -1,8 +1,9 @@
 import SwiftUI
+import Constants
 import UIComponents
 
 struct SupportViewModel {
-    private let faqLink = "https://nymvpn.com/en/support"
+    private let faqLink = Constants.supportURL.rawValue
     private let emailLink = "mailto:support@nymvpn.com"
     private let matrixLink = "https://matrix.to/#/%23NymVPN:nymtech.chat"
     private let discordLink = "https://discord.com/invite/nym"
