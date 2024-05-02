@@ -721,9 +721,9 @@ internal interface UniffiLib : Library {
 
     fun uniffi_nym_vpn_lib_fn_func_checkcredential(`credential`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
-    fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`exitOnly`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,`exitOnly`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_importcredential(`credential`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
@@ -875,10 +875,10 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_nym_vpn_lib_checksum_func_checkcredential() != 37960.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 21142.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 4475.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 25285.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 20907.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_importcredential() != 47691.toShort()) {
@@ -1072,7 +1072,8 @@ data class VpnConfig (
     var `explorerUrl`: Url, 
     var `entryGateway`: EntryPoint, 
     var `exitRouter`: ExitPoint, 
-    var `enableTwoHop`: kotlin.Boolean
+    var `enableTwoHop`: kotlin.Boolean, 
+    var `credentialDataPath`: PathBuf?
 ) {
     
     companion object
@@ -1086,6 +1087,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeEntryPoint.read(buf),
             FfiConverterTypeExitPoint.read(buf),
             FfiConverterBoolean.read(buf),
+            FfiConverterOptionalTypePathBuf.read(buf),
         )
     }
 
@@ -1094,7 +1096,8 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeUrl.allocationSize(value.`explorerUrl`) +
             FfiConverterTypeEntryPoint.allocationSize(value.`entryGateway`) +
             FfiConverterTypeExitPoint.allocationSize(value.`exitRouter`) +
-            FfiConverterBoolean.allocationSize(value.`enableTwoHop`)
+            FfiConverterBoolean.allocationSize(value.`enableTwoHop`) +
+            FfiConverterOptionalTypePathBuf.allocationSize(value.`credentialDataPath`)
     )
 
     override fun write(value: VpnConfig, buf: ByteBuffer) {
@@ -1103,6 +1106,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeEntryPoint.write(value.`entryGateway`, buf)
             FfiConverterTypeExitPoint.write(value.`exitRouter`, buf)
             FfiConverterBoolean.write(value.`enableTwoHop`, buf)
+            FfiConverterOptionalTypePathBuf.write(value.`credentialDataPath`, buf)
     }
 }
 
@@ -1532,6 +1536,64 @@ public object FfiConverterOptionalDouble: FfiConverterRustBuffer<kotlin.Double?>
 
 
 
+public object FfiConverterOptionalTypePathBuf: FfiConverterRustBuffer<PathBuf?> {
+    override fun read(buf: ByteBuffer): PathBuf? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypePathBuf.read(buf)
+    }
+
+    override fun allocationSize(value: PathBuf?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypePathBuf.allocationSize(value)
+        }
+    }
+
+    override fun write(value: PathBuf?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypePathBuf.write(value, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterOptionalTypeUrl: FfiConverterRustBuffer<Url?> {
+    override fun read(buf: ByteBuffer): Url? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeUrl.read(buf)
+    }
+
+    override fun allocationSize(value: Url?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeUrl.allocationSize(value)
+        }
+    }
+
+    override fun write(value: Url?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeUrl.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeLocation: FfiConverterRustBuffer<List<Location>> {
     override fun read(buf: ByteBuffer): List<Location> {
         val len = buf.getInt()
@@ -1563,6 +1625,16 @@ public object FfiConverterSequenceTypeLocation: FfiConverterRustBuffer<List<Loca
  */
 public typealias NodeIdentity = kotlin.String
 public typealias FfiConverterTypeNodeIdentity = FfiConverterString
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias PathBuf = kotlin.String
+public typealias FfiConverterTypePathBuf = FfiConverterString
 
 
 
@@ -1622,21 +1694,21 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
     
     
 
-    @Throws(FfiException::class) fun `getGatewayCountries`(`apiUrl`: Url, `explorerUrl`: Url, `exitOnly`: kotlin.Boolean): List<Location> {
+    @Throws(FfiException::class) fun `getGatewayCountries`(`apiUrl`: Url, `explorerUrl`: Url, `harbourMasterUrl`: Url?, `exitOnly`: kotlin.Boolean): List<Location> {
             return FfiConverterSequenceTypeLocation.lift(
     uniffiRustCallWithError(FfiException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
-        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterTypeUrl.lower(`explorerUrl`),FfiConverterBoolean.lower(`exitOnly`),_status)
+        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterTypeUrl.lower(`explorerUrl`),FfiConverterOptionalTypeUrl.lower(`harbourMasterUrl`),FfiConverterBoolean.lower(`exitOnly`),_status)
 }
     )
     }
     
 
-    @Throws(FfiException::class) fun `getLowLatencyEntryCountry`(`apiUrl`: Url, `explorerUrl`: Url): Location {
+    @Throws(FfiException::class) fun `getLowLatencyEntryCountry`(`apiUrl`: Url, `explorerUrl`: Url, `harbourMasterUrl`: Url?): Location {
             return FfiConverterTypeLocation.lift(
     uniffiRustCallWithError(FfiException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
-        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterTypeUrl.lower(`explorerUrl`),_status)
+        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterTypeUrl.lower(`explorerUrl`),FfiConverterOptionalTypeUrl.lower(`harbourMasterUrl`),_status)
 }
     )
     }

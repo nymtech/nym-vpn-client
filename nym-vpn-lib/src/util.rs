@@ -1,11 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{error::*, NymVpnCtrlMessage};
-use futures::{
-    channel::{mpsc, oneshot},
-    StreamExt,
-};
+use crate::{error::*, tunnel_setup::WgTunnelSetup, NymVpnCtrlMessage};
+use futures::{channel::mpsc, StreamExt};
 use log::*;
 use talpid_routing::RouteManager;
 #[cfg(target_os = "linux")]
@@ -18,9 +15,16 @@ pub(crate) async fn wait_for_interrupt(mut task_manager: nym_task::TaskManager) 
 }
 
 pub(crate) async fn wait_for_interrupt_and_signal(
-    mut task_manager: nym_task::TaskManager,
+    mut task_manager: Option<nym_task::TaskManager>,
     mut vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
 ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
+    let task_manager_wait = async {
+        if let Some(task_manager) = &mut task_manager {
+            task_manager.wait_for_error().await
+        } else {
+            std::future::pending().await
+        }
+    };
     let res = tokio::select! {
         biased;
         message = vpn_ctrl_rx.next() => {
@@ -35,7 +39,7 @@ pub(crate) async fn wait_for_interrupt_and_signal(
             }
             Ok(())
         }
-        Some(msg) = task_manager.wait_for_error() => {
+        Some(msg) = task_manager_wait => {
             log::info!("Task error: {:?}", msg);
             Err(msg)
         }
@@ -44,26 +48,33 @@ pub(crate) async fn wait_for_interrupt_and_signal(
             Ok(())
         },
     };
+    if let Some(mut task_manager) = task_manager {
+        info!("Sending shutdown signal");
+        task_manager.signal_shutdown().ok();
 
-    info!("Sending shutdown signal");
-    task_manager.signal_shutdown().ok();
+        info!("Waiting for tasks to finish... (Press ctrl-c to force)");
+        task_manager.wait_for_shutdown().await;
 
-    info!("Waiting for tasks to finish... (Press ctrl-c to force)");
-    task_manager.wait_for_shutdown().await;
-
-    info!("Stopping mixnet client");
+        info!("Stopping mixnet client");
+    }
     res
 }
 
 #[cfg_attr(target_os = "windows", allow(unused_mut))]
 pub(crate) async fn handle_interrupt(
     mut route_manager: RouteManager,
-    wireguard_waiting: Option<(oneshot::Receiver<()>, tokio::task::JoinHandle<Result<()>>)>,
-    tunnel_close_tx: oneshot::Sender<()>,
+    wireguard_waiting: Option<[WgTunnelSetup; 2]>,
 ) -> Result<()> {
-    let is_wireguard_waiting = wireguard_waiting.is_some();
+    let (tunnel_close_tx, finished_shutdown_rx, tunnel_handle) = match wireguard_waiting {
+        Some([entry_setup, exit_setup]) => (
+            Some([entry_setup.tunnel_close_tx, exit_setup.tunnel_close_tx]),
+            Some([entry_setup.receiver, exit_setup.receiver]),
+            Some([entry_setup.handle, exit_setup.handle]),
+        ),
+        None => (None, None, None),
+    };
 
-    let sig_handle = tokio::task::spawn_blocking(move || -> Result<()> {
+    let sig_handle = tokio::task::spawn_blocking(move || -> Result<RouteManager> {
         debug!("Received interrupt signal");
         route_manager.clear_routes()?;
         #[cfg(target_os = "linux")]
@@ -75,21 +86,31 @@ pub(crate) async fn handle_interrupt(
                 error.display_chain_with_msg("Failed to clear routing rules")
             );
         }
-        if is_wireguard_waiting {
-            tunnel_close_tx
-                .send(())
-                .map_err(|_| Error::FailedToSendWireguardTunnelClose)?;
+
+        if let Some([entry_tx, exit_tx]) = tunnel_close_tx {
+            let ret1 = entry_tx.send(());
+            let ret2 = exit_tx.send(());
+            if ret1.is_err() || ret2.is_err() {
+                return Err(Error::FailedToSendWireguardTunnelClose);
+            }
         }
-        Ok(())
+        Ok(route_manager)
     });
 
-    if let Some((finished_shutdown_rx, tunnel_handle)) = wireguard_waiting {
-        tunnel_handle.await??;
-        sig_handle.await??;
-        finished_shutdown_rx.await?;
-    } else {
-        sig_handle.await??;
+    if let Some([h1, h2]) = tunnel_handle {
+        let ret1 = h1.await;
+        let ret2 = h2.await;
+        ret1??;
+        ret2??;
     }
+    let route_manager = sig_handle.await??;
+    if let Some([rx1, rx2]) = finished_shutdown_rx {
+        let ret1 = rx1.await;
+        let ret2 = rx2.await;
+        ret1?;
+        ret2?;
+    }
+    tokio::task::spawn_blocking(|| drop(route_manager)).await?;
     Ok(())
 }
 

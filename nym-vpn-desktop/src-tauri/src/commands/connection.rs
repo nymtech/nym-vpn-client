@@ -1,6 +1,6 @@
 use futures::SinkExt;
-use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
-use nym_vpn_lib::{NymVpnCtrlMessage, NymVpnHandle};
+use nym_vpn_lib::gateway_directory::{Config as GatewayClientConfig, EntryPoint, ExitPoint};
+use nym_vpn_lib::{NymVpn, NymVpnCtrlMessage, NymVpnHandle};
 use std::env;
 use tauri::State;
 use tracing::{debug, error, info, instrument, trace};
@@ -17,7 +17,7 @@ use crate::{
         app::{ConnectionState, VpnMode},
         SharedAppState,
     },
-    vpn_client::{create_vpn_config, spawn_exit_listener, spawn_status_listener},
+    vpn_client::{spawn_exit_listener, spawn_status_listener},
 };
 
 #[instrument(skip_all)]
@@ -42,7 +42,7 @@ pub async fn connect(
         if app_state.state != ConnectionState::Disconnected {
             return Err(CmdError::new(
                 CmdErrorSource::CallerError,
-                format!("cannot connect from state {:?}", app_state.state),
+                &format!("cannot connect from state {:?}", app_state.state),
             ));
         };
 
@@ -90,14 +90,14 @@ pub async fn connect(
         }
     };
 
-    let mut vpn_config = create_vpn_config(entry_point, exit_point);
+    let mut vpn_config = NymVpn::new_mixnet_vpn(entry_point, exit_point);
+    vpn_config.gateway_config = GatewayClientConfig::new_from_env();
     if let VpnMode::TwoHop = app_state.vpn_mode {
         info!("2-hop mode enabled");
         vpn_config.enable_two_hop = true;
     } else {
         info!("5-hop mode enabled");
     }
-    vpn_config.enable_wireguard = false;
     // !! release app_state mutex
     // TODO: replace with automatic drop through scope
     drop(app_state);
@@ -107,7 +107,7 @@ pub async fn connect(
             "using path for mixnet data: {}",
             BACKEND_DATA_PATH.to_string_lossy()
         );
-        vpn_config.mixnet_data_path = Some(BACKEND_DATA_PATH.clone());
+        vpn_config.vpn_config.mixnet_data_path = Some(BACKEND_DATA_PATH.clone());
     }
 
     // spawn the VPN client and start a new connection
@@ -115,10 +115,10 @@ pub async fn connect(
         vpn_ctrl_tx,
         vpn_status_rx,
         vpn_exit_rx,
-    } = match nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config).map_err(|e| {
+    } = match nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config.into()).map_err(|e| {
         CmdError::new(
             CmdErrorSource::InternalError,
-            format!("fail to initialize Nym VPN client: {}", e),
+            &format!("fail to initialize Nym VPN client: {}", e),
         )
     }) {
         Ok(handle) => handle,
@@ -168,7 +168,7 @@ pub async fn disconnect(
     if !matches!(app_state.state, ConnectionState::Connected) {
         return Err(CmdError::new(
             CmdErrorSource::CallerError,
-            format!("cannot disconnect from state {:?}", app_state.state),
+            &format!("cannot disconnect from state {:?}", app_state.state),
         ));
     };
 
@@ -184,7 +184,7 @@ pub async fn disconnect(
         app.emit_disconnected(Some("vpn handle has not been initialized".to_string()));
         return Err(CmdError::new(
             CmdErrorSource::InternalError,
-            "vpn handle has not been initialized".to_string(),
+            "vpn handle has not been initialized",
         ));
     };
 
@@ -194,7 +194,7 @@ pub async fn disconnect(
         let err_message = format!("failed to send Stop message to VPN client: {}", e);
         error!(err_message);
         app.emit_disconnected(Some(err_message.clone()));
-        CmdError::new(CmdErrorSource::InternalError, err_message)
+        CmdError::new(CmdErrorSource::InternalError, &err_message)
     })?;
     debug!("Stop message sent");
 
@@ -226,7 +226,7 @@ pub async fn set_vpn_mode(
     } else {
         let err_message = format!("cannot change vpn mode from state {:?}", state.state);
         error!(err_message);
-        return Err(CmdError::new(CmdErrorSource::CallerError, err_message));
+        return Err(CmdError::new(CmdErrorSource::CallerError, &err_message));
     }
     state.vpn_mode = mode.clone();
 
@@ -234,7 +234,7 @@ pub async fn set_vpn_mode(
     db.insert(Key::VpnMode, &mode).map_err(|_| {
         CmdError::new(
             CmdErrorSource::InternalError,
-            "Failed to save vpn mode in db".to_string(),
+            "Failed to save vpn mode in db",
         )
     })?;
     Ok(())

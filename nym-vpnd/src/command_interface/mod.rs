@@ -3,6 +3,7 @@
 
 mod config;
 mod connection_handler;
+mod error;
 mod listener;
 mod socket_stream;
 mod start;

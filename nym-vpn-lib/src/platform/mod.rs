@@ -6,8 +6,8 @@ use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
 use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location};
 use crate::{
-    spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
-    NymVpnHandle,
+    spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
+    NymVpnHandle, SpecificVpn,
 };
 use futures::StreamExt;
 use lazy_static::lazy_static;
@@ -59,7 +59,7 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
     Ok(())
 }
 
-async fn _async_run_vpn(vpn: NymVpn) -> Result<(Arc<Notify>, NymVpnHandle), FFIError> {
+async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle), FFIError> {
     let stop_handle = Arc::new(Notify::new());
     set_shutdown_handle(stop_handle.clone()).await?;
 
@@ -111,16 +111,17 @@ pub struct VPNConfig {
     pub enable_two_hop: bool,
     #[cfg(target_os = "ios")]
     pub tun_provider: Arc<dyn crate::OSTunProvider>,
+    pub credential_data_path: Option<PathBuf>,
 }
 
-fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn, FFIError> {
+fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
     #[cfg(any(target_os = "ios", target_os = "macos"))]
     crate::platform::swift::init_logs();
 
     #[cfg(target_os = "android")]
     let context = crate::platform::android::get_context().ok_or(FFIError::NoContext)?;
 
-    let mut vpn = NymVpn::new(
+    let mut vpn = NymVpn::new_mixnet_vpn(
         config.entry_gateway.into(),
         config.exit_router.into(),
         #[cfg(target_os = "android")]
@@ -132,7 +133,7 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn, FFIError> {
     vpn.gateway_config.explorer_url = Some(config.explorer_url);
     vpn.gateway_config.harbour_master_url = None;
     vpn.enable_two_hop = config.enable_two_hop;
-
+    vpn.vpn_config.mixnet_data_path = config.credential_data_path.clone();
     Ok(vpn)
 }
 
@@ -146,7 +147,7 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
     if vpn.is_err() {
         RUNNING.store(false, Ordering::Relaxed);
     }
-    let ret = RUNTIME.block_on(run_vpn(vpn?));
+    let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
     if ret.is_err() {
         RUNNING.store(false, Ordering::Relaxed);
     }
@@ -184,7 +185,7 @@ async fn check_credential_string(credential: &str) -> Result<(), FFIError> {
     }
 }
 
-async fn run_vpn(vpn: NymVpn) -> Result<(), FFIError> {
+async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
     match _async_run_vpn(vpn).await {
         Err(err) => {
             error!("Could not start the VPN: {:?}", err);
@@ -223,20 +224,27 @@ async fn stop_vpn() -> Result<(), FFIError> {
 pub fn getGatewayCountries(
     api_url: Url,
     explorer_url: Url,
+    harbour_master_url: Option<Url>,
     exit_only: bool,
 ) -> Result<Vec<Location>, FFIError> {
-    RUNTIME.block_on(get_gateway_countries(api_url, explorer_url, exit_only))
+    RUNTIME.block_on(get_gateway_countries(
+        api_url,
+        explorer_url,
+        harbour_master_url,
+        exit_only,
+    ))
 }
 
 async fn get_gateway_countries(
     api_url: Url,
     explorer_url: Url,
+    harbour_master_url: Option<Url>,
     exit_only: bool,
 ) -> Result<Vec<Location>, FFIError> {
     let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
-        harbour_master_url: None,
+        harbour_master_url,
     };
     let gateway_client = GatewayClient::new(config)?;
 
@@ -250,18 +258,27 @@ async fn get_gateway_countries(
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getLowLatencyEntryCountry(api_url: Url, explorer_url: Url) -> Result<Location, FFIError> {
-    RUNTIME.block_on(get_low_latency_entry_country(api_url, explorer_url))
+pub fn getLowLatencyEntryCountry(
+    api_url: Url,
+    explorer_url: Url,
+    harbour_master_url: Option<Url>,
+) -> Result<Location, FFIError> {
+    RUNTIME.block_on(get_low_latency_entry_country(
+        api_url,
+        explorer_url,
+        harbour_master_url,
+    ))
 }
 
 async fn get_low_latency_entry_country(
     api_url: Url,
     explorer_url: Url,
+    harbour_master_url: Option<Url>,
 ) -> Result<Location, FFIError> {
     let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
-        harbour_master_url: None,
+        harbour_master_url,
     };
     let gateway_client = GatewayClient::new(config)?;
     let described = gateway_client.lookup_low_latency_entry_gateway().await?;

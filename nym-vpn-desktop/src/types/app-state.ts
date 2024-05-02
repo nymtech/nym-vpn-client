@@ -57,10 +57,14 @@ export type AppState = {
   fastestNodeLocation: Country;
   entryCountryList: Country[];
   exitCountryList: Country[];
+  entryCountriesLoading: boolean;
+  exitCountriesLoading: boolean;
   rootFontSize: number;
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
   windowSize?: WindowSize | null;
+  fetchEntryCountries: FetchCountriesFn;
+  fetchExitCountries: FetchCountriesFn;
 };
 
 export type ConnectionEventPayload = {
@@ -76,3 +80,5 @@ export type ProgressEventPayload = {
 };
 
 export type StateDispatch = Dispatch<StateAction>;
+
+export type FetchCountriesFn = () => Promise<void> | undefined;

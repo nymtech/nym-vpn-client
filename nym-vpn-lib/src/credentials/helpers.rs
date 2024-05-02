@@ -15,13 +15,27 @@ use super::CredentialError;
 pub(super) async fn get_credentials_store(
     data_path: PathBuf,
 ) -> Result<(PersistentStorage, PathBuf), CredentialError> {
+    // Create data_path if it doesn't exist
+    std::fs::create_dir_all(&data_path)?;
+
     let storage_path = StoragePaths::new_from_dir(data_path)?;
     let credential_db_path = storage_path.credential_database_path;
     debug!("Credential store: {}", credential_db_path.display());
-    Ok((
-        nym_credential_storage::initialise_persistent_storage(credential_db_path.clone()).await,
-        credential_db_path,
-    ))
+    let storage =
+        nym_credential_storage::initialise_persistent_storage(credential_db_path.clone()).await;
+
+    #[cfg(target_family = "unix")]
+    {
+        use std::fs;
+        use std::os::unix::fs::PermissionsExt;
+
+        let metadata = fs::metadata(&credential_db_path)?;
+        let mut permissions = metadata.permissions();
+        permissions.set_mode(0o600);
+        fs::set_permissions(&credential_db_path, permissions)?;
+    }
+
+    Ok((storage, credential_db_path))
 }
 
 pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialError> {

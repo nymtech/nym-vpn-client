@@ -29,6 +29,10 @@ function NodeLocation({ node }: { node: NodeHop }) {
     entryCountryList,
     exitCountryList,
     fastestNodeLocation,
+    entryCountriesLoading,
+    exitCountriesLoading,
+    fetchEntryCountries,
+    fetchExitCountries,
   } = useMainState();
 
   // the countries list used for UI rendering, Fastest country is at first position
@@ -48,19 +52,11 @@ function NodeLocation({ node }: { node: NodeHop }) {
 
   // request backend to refresh cache
   useEffect(() => {
-    invoke<Country[]>('get_countries', {
-      nodeType: node === 'entry' ? 'Entry' : 'Exit',
-    })
-      .then((countries) => {
-        dispatch({
-          type: 'set-country-list',
-          payload: {
-            hop: node,
-            countries,
-          },
-        });
-      })
-      .catch((e: CmdError) => console.warn('Failed to fetch countries:', e));
+    if (node === 'entry') {
+      fetchEntryCountries();
+    } else {
+      fetchExitCountries();
+    }
     if (FastestFeatureEnabled) {
       invoke<Country>('get_fastest_node_location')
         .then((country) => {
@@ -68,7 +64,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
         })
         .catch((e: CmdError) => console.error(e));
     }
-  }, [node, dispatch]);
+  }, [node, dispatch, fetchEntryCountries, fetchExitCountries]);
 
   // update the UI country list whenever the country list or
   // fastest country change (likely from the backend)
@@ -114,7 +110,6 @@ function NodeLocation({ node }: { node: NodeHop }) {
   };
 
   const handleCountrySelection = async (country: UiCountry) => {
-    console.log(country);
     const location = country.isFastest ? 'Fastest' : country.country;
 
     try {
@@ -147,6 +142,9 @@ function NodeLocation({ node }: { node: NodeHop }) {
         <span className="mt-2" />
         <CountryList
           countries={filteredCountries}
+          loading={
+            node === 'entry' ? entryCountriesLoading : exitCountriesLoading
+          }
           onSelect={handleCountrySelection}
           isSelected={(country: UiCountry) => {
             return isCountrySelected(

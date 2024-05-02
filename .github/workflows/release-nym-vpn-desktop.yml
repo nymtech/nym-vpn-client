@@ -45,10 +45,12 @@ jobs:
       UPDATER_BUNDLE_DIR: updater_bundle
       APPIMAGE_DIR: appimage
       WINDOWS_DIR: windows
+      DEB_DIR: deb
     outputs:
       pkg_version: ${{ steps.set_env.outputs.pkg_version }}
       appimage_dir: ${{ env.APPIMAGE_DIR }}
       windows_dir: ${{ env.WINDOWS_DIR }}
+      deb_dir: ${{ env.DEB_DIR }}
 
     steps:
       - name: "Cleanup working directory"
@@ -198,8 +200,8 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
           CPP_BUILD_MODES=Release ./build-windows-modules.sh
-          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
-          cp ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x64-Release/winfw.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv -v ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          cp -v ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/x64-Release/winfw.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
 
       - name: Download/Unzip/Move wintun.zip and winpcap.zip, also move wireguard lib for windows
         if: contains(matrix.os, 'windows')
@@ -209,14 +211,32 @@ jobs:
           curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
           unzip ${GITHUB_WORKSPACE}/wintun.zip
           unzip ${GITHUB_WORKSPACE}/winpcap.zip
-          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
-          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
-          mv ${GITHUB_WORKSPACE}/lib/libwg.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
-          mv ${GITHUB_WORKSPACE}/lib/libwg.lib ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv -v ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv -v ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv -v ${GITHUB_WORKSPACE}/lib/libwg.dll ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+          mv -v ${GITHUB_WORKSPACE}/lib/libwg.lib ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+
+      - name: Import signing certificate
+        if: contains(matrix.os, 'windows')
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+        run: |
+          New-Item -ItemType directory -Path certificate
+          Set-Content -Path certificate/tempCert.txt -Value $env:WINDOWS_CERTIFICATE
+          certutil -decode certificate/tempCert.txt certificate/certificate.pfx
+          Remove-Item -path certificate -include tempCert.txt
+          Import-PfxCertificate -FilePath certificate/certificate.pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText)
+
 
       - name: Prepare desktop build
         shell: bash
         run: mkdir nym-vpn-desktop/dist
+
+      - name: Install JS dependencies
+        working-directory: nym-vpn-desktop
+        shell: bash
+        run: npm ci
 
       - name: Generate licenses file (Js)
         working-directory: nym-vpn-desktop
@@ -232,11 +252,6 @@ jobs:
           rm public/licenses-rust.json || true
           npm run gen:licenses:rust
 
-      - name: Install JS dependencies
-        working-directory: nym-vpn-desktop
-        shell: bash
-        run: npm ci
-
       - name: Build desktop client
         working-directory: nym-vpn-desktop/src-tauri
         env:
@@ -251,6 +266,8 @@ jobs:
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
           # TODO try fixing `error running bundle_dmg.sh` (macos build)
           NO_STRIP: ${{ contains(matrix.os, 'mac') && 'true' }}
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
         shell: bash
         run: |
           npm run tauri build -- ${{ env.CARGO_TARGET }}
@@ -271,8 +288,8 @@ jobs:
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
           mkdir $UPDATER_BUNDLE_DIR
-          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
-          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
+          mv -v ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
+          mv -v ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
           ls -la $UPDATER_BUNDLE_DIR
 
       - name: Move updater bundle artifacts (Macos)
@@ -285,8 +302,8 @@ jobs:
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
           mkdir $UPDATER_BUNDLE_DIR
-          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
-          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
+          mv -v ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
+          mv -v ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
           ls -la $UPDATER_BUNDLE_DIR
 
       - name: Move updater bundle artifacts (Windows)
@@ -299,8 +316,8 @@ jobs:
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
           rm -rf $UPDATER_BUNDLE_DIR || true
           mkdir $UPDATER_BUNDLE_DIR
-          mv ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
-          mv ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
+          mv -v ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
+          mv -v ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
           ls -la $UPDATER_BUNDLE_DIR
 
       - name: Upload updater bundle (${{ env.PLATFORM_ARCH }})
@@ -313,20 +330,20 @@ jobs:
           path: ${{ env.UPDATER_BUNDLE_DIR }}
           retention-days: 2
 
-      - name: Create archive
+      # For mac it's important to create a tar archive to avoid stripping file attributes
+      - name: Create archive (mac)
+        if: "contains(matrix.os, 'mac')"
         shell: bash
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/appimage/nym-vpn*.AppImage ${{ env.ARTIFACT_DIR }} || true
-          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/deb/nym-vpn*.deb ${{ env.ARTIFACT_DIR }} || true
-          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }} || true
+          cp -vpr nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }}
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Prepare AppImage
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
           mkdir $APPIMAGE_DIR
-          mv nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*.AppImage $APPIMAGE_DIR/nym-vpn_${PKG_VERSION}.AppImage
+          mv -v nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*.AppImage $APPIMAGE_DIR/nym-vpn_${PKG_VERSION}.AppImage
 
       - name: Upload AppImage
         if: contains(matrix.os, 'ubuntu-22.04')
@@ -336,8 +353,16 @@ jobs:
           path: ${{ env.APPIMAGE_DIR }}
           retention-days: 2
 
+      - name: Upload deb
+        if: "contains(matrix.os , 'ubuntu-22.04')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.DEB_DIR }}
+          path: nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn*deb
+          retention-days: 2
+
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
-        if: "!contains(matrix.os , 'windows')"
+        if: "contains(matrix.os , 'mac')"
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_ARCHIVE }}
@@ -352,7 +377,6 @@ jobs:
           path: nym-vpn-desktop/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup.exe
           retention-days: 2
 
-      # Build info, but for now it's just the version
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
@@ -383,6 +407,7 @@ jobs:
       PKG_VERSION: ${{ needs.build.outputs.pkg_version }}
       APPIMAGE_DIR: ${{ needs.build.outputs.appimage_dir }}
       WINDOWS_DIR: ${{ needs.build.outputs.windows_dir }}
+      DEB_DIR: ${{ needs.build.outputs.deb_dir }}
     permissions:
       contents: write
     steps:
@@ -447,12 +472,16 @@ jobs:
           pushd $WINDOWS_DIR
           sha256sum nym-vpn*.exe > nym-vpn_${PKG_VERSION}_x64-setup.exe.sha256sum
           popd
+          pushd $DEB_DIR
+          for f in nym-vpn*.deb; do sha256sum ${f} > ${f}.sha256sum; done
+          popd
           rmdir nym-vpn-desktop_*tar.gz || true
           for file in nym-vpn-desktop_*tar.gz; do pushd $file; for f in nym-vpn-desktop_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
           cat $APPIMAGE_DIR/*.sha256sum >> $GITHUB_ENV
           cat $WINDOWS_DIR/*.sha256sum >> $GITHUB_ENV
+          cat $DEB_DIR/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: AppImage installer bump version
@@ -464,7 +493,7 @@ jobs:
           sed -i "s/^tag=.*$/tag=$TAG_NAME/" $appimg_installer
           sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
           mkdir installer
-          cp $appimg_installer installer
+          cp -v $appimg_installer installer
 
       - name: Publish release
         run: |
@@ -477,8 +506,8 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/* $DEB_DIR/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/* $DEB_DIR/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml

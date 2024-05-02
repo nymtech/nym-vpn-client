@@ -15,18 +15,25 @@ use tracing::debug;
 
 #[derive(Clone, Debug, Default)]
 pub struct WgConfig {
-    pub(crate) local_private_key: Option<String>,
+    pub(crate) local_entry_private_key: Option<String>,
+    pub(crate) local_exit_private_key: Option<String>,
 }
 
 impl WgConfig {
     pub fn new() -> Self {
         WgConfig {
-            local_private_key: None,
+            local_entry_private_key: None,
+            local_exit_private_key: None,
         }
     }
 
-    pub fn with_local_private_key(mut self, local_private_key: String) -> Self {
-        self.local_private_key = Some(local_private_key);
+    pub fn with_local_entry_private_key(mut self, local_entry_private_key: String) -> Self {
+        self.local_entry_private_key = Some(local_entry_private_key);
+        self
+    }
+
+    pub fn with_local_exit_private_key(mut self, local_exit_private_key: String) -> Self {
+        self.local_exit_private_key = Some(local_exit_private_key);
         self
     }
 }
@@ -44,7 +51,7 @@ pub struct WgGatewayClient {
 
 impl WgGatewayClient {
     pub fn new(config: WgConfig) -> Result<Self> {
-        let keypair = if let Some(local_private_key) = config.local_private_key {
+        let keypair = if let Some(local_private_key) = config.local_entry_private_key {
             let private_key_intermediate = PublicKey::from_base64(&local_private_key)
                 .map_err(|_| crate::error::Error::InvalidWireGuardKey)?;
             let private_key =

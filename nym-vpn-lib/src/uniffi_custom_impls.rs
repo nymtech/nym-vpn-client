@@ -7,6 +7,7 @@ use ipnetwork::IpNetwork;
 use nym_explorer_client::Location as ExpLocation;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::path::PathBuf;
 use std::str::FromStr;
 use talpid_types::net::wireguard::{PresharedKey, PrivateKey, PublicKey};
 use url::Url;
@@ -22,6 +23,7 @@ uniffi::custom_type!(PresharedKey, String);
 uniffi::custom_type!(Url, String);
 uniffi::custom_type!(NodeIdentity, String);
 uniffi::custom_type!(Recipient, String);
+uniffi::custom_type!(PathBuf, String);
 
 impl UniffiCustomTypeConverter for NodeIdentity {
     type Builtin = String;
@@ -216,5 +218,17 @@ impl From<ExitPoint> for GwExitPoint {
             ExitPoint::Gateway { identity } => GwExitPoint::Gateway { identity },
             ExitPoint::Location { location } => GwExitPoint::Location { location },
         }
+    }
+}
+
+impl UniffiCustomTypeConverter for PathBuf {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(PathBuf::from_str(&val)?)
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.display().to_string()
     }
 }

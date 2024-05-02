@@ -84,6 +84,12 @@ jobs:
         if: contains(matrix.os, 'windows')
         uses: microsoft/setup-msbuild@v2
 
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
       - name: Get package version
         id: package-version
         uses: nicolaiunrein/cargo-get@master
@@ -155,12 +161,6 @@ jobs:
         run: |
           echo 'CARGO_FEATURES=--features metrics-server' >> $GITHUB_ENV
 
-      - name: Install rust toolchain
-        uses: brndnmtthws/rust-action-rustup@v1
-        with:
-          toolchain: stable
-          components: rustfmt, clippy
-
       - name: Install extra arch apple
         if: contains(matrix.os, 'custom-runner-mac-m1') || contains(matrix.os, 'macos-14')
         run: |
@@ -191,6 +191,11 @@ jobs:
         if: contains(matrix.target, 'android')
         run: |
           cargo install cargo-ndk
+
+      - name: Setup cargo deb
+        if: contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
+        run: |
+          cargo install --locked cargo-deb
 
       - name: Setup cargo swift
         if: contains(matrix.os, 'custom-runner-mac-m1') || contains(matrix.os, 'macos-14')
@@ -266,6 +271,15 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: (cd nym-vpn-lib; cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --release)
 
+      - name: Build deb packages
+        if: contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: |
+          cargo deb -p nym-vpnd
+          cargo deb -p nym-vpnc
+          cargo deb -p nym-vpn-cli
+
       - name: Run tests
         if: ${{ contains(matrix.os, 'native') }}
         env:
@@ -277,15 +291,19 @@ jobs:
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
           if ${{ contains(matrix.target, 'android') }}; then
-            cp target/aarch64-linux-android/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}
+            cp -v target/aarch64-linux-android/release/libnym_vpn_lib.so ${{ env.ARTIFACT_DIR }}
           elif ${{ contains(matrix.os, 'custom-runner-mac-m1') }}; then
             lipo -create -output ${{ env.ARTIFACT_DIR }}/nym-vpn-cli target/release/nym-vpn-cli target/x86_64-apple-darwin/release/nym-vpn-cli
           elif ${{ matrix.os == 'macos-14' && matrix.target == 'native' }}; then
             lipo -create -output ${{ env.ARTIFACT_DIR }}/nym-vpn-cli target/release/nym-vpn-cli target/x86_64-apple-darwin/release/nym-vpn-cli
           elif ${{ matrix.target == 'ios' }}; then
-            cp -R nym-vpn-lib/NymVpnLib/RustFramework.xcframework ${{ env.ARTIFACT_DIR }}
+            cp -R -v nym-vpn-lib/NymVpnLib/RustFramework.xcframework ${{ env.ARTIFACT_DIR }}
+          elif ${{ contains(matrix.os, 'ubuntu') && matrix.target == 'native' }}; then
+            cp -v target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
+            cp -v target/release/nym-vpnc ${{ env.ARTIFACT_DIR }}
+            cp -v target/release/nym-vpnd ${{ env.ARTIFACT_DIR }}
           else
-            cp target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
+            cp -v target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
           fi
           if ${{ contains(matrix.target, 'ios') }}; then
             zip -r ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
@@ -298,6 +316,17 @@ jobs:
         with:
           name: ${{ env.ARTIFACT_ARCHIVE }}
           path: ${{ env.ARTIFACT_ARCHIVE }}
+          retention-days: 2
+
+      - name: Upload deb packages
+        if: contains(matrix.os, 'ubuntu-22.04') && contains(matrix.target, 'native')
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-packages
+          path: |
+            target/debian/nym-vpnc*deb
+            target/debian/nym-vpnd*deb
+            target/debian/nym-vpn-cli*deb
           retention-days: 2
 
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
@@ -364,17 +393,23 @@ jobs:
       # includes the tar.gz suffix.
       # Remove any empty artifact directories.
       - name: Generate checksums
+        env:
+          DEBIAN_PACKAGES: debian-packages
         run: |
           rmdir nym-vpn-*.zip || true
           rmdir nym-vpn-*.tar.gz || true
-          for file in nym-vpn-*tar.gz; do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
-          for file in nym-vpn-*zip; do pushd $file; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          for dir in nym-vpn-*tar.gz; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          for dir in nym-vpn-*zip; do pushd $dir; for f in nym-vpn-*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          pushd $DEBIAN_PACKAGES; for f in *deb; do sha256sum ${f} > "${f}.sha256sum"; done; popd
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-*.zip/*.sha256sum >> $GITHUB_ENV
           cat nym-vpn-*.tar.gz/*.sha256sum >> $GITHUB_ENV
+          cat $DEBIAN_PACKAGES/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
+        env:
+          DEBIAN_PACKAGES: debian-packages
         run: |
           echo "build info"
           echo "$BUILD_INFO"
@@ -385,5 +420,5 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/* $DEBIAN_PACKAGES/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-*.tar.gz/* nym-vpn-*.zip/* $DEBIAN_PACKAGES/*

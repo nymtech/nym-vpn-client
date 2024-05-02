@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-desktop"
-version = "0.1.1-dev"
+version = "0.1.2-dev"
 description = "Nym VPN Desktop Client"
 authors = ["pierre <dommerc.pierre@gmail.com>", "zane <zanecschepke@gmail.com>", "nym"]
 license = "GPL-3.0-only"
@@ -39,10 +39,6 @@ strum = { version = "0.26", features = ["derive"] }
 # We should get rid of this ASAP
 shadowsocks = { version = "~1.14.2" }
 shadowsocks-service = { version = "~1.14.3" }
-
-# TODO keep the rev in sync with the one used in nym-vpn-lib
-nym-explorer-api-requests = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", rev = "fa1e9988b37d4c17c7175a9eb817652dff66ac5d" }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

@@ -42,12 +42,12 @@ export default function HopSelect({
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
       </div>
       {isCountry(nodeLocation) && (
-        <div className="flex flex-row items-center gap-3">
+        <div className="flex flex-row items-center gap-3 overflow-hidden">
           <FlagIcon
             code={nodeLocation.code.toLowerCase() as countryCode}
             alt={nodeLocation.code}
           />
-          <div className="text-base">{nodeLocation.name}</div>
+          <div className="text-base truncate">{nodeLocation.name}</div>
         </div>
       )}
       {nodeLocation === 'Fastest' && (

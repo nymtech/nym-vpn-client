@@ -168,7 +168,10 @@ pub enum Error {
     },
 
     #[error("failed decode base58 credential: {source}")]
-    FailedToDecodeBase58Credential { source: bs58::decode::Error },
+    FailedToDecodeBase58Credential {
+        #[from]
+        source: bs58::decode::Error,
+    },
 
     #[error("config path not set")]
     ConfigPathNotSet,
@@ -183,6 +186,9 @@ pub enum Error {
     #[cfg(windows)]
     #[error("administrator privileges required, try rerunning with administrator privileges: `runas /user:Administrator {binary_name} run`")]
     AdminPrivilegesRequired { binary_name: String },
+
+    #[error("poisoned route manager lock")]
+    RouteManagerPoisonedLock,
 
     #[error("invalid credential: {reason}")]
     InvalidCredential {

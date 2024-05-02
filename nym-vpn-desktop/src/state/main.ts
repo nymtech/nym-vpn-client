@@ -43,6 +43,10 @@ export type StateAction =
       payload: { hop: NodeHop; countries: Country[] };
     }
   | {
+      type: 'set-countries-loading';
+      payload: { hop: NodeHop; loading: boolean };
+    }
+  | {
       type: 'set-node-location';
       payload: { hop: NodeHop; location: NodeLocation };
     }
@@ -72,9 +76,13 @@ export const initialState: AppState = {
   fastestNodeLocation: DefaultNodeCountry,
   entryCountryList: [],
   exitCountryList: [],
+  entryCountriesLoading: true,
+  exitCountriesLoading: true,
   rootFontSize: DefaultRootFontSize,
   codeDepsRust: [],
   codeDepsJs: [],
+  fetchEntryCountries: async () => {},
+  fetchExitCountries: async () => {},
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -125,6 +133,17 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         exitCountryList: action.payload.countries,
+      };
+    case 'set-countries-loading':
+      if (action.payload.hop === 'entry') {
+        return {
+          ...state,
+          entryCountriesLoading: action.payload.loading,
+        };
+      }
+      return {
+        ...state,
+        exitCountriesLoading: action.payload.loading,
       };
     case 'change-connection-state': {
       console.log(

@@ -5,7 +5,7 @@ use clap::{Args, Parser, Subcommand};
 use ipnetwork::{Ipv4Network, Ipv6Network};
 use nym_vpn_lib::{nym_bin_common::bin_info_local_vergen, wg_gateway_client::WgConfig};
 use std::{
-    net::{Ipv4Addr, Ipv6Addr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,
     str::FromStr,
     sync::OnceLock,
@@ -57,18 +57,28 @@ pub(crate) struct RunArgs {
     #[arg(
         long,
         default_value_t = false,
-        requires = "private_key",
-        requires = "wg_ip"
+        requires = "entry_private_key",
+        requires = "exit_private_key",
+        requires = "entry_wg_ip",
+        requires = "exit_wg_ip"
     )]
     pub(crate) enable_wireguard: bool,
 
-    /// Associated private key.
-    #[arg(long, requires = "enable_wireguard", requires = "wg_ip")]
-    pub(crate) private_key: Option<String>,
+    /// Associated entry private key.
+    #[arg(long, requires = "enable_wireguard", requires = "entry_wg_ip")]
+    pub(crate) entry_private_key: Option<String>,
 
-    /// The IP address of the wireguard interface used for the first hop to the entry gateway.
+    /// Associated exit private key.
+    #[arg(long, requires = "enable_wireguard", requires = "exit_wg_ip")]
+    pub(crate) exit_private_key: Option<String>,
+
+    /// The IP address of the entry wireguard interface used for the first hop to the entry gateway.
     #[arg(long, value_parser = validate_wg_ip, requires = "enable_wireguard")]
-    pub(crate) wg_ip: Option<Ipv4Addr>,
+    pub(crate) entry_wg_ip: Option<Ipv4Addr>,
+
+    /// The IP address of the exit wireguard interface used for the first hop to the entry gateway.
+    #[arg(long, value_parser = validate_wg_ip, requires = "enable_wireguard")]
+    pub(crate) exit_wg_ip: Option<Ipv4Addr>,
 
     /// The IPv4 address of the nym TUN device that wraps IP packets in sphinx packets.
     #[arg(long, alias = "ipv4", value_parser = validate_ipv4, requires = "nym_ipv6")]
@@ -81,6 +91,10 @@ pub(crate) struct RunArgs {
     /// The MTU of the nym TUN device that wraps IP packets in sphinx packets.
     #[arg(long, alias = "mtu")]
     pub(crate) nym_mtu: Option<u16>,
+
+    /// The DNS server to use
+    #[arg(long)]
+    pub(crate) dns: Option<IpAddr>,
 
     /// Disable routing all traffic through the nym TUN device. When the flag is set, the nym TUN
     /// device will be created, but to route traffic through it you will need to do it manually,
@@ -152,8 +166,8 @@ pub(crate) struct ImportCredentialArgs {
 #[group(required = true, multiple = false)]
 pub(crate) struct ImportCredentialType {
     /// Credential encoded using base58.
-    #[arg(long, value_parser = parse_encoded_credential_data)]
-    pub(crate) credential_data: Option<Vec<u8>>,
+    #[arg(long)]
+    pub(crate) credential_data: Option<String>,
 
     /// Path to the credential file.
     #[arg(long, value_parser = check_path)]
@@ -197,8 +211,11 @@ fn validate_ipv6(ip: &str) -> Result<Ipv6Addr, String> {
 }
 
 pub fn wg_override_from_env(args: &RunArgs, mut config: WgConfig) -> WgConfig {
-    if let Some(ref private_key) = args.private_key {
-        config = config.with_local_private_key(private_key.clone());
+    if let Some(ref private_key) = args.entry_private_key {
+        config = config.with_local_entry_private_key(private_key.clone());
+    }
+    if let Some(ref private_key) = args.exit_private_key {
+        config = config.with_local_exit_private_key(private_key.clone());
     }
     config
 }
@@ -214,14 +231,10 @@ fn check_path(path: &str) -> Result<PathBuf, String> {
     Ok(path)
 }
 
-fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
-    bs58::decode(raw).into_vec()
-}
-
 // Workaround until clap supports enums for ArgGroups
 pub enum ImportCredentialTypeEnum {
     Path(PathBuf),
-    Data(Vec<u8>),
+    Data(String),
 }
 
 impl From<ImportCredentialType> for ImportCredentialTypeEnum {

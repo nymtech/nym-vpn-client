@@ -40,7 +40,6 @@ pub trait AppHandleEventEmitter {
     fn emit_connected(&self, now: OffsetDateTime, gateway: String);
     fn emit_disconnecting(&self);
     fn emit_disconnected(&self, error: Option<String>);
-
     fn emit_connection_progress(&self, key: ConnectProgressMsg);
 }
 

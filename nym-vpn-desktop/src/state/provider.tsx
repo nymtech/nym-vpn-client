@@ -1,9 +1,11 @@
 import { invoke } from '@tauri-apps/api';
-import React, { useEffect, useReducer } from 'react';
+import React, { useCallback, useEffect, useReducer } from 'react';
+import { CountryCacheDuration } from '../constants';
 import { MainDispatchContext, MainStateContext } from '../contexts';
 import { sleep } from '../helpers';
-import { Cli } from '../types';
-import init from './init';
+import { useThrottle } from '../hooks';
+import { Cli, Country, NodeHop } from '../types';
+import { initFirstBatch, initSecondBatch } from './init';
 import { initialState, reducer } from './main';
 import { useTauriEvents } from './useTauriEvents';
 
@@ -18,7 +20,11 @@ export function MainStateProvider({ children }: Props) {
 
   // initialize app state
   useEffect(() => {
-    init(dispatch).then(async () => {
+    // this first batch is needed to ensure the app is fully
+    // initialized and ready, once done splash screen is removed
+    // and the UI is shown
+    initFirstBatch(dispatch).then(async () => {
+      console.log('init of 1st batch done');
       dispatch({ type: 'init-done' });
       const args = await invoke<Cli>(`cli_args`);
       // skip the animation if NOSPLASH is set
@@ -40,10 +46,45 @@ export function MainStateProvider({ children }: Props) {
         splash.remove();
       }
     });
+
+    // this second batch is not needed for the app to be fully
+    // functional, and continue loading in the background
+    initSecondBatch(dispatch).then(() => {
+      console.log('init of 2nd batch done');
+    });
+  }, []);
+
+  const fetchEntryCountries = useThrottle(
+    async () => fetchCountries('entry'),
+    CountryCacheDuration,
+  );
+
+  const fetchExitCountries = useThrottle(
+    async () => fetchCountries('exit'),
+    CountryCacheDuration,
+  );
+
+  const fetchCountries = useCallback(async (node: NodeHop) => {
+    try {
+      const countries = await invoke<Country[]>('get_countries', {
+        nodeType: node === 'entry' ? 'Entry' : 'Exit',
+      });
+      dispatch({
+        type: 'set-country-list',
+        payload: {
+          hop: node,
+          countries,
+        },
+      });
+    } catch (e) {
+      console.warn('Failed to fetch countries:', e);
+    }
   }, []);
 
   return (
-    <MainStateContext.Provider value={state}>
+    <MainStateContext.Provider
+      value={{ ...state, fetchEntryCountries, fetchExitCountries }}
+    >
       <MainDispatchContext.Provider value={dispatch}>
         {children}
       </MainDispatchContext.Provider>
