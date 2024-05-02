@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use itertools::Itertools;
-use nym_vpn_lib::gateway_directory::{Config, GatewayClient};
+use nym_gateway_directory::{Config, GatewayClient};
 use once_cell::sync::Lazy;
 use tracing::{error, instrument};
 

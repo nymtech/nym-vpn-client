@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
-use nym_vpn_lib::nym_config;
+use nym_config::defaults;
 use tokio::fs::read;
 use tracing::{debug, error, info, instrument};
 
@@ -27,12 +27,12 @@ pub async fn setup_network_env(use_sandbox: bool, env_config_file: &Option<PathB
             ))?;
 
         info!("network environment: custom env {}", file.display());
-        nym_config::defaults::setup_env(env_config_file.clone());
+        defaults::setup_env(env_config_file.clone());
         return Ok(());
     }
 
     info!("network environment: mainnet");
-    nym_config::defaults::setup_env::<PathBuf>(None);
+    defaults::setup_env::<PathBuf>(None);
 
     Ok(())
 }
