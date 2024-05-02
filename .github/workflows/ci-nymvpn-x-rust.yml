@@ -88,11 +88,6 @@ jobs:
           echo "TRIPLET=$triplet" >> $GITHUB_ENV
           echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
 
-      - name: Install Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "stable"
-
       - name: Install protoc
         uses: arduino/setup-protoc@v3
         with:
@@ -102,12 +97,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         uses: microsoft/setup-msbuild@v2
 
-      - name: Build wireguard
-        shell: bash
-        run: |
-          ./wireguard/build-wireguard-go.sh
-
-      - name: rustfmt check
+      - name: fmt check
         working-directory: nymvpn-x/src-tauri
         run: cargo fmt --check
 
