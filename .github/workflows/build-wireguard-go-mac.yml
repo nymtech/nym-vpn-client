@@ -1,4 +1,4 @@
-name: build-nym-vpn-desktop-full
+name: build-wireguard-go-mac
 on: [workflow_dispatch, workflow_call]
 
 jobs:
