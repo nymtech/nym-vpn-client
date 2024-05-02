@@ -1,11 +1,14 @@
-name: ci-nym-vpn-desktop-rust
+name: ci-nymvpn-x-rust
 
 on:
   workflow_dispatch:
   pull_request:
-    paths-ignore:
-      - "nym-vpn-cli/**"
-      - "nymvpn-x/**"
+    paths:
+      - ".github/workflows/ci-nymvpn-x-rust.yml"
+      - "nymvpn-x/src-tauri/**"
+      - "crates/nym-vpn-proto/**"
+      - "nym-vpnd/**"
+      - "nym-vpn-lib/**"
 
 env:
   CARGO_TERM_COLOR: always
@@ -34,7 +37,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
             protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
-            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev git curl gcc g++ make
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev git curl gcc g++ make unzip
 
       - name: Support longpaths on windows
         if: contains(matrix.os, 'windows')
@@ -91,8 +94,7 @@ jobs:
           go-version: "stable"
 
       - name: Install protoc
-        uses: arduino/setup-protoc@v2
-        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') || contains(matrix.os, 'windows')
+        uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -106,9 +108,9 @@ jobs:
           ./wireguard/build-wireguard-go.sh
 
       - name: rustfmt check
-        working-directory: nym-vpn-desktop/src-tauri
+        working-directory: nymvpn-x/src-tauri
         run: cargo fmt --check
 
       - name: clippy check
-        working-directory: nym-vpn-desktop/src-tauri
+        working-directory: nymvpn-x/src-tauri
         run: cargo clippy -- -Dwarnings

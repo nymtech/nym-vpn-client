@@ -35,7 +35,8 @@ pub struct Cli {
     pub dns: Option<String>,
 }
 
-pub fn print_build_info(package_info: &PackageInfo) {
+// TODO restore this
+pub fn print_build_info(_package_info: &PackageInfo) {
     // let info = build_info();
 
     //     print!(
