@@ -39,7 +39,7 @@ mod states;
 mod vpn_status;
 mod window;
 
-pub const APP_DIR: &str = "nym-vpn";
+pub const APP_DIR: &str = "nymvpn-x";
 const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 const VPND_DEFAULT_ENDPOINT: &str = "http://[::1]:53181";
