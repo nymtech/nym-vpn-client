@@ -22,7 +22,6 @@ jobs:
     needs: [build-wireguard-go-windows,build-mullvad-windows]
     runs-on: custom-windows-11
     outputs:
-      PKG_VERSION: ${{ steps.package-version.outputs.metadata }}
       UPLOAD_DIR_WINDOWS_UPDATER: ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
 

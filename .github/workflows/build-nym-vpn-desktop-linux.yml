@@ -15,9 +15,8 @@ jobs:
 
   build-linux:
     needs: build-wireguard-go-linux
-    runs-on: ubuntu-22.04-16-core
+    runs-on: ubuntu-22.04-arc
     outputs:
-      PKG_VERSION: ${{ steps.set_env.outputs.PKG_VERSION }}
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR }}
     steps:
       - name: Checkout repo

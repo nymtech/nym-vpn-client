@@ -18,7 +18,6 @@ jobs:
     needs: build-wireguard-go-mac
     runs-on: macos-14
     outputs:
-      PKG_VERSION: ${{ steps.set_env.outputs.PKG_VERSION }}
       UPLOAD_DIR_MAC_UPDATER: ${{ env.UPLOAD_DIR_MAC_UPDATER }}
       UPLOAD_DIR_MAC: ${{ env.UPLOAD_DIR_MAC }}
 

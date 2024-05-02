@@ -1,9 +1,23 @@
 name: build-nym-vpn-desktop-android
 on: [workflow_dispatch, workflow_call]
 
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TARGET: release
+  WG_GO_LIB_PATH: ${{ github.workspace }}/lib
+  WG_GO_LIB_NAME: wireguard-go_ubuntu-22.04_x86_64
+  UPDATER_BUNDLE_NAME: updater_linux_x86_64.AppImage.tar.gz
+  UPLOAD_DIR: android_artifacts
+
 jobs:
-  build-full:
+  build-wireguard-go-android:
+    uses: ./.github/workflows/build-wireguard-go-android.yml
+
+  build-android:
+    needs: build-wireguard-go-android
     runs-on: ubuntu-22.04-16-core
+    outputs:
+      UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -12,3 +26,76 @@ jobs:
             nym-vpn-desktop
             nym-vpn-lib
             crates
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make libfuse2
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-desktop/src-tauri
+
+      - name: Download wireguard-go artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WG_GO_LIB_NAME }}
+          path: ${{ env.WG_GO_LIB_PATH }}
+
+      - name: Generate licenses file (Js & Rust) and install JS dependencies
+        working-directory: nym-vpn-desktop
+        run: |
+          rm public/licenses-js.json || true
+          npm run gen:licenses:js
+          rm public/licenses-rust.json || true
+          npm run gen:licenses:rust
+          npm ci
+
+      - name: Build desktop client
+        working-directory: nym-vpn-desktop/src-tauri
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: |
+          npm run tauri build --${{ env.CARGO_TARGET }}
+          ls -la target/release/ || true
+          ls -la target/release/bundle || true
+          ls -la target/release/bundle/* || true
+
+      - name: Move things around to prepare for upload
+        env:
+          SRC_UPDATE_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*.AppImage.tar.gz
+          SRC_APPIMAGE: nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*.AppImage
+          SRC_DEB: nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn*.deb
+        run: |
+          echo "Generate build info"
+          ${{ env.SRC_APPIMAGE }} --build-info > build-info.txt
+          mkdir ${{ env.UPLOAD_DIR }}
+          echo "Move AppImage"
+          cp -vpr ${{ env.SRC_APPIMAGE }} ${{ env.UPLOAD_DIR }}
+          echo "Move updater bundle and signature"
+          cp -vpr ${{ env.SRC_UPDATE_BUNDLE }}     ${{ env.UPLOAD_DIR }}/${{ env.UPDATER_BUNDLE_NAME }}
+          cp -vpr ${{ env.SRC_UPDATE_BUNDLE }}.sig ${{ env.UPLOAD_DIR }}/${{ env.UPDATER_BUNDLE_NAME }}.sig
+          echo "Move debian pkg"
+          cp -vpr ${{ env.SRC_DEB }} ${{ env.UPLOAD_DIR }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR }}
+          path: ${{ env.UPLOAD_DIR }}
+          retention-days: 1
