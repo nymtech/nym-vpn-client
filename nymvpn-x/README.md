@@ -1,6 +1,6 @@
-# NymVPN desktop client app
+# nymvpn-x
 
-Desktop client application of NymVPN.
+Ne**x**t desktop client application for NymVPN.
 
 ## Install
 
@@ -36,104 +36,21 @@ cargo install tauri-cli
 cargo tauri help
 ```
 
-## App config
-
-The app looks for the config file `config.toml` under `nym-vpn`
-directory, full path is platform specific:
-
-- Linux: `$XDG_CONFIG_HOME/nym-vpn/` or `$HOME/.config/nym-vpn/`
-- macOS: `$HOME/Library/Application Support/nym-vpn/`
-- Windows: `C:\Users\<USER>\AppData\Roaming\nym-vpn\`
-
-For example on Linux the full path would be
-`~/.config/nym-vpn/config.toml`.
-
-**NOTE** All properties are optional
-
-```toml
-# absolute path to a network configuration file
-env_config_file = "/home/<USER>/.config/nym-vpn/sandbox.env"
-# 2-letter country code for the default entry and exit node location
-default_entry_node_location_code = "FR"
-default_exit_node_location_code = "DE"
-```
-
-`env_config_file` is the absolute path to a network configuration
-file, pick the relevant one
-[here](https://github.com/nymtech/nym/tree/develop/envs).
-
-**NOTE** The sandbox config will be used by default if no config is provided.
-
 ## Dev
-
-#### build wireguard-go (required)
-
-From the repo root run
-
-```
-./wireguard/build-wireguard-go.sh
-```
-
-Then you need to provide the lib path to the rust library search
-path. Create the file `.cargo/config.toml` from repo root
-
-```config.toml
-[build]
-rustflags = ['-L', '/<ABSOLUTE_PATH_TO>/nym-vpn-client/build/lib/<PLATFORM_ARCH>']
-```
-
-or provide the env variable in each commands
-
-```
-RUSTFLAGS="-L /<ABSOLUTE_PATH_TO>/nym-vpn-client/build/lib/<PLATFORM_ARCH>" npm run dev:app
-```
-
-Replace `<ABSOLUTE_PATH_TO>` accordingly.
-Replace `<PLATFORM_ARCH>` by your host specific platform and arch:
-
-- Linux: `x86_64-unknown-linux-gnu`
-- Mac x86_64: `x86_64-apple-darwin`
-- Mac M1/M2/M3: `aarch64-apple-darwin`
-- Windows: `x86_64-pc-windows-msvc`
 
 To start the app in dev mode run:
 
 ```
-npm run dev:app
+RUST_LOG=info,nymvpn_x=trace npm run dev:app
 ```
+
+(tweak `RUST_LOG` env var as needed)
 
 or via `cargo`
 
 ```
 cd src-tauri
-cargo tauri dev
-```
-
-**NOTE** Starting a VPN connection requires root privileges as it
-will set up a link interface.
-If you want to connect during development, you need to run the app
-as root, likely using `sudo` (or equivalent)
-
-```shell
-sudo -E RUST_LOG=debug cargo tauri dev
-```
-
-#### Logging
-
-Rust logging (standard output) is controlled by the `RUST_LOG`
-env variable
-
-Example:
-
-```
-RUST_LOG=nym_vpn_desktop=trace,nym_client_core=warn,nym_vpn_lib=info npm run dev:app
-```
-
-or
-
-```
-cd src-tauri
-RUST_LOG=trace cargo tauri dev
+RUST_LOG=info,nymvpn_x=trace cargo tauri dev
 ```
 
 #### Disabling the splash-screen
@@ -195,15 +112,36 @@ Generated TS types will be located in `src-tauri/bindings/`
 
 ## Build
 
-First build `wireguard-go` lib and set `RUSTFLAGS` accordingly,
-see [here](#build-wireguard-go-required)
-
-Then run the following commands
+To build run the following commands
 
 ```
-cd nym-vpn-desktop
+cd nymvpn-x
 npm i
 mkdir dist
 
 TAURI_PRIVATE_KEY=1234 TAURI_KEY_PASSWORD=1234 npm run tauri build
 ```
+
+## Custom app config
+
+The app looks for the config file `config.toml` under `nym-vpn`
+directory, full path is platform specific:
+
+- Linux: `$XDG_CONFIG_HOME/nym-vpn/` or `$HOME/.config/nym-vpn/`
+- macOS: `$HOME/Library/Application Support/nym-vpn/`
+- Windows: `C:\Users\<USER>\AppData\Roaming\nym-vpn\`
+
+For example on Linux the full path would be
+`~/.config/nym-vpn/config.toml`.
+
+**NOTE** All properties are optional
+
+```toml
+# absolute path to a custom network configuration file
+env_config_file = "/home/<USER>/.config/nym-vpn/custom.env"
+# Address of NymVpn daemon to connect to (gRPC server endpoint)
+daemon_address = "http://localhost:1234"
+# IP address of the DNS server to use when connected to the VPN
+dns_server = "1.1.1.1"
+```
+
