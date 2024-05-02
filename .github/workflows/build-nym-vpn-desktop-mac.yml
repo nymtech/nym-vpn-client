@@ -51,6 +51,11 @@ jobs:
         with:
           subcommand: package.version --entry nym-vpn-desktop/src-tauri
 
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
         with:
