@@ -55,12 +55,13 @@
 		D97065E12B8DD44A00C27A9B /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D97065E02B8DD44A00C27A9B /* TunnelStatus */; };
 		D974C03B2BBED2460011924A /* ConnectionManager in Frameworks */ = {isa = PBXBuildFile; productRef = D974C03A2BBED2460011924A /* ConnectionManager */; };
 		D9870CEF2BE37E2200551A86 /* Extensions in Frameworks */ = {isa = PBXBuildFile; productRef = D9870CEE2BE37E2200551A86 /* Extensions */; };
+		D9870CF32BE3A12800551A86 /* Home in Frameworks */ = {isa = PBXBuildFile; productRef = D9870CF22BE3A12800551A86 /* Home */; };
+		D9870CF52BE3A12C00551A86 /* KeyboardManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9870CF42BE3A12C00551A86 /* KeyboardManager */; };
 		D990950F2BC6B3E100C98E3F /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D990950D2BC6B31900C98E3F /* SystemConfiguration.framework */; };
 		D99095152BC6B54200C98E3F /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */; };
 		D99095182BC6B54200C98E3F /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99095172BC6B54200C98E3F /* PacketTunnelProvider.swift */; };
 		D99820982BB6E8D9000C1FEE /* MixnetLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = D99820972BB6E8D9000C1FEE /* MixnetLibrary */; };
 		D99A147A2B357E9900F2728B /* NymVPNApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99A14792B357E9900F2728B /* NymVPNApp.swift */; };
-		D99A148A2B35A73F00F2728B /* Home in Frameworks */ = {isa = PBXBuildFile; productRef = D99A14892B35A73F00F2728B /* Home */; };
 		D99A148C2B35A74200F2728B /* Theme in Frameworks */ = {isa = PBXBuildFile; productRef = D99A148B2B35A74200F2728B /* Theme */; };
 		D9BB534F2BAB16D500917C97 /* WireGuardKit in Frameworks */ = {isa = PBXBuildFile; productRef = D9BB534E2BAB16D500917C97 /* WireGuardKit */; };
 		D9BB53552BAC4AE500917C97 /* Tunnels in Frameworks */ = {isa = PBXBuildFile; productRef = D9BB53542BAC4AE500917C97 /* Tunnels */; };
@@ -270,6 +271,7 @@
 				D93214412B84D29200FFDC5E /* Logging in Frameworks */,
 				D968BDCB2B6BC98E003F42E5 /* AppVersionProvider in Frameworks */,
 				D96740232B56A67A001F6891 /* Tunnels in Frameworks */,
+				D9870CF52BE3A12C00551A86 /* KeyboardManager in Frameworks */,
 				D9F699E02B4C1862005576A9 /* Settings in Frameworks */,
 				D97065E12B8DD44A00C27A9B /* TunnelStatus in Frameworks */,
 				D968BDC92B6AEA9D003F42E5 /* AppSettings in Frameworks */,
@@ -278,9 +280,9 @@
 				D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */,
 				D9BD6A142BD84EF400B42D6F /* SentryManager in Frameworks */,
 				D9870CEF2BE37E2200551A86 /* Extensions in Frameworks */,
-				D99A148A2B35A73F00F2728B /* Home in Frameworks */,
 				D974C03B2BBED2460011924A /* ConnectionManager in Frameworks */,
 				D95E2E0F2B837CE4009F9E2F /* WireGuardKit in Frameworks */,
+				D9870CF32BE3A12800551A86 /* Home in Frameworks */,
 				D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */,
 				D9CD835D2B6C32D4008DA864 /* Modifiers in Frameworks */,
 			);
@@ -588,7 +590,6 @@
 			);
 			name = NymVPN;
 			packageProductDependencies = (
-				D99A14892B35A73F00F2728B /* Home */,
 				D99A148B2B35A74200F2728B /* Theme */,
 				D9F699DF2B4C1862005576A9 /* Settings */,
 				D96740222B56A67A001F6891 /* Tunnels */,
@@ -603,6 +604,8 @@
 				D94866FE2BE035C300F5331B /* CredentialsManager */,
 				D94867002BE035FB00F5331B /* Constants */,
 				D9870CEE2BE37E2200551A86 /* Extensions */,
+				D9870CF22BE3A12800551A86 /* Home */,
+				D9870CF42BE3A12C00551A86 /* KeyboardManager */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -1759,13 +1762,17 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = Extensions;
 		};
+		D9870CF22BE3A12800551A86 /* Home */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Home;
+		};
+		D9870CF42BE3A12C00551A86 /* KeyboardManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = KeyboardManager;
+		};
 		D99820972BB6E8D9000C1FEE /* MixnetLibrary */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MixnetLibrary;
-		};
-		D99A14892B35A73F00F2728B /* Home */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Home;
 		};
 		D99A148B2B35A74200F2728B /* Theme */ = {
 			isa = XCSwiftPackageProductDependency;

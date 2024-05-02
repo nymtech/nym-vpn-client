@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import KeyboardManager
 import Modifiers
 import Theme
 import UIComponents
@@ -17,29 +18,25 @@ struct SurveyView: View {
         VStack {
             navbar()
 
-            ScrollView {
-                Spacer()
-                    .frame(height: 24)
-                introText()
-                recommendationText()
-                recommendationOptions()
-                provideFeedbackText()
-                feedbackInputView()
-                if viewModel.error != .noError, let errorMessageTitle = viewModel.error.localizedTitle {
-                    errorMessageView(title: errorMessageTitle)
-                }
-                submitButton()
-                Spacer()
-                    .frame(height: 24)
-
-                if isFocused {
-                    // TODO: update with keyboard height
+            KeyboardHostView {
+                ScrollView {
                     Spacer()
-                        .frame(height: 330)
+                        .frame(height: 24)
+                    introText()
+                    recommendationText()
+                    recommendationOptions()
+                    provideFeedbackText()
+                    feedbackInputView()
+                    if viewModel.error != .noError, let errorMessageTitle = viewModel.error.localizedTitle {
+                        errorMessageView(title: errorMessageTitle)
+                    }
+                    submitButton()
+                    Spacer()
+                        .frame(height: 24)
                 }
-            }
-            .onTapGesture {
-                isFocused = false
+                .onTapGesture {
+                    isFocused = false
+                }
             }
         }
         .navigationBarBackButtonHidden(true)

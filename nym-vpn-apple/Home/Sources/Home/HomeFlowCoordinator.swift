@@ -20,7 +20,8 @@ struct HomeFlowCoordinator<Content: View>: View {
 }
 
 private extension HomeFlowCoordinator {
-    @ViewBuilder private func linkDestination(link: HomeLink) -> some View {
+    @ViewBuilder
+    private func linkDestination(link: HomeLink) -> some View {
         switch link {
         case .entryHop:
             entryHop()

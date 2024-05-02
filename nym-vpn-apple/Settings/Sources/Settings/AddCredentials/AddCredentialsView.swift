@@ -1,10 +1,12 @@
 import SwiftUI
 import CredentialsManager
+import KeyboardManager
 import Modifiers
 import Theme
 import UIComponents
 
 struct AddCredentialsView: View {
+    @EnvironmentObject private var keyboardManager: KeyboardManager
     @StateObject private var viewModel: AddCredentialsViewModel
     @FocusState private var isFocused: Bool
 
@@ -16,14 +18,17 @@ struct AddCredentialsView: View {
         VStack {
             navbar()
             GeometryReader { geometry in
-                ScrollView {
-                    VStack {
-                        content()
+                KeyboardHostView {
+                    ScrollView {
+                        VStack {
+                            content()
+                        }
+                        .frame(width: geometry.size.width, height: geometry.size.height )
                     }
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                }
-                .onTapGesture {
-                    isFocused = false
+
+                    .onTapGesture {
+                        isFocused = false
+                    }
                 }
             }
         }
@@ -71,12 +76,6 @@ private extension AddCredentialsView {
             addCredentialButton()
             Spacer()
                 .frame(height: 24)
-
-            if isFocused {
-                // TODO: update with keyboard height
-                Spacer()
-                    .frame(height: 330)
-            }
     }
 
     @ViewBuilder

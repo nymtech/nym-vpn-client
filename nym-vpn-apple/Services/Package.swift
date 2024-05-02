@@ -18,6 +18,7 @@ let package = Package(
         .library(name: "CountriesManager", targets: ["CountriesManager"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
         .library(name: "Extensions", targets: ["Extensions"]),
+        .library(name: "KeyboardManager", targets: ["KeyboardManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
@@ -80,6 +81,11 @@ let package = Package(
             name: "Extensions",
             dependencies: [],
             path: "Sources/Services/Extensions"
+        ),
+        .target(
+            name: "KeyboardManager",
+            dependencies: [],
+            path: "Sources/Services/KeyboardManager"
         ),
         .target(
             name: "Keychain",

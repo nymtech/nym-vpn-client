@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import KeyboardManager
 import Home
 import SentryManager
 import Theme
@@ -19,6 +20,7 @@ struct NymVPNApp: App {
                 configureScreenSize()
             }
             .environmentObject(AppSettings.shared)
+            .environmentObject(KeyboardManager.shared)
         }
     }
 }
