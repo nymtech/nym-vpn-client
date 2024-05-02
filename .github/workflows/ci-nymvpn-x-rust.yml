@@ -7,8 +7,8 @@ on:
       - ".github/workflows/ci-nymvpn-x-rust.yml"
       - "nymvpn-x/src-tauri/**"
       - "crates/nym-vpn-proto/**"
+      - "crates/nym-gateway-directory/**"
       - "nym-vpnd/**"
-      - "nym-vpn-lib/**"
 
 env:
   CARGO_TERM_COLOR: always

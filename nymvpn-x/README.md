@@ -144,4 +144,3 @@ daemon_address = "http://localhost:1234"
 # IP address of the DNS server to use when connected to the VPN
 dns_server = "1.1.1.1"
 ```
-
