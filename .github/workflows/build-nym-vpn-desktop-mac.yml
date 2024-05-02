@@ -1,4 +1,4 @@
-name: build-nym-vpn-desktop-apple
+name: build-nym-vpn-desktop-mac
 on: [workflow_dispatch, workflow_call]
 
 jobs:
