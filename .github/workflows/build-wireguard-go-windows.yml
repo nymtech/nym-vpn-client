@@ -23,7 +23,7 @@ jobs:
           go-version: "stable"
 
       - name: Install Protoc
-        uses: arduino/setup-protoc@v2
+        uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -35,7 +35,7 @@ jobs:
         run: |
           ./wireguard/build-wireguard-go.sh
 
-      - name: Upload artifacts (Windows)
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
