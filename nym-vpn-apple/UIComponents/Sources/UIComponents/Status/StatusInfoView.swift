@@ -24,7 +24,8 @@ public struct StatusInfoView: View {
 }
 
 private extension StatusInfoView {
-    @ViewBuilder func infoLabel() -> some View {
+    @ViewBuilder 
+    func infoLabel() -> some View {
         Text(infoState.localizedTitle)
             .foregroundStyle(NymColor.statusInfoText)
             .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.primary)
@@ -32,7 +33,8 @@ private extension StatusInfoView {
             .frame(height: 8)
     }
 
-    @ViewBuilder func timeConnectedLabel(timeConnected: String) -> some View {
+    @ViewBuilder 
+    func timeConnectedLabel(timeConnected: String) -> some View {
         Text("\(timeConnected)")
             .foregroundStyle(NymColor.statusTimer)
             .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.primary)

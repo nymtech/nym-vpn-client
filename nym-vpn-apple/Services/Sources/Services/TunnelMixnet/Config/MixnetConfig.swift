@@ -49,7 +49,7 @@ extension MixnetConfig {
             entryGateway: entryGateway?.entryPoint ?? .randomLowLatency,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
-            tunProvider: mixnetTunnelProvider, 
+            tunProvider: mixnetTunnelProvider,
             credentialDataPath: credentialsDataPath
         )
     }

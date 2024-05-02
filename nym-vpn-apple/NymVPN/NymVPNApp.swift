@@ -12,11 +12,12 @@ struct NymVPNApp: App {
 
     var body: some Scene {
         WindowGroup {
-//            GeometryReader { proxy in
-                NavigationStack {
-                    HomeView(viewModel: HomeViewModel(selectedNetwork: .mixnet5hop))
-                }
-//            }
+            NavigationStack {
+                HomeView(viewModel: HomeViewModel(selectedNetwork: .mixnet5hop))
+            }
+            .onAppear {
+                configureScreenSize()
+            }
             .environmentObject(AppSettings.shared)
         }
     }
@@ -26,5 +27,15 @@ private extension NymVPNApp {
     func setup() {
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
+    }
+
+    func configureScreenSize() {
+        guard let screenSize = UIScreen.current?.bounds.size,
+              screenSize.width <= 375 && screenSize.height <= 667,
+              AppSettings.shared.isSmallScreen != true
+        else {
+            return
+        }
+        AppSettings.shared.isSmallScreen = true
     }
 }

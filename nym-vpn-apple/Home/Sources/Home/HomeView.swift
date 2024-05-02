@@ -1,10 +1,12 @@
 import SwiftUI
+import AppSettings
 import Modifiers
 import Theme
 import TunnelStatus
 import UIComponents
 
 public struct HomeView: View {
+    @EnvironmentObject private var appSettings: AppSettings
     @StateObject private var viewModel: HomeViewModel
 
     public init(viewModel: HomeViewModel) {
@@ -14,7 +16,6 @@ public struct HomeView: View {
     public var body: some View {
         HomeFlowCoordinator(
             state: viewModel,
-            isSmallScreen: viewModel.isSmallScreen(),
             content: content
         )
     }
@@ -50,8 +51,7 @@ private extension HomeView {
     func navbar() -> some View {
         CustomNavBar(
             title: viewModel.title,
-            rightButton: CustomNavBarButton(type: .settings, action: { viewModel.navigateToSettings() }),
-            isSmallScreen: viewModel.isSmallScreen()
+            rightButton: CustomNavBarButton(type: .settings, action: { viewModel.navigateToSettings() })
         )
     }
 
@@ -59,7 +59,7 @@ private extension HomeView {
     func statusAreaSection() -> some View {
         StatusButton(
             config: viewModel.statusButtonConfig,
-            isSmallScreen: viewModel.isSmallScreen()
+            isSmallScreen: appSettings.isSmallScreen
         )
         Spacer()
             .frame(height: 8)
@@ -67,7 +67,7 @@ private extension HomeView {
         StatusInfoView(
             timeConnected: $viewModel.timeConnected,
             infoState: $viewModel.statusInfoState,
-            isSmallScreen: viewModel.isSmallScreen()
+            isSmallScreen: appSettings.isSmallScreen
         )
     }
 
@@ -80,13 +80,13 @@ private extension HomeView {
         }
         .padding(.horizontal, 16)
         Spacer()
-            .frame(height: viewModel.isSmallScreen() ? 12 : 24)
+            .frame(height: appSettings.isSmallScreen ? 12 : 24)
 
         NetworkButton(
             viewModel: NetworkButtonViewModel(
                 type: .mixnet5hop,
                 selectedNetwork: $viewModel.selectedNetwork,
-                isSmallScreen: viewModel.isSmallScreen()
+                isSmallScreen: appSettings.isSmallScreen
             )
         )
         .padding(EdgeInsets(top: 0, leading: 16, bottom: 12, trailing: 16))
@@ -98,7 +98,7 @@ private extension HomeView {
             viewModel: NetworkButtonViewModel(
                 type: .mixnet2hop,
                 selectedNetwork: $viewModel.selectedNetwork,
-                isSmallScreen: viewModel.isSmallScreen()
+                isSmallScreen: appSettings.isSmallScreen
             )
         )
         .padding(.horizontal, 16)
@@ -106,7 +106,7 @@ private extension HomeView {
             viewModel.selectedNetwork = .mixnet2hop
         }
         Spacer()
-            .frame(height: viewModel.isSmallScreen() ? 20 : 32)
+            .frame(height: appSettings.isSmallScreen ? 20 : 32)
     }
 
     @ViewBuilder
@@ -129,7 +129,7 @@ private extension HomeView {
         .padding(.horizontal, 16)
 
         Spacer()
-            .frame(height: viewModel.isSmallScreen() ? 20 : 32)
+            .frame(height: appSettings.isSmallScreen ? 20 : 32)
     }
 
     @ViewBuilder func entryHop() -> some View {
@@ -159,7 +159,7 @@ private extension HomeView {
             .onTapGesture {
                 viewModel.connectDisconnect()
             }
-        if viewModel.isSmallScreen() {
+        if appSettings.isSmallScreen {
             Spacer()
                 .frame(height: 24)
         }

@@ -7,7 +7,6 @@ import Settings
 struct HomeFlowCoordinator<Content: View>: View {
     @ObservedObject var state: HomeFlowState
 
-    let isSmallScreen: Bool
     let content: () -> Content
 
     var body: some View {
@@ -37,8 +36,7 @@ private extension HomeFlowCoordinator {
     private func entryHop() -> some View {
         let viewModel = HopListViewModel(
             type: .entry,
-            path: $state.path,
-            isSmallScreen: false
+            path: $state.path
         )
         return HopListView(viewModel: viewModel)
     }
@@ -46,8 +44,7 @@ private extension HomeFlowCoordinator {
     private func exitHop() -> some View {
         let viewModel = HopListViewModel(
             type: .exit,
-            path: $state.path,
-            isSmallScreen: false
+            path: $state.path
         )
         return HopListView(viewModel: viewModel)
     }

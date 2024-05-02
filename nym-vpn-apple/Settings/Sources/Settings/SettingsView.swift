@@ -23,7 +23,7 @@ private extension SettingsView {
             navbar()
             ScrollView {
                 addCredentialsButton()
-        
+
                 Spacer()
                     .frame(height: 24)
                 settingsList()

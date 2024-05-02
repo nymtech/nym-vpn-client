@@ -18,8 +18,7 @@ struct FeedbackViewModel {
             githubIssueViewModel(),
             feedbackSectionViewModel(),
             matrixSectionViewModel(),
-            discordSectionViewModel(),
-            errorReportingSectionViewModel()
+            discordSectionViewModel()
         ]
     }
 
@@ -97,21 +96,6 @@ private extension FeedbackViewModel {
             action: {
                 openExternalURL(urlString: discordLink)
             }
-        )
-    }
-
-    func errorReportingSectionViewModel() -> SettingsListItemViewModel {
-        SettingsListItemViewModel(
-            accessory: .toggle(
-                viewModel: ToggleViewModel(isOn: appSettings.isErrorReportingOn) { isOn in
-                    appSettings.isErrorReportingOn = isOn
-                }
-            ),
-            title: "feedback.errorReportingTitle".localizedString,
-            subtitle: "feedback.errorReportingSubtitle".localizedString,
-            imageName: "errorReporting",
-            position: SettingsListItemPosition(isFirst: true, isLast: true),
-            action: {}
         )
     }
 }

@@ -54,6 +54,7 @@
 		D968BDCB2B6BC98E003F42E5 /* AppVersionProvider in Frameworks */ = {isa = PBXBuildFile; productRef = D968BDCA2B6BC98E003F42E5 /* AppVersionProvider */; };
 		D97065E12B8DD44A00C27A9B /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D97065E02B8DD44A00C27A9B /* TunnelStatus */; };
 		D974C03B2BBED2460011924A /* ConnectionManager in Frameworks */ = {isa = PBXBuildFile; productRef = D974C03A2BBED2460011924A /* ConnectionManager */; };
+		D9870CEF2BE37E2200551A86 /* Extensions in Frameworks */ = {isa = PBXBuildFile; productRef = D9870CEE2BE37E2200551A86 /* Extensions */; };
 		D990950F2BC6B3E100C98E3F /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D990950D2BC6B31900C98E3F /* SystemConfiguration.framework */; };
 		D99095152BC6B54200C98E3F /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */; };
 		D99095182BC6B54200C98E3F /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99095172BC6B54200C98E3F /* PacketTunnelProvider.swift */; };
@@ -276,6 +277,7 @@
 				D94867012BE035FB00F5331B /* Constants in Frameworks */,
 				D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */,
 				D9BD6A142BD84EF400B42D6F /* SentryManager in Frameworks */,
+				D9870CEF2BE37E2200551A86 /* Extensions in Frameworks */,
 				D99A148A2B35A73F00F2728B /* Home in Frameworks */,
 				D974C03B2BBED2460011924A /* ConnectionManager in Frameworks */,
 				D95E2E0F2B837CE4009F9E2F /* WireGuardKit in Frameworks */,
@@ -600,6 +602,7 @@
 				D9BD6A132BD84EF400B42D6F /* SentryManager */,
 				D94866FE2BE035C300F5331B /* CredentialsManager */,
 				D94867002BE035FB00F5331B /* Constants */,
+				D9870CEE2BE37E2200551A86 /* Extensions */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -1751,6 +1754,10 @@
 		D974C03A2BBED2460011924A /* ConnectionManager */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ConnectionManager;
+		};
+		D9870CEE2BE37E2200551A86 /* Extensions */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Extensions;
 		};
 		D99820972BB6E8D9000C1FEE /* MixnetLibrary */ = {
 			isa = XCSwiftPackageProductDependency;

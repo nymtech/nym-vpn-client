@@ -1,7 +1,10 @@
 import SwiftUI
+import AppSettings
 import Theme
 
 public struct StatusButton: View {
+    @EnvironmentObject private var appSettings: AppSettings
+
     private let config: StatusButtonConfig
     private let isSmallScreen: Bool
 
@@ -16,7 +19,7 @@ public struct StatusButton: View {
                 .foregroundStyle(config.textColor)
                 .textStyle(isSmallScreen ? .Label.Large.primary : .Label.Huge.primary)
         }
-        .padding(.horizontal, isSmallScreen ? 20 : 24)
+        .padding(.horizontal, appSettings.isSmallScreen ? 20 : 24)
         .padding(.vertical, isSmallScreen ? 12 : 16)
         .background(config.backgroundColor)
         .cornerRadius(50)

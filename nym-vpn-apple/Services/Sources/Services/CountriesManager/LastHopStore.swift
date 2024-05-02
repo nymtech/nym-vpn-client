@@ -5,7 +5,7 @@ final class LastHopStore {
     var lowLatencyCountry: Country?
     var lastFetchDate: Date
 
-    init(countries: [Country]? = nil, lowLatencyCountry: Country? = nil, lastFetchDate: Date) {
+    init(countries: [Country]? = nil, lowLatencyCountry: Country? = nil, lastFetchDate: Date = Date()) {
         self.countries = countries
         self.lowLatencyCountry = lowLatencyCountry
         self.lastFetchDate = lastFetchDate

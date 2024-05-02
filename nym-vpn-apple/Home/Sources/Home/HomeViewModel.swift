@@ -78,11 +78,6 @@ public extension HomeViewModel {
 // MARK: - Helpers -
 
 public extension HomeViewModel {
-    func isSmallScreen() -> Bool {
-        guard let screenSize else { return false }
-        return screenSize.width <= 375 && screenSize.height <= 647
-    }
-
     func shouldShowEntryHop() -> Bool {
         appSettings.isEntryLocationSelectionOn && !(countriesManager.entryCountries?.isEmpty ?? false)
     }

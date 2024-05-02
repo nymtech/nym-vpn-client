@@ -6,7 +6,6 @@ import UIComponents
 
 public class HopListViewModel: ObservableObject {
     let type: HopType
-    let isSmallScreen: Bool
 
     var appSettings: AppSettings
     var connectionManager: ConnectionManager
@@ -27,12 +26,10 @@ public class HopListViewModel: ObservableObject {
         path: Binding<NavigationPath>,
         appSettings: AppSettings = AppSettings.shared,
         connectionManager: ConnectionManager = ConnectionManager.shared,
-        countriesManager: CountriesManager = CountriesManager.shared,
-        isSmallScreen: Bool = false
+        countriesManager: CountriesManager = CountriesManager.shared
     ) {
         _path = path
         self.type = type
-        self.isSmallScreen = isSmallScreen
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager

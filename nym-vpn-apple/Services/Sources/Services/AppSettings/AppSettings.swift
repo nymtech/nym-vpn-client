@@ -1,4 +1,5 @@
 import SwiftUI
+import Extensions
 
 public final class AppSettings: ObservableObject {
     public static let shared = AppSettings()
@@ -10,17 +11,24 @@ public final class AppSettings: ObservableObject {
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
     public var currentAppearance: AppSetting.Appearance = .light
     #endif
-    @AppStorage(AppSettingKey.entryLocation.rawValue) public var isEntryLocationSelectionOn = false {
+    @AppStorage(AppSettingKey.entryLocation.rawValue)
+    public var isEntryLocationSelectionOn = false {
         didSet {
             isEntryLocationSelectionOnPublisher = isEntryLocationSelectionOn
         }
     }
-    @AppStorage(AppSettingKey.errorReporting.rawValue) public var isErrorReportingOn = false {
+    @AppStorage(AppSettingKey.errorReporting.rawValue)
+    public var isErrorReportingOn = false {
         didSet {
-            isErrorReportingOnPublisher = isErrorReportingOn
+            Task { @MainActor in
+                isErrorReportingOnPublisher = isErrorReportingOn
+            }
         }
     }
-    @AppStorage(AppSettingKey.credenitalExists.rawValue) public var isCredentialImported = false
+    @AppStorage(AppSettingKey.credenitalExists.rawValue)
+    public var isCredentialImported = false
+    @AppStorage(AppSettingKey.smallScreen.rawValue)
+    public var isSmallScreen = false
 
     // Observed values for view models
     @Published public var isEntryLocationSelectionOnPublisher = false
@@ -32,4 +40,5 @@ enum AppSettingKey: String {
     case entryLocation
     case errorReporting
     case credenitalExists
+    case smallScreen
 }

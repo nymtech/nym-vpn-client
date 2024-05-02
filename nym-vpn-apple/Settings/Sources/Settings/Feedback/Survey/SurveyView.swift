@@ -1,9 +1,11 @@
 import SwiftUI
+import AppSettings
 import Modifiers
 import Theme
 import UIComponents
 
 struct SurveyView: View {
+    @EnvironmentObject private var appSettings: AppSettings
     @StateObject private var viewModel: SurveyViewModel
     @FocusState private var isFocused: Bool
 
@@ -155,9 +157,9 @@ private extension SurveyView {
             .onTapGesture {
                 viewModel.submit()
             }
-//        if viewModel.isSmallScreen() {
-//            Spacer()
-//                .frame(height: 24)
-//        }
+        if appSettings.isSmallScreen {
+            Spacer()
+                .frame(height: 24)
+        }
     }
 }

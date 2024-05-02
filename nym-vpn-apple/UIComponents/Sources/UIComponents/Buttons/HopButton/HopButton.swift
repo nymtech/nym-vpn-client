@@ -31,7 +31,8 @@ public struct HopButton: View {
 }
 
 private extension HopButton {
-    @ViewBuilder func flagOrBoltImage() -> some View {
+    @ViewBuilder 
+    func flagOrBoltImage() -> some View {
         if viewModel.isQuickest {
             BoltImage()
         } else if let countryCode = viewModel.countryCode {

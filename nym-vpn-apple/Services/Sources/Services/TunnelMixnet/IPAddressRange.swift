@@ -4,11 +4,6 @@ import Network
 public struct IPAddressRange {
     public let address: IPAddress
     public let networkPrefixLength: UInt8
-
-    init(address: IPAddress, networkPrefixLength: UInt8) {
-        self.address = address
-        self.networkPrefixLength = networkPrefixLength
-    }
 }
 
 extension IPAddressRange: Equatable {
