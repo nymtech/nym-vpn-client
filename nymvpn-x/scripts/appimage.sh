@@ -24,9 +24,6 @@ tag=
 version=
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$tag/nym-vpn_${version}.AppImage"
 
-# disable the desktop entry install if needed
-desktop_entry_disabled=false
-
 # function called when an error occurs, will print the exit
 # status, function name and line number
 catch() {
@@ -77,8 +74,6 @@ icons_dir="$data_home/icons"
 appimage="nym-vpn_${version}.AppImage"
 target_appimage="nym-vpn.appimage"
 desktop_dir="$data_home/applications"
-wrapper="nym-vpn-wrapper.sh"
-policy="net.nymtech.nymvpn.policy"
 
 ### desktop entry ###
 desktop_entry="[Desktop Entry]
@@ -86,7 +81,7 @@ Name=NymVPN
 Type=Application
 Version=1.0
 Comment=Decentralized, mixnet, and zero-knowledge VPN
-Exec=$install_dir/$wrapper %U
+Exec=$install_dir/$target_appimage %U
 Icon=$icons_dir/nym-vpn.svg
 Terminal=false
 Categories=Network;"
@@ -94,35 +89,6 @@ Categories=Network;"
 
 ### app icon ###
 icon='<svg width="32" height="32" viewBox="0 0 32 32" fill="#FB6E4E" xmlns="http://www.w3.org/2000/svg"><path d="M3.7229 29.9997C-0.460546 26.7617 -1.23766 20.7391 2.0003 16.5557C5.23826 12.3722 11.2609 11.5951 15.4443 14.8331C19.6278 18.0711 20.4049 24.0937 17.1669 28.2771C13.9289 32.4605 7.90634 33.2377 3.7229 29.9997ZM28.0076 23.2647C33.3308 17.9415 33.3308 9.31561 28.0076 3.9924C22.6844 -1.3308 14.0455 -1.3308 8.73526 3.9924C3.42501 9.31561 3.41205 17.9415 8.73526 23.2647C14.0585 28.5879 22.6844 28.5879 28.0076 23.2647Z" fill="#FB6E4E"/></svg>'
-###
-
-### wrapper script ###
-wrapper_script="#!/bin/bash
-
-pkexec $install_dir/$target_appimage >$state_home/nym-vpn/vpn.log 2>&1"
-###
-
-### polkit action ###
-polkit_action="<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<!DOCTYPE policyconfig PUBLIC
- \"-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN\"
- \"http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd\">
-<policyconfig>
- <vendor>Nym</vendor>
- <vendor_url>https://nymvpn.com</vendor_url>
- <icon_name>nym-vpn</icon_name>
- <action id=\"net.nymtech.nymvpn\">
- <description>NymVPN</description>
- <message>NymVPN requires root privileges to create a local virtual network device and set system routing rules</message>
- <defaults>
- <allow_any>no</allow_any>
- <allow_inactive>auth_admin</allow_inactive>
- <allow_active>auth_admin_keep</allow_active>
- </defaults>
- <annotate key=\"org.freedesktop.policykit.exec.path\">$install_dir/$target_appimage</annotate>
- <annotate key=\"org.freedesktop.policykit.exec.allow_gui\">true</annotate>
- </action>
-</policyconfig>"
 ###
 
 pre_check() {
@@ -154,27 +120,16 @@ _install() {
   path=$(tilded "$install_dir/$target_appimage")
   log "   ${B_GRN}Installed$RS $path"
 
-  if [ $desktop_entry_disabled == true ] || ! command -v "pkexec" >/dev/null 2>&1; then
-    return
-  fi
-
   log "  ${B_GRN}Installing$RS desktop entry"
   _pushd "$temp_dir"
   echo "$desktop_entry" >"nym-vpn.desktop"
   echo "$icon" >"nym-vpn.svg"
-  echo "$wrapper_script" >"$wrapper"
-  echo "$polkit_action" >"$policy"
   _popd
-  install -Dm644 "$temp_dir/nym-vpn.svg" "$icons_dir/nym-vpn.svg"
   install -Dm644 "$temp_dir/nym-vpn.desktop" "$desktop_dir/nym-vpn.desktop"
+  install -Dm644 "$temp_dir/nym-vpn.svg" "$icons_dir/nym-vpn.svg"
   install -Dm755 -d "$state_home/nym-vpn"
-  install -Dm755 "$temp_dir/$wrapper" "$install_dir/$wrapper"
   path=$(tilded "$desktop_dir/nym-vpn.desktop")
   log "   ${B_GRN}Installed$RS $path"
-
-  log "  ${B_GRN}Installing$RS polkit policy"
-  sudo install -Dm644 "$temp_dir/$policy" "/usr/share/polkit-1/actions/$policy"
-  log "   ${B_GRN}Installed$RS /usr/share/polkit-1/actions/$policy"
 }
 
 post_install() {
