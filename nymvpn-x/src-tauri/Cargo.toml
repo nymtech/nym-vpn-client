@@ -12,7 +12,7 @@ tauri-build = { version = "1.5", features = [] }
 build-info-build = "0.0.34"
 
 [dependencies]
-tauri = { version = "1.6.0", features = [ "window-set-size", "os-all", "updater", "process-all", "shell-open"] }
+tauri = { version = "1.6.0", features = [ "window-set-size", "os-all", "process-all", "shell-open"] }
 tokio = { version = "1.33", features = ["rt", "sync", "time", "fs"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -37,11 +37,6 @@ sled = "0.34.7"
 strum = { version = "0.26", features = ["derive"] }
 tonic =  { version = "0.11", features = ["channel"] }
 bs58 = "0.5.1"
-
-# TODO Ugly workaround to force a working setup for nym-vpn-lib
-# We should get rid of this ASAP
-shadowsocks = { version = "~1.14.2" }
-shadowsocks-service = { version = "~1.14.3" }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

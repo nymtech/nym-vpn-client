@@ -1,5 +1,4 @@
 use tauri::Manager;
-use time::OffsetDateTime;
 use tracing::{debug, trace};
 
 use crate::{grpc::client::VpndStatus, states::app::ConnectionState};
@@ -39,7 +38,6 @@ impl ConnectionEventPayload {
 pub trait AppHandleEventEmitter {
     fn emit_vpnd_status(&self, status: VpndStatus);
     fn emit_connecting(&self);
-    fn emit_connected(&self, now: OffsetDateTime, gateway: String);
     fn emit_disconnecting(&self);
     fn emit_disconnected(&self, error: Option<String>);
     fn emit_connection_progress(&self, key: ConnectProgressMsg);
@@ -55,22 +53,6 @@ impl AppHandleEventEmitter for tauri::AppHandle {
         self.emit_all(
             EVENT_CONNECTION_STATE,
             ConnectionEventPayload::new(ConnectionState::Connecting, None, None),
-        )
-        .ok();
-    }
-
-    fn emit_connected(&self, now: OffsetDateTime, _gateway: String) {
-        debug!("sending event [{}]: Connected", EVENT_CONNECTION_STATE);
-        self.emit_all(
-            EVENT_CONNECTION_STATE,
-            ConnectionEventPayload::new(
-                // TODO: once the frontend can handle it, send the connection info as part of the
-                // connection state
-                //ConnectionState::Connected(ConnectionInfo { gateway }),
-                ConnectionState::Connected,
-                None,
-                Some(now.unix_timestamp()),
-            ),
         )
         .ok();
     }

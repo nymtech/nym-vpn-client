@@ -1,9 +1,6 @@
-use std::fmt;
-
-use futures::channel::mpsc::UnboundedSender;
-use nym_vpn_lib::NymVpnCtrlMessage;
 use nym_vpn_proto::ConnectionStatus;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use time::OffsetDateTime;
 use ts_rs::TS;
 
@@ -61,7 +58,6 @@ pub struct AppState {
     pub exit_node_location: NodeLocation,
     pub tunnel: Option<TunnelConfig>,
     pub connection_start_time: Option<OffsetDateTime>,
-    pub vpn_ctrl_tx: Option<UnboundedSender<NymVpnCtrlMessage>>,
     pub dns_server: Option<String>,
 }
 
