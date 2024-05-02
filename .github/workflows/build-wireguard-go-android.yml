@@ -1,9 +1,8 @@
 name: build-wireguard-go-android
+on: [workflow_dispatch, workflow_call]
 
 env:
   CARGO_TERM_COLOR: always
-
-on: [workflow_dispatch, workflow_call]
 
 jobs:
   build:

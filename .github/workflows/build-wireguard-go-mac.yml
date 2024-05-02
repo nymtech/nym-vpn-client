@@ -18,6 +18,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "stable"
+          cache-dependency-path: "**/go.sum"
 
       - name: Build wireguard
         run: ./wireguard/build-wireguard-go.sh
