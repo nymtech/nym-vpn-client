@@ -1,0 +1,119 @@
+name: build-nym-vpn-desktop-mac
+on: [workflow_dispatch, workflow_call]
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TARGET: release
+  WG_GO_LIB_PATH: ${{ github.workspace }}/lib
+  WG_GO_LIB_NAME: wireguard-go_apple_universal
+  UPLOAD_DIR_MAC_UPDATER: mac_updater_artifacts
+  UPLOAD_DIR_MAC: mac_artifacts
+  TAURI_SRC: '${{ github.workspace }}/nym-vpn-desktop/src-tauri/'
+
+jobs:
+  build-wireguard-go-mac:
+    uses: ./.github/workflows/build-wireguard-go-mac.yml
+
+  build-mac:
+    needs: build-wireguard-go-mac
+    runs-on: macos-14
+    outputs:
+      PKG_VERSION: ${{ steps.set_env.outputs.PKG_VERSION }}
+      UPLOAD_DIR_MAC_UPDATER: ${{ env.UPLOAD_DIR_MAC_UPDATER }}
+      UPLOAD_DIR_MAC: ${{ env.UPLOAD_DIR_MAC }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            nym-vpn-desktop
+            nym-vpn-lib
+            crates
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Install cargo-about
+        run: cargo install --locked cargo-about
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-desktop/src-tauri
+
+      - name: Download wireguard-go artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WG_GO_LIB_NAME }}
+          path: ${{ env.WG_GO_LIB_PATH }}
+
+      - name: Generate licenses file (Js & Rust) and install JS dependencies
+        working-directory: nym-vpn-desktop
+        run: |
+          rm public/licenses-js.json || true
+          npm run gen:licenses:js
+          rm public/licenses-rust.json || true
+          npm run gen:licenses:rust
+          npm ci
+
+      - name: Build desktop client
+        working-directory: nym-vpn-desktop/src-tauri
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+          # Apple stuff
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # TODO try fixing `error running bundle_dmg.sh` (macos build)
+          NO_STRIP: 'true'
+        run: |
+          npm run tauri build --${{ env.CARGO_TARGET }}
+          ls -la target/release/ || true
+          ls -la target/release/bundle || true
+          ls -la target/release/bundle/* || true
+
+      - name: Move things around to prepare for upload
+        env:
+          MAC_UPDATER: ${{ env.TAURI_SRC }}/target/release/bundle/macos/nym-vpn.app.tar.gz
+          MAC_UPDATER_NAME: updater_macos_universal.app.tar.gz
+          BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/dmg/nym-vpn_${{ steps.package-version.outputs.metadata }}_aarch64.dmg
+        run: |
+          echo "moving updater bundle and signature into ${{ env.UPLOAD_DIR_MAC_UPDATER }}"
+          rm -rf ${{ env.UPLOAD_DIR_MAC_UPDATER }} || true
+          mkdir ${{ env.UPLOAD_DIR_MAC_UPDATER }}
+          cp -vpr '${{ env.MAC_UPDATER }}'     ${{ env.UPLOAD_DIR_MAC_UPDATER }}/${MAC_UPDATER_NAME}
+          cp -vpr '${{ env.MAC_UPDATER }}.sig' ${{ env.UPLOAD_DIR_MAC_UPDATER }}/${MAC_UPDATER_NAME}.sig
+          echo "moving setup.exe into ${{ env.UPLOAD_DIR_MAC }}"
+          rm -rf ${{ env.UPLOAD_DIR_MAC }} || true
+          mkdir ${{ env.UPLOAD_DIR_MAC }}
+          cp -vpr '${{ env.BINARY }}' ${{ env.UPLOAD_DIR_MAC }}/
+
+      - name: Upload artifact updater
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_MAC_UPDATER }}
+          path: ${{ env.UPLOAD_DIR_MAC_UPDATER }}
+          retention-days: 1
+
+      - name: Upload artifact mac
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_MAC }}
+          path: ${{ env.UPLOAD_DIR_MAC }}
+          retention-days: 1
