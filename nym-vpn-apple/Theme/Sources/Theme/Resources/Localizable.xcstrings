@@ -825,6 +825,83 @@
           }
         }
       }
+    },
+    "welcome.acknowledgement" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By continuing, you agree to NymVPN's [Terms of use](https://nymvpn.com/en/terms) and acknowledge NymVPN's [Privacy policy](https://nymvpn.com/en/privacy?type=apps)."
+          }
+        }
+      }
+    },
+    "welcome.continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        }
+      }
+    },
+    "welcome.disclaimer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
+          }
+        }
+      }
+    },
+    "welcome.sentry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sentry"
+          }
+        }
+      }
+    },
+    "welcome.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help us refine our app during the alpha phase! Your feedback is crucial for identifying and resolving issues. Opt-in for anonymous error monitoring (via"
+          }
+        }
+      }
+    },
+    "welcome.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ") and analytics at will—you can opt out anytime. Thanks for your support!"
+          }
+        }
+      }
+    },
+    "welcome.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to NymVPN alpha"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

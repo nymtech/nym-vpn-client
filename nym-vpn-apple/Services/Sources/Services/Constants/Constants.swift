@@ -8,4 +8,6 @@ public enum Constants: String {
     case sandboxExplorerURL = "https://sandbox-explorer.nymtech.net/api"
 
     case supportURL = "https://support.nymvpn.com"
+    case termsOfUseURL = "https://nymvpn.com/en/terms"
+    case privacyPolicyURL = "https://nymvpn.com/en/privacy?type=apps"
 }

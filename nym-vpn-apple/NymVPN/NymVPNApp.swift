@@ -7,6 +7,8 @@ import Theme
 
 @main
 struct NymVPNApp: App {
+    @StateObject private var appSettings = AppSettings.shared
+
     init() {
         setup()
     }
@@ -14,12 +16,19 @@ struct NymVPNApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                HomeView(viewModel: HomeViewModel(selectedNetwork: .mixnet5hop))
+                if !appSettings.welcomeScreenDidDisplay {
+                    WelcomeView(viewModel: WelcomeViewModel())
+                        .transition(.slide)
+                } else {
+                    HomeView(viewModel: HomeViewModel(selectedNetwork: .mixnet5hop))
+                        .transition(.slide)
+                }
             }
+            .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .onAppear {
                 configureScreenSize()
             }
-            .environmentObject(AppSettings.shared)
+            .environmentObject(appSettings)
             .environmentObject(KeyboardManager.shared)
         }
     }
@@ -38,6 +47,6 @@ private extension NymVPNApp {
         else {
             return
         }
-        AppSettings.shared.isSmallScreen = true
+        appSettings.isSmallScreen = true
     }
 }

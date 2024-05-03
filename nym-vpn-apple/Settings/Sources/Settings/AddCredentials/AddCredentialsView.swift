@@ -80,7 +80,7 @@ private extension AddCredentialsView {
 
     @ViewBuilder
     func getStartedSection() -> some View {
-        logoImage()
+        GenericImage(imageName: viewModel.logoImageName)
             .frame(width: 80, height: 80)
         Spacer()
             .frame(height: 40)
@@ -96,11 +96,6 @@ private extension AddCredentialsView {
         getStartedSubtitleText()
         Spacer()
             .frame(height: 16)
-    }
-
-    @ViewBuilder
-    func logoImage() -> some View {
-        GenericImage(imageName: viewModel.logoImageName)
     }
 
     @ViewBuilder

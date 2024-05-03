@@ -29,6 +29,8 @@ public final class AppSettings: ObservableObject {
     public var isCredentialImported = false
     @AppStorage(AppSettingKey.smallScreen.rawValue)
     public var isSmallScreen = false
+    @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
+    public var welcomeScreenDidDisplay = false
 
     // Observed values for view models
     @Published public var isEntryLocationSelectionOnPublisher = false
@@ -41,4 +43,5 @@ enum AppSettingKey: String {
     case errorReporting
     case credenitalExists
     case smallScreen
+    case welcomeScreenDidDisplay
 }

@@ -1,9 +1,10 @@
 import SwiftUI
+import Constants
 import UIComponents
 
 struct LegalViewModel {
-    private let termsOfUseLink = "https://nymvpn.com/en/terms"
-    private let privacyPolicyLink = "https://nymvpn.com/en/privacy?type=apps"
+    private let termsOfUseLink = Constants.termsOfUseURL.rawValue
+    private let privacyPolicyLink = Constants.privacyPolicyURL.rawValue
     #if os(iOS)
     private let licencesLink = UIApplication.openSettingsURLString
     #endif
