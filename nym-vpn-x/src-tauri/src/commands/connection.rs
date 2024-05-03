@@ -198,6 +198,7 @@ pub async fn disconnect(
     app_state.state = ConnectionState::Disconnecting;
     drop(app_state);
     app.emit_disconnecting();
+    drop(app_state);
 
     let request = Request::new(DisconnectRequest {});
     let response = vpnd.vpn_disconnect(request).await.map_err(|e| {
