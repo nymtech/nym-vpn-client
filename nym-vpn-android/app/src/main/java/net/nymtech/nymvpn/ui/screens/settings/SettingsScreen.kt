@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AppShortcut
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -65,7 +66,7 @@ fun SettingsScreen(
 	) {
 // 		if (!appUiState.loggedIn) {
 		MainStyledButton(
-			onClick = { navController.navigate(NavItem.Settings.Login.route) },
+			onClick = { navController.navigate(NavItem.Settings.Credential.route) },
 			content = {
 				Text(
 					stringResource(id = R.string.add_cred_to_connect),
@@ -76,6 +77,7 @@ fun SettingsScreen(
 		)
 // 		} else {
 		// TODO disable account for now
+
 // 			val accountDescription =
 // 				buildAnnotatedString {
 // 					append("31")
@@ -118,7 +120,26 @@ fun SettingsScreen(
 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 						)
 					},
-					{},
+				),
+				SelectionItem(
+					Icons.Outlined.AppShortcut,
+					{
+						ScaledSwitch(
+							uiState.isApplicationShortcutsEnabled,
+							onClick = { viewModel.onAppShortcutsSelected(it) },
+							modifier =
+							Modifier
+								.height(32.dp.scaledHeight())
+								.width(52.dp.scaledWidth()),
+						)
+					},
+					title = { Text(stringResource(R.string.app_shortcuts), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					description = {
+						Text(
+							stringResource(id = R.string.enable_shortcuts),
+							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+						)
+					},
 				),
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.contrast),
@@ -139,7 +160,7 @@ fun SettingsScreen(
 							Modifier
 								.height(32.dp.scaledHeight())
 								.width(52.dp.scaledWidth()),
-							enabled = (appUiState.vpnState is VpnState.Down),
+							enabled = (appUiState.vpnClientState.vpnState is VpnState.Down),
 						)
 					},
 					title = { Text(stringResource(R.string.entry_location), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },

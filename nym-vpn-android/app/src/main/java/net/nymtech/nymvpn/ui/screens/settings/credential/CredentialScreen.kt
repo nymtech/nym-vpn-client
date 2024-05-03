@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.settings.login
+package net.nymtech.nymvpn.ui.screens.settings.credential
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -31,28 +30,23 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.Event
-import net.nymtech.nymvpn.util.Result
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewModel: LoginViewModel = hiltViewModel()) {
-	val context = LocalContext.current
-
+fun CredentialScreen(navController: NavController, viewModel: CredentialViewModel = hiltViewModel()) {
 	var recoveryPhrase by remember {
 		mutableStateOf("")
 	}
 
-	var error by remember {
-		mutableStateOf<Event.Error>(Event.Error.None)
+	var isCredentialError by remember {
+		mutableStateOf(false)
 	}
 
 	val imeState = rememberImeState()
@@ -115,26 +109,25 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
 			horizontalAlignment = Alignment.CenterHorizontally,
 			verticalArrangement = Arrangement.spacedBy(32.dp, Alignment.Top),
 		) {
-			val isLoginError = error is Event.Error.LoginFailed
 			CustomTextField(
 				value = recoveryPhrase,
 				onValueChange = {
-					if (isLoginError) error = Event.Error.None
+					if (isCredentialError) isCredentialError = false
 					recoveryPhrase = it
 				},
 				modifier = Modifier
 					.width(358.dp.scaledWidth())
 					.height(212.dp.scaledHeight()),
 				supportingText = {
-					if (isLoginError) {
+					if (isCredentialError) {
 						Text(
 							modifier = Modifier.fillMaxWidth(),
-							text = error.message.asString(context),
+							text = stringResource(id = R.string.credential_failed_message),
 							color = MaterialTheme.colorScheme.error,
 						)
 					}
 				},
-				isError = isLoginError,
+				isError = isCredentialError,
 				label = { Text(text = stringResource(id = R.string.credential_label)) },
 				textStyle = MaterialTheme.typography.bodyMedium.copy(
 					color = MaterialTheme.colorScheme.onSurface,
@@ -148,20 +141,13 @@ fun LoginScreen(navController: NavController, appViewModel: AppViewModel, viewMo
 				MainStyledButton(
 					Constants.LOGIN_TEST_TAG,
 					onClick = {
-						viewModel.onImportCredential(recoveryPhrase).let {
-							when (it) {
-								is Result.Success -> {
-									navController.navigate(NavItem.Main.route) {
-										// clear backstack after login
-										popUpTo(0)
-									}
-									appViewModel.showSnackbarMessage(
-										context.getString(R.string.credential_successful),
-									)
-								}
-
-								is Result.Error -> error = it.error
+						viewModel.onImportCredential(recoveryPhrase).onSuccess {
+							navController.navigate(NavItem.Main.route) {
+								// clear backstack after login
+								popUpTo(0)
 							}
+						}.onFailure {
+							isCredentialError = true
 						}
 					},
 					content = {

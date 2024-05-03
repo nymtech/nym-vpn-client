@@ -1,9 +1,9 @@
-package net.nymtech.nymvpn.data.model
+package net.nymtech.nymvpn.data.domain
 
 import net.nymtech.vpn.model.Country
 
 data class Gateways(
-	val lowLatencyCountry: Country? = null,
+	val lowLatencyEntryCountry: Country? = null,
 	val entryCountries: Set<Country> = emptySet(),
 	val exitCountries: Set<Country> = emptySet(),
 )

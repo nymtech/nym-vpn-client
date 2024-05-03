@@ -1,7 +1,7 @@
 package net.nymtech.nymvpn.data
 
 import kotlinx.coroutines.flow.Flow
-import net.nymtech.nymvpn.data.model.Settings
+import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.VpnMode
@@ -44,6 +44,10 @@ interface SettingsRepository {
 	suspend fun isAnalyticsShown(): Boolean
 
 	suspend fun setAnalyticsShown(shown: Boolean)
+
+	suspend fun isApplicationShortcutsEnabled(): Boolean
+
+	suspend fun setApplicationShortcuts(enabled: Boolean)
 
 	val settingsFlow: Flow<Settings>
 }

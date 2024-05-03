@@ -248,16 +248,13 @@ dependencies {
 	// splash
 	implementation(libs.androidx.core.splashscreen)
 
-	// coroutines
+	detektPlugins(libs.detekt.rules.compose)
+
+	// moshi/retrofit
 	implementation(libs.retrofit)
 	implementation(libs.converter.moshi)
-
-	// moshi
 	implementation(libs.moshi)
 	implementation(libs.moshi.kotlin)
-
 	// warning here https://github.com/square/moshi/discussions/1752
 	ksp(libs.moshi.kotlin.codegen)
-
-	detektPlugins(libs.detekt.rules.compose)
 }

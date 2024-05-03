@@ -1,12 +1,14 @@
 package net.nymtech.nymvpn.service.country
 
 import net.nymtech.nymvpn.data.GatewayRepository
+import net.nymtech.nymvpn.module.Android
 import net.nymtech.nymvpn.service.gateway.GatewayService
+import timber.log.Timber
 import javax.inject.Inject
 
 class CountryDataStoreCacheService @Inject constructor(
 	private val gatewayRepository: GatewayRepository,
-	private val gatewayService: GatewayService,
+	@Android private val gatewayService: GatewayService,
 ) : CountryCacheService {
 	override suspend fun updateExitCountriesCache(): Result<Unit> {
 		return gatewayService.getExitCountries().onSuccess {
@@ -22,7 +24,8 @@ class CountryDataStoreCacheService @Inject constructor(
 
 	override suspend fun updateLowLatencyEntryCountryCache(): Result<Unit> {
 		return gatewayService.getLowLatencyCountry().onSuccess {
-			gatewayRepository.setLowLatencyCountry(it)
+			Timber.d("Updating low latency country cache: $it")
+			gatewayRepository.setLowLatencyEntryCountry(it)
 		}.mapCatching { }
 	}
 }

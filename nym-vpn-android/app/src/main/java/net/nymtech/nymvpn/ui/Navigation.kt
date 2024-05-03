@@ -17,7 +17,7 @@ enum class Screen {
 	FEEDBACK,
 	LEGAL,
 	SUPPORT,
-	LOGIN,
+	CREDENTIAL,
 	ACCOUNT,
 	LICENSES,
 	ANALYTICS,
@@ -90,8 +90,8 @@ sealed class NavItem(
 			)
 		}
 
-		data object Login : NavItem(
-			"${Screen.SETTINGS.name}/${Screen.LOGIN.name}",
+		data object Credential : NavItem(
+			"${Screen.SETTINGS.name}/${Screen.CREDENTIAL.name}",
 			StringValue.DynamicString(""),
 			backIcon,
 		)
@@ -128,7 +128,7 @@ sealed class NavItem(
 				Settings.Support.route -> Settings.Support
 				Settings.Feedback.route -> Settings.Feedback
 				Settings.Legal.route -> Settings.Legal
-				Settings.Login.route -> Settings.Login
+				Settings.Credential.route -> Settings.Credential
 				Settings.Account.route -> Settings.Account
 				Settings.Legal.Licenses.route -> Settings.Legal.Licenses
 				else -> Main

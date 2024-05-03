@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okio.buffer
 import okio.source
@@ -20,6 +21,9 @@ constructor() : ViewModel() {
 
 	fun loadLicensesFromAssets(context: Context) = viewModelScope.launch {
 		val source = context.assets.open("artifacts.json").source().buffer()
-		_licences.value = LicenseParser.decode(source)
+		_licences.update {
+			LicenseParser.decode(source)
+		}
+		source.close()
 	}
 }

@@ -56,11 +56,17 @@ class SplashActivity : ComponentActivity() {
 							countryCacheService.updateEntryCountriesCache()
 							Timber.d("Entry countries updated")
 						},
-						async {
-							Timber.d("Updating low latency country cache")
-							countryCacheService.updateLowLatencyEntryCountryCache()
-							Timber.d("Low latency country updated")
-						},
+// 						async {
+// 							//TODO disable this, needs rework
+// 							Timber.d("Updating low latency country cache")
+// 							countryCacheService.updateLowLatencyEntryCountryCache()
+// 							val lowLatencyEntryCountry = gatewayRepository.getLowLatencyEntryCountry()
+// 							val currentEntry = settingsRepository.getFirstHopCountry()
+// 							if(currentEntry.isLowLatency && lowLatencyEntryCountry != null) {
+// 								settingsRepository.setFirstHopCountry(lowLatencyEntryCountry)
+// 							}
+// 							Timber.d("Low latency country updated")
+// 						},
 					).awaitAll()
 				}
 

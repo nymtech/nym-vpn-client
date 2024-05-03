@@ -7,11 +7,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
+import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 
+@AndroidEntryPoint
 class AlarmPermissionReceiver : BroadcastReceiver() {
 
-	// TODO this is not working yet, perhaps not needed
+	// TODO eventually, act on this permission change
 	@RequiresApi(Build.VERSION_CODES.S)
 	override fun onReceive(context: Context, intent: Intent) {
 		val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager

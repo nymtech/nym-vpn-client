@@ -3,7 +3,6 @@ package net.nymtech.nymvpn.ui.screens.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -11,8 +10,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.data.SecretsRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.service.vpn.VpnManager
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.Constants
@@ -21,8 +20,6 @@ import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.model.ErrorState
 import net.nymtech.vpn.model.VpnMode
-import net.nymtech.vpn.util.InvalidCredentialException
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -31,8 +28,8 @@ class MainViewModel
 @Inject
 constructor(
 	private val settingsRepository: SettingsRepository,
-	private val secretsRepository: Provider<SecretsRepository>,
-	private val vpnClient: Provider<VpnClient>,
+	private val vpnManager: VpnManager,
+	vpnClient: Provider<VpnClient>,
 ) : ViewModel() {
 	val uiState =
 		combine(
@@ -77,43 +74,17 @@ constructor(
 
 	fun onTwoHopSelected() = viewModelScope.launch {
 		settingsRepository.setVpnMode(VpnMode.TWO_HOP_MIXNET)
-		NymVpn.requestTileServiceStateUpdate()
 	}
 
 	fun onFiveHopSelected() = viewModelScope.launch {
 		settingsRepository.setVpnMode(VpnMode.FIVE_HOP_MIXNET)
-		NymVpn.requestTileServiceStateUpdate()
 	}
 
-	suspend fun isCredentialImported(): Boolean {
-		return withContext(Dispatchers.IO) {
-			secretsRepository.get().getCredential() != null
-		}
-	}
-
-	fun onConnect() = viewModelScope.launch(Dispatchers.IO) {
-		val credential = secretsRepository.get().getCredential()
-		if (credential != null) {
-			val entryCountry = settingsRepository.getFirstHopCountry()
-			val exitCountry = settingsRepository.getLastHopCountry()
-			val mode = settingsRepository.getVpnMode()
-			val entry = entryCountry.toEntryPoint()
-			val exit = exitCountry.toExitPoint()
-			try {
-				vpnClient.get().apply {
-					this.exitPoint = exit
-					this.entryPoint = entry
-					this.mode = mode
-				}.start(NymVpn.instance, credential)
-				NymVpn.requestTileServiceStateUpdate()
-			} catch (e: InvalidCredentialException) {
-				Timber.e(e)
-			}
-		}
+	suspend fun onConnect(): Result<Unit> = withContext(viewModelScope.coroutineContext) {
+		vpnManager.startVpn(NymVpn.instance, false)
 	}
 
 	fun onDisconnect() = viewModelScope.launch {
-		vpnClient.get().stop(NymVpn.instance)
-		NymVpn.requestTileServiceStateUpdate()
+		vpnManager.stopVpn(NymVpn.instance, false)
 	}
 }

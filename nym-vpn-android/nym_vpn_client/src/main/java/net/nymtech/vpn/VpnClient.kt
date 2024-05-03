@@ -3,7 +3,7 @@ package net.nymtech.vpn
 import android.content.Context
 import android.content.Intent
 import kotlinx.coroutines.flow.Flow
-import net.nymtech.vpn.model.ClientState
+import net.nymtech.vpn.model.VpnClientState
 import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.util.InvalidCredentialException
 import nym_vpn_lib.EntryPoint
@@ -22,7 +22,7 @@ interface VpnClient {
 
 	fun prepare(context: Context): Intent?
 
-	val stateFlow: Flow<ClientState>
+	val stateFlow: Flow<VpnClientState>
 
-	fun getState(): ClientState
+	fun getState(): VpnClientState
 }

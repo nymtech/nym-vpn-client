@@ -54,7 +54,7 @@
     <string name="join_discord">Join us on Discord</string>
     <string name="matrix_url" translatable="false">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
     <string name="discord_url" translatable="false">https://discord.com/invite/nym</string>
-    <string name="faq_url" translatable="false">https://nymvpn.com/en/support</string>
+    <string name="faq_url" translatable="false">https://support.nymvpn.com</string>
     <string name="support_email" translatable="false">support@nymvpn.com</string>
     <string name="github_issues_url" translatable="false">https://github.com/nymtech/nymvpn-android/issues/new/choose</string>
     <string name="email_subject">NymVPN Support</string>
@@ -110,4 +110,6 @@
 	<string name="missing_credential">Missing credential</string>
 	<string name="start_failed">Failed to start VPN</string>
 	<string name="country_load_failure">Failed to load hop countries</string>
+    <string name="app_shortcuts">App shortcuts</string>
+	<string name="enable_shortcuts">Enable app shortcuts</string>
 </resources>

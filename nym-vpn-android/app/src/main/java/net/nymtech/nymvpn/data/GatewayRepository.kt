@@ -1,14 +1,14 @@
 package net.nymtech.nymvpn.data
 
 import kotlinx.coroutines.flow.Flow
-import net.nymtech.nymvpn.data.model.Gateways
+import net.nymtech.nymvpn.data.domain.Gateways
 import net.nymtech.vpn.model.Country
 
 interface GatewayRepository {
 
-	suspend fun getLowLatencyCountry(): Country?
+	suspend fun getLowLatencyEntryCountry(): Country?
 
-	suspend fun setLowLatencyCountry(country: Country)
+	suspend fun setLowLatencyEntryCountry(country: Country)
 
 	suspend fun setEntryCountries(countries: Set<Country>)
 

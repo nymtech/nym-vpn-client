@@ -8,30 +8,29 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.data.SecretsRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.service.vpn.VpnManager
 import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.model.VpnState
-import net.nymtech.vpn.util.InvalidCredentialException
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider
 
 @AndroidEntryPoint
 class VpnQuickTile : TileService() {
-	@Inject
-	lateinit var secretsRepository: Provider<SecretsRepository>
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
 
 	@Inject
+	lateinit var vpnManager: VpnManager
+
+	@Inject
 	lateinit var vpnClient: Provider<VpnClient>
 
-	private val scope = CoroutineScope(Dispatchers.Main)
+	private val scope = CoroutineScope(Dispatchers.IO)
 
 	override fun onStartListening() {
 		super.onStartListening()
@@ -90,19 +89,9 @@ class VpnQuickTile : TileService() {
 				}
 				VpnState.Down -> {
 					scope.launch {
-						val credential = withContext(Dispatchers.IO) {
-							secretsRepository.get().getCredential()
-						}
-						if (credential != null) {
-							try {
-								vpnClient.get().apply {
-									this.mode = settingsRepository.getVpnMode()
-									this.exitPoint = settingsRepository.getLastHopCountry().toExitPoint()
-									this.entryPoint = settingsRepository.getFirstHopCountry().toEntryPoint()
-								}.start(this@VpnQuickTile, credential, true)
-							} catch (e: InvalidCredentialException) {
-								Timber.w(e)
-							}
+						vpnManager.startVpn(this@VpnQuickTile, true).onFailure {
+							// TODO handle failure
+							Timber.w(it)
 						}
 					}
 				}

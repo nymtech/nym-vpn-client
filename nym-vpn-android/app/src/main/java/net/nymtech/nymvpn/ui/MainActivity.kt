@@ -39,11 +39,11 @@ import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.account.AccountScreen
+import net.nymtech.nymvpn.ui.screens.settings.credential.CredentialScreen
 import net.nymtech.nymvpn.ui.screens.settings.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.feedback.FeedbackScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
-import net.nymtech.nymvpn.ui.screens.settings.login.LoginScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
@@ -157,10 +157,9 @@ class MainActivity : ComponentActivity() {
 								navController,
 							)
 						}
-						composable(NavItem.Settings.Login.route) {
-							LoginScreen(
+						composable(NavItem.Settings.Credential.route) {
+							CredentialScreen(
 								navController,
-								appViewModel,
 							)
 						}
 						composable(NavItem.Settings.Account.route) { AccountScreen(appViewModel) }

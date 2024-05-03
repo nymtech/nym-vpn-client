@@ -3,7 +3,7 @@ package net.nymtech.vpn.model
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
 
-data class ClientState(
+data class VpnClientState(
 	val vpnState: VpnState = VpnState.Down,
 	val statistics: VpnStatistics = VpnStatistics(),
 	val errorState: ErrorState = ErrorState.None,

@@ -129,40 +129,41 @@ fun HopScreen(navController: NavController, hopType: HopType, viewModel: HopView
 		}
 		item {
 			if (uiState.countries.isNotEmpty()) {
-				val fastest = uiState.countries.firstOrNull { it.isLowLatency }
-				if (fastest != null) {
-					val name = StringUtils.buildCountryNameString(fastest, context)
-					val icon = ImageVector.vectorResource(R.drawable.bolt)
-					SelectionItemButton(
-						{
-							Icon(
-								icon,
-								icon.name,
-								modifier =
-								Modifier
-									.padding(
-										vertical = 16.dp.scaledHeight(),
-										horizontal = 16.dp.scaledWidth(),
-									)
-									.size(
-										iconSize,
-									),
-								tint = MaterialTheme.colorScheme.onSurface,
-							)
-						},
-						name,
-						onClick = {
-							viewModel.onSelected(fastest)
-							navController.navigate(NavItem.Main.route)
-						},
-						trailingText =
-						if (fastest == uiState.selected) {
-							stringResource(id = R.string.is_selected)
-						} else {
-							null
-						},
-					)
-				}
+				// TODO disable for now
+// 				val lowLatencyCountry = uiState.lowLatencyCountry
+// 				if (lowLatencyCountry != null) {
+// 					val name = StringUtils.buildCountryNameString(lowLatencyCountry, context)
+// 					val icon = ImageVector.vectorResource(R.drawable.bolt)
+// 					SelectionItemButton(
+// 						{
+// 							Icon(
+// 								icon,
+// 								icon.name,
+// 								modifier =
+// 								Modifier
+// 									.padding(
+// 										horizontal = 24.dp.scaledWidth(),
+// 										vertical = 16.dp.scaledHeight(),
+// 									)
+// 									.size(
+// 										iconSize,
+// 									),
+// 								tint = MaterialTheme.colorScheme.onSurface,
+// 							)
+// 						},
+// 						name,
+// 						onClick = {
+// 							viewModel.onSelected(lowLatencyCountry)
+// 							navController.navigate(NavItem.Main.route)
+// 						},
+// 						trailingText =
+// 						if (lowLatencyCountry == uiState.selected) {
+// 							stringResource(id = R.string.is_selected)
+// 						} else {
+// 							null
+// 						},
+// 					)
+// 				}
 			} else {
 				Text(
 					stringResource(id = R.string.country_load_failure),

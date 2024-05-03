@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,6 +42,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
@@ -83,6 +85,10 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 				vpnIntent = null
 			},
 		)
+
+	LaunchedEffect(uiState.firstHopCounty, uiState.lastHopCountry, uiState.networkMode, uiState.connectionState) {
+		NymVpn.requestTileServiceStateUpdate()
+	}
 
 	Column(
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
@@ -231,7 +237,8 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
 								scope.launch {
-									if (viewModel.isCredentialImported()) {
+									// TODO clean up permissions
+									appViewModel.onValidCredentialCheck().onSuccess {
 										if (notificationPermissionState != null &&
 											!notificationPermissionState.status.isGranted
 										) {
@@ -246,8 +253,8 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 											return@launch appViewModel.requestAlarmPermission(context)
 										}
 										viewModel.onConnect()
-									} else {
-										navController.navigate(NavItem.Settings.Login.route)
+									}.onFailure {
+										navController.navigate(NavItem.Settings.Credential.route)
 									}
 								}
 							},

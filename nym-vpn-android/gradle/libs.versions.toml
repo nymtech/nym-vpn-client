@@ -1,28 +1,24 @@
 [versions]
 accompanist = "0.34.0"
 agp = "8.4.0-rc02"
-converterMoshi = "2.11.0"
 coreSplashscreen = "1.0.1"
 detektRulesCompose = "1.3.0"
 javaClient = "9.2.2"
 jna = "5.14.0"
 kotlin = "1.9.23"
 ksp = "1.9.23-1.0.19"
-coreKtx = "1.13.0"
+coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
-materialIconsExtended = "1.6.6"
-moshi = "1.15.1"
-moshiKotlin = "1.15.1"
-moshiKotlinCodegen = "1.15.1"
+materialIconsExtended = "1.6.7"
 navigationCompose = "2.7.7"
 hiltNavigationCompose = "1.2.0"
 lifecycleRuntimeKtx = "2.7.0"
 lifecycle-runtime-compose = "2.7.0"
 activityCompose = "1.9.0"
-composeBom = "2024.04.01"
-datastorePreferences = "1.1.0"
+composeBom = "2024.05.00"
+datastorePreferences = "1.1.1"
 securityCrypto = "1.1.0-alpha06"
 timber = "5.0.1"
 hiltAndroid = "2.51"
@@ -30,8 +26,12 @@ kotlinx-serialization-json = "1.6.3"
 kotlinxCoroutinesCore = "1.8.0"
 uiautomator = "2.3.0"
 window = "1.2.0"
-windowCoreAndroid = "1.3.0-beta01"
+windowCoreAndroid = "1.3.0-beta02"
 desugar = "2.0.4"
+moshi = "1.15.1"
+moshiKotlin = "1.15.1"
+moshiKotlinCodegen = "1.15.1"
+converterMoshi = "2.11.0"
 
 gradlePlugins-kotlinxSerialization = "1.9.23"
 gradlePlugins-licensee = "1.7.0"
@@ -49,7 +49,6 @@ androidx-material-icons-extended = { module = "androidx.compose.material:materia
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
 androidx-window = { module = "androidx.window:window", version.ref = "window" }
-converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }
 detekt-rules-compose = { module = "ru.kode:detekt-rules-compose", version.ref = "detektRulesCompose" }
 java-client = { module = "io.appium:java-client", version.ref = "javaClient" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
@@ -72,15 +71,18 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 
+#retrofit/moshi
+converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }
+moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
+moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshiKotlin" }
+moshi-kotlin-codegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", version.ref = "moshiKotlinCodegen" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterMoshi" }
+
 #util
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 kotlinx-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 com-android-tools-desugar = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
 
-moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
-moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshiKotlin" }
-moshi-kotlin-codegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", version.ref = "moshiKotlinCodegen" }
-retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterMoshi" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 
 #compose

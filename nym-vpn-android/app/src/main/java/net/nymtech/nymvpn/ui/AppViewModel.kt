@@ -20,18 +20,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.nymtech.logcathelper.LogcatHelper
 import net.nymtech.logcathelper.model.LogLevel
 import net.nymtech.logcathelper.model.LogMessage
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
+import net.nymtech.nymvpn.data.SecretsRepository
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.service.country.CountryCacheService
+import net.nymtech.nymvpn.module.Native
+import net.nymtech.nymvpn.service.gateway.GatewayService
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
+import net.nymtech.nymvpn.util.MissingCredentialException
 import net.nymtech.nymvpn.util.log.NymLibException
-import net.nymtech.vpn.NymApi
+import net.nymtech.vpn.NymVpnClient
 import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.model.Country
 import timber.log.Timber
@@ -44,10 +49,10 @@ class AppViewModel
 @Inject
 constructor(
 	private val settingsRepository: SettingsRepository,
+	private val secretsRepository: Provider<SecretsRepository>,
 	private val gatewayRepository: GatewayRepository,
-	private val countryCacheService: CountryCacheService,
-	private val vpnClient: Provider<VpnClient>,
-	private val nymApi: NymApi,
+	@Native private val gatewayService: GatewayService,
+	vpnClient: Provider<VpnClient>,
 ) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(AppUiState())
@@ -61,7 +66,7 @@ constructor(
 				false,
 				state.snackbarMessage,
 				state.snackbarMessageConsumed,
-				vpnState.vpnState,
+				vpnState,
 				settings,
 			)
 		}.stateIn(
@@ -82,7 +87,6 @@ constructor(
 							)
 						}
 					}
-
 					else -> Unit
 				}
 			}
@@ -105,6 +109,17 @@ constructor(
 		LogcatHelper.clear()
 	}
 
+	suspend fun onValidCredentialCheck(): Result<Unit> {
+		return withContext(Dispatchers.IO) {
+			val credential = secretsRepository.get().getCredential()
+			if (credential != null) {
+				NymVpnClient.validateCredential(credential)
+			} else {
+				Result.failure(MissingCredentialException("Credential not found"))
+			}
+		}
+	}
+
 	fun saveLogsToFile(context: Context) {
 		val fileName = "${Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.txt"
 		val content = logs.joinToString(separator = "\n")
@@ -118,7 +133,23 @@ constructor(
 
 	fun onEntryLocationSelected(selected: Boolean) = viewModelScope.launch(Dispatchers.IO) {
 		settingsRepository.setFirstHopSelection(selected)
-		setFirstHopToLowLatency()
+		settingsRepository.setFirstHopCountry(Country(isDefault = true))
+// 		launch {
+// 			setFirstHopToLowLatencyFromApi()
+// 		}
+// 		launch {
+// 			setFirstHopToLowLatencyFromCache()
+// 		}
+	}
+
+	private suspend fun setFirstHopToLowLatencyFromApi() {
+		Timber.d("Updating low latency entry gateway")
+		gatewayService.getLowLatencyCountry().onSuccess {
+			Timber.d("New low latency gateway: $it")
+			settingsRepository.setFirstHopCountry(it.copy(isLowLatency = true))
+		}.onFailure {
+			Timber.w(it)
+		}
 	}
 
 	fun onErrorReportingSelected() = viewModelScope.launch {
@@ -129,9 +160,9 @@ constructor(
 		settingsRepository.setAnalytics(!uiState.value.settings.analyticsEnabled)
 	}
 
-	private suspend fun setFirstHopToLowLatency() {
+	private suspend fun setFirstHopToLowLatencyFromCache() {
 		runCatching {
-			gatewayRepository.getLowLatencyCountry()
+			gatewayRepository.getLowLatencyEntryCountry()
 		}.onFailure {
 			Timber.e(it)
 		}.onSuccess {
@@ -204,26 +235,27 @@ constructor(
 				},
 			)
 		} catch (e: ActivityNotFoundException) {
-			Timber.e(e)
+			Timber.w(e)
 			showSnackbarMessage(context.getString(R.string.no_email_detected))
 		}
 	}
 
 	fun showSnackbarMessage(message: String) {
-		_uiState.value =
-			_uiState.value.copy(
+		_uiState.update {
+			it.copy(
 				snackbarMessage = message,
 				snackbarMessageConsumed = false,
 			)
+		}
 	}
 
-	// TODO this should be package private
 	fun snackbarMessageConsumed() {
-		_uiState.value =
-			_uiState.value.copy(
+		_uiState.update {
+			it.copy(
 				snackbarMessage = "",
 				snackbarMessageConsumed = true,
 			)
+		}
 	}
 
 	fun showFeatureInProgressMessage(context: Context) {

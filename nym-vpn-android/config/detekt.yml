@@ -62,6 +62,8 @@ coroutines:
 
 exceptions:
   active: true
+  TooGenericExceptionCaught:
+    active: false
   NotImplementedDeclaration:
     active: true
   ObjectExtendsThrowable:

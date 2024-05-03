@@ -5,7 +5,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.data.model.Settings
+import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.VpnMode
@@ -15,26 +15,25 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	SettingsRepository {
 
 	private val default = Country(isDefault = true)
-	companion object {
-		val FIRST_HOP_COUNTRY = stringPreferencesKey("FIRST_HOP_COUNTRY")
-		val LAST_HOP_COUNTRY = stringPreferencesKey("LAST_HOP_COUNTRY")
-		val THEME = stringPreferencesKey("THEME")
-		val VPN_MODE = stringPreferencesKey("VPN_MODE")
-		val FIRST_HOP_SELECTION = booleanPreferencesKey("FIRST_HOP_SELECTION")
-		val ERROR_REPORTING = booleanPreferencesKey("ERROR_REPORTING")
-		val ANALYTICS = booleanPreferencesKey("ANALYTICS")
-		val AUTO_START = booleanPreferencesKey("AUTO_START")
-		val ANALYTICS_SHOWN = booleanPreferencesKey("ANALYTICS_SHOWN")
-	}
+	private val firstHopCountry = stringPreferencesKey("FIRST_HOP_COUNTRY")
+	private val lastHopCountry = stringPreferencesKey("LAST_HOP_COUNTRY")
+	private val theme = stringPreferencesKey("THEME")
+	private val vpnMode = stringPreferencesKey("VPN_MODE")
+	private val firstHopSelection = booleanPreferencesKey("FIRST_HOP_SELECTION")
+	private val errorReporting = booleanPreferencesKey("ERROR_REPORTING")
+	private val analytics = booleanPreferencesKey("ANALYTICS")
+	private val autoStart = booleanPreferencesKey("AUTO_START")
+	private val analyticsShown = booleanPreferencesKey("ANALYTICS_SHOWN")
+	private val applicationShortcuts = booleanPreferencesKey("APPLICATION_SHORTCUTS")
 
 	override suspend fun init() {
-		val firstHop = dataStoreManager.getFromStore(FIRST_HOP_COUNTRY)
-		val lastHop = dataStoreManager.getFromStore(LAST_HOP_COUNTRY)
+		val firstHop = dataStoreManager.getFromStore(firstHopCountry)
+		val lastHop = dataStoreManager.getFromStore(lastHopCountry)
 		if (firstHop == null) setFirstHopCountry(Country(isDefault = true))
 		if (lastHop == null) setLastHopCountry(Country(isDefault = true))
 	}
 	override suspend fun getTheme(): Theme {
-		return dataStoreManager.getFromStore(THEME)?.let {
+		return dataStoreManager.getFromStore(theme)?.let {
 			try {
 				Theme.valueOf(it)
 			} catch (e: IllegalArgumentException) {
@@ -45,11 +44,11 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun setTheme(theme: Theme) {
-		dataStoreManager.saveToDataStore(THEME, theme.name)
+		dataStoreManager.saveToDataStore(this.theme, theme.name)
 	}
 
 	override suspend fun getVpnMode(): VpnMode {
-		return dataStoreManager.getFromStore(VPN_MODE)?.let {
+		return dataStoreManager.getFromStore(vpnMode)?.let {
 			try {
 				VpnMode.valueOf(it)
 			} catch (e: IllegalArgumentException) {
@@ -60,68 +59,76 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun getFirstHopCountry(): Country {
-		val country = dataStoreManager.getFromStore(FIRST_HOP_COUNTRY)
+		val country = dataStoreManager.getFromStore(firstHopCountry)
 		return Country.from(country) ?: default
 	}
 
 	override suspend fun setFirstHopCountry(country: Country) {
-		dataStoreManager.saveToDataStore(FIRST_HOP_COUNTRY, country.toString())
+		dataStoreManager.saveToDataStore(firstHopCountry, country.toString())
 	}
 
 	override suspend fun setVpnMode(mode: VpnMode) {
-		dataStoreManager.saveToDataStore(VPN_MODE, mode.name)
+		dataStoreManager.saveToDataStore(vpnMode, mode.name)
 	}
 
 	override suspend fun getLastHopCountry(): Country {
-		val country = dataStoreManager.getFromStore(LAST_HOP_COUNTRY)
+		val country = dataStoreManager.getFromStore(lastHopCountry)
 		return Country.from(country) ?: default
 	}
 
 	override suspend fun setLastHopCountry(country: Country) {
-		dataStoreManager.saveToDataStore(LAST_HOP_COUNTRY, country.toString())
+		dataStoreManager.saveToDataStore(lastHopCountry, country.toString())
 	}
 
 	override suspend fun isAutoStartEnabled(): Boolean {
-		return dataStoreManager.getFromStore(AUTO_START)
+		return dataStoreManager.getFromStore(autoStart)
 			?: Settings.AUTO_START_DEFAULT
 	}
 
 	override suspend fun setAutoStart(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(AUTO_START, enabled)
+		dataStoreManager.saveToDataStore(autoStart, enabled)
 	}
 
 	override suspend fun isErrorReportingEnabled(): Boolean {
-		return dataStoreManager.getFromStore(ERROR_REPORTING)
+		return dataStoreManager.getFromStore(errorReporting)
 			?: Settings.REPORTING_DEFAULT
 	}
 
 	override suspend fun setErrorReporting(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(ERROR_REPORTING, enabled)
+		dataStoreManager.saveToDataStore(errorReporting, enabled)
 	}
 
 	override suspend fun setAnalytics(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(ANALYTICS, enabled)
+		dataStoreManager.saveToDataStore(analytics, enabled)
 	}
 
 	override suspend fun isAnalyticsEnabled(): Boolean {
-		return dataStoreManager.getFromStore(ANALYTICS) ?: Settings.REPORTING_DEFAULT
+		return dataStoreManager.getFromStore(analytics) ?: Settings.REPORTING_DEFAULT
 	}
 
 	override suspend fun isFirstHopSelectionEnabled(): Boolean {
-		return dataStoreManager.getFromStore(FIRST_HOP_SELECTION)
+		return dataStoreManager.getFromStore(firstHopSelection)
 			?: Settings.FIRST_HOP_SELECTION_DEFAULT
 	}
 
 	override suspend fun setFirstHopSelection(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(FIRST_HOP_SELECTION, enabled)
+		dataStoreManager.saveToDataStore(firstHopSelection, enabled)
 	}
 
 	override suspend fun isAnalyticsShown(): Boolean {
-		return dataStoreManager.getFromStore(ANALYTICS_SHOWN) ?: Settings.ANALYTICS_SHOWN_DEFAULT
+		return dataStoreManager.getFromStore(analyticsShown) ?: Settings.ANALYTICS_SHOWN_DEFAULT
 	}
 
 	override suspend fun setAnalyticsShown(shown: Boolean) {
-		dataStoreManager.saveToDataStore(ANALYTICS_SHOWN, shown)
+		dataStoreManager.saveToDataStore(analyticsShown, shown)
+	}
+
+	override suspend fun isApplicationShortcutsEnabled(): Boolean {
+		return dataStoreManager.getFromStore(applicationShortcuts) ?: Settings.SHORTCUTS_DEFAULT
+	}
+
+	override suspend fun setApplicationShortcuts(enabled: Boolean) {
+		dataStoreManager.saveToDataStore(applicationShortcuts, enabled)
 	}
 
 	override val settingsFlow: Flow<Settings> =
@@ -130,25 +137,26 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 				try {
 					Settings(
 						theme =
-						pref[THEME]?.let { Theme.valueOf(it) }
+						pref[theme]?.let { Theme.valueOf(it) }
 							?: Theme.default(),
 						vpnMode =
-						pref[VPN_MODE]?.let { VpnMode.valueOf(it) }
+						pref[vpnMode]?.let { VpnMode.valueOf(it) }
 							?: VpnMode.default(),
 						autoStartEnabled =
-						pref[AUTO_START]
+						pref[autoStart]
 							?: Settings.AUTO_START_DEFAULT,
 						errorReportingEnabled =
-						pref[ERROR_REPORTING]
+						pref[errorReporting]
 							?: Settings.REPORTING_DEFAULT,
-						analyticsEnabled = pref[ANALYTICS]
+						analyticsEnabled = pref[analytics]
 							?: Settings.REPORTING_DEFAULT,
 						firstHopSelectionEnabled =
-						pref[FIRST_HOP_SELECTION]
+						pref[firstHopSelection]
 							?: Settings.FIRST_HOP_SELECTION_DEFAULT,
-						isAnalyticsShown = pref[ANALYTICS_SHOWN] ?: Settings.ANALYTICS_SHOWN_DEFAULT,
-						firstHopCountry = Country.from(pref[FIRST_HOP_COUNTRY]) ?: default,
-						lastHopCountry = Country.from(pref[LAST_HOP_COUNTRY]) ?: default,
+						isAnalyticsShown = pref[analyticsShown] ?: Settings.ANALYTICS_SHOWN_DEFAULT,
+						firstHopCountry = Country.from(pref[firstHopCountry]) ?: default,
+						lastHopCountry = Country.from(pref[lastHopCountry]) ?: default,
+						isShortcutsEnabled = pref[applicationShortcuts] ?: Settings.SHORTCUTS_DEFAULT,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

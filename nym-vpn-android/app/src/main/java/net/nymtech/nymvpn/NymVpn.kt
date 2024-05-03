@@ -3,6 +3,7 @@ package net.nymtech.nymvpn
 import android.app.Application
 import android.content.ComponentName
 import android.os.StrictMode
+import android.os.StrictMode.ThreadPolicy
 import android.service.quicksettings.TileService
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -24,7 +25,14 @@ class NymVpn : Application() {
 		instance = this
 		if (BuildConfig.DEBUG) {
 			Timber.plant(DebugTree())
-			StrictMode.enableDefaults()
+			StrictMode.setThreadPolicy(
+				ThreadPolicy.Builder()
+					.detectDiskReads()
+					.detectDiskWrites()
+					.detectNetwork()
+					.penaltyLog()
+					.build(),
+			)
 		} else {
 			Timber.plant(ReleaseTree())
 		}

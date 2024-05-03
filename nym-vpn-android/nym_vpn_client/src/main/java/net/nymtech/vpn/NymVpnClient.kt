@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import net.nymtech.logcathelper.LogcatHelper
 import net.nymtech.logcathelper.model.LogLevel
-import net.nymtech.vpn.model.ClientState
+import net.nymtech.vpn.model.VpnClientState
 import net.nymtech.vpn.model.Environment
 import net.nymtech.vpn.model.ErrorState
 import net.nymtech.vpn.model.VpnMode
@@ -32,6 +32,7 @@ import nym_vpn_lib.FfiException
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.checkCredential
 import nym_vpn_lib.runVpn
+import nym_vpn_lib.stopVpn
 import timber.log.Timber
 
 object NymVpnClient {
@@ -85,8 +86,8 @@ object NymVpnClient {
 
 		private var job: Job? = null
 
-		private val _state = MutableStateFlow(ClientState())
-		override val stateFlow: Flow<ClientState> = _state.asStateFlow()
+		private val _state = MutableStateFlow(VpnClientState())
+		override val stateFlow: Flow<VpnClientState> = _state.asStateFlow()
 
 		@Throws(InvalidCredentialException::class)
 		override fun start(context: Context, credential: String, foreground: Boolean) {
@@ -113,7 +114,7 @@ object NymVpnClient {
 		override fun prepare(context: Context): Intent? {
 			return VpnService.prepare(context)
 		}
-		override fun getState(): ClientState {
+		override fun getState(): VpnClientState {
 			return _state.value
 		}
 
@@ -177,9 +178,17 @@ object NymVpnClient {
 					if (it.tag.contains(Constants.NYM_VPN_LIB_TAG)) {
 						when (it.level) {
 							LogLevel.ERROR -> {
-								if (it.message.contains("Stopped Nym VPN")) {
+								// TODO need better way to communicate shutdowns from lib
+								// TODO why is this one not sending proper shutdown message
+								// Nym VPN returned error: Task 'nym_vpn_lib-mixnet_client_main-gateway_transceiver-child' halted unexpectedly
+								if (it.message.contains("Stopped Nym VPN") ||
+									it.message.contains("halted unexpectedly")
+								) {
 									setErrorState(ErrorState.CoreLibraryError(it.message))
 									stop(context, true)
+								}
+								if (it.message.contains("Could not start the VPN")) {
+									stopVpn()
 								}
 							}
 							LogLevel.INFO -> {

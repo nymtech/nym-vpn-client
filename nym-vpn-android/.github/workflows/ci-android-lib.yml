@@ -2,12 +2,19 @@ name: Android Lib SmokeTest
 
 on:
   workflow_dispatch:
+    inputs:
+      libRunId:
+        description: 'Library Release Run Id'
+        required: true
+
 
 jobs:
   build:
+
     runs-on: mac-m1
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout project
+        uses: actions/checkout@v4
         with:
           submodules: true
       - name: Set up JDK 17
@@ -20,6 +27,24 @@ jobs:
         uses: nttld/setup-ndk@v1
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+      - name: Get aarch64-linux-lib
+        uses: actions/download-artifact@v4
+        with:
+          pattern: nym-vpn-lib_*_aarch64-linux-android.tar.gz
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: nymtech/nym-vpn-client
+          run-id: ${{ github.event.inputs.libRunId }}
+          path: ${{ github.workspace }}/nym_vpn_client/src/main/jniLibs/arm64-v8a
+      - name: Extract lib
+        run: |
+            (cd ${{ github.workspace }}/nym_vpn_client/src/main/jniLibs/arm64-v8a && tar --strip-components=1 -xvf *.gz)
+      - name: Get wg-go_aarch64-linux-android
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: nymtech/nym-vpn-client
+          run-id: ${{ github.event.inputs.libRunId }}
+          path: ${{ github.workspace }}/nym_vpn_client/src/main/jniLibs/arm64-v8a
       - name: Run SmokeTest
         run: |
           ./gradlew app:connectedFdroidAndroidTest

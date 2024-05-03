@@ -10,6 +10,8 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.service.country.CountryDataStoreCacheService
+import net.nymtech.nymvpn.service.gateway.GatewayApi
+import net.nymtech.nymvpn.service.gateway.GatewayApiService
 import net.nymtech.nymvpn.service.gateway.GatewayLibService
 import net.nymtech.nymvpn.service.gateway.GatewayService
 import net.nymtech.nymvpn.util.Constants
@@ -23,6 +25,13 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 class ServiceModule {
+
+	@Singleton
+	@Provides
+	fun provideNymApi(): NymApi {
+		return NymApi(NymVpn.environment)
+	}
+
 	@Singleton
 	@Provides
 	fun provideMoshi(): Moshi {
@@ -33,34 +42,36 @@ class ServiceModule {
 
 	@Singleton
 	@Provides
+	fun provideGatewayService(retrofit: Retrofit): GatewayApi {
+		return retrofit.create(GatewayApi::class.java)
+	}
+
+	@Singleton
+	@Provides
 	fun provideRetrofit(moshi: Moshi): Retrofit {
 		return Retrofit.Builder()
 			.addConverterFactory(MoshiConverterFactory.create(moshi))
-			.baseUrl(Constants.SANDBOX_URL)
+			.baseUrl(Constants.VPN_API_BASE_URL)
 			.build()
 	}
 
-// 	@Singleton
-// 	@Provides
-// 	fun provideGatewayService(retrofit: Retrofit): GatewayService {
-// 		return retrofit.create(GatewayApiService::class.java)
-// 	}
-
+	@Native
 	@Singleton
 	@Provides
-	fun provideNymApi(): NymApi {
-		return NymApi(NymVpn.environment)
-	}
-
-	@Singleton
-	@Provides
-	fun provideGatewayService(nymApi: NymApi): GatewayService {
+	fun provideGatewayLibService(nymApi: NymApi): GatewayService {
 		return GatewayLibService(nymApi)
 	}
 
+	@Android
 	@Singleton
 	@Provides
-	fun provideCountryCacheService(gatewayService: GatewayService, gatewayRepository: GatewayRepository): CountryCacheService {
+	fun provideGatewayApiService(gatewayApi: GatewayApi, gatewayLibService: GatewayLibService): GatewayService {
+		return GatewayApiService(gatewayApi, gatewayLibService)
+	}
+
+	@Singleton
+	@Provides
+	fun provideCountryCacheService(@Android gatewayService: GatewayService, gatewayRepository: GatewayRepository): CountryCacheService {
 		return CountryDataStoreCacheService(gatewayRepository, gatewayService)
 	}
 

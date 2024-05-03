@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
@@ -33,23 +33,24 @@ constructor(
 			gatewayRepository.gatewayFlow,
 			_uiState,
 		) { gateway, state ->
-			val countryList =
-				when (_uiState.value.hopType) {
-					HopType.FIRST -> {
-						gateway.entryCountries
-					}
-
-					HopType.LAST -> {
-						gateway.exitCountries
-					}
+			var countryList = emptySet<Country>()
+			var lowLatencyEntryCountry: Country? = null
+			when (_uiState.value.hopType) {
+				HopType.FIRST -> {
+					countryList = gateway.entryCountries
+					lowLatencyEntryCountry = gateway.lowLatencyEntryCountry
 				}
+				HopType.LAST -> {
+					countryList = gateway.exitCountries
+				}
+			}
 			val searchedCountries =
 				if (state.query.isNotBlank()) {
 					countryList.filter { it.name.lowercase().contains(state.query) }.toSet()
 				} else {
 					countryList
 				}
-			HopUiState(countryList, _uiState.value.hopType, searchedCountries, state.selected)
+			HopUiState(countryList, lowLatencyEntryCountry, _uiState.value.hopType, searchedCountries, state.selected)
 		}.stateIn(
 			viewModelScope,
 			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
@@ -57,17 +58,19 @@ constructor(
 		)
 
 	fun onQueryChange(query: String) {
-		_uiState.value =
-			_uiState.value.copy(
+		_uiState.update {
+			it.copy(
 				query = query.lowercase(),
 			)
+		}
 	}
 
 	fun init(hopType: HopType) {
-		_uiState.value =
-			_uiState.value.copy(
+		_uiState.update {
+			it.copy(
 				hopType = hopType,
 			)
+		}
 		setSelectedCountry()
 	}
 
@@ -84,10 +87,11 @@ constructor(
 				HopType.FIRST -> settingsRepository.getFirstHopCountry()
 				HopType.LAST -> settingsRepository.getLastHopCountry()
 			}
-		_uiState.value =
-			_uiState.value.copy(
+		_uiState.update {
+			it.copy(
 				selected = selectedCountry,
 			)
+		}
 	}
 
 	fun onSelected(country: Country) = viewModelScope.launch(Dispatchers.IO) {
@@ -95,6 +99,5 @@ constructor(
 			HopType.FIRST -> settingsRepository.setFirstHopCountry(country)
 			HopType.LAST -> settingsRepository.setLastHopCountry(country)
 		}
-		NymVpn.requestTileServiceStateUpdate()
 	}
 }

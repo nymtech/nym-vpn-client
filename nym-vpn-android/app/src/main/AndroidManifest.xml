@@ -4,11 +4,13 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+	<uses-permission android:name="net.nymtech.nymvpn.VPN_CONTROL" />
+	<uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
     <!--start vpn on boot permission-->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application
         android:name=".NymVpn"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"
@@ -29,6 +31,9 @@
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
+			<meta-data
+				android:name="android.app.shortcuts"
+				android:resource="@xml/shortcuts" />
 		</activity>
         <activity
             android:name=".ui.MainActivity"
@@ -41,6 +46,12 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
             </intent-filter>
         </activity>
+		<activity
+			android:name=".ui.ShortcutActivity"
+			android:enabled="true"
+			android:exported="true"
+			android:finishOnTaskLaunch="true"
+			android:theme="@android:style/Theme.NoDisplay" />
         <service
             android:name=".service.tile.VpnQuickTile"
             android:exported="true"
@@ -71,7 +82,20 @@
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
-		<receiver android:name=".receiver.AlarmPermissionReceiver" />
+		<receiver android:name=".receiver.AlarmPermissionReceiver"
+			android:exported="false" android:enabled="true">
+			<intent-filter>
+				<action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+			</intent-filter>
+		</receiver>
+		<!--	will make exported false for now, potentially enable later for user automation integration	-->
+		<receiver android:name=".receiver.VpnControlReceiver" android:exported="false" android:enabled="true"
+			android:permission="net.nymtech.nymvpn.VPN_CONTROL">
+			<intent-filter>
+				<action android:name="net.nymtech.nymvpn.START" />
+				<action android:name="net.nymtech.nymvpn.STOP" />
+			</intent-filter>
+		</receiver>
         <service
             android:name=".service.AlwaysOnVpnService"
             android:enabled="true"

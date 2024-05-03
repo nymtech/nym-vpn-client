@@ -78,8 +78,8 @@ val Typography =
 
 object CustomTypography {
 	val labelHuge = TextStyle(
-		fontSize = 18.sp,
-		lineHeight = 24.sp,
+		fontSize = 18.sp.scaled(),
+		lineHeight = 24.sp.scaled(),
 		fontWeight = FontWeight(700),
 		textAlign = TextAlign.Center,
 	)
