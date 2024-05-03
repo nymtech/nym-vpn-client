@@ -80,7 +80,7 @@ jobs:
           APPLE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           # TODO try fixing `error running bundle_dmg.sh` (macos build)
-          # NO_STRIP: 'true'
+          NO_STRIP: 'true'
         run: |
           npm run tauri build --${{ env.CARGO_TARGET }}
           ls -la target/release/ || true
