@@ -69,7 +69,7 @@ jobs:
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
-          npm run tauri build --${{ env.CARGO_TARGET }}
+          npm run tauri build --${{ env.CARGO_TARGET }} -- --verbose
           ls -la target/release/ || true
           ls -la target/release/bundle || true
           ls -la target/release/bundle/* || true
