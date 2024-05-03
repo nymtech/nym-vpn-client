@@ -77,19 +77,17 @@ jobs:
 
       - name: Move things around to prepare for upload
         env:
-          SRC_UPDATE_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*.AppImage.tar.gz
-          SRC_APPIMAGE: nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_*.AppImage
+          SRC_APPIMAGE: nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_${{ steps.package-version.outputs.metadata }}_amd64.AppImage
           SRC_DEB: nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn*.deb
         run: |
-          pwd
           echo "Generate build info"
           ${{ env.SRC_APPIMAGE }} --build-info > build-info.txt
           mkdir ${{ env.UPLOAD_DIR }}
           echo "Move AppImage"
           cp -vpr ${{ env.SRC_APPIMAGE }} ${{ env.UPLOAD_DIR }}
           echo "Move updater bundle and signature"
-          cp -vpr ${{ env.SRC_UPDATE_BUNDLE }}     ${{ env.UPLOAD_DIR }}/${{ env.UPDATER_BUNDLE_NAME }}
-          cp -vpr ${{ env.SRC_UPDATE_BUNDLE }}.sig ${{ env.UPLOAD_DIR }}/${{ env.UPDATER_BUNDLE_NAME }}.sig
+          cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz     ${{ env.UPLOAD_DIR }}/${{ env.UPDATER_BUNDLE_NAME }}
+          cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz.sig ${{ env.UPLOAD_DIR }}/${{ env.UPDATER_BUNDLE_NAME }}.sig
           echo "Move debian pkg"
           cp -vpr ${{ env.SRC_DEB }} ${{ env.UPLOAD_DIR }}
 
