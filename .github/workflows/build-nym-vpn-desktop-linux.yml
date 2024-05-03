@@ -21,11 +21,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            nym-vpn-desktop
-            nym-vpn-lib
-            crates
 
       - name: Install system dependencies
         run: |
