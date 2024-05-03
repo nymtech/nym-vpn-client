@@ -149,7 +149,7 @@ pub async fn connect(
         enable_two_hop: two_hop_mod,
         enable_poisson_rate: false,
         disable_background_cover_traffic: false,
-        enable_credentials_mode: true,
+        enable_credentials_mode: false,
         dns,
     });
 
@@ -178,13 +178,14 @@ pub async fn disconnect(
     grpc: State<'_, Arc<GrpcClient>>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("disconnect");
-    let mut app_state = state.lock().await;
+    let app_state = state.lock().await;
     if !matches!(app_state.state, ConnectionState::Connected) {
         return Err(CmdError::new(
             CmdErrorSource::CallerError,
             &format!("cannot disconnect from state {:?}", app_state.state),
         ));
     };
+    drop(app_state);
 
     let mut vpnd = grpc.vpnd().await.map_err(|_| {
         warn!("not connected to the daemon");
@@ -193,26 +194,20 @@ pub async fn disconnect(
 
     // switch to "Disconnecting" state
     trace!("update connection state [Disconnecting]");
+    let mut app_state = state.lock().await;
     app_state.state = ConnectionState::Disconnecting;
     app.emit_disconnecting();
+    drop(app_state);
 
     let request = Request::new(DisconnectRequest {});
     let response = vpnd.vpn_disconnect(request).await.map_err(|e| {
         let error_msg = format!("failed to disconnect: {e}");
         error!("grpc vpn_disconnect: {}", e);
-        // TODO handle error properly
-        // just switch back to "Connected" state for now
-        app_state.state = ConnectionState::Connected;
         CmdError::new(CmdErrorSource::DaemonError, &error_msg)
     })?;
     debug!("grpc response: {:?}", response);
 
-    trace!("update connection state [Disconnected]");
-    app_state.state = ConnectionState::Disconnected;
-    app_state.connection_start_time = None;
-    app.emit_disconnected(None);
-
-    Ok(app_state.state.clone())
+    Ok(ConnectionState::Disconnecting)
 }
 
 #[instrument(skip_all)]
