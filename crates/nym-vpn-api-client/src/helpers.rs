@@ -18,6 +18,6 @@ mod tests {
     #[tokio::test]
     async fn test_get_gateways() {
         let gateways = get_gateways().await.unwrap();
-        dbg!(&gateways);
+        assert!(!gateways.is_empty());
     }
 }
