@@ -196,8 +196,8 @@ pub async fn disconnect(
     trace!("update connection state [Disconnecting]");
     let mut app_state = state.lock().await;
     app_state.state = ConnectionState::Disconnecting;
-    app.emit_disconnecting();
     drop(app_state);
+    app.emit_disconnecting();
 
     let request = Request::new(DisconnectRequest {});
     let response = vpnd.vpn_disconnect(request).await.map_err(|e| {

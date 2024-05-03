@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
 use clap::Parser;
 use serde::{Deserialize, Serialize};
@@ -26,9 +26,17 @@ pub struct Cli {
     #[arg(short, long)]
     pub sandbox: bool,
 
-    /// Address of NymVpn daemon to connect to (gRPC server endpoint)
+    /// Unix socket path of gRPC endpoint in IPC mode
     #[arg(short, long)]
-    pub daemon: Option<String>,
+    pub grpc_socket_endpoint: Option<PathBuf>,
+
+    /// Enable HTTP transport for gRPC connection
+    #[arg(short = 'H', long)]
+    pub grpc_http_mode: bool,
+
+    /// Address of gRPC endpoint in HTTP mode
+    #[arg(short = 'e', long)]
+    pub grpc_http_endpoint: Option<String>,
 
     /// IP address of the DNS server to use when connected to the VPN
     #[arg(short = 'D', long)]

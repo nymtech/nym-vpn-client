@@ -4726,6 +4726,7 @@ dependencies = [
  "nym-gateway-directory",
  "nym-vpn-proto",
  "once_cell",
+ "parity-tokio-ipc",
  "serde",
  "serde_json",
  "sled",
@@ -4737,6 +4738,7 @@ dependencies = [
  "tokio",
  "toml 0.8.12",
  "tonic",
+ "tower",
  "tracing",
  "tracing-subscriber",
  "ts-rs",
@@ -4882,6 +4884,20 @@ dependencies = [
  "gobject-sys",
  "libc",
  "system-deps 6.2.2",
+]
+
+[[package]]
+name = "parity-tokio-ipc"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9981e32fb75e004cc148f5fb70342f393830e0a4aa62e3cc93b50976218d42b6"
+dependencies = [
+ "futures",
+ "libc",
+ "log",
+ "rand 0.7.3",
+ "tokio",
+ "winapi",
 ]
 
 [[package]]
@@ -7436,6 +7452,7 @@ version = "0.1.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c3523ab5a71916ccf420eebdf5521fcef02141234bbc0b8a49f2fdc4544364ef"
 dependencies = [
+ "log",
  "pin-project-lite",
  "tracing-attributes",
  "tracing-core",
