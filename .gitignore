@@ -13,3 +13,4 @@ bin
 /.vscode/settings.json
 .vscode
 **/.DS_Store
+/.cargo
