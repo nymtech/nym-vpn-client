@@ -5,7 +5,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/ci-nymvpn-x-js.yml"
-      - "nymvpn-x/**"
+      - "nym-vpn-x/**"
 
 jobs:
   check:
@@ -20,35 +20,35 @@ jobs:
         uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            nymvpn-x
+            nym-vpn-x
 
       - name: Install Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: nymvpn-x/package-lock.json
+          cache-dependency-path: nym-vpn-x/package-lock.json
 
       - name: Install dependencies
-        working-directory: nymvpn-x
+        working-directory: nym-vpn-x
         run: npm ci
 
       - name: Typecheck
-        working-directory: nymvpn-x
+        working-directory: nym-vpn-x
         run: npm run tscheck
 
       - name: Check lint
-        working-directory: nymvpn-x
+        working-directory: nym-vpn-x
         run: npm run lint
 
       - name: Check formatting
-        working-directory: nymvpn-x
+        working-directory: nym-vpn-x
         run: npm run fmt:check
 
       #      - name: Run tests
-      #        working-directory: nymvpn-x
+      #        working-directory: nym-vpn-x
       #        run: npm run test
 
       - name: Check build
-        working-directory: nymvpn-x
+        working-directory: nym-vpn-x
         run: npm run build

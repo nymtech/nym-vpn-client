@@ -115,7 +115,7 @@ Generated TS types will be located in `src-tauri/bindings/`
 To build run the following commands
 
 ```
-cd nymvpn-x
+cd nym-vpn-x
 npm i
 mkdir dist
 

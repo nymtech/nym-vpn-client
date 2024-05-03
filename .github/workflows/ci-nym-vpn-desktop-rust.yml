@@ -5,7 +5,7 @@ on:
   pull_request:
     paths-ignore:
       - "nym-vpn-cli/**"
-      - "nymvpn-x/**"
+      - "nym-vpn-x/**"
 
 env:
   CARGO_TERM_COLOR: always

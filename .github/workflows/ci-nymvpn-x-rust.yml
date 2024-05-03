@@ -5,7 +5,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/ci-nymvpn-x-rust.yml"
-      - "nymvpn-x/src-tauri/**"
+      - "nym-vpn-x/src-tauri/**"
       - "crates/nym-vpn-proto/**"
       - "crates/nym-gateway-directory/**"
       - "nym-vpnd/**"
@@ -98,9 +98,9 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: fmt check
-        working-directory: nymvpn-x/src-tauri
+        working-directory: nym-vpn-x/src-tauri
         run: cargo fmt --check
 
       - name: clippy check
-        working-directory: nymvpn-x/src-tauri
+        working-directory: nym-vpn-x/src-tauri
         run: cargo clippy -- -Dwarnings
