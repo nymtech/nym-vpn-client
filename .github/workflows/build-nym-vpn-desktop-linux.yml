@@ -81,7 +81,8 @@ jobs:
           SRC_DEB: nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn*.deb
         run: |
           pwd
-          ls -lah nym-vpn-desktop/src-tauri/
+          ls -lah nym-vpn-desktop/src-tauri/target/release/bundle/appimage/
+          ls -lah nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_${{ steps.package-version.outputs.metadata }}_amd64.AppImage
           echo "Generate build info"
           ${{ env.SRC_APPIMAGE }} --build-info > build-info.txt
           mkdir ${{ env.UPLOAD_DIR }}
