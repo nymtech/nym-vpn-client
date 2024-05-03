@@ -78,7 +78,7 @@ jobs:
       - name: Move things around to prepare for upload
         env:
           SRC_APPIMAGE: nym-vpn-desktop/src-tauri/target/release/bundle/appimage/nym-vpn_${{ steps.package-version.outputs.metadata }}_amd64.AppImage
-          SRC_DEB: nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn_${{ steps.package-version.outputs.metadata }}.deb
+          SRC_DEB: nym-vpn-desktop/src-tauri/target/release/bundle/deb/nym-vpn_${{ steps.package-version.outputs.metadata }}_amd64.deb
         run: |
           mkdir ${{ env.UPLOAD_DIR }}
           echo "Move AppImage"
