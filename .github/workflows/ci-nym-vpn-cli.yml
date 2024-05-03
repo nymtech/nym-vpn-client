@@ -5,6 +5,7 @@ on:
   pull_request:
     paths-ignore:
       - "nym-vpn-desktop/**"
+      - "nym-vpn-x/**"
   workflow_dispatch:
 
 env:

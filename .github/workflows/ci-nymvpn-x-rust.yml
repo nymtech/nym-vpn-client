@@ -1,0 +1,106 @@
+name: ci-nymvpn-x-rust
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/ci-nymvpn-x-rust.yml"
+      - "nym-vpn-x/src-tauri/**"
+      - "crates/nym-vpn-proto/**"
+      - "crates/nym-gateway-directory/**"
+      - "nym-vpnd/**"
+
+env:
+  CARGO_TERM_COLOR: always
+  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04-arc, custom-runner-mac-m1, custom-windows-11]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: "Cleanup working directory"
+        if: contains(matrix.os, 'custom')
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Install system dependencies
+        if: contains(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
+            protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev git curl gcc g++ make unzip
+
+      - name: Support longpaths on windows
+        if: contains(matrix.os, 'windows')
+        run: git config --system core.longpaths true
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        if: "!contains(matrix.os, 'windows')"
+        id: rust-toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Install rust toolchain (Windows)
+        if: contains(matrix.os, 'windows')
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Set env
+        shell: bash
+        run: |
+          if ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
+            platform_arch=ubuntu-20.04_x86_64
+            triplet=x86_64-unknown-linux-gnu
+          elif ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
+            platform_arch=ubuntu-22.04_x86_64
+            triplet=x86_64-unknown-linux-gnu
+          elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
+            platform_arch=macos_x86_64
+            triplet=x86_64-apple-darwin
+          elif ${{ contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') }}; then
+            # platform_arch=macos_aarch64
+            platform_arch=macos_universal
+            triplet=universal-apple-darwin
+          elif ${{ contains(matrix.os, 'windows') }}; then
+            triplet=x86_64-pc-windows-msvc
+          else
+            echo " ✗ unknown platform/arch [${{ matrix.os }}]"
+            exit 1
+          fi
+          echo " ✓ PLATFORM_ARCH: $platform_arch"
+          echo " ✓ TRIPLET: $triplet"
+          echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
+          echo "TRIPLET=$triplet" >> $GITHUB_ENV
+          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
+
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup MSBuild.exe
+        if: contains(matrix.os, 'windows')
+        uses: microsoft/setup-msbuild@v2
+
+      - name: fmt check
+        working-directory: nym-vpn-x/src-tauri
+        run: cargo fmt --check
+
+      - name: clippy check
+        working-directory: nym-vpn-x/src-tauri
+        run: cargo clippy -- -Dwarnings
