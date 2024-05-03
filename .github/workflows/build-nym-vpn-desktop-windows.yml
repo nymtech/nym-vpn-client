@@ -28,11 +28,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            nym-vpn-desktop
-            nym-vpn-lib
-            crates
 
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
@@ -124,6 +119,7 @@ jobs:
           RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-Release"
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+          NO_STRIP: 'true'
         run: |
           sed -i 's/"bundle": {/"bundle": {"resources": ["wintun.dll", "vcruntime140.dll", "libwg.dll", "winfw.dll"],/g' '${{ env.TAURI_SRC }}/tauri.conf.json'
           npm run tauri build --${{ env.CARGO_TARGET }}

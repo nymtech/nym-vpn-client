@@ -12,10 +12,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          # fetch only the root files and wireguard dir
-          sparse-checkout: |
-            wireguard
 
       - name: Install Go
         uses: actions/setup-go@v5
