@@ -8,8 +8,6 @@ Release build.
 
 ### Linux
 
-The tar archive contains
-
 - `deb` package suitable for Debian and Ubuntu
 - AppImage bundle that should be compatible with most Linux distributions
 
@@ -19,7 +17,7 @@ The tar archive contains
 
 ### Windows
 
-- First release of desktop client for Windows
+- Desktop client for Windows
 - Run as administrator
 
 ## SHA256 Checksums
