@@ -12,13 +12,10 @@ use crate::{
 };
 use nym_vpn_proto::entry_node::EntryNodeEnum;
 use nym_vpn_proto::exit_node::ExitNodeEnum;
-use nym_vpn_proto::{
-    ConnectRequest, DisconnectRequest, EntryNode, ExitNode, Location, StatusRequest,
-};
+use nym_vpn_proto::{EntryNode, ExitNode, Location};
 use std::sync::Arc;
 use tauri::State;
-use tonic::Request;
-use tracing::{debug, error, info, instrument, trace, warn};
+use tracing::{debug, error, info, instrument, trace};
 
 #[instrument(skip_all)]
 #[tauri::command]
@@ -27,25 +24,10 @@ pub async fn get_connection_state(
     grpc: State<'_, Arc<GrpcClient>>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("get_connection_state");
-
-    let mut vpnd = grpc.vpnd().await.map_err(|_| {
-        warn!("not connected to the daemon");
-        CmdError::new(CmdErrorSource::DaemonError, "not connected to the daemon")
-    })?;
-
-    let request = Request::new(StatusRequest {});
-    let response = vpnd.vpn_status(request).await.map_err(|e| {
-        error!("grpc vpn_status: {}", e);
-        CmdError::new(
-            CmdErrorSource::DaemonError,
-            &format!("failed to get connection status: {e}"),
-        )
-    })?;
-    debug!("grpc response: {:?}", response);
-
-    let status = ConnectionState::from(response.into_inner().status());
+    let status = ConnectionState::from(grpc.vpn_status().await?);
     let mut app_state = state.lock().await;
     app_state.state = status.clone();
+
     Ok(status)
 }
 
@@ -57,12 +39,6 @@ pub async fn connect(
     grpc: State<'_, Arc<GrpcClient>>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("connect");
-
-    let mut vpnd = grpc.vpnd().await.map_err(|_| {
-        warn!("not connected to the daemon");
-        CmdError::new(CmdErrorSource::DaemonError, "not connected to the daemon")
-    })?;
-
     {
         let mut app_state = state.lock().await;
         if app_state.state != ConnectionState::Disconnected {
@@ -142,32 +118,23 @@ pub async fn connect(
         info!("5-hop mode enabled");
         false
     };
-    let request = Request::new(ConnectRequest {
-        entry: Some(entry_node),
-        exit: Some(exit_node),
-        disable_routing: false,
-        enable_two_hop: two_hop_mod,
-        enable_poisson_rate: false,
-        disable_background_cover_traffic: false,
-        enable_credentials_mode: false,
-        dns,
-    });
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
-    let response = vpnd.vpn_connect(request).await;
+    let response = grpc
+        .vpn_connect(entry_node, exit_node, two_hop_mod, dns)
+        .await;
 
     let mut app_state = state.lock().await;
-    let response = response.map_err(|e| {
+    response.inspect_err(|e| {
         let error_msg = format!("failed to connect: {e}");
         error!("grpc vpn_connect: {}", e);
         debug!("update connection state [Disconnected]");
         app_state.state = ConnectionState::Disconnected;
+        drop(app_state);
         app.emit_disconnected(Some(error_msg.clone()));
-        CmdError::new(CmdErrorSource::DaemonError, &error_msg)
     })?;
-    debug!("grpc response: {:?}", response);
 
-    Ok(app_state.state.clone())
+    Ok(ConnectionState::Connecting)
 }
 
 #[instrument(skip_all)]
@@ -178,35 +145,18 @@ pub async fn disconnect(
     grpc: State<'_, Arc<GrpcClient>>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("disconnect");
-    let app_state = state.lock().await;
+    let mut app_state = state.lock().await;
     if !matches!(app_state.state, ConnectionState::Connected) {
         return Err(CmdError::new(
             CmdErrorSource::CallerError,
             &format!("cannot disconnect from state {:?}", app_state.state),
         ));
     };
-    drop(app_state);
-
-    let mut vpnd = grpc.vpnd().await.map_err(|_| {
-        warn!("not connected to the daemon");
-        CmdError::new(CmdErrorSource::DaemonError, "not connected to the daemon")
-    })?;
-
-    // switch to "Disconnecting" state
-    trace!("update connection state [Disconnecting]");
-    let mut app_state = state.lock().await;
     app_state.state = ConnectionState::Disconnecting;
     drop(app_state);
     app.emit_disconnecting();
 
-    let request = Request::new(DisconnectRequest {});
-    let response = vpnd.vpn_disconnect(request).await.map_err(|e| {
-        let error_msg = format!("failed to disconnect: {e}");
-        error!("grpc vpn_disconnect: {}", e);
-        CmdError::new(CmdErrorSource::DaemonError, &error_msg)
-    })?;
-    debug!("grpc response: {:?}", response);
-
+    grpc.vpn_disconnect().await?;
     Ok(ConnectionState::Disconnecting)
 }
 

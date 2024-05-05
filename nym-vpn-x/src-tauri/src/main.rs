@@ -36,6 +36,7 @@ mod gateway;
 mod grpc;
 mod network;
 mod states;
+mod system_tray;
 mod vpn_status;
 mod window;
 
@@ -43,6 +44,7 @@ pub const APP_DIR: &str = "nym-vpn-x";
 const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
+const SYSTRAY_ID: &str = "main";
 
 pub fn setup_logging() {
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -141,6 +143,18 @@ async fn main() -> Result<()> {
                 main_win.show().expect("failed to show main window");
             }
 
+            debug!("building system tray");
+            let handle = app.handle();
+            system_tray::systray(SYSTRAY_ID)
+                .on_event(move |event| {
+                    let handle = handle.clone();
+                    tokio::spawn(async move {
+                        system_tray::on_tray_event(&handle, event).await;
+                    });
+                })
+                .build(app)
+                .inspect_err(|e| error!("error while building system stray: {e}"))?;
+
             let handle = app.handle();
             let c_grpc = grpc.clone();
             tokio::spawn(async move {
@@ -183,6 +197,18 @@ async fn main() -> Result<()> {
             credential::add_credential,
             cmd_daemon::daemon_status
         ])
+        // keep the app running in the background on window close request
+        .on_window_event(|event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event.event() {
+                let win = event.window();
+                if win.label() == "main" {
+                    win.hide()
+                        .inspect_err(|e| error!("failed to hide main window: {e}"))
+                        .ok();
+                    api.prevent_close();
+                }
+            }
+        })
         .run(context)
         .expect("error while running tauri application");
 

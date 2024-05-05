@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
 
+use crate::grpc::client::VpndError;
+
 #[derive(Error, Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub enum CmdErrorSource {
@@ -37,5 +39,19 @@ impl CmdError {
 impl Display for CmdError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}: {}", self.source, self.message)
+    }
+}
+
+impl From<VpndError> for CmdError {
+    fn from(error: VpndError) -> Self {
+        match error {
+            VpndError::RpcError(s) => CmdError::new(
+                CmdErrorSource::DaemonError,
+                &format!("failed to call the daemon: {}", s),
+            ),
+            VpndError::NotConnected => {
+                CmdError::new(CmdErrorSource::DaemonError, "not connected to the daemon")
+            }
+        }
     }
 }

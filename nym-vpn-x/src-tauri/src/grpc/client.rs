@@ -3,11 +3,15 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Result};
 use nym_vpn_proto::{
     health_check_response::ServingStatus, health_client::HealthClient,
-    nym_vpnd_client::NymVpndClient, HealthCheckRequest,
+    nym_vpnd_client::NymVpndClient, DisconnectRequest, HealthCheckRequest, StatusRequest,
+};
+use nym_vpn_proto::{
+    ConnectRequest, ConnectionStatus, Dns, EntryNode, ExitNode, ImportUserCredentialRequest,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
+use thiserror::Error;
 use tokio::sync::mpsc;
 use tonic::transport::Endpoint as TonicEndpoint;
 use tonic::{transport::Channel, Request};
@@ -33,6 +37,14 @@ pub enum VpndStatus {
     Ok,
     #[default]
     NotOk,
+}
+
+#[derive(Error, Debug)]
+pub enum VpndError {
+    #[error("rpc error")]
+    RpcError(#[from] tonic::Status),
+    #[error("not connected to daemon")]
+    NotConnected,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -113,6 +125,84 @@ impl GrpcClient {
         state.vpnd_status = status.into();
 
         Ok(status.into())
+    }
+
+    #[instrument(skip_all)]
+    pub async fn vpn_status(&self) -> Result<ConnectionStatus, VpndError> {
+        debug!("vpn_status");
+        let mut vpnd = self.vpnd().await.map_err(|_| VpndError::NotConnected)?;
+
+        let request = Request::new(StatusRequest {});
+        let response = vpnd.vpn_status(request).await.map_err(|e| {
+            error!("grpc vpn_status: {}", e);
+            VpndError::RpcError(e)
+        })?;
+        debug!("grpc response: {:?}", response);
+
+        Ok(response.into_inner().status())
+    }
+
+    /// Connect to the VPN
+    #[instrument(skip_all)]
+    pub async fn vpn_connect(
+        &self,
+        entry_node: EntryNode,
+        exit_node: ExitNode,
+        two_hop_mod: bool,
+        dns: Option<Dns>,
+    ) -> Result<bool, VpndError> {
+        debug!("vpn_connect");
+        let mut vpnd = self.vpnd().await.map_err(|_| VpndError::NotConnected)?;
+
+        let request = Request::new(ConnectRequest {
+            entry: Some(entry_node),
+            exit: Some(exit_node),
+            disable_routing: false,
+            enable_two_hop: two_hop_mod,
+            enable_poisson_rate: false,
+            disable_background_cover_traffic: false,
+            enable_credentials_mode: false,
+            dns,
+        });
+        let response = vpnd.vpn_connect(request).await.map_err(|e| {
+            error!("grpc vpn_connect: {}", e);
+            VpndError::RpcError(e)
+        })?;
+        debug!("grpc response: {:?}", response);
+
+        Ok(response.into_inner().success)
+    }
+
+    /// Disconnect from the VPN
+    #[instrument(skip_all)]
+    pub async fn vpn_disconnect(&self) -> Result<bool, VpndError> {
+        debug!("vpn_disconnect");
+        let mut vpnd = self.vpnd().await.map_err(|_| VpndError::NotConnected)?;
+
+        let request = Request::new(DisconnectRequest {});
+        let response = vpnd.vpn_disconnect(request).await.map_err(|e| {
+            error!("grpc vpn_disconnect: {}", e);
+            VpndError::RpcError(e)
+        })?;
+        debug!("grpc response: {:?}", response);
+
+        Ok(response.into_inner().success)
+    }
+
+    /// Import user credential from base58 encoded string
+    #[instrument(skip_all)]
+    pub async fn import_credential(&self, credential: Vec<u8>) -> Result<bool, VpndError> {
+        debug!("import_credential");
+        let mut vpnd = self.vpnd().await.map_err(|_| VpndError::NotConnected)?;
+
+        let request = Request::new(ImportUserCredentialRequest { credential });
+        let response = vpnd.import_user_credential(request).await.map_err(|e| {
+            error!("grpc import_user_credential: {}", e);
+            VpndError::RpcError(e)
+        })?;
+        debug!("grpc response: {:?}", response);
+
+        Ok(response.into_inner().success)
     }
 
     /// Watch the connection with the grpc server
