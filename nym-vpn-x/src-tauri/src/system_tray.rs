@@ -85,6 +85,7 @@ pub async fn on_tray_event(app: &AppHandle, event: SystemTrayEvent) {
                     .unwrap()
                 });
                 window.show().expect("failed to show main window");
+                window.set_focus().expect("failed to focus main window");
             }
             _ => {}
         },
