@@ -463,8 +463,10 @@ impl SpecificVpn {
                     .inspect_err(|err| {
                         error!("Failed to handle interrupt: {err}");
                     })?;
-                specific_setup.dns_monitor.reset().inspect_err(|err| {
-                    error!("Failed to reset dns monitor: {err}");
+                tokio::task::block_in_place(move || {
+                    specific_setup.dns_monitor.reset().inspect_err(|err| {
+                        error!("Failed to reset dns monitor: {err}");
+                    })
                 })?;
             }
             AllTunnelsSetup::Wg {
@@ -530,8 +532,10 @@ impl SpecificVpn {
                         error!("Failed to handle interrupt: {err}");
                         Box::new(NymVpnExitError::Generic { reason: err })
                     })?;
-                specific_setup.dns_monitor.reset().inspect_err(|err| {
-                    error!("Failed to reset dns monitor: {err}");
+                tokio::task::block_in_place(move || {
+                    specific_setup.dns_monitor.reset().inspect_err(|err| {
+                        error!("Failed to reset dns monitor: {err}");
+                    })
                 })?;
                 result
             }
