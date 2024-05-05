@@ -153,7 +153,7 @@ async fn main() -> Result<()> {
                     });
                 })
                 .build(app)
-                .inspect_err(|e| error!("error while building system stray: {e}"))?;
+                .inspect_err(|e| error!("error while building system tray: {e}"))?;
 
             let handle = app.handle();
             let c_grpc = grpc.clone();
