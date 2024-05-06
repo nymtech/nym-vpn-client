@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use nym_vpn_proto::{
     health_check_response::ServingStatus, health_client::HealthClient,
     nym_vpnd_client::NymVpndClient, DisconnectRequest, HealthCheckRequest, StatusRequest,
@@ -43,8 +43,10 @@ pub enum VpndStatus {
 pub enum VpndError {
     #[error("rpc error")]
     RpcError(#[from] tonic::Status),
-    #[error("not connected to daemon")]
-    NotConnected,
+    #[error("failed to connect to daemon using HTTP transport")]
+    FailedToConnectHttp(#[from] tonic::transport::Error),
+    #[error("failed to connect to daemon using IPC transport")]
+    FailedToConnectIpc(#[from] anyhow::Error),
 }
 
 #[derive(Debug, Default, Clone)]
@@ -67,18 +69,18 @@ impl GrpcClient {
 
     /// Get the Vpnd service client
     #[instrument(skip_all)]
-    pub async fn vpnd(&self) -> Result<NymVpndClient<Channel>> {
+    pub async fn vpnd(&self) -> Result<NymVpndClient<Channel>, VpndError> {
         match &self.0 {
             Transport::Http(endpoint) => {
                 NymVpndClient::connect(endpoint.clone()).await.map_err(|e| {
                     warn!("failed to connect to the daemon: {}", e);
-                    anyhow!("failed to connect to the daemon: {}", e)
+                    VpndError::FailedToConnectHttp(e)
                 })
             }
             Transport::Ipc(socket) => {
                 let channel = get_channel(socket.clone()).await.map_err(|e| {
                     warn!("failed to connect to the daemon: {}", e);
-                    anyhow!("failed to connect to the daemon: {}", e)
+                    VpndError::FailedToConnectIpc(e)
                 })?;
                 Ok(NymVpndClient::new(channel))
             }
@@ -87,18 +89,18 @@ impl GrpcClient {
 
     /// Get the Health service client
     #[instrument(skip_all)]
-    pub async fn health(&self) -> Result<HealthClient<Channel>> {
+    pub async fn health(&self) -> Result<HealthClient<Channel>, VpndError> {
         match &self.0 {
             Transport::Http(endpoint) => {
                 HealthClient::connect(endpoint.clone()).await.map_err(|e| {
                     warn!("failed to connect to the daemon: {}", e);
-                    anyhow!("failed to connect to the daemon: {}", e)
+                    VpndError::FailedToConnectHttp(e)
                 })
             }
             Transport::Ipc(socket) => {
                 let channel = get_channel(socket.clone()).await.map_err(|e| {
                     warn!("failed to connect to the daemon: {}", e);
-                    anyhow!("failed to connect to the daemon: {}", e)
+                    VpndError::FailedToConnectIpc(e)
                 })?;
                 Ok(HealthClient::new(channel))
             }
@@ -130,7 +132,7 @@ impl GrpcClient {
     #[instrument(skip_all)]
     pub async fn vpn_status(&self) -> Result<ConnectionStatus, VpndError> {
         debug!("vpn_status");
-        let mut vpnd = self.vpnd().await.map_err(|_| VpndError::NotConnected)?;
+        let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(StatusRequest {});
         let response = vpnd.vpn_status(request).await.map_err(|e| {
@@ -152,7 +154,7 @@ impl GrpcClient {
         dns: Option<Dns>,
     ) -> Result<bool, VpndError> {
         debug!("vpn_connect");
-        let mut vpnd = self.vpnd().await.map_err(|_| VpndError::NotConnected)?;
+        let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(ConnectRequest {
             entry: Some(entry_node),
@@ -177,7 +179,7 @@ impl GrpcClient {
     #[instrument(skip_all)]
     pub async fn vpn_disconnect(&self) -> Result<bool, VpndError> {
         debug!("vpn_disconnect");
-        let mut vpnd = self.vpnd().await.map_err(|_| VpndError::NotConnected)?;
+        let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(DisconnectRequest {});
         let response = vpnd.vpn_disconnect(request).await.map_err(|e| {
@@ -193,7 +195,7 @@ impl GrpcClient {
     #[instrument(skip_all)]
     pub async fn import_credential(&self, credential: Vec<u8>) -> Result<bool, VpndError> {
         debug!("import_credential");
-        let mut vpnd = self.vpnd().await.map_err(|_| VpndError::NotConnected)?;
+        let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(ImportUserCredentialRequest { credential });
         let response = vpnd.import_user_credential(request).await.map_err(|e| {

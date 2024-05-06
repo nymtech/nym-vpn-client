@@ -49,7 +49,7 @@ impl From<VpndError> for CmdError {
                 CmdErrorSource::DaemonError,
                 &format!("failed to call the daemon: {}", s),
             ),
-            VpndError::NotConnected => {
+            VpndError::FailedToConnectIpc(_) | VpndError::FailedToConnectHttp(_) => {
                 CmdError::new(CmdErrorSource::DaemonError, "not connected to the daemon")
             }
         }
