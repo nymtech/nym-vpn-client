@@ -42,7 +42,6 @@ mod window;
 pub const APP_DIR: &str = "nym-vpn-x";
 const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
-const VPND_DEFAULT_ENDPOINT: &str = "http://[::1]:53181";
 const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 
 pub fn setup_logging() {
@@ -105,15 +104,9 @@ async fn main() -> Result<()> {
         e
     })?;
 
-    let daemon_url = cli
-        .daemon
-        .clone()
-        .or(app_config.daemon_address.clone())
-        .unwrap_or(VPND_DEFAULT_ENDPOINT.into());
-    let grpc = GrpcClient::new(&daemon_url);
+    let grpc = GrpcClient::new(&app_config, &cli);
 
     info!("Starting tauri app");
-
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(app_state)))
         .manage(Arc::new(app_config))
