@@ -38,9 +38,10 @@ pub async fn spawn_exit_listener(
                     }
                 }
             }
-            Err(e) => {
-                error!("vpn_exit_rx failed to receive exit message: {}", e);
-                app.emit_disconnected(Some("failed to receive exit message".to_string()));
+            Err(_) => {
+                // This happens if there is a panic before the exit message is sent
+                error!("vpn stopped before sending exit message (likely panic)");
+                app.emit_disconnected(Some("vpn unexpected halt".to_string()));
             }
         }
         // update the connection state
