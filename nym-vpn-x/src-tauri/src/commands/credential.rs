@@ -21,17 +21,14 @@ pub async fn add_credential(
         CmdError::new(CmdErrorSource::CallerError, "bad credential format")
     })?;
 
-    match grpc.import_credential(bytes).await? {
-        true => {
-            info!("successfully imported credential");
-            Ok(())
-        }
-        false => {
-            error!("failed to import credential");
-            Err(CmdError::new(
-                CmdErrorSource::InternalError,
-                "failed to import credential",
-            ))
-        }
+    if grpc.import_credential(bytes).await? {
+        info!("successfully imported credential");
+        Ok(())
+    } else {
+        error!("failed to import credential");
+        Err(CmdError::new(
+            CmdErrorSource::InternalError,
+            "failed to import credential",
+        ))
     }
 }

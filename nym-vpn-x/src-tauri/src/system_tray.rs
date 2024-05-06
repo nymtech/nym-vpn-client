@@ -79,17 +79,17 @@ pub async fn on_tray_event(app: &AppHandle, event: SystemTrayEvent) {
                     trace!("hiding main window");
                     window
                         .hide()
-                        .inspect_err(|_| warn!("failed to hide main window"))
+                        .inspect_err(|e| warn!("failed to hide main window: {e}"))
                         .ok();
                 } else {
                     trace!("showing main window");
                     window
                         .show()
-                        .inspect_err(|_| warn!("failed to show main window"))
+                        .inspect_err(|e| warn!("failed to show main window: {e}"))
                         .ok();
                     window
                         .set_focus()
-                        .inspect_err(|_| warn!("failed to focus main window"))
+                        .inspect_err(|e| warn!("failed to focus main window: {e}"))
                         .ok();
                 }
             }
@@ -98,5 +98,3 @@ pub async fn on_tray_event(app: &AppHandle, event: SystemTrayEvent) {
         _ => {}
     };
 }
-
-// &AppHandle<R>, tray::SystemTrayEvent

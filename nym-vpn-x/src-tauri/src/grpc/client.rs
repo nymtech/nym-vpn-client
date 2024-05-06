@@ -280,24 +280,29 @@ impl Default for Transport {
 
 impl From<(&AppConfig, &Cli)> for Transport {
     fn from((config, cli): (&AppConfig, &Cli)) -> Self {
-        let http_mode = config.grpc_http_mode.unwrap_or(cli.grpc_http_mode);
-        match http_mode {
-            true => Transport::Http(
+        let http_mode = if cli.grpc_http_mode {
+            true
+        } else {
+            config.grpc_http_mode.unwrap_or(false)
+        };
+        if http_mode {
+            Transport::Http(
                 cli.grpc_http_endpoint.clone().unwrap_or(
                     config
                         .grpc_http_endpoint
                         .clone()
                         .unwrap_or(DEFAULT_HTTP_ENDPOINT.into()),
                 ),
-            ),
-            false => Transport::Ipc(
+            )
+        } else {
+            Transport::Ipc(
                 cli.grpc_socket_endpoint.clone().unwrap_or(
                     config
                         .grpc_socket_endpoint
                         .clone()
                         .unwrap_or(DEFAULT_SOCKET_PATH.into()),
                 ),
-            ),
+            )
         }
     }
 }
