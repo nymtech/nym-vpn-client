@@ -48,7 +48,7 @@ final class AddCredentialsViewModel: ObservableObject {
                 navigateHome()
             } catch let newError {
                 Task { @MainActor in
-                    error = newError
+                    error = CredentialsManagerError.generalError(String(describing: newError))
                 }
             }
         }
@@ -76,7 +76,7 @@ extension AddCredentialsViewModel {
             bottomPadding = error != .noError ? 4 : 12
 
             errorMessageTitle = (error == .noError ? "" : error?.localizedTitle)
-            ?? CredentialsManagerError.unknownError.localizedDescription
+            ?? (CredentialsManagerError.generalError("").localizedTitle ?? "Error".localizedString)
         }
     }
 }

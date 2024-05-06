@@ -34,7 +34,7 @@ public class HomeViewModel: HomeFlowState {
     @Published var statusButtonConfig = StatusButtonConfig.disconnected
     @Published var statusInfoState = StatusInfoState.initialising
     @Published var connectButtonState = ConnectButtonState.connect
-    public var screenSize: CGSize?
+    @Published var shouldShowHopSection = false
 
     public init(
         selectedNetwork: NetworkButtonViewModel.ButtonType,
@@ -140,7 +140,7 @@ public extension HomeViewModel {
                 config = MixnetConfig(
                     entryGateway: connectionManager.entryGateway,
                     exitRouter: exitRouter,
-                    isTwoHopEnabled: false, 
+                    isTwoHopEnabled: false,
                     credentialsDataPath: credentialURL.path()
                 )
             case .wireguard:
@@ -159,7 +159,8 @@ private extension HomeViewModel {
     func setup() {
         setupDateFormatter()
         setupTunnelManagerObservers()
-        setupAppSettingsObserver()
+        setupAppSettingsObservers()
+        setupCountriesManagerObservers()
         fetchCountries()
     }
 
@@ -187,9 +188,20 @@ private extension HomeViewModel {
         dateFormatter.zeroFormattingBehavior = .pad
     }
 
-    func setupAppSettingsObserver() {
+    func setupAppSettingsObservers() {
         appSettings.$isEntryLocationSelectionOnPublisher.sink { [weak self] _ in
             self?.fetchCountries()
+        }
+        .store(in: &cancellables)
+    }
+
+    func setupCountriesManagerObservers() {
+        countriesManager.$hasCountries.sink { [weak self] value in
+            guard let self else { return }
+
+            Task { @MainActor in
+                self.shouldShowHopSection = value
+            }
         }
         .store(in: &cancellables)
     }
@@ -205,7 +217,7 @@ private extension HomeViewModel {
 
     func fetchCountries() {
         do {
-            try countriesManager.fetchCountries(shouldFetchEntryCountries: shouldShowEntryHop())
+            try countriesManager.fetchCountries()
         } catch let error {
             statusInfoState = .error(message: error.localizedDescription)
         }

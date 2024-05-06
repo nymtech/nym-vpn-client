@@ -1,33 +1,40 @@
 import SwiftUI
+import AppSettings
 import Constants
 import MixnetLibrary
 
 public final class CountriesManager: ObservableObject {
+    private var appSettings: AppSettings
     private var isLoading = false
     private var lastHopStore = LastHopStore(lastFetchDate: Date())
     private var entryLastHopStore = EntryLastHopStore(lastFetchDate: Date())
 
-    public static let shared = CountriesManager()
+    public static let shared = CountriesManager(appSettings: AppSettings.shared)
 
     @Published public var entryCountries: [Country]?
     @Published public var exitCountries: [Country]?
     @Published public var lowLatencyCountry: Country?
+    @Published public var hasCountries = false
 
-    public func fetchCountries(shouldFetchEntryCountries: Bool) throws {
-        guard !isLoading, needReload(shouldFetchEntryCountries: shouldFetchEntryCountries)
+    public init(appSettings: AppSettings) {
+        self.appSettings = appSettings
+    }
+
+    public func fetchCountries() throws {
+        guard !isLoading, needReload(shouldFetchEntryCountries: appSettings.isEntryLocationSelectionOn)
         else {
-            loadTemporaryCountries(shouldFetchEntryCountries: shouldFetchEntryCountries)
+            loadTemporaryCountries(shouldFetchEntryCountries: appSettings.isEntryLocationSelectionOn)
             return
         }
         isLoading = true
 
         Task {
-            if shouldFetchEntryCountries {
+            if appSettings.isEntryLocationSelectionOn {
                 try fetchEntryExitCountries()
+                fetchLowLatencyEntryCountry()
             } else {
                 try fetchExitCountries()
             }
-            fetchLowLatencyEntryCountry()
         }
     }
 
@@ -46,7 +53,7 @@ private extension CountriesManager {
         guard
             let apiURL = URL(string: Constants.apiUrl.rawValue),
             let explorerURL = URL(string: Constants.explorerURL.rawValue),
-            let harbourMasterURL = URL(string: Constants.harbourURL.rawValue)
+            let harbourURL = URL(string: Constants.harbourURL.rawValue)
         else {
             throw GeneralNymError.invalidUrl
         }
@@ -54,7 +61,7 @@ private extension CountriesManager {
         let locations = try getGatewayCountries(
             apiUrl: apiURL,
             explorerUrl: explorerURL,
-            harbourMasterUrl: harbourMasterURL,
+            harbourMasterUrl: harbourURL,
             exitOnly: false
         )
         let newEntryCountries = convertToCountriesAndSort(from: locations)
@@ -73,7 +80,7 @@ private extension CountriesManager {
         guard
             let apiURL = URL(string: Constants.apiUrl.rawValue),
             let explorerURL = URL(string: Constants.explorerURL.rawValue),
-            let harbourMasterURL = URL(string: Constants.harbourURL.rawValue)
+            let harbourURL = URL(string: Constants.harbourURL.rawValue)
         else {
             throw GeneralNymError.invalidUrl
         }
@@ -81,7 +88,7 @@ private extension CountriesManager {
         let locations = try getGatewayCountries(
             apiUrl: apiURL,
             explorerUrl: explorerURL,
-            harbourMasterUrl: harbourMasterURL,
+            harbourMasterUrl: harbourURL,
             exitOnly: true
         )
         let newExitCountries = convertToCountriesAndSort(from: locations)
@@ -92,17 +99,18 @@ private extension CountriesManager {
         entryCountries = nil
         exitCountries = newExitCountries
         isLoading = false
+        updateHasCountries()
     }
 
     func fetchLowLatencyEntryCountry() {
         guard
             let apiURL = URL(string: Constants.apiUrl.rawValue),
             let explorerURL = URL(string: Constants.explorerURL.rawValue),
-            let harbourMasterURL = URL(string: Constants.harbourURL.rawValue),
+            let harbourURL = URL(string: Constants.harbourURL.rawValue),
             let location = try? getLowLatencyEntryCountry(
                 apiUrl: apiURL,
                 explorerUrl: explorerURL,
-                harbourMasterUrl: harbourMasterURL
+                harbourMasterUrl: harbourURL
             )
         else {
             return
@@ -110,6 +118,7 @@ private extension CountriesManager {
         entryLastHopStore.lowLatencyCountry = lowLatencyCountry
         lastHopStore.lowLatencyCountry = lowLatencyCountry
         lowLatencyCountry = Country(name: location.countryName, code: location.twoLetterIsoCountryCode)
+        updateHasCountries()
     }
 }
 
@@ -149,8 +158,9 @@ private extension CountriesManager {
             } else {
                 exitCountries = lastHopStore.countries
                 entryCountries = nil
-                lowLatencyCountry = lastHopStore.lowLatencyCountry
+                lowLatencyCountry = nil
             }
+            updateHasCountries()
         }
     }
 }
@@ -162,5 +172,16 @@ private extension CountriesManager {
             Country(name: $0.countryName, code: $0.twoLetterIsoCountryCode)
         }
         .sorted { $0.name < $1.name }
+    }
+}
+
+// MARK: - Helper -
+private extension CountriesManager {
+    func updateHasCountries() {
+        if appSettings.isEntryLocationSelectionOn {
+            hasCountries = ((entryCountries?.isEmpty) != nil)
+        } else {
+            hasCountries = ((exitCountries?.isEmpty) != nil)
+        }
     }
 }

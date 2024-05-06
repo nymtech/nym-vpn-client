@@ -111,28 +111,31 @@ private extension HomeView {
 
     @ViewBuilder
     func hopSection() -> some View {
-        HStack {
-            Text(viewModel.connectToLocalizedTitle)
-                .foregroundStyle(NymColor.sysOnSurfaceWhite)
-                .textStyle(.Title.Medium.primary)
+        if viewModel.shouldShowHopSection {
+            HStack {
+                Text(viewModel.connectToLocalizedTitle)
+                    .foregroundStyle(NymColor.sysOnSurfaceWhite)
+                    .textStyle(.Title.Medium.primary)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+
             Spacer()
+                .frame(height: 20)
+
+            VStack {
+                entryHop()
+                exitHop()
+            }
+            .padding(.horizontal, 16)
+
+            Spacer()
+                .frame(height: appSettings.isSmallScreen ? 20 : 32)
         }
-        .padding(.horizontal, 16)
-
-        Spacer()
-            .frame(height: 20)
-
-        VStack {
-            entryHop()
-            exitHop()
-        }
-        .padding(.horizontal, 16)
-
-        Spacer()
-            .frame(height: appSettings.isSmallScreen ? 20 : 32)
     }
 
-    @ViewBuilder func entryHop() -> some View {
+    @ViewBuilder
+    func entryHop() -> some View {
         if viewModel.shouldShowEntryHop() {
             HopButton(viewModel: viewModel.entryHopButtonViewModel)
                 .animation(.default, value: viewModel.connectionManager.entryGateway)
@@ -144,7 +147,8 @@ private extension HomeView {
         }
     }
 
-    @ViewBuilder func exitHop() -> some View {
+    @ViewBuilder
+    func exitHop() -> some View {
         HopButton(viewModel: viewModel.exitHopButtonViewModel)
             .animation(.default, value: viewModel.connectionManager.exitRouter)
             .onTapGesture {

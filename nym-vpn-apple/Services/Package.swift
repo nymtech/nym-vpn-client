@@ -63,6 +63,7 @@ let package = Package(
         .target(
             name: "CountriesManager",
             dependencies: [
+                "AppSettings",
                 "Constants",
                 "MixnetLibrary"
             ],
@@ -129,6 +130,7 @@ let package = Package(
             dependencies: [
                 "Constants",
                 "CountriesManager",
+                "CredentialsManager",
                 "MixnetLibrary",
                 "Tunnels",
                 .product(name: "Logging", package: "swift-log")

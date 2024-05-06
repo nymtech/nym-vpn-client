@@ -1,21 +1,18 @@
 import Theme
 
-public enum CredentialsManagerError: Error {
+public enum CredentialsManagerError: Error, Equatable {
     case noError
-    case invalidCredential
+    case generalError(String)
     case cannotCreateDB
-    case unknownError
 
     public var localizedTitle: String? {
         switch self {
-        case .invalidCredential:
-            return "addCredentials.error.invalidCredential".localizedString
         case .noError:
             return nil
+        case .generalError(let text):
+            return "\("error".localizedString) \(text)"
         case .cannotCreateDB:
             return "addCredentials.error.cannotCreateDB".localizedString
-        case .unknownError:
-            return "addCredentials.error.unknownError".localizedString
         }
     }
 }

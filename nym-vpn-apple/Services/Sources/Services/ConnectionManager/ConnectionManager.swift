@@ -156,14 +156,13 @@ private extension ConnectionManager {
     }
 
     func updateCountriesExitOnly() {
-        guard let lowLatencyCountry = countriesManager.lowLatencyCountry
+        guard let country = countriesManager.exitCountries?.first
         else {
-            exitRouter = .randomLowLatency
+            exitRouter = .random
             return
         }
 
-        guard let unwrappedExitRouter = exitRouter, unwrappedExitRouter.isQuickest else { return }
         entryGateway = .randomLowLatency
-        exitRouter = .lowLatencyCountry(code: lowLatencyCountry.code)
+        exitRouter = .country(code: country.code)
     }
 }

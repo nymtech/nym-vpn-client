@@ -78,28 +78,6 @@
         }
       }
     },
-    "addCredentials.error.invalidCredential" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Invalid credentials"
-          }
-        }
-      }
-    },
-    "addCredentials.error.unknownError" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unknown error"
-          }
-        }
-      }
-    },
     "addCredentials.getStarted.Title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -327,6 +305,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Entry location selector"
+          }
+        }
+      }
+    },
+    "error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error:"
           }
         }
       }
