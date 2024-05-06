@@ -305,7 +305,7 @@ jobs:
           else
             cp -v target/release/nym-vpn-cli ${{ env.ARTIFACT_DIR }}
           fi
-          if ${{ contains(matrix.target, 'ios') }}; then
+          if ${{ contains(matrix.target, 'ios') || (matrix.os == 'macos-14' && matrix.target == 'native') || contains(matrix.os, 'custom-runner-mac-m1' }}; then
             zip -r ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
           else
             tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
