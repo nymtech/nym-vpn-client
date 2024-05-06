@@ -5,7 +5,7 @@ use tauri::{
     AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
     SystemTrayMenuItem,
 };
-use tracing::{debug, instrument, trace};
+use tracing::{debug, instrument, trace, warn};
 
 use crate::{
     grpc::client::GrpcClient,
@@ -14,18 +14,15 @@ use crate::{
 
 #[derive(AsRefStr, Debug)]
 enum TrayItemId {
-    Show,
-    Hide,
+    ShowHide,
     Quit,
 }
 
 pub fn systray(id: &str) -> SystemTray {
-    let show = CustomMenuItem::new(TrayItemId::Show.as_ref(), "Show");
-    let hide = CustomMenuItem::new(TrayItemId::Hide.as_ref(), "Hide");
+    let show = CustomMenuItem::new(TrayItemId::ShowHide.as_ref(), "Show/Hide");
     let quit = CustomMenuItem::new(TrayItemId::Quit.as_ref(), "Quit (disconnect)");
     let tray_menu = SystemTrayMenu::new()
         .add_item(show)
-        .add_item(hide)
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(quit);
     SystemTray::new().with_id(id).with_menu(tray_menu)
@@ -67,14 +64,8 @@ pub async fn on_tray_event(app: &AppHandle, event: SystemTrayEvent) {
                 };
                 app.exit(0);
             }
-            "Hide" => {
-                trace!("event Hide");
-                if let Some(window) = app.get_window("main") {
-                    window.hide().expect("failed to hide main window");
-                }
-            }
-            "Show" => {
-                trace!("event Show");
+            "ShowHide" => {
+                trace!("event ShowHide");
                 let window = app.get_window("main").unwrap_or_else(|| {
                     debug!("main window not found, re-creating it");
                     tauri::WindowBuilder::from_config(
@@ -84,8 +75,23 @@ pub async fn on_tray_event(app: &AppHandle, event: SystemTrayEvent) {
                     .build()
                     .unwrap()
                 });
-                window.show().expect("failed to show main window");
-                window.set_focus().expect("failed to focus main window");
+                if window.is_visible().ok().unwrap_or(false) {
+                    trace!("hiding main window");
+                    window
+                        .hide()
+                        .inspect_err(|_| warn!("failed to hide main window"))
+                        .ok();
+                } else {
+                    trace!("showing main window");
+                    window
+                        .show()
+                        .inspect_err(|_| warn!("failed to show main window"))
+                        .ok();
+                    window
+                        .set_focus()
+                        .inspect_err(|_| warn!("failed to focus main window"))
+                        .ok();
+                }
             }
             _ => {}
         },
