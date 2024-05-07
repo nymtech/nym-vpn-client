@@ -1,8 +1,6 @@
 use std::sync::Arc;
 
-use nym_vpn_proto::ImportUserCredentialRequest;
 use tauri::State;
-use tonic::Request;
 use tracing::{debug, error, info, instrument};
 
 use crate::{
@@ -18,36 +16,19 @@ pub async fn add_credential(
 ) -> Result<(), CmdError> {
     debug!("add_credential");
 
-    let mut vpnd = grpc.vpnd().await.map_err(|_| {
-        error!("not connected to nym daemon");
-        CmdError::new(CmdErrorSource::DaemonError, "not connected to nym daemon")
+    let bytes = bs58::decode(credential).into_vec().map_err(|e| {
+        info!("failed to decode base58 credential: {:?}", e);
+        CmdError::new(CmdErrorSource::CallerError, "bad credential format")
     })?;
 
-    let request = Request::new(ImportUserCredentialRequest {
-        credential: bs58::decode(credential).into_vec().map_err(|e| {
-            info!("failed to decode base58 credential: {:?}", e);
-            CmdError::new(CmdErrorSource::CallerError, "bad credential format")
-        })?,
-    });
-    let response = vpnd.import_user_credential(request).await.map_err(|e| {
-        error!("grpc error: {}", e);
-        CmdError::new(
-            CmdErrorSource::DaemonError,
-            &format!("failed to import user credential: {e}"),
-        )
-    })?;
-
-    match response.get_ref().success {
-        true => {
-            info!("successfully imported credential");
-            Ok(())
-        }
-        false => {
-            error!("failed to import credential");
-            Err(CmdError::new(
-                CmdErrorSource::InternalError,
-                "failed to import credential",
-            ))
-        }
+    if grpc.import_credential(bytes).await? {
+        info!("successfully imported credential");
+        Ok(())
+    } else {
+        error!("failed to import credential");
+        Err(CmdError::new(
+            CmdErrorSource::InternalError,
+            "failed to import credential",
+        ))
     }
 }
