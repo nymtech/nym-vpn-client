@@ -14,9 +14,7 @@ use nym_sdk::mixnet::{
     MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, ReconstructedMessage,
     TransmissionLane,
 };
-use tokio::sync::mpsc::{Receiver, Sender};
-use tokio::sync::oneshot;
-use tracing::{debug, error, info};
+use tracing::{debug, error};
 
 use nym_gateway_directory::IpPacketRouterAddress;
 
@@ -42,15 +40,6 @@ impl SharedMixnetClient {
 
     // pub async fn split_sender(&self) -> MixnetClientSender {
     //     self.lock().await.as_ref().unwrap().split_sender()
-    // }
-
-    // pub async fn gateway_ws_fd(&self) -> Option<RawFd> {
-    //     self.lock()
-    //         .await
-    //         .as_ref()
-    //         .unwrap()
-    //         .gateway_connection()
-    //         .gateway_ws_fd
     // }
 
     pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
@@ -79,7 +68,9 @@ enum ConnectionState {
 }
 
 pub struct IprClient {
-    // TODO: remove once we can use the mixnet listener from the top-level application
+    // During connection we need the mixnet client, but once connected we expect to setup a channel
+    // from the main mixnet listener at the top-level.
+    // As such, we drop the shared mixnet client once we're connected.
     mixnet_client: SharedMixnetClient,
     mixnet_sender: MixnetClientSender,
     nym_address: Recipient,
@@ -143,27 +134,8 @@ impl IprClient {
             .send_connect_request(ip_packet_router_address, ips, enable_two_hop)
             .await?;
 
-        // WIP(JON): we spawn a short lived mixnet listener task here while we gradually implement
-        // all aspects of the IPR client. The correct thing is for the top-level application to start
-        // the listener and use the same one for the duration of the application.
-        //
-        // At that point we can also remove the shared mixnet client from the IPR client and
-        // receive messages through a channel from the top-level application.
         debug!("Waiting for reply...");
-        let mixnet_client = self.mixnet_client.clone();
-        let (outbound_mix_message_tx, outbound_mix_message_rx) = tokio::sync::mpsc::channel(16);
-        let (should_stop_tx, should_stop_rx) = tokio::sync::oneshot::channel();
-        tokio::task::spawn(async move {
-            start_mixnet_listener(mixnet_client, outbound_mix_message_tx, should_stop_rx)
-                .await
-                .unwrap();
-        });
-
-        let response = self
-            .listen_for_connect_response(outbound_mix_message_rx, request_id, ips)
-            .await;
-        should_stop_tx.send(()).unwrap();
-        response
+        self.listen_for_connect_response(request_id, ips).await
     }
 
     async fn send_connect_request(
@@ -246,12 +218,18 @@ impl IprClient {
         }
     }
 
-    pub async fn listen_for_connect_response(
+    async fn listen_for_connect_response(
         &self,
-        mut outbound_mix_message_rx: Receiver<IpPacketResponse>,
+        // mut outbound_mix_message_rx: Receiver<IpPacketResponse>,
+        // shared_mixnet_client: SharedMixnetClient,
         request_id: u64,
         ips: Option<IpPair>,
     ) -> Result<IpPair> {
+        // Connecting is basically synchronous from the perspective of the mixnet client, so it's safe
+        // to just grab ahold of the mutex and keep it until we get the response.
+        let mut mixnet_client_handle = self.mixnet_client.lock().await;
+        let mixnet_client = mixnet_client_handle.as_mut().unwrap();
+
         let timeout = tokio::time::sleep(Duration::from_secs(5));
         tokio::pin!(timeout);
 
@@ -261,60 +239,29 @@ impl IprClient {
                     error!("Timed out waiting for reply to connect request");
                     return Err(Error::TimeoutWaitingForConnectResponse);
                 }
-                response = outbound_mix_message_rx.recv() => {
-                    match response {
-                        None => {
-                            error!("Channel closed while waiting for response");
-                            panic!();
-                        }
-                        Some(response) => {
+                msgs = mixnet_client.wait_for_messages() => match msgs {
+                    None => {
+                        return Err(Error::NoMixnetMessagesReceived);
+                    }
+                    Some(msgs) => {
+                        for msg in msgs {
+                            // Confirm that the version is correct
+                            check_ipr_message_version(&msg)?;
+
+                            // Then we deserialize the message
+                            debug!("IprClient: got message while waiting for connect response");
+                            let Ok(response) = IpPacketResponse::from_reconstructed_message(&msg) else {
+                                // This is ok, it's likely just one of our self-pings
+                                debug!("Failed to deserialize reconstructed message");
+                                continue;
+                            };
+
                             if response.id() == Some(request_id) {
                                 debug!("Got response with matching id");
                                 return self.handle_ip_packet_router_response(response, ips).await;
                             }
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-async fn start_mixnet_listener(
-    mixnet_client: SharedMixnetClient,
-    outbound_mix_message_tx: Sender<IpPacketResponse>,
-    mut should_stop: oneshot::Receiver<()>,
-) -> Result<()> {
-    // Connecting is basically synchronous from the perspective of the mixnet client, so it's safe
-    // to just grab ahold of the mutex and keep it until we get the response.
-    let mut mixnet_client_handle = mixnet_client.lock().await;
-    let mixnet_client = mixnet_client_handle.as_mut().unwrap();
-
-    loop {
-        tokio::select! {
-            _ = &mut should_stop => {
-                info!("Instructed to stop the mixnet listener");
-                return Ok(());
-            }
-            msgs = mixnet_client.wait_for_messages() => {
-                if let Some(msgs) = msgs {
-                    for msg in msgs {
-                        // Confirm that the version is correct
-                        check_ipr_message_version(&msg)?;
-
-                        // Then we deserialize the message
-                        debug!("MixnetProcessor: Got message while waiting for connect response");
-                        let Ok(response) = IpPacketResponse::from_reconstructed_message(&msg) else {
-                            // This is ok, it's likely just one of our self-pings
-                            debug!("Failed to deserialize reconstructed message");
-                            continue;
-                        };
-
-                        // The we forward it to the IPR client
-                        outbound_mix_message_tx.send(response).await.unwrap();
-                    }
-                } else {
-                    return Err(Error::NoMixnetMessagesReceived);
                 }
             }
         }
