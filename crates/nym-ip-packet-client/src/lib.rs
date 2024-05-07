@@ -79,7 +79,7 @@ enum ConnectionState {
 }
 
 pub struct IprClient {
-    // TODO: remove
+    // TODO: remove once we can use the mixnet listener from the top-level application
     mixnet_client: SharedMixnetClient,
     mixnet_sender: MixnetClientSender,
     nym_address: Recipient,
@@ -146,6 +146,9 @@ impl IprClient {
         // WIP(JON): we spawn a short lived mixnet listener task here while we gradually implement
         // all aspects of the IPR client. The correct thing is for the top-level application to start
         // the listener and use the same one for the duration of the application.
+        //
+        // At that point we can also remove the shared mixnet client from the IPR client and
+        // receive messages through a channel from the top-level application.
         debug!("Waiting for reply...");
         let mixnet_client = self.mixnet_client.clone();
         let (outbound_mix_message_tx, outbound_mix_message_rx) = tokio::sync::mpsc::channel(16);
