@@ -55,6 +55,7 @@ function TextArea({
           'w-full flex flex-row justify-between items-center py-4 px-4',
           'text-baltic-sea dark:text-mercury-pinkish',
           'placeholder:text-cement-feet placeholder:dark:text-mercury-mist',
+          'break-all',
           ...inputStates,
           resize && getResizeClass(resize),
           label && 'relative',
