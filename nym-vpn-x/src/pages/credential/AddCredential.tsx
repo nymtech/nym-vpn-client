@@ -26,7 +26,7 @@ function AddCredential() {
   };
 
   const handleClick = async () => {
-    await invoke('add_credential', { credential: credential })
+    await invoke('add_credential', { credential: credential.trim() })
       .then(() => {
         navigate(routes.root);
         push({
