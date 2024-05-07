@@ -4669,6 +4669,7 @@ dependencies = [
  "nym-explorer-client",
  "nym-gateway-directory",
  "nym-id",
+ "nym-ip-packet-client",
  "nym-ip-packet-requests",
  "nym-node-requests",
  "nym-sdk",

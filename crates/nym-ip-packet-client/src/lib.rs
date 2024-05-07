@@ -95,6 +95,14 @@ impl IprClient {
         }
     }
 
+    // A workaround until we can extract SharedMixnetClient to a common crate
+    pub async fn new_from_inner(
+        mixnet_client: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
+    ) -> Self {
+        let mixnet_client = SharedMixnetClient(mixnet_client);
+        Self::new(mixnet_client).await
+    }
+
     pub async fn connect(
         &mut self,
         ip_packet_router_address: &IpPacketRouterAddress,
@@ -220,8 +228,6 @@ impl IprClient {
 
     async fn listen_for_connect_response(
         &self,
-        // mut outbound_mix_message_rx: Receiver<IpPacketResponse>,
-        // shared_mixnet_client: SharedMixnetClient,
         request_id: u64,
         ips: Option<IpPair>,
     ) -> Result<IpPair> {
