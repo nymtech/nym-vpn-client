@@ -120,21 +120,22 @@ pub async fn connect(
     };
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
-    let response = grpc
+    match grpc
         .vpn_connect(entry_node, exit_node, two_hop_mod, dns)
-        .await;
-
-    let mut app_state = state.lock().await;
-    response.inspect_err(|e| {
-        let error_msg = format!("failed to connect: {e}");
-        error!("grpc vpn_connect: {}", e);
-        debug!("update connection state [Disconnected]");
-        app_state.state = ConnectionState::Disconnected;
-        drop(app_state);
-        app.emit_disconnected(Some(error_msg.clone()));
-    })?;
-
-    Ok(ConnectionState::Connecting)
+        .await
+    {
+        Ok(_) => Ok(ConnectionState::Connecting),
+        Err(e) => {
+            let error_msg = format!("failed to connect: {e}");
+            error!("grpc vpn_connect: {}", e);
+            debug!("update connection state [Disconnected]");
+            let mut app_state = state.lock().await;
+            app_state.state = ConnectionState::Disconnected;
+            drop(app_state);
+            app.emit_disconnected(Some(error_msg.clone()));
+            Err(e.into())
+        }
+    }
 }
 
 #[instrument(skip_all)]
