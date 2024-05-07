@@ -38,20 +38,10 @@ impl SharedMixnetClient {
         *self.lock().await.as_ref().unwrap().nym_address()
     }
 
-    // pub async fn split_sender(&self) -> MixnetClientSender {
-    //     self.lock().await.as_ref().unwrap().split_sender()
-    // }
-
     pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
         self.lock().await.as_mut().unwrap().send(msg).await?;
         Ok(())
     }
-
-    // pub async fn disconnect(self) -> Self {
-    //     let handle = self.lock().await.take().unwrap();
-    //     handle.disconnect().await;
-    //     self
-    // }
 
     pub fn inner(&self) -> Arc<tokio::sync::Mutex<Option<MixnetClient>>> {
         self.0.clone()
