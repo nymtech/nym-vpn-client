@@ -30,6 +30,7 @@ enum ListenerType {
 
 pub(super) struct CommandInterface {
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
+    // vpn_status_rx: tokio::sync::mpsc::Receiver<VpnServiceStatusResult>,
     listener: ListenerType,
 }
 

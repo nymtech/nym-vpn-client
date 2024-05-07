@@ -3,6 +3,7 @@
 
 use std::sync::Arc;
 
+use futures::channel::oneshot;
 use tracing::{error, info};
 
 use super::vpn_service::VpnState;
@@ -18,7 +19,8 @@ impl VpnServiceExitListener {
 
     pub(super) async fn start(
         self,
-        vpn_exit_rx: futures::channel::oneshot::Receiver<nym_vpn_lib::NymVpnExitStatusMessage>,
+        vpn_exit_rx: oneshot::Receiver<nym_vpn_lib::NymVpnExitStatusMessage>,
+        listener_vpn_exit_tx: oneshot::Sender<nym_vpn_lib::NymVpnExitStatusMessage>,
     ) {
         tokio::spawn(async move {
             match vpn_exit_rx.await {
@@ -26,10 +28,12 @@ impl VpnServiceExitListener {
                     nym_vpn_lib::NymVpnExitStatusMessage::Stopped => {
                         info!("VPN exit: stopped");
                         self.set_shared_state(VpnState::NotConnected);
+                        listener_vpn_exit_tx.send(exit_res).unwrap();
                     }
-                    nym_vpn_lib::NymVpnExitStatusMessage::Failed(err) => {
+                    nym_vpn_lib::NymVpnExitStatusMessage::Failed(ref err) => {
                         error!("VPN exit: fail: {err}");
                         self.set_shared_state(VpnState::ConnectionFailed(err.to_string()));
+                        listener_vpn_exit_tx.send(exit_res).unwrap();
                     }
                 },
                 Err(err) => {
