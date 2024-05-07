@@ -102,3 +102,18 @@ fn is_recently_updated(last_updated_utc: &str) -> bool {
         false
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Country(String);
+
+impl Country {
+    pub fn iso_code(&self) -> &str {
+        &self.0
+    }
+}
+
+impl From<String> for Country {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
