@@ -100,12 +100,13 @@ message StatusResponse {
   Error error = 2;
 }
 
-// message ConnectionStatusUpdate {
-//   ConnectionStatus status = 1;
+message ConnectionStatusUpdate {
+  ConnectionStatus status = 1;
+  // string message = 2;
 //   repeated ConnectionProgress connection_progress = 2;
 //   // optional Error error = 3;
-// }
-//
+}
+
 // message ConnectionProgress {
 //   string message = 1;
 // }
@@ -129,7 +130,7 @@ service NymVpnd {
   rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
   rpc VpnStatus (StatusRequest) returns (StatusResponse) {}
   rpc ImportUserCredential (ImportUserCredentialRequest) returns (ImportUserCredentialResponse) {}
-  // rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
+  rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
   // // Cancel any connection pending state (connecting, disconnecting etc)
   // // and return to disconnected state
   // rpc Cancel (Empty) returns (Empty) {}

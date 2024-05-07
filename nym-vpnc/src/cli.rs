@@ -23,6 +23,7 @@ pub(crate) enum Command {
     Disconnect,
     Status,
     ImportCredential(ImportCredentialArgs),
+    ListenToStatus,
 }
 
 #[derive(Args)]

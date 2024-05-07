@@ -12,11 +12,12 @@ use nym_vpn_lib::{
     NodeIdentity, Recipient,
 };
 use nym_vpn_proto::{
-    nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, ConnectionStatus, DisconnectRequest,
-    DisconnectResponse, Error as ProtoError, ImportUserCredentialRequest,
-    ImportUserCredentialResponse, StatusRequest, StatusResponse,
+    nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, ConnectionStatus,
+    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty, Error as ProtoError,
+    ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
 };
 use tokio::sync::mpsc::UnboundedSender;
+use tokio_stream::wrappers::ReceiverStream;
 use tracing::{error, info};
 
 use super::{connection_handler::CommandInterfaceConnectionHandler, error::CommandInterfaceError};
@@ -175,6 +176,31 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(ImportUserCredentialResponse {
             success: status.is_success(),
         }))
+    }
+
+    type ListenToConnectionStatusStream =
+        ReceiverStream<Result<ConnectionStatusUpdate, tonic::Status>>;
+
+    async fn listen_to_connection_status(
+        &self,
+        request: tonic::Request<Empty>,
+    ) -> Result<tonic::Response<Self::ListenToConnectionStatusStream>, tonic::Status> {
+        info!("Got connection status stream request");
+        // Create a dummy stream that sends a status update every second
+        let (tx, rx) = tokio::sync::mpsc::channel(10);
+        let _ = tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+                info!("Sending connection status update");
+                let _ = tx
+                    .send(Ok(ConnectionStatusUpdate {
+                        status: ConnectionStatus::Connected as i32,
+                    }))
+                    .await;
+            }
+        });
+
+        Ok(tonic::Response::new(ReceiverStream::new(rx)))
     }
 }
 
