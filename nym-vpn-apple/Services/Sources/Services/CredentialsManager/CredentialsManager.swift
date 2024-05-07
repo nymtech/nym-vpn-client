@@ -9,8 +9,9 @@ public final class CredentialsManager {
         do {
             let dataFolderURL = try dataFolderURL()
 
-            FileManager.default.createFile(atPath: dataFolderURL.path(), contents: nil)
-
+            if !FileManager.default.fileExists(atPath: dataFolderURL.path()) {
+                try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
+            }
             try importCredential(credential: credential, path: dataFolderURL.path())
         } catch let error {
             throw error

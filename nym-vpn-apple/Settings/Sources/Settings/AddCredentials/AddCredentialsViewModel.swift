@@ -44,8 +44,7 @@ final class AddCredentialsViewModel: ObservableObject {
         Task {
             do {
                 try credentialsManager.add(credential: credentialText)
-                appSettings.isCredentialImported = true
-                navigateHome()
+                credentialsDidAdd()
             } catch let newError {
                 Task { @MainActor in
                     error = CredentialsManagerError.generalError(String(describing: newError))
@@ -77,6 +76,13 @@ extension AddCredentialsViewModel {
 
             errorMessageTitle = (error == .noError ? "" : error?.localizedTitle)
             ?? (CredentialsManagerError.generalError("").localizedTitle ?? "Error".localizedString)
+        }
+    }
+
+    func credentialsDidAdd() {
+        Task { @MainActor in
+            appSettings.isCredentialImported = true
+            navigateHome()
         }
     }
 }
