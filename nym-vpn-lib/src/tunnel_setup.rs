@@ -55,7 +55,7 @@ pub enum AllTunnelsSetup {
     },
 }
 
-fn init_firewall_dns(
+async fn init_firewall_dns(
     #[cfg(target_os = "linux")] route_manager_handle: talpid_routing::RouteManagerHandle,
 ) -> Result<(Firewall, DnsMonitor)> {
     #[cfg(target_os = "macos")]
@@ -64,8 +64,10 @@ fn init_firewall_dns(
         let command_tx = std::sync::Arc::new(command_tx);
         let weak_command_tx = std::sync::Arc::downgrade(&command_tx);
         debug!("Starting firewall");
-        let firewall =
-            Firewall::new().map_err(|err| crate::error::Error::FirewallError(err.to_string()))?;
+        let firewall = tokio::task::spawn_blocking(move || {
+            Firewall::new().map_err(|err| crate::error::Error::FirewallError(err.to_string()))
+        })
+        .await??;
         debug!("Starting dns monitor");
         let dns_monitor = DnsMonitor::new(weak_command_tx)?;
         Ok((firewall, dns_monitor))
@@ -75,8 +77,10 @@ fn init_firewall_dns(
     {
         let fwmark = 0; // ?
         debug!("Starting firewall");
-        let firewall = Firewall::new(fwmark)
-            .map_err(|err| crate::error::Error::FirewallError(err.to_string()))?;
+        let firewall = tokio::task::spawn_blocking(move || {
+            Firewall::new(fwmark).map_err(|err| crate::error::Error::FirewallError(err.to_string()))
+        })
+        .await??;
         debug!("Starting dns monitor");
         let dns_monitor = DnsMonitor::new(
             tokio::runtime::Handle::current(),
@@ -88,8 +92,10 @@ fn init_firewall_dns(
     #[cfg(all(not(target_os = "macos"), not(target_os = "linux")))]
     {
         debug!("Starting firewall");
-        let firewall =
-            Firewall::new().map_err(|err| crate::error::Error::FirewallError(err.to_string()))?;
+        let firewall = tokio::task::spawn_blocking(move || {
+            Firewall::new().map_err(|err| crate::error::Error::FirewallError(err.to_string()))
+        })
+        .await??;
         debug!("Starting dns monitor");
         let dns_monitor = DnsMonitor::new()?;
         Ok((firewall, dns_monitor))
@@ -170,7 +176,8 @@ async fn setup_wg_tunnel(
     let (firewall, dns_monitor) = init_firewall_dns(
         #[cfg(target_os = "linux")]
         route_manager.handle()?,
-    )?;
+    )
+    .await?;
     std::env::set_var("TALPID_FORCE_USERSPACE_WIREGUARD", "1");
     let wireguard_waiting_entry = create_wireguard_tunnel(
         &route_manager,
@@ -213,7 +220,8 @@ async fn setup_mix_tunnel(
     let (mut firewall, mut dns_monitor) = init_firewall_dns(
         #[cfg(target_os = "linux")]
         route_manager.handle()?,
-    )?;
+    )
+    .await?;
 
     // Now it's time start all the stuff that needs running inside the tunnel, and that we need
     // correctly unwind if it fails
