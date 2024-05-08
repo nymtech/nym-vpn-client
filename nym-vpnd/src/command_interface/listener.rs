@@ -20,9 +20,12 @@ use nym_vpn_proto::{
     StatusResponse,
 };
 use tokio::sync::mpsc::UnboundedSender;
-use tracing::{debug, error, info};
+use tracing::{error, info};
 
-use super::{connection_handler::CommandInterfaceConnectionHandler, error::CommandInterfaceError};
+use super::{
+    connection_handler::CommandInterfaceConnectionHandler, error::CommandInterfaceError,
+    status_broadcaster::ConnectionStatusBroadcaster,
+};
 use crate::service::{
     ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStatusResult,
 };
@@ -81,59 +84,6 @@ impl CommandInterface {
             }
         }
     }
-
-    fn start_status_broadcaster(&self, mut listener_vpn_status_rx: nym_task::StatusReceiver) {
-        let status_tx = self.status_tx.clone();
-        tokio::spawn(async move {
-            while let Some(status_update) = listener_vpn_status_rx.next().await {
-                debug!(
-                    "Received status update that we should broadcast: {:?}",
-                    status_update
-                );
-                if let Some(message) = status_update.downcast_ref::<nym_vpn_lib::TaskStatus>() {
-                    match message {
-                        nym_vpn_lib::TaskStatus::Ready => {
-                            info!(
-                                "Broadcasting connection status update: {:?}",
-                                ConnectionStatus::Connected as i32
-                            );
-                            if let Err(err) = status_tx.send(ConnectionStatusUpdate {
-                                message: message.to_string(),
-                            }) {
-                                error!("Failed to broadcast connection status update: {:?}", err);
-                            }
-                        }
-                        nym_vpn_lib::TaskStatus::ReadyWithGateway(ref gateway) => {
-                            info!(
-                                "Broadcasting connection status update ({gateway}): {:?}",
-                                ConnectionStatus::Connected as i32
-                            );
-                            if let Err(err) = status_tx.send(ConnectionStatusUpdate {
-                                message: message.to_string(),
-                            }) {
-                                error!("Failed to broadcast connection status update: {:?}", err);
-                            }
-                        }
-                    }
-                } else if let Some(message) =
-                    status_update
-                        .downcast_ref::<nym_vpn_lib::connection_monitor::ConnectionMonitorStatus>()
-                {
-                    // TODO: match on the message and send appropriate status
-                    if let Err(err) = status_tx.send(ConnectionStatusUpdate {
-                        message: message.to_string(),
-                    }) {
-                        error!("Failed to broadcast connection status update: {:?}", err);
-                    }
-                } else if let Err(err) = status_tx.send(ConnectionStatusUpdate {
-                    message: status_update.to_string(),
-                }) {
-                    error!("Failed to broadcast connection status update: {:?}", err);
-                }
-            }
-            debug!("Status listener: exiting");
-        });
-    }
 }
 
 impl Drop for CommandInterface {
@@ -180,7 +130,11 @@ impl NymVpnd for CommandInterface {
         // After connecting we start a task that listens for status updates and broadcasts them for
         // listeners to the connection status stream.
         if let VpnServiceConnectResult::Success(connect_handle) = status {
-            self.start_status_broadcaster(connect_handle.listener_vpn_status_rx);
+            ConnectionStatusBroadcaster::new(
+                self.status_tx.clone(),
+                connect_handle.listener_vpn_status_rx,
+            )
+            .start();
         }
 
         info!("Returning connect response");
