@@ -52,10 +52,10 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
         sh.notify_waiters();
         sh.notified().await;
     } else {
+        *guard = None;
         return Err(FFIError::VpnNotStarted);
     }
     *guard = None;
-
     Ok(())
 }
 
@@ -201,7 +201,6 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
                         warn!("error during vpn run: {}", err);
                     })
                     .ok();
-                RUNNING.store(false, Ordering::Relaxed);
                 stop_handle.notify_one();
             });
             Ok(())
