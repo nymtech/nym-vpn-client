@@ -211,9 +211,9 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn stopVPN() -> Result<(), FFIError> {
-    if !RUNNING.fetch_and(false, Ordering::Relaxed) {
-        return Err(FFIError::VpnNotRunning);
-    }
+    // if !RUNNING.fetch_and(false, Ordering::Relaxed) {
+    //     return Err(FFIError::VpnNotRunning);
+    // }
     RUNTIME.block_on(stop_vpn())
 }
 
