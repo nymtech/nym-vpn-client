@@ -197,6 +197,9 @@ pub enum Error {
 
     #[error(transparent)]
     CredentialError(#[from] crate::credentials::CredentialError),
+
+    #[error(transparent)]
+    IpPacketRouterClientError(#[from] nym_ip_packet_client::Error),
 }
 
 // Result type based on our error type

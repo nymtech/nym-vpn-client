@@ -5,6 +5,7 @@ members = [
     "crates/nym-gateway-directory",
     "crates/nym-gateway-probe",
     "crates/nym-harbour-master-client",
+    "crates/nym-ip-packet-client",
     "crates/nym-vpn-api-client",
     "crates/nym-vpn-proto",
     "nym-vpn-cli",

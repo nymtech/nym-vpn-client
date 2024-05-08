@@ -13,6 +13,7 @@ use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_connection_monitor::ConnectionMonitorTask;
 use nym_gateway_directory::{Config, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress};
+use nym_ip_packet_client::IprClient;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
@@ -280,13 +281,12 @@ impl NymVpn<MixnetVpn> {
         let exit_gateway = exit_router.gateway().to_base58_string();
         info!("Connecting to exit gateway: {exit_gateway}");
         debug!("Connecting to exit IPR: {exit_router}");
-        let our_ips = mixnet_connect::connect_to_ip_packet_router(
-            mixnet_client.clone(),
-            exit_router,
-            self.nym_ips,
-            self.enable_two_hop,
-        )
-        .await?;
+        // Currently the IPR client is only used to connect. The next step would be to use it to
+        // spawn a separate task that handles IPR request/responses.
+        let mut ipr_client = IprClient::new_from_inner(mixnet_client.inner()).await;
+        let our_ips = ipr_client
+            .connect(exit_router, self.nym_ips, self.enable_two_hop)
+            .await?;
         info!("Successfully connected to exit gateway");
         info!("Using mixnet VPN IP addresses: {our_ips}");
 
