@@ -201,6 +201,9 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
                         warn!("error during vpn run: {}", err);
                     })
                     .ok();
+                stop_and_reset_shutdown_handle()
+                    .await
+                    .expect("Unable to reset shutdown handle");
                 stop_handle.notify_one();
             });
             Ok(())
