@@ -23,24 +23,28 @@ impl VpnServiceStatusListener {
 
     async fn handle_status_message(&self, msg: SentStatus) -> SentStatus {
         debug!("Received status: {msg}");
-        match msg.downcast_ref::<TaskStatus>() {
-            Some(TaskStatus::Ready) => {
-                info!("VPN status: connected");
-                self.set_shared_state(VpnState::Connected);
-                return msg;
+        if let Some(msg) = msg.downcast_ref::<TaskStatus>() {
+            match msg {
+                TaskStatus::Ready => {
+                    info!("VPN status: connected");
+                    self.set_shared_state(VpnState::Connected);
+                }
+                TaskStatus::ReadyWithGateway(gateway) => {
+                    info!("VPN status: connected to gateway: {gateway}");
+                    self.set_shared_state(VpnState::Connected);
+                }
             }
-            Some(TaskStatus::ReadyWithGateway(_)) => {
-                info!("VPN status: connected");
-                self.set_shared_state(VpnState::Connected);
-                return msg;
-            }
-            None => {
-                info!("VPN status: unknown: {msg}");
-            }
-        }
-        match msg.downcast_ref::<ConnectionMonitorStatus>() {
-            Some(e) => info!("VPN status: {e}"),
-            None => info!("VPN status: unknown: {msg}"),
+        } else if let Some(msg) = msg.downcast_ref::<ConnectionMonitorStatus>() {
+            info!("VPN status: {msg}");
+            // match msg {
+            //     ConnectionMonitorStatus::ConnectedIpv4 | ConnectionMonitorStatus::ConnectedIpv6 => {
+            //     }
+            //     msg => {
+            //         info!("VPN status: {msg}");
+            //     }
+            // }
+        } else {
+            info!("VPN status: unknown: {msg}");
         }
         msg
     }

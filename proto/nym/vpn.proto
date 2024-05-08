@@ -101,8 +101,8 @@ message StatusResponse {
 }
 
 message ConnectionStatusUpdate {
-  ConnectionStatus status = 1;
-  // string message = 2;
+  string message = 1;
+  // ConnectionStatus status = 1;
 //   repeated ConnectionProgress connection_progress = 2;
 //   // optional Error error = 3;
 }

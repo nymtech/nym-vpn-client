@@ -5,8 +5,10 @@ use std::{
     fs,
     net::SocketAddr,
     path::{Path, PathBuf},
+    pin::Pin,
 };
 
+use futures::StreamExt;
 use nym_vpn_lib::{
     gateway_directory::{EntryPoint, ExitPoint},
     NodeIdentity, Recipient,
@@ -17,11 +19,12 @@ use nym_vpn_proto::{
     ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
 };
 use tokio::sync::mpsc::UnboundedSender;
-use tokio_stream::wrappers::ReceiverStream;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 use super::{connection_handler::CommandInterfaceConnectionHandler, error::CommandInterfaceError};
-use crate::service::{ConnectOptions, VpnServiceCommand, VpnServiceStatusResult};
+use crate::service::{
+    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStatusResult,
+};
 
 enum ListenerType {
     Path(PathBuf),
@@ -30,7 +33,7 @@ enum ListenerType {
 
 pub(super) struct CommandInterface {
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
-    // vpn_status_rx: tokio::sync::mpsc::Receiver<VpnServiceStatusResult>,
+    status_tx: tokio::sync::broadcast::Sender<ConnectionStatusUpdate>,
     listener: ListenerType,
 }
 
@@ -41,6 +44,7 @@ impl CommandInterface {
     ) -> Self {
         Self {
             vpn_command_tx,
+            status_tx: tokio::sync::broadcast::channel(10).0,
             listener: ListenerType::Path(socket_path.to_path_buf()),
         }
     }
@@ -51,6 +55,7 @@ impl CommandInterface {
     ) -> Self {
         Self {
             vpn_command_tx,
+            status_tx: tokio::sync::broadcast::channel(10).0,
             listener: ListenerType::Uri(uri),
         }
     }
@@ -113,10 +118,70 @@ impl NymVpnd for CommandInterface {
             .handle_connect(entry, exit, options)
             .await;
 
+        let success = status.is_success();
+
+        // After connecting we start a task that listens for status updates and broadcasts them for
+        // listeners to the connection status stream.
+        if let VpnServiceConnectResult::Success(connect_handle) = status {
+            let mut listener_vpn_status_rx = connect_handle.listener_vpn_status_rx;
+            let status_tx = self.status_tx.clone();
+            tokio::spawn(async move {
+                while let Some(status_update) = listener_vpn_status_rx.next().await {
+                    debug!(
+                        "Received status update that we should broadcast: {:?}",
+                        status_update
+                    );
+                    if let Some(s) = status_update.downcast_ref::<nym_vpn_lib::TaskStatus>() {
+                        match s {
+                            nym_vpn_lib::TaskStatus::Ready => {
+                                info!(
+                                    "Broadcasting connection status update: {:?}",
+                                    ConnectionStatus::Connected as i32
+                                );
+                                let _ = status_tx.send(ConnectionStatusUpdate {
+                                    message: s.to_string(),
+                                });
+                            }
+                            nym_vpn_lib::TaskStatus::ReadyWithGateway(ref gateway) => {
+                                info!(
+                                    "Broadcasting connection status update ({gateway}): {:?}",
+                                    ConnectionStatus::Connected as i32
+                                );
+                                let _ = status_tx.send(ConnectionStatusUpdate {
+                                    message: s.to_string(),
+                                });
+                            }
+                        }
+                    } else if let Some(s) = status_update
+                        .downcast_ref::<nym_vpn_lib::connection_monitor::ConnectionMonitorStatus>(
+                    ) {
+                        match s {
+                            nym_vpn_lib::connection_monitor::ConnectionMonitorStatus::EntryGatewayDown => {}
+                            nym_vpn_lib::connection_monitor::ConnectionMonitorStatus::ExitGatewayDownIpv4 => {}
+                            nym_vpn_lib::connection_monitor::ConnectionMonitorStatus::ExitGatewayDownIpv6 => {}
+                            nym_vpn_lib::connection_monitor::ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv4 => {}
+                            nym_vpn_lib::connection_monitor::ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv6 => {}
+                            nym_vpn_lib::connection_monitor::ConnectionMonitorStatus::ConnectedIpv4 => {}
+                            nym_vpn_lib::connection_monitor::ConnectionMonitorStatus::ConnectedIpv6 => {}
+                        }
+                        status_tx
+                            .send(ConnectionStatusUpdate {
+                                message: s.to_string(),
+                            })
+                            .ok();
+                    } else {
+                        if let Err(err) = status_tx.send(ConnectionStatusUpdate {
+                            message: status_update.to_string(),
+                        }) {
+                            error!("Failed to broadcast connection status update: {:?}", err);
+                        }
+                    }
+                }
+            });
+        }
+
         info!("Returning connect response");
-        Ok(tonic::Response::new(ConnectResponse {
-            success: status.is_success(),
-        }))
+        Ok(tonic::Response::new(ConnectResponse { success }))
     }
 
     async fn vpn_disconnect(
@@ -179,29 +244,34 @@ impl NymVpnd for CommandInterface {
         }))
     }
 
-    type ListenToConnectionStatusStream =
-        ReceiverStream<Result<ConnectionStatusUpdate, tonic::Status>>;
+    type ListenToConnectionStatusStream = Pin<
+        Box<
+            dyn futures::Stream<Item = Result<ConnectionStatusUpdate, tonic::Status>>
+                + Send
+                + Sync
+                + 'static,
+        >,
+    >;
 
     async fn listen_to_connection_status(
         &self,
-        request: tonic::Request<Empty>,
+        _request: tonic::Request<Empty>,
     ) -> Result<tonic::Response<Self::ListenToConnectionStatusStream>, tonic::Status> {
         info!("Got connection status stream request");
-        // Create a dummy stream that sends a status update every second
-        let (tx, rx) = tokio::sync::mpsc::channel(10);
-        let _ = tokio::spawn(async move {
-            loop {
-                tokio::time::sleep(std::time::Duration::from_secs(1)).await;
-                info!("Sending connection status update");
-                let _ = tx
-                    .send(Ok(ConnectionStatusUpdate {
-                        status: ConnectionStatus::Connected as i32,
-                    }))
-                    .await;
-            }
+        let rx = self.status_tx.subscribe();
+        let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|status| {
+            status.map_err(|err| {
+                error!("Failed to receive connection status update: {:?}", err);
+                tonic::Status::internal("Failed to receive connection status update")
+            })
+            //     .map_ok(|status| {
+            //         info!("Sending connection status update: {:?}", status);
+            //         Ok(status)
+            //     })
         });
-
-        Ok(tonic::Response::new(ReceiverStream::new(rx)))
+        Ok(tonic::Response::new(
+            Box::pin(stream) as Self::ListenToConnectionStatusStream
+        ))
     }
 }
 

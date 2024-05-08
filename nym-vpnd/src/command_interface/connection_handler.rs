@@ -39,7 +39,7 @@ impl CommandInterfaceConnectionHandler {
         info!("Waiting for response");
         let result = rx.await.unwrap();
         match result {
-            VpnServiceConnectResult::Success => {
+            VpnServiceConnectResult::Success(ref _connect_handle) => {
                 info!("VPN started successfully");
             }
             VpnServiceConnectResult::Fail(ref err) => {

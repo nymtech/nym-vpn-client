@@ -62,14 +62,20 @@ pub(crate) struct ConnectOptions {
 
 #[derive(Debug)]
 pub enum VpnServiceConnectResult {
-    Success,
+    Success(VpnServiceConnectHandle),
     Fail(String),
 }
 
 impl VpnServiceConnectResult {
     pub fn is_success(&self) -> bool {
-        matches!(self, VpnServiceConnectResult::Success)
+        matches!(self, VpnServiceConnectResult::Success(_))
     }
+}
+
+#[derive(Debug)]
+pub struct VpnServiceConnectHandle {
+    pub listener_vpn_status_rx: nym_vpn_lib::StatusReceiver,
+    pub listener_vpn_exit_rx: OneshotReceiver<nym_vpn_lib::NymVpnExitStatusMessage>,
 }
 
 #[derive(Debug)]
@@ -111,8 +117,8 @@ pub(super) struct NymVpnService {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
     vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
     vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
-    vpn_status_receiver: Option<nym_vpn_lib::StatusReceiver>,
-    vpn_exit_receiver: Option<OneshotReceiver<nym_vpn_lib::NymVpnExitStatusMessage>>,
+    // vpn_status_receiver: Option<nym_vpn_lib::StatusReceiver>,
+    // vpn_exit_receiver: Option<OneshotReceiver<nym_vpn_lib::NymVpnExitStatusMessage>>,
     config_file: PathBuf,
     data_dir: PathBuf,
 }
@@ -130,8 +136,8 @@ impl NymVpnService {
             shared_vpn_state: Arc::new(std::sync::Mutex::new(VpnState::NotConnected)),
             vpn_command_rx,
             vpn_ctrl_sender: None,
-            vpn_status_receiver: None,
-            vpn_exit_receiver: None,
+            // vpn_status_receiver: None,
+            // vpn_exit_receiver: None,
             config_file,
             data_dir,
         }
@@ -220,7 +226,6 @@ impl NymVpnService {
             vpn_exit_rx,
         } = handle;
 
-
         let (listener_vpn_status_tx, listener_vpn_status_rx) = futures::channel::mpsc::channel(16);
         let (listener_vpn_exit_tx, listener_vpn_exit_rx) = futures::channel::oneshot::channel();
 
@@ -233,10 +238,15 @@ impl NymVpnService {
             .await;
 
         self.vpn_ctrl_sender = Some(vpn_ctrl_tx);
-        self.vpn_status_receiver = Some(listener_vpn_status_rx);
-        self.vpn_exit_receiver = Some(listener_vpn_exit_rx);
+        // self.vpn_status_receiver = Some(listener_vpn_status_rx);
+        // self.vpn_exit_receiver = Some(listener_vpn_exit_rx);
 
-        VpnServiceConnectResult::Success
+        let connect_handle = VpnServiceConnectHandle {
+            listener_vpn_status_rx,
+            listener_vpn_exit_rx,
+        };
+
+        VpnServiceConnectResult::Success(connect_handle)
     }
 
     fn set_shared_state(&self, state: VpnState) {
