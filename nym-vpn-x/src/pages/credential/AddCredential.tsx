@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api';
+import clsx from 'clsx';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
@@ -79,7 +80,14 @@ function AddCredential() {
           <div className="h-3"></div>
         )}
       </div>
-      <Button onClick={handleClick} disabled={daemonStatus !== 'Ok'}>
+      <Button
+        onClick={handleClick}
+        disabled={daemonStatus !== 'Ok'}
+        className={clsx(
+          daemonStatus !== 'Ok' &&
+            'opacity-50 disabled:opacity-50 hover:opacity-50',
+        )}
+      >
         {t('add-button')}
       </Button>
     </PageAnim>

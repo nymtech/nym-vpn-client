@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { StateDispatch, VpnMode } from '../../types';
 import { MixnetIcon } from '../../assets';
-import { RadioGroup, RadioGroupOption, RadioGroupOptionCursor } from '../../ui';
+import { RadioGroup, RadioGroupOption } from '../../ui';
 
 function NetworkModeSelect() {
   const state = useMainState();
@@ -28,16 +28,12 @@ function NetworkModeSelect() {
   };
 
   const vpnModes = useMemo<RadioGroupOption<VpnMode>[]>(() => {
-    const getCursorMode = (): RadioGroupOptionCursor => {
-      return state.state === 'Disconnected' ? 'pointer' : 'default';
-    };
-
     return [
       {
         key: 'Mixnet',
         label: t('mixnet-mode.title'),
         desc: t('mixnet-mode.desc'),
-        cursor: getCursorMode(),
+        cursor: state.state === 'Disconnected' ? 'pointer' : 'default',
         disabled: state.state !== 'Disconnected' || loading,
         icon: (
           <MixnetIcon className="w-7 h-7 fill-baltic-sea dark:fill-mercury-pinkish" />
@@ -47,7 +43,7 @@ function NetworkModeSelect() {
         key: 'TwoHop',
         label: t('twohop-mode.title'),
         desc: t('twohop-mode.desc'),
-        cursor: getCursorMode(),
+        cursor: state.state === 'Disconnected' ? 'pointer' : 'default',
         disabled: state.state !== 'Disconnected' || loading,
         icon: (
           <span className="font-icon text-3xl text-baltic-sea dark:text-mercury-pinkish">

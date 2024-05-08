@@ -8,35 +8,44 @@ interface HopSelectProps {
   nodeLocation: NodeLocation;
   onClick: () => void;
   nodeHop: NodeHop;
+  disabled?: boolean;
 }
 
 export default function HopSelect({
   nodeHop,
   nodeLocation,
   onClick,
+  disabled,
 }: HopSelectProps) {
-  const { state, fastestNodeLocation } = useMainState();
+  const { fastestNodeLocation } = useMainState();
   const { t } = useTranslation('home');
+
+  const handleClick = () => {
+    if (!disabled) {
+      onClick();
+    }
+  };
 
   return (
     <div
       className={clsx([
-        state === 'Disconnected' ? 'cursor-pointer' : 'cursor-not-allowed',
+        !disabled && 'cursor-pointer hover:ring-4',
         'w-full flex flex-row justify-between items-center py-3 px-4',
         'text-baltic-sea dark:text-mercury-pinkish',
         'border border-cement-feet dark:border-gun-powder rounded-lg',
-        'hover:ring-4 ring-aluminium ring-opacity-35',
+        'ring-aluminium ring-opacity-35',
         'dark:ring-onyx dark:ring-opacity-65',
-        'relative transition',
+        'relative transition select-none',
       ])}
-      onKeyDown={onClick}
+      onKeyDown={handleClick}
       role="presentation"
-      onClick={onClick}
+      onClick={handleClick}
     >
       <div
         className={clsx([
           'absolute left-3 -top-2.5 px-1',
           'bg-blanc-nacre dark:bg-baltic-sea text-xs',
+          disabled && 'cursor-default',
         ])}
       >
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
@@ -47,7 +56,14 @@ export default function HopSelect({
             code={nodeLocation.code.toLowerCase() as countryCode}
             alt={nodeLocation.code}
           />
-          <div className="text-base truncate">{nodeLocation.name}</div>
+          <div
+            className={clsx([
+              'text-base truncate',
+              disabled && 'cursor-default',
+            ])}
+          >
+            {nodeLocation.name}
+          </div>
         </div>
       )}
       {nodeLocation === 'Fastest' && (
@@ -55,7 +71,12 @@ export default function HopSelect({
           <div className="w-7 flex justify-center items-center">
             <MsIcon icon="bolt" />
           </div>
-          <div className="text-base">{`${t('fastest', { ns: 'common' })} (${
+          <div
+            className={clsx([
+              'text-base truncate',
+              disabled && 'cursor-default',
+            ])}
+          >{`${t('fastest', { ns: 'common' })} (${
             fastestNodeLocation.name
           })`}</div>
         </div>

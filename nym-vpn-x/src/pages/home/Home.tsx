@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from 'react';
+import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api';
 import { useNavigate } from 'react-router-dom';
@@ -102,22 +103,16 @@ function Home() {
               {entrySelector && (
                 <HopSelect
                   nodeLocation={entryNodeLocation}
-                  onClick={() => {
-                    if (state === 'Disconnected') {
-                      navigate(routes.entryNodeLocation);
-                    }
-                  }}
+                  onClick={() => navigate(routes.entryNodeLocation)}
                   nodeHop="entry"
+                  disabled={state !== 'Disconnected'}
                 />
               )}
               <HopSelect
                 nodeLocation={exitNodeLocation}
-                onClick={() => {
-                  if (state === 'Disconnected') {
-                    navigate(routes.exitNodeLocation);
-                  }
-                }}
+                onClick={() => navigate(routes.exitNodeLocation)}
                 nodeHop="exit"
+                disabled={state !== 'Disconnected'}
               />
             </div>
           </div>
@@ -126,6 +121,10 @@ function Home() {
           onClick={handleClick}
           color={getButtonColor()}
           disabled={loading || daemonStatus !== 'Ok'}
+          className={clsx(
+            daemonStatus !== 'Ok' &&
+              'opacity-50 disabled:opacity-50 hover:opacity-50',
+          )}
         >
           {getButtonText()}
         </Button>
