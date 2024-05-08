@@ -117,8 +117,6 @@ pub(super) struct NymVpnService {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
     vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
     vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
-    // vpn_status_receiver: Option<nym_vpn_lib::StatusReceiver>,
-    // vpn_exit_receiver: Option<OneshotReceiver<nym_vpn_lib::NymVpnExitStatusMessage>>,
     config_file: PathBuf,
     data_dir: PathBuf,
 }
@@ -136,8 +134,6 @@ impl NymVpnService {
             shared_vpn_state: Arc::new(std::sync::Mutex::new(VpnState::NotConnected)),
             vpn_command_rx,
             vpn_ctrl_sender: None,
-            // vpn_status_receiver: None,
-            // vpn_exit_receiver: None,
             config_file,
             data_dir,
         }
