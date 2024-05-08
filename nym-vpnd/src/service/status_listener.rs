@@ -36,13 +36,6 @@ impl VpnServiceStatusListener {
             }
         } else if let Some(msg) = msg.downcast_ref::<ConnectionMonitorStatus>() {
             info!("VPN status: {msg}");
-            // match msg {
-            //     ConnectionMonitorStatus::ConnectedIpv4 | ConnectionMonitorStatus::ConnectedIpv6 => {
-            //     }
-            //     msg => {
-            //         info!("VPN status: {msg}");
-            //     }
-            // }
         } else {
             info!("VPN status: unknown: {msg}");
         }
@@ -58,7 +51,8 @@ impl VpnServiceStatusListener {
             while let Some(msg) = vpn_status_rx.next().await {
                 let listener_msg = self.handle_status_message(msg).await;
 
-                // Forward the status message to the command listener
+                // Forward the status message to the command listener so that it can provide these
+                // on its streaming endpoints
                 listener_vpn_status_tx.send(listener_msg).await.unwrap();
             }
         });
