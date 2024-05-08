@@ -28,16 +28,20 @@ impl VpnServiceExitListener {
                     nym_vpn_lib::NymVpnExitStatusMessage::Stopped => {
                         info!("VPN exit: stopped");
                         self.set_shared_state(VpnState::NotConnected);
-                        listener_vpn_exit_tx.send(exit_res).unwrap();
+                        if let Err(err) = listener_vpn_exit_tx.send(exit_res) {
+                            error!("Exit listener: failed to send exit status: {err:?}");
+                        }
                     }
                     nym_vpn_lib::NymVpnExitStatusMessage::Failed(ref err) => {
                         error!("VPN exit: fail: {err}");
                         self.set_shared_state(VpnState::ConnectionFailed(err.to_string()));
-                        listener_vpn_exit_tx.send(exit_res).unwrap();
+                        if let Err(err) = listener_vpn_exit_tx.send(exit_res) {
+                            error!("Exit listener: failed to send exit status: {err:?}");
+                        }
                     }
                 },
                 Err(err) => {
-                    error!("exit listener fail: {err}");
+                    error!("Exit listener: {err}");
                 }
             }
         });

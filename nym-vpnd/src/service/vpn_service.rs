@@ -226,6 +226,8 @@ impl NymVpnService {
             vpn_exit_rx,
         } = handle;
 
+        self.vpn_ctrl_sender = Some(vpn_ctrl_tx);
+
         let (listener_vpn_status_tx, listener_vpn_status_rx) = futures::channel::mpsc::channel(16);
         let (listener_vpn_exit_tx, listener_vpn_exit_rx) = futures::channel::oneshot::channel();
 
@@ -236,10 +238,6 @@ impl NymVpnService {
         VpnServiceExitListener::new(self.shared_vpn_state.clone())
             .start(vpn_exit_rx, listener_vpn_exit_tx)
             .await;
-
-        self.vpn_ctrl_sender = Some(vpn_ctrl_tx);
-        // self.vpn_status_receiver = Some(listener_vpn_status_rx);
-        // self.vpn_exit_receiver = Some(listener_vpn_exit_rx);
 
         let connect_handle = VpnServiceConnectHandle {
             listener_vpn_status_rx,

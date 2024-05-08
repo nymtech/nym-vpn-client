@@ -59,13 +59,13 @@ impl CommandInterfaceConnectionHandler {
         let result = rx.await.unwrap();
         match result {
             VpnServiceDisconnectResult::Success => {
-                info!("VPN stopped successfully");
+                info!("VPN disconnect command sent successfully");
             }
             VpnServiceDisconnectResult::NotRunning => {
                 info!("VPN can't stop - it's not running");
             }
             VpnServiceDisconnectResult::Fail(ref err) => {
-                warn!("VPN failed to stop: {err}");
+                warn!("VPN failed to send disconnect command: {err}");
             }
         };
         result
