@@ -39,8 +39,6 @@ lazy_static! {
 async fn set_shutdown_handle(handle: Arc<Notify>) -> Result<(), FFIError> {
     let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
     if guard.is_some() {
-        //*guard = None
-        info!("Shutdown handle has not been reset");
         return Err(FFIError::VpnNotStopped);
     }
     *guard = Some(handle);
@@ -54,7 +52,8 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
         sh.notify_waiters();
         sh.notified().await;
     } else {
-        info!("Shutdown handle detects not started");
+        *guard = None;
+        RUNNING.store(false, Ordering::Relaxed);
         return Err(FFIError::VpnNotStarted);
     }
     *guard = None;
@@ -213,9 +212,6 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn stopVPN() -> Result<(), FFIError> {
-    // if !RUNNING.fetch_and(false, Ordering::Relaxed) {
-    //     return Err(FFIError::VpnNotRunning);
-    // }
     RUNTIME.block_on(stop_vpn())
 }
 
