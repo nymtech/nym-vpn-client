@@ -4619,6 +4619,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-vpn-api-client"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "nym-http-api-client",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "nym-vpn-cli"
 version = "0.1.3-dev"
 dependencies = [

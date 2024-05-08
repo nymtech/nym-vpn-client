@@ -51,9 +51,9 @@ function Snackbar({
         <motion.button
           key="snackbar-close-button"
           initial={{ opacity: 0.7 }}
-          whileHover={{ opacity: 1, scale: 1.1 }}
-          whileTap={{ opacity: 1, scale: 0.8 }}
-          transition={{ duration: 0.1 }}
+          whileHover={{ opacity: 1 }}
+          whileTap={{ opacity: 1 }}
+          transition={{ duration: 0.15 }}
           className="w-6 ml-4 focus:outline-none text-black dark:text-white"
           onClick={() => onClose()}
         >
