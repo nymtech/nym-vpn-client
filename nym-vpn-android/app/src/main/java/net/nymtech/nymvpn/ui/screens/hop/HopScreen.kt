@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -85,7 +86,6 @@ fun HopScreen(navController: NavController, hopType: HopType, viewModel: HopView
 						.fillMaxWidth()
 						.padding(
 							horizontal = 16.dp.scaledWidth(),
-							vertical = 16.dp.scaledHeight(),
 						),
 				)
 				var query: String by rememberSaveable { mutableStateOf("") }
@@ -200,8 +200,27 @@ fun HopScreen(navController: NavController, hopType: HopType, viewModel: HopView
 					viewModel.onSelected(it)
 					navController.navigate(NavItem.Main.route)
 				},
-				trailingText =
-				if (it == uiState.selected) stringResource(id = R.string.is_selected) else null,
+				trailing = {
+					if (it == uiState.selected) {
+						Row(
+							modifier = Modifier.fillMaxWidth(),
+							horizontalArrangement = Arrangement.End,
+							verticalAlignment = Alignment.CenterVertically,
+						) {
+							Text(
+								stringResource(id = R.string.is_selected),
+								modifier =
+								Modifier.padding(
+									horizontal = 24.dp.scaledWidth(),
+									vertical = 16.dp.scaledHeight(),
+								),
+								color =
+								MaterialTheme.colorScheme.onSurfaceVariant,
+								style = MaterialTheme.typography.labelSmall,
+							)
+						}
+					}
+				},
 			)
 		}
 	}

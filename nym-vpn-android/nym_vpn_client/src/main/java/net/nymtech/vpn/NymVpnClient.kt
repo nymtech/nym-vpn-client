@@ -89,16 +89,21 @@ object NymVpnClient {
 		private val _state = MutableStateFlow(VpnClientState())
 		override val stateFlow: Flow<VpnClientState> = _state.asStateFlow()
 
+		@Synchronized
 		@Throws(InvalidCredentialException::class)
 		override fun start(context: Context, credential: String, foreground: Boolean) {
 			validateCredential(credential).onFailure {
 				throw it
 			}
 			clearErrorStatus()
-			job = collectLogStatus(context)
+			job = scope.launch {
+				launch { collectLogStatus(context) }
+				launch { startConnectionTimer() }
+			}
 			if (foreground) ServiceManager.startVpnServiceForeground(context) else ServiceManager.startVpnService(context)
 		}
 
+		@Synchronized
 		override fun stop(context: Context, foreground: Boolean) {
 			ServiceManager.stopVpnService(context)
 			job?.cancel()
@@ -156,6 +161,7 @@ object NymVpnClient {
 						entryPoint,
 						exitPoint,
 						isTwoHop(mode),
+						null,
 					),
 				)
 			} catch (e: FfiException) {
@@ -165,56 +171,55 @@ object NymVpnClient {
 			}
 		}
 
-		private fun collectLogStatus(context: Context) = scope.launch {
-			launch {
-				callbackFlow {
-					LogcatHelper.logs {
-						if (it.level != LogLevel.DEBUG) {
-							trySend(it)
-						}
+		private suspend fun collectLogStatus(context: Context) {
+			callbackFlow {
+				LogcatHelper.logs {
+					if (it.level != LogLevel.DEBUG) {
+						trySend(it)
 					}
-					awaitClose { cancel() }
-				}.buffer(capacity = 100).safeCollect {
-					if (it.tag.contains(Constants.NYM_VPN_LIB_TAG)) {
-						when (it.level) {
-							LogLevel.ERROR -> {
-								// TODO need better way to communicate shutdowns from lib
-								// TODO why is this one not sending proper shutdown message
-								// Nym VPN returned error: Task 'nym_vpn_lib-mixnet_client_main-gateway_transceiver-child' halted unexpectedly
-								if (it.message.contains("Stopped Nym VPN") ||
-									it.message.contains("halted unexpectedly")
-								) {
-									setErrorState(ErrorState.CoreLibraryError(it.message))
-									stop(context, true)
-								}
-								if (it.message.contains("Could not start the VPN")) {
-									stopVpn()
-								}
+				}
+				awaitClose { cancel() }
+			}.buffer(capacity = 100).safeCollect {
+				if (it.tag.contains(Constants.NYM_VPN_LIB_TAG)) {
+					when (it.level) {
+						LogLevel.ERROR -> {
+							// TODO need better way to communicate shutdowns from lib
+							// TODO why is this one not sending proper shutdown message
+							// Nym VPN returned error: Task 'nym_vpn_lib-mixnet_client_main-gateway_transceiver-child' halted unexpectedly
+							if (it.message.contains("Stopped Nym VPN") ||
+								it.message.contains("halted unexpectedly")
+							) {
+								setErrorState(ErrorState.CoreLibraryError(it.message))
+								stop(context, true)
 							}
-							LogLevel.INFO -> {
-								parseLibInfo(it.message)
+							if (it.message.contains("Could not start the VPN")) {
+								stopVpn()
 							}
-							else -> Unit
 						}
+						LogLevel.INFO -> {
+							parseLibInfo(it.message)
+						}
+						else -> Unit
 					}
 				}
 			}
-			launch {
-				var seconds = 0L
-				do {
-					if (_state.value.vpnState == VpnState.Up) {
-						_state.value =
-							_state.value.copy(
-								statistics =
-								_state.value.statistics.copy(
-									connectionSeconds = seconds,
-								),
-							)
-						seconds++
-					}
-					delay(1000)
-				} while (true)
-			}
+		}
+
+		private suspend fun startConnectionTimer() {
+			var seconds = 0L
+			do {
+				if (_state.value.vpnState == VpnState.Up) {
+					_state.value =
+						_state.value.copy(
+							statistics =
+							_state.value.statistics.copy(
+								connectionSeconds = seconds,
+							),
+						)
+					seconds++
+				}
+				delay(1000)
+			} while (true)
 		}
 
 		private fun parseLibInfo(message: String) {

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Card
@@ -20,10 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.util.scaledHeight
-import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun SelectionItemButton(leading: @Composable () -> Unit, buttonText: String, trailingText: String?, onClick: () -> Unit) {
+fun SelectionItemButton(leading: @Composable () -> Unit, buttonText: String, trailing: (@Composable () -> Unit)? = null, onClick: () -> Unit) {
 	Card(
 		modifier =
 		Modifier.clip(RoundedCornerShape(8.dp))
@@ -49,24 +47,8 @@ fun SelectionItemButton(leading: @Composable () -> Unit, buttonText: String, tra
 				style = MaterialTheme.typography.bodyLarge,
 				color = MaterialTheme.colorScheme.onSurface,
 			)
-			trailingText?.let {
-				Row(
-					modifier = Modifier.fillMaxWidth(),
-					horizontalArrangement = Arrangement.End,
-					verticalAlignment = Alignment.CenterVertically,
-				) {
-					Text(
-						it,
-						modifier =
-						Modifier.padding(
-							horizontal = 16.dp.scaledWidth(),
-							vertical = 16.dp.scaledHeight(),
-						),
-						color =
-						MaterialTheme.colorScheme.onSurfaceVariant,
-						style = MaterialTheme.typography.labelSmall,
-					)
-				}
+			trailing?.let {
+				it()
 			}
 		}
 	}

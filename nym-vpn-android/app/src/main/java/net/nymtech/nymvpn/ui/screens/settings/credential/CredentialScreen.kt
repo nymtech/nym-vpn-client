@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
@@ -40,7 +42,7 @@ import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun CredentialScreen(navController: NavController, viewModel: CredentialViewModel = hiltViewModel()) {
+fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, viewModel: CredentialViewModel = hiltViewModel()) {
 	var recoveryPhrase by remember {
 		mutableStateOf("")
 	}
@@ -48,6 +50,8 @@ fun CredentialScreen(navController: NavController, viewModel: CredentialViewMode
 	var isCredentialError by remember {
 		mutableStateOf(false)
 	}
+
+	val context = LocalContext.current
 
 	val imeState = rememberImeState()
 	val scrollState = rememberScrollState()
@@ -107,7 +111,7 @@ fun CredentialScreen(navController: NavController, viewModel: CredentialViewMode
 		}
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,
-			verticalArrangement = Arrangement.spacedBy(32.dp, Alignment.Top),
+			verticalArrangement = Arrangement.spacedBy(32.dp.scaledHeight(), Alignment.Top),
 		) {
 			CustomTextField(
 				value = recoveryPhrase,
@@ -142,6 +146,7 @@ fun CredentialScreen(navController: NavController, viewModel: CredentialViewMode
 					Constants.LOGIN_TEST_TAG,
 					onClick = {
 						viewModel.onImportCredential(recoveryPhrase).onSuccess {
+							appViewModel.showSnackbarMessage(context.getString(R.string.credential_successful))
 							navController.navigate(NavItem.Main.route) {
 								// clear backstack after login
 								popUpTo(0)

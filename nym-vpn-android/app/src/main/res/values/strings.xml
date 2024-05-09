@@ -31,15 +31,14 @@
     <string name="fastest">Fastest</string>
     <string name="auto_connect">Auto-connect</string>
     <string name="auto_connect_description">Auto connect on reboot</string>
-    <string name="entry_location">Entry location selector</string>
-    <string name="entry_location_description">Manually select your entry hop</string>
+    <string name="entry_location_description">Manually select your first hop</string>
     <string name="logs">Logs</string>
     <string name="feedback">Feedback</string>
     <string name="support">Support</string>
     <string name="error_reporting">Share anonymous error reports</string>
 	<string name="sentry">Sentry</string>
 	<string name="via">via</string>
-    <string name="required_app_restart">applies on app restart</string>
+    <string name="required_app_restart">applies on restart</string>
     <string name="legal">Legal</string>
     <string name="faq_link" translatable="false">https://nymtech.net</string>
     <string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
@@ -112,4 +111,5 @@
 	<string name="country_load_failure">Failed to load hop countries</string>
     <string name="app_shortcuts">App shortcuts</string>
 	<string name="enable_shortcuts">Enable app shortcuts</string>
+    <string name="disabled_while_connected">Disabled while connected to VPN</string>
 </resources>

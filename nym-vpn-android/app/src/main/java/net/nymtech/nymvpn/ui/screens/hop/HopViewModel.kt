@@ -86,7 +86,7 @@ constructor(
 			when (_uiState.value.hopType) {
 				HopType.FIRST -> settingsRepository.getFirstHopCountry()
 				HopType.LAST -> settingsRepository.getLastHopCountry()
-			}
+			}.copy(isDefault = false)
 		_uiState.update {
 			it.copy(
 				selected = selectedCountry,

@@ -163,7 +163,12 @@ fun SettingsScreen(
 							enabled = (appUiState.vpnClientState.vpnState is VpnState.Down),
 						)
 					},
-					title = { Text(stringResource(R.string.entry_location), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					title = {
+						Text(
+							stringResource(R.string.first_hop_selection),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+						)
+					},
 					description = {
 						Text(
 							stringResource(id = R.string.entry_location_description),

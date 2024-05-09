@@ -82,20 +82,6 @@
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
-		<receiver android:name=".receiver.AlarmPermissionReceiver"
-			android:exported="false" android:enabled="true">
-			<intent-filter>
-				<action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
-			</intent-filter>
-		</receiver>
-		<!--	will make exported false for now, potentially enable later for user automation integration	-->
-		<receiver android:name=".receiver.VpnControlReceiver" android:exported="false" android:enabled="true"
-			android:permission="net.nymtech.nymvpn.VPN_CONTROL">
-			<intent-filter>
-				<action android:name="net.nymtech.nymvpn.START" />
-				<action android:name="net.nymtech.nymvpn.STOP" />
-			</intent-filter>
-		</receiver>
         <service
             android:name=".service.AlwaysOnVpnService"
             android:enabled="true"

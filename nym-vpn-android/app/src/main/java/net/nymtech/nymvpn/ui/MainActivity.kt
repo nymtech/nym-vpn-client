@@ -103,6 +103,7 @@ class MainActivity : ComponentActivity() {
 					topBar = {
 						NavBar(
 							appViewModel,
+							uiState,
 							navController,
 							Modifier
 								.onGloballyPositioned {
@@ -160,6 +161,7 @@ class MainActivity : ComponentActivity() {
 						composable(NavItem.Settings.Credential.route) {
 							CredentialScreen(
 								navController,
+								appViewModel,
 							)
 						}
 						composable(NavItem.Settings.Account.route) { AccountScreen(appViewModel) }

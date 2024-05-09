@@ -17,7 +17,8 @@ constructor(
 	private val secretsRepository: Provider<SecretsRepository>,
 ) : ViewModel() {
 	fun onImportCredential(credential: String): Result<Unit> {
-		return NymVpnClient.validateCredential(credential).onSuccess {
+		val trimmedCred = credential.trim()
+		return NymVpnClient.validateCredential(trimmedCred).onSuccess {
 			saveCredential(credential)
 		}
 	}

@@ -21,7 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
@@ -75,14 +78,28 @@ fun SurfaceSelectionGroupButton(items: List<SelectionItem>) {
 							it.description?.let { it() }
 						}
 					}
-					Box(
-						modifier = Modifier
-							.padding(start = 16.dp.scaledWidth(), end = 24.dp.scaledWidth()),
-					) {
-						it.trailing?.let {
+					it.trailing?.let {
+						Box(
+							contentAlignment = Alignment.CenterEnd,
+							modifier = Modifier
+								.padding(start = 16.dp.scaledWidth(), end = 24.dp.scaledWidth()),
+						) {
 							it()
 						}
 					}
+						?: Box(
+							contentAlignment = Alignment.CenterEnd,
+							modifier = Modifier
+								.padding(start = 16.dp.scaledWidth(), end = 12.dp.scaledWidth()),
+						) {
+							Icon(
+								ImageVector.vectorResource(R.drawable.link_arrow_right),
+								"arrow",
+								Modifier.size(
+									iconSize,
+								),
+							)
+						}
 				}
 			}
 			if (index + 1 != items.size) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

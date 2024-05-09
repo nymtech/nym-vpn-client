@@ -147,6 +147,8 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 					onClick = {
 						if (uiState.connectionState == ConnectionState.Disconnected) {
 							viewModel.onFiveHopSelected()
+						} else {
+							appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
 						}
 					},
 					selected = uiState.networkMode == VpnMode.FIVE_HOP_MIXNET,
@@ -158,6 +160,8 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 					onClick = {
 						if (uiState.connectionState == ConnectionState.Disconnected) {
 							viewModel.onTwoHopSelected()
+						} else {
+							appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
 						}
 					},
 					selected = uiState.networkMode == VpnMode.TWO_HOP_MIXNET,
@@ -198,6 +202,8 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 									navController.navigate(
 										NavItem.Hop.Entry.route,
 									)
+								} else {
+									appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
 								}
 							},
 					)
@@ -226,6 +232,8 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 								navController.navigate(
 									NavItem.Hop.Exit.route,
 								)
+							} else {
+								appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
 				)
@@ -237,7 +245,6 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
 								scope.launch {
-									// TODO clean up permissions
 									appViewModel.onValidCredentialCheck().onSuccess {
 										if (notificationPermissionState != null &&
 											!notificationPermissionState.status.isGranted
@@ -248,9 +255,6 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 											return@launch vpnActivityResultState.launch(
 												vpnIntent,
 											)
-										}
-										if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && !appViewModel.isAlarmPermissionGranted(context)) {
-											return@launch appViewModel.requestAlarmPermission(context)
 										}
 										viewModel.onConnect()
 									}.onFailure {

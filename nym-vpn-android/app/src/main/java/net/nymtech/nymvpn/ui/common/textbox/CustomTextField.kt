@@ -86,9 +86,10 @@ fun CustomTextField(
 					isError = isError,
 					interactionSource,
 					colors = TextFieldDefaults.colors().copy(
+						errorContainerColor = MaterialTheme.colorScheme.background,
 						disabledLabelColor = MaterialTheme.colorScheme.onSurface,
 						disabledContainerColor = MaterialTheme.colorScheme.background,
-						focusedIndicatorColor = CustomColors.outlineVariant,
+						focusedIndicatorColor = MaterialTheme.colorScheme.onSurface,
 						disabledIndicatorColor = CustomColors.outlineVariant,
 						unfocusedIndicatorColor = CustomColors.outlineVariant,
 						focusedLabelColor = MaterialTheme.colorScheme.onSurface,
