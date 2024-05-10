@@ -24,6 +24,7 @@ pub(crate) enum Command {
     Status,
     ImportCredential(ImportCredentialArgs),
     ListenToStatus,
+    ListenToStateChanges,
 }
 
 #[derive(Args)]
