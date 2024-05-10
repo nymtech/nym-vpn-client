@@ -160,7 +160,12 @@ jobs:
           draft: false
           prerelease: false
           append_body: true
-
+      - name: Repository Dispatch for my F-Droid repo
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PAT }}
+          repository: nymtech/fdroid
+          event-type: fdroid-update
       - name: Deploy with fastlane
         uses: ruby/setup-ruby@v1
         with:
