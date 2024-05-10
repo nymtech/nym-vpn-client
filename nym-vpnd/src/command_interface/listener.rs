@@ -8,7 +8,7 @@ use std::{
     pin::Pin,
 };
 
-use futures::StreamExt;
+use futures::{stream::BoxStream, StreamExt};
 use nym_vpn_lib::{
     gateway_directory::{EntryPoint, ExitPoint},
     NodeIdentity, Recipient,
@@ -201,14 +201,8 @@ impl NymVpnd for CommandInterface {
         }))
     }
 
-    type ListenToConnectionStatusStream = Pin<
-        Box<
-            dyn futures::Stream<Item = Result<ConnectionStatusUpdate, tonic::Status>>
-                + Send
-                + Sync
-                + 'static,
-        >,
-    >;
+    type ListenToConnectionStatusStream =
+        BoxStream<'static, Result<ConnectionStatusUpdate, tonic::Status>>;
 
     async fn listen_to_connection_status(
         &self,

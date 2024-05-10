@@ -53,7 +53,7 @@ impl VpnServiceStatusListener {
 
                 // Forward the status message to the command listener so that it can provide these
                 // on its streaming endpoints
-                listener_vpn_status_tx.send(listener_msg).await.unwrap();
+                listener_vpn_status_tx.send(listener_msg).await.ok();
             }
         });
     }
