@@ -166,8 +166,33 @@ impl VpnServiceImportUserCredentialResult {
     }
 }
 
-pub(super) struct NymVpnService {
+#[derive(Clone)]
+pub(super) struct SharedVpnState {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
+    vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
+}
+
+impl SharedVpnState {
+    fn new(vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>) -> Self {
+        Self {
+            shared_vpn_state: Arc::new(std::sync::Mutex::new(VpnState::NotConnected)),
+            vpn_state_changes_tx,
+        }
+    }
+
+    pub(super) fn set(&self, state: VpnState) {
+        info!("VPN: Setting shared state to {:?}", state);
+        *self.shared_vpn_state.lock().unwrap() = state.clone();
+        self.vpn_state_changes_tx.send(state.into()).ok();
+    }
+
+    fn get(&self) -> VpnState {
+        self.shared_vpn_state.lock().unwrap().clone()
+    }
+}
+
+pub(super) struct NymVpnService {
+    shared_vpn_state: SharedVpnState,
 
     // Listen for commands from the command interface, like the grpc listener that listens user
     // commands.
@@ -175,10 +200,6 @@ pub(super) struct NymVpnService {
 
     // Send commands to the actual vpn service task
     vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
-
-    // Broadcast connection state changes to whoever is interested, which typically is the command
-    // interface
-    vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
 
     config_file: PathBuf,
 
@@ -198,10 +219,9 @@ impl NymVpnService {
             .map(PathBuf::from)
             .unwrap_or_else(|_| PathBuf::from(DEFAULT_DATA_DIR));
         Self {
-            shared_vpn_state: Arc::new(std::sync::Mutex::new(VpnState::NotConnected)),
+            shared_vpn_state: SharedVpnState::new(vpn_state_changes_tx),
             vpn_command_rx,
             vpn_ctrl_sender: None,
-            vpn_state_changes_tx,
             config_file,
             data_dir,
         }
@@ -237,7 +257,7 @@ impl NymVpnService {
     }
 
     async fn handle_connect(&mut self, connect_args: ConnectArgs) -> VpnServiceConnectResult {
-        self.set_shared_state(VpnState::Connecting);
+        self.shared_vpn_state.set(VpnState::Connecting);
 
         let ConnectArgs {
             entry,
@@ -251,7 +271,7 @@ impl NymVpnService {
         let config = match self.try_setup_config(entry, exit) {
             Ok(config) => config,
             Err(err) => {
-                self.set_shared_state(VpnState::NotConnected);
+                self.shared_vpn_state.set(VpnState::NotConnected);
                 return VpnServiceConnectResult::Fail(err.to_string());
             }
         };
@@ -262,7 +282,7 @@ impl NymVpnService {
         match create_data_dir(&self.data_dir) {
             Ok(()) => {}
             Err(err) => {
-                self.set_shared_state(VpnState::NotConnected);
+                self.shared_vpn_state.set(VpnState::NotConnected);
                 return VpnServiceConnectResult::Fail(format!(
                     "Failed to create data directory {:?}: {}",
                     self.data_dir, err
@@ -295,19 +315,13 @@ impl NymVpnService {
         let (listener_vpn_status_tx, listener_vpn_status_rx) = futures::channel::mpsc::channel(16);
         let (listener_vpn_exit_tx, listener_vpn_exit_rx) = futures::channel::oneshot::channel();
 
-        VpnServiceStatusListener::new(
-            self.vpn_state_changes_tx.clone(),
-            self.shared_vpn_state.clone(),
-        )
-        .start(vpn_status_rx, listener_vpn_status_tx)
-        .await;
+        VpnServiceStatusListener::new(self.shared_vpn_state.clone())
+            .start(vpn_status_rx, listener_vpn_status_tx)
+            .await;
 
-        VpnServiceExitListener::new(
-            self.vpn_state_changes_tx.clone(),
-            self.shared_vpn_state.clone(),
-        )
-        .start(vpn_exit_rx, listener_vpn_exit_tx)
-        .await;
+        VpnServiceExitListener::new(self.shared_vpn_state.clone())
+            .start(vpn_exit_rx, listener_vpn_exit_tx)
+            .await;
 
         let connect_handle = VpnServiceConnectHandle {
             listener_vpn_status_rx,
@@ -315,12 +329,6 @@ impl NymVpnService {
         };
 
         VpnServiceConnectResult::Success(connect_handle)
-    }
-
-    fn set_shared_state(&self, state: VpnState) {
-        info!("VPN: Setting shared state to {:?}", state);
-        *self.shared_vpn_state.lock().unwrap() = state.clone();
-        self.vpn_state_changes_tx.send(state.into()).ok();
     }
 
     fn is_running(&self) -> bool {
@@ -333,7 +341,7 @@ impl NymVpnService {
     async fn handle_disconnect(&mut self) -> VpnServiceDisconnectResult {
         // To handle the mutable borrow we set the state separate from the sending the stop message
         if self.is_running() {
-            self.set_shared_state(VpnState::Disconnecting);
+            self.shared_vpn_state.set(VpnState::Disconnecting);
         } else {
             return VpnServiceDisconnectResult::NotRunning;
         }
@@ -350,7 +358,7 @@ impl NymVpnService {
     }
 
     async fn handle_status(&self) -> VpnServiceStatusResult {
-        self.shared_vpn_state.lock().unwrap().clone().into()
+        self.shared_vpn_state.get().into()
     }
 
     async fn handle_import_credential(
