@@ -11,7 +11,7 @@ use nym_vpn_lib::credentials::import_credential;
 use nym_vpn_lib::gateway_directory::{self, EntryPoint, ExitPoint};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::UnboundedReceiver;
-use tokio::sync::oneshot;
+use tokio::sync::{broadcast, oneshot};
 use tracing::{error, info};
 
 use super::config::{
@@ -21,6 +21,7 @@ use super::config::{
 use super::exit_listener::VpnServiceExitListener;
 use super::status_listener::VpnServiceStatusListener;
 
+// The current state of the VPN service
 #[derive(Debug, Clone)]
 pub enum VpnState {
     NotConnected,
@@ -92,6 +93,8 @@ impl VpnServiceDisconnectResult {
     }
 }
 
+// Respond with the current state of the VPN service. This is currently almos the same as VpnState,
+// but it's conceptually not the same thing, so we keep them separate.
 #[derive(Clone, Debug)]
 pub enum VpnServiceStatusResult {
     NotConnected,
@@ -115,9 +118,20 @@ impl VpnServiceImportUserCredentialResult {
 
 pub(super) struct NymVpnService {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
+
+    // Listen for commands from the command interface, like the grpc listener that listens user
+    // commands.
     vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
+
+    // Send commands to the actual vpn service task
     vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
+
+    // Broadcast connection state changes to whoever is interested, which typically is the command
+    // interface
+    vpn_states_changes_tx: broadcast::Sender<VpnState>,
+
     config_file: PathBuf,
+
     data_dir: PathBuf,
 }
 
@@ -134,6 +148,7 @@ impl NymVpnService {
             shared_vpn_state: Arc::new(std::sync::Mutex::new(VpnState::NotConnected)),
             vpn_command_rx,
             vpn_ctrl_sender: None,
+            vpn_states_changes_tx: broadcast::channel(16).0,
             config_file,
             data_dir,
         }

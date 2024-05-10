@@ -5,7 +5,10 @@ use std::{net::SocketAddr, path::PathBuf};
 
 use nym_task::TaskManager;
 use nym_vpn_proto::{nym_vpnd_server::NymVpndServer, VPN_FD_SET};
-use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
+use tokio::sync::{
+    broadcast,
+    mpsc::{UnboundedReceiver, UnboundedSender},
+};
 use tonic::transport::Server;
 use tracing::{debug, debug_span, info, info_span, trace, trace_span, Span};
 
@@ -14,7 +17,10 @@ use super::{
     listener::CommandInterface,
     socket_stream::setup_socket_stream,
 };
-use crate::{cli::CliArgs, service::VpnServiceCommand};
+use crate::{
+    cli::CliArgs,
+    service::{VpnServiceCommand, VpnServiceStatusResult, VpnState},
+};
 
 fn grpc_span(req: &http::Request<()>) -> Span {
     let service = req.uri().path().trim_start_matches('/');
@@ -34,7 +40,11 @@ fn grpc_span(req: &http::Request<()>) -> Span {
     span
 }
 
-fn spawn_uri_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, addr: SocketAddr) {
+fn spawn_uri_listener(
+    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStatusResult>,
+    vpn_command_tx: UnboundedSender<VpnServiceCommand>,
+    addr: SocketAddr,
+) {
     info!("Starting HTTP listener on: {addr}");
     tokio::task::spawn(async move {
         let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
@@ -45,7 +55,8 @@ fn spawn_uri_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, addr: 
             .register_encoded_file_descriptor_set(VPN_FD_SET)
             .build()
             .unwrap();
-        let command_interface = CommandInterface::new_with_uri(vpn_command_tx, addr);
+        let command_interface =
+            CommandInterface::new_with_uri(vpn_state_changes_rx, vpn_command_tx, addr);
 
         Server::builder()
             .trace_fn(grpc_span)
@@ -58,7 +69,11 @@ fn spawn_uri_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, addr: 
     });
 }
 
-fn spawn_socket_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, socket_path: PathBuf) {
+fn spawn_socket_listener(
+    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStatusResult>,
+    vpn_command_tx: UnboundedSender<VpnServiceCommand>,
+    socket_path: PathBuf,
+) {
     info!("Starting socket listener on: {}", socket_path.display());
     tokio::task::spawn(async move {
         let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
@@ -69,8 +84,11 @@ fn spawn_socket_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, soc
             .register_encoded_file_descriptor_set(VPN_FD_SET)
             .build()
             .unwrap();
-        let command_interface = CommandInterface::new_with_path(vpn_command_tx, &socket_path);
+        let command_interface =
+            CommandInterface::new_with_path(vpn_state_changes_rx, vpn_command_tx, &socket_path);
         command_interface.remove_previous_socket_file();
+
+        // Wrap the unix socket into a stream that can be used by tonic
         let incoming = setup_socket_stream(&socket_path);
 
         Server::builder()
@@ -85,6 +103,7 @@ fn spawn_socket_listener(vpn_command_tx: UnboundedSender<VpnServiceCommand>, soc
 }
 
 pub(crate) fn start_command_interface(
+    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStatusResult>,
     mut task_manager: TaskManager,
     args: &CliArgs,
 ) -> (
@@ -100,17 +119,25 @@ pub(crate) fn start_command_interface(
     let uri_addr = default_uri_addr();
 
     let handle = std::thread::spawn(move || {
+        // Explicitly create a multu-threaded runtime for the command interface.
+        // We should consider also explictly setting the number of threads here to something like
+        // max(num_vcpu, 4) or something like that.
         let command_rt = tokio::runtime::Builder::new_multi_thread()
             .enable_all()
             .build()
             .unwrap();
+
         command_rt.block_on(async move {
             if !args.disable_socket_listener {
-                spawn_socket_listener(vpn_command_tx.clone(), socket_path.to_path_buf());
+                spawn_socket_listener(
+                    vpn_state_changes_rx.resubscribe(),
+                    vpn_command_tx.clone(),
+                    socket_path.to_path_buf(),
+                );
             }
 
             if args.enable_http_listener {
-                spawn_uri_listener(vpn_command_tx.clone(), uri_addr);
+                spawn_uri_listener(vpn_state_changes_rx, vpn_command_tx.clone(), uri_addr);
             }
 
             // Using TaskManager::catch_interrupt() here is a bit of a hack that we use for now.
