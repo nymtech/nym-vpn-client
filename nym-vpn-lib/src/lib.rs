@@ -659,7 +659,10 @@ pub fn spawn_nym_vpn_with_new_runtime(nym_vpn: SpecificVpn) -> Result<NymVpnHand
     let (vpn_exit_tx, vpn_exit_rx) = oneshot::channel();
 
     std::thread::spawn(|| {
-        let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio run time");
+        let rt = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .expect("Failed to create Tokio run time");
         rt.block_on(run_nym_vpn(
             nym_vpn,
             vpn_status_tx,

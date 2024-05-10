@@ -100,7 +100,10 @@ pub(crate) fn start_command_interface(
     let uri_addr = default_uri_addr();
 
     let handle = std::thread::spawn(move || {
-        let command_rt = tokio::runtime::Runtime::new().unwrap();
+        let command_rt = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap();
         command_rt.block_on(async move {
             if !args.disable_socket_listener {
                 spawn_socket_listener(vpn_command_tx.clone(), socket_path.to_path_buf());

@@ -5,7 +5,7 @@ use std::net::IpAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use futures::channel::mpsc::UnboundedSender;
+use futures::channel::{mpsc::UnboundedSender, oneshot::Receiver as OneshotReceiver};
 use futures::SinkExt;
 use nym_vpn_lib::credentials::import_credential;
 use nym_vpn_lib::gateway_directory::{self, EntryPoint, ExitPoint};
@@ -62,14 +62,20 @@ pub(crate) struct ConnectOptions {
 
 #[derive(Debug)]
 pub enum VpnServiceConnectResult {
-    Success,
+    Success(VpnServiceConnectHandle),
     Fail(String),
 }
 
 impl VpnServiceConnectResult {
     pub fn is_success(&self) -> bool {
-        matches!(self, VpnServiceConnectResult::Success)
+        matches!(self, VpnServiceConnectResult::Success(_))
     }
+}
+
+#[derive(Debug)]
+pub struct VpnServiceConnectHandle {
+    pub listener_vpn_status_rx: nym_vpn_lib::StatusReceiver,
+    pub listener_vpn_exit_rx: OneshotReceiver<nym_vpn_lib::NymVpnExitStatusMessage>,
 }
 
 #[derive(Debug)]
@@ -218,15 +224,23 @@ impl NymVpnService {
 
         self.vpn_ctrl_sender = Some(vpn_ctrl_tx);
 
+        let (listener_vpn_status_tx, listener_vpn_status_rx) = futures::channel::mpsc::channel(16);
+        let (listener_vpn_exit_tx, listener_vpn_exit_rx) = futures::channel::oneshot::channel();
+
         VpnServiceStatusListener::new(self.shared_vpn_state.clone())
-            .start(vpn_status_rx)
+            .start(vpn_status_rx, listener_vpn_status_tx)
             .await;
 
         VpnServiceExitListener::new(self.shared_vpn_state.clone())
-            .start(vpn_exit_rx)
+            .start(vpn_exit_rx, listener_vpn_exit_tx)
             .await;
 
-        VpnServiceConnectResult::Success
+        let connect_handle = VpnServiceConnectHandle {
+            listener_vpn_status_rx,
+            listener_vpn_exit_rx,
+        };
+
+        VpnServiceConnectResult::Success(connect_handle)
     }
 
     fn set_shared_state(&self, state: VpnState) {

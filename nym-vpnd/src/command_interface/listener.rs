@@ -5,22 +5,30 @@ use std::{
     fs,
     net::SocketAddr,
     path::{Path, PathBuf},
+    pin::Pin,
 };
 
+use futures::{stream::BoxStream, StreamExt};
 use nym_vpn_lib::{
     gateway_directory::{EntryPoint, ExitPoint},
     NodeIdentity, Recipient,
 };
 use nym_vpn_proto::{
-    nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, ConnectionStatus, DisconnectRequest,
-    DisconnectResponse, Error as ProtoError, ImportUserCredentialRequest,
-    ImportUserCredentialResponse, StatusRequest, StatusResponse,
+    nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, ConnectionStateChange,
+    ConnectionStatus, ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
+    Error as ProtoError, ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest,
+    StatusResponse,
 };
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::{error, info};
 
-use super::{connection_handler::CommandInterfaceConnectionHandler, error::CommandInterfaceError};
-use crate::service::{ConnectOptions, VpnServiceCommand, VpnServiceStatusResult};
+use super::{
+    connection_handler::CommandInterfaceConnectionHandler, error::CommandInterfaceError,
+    status_broadcaster::ConnectionStatusBroadcaster,
+};
+use crate::service::{
+    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStatusResult,
+};
 
 enum ListenerType {
     Path(PathBuf),
@@ -29,6 +37,8 @@ enum ListenerType {
 
 pub(super) struct CommandInterface {
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
+    status_tx: tokio::sync::broadcast::Sender<ConnectionStatusUpdate>,
+    _connection_state_tx: tokio::sync::broadcast::Sender<ConnectionStateChange>,
     listener: ListenerType,
 }
 
@@ -39,6 +49,8 @@ impl CommandInterface {
     ) -> Self {
         Self {
             vpn_command_tx,
+            status_tx: tokio::sync::broadcast::channel(10).0,
+            _connection_state_tx: tokio::sync::broadcast::channel(10).0,
             listener: ListenerType::Path(socket_path.to_path_buf()),
         }
     }
@@ -49,6 +61,8 @@ impl CommandInterface {
     ) -> Self {
         Self {
             vpn_command_tx,
+            status_tx: tokio::sync::broadcast::channel(10).0,
+            _connection_state_tx: tokio::sync::broadcast::channel(10).0,
             listener: ListenerType::Uri(uri),
         }
     }
@@ -111,10 +125,20 @@ impl NymVpnd for CommandInterface {
             .handle_connect(entry, exit, options)
             .await;
 
+        let success = status.is_success();
+
+        // After connecting we start a task that listens for status updates and broadcasts them for
+        // listeners to the connection status stream.
+        if let VpnServiceConnectResult::Success(connect_handle) = status {
+            ConnectionStatusBroadcaster::new(
+                self.status_tx.clone(),
+                connect_handle.listener_vpn_status_rx,
+            )
+            .start();
+        }
+
         info!("Returning connect response");
-        Ok(tonic::Response::new(ConnectResponse {
-            success: status.is_success(),
-        }))
+        Ok(tonic::Response::new(ConnectResponse { success }))
     }
 
     async fn vpn_disconnect(
@@ -175,6 +199,43 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(ImportUserCredentialResponse {
             success: status.is_success(),
         }))
+    }
+
+    type ListenToConnectionStatusStream =
+        BoxStream<'static, Result<ConnectionStatusUpdate, tonic::Status>>;
+
+    async fn listen_to_connection_status(
+        &self,
+        request: tonic::Request<Empty>,
+    ) -> Result<tonic::Response<Self::ListenToConnectionStatusStream>, tonic::Status> {
+        info!("Got connection status stream request: {request:?}");
+        let rx = self.status_tx.subscribe();
+        let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|status| {
+            status.map_err(|err| {
+                error!("Failed to receive connection status update: {:?}", err);
+                tonic::Status::internal("Failed to receive connection status update")
+            })
+        });
+        Ok(tonic::Response::new(
+            Box::pin(stream) as Self::ListenToConnectionStatusStream
+        ))
+    }
+
+    type ListenToConnectionStateChangesStream = Pin<
+        Box<
+            dyn futures::Stream<Item = Result<ConnectionStateChange, tonic::Status>>
+                + Send
+                + Sync
+                + 'static,
+        >,
+    >;
+
+    async fn listen_to_connection_state_changes(
+        &self,
+        request: tonic::Request<Empty>,
+    ) -> Result<tonic::Response<Self::ListenToConnectionStateChangesStream>, tonic::Status> {
+        info!("Got connection status stream request: {request:?}");
+        Err(tonic::Status::unimplemented("Not yet implemented"))
     }
 }
 

@@ -17,7 +17,10 @@ pub(crate) fn start_vpn_service(
     task_client.disarm();
 
     std::thread::spawn(move || {
-        let vpn_rt = tokio::runtime::Runtime::new().unwrap();
+        let vpn_rt = tokio::runtime::Builder::new_multi_thread()
+            .enable_all()
+            .build()
+            .unwrap();
         vpn_rt.block_on(async {
             NymVpnService::new(vpn_command_rx).run().await.ok();
         });

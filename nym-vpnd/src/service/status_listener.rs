@@ -3,7 +3,8 @@
 
 use std::sync::Arc;
 
-use futures::StreamExt;
+use futures::{SinkExt, StreamExt};
+use nym_task::StatusSender;
 use nym_vpn_lib::{
     connection_monitor::ConnectionMonitorStatus, SentStatus, StatusReceiver, TaskStatus,
 };
@@ -20,33 +21,39 @@ impl VpnServiceStatusListener {
         Self { shared_vpn_state }
     }
 
-    async fn handle_status_message(&self, msg: SentStatus) {
+    async fn handle_status_message(&self, msg: SentStatus) -> SentStatus {
         debug!("Received status: {msg}");
-        match msg.downcast_ref::<TaskStatus>() {
-            Some(TaskStatus::Ready) => {
-                info!("VPN status: connected");
-                self.set_shared_state(VpnState::Connected);
-                return;
+        if let Some(msg) = msg.downcast_ref::<TaskStatus>() {
+            match msg {
+                TaskStatus::Ready => {
+                    info!("VPN status: connected");
+                    self.set_shared_state(VpnState::Connected);
+                }
+                TaskStatus::ReadyWithGateway(gateway) => {
+                    info!("VPN status: connected to gateway: {gateway}");
+                    self.set_shared_state(VpnState::Connected);
+                }
             }
-            Some(TaskStatus::ReadyWithGateway(_)) => {
-                info!("VPN status: connected");
-                self.set_shared_state(VpnState::Connected);
-                return;
-            }
-            None => {
-                info!("VPN status: unknown: {msg}");
-            }
+        } else if let Some(msg) = msg.downcast_ref::<ConnectionMonitorStatus>() {
+            info!("VPN status: {msg}");
+        } else {
+            info!("VPN status: unknown: {msg}");
         }
-        match msg.downcast_ref::<ConnectionMonitorStatus>() {
-            Some(e) => info!("VPN status: {e}"),
-            None => info!("VPN status: unknown: {msg}"),
-        }
+        msg
     }
 
-    pub(super) async fn start(self, mut vpn_status_rx: StatusReceiver) {
+    pub(super) async fn start(
+        self,
+        mut vpn_status_rx: StatusReceiver,
+        mut listener_vpn_status_tx: StatusSender,
+    ) {
         tokio::spawn(async move {
             while let Some(msg) = vpn_status_rx.next().await {
-                self.handle_status_message(msg).await;
+                let listener_msg = self.handle_status_message(msg).await;
+
+                // Forward the status message to the command listener so that it can provide these
+                // on its streaming endpoints
+                listener_vpn_status_tx.send(listener_msg).await.ok();
             }
         });
     }

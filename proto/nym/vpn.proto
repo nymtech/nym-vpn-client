@@ -53,20 +53,12 @@ message ConnectRequest {
 
 message ConnectResponse {
   bool success = 1;
-  // string message = 1;
 }
 
 message DisconnectRequest {}
 message DisconnectResponse {
   bool success = 1;
 }
-
-// enum VpnMode {
-//   MODE_UNSPECIFIED = 0;
-//   MIXNET_FIVE_HOP = 1;
-//   MIXNET_TWO_HOP = 2;
-//   WIREGUARD_TWO_HOP = 3;
-// }
 
 enum ConnectionStatus {
   STATUS_UNSPECIFIED = 0;
@@ -78,42 +70,23 @@ enum ConnectionStatus {
   CONNECTION_FAILED = 6;
 }
 
-// message LocationListResponse {
-//   repeated Location location = 1;
-// }
-//
-// message SetVpnModeRequest {
-//   VpnMode mode = 1;
-// }
-//
-// message GetVpnModeResponse {
-//   VpnMode mode = 1;
-// }
-//
-// message GatewayResponse {
-//   Gateway gateways = 1;
-// }
-
 message StatusRequest {}
 message StatusResponse {
   ConnectionStatus status = 1;
   Error error = 2;
 }
 
-// message ConnectionStatusUpdate {
-//   ConnectionStatus status = 1;
-//   repeated ConnectionProgress connection_progress = 2;
-//   // optional Error error = 3;
-// }
-//
-// message ConnectionProgress {
-//   string message = 1;
-// }
+message ConnectionStateChange {
+  ConnectionStatus status = 1;
+  Error error = 2;
+}
+
+message ConnectionStatusUpdate {
+  string message = 1;
+}
 
 message Error {
   string message = 1;
-  // ErrorType type = 2; // TOBE implemented
-  // optional string source = 3;
 }
 
 message ImportUserCredentialRequest {
@@ -129,15 +102,7 @@ service NymVpnd {
   rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
   rpc VpnStatus (StatusRequest) returns (StatusResponse) {}
   rpc ImportUserCredential (ImportUserCredentialRequest) returns (ImportUserCredentialResponse) {}
-  // rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
-  // // Cancel any connection pending state (connecting, disconnecting etc)
-  // // and return to disconnected state
-  // rpc Cancel (Empty) returns (Empty) {}
-  // rpc GetEntryNodeLocations (Empty) returns (LocationListResponse) {}
-  // rpc GetExitNodeLocations (Empty) returns (LocationListResponse) {}
-  // rpc GetFastestEntryGateway (Empty) returns (GatewayResponse) {}
-  // rpc GetFastestExitGateway (Empty) returns (GatewayResponse) {}
-  // rpc SetVpnMode (SetVpnModeRequest) returns (Empty) {}
-  // rpc GetVpnMode (Empty) returns (GetVpnModeResponse) {}
+  rpc ListenToConnectionStateChanges (Empty) returns (stream ConnectionStateChange) {}
+  rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
 }
 
