@@ -103,6 +103,15 @@ pub enum VpnServiceStatusResult {
     ConnectionFailed(String),
 }
 
+impl VpnServiceStatusResult {
+    pub fn error(&self) -> Option<String> {
+        match self {
+            VpnServiceStatusResult::ConnectionFailed(reason) => Some(reason.clone()),
+            _ => None,
+        }
+    }
+}
+
 impl From<VpnState> for VpnServiceStatusResult {
     fn from(state: VpnState) -> Self {
         match state {
@@ -122,6 +131,15 @@ pub enum VpnServiceStateChange {
     Connected,
     Disconnecting,
     ConnectionFailed(String),
+}
+
+impl VpnServiceStateChange {
+    pub fn error(&self) -> Option<String> {
+        match self {
+            VpnServiceStateChange::ConnectionFailed(reason) => Some(reason.clone()),
+            _ => None,
+        }
+    }
 }
 
 impl From<VpnState> for VpnServiceStateChange {
