@@ -6,15 +6,22 @@ use std::sync::Arc;
 use futures::channel::oneshot;
 use tracing::{error, info};
 
-use super::vpn_service::VpnState;
+use super::{vpn_service::VpnState, VpnServiceStatusResult};
 
 pub(super) struct VpnServiceExitListener {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
+    vpn_state_changes_tx: tokio::sync::broadcast::Sender<VpnServiceStatusResult>,
 }
 
 impl VpnServiceExitListener {
-    pub(super) fn new(shared_vpn_state: Arc<std::sync::Mutex<VpnState>>) -> Self {
-        Self { shared_vpn_state }
+    pub(super) fn new(
+        vpn_state_changes_tx: tokio::sync::broadcast::Sender<VpnServiceStatusResult>,
+        shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
+    ) -> Self {
+        Self {
+            shared_vpn_state,
+            vpn_state_changes_tx,
+        }
     }
 
     pub(super) async fn start(
@@ -44,6 +51,7 @@ impl VpnServiceExitListener {
     }
 
     fn set_shared_state(&self, state: VpnState) {
-        *self.shared_vpn_state.lock().unwrap() = state;
+        *self.shared_vpn_state.lock().unwrap() = state.clone();
+        self.vpn_state_changes_tx.send(state.into()).ok();
     }
 }

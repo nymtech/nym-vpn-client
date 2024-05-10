@@ -10,15 +10,22 @@ use nym_vpn_lib::{
 };
 use tracing::{debug, info};
 
-use super::vpn_service::VpnState;
+use super::{vpn_service::VpnState, VpnServiceStatusResult};
 
 pub(super) struct VpnServiceStatusListener {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
+    vpn_state_changes_tx: tokio::sync::broadcast::Sender<VpnServiceStatusResult>,
 }
 
 impl VpnServiceStatusListener {
-    pub(super) fn new(shared_vpn_state: Arc<std::sync::Mutex<VpnState>>) -> Self {
-        Self { shared_vpn_state }
+    pub(super) fn new(
+        vpn_state_changes_tx: tokio::sync::broadcast::Sender<VpnServiceStatusResult>,
+        shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
+    ) -> Self {
+        Self {
+            shared_vpn_state,
+            vpn_state_changes_tx,
+        }
     }
 
     async fn handle_status_message(&self, msg: SentStatus) -> SentStatus {
@@ -59,6 +66,7 @@ impl VpnServiceStatusListener {
     }
 
     fn set_shared_state(&self, state: VpnState) {
-        *self.shared_vpn_state.lock().unwrap() = state;
+        *self.shared_vpn_state.lock().unwrap() = state.clone();
+        self.vpn_state_changes_tx.send(state.into()).ok();
     }
 }

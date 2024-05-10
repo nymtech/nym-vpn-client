@@ -104,6 +104,18 @@ pub enum VpnServiceStatusResult {
     ConnectionFailed(String),
 }
 
+impl From<VpnState> for VpnServiceStatusResult {
+    fn from(state: VpnState) -> Self {
+        match state {
+            VpnState::NotConnected => VpnServiceStatusResult::NotConnected,
+            VpnState::Connecting => VpnServiceStatusResult::Connecting,
+            VpnState::Connected => VpnServiceStatusResult::Connected,
+            VpnState::Disconnecting => VpnServiceStatusResult::Disconnecting,
+            VpnState::ConnectionFailed(reason) => VpnServiceStatusResult::ConnectionFailed(reason),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum VpnServiceImportUserCredentialResult {
     Success,
@@ -128,7 +140,7 @@ pub(super) struct NymVpnService {
 
     // Broadcast connection state changes to whoever is interested, which typically is the command
     // interface
-    vpn_states_changes_tx: broadcast::Sender<VpnState>,
+    vpn_state_changes_tx: broadcast::Sender<VpnServiceStatusResult>,
 
     config_file: PathBuf,
 
@@ -136,7 +148,10 @@ pub(super) struct NymVpnService {
 }
 
 impl NymVpnService {
-    pub(super) fn new(vpn_command_rx: UnboundedReceiver<VpnServiceCommand>) -> Self {
+    pub(super) fn new(
+        vpn_state_changes_tx: broadcast::Sender<VpnServiceStatusResult>,
+        vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
+    ) -> Self {
         let config_dir = std::env::var("NYM_VPND_CONFIG_DIR")
             .map(PathBuf::from)
             .unwrap_or_else(|_| PathBuf::from(DEFAULT_CONFIG_DIR));
@@ -148,7 +163,7 @@ impl NymVpnService {
             shared_vpn_state: Arc::new(std::sync::Mutex::new(VpnState::NotConnected)),
             vpn_command_rx,
             vpn_ctrl_sender: None,
-            vpn_states_changes_tx: broadcast::channel(16).0,
+            vpn_state_changes_tx,
             config_file,
             data_dir,
         }
@@ -242,13 +257,19 @@ impl NymVpnService {
         let (listener_vpn_status_tx, listener_vpn_status_rx) = futures::channel::mpsc::channel(16);
         let (listener_vpn_exit_tx, listener_vpn_exit_rx) = futures::channel::oneshot::channel();
 
-        VpnServiceStatusListener::new(self.shared_vpn_state.clone())
-            .start(vpn_status_rx, listener_vpn_status_tx)
-            .await;
+        VpnServiceStatusListener::new(
+            self.vpn_state_changes_tx.clone(),
+            self.shared_vpn_state.clone(),
+        )
+        .start(vpn_status_rx, listener_vpn_status_tx)
+        .await;
 
-        VpnServiceExitListener::new(self.shared_vpn_state.clone())
-            .start(vpn_exit_rx, listener_vpn_exit_tx)
-            .await;
+        VpnServiceExitListener::new(
+            self.vpn_state_changes_tx.clone(),
+            self.shared_vpn_state.clone(),
+        )
+        .start(vpn_exit_rx, listener_vpn_exit_tx)
+        .await;
 
         let connect_handle = VpnServiceConnectHandle {
             listener_vpn_status_rx,
@@ -260,7 +281,8 @@ impl NymVpnService {
 
     fn set_shared_state(&self, state: VpnState) {
         info!("VPN: Setting shared state to {:?}", state);
-        *self.shared_vpn_state.lock().unwrap() = state;
+        *self.shared_vpn_state.lock().unwrap() = state.clone();
+        self.vpn_state_changes_tx.send(state.into()).ok();
     }
 
     fn is_running(&self) -> bool {
@@ -290,13 +312,7 @@ impl NymVpnService {
     }
 
     async fn handle_status(&self) -> VpnServiceStatusResult {
-        match self.shared_vpn_state.lock().unwrap().clone() {
-            VpnState::NotConnected => VpnServiceStatusResult::NotConnected,
-            VpnState::Connecting => VpnServiceStatusResult::Connecting,
-            VpnState::Connected => VpnServiceStatusResult::Connected,
-            VpnState::Disconnecting => VpnServiceStatusResult::Disconnecting,
-            VpnState::ConnectionFailed(reason) => VpnServiceStatusResult::ConnectionFailed(reason),
-        }
+        self.shared_vpn_state.lock().unwrap().clone().into()
     }
 
     async fn handle_import_credential(

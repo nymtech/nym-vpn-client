@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         start_command_interface(state_changes_tx.subscribe(), task_manager, &args);
 
     // Start the VPN service that wraps the actual VPN
-    let vpn_handle = start_vpn_service(vpn_command_rx, service_task_client);
+    let vpn_handle = start_vpn_service(state_changes_tx, vpn_command_rx, service_task_client);
 
     vpn_handle.join().unwrap();
     command_handle.join().unwrap();
