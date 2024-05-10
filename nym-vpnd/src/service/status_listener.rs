@@ -10,16 +10,16 @@ use nym_vpn_lib::{
 };
 use tracing::{debug, info};
 
-use super::{vpn_service::VpnState, VpnServiceStatusResult};
+use super::{vpn_service::VpnState, VpnServiceStateChange};
 
 pub(super) struct VpnServiceStatusListener {
     shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
-    vpn_state_changes_tx: tokio::sync::broadcast::Sender<VpnServiceStatusResult>,
+    vpn_state_changes_tx: tokio::sync::broadcast::Sender<VpnServiceStateChange>,
 }
 
 impl VpnServiceStatusListener {
     pub(super) fn new(
-        vpn_state_changes_tx: tokio::sync::broadcast::Sender<VpnServiceStatusResult>,
+        vpn_state_changes_tx: tokio::sync::broadcast::Sender<VpnServiceStateChange>,
         shared_vpn_state: Arc<std::sync::Mutex<VpnState>>,
     ) -> Self {
         Self {

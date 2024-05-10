@@ -27,7 +27,8 @@ use super::{
     status_broadcaster::ConnectionStatusBroadcaster,
 };
 use crate::service::{
-    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStatusResult, VpnState,
+    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange,
+    VpnServiceStatusResult,
 };
 
 enum ListenerType {
@@ -37,7 +38,7 @@ enum ListenerType {
 
 pub(super) struct CommandInterface {
     // Listen to state changes from the VPN service
-    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStatusResult>,
+    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
 
     // Send commands to the VPN service
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
@@ -45,15 +46,12 @@ pub(super) struct CommandInterface {
     // Broadcast connection status updates to our API endpoint listeners
     status_tx: tokio::sync::broadcast::Sender<ConnectionStatusUpdate>,
 
-    // Broadcast connection state changes to our API endpoint listeners
-    _connection_state_tx: tokio::sync::broadcast::Sender<ConnectionStateChange>,
-
     listener: ListenerType,
 }
 
 impl CommandInterface {
     pub(super) fn new_with_path(
-        vpn_state_changes_rx: broadcast::Receiver<VpnServiceStatusResult>,
+        vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         socket_path: &Path,
     ) -> Self {
@@ -61,13 +59,12 @@ impl CommandInterface {
             vpn_state_changes_rx,
             vpn_command_tx,
             status_tx: tokio::sync::broadcast::channel(10).0,
-            _connection_state_tx: tokio::sync::broadcast::channel(10).0,
             listener: ListenerType::Path(socket_path.to_path_buf()),
         }
     }
 
     pub(super) fn new_with_uri(
-        vpn_state_changes_rx: broadcast::Receiver<VpnServiceStatusResult>,
+        vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         uri: SocketAddr,
     ) -> Self {
@@ -75,7 +72,6 @@ impl CommandInterface {
             vpn_state_changes_rx,
             vpn_command_tx,
             status_tx: tokio::sync::broadcast::channel(10).0,
-            _connection_state_tx: tokio::sync::broadcast::channel(10).0,
             listener: ListenerType::Uri(uri),
         }
     }
@@ -253,13 +249,11 @@ impl NymVpnd for CommandInterface {
             status
                 .map(|status| {
                     let error = match status {
-                        VpnServiceStatusResult::NotConnected => None,
-                        VpnServiceStatusResult::Connecting => None,
-                        VpnServiceStatusResult::Connected => None,
-                        VpnServiceStatusResult::Disconnecting => None,
-                        VpnServiceStatusResult::ConnectionFailed(ref reason) => {
-                            Some(reason.clone())
-                        }
+                        VpnServiceStateChange::NotConnected => None,
+                        VpnServiceStateChange::Connecting => None,
+                        VpnServiceStateChange::Connected => None,
+                        VpnServiceStateChange::Disconnecting => None,
+                        VpnServiceStateChange::ConnectionFailed(ref reason) => Some(reason.clone()),
                     }
                     .map(|reason| ProtoError { message: reason });
                     ConnectionStateChange {
@@ -360,6 +354,18 @@ impl From<VpnServiceStatusResult> for ConnectionStatus {
             VpnServiceStatusResult::Connected => ConnectionStatus::Connected,
             VpnServiceStatusResult::Disconnecting => ConnectionStatus::Disconnecting,
             VpnServiceStatusResult::ConnectionFailed(_reason) => ConnectionStatus::ConnectionFailed,
+        }
+    }
+}
+
+impl From<VpnServiceStateChange> for ConnectionStatus {
+    fn from(status: VpnServiceStateChange) -> Self {
+        match status {
+            VpnServiceStateChange::NotConnected => ConnectionStatus::NotConnected,
+            VpnServiceStateChange::Connecting => ConnectionStatus::Connecting,
+            VpnServiceStateChange::Connected => ConnectionStatus::Connected,
+            VpnServiceStateChange::Disconnecting => ConnectionStatus::Disconnecting,
+            VpnServiceStateChange::ConnectionFailed(_reason) => ConnectionStatus::ConnectionFailed,
         }
     }
 }

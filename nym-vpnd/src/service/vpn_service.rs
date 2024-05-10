@@ -28,7 +28,6 @@ pub enum VpnState {
     Connecting,
     Connected,
     Disconnecting,
-    #[allow(unused)]
     ConnectionFailed(String),
 }
 
@@ -116,6 +115,27 @@ impl From<VpnState> for VpnServiceStatusResult {
     }
 }
 
+#[derive(Clone, Debug)]
+pub enum VpnServiceStateChange {
+    NotConnected,
+    Connecting,
+    Connected,
+    Disconnecting,
+    ConnectionFailed(String),
+}
+
+impl From<VpnState> for VpnServiceStateChange {
+    fn from(state: VpnState) -> Self {
+        match state {
+            VpnState::NotConnected => VpnServiceStateChange::NotConnected,
+            VpnState::Connecting => VpnServiceStateChange::Connecting,
+            VpnState::Connected => VpnServiceStateChange::Connected,
+            VpnState::Disconnecting => VpnServiceStateChange::Disconnecting,
+            VpnState::ConnectionFailed(reason) => VpnServiceStateChange::ConnectionFailed(reason),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum VpnServiceImportUserCredentialResult {
     Success,
@@ -140,7 +160,7 @@ pub(super) struct NymVpnService {
 
     // Broadcast connection state changes to whoever is interested, which typically is the command
     // interface
-    vpn_state_changes_tx: broadcast::Sender<VpnServiceStatusResult>,
+    vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
 
     config_file: PathBuf,
 
@@ -149,7 +169,7 @@ pub(super) struct NymVpnService {
 
 impl NymVpnService {
     pub(super) fn new(
-        vpn_state_changes_tx: broadcast::Sender<VpnServiceStatusResult>,
+        vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
         vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
     ) -> Self {
         let config_dir = std::env::var("NYM_VPND_CONFIG_DIR")

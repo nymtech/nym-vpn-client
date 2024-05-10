@@ -19,7 +19,7 @@ use super::{
 };
 use crate::{
     cli::CliArgs,
-    service::{VpnServiceCommand, VpnServiceStatusResult, VpnState},
+    service::{VpnServiceCommand, VpnServiceStateChange},
 };
 
 fn grpc_span(req: &http::Request<()>) -> Span {
@@ -41,7 +41,7 @@ fn grpc_span(req: &http::Request<()>) -> Span {
 }
 
 fn spawn_uri_listener(
-    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStatusResult>,
+    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
     addr: SocketAddr,
 ) {
@@ -70,7 +70,7 @@ fn spawn_uri_listener(
 }
 
 fn spawn_socket_listener(
-    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStatusResult>,
+    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
     socket_path: PathBuf,
 ) {
@@ -103,7 +103,7 @@ fn spawn_socket_listener(
 }
 
 pub(crate) fn start_command_interface(
-    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStatusResult>,
+    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     mut task_manager: TaskManager,
     args: &CliArgs,
 ) -> (

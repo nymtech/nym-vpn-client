@@ -5,10 +5,10 @@ use tokio::sync::mpsc::UnboundedReceiver;
 use tracing::info;
 
 use super::vpn_service::NymVpnService;
-use super::{VpnServiceCommand, VpnServiceStatusResult};
+use super::{VpnServiceCommand, VpnServiceStateChange};
 
 pub(crate) fn start_vpn_service(
-    vpn_state_changes_tx: tokio::sync::broadcast::Sender<VpnServiceStatusResult>,
+    vpn_state_changes_tx: tokio::sync::broadcast::Sender<VpnServiceStateChange>,
     vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
     mut task_client: nym_task::TaskClient,
 ) -> std::thread::JoinHandle<()> {

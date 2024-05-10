@@ -10,6 +10,6 @@ mod vpn_service;
 pub(crate) use start::start_vpn_service;
 pub(crate) use vpn_service::{
     ConnectArgs, ConnectOptions, VpnServiceCommand, VpnServiceConnectResult,
-    VpnServiceDisconnectResult, VpnServiceImportUserCredentialResult, VpnServiceStatusResult,
-    VpnState,
+    VpnServiceDisconnectResult, VpnServiceImportUserCredentialResult, VpnServiceStateChange,
+    VpnServiceStatusResult,
 };
