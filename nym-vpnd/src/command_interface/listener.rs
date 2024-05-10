@@ -5,7 +5,6 @@ use std::{
     fs,
     net::SocketAddr,
     path::{Path, PathBuf},
-    pin::Pin,
 };
 
 use futures::{stream::BoxStream, StreamExt};
@@ -218,14 +217,8 @@ impl NymVpnd for CommandInterface {
         ))
     }
 
-    type ListenToConnectionStateChangesStream = Pin<
-        Box<
-            dyn futures::Stream<Item = Result<ConnectionStateChange, tonic::Status>>
-                + Send
-                + Sync
-                + 'static,
-        >,
-    >;
+    type ListenToConnectionStateChangesStream =
+        BoxStream<'static, Result<ConnectionStateChange, tonic::Status>>;
 
     async fn listen_to_connection_state_changes(
         &self,
