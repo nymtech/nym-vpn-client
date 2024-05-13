@@ -10,6 +10,9 @@ pub enum CredentialError {
     NymCredentialsError(#[from] nym_credentials::Error),
 
     #[error(transparent)]
+    NymCredentialStorageError(#[from] nym_credential_storage::error::StorageError),
+
+    #[error(transparent)]
     IoError(#[from] std::io::Error),
 
     #[error("the free pass has already expired! The expiration was set to {expiry_date}")]
