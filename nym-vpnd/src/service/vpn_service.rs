@@ -92,7 +92,7 @@ impl VpnServiceDisconnectResult {
     }
 }
 
-// Respond with the current state of the VPN service. This is currently almos the same as VpnState,
+// Respond with the current state of the VPN service. This is currently almost the same as VpnState,
 // but it's conceptually not the same thing, so we keep them separate.
 #[derive(Clone, Debug)]
 pub enum VpnServiceStatusResult {
