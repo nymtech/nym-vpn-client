@@ -1,0 +1,452 @@
+name: release-nym-vpn-x
+on:
+  schedule:
+    - cron: "4 4 * * *"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag name for release"
+        required: false
+        default: nightly-vpn-x
+      publish:
+        type: boolean
+        description: Publish Release
+        required: true
+        default: false
+  push:
+    tags:
+      - nym-vpn-x-v[0-9]+.[0-9]+.[0-9]+*
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04-16-core, macos-14]
+        target: [native]
+    runs-on: ${{ matrix.os }}
+    env:
+      UPDATER_BUNDLE_DIR: updater_bundle
+      APPIMAGE_DIR: appimage
+      WINDOWS_DIR: windows
+      DEB_DIR: deb
+    outputs:
+      pkg_version: ${{ steps.set_env.outputs.pkg_version }}
+      appimage_dir: ${{ env.APPIMAGE_DIR }}
+      windows_dir: ${{ env.WINDOWS_DIR }}
+      deb_dir: ${{ env.DEB_DIR }}
+
+    steps:
+      - name: "Cleanup working directory"
+        if: contains(matrix.os, 'custom')
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            proto
+            nym-vpn-x
+            crates
+
+      - name: Install system dependencies (Linux)
+        if: contains(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
+            libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make libfuse2
+
+      - name: Setup MSBuild.exe
+        if: contains(matrix.os, 'windows')
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-x/src-tauri
+
+      - name: Check tag name consistency
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          if [[ nym-vpn-x-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
+            exit 1
+          fi
+
+      - name: Check name consistency
+        if: inputs.tag_name == 'nightly'
+        run: exit 1
+
+      - name: Set env
+        id: set_env
+        shell: bash
+        run: |
+          version=${{ steps.package-version.outputs.metadata }}
+
+          if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
+            platform_arch=ubuntu-22.04_x86_64
+          elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
+            platform_arch=ubuntu-20.04_x86_64
+          elif ${{ (matrix.os == 'custom-runner-mac-m1' || matrix.os == 'macos-14') && matrix.target == 'native' }}; then
+            platform_arch=macos_universal
+          elif ${{ contains(matrix.os, 'windows') }}; then
+            platform_arch=x86_64-pc-windows-msvc
+          else
+            echo " ✗ unknown platform/arch [${{ matrix.os }}]"
+            exit 1
+          fi
+          artifact_dir="nym-vpn-x_${version}_$platform_arch"
+          artifact_archive="$artifact_dir.tar.gz"
+          artifact_checksum="$artifact_archive.sha256sum"
+          updater_bundle_name="updater-bundle_${version}_$platform_arch"
+          # debug
+          echo " ✓ PKG_VERSION: $version"
+          echo " ✓ PLATFORM_ARCH: $platform_arch"
+          echo " ✓ ARTIFACT_DIR: $artifact_dir"
+          echo " ✓ ARTIFACT_ARCHIVE: $artifact_archive"
+          echo " ✓ UPDATER_BUNDLE_NAME: $updater_bundle_name"
+          echo " ✓ UPDATER_BUNDLE_DIR: ${{ env.UPDATER_BUNDLE_DIR }}"
+          # set github env
+          echo "PKG_VERSION=$version" >> $GITHUB_ENV
+          echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
+          echo "ARTIFACT_DIR=$artifact_dir" >> $GITHUB_ENV
+          echo "ARTIFACT_ARCHIVE=$artifact_archive" >> $GITHUB_ENV
+          echo "ARTIFACT_CHECKSUM=$artifact_checksum" >> $GITHUB_ENV
+          echo "UPDATER_BUNDLE_NAME=$updater_bundle_name" >> $GITHUB_ENV
+          # set gh outputs
+          echo "pkg_version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Install cargo-about
+        run: cargo install --locked cargo-about
+
+      - name: Install extra arch macos
+        if: env.PLATFORM_ARCH == 'apple_universal'
+        run: |
+          rustup target add x86_64-apple-darwin
+          echo "CARGO_TARGET=--target universal-apple-darwin" >> $GITHUB_ENV
+          echo "ARCH_TARGET=universal-apple-darwin" >> $GITHUB_ENV
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Import signing certificate
+        if: contains(matrix.os, 'windows')
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+        run: |
+          New-Item -ItemType directory -Path certificate
+          Set-Content -Path certificate/tempCert.txt -Value $env:WINDOWS_CERTIFICATE
+          certutil -decode certificate/tempCert.txt certificate/certificate.pfx
+          Remove-Item -path certificate -include tempCert.txt
+          Import-PfxCertificate -FilePath certificate/certificate.pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText)
+
+
+      - name: Prepare desktop build
+        shell: bash
+        run: mkdir nym-vpn-x/dist
+
+      - name: Install JS dependencies
+        working-directory: nym-vpn-x
+        shell: bash
+        run: npm ci
+
+      - name: Generate licenses file (Js)
+        working-directory: nym-vpn-x
+        shell: bash
+        run: |
+          rm public/licenses-js.json || true
+          npm run gen:licenses:js
+
+      - name: Generate licenses file (Rust)
+        working-directory: nym-vpn-x
+        shell: bash
+        run: |
+          rm public/licenses-rust.json || true
+          npm run gen:licenses:rust
+
+      - name: Build desktop client
+        working-directory: nym-vpn-x/src-tauri
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
+          # TODO try fixing `error running bundle_dmg.sh` (macos build)
+          NO_STRIP: ${{ contains(matrix.os, 'mac') && 'true' }}
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+        shell: bash
+        run: |
+          npm run tauri build -- ${{ env.CARGO_TARGET }}
+          ls -la target/release/ || true
+          ls -la target/release/bundle || true
+          ls -la target/release/bundle/* || true
+          ls -la target/${{ env.ARCH_TARGET }}/release/ || true
+          ls -la target/${{ env.ARCH_TARGET }}/release/bundle || true
+          ls -la target/${{ env.ARCH_TARGET }}/release/bundle/* || true
+
+      - name: Move updater bundle artifacts (Linux)
+        if: contains(matrix.os, 'ubuntu')
+        shell: bash
+        env:
+          SRC_BUNDLE: nym-vpn-x/src-tauri/target/release/bundle/appimage/nym-vpn*.AppImage.tar.gz
+          TARGET_BUNDLE: updater_linux_x86_64.AppImage.tar.gz
+        run: |
+          echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
+          rm -rf $UPDATER_BUNDLE_DIR || true
+          mkdir $UPDATER_BUNDLE_DIR
+          mv -v ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
+          mv -v ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
+          ls -la $UPDATER_BUNDLE_DIR
+
+      - name: Move updater bundle artifacts (Macos)
+        if: contains(matrix.os, 'mac')
+        shell: bash
+        env:
+          SRC_BUNDLE: nym-vpn-x/src-tauri/target/release/bundle/macos/nym-vpn.app.tar.gz
+          TARGET_BUNDLE: updater_macos_universal.app.tar.gz
+        run: |
+          echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
+          rm -rf $UPDATER_BUNDLE_DIR || true
+          mkdir $UPDATER_BUNDLE_DIR
+          mv -v ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
+          mv -v ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
+          ls -la $UPDATER_BUNDLE_DIR
+
+      - name: Move updater bundle artifacts (Windows)
+        if: contains(matrix.os, 'windows')
+        shell: bash
+        env:
+          SRC_BUNDLE: nym-vpn-x/src-tauri/target/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup.nsis.zip
+          TARGET_BUNDLE: updater_windows_x86_64.nsis.zip
+        run: |
+          echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
+          rm -rf $UPDATER_BUNDLE_DIR || true
+          mkdir $UPDATER_BUNDLE_DIR
+          mv -v ${{ env.SRC_BUNDLE }}     $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE} || true
+          mv -v ${{ env.SRC_BUNDLE }}.sig $UPDATER_BUNDLE_DIR/${TARGET_BUNDLE}.sig || true
+          ls -la $UPDATER_BUNDLE_DIR
+
+      - name: Upload updater bundle (${{ env.PLATFORM_ARCH }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPDATER_BUNDLE_NAME }}
+          # upload both the updater bundle and its signature
+          # - updater_*.tar.gz
+          # - updater_*.tar.gz.sig
+          path: ${{ env.UPDATER_BUNDLE_DIR }}
+          retention-days: 2
+
+      # For mac it's important to create a tar archive to avoid stripping file attributes
+      - name: Create archive (mac)
+        if: "contains(matrix.os, 'mac')"
+        shell: bash
+        run: |
+          mkdir ${{ env.ARTIFACT_DIR }}
+          cp -vpr nym-vpn-x/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }}
+          tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
+
+      - name: Prepare AppImage
+        if: contains(matrix.os, 'ubuntu-22.04')
+        run: |
+          mkdir $APPIMAGE_DIR
+          mv -v nym-vpn-x/src-tauri/target/release/bundle/appimage/nym-vpn_*.AppImage $APPIMAGE_DIR/nym-vpn_${PKG_VERSION}.AppImage
+
+      - name: Upload AppImage
+        if: contains(matrix.os, 'ubuntu-22.04')
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APPIMAGE_DIR }}
+          path: ${{ env.APPIMAGE_DIR }}
+          retention-days: 2
+
+      - name: Upload deb
+        if: "contains(matrix.os , 'ubuntu-22.04')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.DEB_DIR }}
+          path: nym-vpn-x/src-tauri/target/release/bundle/deb/nym-vpn*deb
+          retention-days: 2
+
+      - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
+        if: "contains(matrix.os , 'mac')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_ARCHIVE }}
+          path: ${{ env.ARTIFACT_ARCHIVE }}
+          retention-days: 2
+
+      - name: Upload artifacts (${{ env.PLATFORM_ARCH }}) (Windows)
+        if: contains(matrix.os, 'windows')
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.WINDOWS_DIR }}
+          path: nym-vpn-x/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup.exe
+          retention-days: 2
+
+      - name: Generate build info (${{ env.PLATFORM_ARCH }})
+        if: contains(matrix.os, 'ubuntu-22.04')
+        run: |
+          ./$APPIMAGE_DIR/nym-vpn_*.AppImage --build-info > build-info.txt
+          cat build-info.txt
+
+      - name: Upload build-info (${{ env.PLATFORM_ARCH }})
+        if: contains(matrix.os, 'ubuntu-22.04')
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-info
+          path: build-info.txt
+          retention-days: 2
+
+  publish:
+    # We can't use always() since that creates an uncancellable
+    # job
+    #if: always() && (github.event_name != 'workflow_dispatch' || inputs.publish == true)
+    #if: ${{ !cancelled() && (success() || failure() || needs.build.result == 'skipped') && (github.event_name != 'workflow_dispatch' || inputs.publish == true) }}
+    if: github.event_name != 'workflow_dispatch' || inputs.publish == true
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.set_tag.outputs.tag }}
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PKG_VERSION: ${{ needs.build.outputs.pkg_version }}
+      APPIMAGE_DIR: ${{ needs.build.outputs.appimage_dir }}
+      WINDOWS_DIR: ${{ needs.build.outputs.windows_dir }}
+      DEB_DIR: ${{ needs.build.outputs.deb_dir }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # Downloads *all* artifacts produced by the `build` job
+      # Each individual artifact will be located in a directory
+      # named with the same name of the artifact (upload)
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      # Setup TAG_NAME, which is used as a general "name"
+      - if: github.event_name == 'workflow_dispatch'
+        run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+      - if: github.event_name == 'schedule'
+        run: echo 'TAG_NAME=nightly-x' >> $GITHUB_ENV
+      - if: github.event_name == 'push'
+        run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Set tag
+        id: set_tag
+        run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
+
+      # We don't bother publishing if not the build info is available
+      - name: Check if build-info present
+        run: test -f build-info/build-info.txt
+
+      - name: Build info
+        run: |
+          BUILD_VERSION=$(grep "package version" build-info/build-info.txt | cut -d ':' -f 2 | tr -d ' ')
+          echo BUILD_VERSION=$BUILD_VERSION
+          echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
+          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
+          cat build-info/build-info.txt >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - if: env.TAG_NAME == 'nightly-x'
+        run: |
+          (echo "SUBJECT=nym-vpn-x-v$BUILD_VERSION nightly prerelease build";
+           echo 'PRERELEASE=--prerelease';
+           echo 'NOTES_FILE=release-notes-x-nightly.md') >> $GITHUB_ENV
+          gh release delete nightly-x --yes || true
+          git push origin :nightly-x || true
+      # Once we consider these actually release builds, remove --prerelease
+      # from PRERELEASE here
+      - if: env.TAG_NAME != 'nightly-x'
+        run: |
+          (echo "SUBJECT=$TAG_NAME"
+           echo 'PRERELEASE='
+           echo 'NOTES_FILE=release-notes-x.md') >> $GITHUB_ENV
+
+      # Recall that download-artifact will extract into a directory that
+      # includes the tar.gz suffix.
+      # We rm all the empty directories first so since that signifies a failed
+      # build where we continue-on-error and should not have their artifacts
+      # published, which would just be an empty archive.
+      - name: Generate checksums
+        run: |
+          pushd $APPIMAGE_DIR
+          sha256sum nym-vpn*.AppImage > nym-vpn_${PKG_VERSION}.AppImage.sha256sum
+          popd
+          # pushd $WINDOWS_DIR
+          # sha256sum nym-vpn*.exe > nym-vpn_${PKG_VERSION}_x64-setup.exe.sha256sum
+          # popd
+          pushd $DEB_DIR
+          for f in nym-vpn*.deb; do sha256sum ${f} > ${f}.sha256sum; done
+          popd
+          rmdir nym-vpn-x_*tar.gz || true
+          for file in nym-vpn-x_*tar.gz; do pushd $file; for f in nym-vpn-x_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
+          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
+          cat nym-vpn-x_*.tar.gz/*.sha256sum >> $GITHUB_ENV
+          cat $APPIMAGE_DIR/*.sha256sum >> $GITHUB_ENV
+          # cat $WINDOWS_DIR/*.sha256sum >> $GITHUB_ENV
+          cat $DEB_DIR/*.sha256sum >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - name: AppImage installer bump version
+        env:
+          appimg_installer: nym-vpn-x/scripts/appimage.sh
+        run: |
+          echo "tag: $TAG_NAME"
+          echo "version: $PKG_VERSION"
+          sed -i "s/^tag=.*$/tag=$TAG_NAME/" $appimg_installer
+          sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
+          mkdir installer
+          cp -v $appimg_installer installer
+
+      - name: Publish release
+        run: |
+          echo "build info"
+          echo "$BUILD_INFO"
+          echo "checksums"
+          echo "$SHA256_CHECKSUMS"
+          echo "Creating release notes"
+          envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
+          echo "Creating release nodes: output"
+          cat $RUNNER_TEMP/release-notes.md
+          echo "Creating release"
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $DEB_DIR/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $DEB_DIR/*
+
+  gen-hashes:
+    uses: ./.github/workflows/gen-hashes-json.yml
+    needs: publish
+    with:
+      release_tag: ${{ needs.publish.outputs.tag }}
+    secrets: inherit
