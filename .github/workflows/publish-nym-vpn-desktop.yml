@@ -95,3 +95,17 @@ jobs:
           sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
           mkdir installer
           cp -v $appimg_installer installer
+
+      - name: Publish release
+        run: |
+          echo "build info"
+          echo "$BUILD_INFO"
+          echo "checksums"
+          echo "$SHA256_CHECKSUMS"
+          echo "Creating release notes"
+          envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
+          echo "Creating release nodes: output"
+          cat $RUNNER_TEMP/release-notes.md
+          echo "Creating release"
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/* $DEB_DIR/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/* $DEB_DIR/*
