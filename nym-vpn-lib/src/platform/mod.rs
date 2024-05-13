@@ -55,7 +55,6 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
         return Err(FFIError::VpnNotStarted);
     }
     *guard = None;
-
     Ok(())
 }
 
@@ -89,6 +88,7 @@ async fn wait_for_shutdown(
     handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
     match handle.vpn_exit_rx.await? {
         NymVpnExitStatusMessage::Failed(error) => {
+            RUNNING.store(false, Ordering::Relaxed);
             error!(
                 "Stopped Nym VPN with error: {:?}",
                 error
@@ -190,6 +190,10 @@ async fn check_credential_string(credential: &str) -> Result<(), FFIError> {
 async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
     match _async_run_vpn(vpn).await {
         Err(err) => {
+            stop_and_reset_shutdown_handle()
+                .await
+                .expect("Failed to reset shutdown handle");
+            RUNNING.store(false, Ordering::Relaxed);
             error!("Could not start the VPN: {:?}", err);
             Err(err)
         }
