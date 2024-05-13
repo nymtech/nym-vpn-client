@@ -5,7 +5,6 @@ use std::{
     fs,
     net::SocketAddr,
     path::{Path, PathBuf},
-    pin::Pin,
 };
 
 use futures::{stream::BoxStream, StreamExt};
@@ -19,7 +18,7 @@ use nym_vpn_proto::{
     Error as ProtoError, ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest,
     StatusResponse,
 };
-use tokio::sync::mpsc::UnboundedSender;
+use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
 
 use super::{
@@ -27,7 +26,8 @@ use super::{
     status_broadcaster::ConnectionStatusBroadcaster,
 };
 use crate::service::{
-    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStatusResult,
+    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange,
+    VpnServiceStatusResult,
 };
 
 enum ListenerType {
@@ -36,33 +36,41 @@ enum ListenerType {
 }
 
 pub(super) struct CommandInterface {
+    // Listen to state changes from the VPN service
+    vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
+
+    // Send commands to the VPN service
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
+
+    // Broadcast connection status updates to our API endpoint listeners
     status_tx: tokio::sync::broadcast::Sender<ConnectionStatusUpdate>,
-    _connection_state_tx: tokio::sync::broadcast::Sender<ConnectionStateChange>,
+
     listener: ListenerType,
 }
 
 impl CommandInterface {
     pub(super) fn new_with_path(
+        vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         socket_path: &Path,
     ) -> Self {
         Self {
+            vpn_state_changes_rx,
             vpn_command_tx,
             status_tx: tokio::sync::broadcast::channel(10).0,
-            _connection_state_tx: tokio::sync::broadcast::channel(10).0,
             listener: ListenerType::Path(socket_path.to_path_buf()),
         }
     }
 
     pub(super) fn new_with_uri(
+        vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         uri: SocketAddr,
     ) -> Self {
         Self {
+            vpn_state_changes_rx,
             vpn_command_tx,
             status_tx: tokio::sync::broadcast::channel(10).0,
-            _connection_state_tx: tokio::sync::broadcast::channel(10).0,
             listener: ListenerType::Uri(uri),
         }
     }
@@ -167,20 +175,8 @@ impl NymVpnd for CommandInterface {
             .handle_status()
             .await;
 
-        let error = match status {
-            VpnServiceStatusResult::NotConnected => None,
-            VpnServiceStatusResult::Connecting => None,
-            VpnServiceStatusResult::Connected => None,
-            VpnServiceStatusResult::Disconnecting => None,
-            VpnServiceStatusResult::ConnectionFailed(ref reason) => Some(reason.clone()),
-        }
-        .map(|reason| ProtoError { message: reason });
-
         info!("Returning status response");
-        Ok(tonic::Response::new(StatusResponse {
-            status: ConnectionStatus::from(status) as i32,
-            error,
-        }))
+        Ok(tonic::Response::new(StatusResponse::from(status)))
     }
 
     async fn import_user_credential(
@@ -221,21 +217,24 @@ impl NymVpnd for CommandInterface {
         ))
     }
 
-    type ListenToConnectionStateChangesStream = Pin<
-        Box<
-            dyn futures::Stream<Item = Result<ConnectionStateChange, tonic::Status>>
-                + Send
-                + Sync
-                + 'static,
-        >,
-    >;
+    type ListenToConnectionStateChangesStream =
+        BoxStream<'static, Result<ConnectionStateChange, tonic::Status>>;
 
     async fn listen_to_connection_state_changes(
         &self,
         request: tonic::Request<Empty>,
     ) -> Result<tonic::Response<Self::ListenToConnectionStateChangesStream>, tonic::Status> {
         info!("Got connection status stream request: {request:?}");
-        Err(tonic::Status::unimplemented("Not yet implemented"))
+        let rx = self.vpn_state_changes_rx.resubscribe();
+        let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|status| {
+            status.map(ConnectionStateChange::from).map_err(|err| {
+                error!("Failed to receive connection state change: {:?}", err);
+                tonic::Status::internal("Failed to receive connection state change")
+            })
+        });
+        Ok(tonic::Response::new(
+            Box::pin(stream) as Self::ListenToConnectionStateChangesStream
+        ))
     }
 }
 
@@ -319,6 +318,38 @@ impl From<VpnServiceStatusResult> for ConnectionStatus {
             VpnServiceStatusResult::Connected => ConnectionStatus::Connected,
             VpnServiceStatusResult::Disconnecting => ConnectionStatus::Disconnecting,
             VpnServiceStatusResult::ConnectionFailed(_reason) => ConnectionStatus::ConnectionFailed,
+        }
+    }
+}
+
+impl From<VpnServiceStatusResult> for StatusResponse {
+    fn from(status: VpnServiceStatusResult) -> Self {
+        let error = status.error().map(|reason| ProtoError { message: reason });
+        StatusResponse {
+            status: ConnectionStatus::from(status) as i32,
+            error,
+        }
+    }
+}
+
+impl From<VpnServiceStateChange> for ConnectionStatus {
+    fn from(status: VpnServiceStateChange) -> Self {
+        match status {
+            VpnServiceStateChange::NotConnected => ConnectionStatus::NotConnected,
+            VpnServiceStateChange::Connecting => ConnectionStatus::Connecting,
+            VpnServiceStateChange::Connected => ConnectionStatus::Connected,
+            VpnServiceStateChange::Disconnecting => ConnectionStatus::Disconnecting,
+            VpnServiceStateChange::ConnectionFailed(_reason) => ConnectionStatus::ConnectionFailed,
+        }
+    }
+}
+
+impl From<VpnServiceStateChange> for ConnectionStateChange {
+    fn from(status: VpnServiceStateChange) -> Self {
+        let error = status.error().map(|reason| ProtoError { message: reason });
+        ConnectionStateChange {
+            status: ConnectionStatus::from(status) as i32,
+            error,
         }
     }
 }

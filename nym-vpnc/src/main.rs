@@ -34,6 +34,7 @@ async fn main() -> Result<()> {
             import_credential(client_type, import_args).await?
         }
         Command::ListenToStatus => listen_to_status(client_type).await?,
+        Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
     }
     Ok(())
 }
@@ -102,6 +103,19 @@ async fn listen_to_status(client_type: ClientType) -> Result<()> {
     let request = tonic::Request::new(Empty {});
     let mut stream = client
         .listen_to_connection_status(request)
+        .await?
+        .into_inner();
+    while let Some(response) = stream.message().await? {
+        println!("{:?}", response);
+    }
+    Ok(())
+}
+
+async fn listen_to_state_changes(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(Empty {});
+    let mut stream = client
+        .listen_to_connection_state_changes(request)
         .await?
         .into_inner();
     while let Some(response) = stream.message().await? {
