@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::fmt;
 use std::net::IpAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -32,7 +33,6 @@ pub enum VpnState {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(Debug)]
 pub enum VpnServiceCommand {
     Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
@@ -41,6 +41,17 @@ pub enum VpnServiceCommand {
         oneshot::Sender<VpnServiceImportUserCredentialResult>,
         Vec<u8>,
     ),
+}
+
+impl fmt::Display for VpnServiceCommand {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            VpnServiceCommand::Connect(_, args) => write!(f, "Connect {{ {args:?} }}"),
+            VpnServiceCommand::Disconnect(_) => write!(f, "Disconnect"),
+            VpnServiceCommand::Status(_) => write!(f, "Status"),
+            VpnServiceCommand::ImportCredential(_, _) => write!(f, "ImportCredential"),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -379,7 +390,7 @@ impl NymVpnService {
 
     pub(super) async fn run(mut self) -> anyhow::Result<()> {
         while let Some(command) = self.vpn_command_rx.recv().await {
-            info!("VPN: Received command: {:?}", command);
+            info!("VPN: Received command: {command}");
             match command {
                 VpnServiceCommand::Connect(tx, connect_args) => {
                     let result = self.handle_connect(connect_args).await;
