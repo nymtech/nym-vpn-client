@@ -5175,6 +5175,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-ip-packet-client"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "nym-gateway-directory",
+ "nym-ip-packet-requests",
+ "nym-sdk",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "nym-ip-packet-requests"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=b8b66fa#b8b66fa4ad53aaf75ccecfe24491c04e2cbce58a"
@@ -5718,7 +5732,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-desktop"
-version = "0.1.2-dev"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "build-info",
@@ -5779,6 +5793,7 @@ dependencies = [
  "nym-explorer-client",
  "nym-gateway-directory",
  "nym-id",
+ "nym-ip-packet-client",
  "nym-ip-packet-requests",
  "nym-node-requests",
  "nym-sdk",
