@@ -12,18 +12,15 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          # fetch only the root files and wireguard dir
-          sparse-checkout: |
-            wireguard
 
       - name: Install Go
         uses: actions/setup-go@v5
         with:
           go-version: "stable"
+          cache-dependency-path: "**/go.sum"
 
       - name: Install Protoc
-        uses: arduino/setup-protoc@v2
+        uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -35,7 +32,7 @@ jobs:
         run: |
           ./wireguard/build-wireguard-go.sh
 
-      - name: Upload artifacts (Windows)
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: wireguard-go_x86_64-pc-windows-msvc

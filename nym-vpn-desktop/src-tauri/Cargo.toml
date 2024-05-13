@@ -2,7 +2,11 @@
 name = "nym-vpn-desktop"
 version = "0.1.2-dev"
 description = "Nym VPN Desktop Client"
-authors = ["pierre <dommerc.pierre@gmail.com>", "zane <zanecschepke@gmail.com>", "nym"]
+authors = [
+    "pierre <dommerc.pierre@gmail.com>",
+    "zane <zanecschepke@gmail.com>",
+    "nym",
+]
 license = "GPL-3.0-only"
 repository = ""
 edition = "2021"
@@ -12,12 +16,21 @@ tauri-build = { version = "1.5", features = [] }
 build-info-build = "0.0.34"
 
 [dependencies]
-tauri = { version = "1.6.0", features = [ "window-set-size", "os-all", "updater", "process-all", "shell-open"] }
+tauri = { version = "1.6.0", features = [
+    "window-set-size",
+    "os-all",
+    "updater",
+    "process-all",
+    "shell-open",
+] }
 tokio = { version = "1.33", features = ["rt", "sync", "time", "fs"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tracing = "0.1"
-tracing-subscriber =  { version = "0.3.1", features = ["tracing-log", "env-filter"] }
+tracing-subscriber = { version = "0.3.1", features = [
+    "tracing-log",
+    "env-filter",
+] }
 anyhow = "1.0"
 dotenvy = "0.15.7"
 thiserror = "1.0"

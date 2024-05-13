@@ -1,1 +1,97 @@
-### PLACEHOLDER FOR SPLIT WORKFLOW
+name: publish-nym-vpn-desktop
+on: [workflow_dispatch, workflow_call]
+
+jobs:
+  build-nym-vpn-desktop-linux:
+    uses: ./.github/workflows/build-nym-vpn-desktop-linux.yml
+  build-nym-vpn-desktop-mac:
+    uses: ./.github/workflows/build-nym-vpn-desktop-mac.yml
+  build-nym-vpn-desktop-windows:
+    uses: ./.github/workflows/build-nym-vpn-desktop-windows.yml
+
+  publish:
+    needs:
+      - build-nym-vpn-desktop-linux
+      - build-nym-vpn-desktop-mac
+      - build-nym-vpn-desktop-windows
+    runs-on: ubuntu-22.04-arc
+    outputs:
+      tag: ${{ steps.set_tag.outputs.tag }}
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PKG_VERSION: ${{ needs.build-nym-vpn-desktop-linux.outputs.PKG_VERSION }}
+      UPLOAD_DIR_LINUX: ${{ needs.build-nym-vpn-desktop-linux.outputs.UPLOAD_DIR_LINUX }}
+      UPLOAD_DIR_MAC: ${{ needs.build-nym-vpn-desktop-mac.outputs.UPLOAD_DIR_MAC }}
+      UPLOAD_DIR_WINDOWS: ${{ needs.build-nym-vpn-desktop-windows.outputs.UPLOAD_DIR_WINDOWS }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # Downloads *all* artifacts produced by the `build` job
+      # Each individual artifact will be located in a directory
+      # named with the same name of the artifact (upload)
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      # Setup TAG_NAME, which is used as a general "name"
+      - if: github.event_name == 'workflow_dispatch'
+        run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+      - if: github.event_name == 'schedule'
+        run: echo 'TAG_NAME=nightly-desktop' >> $GITHUB_ENV
+      - if: github.event_name == 'push'
+        run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Set tag
+        id: set_tag
+        run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
+
+      # We don't bother publishing if not the build info is available
+      # - name: Check if build-info present
+      #   run: test -f build-info/build-info.txt
+
+      # - name: Build info
+      #   run: |
+      #     BUILD_VERSION=$(grep "package version" build-info/build-info.txt | cut -d ':' -f 2 | tr -d ' ')
+      #     echo BUILD_VERSION=$BUILD_VERSION
+      #     echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
+      #     echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
+      #     cat build-info/build-info.txt >> $GITHUB_ENV
+      #     echo 'EOF' >> $GITHUB_ENV
+
+      - if: env.TAG_NAME == 'nightly-desktop'
+        run: |
+          (echo "SUBJECT=nym-vpn-desktop-v$BUILD_VERSION nightly prerelease build";
+           echo 'PRERELEASE=--prerelease';
+           echo 'NOTES_FILE=release-notes-desktop-nightly.md') >> $GITHUB_ENV
+          gh release delete nightly-desktop --yes || true
+          git push origin :nightly-desktop || true
+      # Once we consider these actually release builds, remove --prerelease
+      # from PRERELEASE here
+      - if: env.TAG_NAME != 'nightly-desktop'
+        run: |
+          (echo "SUBJECT=$TAG_NAME"
+           echo 'PRERELEASE='
+           echo 'NOTES_FILE=release-notes-desktop.md') >> $GITHUB_ENV
+
+      - name: Generate checksums
+        run: |
+          for f in ./*; do sha256sum ${f} > ${f}.sha256sum; done
+          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
+          # cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
+          # cat $APPIMAGE_DIR/*.sha256sum >> $GITHUB_ENV
+          # cat $WINDOWS_DIR/*.sha256sum >> $GITHUB_ENV
+          # cat $DEB_DIR/*.sha256sum >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - name: AppImage installer bump version
+        env:
+          appimg_installer: nym-vpn-desktop/scripts/appimage.sh
+        run: |
+          echo "tag: $TAG_NAME"
+          echo "version: $PKG_VERSION"
+          sed -i "s/^tag=.*$/tag=$TAG_NAME/" $appimg_installer
+          sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
+          mkdir installer
+          cp -v $appimg_installer installer

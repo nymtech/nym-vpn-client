@@ -6,7 +6,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04-16-core
+    runs-on: ubuntu-22.04-arc
 
     steps:
       - name: Install system dependencies
@@ -14,14 +14,12 @@ jobs:
 
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            wireguard
 
       - name: Install Go
         uses: actions/setup-go@v5
         with:
           go-version: "stable"
+          cache-dependency-path: "**/go.sum"
 
       - name: Build wireguard
         run: ./wireguard/build-wireguard-go.sh

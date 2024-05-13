@@ -1,14 +1,29 @@
 name: build-wireguard-go-mac
 on: [workflow_dispatch, workflow_call]
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  build-full:
-    runs-on: ubuntu-22.04-16-core
+  build:
+    runs-on: macos-14
     steps:
-      - name: Checkout repo
+      - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v5
         with:
-          sparse-checkout: |
-            nym-vpn-desktop
-            nym-vpn-lib
-            crates
+          go-version: "stable"
+          cache-dependency-path: "**/go.sum"
+
+      - name: Build wireguard
+        run: ./wireguard/build-wireguard-go.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wireguard-go_apple_universal
+          path: |
+            build/lib/universal-apple-darwin
+          retention-days: 10

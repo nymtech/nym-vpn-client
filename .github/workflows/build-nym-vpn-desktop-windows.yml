@@ -4,12 +4,12 @@ on: [workflow_dispatch, workflow_call]
 env:
   CARGO_TERM_COLOR: always
   CARGO_TARGET: release
-  LIBS_PATH: ${GITHUB_WORKSPACE}/lib
+  LIBS_PATH: '${{ github.workspace }}/lib'
   WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
-  MULLVAD_LIB_NAME: winfw.dll
-  UPDATER_BUNDLE_NAME: updater_linux_x86_64.AppImage.tar.gz
-  UPLOAD_DIR: windows_artifacts
-  TAURI_SRC: ${GITHUB_WORKSPACE}/nym-vpn-desktop/src-tauri/
+  MULLVAD_LIB_NAME: winfw
+  UPLOAD_DIR_WINDOWS_UPDATER: updater_artifacts
+  UPLOAD_DIR_WINDOWS: windows_artifacts
+  TAURI_SRC: '${{ github.workspace }}/nym-vpn-desktop/src-tauri/'
 
 jobs:
   build-wireguard-go-windows:
@@ -22,17 +22,12 @@ jobs:
     needs: [build-wireguard-go-windows,build-mullvad-windows]
     runs-on: custom-windows-11
     outputs:
-      PKG_VERSION: ${{ steps.package-version.outputs.metadata }}
-      UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR }}
+      UPLOAD_DIR_WINDOWS_UPDATER: ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}
+      UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            nym-vpn-desktop
-            nym-vpn-lib
-            crates
 
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
@@ -42,6 +37,9 @@ jobs:
         with:
           toolchain: stable
           components: rustfmt, clippy
+
+      - name: Install cargo-about
+        run: cargo install --locked cargo-about
 
       - name: Install Node
         uses: actions/setup-node@v4
@@ -60,26 +58,39 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.LIBS_PATH }}/
 
-      - name: Download mullvad lib artifacts
+      - name: Download mullvad lib artifact (winfw.lib)
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.MULLVAD_LIB_NAME }}
-          path: ${{ env.LIBS_PATH }}/
+          name: ${{ env.MULLVAD_LIB_NAME }}.lib
+          path: ${{ env.TAURI_SRC }}/
 
-      - name: Download/Unzip/Move wintun.zip and winpcap.zip, also move wireguard lib for windows
+      - name: Download mullvad lib artifact (winfw.lib)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.MULLVAD_LIB_NAME }}.dll
+          path: ${{ env.TAURI_SRC }}/
+
+      - name: Download/Unzip/Move wintun.zip, winpcap.zip also move wireguard lib for windows
         shell: bash
         run: |
           curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
           curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
           unzip ${GITHUB_WORKSPACE}/wintun.zip
           unzip ${GITHUB_WORKSPACE}/winpcap.zip
-          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${{ env.TAURI_SRC }}
-          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib ${{ env.TAURI_SRC }}
-          mv ${GITHUB_WORKSPACE}/lib/libwg.dll ${{ env.TAURI_SRC }}
-          mv ${GITHUB_WORKSPACE}/lib/libwg.lib ${{ env.TAURI_SRC }}
+          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll '${{ env.TAURI_SRC }}'
+          mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib '${{ env.TAURI_SRC }}'
+          mv '${{ env.LIBS_PATH }}/libwg.dll' '${{ env.TAURI_SRC }}'
+          mv '${{ env.LIBS_PATH }}/libwg.lib' '${{ env.TAURI_SRC }}'
+
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate licenses file (Js & Rust) and install JS dependencies
         working-directory: nym-vpn-desktop
+        shell: bash
         run: |
           rm public/licenses-js.json || true
           npm run gen:licenses:js
@@ -87,38 +98,61 @@ jobs:
           npm run gen:licenses:rust
           npm ci
 
+      - name: Import signing certificate
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+        run: |
+          New-Item -ItemType directory -Path certificate
+          Set-Content -Path certificate/tempCert.txt -Value $env:WINDOWS_CERTIFICATE
+          certutil -decode certificate/tempCert.txt certificate/certificate.pfx
+          Remove-Item -path certificate -include tempCert.txt
+          Import-PfxCertificate -FilePath certificate/certificate.pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText)
+
       - name: Build desktop client
         working-directory: nym-vpn-desktop/src-tauri
+        shell: bash
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
           RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-Release"
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
         run: |
-          sed -i 's/"bundle": {/"bundle": {"resources": ["wintun.dll", "vcruntime140.dll", "libwg.dll", "winfw.dll"],/g' nym-vpn-desktop/src-tauri/tauri.conf.json
-          npm run tauri build -- ${{ env.CARGO_TARGET }}
+          sed -i 's/"bundle": {/"bundle": {"resources": ["wintun.dll", "vcruntime140.dll", "libwg.dll", "winfw.dll"],/g' '${{ env.TAURI_SRC }}/tauri.conf.json'
+          npm run tauri build --${{ env.CARGO_TARGET }}
           ls -la target/release/ || true
           ls -la target/release/bundle || true
           ls -la target/release/bundle/* || true
 
       - name: Move things around to prepare for upload
+        shell: bash
         env:
-          UPLOADER_SRC_BUNDLE: nym-vpn-desktop/src-tauri/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
-          UPLOADER_TARGET_BUNDLE: updater_windows_x86_64.nsis.zip
+          WINDOWS_BUILT_NAME: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
+          WINDOWS_UPDATER_NAME: updater_windows_x86_64.nsis.zip
           BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
         run: |
-          echo "moving updater bundle and signature into ${{ env.UPLOAD_DIR }}"
-          rm -rf ${{ env.UPLOAD_DIR }} || true
-          mkdir ${{ env.UPLOAD_DIR }}
-          mv ${{ env.UPLOADER_SRC_BUNDLE }}     ${{ env.UPLOAD_DIR }}/${UPLOADER_TARGET_BUNDLE}
-          mv ${{ env.UPLOADER_SRC_BUNDLE }}.sig ${{ env.UPLOAD_DIR }}/${UPLOADER_TARGET_BUNDLE}.sig
-          echo "moving setup.exe into ${{ env.UPLOAD_DIR }}"
-          mv ${{ env.UPLOADER_SRC_BUNDLE }}
-          ls -la ${{ env.BINARY }} ${{ env.UPLOAD_DIR }}/
+          echo "moving updater bundle and signature into ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}"
+          rm -rf ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }} || true
+          mkdir ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}
+          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}'     ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}/${WINDOWS_UPDATER_NAME}
+          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}.sig' ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}/${WINDOWS_UPDATER_NAME}.sig
+          echo "moving setup.exe into ${{ env.UPLOAD_DIR_WINDOWS }}"
+          rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
+          mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr '${{ env.BINARY }}' ${{ env.UPLOAD_DIR_WINDOWS }}/
 
-      - name: Upload artifacts
+      - name: Upload artifact updater
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.UPLOAD_DIR }}
-          path: ${{ env.UPLOAD_DIR }}
+          name: ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}
+          path: ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}
+          retention-days: 1
+
+      - name: Upload artifact windows
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_WINDOWS }}
+          path: ${{ env.UPLOAD_DIR_WINDOWS }}
           retention-days: 1
