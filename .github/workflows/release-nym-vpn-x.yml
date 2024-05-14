@@ -217,7 +217,7 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         shell: bash
         env:
-          SRC_BUNDLE: nym-vpn-x/src-tauri/target/release/bundle/appimage/nym-vpn*.AppImage.tar.gz
+          SRC_BUNDLE: nym-vpn-x/src-tauri/target/release/bundle/appimage/nymvpn-x*.AppImage.tar.gz
           TARGET_BUNDLE: updater_linux_x86_64.AppImage.tar.gz
         run: |
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
@@ -231,7 +231,7 @@ jobs:
         if: contains(matrix.os, 'mac')
         shell: bash
         env:
-          SRC_BUNDLE: nym-vpn-x/src-tauri/target/release/bundle/macos/nym-vpn.app.tar.gz
+          SRC_BUNDLE: nym-vpn-x/src-tauri/target/release/bundle/macos/nymvpn-x.app.tar.gz
           TARGET_BUNDLE: updater_macos_universal.app.tar.gz
         run: |
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
@@ -245,7 +245,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         shell: bash
         env:
-          SRC_BUNDLE: nym-vpn-x/src-tauri/target/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup.nsis.zip
+          SRC_BUNDLE: nym-vpn-x/src-tauri/target/release/bundle/nsis/nymvpn-x_${{ env.PKG_VERSION }}_x64-setup.nsis.zip
           TARGET_BUNDLE: updater_windows_x86_64.nsis.zip
         run: |
           echo "moving updater bundle and signature into ${{ env.UPDATER_BUNDLE_DIR }}"
@@ -271,14 +271,14 @@ jobs:
         shell: bash
         run: |
           mkdir ${{ env.ARTIFACT_DIR }}
-          cp -vpr nym-vpn-x/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/dmg/nym-vpn*.dmg ${{ env.ARTIFACT_DIR }}
+          cp -vpr nym-vpn-x/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/dmg/nymvpn-x*.dmg ${{ env.ARTIFACT_DIR }}
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
       - name: Prepare AppImage
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
           mkdir $APPIMAGE_DIR
-          mv -v nym-vpn-x/src-tauri/target/release/bundle/appimage/nym-vpn_*.AppImage $APPIMAGE_DIR/nym-vpn_${PKG_VERSION}.AppImage
+          mv -v nym-vpn-x/src-tauri/target/release/bundle/appimage/nymvpn-x_*.AppImage $APPIMAGE_DIR/nymvpn-x_${PKG_VERSION}.AppImage
 
       - name: Upload AppImage
         if: contains(matrix.os, 'ubuntu-22.04')
@@ -293,7 +293,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.DEB_DIR }}
-          path: nym-vpn-x/src-tauri/target/release/bundle/deb/nym-vpn*deb
+          path: nym-vpn-x/src-tauri/target/release/bundle/deb/nymvpn-x*deb
           retention-days: 2
 
       - name: Upload artifacts (${{ env.PLATFORM_ARCH }})
@@ -309,13 +309,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.WINDOWS_DIR }}
-          path: nym-vpn-x/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/nsis/nym-vpn_${{ env.PKG_VERSION }}_x64-setup.exe
+          path: nym-vpn-x/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/nsis/nymvpn-x_${{ env.PKG_VERSION }}_x64-setup.exe
           retention-days: 2
 
       - name: Generate build info (${{ env.PLATFORM_ARCH }})
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
-          ./$APPIMAGE_DIR/nym-vpn_*.AppImage --build-info > build-info.txt
+          ./$APPIMAGE_DIR/nymvpn-x_*.AppImage --build-info > build-info.txt
           cat build-info.txt
 
       - name: Upload build-info (${{ env.PLATFORM_ARCH }})
@@ -402,7 +402,7 @@ jobs:
       - name: Generate checksums
         run: |
           pushd $APPIMAGE_DIR
-          sha256sum nym-vpn*.AppImage > nym-vpn_${PKG_VERSION}.AppImage.sha256sum
+          sha256sum nymvpn-x*.AppImage > nymvpn-x_${PKG_VERSION}.AppImage.sha256sum
           popd
           # pushd $WINDOWS_DIR
           # sha256sum nym-vpn*.exe > nym-vpn_${PKG_VERSION}_x64-setup.exe.sha256sum
