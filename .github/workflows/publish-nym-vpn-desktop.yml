@@ -37,6 +37,7 @@ jobs:
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}
     env:
+      # GH needed for gh cli
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PKG_VERSION: ${{ needs.build-nym-vpn-desktop-linux.outputs.PKG_VERSION }}
