@@ -3,7 +3,9 @@
 
 mod config;
 mod connection_handler;
+mod credential_import;
 mod error;
+mod helpers;
 mod listener;
 mod socket_stream;
 mod start;

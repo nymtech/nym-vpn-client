@@ -8,26 +8,24 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
-use nym_vpn_lib::{
-    gateway_directory::{EntryPoint, ExitPoint},
-    NodeIdentity, Recipient,
-};
 use nym_vpn_proto::{
-    import_error::ImportErrorType, nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse,
-    ConnectionStateChange, ConnectionStatus, ConnectionStatusUpdate, DisconnectRequest,
-    DisconnectResponse, Empty, Error as ProtoError, ImportError as ProtoImportError,
-    ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
+    nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, ConnectionStateChange,
+    ConnectionStatus, ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
+    Error as ProtoError, ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest,
+    StatusResponse,
 };
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
 
 use super::{
-    connection_handler::CommandInterfaceConnectionHandler, error::CommandInterfaceError,
+    connection_handler::CommandInterfaceConnectionHandler,
+    error::CommandInterfaceError,
+    helpers::{parse_entry_point, parse_exit_point},
     status_broadcaster::ConnectionStatusBroadcaster,
 };
 use crate::service::{
-    ConnectOptions, ImportCredentialError, VpnServiceCommand, VpnServiceConnectResult,
-    VpnServiceImportUserCredentialResult, VpnServiceStateChange, VpnServiceStatusResult,
+    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange,
+    VpnServiceStatusResult,
 };
 
 enum ListenerType {
@@ -238,78 +236,6 @@ impl NymVpnd for CommandInterface {
     }
 }
 
-fn parse_entry_point(
-    entry: nym_vpn_proto::entry_node::EntryNodeEnum,
-) -> Result<EntryPoint, tonic::Status> {
-    Ok(match entry {
-        nym_vpn_proto::entry_node::EntryNodeEnum::Location(location) => {
-            info!(
-                "Connecting to entry node in country: {:?}",
-                location.two_letter_iso_country_code
-            );
-            EntryPoint::Location {
-                location: location.two_letter_iso_country_code.to_string(),
-            }
-        }
-        nym_vpn_proto::entry_node::EntryNodeEnum::Gateway(gateway) => {
-            info!("Connecting to entry node with gateway id: {:?}", gateway.id);
-            let identity = NodeIdentity::from_base58_string(&gateway.id).map_err(|err| {
-                error!("Failed to parse gateway id: {:?}", err);
-                tonic::Status::invalid_argument("Invalid gateway id")
-            })?;
-            EntryPoint::Gateway { identity }
-        }
-        nym_vpn_proto::entry_node::EntryNodeEnum::RandomLowLatency(_) => {
-            info!("Connecting to low latency entry node");
-            EntryPoint::RandomLowLatency
-        }
-        nym_vpn_proto::entry_node::EntryNodeEnum::Random(_) => {
-            info!("Connecting to random entry node");
-            EntryPoint::Random
-        }
-    })
-}
-
-fn parse_exit_point(
-    exit: nym_vpn_proto::exit_node::ExitNodeEnum,
-) -> Result<ExitPoint, tonic::Status> {
-    Ok(match exit {
-        nym_vpn_proto::exit_node::ExitNodeEnum::Address(address) => {
-            info!(
-                "Connecting to exit node at address: {:?}",
-                address.nym_address
-            );
-            let address =
-                Recipient::try_from_base58_string(address.nym_address.clone()).map_err(|err| {
-                    error!("Failed to parse exit node address: {:?}", err);
-                    tonic::Status::invalid_argument("Invalid exit node address")
-                })?;
-            ExitPoint::Address { address }
-        }
-        nym_vpn_proto::exit_node::ExitNodeEnum::Gateway(gateway) => {
-            info!("Connecting to exit node with gateway id: {:?}", gateway.id);
-            let identity = NodeIdentity::from_base58_string(&gateway.id).map_err(|err| {
-                error!("Failed to parse gateway id: {:?}", err);
-                tonic::Status::invalid_argument("Invalid gateway id")
-            })?;
-            ExitPoint::Gateway { identity }
-        }
-        nym_vpn_proto::exit_node::ExitNodeEnum::Location(location) => {
-            info!(
-                "Connecting to exit node in country: {:?}",
-                location.two_letter_iso_country_code
-            );
-            ExitPoint::Location {
-                location: location.two_letter_iso_country_code.to_string(),
-            }
-        }
-        nym_vpn_proto::exit_node::ExitNodeEnum::Random(_) => {
-            info!("Connecting to low latency exit node");
-            ExitPoint::Random
-        }
-    })
-}
-
 impl From<VpnServiceStatusResult> for ConnectionStatus {
     fn from(status: VpnServiceStatusResult) -> Self {
         match status {
@@ -379,72 +305,5 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             disable_background_cover_traffic: request.disable_background_cover_traffic,
             enable_credentials_mode: request.enable_credentials_mode,
         })
-    }
-}
-
-impl From<VpnServiceImportUserCredentialResult> for ImportUserCredentialResponse {
-    fn from(result: VpnServiceImportUserCredentialResult) -> Self {
-        match result {
-            VpnServiceImportUserCredentialResult::Success => ImportUserCredentialResponse {
-                success: true,
-                error: None,
-            },
-            VpnServiceImportUserCredentialResult::Fail(reason) => ImportUserCredentialResponse {
-                success: false,
-                error: Some(ProtoImportError::from(reason)),
-            },
-        }
-    }
-}
-
-impl From<ImportCredentialError> for ProtoImportError {
-    fn from(err: ImportCredentialError) -> Self {
-        match err {
-            ImportCredentialError::VpnRunning => ProtoImportError {
-                kind: ImportErrorType::VpnRunning as i32,
-                message: err.to_string(),
-                details: Default::default(),
-            },
-            ImportCredentialError::CredentialAlreadyImported => ProtoImportError {
-                kind: ImportErrorType::CredentialAlreadyImported as i32,
-                message: err.to_string(),
-                details: Default::default(),
-            },
-            ImportCredentialError::StorageError(_) => ProtoImportError {
-                kind: ImportErrorType::StorageError as i32,
-                message: err.to_string(),
-                details: Default::default(),
-            },
-            ImportCredentialError::Generic(_) => ProtoImportError {
-                kind: ImportErrorType::Generic as i32,
-                message: err.to_string(),
-                details: Default::default(),
-            },
-            ImportCredentialError::DeserializationFailure { .. } => ProtoImportError {
-                kind: ImportErrorType::DeserializationFailure as i32,
-                message: err.to_string(),
-                details: Default::default(),
-            },
-            ImportCredentialError::CredentialExpired { .. } => ProtoImportError {
-                kind: ImportErrorType::CredentialExpired as i32,
-                message: err.to_string(),
-                details: Default::default(),
-            },
-            ImportCredentialError::FreepassExpired { .. } => ProtoImportError {
-                kind: ImportErrorType::CredentialExpired as i32,
-                message: err.to_string(),
-                details: Default::default(),
-            },
-            ImportCredentialError::VerificationFailed => ProtoImportError {
-                kind: ImportErrorType::VerificationFailed as i32,
-                message: err.to_string(),
-                details: Default::default(),
-            },
-            ImportCredentialError::FailedToQueryContract => ProtoImportError {
-                kind: ImportErrorType::FailedToQueryContract as i32,
-                message: err.to_string(),
-                details: Default::default(),
-            },
-        }
     }
 }
