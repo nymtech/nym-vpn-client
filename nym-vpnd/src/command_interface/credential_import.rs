@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use maplit::hashmap;
 use nym_vpn_proto::{
     import_error::ImportErrorType, ImportError as ProtoImportError, ImportUserCredentialResponse,
 };
@@ -45,20 +46,31 @@ impl From<ImportCredentialError> for ProtoImportError {
                 message: err.to_string(),
                 details: Default::default(),
             },
-            ImportCredentialError::DeserializationFailure { .. } => ProtoImportError {
+            ImportCredentialError::DeserializationFailure {
+                reason: _,
+                ref location,
+            } => ProtoImportError {
                 kind: ImportErrorType::DeserializationFailure as i32,
                 message: err.to_string(),
-                details: Default::default(),
+                details: hashmap! { "location".to_string() => location.to_string_lossy().to_string() },
             },
-            ImportCredentialError::CredentialExpired { .. } => ProtoImportError {
+            ImportCredentialError::CredentialExpired {
+                expiration,
+                ref location,
+            } => ProtoImportError {
                 kind: ImportErrorType::CredentialExpired as i32,
                 message: err.to_string(),
-                details: Default::default(),
+                details: hashmap! {
+                    "location".to_string() => location.to_string_lossy().to_string(),
+                    "expiration".to_string() => expiration.to_string(),
+                },
             },
-            ImportCredentialError::FreepassExpired { .. } => ProtoImportError {
+            ImportCredentialError::FreepassExpired { ref expiration } => ProtoImportError {
                 kind: ImportErrorType::CredentialExpired as i32,
                 message: err.to_string(),
-                details: Default::default(),
+                details: [("expiration".to_string(), expiration.to_string())]
+                    .into_iter()
+                    .collect(),
             },
             ImportCredentialError::VerificationFailed => ProtoImportError {
                 kind: ImportErrorType::VerificationFailed as i32,
