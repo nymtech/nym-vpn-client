@@ -8,9 +8,6 @@ pub enum CredentialError {
         source: nym_sdk::Error,
     },
 
-    #[error(transparent)]
-    NymCredentialsError(#[from] nym_credentials::Error),
-
     #[error("failed to create credential store directory: {path}: {source}")]
     FailedToCreateCredentialStoreDirectory {
         path: PathBuf,
@@ -77,6 +74,15 @@ pub enum CredentialError {
     #[error("failed to query contract")]
     FailedToQueryContract,
 
+    #[error("failed to unpack raw credential: {source}")]
+    FailedToUnpackRawCredential { source: nym_credentials::Error },
+
     #[error("failed to fetch coconut api clients: {0}")]
     FailedToFetchCoconutApiClients(nym_validator_client::coconut::CoconutApiError),
+
+    #[error("failed to obtain aggregate key")]
+    FailedToObtainAggregateVerificationKey(nym_credentials::Error),
+
+    #[error("failed to prepare credential for spending")]
+    FailedToPrepareCredentialForSpending(nym_credentials::Error),
 }

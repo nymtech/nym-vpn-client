@@ -17,7 +17,8 @@ use super::{
 
 pub async fn check_raw_credential(raw_credential: Vec<u8>) -> Result<(), CredentialError> {
     let version = None;
-    let credential = IssuedBandwidthCredential::try_unpack(&raw_credential, version)?;
+    let credential = IssuedBandwidthCredential::try_unpack(&raw_credential, version)
+        .map_err(|err| CredentialError::FailedToUnpackRawCredential { source: err })?;
 
     // Check expiry
     match credential.variant_data() {
@@ -88,10 +89,12 @@ async fn verify_credential(
     usable_credential: RetrievedCredential,
     coconut_api_clients: Vec<nym_validator_client::coconut::CoconutApiClient>,
 ) -> Result<(), CredentialError> {
-    let verification_key = obtain_aggregate_verification_key(&coconut_api_clients)?;
+    let verification_key = obtain_aggregate_verification_key(&coconut_api_clients)
+        .map_err(CredentialError::FailedToObtainAggregateVerificationKey)?;
     let spend_request = usable_credential
         .credential
-        .prepare_for_spending(&verification_key)?;
+        .prepare_for_spending(&verification_key)
+        .map_err(CredentialError::FailedToPrepareCredentialForSpending)?;
     let prepared_credential = PreparedCredential {
         data: spend_request,
         epoch_id: usable_credential.credential.epoch_id(),

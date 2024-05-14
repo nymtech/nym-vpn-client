@@ -45,13 +45,11 @@ impl From<CredentialError> for ImportCredentialError {
         let mut error = ImportCredentialError::Generic(err.to_string());
         match err {
             CredentialError::FailedToSetupStoragePaths { .. } => {}
-            CredentialError::NymCredentialsError(_) => (),
             CredentialError::FailedToCreateCredentialStoreDirectory { .. } => {}
             CredentialError::FailedToReadCredentialStoreMetadata { .. } => {}
             CredentialError::FailedToSetCredentialStorePermissions { .. } => {}
             CredentialError::FailedToInitializePersistentStorage { .. } => {}
             CredentialError::FreepassExpired { expiry_date } => {
-                // TODO: merge this with the other expired credential error
                 error = ImportCredentialError::FreepassExpired {
                     expiration: expiry_date,
                 };
@@ -112,6 +110,13 @@ impl From<CredentialError> for ImportCredentialError {
                 error = ImportCredentialError::FailedToQueryContract
             }
             CredentialError::FailedToFetchCoconutApiClients(_) => {}
+            CredentialError::FailedToUnpackRawCredential { .. } => {}
+            CredentialError::FailedToObtainAggregateVerificationKey(_) => {}
+            CredentialError::FailedToPrepareCredentialForSpending(_) => {}
+
+            // TODO: just like we have FailedToImportCredential, we should have a
+            // FailedToCheckCredential, which in turn would group a number of the low level errors
+            // above
         };
         error
     }
