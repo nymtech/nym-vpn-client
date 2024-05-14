@@ -1,5 +1,28 @@
 name: build-nym-vpn-desktop-mac
-on: [workflow_dispatch, workflow_call]
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+      TAURI_PRIVATE_KEY:
+        required: true
+      TAURI_KEY_PASSWORD:
+        required: true
+      DESKTOP_JS_SENTRY_DSN:
+        required: true
+      APPLE_DEVELOPER_ID_APPLICATION_CERT:
+        required: true
+      APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS:
+        required: true
+      APPLE_SIGNING_IDENTITY:
+        required: true
+      APPLE_ID:
+        required: true
+      APPLE_ID_PASSWORD:
+        required: true
+      APPLE_TEAM_ID:
+        required: true
 
 env:
   CARGO_TERM_COLOR: always

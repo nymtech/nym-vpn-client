@@ -1,5 +1,14 @@
 name: build-nym-vpn-desktop-linux
-on: [workflow_dispatch, workflow_call]
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      TAURI_PRIVATE_KEY:
+        required: true
+      TAURI_KEY_PASSWORD:
+        required: true
+      DESKTOP_JS_SENTRY_DSN:
+        required: true
 
 env:
   CARGO_TERM_COLOR: always

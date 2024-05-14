@@ -1,5 +1,20 @@
 name: build-nym-vpn-desktop-windows
-on: [workflow_dispatch, workflow_call]
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+      WINDOWS_SIGNING_PFX_BASE64:
+        required: true
+      WINDOWS_SIGNING_PFX_PASSWORD:
+        required: true
+      TAURI_PRIVATE_KEY:
+        required: true
+      TAURI_KEY_PASSWORD:
+        required: true
+      DESKTOP_JS_SENTRY_DSN:
+        required: true
 
 env:
   CARGO_TERM_COLOR: always

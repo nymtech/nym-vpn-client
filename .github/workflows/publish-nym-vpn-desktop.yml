@@ -1,13 +1,51 @@
 name: publish-nym-vpn-desktop
-on: [workflow_dispatch, workflow_call]
+on:
+  schedule:
+    - cron: "4 4 * * *"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag name for release"
+        required: false
+        default: nightly-desktop
+      publish:
+        type: boolean
+        description: Publish Release
+        required: true
+        default: false
+  push:
+    tags:
+      - nym-vpn-desktop-v[0-9]+.[0-9]+.[0-9]+*
 
 jobs:
   build-nym-vpn-desktop-linux:
     uses: ./.github/workflows/build-nym-vpn-desktop-linux.yml
+    secrets:
+      TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+      TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      DESKTOP_JS_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
   build-nym-vpn-desktop-mac:
     uses: ./.github/workflows/build-nym-vpn-desktop-mac.yml
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+      TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      DESKTOP_JS_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
+      APPLE_DEVELOPER_ID_APPLICATION_CERT: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
+      APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
+      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
   build-nym-vpn-desktop-windows:
     uses: ./.github/workflows/build-nym-vpn-desktop-windows.yml
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      WINDOWS_SIGNING_PFX_BASE64: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+      WINDOWS_SIGNING_PFX_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+      TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+      TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      DESKTOP_JS_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
 
   publish:
     needs:
@@ -18,8 +56,6 @@ jobs:
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}
     env:
-      GH_REPO: ${{ github.repository }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PKG_VERSION: ${{ needs.build-nym-vpn-desktop-linux.outputs.PKG_VERSION }}
       UPLOAD_DIR_LINUX: ${{ needs.build-nym-vpn-desktop-linux.outputs.UPLOAD_DIR_LINUX }}
       UPLOAD_DIR_MAC: ${{ needs.build-nym-vpn-desktop-mac.outputs.UPLOAD_DIR_MAC }}
@@ -27,7 +63,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       # Downloads *all* artifacts produced by the `build` job
       # Each individual artifact will be located in a directory
