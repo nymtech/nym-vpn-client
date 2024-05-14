@@ -388,7 +388,7 @@ jobs:
         run: |
           (echo "SUBJECT=nym-vpn-x-v$BUILD_VERSION nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
-           echo 'NOTES_FILE=release-notes-x-nightly.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes-vpnx-nightly.md') >> $GITHUB_ENV
           gh release delete nightly-x --yes || true
           git push origin :nightly-x || true
       # Once we consider these actually release builds, remove --prerelease
@@ -397,7 +397,7 @@ jobs:
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE='
-           echo 'NOTES_FILE=release-notes-x.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes-vpnx.md') >> $GITHUB_ENV
 
       # Recall that download-artifact will extract into a directory that
       # includes the tar.gz suffix.
