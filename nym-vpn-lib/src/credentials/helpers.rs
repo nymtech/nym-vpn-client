@@ -42,7 +42,8 @@ pub(super) async fn get_credentials_store(
 
 pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialError> {
     let network = NymNetworkDetails::new_from_env();
-    let config = NyxdClientConfig::try_from_nym_network_details(&network)?;
+    let config = NyxdClientConfig::try_from_nym_network_details(&network)
+        .map_err(|err| CredentialError::FailedToCreateNyxdClientConfig(err))?;
 
     // Safe to use pick the first one?
     let nyxd_url = network
@@ -52,7 +53,8 @@ pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialErro
         .nyxd_url();
 
     debug!("Connecting to nyx validator at: {}", nyxd_url);
-    Ok(NyxdClient::connect(config, nyxd_url.as_str())?)
+    NyxdClient::connect(config, nyxd_url.as_str())
+        .map_err(|err| CredentialError::FailedToConnectUsingNyxdClient(err))
 }
 
 pub(super) enum CoconutClients {

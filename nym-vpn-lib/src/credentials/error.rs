@@ -36,8 +36,11 @@ pub enum CredentialError {
     #[error("failed to verify credential")]
     FailedToVerifyCredential,
 
-    #[error("failed to get nyxd client: {0}")]
-    NyxdError(#[from] nym_validator_client::nyxd::error::NyxdError),
+    #[error("failed to create nyxd client config: {0}")]
+    FailedToCreateNyxdClientConfig(nym_validator_client::nyxd::error::NyxdError),
+
+    #[error("failed to connect using nyxd client: {0}")]
+    FailedToConnectUsingNyxdClient(nym_validator_client::nyxd::error::NyxdError),
 
     #[error("no nyxd endpoints found")]
     NoNyxdEndpointsFound,

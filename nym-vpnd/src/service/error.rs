@@ -102,12 +102,13 @@ impl From<CredentialError> for ImportCredentialError {
             CredentialError::FailedToVerifyCredential => {
                 error = ImportCredentialError::VerificationFailed
             }
-            CredentialError::NyxdError(_) => {}
+            CredentialError::FailedToCreateNyxdClientConfig(_) => {}
+            CredentialError::FailedToConnectUsingNyxdClient(_) => {}
             CredentialError::NoNyxdEndpointsFound => {}
             CredentialError::FailedToQueryContract => {
                 error = ImportCredentialError::FailedToQueryContract
             }
-            CredentialError::FailedToFetchCoconutApiClients(_) => {},
+            CredentialError::FailedToFetchCoconutApiClients(_) => {}
         };
         error
     }
