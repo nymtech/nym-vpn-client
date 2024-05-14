@@ -13,10 +13,10 @@ use nym_vpn_lib::{
     NodeIdentity, Recipient,
 };
 use nym_vpn_proto::{
-    nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, ConnectionStateChange,
-    ConnectionStatus, ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
-    Error as ProtoError, ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest,
-    StatusResponse,
+    import_error::ImportErrorType, nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse,
+    ConnectionStateChange, ConnectionStatus, ConnectionStatusUpdate, DisconnectRequest,
+    DisconnectResponse, Empty, Error as ProtoError, ImportError as ProtoImportError,
+    ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
 };
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
@@ -26,8 +26,8 @@ use super::{
     status_broadcaster::ConnectionStatusBroadcaster,
 };
 use crate::service::{
-    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange,
-    VpnServiceStatusResult,
+    ConnectOptions, ImportCredentialError, VpnServiceCommand, VpnServiceConnectResult,
+    VpnServiceImportUserCredentialResult, VpnServiceStateChange, VpnServiceStatusResult,
 };
 
 enum ListenerType {
@@ -187,14 +187,14 @@ impl NymVpnd for CommandInterface {
 
         let credential = request.into_inner().credential;
 
-        let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        let response = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_import_credential(credential)
             .await;
 
         info!("Returning import credential response");
-        Ok(tonic::Response::new(ImportUserCredentialResponse {
-            success: status.is_success(),
-        }))
+        Ok(tonic::Response::new(ImportUserCredentialResponse::from(
+            response,
+        )))
     }
 
     type ListenToConnectionStatusStream =
@@ -379,5 +379,72 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             disable_background_cover_traffic: request.disable_background_cover_traffic,
             enable_credentials_mode: request.enable_credentials_mode,
         })
+    }
+}
+
+impl From<VpnServiceImportUserCredentialResult> for ImportUserCredentialResponse {
+    fn from(result: VpnServiceImportUserCredentialResult) -> Self {
+        match result {
+            VpnServiceImportUserCredentialResult::Success => ImportUserCredentialResponse {
+                success: true,
+                error: None,
+            },
+            VpnServiceImportUserCredentialResult::Fail(reason) => ImportUserCredentialResponse {
+                success: false,
+                error: Some(ProtoImportError::from(reason)),
+            },
+        }
+    }
+}
+
+impl From<ImportCredentialError> for ProtoImportError {
+    fn from(err: ImportCredentialError) -> Self {
+        match err {
+            ImportCredentialError::VpnRunning => ProtoImportError {
+                kind: ImportErrorType::VpnRunning as i32,
+                message: err.to_string(),
+                details: Default::default(),
+            },
+            ImportCredentialError::CredentialAlreadyImported => ProtoImportError {
+                kind: ImportErrorType::CredentialAlreadyImported as i32,
+                message: err.to_string(),
+                details: Default::default(),
+            },
+            ImportCredentialError::StorageError(_) => ProtoImportError {
+                kind: ImportErrorType::StorageError as i32,
+                message: err.to_string(),
+                details: Default::default(),
+            },
+            ImportCredentialError::Generic(_) => ProtoImportError {
+                kind: ImportErrorType::Generic as i32,
+                message: err.to_string(),
+                details: Default::default(),
+            },
+            ImportCredentialError::DeserializationFailure { .. } => ProtoImportError {
+                kind: ImportErrorType::DeserializationFailure as i32,
+                message: err.to_string(),
+                details: Default::default(),
+            },
+            ImportCredentialError::CredentialExpired { .. } => ProtoImportError {
+                kind: ImportErrorType::CredentialExpired as i32,
+                message: err.to_string(),
+                details: Default::default(),
+            },
+            ImportCredentialError::FreepassExpired { .. } => ProtoImportError {
+                kind: ImportErrorType::CredentialExpired as i32,
+                message: err.to_string(),
+                details: Default::default(),
+            },
+            ImportCredentialError::VerificationFailed => ProtoImportError {
+                kind: ImportErrorType::VerificationFailed as i32,
+                message: err.to_string(),
+                details: Default::default(),
+            },
+            ImportCredentialError::FailedToQueryContract => ProtoImportError {
+                kind: ImportErrorType::FailedToQueryContract as i32,
+                message: err.to_string(),
+                details: Default::default(),
+            },
+        }
     }
 }

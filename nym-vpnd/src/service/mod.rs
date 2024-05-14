@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod config;
+mod credential;
 mod exit_listener;
 mod start;
 mod status_listener;
 mod vpn_service;
 
+pub(crate) use credential::ImportCredentialError;
 pub(crate) use start::start_vpn_service;
 pub(crate) use vpn_service::{
     ConnectArgs, ConnectOptions, VpnServiceCommand, VpnServiceConnectResult,

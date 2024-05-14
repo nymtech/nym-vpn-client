@@ -20,14 +20,15 @@ prost.workspace = true
 reqwest = { workspace = true, default-features = false, features = ["rustls-tls"] }
 serde.workspace = true
 thiserror.workspace = true
+time.workspace = true
 tokio = { workspace = true, features = ["full"]}
 tokio-stream.workspace = true
 toml.workspace = true
+tonic-health.workspace = true
+tonic-reflection.workspace = true
 tonic.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
-tonic-health.workspace = true
-tonic-reflection.workspace = true
 
 # match the version required by tonic
 http = "0.2.12"

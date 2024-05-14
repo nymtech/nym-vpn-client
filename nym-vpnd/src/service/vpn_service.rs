@@ -19,6 +19,7 @@ use super::config::{
     create_config_file, create_data_dir, read_config_file, write_config_file, ConfigSetupError,
     NymVpnServiceConfig, DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR,
 };
+use super::credential::ImportCredentialError;
 use super::exit_listener::VpnServiceExitListener;
 use super::status_listener::VpnServiceStatusListener;
 
@@ -168,13 +169,7 @@ impl From<VpnState> for VpnServiceStateChange {
 #[derive(Debug)]
 pub enum VpnServiceImportUserCredentialResult {
     Success,
-    Fail(String),
-}
-
-impl VpnServiceImportUserCredentialResult {
-    pub fn is_success(&self) -> bool {
-        matches!(self, VpnServiceImportUserCredentialResult::Success)
-    }
+    Fail(ImportCredentialError),
 }
 
 #[derive(Clone)]
@@ -377,14 +372,12 @@ impl NymVpnService {
         credential: Vec<u8>,
     ) -> VpnServiceImportUserCredentialResult {
         if self.is_running() {
-            return VpnServiceImportUserCredentialResult::Fail(
-                "Can't import credential while VPN is running".to_string(),
-            );
+            return VpnServiceImportUserCredentialResult::Fail(ImportCredentialError::VpnRunning);
         }
 
         match import_credential(credential, self.data_dir.clone()).await {
             Ok(()) => VpnServiceImportUserCredentialResult::Success,
-            Err(err) => VpnServiceImportUserCredentialResult::Fail(err.to_string()),
+            Err(err) => VpnServiceImportUserCredentialResult::Fail(err.into()),
         }
     }
 
