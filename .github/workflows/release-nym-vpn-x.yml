@@ -33,6 +33,7 @@ jobs:
       APPIMAGE_DIR: appimage
       WINDOWS_DIR: windows
       DEB_DIR: deb
+      BUILD_INFO_FILE: build-info.txt
     outputs:
       pkg_version: ${{ steps.set_env.outputs.pkg_version }}
       appimage_dir: ${{ env.APPIMAGE_DIR }}
@@ -61,7 +62,7 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
-            libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
+            libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev jq \
             libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make libfuse2
 
       - name: Setup MSBuild.exe
@@ -69,9 +70,9 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Install rust toolchain
-        uses: brndnmtthws/rust-action-rustup@v1
+        id: setup-rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
           components: rustfmt, clippy
 
       - name: Get package version
@@ -97,7 +98,6 @@ jobs:
         shell: bash
         run: |
           version=${{ steps.package-version.outputs.metadata }}
-
           if ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
             platform_arch=ubuntu-22.04_x86_64
           elif ${{ contains(matrix.os, 'ubuntu-20.04') }}; then
@@ -162,7 +162,6 @@ jobs:
           certutil -decode certificate/tempCert.txt certificate/certificate.pfx
           Remove-Item -path certificate -include tempCert.txt
           Import-PfxCertificate -FilePath certificate/certificate.pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText)
-
 
       - name: Prepare desktop build
         shell: bash
@@ -312,18 +311,24 @@ jobs:
           path: nym-vpn-x/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/nsis/nymvpn-x_${{ env.PKG_VERSION }}_x64-setup.exe
           retention-days: 2
 
-      - name: Generate build info (${{ env.PLATFORM_ARCH }})
+      - name: Generate build info
         if: contains(matrix.os, 'ubuntu-22.04')
+        working-directory: nym-vpn-x/src-tauri
         run: |
-          ./$APPIMAGE_DIR/nymvpn-x_*.AppImage --build-info > build-info.txt
-          cat build-info.txt
+          touch $BUILD_INFO_FILE
+          package_name=$(jq '.package.productName' --raw-output tauri.conf.json)
+          echo "package name:    $package_name" > $BUILD_INFO_FILE
+          echo "package version: $PKG_VERSION" >> $BUILD_INFO_FILE
+          echo "rustc version:   $(rustc -V)" >> $BUILD_INFO_FILE
+          echo "toolchain:       ${{ steps.setup-rust.outputs.name }}" >> $BUILD_INFO_FILE
+          cat $BUILD_INFO_FILE
 
       - name: Upload build-info (${{ env.PLATFORM_ARCH }})
         if: contains(matrix.os, 'ubuntu-22.04')
         uses: actions/upload-artifact@v4
         with:
           name: build-info
-          path: build-info.txt
+          path: nym-vpn-x/src-tauri/${{ env.BUILD_INFO_FILE }}
           retention-days: 2
 
   publish:
@@ -372,7 +377,7 @@ jobs:
 
       - name: Build info
         run: |
-          BUILD_VERSION=$(grep "package version" build-info/build-info.txt | cut -d ':' -f 2 | tr -d ' ')
+          BUILD_VERSION=${{ env.PKG_VERSION }}
           echo BUILD_VERSION=$BUILD_VERSION
           echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
           echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
@@ -383,7 +388,7 @@ jobs:
         run: |
           (echo "SUBJECT=nym-vpn-x-v$BUILD_VERSION nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
-           echo 'NOTES_FILE=release-notes-x-nightly.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes-vpnx-nightly.md') >> $GITHUB_ENV
           gh release delete nightly-x --yes || true
           git push origin :nightly-x || true
       # Once we consider these actually release builds, remove --prerelease
@@ -392,7 +397,7 @@ jobs:
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE='
-           echo 'NOTES_FILE=release-notes-x.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes-vpnx.md') >> $GITHUB_ENV
 
       # Recall that download-artifact will extract into a directory that
       # includes the tar.gz suffix.
