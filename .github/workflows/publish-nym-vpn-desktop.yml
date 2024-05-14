@@ -47,10 +47,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Adding envsubst
+      # Adding envsubst and gh cli
       - name: Install system dependencies
         run: |
-          sudo apt update && sudo apt install -y gettext-base
+          sudo apt update && sudo apt install -y gettext-base gh
 
       # Downloads *all* artifacts produced by the `build` job
       # Each individual artifact will be located in a directory
