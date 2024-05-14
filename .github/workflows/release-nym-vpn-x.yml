@@ -408,7 +408,7 @@ jobs:
           # sha256sum nym-vpn*.exe > nym-vpn_${PKG_VERSION}_x64-setup.exe.sha256sum
           # popd
           pushd $DEB_DIR
-          for f in nym-vpn*.deb; do sha256sum ${f} > ${f}.sha256sum; done
+          for f in nymvpn-x*.deb; do sha256sum ${f} > ${f}.sha256sum; done
           popd
           rmdir nym-vpn-x_*tar.gz || true
           for file in nym-vpn-x_*tar.gz; do pushd $file; for f in nym-vpn-x_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
@@ -441,8 +441,8 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $DEB_DIR/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $DEB_DIR/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $APPIMAGE_DIR/* installer/* $DEB_DIR/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $APPIMAGE_DIR/* installer/* $DEB_DIR/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
