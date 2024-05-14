@@ -27,7 +27,6 @@ jobs:
   build-nym-vpn-desktop-mac:
     uses: ./.github/workflows/build-nym-vpn-desktop-mac.yml
     secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
       TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       DESKTOP_JS_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
@@ -40,7 +39,6 @@ jobs:
   build-nym-vpn-desktop-windows:
     uses: ./.github/workflows/build-nym-vpn-desktop-windows.yml
     secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       WINDOWS_SIGNING_PFX_BASE64: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
       WINDOWS_SIGNING_PFX_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
       TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}

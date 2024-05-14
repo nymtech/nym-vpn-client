@@ -3,8 +3,6 @@ on:
   workflow_dispatch:
   workflow_call:
     secrets:
-      GITHUB_TOKEN:
-        required: true
       WINDOWS_SIGNING_PFX_BASE64:
         required: true
       WINDOWS_SIGNING_PFX_PASSWORD:
