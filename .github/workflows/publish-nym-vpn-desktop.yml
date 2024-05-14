@@ -82,15 +82,15 @@ jobs:
         id: set_tag
         run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
-      - name: Create build-info
+      - name: Generate build-info
         run: |
           echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
-          echo Crate name: $(yq '.package.name' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
-          echo Version: $(yq '.package.version' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
-          echo Tauri version: $(yq '.dependencies.tauri.version' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
-          echo Package name: $(yq '.package.productName' nym-vpn-desktop/src-tauri/tauri.conf.json) >> $GITHUB_ENV
+          echo Crate name: $(yq eval '.package.name' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
+          echo Version: $(yq eval '.package.version' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
+          echo Tauri version: $(yq eval '.dependencies.tauri.version' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
+          echo Package name: $(yq eval '.package.productName' nym-vpn-desktop/src-tauri/tauri.conf.json) >> $GITHUB_ENV
           echo Build profile: release >> $GITHUB_ENV
-          echo gh wf date >> $GITHUB_ENV
+          echo $(gh wf date) >> $GITHUB_ENV
           echo Rustc version: $(rustc -V) >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
