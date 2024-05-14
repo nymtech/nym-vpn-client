@@ -20,30 +20,13 @@ on:
 jobs:
   build-nym-vpn-desktop-linux:
     uses: ./.github/workflows/build-nym-vpn-desktop-linux.yml
-    secrets:
-      TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-      TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
-      DESKTOP_JS_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
+    secrets: inherit
   build-nym-vpn-desktop-mac:
     uses: ./.github/workflows/build-nym-vpn-desktop-mac.yml
-    secrets:
-      TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-      TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
-      DESKTOP_JS_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
-      APPLE_DEVELOPER_ID_APPLICATION_CERT: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
-      APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
-      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-      APPLE_ID: ${{ secrets.APPLE_ID }}
-      APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    secrets: inherit
   build-nym-vpn-desktop-windows:
     uses: ./.github/workflows/build-nym-vpn-desktop-windows.yml
-    secrets:
-      WINDOWS_SIGNING_PFX_BASE64: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
-      WINDOWS_SIGNING_PFX_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
-      TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-      TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
-      DESKTOP_JS_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
+    secrets: inherit
 
   publish:
     needs:
@@ -112,9 +95,9 @@ jobs:
 
       - name: Generate checksums
         run: |
-          for f in ${{ env.UPLOAD_DIR_LINUX}}; do sha256sum ${f} > ${f}.sha256sum; done
-          for f in ${{ env.UPLOAD_DIR_MAC}}; do sha256sum ${f} > ${f}.sha256sum; done
-          for f in ${{ env.UPLOAD_DIR_WINDOWS}}; do sha256sum ${f} > ${f}.sha256sum; done
+          for f in ${{ env.UPLOAD_DIR_LINUX}}/*; do sha256sum ${{ env.UPLOAD_DIR_LINUX}}/${f} > ${{ env.UPLOAD_DIR_LINUX}}/${f}.sha256sum; done
+          for f in ${{ env.UPLOAD_DIR_MAC}}/*; do sha256sum ${{ env.UPLOAD_DIR_MAC}}${f} > ${{ env.UPLOAD_DIR_MAC}}${f}.sha256sum; done
+          for f in ${{ env.UPLOAD_DIR_WINDOWS}}/*; do sha256sum ${{ env.UPLOAD_DIR_WINDOWS}}/${f} > ${{ env.UPLOAD_DIR_WINDOWS}}/${f}.sha256sum; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_LINUX}}/*.sha256sum >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_MAC}}/*.sha256sum >> $GITHUB_ENV
@@ -143,5 +126,5 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/* $DEB_DIR/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-desktop_*.tar.gz/* updater-bundle_*/* $APPIMAGE_DIR/* installer/* $WINDOWS_DIR/* $DEB_DIR/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR_LINUX}}/* ${{ env.UPLOAD_DIR_MAC}}/* ${{ env.UPLOAD_DIR_WINDOWS}}/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR_LINUX}}/* ${{ env.UPLOAD_DIR_MAC}}/* ${{ env.UPLOAD_DIR_WINDOWS}}/*
