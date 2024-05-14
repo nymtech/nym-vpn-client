@@ -32,7 +32,7 @@ jobs:
         uses: nick-fields/retry@v3
         with:
           shell: bash
-          timeout_seconds: 15
+          timeout_seconds: 300
           max_attempts: 3
           retry_on: error
           command: |
