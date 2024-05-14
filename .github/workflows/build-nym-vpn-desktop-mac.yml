@@ -22,8 +22,6 @@ on:
       APPLE_TEAM_ID:
         required: true
     outputs:
-      UPLOAD_DIR_MAC_UPDATER:
-        value: ${{ jobs.build-mac.outputs.UPLOAD_DIR_MAC_UPDATER }}
       UPLOAD_DIR_MAC:
         value: ${{ jobs.build-mac.outputs.UPLOAD_DIR_MAC }}
 
@@ -32,7 +30,6 @@ env:
   CARGO_TARGET: release
   WG_GO_LIB_PATH: ${{ github.workspace }}/lib
   WG_GO_LIB_NAME: wireguard-go_apple_universal
-  UPLOAD_DIR_MAC_UPDATER: mac_updater_artifacts
   UPLOAD_DIR_MAC: mac_artifacts
   TAURI_SRC: '${{ github.workspace }}/nym-vpn-desktop/src-tauri/'
 
@@ -44,7 +41,6 @@ jobs:
     needs: build-wireguard-go-mac
     runs-on: macos-14
     outputs:
-      UPLOAD_DIR_MAC_UPDATER: ${{ env.UPLOAD_DIR_MAC_UPDATER }}
       UPLOAD_DIR_MAC: ${{ env.UPLOAD_DIR_MAC }}
 
     steps:
@@ -119,22 +115,12 @@ jobs:
           MAC_UPDATER_NAME: updater_macos_universal.app.tar.gz
           BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/dmg/nym-vpn_${{ steps.package-version.outputs.metadata }}_aarch64.dmg
         run: |
-          echo "moving updater bundle and signature into ${{ env.UPLOAD_DIR_MAC_UPDATER }}"
-          rm -rf ${{ env.UPLOAD_DIR_MAC_UPDATER }} || true
-          mkdir ${{ env.UPLOAD_DIR_MAC_UPDATER }}
-          cp -vpr '${{ env.MAC_UPDATER }}'     ${{ env.UPLOAD_DIR_MAC_UPDATER }}/${MAC_UPDATER_NAME}
-          cp -vpr '${{ env.MAC_UPDATER }}.sig' ${{ env.UPLOAD_DIR_MAC_UPDATER }}/${MAC_UPDATER_NAME}.sig
-          echo "moving setup.exe into ${{ env.UPLOAD_DIR_MAC }}"
+          echo "moving binaries into ${{ env.UPLOAD_DIR_MAC }}"
           rm -rf ${{ env.UPLOAD_DIR_MAC }} || true
           mkdir ${{ env.UPLOAD_DIR_MAC }}
+          cp -vpr '${{ env.MAC_UPDATER }}'     ${{ env.UPLOAD_DIR_MAC }}/${MAC_UPDATER_NAME}
+          cp -vpr '${{ env.MAC_UPDATER }}.sig' ${{ env.UPLOAD_DIR_MAC }}/${MAC_UPDATER_NAME}.sig
           cp -vpr '${{ env.BINARY }}' ${{ env.UPLOAD_DIR_MAC }}/
-
-      - name: Upload artifact updater
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.UPLOAD_DIR_MAC_UPDATER }}
-          path: ${{ env.UPLOAD_DIR_MAC_UPDATER }}
-          retention-days: 1
 
       - name: Upload artifact mac
         uses: actions/upload-artifact@v4
