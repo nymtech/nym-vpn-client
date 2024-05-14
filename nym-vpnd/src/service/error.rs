@@ -44,7 +44,7 @@ impl From<CredentialError> for ImportCredentialError {
     fn from(err: CredentialError) -> Self {
         let mut error = ImportCredentialError::Generic(err.to_string());
         match err {
-            CredentialError::NymSdkError(_) => (),
+            CredentialError::FailedToSetupStoragePaths { .. } => {}
             CredentialError::NymCredentialsError(_) => (),
             CredentialError::NymCredentialStorageError(_) => (),
             CredentialError::FailedToCreateCredentialStoreDirectory { .. } => {}

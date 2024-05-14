@@ -2,8 +2,11 @@ use std::path::PathBuf;
 
 #[derive(Debug, thiserror::Error)]
 pub enum CredentialError {
-    #[error(transparent)]
-    NymSdkError(#[from] nym_sdk::Error),
+    #[error("failed to setup storage paths: {path}: {source}")]
+    FailedToSetupStoragePaths {
+        path: PathBuf,
+        source: nym_sdk::Error,
+    },
 
     #[error(transparent)]
     NymCredentialsError(#[from] nym_credentials::Error),

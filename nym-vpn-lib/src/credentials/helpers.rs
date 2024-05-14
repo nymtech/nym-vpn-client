@@ -23,7 +23,12 @@ pub(super) async fn get_credentials_store(
         }
     })?;
 
-    let storage_path = StoragePaths::new_from_dir(data_path)?;
+    let storage_path = StoragePaths::new_from_dir(data_path.clone()).map_err(|err| {
+        CredentialError::FailedToSetupStoragePaths {
+            path: data_path.clone(),
+            source: err,
+        }
+    })?;
     let credential_db_path = storage_path.credential_database_path;
     debug!("Credential store: {}", credential_db_path.display());
     let storage = nym_credential_storage::persistent_storage::PersistentStorage::init(
