@@ -97,7 +97,7 @@ jobs:
         run: |
           for f in ${{ env.UPLOAD_DIR_LINUX}}/*; do sha256sum ${f} > ${f}.sha256sum; done
           for f in ${{ env.UPLOAD_DIR_MAC}}/*; do sha256sum ${f} > ${f}.sha256sum; done
-          for f in ${{ env.UPLOAD_DIR_WINDOWS}}/*; ; do sha256sum ${f} > ${f}.sha256sum; done
+          for f in ${{ env.UPLOAD_DIR_WINDOWS}}/*; do sha256sum ${f} > ${f}.sha256sum; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_LINUX}}/*.sha256sum >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_MAC}}/*.sha256sum >> $GITHUB_ENV
@@ -128,3 +128,10 @@ jobs:
           echo "Creating release"
           echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR_LINUX}}/* ${{ env.UPLOAD_DIR_MAC}}/* ${{ env.UPLOAD_DIR_WINDOWS}}/*
           # gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR_LINUX}}/* ${{ env.UPLOAD_DIR_MAC}}/* ${{ env.UPLOAD_DIR_WINDOWS}}/*
+
+  gen-hashes:
+    uses: ./.github/workflows/gen-hashes-json.yml
+    needs: publish
+    with:
+      release_tag: ${{ needs.publish.outputs.tag }}
+    secrets: inherit
