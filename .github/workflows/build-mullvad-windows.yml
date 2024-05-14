@@ -27,11 +27,22 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
+      # - name: Build/Move winfw from mullvad
+      #   shell: bash
+      #   run: |
+      #     cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
+      #     CPP_BUILD_MODES=Release ./build-windows-modules.sh
+
       - name: Build/Move winfw from mullvad
-        shell: bash
-        run: |
-          cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
-          CPP_BUILD_MODES=Release ./build-windows-modules.sh
+        uses: nick-fields/retry@v3
+        with:
+          shell: bash
+          timeout_seconds: 15
+          max_attempts: 3
+          retry_on: error
+          command: |
+            cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
+            CPP_BUILD_MODES=Release ./build-windows-modules.sh
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
