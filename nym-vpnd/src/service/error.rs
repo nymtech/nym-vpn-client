@@ -44,7 +44,6 @@ impl From<CredentialError> for ImportCredentialError {
     fn from(err: CredentialError) -> Self {
         let mut error = ImportCredentialError::Generic(err.to_string());
         match err {
-            CredentialError::CoconutApiError(_) => (),
             CredentialError::NymSdkError(_) => (),
             CredentialError::NymCredentialsError(_) => (),
             CredentialError::NymCredentialStorageError(_) => (),
@@ -108,6 +107,7 @@ impl From<CredentialError> for ImportCredentialError {
             CredentialError::FailedToQueryContract => {
                 error = ImportCredentialError::FailedToQueryContract
             }
+            CredentialError::FailedToFetchCoconutApiClients(_) => {},
         };
         error
     }

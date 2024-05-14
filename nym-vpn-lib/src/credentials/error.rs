@@ -1,9 +1,6 @@
 #[derive(Debug, thiserror::Error)]
 pub enum CredentialError {
     #[error(transparent)]
-    CoconutApiError(#[from] nym_validator_client::coconut::CoconutApiError),
-
-    #[error(transparent)]
     NymSdkError(#[from] nym_sdk::Error),
 
     #[error(transparent)]
@@ -47,4 +44,7 @@ pub enum CredentialError {
 
     #[error("failed to query contract")]
     FailedToQueryContract,
+
+    #[error("failed to fetch coconut api clients: {0}")]
+    FailedToFetchCoconutApiClients(nym_validator_client::coconut::CoconutApiError),
 }

@@ -70,6 +70,6 @@ pub(super) async fn get_coconut_api_clients(
             NyxdError::NoContractAddressAvailable(_) => Ok(CoconutClients::NoContactAvailable),
             _ => Err(CredentialError::FailedToQueryContract),
         },
-        Err(err) => Err(err.into()),
+        Err(err) => Err(CredentialError::FailedToFetchCoconutApiClients(err)),
     }
 }
