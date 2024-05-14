@@ -47,7 +47,12 @@ pub async fn check_credential_base58(credential: &str) -> Result<(), CredentialE
 }
 
 pub async fn check_credential_file(credential_file: PathBuf) -> Result<(), CredentialError> {
-    let raw_credential = fs::read(credential_file)?;
+    let raw_credential = fs::read(credential_file.clone()).map_err(|err| {
+        CredentialError::FailedToReadCredentialFile {
+            path: credential_file,
+            source: err,
+        }
+    })?;
     check_raw_credential(raw_credential).await
 }
 

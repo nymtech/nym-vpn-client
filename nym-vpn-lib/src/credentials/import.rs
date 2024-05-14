@@ -35,6 +35,11 @@ pub async fn import_credential_file(
     credential_file: PathBuf,
     data_path: PathBuf,
 ) -> Result<(), CredentialError> {
-    let raw_credential = fs::read(credential_file)?;
+    let raw_credential = fs::read(credential_file.clone()).map_err(|err| {
+        CredentialError::FailedToReadCredentialFile {
+            path: credential_file,
+            source: err,
+        }
+    })?;
     import_credential(raw_credential, data_path).await
 }

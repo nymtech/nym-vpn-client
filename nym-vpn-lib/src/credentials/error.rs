@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 #[derive(Debug, thiserror::Error)]
 pub enum CredentialError {
     #[error(transparent)]
@@ -9,8 +11,29 @@ pub enum CredentialError {
     #[error(transparent)]
     NymCredentialStorageError(#[from] nym_credential_storage::error::StorageError),
 
-    #[error(transparent)]
-    IoError(#[from] std::io::Error),
+    #[error("failed to create credential store directory: {path}: {source}")]
+    FailedToCreateCredentialStoreDirectory {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error("failed to read credential store metadata: {path}: {source}")]
+    FailedToReadCredentialStoreMetadata {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error("failed to set credential store permissions: {path}: {source}")]
+    FailedToSetCredentialStorePermissions {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error("failed to read credential file: {path}: {source}")]
+    FailedToReadCredentialFile {
+        path: PathBuf,
+        source: std::io::Error,
+    },
 
     #[error("the free pass has already expired! The expiration was set to {expiry_date}")]
     FreepassExpired { expiry_date: String },

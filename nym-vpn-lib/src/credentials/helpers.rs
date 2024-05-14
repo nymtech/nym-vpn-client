@@ -16,7 +16,12 @@ pub(super) async fn get_credentials_store(
     data_path: PathBuf,
 ) -> Result<(PersistentStorage, PathBuf), CredentialError> {
     // Create data_path if it doesn't exist
-    std::fs::create_dir_all(&data_path)?;
+    std::fs::create_dir_all(&data_path).map_err(|err| {
+        CredentialError::FailedToCreateCredentialStoreDirectory {
+            path: data_path.clone(),
+            source: err,
+        }
+    })?;
 
     let storage_path = StoragePaths::new_from_dir(data_path)?;
     let credential_db_path = storage_path.credential_database_path;
@@ -31,10 +36,20 @@ pub(super) async fn get_credentials_store(
         use std::fs;
         use std::os::unix::fs::PermissionsExt;
 
-        let metadata = fs::metadata(&credential_db_path)?;
+        let metadata = fs::metadata(&credential_db_path).map_err(|err| {
+            CredentialError::FailedToReadCredentialStoreMetadata {
+                path: credential_db_path.clone(),
+                source: err,
+            }
+        })?;
         let mut permissions = metadata.permissions();
         permissions.set_mode(0o600);
-        fs::set_permissions(&credential_db_path, permissions)?;
+        fs::set_permissions(&credential_db_path, permissions).map_err(|err| {
+            CredentialError::FailedToSetCredentialStorePermissions {
+                path: credential_db_path.clone(),
+                source: err,
+            }
+        })?;
     }
 
     Ok((storage, credential_db_path))

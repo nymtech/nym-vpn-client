@@ -47,13 +47,16 @@ impl From<CredentialError> for ImportCredentialError {
             CredentialError::NymSdkError(_) => (),
             CredentialError::NymCredentialsError(_) => (),
             CredentialError::NymCredentialStorageError(_) => (),
-            CredentialError::IoError(_) => (),
+            CredentialError::FailedToCreateCredentialStoreDirectory { .. } => {}
+            CredentialError::FailedToReadCredentialStoreMetadata { .. } => {}
+            CredentialError::FailedToSetCredentialStorePermissions { .. } => {}
             CredentialError::FreepassExpired { expiry_date } => {
                 // TODO: merge this with the other expired credential error
                 error = ImportCredentialError::FreepassExpired {
                     expiration: expiry_date,
                 };
             }
+            CredentialError::FailedToReadCredentialFile { .. } => {}
             CredentialError::FailedToImportCredential { location, source } => {
                 match source {
                     NymIdError::CredentialDeserializationFailure { source } => {
