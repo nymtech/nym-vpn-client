@@ -37,6 +37,8 @@ jobs:
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}
     env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PKG_VERSION: ${{ needs.build-nym-vpn-desktop-linux.outputs.PKG_VERSION }}
       UPLOAD_DIR_LINUX: ${{ needs.build-nym-vpn-desktop-linux.outputs.UPLOAD_DIR_LINUX }}
       UPLOAD_DIR_MAC: ${{ needs.build-nym-vpn-desktop-mac.outputs.UPLOAD_DIR_MAC }}
@@ -47,10 +49,16 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Adding envsubst and gh cli
+      # Adding envsubst, gh cli and yq
       - name: Install system dependencies
         run: |
-          sudo apt update && sudo apt install -y gettext-base gh
+          sudo apt update && sudo apt install -y gettext-base gh yq
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
 
       # Downloads *all* artifacts produced by the `build` job
       # Each individual artifact will be located in a directory
@@ -70,18 +78,17 @@ jobs:
         id: set_tag
         run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
-      # We don't bother publishing if not the build info is available
-      # - name: Check if build-info present
-      #   run: test -f build-info/build-info.txt
-
-      # - name: Build info
-      #   run: |
-      #     BUILD_VERSION=$(grep "package version" build-info/build-info.txt | cut -d ':' -f 2 | tr -d ' ')
-      #     echo BUILD_VERSION=$BUILD_VERSION
-      #     echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
-      #     echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
-      #     cat build-info/build-info.txt >> $GITHUB_ENV
-      #     echo 'EOF' >> $GITHUB_ENV
+      - name: Create build-info
+        run: |
+          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
+          echo Crate name: $(yq '.package.name' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
+          echo Version: $(yq '.package.version' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
+          echo Tauri version: $(yq '.dependencies.tauri.version' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
+          echo Package name: $(yq '.package.productName' nym-vpn-desktop/src-tauri/tauri.conf.json) >> $GITHUB_ENV
+          echo Build profile: release >> $GITHUB_ENV
+          echo gh wf date >> $GITHUB_ENV
+          echo Rustc version: $(rustc -V) >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
       - if: env.TAG_NAME == 'nightly-desktop'
         run: |
