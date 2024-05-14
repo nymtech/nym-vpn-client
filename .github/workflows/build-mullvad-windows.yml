@@ -27,12 +27,7 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
-      # - name: Build/Move winfw from mullvad
-      #   shell: bash
-      #   run: |
-      #     cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
-      #     CPP_BUILD_MODES=Release ./build-windows-modules.sh
-
+      # This step is prone to compiler error that are simply blanks, this action auto retries a few times in case of error
       - name: Build/Move winfw from mullvad
         uses: nick-fields/retry@v3
         with:

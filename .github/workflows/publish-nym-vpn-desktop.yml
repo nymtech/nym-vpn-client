@@ -47,6 +47,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # Adding envsubst
+      - name: Install system dependencies
+        run: |
+          sudo apt update && sudo apt install -y gettext-base
+
       # Downloads *all* artifacts produced by the `build` job
       # Each individual artifact will be located in a directory
       # named with the same name of the artifact (upload)
