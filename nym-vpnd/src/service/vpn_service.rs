@@ -19,7 +19,7 @@ use super::config::{
     create_config_file, create_data_dir, read_config_file, write_config_file, ConfigSetupError,
     NymVpnServiceConfig, DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR,
 };
-use super::credential::ImportCredentialError;
+use super::error::ImportCredentialError;
 use super::exit_listener::VpnServiceExitListener;
 use super::status_listener::VpnServiceStatusListener;
 
@@ -38,10 +38,7 @@ pub enum VpnServiceCommand {
     Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
-    ImportCredential(
-        oneshot::Sender<VpnServiceImportUserCredentialResult>,
-        Vec<u8>,
-    ),
+    ImportCredential(oneshot::Sender<Result<(), ImportCredentialError>>, Vec<u8>),
 }
 
 impl fmt::Display for VpnServiceCommand {
@@ -164,12 +161,6 @@ impl From<VpnState> for VpnServiceStateChange {
             VpnState::ConnectionFailed(reason) => VpnServiceStateChange::ConnectionFailed(reason),
         }
     }
-}
-
-#[derive(Debug)]
-pub enum VpnServiceImportUserCredentialResult {
-    Success,
-    Fail(ImportCredentialError),
 }
 
 #[derive(Clone)]
@@ -370,15 +361,14 @@ impl NymVpnService {
     async fn handle_import_credential(
         &mut self,
         credential: Vec<u8>,
-    ) -> VpnServiceImportUserCredentialResult {
+    ) -> Result<(), ImportCredentialError> {
         if self.is_running() {
-            return VpnServiceImportUserCredentialResult::Fail(ImportCredentialError::VpnRunning);
+            return Err(ImportCredentialError::VpnRunning);
         }
 
-        match import_credential(credential, self.data_dir.clone()).await {
-            Ok(()) => VpnServiceImportUserCredentialResult::Success,
-            Err(err) => VpnServiceImportUserCredentialResult::Fail(err.into()),
-        }
+        import_credential(credential, self.data_dir.clone())
+            .await
+            .map_err(|err| err.into())
     }
 
     pub(super) async fn run(mut self) -> anyhow::Result<()> {

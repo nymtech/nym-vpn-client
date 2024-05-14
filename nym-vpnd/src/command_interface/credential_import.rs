@@ -2,26 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use maplit::hashmap;
-use nym_vpn_proto::{
-    import_error::ImportErrorType, ImportError as ProtoImportError, ImportUserCredentialResponse,
-};
+use nym_vpn_proto::{import_error::ImportErrorType, ImportError as ProtoImportError};
 
-use crate::service::{ImportCredentialError, VpnServiceImportUserCredentialResult};
-
-impl From<VpnServiceImportUserCredentialResult> for ImportUserCredentialResponse {
-    fn from(result: VpnServiceImportUserCredentialResult) -> Self {
-        match result {
-            VpnServiceImportUserCredentialResult::Success => ImportUserCredentialResponse {
-                success: true,
-                error: None,
-            },
-            VpnServiceImportUserCredentialResult::Fail(reason) => ImportUserCredentialResponse {
-                success: false,
-                error: Some(ProtoImportError::from(reason)),
-            },
-        }
-    }
-}
+use crate::service::ImportCredentialError;
 
 impl From<ImportCredentialError> for ProtoImportError {
     fn from(err: ImportCredentialError) -> Self {

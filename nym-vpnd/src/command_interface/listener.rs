@@ -190,9 +190,18 @@ impl NymVpnd for CommandInterface {
             .await;
 
         info!("Returning import credential response");
-        Ok(tonic::Response::new(ImportUserCredentialResponse::from(
-            response,
-        )))
+        let response = match response {
+            Ok(()) => ImportUserCredentialResponse {
+                success: true,
+                error: None,
+            },
+            Err(err) => ImportUserCredentialResponse {
+                success: false,
+                error: Some(err.into()),
+            },
+        };
+
+        Ok(tonic::Response::new(response))
     }
 
     type ListenToConnectionStatusStream =
