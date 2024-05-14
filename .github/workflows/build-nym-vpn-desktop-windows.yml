@@ -13,6 +13,11 @@ on:
         required: true
       DESKTOP_JS_SENTRY_DSN:
         required: true
+    outputs:
+      UPLOAD_DIR_WINDOWS_UPDATER:
+        value: ${{ jobs.build-windows.outputs.UPLOAD_DIR_WINDOWS_UPDATER }}
+      UPLOAD_DIR_WINDOWS:
+        value: ${{ jobs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -20,7 +25,7 @@ env:
   LIBS_PATH: '${{ github.workspace }}/lib'
   WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
   MULLVAD_LIB_NAME: winfw
-  UPLOAD_DIR_WINDOWS_UPDATER: updater_artifacts
+  UPLOAD_DIR_WINDOWS_UPDATER: windows_updater_artifacts
   UPLOAD_DIR_WINDOWS: windows_artifacts
   TAURI_SRC: '${{ github.workspace }}/nym-vpn-desktop/src-tauri/'
 

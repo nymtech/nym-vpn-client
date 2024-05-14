@@ -9,6 +9,11 @@ on:
         required: true
       DESKTOP_JS_SENTRY_DSN:
         required: true
+    outputs:
+      UPLOAD_DIR_LINUX:
+        value: ${{ jobs.build-linux.outputs.UPLOAD_DIR_LINUX }}
+      PKG_VERSION:
+        value: ${{ jobs.build-linux.outputs.PKG_VERSION }}
 
 env:
   CARGO_TERM_COLOR: always

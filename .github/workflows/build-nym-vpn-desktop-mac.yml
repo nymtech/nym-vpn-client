@@ -21,6 +21,11 @@ on:
         required: true
       APPLE_TEAM_ID:
         required: true
+    outputs:
+      UPLOAD_DIR_MAC_UPDATER:
+        value: ${{ jobs.build-mac.outputs.UPLOAD_DIR_MAC_UPDATER }}
+      UPLOAD_DIR_MAC:
+        value: ${{ jobs.build-mac.outputs.UPLOAD_DIR_MAC }}
 
 env:
   CARGO_TERM_COLOR: always

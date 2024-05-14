@@ -112,7 +112,7 @@ jobs:
 
       - name: Generate checksums
         run: |
-          for f in ./*; do sha256sum ${f} > ${f}.sha256sum; done
+          for f in ./*_artifacts; do sha256sum ${f} > ${f}.sha256sum; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           # cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
           # cat $APPIMAGE_DIR/*.sha256sum >> $GITHUB_ENV
