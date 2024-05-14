@@ -34,7 +34,11 @@ pub(super) async fn get_credentials_store(
     let storage = nym_credential_storage::persistent_storage::PersistentStorage::init(
         credential_db_path.clone(),
     )
-    .await?;
+    .await
+    .map_err(|err| CredentialError::FailedToInitializePersistentStorage {
+        path: credential_db_path.clone(),
+        source: err,
+    })?;
 
     #[cfg(target_family = "unix")]
     {

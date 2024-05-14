@@ -46,10 +46,10 @@ impl From<CredentialError> for ImportCredentialError {
         match err {
             CredentialError::FailedToSetupStoragePaths { .. } => {}
             CredentialError::NymCredentialsError(_) => (),
-            CredentialError::NymCredentialStorageError(_) => (),
             CredentialError::FailedToCreateCredentialStoreDirectory { .. } => {}
             CredentialError::FailedToReadCredentialStoreMetadata { .. } => {}
             CredentialError::FailedToSetCredentialStorePermissions { .. } => {}
+            CredentialError::FailedToInitializePersistentStorage { .. } => {}
             CredentialError::FreepassExpired { expiry_date } => {
                 // TODO: merge this with the other expired credential error
                 error = ImportCredentialError::FreepassExpired {

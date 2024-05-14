@@ -11,9 +11,6 @@ pub enum CredentialError {
     #[error(transparent)]
     NymCredentialsError(#[from] nym_credentials::Error),
 
-    #[error(transparent)]
-    NymCredentialStorageError(#[from] nym_credential_storage::error::StorageError),
-
     #[error("failed to create credential store directory: {path}: {source}")]
     FailedToCreateCredentialStoreDirectory {
         path: PathBuf,
@@ -36,6 +33,12 @@ pub enum CredentialError {
     FailedToReadCredentialFile {
         path: PathBuf,
         source: std::io::Error,
+    },
+
+    #[error("failed to initialize persistent storage: {path}: {source}")]
+    FailedToInitializePersistentStorage {
+        path: PathBuf,
+        source: nym_credential_storage::error::StorageError,
     },
 
     #[error("the free pass has already expired! The expiration was set to {expiry_date}")]
