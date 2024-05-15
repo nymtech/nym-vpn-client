@@ -78,14 +78,15 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
-      - name: Generate licenses file (Js & Rust) and install JS dependencies
-        working-directory: nym-vpn-desktop
-        run: |
-          rm public/licenses-js.json || true
-          npm run gen:licenses:js
-          rm public/licenses-rust.json || true
-          npm run gen:licenses:rust
-          npm ci
+      # - name: Generate licenses file (Js & Rust) and install JS dependencies
+      #   working-directory: nym-vpn-desktop
+      #   run: |
+      #     npm i license-checker-rseidelsohn
+      #     rm public/licenses-js.json || true
+      #     npm run gen:licenses:js
+      #     rm public/licenses-rust.json || true
+      #     npm run gen:licenses:rust
+      #     npm ci
 
       - name: Build desktop client
         working-directory: nym-vpn-desktop/src-tauri

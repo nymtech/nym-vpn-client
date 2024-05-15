@@ -104,15 +104,16 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate licenses file (Js & Rust) and install JS dependencies
-        working-directory: nym-vpn-desktop
-        shell: bash
-        run: |
-          rm public/licenses-js.json || true
-          npm run gen:licenses:js
-          rm public/licenses-rust.json || true
-          npm run gen:licenses:rust
-          npm ci
+      # - name: Generate licenses file (Js & Rust) and install JS dependencies
+      #   working-directory: nym-vpn-desktop
+      #   shell: bash
+      #   run: |
+      #     npm i license-checker-rseidelsohn
+      #     rm public/licenses-js.json || true
+      #     npm run gen:licenses:js
+      #     rm public/licenses-rust.json || true
+      #     npm run gen:licenses:rust
+      #     npm ci
 
       - name: Import signing certificate
         env:
