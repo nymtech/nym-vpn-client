@@ -12,11 +12,13 @@ cwd=$(pwd)
 RED="\e[38;5;1m" # red
 GRN="\e[38;5;2m" # green
 YLW="\e[38;5;3m" # yellow
+BLU="\e[38;5;4m" # blue
 BLD="\e[1m"      # bold
 RS="\e[0m"       # style reset
 B_RED="$BLD$RED"
 B_GRN="$BLD$GRN"
 B_YLW="$BLD$YLW"
+B_BLU="$BLD$BLU"
 ####
 
 # TODO set/replace with the target tag and version
@@ -69,7 +71,10 @@ need_cmd mktemp
 temp_dir=$(mktemp -d)
 data_home=${XDG_DATA_HOME:-$HOME/.local/share}
 state_home=${XDG_STATE_HOME:-$HOME/.local/state}
-install_dir="$HOME/.local/bin"
+xdg_bin_home="$HOME/.local/bin"
+usr_bin_dir="/usr/bin"
+# default installation directory
+install_dir="$xdg_bin_home"
 icons_dir="$data_home/icons"
 appimage="nymvpn-x_${version}.AppImage"
 target_appimage="nymvpn-x.appimage"
@@ -81,7 +86,7 @@ Name=NymVPN-x
 Type=Application
 Version=1.0
 Comment=Decentralized, mixnet, and zero-knowledge VPN
-Exec=$install_dir/$target_appimage %U
+Exec=INSTALL_DIR/$target_appimage %U
 Icon=$icons_dir/nym-vpn.svg
 Terminal=false
 Categories=Network;"
@@ -112,17 +117,61 @@ download() {
   _popd
 }
 
+select_install_dir() {
+  # read user input for the installation directory
+  # select between these 2 options
+  # 1. ~/.local/bin (default)
+  # 2. /usr/local/bin
+  choice=""
+  log "  ${B_GRN}Select$RS the directory where the AppImage will be moved to"
+  prompt="    [${B_BLU}H$RS ~/.local/bin (default)] [${B_BLU}U$RS /usr/bin] (${B_BLU}h$RS/${B_BLU}u$RS) "
+  read -r -p "$(echo -e "$prompt")" choice
+  case $choice in
+  "h" | "H")
+    install_dir="$xdg_bin_home"
+    ;;
+  "u" | "U")
+    install_dir="$usr_bin_dir"
+    ;;
+  *)
+    install_dir="$xdg_bin_home"
+    ;;
+  esac
+}
+
+# checking if a directory is in the PATH
+in_path() {
+  if [[ ":$PATH:" == *":$1:"* ]]; then
+    return 0
+  fi
+  return 1
+}
+
 _install() {
   need_cmd install
 
   log "  ${B_GRN}Installing$RS AppImage"
-  install -Dm755 "$temp_dir/$appimage" "$install_dir/$target_appimage"
+  if ! in_path "$install_dir"; then
+    install_dir="$usr_bin_dir"
+  else
+    select_install_dir
+  fi
+  log "  ${B_GRN}Selected$RS installation directory $install_dir"
+
+  if [ "$install_dir" = "$usr_bin_dir" ]; then
+    need_cmd sudo
+    log "  ${B_YLW}Need$RS sudo to install AppImage in $install_dir"
+    sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$appimage" "$install_dir/$target_appimage"
+  else
+    install -Dm755 "$temp_dir/$appimage" "$install_dir/$target_appimage"
+  fi
+
   path=$(tilded "$install_dir/$target_appimage")
   log "   ${B_GRN}Installed$RS $path"
 
   log "  ${B_GRN}Installing$RS desktop entry"
   _pushd "$temp_dir"
-  echo "$desktop_entry" >"nymvpn-x.desktop"
+  echo "${desktop_entry/INSTALL_DIR/$install_dir}" >"nymvpn-x.desktop"
   echo "$icon" >"nym-vpn.svg"
   _popd
   install -Dm644 "$temp_dir/nymvpn-x.desktop" "$desktop_dir/nymvpn-x.desktop"
@@ -133,8 +182,7 @@ _install() {
 }
 
 post_install() {
-  # checking if ~/.local/bin is in the PATH
-  if ! [[ ":$PATH:" == *":$install_dir:"* ]]; then
+  if ! in_path "$install_dir"; then
     log "${B_YLW}⚠$RS $install_dir is not in the ${BLD}PATH$RS
   please add it using your shell configuration"
   fi
