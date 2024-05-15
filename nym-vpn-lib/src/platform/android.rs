@@ -3,12 +3,13 @@
 
 use super::*;
 use ipnetwork::IpNetwork;
+use jnix::jni::objects::JString;
 use jnix::jni::{
     objects::JObject,
     sys::{jboolean, jint, JNI_FALSE},
     JNIEnv,
 };
-use jnix::{IntoJava, JnixEnv};
+use jnix::{FromJava, IntoJava, JnixEnv};
 use nix::sys::{
     select::{pselect, FdSet},
     time::{TimeSpec, TimeValLike},
@@ -64,18 +65,15 @@ pub(crate) struct TunnelConfiguration {
     pub(crate) gateway_fd: Option<RawFd>,
 }
 
-fn init_jni_logger() {
+fn init_jni_logger(level: String) {
     use android_logger::{Config, FilterBuilder};
+    let levels = level + ",tungstenite=warn,mio=warn,tokio_tungstenite=warn";
 
     android_logger::init_once(
         Config::default()
             .with_max_level(LevelFilter::Trace)
             .with_tag("libnymvpn")
-            .with_filter(
-                FilterBuilder::new()
-                    .parse("debug,tungstenite=warn,mio=warn,tokio_tungstenite=warn")
-                    .build(),
-            ),
+            .with_filter(FilterBuilder::new().parse(levels.as_str()).build()),
     );
     log::debug!("Logger initialized");
 }
@@ -90,15 +88,18 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     env: JNIEnv<'_>,
     _this: JObject<'_>,
     vpn_service: JObject<'_>,
+    log_level: JString<'_>,
 ) {
     if get_context().is_some() {
         warn!("Context was already initialised, not doing anything");
         return;
     }
 
-    init_jni_logger();
-
     let env = JnixEnv::from(env);
+
+    let level = String::from_java(&env, log_level);
+    init_jni_logger(level);
+
     let jvm = if let Ok(data) = env.get_java_vm() {
         Arc::new(data)
     } else {
