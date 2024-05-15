@@ -16,7 +16,6 @@ use super::{
         CheckRawCredentialError, VerifyCredentialError,
     },
     helpers::{get_coconut_api_clients, get_credentials_store, get_nyxd_client, CoconutClients},
-    CredentialError,
 };
 
 pub async fn check_raw_credential(raw_credential: Vec<u8>) -> Result<(), CheckRawCredentialError> {

@@ -107,9 +107,7 @@ async fn run() -> Result<()> {
         Commands::Run(args) => run_vpn(args, data_path).await,
         Commands::ImportCredential(args) => {
             let data_path = data_path.ok_or(Error::ConfigPathNotSet)?;
-            import_credential(args, data_path)
-                .await
-                .map_err(|err| err.into())
+            import_credential(args, data_path).await
         }
     }
 }

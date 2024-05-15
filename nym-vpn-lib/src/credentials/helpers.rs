@@ -10,9 +10,8 @@ use nym_validator_client::{
 };
 use tracing::debug;
 
-use super::{
-    error::{CredentialCoconutApiClientError, CredentialNyxdClientError, CredentialStoreError},
-    CredentialError,
+use super::error::{
+    CredentialCoconutApiClientError, CredentialNyxdClientError, CredentialStoreError,
 };
 
 pub(super) async fn get_credentials_store(
@@ -72,7 +71,7 @@ pub(super) async fn get_credentials_store(
 pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialNyxdClientError> {
     let network = NymNetworkDetails::new_from_env();
     let config = NyxdClientConfig::try_from_nym_network_details(&network)
-        .map_err(|err| CredentialNyxdClientError::FailedToCreateNyxdClientConfig(err))?;
+        .map_err(CredentialNyxdClientError::FailedToCreateNyxdClientConfig)?;
 
     // Safe to use pick the first one?
     let nyxd_url = network
@@ -83,7 +82,7 @@ pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialNyxd
 
     debug!("Connecting to nyx validator at: {}", nyxd_url);
     NyxdClient::connect(config, nyxd_url.as_str())
-        .map_err(|err| CredentialNyxdClientError::FailedToConnectUsingNyxdClient(err))
+        .map_err(CredentialNyxdClientError::FailedToConnectUsingNyxdClient)
 }
 
 pub(super) enum CoconutClients {
