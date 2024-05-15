@@ -88,8 +88,8 @@ jobs:
           echo Version:       $(yq '.package.version' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
           echo Tauri version: $(yq '.dependencies.tauri.version' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
           echo Package name:  $(yq '.package.productName' nym-vpn-desktop/src-tauri/tauri.conf.json) >> $GITHUB_ENV
-          echo Build profile: release >> $GITHUB_ENV
+          echo Rustc version: ${{ inputs.rust-version}} >> $GITHUB_ENV
+          echo Build profile: ${{ inputs.build-profile}} >> $GITHUB_ENV
           echo Date:          ${{ steps.date.outputs.date }} >> $GITHUB_ENV
-          echo Rustc version: $(rustc -V) >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
           echo $BUILD_INFO
