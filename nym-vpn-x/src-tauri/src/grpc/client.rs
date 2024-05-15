@@ -179,7 +179,10 @@ impl GrpcClient {
         });
 
         while let Some(status) = rx.recv().await {
-            debug!("vpn status update {:?}", status);
+            debug!("vpn status update {:?}", status.status());
+            if let Some(e) = status.error.as_ref() {
+                warn!("vpn status error: {}", e.message);
+            }
             vpn_status_update(app, status).await?;
         }
 
