@@ -3,11 +3,6 @@ on:
   workflow_dispatch:
   workflow_call:
     inputs:
-      is-desktop:
-        description: "Build info for desktop ? (True: desktop, False: cli)"
-        required: true
-        default: false
-        type: boolean
       build-profile:
         description: "Rust build profile"
         required: true
@@ -38,10 +33,9 @@ jobs:
       - name: Generate build-info
         run: |
           touch build-info.txt
-          echo "Crate name:    $(yq -oy '.package.name' nym-vpn-desktop/src-tauri/Cargo.toml)" >> build-info.txt
+          echo "Package name:  $(yq -oy '.package.productName' nym-vpn-desktop/src-tauri/tauri.conf.json)" >> build-info.txt
           echo "Version:       $(yq -oy '.package.version' nym-vpn-desktop/src-tauri/Cargo.toml)" >> build-info.txt
           echo "Tauri version: $(yq -oy '.dependencies.tauri.version' nym-vpn-desktop/src-tauri/Cargo.toml)" >> build-info.txt
-          echo "Package name:  $(yq -oy '.package.productName' nym-vpn-desktop/src-tauri/tauri.conf.json)" >> build-info.txt
           echo "Rustc version: ${{ inputs.rust-version}}" >> build-info.txt
           echo "Build profile: ${{ inputs.build-profile}}" >> build-info.txt
           echo "Date:          ${{ steps.date.outputs.date }}" >> build-info.txt

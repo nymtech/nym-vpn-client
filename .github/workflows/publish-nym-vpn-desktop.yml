@@ -32,7 +32,6 @@ jobs:
     uses: ./.github/workflows/generate-build-info.yml
     needs: build-nym-vpn-desktop-linux
     with:
-      is-desktop: true
       build-profile: release
       rust-version: ${{ needs.build-nym-vpn-desktop-linux.outputs.RUST_VERSION }}
 
