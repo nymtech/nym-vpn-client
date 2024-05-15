@@ -11,6 +11,14 @@ jobs:
     runs-on: "custom-windows-11"
 
     steps:
+      - name: Cleanup working directory
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout mullvad libs for Windows
         uses: actions/checkout@v4
         with:
@@ -26,14 +34,6 @@ jobs:
 
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
-
-      - name: Cleanup working directory
-        shell: bash
-        run: |
-          ls -la ./
-          rm -rf ./* || true
-          rm -rf ./.??* || true
-          ls -la ./
 
       # This step is prone to compiler error that are simply blanks, this action auto retries a few times in case of error
       - name: Build/Move winfw from mullvad
