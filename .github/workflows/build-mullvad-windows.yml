@@ -3,6 +3,7 @@ on: [workflow_dispatch, workflow_call]
 
 env:
   CARGO_TERM_COLOR: always
+  CPP_BUILD_MODES: Debug
 
 # https://github.com/actions/runner-images/issues/1794#issuecomment-707217728
 
@@ -45,14 +46,14 @@ jobs:
           retry_on: error
           command: |
             cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
-            CPP_BUILD_MODES=Release ./build-windows-modules.sh
+            ./build-windows-modules.sh
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: winfw.dll
           path: |
-            ${{ github.workspace }}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release/winfw.dll
+            ${{ github.workspace }}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-${{ env.CPP_BUILD_MODES }}/winfw.dll
           retention-days: 10
 
       - name: Upload artifacts
@@ -60,5 +61,5 @@ jobs:
         with:
           name: winfw.lib
           path: |
-            ${{ github.workspace }}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Release/winfw.lib
+            ${{ github.workspace }}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-${{ env.CPP_BUILD_MODES }}/winfw.lib
           retention-days: 10
