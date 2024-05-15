@@ -65,12 +65,6 @@ jobs:
         run: |
           sudo apt update && sudo apt install -y gettext-base gh
 
-      # Believe it or not, it's the recommended method.........
-      - name: Install yq
-        run: |
-          wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY} -O /usr/bin/yq
-          sudo chmod +x /usr/bin/yq
-
       - name: Install rust toolchain
         uses: brndnmtthws/rust-action-rustup@v1
         with:
