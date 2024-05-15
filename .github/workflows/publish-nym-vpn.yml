@@ -34,7 +34,7 @@ jobs:
 
   publish:
     needs: build-nym-vpn-linux
-    runs-on: ubuntu-22.04-16-core
+    runs-on: ubuntu-22.04-arc
     permissions:
       contents: write
     outputs:
