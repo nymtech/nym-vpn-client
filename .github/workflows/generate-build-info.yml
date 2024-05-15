@@ -40,31 +40,31 @@ jobs:
         run:
           echo "date=$(date +'%Y-%m-%d')\n" >> $GITHUB_OUTPUT
 
-      - name: Get package name
-        id: package_name
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq '.package.name' nym-vpn-desktop/src-tauri/Cargo.toml
+      # - name: Get package name
+      #   id: package_name
+      #   uses: mikefarah/yq@master
+      #   with:
+      #     cmd: yq '.package.name' nym-vpn-desktop/src-tauri/Cargo.toml
 
-      - name: Get package version
-        id: package_version
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq '.package.version' nym-vpn-desktop/src-tauri/Cargo.toml
+      # - name: Get package version
+      #   id: package_version
+      #   uses: mikefarah/yq@master
+      #   with:
+      #     cmd: yq '.package.version' nym-vpn-desktop/src-tauri/Cargo.toml
 
-      - name: Get tauri version
-        if: ${{ inputs.is-desktop}}
-        id: tauri_version
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq '.dependencies.tauri.version' nym-vpn-desktop/src-tauri/Cargo.toml
+      # - name: Get tauri version
+      #   if: ${{ inputs.is-desktop}}
+      #   id: tauri_version
+      #   uses: mikefarah/yq@master
+      #   with:
+      #     cmd: yq '.dependencies.tauri.version' nym-vpn-desktop/src-tauri/Cargo.toml
 
-      - name: Get tauri product name
-        if: ${{ inputs.is-desktop}}
-        id: package_productName
-        uses: mikefarah/yq@master
-        with:
-          cmd: yq '.package.productName' nym-vpn-desktop/src-tauri/tauri.conf.json
+      # - name: Get tauri product name
+      #   if: ${{ inputs.is-desktop}}
+      #   id: package_productName
+      #   uses: mikefarah/yq@master
+      #   with:
+      #     cmd: yq '.package.productName' nym-vpn-desktop/src-tauri/tauri.conf.json
 
       # - name: Generate build-info
       #   run: |
@@ -92,3 +92,4 @@ jobs:
           echo Date:          ${{ steps.date.outputs.date }} >> $GITHUB_ENV
           echo Rustc version: $(rustc -V) >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
+          echo $BUILD_INFO
