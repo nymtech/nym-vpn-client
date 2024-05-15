@@ -67,9 +67,20 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
-      # Downloads *all* artifacts produced by the `build` job
-      # Each individual artifact will be located in a directory
-      # named with the same name of the artifact (upload)
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-desktop/src-tauri
+
+      - name: Check tag name consistency
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          if [[ nym-vpn-desktop-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
+            exit 1
+          fi
+
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
@@ -97,20 +108,23 @@ jobs:
           echo Rustc version: $(rustc -V) >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-      - if: env.TAG_NAME == 'nightly-desktop'
+      - name: Setting subject, prerelease and notes files
+        if: ${{ contains(env.TAG_NAME, 'nightly-desktop') }}
         run: |
-          (echo "SUBJECT=nym-vpn-desktop-v$BUILD_VERSION nightly prerelease build";
+          (echo "SUBJECT=nym-vpn-desktop-v${{ steps.package-version.outputs.metadata }} nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
-           echo 'NOTES_FILE=release-notes-desktop-nightly.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes/release-notes-desktop-nightly.md') >> $GITHUB_ENV
           gh release delete nightly-desktop --yes || true
           git push origin :nightly-desktop || true
+
       # Once we consider these actually release builds, remove --prerelease
       # from PRERELEASE here
-      - if: env.TAG_NAME != 'nightly-desktop'
+      - name: Removing --prerelease if needed
+        if: ${{ !contains(env.TAG_NAME, 'nightly-desktop') }}
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE='
-           echo 'NOTES_FILE=release-notes-desktop.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes/release-notes-desktop.md') >> $GITHUB_ENV
 
       - name: Generate checksums
         run: |

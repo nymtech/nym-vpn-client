@@ -112,6 +112,7 @@ jobs:
            echo 'NOTES_FILE=release-notes/${{ env.BINARY }}.md') >> $GITHUB_ENV
           gh release delete ${{ env.BINARY }}-nightly --yes || true
           git push origin :${{ env.BINARY }}-nightly || true
+
       # Once we consider these actually release builds, remove --prerelease
       # from PRERELEASE here
       - name: Removing --prerelease if needed
