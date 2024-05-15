@@ -26,11 +26,6 @@ pub enum ImportCredentialError {
         expiration: OffsetDateTime,
         location: PathBuf,
     },
-    // #[error("failed to verify credential")]
-    // VerificationFailed,
-
-    // #[error("failed to query contract")]
-    // FailedToQueryContract,
 }
 
 impl From<VpnLibImportCredentialError> for ImportCredentialError {

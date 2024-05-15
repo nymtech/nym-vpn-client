@@ -19,18 +19,27 @@ impl From<ImportCredentialError> for ProtoImportError {
                 message: err.to_string(),
                 details: Default::default(),
             },
-            ImportCredentialError::StorageError { .. } => ProtoImportError {
+            ImportCredentialError::StorageError {
+                ref path,
+                ref error,
+            } => ProtoImportError {
                 kind: ImportErrorType::StorageError as i32,
                 message: err.to_string(),
-                details: Default::default(),
+                details: hashmap! {
+                    "path".to_string() => path.to_string_lossy().to_string(),
+                    "error".to_string() => error.to_string()
+                },
             },
             ImportCredentialError::DeserializationFailure {
-                reason: _,
+                ref reason,
                 ref location,
             } => ProtoImportError {
                 kind: ImportErrorType::DeserializationFailure as i32,
                 message: err.to_string(),
-                details: hashmap! { "location".to_string() => location.to_string_lossy().to_string() },
+                details: hashmap! {
+                    "location".to_string() => location.to_string_lossy().to_string(),
+                    "reason".to_string() => reason.clone(),
+                },
             },
             ImportCredentialError::CredentialExpired {
                 expiration,

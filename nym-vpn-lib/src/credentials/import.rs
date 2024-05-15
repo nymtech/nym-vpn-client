@@ -1,9 +1,7 @@
 use std::{fs, path::PathBuf};
 use tracing::info;
 
-use super::{
-    helpers::get_credentials_store, CredentialStoreError,
-};
+use super::{helpers::get_credentials_store, CredentialStoreError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ImportCredentialError {
