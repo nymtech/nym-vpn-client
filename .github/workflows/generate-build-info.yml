@@ -38,7 +38,7 @@ jobs:
       - name: Get current date
         id: date
         run:
-          echo "date=$(date +'%Y-%m-%d')\n" >> $GITHUB_OUTPUT
+          echo "date=$(date)\n" >> $GITHUB_OUTPUT
 
       # - name: Get package name
       #   id: package_name
@@ -92,4 +92,4 @@ jobs:
           echo Build profile: ${{ inputs.build-profile}} >> $GITHUB_ENV
           echo Date:          ${{ steps.date.outputs.date }} >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
-          echo $BUILD_INFO
+          echo ${{ env.BUILD_INFO }}
