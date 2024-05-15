@@ -10,21 +10,24 @@ use nym_validator_client::{
 };
 use tracing::debug;
 
-use super::CredentialError;
+use super::{
+    error::{CredentialCoconutApiClientError, CredentialNyxdClientError, CredentialStoreError},
+    CredentialError,
+};
 
 pub(super) async fn get_credentials_store(
     data_path: PathBuf,
-) -> Result<(PersistentStorage, PathBuf), CredentialError> {
+) -> Result<(PersistentStorage, PathBuf), CredentialStoreError> {
     // Create data_path if it doesn't exist
     std::fs::create_dir_all(&data_path).map_err(|err| {
-        CredentialError::FailedToCreateCredentialStoreDirectory {
+        CredentialStoreError::FailedToCreateCredentialStoreDirectory {
             path: data_path.clone(),
             source: err,
         }
     })?;
 
     let storage_path = StoragePaths::new_from_dir(data_path.clone()).map_err(|err| {
-        CredentialError::FailedToSetupStoragePaths {
+        CredentialStoreError::FailedToSetupStoragePaths {
             path: data_path.clone(),
             source: err,
         }
@@ -35,10 +38,12 @@ pub(super) async fn get_credentials_store(
         credential_db_path.clone(),
     )
     .await
-    .map_err(|err| CredentialError::FailedToInitializePersistentStorage {
-        path: credential_db_path.clone(),
-        source: err,
-    })?;
+    .map_err(
+        |err| CredentialStoreError::FailedToInitializePersistentStorage {
+            path: credential_db_path.clone(),
+            source: err,
+        },
+    )?;
 
     #[cfg(target_family = "unix")]
     {
@@ -46,7 +51,7 @@ pub(super) async fn get_credentials_store(
         use std::os::unix::fs::PermissionsExt;
 
         let metadata = fs::metadata(&credential_db_path).map_err(|err| {
-            CredentialError::FailedToReadCredentialStoreMetadata {
+            CredentialStoreError::FailedToReadCredentialStoreMetadata {
                 path: credential_db_path.clone(),
                 source: err,
             }
@@ -54,7 +59,7 @@ pub(super) async fn get_credentials_store(
         let mut permissions = metadata.permissions();
         permissions.set_mode(0o600);
         fs::set_permissions(&credential_db_path, permissions).map_err(|err| {
-            CredentialError::FailedToSetCredentialStorePermissions {
+            CredentialStoreError::FailedToSetCredentialStorePermissions {
                 path: credential_db_path.clone(),
                 source: err,
             }
@@ -64,38 +69,38 @@ pub(super) async fn get_credentials_store(
     Ok((storage, credential_db_path))
 }
 
-pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialError> {
+pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialNyxdClientError> {
     let network = NymNetworkDetails::new_from_env();
     let config = NyxdClientConfig::try_from_nym_network_details(&network)
-        .map_err(|err| CredentialError::FailedToCreateNyxdClientConfig(err))?;
+        .map_err(|err| CredentialNyxdClientError::FailedToCreateNyxdClientConfig(err))?;
 
     // Safe to use pick the first one?
     let nyxd_url = network
         .endpoints
         .first()
-        .ok_or(CredentialError::NoNyxdEndpointsFound)?
+        .ok_or(CredentialNyxdClientError::NoNyxdEndpointsFound)?
         .nyxd_url();
 
     debug!("Connecting to nyx validator at: {}", nyxd_url);
     NyxdClient::connect(config, nyxd_url.as_str())
-        .map_err(|err| CredentialError::FailedToConnectUsingNyxdClient(err))
+        .map_err(|err| CredentialNyxdClientError::FailedToConnectUsingNyxdClient(err))
 }
 
 pub(super) enum CoconutClients {
     Clients(Vec<nym_validator_client::coconut::CoconutApiClient>),
-    NoContactAvailable,
+    NoContractAvailable,
 }
 
 pub(super) async fn get_coconut_api_clients(
     nyxd_client: QueryHttpRpcNyxdClient,
     epoch_id: u64,
-) -> Result<CoconutClients, CredentialError> {
+) -> Result<CoconutClients, CredentialCoconutApiClientError> {
     match all_coconut_api_clients(&nyxd_client, epoch_id).await {
         Ok(clients) => Ok(CoconutClients::Clients(clients)),
         Err(CoconutApiError::ContractQueryFailure { source }) => match source {
-            NyxdError::NoContractAddressAvailable(_) => Ok(CoconutClients::NoContactAvailable),
-            _ => Err(CredentialError::FailedToQueryContract),
+            NyxdError::NoContractAddressAvailable(_) => Ok(CoconutClients::NoContractAvailable),
+            _ => Err(CredentialCoconutApiClientError::FailedToQueryContract),
         },
-        Err(err) => Err(CredentialError::FailedToFetchCoconutApiClients(err)),
+        Err(err) => Err(CredentialCoconutApiClientError::FailedToFetchCoconutApiClients(err)),
     }
 }
