@@ -53,7 +53,6 @@ jobs:
       UPLOAD_DIR_LINUX: ${{ needs.build-nym-vpn-desktop-linux.outputs.UPLOAD_DIR_LINUX }}
       UPLOAD_DIR_MAC: ${{ needs.build-nym-vpn-desktop-mac.outputs.UPLOAD_DIR_MAC }}
       UPLOAD_DIR_WINDOWS: ${{ needs.build-nym-vpn-desktop-windows.outputs.UPLOAD_DIR_WINDOWS }}
-      BUILD_INFO: ${{ needs.generate-build-info.outputs.BUILD_INFO }}
     permissions:
       contents: write
     steps:
@@ -139,6 +138,12 @@ jobs:
           sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
           mkdir installer
           cp -v $appimg_installer installer
+
+      - name: Build info
+        run: |
+          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
+          cat build-info/build-info.txt >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
         run: |
