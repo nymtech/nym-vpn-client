@@ -43,11 +43,17 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
+      # This step is prone to compiler error that are simply blanks, this action auto retries a few times in case of error
       - name: Build/Move winfw from mullvad
-        shell: bash
-        run: |
-          cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
-          ./build-windows-modules.sh
+        uses: nick-fields/retry@v3
+        with:
+          shell: bash
+          timeout_seconds: 300
+          max_attempts: 3
+          retry_on: error
+          command: |
+            cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
+            ./build-windows-modules.sh
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
