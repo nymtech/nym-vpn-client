@@ -183,16 +183,6 @@ android {
 
 	if (isBundleBuild()) {
 		defaultConfig.ndk.abiFilters("arm64-v8a")
-	} else {
-		splits {
-			abi {
-				isEnable = true
-				reset()
-				// TODO x86_64 for ChromeOS
-				include("arm64-v8a")
-				isUniversalApk = isReleaseBuild()
-			}
-		}
 	}
 }
 
