@@ -96,7 +96,8 @@
 	<string name="anonymous_analytics_description">Help us improve NymVPN</string>
 	<string name="alpha_help_message">Help us refine our app during the alpha phase! Your feedback is crucial for identifying and resolving issues.</string>
 	<string name="opt_in_message_first">Opt-in for anonymous error monitoring</string>
-	<string name="opt_in_message_second">and analytics at will—you can opt out anytime. Thanks for your support!</string>
+	<string name="opt_in_message_second">and analytics at will—you can opt out anytime.</string>
+	<string name="thanks_for_support">Thanks for your support!</string>
 	<string name="to_alpha">to NymVPN alpha</string>
 	<string name="welcome">Welcome</string>
 	<string name="cont">Continue</string>
@@ -112,4 +113,13 @@
     <string name="app_shortcuts">App shortcuts</string>
 	<string name="enable_shortcuts">Enable app shortcuts</string>
     <string name="disabled_while_connected">Disabled while connected to VPN</string>
+    <string name="experimental_software_disclaimer">This is experimental software. Do not rely on it for strong anonymity (yet).</string>
+	<string name="permission_required">Permission required</string>
+	<string name="exception_cred_missing">No imported credential found.</string>
+	<string name="exception_permission_not_granted">"Required permission has not be granted. "</string>
+    <string name="exception_cred_invalid">Credential is invalid or expired.</string>
+    <string name="permission_message">To ensure the app works correctly on your device, please allow the following permissions. These permissions are required for that app to function.</string>
+	<string name="notifications">Notifications</string>
+	<string name="allow_permissions">Allow permissions</string>
+	<string name="notification_permission_message">Required to keep VPN services running while the app is closed.</string>
 </resources>

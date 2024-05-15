@@ -96,8 +96,7 @@ android {
 						Constants.APP_NAME +
 							"-${variant.flavorName}" +
 							"-${variant.buildType.name}" +
-							"-${variant.versionName}" +
-							"-${output.getFilter(com.android.build.OutputFile.ABI) ?: "universal"}"
+							"-${variant.versionName}"
 					variant.resValue("string", "fullVersionName", fullName)
 					val outputFileName =
 						"$fullName.apk"
@@ -183,13 +182,14 @@ android {
 	}
 
 	if (isBundleBuild()) {
-		defaultConfig.ndk.abiFilters("arm64-v8a", "armeabi-v7a")
+		defaultConfig.ndk.abiFilters("arm64-v8a")
 	} else {
 		splits {
 			abi {
 				isEnable = true
 				reset()
-				include("armeabi-v7a", "arm64-v8a")
+				// TODO x86_64 for ChromeOS
+				include("arm64-v8a")
 				isUniversalApk = isReleaseBuild()
 			}
 		}

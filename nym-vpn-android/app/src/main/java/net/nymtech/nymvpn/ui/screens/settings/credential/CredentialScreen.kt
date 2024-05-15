@@ -19,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
@@ -38,6 +40,7 @@ import net.nymtech.nymvpn.ui.common.functions.rememberImeState
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.navigateNoBack
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
@@ -52,6 +55,7 @@ fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, v
 	}
 
 	val context = LocalContext.current
+	val scope = rememberCoroutineScope()
 
 	val imeState = rememberImeState()
 	val scrollState = rememberScrollState()
@@ -145,14 +149,13 @@ fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, v
 				MainStyledButton(
 					Constants.LOGIN_TEST_TAG,
 					onClick = {
-						viewModel.onImportCredential(recoveryPhrase).onSuccess {
-							appViewModel.showSnackbarMessage(context.getString(R.string.credential_successful))
-							navController.navigate(NavItem.Main.route) {
-								// clear backstack after login
-								popUpTo(0)
+						scope.launch {
+							viewModel.onImportCredential(recoveryPhrase).onSuccess {
+								appViewModel.showSnackbarMessage(context.getString(R.string.credential_successful))
+								navController.navigateNoBack(NavItem.Main.route)
+							}.onFailure {
+								isCredentialError = true
 							}
-						}.onFailure {
-							isCredentialError = true
 						}
 					},
 					content = {

@@ -15,6 +15,8 @@ interface VpnClient {
 	var exitPoint: ExitPoint
 	var mode: VpnMode
 
+	fun validateCredential(credential: String): Result<Unit>
+
 	@Throws(InvalidCredentialException::class)
 	fun start(context: Context, credential: String, foreground: Boolean = false)
 

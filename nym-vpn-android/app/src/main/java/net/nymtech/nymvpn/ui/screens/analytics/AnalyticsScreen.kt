@@ -34,6 +34,7 @@ import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.util.navigateNoBack
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
@@ -69,6 +70,10 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 		pop()
 		append(") ")
 		append(stringResource(id = R.string.opt_in_message_second))
+		append(" ")
+		append(stringResource(id = R.string.experimental_software_disclaimer))
+		append(" ")
+		append(stringResource(id = R.string.thanks_for_support))
 	}
 
 	val termsMessage = buildAnnotatedString {
@@ -183,10 +188,7 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 			)
 			MainStyledButton(onClick = {
 				appViewModel.setAnalyticsShown()
-				navController.navigate(NavItem.Main.route) {
-					// clear backstack after login
-					popUpTo(0)
-				}
+				navController.navigateNoBack(NavItem.Main.route)
 			}, content = {
 				Text(stringResource(id = R.string.cont), style = CustomTypography.labelHuge.copy(color = MaterialTheme.colorScheme.onPrimary))
 			})

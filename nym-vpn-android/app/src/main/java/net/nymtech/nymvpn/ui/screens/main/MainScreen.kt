@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.main
 
 import android.Manifest
+import android.app.Activity.RESULT_OK
 import android.net.VpnService
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -41,6 +42,7 @@ import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
@@ -58,6 +60,7 @@ import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.NymVpnExceptions
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
@@ -78,13 +81,28 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 		}
 
 	var vpnIntent by rememberSaveable { mutableStateOf(VpnService.prepare(context)) }
+
 	val vpnActivityResultState =
 		rememberLauncherForActivityResult(
 			ActivityResultContracts.StartActivityForResult(),
 			onResult = {
-				vpnIntent = null
+				val accepted = (it.resultCode == RESULT_OK)
+				if (accepted) {
+					vpnIntent = null
+				}
 			},
 		)
+
+	fun requestNotificationPermissions(): Result<Unit> {
+		if (notificationPermissionState == null || notificationPermissionState.status.isGranted) return Result.success(Unit)
+		if (!notificationPermissionState.status.isGranted && !notificationPermissionState.status.shouldShowRationale
+		) {
+			notificationPermissionState.launchPermissionRequest()
+		} else if (!notificationPermissionState.status.isGranted && notificationPermissionState.status.shouldShowRationale) {
+			navController.navigate(NavItem.Permission.route)
+		}
+		return Result.failure(NymVpnExceptions.PermissionsNotGrantedException())
+	}
 
 	LaunchedEffect(uiState.firstHopCounty, uiState.lastHopCountry, uiState.networkMode, uiState.connectionState) {
 		NymVpn.requestTileServiceStateUpdate()
@@ -246,18 +264,22 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 							onClick = {
 								scope.launch {
 									appViewModel.onValidCredentialCheck().onSuccess {
-										if (notificationPermissionState != null &&
-											!notificationPermissionState.status.isGranted
-										) {
-											return@launch notificationPermissionState.launchPermissionRequest()
+										requestNotificationPermissions().onSuccess {
+											if (vpnIntent != null) {
+												return@launch vpnActivityResultState.launch(
+													vpnIntent,
+												)
+											}
+											viewModel.onConnect().onFailure {
+												navController.navigate(NavItem.Settings.Credential.route)
+											}
 										}
-										if (vpnIntent != null) {
-											return@launch vpnActivityResultState.launch(
-												vpnIntent,
-											)
-										}
-										viewModel.onConnect()
 									}.onFailure {
+										when (it) {
+											is NymVpnExceptions.InvalidCredentialException -> {
+												appViewModel.showSnackbarMessage(it.getMessage(context))
+											}
+										}
 										navController.navigate(NavItem.Settings.Credential.route)
 									}
 								}

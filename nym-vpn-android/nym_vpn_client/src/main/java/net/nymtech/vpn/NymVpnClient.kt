@@ -43,15 +43,6 @@ object NymVpnClient {
 		lateinit var environment: Environment
 	}
 
-	fun validateCredential(credential: String): Result<Unit> {
-		return try {
-			checkCredential(credential)
-			Result.success(Unit)
-		} catch (_: FfiException.InvalidCredential) {
-			Result.failure(InvalidCredentialException("Credential invalid"))
-		}
-	}
-
 	fun init(
 		entryPoint: EntryPoint = EntryPoint.Location(
 			Constants.DEFAULT_COUNTRY_ISO,
@@ -88,6 +79,15 @@ object NymVpnClient {
 
 		private val _state = MutableStateFlow(VpnClientState())
 		override val stateFlow: Flow<VpnClientState> = _state.asStateFlow()
+
+		override fun validateCredential(credential: String): Result<Unit> {
+			return try {
+				checkCredential(credential)
+				Result.success(Unit)
+			} catch (_: FfiException) {
+				Result.failure(InvalidCredentialException("Credential invalid or expired"))
+			}
+		}
 
 		@Synchronized
 		@Throws(InvalidCredentialException::class)

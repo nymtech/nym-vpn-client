@@ -1,0 +1,4 @@
+What's new:
+- Added permission denied flow
+- Removed spammy debug logs from release
+- Added message when credential is expired

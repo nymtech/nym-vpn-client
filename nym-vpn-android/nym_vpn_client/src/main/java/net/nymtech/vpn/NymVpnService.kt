@@ -15,6 +15,7 @@ import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.tun_provider.TunConfig
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
+import net.nymtech.vpn_client.BuildConfig
 import nym_vpn_lib.FfiException
 import nym_vpn_lib.stopVpn
 import timber.log.Timber
@@ -85,7 +86,8 @@ class NymVpnService : VpnService() {
 		synchronized(this) {
 			scope.launch(vpnThread) {
 				NymVpnClient.NymVpn.setVpnState(VpnState.Connecting.InitializingClient)
-				initVPN(this@NymVpnService)
+				val logLevel = if (BuildConfig.DEBUG) "debug" else "info"
+				initVPN(this@NymVpnService, logLevel)
 				NymVpnClient.NymVpn.connect(this@NymVpnService)
 			}
 		}
@@ -224,7 +226,7 @@ class NymVpnService : VpnService() {
 		}
 	}
 
-	private external fun initVPN(vpn_service: Any)
+	private external fun initVPN(vpn_service: Any, log_level: String)
 
 	private external fun defaultTunConfig(): TunConfig
 

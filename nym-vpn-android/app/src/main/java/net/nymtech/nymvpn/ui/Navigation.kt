@@ -21,6 +21,7 @@ enum class Screen {
 	ACCOUNT,
 	LICENSES,
 	ANALYTICS,
+	PERMISSION,
 }
 
 enum class HopType {
@@ -48,6 +49,12 @@ sealed class NavItem(
 	data object Analytics : NavItem(
 		Screen.ANALYTICS.name,
 		StringValue.DynamicString(""),
+		backIcon,
+	)
+
+	data object Permission : NavItem(
+		Screen.PERMISSION.name,
+		StringValue.StringResource(R.string.permission_required),
 		backIcon,
 	)
 
@@ -120,6 +127,7 @@ sealed class NavItem(
 			return when (route) {
 				Main.route -> Main
 				Analytics.route -> Analytics
+				Permission.route -> Permission
 				Settings.route -> Settings
 				Hop.Entry.route -> Hop.Entry
 				Hop.Exit.route -> Hop.Exit

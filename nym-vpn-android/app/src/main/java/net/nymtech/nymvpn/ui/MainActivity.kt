@@ -37,6 +37,7 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.screens.analytics.AnalyticsScreen
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
+import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.account.AccountScreen
 import net.nymtech.nymvpn.ui.screens.settings.credential.CredentialScreen
@@ -129,6 +130,7 @@ class MainActivity : ComponentActivity() {
 					) {
 						composable(NavItem.Main.route) { MainScreen(navController, appViewModel) }
 						composable(NavItem.Analytics.route) { AnalyticsScreen(navController, appViewModel, uiState) }
+						composable(NavItem.Permission.route) { PermissionScreen(navController) }
 						composable(NavItem.Settings.route) {
 							SettingsScreen(
 								navController,

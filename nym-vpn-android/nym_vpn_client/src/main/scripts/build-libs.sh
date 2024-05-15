@@ -13,7 +13,7 @@ bash $PWD/src/tools/nym-vpn-client/wireguard/libwg/build-android.sh
 echo "Building nym-vpn-lib dep"
 #fix emulators later
 #(cd $PWD/src/tools/nym-vpn-client/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release)
-(cd $PWD/src/tools/nym-vpn-client/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -o ../../../main/jniLibs build --release)
+(cd $PWD/src/tools/nym-vpn-client/nym-vpn-lib; cargo ndk -t arm64-v8a -o ../../../main/jniLibs build --release)
 #mv wireguard
 
 case  "$(uname -s)" in
@@ -27,11 +27,11 @@ esac
 sed -i 's/package nym-vpn-lib;/package nym_vpn_lib;/g' $PWD/src/main/java/net/nymtech/vpn/nym-vpn-lib/nym_vpn_lib.kt
 
 mv $PWD/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so $PWD/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so
-mv $PWD/src/main/jniLibs/armeabi-v7a/libnym_vpn_lib.so $PWD/src/main/jniLibs/armeabi-v7a/libnym_vpn_lib.so
+#mv $PWD/src/main/jniLibs/armeabi-v7a/libnym_vpn_lib.so $PWD/src/main/jniLibs/armeabi-v7a/libnym_vpn_lib.so
 #mv $PWD/src/main/jniLibs/x86/libnym_vpn_lib.so $PWD/src/main/jniLibs/x86/libnym_vpn_lib.so
 #mv $PWD/src/main/jniLibs/x86_64/libnym_vpn_lib.so $PWD/src/main/jniLibs/x86_64/libnym_vpn_lib.so
 
 mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/arm64-v8a/libwg.so $PWD/src/main/jniLibs/arm64-v8a/
-mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/armeabi-v7a/libwg.so $PWD/src/main/jniLibs/armeabi-v7a/
+#mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/armeabi-v7a/libwg.so $PWD/src/main/jniLibs/armeabi-v7a/
 #mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/x86/libwg.so $PWD/src/main/jniLibs/x86/
 #mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/x86_64/libwg.so $PWD/src/main/jniLibs/x86_64/

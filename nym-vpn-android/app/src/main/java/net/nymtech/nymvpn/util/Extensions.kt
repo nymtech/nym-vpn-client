@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
+import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -47,5 +48,11 @@ suspend inline fun <T> Flow<T>.safeCollect(crossinline action: suspend (T) -> Un
 	collect {
 		coroutineContext.ensureActive()
 		action(it)
+	}
+}
+
+fun NavController.navigateNoBack(route: String) {
+	navigate(route) {
+		popUpTo(0)
 	}
 }

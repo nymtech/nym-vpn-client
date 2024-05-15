@@ -34,9 +34,8 @@ import net.nymtech.nymvpn.module.Native
 import net.nymtech.nymvpn.service.gateway.GatewayService
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
-import net.nymtech.nymvpn.util.MissingCredentialException
+import net.nymtech.nymvpn.util.NymVpnExceptions
 import net.nymtech.nymvpn.util.log.NymLibException
-import net.nymtech.vpn.NymVpnClient
 import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.model.Country
 import timber.log.Timber
@@ -52,7 +51,7 @@ constructor(
 	private val secretsRepository: Provider<SecretsRepository>,
 	private val gatewayRepository: GatewayRepository,
 	@Native private val gatewayService: GatewayService,
-	vpnClient: Provider<VpnClient>,
+	private val vpnClient: Provider<VpnClient>,
 ) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(AppUiState())
@@ -110,12 +109,16 @@ constructor(
 	}
 
 	suspend fun onValidCredentialCheck(): Result<Unit> {
-		return withContext(Dispatchers.IO) {
+		return withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
 			val credential = secretsRepository.get().getCredential()
 			if (credential != null) {
-				NymVpnClient.validateCredential(credential)
+				vpnClient.get().validateCredential(credential).onFailure {
+					return@withContext Result.failure(NymVpnExceptions.InvalidCredentialException())
+				}.onSuccess {
+					return@withContext Result.success(Unit)
+				}
 			} else {
-				Result.failure(MissingCredentialException("Credential not found"))
+				Result.failure(NymVpnExceptions.MissingCredentialException())
 			}
 		}
 	}

@@ -4,9 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.data.SecretsRepository
-import net.nymtech.vpn.NymVpnClient
+import net.nymtech.vpn.VpnClient
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -15,15 +15,18 @@ class CredentialViewModel
 @Inject
 constructor(
 	private val secretsRepository: Provider<SecretsRepository>,
+	private val vpnClient: Provider<VpnClient>,
 ) : ViewModel() {
-	fun onImportCredential(credential: String): Result<Unit> {
+	suspend fun onImportCredential(credential: String): Result<Unit> {
 		val trimmedCred = credential.trim()
-		return NymVpnClient.validateCredential(trimmedCred).onSuccess {
-			saveCredential(credential)
+		return withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
+			vpnClient.get().validateCredential(trimmedCred).onSuccess {
+				saveCredential(credential)
+			}
 		}
 	}
 
-	private fun saveCredential(credential: String) = viewModelScope.launch(Dispatchers.IO) {
+	private suspend fun saveCredential(credential: String) {
 		secretsRepository.get().saveCredential(credential)
 	}
 }
