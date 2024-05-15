@@ -35,13 +35,6 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
-      - name: Download/Unzip/Move wintun.zip
-        shell: bash
-        run: |
-          curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
-          unzip ${GITHUB_WORKSPACE}/wintun.zip
-          mv ${GITHUB_WORKSPACE}/wintun/include/wintun.h wintun/
-
       # This step is prone to compiler error that are simply blanks, this action auto retries a few times in case of error
       - name: Build/Move winfw from mullvad
         uses: nick-fields/retry@v3
