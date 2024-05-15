@@ -37,7 +37,6 @@ mod grpc;
 mod network;
 mod states;
 mod system_tray;
-mod vpn_status;
 mod window;
 
 pub const APP_DIR: &str = "nym-vpn-x";
@@ -169,8 +168,9 @@ async fn main() -> Result<()> {
             let handle = app.handle();
             let c_grpc = grpc.clone();
             tokio::spawn(async move {
+                info!("starting vpn status watch");
                 loop {
-                    vpn_status::watchdog(&handle, &c_grpc).await.ok();
+                    c_grpc.watch_vpn_status(&handle).await.ok();
                     sleep(VPND_RETRY_INTERVAL).await;
                     debug!("vpn status watch retry");
                 }
