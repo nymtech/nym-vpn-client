@@ -58,7 +58,7 @@ jobs:
       # Believe it or not, it's the recommended method.........
       - name: Install yq
         run: |
-          wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY} -O /usr/bin/yq &&\
+          wget https://github.com/mikefarah/yq/releases/download/${VERSION}/${BINARY} -O /usr/bin/yq
           chmod +x /usr/bin/yq
 
       - name: Install rust toolchain
