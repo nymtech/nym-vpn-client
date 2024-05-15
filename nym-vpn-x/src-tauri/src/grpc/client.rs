@@ -6,7 +6,7 @@ use nym_vpn_proto::{
     nym_vpnd_client::NymVpndClient, DisconnectRequest, HealthCheckRequest, StatusRequest,
 };
 use nym_vpn_proto::{
-    ConnectRequest, ConnectionStatus, Dns, Empty, EntryNode, ExitNode, ImportUserCredentialRequest,
+    ConnectRequest, Dns, Empty, EntryNode, ExitNode, ImportUserCredentialRequest, StatusResponse,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use serde::{Deserialize, Serialize};
@@ -18,9 +18,10 @@ use tonic::{transport::Channel, Request};
 use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
 
-use super::vpn_status::vpn_status_update;
 use crate::cli::Cli;
 use crate::fs::config::AppConfig;
+use crate::states::app::ConnectionState;
+use crate::vpn_status;
 use crate::{events::AppHandleEventEmitter, states::SharedAppState};
 
 const VPND_SERVICE: &str = "nym.vpn.NymVpnd";
@@ -132,7 +133,7 @@ impl GrpcClient {
 
     /// Get VPN status
     #[instrument(skip_all)]
-    pub async fn vpn_status(&self) -> Result<ConnectionStatus, VpndError> {
+    pub async fn vpn_status(&self) -> Result<StatusResponse, VpndError> {
         debug!("vpn_status");
         let mut vpnd = self.vpnd().await?;
 
@@ -143,7 +144,25 @@ impl GrpcClient {
         })?;
         debug!("grpc response: {:?}", response);
 
-        Ok(response.into_inner().status())
+        Ok(response.into_inner())
+    }
+
+    /// Refresh VPN status
+    #[instrument(skip_all)]
+    pub async fn refresh_vpn_status(&self, app: &AppHandle) -> Result<(), VpndError> {
+        debug!("refresh_vpn_status");
+        let res = self.vpn_status().await?;
+        debug!("vpn status update {:?}", res.status());
+        if let Some(e) = res.error.as_ref() {
+            warn!("vpn status error: {}", e.message);
+        }
+        vpn_status::update(
+            app,
+            ConnectionState::from(res.status()),
+            res.error.as_ref().map(|e| e.message.clone()),
+        )
+        .await?;
+        Ok(())
     }
 
     /// Watch VPN status updates
@@ -183,7 +202,12 @@ impl GrpcClient {
             if let Some(e) = status.error.as_ref() {
                 warn!("vpn status error: {}", e.message);
             }
-            vpn_status_update(app, status).await?;
+            vpn_status::update(
+                app,
+                ConnectionState::from(status.status()),
+                status.error.as_ref().map(|e| e.message.clone()),
+            )
+            .await?;
         }
 
         Ok(())

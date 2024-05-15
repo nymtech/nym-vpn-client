@@ -1,20 +1,18 @@
 use crate::events::{ConnectionEventPayload, EVENT_CONNECTION_STATE};
 use crate::states::{app::ConnectionState, SharedAppState};
 use anyhow::Result;
-use nym_vpn_proto::ConnectionStateChange;
 use tauri::Manager;
 use time::OffsetDateTime;
 use tracing::{info, instrument, trace, warn};
 
 #[instrument(skip_all)]
-pub async fn vpn_status_update(
+pub async fn update(
     app: &tauri::AppHandle,
-    update: ConnectionStateChange,
+    status: ConnectionState,
+    error: Option<String>,
 ) -> Result<()> {
     let state = app.state::<SharedAppState>();
-    let status = ConnectionState::from(update.status());
     trace!("vpn status: {:?}", status);
-    let error = update.error.clone().map(|e| e.message);
 
     let mut app_state = state.lock().await;
     let current_state = app_state.state.clone();

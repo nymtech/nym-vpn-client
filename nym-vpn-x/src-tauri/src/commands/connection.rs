@@ -24,7 +24,7 @@ pub async fn get_connection_state(
     grpc: State<'_, Arc<GrpcClient>>,
 ) -> Result<ConnectionState, CmdError> {
     debug!("get_connection_state");
-    let status = ConnectionState::from(grpc.vpn_status().await?);
+    let status = ConnectionState::from(grpc.vpn_status().await?.status());
     let mut app_state = state.lock().await;
     app_state.state = status.clone();
 
