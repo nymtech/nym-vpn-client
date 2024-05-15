@@ -3,13 +3,15 @@ on: [workflow_dispatch, workflow_call]
 
 env:
   CARGO_TERM_COLOR: always
-  CPP_BUILD_MODES: Debug
+  CPP_BUILD_MODES: Release
 
 # https://github.com/actions/runner-images/issues/1794#issuecomment-707217728
 
 jobs:
   build:
     runs-on: "custom-windows-11"
+    outputs:
+      CPP_BUILD_MODES: ${{ env.CPP_BUILD_MODES }}
 
     steps:
       - name: Cleanup working directory
@@ -36,17 +38,11 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
-      # This step is prone to compiler error that are simply blanks, this action auto retries a few times in case of error
       - name: Build/Move winfw from mullvad
-        uses: nick-fields/retry@v3
-        with:
-          shell: bash
-          timeout_seconds: 300
-          max_attempts: 3
-          retry_on: error
-          command: |
-            cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
-            ./build-windows-modules.sh
+        shell: bash
+        run: |
+          cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
+          ./build-windows-modules.sh
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
