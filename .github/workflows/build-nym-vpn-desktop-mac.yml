@@ -33,6 +33,15 @@ env:
   UPLOAD_DIR_MAC: mac_artifacts
   TAURI_SRC: '${{ github.workspace }}/nym-vpn-desktop/src-tauri/'
 
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TARGET: release
+  WG_GO_LIB_PATH: ${{ github.workspace }}/lib
+  WG_GO_LIB_NAME: wireguard-go_apple_universal
+  UPLOAD_DIR_MAC_UPDATER: mac_updater_artifacts
+  UPLOAD_DIR_MAC: mac_artifacts
+  TAURI_SRC: '${{ github.workspace }}/nym-vpn-desktop/src-tauri/'
+
 jobs:
   build-wireguard-go-mac:
     uses: ./.github/workflows/build-wireguard-go-mac.yml

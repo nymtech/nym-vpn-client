@@ -19,6 +19,9 @@ build-wireguard:
 build-vpn-cli:
 	RUSTFLAGS="-L $(CURDIR)/build/lib/$(ARCH)" cargo build --release
 
+build-vpn-mac:
+	RUSTFLAGS="-L $(CURDIR)/build/lib/$(ARCH) -C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=$(CURDIR)/nym-vpnd/mac/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=$(CURDIR)/nym-vpnd/mac/Launchd.plist" cargo build --release
+
 # Desktop application build
 build-vpn-desktop:
 	npm install --prefix nym-vpn-desktop

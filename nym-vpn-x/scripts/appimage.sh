@@ -22,7 +22,7 @@ B_YLW="$BLD$YLW"
 # TODO set/replace with the target tag and version
 tag=
 version=
-appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$tag/nym-vpn_${version}.AppImage"
+appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$tag/nymvpn-x_${version}.AppImage"
 
 # function called when an error occurs, will print the exit
 # status, function name and line number
@@ -71,13 +71,13 @@ data_home=${XDG_DATA_HOME:-$HOME/.local/share}
 state_home=${XDG_STATE_HOME:-$HOME/.local/state}
 install_dir="$HOME/.local/bin"
 icons_dir="$data_home/icons"
-appimage="nym-vpn_${version}.AppImage"
-target_appimage="nym-vpn.appimage"
+appimage="nymvpn-x_${version}.AppImage"
+target_appimage="nymvpn-x.appimage"
 desktop_dir="$data_home/applications"
 
 ### desktop entry ###
 desktop_entry="[Desktop Entry]
-Name=NymVPN
+Name=NymVPN-x
 Type=Application
 Version=1.0
 Comment=Decentralized, mixnet, and zero-knowledge VPN
@@ -122,13 +122,13 @@ _install() {
 
   log "  ${B_GRN}Installing$RS desktop entry"
   _pushd "$temp_dir"
-  echo "$desktop_entry" >"nym-vpn.desktop"
+  echo "$desktop_entry" >"nymvpn-x.desktop"
   echo "$icon" >"nym-vpn.svg"
   _popd
-  install -Dm644 "$temp_dir/nym-vpn.desktop" "$desktop_dir/nym-vpn.desktop"
+  install -Dm644 "$temp_dir/nymvpn-x.desktop" "$desktop_dir/nymvpn-x.desktop"
   install -Dm644 "$temp_dir/nym-vpn.svg" "$icons_dir/nym-vpn.svg"
-  install -Dm755 -d "$state_home/nym-vpn"
-  path=$(tilded "$desktop_dir/nym-vpn.desktop")
+  install -Dm755 -d "$state_home/nym-vpn-x"
+  path=$(tilded "$desktop_dir/nymvpn-x.desktop")
   log "   ${B_GRN}Installed$RS $path"
 }
 
