@@ -2,9 +2,56 @@ use std::{fs, path::PathBuf};
 use tracing::info;
 
 use super::{
-    error::{ImportCredentialBase58Error, ImportCredentialError, ImportCredentialFileError},
-    helpers::get_credentials_store,
+    helpers::get_credentials_store, CredentialStoreError,
 };
+
+#[derive(Debug, thiserror::Error)]
+pub enum ImportCredentialError {
+    #[error("failed to import credential to: {location}: {source}")]
+    FailedToImportRawCredential {
+        location: std::path::PathBuf,
+        source: nym_id::NymIdError,
+    },
+
+    #[error("credential store error: {path}: {source}")]
+    CredentialStoreError {
+        path: std::path::PathBuf,
+        source: CredentialStoreError,
+    },
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ImportCredentialBase58Error {
+    #[error("failed to decode base58 credential: {source}")]
+    FailedToDecodeBase58 {
+        #[from]
+        source: bs58::decode::Error,
+    },
+
+    #[error("failed to import credential to: {source}")]
+    FailedToImportRawCredential {
+        #[from]
+        source: ImportCredentialError,
+    },
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ImportCredentialFileError {
+    #[error("failed to read credential file: {path}: {source}")]
+    ReadCredentialFile {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error("failed to import credential file: {path}: {source}")]
+    ImportCredentialFile {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error(transparent)]
+    ImportCredential { source: ImportCredentialError },
+}
 
 // Import binary credential data
 pub async fn import_credential(

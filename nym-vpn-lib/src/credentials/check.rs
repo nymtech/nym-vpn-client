@@ -11,12 +11,96 @@ use nym_credentials::{
 use tracing::{debug, info};
 
 use super::{
-    error::{
-        CheckBase58CredentialError, CheckFileCredentialError, CheckImportedCredentialError,
-        CheckRawCredentialError, VerifyCredentialError,
-    },
     helpers::{get_coconut_api_clients, get_credentials_store, get_nyxd_client, CoconutClients},
+    CredentialCoconutApiClientError, CredentialNyxdClientError, CredentialStoreError,
 };
+
+#[derive(Debug, thiserror::Error)]
+pub enum CheckRawCredentialError {
+    #[error("failed to unpack raw credential: {source}")]
+    FailedToUnpackRawCredential { source: nym_credentials::Error },
+
+    #[error("the free pass has already expired! The expiration was set to {expiry_date}")]
+    FreepassExpired { expiry_date: String },
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum CheckBase58CredentialError {
+    #[error("failed decode base58 credential: {source}")]
+    FailedToDecodeBase58Credential {
+        #[from]
+        source: bs58::decode::Error,
+    },
+
+    #[error(transparent)]
+    FailedToCheckRawCredential {
+        #[from]
+        source: CheckRawCredentialError,
+    },
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum CheckFileCredentialError {
+    #[error("failed to read credential file: {path}: {source}")]
+    FailedToReadCredentialFile {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error(transparent)]
+    FailedToCheckRawCredential {
+        #[from]
+        source: CheckRawCredentialError,
+    },
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum CheckImportedCredentialError {
+    #[error("failed to get next usable credential: {reason}")]
+    FailedToGetNextUsableCredential {
+        location: std::path::PathBuf,
+        reason: String,
+    },
+
+    #[error(transparent)]
+    CredentialStoreError {
+        #[from]
+        source: CredentialStoreError,
+    },
+
+    #[error(transparent)]
+    VerifyCredentialError {
+        #[from]
+        source: VerifyCredentialError,
+    },
+
+    #[error(transparent)]
+    NyxdClientError {
+        #[from]
+        source: CredentialNyxdClientError,
+    },
+
+    #[error(transparent)]
+    CoconutApiClientError {
+        #[from]
+        source: CredentialCoconutApiClientError,
+    },
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum VerifyCredentialError {
+    #[error("failed to obtain aggregate key")]
+    FailedToObtainAggregateVerificationKey(nym_credentials::Error),
+
+    #[error("failed to prepare credential for spending")]
+    FailedToPrepareCredentialForSpending(nym_credentials::Error),
+
+    #[error("missing bandwidth type attribute")]
+    MissingBandwidthTypeAttribute,
+
+    #[error("failed to verify credential")]
+    FailedToVerifyCredential,
+}
 
 pub async fn check_raw_credential(raw_credential: Vec<u8>) -> Result<(), CheckRawCredentialError> {
     let version = None;

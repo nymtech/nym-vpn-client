@@ -10,9 +10,38 @@ use nym_validator_client::{
 };
 use tracing::debug;
 
-use super::error::{
-    CredentialCoconutApiClientError, CredentialNyxdClientError, CredentialStoreError,
-};
+#[derive(Debug, thiserror::Error)]
+pub enum CredentialStoreError {
+    #[error("failed to create credential store directory: {path}: {source}")]
+    FailedToCreateCredentialStoreDirectory {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error("failed to setup storage paths: {path}: {source}")]
+    FailedToSetupStoragePaths {
+        path: PathBuf,
+        source: nym_sdk::Error,
+    },
+
+    #[error("failed to initialize persistent storage: {path}: {source}")]
+    FailedToInitializePersistentStorage {
+        path: PathBuf,
+        source: nym_credential_storage::error::StorageError,
+    },
+
+    #[error("failed to read credential store metadata: {path}: {source}")]
+    FailedToReadCredentialStoreMetadata {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error("failed to set credential store permissions: {path}: {source}")]
+    FailedToSetCredentialStorePermissions {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+}
 
 pub(super) async fn get_credentials_store(
     data_path: PathBuf,
@@ -68,6 +97,18 @@ pub(super) async fn get_credentials_store(
     Ok((storage, credential_db_path))
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum CredentialNyxdClientError {
+    #[error("failed to create nyxd client config: {0}")]
+    FailedToCreateNyxdClientConfig(nym_validator_client::nyxd::error::NyxdError),
+
+    #[error("no nyxd endpoints found")]
+    NoNyxdEndpointsFound,
+
+    #[error("failed to connect using nyxd client: {0}")]
+    FailedToConnectUsingNyxdClient(nym_validator_client::nyxd::error::NyxdError),
+}
+
 pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialNyxdClientError> {
     let network = NymNetworkDetails::new_from_env();
     let config = NyxdClientConfig::try_from_nym_network_details(&network)
@@ -88,6 +129,15 @@ pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialNyxd
 pub(super) enum CoconutClients {
     Clients(Vec<nym_validator_client::coconut::CoconutApiClient>),
     NoContractAvailable,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum CredentialCoconutApiClientError {
+    #[error("failed to query contract")]
+    FailedToQueryContract,
+
+    #[error("failed to fetch coconut api clients: {0}")]
+    FailedToFetchCoconutApiClients(nym_validator_client::coconut::CoconutApiError),
 }
 
 pub(super) async fn get_coconut_api_clients(
