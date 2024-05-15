@@ -1,0 +1,76 @@
+name: generate-build-info
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      is-desktop:
+        description: "Build info for desktop ? (True: desktop, False: cli)"
+        required: true
+        default: false
+        type: boolean
+      build-profile:
+        description: "Rust build profile"
+        required: true
+        default: Release
+        type: string
+      rust-version:
+        description: "Rust version"
+        required: true
+        type: string
+    outputs:
+      BUILD_INFO:
+        value: ${{ jobs.generate-build-info.outputs.BUILD_INFO }}
+
+jobs:
+  generate-build-info:
+    runs-on: ubuntu-22.04-arc
+    outputs:
+      BUILD_INFO: ${{ env.BUILD_INFO }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+
+      - name: Get package name
+        id: package_name
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.package.name' nym-vpn-desktop/src-tauri/Cargo.toml
+
+      - name: Get package version
+        id: package_version
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.package.version' nym-vpn-desktop/src-tauri/Cargo.toml
+
+      - name: Get tauri version
+        if: ${{ inputs.is-desktop}}
+        id: tauri_version
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.dependencies.tauri.version' nym-vpn-desktop/src-tauri/Cargo.toml
+
+      - name: Get tauri product name
+        if: ${{ inputs.is-desktop}}
+        id: package_productName
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq '.package.productName' nym-vpn-desktop/src-tauri/tauri.conf.json
+
+      - name: Generate build-info
+        run: |
+          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
+          echo Crate name:    ${{ steps.package_name.outputs.result}} >> $GITHUB_ENV
+          echo Version:       ${{ steps.package_version.outputs.result}} >> $GITHUB_ENV
+          if ${{ inputs.is-desktop}}; then
+            echo Tauri version: ${{ steps.tauri_version.outputs.result}} >> $GITHUB_ENV
+            echo Package name:  ${{ steps.package_productName.outputs.result}} >> $GITHUB_ENV
+          fi
+          echo Rustc version: ${{ inputs.rust-version}} >> $GITHUB_ENV
+          echo Build profile: ${{ inputs.build-profile}} >> $GITHUB_ENV
+          echo Date:          ${{ steps.date.outputs.date }} >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+          echo $BUILD_INFO
