@@ -43,23 +43,6 @@ impl From<ImportCredentialError> for ProtoImportError {
                     "expiration".to_string() => expiration.to_string(),
                 },
             },
-            // ImportCredentialError::FreepassExpired { ref expiration } => ProtoImportError {
-            //     kind: ImportErrorType::CredentialExpired as i32,
-            //     message: err.to_string(),
-            //     details: [("expiration".to_string(), expiration.to_string())]
-            //         .into_iter()
-            //         .collect(),
-            // },
-            // ImportCredentialError::VerificationFailed => ProtoImportError {
-            //     kind: ImportErrorType::VerificationFailed as i32,
-            //     message: err.to_string(),
-            //     details: Default::default(),
-            // },
-            // ImportCredentialError::FailedToQueryContract => ProtoImportError {
-            //     kind: ImportErrorType::FailedToQueryContract as i32,
-            //     message: err.to_string(),
-            //     details: Default::default(),
-            // },
         }
     }
 }

@@ -196,9 +196,6 @@ pub enum Error {
     },
 
     #[error(transparent)]
-    CredentialError(#[from] crate::credentials::CredentialError),
-
-    #[error(transparent)]
     ImportCredentialError(#[from] crate::credentials::ImportCredentialError),
 
     #[error(transparent)]
