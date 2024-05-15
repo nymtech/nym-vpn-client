@@ -14,6 +14,8 @@ on:
         value: ${{ jobs.build-linux.outputs.UPLOAD_DIR_LINUX }}
       PKG_VERSION:
         value: ${{ jobs.build-linux.outputs.PKG_VERSION }}
+      RUST_VERSION:
+        value: ${{ jobs.build-linux.outputs.RUST_VERSION }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -33,6 +35,7 @@ jobs:
     outputs:
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
       PKG_VERSION: ${{ steps.package-version.outputs.metadata }}
+      RUST_VERSION: ${{ steps.rust-version.outputs.rustc}}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -88,6 +91,10 @@ jobs:
           ls -la target/release/ || true
           ls -la target/release/bundle || true
           ls -la target/release/bundle/* || true
+
+      - name: Get rust version used for build
+        id: rust-version
+        run: "::set-output name=rustc::$(rustc -V)"
 
       - name: Move things around to prepare for upload
         env:

@@ -28,11 +28,20 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-desktop-windows.yml
     secrets: inherit
 
+  generate-build-info:
+    uses: ./.github/workflows/generate-build-info.yml
+    needs: build-nym-vpn-desktop-linux
+    with:
+      is-desktop: true
+      build-profile: release
+      rust-version: ${{ needs.build-nym-vpn-desktop-linux.outputs.RUST_VERSION }}
+
   publish:
     needs:
       - build-nym-vpn-desktop-linux
       - build-nym-vpn-desktop-mac
       - build-nym-vpn-desktop-windows
+      - generate-build-info
     runs-on: ubuntu-22.04-arc
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}
@@ -44,6 +53,7 @@ jobs:
       UPLOAD_DIR_LINUX: ${{ needs.build-nym-vpn-desktop-linux.outputs.UPLOAD_DIR_LINUX }}
       UPLOAD_DIR_MAC: ${{ needs.build-nym-vpn-desktop-mac.outputs.UPLOAD_DIR_MAC }}
       UPLOAD_DIR_WINDOWS: ${{ needs.build-nym-vpn-desktop-windows.outputs.UPLOAD_DIR_WINDOWS }}
+      BUILD_INFO: ${{ needs.generate-build-info.outputs.BUILD_INFO }}
     permissions:
       contents: write
     steps:
@@ -95,18 +105,6 @@ jobs:
       - name: Set tag
         id: set_tag
         run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
-
-      - name: Generate build-info
-        run: |
-          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
-          echo Crate name:    $(yq eval '.package.name' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
-          echo Version:       $(yq eval '.package.version' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
-          echo Tauri version: $(yq eval '.dependencies.tauri.version' nym-vpn-desktop/src-tauri/Cargo.toml) >> $GITHUB_ENV
-          echo Package name:  $(yq eval '.package.productName' nym-vpn-desktop/src-tauri/tauri.conf.json) >> $GITHUB_ENV
-          echo Build profile: release >> $GITHUB_ENV
-          echo $(gh wf date) >> $GITHUB_ENV
-          echo Rustc version: $(rustc -V) >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
 
       - name: Setting subject, prerelease and notes files
         if: ${{ contains(env.TAG_NAME, 'nightly-desktop') }}
