@@ -95,7 +95,7 @@ jobs:
       - name: Get rust version used for build
         id: rust-version
         run: |
-          echo "rustc=$(rustc -V)\n" >> $GITHUB_OUTPUT
+          echo "rustc=$(rustc -V)" >> $GITHUB_OUTPUT
 
       - name: Move things around to prepare for upload
         env:
