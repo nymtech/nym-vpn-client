@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::fmt;
 use std::net::IpAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -18,6 +19,7 @@ use super::config::{
     create_config_file, create_data_dir, read_config_file, write_config_file, ConfigSetupError,
     NymVpnServiceConfig, DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR,
 };
+use super::error::ImportCredentialError;
 use super::exit_listener::VpnServiceExitListener;
 use super::status_listener::VpnServiceStatusListener;
 
@@ -32,15 +34,22 @@ pub enum VpnState {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(Debug)]
 pub enum VpnServiceCommand {
     Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
-    ImportCredential(
-        oneshot::Sender<VpnServiceImportUserCredentialResult>,
-        Vec<u8>,
-    ),
+    ImportCredential(oneshot::Sender<Result<(), ImportCredentialError>>, Vec<u8>),
+}
+
+impl fmt::Display for VpnServiceCommand {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            VpnServiceCommand::Connect(_, args) => write!(f, "Connect {{ {args:?} }}"),
+            VpnServiceCommand::Disconnect(_) => write!(f, "Disconnect"),
+            VpnServiceCommand::Status(_) => write!(f, "Status"),
+            VpnServiceCommand::ImportCredential(_, _) => write!(f, "ImportCredential"),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -151,18 +160,6 @@ impl From<VpnState> for VpnServiceStateChange {
             VpnState::Disconnecting => VpnServiceStateChange::Disconnecting,
             VpnState::ConnectionFailed(reason) => VpnServiceStateChange::ConnectionFailed(reason),
         }
-    }
-}
-
-#[derive(Debug)]
-pub enum VpnServiceImportUserCredentialResult {
-    Success,
-    Fail(String),
-}
-
-impl VpnServiceImportUserCredentialResult {
-    pub fn is_success(&self) -> bool {
-        matches!(self, VpnServiceImportUserCredentialResult::Success)
     }
 }
 
@@ -364,22 +361,19 @@ impl NymVpnService {
     async fn handle_import_credential(
         &mut self,
         credential: Vec<u8>,
-    ) -> VpnServiceImportUserCredentialResult {
+    ) -> Result<(), ImportCredentialError> {
         if self.is_running() {
-            return VpnServiceImportUserCredentialResult::Fail(
-                "Can't import credential while VPN is running".to_string(),
-            );
+            return Err(ImportCredentialError::VpnRunning);
         }
 
-        match import_credential(credential, self.data_dir.clone()).await {
-            Ok(()) => VpnServiceImportUserCredentialResult::Success,
-            Err(err) => VpnServiceImportUserCredentialResult::Fail(err.to_string()),
-        }
+        import_credential(credential, self.data_dir.clone())
+            .await
+            .map_err(|err| err.into())
     }
 
     pub(super) async fn run(mut self) -> anyhow::Result<()> {
         while let Some(command) = self.vpn_command_rx.recv().await {
-            info!("VPN: Received command: {:?}", command);
+            info!("VPN: Received command: {command}");
             match command {
                 VpnServiceCommand::Connect(tx, connect_args) => {
                     let result = self.handle_connect(connect_args).await;

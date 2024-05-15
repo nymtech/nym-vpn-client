@@ -95,6 +95,26 @@ message ImportUserCredentialRequest {
 
 message ImportUserCredentialResponse {
   bool success = 1;
+  ImportError error = 2;
+}
+
+message ImportError {
+  enum ImportErrorType {
+    IMPORT_ERROR_TYPE_UNSPECIFIED = 0;
+    VPN_RUNNING = 1;
+    CREDENTIAL_ALREADY_IMPORTED = 2;
+    STORAGE_ERROR = 3;
+    DESERIALIZATION_FAILURE = 4;
+    CREDENTIAL_EXPIRED = 5;
+  }
+
+  ImportErrorType kind = 1;
+
+  // Detailed error message for logging and debugging
+  string message = 2;
+
+  // Optional additional details
+  map<string, string> details = 3;
 }
 
 service NymVpnd {

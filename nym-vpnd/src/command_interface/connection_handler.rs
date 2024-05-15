@@ -6,8 +6,8 @@ use tokio::sync::{mpsc::UnboundedSender, oneshot};
 use tracing::{info, warn};
 
 use crate::service::{
-    ConnectArgs, ConnectOptions, VpnServiceCommand, VpnServiceConnectResult,
-    VpnServiceDisconnectResult, VpnServiceImportUserCredentialResult, VpnServiceStatusResult,
+    ConnectArgs, ConnectOptions, ImportCredentialError, VpnServiceCommand, VpnServiceConnectResult,
+    VpnServiceDisconnectResult, VpnServiceStatusResult,
 };
 
 pub(super) struct CommandInterfaceConnectionHandler {
@@ -86,7 +86,7 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_import_credential(
         &self,
         credential: Vec<u8>,
-    ) -> VpnServiceImportUserCredentialResult {
+    ) -> Result<(), ImportCredentialError> {
         let (tx, rx) = oneshot::channel();
         self.vpn_command_tx
             .send(VpnServiceCommand::ImportCredential(tx, credential))

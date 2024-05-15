@@ -10,66 +10,146 @@ use nym_validator_client::{
 };
 use tracing::debug;
 
-use super::CredentialError;
+#[derive(Debug, thiserror::Error)]
+pub enum CredentialStoreError {
+    #[error("failed to create credential store directory: {path}: {source}")]
+    FailedToCreateCredentialStoreDirectory {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error("failed to setup storage paths: {path}: {source}")]
+    FailedToSetupStoragePaths {
+        path: PathBuf,
+        source: nym_sdk::Error,
+    },
+
+    #[error("failed to initialize persistent storage: {path}: {source}")]
+    FailedToInitializePersistentStorage {
+        path: PathBuf,
+        source: nym_credential_storage::error::StorageError,
+    },
+
+    #[error("failed to read credential store metadata: {path}: {source}")]
+    FailedToReadCredentialStoreMetadata {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error("failed to set credential store permissions: {path}: {source}")]
+    FailedToSetCredentialStorePermissions {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+}
 
 pub(super) async fn get_credentials_store(
     data_path: PathBuf,
-) -> Result<(PersistentStorage, PathBuf), CredentialError> {
+) -> Result<(PersistentStorage, PathBuf), CredentialStoreError> {
     // Create data_path if it doesn't exist
-    std::fs::create_dir_all(&data_path)?;
+    std::fs::create_dir_all(&data_path).map_err(|err| {
+        CredentialStoreError::FailedToCreateCredentialStoreDirectory {
+            path: data_path.clone(),
+            source: err,
+        }
+    })?;
 
-    let storage_path = StoragePaths::new_from_dir(data_path)?;
+    let storage_path = StoragePaths::new_from_dir(data_path.clone()).map_err(|err| {
+        CredentialStoreError::FailedToSetupStoragePaths {
+            path: data_path.clone(),
+            source: err,
+        }
+    })?;
     let credential_db_path = storage_path.credential_database_path;
     debug!("Credential store: {}", credential_db_path.display());
     let storage = nym_credential_storage::persistent_storage::PersistentStorage::init(
         credential_db_path.clone(),
     )
-    .await?;
+    .await
+    .map_err(
+        |err| CredentialStoreError::FailedToInitializePersistentStorage {
+            path: credential_db_path.clone(),
+            source: err,
+        },
+    )?;
 
     #[cfg(target_family = "unix")]
     {
         use std::fs;
         use std::os::unix::fs::PermissionsExt;
 
-        let metadata = fs::metadata(&credential_db_path)?;
+        let metadata = fs::metadata(&credential_db_path).map_err(|err| {
+            CredentialStoreError::FailedToReadCredentialStoreMetadata {
+                path: credential_db_path.clone(),
+                source: err,
+            }
+        })?;
         let mut permissions = metadata.permissions();
         permissions.set_mode(0o600);
-        fs::set_permissions(&credential_db_path, permissions)?;
+        fs::set_permissions(&credential_db_path, permissions).map_err(|err| {
+            CredentialStoreError::FailedToSetCredentialStorePermissions {
+                path: credential_db_path.clone(),
+                source: err,
+            }
+        })?;
     }
 
     Ok((storage, credential_db_path))
 }
 
-pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialError> {
+#[derive(Debug, thiserror::Error)]
+pub enum CredentialNyxdClientError {
+    #[error("failed to create nyxd client config: {0}")]
+    FailedToCreateNyxdClientConfig(nym_validator_client::nyxd::error::NyxdError),
+
+    #[error("no nyxd endpoints found")]
+    NoNyxdEndpointsFound,
+
+    #[error("failed to connect using nyxd client: {0}")]
+    FailedToConnectUsingNyxdClient(nym_validator_client::nyxd::error::NyxdError),
+}
+
+pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialNyxdClientError> {
     let network = NymNetworkDetails::new_from_env();
-    let config = NyxdClientConfig::try_from_nym_network_details(&network)?;
+    let config = NyxdClientConfig::try_from_nym_network_details(&network)
+        .map_err(CredentialNyxdClientError::FailedToCreateNyxdClientConfig)?;
 
     // Safe to use pick the first one?
     let nyxd_url = network
         .endpoints
         .first()
-        .ok_or(CredentialError::NoNyxdEndpointsFound)?
+        .ok_or(CredentialNyxdClientError::NoNyxdEndpointsFound)?
         .nyxd_url();
 
     debug!("Connecting to nyx validator at: {}", nyxd_url);
-    Ok(NyxdClient::connect(config, nyxd_url.as_str())?)
+    NyxdClient::connect(config, nyxd_url.as_str())
+        .map_err(CredentialNyxdClientError::FailedToConnectUsingNyxdClient)
 }
 
 pub(super) enum CoconutClients {
     Clients(Vec<nym_validator_client::coconut::CoconutApiClient>),
-    NoContactAvailable,
+    NoContractAvailable,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum CredentialCoconutApiClientError {
+    #[error("failed to query contract")]
+    FailedToQueryContract,
+
+    #[error("failed to fetch coconut api clients: {0}")]
+    FailedToFetchCoconutApiClients(nym_validator_client::coconut::CoconutApiError),
 }
 
 pub(super) async fn get_coconut_api_clients(
     nyxd_client: QueryHttpRpcNyxdClient,
     epoch_id: u64,
-) -> Result<CoconutClients, CredentialError> {
+) -> Result<CoconutClients, CredentialCoconutApiClientError> {
     match all_coconut_api_clients(&nyxd_client, epoch_id).await {
         Ok(clients) => Ok(CoconutClients::Clients(clients)),
         Err(CoconutApiError::ContractQueryFailure { source }) => match source {
-            NyxdError::NoContractAddressAvailable(_) => Ok(CoconutClients::NoContactAvailable),
-            _ => Err(CredentialError::FailedToQueryContract),
+            NyxdError::NoContractAddressAvailable(_) => Ok(CoconutClients::NoContractAvailable),
+            _ => Err(CredentialCoconutApiClientError::FailedToQueryContract),
         },
-        Err(err) => Err(err.into()),
+        Err(err) => Err(CredentialCoconutApiClientError::FailedToFetchCoconutApiClients(err)),
     }
 }

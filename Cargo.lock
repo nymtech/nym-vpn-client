@@ -3078,6 +3078,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9106e1d747ffd48e6be5bb2d97fa706ed25b144fbee4d5c02eae110cd8d6badd"
 
 [[package]]
+name = "maplit"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3e2e65a1a2e43cfcb47a895c4c8b10d1f4a61097f9f254f183aee60cad9c651d"
+
+[[package]]
 name = "match_cfg"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4754,6 +4760,7 @@ dependencies = [
  "dirs 5.0.1",
  "futures",
  "http 0.2.12",
+ "maplit",
  "nym-task",
  "nym-vpn-lib",
  "nym-vpn-proto",
@@ -4762,6 +4769,7 @@ dependencies = [
  "reqwest",
  "serde",
  "thiserror",
+ "time",
  "tokio",
  "tokio-stream",
  "toml 0.8.12",
