@@ -1,5 +1,10 @@
 name: build-mullvad-windows
-on: [workflow_dispatch, workflow_call]
+on:
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      CPP_BUILD_MODES:
+        value: ${{ jobs.build.outputs.CPP_BUILD_MODES }}
 
 env:
   CARGO_TERM_COLOR: always
