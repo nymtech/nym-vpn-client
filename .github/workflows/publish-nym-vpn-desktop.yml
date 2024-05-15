@@ -52,8 +52,7 @@ jobs:
       UPLOAD_DIR_LINUX: ${{ needs.build-nym-vpn-desktop-linux.outputs.UPLOAD_DIR_LINUX }}
       UPLOAD_DIR_MAC: ${{ needs.build-nym-vpn-desktop-mac.outputs.UPLOAD_DIR_MAC }}
       UPLOAD_DIR_WINDOWS: ${{ needs.build-nym-vpn-desktop-windows.outputs.UPLOAD_DIR_WINDOWS }}
-    permissions:
-      contents: write
+    permissions: write-all
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
