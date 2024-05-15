@@ -66,7 +66,6 @@ pub enum CheckBase58CredentialError {
 
 pub async fn check_credential_base58(credential: &str) -> Result<(), CheckBase58CredentialError> {
     let raw_credential = bs58::decode(credential).into_vec()?;
-    // .map_err(|err| CredentialError::FailedToDecodeBase58Credential { source: err })?;
     check_raw_credential(raw_credential)
         .await
         .map_err(|err| err.into())
