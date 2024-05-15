@@ -24,6 +24,31 @@ pub enum CheckRawCredentialError {
     FreepassExpired { expiry_date: String },
 }
 
+pub async fn check_raw_credential(raw_credential: Vec<u8>) -> Result<(), CheckRawCredentialError> {
+    let version = None;
+    let credential = IssuedBandwidthCredential::try_unpack(&raw_credential, version)
+        .map_err(|err| CheckRawCredentialError::FailedToUnpackRawCredential { source: err })?;
+
+    // Check expiry
+    match credential.variant_data() {
+        BandwidthCredentialIssuedDataVariant::Voucher(_) => {
+            debug!("credential is a bandwidth voucher");
+        }
+        BandwidthCredentialIssuedDataVariant::FreePass(freepass_info) => {
+            debug!("credential is a free pass");
+            if freepass_info.expired() {
+                return Err(CheckRawCredentialError::FreepassExpired {
+                    expiry_date: freepass_info.expiry_date().to_string(),
+                });
+            }
+        }
+    }
+
+    // TODO: verify?
+
+    Ok(())
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum CheckBase58CredentialError {
     #[error("failed decode base58 credential: {source}")]
@@ -39,6 +64,14 @@ pub enum CheckBase58CredentialError {
     },
 }
 
+pub async fn check_credential_base58(credential: &str) -> Result<(), CheckBase58CredentialError> {
+    let raw_credential = bs58::decode(credential).into_vec()?;
+    // .map_err(|err| CredentialError::FailedToDecodeBase58Credential { source: err })?;
+    check_raw_credential(raw_credential)
+        .await
+        .map_err(|err| err.into())
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum CheckFileCredentialError {
     #[error("failed to read credential file: {path}: {source}")]
@@ -52,6 +85,20 @@ pub enum CheckFileCredentialError {
         #[from]
         source: CheckRawCredentialError,
     },
+}
+
+pub async fn check_credential_file(
+    credential_file: PathBuf,
+) -> Result<(), CheckFileCredentialError> {
+    let raw_credential = fs::read(credential_file.clone()).map_err(|err| {
+        CheckFileCredentialError::FailedToReadCredentialFile {
+            path: credential_file,
+            source: err,
+        }
+    })?;
+    check_raw_credential(raw_credential)
+        .await
+        .map_err(|err| err.into())
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -87,68 +134,6 @@ pub enum CheckImportedCredentialError {
     },
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum VerifyCredentialError {
-    #[error("failed to obtain aggregate key")]
-    FailedToObtainAggregateVerificationKey(nym_credentials::Error),
-
-    #[error("failed to prepare credential for spending")]
-    FailedToPrepareCredentialForSpending(nym_credentials::Error),
-
-    #[error("missing bandwidth type attribute")]
-    MissingBandwidthTypeAttribute,
-
-    #[error("failed to verify credential")]
-    FailedToVerifyCredential,
-}
-
-pub async fn check_raw_credential(raw_credential: Vec<u8>) -> Result<(), CheckRawCredentialError> {
-    let version = None;
-    let credential = IssuedBandwidthCredential::try_unpack(&raw_credential, version)
-        .map_err(|err| CheckRawCredentialError::FailedToUnpackRawCredential { source: err })?;
-
-    // Check expiry
-    match credential.variant_data() {
-        BandwidthCredentialIssuedDataVariant::Voucher(_) => {
-            debug!("credential is a bandwidth voucher");
-        }
-        BandwidthCredentialIssuedDataVariant::FreePass(freepass_info) => {
-            debug!("credential is a free pass");
-            if freepass_info.expired() {
-                return Err(CheckRawCredentialError::FreepassExpired {
-                    expiry_date: freepass_info.expiry_date().to_string(),
-                });
-            }
-        }
-    }
-
-    // TODO: verify?
-
-    Ok(())
-}
-
-pub async fn check_credential_base58(credential: &str) -> Result<(), CheckBase58CredentialError> {
-    let raw_credential = bs58::decode(credential).into_vec()?;
-    // .map_err(|err| CredentialError::FailedToDecodeBase58Credential { source: err })?;
-    check_raw_credential(raw_credential)
-        .await
-        .map_err(|err| err.into())
-}
-
-pub async fn check_credential_file(
-    credential_file: PathBuf,
-) -> Result<(), CheckFileCredentialError> {
-    let raw_credential = fs::read(credential_file.clone()).map_err(|err| {
-        CheckFileCredentialError::FailedToReadCredentialFile {
-            path: credential_file,
-            source: err,
-        }
-    })?;
-    check_raw_credential(raw_credential)
-        .await
-        .map_err(|err| err.into())
-}
-
 pub async fn check_imported_credential(
     data_path: PathBuf,
     gateway_id: &str,
@@ -179,6 +164,21 @@ pub async fn check_imported_credential(
     verify_credential(usable_credential, coconut_api_clients)
         .await
         .map_err(|err| CheckImportedCredentialError::VerifyCredentialError { source: err })
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum VerifyCredentialError {
+    #[error("failed to obtain aggregate key")]
+    FailedToObtainAggregateVerificationKey(nym_credentials::Error),
+
+    #[error("failed to prepare credential for spending")]
+    FailedToPrepareCredentialForSpending(nym_credentials::Error),
+
+    #[error("missing bandwidth type attribute")]
+    MissingBandwidthTypeAttribute,
+
+    #[error("failed to verify credential")]
+    FailedToVerifyCredential,
 }
 
 async fn verify_credential(

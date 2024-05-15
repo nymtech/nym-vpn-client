@@ -20,39 +20,6 @@ pub enum ImportCredentialError {
     },
 }
 
-#[derive(Debug, thiserror::Error)]
-pub enum ImportCredentialBase58Error {
-    #[error("failed to decode base58 credential: {source}")]
-    FailedToDecodeBase58 {
-        #[from]
-        source: bs58::decode::Error,
-    },
-
-    #[error("failed to import credential to: {source}")]
-    FailedToImportRawCredential {
-        #[from]
-        source: ImportCredentialError,
-    },
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum ImportCredentialFileError {
-    #[error("failed to read credential file: {path}: {source}")]
-    ReadCredentialFile {
-        path: PathBuf,
-        source: std::io::Error,
-    },
-
-    #[error("failed to import credential file: {path}: {source}")]
-    ImportCredentialFile {
-        path: PathBuf,
-        source: std::io::Error,
-    },
-
-    #[error(transparent)]
-    ImportCredential { source: ImportCredentialError },
-}
-
 // Import binary credential data
 pub async fn import_credential(
     raw_credential: Vec<u8>,
@@ -75,6 +42,21 @@ pub async fn import_credential(
         })
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum ImportCredentialBase58Error {
+    #[error("failed to decode base58 credential: {source}")]
+    FailedToDecodeBase58 {
+        #[from]
+        source: bs58::decode::Error,
+    },
+
+    #[error("failed to import credential to: {source}")]
+    FailedToImportRawCredential {
+        #[from]
+        source: ImportCredentialError,
+    },
+}
+
 // Import credential data from a base58 string
 pub async fn import_credential_base58(
     credential: &str,
@@ -84,6 +66,24 @@ pub async fn import_credential_base58(
     import_credential(raw_credential, data_path)
         .await
         .map_err(|err| err.into())
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ImportCredentialFileError {
+    #[error("failed to read credential file: {path}: {source}")]
+    ReadCredentialFile {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error("failed to import credential file: {path}: {source}")]
+    ImportCredentialFile {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error(transparent)]
+    ImportCredential { source: ImportCredentialError },
 }
 
 // Import credential data from a binary file
