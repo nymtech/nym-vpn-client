@@ -67,19 +67,13 @@ pub(crate) struct TunnelConfiguration {
 
 fn init_jni_logger(level: String) {
     use android_logger::{Config, FilterBuilder};
+    let levels = level + ",tungstenite=warn,mio=warn,tokio_tungstenite=warn";
 
     android_logger::init_once(
         Config::default()
             .with_max_level(LevelFilter::Trace)
             .with_tag("libnymvpn")
-            .with_filter(
-                FilterBuilder::new()
-                    .parse(concat!(
-                        level,
-                        ",tungstenite=warn,mio=warn,tokio_tungstenite=warn"
-                    ))
-                    .build(),
-            ),
+            .with_filter(FilterBuilder::new().parse(levels.as_str()).build()),
     );
     log::debug!("Logger initialized");
 }
