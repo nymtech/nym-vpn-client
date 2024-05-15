@@ -19,7 +19,7 @@ impl From<ImportCredentialError> for ProtoImportError {
                 message: err.to_string(),
                 details: Default::default(),
             },
-            ImportCredentialError::StorageError(_) => ProtoImportError {
+            ImportCredentialError::StorageError { .. } => ProtoImportError {
                 kind: ImportErrorType::StorageError as i32,
                 message: err.to_string(),
                 details: Default::default(),

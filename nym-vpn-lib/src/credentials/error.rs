@@ -104,9 +104,9 @@ pub enum ImportCredentialError {
         source: nym_id::NymIdError,
     },
 
-    #[error(transparent)]
+    #[error("credential store error: {path}: {source}")]
     CredentialStoreError {
-        #[from]
+        path: std::path::PathBuf,
         source: CredentialStoreError,
     },
 }

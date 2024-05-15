@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
 use nym_vpn_lib::credential_storage::error::StorageError;
-use nym_vpn_lib::credentials::CredentialError;
 use nym_vpn_lib::id::NymIdError;
 use time::OffsetDateTime;
 use tracing::error;
@@ -17,8 +16,8 @@ pub enum ImportCredentialError {
     #[error("generic error: {0}")]
     Generic(String),
 
-    #[error("storage error: {0}")]
-    StorageError(String),
+    #[error("storage error: {path}: {source}")]
+    StorageError { path: PathBuf, source: String },
 
     #[error("failed to deserialize credential: {reason}")]
     DeserializationFailure { reason: String, location: PathBuf },
@@ -40,22 +39,19 @@ pub enum ImportCredentialError {
     FailedToQueryContract,
 }
 
-impl From<CredentialError> for ImportCredentialError {
-    fn from(err: CredentialError) -> Self {
+use nym_vpn_lib::credentials::ImportCredentialError as VpnLibImportCredentialError;
+
+impl From<VpnLibImportCredentialError> for ImportCredentialError {
+    fn from(err: VpnLibImportCredentialError) -> Self {
         let mut error = ImportCredentialError::Generic(err.to_string());
         match err {
-            CredentialError::FailedToSetupStoragePaths { .. } => {}
-            CredentialError::FailedToCreateCredentialStoreDirectory { .. } => {}
-            CredentialError::FailedToReadCredentialStoreMetadata { .. } => {}
-            CredentialError::FailedToSetCredentialStorePermissions { .. } => {}
-            CredentialError::FailedToInitializePersistentStorage { .. } => {}
-            CredentialError::FreepassExpired { expiry_date } => {
-                error = ImportCredentialError::FreepassExpired {
-                    expiration: expiry_date,
-                };
+            VpnLibImportCredentialError::CredentialStoreError { path, source } => {
+                ImportCredentialError::StorageError {
+                    path,
+                    source: source.to_string(),
+                }
             }
-            CredentialError::FailedToReadCredentialFile { .. } => {}
-            CredentialError::FailedToImportCredential { location, source } => {
+            VpnLibImportCredentialError::FailedToImportRawCredential { location, source } => {
                 match source {
                     NymIdError::CredentialDeserializationFailure { source } => {
                         error = ImportCredentialError::DeserializationFailure {
@@ -81,8 +77,10 @@ impl From<CredentialError> for ImportCredentialError {
                                     if db_error.to_string().contains("code: 2067") {
                                         error = ImportCredentialError::CredentialAlreadyImported
                                     } else {
-                                        error =
-                                            ImportCredentialError::StorageError(error.to_string())
+                                        error = ImportCredentialError::StorageError {
+                                            path: location,
+                                            source: error.to_string(),
+                                        }
                                     }
                                 }
                                 StorageError::MigrationError(_) => (),
@@ -90,33 +88,14 @@ impl From<CredentialError> for ImportCredentialError {
                                 StorageError::NoCredential => (),
                             }
                         } else {
-                            error = ImportCredentialError::StorageError(source.to_string())
+                            error = ImportCredentialError::StorageError {
+                                path: location,
+                                source: source.to_string(),
+                            }
                         }
                     }
                 }
             }
-            CredentialError::FailedToDecodeBase58Credential { source } => {
-                error = ImportCredentialError::Generic(source.to_string());
-            }
-            CredentialError::FailedToGetNextUsableCredential { .. } => {}
-            CredentialError::MissingBandwidthTypeAttribute => {}
-            CredentialError::FailedToVerifyCredential => {
-                error = ImportCredentialError::VerificationFailed
-            }
-            CredentialError::FailedToCreateNyxdClientConfig(_) => {}
-            CredentialError::FailedToConnectUsingNyxdClient(_) => {}
-            CredentialError::NoNyxdEndpointsFound => {}
-            CredentialError::FailedToQueryContract => {
-                error = ImportCredentialError::FailedToQueryContract
-            }
-            CredentialError::FailedToFetchCoconutApiClients(_) => {}
-            CredentialError::FailedToUnpackRawCredential { .. } => {}
-            CredentialError::FailedToObtainAggregateVerificationKey(_) => {}
-            CredentialError::FailedToPrepareCredentialForSpending(_) => {}
-
-            // TODO: just like we have FailedToImportCredential, we should have a
-            // FailedToCheckCredential, which in turn would group a number of the low level errors
-            // above
         };
         error
     }

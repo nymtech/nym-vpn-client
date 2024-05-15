@@ -192,11 +192,14 @@ pub enum Error {
 
     #[error("invalid credential: {reason}")]
     InvalidCredential {
-        reason: crate::credentials::CredentialError,
+        reason: crate::credentials::CheckImportedCredentialError,
     },
 
     #[error(transparent)]
     CredentialError(#[from] crate::credentials::CredentialError),
+
+    #[error(transparent)]
+    ImportCredentialError(#[from] crate::credentials::ImportCredentialError),
 
     #[error(transparent)]
     IpPacketRouterClientError(#[from] nym_ip_packet_client::Error),
