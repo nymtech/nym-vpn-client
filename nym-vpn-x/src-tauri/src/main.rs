@@ -171,8 +171,9 @@ async fn main() -> Result<()> {
             tokio::spawn(async move {
                 info!("starting vpn status watch");
                 loop {
-                    c_grpc.refresh_vpn_status(&handle).await.ok();
-                    c_grpc.watch_vpn_status(&handle).await.ok();
+                    if c_grpc.refresh_vpn_status(&handle).await.is_ok() {
+                        c_grpc.watch_vpn_status(&handle).await.ok();
+                    }
                     sleep(VPND_RETRY_INTERVAL).await;
                     debug!("vpn status watch retry");
                 }

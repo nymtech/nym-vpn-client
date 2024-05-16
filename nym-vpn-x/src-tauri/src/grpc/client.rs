@@ -6,7 +6,8 @@ use nym_vpn_proto::{
     nym_vpnd_client::NymVpndClient, DisconnectRequest, HealthCheckRequest, StatusRequest,
 };
 use nym_vpn_proto::{
-    ConnectRequest, Dns, Empty, EntryNode, ExitNode, ImportUserCredentialRequest, StatusResponse,
+    ConnectRequest, Dns, Empty, EntryNode, ExitNode, ImportUserCredentialRequest,
+    ImportUserCredentialResponse, StatusResponse,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use serde::{Deserialize, Serialize};
@@ -134,7 +135,6 @@ impl GrpcClient {
     /// Get VPN status
     #[instrument(skip_all)]
     pub async fn vpn_status(&self) -> Result<StatusResponse, VpndError> {
-        debug!("vpn_status");
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(StatusRequest {});
@@ -150,7 +150,6 @@ impl GrpcClient {
     /// Refresh VPN status
     #[instrument(skip_all)]
     pub async fn refresh_vpn_status(&self, app: &AppHandle) -> Result<(), VpndError> {
-        debug!("refresh_vpn_status");
         let res = self.vpn_status().await?;
         debug!("vpn status update {:?}", res.status());
         if let Some(e) = res.error.as_ref() {
@@ -262,7 +261,10 @@ impl GrpcClient {
 
     /// Import user credential from base58 encoded string
     #[instrument(skip_all)]
-    pub async fn import_credential(&self, credential: Vec<u8>) -> Result<bool, VpndError> {
+    pub async fn import_credential(
+        &self,
+        credential: Vec<u8>,
+    ) -> Result<ImportUserCredentialResponse, VpndError> {
         debug!("import_credential");
         let mut vpnd = self.vpnd().await?;
 
@@ -273,7 +275,7 @@ impl GrpcClient {
         })?;
         debug!("grpc response: {:?}", response);
 
-        Ok(response.into_inner().success)
+        Ok(response.into_inner())
     }
 
     /// Watch the connection with the grpc server

@@ -1,5 +1,6 @@
 use std::fmt::{self, Display};
 
+use nym_vpn_proto::import_error::ImportErrorType;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
@@ -25,6 +26,7 @@ pub struct CmdError {
     #[source]
     pub source: CmdErrorSource,
     pub message: String,
+    pub i18n_key: Option<I18nKey>,
 }
 
 impl CmdError {
@@ -32,6 +34,15 @@ impl CmdError {
         Self {
             message: message.to_string(),
             source: error,
+            i18n_key: None,
+        }
+    }
+
+    pub fn new_with_local(error: CmdErrorSource, message: &str, key: I18nKey) -> Self {
+        Self {
+            message: message.to_string(),
+            source: error,
+            i18n_key: Some(key),
         }
     }
 }
@@ -52,6 +63,56 @@ impl From<VpndError> for CmdError {
             VpndError::FailedToConnectIpc(_) | VpndError::FailedToConnectHttp(_) => {
                 CmdError::new(CmdErrorSource::DaemonError, "not connected to the daemon")
             }
+        }
+    }
+}
+
+/// Enum of the localization keys for error messages
+/// displayed in the UI
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub enum I18nKey {
+    UnknownError,
+    CredentialVpnRunning,
+    CredentialAlreadyImported,
+    CredentialStorageError,
+    CredentialDeserializationFailure,
+    CredentialExpired,
+}
+
+impl From<ImportErrorType> for CmdError {
+    fn from(error: ImportErrorType) -> Self {
+        match error {
+            ImportErrorType::Unspecified => CmdError::new_with_local(
+                CmdErrorSource::InternalError,
+                "grpc unspecified",
+                I18nKey::UnknownError,
+            ),
+            ImportErrorType::VpnRunning => CmdError::new_with_local(
+                CmdErrorSource::CallerError,
+                "vpn running",
+                I18nKey::CredentialVpnRunning,
+            ),
+            ImportErrorType::CredentialAlreadyImported => CmdError::new_with_local(
+                CmdErrorSource::CallerError,
+                "credential already imported",
+                I18nKey::CredentialAlreadyImported,
+            ),
+            ImportErrorType::StorageError => CmdError::new_with_local(
+                CmdErrorSource::InternalError,
+                "credential strorage error",
+                I18nKey::CredentialStorageError,
+            ),
+            ImportErrorType::DeserializationFailure => CmdError::new_with_local(
+                CmdErrorSource::InternalError,
+                "credential deserialization failure",
+                I18nKey::CredentialDeserializationFailure,
+            ),
+            ImportErrorType::CredentialExpired => CmdError::new_with_local(
+                CmdErrorSource::CallerError,
+                "credential expired",
+                I18nKey::CredentialExpired,
+            ),
         }
     }
 }
