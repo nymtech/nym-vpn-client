@@ -238,11 +238,10 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
 #[uniffi::export]
 pub fn stopVPN() -> Result<(), FFIError> {
     if !RUNNING.fetch_and(false, Ordering::Relaxed) {
-        debug!("Notifying stop handle of early stop");
-        return RUNTIME.block_on(notify_stop_handle());
+        return Err(FFIError::VpnNotStarted);
     }
     debug!("Stopping VPN");
-    RUNTIME.block_on(stop_vpn())
+    RUNTIME.block_on(notify_stop_handle())
 }
 
 async fn notify_stop_handle() -> Result<(), FFIError> {
