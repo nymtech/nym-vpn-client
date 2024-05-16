@@ -113,10 +113,13 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
         return;
     };
     let context = AndroidContext { jvm, vpn_service };
+    info!("got context");
 
     LOAD_CLASSES.call_once(|| env.preload_classes(CLASSES.iter().cloned()));
+    info!("Loaded classes");
 
     *CONTEXT.lock().unwrap() = Some(context);
+    info!("Set context")
 }
 
 #[no_mangle]
