@@ -89,7 +89,7 @@ async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle),
         TaskStatus::Ready => debug!("Started Nym VPN"),
         TaskStatus::ReadyWithGateway(gateway) => debug!("Started Nym VPN: connected to {gateway}"),
     }
-
+    debug!("result with handles");
     Ok((stop_handle, handle))
 }
 
@@ -241,18 +241,7 @@ pub fn stopVPN() -> Result<(), FFIError> {
         return Err(FFIError::VpnNotStarted);
     }
     debug!("Stopping VPN");
-    RUNTIME.block_on(notify_stop_handle())
-}
-
-async fn notify_stop_handle() -> Result<(), FFIError> {
-    let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
-    if let Some(sh) = &*guard {
-        debug!("notifying waiters");
-        sh.notify_one()
-    } else {
-        return Err(FFIError::VpnNotStarted);
-    }
-    Ok(())
+    RUNTIME.block_on(stop_vpn())
 }
 
 async fn stop_vpn() -> Result<(), FFIError> {
