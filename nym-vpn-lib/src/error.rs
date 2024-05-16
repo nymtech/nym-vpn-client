@@ -202,6 +202,27 @@ pub enum Error {
 
     #[error(transparent)]
     IpPacketRouterClientError(#[from] nym_ip_packet_client::Error),
+
+    #[error("failed to setup gateway directory client: {source}")]
+    FailedtoSetupGatewayDirectoryClient {
+        config: nym_gateway_directory::Config,
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to lookup gateways: {source}")]
+    FailedToLookupGateways {
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to lookup gateway identity: {source}")]
+    FailedToLookupGatewayIdentity {
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to lookup router address: {source}")]
+    FailedToLookupRouterAddress {
+        source: nym_gateway_directory::Error,
+    },
 }
 
 // Result type based on our error type

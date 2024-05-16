@@ -88,6 +88,21 @@ pub enum ConnectionFailedError {
 
     #[error("failed to connect: {0}")]
     Generic(String),
+
+    #[error("failed to setup gateway directory client: {reason}")]
+    FailedToSetupGatewayDirectoryClient {
+        config: nym_vpn_lib::gateway_directory::Config,
+        reason: String,
+    },
+
+    #[error("failed to lookup gateways: {reason}")]
+    FailedToLookupGateways { reason: String },
+
+    #[error("failed to lookup gateway identity: {reason}")]
+    FailedToLookupGatewayIdentity { reason: String },
+
+    #[error("failed to lookup router address: {reason}")]
+    FailedToLookupRouterAddress { reason: String },
 }
 
 impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
@@ -104,6 +119,27 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             },
             nym_vpn_lib::error::Error::StartMixnetTimeout(timeout_sec) => {
                 ConnectionFailedError::StartMixnetTimeout(*timeout_sec)
+            }
+            nym_vpn_lib::error::Error::FailedtoSetupGatewayDirectoryClient { config, source } => {
+                ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
+                    config: config.clone(),
+                    reason: source.to_string(),
+                }
+            }
+            nym_vpn_lib::error::Error::FailedToLookupGateways { source } => {
+                ConnectionFailedError::FailedToLookupGateways {
+                    reason: source.to_string(),
+                }
+            }
+            nym_vpn_lib::error::Error::FailedToLookupGatewayIdentity { source } => {
+                ConnectionFailedError::FailedToLookupGatewayIdentity {
+                    reason: source.to_string(),
+                }
+            }
+            nym_vpn_lib::error::Error::FailedToLookupRouterAddress { source } => {
+                ConnectionFailedError::FailedToLookupRouterAddress {
+                    reason: source.to_string(),
+                }
             }
             nym_vpn_lib::error::Error::IO(_)
             | nym_vpn_lib::error::Error::InvalidWireGuardKey

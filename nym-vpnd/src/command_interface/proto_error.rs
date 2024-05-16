@@ -86,6 +86,31 @@ impl From<ConnectionFailedError> for ProtoError {
                 message: reason,
                 details: Default::default(),
             },
+            ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
+                config,
+                reason,
+            } => ProtoError {
+                kind: ErrorType::FailedToSetupGatewayDirectoryClient as i32,
+                message: reason,
+                details: hashmap! {
+                    "config".to_string() => config.to_string()
+                },
+            },
+            ConnectionFailedError::FailedToLookupGateways { reason } => ProtoError {
+                kind: ErrorType::FailedToLookupGateways as i32,
+                message: reason,
+                details: Default::default(),
+            },
+            ConnectionFailedError::FailedToLookupGatewayIdentity { reason } => ProtoError {
+                kind: ErrorType::FailedToLookupGatewayIdentity as i32,
+                message: reason,
+                details: Default::default(),
+            },
+            ConnectionFailedError::FailedToLookupRouterAddress { reason } => ProtoError {
+                kind: ErrorType::FailedToLookupRouterAddress as i32,
+                message: reason,
+                details: Default::default(),
+            },
         }
     }
 }

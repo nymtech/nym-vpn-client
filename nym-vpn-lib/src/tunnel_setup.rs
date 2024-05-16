@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
 use crate::tunnel::setup_route_manager;
 use crate::util::handle_interrupt;
@@ -283,13 +283,19 @@ async fn setup_mix_tunnel(
 pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> {
     // Create a gateway client that we use to interact with the entry gateway, in particular to
     // handle wireguard registration
-    let gateway_directory_client = GatewayClient::new(nym_vpn.gateway_config())?;
+    let gateway_directory_client = GatewayClient::new(nym_vpn.gateway_config()).map_err(|err| {
+        Error::FailedtoSetupGatewayDirectoryClient {
+            config: nym_vpn.gateway_config(),
+            source: err,
+        }
+    })?;
     let GatewayQueryResult {
         entry_gateways,
         exit_gateways,
     } = gateway_directory_client
         .lookup_described_entry_and_exit_gateways_with_location()
-        .await?;
+        .await
+        .map_err(|err| Error::FailedToLookupGateways { source: err })?;
 
     // This info would be useful at at least debug level, but it's just so much data that it
     // would be overwhelming
@@ -299,11 +305,14 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
     let (entry_gateway_id, entry_location) = nym_vpn
         .entry_point()
         .lookup_gateway_identity(&entry_gateways)
-        .await?;
+        .await
+        .map_err(|err| Error::FailedToLookupGatewayIdentity { source: err })?;
     let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
 
-    let (exit_router_address, exit_location) =
-        nym_vpn.exit_point().lookup_router_address(&exit_gateways)?;
+    let (exit_router_address, exit_location) = nym_vpn
+        .exit_point()
+        .lookup_router_address(&exit_gateways)
+        .map_err(|err| Error::FailedToLookupRouterAddress { source: err })?;
     let exit_location_str = exit_location.as_deref().unwrap_or("unknown");
     let exit_gateway_id = exit_router_address.gateway();
 
