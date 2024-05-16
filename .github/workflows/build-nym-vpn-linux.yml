@@ -14,7 +14,7 @@ jobs:
 
   build-linux:
     needs: build-wireguard-go-linux
-    runs-on: ubuntu-22.04-16-core
+    runs-on: ubuntu-22.04-arc
     outputs:
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR }}
     steps:
