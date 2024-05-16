@@ -90,10 +90,10 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     vpn_service: JObject<'_>,
     log_level: JString<'_>,
 ) {
-    // if get_context().is_some() {
-    //     warn!("Context was already initialised, not doing anything");
-    //     return;
-    // }
+    if get_context().is_some() {
+        warn!("Context was already initialised, not doing anything");
+        return;
+    }
 
     let env = JnixEnv::from(env);
 

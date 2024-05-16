@@ -142,9 +142,9 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
-    if RUNNING.fetch_or(true, Ordering::Relaxed) {
-        return Err(FFIError::VpnAlreadyRunning);
-    }
+    // if RUNNING.fetch_or(true, Ordering::Relaxed) {
+    //     return Err(FFIError::VpnAlreadyRunning);
+    // }
     let vpn = sync_run_vpn(config);
     if vpn.is_err() {
         RUNNING.store(false, Ordering::Relaxed);
