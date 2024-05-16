@@ -73,6 +73,9 @@ async fn status(client_type: ClientType) -> Result<()> {
     let request = tonic::Request::new(StatusRequest {});
     let response = client.vpn_status(request).await?.into_inner();
     println!("{:?}", response);
+    let since = response.details.as_ref().unwrap().since.as_ref().unwrap();
+    let utc_since = time::OffsetDateTime::from_unix_timestamp(since.seconds).unwrap();
+    println!("since: {:?}", utc_since);
     Ok(())
 }
 

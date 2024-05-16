@@ -930,7 +930,7 @@ version = "0.20.0"
 source = "git+https://github.com/jstuczyn/cosmos-rust?branch=nym-temp/all-validator-features#41ed4631e146268b0300033c8bbb993d79a49f58"
 dependencies = [
  "prost 0.12.4",
- "prost-types 0.12.3",
+ "prost-types 0.12.4",
  "tendermint-proto",
 ]
 
@@ -4729,6 +4729,7 @@ name = "nym-vpn-proto"
 version = "0.1.0"
 dependencies = [
  "prost 0.12.4",
+ "prost-types 0.12.4",
  "tonic 0.11.0",
  "tonic-build 0.11.0",
  "tonic-reflection",
@@ -4745,6 +4746,7 @@ dependencies = [
  "nym-vpn-proto",
  "parity-tokio-ipc",
  "prost 0.12.4",
+ "time",
  "tokio",
  "tonic 0.11.0",
  "tower",
@@ -4766,6 +4768,7 @@ dependencies = [
  "nym-vpn-proto",
  "parity-tokio-ipc",
  "prost 0.12.4",
+ "prost-types 0.12.4",
  "reqwest",
  "serde",
  "thiserror",
@@ -5384,7 +5387,7 @@ dependencies = [
  "petgraph",
  "prettyplease 0.2.17",
  "prost 0.12.4",
- "prost-types 0.12.3",
+ "prost-types 0.12.4",
  "regex",
  "syn 2.0.58",
  "tempfile",
@@ -5428,9 +5431,9 @@ dependencies = [
 
 [[package]]
 name = "prost-types"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "193898f59edcf43c26227dcd4c8427f00d99d61e95dcde58dabd49fa291d470e"
+checksum = "3235c33eb02c1f1e212abdbe34c78b264b038fb58ca612664343271e36e55ffe"
 dependencies = [
  "prost 0.12.4",
 ]
@@ -6991,7 +6994,7 @@ dependencies = [
  "num-traits",
  "once_cell",
  "prost 0.12.4",
- "prost-types 0.12.3",
+ "prost-types 0.12.4",
  "ripemd",
  "serde",
  "serde_bytes",
@@ -7031,7 +7034,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "prost 0.12.4",
- "prost-types 0.12.3",
+ "prost-types 0.12.4",
  "serde",
  "serde_bytes",
  "subtle-encoding",
@@ -7463,7 +7466,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "548c227bd5c0fae5925812c4ec6c66ffcfced23ea370cb823f4d18f0fc1cb6a7"
 dependencies = [
  "prost 0.12.4",
- "prost-types 0.12.3",
+ "prost-types 0.12.4",
  "tokio",
  "tokio-stream",
  "tonic 0.11.0",

@@ -6,6 +6,7 @@ use nym_task::StatusSender;
 use nym_vpn_lib::{
     connection_monitor::ConnectionMonitorStatus, SentStatus, StatusReceiver, TaskStatus,
 };
+use time::OffsetDateTime;
 use tracing::{debug, info};
 
 use super::vpn_service::{SharedVpnState, VpnState};
@@ -25,11 +26,17 @@ impl VpnServiceStatusListener {
             match msg {
                 TaskStatus::Ready => {
                     info!("VPN status: connected");
-                    self.shared_vpn_state.set(VpnState::Connected);
+                    self.shared_vpn_state.set(VpnState::Connected {
+                        gateway: "unknown".to_string(),
+                        since: OffsetDateTime::now_utc(),
+                    });
                 }
                 TaskStatus::ReadyWithGateway(gateway) => {
                     info!("VPN status: connected to gateway: {gateway}");
-                    self.shared_vpn_state.set(VpnState::Connected);
+                    self.shared_vpn_state.set(VpnState::Connected {
+                        gateway: gateway.clone(),
+                        since: OffsetDateTime::now_utc(),
+                    });
                 }
             }
         } else if let Some(msg) = msg.downcast_ref::<ConnectionMonitorStatus>() {

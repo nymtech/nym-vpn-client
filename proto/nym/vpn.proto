@@ -70,10 +70,18 @@ enum ConnectionStatus {
   CONNECTION_FAILED = 6;
 }
 
+import "google/protobuf/timestamp.proto";
+
+message ConnectionDetails {
+  string gateway = 1;
+  google.protobuf.Timestamp since = 2;
+}
+
 message StatusRequest {}
 message StatusResponse {
   ConnectionStatus status = 1;
-  Error error = 2;
+  ConnectionDetails details = 2;
+  Error error = 3;
 }
 
 message ConnectionStateChange {

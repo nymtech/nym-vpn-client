@@ -17,6 +17,7 @@ dirs.workspace = true
 futures.workspace = true
 maplit.workspace = true
 parity-tokio-ipc.workspace = true
+prost-types.workspace = true
 prost.workspace = true
 reqwest = { workspace = true, default-features = false, features = ["rustls-tls"] }
 serde.workspace = true

@@ -63,6 +63,7 @@ netdev = "0.24.0"
 parity-tokio-ipc = "0.9.0"
 pnet_packet = "0.34.0"
 prost = "0.12.4"
+prost-types = "0.12.4"
 rand = "0.7.3"
 reqwest = { version = "0.11.22", default-features = false }
 serde = "1.0.192"
