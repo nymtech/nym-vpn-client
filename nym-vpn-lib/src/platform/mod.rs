@@ -63,6 +63,13 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
     Ok(())
 }
 
+async fn reset_shutdown_handle() -> Result<(), FFIError> {
+    let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
+    *guard = None;
+    debug!("VPN shutdown handle reset");
+    Ok(())
+}
+
 async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle), FFIError> {
     debug!("creating new stop handle");
     let stop_handle = Arc::new(Notify::new());
@@ -151,9 +158,9 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
-    // if RUNNING.fetch_or(true, Ordering::Relaxed) {
-    //     return Err(FFIError::VpnAlreadyRunning);
-    // }
+    if RUNNING.fetch_or(true, Ordering::Relaxed) {
+        return Err(FFIError::VpnAlreadyRunning);
+    }
     debug!("Trying to run VPN");
     let vpn = sync_run_vpn(config);
     debug!("Got VPN");
@@ -230,11 +237,23 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn stopVPN() -> Result<(), FFIError> {
-    // if !RUNNING.fetch_and(false, Ordering::Relaxed) {
-    //     return Err(FFIError::VpnNotRunning);
-    // }
+    if !RUNNING.fetch_and(false, Ordering::Relaxed) {
+        debug!("Notifying stop handle of early stop");
+        return RUNTIME.block_on(notify_stop_handle());
+    }
     debug!("Stopping VPN");
     RUNTIME.block_on(stop_vpn())
+}
+
+async fn notify_stop_handle() -> Result<(), FFIError> {
+    let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
+    if let Some(sh) = &*guard {
+        debug!("notifying waiters");
+        sh.notify_one()
+    } else {
+        return Err(FFIError::VpnNotStarted);
+    }
+    Ok(())
 }
 
 async fn stop_vpn() -> Result<(), FFIError> {
