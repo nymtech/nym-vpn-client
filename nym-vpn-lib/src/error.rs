@@ -193,6 +193,8 @@ pub enum Error {
     #[error("invalid credential: {reason}")]
     InvalidCredential {
         reason: crate::credentials::CheckImportedCredentialError,
+        path: PathBuf,
+        gateway_id: String,
     },
 
     #[error(transparent)]

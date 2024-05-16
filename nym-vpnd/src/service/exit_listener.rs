@@ -4,7 +4,10 @@
 use futures::channel::oneshot;
 use tracing::{error, info};
 
-use super::vpn_service::{SharedVpnState, VpnState};
+use super::{
+    error::ConnectionFailedError,
+    vpn_service::{SharedVpnState, VpnState},
+};
 
 pub(super) struct VpnServiceExitListener {
     shared_vpn_state: SharedVpnState,
@@ -30,8 +33,20 @@ impl VpnServiceExitListener {
                     }
                     nym_vpn_lib::NymVpnExitStatusMessage::Failed(ref err) => {
                         error!("VPN exit: fail: {err}");
+                        error!("VPN exit: fail (debug): {err:?}");
+
+                        // Inspect the error so we can set a strongly typed error state
+                        let vpn_lib_err = err
+                            .downcast_ref::<nym_vpn_lib::error::Error>()
+                            .map(ConnectionFailedError::from);
+
+                        let connection_failed_err = match vpn_lib_err {
+                            Some(vpn_lib_err) => vpn_lib_err,
+                            None => ConnectionFailedError::Generic(err.to_string()),
+                        };
+
                         self.shared_vpn_state
-                            .set(VpnState::ConnectionFailed(err.to_string()));
+                            .set(VpnState::ConnectionFailed(connection_failed_err));
                         listener_vpn_exit_tx.send(exit_res).ok();
                     }
                 },

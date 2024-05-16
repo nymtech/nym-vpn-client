@@ -86,7 +86,24 @@ message ConnectionStatusUpdate {
 }
 
 message Error {
-  string message = 1;
+  enum ErrorType {
+    ERROR_TYPE_UNSPECIFIED = 0;
+    NO_VALID_CREDENTIALS = 1;
+    AUTHENTICATION_FAILED = 2;
+    NETWORK_ISSUE = 3;
+    INVALID_CONFIGURATION = 4;
+    TIMEOUT = 5;
+    PERMISSION_DENIED = 6;
+    GENERIC = 7;
+  }
+
+  ErrorType kind = 1;
+
+  // Detailed error message for logging and debuggning
+  string message = 2;
+
+  // Optional additional details
+  map<string, string> details = 3;
 }
 
 message ImportUserCredentialRequest {
