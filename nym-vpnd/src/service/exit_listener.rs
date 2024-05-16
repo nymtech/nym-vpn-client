@@ -42,7 +42,7 @@ impl VpnServiceExitListener {
 
                         let connection_failed_err = match vpn_lib_err {
                             Some(vpn_lib_err) => vpn_lib_err,
-                            None => ConnectionFailedError::Generic(err.to_string()),
+                            None => ConnectionFailedError::Unhandled(err.to_string()),
                         };
 
                         self.shared_vpn_state

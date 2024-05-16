@@ -76,6 +76,12 @@ impl From<VpnLibImportCredentialError> for ImportCredentialError {
 
 #[derive(Clone, Debug, thiserror::Error)]
 pub enum ConnectionFailedError {
+    // This error type used only while we we are in the process of properly mapping all errors. The
+    // set of errors that can be returned by the vpn-lib is unmanagably large and is in the process
+    // of being cleaned up, but will take some time
+    #[error("failed to connect (unhandled): {0}")]
+    Unhandled(String),
+
     #[error("failed to get next usable credential: {reason}")]
     InvalidCredential {
         reason: String,
@@ -86,8 +92,20 @@ pub enum ConnectionFailedError {
     #[error("timeout starting mixnet client after {0} seconds")]
     StartMixnetTimeout(u64),
 
-    #[error("failed to connect: {0}")]
-    Generic(String),
+    #[error("failed to setup gateway directory client: {reason}")]
+    FailedToSetupGatewayDirectoryClient {
+        config: Box<nym_vpn_lib::gateway_directory::Config>,
+        reason: String,
+    },
+
+    #[error("failed to lookup gateways: {reason}")]
+    FailedToLookupGateways { reason: String },
+
+    #[error("failed to lookup gateway identity: {reason}")]
+    FailedToLookupGatewayIdentity { reason: String },
+
+    #[error("failed to lookup router address: {reason}")]
+    FailedToLookupRouterAddress { reason: String },
 }
 
 impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
@@ -104,6 +122,27 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             },
             nym_vpn_lib::error::Error::StartMixnetTimeout(timeout_sec) => {
                 ConnectionFailedError::StartMixnetTimeout(*timeout_sec)
+            }
+            nym_vpn_lib::error::Error::FailedtoSetupGatewayDirectoryClient { config, source } => {
+                ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
+                    config: Box::new(*config.clone()),
+                    reason: source.to_string(),
+                }
+            }
+            nym_vpn_lib::error::Error::FailedToLookupGateways { source } => {
+                ConnectionFailedError::FailedToLookupGateways {
+                    reason: source.to_string(),
+                }
+            }
+            nym_vpn_lib::error::Error::FailedToLookupGatewayIdentity { source } => {
+                ConnectionFailedError::FailedToLookupGatewayIdentity {
+                    reason: source.to_string(),
+                }
+            }
+            nym_vpn_lib::error::Error::FailedToLookupRouterAddress { source } => {
+                ConnectionFailedError::FailedToLookupRouterAddress {
+                    reason: source.to_string(),
+                }
             }
             nym_vpn_lib::error::Error::IO(_)
             | nym_vpn_lib::error::Error::InvalidWireGuardKey
@@ -159,7 +198,7 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::RouteManagerPoisonedLock
             | nym_vpn_lib::error::Error::ImportCredentialError(_)
             | nym_vpn_lib::error::Error::IpPacketRouterClientError(_) => {
-                ConnectionFailedError::Generic(format!("unhandled error: {:#?}", err))
+                ConnectionFailedError::Unhandled(format!("unhandled error: {:#?}", err))
             }
         }
     }

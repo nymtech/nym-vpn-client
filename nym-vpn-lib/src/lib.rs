@@ -12,7 +12,9 @@ use futures::channel::{mpsc, oneshot};
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_connection_monitor::ConnectionMonitorTask;
-use nym_gateway_directory::{Config, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress};
+use nym_gateway_directory::{
+    Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress,
+};
 use nym_ip_packet_client::IprClient;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
@@ -144,7 +146,7 @@ impl From<NymVpn<MixnetVpn>> for SpecificVpn {
 
 pub struct NymVpn<T: Vpn> {
     /// Gateway configuration
-    pub gateway_config: Config,
+    pub gateway_config: GatewayDirectoryConfig,
 
     /// Mixnet public ID of the entry gateway.
     pub entry_point: EntryPoint,
@@ -424,7 +426,7 @@ impl<T: Vpn> NymVpn<T> {
     }
 }
 impl SpecificVpn {
-    pub fn gateway_config(&self) -> Config {
+    pub fn gateway_config(&self) -> GatewayDirectoryConfig {
         match self {
             SpecificVpn::Wg(vpn) => vpn.gateway_config.clone(),
             SpecificVpn::Mix(vpn) => vpn.gateway_config.clone(),

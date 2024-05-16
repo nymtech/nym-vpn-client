@@ -62,6 +62,13 @@ impl From<ImportCredentialError> for ProtoImportError {
 impl From<ConnectionFailedError> for ProtoError {
     fn from(err: ConnectionFailedError) -> Self {
         match err {
+            ConnectionFailedError::Unhandled(ref reason) => ProtoError {
+                kind: ErrorType::Unhandled as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
             ConnectionFailedError::InvalidCredential {
                 reason,
                 location,
@@ -81,10 +88,37 @@ impl From<ConnectionFailedError> for ProtoError {
                 message: timeout.to_string(),
                 details: Default::default(),
             },
-            ConnectionFailedError::Generic(reason) => ProtoError {
-                kind: ErrorType::Generic as i32,
-                message: reason,
-                details: Default::default(),
+            ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
+                ref config,
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::GatewayDirectory as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "config".to_string() => config.to_string(),
+                    "reason".to_string() => reason.clone(),
+                },
+            },
+            ConnectionFailedError::FailedToLookupGateways { ref reason } => ProtoError {
+                kind: ErrorType::GatewayDirectory as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
+            ConnectionFailedError::FailedToLookupGatewayIdentity { ref reason } => ProtoError {
+                kind: ErrorType::GatewayDirectory as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
+            ConnectionFailedError::FailedToLookupRouterAddress { ref reason } => ProtoError {
+                kind: ErrorType::GatewayDirectory as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
             },
         }
     }
