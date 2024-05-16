@@ -73,6 +73,7 @@ impl From<VpndError> for CmdError {
 #[ts(export)]
 pub enum I18nKey {
     UnknownError,
+    CredentialInvalid,
     CredentialVpnRunning,
     CredentialAlreadyImported,
     CredentialStorageError,

@@ -8,6 +8,7 @@ import backendMessages from './en/backend-messages.json';
 import display from './en/display.json';
 import addCredential from './en/add-credential.json';
 import licenses from './en/licenses.json';
+import errors from './en/errors.json';
 
 export const defaultNS = 'common';
 export const resources = {
@@ -20,6 +21,7 @@ export const resources = {
     display,
     addCredential,
     licenses,
+    errors,
   },
 } as const;
 
@@ -37,6 +39,7 @@ i18n.use(initReactI18next).init({
     'backendMessages',
     'display',
     'licenses',
+    'errors',
   ],
 
   interpolation: {

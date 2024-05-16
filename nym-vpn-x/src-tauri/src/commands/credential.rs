@@ -18,7 +18,11 @@ pub async fn add_credential(
 
     let bytes = bs58::decode(credential).into_vec().map_err(|e| {
         info!("failed to decode base58 credential: {:?}", e);
-        CmdError::new(CmdErrorSource::CallerError, "bad credential format")
+        CmdError::new_with_local(
+            CmdErrorSource::CallerError,
+            "bad credential format",
+            I18nKey::CredentialInvalid,
+        )
     })?;
 
     let res = grpc.import_credential(bytes).await?;

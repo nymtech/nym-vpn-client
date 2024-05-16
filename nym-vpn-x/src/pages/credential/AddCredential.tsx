@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { NymDarkOutlineIcon, NymIcon } from '../../assets';
 import { useMainState, useNotifications } from '../../contexts';
+import { useCmdErrorI18n } from '../../hooks';
 import { routes } from '../../router';
 import { CmdError } from '../../types';
 import { Button, PageAnim, TextArea } from '../../ui';
@@ -18,6 +19,7 @@ function AddCredential() {
   const { push } = useNotifications();
   const navigate = useNavigate();
   const { t } = useTranslation('addCredential');
+  const { eT } = useCmdErrorI18n();
 
   const onChange = (credential: string) => {
     setCredential(credential);
@@ -37,8 +39,12 @@ function AddCredential() {
         });
       })
       .catch((e: CmdError) => {
-        console.warn('backend error:', e);
-        setError(t('error'));
+        console.log('backend error:', e);
+        if (e.i18n_key) {
+          setError(eT(e.i18n_key));
+        } else {
+          setError(eT('UnknownError'));
+        }
       });
   };
 

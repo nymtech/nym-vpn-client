@@ -1,0 +1,11 @@
+{
+  "unknown": "Unknown error",
+  "credential": {
+    "invalid": "Invalid credential",
+    "expired": "Credential expired",
+    "no-duplicate": "This credential has already been imported",
+    "storage": "Failed to import credential because of an internal error",
+    "deserialize": "Failed to import credential because of an internal error",
+    "vpn-running": "You cannot import a credential while connected to the VPN"
+  }
+}

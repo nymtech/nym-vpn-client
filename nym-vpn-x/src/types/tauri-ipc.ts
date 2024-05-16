@@ -3,6 +3,7 @@ export type CmdErrorSource = 'InternalError' | 'CallerError' | 'Unknown';
 export interface CmdError {
   source: CmdErrorSource;
   message: string;
+  i18n_key?: CmdErrorI18nKey | null;
 }
 
 export interface Cli {
@@ -19,3 +20,12 @@ export type DbKey =
   | 'EntryNodeLocation'
   | 'ExitNodeLocation'
   | 'WindowSize';
+
+export type CmdErrorI18nKey =
+  | 'UnknownError'
+  | 'CredentialInvalid'
+  | 'CredentialVpnRunning'
+  | 'CredentialAlreadyImported'
+  | 'CredentialStorageError'
+  | 'CredentialDeserializationFailure'
+  | 'CredentialExpired';
