@@ -1,37 +1,87 @@
 name: publish-nym-vpn-desktop
-on: [workflow_dispatch, workflow_call]
+on:
+  schedule:
+    - cron: "4 4 * * *"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag name for release"
+        required: false
+        default: nightly-desktop
+      publish:
+        type: boolean
+        description: Publish Release
+        required: true
+        default: false
+  push:
+    tags:
+      - nym-vpn-desktop-v[0-9]+.[0-9]+.[0-9]+*
 
 jobs:
   build-nym-vpn-desktop-linux:
     uses: ./.github/workflows/build-nym-vpn-desktop-linux.yml
+    secrets: inherit
   build-nym-vpn-desktop-mac:
     uses: ./.github/workflows/build-nym-vpn-desktop-mac.yml
+    secrets: inherit
   build-nym-vpn-desktop-windows:
     uses: ./.github/workflows/build-nym-vpn-desktop-windows.yml
+    secrets: inherit
+
+  generate-build-info:
+    uses: ./.github/workflows/generate-build-info.yml
+    needs: build-nym-vpn-desktop-linux
+    with:
+      build-profile: release
+      rust-version: ${{ needs.build-nym-vpn-desktop-linux.outputs.RUST_VERSION }}
 
   publish:
     needs:
       - build-nym-vpn-desktop-linux
       - build-nym-vpn-desktop-mac
       - build-nym-vpn-desktop-windows
+      - generate-build-info
     runs-on: ubuntu-22.04-arc
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}
     env:
+      # GH needed for gh cli
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PKG_VERSION: ${{ needs.build-nym-vpn-desktop-linux.outputs.PKG_VERSION }}
       UPLOAD_DIR_LINUX: ${{ needs.build-nym-vpn-desktop-linux.outputs.UPLOAD_DIR_LINUX }}
       UPLOAD_DIR_MAC: ${{ needs.build-nym-vpn-desktop-mac.outputs.UPLOAD_DIR_MAC }}
       UPLOAD_DIR_WINDOWS: ${{ needs.build-nym-vpn-desktop-windows.outputs.UPLOAD_DIR_WINDOWS }}
-    permissions:
-      contents: write
+    permissions: write-all
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      # Downloads *all* artifacts produced by the `build` job
-      # Each individual artifact will be located in a directory
-      # named with the same name of the artifact (upload)
+      # Adding envsubst, gh cli
+      - name: Install system dependencies
+        run: |
+          sudo apt update && sudo apt install -y gettext-base gh
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-desktop/src-tauri
+
+      - name: Check tag name consistency
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          if [[ nym-vpn-desktop-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
+            exit 1
+          fi
+
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
@@ -39,7 +89,7 @@ jobs:
       - if: github.event_name == 'workflow_dispatch'
         run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
       - if: github.event_name == 'schedule'
-        run: echo 'TAG_NAME=nightly-desktop' >> $GITHUB_ENV
+        run: echo "TAG_NAME=nightly-desktop" >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
@@ -47,42 +97,33 @@ jobs:
         id: set_tag
         run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
-      # We don't bother publishing if not the build info is available
-      # - name: Check if build-info present
-      #   run: test -f build-info/build-info.txt
-
-      # - name: Build info
-      #   run: |
-      #     BUILD_VERSION=$(grep "package version" build-info/build-info.txt | cut -d ':' -f 2 | tr -d ' ')
-      #     echo BUILD_VERSION=$BUILD_VERSION
-      #     echo "BUILD_VERSION=$BUILD_VERSION" >> $GITHUB_ENV
-      #     echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
-      #     cat build-info/build-info.txt >> $GITHUB_ENV
-      #     echo 'EOF' >> $GITHUB_ENV
-
-      - if: env.TAG_NAME == 'nightly-desktop'
+      - name: Setting subject, prerelease and notes files
+        if: ${{ contains(env.TAG_NAME, 'nightly-desktop') }}
         run: |
-          (echo "SUBJECT=nym-vpn-desktop-v$BUILD_VERSION nightly prerelease build";
+          (echo "SUBJECT=nym-vpn-desktop-v${{ steps.package-version.outputs.metadata }} nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
-           echo 'NOTES_FILE=release-notes-desktop-nightly.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes/release-notes-desktop-nightly.md') >> $GITHUB_ENV
           gh release delete nightly-desktop --yes || true
           git push origin :nightly-desktop || true
+
       # Once we consider these actually release builds, remove --prerelease
       # from PRERELEASE here
-      - if: env.TAG_NAME != 'nightly-desktop'
+      - name: Removing --prerelease if needed
+        if: ${{ !contains(env.TAG_NAME, 'nightly-desktop') }}
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE='
-           echo 'NOTES_FILE=release-notes-desktop.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes/release-notes-desktop.md') >> $GITHUB_ENV
 
       - name: Generate checksums
         run: |
-          for f in ./*; do sha256sum ${f} > ${f}.sha256sum; done
+          for f in ${{ env.UPLOAD_DIR_LINUX}}/*; do sha256sum ${f} > ${f}.sha256sum; done
+          for f in ${{ env.UPLOAD_DIR_MAC}}/*; do sha256sum ${f} > ${f}.sha256sum; done
+          for f in ${{ env.UPLOAD_DIR_WINDOWS}}/*; do sha256sum ${f} > ${f}.sha256sum; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          # cat nym-vpn-desktop_*.tar.gz/*.sha256sum >> $GITHUB_ENV
-          # cat $APPIMAGE_DIR/*.sha256sum >> $GITHUB_ENV
-          # cat $WINDOWS_DIR/*.sha256sum >> $GITHUB_ENV
-          # cat $DEB_DIR/*.sha256sum >> $GITHUB_ENV
+          cat ${{ env.UPLOAD_DIR_LINUX}}/*.sha256sum >> $GITHUB_ENV
+          cat ${{ env.UPLOAD_DIR_MAC}}/*.sha256sum >> $GITHUB_ENV
+          cat ${{ env.UPLOAD_DIR_WINDOWS}}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: AppImage installer bump version
@@ -95,3 +136,30 @@ jobs:
           sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
           mkdir installer
           cp -v $appimg_installer installer
+
+      - name: Build info
+        run: |
+          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
+          cat build-info/build-info.txt >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - name: Publish release
+        run: |
+          echo "build info"
+          echo "$BUILD_INFO"
+          echo "checksums"
+          echo "$SHA256_CHECKSUMS"
+          echo "Creating release notes"
+          envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
+          echo "Creating release nodes: output"
+          cat $RUNNER_TEMP/release-notes.md
+          echo "Creating release"
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR_LINUX}}/* ${{ env.UPLOAD_DIR_MAC}}/* ${{ env.UPLOAD_DIR_WINDOWS}}/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR_LINUX}}/* ${{ env.UPLOAD_DIR_MAC}}/* ${{ env.UPLOAD_DIR_WINDOWS}}/*
+
+  gen-hashes:
+    uses: ./.github/workflows/gen-hashes-json.yml
+    needs: publish
+    with:
+      release_tag: ${{ needs.publish.outputs.tag }}
+    secrets: inherit
