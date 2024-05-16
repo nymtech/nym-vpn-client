@@ -211,11 +211,9 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
     match _async_run_vpn(vpn).await {
         Err(err) => {
             debug!("Stopping and resetting shutdown handle");
-            //this doesn't work
-            // stop_and_reset_shutdown_handle()
-            //     .await
-            //     .expect("Failed to reset shutdown handle");
-            reset_shutdown_handle().await.expect("Failed to reset shutdown handle");
+            reset_shutdown_handle()
+                .await
+                .expect("Failed to reset shutdown handle");
             RUNNING.store(false, Ordering::Relaxed);
             error!("Could not start the VPN: {:?}", err);
             Err(err)
