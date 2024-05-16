@@ -1,5 +1,21 @@
 name: build-nym-vpn-desktop-windows
-on: [workflow_dispatch, workflow_call]
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      WINDOWS_SIGNING_PFX_BASE64:
+        required: true
+      WINDOWS_SIGNING_PFX_PASSWORD:
+        required: true
+      TAURI_PRIVATE_KEY:
+        required: true
+      TAURI_KEY_PASSWORD:
+        required: true
+      DESKTOP_JS_SENTRY_DSN:
+        required: true
+    outputs:
+      UPLOAD_DIR_WINDOWS:
+        value: ${{ jobs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -7,7 +23,6 @@ env:
   LIBS_PATH: '${{ github.workspace }}/lib'
   WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
   MULLVAD_LIB_NAME: winfw
-  UPLOAD_DIR_WINDOWS_UPDATER: updater_artifacts
   UPLOAD_DIR_WINDOWS: windows_artifacts
   TAURI_SRC: '${{ github.workspace }}/nym-vpn-desktop/src-tauri/'
 
@@ -21,8 +36,9 @@ jobs:
   build-windows:
     needs: [build-wireguard-go-windows,build-mullvad-windows]
     runs-on: custom-windows-11
+    env:
+      CPP_BUILD_MODES: ${{ needs.build-mullvad-windows.outputs.CPP_BUILD_MODES }}
     outputs:
-      UPLOAD_DIR_WINDOWS_UPDATER: ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
 
     steps:
@@ -88,15 +104,16 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate licenses file (Js & Rust) and install JS dependencies
-        working-directory: nym-vpn-desktop
-        shell: bash
-        run: |
-          rm public/licenses-js.json || true
-          npm run gen:licenses:js
-          rm public/licenses-rust.json || true
-          npm run gen:licenses:rust
-          npm ci
+      # - name: Generate licenses file (Js & Rust) and install JS dependencies
+      #   working-directory: nym-vpn-desktop
+      #   shell: bash
+      #   run: |
+      #     npm i license-checker-rseidelsohn
+      #     rm public/licenses-js.json || true
+      #     npm run gen:licenses:js
+      #     rm public/licenses-rust.json || true
+      #     npm run gen:licenses:rust
+      #     npm ci
 
       - name: Import signing certificate
         env:
@@ -116,7 +133,7 @@ jobs:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
-          RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-Release"
+          RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-${{ env.CPP_BUILD_MODES }}"
           WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
         run: |
@@ -133,22 +150,12 @@ jobs:
           WINDOWS_UPDATER_NAME: updater_windows_x86_64.nsis.zip
           BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nym-vpn_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
         run: |
-          echo "moving updater bundle and signature into ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}"
-          rm -rf ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }} || true
-          mkdir ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}
-          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}'     ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}/${WINDOWS_UPDATER_NAME}
-          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}.sig' ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}/${WINDOWS_UPDATER_NAME}.sig
-          echo "moving setup.exe into ${{ env.UPLOAD_DIR_WINDOWS }}"
+          echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
           mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}'     ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}
+          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}.sig' ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}.sig
           cp -vpr '${{ env.BINARY }}' ${{ env.UPLOAD_DIR_WINDOWS }}/
-
-      - name: Upload artifact updater
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}
-          path: ${{ env.UPLOAD_DIR_WINDOWS_UPDATER }}
-          retention-days: 1
 
       - name: Upload artifact windows
         uses: actions/upload-artifact@v4
