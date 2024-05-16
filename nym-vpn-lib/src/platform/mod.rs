@@ -145,12 +145,16 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
     // if RUNNING.fetch_or(true, Ordering::Relaxed) {
     //     return Err(FFIError::VpnAlreadyRunning);
     // }
+    info!("Trying to run VPN");
     let vpn = sync_run_vpn(config);
+    info!("got VPN");
     if vpn.is_err() {
+        info!("VPN IS ERR");
         RUNNING.store(false, Ordering::Relaxed);
     }
     let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
     if ret.is_err() {
+        info!("Running is error");
         RUNNING.store(false, Ordering::Relaxed);
     }
     ret
