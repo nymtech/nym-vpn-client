@@ -2,9 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use maplit::hashmap;
-use nym_vpn_proto::{import_error::ImportErrorType, ImportError as ProtoImportError};
+use nym_vpn_proto::{
+    error::ErrorType, import_error::ImportErrorType, Error as ProtoError,
+    ImportError as ProtoImportError,
+};
 
-use crate::service::ImportCredentialError;
+use crate::service::{ConnectionFailedError, ImportCredentialError};
 
 impl From<ImportCredentialError> for ProtoImportError {
     fn from(err: ImportCredentialError) -> Self {
@@ -51,6 +54,32 @@ impl From<ImportCredentialError> for ProtoImportError {
                     "location".to_string() => location.to_string_lossy().to_string(),
                     "expiration".to_string() => expiration.to_string(),
                 },
+            },
+        }
+    }
+}
+
+impl From<ConnectionFailedError> for ProtoError {
+    fn from(err: ConnectionFailedError) -> Self {
+        match err {
+            ConnectionFailedError::InvalidCredential {
+                reason,
+                location,
+                gateway_id,
+            } => ProtoError {
+                kind: ErrorType::NoValidCredentials as i32,
+                message: reason,
+                details: [
+                    ("location".to_string(), location),
+                    ("gateway_id".to_string(), gateway_id),
+                ]
+                .into_iter()
+                .collect(),
+            },
+            ConnectionFailedError::Generic(reason) => ProtoError {
+                kind: ErrorType::Generic as i32,
+                message: reason,
+                details: Default::default(),
             },
         }
     }

@@ -9,10 +9,9 @@ use std::{
 
 use futures::{stream::BoxStream, StreamExt};
 use nym_vpn_proto::{
-    error::ErrorType, nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse,
-    ConnectionStateChange, ConnectionStatus, ConnectionStatusUpdate, DisconnectRequest,
-    DisconnectResponse, Empty, Error as ProtoError, ImportUserCredentialRequest,
-    ImportUserCredentialResponse, StatusRequest, StatusResponse,
+    nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, ConnectionStateChange,
+    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
+    ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
 };
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
@@ -24,8 +23,7 @@ use super::{
     status_broadcaster::ConnectionStatusBroadcaster,
 };
 use crate::service::{
-    ConnectOptions, ConnectionFailedError, VpnServiceCommand, VpnServiceConnectResult,
-    VpnServiceStateChange, VpnServiceStatusResult,
+    ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange,
 };
 
 enum ListenerType {
@@ -242,68 +240,6 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(
             Box::pin(stream) as Self::ListenToConnectionStateChangesStream
         ))
-    }
-}
-
-impl From<ConnectionFailedError> for ProtoError {
-    fn from(err: ConnectionFailedError) -> Self {
-        match err {
-            ConnectionFailedError::InvalidCredential {
-                reason,
-                location,
-                gateway_id,
-            } => ProtoError {
-                kind: ErrorType::NoValidCredentials as i32,
-                message: reason,
-                details: [
-                    ("location".to_string(), location),
-                    ("gateway_id".to_string(), gateway_id),
-                ]
-                .into_iter()
-                .collect(),
-            },
-            ConnectionFailedError::Generic(reason) => ProtoError {
-                kind: ErrorType::Generic as i32,
-                message: reason,
-                details: Default::default(),
-            },
-        }
-    }
-}
-
-impl From<VpnServiceStatusResult> for StatusResponse {
-    fn from(status: VpnServiceStatusResult) -> Self {
-        let mut error = None;
-        let status = match status {
-            VpnServiceStatusResult::NotConnected => ConnectionStatus::NotConnected,
-            VpnServiceStatusResult::Connecting => ConnectionStatus::Connecting,
-            VpnServiceStatusResult::Connected => ConnectionStatus::Connected,
-            VpnServiceStatusResult::Disconnecting => ConnectionStatus::Disconnecting,
-            VpnServiceStatusResult::ConnectionFailed(reason) => {
-                error = Some(ProtoError::from(reason));
-                ConnectionStatus::ConnectionFailed
-            }
-        } as i32;
-
-        StatusResponse { status, error }
-    }
-}
-
-impl From<VpnServiceStateChange> for ConnectionStateChange {
-    fn from(status: VpnServiceStateChange) -> Self {
-        let mut error = None;
-        let status = match status {
-            VpnServiceStateChange::NotConnected => ConnectionStatus::NotConnected,
-            VpnServiceStateChange::Connecting => ConnectionStatus::Connecting,
-            VpnServiceStateChange::Connected => ConnectionStatus::Connected,
-            VpnServiceStateChange::Disconnecting => ConnectionStatus::Disconnecting,
-            VpnServiceStateChange::ConnectionFailed(reason) => {
-                error = Some(ProtoError::from(reason));
-                ConnectionStatus::ConnectionFailed
-            }
-        } as i32;
-
-        ConnectionStateChange { status, error }
     }
 }
 
