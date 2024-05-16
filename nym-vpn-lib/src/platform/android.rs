@@ -98,9 +98,11 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
     let env = JnixEnv::from(env);
 
     let level = String::from_java(&env, log_level);
+
     init_jni_logger(level);
 
     let jvm = if let Ok(data) = env.get_java_vm() {
+        debug!("Got JVM");
         Arc::new(data)
     } else {
         warn!("Java VM is not available. Aborting");
@@ -113,10 +115,13 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_initVPN(
         return;
     };
     let context = AndroidContext { jvm, vpn_service };
+    debug!("Got Android Context");
 
     LOAD_CLASSES.call_once(|| env.preload_classes(CLASSES.iter().cloned()));
+    debug!("Loaded android classes");
 
     *CONTEXT.lock().unwrap() = Some(context);
+    debug!("Set context")
 }
 
 #[no_mangle]

@@ -47,23 +47,37 @@ async fn set_shutdown_handle(handle: Arc<Notify>) -> Result<(), FFIError> {
 }
 
 async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
+    debug!("Getting shutdown handle");
     let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
     if let Some(sh) = &*guard {
+        debug!("notifying waiters");
         sh.notify_waiters();
+        debug!("waiting for waiters to be notified");
         sh.notified().await;
+        debug!("waiters notified");
     } else {
         return Err(FFIError::VpnNotStarted);
     }
     *guard = None;
+    debug!("VPN shutdown handle reset");
+    Ok(())
+}
+
+async fn reset_shutdown_handle() -> Result<(), FFIError> {
+    let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
+    *guard = None;
+    debug!("VPN shutdown handle reset");
     Ok(())
 }
 
 async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle), FFIError> {
+    debug!("creating new stop handle");
     let stop_handle = Arc::new(Notify::new());
+    debug!("new stop handle created");
     set_shutdown_handle(stop_handle.clone()).await?;
-
+    debug!("shutdown handle set with new stop handle");
     let mut handle = spawn_nym_vpn(vpn)?;
-
+    debug!("spawned vpn handle");
     match handle
         .vpn_status_rx
         .next()
@@ -75,7 +89,7 @@ async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle),
         TaskStatus::Ready => debug!("Started Nym VPN"),
         TaskStatus::ReadyWithGateway(gateway) => debug!("Started Nym VPN: connected to {gateway}"),
     }
-
+    debug!("result with handles");
     Ok((stop_handle, handle))
 }
 
@@ -120,6 +134,7 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
 
     #[cfg(target_os = "android")]
     let context = crate::platform::android::get_context().ok_or(FFIError::NoContext)?;
+    debug!("got android context to create new vpn");
 
     let mut vpn = NymVpn::new_mixnet_vpn(
         config.entry_gateway.into(),
@@ -129,6 +144,7 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
         #[cfg(target_os = "ios")]
         config.tun_provider,
     );
+    debug!("Created new mixnet vpn");
     vpn.gateway_config.api_url = config.api_url;
     vpn.gateway_config.explorer_url = Some(config.explorer_url);
     vpn.gateway_config.harbour_master_url = None;
@@ -145,12 +161,16 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
     if RUNNING.fetch_or(true, Ordering::Relaxed) {
         return Err(FFIError::VpnAlreadyRunning);
     }
+    debug!("Trying to run VPN");
     let vpn = sync_run_vpn(config);
+    debug!("Got VPN");
     if vpn.is_err() {
+        error!("Err creating VPN");
         RUNNING.store(false, Ordering::Relaxed);
     }
     let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
     if ret.is_err() {
+        error!("Error running VPN");
         RUNNING.store(false, Ordering::Relaxed);
     }
     ret
@@ -190,7 +210,8 @@ async fn check_credential_string(credential: &str) -> Result<(), FFIError> {
 async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
     match _async_run_vpn(vpn).await {
         Err(err) => {
-            stop_and_reset_shutdown_handle()
+            debug!("Stopping and resetting shutdown handle");
+            reset_shutdown_handle()
                 .await
                 .expect("Failed to reset shutdown handle");
             RUNNING.store(false, Ordering::Relaxed);
@@ -198,6 +219,7 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
             Err(err)
         }
         Ok((stop_handle, handle)) => {
+            debug!("Spawning wait for shutdown");
             RUNTIME.spawn(async move {
                 wait_for_shutdown(stop_handle.clone(), handle)
                     .await
@@ -216,12 +238,14 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
 #[uniffi::export]
 pub fn stopVPN() -> Result<(), FFIError> {
     if !RUNNING.fetch_and(false, Ordering::Relaxed) {
-        return Err(FFIError::VpnNotRunning);
+        return Err(FFIError::VpnNotStarted);
     }
+    debug!("Stopping VPN");
     RUNTIME.block_on(stop_vpn())
 }
 
 async fn stop_vpn() -> Result<(), FFIError> {
+    debug!("Resetting shutdown handle");
     stop_and_reset_shutdown_handle().await
 }
 
