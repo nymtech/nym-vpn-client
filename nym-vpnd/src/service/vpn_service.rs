@@ -19,7 +19,7 @@ use super::config::{
     create_config_file, create_data_dir, read_config_file, write_config_file, ConfigSetupError,
     NymVpnServiceConfig, DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR,
 };
-use super::error::ImportCredentialError;
+use super::error::{ConnectionFailedError, ImportCredentialError};
 use super::exit_listener::VpnServiceExitListener;
 use super::status_listener::VpnServiceStatusListener;
 
@@ -30,7 +30,7 @@ pub enum VpnState {
     Connecting,
     Connected,
     Disconnecting,
-    ConnectionFailed(String),
+    ConnectionFailed(ConnectionFailedError),
 }
 
 #[allow(clippy::large_enum_variant)]
@@ -109,11 +109,11 @@ pub enum VpnServiceStatusResult {
     Connecting,
     Connected,
     Disconnecting,
-    ConnectionFailed(String),
+    ConnectionFailed(ConnectionFailedError),
 }
 
 impl VpnServiceStatusResult {
-    pub fn error(&self) -> Option<String> {
+    pub fn error(&self) -> Option<ConnectionFailedError> {
         match self {
             VpnServiceStatusResult::ConnectionFailed(reason) => Some(reason.clone()),
             _ => None,
@@ -139,11 +139,11 @@ pub enum VpnServiceStateChange {
     Connecting,
     Connected,
     Disconnecting,
-    ConnectionFailed(String),
+    ConnectionFailed(ConnectionFailedError),
 }
 
 impl VpnServiceStateChange {
-    pub fn error(&self) -> Option<String> {
+    pub fn error(&self) -> Option<ConnectionFailedError> {
         match self {
             VpnServiceStateChange::ConnectionFailed(reason) => Some(reason.clone()),
             _ => None,
