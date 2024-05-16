@@ -76,6 +76,11 @@ impl From<ConnectionFailedError> for ProtoError {
                 .into_iter()
                 .collect(),
             },
+            ConnectionFailedError::StartMixnetTimeout(timeout) => ProtoError {
+                kind: ErrorType::Timeout as i32,
+                message: timeout.to_string(),
+                details: Default::default(),
+            },
             ConnectionFailedError::Generic(reason) => ProtoError {
                 kind: ErrorType::Generic as i32,
                 message: reason,

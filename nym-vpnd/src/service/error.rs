@@ -83,6 +83,9 @@ pub enum ConnectionFailedError {
         gateway_id: String,
     },
 
+    #[error("timeout starting mixnet client after {0} seconds")]
+    StartMixnetTimeout(u64),
+
     #[error("failed to connect: {0}")]
     Generic(String),
 }
@@ -99,6 +102,9 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
                 location: path.to_string_lossy().to_string(),
                 gateway_id: gateway_id.clone(),
             },
+            nym_vpn_lib::error::Error::StartMixnetTimeout(timeout_sec) => {
+                ConnectionFailedError::StartMixnetTimeout(*timeout_sec)
+            }
             nym_vpn_lib::error::Error::IO(_)
             | nym_vpn_lib::error::Error::InvalidWireGuardKey
             | nym_vpn_lib::error::Error::AddrParseError(_)
@@ -134,7 +140,6 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::StaticConnectRequestDenied { .. }
             | nym_vpn_lib::error::Error::DynamicConnectRequestDenied { .. }
             | nym_vpn_lib::error::Error::MixnetClientDeadlock
-            | nym_vpn_lib::error::Error::StartMixnetTimeout(_)
             | nym_vpn_lib::error::Error::NotStarted
             | nym_vpn_lib::error::Error::StopError
             | nym_vpn_lib::error::Error::TunProvider(_)
