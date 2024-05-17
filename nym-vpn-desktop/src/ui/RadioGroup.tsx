@@ -97,7 +97,6 @@ function RadioGroup<K extends Key>({
                         as="p"
                         className={clsx([
                           'truncate text-base text-baltic-sea dark:text-mercury-pinkish',
-                          checked && 'font-semibold',
                         ])}
                       >
                         {option.label}

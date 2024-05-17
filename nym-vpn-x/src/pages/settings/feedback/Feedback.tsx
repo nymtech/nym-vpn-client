@@ -1,8 +1,8 @@
 import { open } from '@tauri-apps/api/shell';
 import { useTranslation } from 'react-i18next';
 import {
+  ContactSupportUrl,
   DiscordInviteUrl,
-  EmailSupportUrl,
   GitHubIssuesUrl,
   MatrixRoomUrl,
 } from '../../../constants';
@@ -26,7 +26,7 @@ function Feedback() {
         title={t('feedback.send')}
         leadingIcon="send"
         trailingIcon="arrow_right"
-        onClick={async () => open(EmailSupportUrl)}
+        onClick={async () => open(ContactSupportUrl)}
       />
       <SettingsMenuCard
         title={t('feedback.matrix')}
