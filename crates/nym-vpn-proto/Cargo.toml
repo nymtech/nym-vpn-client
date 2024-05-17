@@ -9,9 +9,10 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-tonic.workspace = true
-tonic-reflection.workspace = true
+prost-types.workspace = true
 prost.workspace = true
+tonic-reflection.workspace = true
+tonic.workspace = true
 
 [build-dependencies]
 tonic-build.workspace = true

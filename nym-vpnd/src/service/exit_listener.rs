@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::channel::oneshot;
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 use super::{
     error::ConnectionFailedError,
@@ -33,7 +33,7 @@ impl VpnServiceExitListener {
                     }
                     nym_vpn_lib::NymVpnExitStatusMessage::Failed(ref err) => {
                         error!("VPN exit: fail: {err}");
-                        error!("VPN exit: fail (debug): {err:?}");
+                        debug!("VPN exit: fail: {err:?}");
 
                         // Inspect the error so we can set a strongly typed error state
                         let vpn_lib_err = err

@@ -28,7 +28,10 @@ use super::status_listener::VpnServiceStatusListener;
 pub enum VpnState {
     NotConnected,
     Connecting,
-    Connected,
+    Connected {
+        gateway: String,
+        since: time::OffsetDateTime,
+    },
     Disconnecting,
     ConnectionFailed(ConnectionFailedError),
 }
@@ -107,7 +110,10 @@ impl VpnServiceDisconnectResult {
 pub enum VpnServiceStatusResult {
     NotConnected,
     Connecting,
-    Connected,
+    Connected {
+        entry_gateway: String,
+        since: time::OffsetDateTime,
+    },
     Disconnecting,
     ConnectionFailed(ConnectionFailedError),
 }
@@ -126,7 +132,10 @@ impl From<VpnState> for VpnServiceStatusResult {
         match state {
             VpnState::NotConnected => VpnServiceStatusResult::NotConnected,
             VpnState::Connecting => VpnServiceStatusResult::Connecting,
-            VpnState::Connected => VpnServiceStatusResult::Connected,
+            VpnState::Connected { gateway, since } => VpnServiceStatusResult::Connected {
+                entry_gateway: gateway,
+                since,
+            },
             VpnState::Disconnecting => VpnServiceStatusResult::Disconnecting,
             VpnState::ConnectionFailed(reason) => VpnServiceStatusResult::ConnectionFailed(reason),
         }
@@ -156,7 +165,7 @@ impl From<VpnState> for VpnServiceStateChange {
         match state {
             VpnState::NotConnected => VpnServiceStateChange::NotConnected,
             VpnState::Connecting => VpnServiceStateChange::Connecting,
-            VpnState::Connected => VpnServiceStateChange::Connected,
+            VpnState::Connected { .. } => VpnServiceStateChange::Connected,
             VpnState::Disconnecting => VpnServiceStateChange::Disconnecting,
             VpnState::ConnectionFailed(reason) => VpnServiceStateChange::ConnectionFailed(reason),
         }

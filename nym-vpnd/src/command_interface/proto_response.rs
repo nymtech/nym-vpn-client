@@ -6,11 +6,25 @@ use nym_vpn_proto::{ConnectionStateChange, ConnectionStatus, Error as ProtoError
 
 impl From<VpnServiceStatusResult> for StatusResponse {
     fn from(status: VpnServiceStatusResult) -> Self {
+        let mut details = None;
         let mut error = None;
         let status = match status {
             VpnServiceStatusResult::NotConnected => ConnectionStatus::NotConnected,
             VpnServiceStatusResult::Connecting => ConnectionStatus::Connecting,
-            VpnServiceStatusResult::Connected => ConnectionStatus::Connected,
+            VpnServiceStatusResult::Connected {
+                entry_gateway,
+                since,
+            } => {
+                let timestamp = prost_types::Timestamp {
+                    seconds: since.unix_timestamp(),
+                    nanos: 0,
+                };
+                details = Some(nym_vpn_proto::ConnectionDetails {
+                    entry_gateway,
+                    since: Some(timestamp),
+                });
+                ConnectionStatus::Connected
+            }
             VpnServiceStatusResult::Disconnecting => ConnectionStatus::Disconnecting,
             VpnServiceStatusResult::ConnectionFailed(reason) => {
                 error = Some(ProtoError::from(reason));
@@ -18,7 +32,11 @@ impl From<VpnServiceStatusResult> for StatusResponse {
             }
         } as i32;
 
-        StatusResponse { status, error }
+        StatusResponse {
+            status,
+            details,
+            error,
+        }
     }
 }
 
