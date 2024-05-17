@@ -11,13 +11,16 @@ impl From<VpnServiceStatusResult> for StatusResponse {
         let status = match status {
             VpnServiceStatusResult::NotConnected => ConnectionStatus::NotConnected,
             VpnServiceStatusResult::Connecting => ConnectionStatus::Connecting,
-            VpnServiceStatusResult::Connected { gateway, since } => {
+            VpnServiceStatusResult::Connected {
+                entry_gateway,
+                since,
+            } => {
                 let timestamp = prost_types::Timestamp {
                     seconds: since.unix_timestamp(),
                     nanos: 0,
                 };
                 details = Some(nym_vpn_proto::ConnectionDetails {
-                    gateway,
+                    entry_gateway,
                     since: Some(timestamp),
                 });
                 ConnectionStatus::Connected

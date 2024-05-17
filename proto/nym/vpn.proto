@@ -73,7 +73,7 @@ enum ConnectionStatus {
 import "google/protobuf/timestamp.proto";
 
 message ConnectionDetails {
-  string gateway = 1;
+  string entry_gateway = 1;
   google.protobuf.Timestamp since = 2;
 }
 

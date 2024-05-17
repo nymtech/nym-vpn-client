@@ -111,7 +111,7 @@ pub enum VpnServiceStatusResult {
     NotConnected,
     Connecting,
     Connected {
-        gateway: String,
+        entry_gateway: String,
         since: time::OffsetDateTime,
     },
     Disconnecting,
@@ -133,7 +133,7 @@ impl From<VpnState> for VpnServiceStatusResult {
             VpnState::NotConnected => VpnServiceStatusResult::NotConnected,
             VpnState::Connecting => VpnServiceStatusResult::Connecting,
             VpnState::Connected { gateway, since } => {
-                VpnServiceStatusResult::Connected { gateway, since }
+                VpnServiceStatusResult::Connected { entry_gateway: gateway, since }
             }
             VpnState::Disconnecting => VpnServiceStatusResult::Disconnecting,
             VpnState::ConnectionFailed(reason) => VpnServiceStatusResult::ConnectionFailed(reason),
