@@ -89,6 +89,7 @@ async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle),
         TaskStatus::Ready => debug!("Started Nym VPN"),
         TaskStatus::ReadyWithGateway(gateway) => debug!("Started Nym VPN: connected to {gateway}"),
     }
+
     debug!("result with handles");
     Ok((stop_handle, handle))
 }
@@ -98,11 +99,16 @@ async fn wait_for_shutdown(
     handle: NymVpnHandle,
 ) -> crate::error::Result<()> {
     // wait for notify to be set...
+    debug!("wait for notify to be set");
     stop_handle.notified().await;
+    debug!("notify for shutdown set");
     handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
+    debug!("sent stop control message");
     match handle.vpn_exit_rx.await? {
         NymVpnExitStatusMessage::Failed(error) => {
+            debug!("received exit status message for vpn");
             RUNNING.store(false, Ordering::Relaxed);
+            debug!("running set to false");
             error!(
                 "Stopped Nym VPN with error: {:?}",
                 error
