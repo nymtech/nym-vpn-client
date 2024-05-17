@@ -1,8 +1,8 @@
 import { open } from '@tauri-apps/api/shell';
 import { useTranslation } from 'react-i18next';
 import {
+  ContactSupportUrl,
   DiscordInviteUrl,
-  EmailSupportUrl,
   FaqUrl,
   MatrixRoomUrl,
 } from '../../../constants';
@@ -21,8 +21,8 @@ function Support() {
         trailingIcon="arrow_right"
       />
       <SettingsMenuCard
-        title={t('support.email')}
-        onClick={async () => open(EmailSupportUrl)}
+        title={t('support.contact')}
+        onClick={async () => open(ContactSupportUrl)}
         leadingIcon="email"
         trailingIcon="arrow_right"
       />

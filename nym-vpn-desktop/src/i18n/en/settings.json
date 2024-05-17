@@ -9,7 +9,7 @@
   },
   "error-monitoring": {
     "title": "Anonymous error reports",
-    "desc": "Help us improve NymVPN"
+    "desc": "(via Sentry), requires app restart"
   },
   "monitoring-alert": "You must restart the app for the change to take effect.",
   "feedback": {
@@ -22,7 +22,7 @@
   "support": {
     "title": "Support",
     "faq": "Check the FAQ",
-    "email": "Send us an e-mail"
+    "contact": "Contact Support"
   },
   "legal": {
     "title": "Legal",
