@@ -95,12 +95,10 @@ async fn wait_for_shutdown(
     stop_handle: Arc<Notify>,
     handle: NymVpnHandle,
 ) -> crate::error::Result<()> {
-    stop_handle.notified().await;
-    handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
-    Ok(())
-}
-
-async fn wait_for_exit(handle: &NymVpnHandle) -> crate::error::Result<()> {
+    RUNTIME.spawn(async move {
+        stop_handle.notified().await;
+        handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)
+    });
     match handle.vpn_exit_rx.await? {
         NymVpnExitStatusMessage::Failed(error) => {
             debug!("received exit status message for vpn");
@@ -113,9 +111,8 @@ async fn wait_for_exit(handle: &NymVpnHandle) -> crate::error::Result<()> {
                     .ok_or(crate::Error::StopError)?
             );
         }
-        NymVpnExitStatusMessage::Stopped => debug!("Stopped Nym VPN"),
+        NymVpnExitStatusMessage::Stopped => debug!("Stopped Nym VPN")
     }
-
     Ok(())
 }
 
@@ -225,15 +222,6 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
             debug!("Spawning wait for shutdown");
             RUNTIME.spawn(async move {
                 wait_for_shutdown(stop_handle.clone(), handle)
-                    .await
-                    .map_err(|err| {
-                        warn!("error during vpn run: {}", err);
-                    })
-                    .ok();
-                stop_handle.notify_one();
-            });
-            RUNTIME.spawn(async move {
-                wait_for_exit(handle.borrow())
                     .await
                     .map_err(|err| {
                         warn!("error during vpn run: {}", err);
