@@ -296,7 +296,11 @@ pub(crate) async fn setup_mixnet_client(
             // UGLY: flow needs to restructured to sort this out, but I don't want to refactor all
             // that just before release.
             task_client.disarm();
-            return Err(Error::InvalidCredential { reason: err });
+            return Err(Error::InvalidCredential {
+                reason: err,
+                path: path.to_path_buf(),
+                gateway_id,
+            });
         };
 
         let key_storage_path = StoragePaths::new_from_dir(path)?;

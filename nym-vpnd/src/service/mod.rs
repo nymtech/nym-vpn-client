@@ -8,7 +8,7 @@ mod start;
 mod status_listener;
 mod vpn_service;
 
-pub(crate) use error::ImportCredentialError;
+pub(crate) use error::{ConnectionFailedError, ImportCredentialError};
 pub(crate) use start::start_vpn_service;
 pub(crate) use vpn_service::{
     ConnectArgs, ConnectOptions, VpnServiceCommand, VpnServiceConnectResult,

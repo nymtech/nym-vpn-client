@@ -14,7 +14,7 @@ use itertools::Itertools;
 use nym_explorer_client::{ExplorerClient, Location, PrettyDetailedGatewayBond};
 use nym_harbour_master_client::{Gateway as HmGateway, HarbourMasterApiClientExt};
 use nym_validator_client::{models::DescribedGateway, NymApiClient};
-use std::{net::IpAddr, time::Duration};
+use std::{fmt, net::IpAddr, time::Duration};
 use tracing::{debug, info, warn};
 use url::Url;
 
@@ -37,6 +37,25 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self::new_mainnet()
+    }
+}
+
+fn to_string<T: fmt::Display>(value: &Option<T>) -> String {
+    match value {
+        Some(value) => value.to_string(),
+        None => "unset".to_string(),
+    }
+}
+
+impl fmt::Display for Config {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "api_url: {}, explorer_url: {}, harbour_master_url: {}",
+            self.api_url,
+            to_string(&self.explorer_url),
+            to_string(&self.harbour_master_url)
+        )
     }
 }
 

@@ -86,7 +86,39 @@ message ConnectionStatusUpdate {
 }
 
 message Error {
-  string message = 1;
+  enum ErrorType {
+    ERROR_TYPE_UNSPECIFIED = 0;
+
+    // An error that was not explicitly handled by the vpn service. This should
+    // not happend but it will while we interate on mapping out all possible
+    // error that can happen
+    UNHANDLED = 1;
+
+    // If the credential storage does not contain any valid credentials when connecting
+
+    NO_VALID_CREDENTIALS = 2;
+
+    // AUTHENTICATION_FAILED = 3;
+    // NETWORK_ISSUE = 4;
+    // INVALID_CONFIGURATION = 5;
+
+    // Connection timeout. This could happen  in a number of contexts, and the
+    // provided details needs to be investigated to determine what went wrong
+    TIMEOUT = 6;
+
+    // PERMISSION_DENIED = 7;
+
+    // Looking up gateways can fail in a number of ways.
+    GATEWAY_DIRECTORY = 8;
+  }
+
+  ErrorType kind = 1;
+
+  // Detailed error message for logging and debuggning
+  string message = 2;
+
+  // Optional additional details
+  map<string, string> details = 3;
 }
 
 message ImportUserCredentialRequest {
@@ -101,10 +133,22 @@ message ImportUserCredentialResponse {
 message ImportError {
   enum ImportErrorType {
     IMPORT_ERROR_TYPE_UNSPECIFIED = 0;
+
+    // Credential import is not supported while the vpn is already connected
     VPN_RUNNING = 1;
+
+    // Importing the same credential twice will return an error
     CREDENTIAL_ALREADY_IMPORTED = 2;
+
+    // If the credential storage fails in some way. It's very likely due to a
+    // permission error.
     STORAGE_ERROR = 3;
+
+    // If the provided credential fails to deserialize. This is probably due to
+    // incorrect credential, but it could also be due to other internal reasons
     DESERIALIZATION_FAILURE = 4;
+
+    // Credentials have a date when they expire
     CREDENTIAL_EXPIRED = 5;
   }
 

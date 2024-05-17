@@ -10,9 +10,8 @@ use std::{
 use futures::{stream::BoxStream, StreamExt};
 use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, ConnectionStateChange,
-    ConnectionStatus, ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
-    Error as ProtoError, ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest,
-    StatusResponse,
+    ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
+    ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
 };
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
@@ -25,7 +24,6 @@ use super::{
 };
 use crate::service::{
     ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange,
-    VpnServiceStatusResult,
 };
 
 enum ListenerType {
@@ -242,50 +240,6 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(
             Box::pin(stream) as Self::ListenToConnectionStateChangesStream
         ))
-    }
-}
-
-impl From<VpnServiceStatusResult> for ConnectionStatus {
-    fn from(status: VpnServiceStatusResult) -> Self {
-        match status {
-            VpnServiceStatusResult::NotConnected => ConnectionStatus::NotConnected,
-            VpnServiceStatusResult::Connecting => ConnectionStatus::Connecting,
-            VpnServiceStatusResult::Connected => ConnectionStatus::Connected,
-            VpnServiceStatusResult::Disconnecting => ConnectionStatus::Disconnecting,
-            VpnServiceStatusResult::ConnectionFailed(_reason) => ConnectionStatus::ConnectionFailed,
-        }
-    }
-}
-
-impl From<VpnServiceStatusResult> for StatusResponse {
-    fn from(status: VpnServiceStatusResult) -> Self {
-        let error = status.error().map(|reason| ProtoError { message: reason });
-        StatusResponse {
-            status: ConnectionStatus::from(status) as i32,
-            error,
-        }
-    }
-}
-
-impl From<VpnServiceStateChange> for ConnectionStatus {
-    fn from(status: VpnServiceStateChange) -> Self {
-        match status {
-            VpnServiceStateChange::NotConnected => ConnectionStatus::NotConnected,
-            VpnServiceStateChange::Connecting => ConnectionStatus::Connecting,
-            VpnServiceStateChange::Connected => ConnectionStatus::Connected,
-            VpnServiceStateChange::Disconnecting => ConnectionStatus::Disconnecting,
-            VpnServiceStateChange::ConnectionFailed(_reason) => ConnectionStatus::ConnectionFailed,
-        }
-    }
-}
-
-impl From<VpnServiceStateChange> for ConnectionStateChange {
-    fn from(status: VpnServiceStateChange) -> Self {
-        let error = status.error().map(|reason| ProtoError { message: reason });
-        ConnectionStateChange {
-            status: ConnectionStatus::from(status) as i32,
-            error,
-        }
     }
 }
 
