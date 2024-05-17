@@ -52,9 +52,6 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
     if let Some(sh) = &*guard {
         debug!("notifying waiters");
         sh.notify_waiters();
-        debug!("waiting for waiters to be notified");
-        sh.notified().await;
-        debug!("waiters notified");
     } else {
         return Err(FFIError::VpnNotStarted);
     }
@@ -98,12 +95,6 @@ async fn wait_for_shutdown(
     stop_handle: Arc<Notify>,
     handle: NymVpnHandle,
 ) -> crate::error::Result<()> {
-    // wait for notify to be set...
-    //debug!("wait for notify to be set");
-    //stop_handle.notified().await;
-    //debug!("notify for shutdown set");
-    //handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
-    debug!("sent stop control message");
     match handle.vpn_exit_rx.await? {
         NymVpnExitStatusMessage::Failed(error) => {
             debug!("received exit status message for vpn");
