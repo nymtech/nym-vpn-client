@@ -6,7 +6,8 @@ use nym_vpn_proto::{
     nym_vpnd_client::NymVpndClient, DisconnectRequest, HealthCheckRequest, StatusRequest,
 };
 use nym_vpn_proto::{
-    ConnectRequest, ConnectionStatus, Dns, EntryNode, ExitNode, ImportUserCredentialRequest,
+    ConnectRequest, Dns, Empty, EntryNode, ExitNode, ImportUserCredentialRequest,
+    ImportUserCredentialResponse, StatusResponse,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use serde::{Deserialize, Serialize};
@@ -20,6 +21,8 @@ use ts_rs::TS;
 
 use crate::cli::Cli;
 use crate::fs::config::AppConfig;
+use crate::states::app::ConnectionState;
+use crate::vpn_status;
 use crate::{events::AppHandleEventEmitter, states::SharedAppState};
 
 const VPND_SERVICE: &str = "nym.vpn.NymVpnd";
@@ -129,9 +132,9 @@ impl GrpcClient {
         Ok(status.into())
     }
 
+    /// Get VPN status
     #[instrument(skip_all)]
-    pub async fn vpn_status(&self) -> Result<ConnectionStatus, VpndError> {
-        debug!("vpn_status");
+    pub async fn vpn_status(&self) -> Result<StatusResponse, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(StatusRequest {});
@@ -141,7 +144,72 @@ impl GrpcClient {
         })?;
         debug!("grpc response: {:?}", response);
 
-        Ok(response.into_inner().status())
+        Ok(response.into_inner())
+    }
+
+    /// Refresh VPN status
+    #[instrument(skip_all)]
+    pub async fn refresh_vpn_status(&self, app: &AppHandle) -> Result<(), VpndError> {
+        let res = self.vpn_status().await?;
+        debug!("vpn status update {:?}", res.status());
+        if let Some(e) = res.error.as_ref() {
+            warn!("vpn status error: {}", e.message);
+        }
+        vpn_status::update(
+            app,
+            ConnectionState::from(res.status()),
+            res.error.as_ref().map(|e| e.message.clone()),
+        )
+        .await?;
+        Ok(())
+    }
+
+    /// Watch VPN status updates
+    #[instrument(skip_all)]
+    pub async fn watch_vpn_status(&self, app: &AppHandle) -> Result<()> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(Empty {});
+        let mut stream = vpnd
+            .listen_to_connection_state_changes(request)
+            .await
+            .inspect_err(|e| {
+                error!("listen_to_connection_state_changes failed: {}", e);
+            })?
+            .into_inner();
+
+        let (tx, mut rx) = mpsc::channel(32);
+        tokio::spawn(async move {
+            loop {
+                match stream.message().await {
+                    Ok(Some(update)) => {
+                        tx.send(update).await.unwrap();
+                    }
+                    Ok(None) => {
+                        warn!("watch vpn status stream closed by the server");
+                        return;
+                    }
+                    Err(e) => {
+                        warn!("watch vpn status stream get a grpc error: {}", e);
+                    }
+                }
+            }
+        });
+
+        while let Some(status) = rx.recv().await {
+            debug!("vpn status update {:?}", status.status());
+            if let Some(e) = status.error.as_ref() {
+                warn!("vpn status error: {}", e.message);
+            }
+            vpn_status::update(
+                app,
+                ConnectionState::from(status.status()),
+                status.error.as_ref().map(|e| e.message.clone()),
+            )
+            .await?;
+        }
+
+        Ok(())
     }
 
     /// Connect to the VPN
@@ -193,7 +261,10 @@ impl GrpcClient {
 
     /// Import user credential from base58 encoded string
     #[instrument(skip_all)]
-    pub async fn import_credential(&self, credential: Vec<u8>) -> Result<bool, VpndError> {
+    pub async fn import_credential(
+        &self,
+        credential: Vec<u8>,
+    ) -> Result<ImportUserCredentialResponse, VpndError> {
         debug!("import_credential");
         let mut vpnd = self.vpnd().await?;
 
@@ -204,7 +275,7 @@ impl GrpcClient {
         })?;
         debug!("grpc response: {:?}", response);
 
-        Ok(response.into_inner().success)
+        Ok(response.into_inner())
     }
 
     /// Watch the connection with the grpc server

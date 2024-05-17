@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use tauri::State;
-use tracing::{debug, error, info, instrument};
+use tracing::{debug, info, instrument, warn};
 
 use crate::{
-    error::{CmdError, CmdErrorSource},
+    error::{CmdError, CmdErrorSource, I18nKey},
     grpc::client::GrpcClient,
 };
 
@@ -18,17 +18,26 @@ pub async fn add_credential(
 
     let bytes = bs58::decode(credential).into_vec().map_err(|e| {
         info!("failed to decode base58 credential: {:?}", e);
-        CmdError::new(CmdErrorSource::CallerError, "bad credential format")
+        CmdError::new_with_local(
+            CmdErrorSource::CallerError,
+            "bad credential format",
+            I18nKey::CredentialInvalid,
+        )
     })?;
 
-    if grpc.import_credential(bytes).await? {
+    let res = grpc.import_credential(bytes).await?;
+    if res.success {
         info!("successfully imported credential");
         Ok(())
     } else {
-        error!("failed to import credential");
-        Err(CmdError::new(
-            CmdErrorSource::InternalError,
-            "failed to import credential",
-        ))
+        warn!("failed to import credential");
+        let error = res.error.map(|e| e.kind().into()).unwrap_or_else(|| {
+            CmdError::new_with_local(
+                CmdErrorSource::InternalError,
+                "failed to import credential",
+                I18nKey::UnknownError,
+            )
+        });
+        Err(error)
     }
 }
