@@ -65,10 +65,6 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
 
 async fn reset_shutdown_handle() -> Result<(), FFIError> {
     let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
-    if let Some(sh) = &*guard {
-        debug!("notifying waiters");
-        sh.notify_one();
-    }
     *guard = None;
     debug!("VPN shutdown handle reset");
     Ok(())
@@ -103,10 +99,10 @@ async fn wait_for_shutdown(
     handle: NymVpnHandle,
 ) -> crate::error::Result<()> {
     // wait for notify to be set...
-    debug!("wait for notify to be set");
-    stop_handle.notified().await;
-    debug!("notify for shutdown set");
-    handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
+    //debug!("wait for notify to be set");
+    //stop_handle.notified().await;
+    //debug!("notify for shutdown set");
+    //handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
     debug!("sent stop control message");
     match handle.vpn_exit_rx.await? {
         NymVpnExitStatusMessage::Failed(error) => {
