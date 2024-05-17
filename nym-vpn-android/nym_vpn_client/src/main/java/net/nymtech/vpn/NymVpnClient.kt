@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.VpnService
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
@@ -14,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.logcathelper.LogcatHelper
 import net.nymtech.logcathelper.model.LogLevel
@@ -32,8 +32,8 @@ import nym_vpn_lib.FfiException
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.checkCredential
 import nym_vpn_lib.runVpn
-import nym_vpn_lib.stopVpn
 import timber.log.Timber
+import kotlin.coroutines.coroutineContext
 
 object NymVpnClient {
 	private object NymVpnClientInit {
@@ -73,8 +73,6 @@ object NymVpnClient {
 		override var mode: VpnMode = NymVpnClientInit.mode
 		private val environment: Environment = NymVpnClientInit.environment
 
-		private val scope = CoroutineScope(Dispatchers.IO)
-
 		private var job: Job? = null
 
 		private val _state = MutableStateFlow(VpnClientState())
@@ -89,16 +87,19 @@ object NymVpnClient {
 			}
 		}
 
-		@Synchronized
 		@Throws(InvalidCredentialException::class)
-		override fun start(context: Context, credential: String, foreground: Boolean) {
+		override suspend fun start(context: Context, credential: String, foreground: Boolean) {
 			validateCredential(credential).onFailure {
 				throw it
 			}
 			clearErrorStatus()
-			job = scope.launch {
-				launch { collectLogStatus(context) }
-				launch { startConnectionTimer() }
+			with(CoroutineScope(coroutineContext)) {
+				launch {
+					collectLogStatus(context)
+				}
+				launch {
+					startConnectionTimer()
+				}
 			}
 			if (foreground) ServiceManager.startVpnServiceForeground(context) else ServiceManager.startVpnService(context)
 		}
@@ -106,14 +107,7 @@ object NymVpnClient {
 		@Synchronized
 		override fun stop(context: Context, foreground: Boolean) {
 			ServiceManager.stopVpnService(context)
-			job?.cancel()
-			_state.value =
-				_state.value.copy(
-					statistics =
-					_state.value.statistics.copy(
-						connectionSeconds = null,
-					),
-				)
+			cancelStatistics()
 		}
 
 		override fun prepare(context: Context): Intent? {
@@ -123,28 +117,50 @@ object NymVpnClient {
 			return _state.value
 		}
 
-		@Synchronized
 		private fun clearErrorStatus() {
-			_state.value =
-				_state.value.copy(
+			_state.update {
+				it.copy(
 					errorState = ErrorState.None,
 				)
+			}
 		}
 
-		@Synchronized
+		private fun clearStatisticState() {
+			_state.update {
+				it.copy(
+					statistics =
+					_state.value.statistics.copy(
+						connectionSeconds = null,
+					),
+				)
+			}
+		}
+
+		private fun setStatisticState(seconds: Long) {
+			_state.update {
+				it.copy(
+					statistics =
+					_state.value.statistics.copy(
+						connectionSeconds = seconds,
+					),
+				)
+			}
+		}
+
 		private fun setErrorState(errorState: ErrorState) {
-			_state.value =
-				_state.value.copy(
+			_state.update {
+				it.copy(
 					errorState = errorState,
 				)
+			}
 		}
 
-		@Synchronized
 		internal fun setVpnState(state: VpnState) {
-			_state.value =
-				_state.value.copy(
+			_state.update {
+				it.copy(
 					vpnState = state,
 				)
+			}
 		}
 
 		private fun isTwoHop(mode: VpnMode): Boolean = when (mode) {
@@ -166,9 +182,14 @@ object NymVpnClient {
 				)
 			} catch (e: FfiException) {
 				Timber.e(e)
-				stop(context)
-				setErrorState(ErrorState.StartFailed)
+				setErrorState(ErrorState.GatewayLookupFailure)
+				handleErrorShutdown()
 			}
+		}
+
+		private fun cancelStatistics() {
+			job?.cancel()
+			clearStatisticState()
 		}
 
 		private suspend fun collectLogStatus(context: Context) {
@@ -183,21 +204,10 @@ object NymVpnClient {
 				if (it.tag.contains(Constants.NYM_VPN_LIB_TAG)) {
 					when (it.level) {
 						LogLevel.ERROR -> {
-							// TODO need better way to communicate shutdowns from lib
-							// TODO why is this one not sending proper shutdown message
-							// Nym VPN returned error: Task 'nym_vpn_lib-mixnet_client_main-gateway_transceiver-child' halted unexpectedly
-							if (it.message.contains("Stopped Nym VPN") ||
-								it.message.contains("halted unexpectedly")
-							) {
-								setErrorState(ErrorState.CoreLibraryError(it.message))
-								stop(context, true)
-							}
-							if (it.message.contains("Could not start the VPN")) {
-								stopVpn()
-							}
+							parseErrorMessageForState(it.message)
 						}
 						LogLevel.INFO -> {
-							parseLibInfo(it.message)
+							parseInfoMessageForState(it.message)
 						}
 						else -> Unit
 					}
@@ -209,20 +219,20 @@ object NymVpnClient {
 			var seconds = 0L
 			do {
 				if (_state.value.vpnState == VpnState.Up) {
-					_state.value =
-						_state.value.copy(
-							statistics =
-							_state.value.statistics.copy(
-								connectionSeconds = seconds,
-							),
-						)
+					setStatisticState(seconds)
 					seconds++
 				}
 				delay(1000)
 			} while (true)
 		}
 
-		private fun parseLibInfo(message: String) {
+		private fun handleErrorShutdown() {
+			setVpnState(VpnState.Down)
+			NymVpnService.service?.get()?.stopSelf()
+			cancelStatistics()
+		}
+
+		private fun parseInfoMessageForState(message: String) {
 			// TODO make this more robust in the future
 			with(message) {
 				when {
@@ -231,6 +241,22 @@ object NymVpnClient {
 					contains(
 						"Obtaining initial network topology",
 					) -> setVpnState(VpnState.Connecting.EstablishingConnection)
+				}
+			}
+		}
+
+		private fun parseErrorMessageForState(message: String) {
+			with(message) {
+				val errorState = when {
+					contains("failed to lookup described gateways") -> ErrorState.GatewayLookupFailure
+					contains("invalid peer certificate") -> ErrorState.BadGatewayPeerCertificate
+					contains("No address associated with hostname") -> ErrorState.BadGatewayNoHostnameAddress
+					contains("halted unexpectedly") -> ErrorState.VpnHaltedUnexpectedly(message)
+					else -> null
+				}
+				errorState?.let {
+					setErrorState(it)
+					handleErrorShutdown()
 				}
 			}
 		}

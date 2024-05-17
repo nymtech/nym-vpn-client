@@ -1,4 +1,5 @@
 What's new:
+- Fixed connection state sync
+- Improved error messaging
 - Added permission denied flow
-- Removed spammy debug logs from release
-- Added message when credential is expired
+- Removed debug logs from release

@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui.screens.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -46,13 +47,12 @@ constructor(
 			val stateMessage =
 				clientState.errorState.let {
 					when (it) {
-						is ErrorState.CoreLibraryError ->
-							StateMessage.Error(
-								StringValue.DynamicString(it.errorMessage),
-							)
+						ErrorState.BadGatewayNoHostnameAddress -> StateMessage.Error(StringValue.StringResource(R.string.error_no_hostname_address))
+						ErrorState.BadGatewayPeerCertificate -> StateMessage.Error(StringValue.StringResource(R.string.error_bad_peer_cert))
+						ErrorState.GatewayLookupFailure -> StateMessage.Error(StringValue.StringResource(R.string.error_gateway_lookup))
 						ErrorState.None -> connectionState.stateMessage
-						ErrorState.InvalidCredential -> StateMessage.Error(StringValue.StringResource(R.string.invalid_credential))
-						ErrorState.StartFailed -> StateMessage.Error(StringValue.StringResource(R.string.start_failed))
+						ErrorState.InvalidCredential -> StateMessage.Error(StringValue.StringResource(R.string.error_invalid_credential))
+						is ErrorState.VpnHaltedUnexpectedly -> StateMessage.Error(StringValue.StringResource(R.string.error_vpn_halted_unexpectedly))
 					}
 				}
 			MainUiState(
@@ -80,7 +80,7 @@ constructor(
 		settingsRepository.setVpnMode(VpnMode.FIVE_HOP_MIXNET)
 	}
 
-	suspend fun onConnect(): Result<Unit> = withContext(viewModelScope.coroutineContext) {
+	suspend fun onConnect(): Result<Unit> = withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
 		vpnManager.startVpn(NymVpn.instance, false)
 	}
 

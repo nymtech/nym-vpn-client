@@ -6,7 +6,11 @@ sealed class ErrorState {
 
 	data object InvalidCredential : ErrorState()
 
-	data object StartFailed : ErrorState()
+	data object GatewayLookupFailure : ErrorState()
 
-	data class CoreLibraryError(val errorMessage: String) : ErrorState()
+	data object BadGatewayPeerCertificate : ErrorState()
+
+	data object BadGatewayNoHostnameAddress : ErrorState()
+
+	data class VpnHaltedUnexpectedly(val message: String) : ErrorState()
 }

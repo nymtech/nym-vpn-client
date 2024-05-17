@@ -18,7 +18,7 @@ interface VpnClient {
 	fun validateCredential(credential: String): Result<Unit>
 
 	@Throws(InvalidCredentialException::class)
-	fun start(context: Context, credential: String, foreground: Boolean = false)
+	suspend fun start(context: Context, credential: String, foreground: Boolean = false)
 
 	fun stop(context: Context, foreground: Boolean = false)
 

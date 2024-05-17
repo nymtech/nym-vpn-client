@@ -47,7 +47,6 @@
     <string name="licenses">Licenses</string>
     <string name="open_github">Open a GitHub issue</string>
     <string name="send_feedback">Send us feedback</string>
-    <string name="send_email">Send us an email</string>
     <string name="check_faq">Check the FAQ</string>
     <string name="join_matrix">Join us on Matrix</string>
     <string name="join_discord">Join us on Discord</string>
@@ -106,9 +105,8 @@
 	<string name="share_anonymous_analytics">Share anonymous product analytics</string>
 	<string name="anonymous_error_reports">Anonymous error reports</string>
     <string name="gateways_error">Failed to retrieve gateways</string>
-	<string name="invalid_credential">Imported credential is invalid</string>
+	<string name="error_invalid_credential">Imported credential is invalid</string>
 	<string name="missing_credential">Missing credential</string>
-	<string name="start_failed">Failed to start VPN</string>
 	<string name="country_load_failure">Failed to load hop countries</string>
     <string name="app_shortcuts">App shortcuts</string>
 	<string name="enable_shortcuts">Enable app shortcuts</string>
@@ -116,10 +114,14 @@
     <string name="experimental_software_disclaimer">This is experimental software. Do not rely on it for strong anonymity (yet).</string>
 	<string name="permission_required">Permission required</string>
 	<string name="exception_cred_missing">No imported credential found.</string>
-	<string name="exception_permission_not_granted">"Required permission has not be granted. "</string>
-    <string name="exception_cred_invalid">Credential is invalid or expired.</string>
+	<string name="exception_permission_not_granted">Required permission has not be granted. </string>
+    <string name="exception_cred_invalid">Credential is invalid or expired</string>
     <string name="permission_message">To ensure the app works correctly on your device, please allow the following permissions. These permissions are required for that app to function.</string>
 	<string name="notifications">Notifications</string>
 	<string name="allow_permissions">Allow permissions</string>
 	<string name="notification_permission_message">Required to keep VPN services running while the app is closed.</string>
+	<string name="error_gateway_lookup">Failed to lookup Nym gateways. Please check your network connection and try again.</string>
+	<string name="error_bad_peer_cert">"Selected gateway has a bad peer certificate. Please try again to connect to a different gateway. "</string>
+	<string name="error_no_hostname_address">Gateway missing hostname address. Please try again to connect to a different gateway.</string>
+	<string name="error_vpn_halted_unexpectedly">VPN has come to an unexpected halt. Please try connecting again.</string>
 </resources>

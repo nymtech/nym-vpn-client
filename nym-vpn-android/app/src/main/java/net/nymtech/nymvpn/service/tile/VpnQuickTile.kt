@@ -6,6 +6,7 @@ import android.service.quicksettings.TileService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
@@ -32,29 +33,40 @@ class VpnQuickTile : TileService() {
 
 	private val scope = CoroutineScope(Dispatchers.IO)
 
+	private var stateJob: Job? = null
+
 	override fun onStartListening() {
 		super.onStartListening()
 		Timber.d("Quick tile listening called")
 		setTileText()
-		scope.launch {
-			vpnClient.get().stateFlow.collect {
-				when (it.vpnState) {
-					VpnState.Up -> {
-						setActive()
-						setTileText()
-					}
+		if (stateJob == null || stateJob?.isCancelled == true) {
+			stateJob = scope.launch {
+				vpnClient.get().stateFlow.collect {
+					when (it.vpnState) {
+						VpnState.Up -> {
+							Timber.d("VPN State up tile")
+							setActive()
+							setTileText()
+							qsTile.updateTile()
+						}
 
-					VpnState.Down -> {
-						setInactive()
-						setTileText()
-					}
+						VpnState.Down -> {
+							Timber.d("VPN State down tile")
+							setInactive()
+							setTileText()
+							qsTile.updateTile()
+						}
 
-					VpnState.Connecting.EstablishingConnection, VpnState.Connecting.InitializingClient -> {
-						setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
-					}
+						VpnState.Connecting.EstablishingConnection, VpnState.Connecting.InitializingClient -> {
+							Timber.d("VPN connecting tile")
+							setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
+							qsTile.updateTile()
+						}
 
-					VpnState.Disconnecting -> {
-						setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
+						VpnState.Disconnecting -> {
+							setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
+							qsTile.updateTile()
+						}
 					}
 				}
 			}
@@ -63,11 +75,13 @@ class VpnQuickTile : TileService() {
 
 	override fun onDestroy() {
 		super.onDestroy()
+		stateJob?.cancel()
 		scope.cancel()
 	}
 
 	override fun onTileRemoved() {
 		super.onTileRemoved()
+		stateJob?.cancel()
 		scope.cancel()
 	}
 
@@ -84,6 +98,7 @@ class VpnQuickTile : TileService() {
 				VpnState.Up -> {
 					scope.launch {
 						setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
+						qsTile.updateTile()
 						vpnClient.get().stop(this@VpnQuickTile, true)
 					}
 				}
@@ -123,22 +138,18 @@ class VpnQuickTile : TileService() {
 
 	private fun setActive() {
 		qsTile.state = Tile.STATE_ACTIVE
-		qsTile.updateTile()
 	}
 
 	private fun setTitle(title: String) {
 		qsTile.label = title
-		qsTile.updateTile()
 	}
 
 	private fun setInactive() {
 		qsTile.state = Tile.STATE_INACTIVE
-		qsTile.updateTile()
 	}
 
 	private fun setUnavailable() {
 		qsTile.state = Tile.STATE_UNAVAILABLE
-		qsTile.updateTile()
 	}
 
 	private fun setTileDescription(description: String) {
@@ -148,6 +159,5 @@ class VpnQuickTile : TileService() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 			qsTile.stateDescription = description
 		}
-		qsTile.updateTile()
 	}
 }

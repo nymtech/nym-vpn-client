@@ -19,6 +19,7 @@ import net.nymtech.vpn_client.BuildConfig
 import nym_vpn_lib.FfiException
 import nym_vpn_lib.stopVpn
 import timber.log.Timber
+import java.lang.ref.SoftReference
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -29,6 +30,7 @@ class NymVpnService : VpnService() {
 			System.loadLibrary(Constants.NYM_VPN_LIB)
 			Timber.i("Loaded native library in service")
 		}
+		var service: SoftReference<NymVpnService>? = null
 	}
 
 	@OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
@@ -84,7 +86,7 @@ class NymVpnService : VpnService() {
 
 	private fun startService() {
 		synchronized(this) {
-			scope.launch(vpnThread) {
+			CoroutineScope(vpnThread).launch {
 				NymVpnClient.NymVpn.setVpnState(VpnState.Connecting.InitializingClient)
 				val logLevel = if (BuildConfig.DEBUG) "debug" else "info"
 				initVPN(this@NymVpnService, logLevel)
@@ -94,6 +96,7 @@ class NymVpnService : VpnService() {
 	}
 
 	override fun onCreate() {
+		service = SoftReference(this)
 		connectivityListener.register(this)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			NotificationManager.createNotificationChannel(this@NymVpnService)
