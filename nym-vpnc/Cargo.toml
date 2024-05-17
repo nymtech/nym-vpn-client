@@ -15,7 +15,7 @@ bs58.workspace = true
 clap = { workspace = true, features = ["derive"] }
 parity-tokio-ipc.workspace = true
 prost.workspace = true
-time.workspace = true
+time = { workspace = true, features = ["formatting"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"]}
 tonic.workspace = true
 tower.workspace = true

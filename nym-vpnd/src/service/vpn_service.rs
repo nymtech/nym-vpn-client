@@ -132,9 +132,10 @@ impl From<VpnState> for VpnServiceStatusResult {
         match state {
             VpnState::NotConnected => VpnServiceStatusResult::NotConnected,
             VpnState::Connecting => VpnServiceStatusResult::Connecting,
-            VpnState::Connected { gateway, since } => {
-                VpnServiceStatusResult::Connected { entry_gateway: gateway, since }
-            }
+            VpnState::Connected { gateway, since } => VpnServiceStatusResult::Connected {
+                entry_gateway: gateway,
+                since,
+            },
             VpnState::Disconnecting => VpnServiceStatusResult::Disconnecting,
             VpnState::ConnectionFailed(reason) => VpnServiceStatusResult::ConnectionFailed(reason),
         }
