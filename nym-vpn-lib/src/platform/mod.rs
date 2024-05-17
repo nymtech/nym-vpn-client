@@ -95,6 +95,8 @@ async fn wait_for_shutdown(
     stop_handle: Arc<Notify>,
     handle: NymVpnHandle,
 ) -> crate::error::Result<()> {
+    stop_handle.notified().await;
+    handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
     match handle.vpn_exit_rx.await? {
         NymVpnExitStatusMessage::Failed(error) => {
             debug!("received exit status message for vpn");
@@ -109,9 +111,6 @@ async fn wait_for_shutdown(
         }
         NymVpnExitStatusMessage::Stopped => debug!("Stopped Nym VPN"),
     }
-
-    stop_handle.notified().await;
-    handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
 
     Ok(())
 }
