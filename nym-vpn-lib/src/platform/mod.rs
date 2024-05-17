@@ -65,6 +65,10 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
 
 async fn reset_shutdown_handle() -> Result<(), FFIError> {
     let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
+    if let Some(sh) = &*guard {
+        debug!("notifying waiters");
+        sh.notify_one();
+    }
     *guard = None;
     debug!("VPN shutdown handle reset");
     Ok(())
