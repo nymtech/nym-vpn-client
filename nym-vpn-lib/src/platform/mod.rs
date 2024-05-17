@@ -110,6 +110,9 @@ async fn wait_for_shutdown(
         NymVpnExitStatusMessage::Stopped => debug!("Stopped Nym VPN"),
     }
 
+    stop_handle.notified().await;
+    handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
+
     Ok(())
 }
 
