@@ -97,6 +97,12 @@ async fn wait_for_shutdown(
 ) -> crate::error::Result<()> {
     stop_handle.notified().await;
     handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)?;
+    Ok(())
+}
+
+async fn wait_for_error(
+    handle: NymVpnHandle,
+) -> crate::error::Result<()> {
     match handle.vpn_exit_rx.await? {
         NymVpnExitStatusMessage::Failed(error) => {
             debug!("received exit status message for vpn");
@@ -221,6 +227,15 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
             debug!("Spawning wait for shutdown");
             RUNTIME.spawn(async move {
                 wait_for_shutdown(stop_handle.clone(), handle)
+                    .await
+                    .map_err(|err| {
+                        warn!("error during vpn run: {}", err);
+                    })
+                    .ok();
+                stop_handle.notify_one();
+            });
+            RUNTIME.spawn(async move {
+                wait_for_error(handle)
                     .await
                     .map_err(|err| {
                         warn!("error during vpn run: {}", err);
