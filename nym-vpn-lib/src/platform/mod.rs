@@ -52,6 +52,9 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
     if let Some(sh) = &*guard {
         debug!("notifying waiters");
         sh.notify_waiters();
+        debug!("waiting for waiters to be notified");
+        sh.notified().await;
+        debug!("waiters notified");
     } else {
         return Err(FFIError::VpnNotStarted);
     }
