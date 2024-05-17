@@ -21,6 +21,7 @@ function Home() {
     exitNodeLocation,
     entrySelector,
     daemonStatus,
+    welcomeScreenSeen,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
@@ -58,6 +59,12 @@ function Home() {
       dispatch({ type: 'reset-error' });
     }
   }, [error, dispatch, navigate]);
+
+  useEffect(() => {
+    if (!welcomeScreenSeen) {
+      navigate(routes.welcome);
+    }
+  }, [welcomeScreenSeen, navigate]);
 
   const getButtonText = useCallback(() => {
     switch (state) {

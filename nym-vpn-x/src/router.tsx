@@ -6,7 +6,6 @@ import {
   Display,
   Error,
   Feedback,
-  Home,
   Legal,
   LegalRouteIndex,
   LicenseDetails,

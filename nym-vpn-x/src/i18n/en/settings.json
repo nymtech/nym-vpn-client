@@ -9,7 +9,10 @@
   },
   "error-monitoring": {
     "title": "Anonymous error reports",
-    "desc": "(via Sentry), requires app restart"
+    "desc": {
+      "part1": "(via",
+      "part2": "), applies on app restart"
+    }
   },
   "monitoring-alert": "You must restart the app for the change to take effect.",
   "feedback": {

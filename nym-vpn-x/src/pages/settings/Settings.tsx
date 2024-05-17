@@ -135,7 +135,13 @@ function Settings() {
           },
           {
             title: t('error-monitoring.title'),
-            desc: t('error-monitoring.desc'),
+            desc: (
+              <span>
+                {t('error-monitoring.desc.part1', { ns: 'settings' })}
+                <span className="text-melon">{` ${t('sentry', { ns: 'common' })}`}</span>
+                {t('error-monitoring.desc.part2', { ns: 'settings' })}
+              </span>
+            ),
             leadingIcon: 'bug_report',
             onClick: handleMonitoringChanged,
             trailing: (

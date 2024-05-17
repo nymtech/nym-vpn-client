@@ -89,6 +89,9 @@ export function mockTauriIPC() {
         case 'UiTheme':
           res = 'Dark';
           break;
+        case 'WelcomeScreenSeen':
+          res = true;
+          break;
         default:
           return null;
       }

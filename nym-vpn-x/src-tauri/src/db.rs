@@ -42,7 +42,7 @@ pub enum Key {
     ExitNodeLocation,
     #[strum(serialize = "window_size")]
     WindowSize,
-    #[strum(serialize = "WelcomeScreenSeen")]
+    #[strum(serialize = "welcome_screen_seen")]
     WelcomeScreenSeen,
 }
 

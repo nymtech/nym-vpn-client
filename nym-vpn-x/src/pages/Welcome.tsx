@@ -1,45 +1,38 @@
-import { invoke } from '@tauri-apps/api';
-import clsx from 'clsx';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { NymDarkOutlineIcon, NymIcon } from '../assets';
-import { useMainDispatch, useMainState, useNotifications } from '../contexts';
+import { useMainDispatch, useMainState } from '../contexts';
 import { kvSet } from '../kvStore';
 import { routes } from '../router';
-import { CmdError, StateDispatch } from '../types';
+import { StateDispatch } from '../types';
 import { Button, PageAnim, Switch } from '../ui';
 import SettingsGroup from './settings/SettingsGroup';
 
 function Welcome() {
-  const { uiTheme, monitoring } = useMainState();
+  const { uiTheme } = useMainState();
+  const [monitoring, setMonitoring] = useState<boolean>(false);
   const dispatch = useMainDispatch() as StateDispatch;
-  const { push } = useNotifications();
   const navigate = useNavigate();
   const { t } = useTranslation('welcome');
 
-  const handleClick = async () => {
-    navigate(routes.root);
-  };
-
-  const showMonitoringAlert = () => {
-    push({
-      text: t('monitoring-alert', { ns: 'settings' }),
-      position: 'top',
-      closeIcon: true,
+  const handleContinue = async () => {
+    kvSet('WelcomeScreenSeen', true).then(() => {
+      dispatch({ type: 'set-welcome-screen', seen: true });
+      navigate(routes.root);
     });
   };
 
   const handleMonitoringChanged = async () => {
     const isChecked = !monitoring;
-    showMonitoringAlert();
+    setMonitoring(isChecked);
     dispatch({ type: 'set-monitoring', monitoring: isChecked });
     kvSet('Monitoring', isChecked);
   };
 
   return (
     <PageAnim className="h-full flex flex-col justify-end items-center gap-14 select-none cursor-default">
-      <div className="flex flex-col items-center gap-4 px-4">
+      <div className="flex flex-col items-center gap-4 px-4 mt-4">
         {uiTheme === 'Dark' ? (
           <NymDarkOutlineIcon className="w-28 h-28" />
         ) : (
@@ -66,7 +59,13 @@ function Welcome() {
           settings={[
             {
               title: t('error-monitoring.title', { ns: 'settings' }),
-              desc: t('error-monitoring.desc', { ns: 'settings' }),
+              desc: (
+                <span>
+                  {t('error-monitoring.desc.part1', { ns: 'settings' })}
+                  <span className="text-melon">{` ${t('sentry', { ns: 'common' })}`}</span>
+                  {t('error-monitoring.desc.part2', { ns: 'settings' })}
+                </span>
+              ),
               leadingIcon: 'bug_report',
               onClick: handleMonitoringChanged,
               trailing: (
@@ -78,7 +77,7 @@ function Welcome() {
             },
           ]}
         />
-        <Button className="mt-1" onClick={handleClick}>
+        <Button className="mt-1" onClick={handleContinue}>
           {t('continue-button')}
         </Button>
         <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-80">
