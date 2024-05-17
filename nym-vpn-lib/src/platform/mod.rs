@@ -111,7 +111,7 @@ async fn wait_for_shutdown(
                     .ok_or(crate::Error::StopError)?
             );
         }
-        NymVpnExitStatusMessage::Stopped => debug!("Stopped Nym VPN")
+        NymVpnExitStatusMessage::Stopped => debug!("Stopped Nym VPN"),
     }
     Ok(())
 }
