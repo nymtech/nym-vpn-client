@@ -82,9 +82,9 @@ function Welcome() {
         </Button>
         <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-80">
           {t('tos.part1')}
-          <span className="dark:text-white">{` ${t('tos', { ns: 'common' })} `}</span>
+          <span className="text-black dark:text-white">{` ${t('tos', { ns: 'common' })} `}</span>
           {t('tos.part2')}
-          <span className="dark:text-white">{` ${t('privacy-statement', { ns: 'common' })}`}</span>
+          <span className="text-black dark:text-white">{` ${t('privacy-statement', { ns: 'common' })}`}</span>
           {t('tos.part3')}
         </p>
       </div>

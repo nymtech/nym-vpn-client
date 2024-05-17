@@ -134,6 +134,9 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      // these pages do not use the TopBar
+      '/hideout': {},
+      '/hideout/welcome': {},
     };
   }, [t, navigate]);
 
