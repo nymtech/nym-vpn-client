@@ -6,6 +6,7 @@ import {
   Display,
   Error,
   Feedback,
+  Home,
   Legal,
   LegalRouteIndex,
   LicenseDetails,
@@ -15,6 +16,7 @@ import {
   Settings,
   SettingsRouteIndex,
   Support,
+  Welcome,
 } from './pages';
 
 // Lazy loads Home
@@ -35,6 +37,8 @@ export const routes = {
   licenseDetails: '/settings/legal/license-details',
   entryNodeLocation: '/entry-node-location',
   exitNodeLocation: '/exit-node-location',
+  hideout: '/hideout',
+  welcome: '/hideout/welcome',
 } as const;
 
 // Even if Sentry is not instantiated, wrapping the router seems OK
@@ -127,6 +131,17 @@ const router = createRouterFn([
       {
         path: routes.exitNodeLocation,
         element: <NodeLocation node="exit" />,
+        errorElement: <Error />,
+      },
+    ],
+  },
+  {
+    path: routes.hideout,
+    element: <MainLayout noTopBar noNotifications noDaemonDot />,
+    children: [
+      {
+        path: routes.welcome,
+        element: <Welcome />,
         errorElement: <Error />,
       },
     ],

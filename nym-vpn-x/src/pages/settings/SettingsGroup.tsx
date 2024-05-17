@@ -9,15 +9,17 @@ type Setting = {
   onClick?: () => Promise<void>;
   trailing?: ReactNode;
   disabled?: boolean;
+  className?: string;
 };
 
 interface Props {
   settings: Setting[];
+  className?: string;
 }
 
-function SettingsGroup({ settings }: Props) {
+function SettingsGroup({ settings, className }: Props) {
   return (
-    <RadioGroup>
+    <RadioGroup className={clsx([className])}>
       {settings.map((setting, index) => (
         <RadioGroup.Option
           key={setting.title}

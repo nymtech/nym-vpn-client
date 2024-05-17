@@ -1,0 +1,19 @@
+{
+  "title": {
+    "part1": "Welcome",
+    "part2": "to NymVPN Alpha"
+  },
+  "description": {
+    "part1": "Help us refine our app during the alpha phase!",
+    "part2": "Your feedback is crucial",
+    "part3": "for identifying and resolving issues. Opt-in for anonymous error monitoring (via",
+    "part4": ") and analytics at will-you can opt out anytime. Thanks for your support!"
+  },
+  "tos": {
+    "part1": "By continuing, you agree to NymVPN's",
+    "part2": "and acknowledge NymVPN's",
+    "part3": "."
+  },
+  "experimental": "This is experimental software. Do not rely on it for strong anonymity (yet).",
+  "continue-button": "Continue"
+}
