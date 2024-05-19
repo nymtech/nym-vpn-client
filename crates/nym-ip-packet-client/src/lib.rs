@@ -143,13 +143,21 @@ impl IprClient {
         enable_two_hop: bool,
     ) -> Result<u64> {
         let hops = enable_two_hop.then_some(0);
-        let (request, request_id) = if let Some(ips) = ips {
+        let (mut request, request_id) = if let Some(ips) = ips {
             debug!("Sending static connect request with ips: {ips}");
             IpPacketRequest::new_static_connect_request(ips, self.nym_address, hops, None, None)
         } else {
             debug!("Sending dynamic connect request");
             IpPacketRequest::new_dynamic_connect_request(self.nym_address, hops, None, None)
         };
+        let payload_bytes = request.data.to_bytes().unwrap();
+        {
+            let mixnet_client = self.mixnet_client.lock().await;
+            let mixnet_client = mixnet_client.as_ref().unwrap();
+            let signature = mixnet_client.sign(&payload_bytes);
+            let sig_bytes = signature.to_bytes().to_vec();
+            request.signature = Some(sig_bytes);
+        }
         debug!("Sent connect request with version v{}", request.version);
 
         self.mixnet_sender
