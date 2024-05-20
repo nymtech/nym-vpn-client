@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fs, path::PathBuf};
+use std::{fmt, fs, path::PathBuf};
 
 use nym_vpn_lib::gateway_directory;
 use tracing::info;
@@ -41,6 +41,16 @@ pub(super) enum ConfigSetupError {
 pub(super) struct NymVpnServiceConfig {
     pub(super) entry_point: gateway_directory::EntryPoint,
     pub(super) exit_point: gateway_directory::ExitPoint,
+}
+
+impl fmt::Display for NymVpnServiceConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "entry point: {}, exit point: {}",
+            self.entry_point, self.exit_point
+        )
+    }
 }
 
 impl Default for NymVpnServiceConfig {
