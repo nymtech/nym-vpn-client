@@ -45,9 +45,9 @@ function Welcome() {
         <h2 className="text-center dark:text-laughing-jack w-72">
           {`${t('description.part1')} `}
           <span className="underline">{t('description.part2')}</span>
-          {` ${t('description.part3')}`}
-          <span className="text-melon">{` ${t('sentry', { ns: 'common' })}`}</span>
-          {t('description.part4')}
+          {` ${t('description.part3')} (${t('via', { ns: 'glossary' })} `}
+          <span className="text-melon">{t('sentry', { ns: 'common' })}</span>
+          {`) ${t('description.part4')}`}
         </h2>
         <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-80">
           {t('experimental')}
@@ -61,9 +61,11 @@ function Welcome() {
               title: t('error-monitoring.title', { ns: 'settings' }),
               desc: (
                 <span>
-                  {t('error-monitoring.desc.part1', { ns: 'settings' })}
-                  <span className="text-melon">{` ${t('sentry', { ns: 'common' })}`}</span>
-                  {t('error-monitoring.desc.part2', { ns: 'settings' })}
+                  {`(${t('via', { ns: 'glossary' })} `}
+                  <span className="text-melon">
+                    {t('sentry', { ns: 'common' })}
+                  </span>
+                  {`), ${t('error-monitoring.desc', { ns: 'settings' })}`}
                 </span>
               ),
               leadingIcon: 'bug_report',

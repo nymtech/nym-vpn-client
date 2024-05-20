@@ -10,6 +10,7 @@ import addCredential from './en/add-credential.json';
 import licenses from './en/licenses.json';
 import errors from './en/errors.json';
 import welcome from './en/welcome.json';
+import glossary from './en/glossary.json';
 
 export const defaultNS = 'common';
 export const resources = {
@@ -24,6 +25,7 @@ export const resources = {
     licenses,
     errors,
     welcome,
+    glossary,
   },
 } as const;
 
@@ -43,6 +45,7 @@ i18n.use(initReactI18next).init({
     'licenses',
     'errors',
     'welcome',
+    'glossary',
   ],
 
   interpolation: {
