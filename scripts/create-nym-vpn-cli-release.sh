@@ -12,21 +12,25 @@ set -euo pipefail
 
 source "$(dirname "$0")/common.sh"
 
-NAME=nym-vpn-cli
-PACKAGE=nym-vpn-cli
+TAG_BASE_NAME=nym-vpn-cli
+PACKAGES=(nym-vpn-lib nym-vpn-cli nym-vpnd nym-vpnc)
 
 cargo_version_bump() {
-    local command="cargo set-version -p $PACKAGE --bump patch"
+    local package_flags=""
+    for PACKAGE in "${PACKAGES[@]}"; do
+        package_flags+=" -p $PACKAGE"
+    done
+    local command="cargo set-version $package_flags --bump patch"
     echo "Running in dry-run mode: $command --dry-run"
     $command --dry-run
     ask_for_confirmation "$command"
 }
 
 tag_release() {
-    local version=$(cargo get package.version --entry="$PACKAGE")
-    local tag_name="$NAME-v$version"
+    local version=$(cargo get package.version --entry="${PACKAGES[0]}")
+    local tag_name="$TAG_BASE_NAME-v$version"
     echo "New version: $version, prepared tag: $tag_name"
-    ask_and_tag_release "$tag_name" "$version" "$NAME"
+    ask_and_tag_release "$tag_name" "$version" "$TAG_BASE_NAME"
 }
 
 main() {
