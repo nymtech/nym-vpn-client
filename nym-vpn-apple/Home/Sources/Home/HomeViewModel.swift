@@ -141,11 +141,11 @@ public extension HomeViewModel {
 // MARK: - Connection -
 public extension HomeViewModel {
     func connectDisconnect() {
-//        guard appSettings.isCredentialImported
-//        else {
-//            navigateToAddCredentials()
-//            return
-//        }
+        guard appSettings.isCredentialImported
+        else {
+            navigateToAddCredentials()
+            return
+        }
 
         guard let exitRouter = connectionManager.exitRouter
         else {
