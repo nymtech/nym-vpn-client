@@ -5,19 +5,21 @@ import { RadioGroup } from '@headlessui/react';
 type Setting = {
   title: string;
   leadingIcon?: string;
-  desc?: string;
+  desc?: string | ReactNode;
   onClick?: () => Promise<void>;
   trailing?: ReactNode;
   disabled?: boolean;
+  className?: string;
 };
 
 interface Props {
   settings: Setting[];
+  className?: string;
 }
 
-function SettingsGroup({ settings }: Props) {
+function SettingsGroup({ settings, className }: Props) {
   return (
-    <RadioGroup>
+    <RadioGroup className={clsx([className])}>
       {settings.map((setting, index) => (
         <RadioGroup.Option
           key={setting.title}
@@ -60,7 +62,11 @@ function SettingsGroup({ settings }: Props) {
                 as="div"
                 className="text-sm text-cement-feet dark:text-mercury-mist select-none truncate"
               >
-                <span>{setting.desc}</span>
+                {typeof setting.desc === 'string' ? (
+                  <span>{setting.desc}</span>
+                ) : (
+                  setting.desc
+                )}
               </RadioGroup.Description>
             </div>
             {setting.trailing}

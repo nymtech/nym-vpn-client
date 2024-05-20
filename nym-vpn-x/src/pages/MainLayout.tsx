@@ -4,7 +4,17 @@ import { useMainState } from '../contexts';
 import { routes } from '../router';
 import { DaemonDot, Notifications, TopBar } from '../ui';
 
-function MainLayout() {
+type MainLayoutProps = {
+  noTopBar?: boolean;
+  noNotifications?: boolean;
+  noDaemonDot?: boolean;
+};
+
+function MainLayout({
+  noTopBar,
+  noNotifications,
+  noDaemonDot,
+}: MainLayoutProps) {
   const location = useLocation();
   const { daemonStatus } = useMainState();
 
@@ -16,9 +26,9 @@ function MainLayout() {
         'dark:bg-baltic-sea dark:text-white',
       ])}
     >
-      <TopBar />
-      <Notifications />
-      <DaemonDot status={daemonStatus} />
+      {!noTopBar && <TopBar />}
+      {!noNotifications && <Notifications />}
+      {!noDaemonDot && <DaemonDot status={daemonStatus} />}
       <div
         className={clsx([
           'h-full flex flex-col overflow-auto overscroll-auto p-4',

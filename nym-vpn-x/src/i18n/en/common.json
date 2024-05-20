@@ -10,6 +10,9 @@
   "legal": "Legal",
   "support": "Support",
   "fastest": "Fastest",
+  "sentry": "Sentry",
+  "tos": "Terms of use",
+  "privacy-statement": "Privacy statement",
   "ui-mode": {
     "dark": "Dark mode",
     "light": "Light mode"

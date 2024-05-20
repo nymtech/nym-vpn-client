@@ -56,7 +56,8 @@ export type StateAction =
   | { type: 'set-root-font-size'; size: number }
   | { type: 'set-code-deps-js'; dependencies: CodeDependency[] }
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
-  | { type: 'set-window-size'; size: WindowSize };
+  | { type: 'set-window-size'; size: WindowSize }
+  | { type: 'set-welcome-screen'; seen: boolean };
 
 export const initialState: AppState = {
   initialized: false,
@@ -84,6 +85,7 @@ export const initialState: AppState = {
   rootFontSize: DefaultRootFontSize,
   codeDepsRust: [],
   codeDepsJs: [],
+  welcomeScreenSeen: false,
   fetchEntryCountries: async () => {},
   fetchExitCountries: async () => {},
 };
@@ -260,6 +262,8 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ...state,
         windowSize: action.size,
       };
+    case 'set-welcome-screen':
+      return { ...state, welcomeScreenSeen: action.seen };
 
     case 'reset':
       return initialState;

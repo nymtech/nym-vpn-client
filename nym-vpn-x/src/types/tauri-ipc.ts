@@ -19,7 +19,8 @@ export type DbKey =
   | 'VpnMode'
   | 'EntryNodeLocation'
   | 'ExitNodeLocation'
-  | 'WindowSize';
+  | 'WindowSize'
+  | 'WelcomeScreenSeen';
 
 export type CmdErrorI18nKey =
   | 'UnknownError'
