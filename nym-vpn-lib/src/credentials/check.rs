@@ -160,6 +160,11 @@ pub async fn check_imported_credential(
         }
     };
 
+    if coconut_api_clients.is_empty() {
+        info!("No Coconut API clients on this network, we are ok");
+        return Ok(());
+    }
+
     verify_credential(usable_credential, coconut_api_clients)
         .await
         .map_err(|err| CheckImportedCredentialError::VerifyCredentialError { source: err })

@@ -282,7 +282,7 @@ impl NymVpnService {
             }
         };
 
-        info!("Using config: {:?}", config);
+        info!("Using config: {}", config);
 
         // Make sure the data dir exists
         match create_data_dir(&self.data_dir) {
