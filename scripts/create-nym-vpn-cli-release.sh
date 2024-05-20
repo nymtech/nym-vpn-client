@@ -12,27 +12,44 @@ set -euo pipefail
 
 source "$(dirname "$0")/common.sh"
 
-NAME=nym-vpn-cli
-PACKAGE=nym-vpn-cli
+TAG_BASE_NAME=nym-vpn-cli
+PACKAGES=(nym-vpn-lib nym-vpn-cli nym-vpnd nym-vpnc)
 
 cargo_version_bump() {
-    local command="cargo set-version -p $PACKAGE --bump patch"
+    local package_flags=""
+    for PACKAGE in "${PACKAGES[@]}"; do
+        package_flags+=" -p $PACKAGE"
+    done
+    local command="cargo set-version $package_flags --bump patch"
     echo "Running in dry-run mode: $command --dry-run"
     $command --dry-run
     ask_for_confirmation "$command"
 }
 
+assert_same_versions() {
+    local first_version=$(cargo get package.version --entry="${PACKAGES[0]}")
+    for PACKAGE in "${PACKAGES[@]}"; do
+        local version=$(cargo get package.version --entry="$PACKAGE")
+        if [[ "$version" != "$first_version" ]]; then
+            echo "Error: Version mismatch detected. $PACKAGE has version $version, but expected $first_version."
+            exit 1
+        fi
+    done
+    echo "All packages have the same version: $first_version"
+}
+
 tag_release() {
-    local version=$(cargo get package.version --entry="$PACKAGE")
-    local tag_name="$NAME-v$version"
+    local version=$(cargo get package.version --entry="${PACKAGES[0]}")
+    local tag_name="$TAG_BASE_NAME-v$version"
     echo "New version: $version, prepared tag: $tag_name"
-    ask_and_tag_release "$tag_name" "$version" "$NAME"
+    ask_and_tag_release "$tag_name" "$version" "$TAG_BASE_NAME"
 }
 
 main() {
     check_unstaged_changes
     confirm_root_directory
     cargo_version_bump
+    assert_same_versions
     tag_release
 }
 
