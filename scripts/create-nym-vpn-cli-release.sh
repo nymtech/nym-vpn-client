@@ -26,6 +26,18 @@ cargo_version_bump() {
     ask_for_confirmation "$command"
 }
 
+assert_same_versions() {
+    local first_version=$(cargo get package.version --entry="${PACKAGES[0]}")
+    for PACKAGE in "${PACKAGES[@]}"; do
+        local version=$(cargo get package.version --entry="$PACKAGE")
+        if [[ "$version" != "$first_version" ]]; then
+            echo "Error: Version mismatch detected. $PACKAGE has version $version, but expected $first_version."
+            exit 1
+        fi
+    done
+    echo "All packages have the same version: $first_version"
+}
+
 tag_release() {
     local version=$(cargo get package.version --entry="${PACKAGES[0]}")
     local tag_name="$TAG_BASE_NAME-v$version"
@@ -37,6 +49,7 @@ main() {
     check_unstaged_changes
     confirm_root_directory
     cargo_version_bump
+    assert_same_versions
     tag_release
 }
 

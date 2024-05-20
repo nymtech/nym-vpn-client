@@ -7,15 +7,22 @@ set -euo pipefail
 
 source "$(dirname "$0")/common.sh"
 
-NAME="nym-vpn-cli"
+TAG_BASE_NAME="nym-vpn-cli"
+PACKAGES=(nym-vpn-lib nym-vpn-cli nym-vpnd nym-vpnc)
 
 get_current_version() {
-    echo "$(cargo get package.version --entry="nym-vpn-cli")"
+    echo "$(cargo get package.version --entry="${PACKAGES[0]}")"
 }
 
 run_cargo_set_version() {
     local next_version=$1
-    local command="cargo set-version -p nym-vpn-cli $next_version"
+
+    local package_flags=""
+    for PACKAGE in "${PACKAGES[@]}"; do
+        package_flags+=" -p $PACKAGE"
+    done
+
+    local command="cargo set-version $package_flags $next_version"
 
     # Run the command with --dry-run option first
     echo "Running in dry-run mode: $command --dry-run"
@@ -36,7 +43,7 @@ main() {
     fi
 
     run_cargo_set_version "$next_version"
-    git_commit_new_dev_version "$next_version" "$NAME"
+    git_commit_new_dev_version "$next_version" "$TAG_BASE_NAME"
 }
 
 main

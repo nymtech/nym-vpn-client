@@ -51,8 +51,8 @@ ask_and_tag_release() {
 
 git_commit_new_dev_version () {
     local version=$1
-    local name=$2
-    git commit -a -m "Bump $name to next dev version $version"
+    local tag_base_name=$2
+    git commit -a -m "Bump $tag_base_name to next dev version $version"
 }
 
 increment_version() {
