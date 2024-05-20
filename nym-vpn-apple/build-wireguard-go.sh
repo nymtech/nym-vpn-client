@@ -17,6 +17,12 @@ if [ "$ACTION" == "docbuild" ]; then
   ACTION="build"
 fi
 
+if [ "$CI" == true ]; then
+  cd ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+  SOURCE_PACKAGES_PATH=$(pwd -P)
+  envman add --key SOURCE_PACKAGES_PATH --value $SOURCE_PACKAGES_PATH
+fi
+
 if [ "$SOURCE_PACKAGES_PATH" == "" ]; then
   # When archiving, Xcode sets the action to "install"
   if [ "$ACTION" == "install" ]; then

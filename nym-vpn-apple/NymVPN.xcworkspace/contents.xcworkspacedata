@@ -14,6 +14,15 @@
       location = "group:Services">
    </FileRef>
    <FileRef
+      location = "group:ServicesMutual">
+   </FileRef>
+   <FileRef
+      location = "group:ServicesIOS">
+   </FileRef>
+   <FileRef
+      location = "group:ServicesMacOS">
+   </FileRef>
+   <FileRef
       location = "group:Settings">
    </FileRef>
    <FileRef

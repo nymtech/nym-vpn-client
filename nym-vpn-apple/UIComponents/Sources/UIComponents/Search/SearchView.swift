@@ -25,7 +25,9 @@ public struct SearchView: View {
         .onTapGesture {
             isSearchFocused = true
         }
+#if os(iOS)
         .defersSystemGestures(on: .`vertical`)
+#endif
     }
 }
 
@@ -49,6 +51,7 @@ extension SearchView {
             }
             TextField("", text: $searchText)
                 .foregroundStyle(NymColor.sysOnSurface)
+                .textFieldStyle(PlainTextFieldStyle())
                 .textStyle(.Body.Large.primary)
                 .focused($isSearchFocused)
         }

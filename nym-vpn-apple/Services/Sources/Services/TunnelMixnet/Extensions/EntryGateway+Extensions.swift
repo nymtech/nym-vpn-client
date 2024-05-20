@@ -1,3 +1,4 @@
+#if os(iOS)
 import CountriesManager
 import MixnetLibrary
 
@@ -15,3 +16,4 @@ extension EntryGateway {
         }
     }
 }
+#endif

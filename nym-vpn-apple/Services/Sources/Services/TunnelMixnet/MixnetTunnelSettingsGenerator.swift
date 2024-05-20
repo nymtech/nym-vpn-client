@@ -1,3 +1,4 @@
+#if os(iOS)
 import NetworkExtension
 import MixnetLibrary
 
@@ -163,3 +164,4 @@ public final class MixnetTunnelSettingsGenerator {
         return (ipv4ExcludedRoutes, ipv6ExcludedRoutes)
     }
 }
+#endif

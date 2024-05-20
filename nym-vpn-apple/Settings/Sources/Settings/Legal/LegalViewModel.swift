@@ -23,7 +23,7 @@ struct LegalViewModel {
 // MARK: - Navigation -
 extension LegalViewModel {
     func navigateBack() {
-        path.removeLast()
+        if !path.isEmpty { path.removeLast() }
     }
 
     func openExternalURL(urlString: String?) {

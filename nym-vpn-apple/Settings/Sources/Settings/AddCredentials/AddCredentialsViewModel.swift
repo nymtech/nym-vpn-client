@@ -1,7 +1,6 @@
 import SwiftUI
 import AppSettings
 import CredentialsManager
-import MixnetLibrary
 import Theme
 
 final class AddCredentialsViewModel: ObservableObject {
@@ -57,7 +56,7 @@ final class AddCredentialsViewModel: ObservableObject {
 // MARK: - Navigation -
 extension AddCredentialsViewModel {
     func navigateBack() {
-        path.removeLast()
+        if !path.isEmpty { path.removeLast() }
     }
 
     func navigateHome() {

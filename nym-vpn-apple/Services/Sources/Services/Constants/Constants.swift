@@ -10,4 +10,6 @@ public enum Constants: String {
     case supportURL = "https://support.nymvpn.com"
     case termsOfUseURL = "https://nymvpn.com/en/terms"
     case privacyPolicyURL = "https://nymvpn.com/en/privacy?type=apps"
+
+    case helperName = "net.nymtech.vpn.helper"
 }

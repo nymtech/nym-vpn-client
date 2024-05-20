@@ -55,6 +55,6 @@ extension AppearanceViewModel {
 // MARK: - Navigation -
 extension AppearanceViewModel {
     func navigateBack() {
-        path.removeLast()
+        if !path.isEmpty { path.removeLast() }
     }
 }

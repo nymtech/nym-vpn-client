@@ -16,7 +16,7 @@ struct SurveySuccessViewModel {
 // MARK: - Navigation -
 extension SurveySuccessViewModel {
     func navigateBack() {
-        path.removeLast()
-        path.removeLast()
+        if !path.isEmpty { path.removeLast() }
+        if !path.isEmpty { path.removeLast() }
     }
 }

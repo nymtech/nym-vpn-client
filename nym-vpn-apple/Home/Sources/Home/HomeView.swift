@@ -163,7 +163,7 @@ private extension HomeView {
             .onTapGesture {
                 viewModel.connectDisconnect()
             }
-        if appSettings.isSmallScreen {
+        if appSettings.isSmallScreen || appSettings.isMacOS {
             Spacer()
                 .frame(height: 24)
         }

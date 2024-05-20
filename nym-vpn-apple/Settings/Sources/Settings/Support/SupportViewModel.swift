@@ -28,7 +28,7 @@ struct SupportViewModel {
 // MARK: - Navigation -
 extension SupportViewModel {
     func navigateBack() {
-        path.removeLast()
+        if !path.isEmpty { path.removeLast() }
     }
 
     func openExternalURL(urlString: String?) {

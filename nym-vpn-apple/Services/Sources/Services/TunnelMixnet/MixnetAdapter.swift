@@ -1,3 +1,4 @@
+#if os(iOS)
 import Foundation
 import Constants
 import NetworkExtension
@@ -107,3 +108,4 @@ private extension MixnetAdapter {
         setenv("NYM_API", Constants.sandboxApiUrl.rawValue, 1)
     }
 }
+#endif

@@ -1,7 +1,8 @@
 import SwiftUI
 import AppSettings
-import KeyboardManager
 import Home
+import Extensions
+import KeyboardManager
 import SentryManager
 import Theme
 

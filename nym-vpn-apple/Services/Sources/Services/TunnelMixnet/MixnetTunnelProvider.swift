@@ -1,3 +1,4 @@
+#if os(iOS)
 import Foundation
 import MixnetLibrary
 
@@ -73,3 +74,4 @@ public final class MixnetTunnelProvider: OsTunProvider {
 //        )
 //    }
 // }
+#endif

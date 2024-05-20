@@ -3,7 +3,9 @@ import Network
 import Constants
 import CountriesManager
 import CredentialsManager
+#if os(iOS)
 import MixnetLibrary
+#endif
 
 public struct MixnetConfig: Codable {
     let apiUrlString: String
@@ -34,6 +36,7 @@ public struct MixnetConfig: Codable {
     }
 }
 
+#if os(iOS)
 // MARK: - VpnConfig -
 extension MixnetConfig {
     public func asVpnConfig(mixnetTunnelProvider: MixnetTunnelProvider) throws -> VpnConfig {
@@ -54,3 +57,5 @@ extension MixnetConfig {
         )
     }
 }
+
+#endif

@@ -77,7 +77,9 @@ extension HopListViewModel {
             guard type == .entry || (type == .exit && !appSettings.isEntryLocationSelectionOn),
                   let country = countriesManager.lowLatencyCountry
             else {
-                quickestCountry = nil
+                Task { @MainActor in
+                    quickestCountry = nil
+                }
                 return
             }
 

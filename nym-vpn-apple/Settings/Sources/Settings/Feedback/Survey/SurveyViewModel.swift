@@ -53,7 +53,7 @@ final class SurveyViewModel: ObservableObject {
 // MARK: - Navigation -
 extension SurveyViewModel {
     func navigateBack() {
-        path.removeLast()
+        if !path.isEmpty { path.removeLast() }
     }
 
     func navigateToSurveySuccess() {

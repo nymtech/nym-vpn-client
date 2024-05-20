@@ -6,8 +6,13 @@ import CountriesManager
 import CredentialsManager
 import Settings
 import TunnelMixnet
+import TunnelStatus
 import Tunnels
 import UIComponents
+
+#if os(macOS)
+import GRPCManager
+#endif
 
 public class HomeViewModel: HomeFlowState {
     private let dateFormatter = DateComponentsFormatter()
@@ -24,6 +29,9 @@ public class HomeViewModel: HomeFlowState {
     var connectionManager: ConnectionManager
     var countriesManager: CountriesManager
     var credentialsManager: CredentialsManager
+#if os(macOS)
+    var grpcManager: GRPCManager
+#endif
     var entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
     var exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
     @Published var selectedNetwork: NetworkButtonViewModel.ButtonType
@@ -36,6 +44,7 @@ public class HomeViewModel: HomeFlowState {
     @Published var connectButtonState = ConnectButtonState.connect
     @Published var shouldShowHopSection = false
 
+#if os(iOS)
     public init(
         selectedNetwork: NetworkButtonViewModel.ButtonType,
         appSettings: AppSettings = AppSettings.shared,
@@ -52,6 +61,27 @@ public class HomeViewModel: HomeFlowState {
 
         setup()
     }
+#endif
+#if os(macOS)
+    public init(
+        selectedNetwork: NetworkButtonViewModel.ButtonType,
+        appSettings: AppSettings = AppSettings.shared,
+        connectionManager: ConnectionManager = ConnectionManager.shared,
+        countriesManager: CountriesManager = CountriesManager.shared,
+        credentialsManager: CredentialsManager = CredentialsManager.shared,
+        grpcManager: GRPCManager = GRPCManager.shared
+    ) {
+        self.selectedNetwork = selectedNetwork
+        self.appSettings = appSettings
+        self.connectionManager = connectionManager
+        self.countriesManager = countriesManager
+        self.credentialsManager = credentialsManager
+        self.grpcManager = grpcManager
+        super.init()
+
+        setup()
+    }
+#endif
 }
 
 // MARK: - Navigation -
@@ -109,14 +139,13 @@ public extension HomeViewModel {
 }
 
 // MARK: - Connection -
-
 public extension HomeViewModel {
     func connectDisconnect() {
-        guard appSettings.isCredentialImported
-        else {
-            navigateToAddCredentials()
-            return
-        }
+//        guard appSettings.isCredentialImported
+//        else {
+//            navigateToAddCredentials()
+//            return
+//        }
 
         guard let exitRouter = connectionManager.exitRouter
         else {
@@ -174,13 +203,20 @@ private extension HomeViewModel {
             }
         }
         .store(in: &cancellables)
-
+#if os(iOS)
         connectionManager.$currentTunnel.sink { [weak self] tunnel in
             guard let tunnel else { return }
             self?.activeTunnel = tunnel
             self?.configureTunnelStatusObservation(with: tunnel)
         }
         .store(in: &cancellables)
+#endif
+#if os(macOS)
+        grpcManager.$tunnelStatus.sink { [weak self] status in
+            self?.updateUI(with: status)
+        }
+        .store(in: &cancellables)
+#endif
     }
 
     func setupDateFormatter() {
@@ -206,13 +242,21 @@ private extension HomeViewModel {
         .store(in: &cancellables)
     }
 
+#if os(iOS)
     func configureTunnelStatusObservation(with tunnel: Tunnel) {
         tunnel.$status.sink { [weak self] status in
-            self?.statusButtonConfig = StatusButtonConfig(tunnelStatus: status)
-            self?.statusInfoState = StatusInfoState(tunnelStatus: status)
-            self?.connectButtonState = ConnectButtonState(tunnelStatus: status)
+            self?.updateUI(with: status)
         }
         .store(in: &cancellables)
+    }
+#endif
+
+    func updateUI(with status: TunnelStatus) {
+        Task { @MainActor in
+            statusButtonConfig = StatusButtonConfig(tunnelStatus: status)
+            statusInfoState = StatusInfoState(tunnelStatus: status)
+            connectButtonState = ConnectButtonState(tunnelStatus: status)
+        }
     }
 
     func fetchCountries() {

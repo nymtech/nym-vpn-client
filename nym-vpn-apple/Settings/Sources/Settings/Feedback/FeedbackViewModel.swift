@@ -32,7 +32,7 @@ struct FeedbackViewModel {
 // MARK: - Navigation -
 extension FeedbackViewModel {
     func navigateBack() {
-        path.removeLast()
+        if !path.isEmpty { path.removeLast() }
     }
 
     func navigateToSurvey() {

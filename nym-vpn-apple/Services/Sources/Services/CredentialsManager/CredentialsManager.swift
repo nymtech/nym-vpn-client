@@ -1,18 +1,30 @@
 import Foundation
 import Constants
+#if os(iOS)
 import MixnetLibrary
+
+#endif
+#if os(macOS)
+import GRPCManager
+#endif
 
 public final class CredentialsManager {
     public static let shared = CredentialsManager()
 
     public func add(credential: String) throws {
+        let trimmedCredential = credential.trimmingCharacters(in: .whitespacesAndNewlines)
         do {
+#if os(iOS)
             let dataFolderURL = try dataFolderURL()
 
             if !FileManager.default.fileExists(atPath: dataFolderURL.path()) {
                 try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
             }
-            try importCredential(credential: credential, path: dataFolderURL.path())
+            try importCredential(credential: trimmedCredential, path: dataFolderURL.path())
+#endif
+#if os(macOS)
+            try GRPCManager.shared.importCredential(credential: trimmedCredential)
+#endif
         } catch let error {
             throw error
         }

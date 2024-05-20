@@ -4,27 +4,36 @@ import CountriesManager
 import TunnelMixnet
 import Tunnels
 import TunnelStatus
+#if os(macOS)
+import GRPCManager
+#endif
 
 public final class ConnectionManager: ObservableObject {
     private let appSettings: AppSettings
     private let countriesManager: CountriesManager
     private let tunnelsManager: TunnelsManager
+#if os(macOS)
+    private let grpcManager: GRPCManager
+#endif
 
     private var cancellables = Set<AnyCancellable>()
 
     public static let shared = ConnectionManager()
 
     @Published public var isTunnelManagerLoaded: Result<Void, Error>?
+#if os(iOS)
     @Published public var currentTunnel: Tunnel? {
         didSet {
             guard let currentTunnel else { return }
             configureTunnelStatusObserver(tunnel: currentTunnel)
         }
     }
+#endif
     @Published public var currentTunnelStatus: TunnelStatus?
     @Published public var entryGateway: EntryGateway? = .randomLowLatency
     @Published public var exitRouter: ExitRouter?
 
+#if os(iOS)
     public init(
         appSettings: AppSettings = AppSettings.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
@@ -35,7 +44,23 @@ public final class ConnectionManager: ObservableObject {
         self.tunnelsManager = tunnelsManager
         setup()
     }
+#endif
+#if os(macOS)
+    public init(
+        appSettings: AppSettings = AppSettings.shared,
+        countriesManager: CountriesManager = CountriesManager.shared,
+        tunnelsManager: TunnelsManager = TunnelsManager.shared,
+        grpcManager: GRPCManager = GRPCManager.shared
+    ) {
+        self.appSettings = appSettings
+        self.countriesManager = countriesManager
+        self.tunnelsManager = tunnelsManager
+        self.grpcManager = grpcManager
+        setup()
+    }
+#endif
 
+#if os(iOS)
     public func connectDisconnect(with config: MixnetConfig) {
         if let activeTunnel = currentTunnel,
            activeTunnel.status == .connected || activeTunnel.status == .connecting {
@@ -44,9 +69,21 @@ public final class ConnectionManager: ObservableObject {
             connectMixnet(with: config)
         }
     }
+#endif
+
+#if os(macOS)
+    public func connectDisconnect(with config: MixnetConfig) {
+        if grpcManager.tunnelStatus == .connected || grpcManager.tunnelStatus == .connecting {
+            grpcManager.disconnect()
+        } else {
+            grpcManager.connect()
+        }
+    }
+#endif
 }
 
 // MARK: - Setup -
+#if os(iOS)
 private extension ConnectionManager {
     func setup() {
         setupTunnelManagerObservers()
@@ -72,8 +109,18 @@ private extension ConnectionManager {
         .store(in: &cancellables)
     }
 }
+#endif
 
+#if os(macOS)
+private extension ConnectionManager {
+    func setup() {
+//        setupTunnelManagerObservers()
+        setupCountriesManagerObserver()
+    }
+}
+#endif
 // MARK: - Tunnel config -
+#if os(iOS)
 private extension ConnectionManager {
     func addMixnetConfigurationAndConnect(with config: MixnetConfig) {
         tunnelsManager.add(tunnelConfiguration: config) { [weak self] result in
@@ -88,8 +135,10 @@ private extension ConnectionManager {
         }
     }
 }
+#endif
 
 // MARK: - Connection -
+#if os(iOS)
 private extension ConnectionManager {
     func connectMixnet(with config: MixnetConfig) {
         if let tunnel = tunnelsManager.tunnels.first(where: { $0.name == config.name }) {
@@ -106,7 +155,7 @@ private extension ConnectionManager {
         tunnelsManager.disconnect(tunnel: tunnel)
     }
 }
-
+#endif
 // MARK: - Countries -
 
 private extension ConnectionManager {
@@ -143,7 +192,7 @@ private extension ConnectionManager {
             let firstExitCountry = exitCountries.first,
             let lowLatencyCountry = countriesManager.lowLatencyCountry
         else {
-            // TODO
+            // TODO: get country
             exitRouter = .country(code: "AU")
             return
         }

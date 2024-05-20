@@ -17,8 +17,8 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../MixnetLibrary"),
         .package(path: "../Services"),
+        .package(path: "../ServicesIOS"),
         .package(path: "../UIComponents"),
         .package(path: "../Theme")
     ],
@@ -30,9 +30,8 @@ let package = Package(
                 .product(name: "AppVersionProvider", package: "Services"),
                 .product(name: "Constants", package: "Services"),
                 .product(name: "CredentialsManager", package: "Services"),
-                .product(name: "KeyboardManager", package: "Services"),
+                .product(name: "KeyboardManager", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "SentryManager", package: "Services"),
-                .product(name: "MixnetLibrary", package: "MixnetLibrary"),
                 .product(name: "Modifiers", package: "Services"),
                 .product(name: "Theme", package: "Theme"),
                 .product(name: "UIComponents", package: "UIComponents")

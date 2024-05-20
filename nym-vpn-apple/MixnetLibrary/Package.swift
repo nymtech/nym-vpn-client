@@ -6,8 +6,7 @@ import PackageDescription
 let package = Package(
     name: "MixnetLibrary",
     platforms: [
-        .iOS(.v16),
-        .macOS(.v13)
+        .iOS(.v16)
     ],
     products: [
         .library(
@@ -24,8 +23,8 @@ let package = Package(
         ),
         .binaryTarget(
             name: "NymVpnLib",
-            url: "https://github.com/nymtech/nym-vpn-client/releases/download/nightly/nym-vpn-lib_0.1.3-dev_ios_universal.zip",
-            checksum: "ab3ea70e232aea24071de4f8b7f4767e410825e3f69932f098f0c8d31d13dedc"
+            url: "https://github.com/nymtech/nym-vpn-client/releases/download/nightly/nym-vpn-lib_0.1.4-dev_ios_universal.zip",
+            checksum: "e74e68ee31584cb0cd8dbd024a529a93125af3ba1cdb80d08e945e2233d2e11e"
         ),
         .testTarget(
             name: "MixnetLibraryTests",

@@ -28,6 +28,21 @@ public struct CustomNavBarButton: View {
     }
 
     public var body: some View {
+        if #available(iOS 17.0, macOS 14.0, *) {
+            genericButton()
+                .focusEffectDisabled()
+        } else {
+            genericButton()
+#if os(macOS)
+                .focusable(false)
+#endif
+        }
+    }
+}
+
+private extension CustomNavBarButton {
+    @ViewBuilder
+    func genericButton() -> some View {
         Button {
             action?()
         } label: {
@@ -36,6 +51,7 @@ public struct CustomNavBarButton: View {
                     .foregroundStyle(NymColor.navigationBarSettingsGear)
             }
         }
+        .buttonStyle(PlainButtonStyle())
         .frame(width: 48, height: 48)
     }
 }

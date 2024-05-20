@@ -17,29 +17,26 @@ let package = Package(
         .library(name: "Constants", targets: ["Constants"]),
         .library(name: "CountriesManager", targets: ["CountriesManager"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
-        .library(name: "Extensions", targets: ["Extensions"]),
-        .library(name: "KeyboardManager", targets: ["KeyboardManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
-        .library(name: "TunnelStatus", targets: ["TunnelStatus"]),
         .library(name: "TunnelMixnet", targets: ["TunnelMixnet"]),
         .library(name: "TunnelWG", targets: ["TunnelWG"])
     ],
     dependencies: [
+        .package(path: "../ServicesMacOS"),
+        .package(path: "../ServicesMutual"),
         .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
         .package(name: "Theme", path: "../Theme"),
         .package(url: "https://github.com/apple/swift-log", from: "1.5.4"),
         .package(url: "https://git.zx2c4.com/wireguard-apple", exact: "1.0.15-26"),
-        .package(url: "https://github.com/getsentry/sentry-cocoa", from: "8.0.0")
+        .package(url: "https://github.com/getsentry/sentry-cocoa", from: "8.26.0")
     ],
     targets: [
         .target(
             name: "AppSettings",
-            dependencies: [
-                "Extensions"
-            ],
+            dependencies: [],
             path: "Sources/Services/AppSettings"
         ),
         .target(
@@ -65,7 +62,7 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 "Constants",
-                "MixnetLibrary"
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/Services/CountriesManager"
         ),
@@ -73,20 +70,11 @@ let package = Package(
             name: "CredentialsManager",
             dependencies: [
                 "Constants",
-                "MixnetLibrary",
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 "Theme"
             ],
             path: "Sources/Services/CredentialsManager"
-        ),
-        .target(
-            name: "Extensions",
-            dependencies: [],
-            path: "Sources/Services/Extensions"
-        ),
-        .target(
-            name: "KeyboardManager",
-            dependencies: [],
-            path: "Sources/Services/KeyboardManager"
         ),
         .target(
             name: "Keychain",
@@ -115,15 +103,10 @@ let package = Package(
             name: "Tunnels",
             dependencies: [
                 "Keychain",
-                "TunnelStatus",
+                .product(name: "TunnelStatus", package: "ServicesMutual"),
                 .product(name: "Logging", package: "swift-log")
             ],
             path: "Sources/Services/Tunnels"
-        ),
-        .target(
-            name: "TunnelStatus",
-            dependencies: [],
-            path: "Sources/Services/TunnelStatus"
         ),
         .target(
             name: "TunnelMixnet",
@@ -131,7 +114,7 @@ let package = Package(
                 "Constants",
                 "CountriesManager",
                 "CredentialsManager",
-                "MixnetLibrary",
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 "Tunnels",
                 .product(name: "Logging", package: "swift-log")
             ],

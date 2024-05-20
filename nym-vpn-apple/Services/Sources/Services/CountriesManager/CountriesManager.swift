@@ -1,13 +1,12 @@
 import SwiftUI
 import AppSettings
-import Constants
-import MixnetLibrary
 
 public final class CountriesManager: ObservableObject {
     private var appSettings: AppSettings
-    private var isLoading = false
-    private var lastHopStore = LastHopStore(lastFetchDate: Date())
-    private var entryLastHopStore = EntryLastHopStore(lastFetchDate: Date())
+
+    var isLoading = false
+    var lastHopStore = LastHopStore(lastFetchDate: Date())
+    var entryLastHopStore = EntryLastHopStore(lastFetchDate: Date())
 
     public static let shared = CountriesManager(appSettings: AppSettings.shared)
 
@@ -44,81 +43,6 @@ public final class CountriesManager: ObservableObject {
         } else {
             return exitCountries?.first(where: { $0.code == code })
         }
-    }
-}
-
-// MARK: - Fetching -
-private extension CountriesManager {
-    func fetchEntryExitCountries() throws {
-        guard
-            let apiURL = URL(string: Constants.apiUrl.rawValue),
-            let explorerURL = URL(string: Constants.explorerURL.rawValue),
-            let harbourURL = URL(string: Constants.harbourURL.rawValue)
-        else {
-            throw GeneralNymError.invalidUrl
-        }
-
-        let locations = try getGatewayCountries(
-            apiUrl: apiURL,
-            explorerUrl: explorerURL,
-            harbourMasterUrl: harbourURL,
-            exitOnly: false
-        )
-        let newEntryCountries = convertToCountriesAndSort(from: locations)
-        let newExitCountries = convertToCountriesAndSort(from: locations)
-
-        entryLastHopStore.entryCountries = newEntryCountries
-        entryLastHopStore.exitCountries = newExitCountries
-        entryLastHopStore.lastFetchDate = Date()
-
-        entryCountries = newEntryCountries
-        exitCountries = newExitCountries
-        isLoading = false
-    }
-
-    func fetchExitCountries() throws {
-        guard
-            let apiURL = URL(string: Constants.apiUrl.rawValue),
-            let explorerURL = URL(string: Constants.explorerURL.rawValue),
-            let harbourURL = URL(string: Constants.harbourURL.rawValue)
-        else {
-            throw GeneralNymError.invalidUrl
-        }
-
-        let locations = try getGatewayCountries(
-            apiUrl: apiURL,
-            explorerUrl: explorerURL,
-            harbourMasterUrl: harbourURL,
-            exitOnly: true
-        )
-        let newExitCountries = convertToCountriesAndSort(from: locations)
-
-        lastHopStore.countries = newExitCountries
-        lastHopStore.lastFetchDate = Date()
-
-        entryCountries = nil
-        exitCountries = newExitCountries
-        isLoading = false
-        updateHasCountries()
-    }
-
-    func fetchLowLatencyEntryCountry() {
-        guard
-            let apiURL = URL(string: Constants.apiUrl.rawValue),
-            let explorerURL = URL(string: Constants.explorerURL.rawValue),
-            let harbourURL = URL(string: Constants.harbourURL.rawValue),
-            let location = try? getLowLatencyEntryCountry(
-                apiUrl: apiURL,
-                explorerUrl: explorerURL,
-                harbourMasterUrl: harbourURL
-            )
-        else {
-            return
-        }
-        entryLastHopStore.lowLatencyCountry = lowLatencyCountry
-        lastHopStore.lowLatencyCountry = lowLatencyCountry
-        lowLatencyCountry = Country(name: location.countryName, code: location.twoLetterIsoCountryCode)
-        updateHasCountries()
     }
 }
 
@@ -165,18 +89,8 @@ private extension CountriesManager {
     }
 }
 
-// MARK: - ConvertToCountry -
-private extension CountriesManager {
-    func convertToCountriesAndSort(from locations: [Location]) -> [Country] {
-        locations.map {
-            Country(name: $0.countryName, code: $0.twoLetterIsoCountryCode)
-        }
-        .sorted { $0.name < $1.name }
-    }
-}
-
 // MARK: - Helper -
-private extension CountriesManager {
+extension CountriesManager {
     func updateHasCountries() {
         if appSettings.isEntryLocationSelectionOn {
             hasCountries = ((entryCountries?.isEmpty) != nil)

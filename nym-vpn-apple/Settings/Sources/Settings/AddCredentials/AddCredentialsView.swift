@@ -1,12 +1,16 @@
 import SwiftUI
 import CredentialsManager
+#if os(iOS)
 import KeyboardManager
+#endif
 import Modifiers
 import Theme
 import UIComponents
 
 struct AddCredentialsView: View {
+#if os(iOS)
     @EnvironmentObject private var keyboardManager: KeyboardManager
+#endif
     @StateObject private var viewModel: AddCredentialsViewModel
     @FocusState private var isFocused: Bool
 
@@ -18,18 +22,13 @@ struct AddCredentialsView: View {
         VStack {
             navbar()
             GeometryReader { geometry in
+#if os(iOS)
                 KeyboardHostView {
-                    ScrollView {
-                        VStack {
-                            content()
-                        }
-                        .frame(width: geometry.size.width, height: geometry.size.height )
-                    }
-
-                    .onTapGesture {
-                        isFocused = false
-                    }
+                    scrollViewContent(geometry: geometry)
                 }
+#elseif os(macOS)
+                scrollViewContent(geometry: geometry)
+#endif
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -52,6 +51,19 @@ private extension AddCredentialsView {
             title: "",
             leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack() })
         )
+    }
+
+    @ViewBuilder
+    func scrollViewContent(geometry: GeometryProxy) -> some View {
+        ScrollView {
+            VStack {
+                content()
+            }
+            .frame(width: geometry.size.width, height: geometry.size.height )
+        }
+        .onTapGesture {
+            isFocused = false
+        }
     }
 
     @ViewBuilder
@@ -125,6 +137,7 @@ private extension AddCredentialsView {
                 .padding(16)
                 .lineLimit(8, reservesSpace: true)
                 .focused($isFocused)
+                .textFieldStyle(PlainTextFieldStyle())
             Spacer()
         }
         .contentShape(

@@ -1,6 +1,8 @@
 import SwiftUI
 import AppSettings
+#if os(iOS)
 import KeyboardManager
+#endif
 import Modifiers
 import Theme
 import UIComponents
@@ -17,27 +19,13 @@ struct SurveyView: View {
     var body: some View {
         VStack {
             navbar()
-
+#if os(iOS)
             KeyboardHostView {
-                ScrollView {
-                    Spacer()
-                        .frame(height: 24)
-                    introText()
-                    recommendationText()
-                    recommendationOptions()
-                    provideFeedbackText()
-                    feedbackInputView()
-                    if viewModel.error != .noError, let errorMessageTitle = viewModel.error.localizedTitle {
-                        errorMessageView(title: errorMessageTitle)
-                    }
-                    submitButton()
-                    Spacer()
-                        .frame(height: 24)
-                }
-                .onTapGesture {
-                    isFocused = false
-                }
+                scrollViewContent()
             }
+#elseif os(macOS)
+            scrollViewContent()
+#endif
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -56,6 +44,28 @@ private extension SurveyView {
             title: viewModel.title,
             leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack() })
         )
+    }
+
+    @ViewBuilder
+    func scrollViewContent() -> some View {
+        ScrollView {
+            Spacer()
+                .frame(height: 24)
+            introText()
+            recommendationText()
+            recommendationOptions()
+            provideFeedbackText()
+            feedbackInputView()
+            if viewModel.error != .noError, let errorMessageTitle = viewModel.error.localizedTitle {
+                errorMessageView(title: errorMessageTitle)
+            }
+            submitButton()
+            Spacer()
+                .frame(height: 24)
+        }
+        .onTapGesture {
+            isFocused = false
+        }
     }
 
     @ViewBuilder
@@ -117,6 +127,7 @@ private extension SurveyView {
         VStack(alignment: .leading) {
             TextField(viewModel.yourFeedbackPlacholderText, text: $viewModel.feedbackText, axis: .vertical)
                 .textStyle(NymTextStyle.Body.Large.regular)
+                .textFieldStyle(PlainTextFieldStyle())
                 .padding(16)
                 .lineLimit(6, reservesSpace: true)
             Spacer()
