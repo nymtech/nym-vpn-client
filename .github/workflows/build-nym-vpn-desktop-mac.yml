@@ -105,6 +105,7 @@ jobs:
           # TODO try fixing `error running bundle_dmg.sh` (macos build)
           NO_STRIP: 'true'
         run: |
+          npm ci
           npm run tauri build --${{ env.CARGO_TARGET }}
           ls -la target/release/ || true
           ls -la target/release/bundle || true
