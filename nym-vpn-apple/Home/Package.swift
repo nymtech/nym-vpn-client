@@ -19,7 +19,8 @@ let package = Package(
     dependencies: [
         .package(path: "../UIComponents"),
         .package(path: "../Settings"),
-        .package(path: "../Services")
+        .package(path: "../Services"),
+        .package(path: "../ServicesMacOS")
     ],
     targets: [
         .target(
@@ -28,7 +29,9 @@ let package = Package(
                 "UIComponents",
                 "Settings",
                 .product(name: "CountriesManager", package: "Services"),
-                .product(name: "ConnectionManager", package: "Services")
+                .product(name: "ConnectionManager", package: "Services"),
+                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
+                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],
             path: "Sources"
         ),

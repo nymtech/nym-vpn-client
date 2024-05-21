@@ -146,13 +146,17 @@ public extension HomeViewModel {
 public extension HomeViewModel {
     func connectDisconnect() {
 #if os(macOS)
+        // TODO: check if possible to split is helper running vs isHelperAuthorized
         guard helperManager.isHelperRunning() && helperManager.isHelperAuthorized()
         else {
-            _ = helperManager.authorizeAndInstallHelper()
+            do {
+                _ = try helperManager.authorizeAndInstallHelper()
+            } catch let error {
+                statusInfoState = .error(message: error.localizedDescription)
+            }
             return
         }
 #endif
-
 
         guard appSettings.isCredentialImported
         else {

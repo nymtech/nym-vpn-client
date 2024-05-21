@@ -13,16 +13,18 @@ public final class HelperManager {
 
     // TODO: throw some errors
     // TODO: add completion block on success
-    public func authorizeAndInstallHelper() -> Bool {
+    public func authorizeAndInstallHelper() throws -> Bool {
         var authRef: AuthorizationRef?
         let status = AuthorizationCreate(nil, nil, [], &authRef)
         if status != errAuthorizationSuccess {
             return false
         }
 
+        var cfError: Unmanaged<CFError>?
+
         let rightName = kSMRightBlessPrivilegedHelper
 
-        return rightName.withCString { cStringName -> Bool in
+        let result = rightName.withCString { cStringName -> Bool in
             var authItem = AuthorizationItem(
                 name: cStringName,
                 valueLength: 0,
@@ -36,11 +38,15 @@ public final class HelperManager {
                 let status = AuthorizationCopyRights(authRef!, &authRights, nil, authFlags, nil)
                 if status == errAuthorizationSuccess {
                     // Place to execute your authorized action:
-                    return installHelper(with: authRef)
+                    return installHelper(with: authRef, error: &cfError)
                 }
                 return false
             }
         }
+        if let error = cfError?.takeRetainedValue() {
+            throw error
+        }
+        return result
     }
 
     public func isHelperAuthorized() -> Bool {
@@ -61,14 +67,14 @@ public final class HelperManager {
 }
 
 private extension HelperManager {
-    func installHelper(with authRef: AuthorizationRef?) -> Bool {
-        var cfError: Unmanaged<CFError>?
+    func installHelper(with authRef: AuthorizationRef?, error: inout Unmanaged<CFError>?) -> Bool {
         // TODO: refactor using SMAPPService
-        if !SMJobBless(kSMDomainSystemLaunchd, helperName as CFString, authRef, &cfError) {
+        if !SMJobBless(kSMDomainSystemLaunchd, helperName as CFString, authRef, &error) {
             // TODO: throw
-            print("SMJobBless error: \(String(describing: cfError))")
+            print("SMJobBless error: \(String(describing: error))")
             return false
         }
+
         if !isHelperAuthorized() {
             SMAppService.openSystemSettingsLoginItems()
         }
