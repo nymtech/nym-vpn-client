@@ -11,6 +11,8 @@ public final class HelperManager {
         self.helperName = helperName
     }
 
+    // TODO: throw some errors
+    // TODO: add completion block on success
     public func authorizeAndInstallHelper() -> Bool {
         var authRef: AuthorizationRef?
         let status = AuthorizationCreate(nil, nil, [], &authRef)
@@ -55,6 +57,7 @@ public final class HelperManager {
         }
         return false
     }
+
 }
 
 private extension HelperManager {
@@ -62,6 +65,7 @@ private extension HelperManager {
         var cfError: Unmanaged<CFError>?
         // TODO: refactor using SMAPPService
         if !SMJobBless(kSMDomainSystemLaunchd, helperName as CFString, authRef, &cfError) {
+            // TODO: throw
             print("SMJobBless error: \(String(describing: cfError))")
             return false
         }

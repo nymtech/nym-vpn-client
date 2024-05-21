@@ -12,6 +12,7 @@ import UIComponents
 
 #if os(macOS)
 import GRPCManager
+import HelperManager
 #endif
 
 public class HomeViewModel: HomeFlowState {
@@ -31,6 +32,7 @@ public class HomeViewModel: HomeFlowState {
     var credentialsManager: CredentialsManager
 #if os(macOS)
     var grpcManager: GRPCManager
+    var helperManager: HelperManager
 #endif
     var entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
     var exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
@@ -69,7 +71,8 @@ public class HomeViewModel: HomeFlowState {
         connectionManager: ConnectionManager = ConnectionManager.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
         credentialsManager: CredentialsManager = CredentialsManager.shared,
-        grpcManager: GRPCManager = GRPCManager.shared
+        grpcManager: GRPCManager = GRPCManager.shared,
+        helperManager: HelperManager = HelperManager.shared
     ) {
         self.selectedNetwork = selectedNetwork
         self.appSettings = appSettings
@@ -77,6 +80,7 @@ public class HomeViewModel: HomeFlowState {
         self.countriesManager = countriesManager
         self.credentialsManager = credentialsManager
         self.grpcManager = grpcManager
+        self.helperManager = helperManager
         super.init()
 
         setup()
@@ -141,6 +145,15 @@ public extension HomeViewModel {
 // MARK: - Connection -
 public extension HomeViewModel {
     func connectDisconnect() {
+#if os(macOS)
+        guard helperManager.isHelperRunning() && helperManager.isHelperAuthorized()
+        else {
+            _ = helperManager.authorizeAndInstallHelper()
+            return
+        }
+#endif
+
+
         guard appSettings.isCredentialImported
         else {
             navigateToAddCredentials()

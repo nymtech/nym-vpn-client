@@ -25,11 +25,11 @@ struct NymVPNDaemonApp: App {
                         .transition(.slide)
                 }
             }
-            .frame(minWidth: 390, minHeight: 800)
+            .frame(minWidth: 390, idealWidth: 390, minHeight: 800, idealHeight: 800)
             .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .environmentObject(appSettings)
         }
-        .windowResizability(.contentSize)
+        .windowResizability(.contentMinSize)
     }
 }
 
