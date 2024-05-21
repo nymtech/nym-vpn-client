@@ -23,9 +23,9 @@ public struct CustomNavBar: View {
         HStack {
             leftButton
             Spacer()
-            Text(title)
-                .foregroundStyle(NymColor.sysOnSurface)
-                .textStyle(.Title.Large.primary)
+            Image("logoText", bundle: .module)
+                .frame(width: 110, height: 16)
+
             Spacer()
             rightButton
         }
