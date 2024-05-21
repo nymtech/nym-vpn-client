@@ -1,0 +1,58 @@
+name: build-nym-vpn-mac
+on: [workflow_dispatch, workflow_call]
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TARGET: release
+  WG_GO_LIB_PATH: ${{ github.workspace }}/lib
+  WG_GO_LIB_NAME: wireguard-go_apple_universal
+  UPLOAD_DIR_MAC: mac_artifacts
+
+jobs:
+  build-wireguard-go-mac:
+    uses: ./.github/workflows/build-wireguard-go-mac.yml
+
+  build-mac:
+    needs: build-wireguard-go-mac
+    runs-on: macos-14
+    outputs:
+      UPLOAD_DIR_MAC: ${{ env.UPLOAD_DIR_MAC }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Download wireguard-go artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WG_GO_LIB_NAME }}
+          path: ${{ env.WG_GO_LIB_PATH }}
+
+      - name: Build nym-vpn
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: |
+          cargo build --${{ env.CARGO_TARGET }}
+          ls -la target/release/ || true
+
+      - name: Move things around to prepare for upload
+        env:
+          SRC_BINARY: target/${{ env.CARGO_TARGET }}/
+        run: |
+          mkdir ${{ env.UPLOAD_DIR_MAC }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_MAC }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-vpn-cli ${{ env.UPLOAD_DIR_MAC }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc ${{ env.UPLOAD_DIR_MAC }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd ${{ env.UPLOAD_DIR_MAC }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_MAC }}
+          path: ${{ env.UPLOAD_DIR_MAC }}
+          retention-days: 1
