@@ -61,6 +61,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install tauri
+        run: cargo install create-tauri-app --locked
+
       - name: Get package version
         id: package-version
         uses: nicolaiunrein/cargo-get@master
