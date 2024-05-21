@@ -138,6 +138,7 @@ jobs:
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
         run: |
           sed -i 's/"bundle": {/"bundle": {"resources": ["wintun.dll", "vcruntime140.dll", "libwg.dll", "winfw.dll"],/g' '${{ env.TAURI_SRC }}/tauri.conf.json'
+          npm ci
           npm run tauri build --${{ env.CARGO_TARGET }}
           ls -la target/release/ || true
           ls -la target/release/bundle || true
