@@ -61,9 +61,6 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install tauri
-        run: cargo install create-tauri-app --locked
-
       - name: Get package version
         id: package-version
         uses: nicolaiunrein/cargo-get@master
@@ -108,6 +105,7 @@ jobs:
           # TODO try fixing `error running bundle_dmg.sh` (macos build)
           NO_STRIP: 'true'
         run: |
+          npm i
           npm run tauri build --${{ env.CARGO_TARGET }}
           ls -la target/release/ || true
           ls -la target/release/bundle || true
