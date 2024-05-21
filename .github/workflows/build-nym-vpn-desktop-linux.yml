@@ -58,8 +58,8 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install tauri
-        run: cargo install create-tauri-app --locked
+      # - name: Install tauri
+      #   run: cargo install create-tauri-app --locked
 
       - name: Get package version
         id: package-version
@@ -91,6 +91,7 @@ jobs:
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
+          npm i
           npm run tauri build --${{ env.CARGO_TARGET }}
           ls -la target/release/ || true
           ls -la target/release/bundle || true
