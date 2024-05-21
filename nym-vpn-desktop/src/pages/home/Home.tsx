@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api';
 import { useNavigate } from 'react-router-dom';
@@ -12,8 +12,14 @@ import ConnectionStatus from './ConnectionStatus';
 import HopSelect from './HopSelect';
 
 function Home() {
-  const { state, loading, entryNodeLocation, exitNodeLocation, entrySelector } =
-    useMainState();
+  const {
+    error,
+    state,
+    loading,
+    entryNodeLocation,
+    exitNodeLocation,
+    entrySelector,
+  } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
   const { t } = useTranslation('home');
@@ -43,6 +49,13 @@ function Home() {
         });
     }
   };
+
+  useEffect(() => {
+    if (error?.includes('invalid credential')) {
+      navigate(routes.credential);
+      dispatch({ type: 'reset-error' });
+    }
+  }, [error, dispatch, navigate]);
 
   const getButtonText = useCallback(() => {
     switch (state) {
