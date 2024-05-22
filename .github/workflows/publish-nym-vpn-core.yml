@@ -115,8 +115,8 @@ jobs:
           echo "ARCHIVE_LINUX=${ARCHIVE_LINUX}" >> $GITHUB_ENV
           echo "ARCHIVE_MAC=${ARCHIVE_MAC}" >> $GITHUB_ENV
 
-          mv ${ env.UPLOAD_DIR_LINUX }} ${ARCHIVE_LINUX}
-          mv ${ env.UPLOAD_DIR_MAC }} ${ARCHIVE_MAC}
+          mv ${{ env.UPLOAD_DIR_LINUX }} ${ARCHIVE_LINUX}
+          mv ${{ env.UPLOAD_DIR_MAC }} ${ARCHIVE_MAC}
 
           tar cvzf ${ARCHIVE_LINUX}.tar.gz ${ARCHIVE_LINUX}
           tar cvzf ${ARCHIVE_MAC}.tar.gz ${ARCHIVE_MAC}
