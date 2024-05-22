@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
-use crate::credentials::{check_credential_base58, import_credential_base58};
+use crate::credentials::{
+    check_vpn_credential_base58, import_credential_base58,
+};
 use crate::gateway_directory::GatewayClient;
 use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location};
 use crate::{
@@ -17,6 +19,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::SystemTime;
 use talpid_core::mpsc::Sender;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
@@ -199,13 +202,13 @@ async fn import_credential_from_string(credential: &str, path: &str) -> Result<(
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn checkCredential(credential: String) -> Result<(), FFIError> {
+pub fn checkCredential(credential: String) -> Result<SystemTime, FFIError> {
     RUNTIME.block_on(check_credential_string(&credential))
 }
 
-async fn check_credential_string(credential: &str) -> Result<(), FFIError> {
-    match check_credential_base58(credential).await {
-        Ok(_) => Ok(()),
+async fn check_credential_string(credential: &str) -> Result<SystemTime, FFIError> {
+    match check_vpn_credential_base58(credential).await {
+        Ok(res) => Ok(res),
         Err(_) => Err(FFIError::InvalidCredential),
     }
 }

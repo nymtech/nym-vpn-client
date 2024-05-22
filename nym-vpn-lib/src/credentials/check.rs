@@ -1,3 +1,4 @@
+use std::time::SystemTime;
 use std::{fs, path::PathBuf};
 
 use nym_bandwidth_controller::{BandwidthController, PreparedCredential, RetrievedCredential};
@@ -49,6 +50,32 @@ pub async fn check_raw_credential(raw_credential: Vec<u8>) -> Result<(), CheckRa
     Ok(())
 }
 
+pub async fn check_vpn_credential(
+    credential: Vec<u8>,
+) -> Result<SystemTime, CheckRawCredentialError> {
+    let version = None;
+    let credential = IssuedBandwidthCredential::try_unpack(&credential, version)
+        .map_err(|err| CheckRawCredentialError::FailedToUnpackRawCredential { source: err })?;
+
+    match credential.variant_data() {
+        BandwidthCredentialIssuedDataVariant::FreePass(freepass_info) => {
+            debug!("credential is a free pass");
+            if freepass_info.expired() {
+                Err(CheckRawCredentialError::FreepassExpired {
+                    expiry_date: freepass_info.expiry_date().to_string(),
+                })
+            } else {
+                Ok(SystemTime::from(freepass_info.expiry_date()))
+            }
+        }
+        _ => {
+            Err(CheckRawCredentialError::FailedToUnpackRawCredential {
+                source: nym_credentials::Error::NotAFreePass,
+            })
+        }
+    }
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum CheckBase58CredentialError {
     #[error("failed decode base58 credential: {source}")]
@@ -67,6 +94,15 @@ pub enum CheckBase58CredentialError {
 pub async fn check_credential_base58(credential: &str) -> Result<(), CheckBase58CredentialError> {
     let raw_credential = bs58::decode(credential).into_vec()?;
     check_raw_credential(raw_credential)
+        .await
+        .map_err(|err| err.into())
+}
+
+pub async fn check_vpn_credential_base58(
+    credential: &str,
+) -> Result<SystemTime, CheckBase58CredentialError> {
+    let raw_credential = bs58::decode(credential).into_vec()?;
+    check_vpn_credential(raw_credential)
         .await
         .map_err(|err| err.into())
 }

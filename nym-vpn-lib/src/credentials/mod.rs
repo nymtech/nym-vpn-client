@@ -4,7 +4,7 @@ mod import;
 
 pub use check::{
     check_credential_base58, check_credential_file, check_imported_credential,
-    check_raw_credential, CheckImportedCredentialError,
+    check_raw_credential, check_vpn_credential_base58, CheckImportedCredentialError,
 };
 pub use helpers::{
     CredentialCoconutApiClientError, CredentialNyxdClientError, CredentialStoreError,

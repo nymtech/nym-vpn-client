@@ -25,5 +25,8 @@
   "last-node-select": {
     "label": "Last hop",
     "text": "Quick connect ({{country}})"
+  },
+  "snackbar": {
+    "disabled-while-connected": "Disabled while connected to VPN"
   }
 }
