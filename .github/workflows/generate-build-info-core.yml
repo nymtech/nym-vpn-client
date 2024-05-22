@@ -30,6 +30,9 @@ jobs:
         run:
           echo "date=$(date)" >> $GITHUB_OUTPUT
 
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+
       - name: Get package version cli
         id: package-version-cli
         uses: nicolaiunrein/cargo-get@master
