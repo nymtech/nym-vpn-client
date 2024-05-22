@@ -1,4 +1,4 @@
-name: build-nym-vpn-mac
+name: build-nym-vpn-core-mac
 on: [workflow_dispatch, workflow_call]
 
 env:
