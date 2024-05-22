@@ -119,8 +119,8 @@ jobs:
           sha256sum ${ARCHIVE_LINUX}.tar.gz > "${ARCHIVE_LINUX}.tar.gz.sha256sum"
           sha256sum ${ARCHIVE_MAC}.tar.gz > "${ARCHIVE_MAC}.tar.gz.sha256sum"
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          cat "${ARCHIVE_LINUX}*.sha256sum" >> $GITHUB_ENV
-          cat "${ARCHIVE_MAC}*.sha256sum" >> $GITHUB_ENV
+          cat ${ARCHIVE_LINUX}.tar.gz.sha256sum >> $GITHUB_ENV
+          cat ${ARCHIVE_MAC}.tar.gz.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Setting subject, prerelease and notes files
