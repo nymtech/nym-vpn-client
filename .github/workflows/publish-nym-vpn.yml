@@ -110,8 +110,8 @@ jobs:
           cat ${{ env.UPLOAD_DIR_MAC }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-          ARCHIVE_LINUX=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadat}}_linux_x86_64
-          ARCHIVE_MAC=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadat}}_macos_aarch64
+          ARCHIVE_LINUX=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_linux_x86_64
+          ARCHIVE_MAC=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_macos_aarch64
           echo "ARCHIVE_LINUX=${ARCHIVE_LINUX}" >> $GITHUB_ENV
           echo "ARCHIVE_MAC=${ARCHIVE_MAC}" >> $GITHUB_ENV
 
@@ -124,7 +124,7 @@ jobs:
       - name: Setting subject, prerelease and notes files
         if: ${{ contains(env.TAG_NAME, 'nightly') }}
         run: |
-          (echo "SUBJECT=nym-vpn-core-v${{ steps.package-version.outputs.metadata }} nightly prerelease build";
+          (echo "SUBJECT=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }} nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
            echo 'NOTES_FILE=release-notes/nym-vpn-core.md') >> $GITHUB_ENV
           gh release delete nightly --yes || true
