@@ -60,7 +60,7 @@ jobs:
       - name: Generate build-info
         run: |
           touch build-info.txt
-          echo "Crate versions"
+          echo "Crate versions" >> build-info.txt
           echo " nym-vpnc: ${{ steps.package-version-vpnc.outputs.metadata }}" >> build-info.txt
           echo " nym-vpnd: ${{ steps.package-version-vpnd.outputs.metadata }}" >> build-info.txt
           echo " nym-vpn-lib: ${{ steps.package-version-lib.outputs.metadata }}" >> build-info.txt
