@@ -1,4 +1,4 @@
-name: build-nym-vpn-linux
+name: build-nym-vpn-core-linux
 on: [workflow_dispatch, workflow_call]
 
 env:
