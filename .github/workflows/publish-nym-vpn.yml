@@ -95,7 +95,7 @@ jobs:
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
-      - name: Generate checksum and keep only the correct binary
+      - name: Generate checksum and tar folder per platform
         run: |
           for f in ${{ env.UPLOAD_DIR_LINUX }}/*; do
             sha256sum ${f} > "${f}.sha256sum"
@@ -109,6 +109,9 @@ jobs:
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_MAC }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
+
+          tar cvzf ${{ env.UPLOAD_DIR_LINUX }}.tar.gz ${{ env.UPLOAD_DIR_LINUX }}
+          tar cvzf ${{ env.UPLOAD_DIR_MAC }}.tar.gz ${{ env.UPLOAD_DIR_MAC }}
 
       - name: Setting subject, prerelease and notes files
         if: ${{ contains(env.TAG_NAME, 'nightly') }}
@@ -131,7 +134,7 @@ jobs:
       - name: Publish release
         run: |
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
-          gh release create $TAG_NAME ${{ env.PRERELEASE }} --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR_LINUX }} ${{ env.UPLOAD_DIR_MAC }}
+          gh release create $TAG_NAME ${{ env.PRERELEASE }} --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR_LINUX }}.tar.gz ${{ env.UPLOAD_DIR_MAC }}.tar.gz
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
