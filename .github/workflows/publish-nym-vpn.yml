@@ -110,8 +110,8 @@ jobs:
           cat ${{ env.UPLOAD_DIR_MAC }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-          tar cvzf ${{ env.UPLOAD_DIR_LINUX }}.tar.gz ${{ env.UPLOAD_DIR_LINUX }}
-          tar cvzf ${{ env.UPLOAD_DIR_MAC }}.tar.gz ${{ env.UPLOAD_DIR_MAC }}
+          tar cvzf ${{ env.UPLOAD_DIR_LINUX }}-v${{ env.TAG_NAME }}.tar.gz ${{ env.UPLOAD_DIR_LINUX }}
+          tar cvzf ${{ env.UPLOAD_DIR_MAC }}-v${{ env.TAG_NAME }}.tar.gz ${{ env.UPLOAD_DIR_MAC }}
 
       - name: Setting subject, prerelease and notes files
         if: ${{ contains(env.TAG_NAME, 'nightly') }}
