@@ -128,7 +128,7 @@ jobs:
         run: |
           (echo "SUBJECT=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }} nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
-           echo 'NOTES_FILE=release-notes/nym-vpn-core.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes/release-notes-nightly.md') >> $GITHUB_ENV
           gh release delete nightly --yes || true
           git push origin :nightly || true
 
@@ -137,7 +137,7 @@ jobs:
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE='
-           echo 'NOTES_FILE=release-notes/nym-vpn-core.md') >> $GITHUB_ENV
+           echo 'NOTES_FILE=release-notes/release-notes.md') >> $GITHUB_ENV
 
       - name: Build info
         run: |
