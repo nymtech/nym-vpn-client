@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - "nym-vpn-cli/**"
       - "nym-vpn-x/**"
+      - "nym-vpn-apple/**"
 
 env:
   CARGO_TERM_COLOR: always
