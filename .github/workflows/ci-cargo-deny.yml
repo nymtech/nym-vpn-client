@@ -1,5 +1,10 @@
 name: ci-cargo-deny
-on: [pull_request]
+on:
+  pull_request:
+    paths-ignore:
+      - "nym-vpn-desktop/**"
+      - "nym-vpn-x/**"
+      - "nym-vpn-apple/**"
 jobs:
   cargo-deny:
     runs-on: ubuntu-22.04-arc

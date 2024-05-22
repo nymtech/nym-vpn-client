@@ -6,6 +6,7 @@ on:
     paths-ignore:
       - "nym-vpn-desktop/**"
       - "nym-vpn-x/**"
+      - "nym-vpn-apple/**"
   workflow_dispatch:
 
 env:
