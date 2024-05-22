@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-22.04-arc
     outputs:
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
+      RUST_VERSION:
+        value: ${{ jobs.build-linux.outputs.RUST_VERSION }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -37,12 +39,17 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
-      - name: Build nym-vpn
+      - name: Build nym-vpn-core
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
           cargo build --${{ env.CARGO_TARGET }}
           ls -la target/release/ || true
+
+      - name: Get rust version used for build
+        id: rust-version
+        run: |
+          echo "rustc=$(rustc -V)" >> $GITHUB_OUTPUT
 
       - name: Move things around to prepare for upload
         env:
