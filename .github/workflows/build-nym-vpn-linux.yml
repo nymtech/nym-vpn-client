@@ -6,7 +6,7 @@ env:
   CARGO_TARGET: release
   WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib/x86_64-unknown-linux-gnu
   WG_GO_LIB_NAME: wireguard-go_ubuntu-22.04_x86_64
-  UPLOAD_DIR: linux_artifacts
+  UPLOAD_DIR_LINUX: linux_artifacts
 
 jobs:
   build-wireguard-go-linux:
@@ -16,7 +16,7 @@ jobs:
     needs: build-wireguard-go-linux
     runs-on: ubuntu-22.04-arc
     outputs:
-      UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR }}
+      UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -48,15 +48,15 @@ jobs:
         env:
           SRC_BINARY: target/${{ env.CARGO_TARGET }}/
         run: |
-          mkdir ${{ env.UPLOAD_DIR }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-vpn-cli ${{ env.UPLOAD_DIR }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc ${{ env.UPLOAD_DIR }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd ${{ env.UPLOAD_DIR }}
+          mkdir ${{ env.UPLOAD_DIR_LINUX }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_LINUX }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-vpn-cli ${{ env.UPLOAD_DIR_LINUX }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc ${{ env.UPLOAD_DIR_LINUX }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd ${{ env.UPLOAD_DIR_LINUX }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.UPLOAD_DIR }}
-          path: ${{ env.UPLOAD_DIR }}
+          name: ${{ env.UPLOAD_DIR_LINUX }}
+          path: ${{ env.UPLOAD_DIR_LINUX }}
           retention-days: 1
