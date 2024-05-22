@@ -1,0 +1,75 @@
+name: generate-build-info-core
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      build-profile:
+        description: "Rust build profile"
+        required: true
+        default: Release
+        type: string
+      rust-version:
+        description: "Rust version"
+        required: true
+        type: string
+
+jobs:
+  generate-build-info-core:
+    runs-on: ubuntu-22.04-arc
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install yq
+        run: |
+          sudo wget https://github.com/mikefarah/yq/releases/download/v4.44.1/yq_linux_amd64 -O /usr/bin/yq
+          sudo chmod +x /usr/bin/yq
+
+      - name: Get current date
+        id: date
+        run:
+          echo "date=$(date)" >> $GITHUB_OUTPUT
+
+      - name: Get package version cli
+        id: package-version-cli
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-cli
+
+      - name: Get package version vpnc
+        id: package-version-vpnc
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpnc
+
+      - name: Get package version vpnd
+        id: package-version-vpnd
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpnd
+
+      - name: Get package version lib
+        id: package-version-lib
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-lib
+
+      - name: Generate build-info
+        run: |
+          touch build-info.txt
+          echo "Crate versions"
+          echo " nym-vpnc: ${{ steps.package-version-vpnc.outputs.metadata }}" >> build-info.txt
+          echo " nym-vpnd: ${{ steps.package-version-vpnd.outputs.metadata }}" >> build-info.txt
+          echo " nym-vpn-lib: ${{ steps.package-version-lib.outputs.metadata }}" >> build-info.txt
+          echo " nym-vpn-cli: ${{ steps.package-version-cli.outputs.metadata }}" >> build-info.txt
+          echo "Rustc version: ${{ inputs.rust-version}}" >> build-info.txt
+          echo "Build profile: ${{ inputs.build-profile}}" >> build-info.txt
+          echo "Date:          ${{ steps.date.outputs.date }}" >> build-info.txt
+          cat build-info.txt
+
+      - name: Upload build-info
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-info
+          path: build-info.txt
+          retention-days: 1

@@ -24,10 +24,19 @@ jobs:
   build-nym-vpn-core-mac:
     uses: ./.github/workflows/build-nym-vpn-core-mac.yml
 
+
+  generate-build-info-core:
+    uses: ./.github/workflows/generate-build-info-core.yml
+    needs: build-nym-vpn-core-linux
+    with:
+      build-profile: release
+      rust-version: ${{ needs.build-nym-vpn-core-linux.outputs.RUST_VERSION }}
+
   publish:
     needs:
       - build-nym-vpn-core-linux
       - build-nym-vpn-core-mac
+      - generate-build-info
     runs-on: ubuntu-22.04-arc
     permissions:
       contents: write
@@ -138,6 +147,12 @@ jobs:
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE='
            echo 'NOTES_FILE=release-notes/nym-vpn-core.md') >> $GITHUB_ENV
+
+      - name: Build info
+        run: |
+          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
+          cat build-info/build-info.txt >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
         run: |
