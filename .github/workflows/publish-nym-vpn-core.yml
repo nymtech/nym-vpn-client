@@ -106,19 +106,6 @@ jobs:
 
       - name: Generate checksum and tar folder per platform
         run: |
-          for f in ${{ env.UPLOAD_DIR_LINUX }}/*; do
-            sha256sum ${f} > "${f}.sha256sum"
-          done
-          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          cat ${{ env.UPLOAD_DIR_LINUX }}/*.sha256sum >> $GITHUB_ENV
-
-          for f in ${{ env.UPLOAD_DIR_MAC }}/*; do
-            sha256sum ${f} > "${f}.sha256sum"
-          done
-          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          cat ${{ env.UPLOAD_DIR_MAC }}/*.sha256sum >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
-
           ARCHIVE_LINUX=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_linux_x86_64
           ARCHIVE_MAC=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_macos_aarch64
           echo "ARCHIVE_LINUX=${ARCHIVE_LINUX}" >> $GITHUB_ENV
@@ -129,6 +116,13 @@ jobs:
 
           tar cvzf ${ARCHIVE_LINUX}.tar.gz ${ARCHIVE_LINUX}
           tar cvzf ${ARCHIVE_MAC}.tar.gz ${ARCHIVE_MAC}
+
+          sha256sum ${ARCHIVE_LINUX}.tar.gz > "${ARCHIVE_LINUX}.tar.gz.sha256sum"
+          sha256sum ${ARCHIVE_MAC}.tar.gz > "${ARCHIVE_MAC}.tar.gz.sha256sum"
+          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
+          cat "${ARCHIVE_LINUX}*.sha256sum" >> $GITHUB_ENV
+          cat "${ARCHIVE_MAC}*.sha256sum" >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
       - name: Setting subject, prerelease and notes files
         if: ${{ contains(env.TAG_NAME, 'nightly') }}
@@ -157,7 +151,7 @@ jobs:
       - name: Publish release
         run: |
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
-          gh release create $TAG_NAME ${{ env.PRERELEASE }} --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_MAC }}.tar.gz
+          gh release create $TAG_NAME ${{ env.PRERELEASE }} --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum ${{ env.ARCHIVE_MAC }}.tar.gz ${{ env.ARCHIVE_MAC }}.tar.gz.sha256sum
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
