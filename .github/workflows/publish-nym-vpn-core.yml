@@ -36,7 +36,7 @@ jobs:
     needs:
       - build-nym-vpn-core-linux
       - build-nym-vpn-core-mac
-      - generate-build-info
+      - generate-build-info-core
     runs-on: ubuntu-22.04-arc
     permissions:
       contents: write
