@@ -1,4 +1,4 @@
-name: publish-nym-vpn.yml
+name: publish-nym-vpn-core.yml
 on:
   schedule:
     - cron: "4 3 * * *"
@@ -110,13 +110,21 @@ jobs:
           cat ${{ env.UPLOAD_DIR_MAC }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-          tar cvzf ${{ env.UPLOAD_DIR_LINUX }}-v${{ env.TAG_NAME }}.tar.gz ${{ env.UPLOAD_DIR_LINUX }}
-          tar cvzf ${{ env.UPLOAD_DIR_MAC }}-v${{ env.TAG_NAME }}.tar.gz ${{ env.UPLOAD_DIR_MAC }}
+          ARCHIVE_LINUX=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_linux_x86_64
+          ARCHIVE_MAC=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_macos_aarch64
+          echo "ARCHIVE_LINUX=${ARCHIVE_LINUX}" >> $GITHUB_ENV
+          echo "ARCHIVE_MAC=${ARCHIVE_MAC}" >> $GITHUB_ENV
+
+          mv ${ env.UPLOAD_DIR_LINUX }} ${ARCHIVE_LINUX}
+          mv ${ env.UPLOAD_DIR_MAC }} ${ARCHIVE_MAC}
+
+          tar cvzf ${ARCHIVE_LINUX}.tar.gz ${ARCHIVE_LINUX}
+          tar cvzf ${ARCHIVE_MAC}.tar.gz ${ARCHIVE_MAC}
 
       - name: Setting subject, prerelease and notes files
         if: ${{ contains(env.TAG_NAME, 'nightly') }}
         run: |
-          (echo "SUBJECT=nym-vpn-core-v${{ steps.package-version.outputs.metadata }} nightly prerelease build";
+          (echo "SUBJECT=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }} nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
            echo 'NOTES_FILE=release-notes/nym-vpn-core.md') >> $GITHUB_ENV
           gh release delete nightly --yes || true
@@ -134,7 +142,7 @@ jobs:
       - name: Publish release
         run: |
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
-          gh release create $TAG_NAME ${{ env.PRERELEASE }} --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.UPLOAD_DIR_LINUX }}.tar.gz ${{ env.UPLOAD_DIR_MAC }}.tar.gz
+          gh release create $TAG_NAME ${{ env.PRERELEASE }} --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_MAC }}.tar.gz
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
