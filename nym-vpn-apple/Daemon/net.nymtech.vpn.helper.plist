@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>net.nymtech.vpn.helper</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>Contents/Daemon</string>
+	</array>
+	<key>KeepAlive</key>
+	<true/>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>BundleProgram</key>
+	<string>Contents/Daemon</string>
+	<key>MachServices</key>
+	<dict>
+		<key>net.nymtech.vpn.helper</key>
+		<true/>
+	</dict>
+	<key>Program</key>
+	<string>Contents/Agents/net.nymtech.vpn.helper</string>
+</dict>
+</plist>
