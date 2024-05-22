@@ -24,7 +24,6 @@ jobs:
   build-nym-vpn-core-mac:
     uses: ./.github/workflows/build-nym-vpn-core-mac.yml
 
-
   generate-build-info-core:
     uses: ./.github/workflows/generate-build-info-core.yml
     needs: build-nym-vpn-core-linux
