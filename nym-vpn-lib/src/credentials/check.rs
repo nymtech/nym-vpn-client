@@ -68,11 +68,9 @@ pub async fn check_vpn_credential(
                 Ok(SystemTime::from(freepass_info.expiry_date()))
             }
         }
-        _ => {
-            Err(CheckRawCredentialError::FailedToUnpackRawCredential {
-                source: nym_credentials::Error::NotAFreePass,
-            })
-        }
+        _ => Err(CheckRawCredentialError::FailedToUnpackRawCredential {
+            source: nym_credentials::Error::NotAFreePass,
+        }),
     }
 }
 

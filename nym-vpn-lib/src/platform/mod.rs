@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
-use crate::credentials::{
-    check_vpn_credential_base58, import_credential_base58,
-};
+use crate::credentials::{check_vpn_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
 use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location};
 use crate::{
