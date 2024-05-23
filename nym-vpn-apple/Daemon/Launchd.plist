@@ -15,9 +15,9 @@
 	</dict>
 	<key>Program</key>
 	<string>/Library/PrivilegedHelperTools/net.nymtech.vpn.helper</string>
-	<key>SMAuthorizedClients</key>
+	<key>AssociatedBundleIdentifiers</key>
 	<array>
-		<string>identifier &quot;net.nymtech.vpn&quot;</string>
+		<string>net.nymtech.vpn</string>
 	</array>
 </dict>
 </plist>

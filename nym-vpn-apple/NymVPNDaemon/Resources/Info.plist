@@ -7,7 +7,7 @@
 	<key>SMPrivilegedExecutables</key>
 	<dict>
 		<key>net.nymtech.vpn.helper</key>
-		<string>identifier &quot;net.nymtech.vpn.helper&quot; and anchor apple generic and certificate leaf[subject.CN] = 0x4170706c6520446576656c6f706d656e743a20526f6b617320416d6272617a657669c48d697573202847364853574e4d38423729 and certificate 1[field.1.2.840.113635.100.6.2.1] /* exists */</string>
+		<string>identifier &quot;net.nymtech.vpn.helper&quot; and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = VW5DZLFHM5</string>
 	</dict>
 	<key>CFBundleDisplayName</key>
 	<string>NymVPN</string>
