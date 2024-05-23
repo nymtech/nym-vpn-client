@@ -1,4 +1,4 @@
-name: build-wireguard-go-linux
+name: build-wireguard-go-deb
 on: [workflow_dispatch, workflow_call]
 
 env:
@@ -26,7 +26,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: wireguard-go_ubuntu-22.04_x86_64
+          name: wireguard-go_deb_x86_64
           path: |
             build/lib/x86_64-unknown-linux-gnu
           retention-days: 10

@@ -2,10 +2,7 @@ name: build-nym-vpn-core-deb
 on:
   workflow_dispatch:
   workflow_call:
-    inputs:
-      skip-build-wireguard-go:
-        required: false
-        type: boolean
+
 env:
   CARGO_TERM_COLOR: always
   CARGO_TARGET: release

@@ -2,10 +2,6 @@ name: build-nym-vpn-core-linux
 on:
   workflow_dispatch:
   workflow_call:
-    inputs:
-      skip-build-wireguard-go:
-        required: false
-        type: boolean
     outputs:
       RUST_VERSION:
         value: ${{ jobs.build-linux.outputs.RUST_VERSION }}
@@ -19,10 +15,7 @@ env:
 
 jobs:
   build-wireguard-go-linux:
-    if: ${{ inputs.skip-build-wireguard-go != 'true' }}
     uses: ./.github/workflows/build-wireguard-go-linux.yml
-    with:
-      skip: ${{ inputs.skip-build-wireguard-go == 'true' }}
 
   build-linux:
     needs: build-wireguard-go-linux
