@@ -4,8 +4,7 @@ on:
   workflow_call:
     inputs:
       skip-build-wireguard-go:
-        required: true
-        default: false
+        required: false
         type: boolean
     outputs:
       RUST_VERSION:
@@ -22,7 +21,7 @@ jobs:
   build-wireguard-go-linux:
     uses: ./.github/workflows/build-wireguard-go-linux.yml
     with:
-      skip: ${{ inputs.skip-build-wireguard-go }}
+      skip: ${{ inputs.skip-build-wireguard-go == 'true' }}
 
   build-linux:
     needs: build-wireguard-go-linux

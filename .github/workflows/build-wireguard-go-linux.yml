@@ -4,8 +4,7 @@ on:
   workflow_call:
     inputs:
       skip:
-        required: true
-        default: false
+        required: false
         type: boolean
 
 env:
