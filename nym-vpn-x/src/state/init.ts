@@ -185,14 +185,6 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     },
   };
 
-  const getWelcomeScreenSeenRq: TauriReq<() => Promise<boolean | undefined>> = {
-    name: 'getWelcomeScreenSeen',
-    request: () => kvGet<boolean>('WelcomeScreenSeen'),
-    onFulfilled: (seen) => {
-      dispatch({ type: 'set-welcome-screen', seen: seen || false });
-    },
-  };
-
   const getWindowSizeRq: TauriReq<() => Promise<WindowSize | undefined>> = {
     name: 'getWindowSize',
     request: () => kvGet<WindowSize>('WindowSize'),
@@ -243,7 +235,6 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getDepsRustRq,
     getDepsJsRq,
     getWindowSizeRq,
-    getWelcomeScreenSeenRq,
   ]);
 }
 

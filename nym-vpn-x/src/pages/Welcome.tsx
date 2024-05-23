@@ -18,7 +18,6 @@ function Welcome() {
 
   const handleContinue = async () => {
     kvSet('WelcomeScreenSeen', true).then(() => {
-      dispatch({ type: 'set-welcome-screen', seen: true });
       navigate(routes.root);
     });
   };

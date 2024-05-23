@@ -68,7 +68,6 @@ export type AppState = {
   windowSize?: WindowSize | null;
   fetchEntryCountries: FetchCountriesFn;
   fetchExitCountries: FetchCountriesFn;
-  welcomeScreenSeen: boolean;
 };
 
 export type ConnectionEventPayload = {
