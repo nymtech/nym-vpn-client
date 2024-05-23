@@ -14,7 +14,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-22.04-arc
-    if: ${{ inputs.skip == 'false' }}
+    if: ${{ inputs.skip != 'true' }}
 
     steps:
       - name: Install system dependencies
