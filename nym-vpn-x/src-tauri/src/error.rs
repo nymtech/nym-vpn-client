@@ -104,8 +104,8 @@ impl From<nym_vpn_proto::Error> for BkdError {
     }
 }
 
-/// Enum of the possible typed errors emitted by the daemon and
-/// passed to the UI layer
+/// Enum of the possible specialized errors emitted by the daemon
+/// or the app backend side, to be passed to the UI layer
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
 #[ts(export)]
 pub enum ErrorKey {

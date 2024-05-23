@@ -1,9 +1,7 @@
-export type CmdErrorSource = 'InternalError' | 'CallerError' | 'Unknown';
-
-export interface CmdError {
-  source: CmdErrorSource;
+export interface BkdError {
   message: string;
-  i18n_key?: CmdErrorI18nKey | null;
+  key: BkdErrorKey;
+  data: Record<string, string> | null;
 }
 
 export interface Cli {
@@ -22,8 +20,14 @@ export type DbKey =
   | 'WindowSize'
   | 'WelcomeScreenSeen';
 
-export type CmdErrorI18nKey =
+export type BkdErrorKey =
   | 'UnknownError'
+  | 'InternalError'
+  | 'GrpcError'
+  | 'NotConnectedToDaemon'
+  | 'ConnectionTimeout'
+  | 'ConnectionGatewayLookup'
+  | 'ConnectionNoValidCredential'
   | 'CredentialInvalid'
   | 'CredentialVpnRunning'
   | 'CredentialAlreadyImported'

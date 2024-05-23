@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import { kvSet } from '../kvStore';
 import {
   AppState,
+  BkdError,
   ConnectionEventPayload,
   DaemonStatus,
   ProgressEventPayload,
@@ -14,12 +15,12 @@ import {
 } from '../types';
 import { ConnectionEvent, DaemonEvent, ProgressEvent } from '../constants';
 
-function handleError(dispatch: StateDispatch, error?: string | null) {
+function handleError(dispatch: StateDispatch, error?: BkdError | null) {
   if (!error) {
     dispatch({ type: 'reset-error' });
     return;
   }
-  console.warn('received backend error:', error);
+  console.log('received backend error:', error);
   dispatch({ type: 'set-error', error });
 }
 
@@ -43,7 +44,8 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
         case 'Connected':
           dispatch({
             type: 'set-connected',
-            startTime: event.payload.start_time || dayjs().unix(),
+            startTime:
+              (event.payload.start_time as unknown as number) || dayjs().unix(),
           });
           handleError(dispatch, event.payload.error);
           break;

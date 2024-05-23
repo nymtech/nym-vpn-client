@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMainState } from '../../contexts';
 import { AnimateIn } from '../../ui';
+import { useI18nError } from '../../hooks';
 import ConnectionBadge from './ConnectionBadge';
 import ConnectionTimer from './ConnectionTimer';
 
@@ -10,6 +11,7 @@ function ConnectionStatus() {
   const [showBadge, setShowBadge] = useState(true);
 
   const { t } = useTranslation('home');
+  const { eT } = useI18nError();
 
   useEffect(() => {
     // Quickly hide and show badge when state changes to trigger
@@ -55,7 +57,9 @@ function ConnectionStatus() {
             duration={200}
             className="w-4/5 h-2/3 overflow-auto break-words text-center"
           >
-            <p className="text-sm text-teaberry font-bold">{state.error}</p>
+            <p className="text-sm text-teaberry font-bold">
+              {state.error.key ? eT(state.error.key) : state.error.message}
+            </p>
           </AnimateIn>
         )}
       </div>
