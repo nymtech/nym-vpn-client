@@ -9,11 +9,11 @@ env:
   UPLOAD_DIR_DEB: deb_artifacts
 
 jobs:
-  build-wireguard-go-linux:
-    uses: ./.github/workflows/build-wireguard-go-linux.yml
+  build-wireguard-go-deb:
+    uses: ./.github/workflows/build-wireguard-go-deb.yml
 
   build-linux:
-    needs: build-wireguard-go-linux
+    needs: build-wireguard-go-deb
     runs-on: ubuntu-22.04-arc
     outputs:
       UPLOAD_DIR_DEB: ${{ env.UPLOAD_DIR_DEB }}
