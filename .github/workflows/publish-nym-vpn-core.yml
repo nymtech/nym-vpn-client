@@ -132,8 +132,12 @@ jobs:
           pushd ${{ env.UPLOAD_DIR_DEB }}
           for deb in nym-vpn*_amd64.deb; do
             sha256sum ${deb} > ${deb}.sha256sum
-            cat ${deb}.sha256sum >> $SHA256_CHECKSUMS
           done
+          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
+          for deb_sha256 in nym-vpn*_amd64.deb.sha256sum; do
+            cat ${deb_sha256} >> $SHA256_CHECKSUMS
+          done
+          echo 'EOF' >> $GITHUB_ENV
 
       - name: Setting subject, prerelease and notes files
         if: ${{ contains(env.TAG_NAME, 'nightly') }}
