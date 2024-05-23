@@ -21,6 +21,8 @@ env:
 jobs:
   build-wireguard-go-linux:
     uses: ./.github/workflows/build-wireguard-go-linux.yml
+    with:
+      skip: false
 
   build-nym-vpn-core-linux:
     uses: ./.github/workflows/build-nym-vpn-core-linux.yml
