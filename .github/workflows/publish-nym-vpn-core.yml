@@ -25,9 +25,13 @@ jobs:
   build-nym-vpn-core-linux:
     uses: ./.github/workflows/build-nym-vpn-core-linux.yml
     needs: build-wireguard-go-linux
+    with:
+      skip-build-wireguard-go: true
   build-nym-vpn-core-deb:
     uses: ./.github/workflows/build-nym-vpn-core-deb.yml
     needs: build-wireguard-go-linux
+    with:
+      skip-build-wireguard-go: true
   build-nym-vpn-core-mac:
     uses: ./.github/workflows/build-nym-vpn-core-mac.yml
 
