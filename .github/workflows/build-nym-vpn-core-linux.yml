@@ -4,7 +4,8 @@ on:
   workflow_call:
     inputs:
       skip-build-wireguard-go:
-        required: false
+        required: true
+        default: false
         type: boolean
     outputs:
       RUST_VERSION:
