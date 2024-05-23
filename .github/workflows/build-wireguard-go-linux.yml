@@ -1,5 +1,11 @@
 name: build-wireguard-go-linux
-on: [workflow_dispatch, workflow_call]
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      skip:
+        required: false
+        type: boolean
 
 env:
   CARGO_TERM_COLOR: always
@@ -7,6 +13,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-22.04-arc
+    if: ${{ inputs.skip == 'false' }}
 
     steps:
       - name: Install system dependencies
