@@ -23,7 +23,7 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make libfuse2 librsvg2-bin
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
 
       - name: Install rust toolchain
         uses: brndnmtthws/rust-action-rustup@v1
