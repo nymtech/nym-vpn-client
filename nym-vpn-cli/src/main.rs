@@ -153,8 +153,6 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.vpn_config.wg_gateway_config = wg_gateway_config;
         nym_vpn.vpn_config.entry_private_key = args.entry_private_key;
         nym_vpn.vpn_config.exit_private_key = args.exit_private_key;
-        nym_vpn.vpn_config.entry_wg_ip = args.entry_wg_ip;
-        nym_vpn.vpn_config.exit_wg_ip = args.exit_wg_ip;
         nym_vpn.into()
     } else {
         let mut nym_vpn = NymVpn::new_mixnet_vpn(entry_point, exit_point);

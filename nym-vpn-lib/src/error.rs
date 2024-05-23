@@ -223,6 +223,9 @@ pub enum Error {
     FailedToLookupRouterAddress {
         source: nym_gateway_directory::Error,
     },
+
+    #[error("failed to register wireguard key")]
+    FailedWireguardRegistration,
 }
 
 // Result type based on our error type

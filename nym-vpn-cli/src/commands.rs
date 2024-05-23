@@ -11,7 +11,6 @@ use std::{
     sync::OnceLock,
 };
 
-const WG_IP_SUBNET: &str = "10.1.0.0/16";
 const TUN_IP4_SUBNET: &str = "10.0.0.0/16";
 const TUN_IP6_SUBNET: &str = "2001:db8:a160::0/112";
 
@@ -58,27 +57,17 @@ pub(crate) struct RunArgs {
         long,
         default_value_t = false,
         requires = "entry_private_key",
-        requires = "exit_private_key",
-        requires = "entry_wg_ip",
-        requires = "exit_wg_ip"
+        requires = "exit_private_key"
     )]
     pub(crate) enable_wireguard: bool,
 
     /// Associated entry private key.
-    #[arg(long, requires = "enable_wireguard", requires = "entry_wg_ip")]
+    #[arg(long, requires = "enable_wireguard")]
     pub(crate) entry_private_key: Option<String>,
 
     /// Associated exit private key.
-    #[arg(long, requires = "enable_wireguard", requires = "exit_wg_ip")]
+    #[arg(long, requires = "enable_wireguard")]
     pub(crate) exit_private_key: Option<String>,
-
-    /// The IP address of the entry wireguard interface used for the first hop to the entry gateway.
-    #[arg(long, value_parser = validate_wg_ip, requires = "enable_wireguard")]
-    pub(crate) entry_wg_ip: Option<Ipv4Addr>,
-
-    /// The IP address of the exit wireguard interface used for the first hop to the entry gateway.
-    #[arg(long, value_parser = validate_wg_ip, requires = "enable_wireguard")]
-    pub(crate) exit_wg_ip: Option<Ipv4Addr>,
 
     /// The IPv4 address of the nym TUN device that wraps IP packets in sphinx packets.
     #[arg(long, alias = "ipv4", value_parser = validate_ipv4, requires = "nym_ipv6")]
@@ -172,18 +161,6 @@ pub(crate) struct ImportCredentialType {
     /// Path to the credential file.
     #[arg(long, value_parser = check_path)]
     pub(crate) credential_path: Option<PathBuf>,
-}
-
-fn validate_wg_ip(ip: &str) -> Result<Ipv4Addr, String> {
-    let ip = Ipv4Addr::from_str(ip).map_err(|err| err.to_string())?;
-    let network = Ipv4Network::from_str(WG_IP_SUBNET).unwrap();
-    if !network.contains(ip) {
-        return Err(format!("IP address must be in the range {}", network));
-    }
-    if ip == Ipv4Addr::new(10, 1, 0, 1) {
-        return Err("IP address cannot be 10.1.0.1".to_string());
-    }
-    Ok(ip)
 }
 
 fn validate_ipv4(ip: &str) -> Result<Ipv4Addr, String> {
