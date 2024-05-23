@@ -1,0 +1,82 @@
+name: build-nym-vpn-core-ios
+on:
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      RUST_VERSION:
+        value: ${{ jobs.build-ios.outputs.RUST_VERSION }}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TARGET: release
+  WG_GO_LIB_PATH: ${{ github.workspace }}/lib
+  WG_GO_LIB_NAME: wireguard-go_apple_universal
+  UPLOAD_DIR_IOS: ios_artifacts
+
+jobs:
+  build-wireguard-go-ios:
+    uses: ./.github/workflows/build-wireguard-go-mac.yml
+
+  build-ios:
+    needs: build-wireguard-go-ios
+    runs-on: macos-14
+    outputs:
+      UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
+      RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Install extra arch apple
+        run: |
+          rustup target add x86_64-apple-darwin
+          rustup target add aarch64-apple-ios
+          rustup target add x86_64-apple-ios
+          rustup target add aarch64-apple-ios-sim
+
+      - name: Setup cargo swift
+        run: |
+          cargo install --git https://github.com/neacsu/cargo-swift.git
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v2
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download wireguard-go artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WG_GO_LIB_NAME }}
+          path: ${{ env.WG_GO_LIB_PATH }}
+
+      - name: Build nym-vpn-lib
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: |
+          (cd nym-vpn-lib; cargo swift package -p ios -n NymVpnLib --${{ env.CARGO_TARGET }})
+          ls -la target/release/ || true
+
+      - name: Get rust version used for build
+        id: rust-version
+        run: |
+          echo "rustc=$(rustc -V)" >> $GITHUB_OUTPUT
+
+      - name: Move things around to prepare for upload
+        env:
+          SRC_DIR: nym-vpn-lib/NymVpnLib/RustFramework.xcframework
+        run: |
+          mkdir ${{ env.UPLOAD_DIR_IOS }}
+          cp -vpr ${{ env.SRC_DIR }} ${{ env.UPLOAD_DIR_IOS }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_IOS }}
+          path: ${{ env.UPLOAD_DIR_IOS }}
+          retention-days: 1
