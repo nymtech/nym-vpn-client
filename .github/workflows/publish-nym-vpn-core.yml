@@ -122,18 +122,17 @@ jobs:
 
           sha256sum ${ARCHIVE_LINUX}.tar.gz > "${ARCHIVE_LINUX}.tar.gz.sha256sum"
           sha256sum ${ARCHIVE_MAC}.tar.gz > "${ARCHIVE_MAC}.tar.gz.sha256sum"
-          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          cat ${ARCHIVE_LINUX}.tar.gz.sha256sum >> $GITHUB_ENV
-          cat ${ARCHIVE_MAC}.tar.gz.sha256sum >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
 
-      - name: Generate checksums for debian packages
-        run: |
           pushd ${{ env.UPLOAD_DIR_DEB }}
           for deb in nym-vpn*_amd64.deb; do
             sha256sum ${deb} > ${deb}.sha256sum
           done
+          popd
+
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
+          cat ${ARCHIVE_LINUX}.tar.gz.sha256sum >> $GITHUB_ENV
+          cat ${ARCHIVE_MAC}.tar.gz.sha256sum >> $GITHUB_ENV
+          pushd ${{ env.UPLOAD_DIR_DEB }}
           for deb_sha256 in nym-vpn*_amd64.deb.sha256sum; do
             cat ${deb_sha256} >> $GITHUB_ENV
           done
