@@ -16,6 +16,7 @@ env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_LINUX: linux_artifacts
   UPLOAD_DIR_MAC: mac_artifacts
+  UPLOAD_DIR_DEB: deb_artifacts
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -106,7 +107,7 @@ jobs:
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
-      - name: Generate checksum and tar folder per platform
+      - name: Generate checksums and create tar.gz archive per platform
         run: |
           ARCHIVE_LINUX=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_linux_x86_64
           ARCHIVE_MAC=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_macos_aarch64
@@ -121,15 +122,21 @@ jobs:
 
           sha256sum ${ARCHIVE_LINUX}.tar.gz > "${ARCHIVE_LINUX}.tar.gz.sha256sum"
           sha256sum ${ARCHIVE_MAC}.tar.gz > "${ARCHIVE_MAC}.tar.gz.sha256sum"
+
+          pushd ${{ env.UPLOAD_DIR_DEB }}
+          for deb in nym-vpn*_amd64.deb; do
+            sha256sum ${deb} > ${deb}.sha256sum
+          done
+          popd
+
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat ${ARCHIVE_LINUX}.tar.gz.sha256sum >> $GITHUB_ENV
           cat ${ARCHIVE_MAC}.tar.gz.sha256sum >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
-
-          for deb in nym-vpn*_amd64.deb; do
-            sha256sum ${deb} > ${deb}.sha256sum
-            cat ${deb}.sha256sum >> $GITHUB_ENV
+          pushd ${{ env.UPLOAD_DIR_DEB }}
+          for deb_sha256 in nym-vpn*_amd64.deb.sha256sum; do
+            cat ${deb_sha256} >> $GITHUB_ENV
           done
+          echo 'EOF' >> $GITHUB_ENV
 
       - name: Setting subject, prerelease and notes files
         if: ${{ contains(env.TAG_NAME, 'nightly') }}
@@ -156,7 +163,7 @@ jobs:
       - name: Publish release
         run: |
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
-          gh release create $TAG_NAME ${{ env.PRERELEASE }} --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum ${{ env.ARCHIVE_MAC }}.tar.gz ${{ env.ARCHIVE_MAC }}.tar.gz.sha256sum nym-vpn*_amd64.deb nym-vpn*_amd64.deb.sha256sum
+          gh release create $TAG_NAME ${{ env.PRERELEASE }} --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum ${{ env.ARCHIVE_MAC }}.tar.gz ${{ env.ARCHIVE_MAC }}.tar.gz.sha256sum ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
