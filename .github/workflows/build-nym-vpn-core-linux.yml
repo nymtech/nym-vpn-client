@@ -19,6 +19,7 @@ env:
 
 jobs:
   build-wireguard-go-linux:
+    if: ${{ inputs.skip-build-wireguard-go != 'true' }}
     uses: ./.github/workflows/build-wireguard-go-linux.yml
     with:
       skip: ${{ inputs.skip-build-wireguard-go == 'true' }}
