@@ -19,10 +19,15 @@ env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
+  build-wireguard-go-linux:
+    uses: ./.github/workflows/build-wireguard-go-linux.yml
+
   build-nym-vpn-core-linux:
     uses: ./.github/workflows/build-nym-vpn-core-linux.yml
+    needs: build-wireguard-go-linux
   build-nym-vpn-core-deb:
     uses: ./.github/workflows/build-nym-vpn-core-deb.yml
+    needs: build-wireguard-go-linux
   build-nym-vpn-core-mac:
     uses: ./.github/workflows/build-nym-vpn-core-mac.yml
 
