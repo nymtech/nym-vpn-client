@@ -4,7 +4,7 @@ use tauri::State;
 use tracing::{debug, info, instrument, warn};
 
 use crate::{
-    error::{CmdError, CmdErrorSource, I18nKey},
+    error::{BkdError, ErrorKey},
     grpc::client::GrpcClient,
 };
 
@@ -13,16 +13,12 @@ use crate::{
 pub async fn add_credential(
     credential: String,
     grpc: State<'_, Arc<GrpcClient>>,
-) -> Result<(), CmdError> {
+) -> Result<(), BkdError> {
     debug!("add_credential");
 
     let bytes = bs58::decode(credential).into_vec().map_err(|e| {
         info!("failed to decode base58 credential: {:?}", e);
-        CmdError::new_with_local(
-            CmdErrorSource::CallerError,
-            "bad credential format",
-            I18nKey::CredentialInvalid,
-        )
+        BkdError::new("bad credential format", ErrorKey::CredentialInvalid)
     })?;
 
     let res = grpc.import_credential(bytes).await?;
@@ -31,12 +27,8 @@ pub async fn add_credential(
         Ok(())
     } else {
         warn!("failed to import credential");
-        let error = res.error.map(|e| e.kind().into()).unwrap_or_else(|| {
-            CmdError::new_with_local(
-                CmdErrorSource::InternalError,
-                "failed to import credential",
-                I18nKey::UnknownError,
-            )
+        let error = res.error.map(|e| e.into()).unwrap_or_else(|| {
+            BkdError::new("failed to import credential", ErrorKey::UnknownError)
         });
         Err(error)
     }

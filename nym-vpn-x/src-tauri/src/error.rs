@@ -1,6 +1,10 @@
-use std::fmt::{self, Display};
+use std::{
+    collections::HashMap,
+    fmt::{self, Display},
+};
 
 use nym_vpn_proto::import_error::ImportErrorType;
+use nym_vpn_proto::{error::ErrorType as DaemonError, ImportError};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
@@ -20,100 +24,159 @@ pub enum CmdErrorSource {
     Unknown,
 }
 
-#[derive(Error, Debug, Serialize, Deserialize, TS)]
+#[derive(Error, Debug, Serialize, Deserialize, TS, Clone)]
 #[ts(export)]
-pub struct CmdError {
-    #[source]
-    pub source: CmdErrorSource,
+/// Generic error type made to be passed to the frontend and
+/// displayed in the UI as localized error message
+/// `Bkd` stands for 'Backend', source side from where the error is emitted
+pub struct BkdError {
+    /// Human readable error message for debugging/logs purposes
     pub message: String,
-    pub i18n_key: Option<I18nKey>,
+    /// Error key to be used in the UI to display localized error message
+    pub key: ErrorKey,
+    /// Extra data to be passed along to help specialize the problem
+    pub data: Option<HashMap<String, String>>,
 }
 
-impl CmdError {
-    pub fn new(error: CmdErrorSource, message: &str) -> Self {
+impl BkdError {
+    pub fn new(message: &str, key: ErrorKey) -> Self {
         Self {
             message: message.to_string(),
-            source: error,
-            i18n_key: None,
+            key,
+            data: None,
         }
     }
 
-    pub fn new_with_local(error: CmdErrorSource, message: &str, key: I18nKey) -> Self {
+    pub fn new_with_data(
+        message: &str,
+        key: ErrorKey,
+        data: Option<HashMap<String, String>>,
+    ) -> Self {
         Self {
             message: message.to_string(),
-            source: error,
-            i18n_key: Some(key),
+            key,
+            data,
+        }
+    }
+
+    pub fn new_internal(message: &str, data: Option<HashMap<String, String>>) -> Self {
+        Self {
+            message: message.to_string(),
+            key: ErrorKey::InternalError,
+            data,
         }
     }
 }
 
-impl Display for CmdError {
+impl Display for BkdError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}: {}", self.source, self.message)
+        write!(
+            f,
+            "message '{}' key [{:?}] data [{:?}]",
+            self.message,
+            self.key,
+            self.data.as_ref()
+        )
     }
 }
 
-impl From<VpndError> for CmdError {
+impl From<VpndError> for BkdError {
     fn from(error: VpndError) -> Self {
         match error {
-            VpndError::RpcError(s) => CmdError::new(
-                CmdErrorSource::DaemonError,
-                &format!("failed to call the daemon: {}", s),
-            ),
-            VpndError::FailedToConnectIpc(_) | VpndError::FailedToConnectHttp(_) => {
-                CmdError::new(CmdErrorSource::DaemonError, "not connected to the daemon")
+            VpndError::GrpcError(s) => {
+                BkdError::new(&format!("grpc error: {}", s), ErrorKey::GrpcError)
             }
+            VpndError::FailedToConnectIpc(_) | VpndError::FailedToConnectHttp(_) => BkdError::new(
+                "not connected to the daemon",
+                ErrorKey::NotConnectedToDaemon,
+            ),
         }
     }
 }
 
-/// Enum of the localization keys for error messages
-/// displayed in the UI
-#[derive(Debug, Serialize, Deserialize, TS)]
+impl From<nym_vpn_proto::Error> for BkdError {
+    fn from(error: nym_vpn_proto::Error) -> Self {
+        Self {
+            message: error.message.clone(),
+            key: error.kind().into(),
+            data: error.details.into(),
+        }
+    }
+}
+
+/// Enum of the possible typed errors emitted by the daemon and
+/// passed to the UI layer
+#[derive(Debug, Serialize, Deserialize, TS, Clone)]
 #[ts(export)]
-pub enum I18nKey {
+pub enum ErrorKey {
+    /// Any unhandled error
     UnknownError,
+    /// Any error that is not explicitly handled
+    /// Extra data should be passed along to help specialize the problem
+    InternalError,
+    /// gRPC bare layer error, when a RPC call fails (aka `Tonic::Status`)
+    /// That is, the error does not come from the application layer
+    GrpcError,
+    /// Happens when the app is not connected to a running daemon
+    /// and attempts to make a gRPC call
+    NotConnectedToDaemon,
+    /// Forwarded from proto
+    ConnectionTimeout,
+    /// Forwarded from proto
+    ConnectionGatewayLookup,
+    /// Forwarded from proto
+    ConnectionNoValidCredential,
+    /// Forwarded from proto
     CredentialInvalid,
+    /// Forwarded from proto
     CredentialVpnRunning,
+    /// Forwarded from proto
     CredentialAlreadyImported,
+    /// Forwarded from proto
     CredentialStorageError,
+    /// Forwarded from proto
     CredentialDeserializationFailure,
+    /// Forwarded from proto
     CredentialExpired,
 }
 
-impl From<ImportErrorType> for CmdError {
-    fn from(error: ImportErrorType) -> Self {
-        match error {
-            ImportErrorType::Unspecified => CmdError::new_with_local(
-                CmdErrorSource::InternalError,
-                "grpc unspecified",
-                I18nKey::UnknownError,
-            ),
-            ImportErrorType::VpnRunning => CmdError::new_with_local(
-                CmdErrorSource::CallerError,
-                "vpn running",
-                I18nKey::CredentialVpnRunning,
-            ),
-            ImportErrorType::CredentialAlreadyImported => CmdError::new_with_local(
-                CmdErrorSource::CallerError,
+impl From<DaemonError> for ErrorKey {
+    fn from(value: DaemonError) -> Self {
+        match value {
+            DaemonError::NoValidCredentials => ErrorKey::ConnectionNoValidCredential,
+            DaemonError::Timeout => ErrorKey::ConnectionTimeout,
+            DaemonError::GatewayDirectory => ErrorKey::ConnectionGatewayLookup,
+            _ => ErrorKey::UnknownError,
+        }
+    }
+}
+
+impl From<ImportError> for BkdError {
+    fn from(error: ImportError) -> Self {
+        let data = error.details.clone().into();
+        match error.kind() {
+            ImportErrorType::Unspecified => BkdError::new_internal("grpc unspecified", data),
+            ImportErrorType::VpnRunning => {
+                BkdError::new_with_data("vpn running", ErrorKey::CredentialVpnRunning, data)
+            }
+            ImportErrorType::CredentialAlreadyImported => BkdError::new_with_data(
                 "credential already imported",
-                I18nKey::CredentialAlreadyImported,
+                ErrorKey::CredentialAlreadyImported,
+                data,
             ),
-            ImportErrorType::StorageError => CmdError::new_with_local(
-                CmdErrorSource::InternalError,
+            ImportErrorType::StorageError => BkdError::new_with_data(
                 "credential strorage error",
-                I18nKey::CredentialStorageError,
+                ErrorKey::CredentialStorageError,
+                data,
             ),
-            ImportErrorType::DeserializationFailure => CmdError::new_with_local(
-                CmdErrorSource::InternalError,
+            ImportErrorType::DeserializationFailure => BkdError::new_with_data(
                 "credential deserialization failure",
-                I18nKey::CredentialDeserializationFailure,
+                ErrorKey::CredentialDeserializationFailure,
+                data,
             ),
-            ImportErrorType::CredentialExpired => CmdError::new_with_local(
-                CmdErrorSource::CallerError,
-                "credential expired",
-                I18nKey::CredentialExpired,
-            ),
+            ImportErrorType::CredentialExpired => {
+                BkdError::new_with_data("credential expired", ErrorKey::CredentialExpired, data)
+            }
         }
     }
 }

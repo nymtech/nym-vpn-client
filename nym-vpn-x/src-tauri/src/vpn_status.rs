@@ -1,3 +1,4 @@
+use crate::error::BkdError;
 use crate::events::{ConnectionEventPayload, EVENT_CONNECTION_STATE};
 use crate::states::{app::ConnectionState, SharedAppState};
 use anyhow::Result;
@@ -9,7 +10,7 @@ use tracing::{info, instrument, trace, warn};
 pub async fn update(
     app: &tauri::AppHandle,
     status: ConnectionState,
-    error: Option<String>,
+    error: Option<BkdError>,
 ) -> Result<()> {
     let state = app.state::<SharedAppState>();
     trace!("vpn status: {:?}", status);

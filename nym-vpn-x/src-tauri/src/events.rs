@@ -1,7 +1,8 @@
 use tauri::Manager;
 use tracing::{debug, trace};
+use ts_rs::TS;
 
-use crate::{grpc::client::VpndStatus, states::app::ConnectionState};
+use crate::{error::BkdError, grpc::client::VpndStatus, states::app::ConnectionState};
 
 pub const EVENT_VPND_STATUS: &str = "vpnd-status";
 pub const EVENT_CONNECTION_STATE: &str = "connection-state";
@@ -18,15 +19,16 @@ pub struct ProgressEventPayload {
     pub key: ConnectProgressMsg,
 }
 
-#[derive(Clone, serde::Serialize)]
+#[derive(Clone, serde::Serialize, TS)]
+#[ts(export)]
 pub struct ConnectionEventPayload {
     state: ConnectionState,
-    error: Option<String>,
+    error: Option<BkdError>,
     start_time: Option<i64>, // unix timestamp in seconds
 }
 
 impl ConnectionEventPayload {
-    pub fn new(state: ConnectionState, error: Option<String>, start_time: Option<i64>) -> Self {
+    pub fn new(state: ConnectionState, error: Option<BkdError>, start_time: Option<i64>) -> Self {
         Self {
             state,
             error,
@@ -39,7 +41,7 @@ pub trait AppHandleEventEmitter {
     fn emit_vpnd_status(&self, status: VpndStatus);
     fn emit_connecting(&self);
     fn emit_disconnecting(&self);
-    fn emit_disconnected(&self, error: Option<String>);
+    fn emit_disconnected(&self, error: Option<BkdError>);
     fn emit_connection_progress(&self, key: ConnectProgressMsg);
 }
 
@@ -66,7 +68,7 @@ impl AppHandleEventEmitter for tauri::AppHandle {
         .ok();
     }
 
-    fn emit_disconnected(&self, error: Option<String>) {
+    fn emit_disconnected(&self, error: Option<BkdError>) {
         debug!("sending event [{}]: Disconnected", EVENT_CONNECTION_STATE);
         self.emit_all(
             EVENT_CONNECTION_STATE,
