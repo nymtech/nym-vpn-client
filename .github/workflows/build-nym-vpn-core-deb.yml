@@ -1,7 +1,5 @@
 name: build-nym-vpn-core-deb
-on:
-  workflow_dispatch:
-  workflow_call:
+on: [workflow_dispatch, workflow_call]
 
 env:
   CARGO_TERM_COLOR: always
@@ -13,8 +11,6 @@ env:
 jobs:
   build-wireguard-go-linux:
     uses: ./.github/workflows/build-wireguard-go-linux.yml
-    with:
-      skip: ${{ inputs.skip-build-wireguard-go == 'true' }}
 
   build-linux:
     needs: build-wireguard-go-linux
