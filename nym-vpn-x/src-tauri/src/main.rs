@@ -40,7 +40,7 @@ mod system_tray;
 mod vpn_status;
 mod window;
 
-pub const APP_DIR: &str = "nym-vpn-x";
+pub const APP_DIR: &str = "nymvpn-x";
 const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);

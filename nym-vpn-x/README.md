@@ -132,23 +132,17 @@ TAURI_PRIVATE_KEY=1234 TAURI_KEY_PASSWORD=1234 npm run tauri build
 
 ## Custom app config
 
-The app looks for the config file `config.toml` under `nym-vpn-x`
+The app looks for the config file `config.toml` under `nymvpn-x`
 directory, full path is platform specific:
 
-- Linux: `$XDG_CONFIG_HOME/nym-vpn-x/` or `$HOME/.config/nym-vpn-x/`
-- macOS: `$HOME/Library/Application Support/nym-vpn-x/`
-- Windows: `C:\Users\<USER>\AppData\Roaming\nym-vpn-x\`
+- Linux: `$XDG_CONFIG_HOME/nymvpn-x/` or `$HOME/.config/nymvpn-x/`
+- macOS: `$HOME/Library/Application Support/nymvpn-x/`
+- Windows: `C:\Users\<USER>\AppData\Roaming\nymvpn-x\`
 
 For example on Linux the full path would be
-`~/.config/nym-vpn-x/config.toml`.
+`~/.config/nymvpn-x/config.toml`.
+
+You can find the supported properties in the
+[config schema](https://github.com/nymtech/nym-vpn-client/blob/main/nym-vpn-x/src-tauri/src/fs/config.rs)
 
 **NOTE** All properties are optional
-
-```toml
-# absolute path to a custom network configuration file
-env_config_file = "/home/<USER>/.config/nym-vpn-x/custom.env"
-# Address of NymVpn daemon to connect to (gRPC server endpoint)
-daemon_address = "http://localhost:1234"
-# IP address of the DNS server to use when connected to the VPN
-dns_server = "1.1.1.1"
-```

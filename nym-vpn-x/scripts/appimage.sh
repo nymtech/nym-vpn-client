@@ -72,6 +72,7 @@ temp_dir=$(mktemp -d)
 data_home=${XDG_DATA_HOME:-$HOME/.local/share}
 state_home=${XDG_STATE_HOME:-$HOME/.local/state}
 xdg_bin_home="$HOME/.local/bin"
+app_dir="nymvpn-x"
 usr_bin_dir="/usr/bin"
 # default installation directory
 install_dir="$xdg_bin_home"
@@ -176,7 +177,7 @@ _install() {
   _popd
   install -Dm644 "$temp_dir/nymvpn-x.desktop" "$desktop_dir/nymvpn-x.desktop"
   install -Dm644 "$temp_dir/nym-vpn.svg" "$icons_dir/nym-vpn.svg"
-  install -Dm755 -d "$state_home/nym-vpn-x"
+  install -Dm755 -d "$state_home/$app_dir"
   path=$(tilded "$desktop_dir/nymvpn-x.desktop")
   log "   ${B_GRN}Installed$RS $path"
 }
