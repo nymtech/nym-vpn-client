@@ -17,6 +17,8 @@ env:
   UPLOAD_DIR_LINUX: linux_artifacts
   UPLOAD_DIR_MAC: mac_artifacts
   UPLOAD_DIR_DEB: deb_artifacts
+  UPLOAD_DIR_ANDROID: android_artifacts
+  UPLOAD_DIR_IOS: ios_artifacts
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -26,6 +28,10 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-core-deb.yml
   build-nym-vpn-core-mac:
     uses: ./.github/workflows/build-nym-vpn-core-mac.yml
+  build-nym-vpn-core-android:
+    uses: ./.github/workflows/build-nym-vpn-core-android.yml
+  build-nym-vpn-core-ios:
+    uses: ./.github/workflows/build-nym-vpn-core-ios.yml
 
   generate-build-info-core:
     uses: ./.github/workflows/generate-build-info-core.yml
@@ -39,6 +45,8 @@ jobs:
       - build-nym-vpn-core-linux
       - build-nym-vpn-core-mac
       - build-nym-vpn-core-deb
+      - build-nym-vpn-core-android
+      - build-nym-vpn-core-ios
       - generate-build-info-core
     runs-on: ubuntu-22.04-arc
     permissions:
@@ -110,18 +118,28 @@ jobs:
       - name: Generate checksums and create tar.gz archive per platform
         run: |
           ARCHIVE_LINUX=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_linux_x86_64
-          ARCHIVE_MAC=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_macos_aarch64
+          ARCHIVE_MAC=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_macos_universal
+          ARCHIVE_ANDROID=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_android_aarch64.tar.gz
+          ARCHIVE_IOS=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_ios_universal.tar.gz
           echo "ARCHIVE_LINUX=${ARCHIVE_LINUX}" >> $GITHUB_ENV
           echo "ARCHIVE_MAC=${ARCHIVE_MAC}" >> $GITHUB_ENV
+          echo "ARCHIVE_ANDROID=${ARCHIVE_ANDROID}" >> $GITHUB_ENV
+          echo "ARCHIVE_IOS=${ARCHIVE_IOS}" >> $GITHUB_ENV
 
           mv ${{ env.UPLOAD_DIR_LINUX }} ${ARCHIVE_LINUX}
           mv ${{ env.UPLOAD_DIR_MAC }} ${ARCHIVE_MAC}
+          mv ${{ env.UPLOAD_DIR_ANDROID }} ${ARCHIVE_ANDROID}
+          mv ${{ env.UPLOAD_DIR_IOS }} ${ARCHIVE_IOS}
 
           tar cvzf ${ARCHIVE_LINUX}.tar.gz ${ARCHIVE_LINUX}
           tar cvzf ${ARCHIVE_MAC}.tar.gz ${ARCHIVE_MAC}
+          tar cvzf ${ARCHIVE_ANDROID}.tar.gz ${ARCHIVE_ANDROID}
+          tar cvzf ${ARCHIVE_IOS}.tar.gz ${ARCHIVE_IOS}
 
           sha256sum ${ARCHIVE_LINUX}.tar.gz > "${ARCHIVE_LINUX}.tar.gz.sha256sum"
           sha256sum ${ARCHIVE_MAC}.tar.gz > "${ARCHIVE_MAC}.tar.gz.sha256sum"
+          sha256sum ${ARCHIVE_ANDROID}.tar.gz > "${ARCHIVE_ANDROID}.tar.gz.sha256sum"
+          sha256sum ${ARCHIVE_IOS}.tar.gz > "${ARCHIVE_IOS}.tar.gz.sha256sum"
 
           pushd ${{ env.UPLOAD_DIR_DEB }}
           for deb in nym-vpn*_amd64.deb; do
@@ -132,6 +150,8 @@ jobs:
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat ${ARCHIVE_LINUX}.tar.gz.sha256sum >> $GITHUB_ENV
           cat ${ARCHIVE_MAC}.tar.gz.sha256sum >> $GITHUB_ENV
+          cat ${ARCHIVE_ANDROID}.tar.gz.sha256sum >> $GITHUB_ENV
+          cat ${ARCHIVE_IOS}.tar.gz.sha256sum >> $GITHUB_ENV
           pushd ${{ env.UPLOAD_DIR_DEB }}
           for deb_sha256 in nym-vpn*_amd64.deb.sha256sum; do
             cat ${deb_sha256} >> $GITHUB_ENV
@@ -163,7 +183,7 @@ jobs:
       - name: Publish release
         run: |
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
-          gh release create $TAG_NAME ${{ env.PRERELEASE }} --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum ${{ env.ARCHIVE_MAC }}.tar.gz ${{ env.ARCHIVE_MAC }}.tar.gz.sha256sum ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
+          gh release create $TAG_NAME ${{ env.PRERELEASE }} --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum ${{ env.ARCHIVE_MAC }}.tar.gz ${{ env.ARCHIVE_MAC }}.tar.gz.sha256sum ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum ${{ env.ARCHIVE_IOS }}.tar.gz ${{ env.ARCHIVE_IOS }}.tar.gz.sha256sum ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml

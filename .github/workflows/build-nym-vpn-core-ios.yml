@@ -15,7 +15,7 @@ env:
 
 jobs:
   build-wireguard-go-ios:
-    uses: ./.github/workflows/build-wireguard-go-mac.yml
+    uses: ./.github/workflows/build-wireguard-go-ios.yml
 
   build-ios:
     needs: build-wireguard-go-ios
