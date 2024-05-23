@@ -1,0 +1,83 @@
+name: build-nym-vpn-core-android
+on:
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      RUST_VERSION:
+        value: ${{ jobs.build-android.outputs.RUST_VERSION }}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TARGET: release
+  WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib/aarch64-linux-android
+  WG_GO_LIB_NAME: wireguard-go_aarch64-linux-android
+  UPLOAD_DIR_ANDROID: android_artifacts
+
+jobs:
+  build-wireguard-go-android:
+    uses: ./.github/workflows/build-wireguard-go-android.yml
+
+  build-android:
+    needs: build-wireguard-go-android
+    runs-on: ubuntu-20.04
+    outputs:
+      UPLOAD_DIR_ANDROID: ${{ env.UPLOAD_DIR_ANDROID }}
+      RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Add android target
+        run: |
+          rustup target install aarch64-linux-android
+
+      - name: Setup Android SDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25c
+
+      - name: Add cargo-ndk, add target
+        run: |
+          cargo install cargo-ndk
+
+      - name: Download wireguard-go artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WG_GO_LIB_NAME }}
+          path: ${{ env.WG_GO_LIB_PATH }}
+
+      - name: Build nym-vpn-core for android
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: |
+          (cd nym-vpn-lib; cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --${{ env.CARGO_TARGET }})
+          ls -la ../target/aarch64-linux-android/release/ || true
+
+      - name: Get rust version used for build
+        id: rust-version
+        run: |
+          echo "rustc=$(rustc -V)" >> $GITHUB_OUTPUT
+
+      - name: Move things around to prepare for upload
+        env:
+          SRC_BINARY: target/aarch64-linux-android/${{ env.CARGO_TARGET }}/
+        run: |
+          mkdir ${{ env.UPLOAD_DIR_ANDROID }}
+          cp -vpr ${{ env.SRC_BINARY }}/libnym_vpn_lib.so ${{ env.UPLOAD_DIR_ANDROID }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_ANDROID }}
+          path: ${{ env.UPLOAD_DIR_ANDROID }}
+          retention-days: 1
