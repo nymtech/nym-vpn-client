@@ -135,7 +135,7 @@ jobs:
           done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           for deb_sha256 in nym-vpn*_amd64.deb.sha256sum; do
-            cat ${deb_sha256} >> $SHA256_CHECKSUMS
+            cat ${deb_sha256} >> $GITHUB_ENV
           done
           echo 'EOF' >> $GITHUB_ENV
 
