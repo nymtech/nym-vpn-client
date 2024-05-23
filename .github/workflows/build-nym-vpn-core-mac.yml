@@ -27,6 +27,10 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
+      - name: Install extra arch apple
+        run: |
+          rustup target add x86_64-apple-darwin
+
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
@@ -38,22 +42,30 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
-      - name: Build nym-vpn
+      - name: Build nym-vpn-core (native)
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
           cargo build --${{ env.CARGO_TARGET }}
           ls -la target/release/ || true
 
-      - name: Move things around to prepare for upload
+      - name: Build nym-vpn-core (x86_64)
         env:
-          SRC_BINARY: target/${{ env.CARGO_TARGET }}/
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: |
+          cargo build --${{ env.CARGO_TARGET }} --target x86_64-apple-darwin
+          ls -la target/x86_64-apple-darwin/release/ || true
+
+      - name: Create universal binaries and prepare for upload
+        env:
+          SRC_NATIVE_BINARY: target/${{ env.CARGO_TARGET }}/
+          SRC_X86_64_BINARY: target/x86_64-apple-darwin/${{ env.CARGO_TARGET }}/
         run: |
           mkdir ${{ env.UPLOAD_DIR_MAC }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_MAC }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-vpn-cli ${{ env.UPLOAD_DIR_MAC }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc ${{ env.UPLOAD_DIR_MAC }}
-          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd ${{ env.UPLOAD_DIR_MAC }}
+          lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpn-cli ${{ env.SRC_NATIVE_BINARY }}/nym-vpn-cli ${{ env.SRC_X86_64_BINARY }}/nym-vpn-cli
+          lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnc ${{ env.SRC_NATIVE_BINARY }}/nym-vpnc ${{ env.SRC_X86_64_BINARY }}/nym-vpnc
+          lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnd ${{ env.SRC_NATIVE_BINARY }}/nym-vpnd ${{ env.SRC_X86_64_BINARY }}/nym-vpnd
+          lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.SRC_X86_64_BINARY }}/nym-gateway-probe
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
