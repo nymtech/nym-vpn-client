@@ -132,7 +132,7 @@ jobs:
           pushd ${{ env.UPLOAD_DIR_DEB }}
           for deb in nym-vpn*_amd64.deb; do
             sha256sum ${deb} > ${deb}.sha256sum
-            cat ${deb}.sha256sum >> $GITHUB_ENV
+            cat ${deb}.sha256sum >> $SHA256_CHECKSUMS
           done
 
       - name: Setting subject, prerelease and notes files
