@@ -9,6 +9,7 @@ Ne**x**t desktop client application for NymVPN.
 - Rust
 - Nodejs, latest LTS version recommended
 - npm
+- protobuf
 
 Some system libraries are required depending on the host platform.
 Follow the instructions for your specific OS [here](https://tauri.app/v1/guides/getting-started/prerequisites)
@@ -35,6 +36,13 @@ system, then you can run tauri commands via `cargo`
 cargo install tauri-cli
 cargo tauri help
 ```
+
+#### Protobuf
+
+Install `protobuf` from your system package manager or download it
+from the repository releases
+https://github.com/protocolbuffers/protobuf/releases and make sure
+`protoc` is in your `PATH`
 
 ## Dev
 
