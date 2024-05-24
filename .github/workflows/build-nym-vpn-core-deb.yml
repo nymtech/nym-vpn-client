@@ -42,6 +42,7 @@ jobs:
           path: ${{ env.WG_GO_LIB_PATH }}
 
       - name: Build nym-vpn-core debian packages
+        working-directory: nym-vpn-core
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
@@ -52,7 +53,7 @@ jobs:
 
       - name: Move things around to prepare for upload
         env:
-          SRC_BINARY: target/debian
+          SRC_BINARY: nym-vpn-core/target/debian
         run: |
           mkdir ${{ env.UPLOAD_DIR_DEB }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc_*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}
