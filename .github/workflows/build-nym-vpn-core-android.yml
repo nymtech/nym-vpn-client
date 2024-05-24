@@ -57,11 +57,12 @@ jobs:
           path: ${{ env.WG_GO_LIB_PATH }}
 
       - name: Build nym-vpn-core for android
+        working-directory: nym-vpn-core/nym-vpn-lib
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
-          (cd nym-vpn-core/nym-vpn-lib; cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --${{ env.CARGO_TARGET }})
-          ls -la nym-vpn-core/target/aarch64-linux-android/release/ || true
+          cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --${{ env.CARGO_TARGET }}
+          ls -la ../target/aarch64-linux-android/release/ || true
 
       - name: Get rust version used for build
         id: rust-version
