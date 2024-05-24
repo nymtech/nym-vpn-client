@@ -203,7 +203,6 @@ jobs:
       - name: Clippy
         working-directory: nym-vpn-core
         run: |
-          cd nym-vpn-core
           cargo clippy -- -Dwarnings
 
       - name: Clippy (Android)
