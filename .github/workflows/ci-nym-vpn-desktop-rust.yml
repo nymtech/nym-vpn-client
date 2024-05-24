@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   pull_request:
     paths-ignore:
-      - "nym-vpn-cli/**"
       - "nym-vpn-x/**"
       - "nym-vpn-apple/**"
 

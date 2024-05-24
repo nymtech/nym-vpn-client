@@ -1,0 +1,32 @@
+name: build-wireguard-go-deb
+on: [workflow_dispatch, workflow_call]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04-arc
+    steps:
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y git curl gcc g++ make
+
+      - name: Checkout nym-vpn-client
+        uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+          cache-dependency-path: "**/go.sum"
+
+      - name: Build wireguard
+        run: ./wireguard/build-wireguard-go.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wireguard-go_deb_x86_64
+          path: |
+            build/lib/x86_64-unknown-linux-gnu
+          retention-days: 10

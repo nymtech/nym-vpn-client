@@ -46,6 +46,7 @@ jobs:
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
+          cd nym-vpn-core
           cargo build --${{ env.CARGO_TARGET }}
           ls -la target/release/ || true
 
@@ -53,13 +54,14 @@ jobs:
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
+          cd nym-vpn-core
           cargo build --${{ env.CARGO_TARGET }} --target x86_64-apple-darwin
           ls -la target/x86_64-apple-darwin/release/ || true
 
       - name: Create universal binaries and prepare for upload
         env:
-          SRC_NATIVE_BINARY: target/${{ env.CARGO_TARGET }}/
-          SRC_X86_64_BINARY: target/x86_64-apple-darwin/${{ env.CARGO_TARGET }}/
+          SRC_NATIVE_BINARY: nym-vpn-core/target/${{ env.CARGO_TARGET }}/
+          SRC_X86_64_BINARY: nym-vpn-core/target/x86_64-apple-darwin/${{ env.CARGO_TARGET }}/
         run: |
           mkdir ${{ env.UPLOAD_DIR_MAC }}
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpn-cli ${{ env.SRC_NATIVE_BINARY }}/nym-vpn-cli ${{ env.SRC_X86_64_BINARY }}/nym-vpn-cli

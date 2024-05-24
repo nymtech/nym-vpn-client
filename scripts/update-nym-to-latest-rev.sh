@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # File to update
-cargo_file="./Cargo.toml"
+cargo_file="./nym-vpn-core/Cargo.toml"
 
 # Check if the Cargo.toml file exists
 if [ ! -f "$cargo_file" ]; then

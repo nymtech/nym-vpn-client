@@ -48,7 +48,7 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
           cargo build --${{ env.CARGO_TARGET }}
-          ls -la target/release/ || true
+          ls -la nym-vpn-core/target/release/ || true
 
       - name: Get rust version used for build
         id: rust-version
@@ -57,7 +57,7 @@ jobs:
 
       - name: Move things around to prepare for upload
         env:
-          SRC_BINARY: target/${{ env.CARGO_TARGET }}/
+          SRC_BINARY: nym-vpn-core/target/${{ env.CARGO_TARGET }}/
         run: |
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_LINUX }}

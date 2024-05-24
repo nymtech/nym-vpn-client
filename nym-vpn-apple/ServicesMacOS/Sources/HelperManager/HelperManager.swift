@@ -2,6 +2,8 @@ import SecurityFoundation
 import ServiceManagement
 import Shell
 
+// Any changes made to Info.plist & Launchd.plist - are used to create daemon in nym-vpnd.
+
 public final class HelperManager {
     public static let shared = HelperManager()
 

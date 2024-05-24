@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { CmdError, StateDispatch } from '../../types';
 import { routes } from '../../router';
+import { kvGet } from '../../kvStore';
 import { Button } from '../../ui';
 import NetworkModeSelect from './NetworkModeSelect';
 import ConnectionStatus from './ConnectionStatus';
@@ -21,7 +22,6 @@ function Home() {
     exitNodeLocation,
     entrySelector,
     daemonStatus,
-    welcomeScreenSeen,
   } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
@@ -61,10 +61,14 @@ function Home() {
   }, [error, dispatch, navigate]);
 
   useEffect(() => {
-    if (!welcomeScreenSeen) {
-      navigate(routes.welcome);
-    }
-  }, [welcomeScreenSeen, navigate]);
+    const showWelcomeScreen = async () => {
+      const seen = await kvGet<boolean>('WelcomeScreenSeen');
+      if (!seen) {
+        navigate(routes.welcome);
+      }
+    };
+    showWelcomeScreen();
+  }, [navigate]);
 
   const getButtonText = useCallback(() => {
     switch (state) {

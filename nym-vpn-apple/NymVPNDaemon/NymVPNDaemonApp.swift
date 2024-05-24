@@ -25,7 +25,7 @@ struct NymVPNDaemonApp: App {
                         .transition(.slide)
                 }
             }
-            .frame(minWidth: 390, idealWidth: 390, minHeight: 800, idealHeight: 800)
+            .frame(width: 390, height: 800)
             .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .environmentObject(appSettings)
         }
