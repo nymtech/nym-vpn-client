@@ -6,9 +6,9 @@ on:
     paths:
       - ".github/workflows/ci-nymvpn-x-rust.yml"
       - "nym-vpn-x/src-tauri/**"
-      - "crates/nym-vpn-proto/**"
-      - "crates/nym-gateway-directory/**"
-      - "nym-vpnd/**"
+      - "nym-vpn-core/crates/nym-vpn-proto/**"
+      - "nym-vpn-core/crates/nym-gateway-directory/**"
+      - "nym-vpn-core/nym-vpnd/**"
 
 env:
   CARGO_TERM_COLOR: always

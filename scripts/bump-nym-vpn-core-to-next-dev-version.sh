@@ -33,7 +33,7 @@ run_cargo_set_version() {
 
 main() {
     check_unstaged_changes
-    confirm_root_directory
+    confirm_nym_vpn_core_directory
     local version=$(get_current_version)
     local next_version=$(increment_version "$version")
 

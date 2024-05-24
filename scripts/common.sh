@@ -8,7 +8,7 @@ check_unstaged_changes() {
 
 confirm_root_directory() {
     if ! git rev-parse --git-dir > /dev/null 2>&1; then
-        echo "Error: This script must be run from the root of a Git repository."
+        echo "Error: This script must be run from inside a Git repository."
         exit 1
     fi
 
@@ -17,6 +17,21 @@ confirm_root_directory() {
 
     if [[ "$git_root_dir" != "$current_dir" ]]; then
         echo "Error: This script must be run from the root of the Git repository. Current directory is not the root."
+        exit 1
+    fi
+}
+
+confirm_nym_vpn_core_directory() {
+    if ! git rev-parse --git-dir > /dev/null 2>&1; then
+        echo "Error: This script must be run from inside a Git repository."
+        exit 1
+    fi
+
+    local git_root_dir=$(git rev-parse --show-toplevel)
+    local current_dir=$(pwd)
+
+    if [[ "$git_root_dir/nym-vpn-core" != "$current_dir" ]]; then
+        echo "Error: This script must be run from the nym-vpn-core directory"
         exit 1
     fi
 }

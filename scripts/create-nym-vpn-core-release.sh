@@ -12,7 +12,7 @@ set -euo pipefail
 
 source "$(dirname "$0")/common.sh"
 
-TAG_BASE_NAME=nym-vpn-cli
+TAG_BASE_NAME=nym-vpn-core
 PACKAGES=(nym-vpn-lib nym-vpn-cli nym-vpnd nym-vpnc)
 
 cargo_version_bump() {
@@ -47,7 +47,7 @@ tag_release() {
 
 main() {
     check_unstaged_changes
-    confirm_root_directory
+    confirm_nym_vpn_core_directory
     cargo_version_bump
     assert_same_versions
     tag_release

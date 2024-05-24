@@ -36,8 +36,8 @@ parity-tokio-ipc = "0.9.0"
 tower = "0.4.8"
 
 # nym deps
-nym-vpn-proto = { path = "../../crates/nym-vpn-proto" }
-nym-gateway-directory = { path = "../../crates/nym-gateway-directory/" }
+nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto" }
+nym-gateway-directory = { path = "../../nym-vpn-core/crates/nym-gateway-directory/" }
 nym-config = { git = "https://github.com/nymtech/nym", rev = "b8b66fa" }
 
 [features]

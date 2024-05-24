@@ -3,10 +3,8 @@ name: ci-nym-vpn-cli
 on:
   # push:
   pull_request:
-    paths-ignore:
-      - "nym-vpn-desktop/**"
-      - "nym-vpn-x/**"
-      - "nym-vpn-apple/**"
+    paths:
+      - "nym-vpn-core/**"
   workflow_dispatch:
 
 env:
@@ -169,14 +167,19 @@ jobs:
           mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/build/lib/
 
       - name: rustfmt check
-        run: cargo fmt --check
+        working-directory: nym-vpn-core
+        run: |
+          cargo fmt --check
 
       - name: Build
         if: "!contains(matrix.target, 'android')"
-        run: cargo build --verbose
+        working-directory: nym-vpn-core
+        run: |
+          cargo build --verbose
 
       - name: Build (Android)
         if: contains(matrix.target, 'android')
+        working-directory: nym-vpn-core
         run: |
           cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
           rustflags="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu"
@@ -185,6 +188,7 @@ jobs:
 
       - name: Build (iOS)
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        working-directory: nym-vpn-core
         run: |
           cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
           cargo run --bin uniffi-bindgen generate --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  --language swift --out-dir build -n
@@ -192,15 +196,23 @@ jobs:
 
       - name: Run tests
         if: "!contains(matrix.target, 'android')"
-        run: cargo test --verbose
+        working-directory: nym-vpn-core
+        run: |
+          cargo test --verbose
 
       - name: Clippy
-        run: cargo clippy -- -Dwarnings
+        working-directory: nym-vpn-core
+        run: |
+          cargo clippy -- -Dwarnings
 
       - name: Clippy (Android)
         if: contains(matrix.target, 'android')
-        run: cargo ndk  -t aarch64-linux-android clippy -p nym-vpn-lib -- -Dwarnings
+        working-directory: nym-vpn-core
+        run: |
+          cargo ndk -t aarch64-linux-android clippy -p nym-vpn-lib -- -Dwarnings
 
       - name: Clippy (iOS)
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
-        run: cargo clippy --target aarch64-apple-ios -p nym-vpn-lib -- -Dwarnings
+        working-directory: nym-vpn-core
+        run: |
+          cargo clippy --target aarch64-apple-ios -p nym-vpn-lib -- -Dwarnings

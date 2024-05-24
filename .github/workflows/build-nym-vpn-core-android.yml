@@ -60,8 +60,8 @@ jobs:
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
-          (cd nym-vpn-lib; cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --${{ env.CARGO_TARGET }})
-          ls -la ../target/aarch64-linux-android/release/ || true
+          (cd nym-vpn-core/nym-vpn-lib; cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --${{ env.CARGO_TARGET }})
+          ls -la nym-vpn-core/target/aarch64-linux-android/release/ || true
 
       - name: Get rust version used for build
         id: rust-version
@@ -70,7 +70,7 @@ jobs:
 
       - name: Move things around to prepare for upload
         env:
-          SRC_BINARY: target/aarch64-linux-android/${{ env.CARGO_TARGET }}/
+          SRC_BINARY: nym-vpn-core/target/aarch64-linux-android/${{ env.CARGO_TARGET }}/
         run: |
           mkdir ${{ env.UPLOAD_DIR_ANDROID }}
           cp -vpr ${{ env.SRC_BINARY }}/libnym_vpn_lib.so ${{ env.UPLOAD_DIR_ANDROID }}
