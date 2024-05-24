@@ -1,10 +1,8 @@
 name: ci-cargo-deny
 on:
   pull_request:
-    paths-ignore:
-      - "nym-vpn-desktop/**"
-      - "nym-vpn-x/**"
-      - "nym-vpn-apple/**"
+    paths:
+      - "nym-vpn-core/**"
 jobs:
   cargo-deny:
     runs-on: ubuntu-22.04-arc
@@ -16,4 +14,6 @@ jobs:
       # The cargo-deny action uses docker which we currently can't run on
       # ubuntu-22.04, so we have to build manually for now
       - run: cargo install --locked cargo-deny
-      - run: cargo deny --all-features check licenses bans sources
+      - run: |
+          cd nym-vpn-core
+          cargo deny --all-features check licenses bans sources

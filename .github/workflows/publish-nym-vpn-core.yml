@@ -65,25 +65,25 @@ jobs:
         id: package-version-cli
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry nym-vpn-cli
+          subcommand: package.version --entry nym-vpn-core/nym-vpn-cli
 
       - name: Get package version vpnc
         id: package-version-vpnc
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry nym-vpnc
+          subcommand: package.version --entry nym-vpn-core/nym-vpnc
 
       - name: Get package version vpnd
         id: package-version-vpnd
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry nym-vpnd
+          subcommand: package.version --entry nym-vpn-core/nym-vpnd
 
       - name: Get package version lib
         id: package-version-lib
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry nym-vpn-lib
+          subcommand: package.version --entry nym-vpn-core/nym-vpn-lib
 
       - name: Check tag name consistency
         if: github.event_name == 'push'
