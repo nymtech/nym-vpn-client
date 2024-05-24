@@ -109,9 +109,10 @@ impl From<nym_vpn_proto::Error> for BkdError {
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
 #[ts(export)]
 pub enum ErrorKey {
-    /// Any unhandled error
+    /// Generic unhandled error
     UnknownError,
-    /// Any error that is not explicitly handled
+    /// Any error that is not explicitly handled, and not related
+    /// to the application layer
     /// Extra data should be passed along to help specialize the problem
     InternalError,
     /// gRPC bare layer error, when a RPC call fails (aka `Tonic::Status`)
