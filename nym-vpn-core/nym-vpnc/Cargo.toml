@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpnc"
-version = "0.1.4-dev"
+version = "0.1.4"
 description = "Nym VPN console client"
 authors.workspace = true
 repository.workspace = true
