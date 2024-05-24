@@ -56,11 +56,12 @@ jobs:
           path: ${{ env.WG_GO_LIB_PATH }}
 
       - name: Build nym-vpn-lib
+        working-directory: nym-vpn-core/nym-vpn-lib
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
-          (cd nym-vpn-core/nym-vpn-lib; cargo swift package -p ios -n NymVpnLib --${{ env.CARGO_TARGET }})
-          ls -la nym-vpn-core/target/release/ || true
+          cargo swift package -p ios -n NymVpnLib --${{ env.CARGO_TARGET }}
+          ls -la ../target/release/ || true
 
       - name: Get rust version used for build
         id: rust-version
