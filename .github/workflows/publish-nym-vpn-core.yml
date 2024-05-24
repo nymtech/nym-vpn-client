@@ -61,7 +61,7 @@ jobs:
       # Adding envsubst, gh cli
       - name: Install system dependencies
         run: |
-          sudo apt update && sudo apt install -y gettext-base gh
+          sudo apt update && sudo apt install -y gettext-base gh zip
 
       - name: Install rust toolchain
         uses: brndnmtthws/rust-action-rustup@v1
