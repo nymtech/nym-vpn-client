@@ -1,13 +1,13 @@
 #! /usr/bin/env bash
 #
-# Bump the version of nym-vpn-cli to the next dev version.
+# Bump the version of nym-vpn-core to the next dev version.
 
 # set -x
 set -euo pipefail
 
 source "$(dirname "$0")/common.sh"
 
-TAG_BASE_NAME="nym-vpn-cli"
+TAG_BASE_NAME="nym-vpn-core"
 PACKAGES=(nym-vpn-lib nym-vpn-cli nym-vpnd nym-vpnc)
 
 get_current_version() {
