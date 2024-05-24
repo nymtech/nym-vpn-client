@@ -33,6 +33,7 @@ import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.checkCredential
 import nym_vpn_lib.runVpn
 import timber.log.Timber
+import java.time.Instant
 import kotlin.coroutines.coroutineContext
 
 object NymVpnClient {
@@ -78,10 +79,10 @@ object NymVpnClient {
 		private val _state = MutableStateFlow(VpnClientState())
 		override val stateFlow: Flow<VpnClientState> = _state.asStateFlow()
 
-		override fun validateCredential(credential: String): Result<Unit> {
+		override fun validateCredential(credential: String): Result<Instant> {
 			return try {
-				checkCredential(credential)
-				Result.success(Unit)
+				val expiry = checkCredential(credential)
+				Result.success(expiry)
 			} catch (_: FfiException) {
 				Result.failure(InvalidCredentialException("Credential invalid or expired"))
 			}
@@ -95,7 +96,7 @@ object NymVpnClient {
 			clearErrorStatus()
 			with(CoroutineScope(coroutineContext)) {
 				launch {
-					collectLogStatus(context)
+					collectLogStatus()
 				}
 				launch {
 					startConnectionTimer()
@@ -168,7 +169,7 @@ object NymVpnClient {
 			else -> false
 		}
 
-		internal fun connect(context: Context) {
+		internal fun connect() {
 			try {
 				runVpn(
 					VpnConfig(
@@ -192,7 +193,7 @@ object NymVpnClient {
 			clearStatisticState()
 		}
 
-		private suspend fun collectLogStatus(context: Context) {
+		private suspend fun collectLogStatus() {
 			callbackFlow {
 				LogcatHelper.logs {
 					if (it.level != LogLevel.DEBUG) {

@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
@@ -44,7 +45,9 @@ class SplashActivity : ComponentActivity() {
 				// init data
 				settingsRepository.init()
 
-				NymVpn.applicationScope.launch(Dispatchers.IO) {
+				configureSentry()
+
+				withTimeout(3000) {
 					listOf(
 						async {
 							Timber.d("Updating exit country cache")
@@ -56,21 +59,8 @@ class SplashActivity : ComponentActivity() {
 							countryCacheService.updateEntryCountriesCache()
 							Timber.d("Entry countries updated")
 						},
-// 						async {
-// 							//TODO disable this, needs rework
-// 							Timber.d("Updating low latency country cache")
-// 							countryCacheService.updateLowLatencyEntryCountryCache()
-// 							val lowLatencyEntryCountry = gatewayRepository.getLowLatencyEntryCountry()
-// 							val currentEntry = settingsRepository.getFirstHopCountry()
-// 							if(currentEntry.isLowLatency && lowLatencyEntryCountry != null) {
-// 								settingsRepository.setFirstHopCountry(lowLatencyEntryCountry)
-// 							}
-// 							Timber.d("Low latency country updated")
-// 						},
 					).awaitAll()
 				}
-
-				configureSentry()
 
 				val isAnalyticsShown = settingsRepository.isAnalyticsShown()
 
@@ -85,7 +75,7 @@ class SplashActivity : ComponentActivity() {
 
 	private suspend fun configureSentry() {
 		if (settingsRepository.isErrorReportingEnabled()) {
-			SentryAndroid.init(this@SplashActivity) { options ->
+			SentryAndroid.init(NymVpn.instance) { options ->
 				options.enableTracing = true
 				options.enableAllAutoBreadcrumbs(true)
 				options.isEnableUserInteractionTracing = true

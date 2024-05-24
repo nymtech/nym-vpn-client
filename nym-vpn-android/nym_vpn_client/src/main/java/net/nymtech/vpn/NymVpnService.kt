@@ -90,7 +90,7 @@ class NymVpnService : VpnService() {
 				NymVpnClient.NymVpn.setVpnState(VpnState.Connecting.InitializingClient)
 				val logLevel = if (BuildConfig.DEBUG) "debug" else "info"
 				initVPN(this@NymVpnService, logLevel)
-				NymVpnClient.NymVpn.connect(this@NymVpnService)
+				NymVpnClient.NymVpn.connect()
 			}
 		}
 	}

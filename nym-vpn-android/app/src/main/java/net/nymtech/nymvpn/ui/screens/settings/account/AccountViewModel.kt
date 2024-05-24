@@ -18,12 +18,8 @@ constructor(
 ) : ViewModel() {
 	val uiState =
 		settingsRepository.settingsFlow.map {
-			// TODO mocked for now
 			AccountUiState(
-				loading = false,
 				devices = emptyList(),
-				subscriptionDaysRemaining = 31,
-				subscriptionTotalDays = 31,
 			)
 		}.stateIn(
 			viewModelScope,

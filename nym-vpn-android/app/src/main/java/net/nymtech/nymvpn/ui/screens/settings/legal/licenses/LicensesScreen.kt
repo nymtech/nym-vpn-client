@@ -11,10 +11,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,6 +31,13 @@ import net.nymtech.nymvpn.util.scaledWidth
 fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val licenses by viewModel.licenses.collectAsStateWithLifecycle()
+
+	val licenseComparator = compareBy<Artifact> { it.name }
+
+	val sortedLicenses =
+		remember(licenses, licenseComparator) {
+			licenses.sortedWith(licenseComparator)
+		}
 
 	LaunchedEffect(Unit) {
 		viewModel.loadLicensesFromAssets(context)
@@ -45,24 +54,18 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 		item {
 			Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())) {}
 		}
-		items(licenses) { it ->
+		items(sortedLicenses) { it ->
 			SurfaceSelectionGroupButton(
 				items =
 				listOf(
 					SelectionItem(
-						// TODO refactor
 						title = {
 							Text(
-								if (it.name != null && it.name.length > 32) {
-									it.name.substring(
-										0,
-										29,
-									).plus("...")
-								} else {
-									it.name
-										?: stringResource(id = R.string.unknown)
-								},
+								it.name
+									?: stringResource(id = R.string.unknown),
 								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis,
 							)
 						},
 						description = {

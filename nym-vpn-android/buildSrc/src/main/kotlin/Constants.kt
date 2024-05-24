@@ -1,8 +1,8 @@
 import org.gradle.api.JavaVersion
 
 object Constants {
-    const val VERSION_NAME = "v1.0.2"
-    const val VERSION_CODE = 10200
+	const val VERSION_NAME = "v1.0.3"
+    const val VERSION_CODE = 10300
     const val TARGET_SDK = 34
     const val COMPILE_SDK = 34
     const val MIN_SDK = 24
@@ -32,6 +32,7 @@ object Constants {
     //licensee
     val allowedLicenses = listOf("MIT", "Apache-2.0", "BSD-3-Clause")
     const val ANDROID_TERMS_URL = "https://developer.android.com/studio/terms.html"
+	const val XZING_LICENSE_URL: String = "https://github.com/journeyapps/zxing-android-embedded/blob/master/COPYING"
 
 	//build config
     const val SENTRY_DSN = "SENTRY_DSN"

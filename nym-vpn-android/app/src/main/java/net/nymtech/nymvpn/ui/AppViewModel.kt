@@ -59,14 +59,36 @@ constructor(
 	val logs = mutableStateListOf<LogMessage>()
 	private val logsBuffer = mutableListOf<LogMessage>()
 
+	init {
+		viewModelScope.launch(Dispatchers.IO) {
+			secretsRepository.get().credentialFlow.collect { cred ->
+				cred?.let {
+					getCredentialExpiry(it).onSuccess { expiry ->
+						setIsNonExpiredCredentialImported(true)
+						setCredentialExpiry(expiry)
+					}.onFailure {
+						setIsNonExpiredCredentialImported(false)
+					}
+				}
+			}
+		}
+	}
+
 	val uiState =
-		combine(_uiState, settingsRepository.settingsFlow, vpnClient.get().stateFlow) { state, settings, vpnState ->
+		combine(
+			_uiState,
+			settingsRepository.settingsFlow,
+			vpnClient.get().stateFlow,
+			secretsRepository.get().credentialFlow,
+		) { state, settings, vpnState, cred ->
 			AppUiState(
 				false,
 				state.snackbarMessage,
 				state.snackbarMessageConsumed,
 				vpnState,
 				settings,
+				isNonExpiredCredentialImported = state.isNonExpiredCredentialImported,
+				credentialExpiryTime = state.credentialExpiryTime,
 			)
 		}.stateIn(
 			viewModelScope,
@@ -102,24 +124,42 @@ constructor(
 		}
 	}
 
+	private fun setCredentialExpiry(instant: Instant) {
+		_uiState.update {
+			it.copy(
+				credentialExpiryTime = instant,
+			)
+		}
+	}
+
+	private fun setIsNonExpiredCredentialImported(value: Boolean) {
+		_uiState.update {
+			it.copy(
+				isNonExpiredCredentialImported = value,
+			)
+		}
+	}
+
 	fun clearLogs() {
 		logs.clear()
 		logsBuffer.clear()
 		LogcatHelper.clear()
 	}
 
-	suspend fun onValidCredentialCheck(): Result<Unit> {
+	suspend fun onValidCredentialCheck(): Result<Instant> {
 		return withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
 			val credential = secretsRepository.get().getCredential()
 			if (credential != null) {
-				vpnClient.get().validateCredential(credential).onFailure {
-					return@withContext Result.failure(NymVpnExceptions.InvalidCredentialException())
-				}.onSuccess {
-					return@withContext Result.success(Unit)
-				}
+				getCredentialExpiry(credential)
 			} else {
 				Result.failure(NymVpnExceptions.MissingCredentialException())
 			}
+		}
+	}
+
+	private suspend fun getCredentialExpiry(credential: String): Result<Instant> {
+		return vpnClient.get().validateCredential(credential).onFailure {
+			return Result.failure(NymVpnExceptions.InvalidCredentialException())
 		}
 	}
 

@@ -20,4 +20,6 @@ object Constants {
 	const val CONNECT_TEST_TAG = "connectTag"
 	const val LOGIN_TEST_TAG = "loginTag"
 	const val DISCONNECT_TEST_TAG = "disconnectTag"
+
+	const val VPN_SETTINGS_PACKAGE = "android.net.vpn.SETTINGS"
 }

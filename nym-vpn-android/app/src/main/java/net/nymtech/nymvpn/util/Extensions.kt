@@ -12,6 +12,8 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.NymVpn
+import java.time.Duration
+import java.time.Instant
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
@@ -55,4 +57,8 @@ fun NavController.navigateNoBack(route: String) {
 	navigate(route) {
 		popUpTo(0)
 	}
+}
+
+fun Instant.durationFromNow(): Duration {
+	return Duration.between(Instant.now(), this)
 }

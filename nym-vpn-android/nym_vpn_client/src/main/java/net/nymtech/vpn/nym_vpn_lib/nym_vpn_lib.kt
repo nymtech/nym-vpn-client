@@ -720,7 +720,7 @@ internal interface UniffiLib : Library {
     }
 
     fun uniffi_nym_vpn_lib_fn_func_checkcredential(`credential`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
+    ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,`exitOnly`: Byte,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
@@ -872,7 +872,7 @@ private fun uniffiCheckContractApiVersion(lib: UniffiLib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: UniffiLib) {
-    if (lib.uniffi_nym_vpn_lib_checksum_func_checkcredential() != 37960.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_checkcredential() != 44396.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 4475.toShort()) {
@@ -1021,6 +1021,46 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
         val byteBuf = toUtf8(value)
         buf.putInt(byteBuf.limit())
         buf.put(byteBuf)
+    }
+}
+
+
+public object FfiConverterTimestamp: FfiConverterRustBuffer<java.time.Instant> {
+    override fun read(buf: ByteBuffer): java.time.Instant {
+        val seconds = buf.getLong()
+        // Type mismatch (should be u32) but we check for overflow/underflow below
+        val nanoseconds = buf.getInt().toLong()
+        if (nanoseconds < 0) {
+            throw java.time.DateTimeException("Instant nanoseconds exceed minimum or maximum supported by uniffi")
+        }
+        if (seconds >= 0) {
+            return java.time.Instant.EPOCH.plus(java.time.Duration.ofSeconds(seconds, nanoseconds))
+        } else {
+            return java.time.Instant.EPOCH.minus(java.time.Duration.ofSeconds(-seconds, nanoseconds))
+        }
+    }
+
+    // 8 bytes for seconds, 4 bytes for nanoseconds
+    override fun allocationSize(value: java.time.Instant) = 12UL
+
+    override fun write(value: java.time.Instant, buf: ByteBuffer) {
+        var epochOffset = java.time.Duration.between(java.time.Instant.EPOCH, value)
+
+        var sign = 1
+        if (epochOffset.isNegative()) {
+            sign = -1
+            epochOffset = epochOffset.negated()
+        }
+
+        if (epochOffset.nano < 0) {
+            // Java docs provide guarantee that nano will always be positive, so this should be impossible
+            // See: https://docs.oracle.com/javase/8/docs/api/java/time/Instant.html
+            throw IllegalArgumentException("Invalid timestamp, nano value must be non-negative")
+        }
+
+        buf.putLong(sign * epochOffset.seconds)
+        // Type mismatch (should be u32) but since values will always be between 0 and 999,999,999 it should be OK
+        buf.putInt(epochOffset.nano)
     }
 }
 
@@ -1685,13 +1725,14 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
         FfiConverterString.write(builtinValue, buf)
     }
 }
-    @Throws(FfiException::class) fun `checkCredential`(`credential`: kotlin.String)
-        = 
+    @Throws(FfiException::class) fun `checkCredential`(`credential`: kotlin.String): java.time.Instant {
+            return FfiConverterTimestamp.lift(
     uniffiRustCallWithError(FfiException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_checkcredential(
         FfiConverterString.lower(`credential`),_status)
 }
-    
+    )
+    }
     
 
     @Throws(FfiException::class) fun `getGatewayCountries`(`apiUrl`: Url, `explorerUrl`: Url, `harbourMasterUrl`: Url?, `exitOnly`: kotlin.Boolean): List<Location> {

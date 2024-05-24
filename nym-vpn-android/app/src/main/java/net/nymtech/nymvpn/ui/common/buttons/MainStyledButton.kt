@@ -1,5 +1,7 @@
 package net.nymtech.nymvpn.ui.common.buttons
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
@@ -26,10 +28,11 @@ fun MainStyledButton(
 		ButtonDefaults.buttonColors(
 			containerColor = color,
 		),
+		contentPadding = PaddingValues(),
 		modifier =
 		Modifier
 			.height(56.dp.scaledHeight())
-			.fillMaxWidth().testTag(testTag ?: ""),
+			.fillMaxWidth().testTag(testTag ?: "").defaultMinSize(1.dp, 1.dp),
 		shape =
 		ShapeDefaults.Small,
 	) {

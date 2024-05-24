@@ -1,17 +1,23 @@
 package net.nymtech.nymvpn.ui.screens.settings.credential
 
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.QrCodeScanner
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,6 +37,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
@@ -39,6 +47,7 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.navigateNoBack
 import net.nymtech.nymvpn.util.scaledHeight
@@ -46,7 +55,7 @@ import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
 fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, viewModel: CredentialViewModel = hiltViewModel()) {
-	var recoveryPhrase by remember {
+	var credential by remember {
 		mutableStateOf("")
 	}
 
@@ -60,10 +69,44 @@ fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, v
 	val imeState = rememberImeState()
 	val scrollState = rememberScrollState()
 
+	fun onAddCredential() {
+		scope.launch {
+			viewModel.onImportCredential(credential).onSuccess { _ ->
+				appViewModel.showSnackbarMessage(context.getString(R.string.credential_successful))
+				navController.navigateNoBack(NavItem.Main.route)
+			}.onFailure {
+				isCredentialError = true
+			}
+		}
+	}
+
+	val scanLauncher =
+		rememberLauncherForActivityResult(
+			contract = ScanContract(),
+			onResult = {
+				if (it.contents != null) {
+					credential = ""
+					credential = it.contents
+					onAddCredential()
+				}
+			},
+		)
+
 	LaunchedEffect(imeState.value) {
 		if (imeState.value) {
 			scrollState.animateScrollTo(scrollState.viewportSize)
 		}
+	}
+
+	fun launchQrScanner() {
+		val scanOptions = ScanOptions()
+		scanOptions.setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+		scanOptions.setOrientationLocked(true)
+		scanOptions.setPrompt(
+			context.getString(R.string.scan_nym_vpn_credential),
+		)
+		scanOptions.setBeepEnabled(false)
+		scanLauncher.launch(scanOptions)
 	}
 
 	Column(
@@ -118,10 +161,10 @@ fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, v
 			verticalArrangement = Arrangement.spacedBy(32.dp.scaledHeight(), Alignment.Top),
 		) {
 			CustomTextField(
-				value = recoveryPhrase,
+				value = credential,
 				onValueChange = {
 					if (isCredentialError) isCredentialError = false
-					recoveryPhrase = it
+					credential = it
 				},
 				modifier = Modifier
 					.width(358.dp.scaledWidth())
@@ -141,31 +184,39 @@ fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, v
 					color = MaterialTheme.colorScheme.onSurface,
 				),
 			)
-			Box(
-				modifier =
-				Modifier
+			Row(
+				horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth(), Alignment.CenterHorizontally),
+				modifier = Modifier
+					.fillMaxWidth()
 					.padding(bottom = 24.dp.scaledHeight()),
 			) {
-				MainStyledButton(
-					Constants.LOGIN_TEST_TAG,
-					onClick = {
-						scope.launch {
-							viewModel.onImportCredential(recoveryPhrase).onSuccess {
-								appViewModel.showSnackbarMessage(context.getString(R.string.credential_successful))
-								navController.navigateNoBack(NavItem.Main.route)
-							}.onFailure {
-								isCredentialError = true
-							}
-						}
-					},
-					content = {
-						Text(
-							stringResource(id = R.string.add_credential),
-							style = CustomTypography.labelHuge,
-						)
-					},
-					color = MaterialTheme.colorScheme.primary,
-				)
+				Box(modifier = Modifier.width(286.dp.scaledWidth())) {
+					MainStyledButton(
+						Constants.LOGIN_TEST_TAG,
+						onClick = {
+							onAddCredential()
+						},
+						content = {
+							Text(
+								stringResource(id = R.string.add_credential),
+								style = CustomTypography.labelHuge,
+							)
+						},
+						color = MaterialTheme.colorScheme.primary,
+					)
+				}
+				Box(modifier = Modifier.width(56.dp.scaledWidth())) {
+					MainStyledButton(
+						onClick = {
+							launchQrScanner()
+						},
+						content = {
+							val icon = Icons.Outlined.QrCodeScanner
+							Icon(icon, icon.name, modifier = Modifier.size(iconSize.scaledWidth()))
+						},
+						color = MaterialTheme.colorScheme.primary,
+					)
+				}
 			}
 		}
 	}

@@ -49,6 +49,15 @@ fun SupportScreen(appViewModel: AppViewModel) {
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
+					leadingIcon = ImageVector.vectorResource(R.drawable.send),
+					title = { Text(stringResource(R.string.contact_support), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					onClick = { appViewModel.openWebPage(context.getString(R.string.contact_url), context) },
+				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
 					leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
 					title = { Text(stringResource(R.string.join_matrix), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {

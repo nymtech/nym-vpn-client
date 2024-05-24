@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.data.datastore
 
+import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.data.SecretsRepository
 import timber.log.Timber
 
@@ -20,4 +21,6 @@ class SecretsPreferencesRepository(private val encryptedPreferences: EncryptedPr
 	override suspend fun saveCredential(credential: String) {
 		encryptedPreferences.sharedPreferences.edit().putString(CRED, credential).apply()
 	}
+
+	override val credentialFlow: Flow<String?> = encryptedPreferences.sharedPreferences.observeKey(CRED, null)
 }

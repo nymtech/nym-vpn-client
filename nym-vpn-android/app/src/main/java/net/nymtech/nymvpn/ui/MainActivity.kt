@@ -166,7 +166,7 @@ class MainActivity : ComponentActivity() {
 								appViewModel,
 							)
 						}
-						composable(NavItem.Settings.Account.route) { AccountScreen(appViewModel) }
+						composable(NavItem.Settings.Account.route) { AccountScreen(appViewModel, uiState, navController) }
 						composable(NavItem.Settings.Legal.Licenses.route) {
 							LicensesScreen(
 								appViewModel,

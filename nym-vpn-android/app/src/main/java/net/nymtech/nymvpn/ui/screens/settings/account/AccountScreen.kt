@@ -31,21 +31,27 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
+import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.util.durationFromNow
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun AccountScreen(appViewModel: AppViewModel, viewModel: AccountViewModel = hiltViewModel()) {
+fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState, navController: NavController, viewModel: AccountViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+	val devicesDisabled = true
 
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -67,40 +73,44 @@ fun AccountScreen(appViewModel: AppViewModel, viewModel: AccountViewModel = hilt
 				horizontalAlignment = Alignment.Start,
 				modifier = Modifier.fillMaxSize(),
 			) {
-				// TODO get real values from server
-				val daysLeft =
-					buildAnnotatedString {
-						append(uiState.subscriptionDaysRemaining.toString())
-						append(" ")
-						append(stringResource(id = R.string.of))
-						append(" ")
-						append(uiState.subscriptionTotalDays.toString())
-						append(" ")
-						append(stringResource(id = R.string.days_left))
-					}
-				Text(
-					daysLeft.text,
-					style = MaterialTheme.typography.labelLarge,
-					color = MaterialTheme.colorScheme.onSurface,
-				)
-				LinearProgressIndicator(
-					modifier =
-					Modifier
-						.fillMaxWidth(),
-					progress = {
-						if (uiState.subscriptionTotalDays == 0) {
-							0f
-						} else {
-							uiState.subscriptionDaysRemaining.toFloat() / uiState.subscriptionTotalDays
+				appUiState.credentialExpiryTime?.let {
+					val credentialDuration = it.durationFromNow()
+					val days = credentialDuration.toDaysPart()
+					val hours = credentialDuration.toHoursPart()
+					val durationLeft =
+						buildAnnotatedString {
+							append(days.toString())
+							append(" ")
+							append(if (days != 1L) stringResource(id = R.string.days) else stringResource(id = R.string.day))
+							append(", ")
+							append(hours.toString())
+							append(" ")
+							append(if (hours != 1) stringResource(id = R.string.hours) else stringResource(id = R.string.hour))
+							append(" ")
+							append(stringResource(id = R.string.left))
 						}
-					},
-				)
+					Text(
+						durationLeft.text,
+						style = CustomTypography.labelHuge,
+						color = MaterialTheme.colorScheme.onSurface,
+					)
+					LinearProgressIndicator(
+						modifier =
+						Modifier
+							.fillMaxWidth(),
+						progress = {
+							// TODO need to think about this more, setting to full for now
+							1f
+						},
+					)
+				}
+
 				Row(
 					horizontalArrangement = Arrangement.SpaceBetween,
 					verticalAlignment = Alignment.CenterVertically,
 					modifier =
 					Modifier
-						.heightIn(min = 40.dp)
+						.heightIn(min = 40.dp.scaledHeight())
 						.fillMaxWidth(),
 				) {
 					Text(
@@ -111,7 +121,9 @@ fun AccountScreen(appViewModel: AppViewModel, viewModel: AccountViewModel = hilt
 					)
 					Box(modifier = Modifier.width(100.dp.scaledWidth())) {
 						MainStyledButton(
-							onClick = { appViewModel.showFeatureInProgressMessage(context) },
+							onClick = {
+								navController.navigate(NavItem.Settings.Credential.route)
+							},
 							content = {
 								Text(
 									stringResource(id = R.string.top_up),
@@ -123,48 +135,50 @@ fun AccountScreen(appViewModel: AppViewModel, viewModel: AccountViewModel = hilt
 				}
 			}
 		}
-		Column(
-			verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
-			modifier = Modifier.fillMaxSize(),
-		) {
-			Row(
-				horizontalArrangement = Arrangement.SpaceBetween,
-				verticalAlignment = Alignment.CenterVertically,
-				modifier =
-				Modifier
-					.height(48.dp)
-					.fillMaxWidth(),
+		if (!devicesDisabled) {
+			Column(
+				verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Top),
+				modifier = Modifier.fillMaxSize(),
 			) {
-				GroupLabel(title = stringResource(R.string.devices))
-				IconButton(onClick = {
-					appViewModel.showFeatureInProgressMessage(context)
-				}, modifier = Modifier.padding(start = 24.dp)) {
-					Icon(
-						Icons.Filled.Add,
-						Icons.Filled.Add.name,
-						tint = MaterialTheme.colorScheme.onSurface,
-					)
+				Row(
+					horizontalArrangement = Arrangement.SpaceBetween,
+					verticalAlignment = Alignment.CenterVertically,
+					modifier =
+					Modifier
+						.height(48.dp)
+						.fillMaxWidth(),
+				) {
+					GroupLabel(title = stringResource(R.string.devices))
+					IconButton(onClick = {
+						appViewModel.showFeatureInProgressMessage(context)
+					}, modifier = Modifier.padding(start = 24.dp)) {
+						Icon(
+							Icons.Filled.Add,
+							Icons.Filled.Add.name,
+							tint = MaterialTheme.colorScheme.onSurface,
+						)
+					}
 				}
+				SurfaceSelectionGroupButton(
+					items =
+					uiState.devices.map {
+						SelectionItem(
+							ImageVector.vectorResource(it.type.icon()),
+							trailing = {
+								IconButton(
+									onClick = { /*TODO handle item delete from authorized*/ },
+								) {
+									Icon(Icons.Filled.Clear, Icons.Filled.Clear.name)
+								}
+							},
+							title = { Text(it.name, style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+							description = {
+								Text(it.type.formattedName().asString(context), style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline))
+							},
+						)
+					},
+				)
 			}
-			SurfaceSelectionGroupButton(
-				items =
-				uiState.devices.map {
-					SelectionItem(
-						ImageVector.vectorResource(it.type.icon()),
-						trailing = {
-							IconButton(
-								onClick = { /*TODO handle item delete from authorized*/ },
-							) {
-								Icon(Icons.Filled.Clear, Icons.Filled.Clear.name)
-							}
-						},
-						title = { Text(it.name, style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-						description = {
-							Text(it.type.formattedName().asString(context), style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline))
-						},
-					)
-				},
-			)
 		}
 	}
 }

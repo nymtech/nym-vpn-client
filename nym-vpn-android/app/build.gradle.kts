@@ -155,6 +155,7 @@ android {
 	licensee {
 		Constants.allowedLicenses.forEach { allow(it) }
 		allowUrl(Constants.ANDROID_TERMS_URL)
+		allowUrl(Constants.XZING_LICENSE_URL)
 	}
 
 	gross { enableAndroidAssetGeneration.set(true) }
@@ -247,4 +248,7 @@ dependencies {
 	implementation(libs.moshi.kotlin)
 	// warning here https://github.com/square/moshi/discussions/1752
 	ksp(libs.moshi.kotlin.codegen)
+
+	// barcode scanning
+	implementation(libs.zxing.android.embedded)
 }

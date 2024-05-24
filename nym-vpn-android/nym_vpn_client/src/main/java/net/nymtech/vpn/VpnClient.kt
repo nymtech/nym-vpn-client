@@ -8,6 +8,7 @@ import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.util.InvalidCredentialException
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
+import java.time.Instant
 
 interface VpnClient {
 
@@ -15,7 +16,7 @@ interface VpnClient {
 	var exitPoint: ExitPoint
 	var mode: VpnMode
 
-	fun validateCredential(credential: String): Result<Unit>
+	fun validateCredential(credential: String): Result<Instant>
 
 	@Throws(InvalidCredentialException::class)
 	suspend fun start(context: Context, credential: String, foreground: Boolean = false)

@@ -53,6 +53,7 @@
     <string name="matrix_url" translatable="false">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
     <string name="discord_url" translatable="false">https://discord.com/invite/nym</string>
     <string name="faq_url" translatable="false">https://support.nymvpn.com</string>
+	<string name="contact_url" translatable="false">https://support.nymvpn.com/hc/en-us/requests/new</string>
     <string name="support_email" translatable="false">support@nymvpn.com</string>
     <string name="github_issues_url" translatable="false">https://github.com/nymtech/nymvpn-android/issues/new/choose</string>
     <string name="email_subject">NymVPN Support</string>
@@ -67,8 +68,7 @@
     <string name="credential_failed_message">Invalid credential</string>
     <string name="unknown_error">An unknown error occurred</string>
     <string name="credential">Credential</string>
-    <string name="of">of</string>
-    <string name="days_left">days left</string>
+    <string name="left">left</string>
     <string name="top_up_credential">Top up your credential</string>
     <string name="top_up">Top up</string>
     <string name="devices">Devices</string>
@@ -124,4 +124,11 @@
 	<string name="error_bad_peer_cert">"Selected gateway has a bad peer certificate. Please try again to connect to a different gateway. "</string>
 	<string name="error_no_hostname_address">Gateway missing hostname address. Please try again to connect to a different gateway.</string>
 	<string name="error_vpn_halted_unexpectedly">VPN has come to an unexpected halt. Please try connecting again.</string>
+	<string name="kill_switch">Kill switch</string>
+	<string name="contact_support">Contact support</string>
+	<string name="hours">hours</string>
+	<string name="hour">hour</string>
+	<string name="days">days</string>
+	<string name="day">day</string>
+	<string name="scan_nym_vpn_credential">Scan NymVPN Credential QR</string>
 </resources>

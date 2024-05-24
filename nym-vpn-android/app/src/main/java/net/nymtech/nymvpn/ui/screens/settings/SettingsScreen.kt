@@ -10,6 +10,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.AppShortcut
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +41,7 @@ import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.util.durationFromNow
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 import net.nymtech.vpn.model.VpnState
@@ -64,41 +67,50 @@ fun SettingsScreen(
 			.padding(top = 24.dp)
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
-// 		if (!appUiState.loggedIn) {
-		MainStyledButton(
-			onClick = { navController.navigate(NavItem.Settings.Credential.route) },
-			content = {
-				Text(
-					stringResource(id = R.string.add_cred_to_connect),
-					style = CustomTypography.labelHuge,
+		if (!appUiState.isNonExpiredCredentialImported) {
+			MainStyledButton(
+				onClick = { navController.navigate(NavItem.Settings.Credential.route) },
+				content = {
+					Text(
+						stringResource(id = R.string.add_cred_to_connect),
+						style = CustomTypography.labelHuge,
+					)
+				},
+				color = MaterialTheme.colorScheme.primary,
+			)
+		} else {
+			appUiState.credentialExpiryTime?.let {
+				val credentialDuration = it.durationFromNow()
+				val days = credentialDuration.toDaysPart()
+				val hours = credentialDuration.toHoursPart()
+				val accountDescription =
+					buildAnnotatedString {
+						if (days != 0L) {
+							append(days.toString())
+							append(" ")
+							append(if (days != 1L) stringResource(id = R.string.days) else stringResource(id = R.string.day))
+						} else {
+							append(hours.toString())
+							append(" ")
+							append(if (hours != 1) stringResource(id = R.string.hours) else stringResource(id = R.string.hour))
+						}
+						append(" ")
+						append(stringResource(id = R.string.left))
+					}
+				SurfaceSelectionGroupButton(
+					listOf(
+						SelectionItem(
+							Icons.Filled.AccountCircle,
+							onClick = {
+								navController.navigate(NavItem.Settings.Account.route)
+							},
+							title = { Text(stringResource(R.string.credential), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+							description = { Text(accountDescription.text, style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline)) },
+						),
+					),
 				)
-			},
-			color = MaterialTheme.colorScheme.primary,
-		)
-// 		} else {
-		// TODO disable account for now
-
-// 			val accountDescription =
-// 				buildAnnotatedString {
-// 					append("31")
-// 					append(" ")
-// 					append(stringResource(id = R.string.of))
-// 					append(" ")
-// 					append("31")
-// 					append(" ")
-// 					append(stringResource(id = R.string.days_left))
-// 				}
-// 			SurfaceSelectionGroupButton(
-// 				listOf(
-// 					SelectionItem(
-// 						Icons.Filled.AccountCircle,
-// 						onClick = { navController.navigate(NavItem.Settings.Account.route) },
-// 						title = { Text(stringResource(R.string.credential), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface))},
-// 						description = { Text(accountDescription.text, style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline))},
-// 					),
-// 				),
-// 			)
-// 		}
+			}
+		}
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
@@ -122,6 +134,13 @@ fun SettingsScreen(
 					},
 				),
 				SelectionItem(
+					Icons.Outlined.AdminPanelSettings,
+					title = { Text(stringResource(R.string.kill_switch), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					onClick = {
+						viewModel.onKillSwitchSelected(context)
+					},
+				),
+				SelectionItem(
 					Icons.Outlined.AppShortcut,
 					{
 						ScaledSwitch(
@@ -141,15 +160,6 @@ fun SettingsScreen(
 						)
 					},
 				),
-				SelectionItem(
-					ImageVector.vectorResource(R.drawable.contrast),
-					title = { Text(stringResource(R.string.display_theme), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(NavItem.Settings.Display.route) },
-				),
-			),
-		)
-		SurfaceSelectionGroupButton(
-			listOf(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.two),
 					{
@@ -175,8 +185,20 @@ fun SettingsScreen(
 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 						)
 					},
-					{},
 				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
+					ImageVector.vectorResource(R.drawable.contrast),
+					title = { Text(stringResource(R.string.display_theme), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					onClick = { navController.navigate(NavItem.Settings.Display.route) },
+				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.logs),
 					title = { Text(stringResource(R.string.logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },

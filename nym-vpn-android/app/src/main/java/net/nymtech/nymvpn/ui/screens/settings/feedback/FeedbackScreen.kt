@@ -90,9 +90,8 @@ fun FeedbackScreen(appViewModel: AppViewModel) {
 				SelectionItem(
 					leadingIcon = ImageVector.vectorResource(R.drawable.send),
 					title = { Text(stringResource(R.string.send_feedback), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-
 					onClick = {
-						appViewModel.launchEmail(context)
+						appViewModel.openWebPage(context.getString(R.string.contact_url), context)
 					},
 				),
 			),
