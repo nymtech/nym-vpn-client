@@ -119,8 +119,8 @@ jobs:
         run: |
           ARCHIVE_LINUX=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_linux_x86_64
           ARCHIVE_MAC=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_macos_universal
-          ARCHIVE_ANDROID=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_android_aarch64.tar.gz
-          ARCHIVE_IOS=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_ios_universal.tar.gz
+          ARCHIVE_ANDROID=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_android_aarch64
+          ARCHIVE_IOS=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_ios_universal
           echo "ARCHIVE_LINUX=${ARCHIVE_LINUX}" >> $GITHUB_ENV
           echo "ARCHIVE_MAC=${ARCHIVE_MAC}" >> $GITHUB_ENV
           echo "ARCHIVE_ANDROID=${ARCHIVE_ANDROID}" >> $GITHUB_ENV
@@ -134,7 +134,6 @@ jobs:
           tar cvzf ${ARCHIVE_LINUX}.tar.gz ${ARCHIVE_LINUX}
           tar cvzf ${ARCHIVE_MAC}.tar.gz ${ARCHIVE_MAC}
           tar cvzf ${ARCHIVE_ANDROID}.tar.gz ${ARCHIVE_ANDROID}
-          # tar cvzf ${ARCHIVE_IOS}.tar.gz ${ARCHIVE_IOS}
           zip -r ${ARCHIVE_IOS}.zip ${ARCHIVE_IOS}
 
           sha256sum ${ARCHIVE_LINUX}.tar.gz > "${ARCHIVE_LINUX}.tar.gz.sha256sum"
