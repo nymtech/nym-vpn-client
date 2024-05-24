@@ -10,7 +10,7 @@ import { BkdErrorKey } from '../types';
 function useI18nError() {
   const { t } = useTranslation('errors');
 
-  const getErrorTranslation = useCallback(
+  const translateError = useCallback(
     (key: BkdErrorKey) => {
       switch (key) {
         case 'InternalError':
@@ -48,7 +48,7 @@ function useI18nError() {
     [t],
   );
 
-  return { eT: getErrorTranslation };
+  return { tE: translateError };
 }
 
 export default useI18nError;

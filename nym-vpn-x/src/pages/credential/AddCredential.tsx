@@ -20,7 +20,7 @@ function AddCredential() {
   const { push } = useNotifications();
   const navigate = useNavigate();
   const { t } = useTranslation('addCredential');
-  const { eT } = useI18nError();
+  const { tE } = useI18nError();
 
   const onChange = (credential: string) => {
     setCredential(credential);
@@ -45,10 +45,10 @@ function AddCredential() {
           // TODO the expiration date format passed from the backend is not ISO_8601
           // So we have to parse it manually
           setError(
-            `${eT(e.key)}: ${dayjs(e.data.expiration, 'YYYY-MM-DD').format('YYYY-MM-DD')}`,
+            `${tE(e.key)}: ${dayjs(e.data.expiration, 'YYYY-MM-DD').format('YYYY-MM-DD')}`,
           );
         } else {
-          setError(eT(e.key));
+          setError(tE(e.key));
         }
       });
   };
