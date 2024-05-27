@@ -16,7 +16,6 @@ public class HopListViewModel: ObservableObject {
     @Published var countries: [Country]?
     @Published var searchText: String = "" {
         didSet {
-            updateQuickestCountry()
             updateCountries()
         }
     }
@@ -68,33 +67,7 @@ extension HopListViewModel {
 // MARK: - Setup -
 extension HopListViewModel {
     func setup() {
-        updateQuickestCountry()
         updateCountries()
-    }
-
-    func updateQuickestCountry() {
-        Task {
-            guard type == .entry || (type == .exit && !appSettings.isEntryLocationSelectionOn),
-                  let country = countriesManager.lowLatencyCountry
-            else {
-                Task { @MainActor in
-                    quickestCountry = nil
-                }
-                return
-            }
-
-            let newCountry: Country?
-            if !searchText.isEmpty,
-               !country.name.contains(searchText) {
-                newCountry = nil
-            } else {
-                newCountry = country
-            }
-
-            Task { @MainActor in
-                quickestCountry = newCountry
-            }
-        }
     }
 
     func updateCountries() {

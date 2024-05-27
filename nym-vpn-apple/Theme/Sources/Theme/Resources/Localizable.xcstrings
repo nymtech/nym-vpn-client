@@ -540,6 +540,28 @@
         }
       }
     },
+    "generalNymError.cannotFetchCountries" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something went wrong: Cannot fetch countries"
+          }
+        }
+      }
+    },
+    "generalNymError.invalidUrl" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something went wrong: Invalid url"
+          }
+        }
+      }
+    },
     "home.entryHop" : {
       "extractionState" : "manual",
       "localizations" : {

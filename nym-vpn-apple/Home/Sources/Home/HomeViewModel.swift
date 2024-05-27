@@ -257,6 +257,20 @@ private extension HomeViewModel {
             }
         }
         .store(in: &cancellables)
+
+        countriesManager.$lastError.sink { [weak self] error in
+            guard
+                let self,
+                let localizedDescription = error?.localizedDescription
+            else {
+                return
+            }
+
+            Task { @MainActor in
+                self.statusInfoState = .error(message: localizedDescription)
+            }
+        }
+        .store(in: &cancellables)
     }
 
 #if os(iOS)
