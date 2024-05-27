@@ -54,7 +54,9 @@ let package = Package(
         ),
         .target(
             name: "Constants",
-            dependencies: [],
+            dependencies: [
+                "Theme"
+            ],
             path: "Sources/Services/Constants"
         ),
         .target(

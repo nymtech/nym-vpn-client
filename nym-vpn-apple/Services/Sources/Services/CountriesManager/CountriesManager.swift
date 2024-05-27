@@ -1,12 +1,17 @@
+import Combine
 import SwiftUI
 import AppSettings
+import Logging
 
 public final class CountriesManager: ObservableObject {
     private var appSettings: AppSettings
 
+    let logger = Logger(label: "CountriesManager")
+
     var isLoading = false
     var lastHopStore = LastHopStore(lastFetchDate: Date())
     var entryLastHopStore = EntryLastHopStore(lastFetchDate: Date())
+    var cancellables = Set<AnyCancellable>()
 
     public static let shared = CountriesManager(appSettings: AppSettings.shared)
 
@@ -14,13 +19,14 @@ public final class CountriesManager: ObservableObject {
     @Published public var exitCountries: [Country]?
     @Published public var lowLatencyCountry: Country?
     @Published public var hasCountries = false
+    @Published public var lastError: Error?
 
     public init(appSettings: AppSettings) {
         self.appSettings = appSettings
     }
 
     public func fetchCountries() throws {
-        guard !isLoading, needReload(shouldFetchEntryCountries: appSettings.isEntryLocationSelectionOn)
+        guard !isLoading, needsReload(shouldFetchEntryCountries: appSettings.isEntryLocationSelectionOn)
         else {
             loadTemporaryCountries(shouldFetchEntryCountries: appSettings.isEntryLocationSelectionOn)
             return
@@ -30,7 +36,9 @@ public final class CountriesManager: ObservableObject {
         Task {
             if appSettings.isEntryLocationSelectionOn {
                 try fetchEntryExitCountries()
+#if os(iOS)
                 fetchLowLatencyEntryCountry()
+#endif
             } else {
                 try fetchExitCountries()
             }
@@ -48,7 +56,7 @@ public final class CountriesManager: ObservableObject {
 
 // MARK: - Temp storage -
 private extension CountriesManager {
-    func needReload(shouldFetchEntryCountries: Bool) -> Bool {
+    func needsReload(shouldFetchEntryCountries: Bool) -> Bool {
         if shouldFetchEntryCountries {
             guard let countries = entryLastHopStore.entryCountries, !countries.isEmpty else { return true }
         } else {
@@ -97,5 +105,9 @@ extension CountriesManager {
         } else {
             hasCountries = ((exitCountries?.isEmpty) != nil)
         }
+    }
+
+    func updateError(with error: Error) {
+        lastError = error
     }
 }

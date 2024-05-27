@@ -36,10 +36,8 @@ public final class GRPCManager: ObservableObject {
 
     public func status() {
         let request = Nym_Vpn_StatusRequest()
-
         let call = client.vpnStatus(request)
 
-        // Handle the response
         call.response.whenComplete { result in
             switch result {
             case let .success(response):
@@ -49,7 +47,6 @@ public final class GRPCManager: ObservableObject {
             }
         }
 
-        // Wait for the call to complete
         _ = try? call.status.wait()
     }
 
@@ -85,26 +82,39 @@ public final class GRPCManager: ObservableObject {
         }
     }
 
-    public func connect() {
+    public func connect(
+        entryGatewayCountryCode: String?,
+        exitRouterCountryCode: String?,
+        isTwoHopEnabled: Bool
+    ) {
         var request = Nym_Vpn_ConnectRequest()
 
         var entryNode = Nym_Vpn_EntryNode()
-        entryNode.random = Nym_Vpn_Empty()
+        if let entryGatewayCountryCode {
+            var location = Nym_Vpn_Location()
+            location.twoLetterIsoCountryCode = entryGatewayCountryCode
+            entryNode.location = location
+        } else {
+            entryNode.randomLowLatency = Nym_Vpn_Empty()
+        }
 
         var exitNode = Nym_Vpn_ExitNode()
-        exitNode.random = Nym_Vpn_Empty()
+        if let exitRouterCountryCode {
+            var location = Nym_Vpn_Location()
+            location.twoLetterIsoCountryCode = exitRouterCountryCode
+        } else {
+            exitNode.random = Nym_Vpn_Empty()
+        }
 
         request.entry = entryNode
         request.exit = exitNode
 
-        // Optional configurations
         request.disableRouting = false
-        request.enableTwoHop = false
+        request.enableTwoHop = isTwoHopEnabled
         request.enablePoissonRate = false
         request.disableBackgroundCoverTraffic = false
-        request.enableCredentialsMode = false
+        request.enableCredentialsMode = true
 
-        // Make the call
         let call = client.vpnConnect(request)
 
         call.response.whenComplete { result in
@@ -152,7 +162,6 @@ private extension GRPCManager {
     }
 
     func setupListenToConnectionStateObserver() {
-        // Make the call and get the response stream
         let call = client.listenToConnectionStateChanges(Nym_Vpn_Empty()) { [weak self] connectionStateChange in
             // TODO:
             print("Connection state \(connectionStateChange)")
@@ -194,5 +203,4 @@ private extension GRPCManager {
             }
         }
     }
-
 }

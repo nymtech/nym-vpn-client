@@ -76,7 +76,11 @@ public final class ConnectionManager: ObservableObject {
         if grpcManager.tunnelStatus == .connected || grpcManager.tunnelStatus == .connecting {
             grpcManager.disconnect()
         } else {
-            grpcManager.connect()
+            grpcManager.connect(
+                entryGatewayCountryCode: config.entryGateway?.countryCode,
+                exitRouterCountryCode: config.exitRouter.countryCode,
+                isTwoHopEnabled: config.isTwoHopEnabled
+            )
         }
     }
 #endif
