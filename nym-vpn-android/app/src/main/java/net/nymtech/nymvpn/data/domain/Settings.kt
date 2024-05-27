@@ -5,7 +5,7 @@ import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.VpnMode
 
 data class Settings(
-	val theme: Theme = Theme.default(),
+	val theme: Theme? = null,
 	val vpnMode: VpnMode = VpnMode.default(),
 	val autoStartEnabled: Boolean = AUTO_START_DEFAULT,
 	val errorReportingEnabled: Boolean = REPORTING_DEFAULT,

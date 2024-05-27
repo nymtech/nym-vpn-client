@@ -22,11 +22,9 @@ class BootReceiver : BroadcastReceiver() {
 	override fun onReceive(context: Context?, intent: Intent?) = goAsync {
 		if (Intent.ACTION_BOOT_COMPLETED != intent?.action) return@goAsync
 		if (settingsRepository.isAutoStartEnabled()) {
-			context?.let { context ->
-				vpnManager.startVpn(context, true).onFailure {
-					// TODO handle failures
-					Timber.w(it)
-				}
+			vpnManager.startVpn(true).onFailure {
+				// TODO handle failures
+				Timber.w(it)
 			}
 		}
 	}

@@ -6,6 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SecretsRepository
 import net.nymtech.nymvpn.data.SettingsRepository
@@ -21,8 +22,8 @@ import javax.inject.Singleton
 class DataModule {
 	@Singleton
 	@Provides
-	fun providePreferencesDataStore(@ApplicationContext context: Context): DataStoreManager {
-		return DataStoreManager(context)
+	fun providePreferencesDataStore(@ApplicationContext context: Context, @IoDispatcher dispatcher: CoroutineDispatcher): DataStoreManager {
+		return DataStoreManager(context, dispatcher)
 	}
 
 	@Singleton
@@ -45,7 +46,7 @@ class DataModule {
 
 	@Singleton
 	@Provides
-	fun provideSecretsRepository(encryptedPreferences: EncryptedPreferences): SecretsRepository {
-		return SecretsPreferencesRepository(encryptedPreferences)
+	fun provideSecretsRepository(encryptedPreferences: EncryptedPreferences, @IoDispatcher dispatcher: CoroutineDispatcher): SecretsRepository {
+		return SecretsPreferencesRepository(encryptedPreferences, dispatcher)
 	}
 }

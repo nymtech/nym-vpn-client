@@ -3,13 +3,11 @@ package net.nymtech.nymvpn.ui.screens.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.vpn.VpnManager
@@ -80,11 +78,11 @@ constructor(
 		settingsRepository.setVpnMode(VpnMode.FIVE_HOP_MIXNET)
 	}
 
-	suspend fun onConnect(): Result<Unit> = withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
-		vpnManager.startVpn(NymVpn.instance, false)
+	suspend fun onConnect(): Result<Unit> = withContext(viewModelScope.coroutineContext) {
+		vpnManager.startVpn(false)
 	}
 
 	fun onDisconnect() = viewModelScope.launch {
-		vpnManager.stopVpn(NymVpn.instance, false)
+		vpnManager.stopVpn(false)
 	}
 }

@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+	xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-	<uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
-    <!--start vpn on boot permission-->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <application
-        android:name=".NymVpn"
-        android:allowBackup="false"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:enableOnBackInvokedCallback="true"
-        android:fullBackupContent="@xml/backup_rules"
-        android:hardwareAccelerated="true"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:largeHeap="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.AppSplashScreen"
-        tools:node="merge"
-        tools:targetApi="33">
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+	<uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+	<!--start vpn on boot permission-->
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+	<application
+		android:name=".NymVpn"
+		android:allowBackup="false"
+		android:dataExtractionRules="@xml/data_extraction_rules"
+		android:enableOnBackInvokedCallback="true"
+		android:fullBackupContent="@xml/backup_rules"
+		android:hardwareAccelerated="true"
+		android:icon="@mipmap/ic_launcher"
+		android:label="@string/app_name"
+		android:largeHeap="true"
+		android:roundIcon="@mipmap/ic_launcher_round"
+		android:supportsRtl="true"
+		android:theme="@style/Theme.AppSplashScreen"
+		tools:node="merge"
+		tools:targetApi="33">
 		<activity
 			android:name=".ui.SplashActivity"
 			android:exported="true"
@@ -38,83 +38,97 @@
 			android:name="com.journeyapps.barcodescanner.CaptureActivity"
 			android:screenOrientation="portrait"
 			tools:replace="screenOrientation" />
-        <activity
-            android:name=".ui.MainActivity"
-            android:configChanges="orientation|keyboardHidden"
-            android:exported="true"
+		<activity
+			android:name=".ui.MainActivity"
+			android:configChanges="orientation|keyboardHidden"
+			android:exported="true"
 			android:theme="@style/Theme.NymVPN"
-            android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
-            </intent-filter>
-        </activity>
+			android:screenOrientation="portrait"
+			android:windowSoftInputMode="adjustResize">
+			<intent-filter>
+				<action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+			</intent-filter>
+			<intent-filter android:autoVerify="true">
+				<action android:name="android.intent.action.VIEW" />
+
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+
+				<data android:scheme="http" />
+				<data
+					android:host="10.0.1.91"
+					android:port="5500" />
+				<data android:mimeType="text/plain" />
+				<data android:path="/index.html" />
+			</intent-filter>
+		</activity>
 		<activity
 			android:name=".ui.ShortcutActivity"
 			android:enabled="true"
 			android:exported="true"
 			android:finishOnTaskLaunch="true"
 			android:theme="@android:style/Theme.NoDisplay" />
-        <service
-            android:name=".service.tile.VpnQuickTile"
-            android:exported="true"
-            android:icon="@drawable/ic_stat_name"
-            android:label="@string/app_name"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
-            <meta-data
-                android:name="android.service.quicksettings.ACTIVE_TILE"
-                android:value="true" />
-            <meta-data
-                android:name="android.service.quicksettings.TOGGLEABLE_TILE"
-                android:value="true" />
 
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
-            </intent-filter>
-        </service>
-        <receiver
-            android:name=".receiver.BootReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <category android:name="android.intent.category.DEFAULT" />
+		<service
+			android:name=".service.tile.VpnQuickTile"
+			android:exported="true"
+			android:icon="@drawable/ic_stat_name"
+			android:label="@string/app_name"
+			android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+			<meta-data
+				android:name="android.service.quicksettings.ACTIVE_TILE"
+				android:value="true" />
+			<meta-data
+				android:name="android.service.quicksettings.TOGGLEABLE_TILE"
+				android:value="true" />
 
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.ACTION_BOOT_COMPLETED" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
-            </intent-filter>
-        </receiver>
-        <service
-            android:name=".service.AlwaysOnVpnService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="systemExempted"
-            android:permission="android.permission.BIND_VPN_SERVICE"
-            android:persistent="true"
-            tools:node="merge">
-            <intent-filter>
-                <action android:name="android.net.VpnService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
-                android:value="true" />
-        </service>
-        <!-- Sentry -->
-        <meta-data
-            android:name="io.sentry.auto-init"
-            android:value="false" />
-        <!-- enable screenshot for crashes -->
-        <meta-data
-            android:name="io.sentry.attach-screenshot"
-            android:value="true" />
-        <!-- enable view hierarchy for crashes -->
-        <meta-data
-            android:name="io.sentry.attach-view-hierarchy"
-            android:value="true" />
-        <meta-data
-            android:name="io.sentry.release"
-            android:value="@string/fullVersionName" />
-    </application>
+			<intent-filter>
+				<action android:name="android.service.quicksettings.action.QS_TILE" />
+			</intent-filter>
+		</service>
+		<receiver
+			android:name=".receiver.BootReceiver"
+			android:enabled="true"
+			android:exported="false">
+			<intent-filter>
+				<category android:name="android.intent.category.DEFAULT" />
+
+				<action android:name="android.intent.action.BOOT_COMPLETED" />
+				<action android:name="android.intent.action.ACTION_BOOT_COMPLETED" />
+				<action android:name="android.intent.action.QUICKBOOT_POWERON" />
+				<action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+			</intent-filter>
+		</receiver>
+		<service
+			android:name=".service.AlwaysOnVpnService"
+			android:enabled="true"
+			android:exported="false"
+			android:foregroundServiceType="systemExempted"
+			android:permission="android.permission.BIND_VPN_SERVICE"
+			android:persistent="true"
+			tools:node="merge">
+			<intent-filter>
+				<action android:name="android.net.VpnService" />
+			</intent-filter>
+			<meta-data
+				android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
+				android:value="true" />
+		</service>
+		<!-- Sentry -->
+		<meta-data
+			android:name="io.sentry.auto-init"
+			android:value="false" />
+		<!-- enable screenshot for crashes -->
+		<meta-data
+			android:name="io.sentry.attach-screenshot"
+			android:value="true" />
+		<!-- enable view hierarchy for crashes -->
+		<meta-data
+			android:name="io.sentry.attach-view-hierarchy"
+			android:value="true" />
+		<meta-data
+			android:name="io.sentry.release"
+			android:value="@string/fullVersionName" />
+	</application>
 
 </manifest>

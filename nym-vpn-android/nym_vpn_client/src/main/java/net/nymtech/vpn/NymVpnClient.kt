@@ -3,18 +3,15 @@ package net.nymtech.vpn
 import android.content.Context
 import android.content.Intent
 import android.net.VpnService
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.buffer
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.nymtech.logcathelper.LogcatHelper
 import net.nymtech.logcathelper.model.LogLevel
 import net.nymtech.vpn.model.VpnClientState
@@ -32,11 +29,12 @@ import nym_vpn_lib.FfiException
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.checkCredential
 import nym_vpn_lib.runVpn
+import nym_vpn_lib.stopVpn
 import timber.log.Timber
 import java.time.Instant
-import kotlin.coroutines.coroutineContext
 
 object NymVpnClient {
+
 	private object NymVpnClientInit {
 		lateinit var entryPoint: EntryPoint
 		lateinit var exitPoint: ExitPoint
@@ -69,46 +67,62 @@ object NymVpnClient {
 	}
 	internal object NymVpn : VpnClient {
 
+		private val ioDispatcher = Dispatchers.IO
+
 		override var entryPoint: EntryPoint = NymVpnClientInit.entryPoint
 		override var exitPoint: ExitPoint = NymVpnClientInit.exitPoint
 		override var mode: VpnMode = NymVpnClientInit.mode
 		private val environment: Environment = NymVpnClientInit.environment
 
-		private var job: Job? = null
+		private var logsJob: Job? = null
+		private var statsJob: Job? = null
 
 		private val _state = MutableStateFlow(VpnClientState())
 		override val stateFlow: Flow<VpnClientState> = _state.asStateFlow()
 
-		override fun validateCredential(credential: String): Result<Instant> {
-			return try {
-				val expiry = checkCredential(credential)
-				Result.success(expiry)
-			} catch (_: FfiException) {
-				Result.failure(InvalidCredentialException("Credential invalid or expired"))
+		override suspend fun validateCredential(credential: String): Result<Instant> {
+			return withContext(ioDispatcher) {
+				try {
+					val expiry = checkCredential(credential)
+					Result.success(expiry)
+				} catch (_: FfiException) {
+					Result.failure(InvalidCredentialException("Credential invalid or expired"))
+				}
 			}
 		}
 
-		@Throws(InvalidCredentialException::class)
-		override suspend fun start(context: Context, credential: String, foreground: Boolean) {
-			validateCredential(credential).onFailure {
-				throw it
-			}
-			clearErrorStatus()
-			with(CoroutineScope(coroutineContext)) {
-				launch {
-					collectLogStatus()
+		override suspend fun start(context: Context, credential: String, foreground: Boolean): Result<Unit> {
+			return withContext(ioDispatcher) {
+				validateCredential(credential).onFailure {
+					return@withContext Result.failure(it)
 				}
-				launch {
-					startConnectionTimer()
+				if (_state.value.vpnState == VpnState.Down) {
+					setVpnState(VpnState.Connecting.InitializingClient)
+					clearErrorStatus()
+					if (foreground) ServiceManager.startVpnServiceForeground(context) else ServiceManager.startVpnService(context)
 				}
+				Result.success(Unit)
 			}
-			if (foreground) ServiceManager.startVpnServiceForeground(context) else ServiceManager.startVpnService(context)
 		}
 
-		@Synchronized
-		override fun stop(context: Context, foreground: Boolean) {
+		override suspend fun stop(context: Context, foreground: Boolean) {
+			withContext(ioDispatcher) {
+				clearStatisticState()
+				setVpnState(VpnState.Disconnecting)
+				try {
+					stopVpn()
+				} catch (e: FfiException) {
+					Timber.e(e)
+				}
+				delay(1000)
+				handleClientShutdown(context)
+			}
+		}
+
+		private fun handleClientShutdown(context: Context) {
 			ServiceManager.stopVpnService(context)
-			cancelStatistics()
+			clearStatisticState()
+			cancelJobs()
 		}
 
 		override fun prepare(context: Context): Intent? {
@@ -116,6 +130,11 @@ object NymVpnClient {
 		}
 		override fun getState(): VpnClientState {
 			return _state.value
+		}
+
+		private fun cancelJobs() {
+			statsJob?.cancel()
+			logsJob?.cancel()
 		}
 
 		private fun clearErrorStatus() {
@@ -157,10 +176,12 @@ object NymVpnClient {
 		}
 
 		internal fun setVpnState(state: VpnState) {
-			_state.update {
-				it.copy(
-					vpnState = state,
-				)
+			if (state != _state.value.vpnState) {
+				_state.update {
+					it.copy(
+						vpnState = state,
+					)
+				}
 			}
 		}
 
@@ -169,43 +190,42 @@ object NymVpnClient {
 			else -> false
 		}
 
-		internal fun connect() {
-			try {
-				runVpn(
-					VpnConfig(
-						environment.apiUrl,
-						environment.explorerUrl,
-						entryPoint,
-						exitPoint,
-						isTwoHop(mode),
-						null,
-					),
-				)
-			} catch (e: FfiException) {
-				Timber.e(e)
-				setErrorState(ErrorState.GatewayLookupFailure)
-				handleErrorShutdown()
+		internal suspend fun connect(context: Context) {
+			cancelJobs()
+			withContext(ioDispatcher) {
+				logsJob = launch(ioDispatcher) {
+					monitorLogs(context)
+				}
+
+				statsJob = launch {
+					startConnectionTimer()
+				}
+
+				try {
+					runVpn(
+						VpnConfig(
+							environment.apiUrl,
+							environment.explorerUrl,
+							entryPoint,
+							exitPoint,
+							isTwoHop(mode),
+							null,
+						),
+					)
+				} catch (e: FfiException) {
+					Timber.e(e)
+					setErrorState(ErrorState.GatewayLookupFailure)
+					handleClientShutdown(context)
+				}
 			}
 		}
 
-		private fun cancelStatistics() {
-			job?.cancel()
-			clearStatisticState()
-		}
-
-		private suspend fun collectLogStatus() {
-			callbackFlow {
-				LogcatHelper.logs {
-					if (it.level != LogLevel.DEBUG) {
-						trySend(it)
-					}
-				}
-				awaitClose { cancel() }
-			}.buffer(capacity = 100).safeCollect {
+		private suspend fun monitorLogs(context: Context) {
+			LogcatHelper.init(context = context).liveLogs.safeCollect {
 				if (it.tag.contains(Constants.NYM_VPN_LIB_TAG)) {
 					when (it.level) {
 						LogLevel.ERROR -> {
-							parseErrorMessageForState(it.message)
+							parseErrorMessageForState(it.message) { handleClientShutdown(context) }
 						}
 						LogLevel.INFO -> {
 							parseInfoMessageForState(it.message)
@@ -217,20 +237,16 @@ object NymVpnClient {
 		}
 
 		private suspend fun startConnectionTimer() {
-			var seconds = 0L
-			do {
-				if (_state.value.vpnState == VpnState.Up) {
-					setStatisticState(seconds)
-					seconds++
-				}
-				delay(1000)
-			} while (true)
-		}
-
-		private fun handleErrorShutdown() {
-			setVpnState(VpnState.Down)
-			NymVpnService.service?.get()?.stopSelf()
-			cancelStatistics()
+			withContext(ioDispatcher) {
+				var seconds = 0L
+				do {
+					if (_state.value.vpnState == VpnState.Up) {
+						setStatisticState(seconds)
+						seconds++
+					}
+					delay(1000)
+				} while (true)
+			}
 		}
 
 		private fun parseInfoMessageForState(message: String) {
@@ -246,7 +262,7 @@ object NymVpnClient {
 			}
 		}
 
-		private fun parseErrorMessageForState(message: String) {
+		private fun parseErrorMessageForState(message: String, onError: () -> Unit) {
 			with(message) {
 				val errorState = when {
 					contains("failed to lookup described gateways") -> ErrorState.GatewayLookupFailure
@@ -257,7 +273,7 @@ object NymVpnClient {
 				}
 				errorState?.let {
 					setErrorState(it)
-					handleErrorShutdown()
+					onError()
 				}
 			}
 		}

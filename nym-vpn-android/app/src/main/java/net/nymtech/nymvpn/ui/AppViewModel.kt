@@ -9,13 +9,10 @@ import android.os.Build
 import android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.sentry.Sentry
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -23,19 +20,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.nymtech.logcathelper.LogcatHelper
-import net.nymtech.logcathelper.model.LogLevel
-import net.nymtech.logcathelper.model.LogMessage
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SecretsRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.module.Native
 import net.nymtech.nymvpn.service.gateway.GatewayService
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.FileUtils
 import net.nymtech.nymvpn.util.NymVpnExceptions
-import net.nymtech.nymvpn.util.log.NymLibException
 import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.model.Country
 import timber.log.Timber
@@ -52,15 +45,13 @@ constructor(
 	private val gatewayRepository: GatewayRepository,
 	@Native private val gatewayService: GatewayService,
 	private val vpnClient: Provider<VpnClient>,
+	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(AppUiState())
 
-	val logs = mutableStateListOf<LogMessage>()
-	private val logsBuffer = mutableListOf<LogMessage>()
-
 	init {
-		viewModelScope.launch(Dispatchers.IO) {
+		viewModelScope.launch(ioDispatcher) {
 			secretsRepository.get().credentialFlow.collect { cred ->
 				cred?.let {
 					getCredentialExpiry(it).onSuccess { expiry ->
@@ -82,7 +73,6 @@ constructor(
 			secretsRepository.get().credentialFlow,
 		) { state, settings, vpnState, cred ->
 			AppUiState(
-				false,
 				state.snackbarMessage,
 				state.snackbarMessageConsumed,
 				vpnState,
@@ -95,34 +85,6 @@ constructor(
 			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
 			AppUiState(),
 		)
-
-	fun readLogCatOutput() = viewModelScope.launch(viewModelScope.coroutineContext + Dispatchers.IO) {
-		launch {
-			LogcatHelper.logs {
-				logsBuffer.add(it)
-				when (it.level) {
-					LogLevel.ERROR -> {
-						if (it.tag.contains(Constants.NYM_VPN_LIB_TAG)) {
-							Sentry.captureException(
-								NymLibException("${it.time} - ${it.tag} ${it.message}"),
-							)
-						}
-					}
-					else -> Unit
-				}
-			}
-		}
-		launch {
-			do {
-				logs.addAll(logsBuffer)
-				logsBuffer.clear()
-				if (logs.size > Constants.LOG_BUFFER_SIZE) {
-					logs.removeRange(0, (logs.size - Constants.LOG_BUFFER_SIZE).toInt())
-				}
-				delay(Constants.LOG_BUFFER_DELAY)
-			} while (true)
-		}
-	}
 
 	private fun setCredentialExpiry(instant: Instant) {
 		_uiState.update {
@@ -140,14 +102,8 @@ constructor(
 		}
 	}
 
-	fun clearLogs() {
-		logs.clear()
-		logsBuffer.clear()
-		LogcatHelper.clear()
-	}
-
 	suspend fun onValidCredentialCheck(): Result<Instant> {
-		return withContext(viewModelScope.coroutineContext + Dispatchers.IO) {
+		return withContext(viewModelScope.coroutineContext) {
 			val credential = secretsRepository.get().getCredential()
 			if (credential != null) {
 				getCredentialExpiry(credential)
@@ -163,18 +119,11 @@ constructor(
 		}
 	}
 
-	fun saveLogsToFile(context: Context) {
-		val fileName = "${Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.txt"
-		val content = logs.joinToString(separator = "\n")
-		FileUtils.saveFileToDownloads(context, content, fileName)
-		showSnackbarMessage(context.getString(R.string.logs_saved))
-	}
-
 	fun setAnalyticsShown() = viewModelScope.launch {
 		settingsRepository.setAnalyticsShown(true)
 	}
 
-	fun onEntryLocationSelected(selected: Boolean) = viewModelScope.launch(Dispatchers.IO) {
+	fun onEntryLocationSelected(selected: Boolean) = viewModelScope.launch {
 		settingsRepository.setFirstHopSelection(selected)
 		settingsRepository.setFirstHopCountry(Country(isDefault = true))
 // 		launch {

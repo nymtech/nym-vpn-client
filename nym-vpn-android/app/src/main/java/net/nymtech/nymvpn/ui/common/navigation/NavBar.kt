@@ -24,14 +24,13 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NavBar(appViewModel: AppViewModel, appUiState: AppUiState, navController: NavController, modifier: Modifier = Modifier) {
+fun NavBar(appUiState: AppUiState, navController: NavController, modifier: Modifier = Modifier) {
 	val navBackStackEntry by navController.currentBackStackEntryAsState()
 	val navItem = NavItem.from(navBackStackEntry?.destination?.route)
 	val context = LocalContext.current
@@ -52,6 +51,7 @@ fun NavBar(appViewModel: AppViewModel, appUiState: AppUiState, navController: Na
 							Theme.AUTOMATIC -> isSystemInDarkTheme()
 							Theme.DARK_MODE -> true
 							Theme.LIGHT_MODE -> false
+							else -> true
 						}
 					if (darkTheme) {
 						Icon(ImageVector.vectorResource(R.drawable.app_label_dark), "app_label", tint = Color.Unspecified)
@@ -71,7 +71,6 @@ fun NavBar(appViewModel: AppViewModel, appUiState: AppUiState, navController: Na
 						onClick = {
 							when (it) {
 								NavItem.settingsIcon -> navController.navigate(NavItem.Settings.route)
-								NavItem.clearLogsIcon -> appViewModel.clearLogs()
 							}
 						},
 					) {

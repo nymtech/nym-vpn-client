@@ -2,7 +2,6 @@ package net.nymtech.nymvpn.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import net.nymtech.nymvpn.R
@@ -70,7 +69,6 @@ sealed class NavItem(
 			"${Screen.SETTINGS.name}/${Screen.LOGS.name}",
 			StringValue.StringResource(R.string.logs),
 			backIcon,
-			trailing = clearLogsIcon,
 		)
 
 		data object Feedback : NavItem(
@@ -121,7 +119,6 @@ sealed class NavItem(
 	companion object {
 		val settingsIcon = Icons.Outlined.Settings
 		val backIcon = Icons.AutoMirrored.Filled.ArrowBack
-		val clearLogsIcon = Icons.Outlined.DeleteForever
 
 		fun from(route: String?): NavItem {
 			return when (route) {

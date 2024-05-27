@@ -4,14 +4,19 @@ import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
 
-class DataStoreManager(private val context: Context) {
+class DataStoreManager(
+	private val context: Context,
+	private val ioDispatcher: CoroutineDispatcher,
+) {
 
 	// preferences
 	private val preferencesKey = "preferences"
@@ -21,29 +26,35 @@ class DataStoreManager(private val context: Context) {
 		)
 
 	suspend fun <T> saveToDataStore(key: Preferences.Key<T>, value: T) {
-		try {
-			context.dataStore.edit { it[key] = value }
-		} catch (e: IOException) {
-			Timber.e(e)
+		withContext(ioDispatcher) {
+			try {
+				context.dataStore.edit { it[key] = value }
+			} catch (e: IOException) {
+				Timber.e(e)
+			}
 		}
 	}
 
 	suspend fun <T> clear(key: Preferences.Key<T>) {
-		try {
-			context.dataStore.edit { it.remove(key) }
-		} catch (e: IOException) {
-			Timber.e(e)
+		withContext(ioDispatcher) {
+			try {
+				context.dataStore.edit { it.remove(key) }
+			} catch (e: IOException) {
+				Timber.e(e)
+			}
 		}
 	}
 
 	fun <T> getFromStoreFlow(key: Preferences.Key<T>) = context.dataStore.data.map { it[key] }
 
 	suspend fun <T> getFromStore(key: Preferences.Key<T>): T? {
-		return try {
-			context.dataStore.data.map { it[key] }.first()
-		} catch (e: IOException) {
-			Timber.e(e)
-			null
+		return withContext(ioDispatcher) {
+			try {
+				context.dataStore.data.map { it[key] }.first()
+			} catch (e: IOException) {
+				Timber.e(e)
+				null
+			}
 		}
 	}
 

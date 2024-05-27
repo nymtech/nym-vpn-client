@@ -3,7 +3,7 @@ package net.nymtech.logcathelper.model
 import java.time.Instant
 
 data class LogMessage(
-	val time: Instant,
+	val time: String,
 	val pid: String,
 	val tid: String,
 	val level: LogLevel,
@@ -18,7 +18,7 @@ data class LogMessage(
 		fun from(logcatLine: String): LogMessage {
 			return if (logcatLine.contains("---------")) {
 				LogMessage(
-					Instant.now(),
+					Instant.now().toString(),
 					"0",
 					"0",
 					LogLevel.VERBOSE,
@@ -31,7 +31,7 @@ data class LogMessage(
 				val epochParts = parts[0].split(".").map { it.toLong() }
 				val message = parts.subList(5, parts.size).joinToString(" ")
 				LogMessage(
-					Instant.ofEpochSecond(epochParts[0], epochParts[1]),
+					Instant.ofEpochSecond(epochParts[0], epochParts[1]).toString(),
 					parts[1],
 					parts[2],
 					LogLevel.fromSignifier(parts[3]),

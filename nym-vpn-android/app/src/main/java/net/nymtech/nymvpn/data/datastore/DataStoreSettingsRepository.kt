@@ -44,7 +44,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun setTheme(theme: Theme) {
-		dataStoreManager.saveToDataStore(this.theme, theme.name)
+		dataStoreManager.saveToDataStore(this@DataStoreSettingsRepository.theme, theme.name)
 	}
 
 	override suspend fun getVpnMode(): VpnMode {
@@ -77,7 +77,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun setLastHopCountry(country: Country) {
-		dataStoreManager.saveToDataStore(lastHopCountry, country.toString())
+		return dataStoreManager.saveToDataStore(lastHopCountry, country.toString())
 	}
 
 	override suspend fun isAutoStartEnabled(): Boolean {

@@ -5,7 +5,6 @@ import net.nymtech.vpn.model.VpnClientState
 import java.time.Instant
 
 data class AppUiState(
-	val loading: Boolean = true,
 	val snackbarMessage: String = "",
 	val snackbarMessageConsumed: Boolean = true,
 	val vpnClientState: VpnClientState = VpnClientState(),

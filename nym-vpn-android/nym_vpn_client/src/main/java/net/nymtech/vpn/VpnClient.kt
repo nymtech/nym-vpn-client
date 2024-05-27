@@ -16,12 +16,12 @@ interface VpnClient {
 	var exitPoint: ExitPoint
 	var mode: VpnMode
 
-	fun validateCredential(credential: String): Result<Instant>
+	suspend fun validateCredential(credential: String): Result<Instant>
 
 	@Throws(InvalidCredentialException::class)
-	suspend fun start(context: Context, credential: String, foreground: Boolean = false)
+	suspend fun start(context: Context, credential: String, foreground: Boolean = false): Result<Unit>
 
-	fun stop(context: Context, foreground: Boolean = false)
+	suspend fun stop(context: Context, foreground: Boolean = false)
 
 	fun prepare(context: Context): Intent?
 

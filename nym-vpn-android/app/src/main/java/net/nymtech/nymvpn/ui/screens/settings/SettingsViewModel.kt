@@ -38,7 +38,7 @@ constructor(
 	}
 
 	fun onKillSwitchSelected(context: Context) {
-		val intent = Intent("android.net.vpn.SETTINGS").apply {
+		val intent = Intent(Constants.VPN_SETTINGS_PACKAGE).apply {
 			setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 		}
 		context.startActivity(intent)

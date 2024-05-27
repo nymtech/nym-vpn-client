@@ -13,13 +13,14 @@ class NymVpnManager @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val secretsRepository: Provider<SecretsRepository>,
 	private val vpnClient: Provider<VpnClient>,
+	private val context: Context,
 ) : VpnManager {
-	override fun stopVpn(context: Context, foreground: Boolean) {
-		vpnClient.get().stop(NymVpn.instance, foreground)
+	override suspend fun stopVpn(foreground: Boolean) {
+		vpnClient.get().stop(context, foreground)
 		NymVpn.requestTileServiceStateUpdate()
 	}
 
-	override suspend fun startVpn(context: Context, foreground: Boolean): Result<Unit> {
+	override suspend fun startVpn(foreground: Boolean): Result<Unit> {
 		val entryCountry = settingsRepository.getFirstHopCountry()
 		val exitCountry = settingsRepository.getLastHopCountry()
 		val credential = secretsRepository.get().getCredential()
@@ -27,16 +28,12 @@ class NymVpnManager @Inject constructor(
 		return if (credential != null) {
 			val entry = entryCountry.toEntryPoint()
 			val exit = exitCountry.toExitPoint()
-			try {
-				vpnClient.get().apply {
-					this.mode = mode
-					this.exitPoint = exit
-					this.entryPoint = entry
-				}.start(context, credential, true)
+			return vpnClient.get().apply {
+				this.mode = mode
+				this.exitPoint = exit
+				this.entryPoint = entry
+			}.start(context, credential, true).also {
 				NymVpn.requestTileServiceStateUpdate()
-				Result.success(Unit)
-			} catch (e: InvalidCredentialException) {
-				Result.failure(e)
 			}
 		} else {
 			Result.failure(InvalidCredentialException("No credential found"))

@@ -30,8 +30,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.module.MainImmediateDispatcher
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.screens.analytics.AnalyticsScreen
@@ -48,15 +49,22 @@ import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+	@Inject
+	@MainImmediateDispatcher
+	lateinit var mainImmediateDispatcher: CoroutineDispatcher
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 
 		val isAnalyticsShown = intent.extras?.getBoolean(SplashActivity.IS_ANALYTICS_SHOWN_INTENT_KEY)
+		val theme = intent.extras?.getString(SplashActivity.THEME)
 
 		setContent {
 			val appViewModel = hiltViewModel<AppViewModel>()
@@ -66,12 +74,8 @@ class MainActivity : ComponentActivity() {
 			var navHeight by remember { mutableStateOf(0.dp) }
 			val density = LocalDensity.current
 
-			LaunchedEffect(Unit) {
-				appViewModel.readLogCatOutput()
-			}
-
 			fun showSnackBarMessage(message: StringValue) {
-				lifecycleScope.launch(Dispatchers.Main) {
+				lifecycleScope.launch(mainImmediateDispatcher) {
 					val result =
 						snackbarHostState.showSnackbar(
 							message = message.asString(this@MainActivity),
@@ -94,7 +98,11 @@ class MainActivity : ComponentActivity() {
 				}
 			}
 
-			NymVPNTheme(theme = uiState.settings.theme) {
+			fun getTheme(): Theme {
+				return uiState.settings.theme ?: theme?.let { Theme.valueOf(it) } ?: Theme.default()
+			}
+
+			NymVPNTheme(theme = getTheme()) {
 				Scaffold(
 					Modifier.semantics {
 						// Enables testTag -> UiAutomator resource id
@@ -103,7 +111,6 @@ class MainActivity : ComponentActivity() {
 					},
 					topBar = {
 						NavBar(
-							appViewModel,
 							uiState,
 							navController,
 							Modifier
@@ -151,7 +158,7 @@ class MainActivity : ComponentActivity() {
 							)
 						}
 						composable(NavItem.Settings.Display.route) { DisplayScreen() }
-						composable(NavItem.Settings.Logs.route) { LogsScreen(appViewModel) }
+						composable(NavItem.Settings.Logs.route) { LogsScreen(appViewModel = appViewModel) }
 						composable(NavItem.Settings.Support.route) { SupportScreen(appViewModel) }
 						composable(NavItem.Settings.Feedback.route) { FeedbackScreen(appViewModel) }
 						composable(NavItem.Settings.Legal.route) {

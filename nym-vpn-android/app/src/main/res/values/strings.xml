@@ -131,4 +131,5 @@
 	<string name="days">days</string>
 	<string name="day">day</string>
 	<string name="scan_nym_vpn_credential">Scan NymVPN Credential QR</string>
+    <string name="error_logs_not_saved">Failed to save logs</string>
 </resources>

@@ -5,12 +5,13 @@ import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.module.ApplicationScope
+import net.nymtech.nymvpn.module.ServiceScope
 import net.nymtech.nymvpn.service.vpn.VpnManager
 import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.model.VpnMode
@@ -31,58 +32,44 @@ class VpnQuickTile : TileService() {
 	@Inject
 	lateinit var vpnClient: Provider<VpnClient>
 
-	private val scope = CoroutineScope(Dispatchers.IO)
+	@Inject
+	@ServiceScope
+	lateinit var serviceScope: CoroutineScope
 
-	private var stateJob: Job? = null
+	@Inject
+	@ApplicationScope
+	lateinit var applicationScope: CoroutineScope
+
+	private var job: Job? = null
 
 	override fun onStartListening() {
 		super.onStartListening()
 		Timber.d("Quick tile listening called")
 		setTileText()
-		if (stateJob == null || stateJob?.isCancelled == true) {
-			stateJob = scope.launch {
-				vpnClient.get().stateFlow.collect {
-					when (it.vpnState) {
-						VpnState.Up -> {
-							Timber.d("VPN State up tile")
-							setActive()
-							setTileText()
-							qsTile.updateTile()
-						}
+		val state = vpnClient.get().getState()
+		when (state.vpnState) {
+			VpnState.Up -> {
+				setActive()
+				setTileText()
+				qsTile.updateTile()
+			}
 
-						VpnState.Down -> {
-							Timber.d("VPN State down tile")
-							setInactive()
-							setTileText()
-							qsTile.updateTile()
-						}
+			VpnState.Down -> {
+				setInactive()
+				setTileText()
+				qsTile.updateTile()
+			}
 
-						VpnState.Connecting.EstablishingConnection, VpnState.Connecting.InitializingClient -> {
-							Timber.d("VPN connecting tile")
-							setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
-							qsTile.updateTile()
-						}
+			VpnState.Connecting.EstablishingConnection, VpnState.Connecting.InitializingClient -> {
+				setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
+				qsTile.updateTile()
+			}
 
-						VpnState.Disconnecting -> {
-							setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
-							qsTile.updateTile()
-						}
-					}
-				}
+			VpnState.Disconnecting -> {
+				setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
+				qsTile.updateTile()
 			}
 		}
-	}
-
-	override fun onDestroy() {
-		super.onDestroy()
-		stateJob?.cancel()
-		scope.cancel()
-	}
-
-	override fun onTileRemoved() {
-		super.onTileRemoved()
-		stateJob?.cancel()
-		scope.cancel()
 	}
 
 	override fun onTileAdded() {
@@ -96,17 +83,20 @@ class VpnQuickTile : TileService() {
 		unlockAndRun {
 			when (vpnClient.get().getState().vpnState) {
 				VpnState.Up -> {
-					scope.launch {
+					applicationScope.launch {
 						setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
 						qsTile.updateTile()
 						vpnClient.get().stop(this@VpnQuickTile, true)
+						job = updateOnState(VpnState.Down)
 					}
 				}
 				VpnState.Down -> {
-					scope.launch {
-						vpnManager.startVpn(this@VpnQuickTile, true).onFailure {
+					applicationScope.launch {
+						vpnManager.startVpn(true).onFailure {
 							// TODO handle failure
 							Timber.w(it)
+						}.onSuccess {
+							job = updateOnState(VpnState.Up)
 						}
 					}
 				}
@@ -115,7 +105,16 @@ class VpnQuickTile : TileService() {
 		}
 	}
 
-	private fun setTileText() = scope.launch {
+	private suspend fun updateOnState(vpnState: VpnState) = serviceScope.launch {
+		vpnClient.get().stateFlow.collect {
+			if (it.vpnState == vpnState) {
+				onStartListening()
+				job?.cancel()
+			}
+		}
+	}
+
+	private fun setTileText() = serviceScope.launch {
 		val firstHopCountry = settingsRepository.getFirstHopCountry()
 		val lastHopCountry = settingsRepository.getLastHopCountry()
 		val mode = settingsRepository.getVpnMode()

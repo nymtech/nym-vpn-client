@@ -36,6 +36,8 @@ comments:
 
 complexity:
   active: true
+  NestedBlockDepth:
+      threshold: 6
   LongParameterList:
     active: false
   TooManyFunctions:

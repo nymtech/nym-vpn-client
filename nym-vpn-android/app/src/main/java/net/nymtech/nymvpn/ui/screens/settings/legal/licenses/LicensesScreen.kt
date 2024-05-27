@@ -40,7 +40,7 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 		}
 
 	LaunchedEffect(Unit) {
-		viewModel.loadLicensesFromAssets(context)
+		viewModel.loadLicensesFromAssets()
 	}
 
 	LazyColumn(

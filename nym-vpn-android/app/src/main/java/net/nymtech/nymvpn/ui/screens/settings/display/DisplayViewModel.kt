@@ -20,7 +20,7 @@ constructor(
 ) : ViewModel() {
 	val uiState =
 		settingsRepository.settingsFlow.map {
-			DisplayUiState(false, it.theme)
+			DisplayUiState(false, it.theme ?: Theme.default())
 		}.stateIn(
 			viewModelScope,
 			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),

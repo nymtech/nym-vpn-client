@@ -1,11 +1,19 @@
 package net.nymtech.nymvpn.ui.screens.settings.legal.licenses
 
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
-import okio.BufferedSource
+import timber.log.Timber
 
 object LicenseParser {
-	fun decode(source: BufferedSource): List<Artifact> {
-		return Json.decodeFromString<List<Artifact>>(source.readString(Charsets.UTF_8))
-			.distinctBy { it.name }
+	fun decode(licenseJson: String): List<Artifact> {
+		try {
+			return Json.decodeFromString<List<Artifact>>(licenseJson)
+				.distinctBy { it.name }
+		} catch (e: SerializationException) {
+			Timber.e(e)
+		} catch (e: IllegalArgumentException) {
+			Timber.e(e)
+		}
+		return emptyList()
 	}
 }
