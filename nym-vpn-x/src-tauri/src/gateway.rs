@@ -3,7 +3,7 @@ use itertools::Itertools;
 use nym_gateway_directory::{Config, GatewayClient};
 use once_cell::sync::Lazy;
 use serde::Deserialize;
-use tracing::{error, instrument};
+use tracing::{error, instrument, warn};
 
 use crate::{country::Country, http::HTTP_CLIENT, node_location::NodeType};
 
@@ -74,10 +74,14 @@ pub async fn get_gateway_countries(node_type: NodeType) -> Result<Vec<Country>> 
         .0
         .iter()
         .filter_map(|code| {
-            rust_iso3166::from_alpha2(code).map(|country| Country {
+            let country = rust_iso3166::from_alpha2(code).map(|country| Country {
                 name: country.name.to_string(),
                 code: country.alpha2.to_string(),
-            })
+            });
+            if country.is_none() {
+                warn!("unknown country code: {}", code);
+            }
+            country
         })
         .sorted_by(|a, b| a.name.cmp(&b.name))
         .collect())
