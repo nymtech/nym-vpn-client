@@ -41,6 +41,10 @@ pub struct Cli {
     /// IP address of the DNS server to use when connected to the VPN
     #[arg(short = 'D', long)]
     pub dns: Option<String>,
+
+    /// Open a console to see the log stream (Windows only)
+    #[arg(short, long)]
+    pub console: bool,
 }
 
 // TODO restore this

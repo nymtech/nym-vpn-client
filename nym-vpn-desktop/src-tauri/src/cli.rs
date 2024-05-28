@@ -25,6 +25,10 @@ pub struct Cli {
     /// Sandbox network
     #[arg(short, long)]
     pub sandbox: bool,
+
+    /// Open a console to see the log stream (Windows only)
+    #[arg(short, long)]
+    pub console: bool,
 }
 
 pub fn print_build_info(package_info: &PackageInfo) {

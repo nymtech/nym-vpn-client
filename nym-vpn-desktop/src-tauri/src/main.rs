@@ -109,6 +109,12 @@ async fn main() -> Result<()> {
         BACKEND_DATA_PATH.to_string_lossy()
     );
 
+    #[cfg(windows)]
+    if cli.console {
+        use windows::Win32::System::Console::AllocConsole;
+        let _ = unsafe { AllocConsole() };
+    }
+
     info!("Starting tauri app");
     tauri::Builder::default()
         .manage(Arc::new(Mutex::new(app_state)))
