@@ -67,6 +67,12 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
     trace!("cli args: {:#?}", cli);
 
+    #[cfg(windows)]
+    if cli.console {
+        use windows::Win32::System::Console::AllocConsole;
+        let _ = unsafe { AllocConsole() };
+    }
+
     let context = tauri::generate_context!();
 
     if cli.build_info {
