@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';
 import { NymDarkOutlineIcon, NymIcon } from '../../assets';
 import { useMainState, useNotifications } from '../../contexts';
-import { useCmdErrorI18n } from '../../hooks';
+import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
-import { CmdError } from '../../types';
+import { BackendError } from '../../types';
 import { Button, PageAnim, TextArea } from '../../ui';
 
 function AddCredential() {
@@ -19,7 +20,7 @@ function AddCredential() {
   const { push } = useNotifications();
   const navigate = useNavigate();
   const { t } = useTranslation('addCredential');
-  const { eT } = useCmdErrorI18n();
+  const { tE } = useI18nError();
 
   const onChange = (credential: string) => {
     setCredential(credential);
@@ -38,12 +39,16 @@ function AddCredential() {
           closeIcon: true,
         });
       })
-      .catch((e: CmdError) => {
+      .catch((e: BackendError) => {
         console.log('backend error:', e);
-        if (e.i18n_key) {
-          setError(eT(e.i18n_key));
+        if (e.key === 'CredentialExpired' && e.data?.expiration) {
+          // TODO the expiration date format passed from the backend is not ISO_8601
+          // So we have to parse it manually
+          setError(
+            `${tE(e.key)}: ${dayjs(e.data.expiration, 'YYYY-MM-DD').format('YYYY-MM-DD')}`,
+          );
         } else {
-          setError(eT('UnknownError'));
+          setError(tE(e.key));
         }
       });
   };

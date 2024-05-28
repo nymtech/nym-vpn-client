@@ -5,6 +5,7 @@ import {
   DefaultThemeMode,
 } from '../constants';
 import {
+  AppError,
   AppState,
   CodeDependency,
   ConnectProgressMsg,
@@ -25,7 +26,7 @@ export type StateAction =
   | { type: 'set-daemon-status'; status: DaemonStatus }
   | { type: 'set-vpn-mode'; mode: VpnMode }
   | { type: 'set-entry-selector'; entrySelector: boolean }
-  | { type: 'set-error'; error: string }
+  | { type: 'set-error'; error: AppError }
   | { type: 'reset-error' }
   | { type: 'new-progress-message'; message: ConnectProgressMsg }
   | { type: 'connect' }

@@ -20,6 +20,7 @@ use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
 
 use crate::cli::Cli;
+use crate::error::BackendError;
 use crate::fs::config::AppConfig;
 use crate::states::app::ConnectionState;
 use crate::vpn_status;
@@ -44,8 +45,8 @@ pub enum VpndStatus {
 
 #[derive(Error, Debug)]
 pub enum VpndError {
-    #[error("rpc error")]
-    RpcError(#[from] tonic::Status),
+    #[error("gRPC call error")]
+    GrpcError(#[from] tonic::Status),
     #[error("failed to connect to daemon using HTTP transport")]
     FailedToConnectHttp(#[from] tonic::transport::Error),
     #[error("failed to connect to daemon using IPC transport")]
@@ -140,7 +141,7 @@ impl GrpcClient {
         let request = Request::new(StatusRequest {});
         let response = vpnd.vpn_status(request).await.map_err(|e| {
             error!("grpc vpn_status: {}", e);
-            VpndError::RpcError(e)
+            VpndError::GrpcError(e)
         })?;
         debug!("grpc response: {:?}", response);
 
@@ -158,7 +159,7 @@ impl GrpcClient {
         vpn_status::update(
             app,
             ConnectionState::from(res.status()),
-            res.error.as_ref().map(|e| e.message.clone()),
+            res.error.map(BackendError::from),
         )
         .await?;
         Ok(())
@@ -204,7 +205,7 @@ impl GrpcClient {
             vpn_status::update(
                 app,
                 ConnectionState::from(status.status()),
-                status.error.as_ref().map(|e| e.message.clone()),
+                status.error.map(BackendError::from),
             )
             .await?;
         }
@@ -236,7 +237,7 @@ impl GrpcClient {
         });
         let response = vpnd.vpn_connect(request).await.map_err(|e| {
             error!("grpc vpn_connect: {}", e);
-            VpndError::RpcError(e)
+            VpndError::GrpcError(e)
         })?;
         debug!("grpc response: {:?}", response);
 
@@ -252,7 +253,7 @@ impl GrpcClient {
         let request = Request::new(DisconnectRequest {});
         let response = vpnd.vpn_disconnect(request).await.map_err(|e| {
             error!("grpc vpn_disconnect: {}", e);
-            VpndError::RpcError(e)
+            VpndError::GrpcError(e)
         })?;
         debug!("grpc response: {:?}", response);
 
@@ -271,7 +272,7 @@ impl GrpcClient {
         let request = Request::new(ImportUserCredentialRequest { credential });
         let response = vpnd.import_user_credential(request).await.map_err(|e| {
             error!("grpc import_user_credential: {}", e);
-            VpndError::RpcError(e)
+            VpndError::GrpcError(e)
         })?;
         debug!("grpc response: {:?}", response);
 

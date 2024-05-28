@@ -2,6 +2,7 @@ import { invoke } from '@tauri-apps/api';
 import { Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useTranslation } from 'react-i18next';
 import { NotificationProvider } from './contexts';
 import router from './router';
@@ -14,6 +15,7 @@ import { RouteLoading, ThemeSetter } from './ui';
 function App() {
   const { i18n } = useTranslation();
   dayjs.locale(i18n.language);
+  dayjs.extend(customParseFormat);
 
   useEffect(() => {
     const showSplashAnimation = async () => {

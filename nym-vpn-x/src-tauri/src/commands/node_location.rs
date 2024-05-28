@@ -6,7 +6,7 @@ use ts_rs::TS;
 use crate::{
     country::Country,
     db::{Db, Key},
-    error::{CmdError, CmdErrorSource},
+    error::BackendError,
     gateway::{get_gateway_countries, get_low_latency_entry_country},
     states::{app::NodeLocation, SharedAppState},
 };
@@ -24,7 +24,7 @@ pub async fn set_node_location(
     db: State<'_, Db>,
     node_type: NodeType,
     location: NodeLocation,
-) -> Result<(), CmdError> {
+) -> Result<(), BackendError> {
     debug!("set_node_location");
     let mut state = app_state.lock().await;
     match node_type {
@@ -40,20 +40,12 @@ pub async fn set_node_location(
     debug!("saving new location in db");
     match node_type {
         NodeType::Entry => {
-            db.insert(Key::EntryNodeLocation, &location).map_err(|_| {
-                CmdError::new(
-                    CmdErrorSource::InternalError,
-                    "Failed to save location in db",
-                )
-            })?;
+            db.insert(Key::EntryNodeLocation, &location)
+                .map_err(|_| BackendError::new_internal("Failed to save location in db", None))?;
         }
         NodeType::Exit => {
-            db.insert(Key::ExitNodeLocation, &location).map_err(|_| {
-                CmdError::new(
-                    CmdErrorSource::InternalError,
-                    "Failed to save location in db",
-                )
-            })?;
+            db.insert(Key::ExitNodeLocation, &location)
+                .map_err(|_| BackendError::new_internal("Failed to save location in db", None))?;
         }
     }
 
@@ -62,14 +54,11 @@ pub async fn set_node_location(
 
 #[instrument]
 #[tauri::command]
-pub async fn get_fastest_node_location() -> Result<Country, CmdError> {
+pub async fn get_fastest_node_location() -> Result<Country, BackendError> {
     debug!("get_fastest_node_location");
     get_low_latency_entry_country().await.map_err(|e| {
         error!("failed to get fastest node location: {}", e);
-        CmdError::new(
-            CmdErrorSource::InternalError,
-            "failed to get fastest node location",
-        )
+        BackendError::new_internal("failed to get fastest node location", None)
     })
 }
 
@@ -78,7 +67,7 @@ pub async fn get_fastest_node_location() -> Result<Country, CmdError> {
 pub async fn get_node_location(
     app_state: State<'_, SharedAppState>,
     node_type: NodeType,
-) -> Result<NodeLocation, CmdError> {
+) -> Result<NodeLocation, BackendError> {
     debug!("get_node_location");
     Ok(match node_type {
         NodeType::Entry => app_state.lock().await.entry_node_location.clone(),
@@ -88,22 +77,16 @@ pub async fn get_node_location(
 
 #[instrument]
 #[tauri::command]
-pub async fn get_countries(node_type: NodeType) -> Result<Vec<Country>, CmdError> {
+pub async fn get_countries(node_type: NodeType) -> Result<Vec<Country>, BackendError> {
     debug!("get_countries");
     match node_type {
         NodeType::Entry => get_gateway_countries(false).await.map_err(|e| {
             error!("failed to get node locations: {}", e);
-            CmdError::new(
-                CmdErrorSource::InternalError,
-                "failed to get node locations",
-            )
+            BackendError::new_internal("failed to get node locations", None)
         }),
         NodeType::Exit => get_gateway_countries(true).await.map_err(|e| {
             error!("failed to get node locations: {}", e);
-            CmdError::new(
-                CmdErrorSource::InternalError,
-                "failed to get node locations",
-            )
+            BackendError::new_internal("failed to get node locations", None)
         }),
     }
 }
