@@ -33,4 +33,6 @@ export type BkdErrorKey =
   | 'CredentialAlreadyImported'
   | 'CredentialStorageError'
   | 'CredentialDeserializationFailure'
-  | 'CredentialExpired';
+  | 'CredentialExpired'
+  | 'GetEntryCountriesRequest'
+  | 'GetExitCountriesRequest';

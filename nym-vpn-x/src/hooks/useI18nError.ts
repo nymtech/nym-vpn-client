@@ -37,6 +37,10 @@ function useI18nError() {
           return t('credential.deserialize');
         case 'CredentialExpired':
           return t('credential.expired');
+        case 'GetEntryCountriesRequest':
+          return t('countries-request.entry');
+        case 'GetExitCountriesRequest':
+          return t('countries-request.exit');
         case 'UnknownError':
           return t('unknown');
 

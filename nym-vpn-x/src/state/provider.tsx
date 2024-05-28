@@ -4,7 +4,7 @@ import { CountryCacheDuration } from '../constants';
 import { MainDispatchContext, MainStateContext } from '../contexts';
 import { sleep } from '../helpers';
 import { useThrottle } from '../hooks';
-import { Cli, Country, NodeHop } from '../types';
+import { Cli, Country, NodeHop, isCountry } from '../types';
 import { initFirstBatch, initSecondBatch } from './init';
 import { initialState, reducer } from './main';
 import { useTauriEvents } from './useTauriEvents';
@@ -15,6 +15,12 @@ type Props = {
 
 export function MainStateProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const {
+    entryCountryList,
+    exitCountryList,
+    entryNodeLocation,
+    exitNodeLocation,
+  } = state;
 
   useTauriEvents(dispatch, state);
 
@@ -80,6 +86,53 @@ export function MainStateProvider({ children }: Props) {
       console.warn('Failed to fetch countries:', e);
     }
   }, []);
+
+  const checkSelectedCountry = useCallback(
+    async (hop: NodeHop) => {
+      const selected = hop === 'entry' ? entryNodeLocation : exitNodeLocation;
+      const countries = hop === 'entry' ? entryCountryList : exitCountryList;
+      if (
+        countries.length > 0 &&
+        isCountry(selected) &&
+        !countries.some((c) => c.code === selected.code)
+      ) {
+        console.warn(
+          `selected ${hop} country [${selected.name}] not in the list, picking a random one`,
+        );
+        const location =
+          countries[Math.floor(Math.random() * countries.length)];
+        try {
+          await invoke<void>('set_node_location', {
+            nodeType: hop === 'entry' ? 'Entry' : 'Exit',
+            location: isCountry(location) ? { Country: location } : 'Fastest',
+          });
+          dispatch({
+            type: 'set-node-location',
+            payload: { hop, location },
+          });
+        } catch (e) {
+          console.warn(`failed to update the selected country: ${e}`);
+        }
+      }
+    },
+    [entryNodeLocation, exitNodeLocation, entryCountryList, exitCountryList],
+  );
+
+  useEffect(() => {
+    // if the current country is not in the list of available countries, pick a random one
+    if (entryCountryList.length > 0) {
+      checkSelectedCountry('entry');
+    }
+    if (exitCountryList.length > 0) {
+      checkSelectedCountry('exit');
+    }
+  }, [
+    checkSelectedCountry,
+    entryNodeLocation,
+    exitNodeLocation,
+    entryCountryList,
+    exitCountryList,
+  ]);
 
   return (
     <MainStateContext.Provider
