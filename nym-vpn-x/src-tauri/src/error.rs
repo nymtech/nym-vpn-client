@@ -46,7 +46,15 @@ impl BackendError {
         }
     }
 
-    pub fn new_with_data(
+    pub fn new_with_data(message: &str, key: ErrorKey, data: HashMap<String, String>) -> Self {
+        Self {
+            message: message.to_string(),
+            key,
+            data: Some(data),
+        }
+    }
+
+    pub fn new_with_optional_data(
         message: &str,
         key: ErrorKey,
         data: Option<HashMap<String, String>>,
@@ -140,6 +148,9 @@ pub enum ErrorKey {
     CredentialDeserializationFailure,
     /// Forwarded from proto
     CredentialExpired,
+    /// HTTP request failure when fetching countries from the Gateway API
+    GetEntryCountriesRequest,
+    GetExitCountriesRequest,
 }
 
 impl From<DaemonError> for ErrorKey {
@@ -158,27 +169,31 @@ impl From<ImportError> for BackendError {
         let data = error.details.clone().into();
         match error.kind() {
             ImportErrorType::Unspecified => BackendError::new_internal("grpc unspecified", data),
-            ImportErrorType::VpnRunning => {
-                BackendError::new_with_data("vpn running", ErrorKey::CredentialVpnRunning, data)
-            }
-            ImportErrorType::CredentialAlreadyImported => BackendError::new_with_data(
+            ImportErrorType::VpnRunning => BackendError::new_with_optional_data(
+                "vpn running",
+                ErrorKey::CredentialVpnRunning,
+                data,
+            ),
+            ImportErrorType::CredentialAlreadyImported => BackendError::new_with_optional_data(
                 "credential already imported",
                 ErrorKey::CredentialAlreadyImported,
                 data,
             ),
-            ImportErrorType::StorageError => BackendError::new_with_data(
+            ImportErrorType::StorageError => BackendError::new_with_optional_data(
                 "credential strorage error",
                 ErrorKey::CredentialStorageError,
                 data,
             ),
-            ImportErrorType::DeserializationFailure => BackendError::new_with_data(
+            ImportErrorType::DeserializationFailure => BackendError::new_with_optional_data(
                 "credential deserialization failure",
                 ErrorKey::CredentialDeserializationFailure,
                 data,
             ),
-            ImportErrorType::CredentialExpired => {
-                BackendError::new_with_data("credential expired", ErrorKey::CredentialExpired, data)
-            }
+            ImportErrorType::CredentialExpired => BackendError::new_with_optional_data(
+                "credential expired",
+                ErrorKey::CredentialExpired,
+                data,
+            ),
         }
     }
 }

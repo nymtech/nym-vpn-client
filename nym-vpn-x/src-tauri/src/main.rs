@@ -34,6 +34,7 @@ mod events;
 mod fs;
 mod gateway;
 mod grpc;
+mod http;
 mod network;
 mod states;
 mod system_tray;
