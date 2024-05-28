@@ -130,11 +130,6 @@ async fn setup_wg_tunnel(
             .entry_private_key
             .as_ref()
             .expect("clap should enforce value when wireguard enabled"),
-        nym_vpn
-            .vpn_config
-            .entry_wg_ip
-            .expect("clap should enforce value when wireguard enabled")
-            .into(),
         entry_mtu,
     )
     .await?;
@@ -147,11 +142,6 @@ async fn setup_wg_tunnel(
             .exit_private_key
             .as_ref()
             .expect("clap should enforce value when wireguard enabled"),
-        nym_vpn
-            .vpn_config
-            .exit_wg_ip
-            .expect("clap should enforce value when wireguard enabled")
-            .into(),
         exit_mtu,
     )
     .await?;

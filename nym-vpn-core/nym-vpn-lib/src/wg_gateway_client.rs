@@ -8,6 +8,7 @@ use nym_node_requests::api::client::NymNodeApiClientExt;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
+use nym_wireguard_types::GatewayClient;
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::PublicKey;
@@ -72,7 +73,6 @@ impl WgGatewayClient {
         &self,
         // gateway_identity: &str,
         gateway_host: IpAddr,
-        wg_ip: IpAddr,
     ) -> Result<GatewayData> {
         // info!("Lookup ip for {}", gateway_identity);
         // let gateway_host = self.lookup_gateway_ip(gateway_identity).await?;
@@ -108,20 +108,25 @@ impl WgGatewayClient {
         debug!("Verifying data");
         gateway_data.verify(keypair.private_key(), nonce)?;
 
-        // let mut mac = HmacSha256::new_from_slice(client_dh.as_bytes()).unwrap();
-        // mac.update(client_static_public.as_bytes());
-        // mac.update(&nonce.to_le_bytes());
-        // let mac = mac.finalize().into_bytes();
-        //
-        // let finalized_message = ClientMessage::Final(GatewayClient {
-        //     pub_key: PeerPublicKey::new(client_static_public),
-        //     mac: ClientMac::new(mac.as_slice().to_vec()),
-        // });
+        let finalized_message = ClientMessage::Final(GatewayClient::new(
+            keypair.private_key(),
+            gateway_data.pub_key().inner(),
+            gateway_data.private_ip,
+            nonce,
+        ));
+        let ClientRegistrationResponse::Registered { success } = gateway_api_client
+            .post_gateway_register_client(&finalized_message)
+            .await?
+        else {
+            return Err(crate::error::Error::InvalidGatewayAPIResponse);
+        };
+        if !success {
+            return Err(crate::error::Error::FailedWireguardRegistration);
+        }
         let gateway_data = GatewayData {
             public_key: PublicKey::from(gateway_data.pub_key().to_bytes()),
             endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, wg_port))?,
-            private_ip: wg_ip,
-            // private_ip: "10.1.0.2".parse().unwrap(), // placeholder value for now
+            private_ip: gateway_data.private_ip,
         };
 
         Ok(gateway_data)
