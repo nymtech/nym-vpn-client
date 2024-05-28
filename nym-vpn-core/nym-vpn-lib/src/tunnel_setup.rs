@@ -109,7 +109,20 @@ async fn setup_wg_tunnel(
     entry_gateway_id: NodeIdentity,
     exit_gateway_id: NodeIdentity,
 ) -> Result<AllTunnelsSetup> {
-    let wg_gateway_client = WgGatewayClient::new(nym_vpn.vpn_config.wg_gateway_config.clone())?;
+    let wg_entry_gateway_client = WgGatewayClient::new(
+        nym_vpn
+            .vpn_config
+            .wg_gateway_config
+            .local_entry_private_key
+            .as_ref(),
+    )?;
+    let wg_exit_gateway_client = WgGatewayClient::new(
+        nym_vpn
+            .vpn_config
+            .wg_gateway_config
+            .local_exit_private_key
+            .as_ref(),
+    )?;
     log::info!("Created wg gateway client");
     // MTU is computed as (MTU of wire interface) - ((IP header size) + (UDP header size) + (WireGuard metadata size))
     // The IP header size is 20 for IPv4 and 40 for IPv6
@@ -123,7 +136,7 @@ async fn setup_wg_tunnel(
 
     let mut entry_wireguard_config = init_wireguard_config(
         &gateway_directory_client,
-        &wg_gateway_client,
+        &wg_entry_gateway_client,
         &entry_gateway_id.to_base58_string(),
         nym_vpn
             .vpn_config
@@ -135,7 +148,7 @@ async fn setup_wg_tunnel(
     .await?;
     let mut exit_wireguard_config = init_wireguard_config(
         &gateway_directory_client,
-        &wg_gateway_client,
+        &wg_exit_gateway_client,
         &exit_gateway_id.to_base58_string(),
         nym_vpn
             .vpn_config

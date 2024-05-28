@@ -51,9 +51,9 @@ pub struct WgGatewayClient {
 }
 
 impl WgGatewayClient {
-    pub fn new(config: WgConfig) -> Result<Self> {
-        let keypair = if let Some(local_private_key) = config.local_entry_private_key {
-            let private_key_intermediate = PublicKey::from_base64(&local_private_key)
+    pub fn new(private_key: Option<&String>) -> Result<Self> {
+        let keypair = if let Some(local_private_key) = private_key {
+            let private_key_intermediate = PublicKey::from_base64(local_private_key)
                 .map_err(|_| crate::error::Error::InvalidWireGuardKey)?;
             let private_key =
                 encryption::PrivateKey::from_bytes(private_key_intermediate.as_bytes())?;
