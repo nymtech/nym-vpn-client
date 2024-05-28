@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tracing::{debug, error, info, instrument, trace, warn};
 use ts_rs::TS;
 
-use crate::error::BkdError;
+use crate::error::BackendError;
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
 pub enum Level {
@@ -15,7 +15,7 @@ pub enum Level {
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub fn log_js(message: String, level: Option<Level>) -> Result<(), BkdError> {
+pub fn log_js(message: String, level: Option<Level>) -> Result<(), BackendError> {
     match level {
         Some(Level::Trace) => trace!(message),
         Some(Level::Debug) => debug!(message),

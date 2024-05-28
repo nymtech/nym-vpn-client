@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api';
 import { exit as processExit } from '@tauri-apps/api/process';
 import { useMainDispatch, useMainState } from '../contexts';
 import { kvFlush } from '../kvStore';
-import { BkdError, StateDispatch } from '../types';
+import { BackendError, StateDispatch } from '../types';
 
 // Hook to exit the app
 export function useExit() {
@@ -23,7 +23,7 @@ export function useExit() {
           console.log(result);
           await processExit(0);
         })
-        .catch(async (e: BkdError) => {
+        .catch(async (e: BackendError) => {
           console.warn('backend error:', e);
           await processExit(1);
         });

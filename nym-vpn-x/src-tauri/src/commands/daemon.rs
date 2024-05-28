@@ -1,4 +1,4 @@
-use crate::error::BkdError;
+use crate::error::BackendError;
 use crate::grpc::client::{GrpcClient, VpndStatus};
 use crate::states::SharedAppState;
 use std::sync::Arc;
@@ -10,7 +10,7 @@ use tracing::{debug, instrument, warn};
 pub async fn daemon_status(
     app_state: State<'_, SharedAppState>,
     grpc_client: State<'_, Arc<GrpcClient>>,
-) -> Result<VpndStatus, BkdError> {
+) -> Result<VpndStatus, BackendError> {
     debug!("daemon_status");
     let status = grpc_client
         .check(app_state.inner())

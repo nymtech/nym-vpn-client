@@ -20,7 +20,7 @@ use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
 
 use crate::cli::Cli;
-use crate::error::BkdError;
+use crate::error::BackendError;
 use crate::fs::config::AppConfig;
 use crate::states::app::ConnectionState;
 use crate::vpn_status;
@@ -159,7 +159,7 @@ impl GrpcClient {
         vpn_status::update(
             app,
             ConnectionState::from(res.status()),
-            res.error.map(BkdError::from),
+            res.error.map(BackendError::from),
         )
         .await?;
         Ok(())
@@ -205,7 +205,7 @@ impl GrpcClient {
             vpn_status::update(
                 app,
                 ConnectionState::from(status.status()),
-                status.error.map(BkdError::from),
+                status.error.map(BackendError::from),
             )
             .await?;
         }

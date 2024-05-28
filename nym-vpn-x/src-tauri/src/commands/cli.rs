@@ -3,12 +3,12 @@ use tracing::{debug, instrument};
 
 use crate::{
     cli::{Cli, ManagedCli},
-    error::BkdError,
+    error::BackendError,
 };
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub fn cli_args(cli: State<'_, ManagedCli>) -> Result<&Cli, BkdError> {
+pub fn cli_args(cli: State<'_, ManagedCli>) -> Result<&Cli, BackendError> {
     debug!("cli_args");
     Ok(cli.inner())
 }

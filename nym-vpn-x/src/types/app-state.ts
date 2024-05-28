@@ -2,7 +2,7 @@ import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
 import { Country, NodeLocation, ThemeMode, UiTheme } from './common';
-import { BkdError, BkdErrorKey } from './tauri-ipc';
+import { BackendError, BkdErrorKey } from './tauri-ipc';
 
 export type ConnectionState =
   | 'Connected'
@@ -73,7 +73,7 @@ export type AppState = {
 
 export type ConnectionEventPayload = {
   state: ConnectionState;
-  error?: BkdError | null;
+  error?: BackendError | null;
   start_time?: bigint | null; // unix timestamp in seconds
 };
 

@@ -9,7 +9,7 @@ import { NymDarkOutlineIcon, NymIcon } from '../../assets';
 import { useMainState, useNotifications } from '../../contexts';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
-import { BkdError } from '../../types';
+import { BackendError } from '../../types';
 import { Button, PageAnim, TextArea } from '../../ui';
 
 function AddCredential() {
@@ -39,7 +39,7 @@ function AddCredential() {
           closeIcon: true,
         });
       })
-      .catch((e: BkdError) => {
+      .catch((e: BackendError) => {
         console.log('backend error:', e);
         if (e.key === 'CredentialExpired' && e.data?.expiration) {
           // TODO the expiration date format passed from the backend is not ISO_8601

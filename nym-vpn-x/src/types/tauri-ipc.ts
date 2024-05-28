@@ -1,4 +1,4 @@
-export interface BkdError {
+export interface BackendError {
   message: string;
   key: BkdErrorKey;
   data: Record<string, string> | null;

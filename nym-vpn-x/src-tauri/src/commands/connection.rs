@@ -4,7 +4,7 @@ use crate::error::ErrorKey;
 use crate::grpc::client::GrpcClient;
 use crate::states::app::NodeLocation;
 use crate::{
-    error::BkdError,
+    error::BackendError,
     events::{AppHandleEventEmitter, ConnectProgressMsg},
     states::{
         app::{ConnectionState, VpnMode},
@@ -23,7 +23,7 @@ use tracing::{debug, error, info, instrument, trace};
 pub async fn get_connection_state(
     state: State<'_, SharedAppState>,
     grpc: State<'_, Arc<GrpcClient>>,
-) -> Result<ConnectionState, BkdError> {
+) -> Result<ConnectionState, BackendError> {
     debug!("get_connection_state");
     let status = ConnectionState::from(grpc.vpn_status().await?.status());
     let mut app_state = state.lock().await;
@@ -38,12 +38,12 @@ pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
     grpc: State<'_, Arc<GrpcClient>>,
-) -> Result<ConnectionState, BkdError> {
+) -> Result<ConnectionState, BackendError> {
     debug!("connect");
     {
         let mut app_state = state.lock().await;
         if app_state.state != ConnectionState::Disconnected {
-            return Err(BkdError::new_internal(
+            return Err(BackendError::new_internal(
                 &format!("cannot connect from state {:?}", app_state.state),
                 None,
             ));
@@ -132,7 +132,7 @@ pub async fn connect(
             let mut app_state = state.lock().await;
             app_state.state = ConnectionState::Disconnected;
             drop(app_state);
-            app.emit_disconnected(Some(BkdError::new(
+            app.emit_disconnected(Some(BackendError::new(
                 "Internal gRPC error",
                 ErrorKey::GrpcError,
             )));
@@ -147,11 +147,11 @@ pub async fn disconnect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
     grpc: State<'_, Arc<GrpcClient>>,
-) -> Result<ConnectionState, BkdError> {
+) -> Result<ConnectionState, BackendError> {
     debug!("disconnect");
     let mut app_state = state.lock().await;
     if !matches!(app_state.state, ConnectionState::Connected) {
-        return Err(BkdError::new_internal(
+        return Err(BackendError::new_internal(
             &format!("cannot disconnect from state {:?}", app_state.state),
             None,
         ));
@@ -168,7 +168,7 @@ pub async fn disconnect(
 #[tauri::command]
 pub async fn get_connection_start_time(
     state: State<'_, SharedAppState>,
-) -> Result<Option<i64>, BkdError> {
+) -> Result<Option<i64>, BackendError> {
     debug!("get_connection_start_time");
     let app_state = state.lock().await;
     Ok(app_state.connection_start_time.map(|t| t.unix_timestamp()))
@@ -180,7 +180,7 @@ pub async fn set_vpn_mode(
     app_state: State<'_, SharedAppState>,
     db: State<'_, Db>,
     mode: VpnMode,
-) -> Result<(), BkdError> {
+) -> Result<(), BackendError> {
     debug!("set_vpn_mode");
 
     let mut state = app_state.lock().await;
@@ -189,13 +189,13 @@ pub async fn set_vpn_mode(
     } else {
         let err_message = format!("cannot change vpn mode from state {:?}", state.state);
         error!(err_message);
-        return Err(BkdError::new_internal(&err_message, None));
+        return Err(BackendError::new_internal(&err_message, None));
     }
     state.vpn_mode = mode.clone();
     drop(state);
 
     debug!("saving vpn mode in db");
     db.insert(Key::VpnMode, &mode)
-        .map_err(|_| BkdError::new_internal("Failed to save vpn mode in db", None))?;
+        .map_err(|_| BackendError::new_internal("Failed to save vpn mode in db", None))?;
     Ok(())
 }

@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import { kvSet } from '../kvStore';
 import {
   AppState,
-  BkdError,
+  BackendError,
   ConnectionEventPayload,
   DaemonStatus,
   ProgressEventPayload,
@@ -15,7 +15,7 @@ import {
 } from '../types';
 import { ConnectionEvent, DaemonEvent, ProgressEvent } from '../constants';
 
-function handleError(dispatch: StateDispatch, error?: BkdError | null) {
+function handleError(dispatch: StateDispatch, error?: BackendError | null) {
   if (!error) {
     dispatch({ type: 'reset-error' });
     return;

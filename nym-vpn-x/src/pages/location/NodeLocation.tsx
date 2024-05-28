@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api';
 import { useMainDispatch, useMainState } from '../../contexts';
 import {
-  BkdError,
+  BackendError,
   Country,
   NodeHop,
   StateDispatch,
@@ -62,7 +62,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
         .then((country) => {
           dispatch({ type: 'set-fastest-node-location', country });
         })
-        .catch((e: BkdError) => console.error(e));
+        .catch((e: BackendError) => console.error(e));
     }
   }, [node, dispatch, fetchEntryCountries, fetchExitCountries]);
 

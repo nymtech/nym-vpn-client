@@ -5,7 +5,7 @@ import { invoke } from '@tauri-apps/api';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useMainDispatch, useMainState } from '../../contexts';
-import { BkdError, StateDispatch } from '../../types';
+import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { kvGet } from '../../kvStore';
 import { Button } from '../../ui';
@@ -35,7 +35,7 @@ function Home() {
           console.log('disconnect result');
           console.log(result);
         })
-        .catch((e: BkdError) => {
+        .catch((e: BackendError) => {
           console.warn('backend error:', e);
           dispatch({ type: 'set-error', error: e });
         });
@@ -46,7 +46,7 @@ function Home() {
           console.log('connect result');
           console.log(result);
         })
-        .catch((e: BkdError) => {
+        .catch((e: BackendError) => {
           console.warn('backend error:', e);
           dispatch({ type: 'set-error', error: e });
         });

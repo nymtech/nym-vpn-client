@@ -28,8 +28,7 @@ pub enum CmdErrorSource {
 #[ts(export)]
 /// Generic error type made to be passed to the frontend and
 /// displayed in the UI as localized error message
-/// `Bkd` stands for 'Backend', source side from where the error is emitted
-pub struct BkdError {
+pub struct BackendError {
     /// Human readable error message for debugging/logs purposes
     pub message: String,
     /// Error key to be used in the UI to display localized error message
@@ -38,7 +37,7 @@ pub struct BkdError {
     pub data: Option<HashMap<String, String>>,
 }
 
-impl BkdError {
+impl BackendError {
     pub fn new(message: &str, key: ErrorKey) -> Self {
         Self {
             message: message.to_string(),
@@ -68,7 +67,7 @@ impl BkdError {
     }
 }
 
-impl Display for BkdError {
+impl Display for BackendError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -80,21 +79,23 @@ impl Display for BkdError {
     }
 }
 
-impl From<VpndError> for BkdError {
+impl From<VpndError> for BackendError {
     fn from(error: VpndError) -> Self {
         match error {
             VpndError::GrpcError(s) => {
-                BkdError::new(&format!("grpc error: {}", s), ErrorKey::GrpcError)
+                BackendError::new(&format!("grpc error: {}", s), ErrorKey::GrpcError)
             }
-            VpndError::FailedToConnectIpc(_) | VpndError::FailedToConnectHttp(_) => BkdError::new(
-                "not connected to the daemon",
-                ErrorKey::NotConnectedToDaemon,
-            ),
+            VpndError::FailedToConnectIpc(_) | VpndError::FailedToConnectHttp(_) => {
+                BackendError::new(
+                    "not connected to the daemon",
+                    ErrorKey::NotConnectedToDaemon,
+                )
+            }
         }
     }
 }
 
-impl From<nym_vpn_proto::Error> for BkdError {
+impl From<nym_vpn_proto::Error> for BackendError {
     fn from(error: nym_vpn_proto::Error) -> Self {
         Self {
             message: error.message.clone(),
@@ -152,31 +153,31 @@ impl From<DaemonError> for ErrorKey {
     }
 }
 
-impl From<ImportError> for BkdError {
+impl From<ImportError> for BackendError {
     fn from(error: ImportError) -> Self {
         let data = error.details.clone().into();
         match error.kind() {
-            ImportErrorType::Unspecified => BkdError::new_internal("grpc unspecified", data),
+            ImportErrorType::Unspecified => BackendError::new_internal("grpc unspecified", data),
             ImportErrorType::VpnRunning => {
-                BkdError::new_with_data("vpn running", ErrorKey::CredentialVpnRunning, data)
+                BackendError::new_with_data("vpn running", ErrorKey::CredentialVpnRunning, data)
             }
-            ImportErrorType::CredentialAlreadyImported => BkdError::new_with_data(
+            ImportErrorType::CredentialAlreadyImported => BackendError::new_with_data(
                 "credential already imported",
                 ErrorKey::CredentialAlreadyImported,
                 data,
             ),
-            ImportErrorType::StorageError => BkdError::new_with_data(
+            ImportErrorType::StorageError => BackendError::new_with_data(
                 "credential strorage error",
                 ErrorKey::CredentialStorageError,
                 data,
             ),
-            ImportErrorType::DeserializationFailure => BkdError::new_with_data(
+            ImportErrorType::DeserializationFailure => BackendError::new_with_data(
                 "credential deserialization failure",
                 ErrorKey::CredentialDeserializationFailure,
                 data,
             ),
             ImportErrorType::CredentialExpired => {
-                BkdError::new_with_data("credential expired", ErrorKey::CredentialExpired, data)
+                BackendError::new_with_data("credential expired", ErrorKey::CredentialExpired, data)
             }
         }
     }
