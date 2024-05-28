@@ -63,6 +63,8 @@ export type AppState = {
   exitCountryList: Country[];
   entryCountriesLoading: boolean;
   exitCountriesLoading: boolean;
+  entryCountriesError?: AppError | null;
+  exitCountriesError?: AppError | null;
   rootFontSize: number;
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
@@ -89,6 +91,6 @@ export type FetchCountriesFn = () => Promise<void> | undefined;
 
 export type AppError = {
   message: string;
-  key?: BkdErrorKey | null;
+  key: BkdErrorKey;
   data?: Record<string, string> | null;
 };

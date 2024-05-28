@@ -57,7 +57,9 @@ export type StateAction =
   | { type: 'set-root-font-size'; size: number }
   | { type: 'set-code-deps-js'; dependencies: CodeDependency[] }
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
-  | { type: 'set-window-size'; size: WindowSize };
+  | { type: 'set-window-size'; size: WindowSize }
+  | { type: 'set-entry-countries-error'; payload: AppError | null }
+  | { type: 'set-exit-countries-error'; payload: AppError | null };
 
 export const initialState: AppState = {
   initialized: false,
@@ -260,6 +262,16 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         windowSize: action.size,
+      };
+    case 'set-entry-countries-error':
+      return {
+        ...state,
+        entryCountriesError: action.payload,
+      };
+    case 'set-exit-countries-error':
+      return {
+        ...state,
+        exitCountriesError: action.payload,
       };
 
     case 'reset':

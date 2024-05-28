@@ -4,7 +4,7 @@ import { CountryCacheDuration } from '../constants';
 import { MainDispatchContext, MainStateContext } from '../contexts';
 import { sleep } from '../helpers';
 import { useThrottle } from '../hooks';
-import { Cli, Country, NodeHop, isCountry } from '../types';
+import { BackendError, Cli, Country, NodeHop, isCountry } from '../types';
 import { initFirstBatch, initSecondBatch } from './init';
 import { initialState, reducer } from './main';
 import { useTauriEvents } from './useTauriEvents';
@@ -82,8 +82,23 @@ export function MainStateProvider({ children }: Props) {
           countries,
         },
       });
+      // reset any previous error
+      dispatch({
+        type:
+          node === 'entry'
+            ? 'set-entry-countries-error'
+            : 'set-exit-countries-error',
+        payload: null,
+      });
     } catch (e) {
-      console.warn('Failed to fetch countries:', e);
+      console.warn(`Failed to fetch ${node} countries:`, e);
+      dispatch({
+        type:
+          node === 'entry'
+            ? 'set-entry-countries-error'
+            : 'set-exit-countries-error',
+        payload: e as BackendError,
+      });
     }
   }, []);
 
