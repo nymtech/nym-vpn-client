@@ -67,6 +67,12 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
     trace!("cli args: {:#?}", cli);
 
+    #[cfg(windows)]
+    if cli.console {
+        use windows::Win32::System::Console::AllocConsole;
+        let _ = unsafe { AllocConsole() };
+    }
+
     let context = tauri::generate_context!();
 
     if cli.build_info {
@@ -108,12 +114,6 @@ async fn main() -> Result<()> {
         "using path for backend data: {}",
         BACKEND_DATA_PATH.to_string_lossy()
     );
-
-    #[cfg(windows)]
-    if cli.console {
-        use windows::Win32::System::Console::AllocConsole;
-        let _ = unsafe { AllocConsole() };
-    }
 
     info!("Starting tauri app");
     tauri::Builder::default()
