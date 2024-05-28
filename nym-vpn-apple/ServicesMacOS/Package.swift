@@ -21,8 +21,8 @@ let package = Package(
         .target(
             name: "GRPCManager",
             dependencies: [
-                .product(name: "GRPC", package: "grpc-swift"),
-                .product(name: "Base58Swift", package: "Base58Swift")
+                .product(name: "Base58Swift", package: "Base58Swift"),
+                .product(name: "GRPC", package: "grpc-swift")
             ],
             path: "Sources/GRPCManager"
         ),

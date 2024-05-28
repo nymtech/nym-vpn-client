@@ -76,7 +76,11 @@ public final class ConnectionManager: ObservableObject {
         if grpcManager.tunnelStatus == .connected || grpcManager.tunnelStatus == .connecting {
             grpcManager.disconnect()
         } else {
-            grpcManager.connect()
+            grpcManager.connect(
+                entryGatewayCountryCode: config.entryGateway?.countryCode,
+                exitRouterCountryCode: config.exitRouter.countryCode,
+                isTwoHopEnabled: config.isTwoHopEnabled
+            )
         }
     }
 #endif
@@ -169,11 +173,6 @@ private extension ConnectionManager {
             self?.updateCountries()
         }
         .store(in: &cancellables)
-
-        countriesManager.$lowLatencyCountry.sink { [weak self] _ in
-            self?.updateCountries()
-        }
-        .store(in: &cancellables)
     }
 
     func updateCountries() {
@@ -189,8 +188,7 @@ private extension ConnectionManager {
     func updateCountriesEntryExit() {
         guard
             let exitCountries = countriesManager.exitCountries,
-            let firstExitCountry = exitCountries.first,
-            let lowLatencyCountry = countriesManager.lowLatencyCountry
+            let firstExitCountry = exitCountries.first
         else {
             // TODO: get country
             exitRouter = .country(code: "AU")
@@ -198,9 +196,6 @@ private extension ConnectionManager {
         }
         if let unwrappedExitRouter = exitRouter, !unwrappedExitRouter.isCountry {
             exitRouter = .country(code: firstExitCountry.code)
-        }
-        if let unwrappedEntryGateway = entryGateway, !unwrappedEntryGateway.isCountry {
-            entryGateway = .lowLatencyCountry(code: lowLatencyCountry.code)
         }
     }
 

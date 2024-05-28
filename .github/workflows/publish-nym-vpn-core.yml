@@ -61,7 +61,7 @@ jobs:
       # Adding envsubst, gh cli
       - name: Install system dependencies
         run: |
-          sudo apt update && sudo apt install -y gettext-base gh
+          sudo apt update && sudo apt install -y gettext-base gh zip
 
       - name: Install rust toolchain
         uses: brndnmtthws/rust-action-rustup@v1
@@ -119,8 +119,8 @@ jobs:
         run: |
           ARCHIVE_LINUX=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_linux_x86_64
           ARCHIVE_MAC=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_macos_universal
-          ARCHIVE_ANDROID=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_android_aarch64.tar.gz
-          ARCHIVE_IOS=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_ios_universal.tar.gz
+          ARCHIVE_ANDROID=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_android_aarch64
+          ARCHIVE_IOS=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_ios_universal
           echo "ARCHIVE_LINUX=${ARCHIVE_LINUX}" >> $GITHUB_ENV
           echo "ARCHIVE_MAC=${ARCHIVE_MAC}" >> $GITHUB_ENV
           echo "ARCHIVE_ANDROID=${ARCHIVE_ANDROID}" >> $GITHUB_ENV
@@ -134,12 +134,12 @@ jobs:
           tar cvzf ${ARCHIVE_LINUX}.tar.gz ${ARCHIVE_LINUX}
           tar cvzf ${ARCHIVE_MAC}.tar.gz ${ARCHIVE_MAC}
           tar cvzf ${ARCHIVE_ANDROID}.tar.gz ${ARCHIVE_ANDROID}
-          tar cvzf ${ARCHIVE_IOS}.tar.gz ${ARCHIVE_IOS}
+          zip -r ${ARCHIVE_IOS}.zip ${ARCHIVE_IOS}
 
           sha256sum ${ARCHIVE_LINUX}.tar.gz > "${ARCHIVE_LINUX}.tar.gz.sha256sum"
           sha256sum ${ARCHIVE_MAC}.tar.gz > "${ARCHIVE_MAC}.tar.gz.sha256sum"
           sha256sum ${ARCHIVE_ANDROID}.tar.gz > "${ARCHIVE_ANDROID}.tar.gz.sha256sum"
-          sha256sum ${ARCHIVE_IOS}.tar.gz > "${ARCHIVE_IOS}.tar.gz.sha256sum"
+          sha256sum ${ARCHIVE_IOS}.zip > "${ARCHIVE_IOS}.zip.sha256sum"
 
           pushd ${{ env.UPLOAD_DIR_DEB }}
           for deb in nym-vpn*_amd64.deb; do
@@ -151,7 +151,7 @@ jobs:
           cat ${ARCHIVE_LINUX}.tar.gz.sha256sum >> $GITHUB_ENV
           cat ${ARCHIVE_MAC}.tar.gz.sha256sum >> $GITHUB_ENV
           cat ${ARCHIVE_ANDROID}.tar.gz.sha256sum >> $GITHUB_ENV
-          cat ${ARCHIVE_IOS}.tar.gz.sha256sum >> $GITHUB_ENV
+          cat ${ARCHIVE_IOS}.zip.sha256sum >> $GITHUB_ENV
           pushd ${{ env.UPLOAD_DIR_DEB }}
           for deb_sha256 in nym-vpn*_amd64.deb.sha256sum; do
             cat ${deb_sha256} >> $GITHUB_ENV
@@ -190,7 +190,7 @@ jobs:
             ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.ARCHIVE_LINUX }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_MAC }}.tar.gz ${{ env.ARCHIVE_MAC }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum \
-            ${{ env.ARCHIVE_IOS }}.tar.gz ${{ env.ARCHIVE_IOS }}.tar.gz.sha256sum \
+            ${{ env.ARCHIVE_IOS }}.zip ${{ env.ARCHIVE_IOS }}.zip.sha256sum \
             ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
 
   gen-hashes:

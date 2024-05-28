@@ -727,6 +727,7 @@
 				D9BEF2CC2BEB63310036C566 /* Sources */,
 				D9BEF2CD2BEB63310036C566 /* Frameworks */,
 				D9BEF2CE2BEB63310036C566 /* Resources */,
+				D94127BD2C00AB2E009EDB7A /* Run Swiftlint */,
 				D9FB33E52BECFA64009C3419 /* Embed Helper Tool */,
 			);
 			buildRules = (
@@ -946,6 +947,24 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# This script is responsable to upload debug symbols and source context for Sentry.\nif which sentry-cli >/dev/null; then\nexport SENTRY_ORG=nymtech\nexport SENTRY_PROJECT=nym-vpn-ios\nERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)\nif [ ! $? -eq 0 ]; then\necho \"warning: sentry-cli - $ERROR\"\nfi\nelse\necho \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi\n";
+		};
+		D94127BD2C00AB2E009EDB7A /* Run Swiftlint */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Run Swiftlint";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swiftlint > /dev/null; then\n  swiftlint lint --no-cache\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
 		};
 		D99A14872B359C8800F2728B /* Run Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;

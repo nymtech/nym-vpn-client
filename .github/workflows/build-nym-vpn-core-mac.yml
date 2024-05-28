@@ -43,18 +43,18 @@ jobs:
           path: ${{ env.WG_GO_LIB_PATH }}
 
       - name: Build nym-vpn-core (native)
+        working-directory: nym-vpn-core
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
-          cd nym-vpn-core
           cargo build --${{ env.CARGO_TARGET }}
           ls -la target/release/ || true
 
       - name: Build nym-vpn-core (x86_64)
+        working-directory: nym-vpn-core
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
-          cd nym-vpn-core
           cargo build --${{ env.CARGO_TARGET }} --target x86_64-apple-darwin
           ls -la target/x86_64-apple-darwin/release/ || true
 

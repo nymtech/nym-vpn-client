@@ -10,9 +10,9 @@ import MixnetLibrary
 public struct MixnetConfig: Codable {
     let apiUrlString: String
     let explorerURLString: String
-    let entryGateway: EntryGateway?
-    let exitRouter: ExitRouter
-    let isTwoHopEnabled: Bool
+    public let entryGateway: EntryGateway?
+    public let exitRouter: ExitRouter
+    public let isTwoHopEnabled: Bool
     let credentialsDataPath: String
 
     public var name = "NymVPN Mixnet"
@@ -57,5 +57,4 @@ extension MixnetConfig {
         )
     }
 }
-
 #endif
