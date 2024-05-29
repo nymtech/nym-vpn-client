@@ -1,3 +1,4 @@
+use std::time::SystemTime;
 use std::{fs, path::PathBuf};
 
 use nym_bandwidth_controller::{BandwidthController, PreparedCredential, RetrievedCredential};
@@ -24,15 +25,18 @@ pub enum CheckRawCredentialError {
     FreepassExpired { expiry_date: String },
 }
 
-pub async fn check_raw_credential(raw_credential: Vec<u8>) -> Result<(), CheckRawCredentialError> {
+pub async fn check_raw_credential(
+    raw_credential: Vec<u8>,
+) -> Result<Option<SystemTime>, CheckRawCredentialError> {
     let version = None;
     let credential = IssuedBandwidthCredential::try_unpack(&raw_credential, version)
         .map_err(|err| CheckRawCredentialError::FailedToUnpackRawCredential { source: err })?;
 
     // Check expiry
-    match credential.variant_data() {
+    let system_time = match credential.variant_data() {
         BandwidthCredentialIssuedDataVariant::Voucher(_) => {
             debug!("credential is a bandwidth voucher");
+            None
         }
         BandwidthCredentialIssuedDataVariant::FreePass(freepass_info) => {
             debug!("credential is a free pass");
@@ -40,13 +44,15 @@ pub async fn check_raw_credential(raw_credential: Vec<u8>) -> Result<(), CheckRa
                 return Err(CheckRawCredentialError::FreepassExpired {
                     expiry_date: freepass_info.expiry_date().to_string(),
                 });
+            } else {
+                Some(SystemTime::from(freepass_info.expiry_date()))
             }
         }
-    }
+    };
 
     // TODO: verify?
 
-    Ok(())
+    Ok(system_time)
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -64,7 +70,9 @@ pub enum CheckBase58CredentialError {
     },
 }
 
-pub async fn check_credential_base58(credential: &str) -> Result<(), CheckBase58CredentialError> {
+pub async fn check_credential_base58(
+    credential: &str,
+) -> Result<Option<SystemTime>, CheckBase58CredentialError> {
     let raw_credential = bs58::decode(credential).into_vec()?;
     check_raw_credential(raw_credential)
         .await
@@ -88,7 +96,7 @@ pub enum CheckFileCredentialError {
 
 pub async fn check_credential_file(
     credential_file: PathBuf,
-) -> Result<(), CheckFileCredentialError> {
+) -> Result<Option<SystemTime>, CheckFileCredentialError> {
     let raw_credential = fs::read(credential_file.clone()).map_err(|err| {
         CheckFileCredentialError::FailedToReadCredentialFile {
             path: credential_file,
