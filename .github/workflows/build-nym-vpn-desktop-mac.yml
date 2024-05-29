@@ -122,9 +122,9 @@ jobs:
 
       - name: Move things around to prepare for upload
         env:
-          MAC_UPDATER: ${{ env.TAURI_SRC }}/target/release/bundle/macos/nym-vpn.app.tar.gz
+          MAC_UPDATER: ${{ env.TAURI_SRC }}/target/universal-apple-darwin/release/bundle/macos/nym-vpn.app.tar.gz
           MAC_UPDATER_NAME: updater_macos_universal.app.tar.gz
-          BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/dmg/nym-vpn_${{ steps.package-version.outputs.metadata }}_aarch64.dmg
+          BINARY: ${{ env.TAURI_SRC }}/target/universal-apple-darwin/release/bundle/dmg/nym-vpn_${{ steps.package-version.outputs.metadata }}_universal.dmg
         run: |
           echo "moving binaries into ${{ env.UPLOAD_DIR_MAC }}"
           rm -rf ${{ env.UPLOAD_DIR_MAC }} || true
