@@ -56,7 +56,9 @@ constructor(
 				cred?.let {
 					getCredentialExpiry(it).onSuccess { expiry ->
 						setIsNonExpiredCredentialImported(true)
-						setCredentialExpiry(expiry)
+						expiry?.let { instant ->
+							setCredentialExpiry(instant)
+						}
 					}.onFailure {
 						setIsNonExpiredCredentialImported(false)
 					}
@@ -70,8 +72,7 @@ constructor(
 			_uiState,
 			settingsRepository.settingsFlow,
 			vpnClient.get().stateFlow,
-			secretsRepository.get().credentialFlow,
-		) { state, settings, vpnState, cred ->
+		) { state, settings, vpnState ->
 			AppUiState(
 				state.snackbarMessage,
 				state.snackbarMessageConsumed,
@@ -102,7 +103,7 @@ constructor(
 		}
 	}
 
-	suspend fun onValidCredentialCheck(): Result<Instant> {
+	suspend fun onValidCredentialCheck(): Result<Instant?> {
 		return withContext(viewModelScope.coroutineContext) {
 			val credential = secretsRepository.get().getCredential()
 			if (credential != null) {
@@ -113,7 +114,7 @@ constructor(
 		}
 	}
 
-	private suspend fun getCredentialExpiry(credential: String): Result<Instant> {
+	private suspend fun getCredentialExpiry(credential: String): Result<Instant?> {
 		return vpnClient.get().validateCredential(credential).onFailure {
 			return Result.failure(NymVpnExceptions.InvalidCredentialException())
 		}

@@ -1,6 +1,6 @@
 [versions]
 accompanist = "0.34.0"
-agp = "8.4.1"
+agp = "8.5.0-rc01"
 coreSplashscreen = "1.0.1"
 detektRulesCompose = "1.3.0"
 javaClient = "9.2.2"

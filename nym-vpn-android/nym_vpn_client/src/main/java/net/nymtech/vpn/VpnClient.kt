@@ -16,7 +16,7 @@ interface VpnClient {
 	var exitPoint: ExitPoint
 	var mode: VpnMode
 
-	suspend fun validateCredential(credential: String): Result<Instant>
+	suspend fun validateCredential(credential: String): Result<Instant?>
 
 	@Throws(InvalidCredentialException::class)
 	suspend fun start(context: Context, credential: String, foreground: Boolean = false): Result<Unit>
