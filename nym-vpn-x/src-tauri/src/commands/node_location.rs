@@ -86,14 +86,14 @@ pub async fn get_countries(node_type: NodeType) -> Result<Vec<Country>, BackendE
             BackendError::new_with_data(
                 "failed to fetch entry countries",
                 ErrorKey::GetEntryCountriesRequest,
-                HashMap::from([("details".to_string(), e.to_string())]),
+                HashMap::from([("details", e.to_string())]),
             )
         }),
         NodeType::Exit => get_gateway_countries(NodeType::Exit).await.map_err(|e| {
             BackendError::new_with_data(
                 "failed to fetch exit countries",
                 ErrorKey::GetExitCountriesRequest,
-                HashMap::from([("details".to_string(), e.to_string())]),
+                HashMap::from([("details", e.to_string())]),
             )
         }),
     }

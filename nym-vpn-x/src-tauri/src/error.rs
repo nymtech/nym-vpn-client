@@ -46,11 +46,11 @@ impl BackendError {
         }
     }
 
-    pub fn new_with_data(message: &str, key: ErrorKey, data: HashMap<String, String>) -> Self {
+    pub fn new_with_data(message: &str, key: ErrorKey, data: HashMap<&str, String>) -> Self {
         Self {
             message: message.to_string(),
             key,
-            data: Some(data),
+            data: Some(data.into_iter().map(|(k, v)| (k.to_string(), v)).collect()),
         }
     }
 
@@ -70,7 +70,7 @@ impl BackendError {
         Self {
             message: message.to_string(),
             key: ErrorKey::InternalError,
-            data,
+            data: data.map(|d| d.into_iter().map(|(k, v)| (k.to_string(), v)).collect()),
         }
     }
 }
