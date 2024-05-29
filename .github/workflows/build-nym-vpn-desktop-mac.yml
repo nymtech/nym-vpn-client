@@ -53,8 +53,13 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
+      - name: Install x86_64-apple-darwin target for universal build
+        run: |
+          rustup target add x86_64-apple-darwin
+
       - name: Install cargo-about
-        run: cargo install --locked cargo-about
+        run: |
+          cargo install --locked cargo-about
 
       - name: Install Node
         uses: actions/setup-node@v4
@@ -107,9 +112,13 @@ jobs:
         run: |
           npm ci
           npm run tauri build --${{ env.CARGO_TARGET }} --target universal-apple-darwin
+          ls -la target/ || true
           ls -la target/release/ || true
           ls -la target/release/bundle || true
           ls -la target/release/bundle/* || true
+          ls -la target/universal-apple-darwin/release/ || true
+          ls -la target/universal-apple-darwin/release/bundle || true
+          ls -la target/universal-apple-darwin/release/bundle/* || true
 
       - name: Move things around to prepare for upload
         env:
