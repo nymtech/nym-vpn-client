@@ -42,15 +42,15 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
-      - name: Compile protobuf (health)
-        working-directory: proto/grpc
-        run: |
-          protoc --swift_out=. health.proto
-
-      - name: Compile protobuf (vpn)
-        working-directory: proto/nym
-        run: |
-          protoc --swift_out=. vpn.proto
+      # - name: Compile protobuf (health)
+      #   working-directory: proto/grpc
+      #   run: |
+      #     protoc --swift_out=. health.proto
+      #
+      # - name: Compile protobuf (vpn)
+      #   working-directory: proto/nym
+      #   run: |
+      #     protoc --swift_out=. vpn.proto
 
       - name: Build nym-vpn-core (native)
         working-directory: nym-vpn-core
