@@ -11,12 +11,12 @@ pub static FASTEST_NODE_LOCATION: Lazy<Country> = Lazy::new(|| Country {
 
 // TODO use countries requested from the backend instead of hardcoded ones
 pub static DEFAULT_ENTRY_COUNTRY: Lazy<Country> = Lazy::new(|| Country {
-    code: String::from("FR"),
-    name: String::from("France"),
-});
-pub static DEFAULT_EXIT_COUNTRY: Lazy<Country> = Lazy::new(|| Country {
     code: String::from("CH"),
     name: String::from("Switzerland"),
+});
+pub static DEFAULT_EXIT_COUNTRY: Lazy<Country> = Lazy::new(|| Country {
+    code: String::from("FR"),
+    name: String::from("France"),
 });
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
