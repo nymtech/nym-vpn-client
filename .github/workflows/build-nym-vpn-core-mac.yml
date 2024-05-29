@@ -42,16 +42,6 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
-      # - name: Compile protobuf (health)
-      #   working-directory: proto/grpc
-      #   run: |
-      #     protoc --swift_out=. health.proto
-      #
-      # - name: Compile protobuf (vpn)
-      #   working-directory: proto/nym
-      #   run: |
-      #     protoc --swift_out=. vpn.proto
-
       - name: Build nym-vpn-core (native)
         working-directory: nym-vpn-core
         env:
@@ -101,3 +91,24 @@ jobs:
           name: ${{ env.UPLOAD_DIR_MAC }}
           path: ${{ env.UPLOAD_DIR_MAC }}
           retention-days: 1
+
+      # - name: Compile protobuf (health)
+      #   run: |
+      #     protoc --swift_out=. proto/grpc/health.proto
+      #     protoc --grpc-swift_out=. proto/grpc/health.proto
+      #
+      # - name: Compile protobuf (vpn)
+      #   run: |
+      #     protoc --swift_out=. proto/nym/vpn.proto
+      #     protoc --grpc-swift_out=. proto/nym/vpn.proto
+      #
+      # - name: Upload artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: swift-proto-files
+      #     path: |
+      #       vpn.grpc.swift
+      #       vpn.pb.swift
+      #       health.grpc.swift
+      #       health.pb.swift
+      #     retention-days: 1
