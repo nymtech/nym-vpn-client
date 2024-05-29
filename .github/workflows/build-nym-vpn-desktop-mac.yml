@@ -53,8 +53,13 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
+      - name: Install x86_64-apple-darwin target for universal build
+        run: |
+          rustup target add x86_64-apple-darwin
+
       - name: Install cargo-about
-        run: cargo install --locked cargo-about
+        run: |
+          cargo install --locked cargo-about
 
       - name: Install Node
         uses: actions/setup-node@v4
@@ -106,16 +111,20 @@ jobs:
           NO_STRIP: 'true'
         run: |
           npm ci
-          npm run tauri build --${{ env.CARGO_TARGET }}
+          npm run tauri build --${{ env.CARGO_TARGET }} -- --target universal-apple-darwin
+          ls -la target/ || true
           ls -la target/release/ || true
           ls -la target/release/bundle || true
           ls -la target/release/bundle/* || true
+          ls -la target/universal-apple-darwin/release/ || true
+          ls -la target/universal-apple-darwin/release/bundle || true
+          ls -la target/universal-apple-darwin/release/bundle/* || true
 
       - name: Move things around to prepare for upload
         env:
-          MAC_UPDATER: ${{ env.TAURI_SRC }}/target/release/bundle/macos/nym-vpn.app.tar.gz
+          MAC_UPDATER: ${{ env.TAURI_SRC }}/target/universal-apple-darwin/release/bundle/macos/nym-vpn.app.tar.gz
           MAC_UPDATER_NAME: updater_macos_universal.app.tar.gz
-          BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/dmg/nym-vpn_${{ steps.package-version.outputs.metadata }}_aarch64.dmg
+          BINARY: ${{ env.TAURI_SRC }}/target/universal-apple-darwin/release/bundle/dmg/nym-vpn_${{ steps.package-version.outputs.metadata }}_universal.dmg
         run: |
           echo "moving binaries into ${{ env.UPLOAD_DIR_MAC }}"
           rm -rf ${{ env.UPLOAD_DIR_MAC }} || true
