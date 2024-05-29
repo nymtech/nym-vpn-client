@@ -87,20 +87,20 @@ uniffi = { version = "0.27.0", features = ["cli"] }
 url = "2.4"
 vergen = { version = "8.2.6", default-features = false }
 
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-client-core = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-config = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-credentials = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-crypto = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-id = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-sdk = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-task = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-topology = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "3acf521fc128f5a0cbb2c6101896380b815857f4" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-client-core = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-config = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-credentials = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-crypto = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-id = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-sdk = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-task = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-topology = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "8ef443365f910db8a152d846c8bcd260e476b82e" }

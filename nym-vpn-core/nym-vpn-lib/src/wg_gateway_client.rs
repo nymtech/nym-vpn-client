@@ -8,6 +8,7 @@ use nym_node_requests::api::client::NymNodeApiClientExt;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
+use nym_wireguard_types::registration::RegistrationData;
 use nym_wireguard_types::GatewayClient;
 use std::net::{IpAddr, SocketAddr};
 use std::str::FromStr;
@@ -90,11 +91,11 @@ impl WgGatewayClient {
         let init_message = ClientMessage::Initial(InitMessage {
             pub_key: PeerPublicKey::new(keypair.public_key().to_bytes().into()),
         });
-        let ClientRegistrationResponse::PendingRegistration {
+        let ClientRegistrationResponse::PendingRegistration(RegistrationData {
             nonce,
             gateway_data,
             wg_port,
-        } = gateway_api_client
+        }) = gateway_api_client
             .post_gateway_register_client(&init_message)
             .await?
         else {
@@ -114,15 +115,12 @@ impl WgGatewayClient {
             gateway_data.private_ip,
             nonce,
         ));
-        let ClientRegistrationResponse::Registered { success } = gateway_api_client
+        let ClientRegistrationResponse::Registered = gateway_api_client
             .post_gateway_register_client(&finalized_message)
             .await?
         else {
             return Err(crate::error::Error::InvalidGatewayAPIResponse);
         };
-        if !success {
-            return Err(crate::error::Error::FailedWireguardRegistration);
-        }
         let gateway_data = GatewayData {
             public_key: PublicKey::from(gateway_data.pub_key().to_bytes()),
             endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, wg_port))?,
