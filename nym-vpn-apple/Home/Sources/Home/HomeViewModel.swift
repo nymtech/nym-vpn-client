@@ -145,18 +145,7 @@ public extension HomeViewModel {
 // MARK: - Connection -
 public extension HomeViewModel {
     func connectDisconnect() {
-#if os(macOS)
-        // TODO: check if possible to split is helper running vs isHelperAuthorized
-        guard helperManager.isHelperRunning() && helperManager.isHelperAuthorized()
-        else {
-            do {
-                _ = try helperManager.authorizeAndInstallHelper()
-            } catch let error {
-                statusInfoState = .error(message: error.localizedDescription)
-            }
-            return
-        }
-#endif
+        installHelperIfNeeded()
 
         guard appSettings.isCredentialImported
         else {
@@ -281,6 +270,21 @@ private extension HomeViewModel {
         .store(in: &cancellables)
     }
 #endif
+
+    func installHelperIfNeeded() {
+#if os(macOS)
+        // TODO: check if possible to split is helper running vs isHelperAuthorized
+        guard helperManager.isHelperRunning() && helperManager.isHelperAuthorized()
+        else {
+            do {
+                _ = try helperManager.authorizeAndInstallHelper()
+            } catch let error {
+                statusInfoState = .error(message: error.localizedDescription)
+            }
+            return
+        }
+#endif
+    }
 
     func updateUI(with status: TunnelStatus) {
         Task { @MainActor in

@@ -165,7 +165,9 @@ private extension GRPCManager {
         let call = client.listenToConnectionStateChanges(Nym_Vpn_Empty()) { [weak self] connectionStateChange in
             // TODO:
             print("Connection state \(connectionStateChange)")
-
+            if connectionStateChange.error != nil {
+                // TODO: output error
+            }
             switch connectionStateChange.status {
             case .UNRECOGNIZED, .connectionFailed, .notConnected, .statusUnspecified, .unknown:
                 self?.tunnelStatus = .disconnected
