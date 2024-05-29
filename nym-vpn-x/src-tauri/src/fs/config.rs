@@ -12,6 +12,4 @@ pub struct AppConfig {
     pub grpc_http_endpoint: Option<String>,
     /// IP address of the DNS server to use when connected to the VPN
     pub dns_server: Option<String>,
-    /// Path pointing to an env configuration file describing the network
-    pub env_config_file: Option<PathBuf>,
 }

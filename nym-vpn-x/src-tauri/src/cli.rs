@@ -22,10 +22,6 @@ pub struct Cli {
     #[arg(short, long)]
     pub build_info: bool,
 
-    /// Sandbox network
-    #[arg(short, long)]
-    pub sandbox: bool,
-
     /// Unix socket path of gRPC endpoint in IPC mode
     #[arg(short, long)]
     pub grpc_socket_endpoint: Option<PathBuf>,
