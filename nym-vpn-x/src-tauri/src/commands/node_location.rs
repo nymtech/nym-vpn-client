@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
 use tauri::State;
 use tracing::{debug, error, instrument};
@@ -6,7 +8,7 @@ use ts_rs::TS;
 use crate::{
     country::Country,
     db::{Db, Key},
-    error::BackendError,
+    error::{BackendError, ErrorKey},
     gateway::{get_gateway_countries, get_low_latency_entry_country},
     states::{app::NodeLocation, SharedAppState},
 };
@@ -80,13 +82,19 @@ pub async fn get_node_location(
 pub async fn get_countries(node_type: NodeType) -> Result<Vec<Country>, BackendError> {
     debug!("get_countries");
     match node_type {
-        NodeType::Entry => get_gateway_countries(false).await.map_err(|e| {
-            error!("failed to get node locations: {}", e);
-            BackendError::new_internal("failed to get node locations", None)
+        NodeType::Entry => get_gateway_countries(NodeType::Entry).await.map_err(|e| {
+            BackendError::new_with_data(
+                "failed to fetch entry countries",
+                ErrorKey::GetEntryCountriesRequest,
+                HashMap::from([("details", e.to_string())]),
+            )
         }),
-        NodeType::Exit => get_gateway_countries(true).await.map_err(|e| {
-            error!("failed to get node locations: {}", e);
-            BackendError::new_internal("failed to get node locations", None)
+        NodeType::Exit => get_gateway_countries(NodeType::Exit).await.map_err(|e| {
+            BackendError::new_with_data(
+                "failed to fetch exit countries",
+                ErrorKey::GetExitCountriesRequest,
+                HashMap::from([("details", e.to_string())]),
+            )
         }),
     }
 }

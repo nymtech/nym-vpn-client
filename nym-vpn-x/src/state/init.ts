@@ -57,11 +57,6 @@ const getExitNodeLocation = async () => {
   });
 };
 
-// init fastest node location
-const getFastestNodeLocation = async () => {
-  return await invoke<Country>('get_fastest_node_location');
-};
-
 const getTheme = async () => {
   const winTheme: UiTheme =
     (await appWindow.theme()) === 'dark' ? 'Dark' : 'Light';
@@ -275,17 +270,5 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     },
   };
 
-  const getFastestLocationRq: TauriReq<typeof getFastestNodeLocation> = {
-    name: 'get_fastest_node_location',
-    request: () => getFastestNodeLocation(),
-    onFulfilled: (country) => {
-      dispatch({ type: 'set-fastest-node-location', country });
-    },
-  };
-
-  await fireRequests([
-    getEntryCountriesRq,
-    getExitCountriesRq,
-    getFastestLocationRq,
-  ]);
+  await fireRequests([getEntryCountriesRq, getExitCountriesRq]);
 }

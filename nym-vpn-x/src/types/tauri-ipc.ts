@@ -1,3 +1,5 @@
+import { Country } from './common';
+
 export interface BackendError {
   message: string;
   key: BkdErrorKey;
@@ -7,6 +9,8 @@ export interface BackendError {
 export interface Cli {
   nosplash: boolean;
 }
+
+export type NodeLocationBackend = 'Fastest' | { Country: Country };
 
 export type DbKey =
   | 'Monitoring'
@@ -33,4 +37,6 @@ export type BkdErrorKey =
   | 'CredentialAlreadyImported'
   | 'CredentialStorageError'
   | 'CredentialDeserializationFailure'
-  | 'CredentialExpired';
+  | 'CredentialExpired'
+  | 'GetEntryCountriesRequest'
+  | 'GetExitCountriesRequest';

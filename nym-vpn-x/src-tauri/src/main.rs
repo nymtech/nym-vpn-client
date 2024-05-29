@@ -1,6 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::path::PathBuf;
 use std::time::Duration;
 use std::{env, sync::Arc};
 
@@ -10,7 +11,6 @@ use crate::{
     db::{Db, Key},
     fs::{config::AppConfig, storage::AppStorage},
     grpc::client::GrpcClient,
-    network::setup_network_env,
 };
 
 use anyhow::{anyhow, Result};
@@ -19,6 +19,7 @@ use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
 use commands::window as cmd_window;
 use commands::*;
+use nym_config::defaults;
 use states::app::AppState;
 use tauri::{api::path::config_dir, Manager};
 use tokio::sync::Mutex;
@@ -34,7 +35,7 @@ mod events;
 mod fs;
 mod gateway;
 mod grpc;
-mod network;
+mod http;
 mod states;
 mod system_tray;
 mod vpn_status;
@@ -100,9 +101,8 @@ async fn main() -> Result<()> {
     let app_config = app_config_store.read().await?;
     debug!("app_config: {app_config:?}");
 
-    // use the provided network configuration file or sandbox if cli flag is set
-    // default to mainnet
-    setup_network_env(cli.sandbox, &app_config.env_config_file).await?;
+    info!("network environment: mainnet");
+    defaults::setup_env::<PathBuf>(None);
 
     info!("Creating k/v embedded db");
     let db = Db::new()?;
