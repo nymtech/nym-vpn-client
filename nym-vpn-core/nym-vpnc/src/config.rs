@@ -3,8 +3,12 @@
 
 use std::path::{Path, PathBuf};
 
-pub(crate) fn get_socket_path() -> PathBuf {
-    Path::new("/var/run/nym-vpn.sock").to_path_buf()
+pub(super) fn get_socket_path() -> PathBuf {
+    #[cfg(unix)]
+    return Path::new("/var/run/nym-vpn.sock").to_path_buf();
+
+    #[cfg(windows)]
+    return Path::new(r"\\.\pipe\nym-vpn").to_path_buf();
 }
 
 pub(crate) fn default_endpoint() -> String {
