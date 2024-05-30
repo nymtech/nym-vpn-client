@@ -9,7 +9,7 @@
 	<key>CFBundleName</key>
 	<string>NymVPNHelper</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1</string>
+	<string>0.1.5</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>SMAuthorizedClients</key>

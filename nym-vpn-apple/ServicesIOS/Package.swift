@@ -23,6 +23,6 @@ let package = Package(
             name: "KeyboardManager",
             dependencies: [],
             path: "Sources/KeyboardManager"
-        ),
+        )
     ]
 )
