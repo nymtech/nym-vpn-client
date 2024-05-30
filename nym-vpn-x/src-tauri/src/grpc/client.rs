@@ -13,6 +13,7 @@ use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 use thiserror::Error;
+use time::OffsetDateTime;
 use tokio::sync::mpsc;
 use tonic::transport::Endpoint as TonicEndpoint;
 use tonic::{transport::Channel, Request};
@@ -156,10 +157,19 @@ impl GrpcClient {
         if let Some(e) = res.error.as_ref() {
             warn!("vpn status error: {}", e.message);
         }
+        let connection_time = res.details.clone().and_then(|d| {
+            d.since.map(|s| {
+                OffsetDateTime::from_unix_timestamp(s.seconds)
+                    .inspect_err(|e| error!("failed to parse timestamp: {:?}", e))
+                    .unwrap_or(OffsetDateTime::now_utc())
+            })
+        });
+
         vpn_status::update(
             app,
             ConnectionState::from(res.status()),
             res.error.map(BackendError::from),
+            connection_time,
         )
         .await?;
         Ok(())
@@ -206,6 +216,7 @@ impl GrpcClient {
                 app,
                 ConnectionState::from(status.status()),
                 status.error.map(BackendError::from),
+                None,
             )
             .await?;
         }
