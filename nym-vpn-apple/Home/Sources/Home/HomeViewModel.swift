@@ -20,7 +20,7 @@ public class HomeViewModel: HomeFlowState {
 
     private var timer = Timer()
     private var cancellables = Set<AnyCancellable>()
-    @Published private var activeTunnel: Tunnel?
+    @MainActor @Published private var activeTunnel: Tunnel?
 
     let title = "NymVPN".localizedString
     let connectToLocalizedTitle = "connectTo".localizedString
@@ -117,18 +117,20 @@ public extension HomeViewModel {
     }
 
     func updateTimeConnected() {
-        let emptyTime = " "
-        guard
-            let activeTunnel,
-            activeTunnel.status == .connected,
-            let connectedDate = activeTunnel.tunnel.connection.connectedDate
-        else {
+        Task { @MainActor in
+            let emptyTime = " "
+            guard
+                let activeTunnel,
+                activeTunnel.status == .connected,
+                let connectedDate = activeTunnel.tunnel.connection.connectedDate
+            else {
 
-            guard timeConnected != emptyTime else { return }
-            timeConnected = emptyTime
-            return
+                guard timeConnected != emptyTime else { return }
+                timeConnected = emptyTime
+                return
+            }
+            timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTime
         }
-        timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTime
     }
 
     func configureConnectedTimeTimer() {
@@ -145,6 +147,7 @@ public extension HomeViewModel {
 // MARK: - Connection -
 public extension HomeViewModel {
     func connectDisconnect() {
+        statusInfoState = .unknown
         installHelperIfNeeded()
 
         guard appSettings.isCredentialImported
@@ -195,6 +198,7 @@ private extension HomeViewModel {
         setupDateFormatter()
         setupTunnelManagerObservers()
         setupAppSettingsObservers()
+        setupGRPCManagerObservers()
         setupCountriesManagerObservers()
         fetchCountries()
     }
@@ -211,9 +215,11 @@ private extension HomeViewModel {
         .store(in: &cancellables)
 #if os(iOS)
         connectionManager.$currentTunnel.sink { [weak self] tunnel in
-            guard let tunnel else { return }
-            self?.activeTunnel = tunnel
-            self?.configureTunnelStatusObservation(with: tunnel)
+            guard let tunnel, let self else { return }
+            Task { @MainActor in
+                self.activeTunnel = tunnel
+            }
+            self.configureTunnelStatusObservation(with: tunnel)
         }
         .store(in: &cancellables)
 #endif
@@ -235,6 +241,18 @@ private extension HomeViewModel {
             self?.fetchCountries()
         }
         .store(in: &cancellables)
+    }
+
+    func setupGRPCManagerObservers() {
+#if os(macOS)
+        grpcManager.$lastError.sink { [weak self] error in
+            guard let self, let message = error?.localizedDescription else { return }
+            Task { @MainActor in
+                self.statusInfoState = .error(message: message)
+            }
+        }
+        .store(in: &cancellables)
+#endif
     }
 
     func setupCountriesManagerObservers() {
@@ -298,7 +316,9 @@ private extension HomeViewModel {
         do {
             try countriesManager.fetchCountries()
         } catch let error {
-            statusInfoState = .error(message: error.localizedDescription)
+            Task { @MainActor in
+                statusInfoState = .error(message: error.localizedDescription)
+            }
         }
     }
 }

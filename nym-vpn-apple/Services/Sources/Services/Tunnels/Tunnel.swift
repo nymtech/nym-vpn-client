@@ -29,6 +29,7 @@ public final class Tunnel: NSObject, ObservableObject {
             logger.log(level: .error, "Connecting failed after 8 attempts. Last error: \(String(describing: lastError))")
             // TODO: throw error to the UI
             // TODO: catch error invalid credential - remove credential is imported afterwards
+            print("Connect error: ", lastError ?? "")
             return
         }
 

@@ -5,6 +5,7 @@ import GRPC
 import NIO
 import NIOConcurrencyHelpers
 import SwiftProtobuf
+import Constants
 import TunnelStatus
 
 public final class GRPCManager: ObservableObject {
@@ -16,6 +17,7 @@ public final class GRPCManager: ObservableObject {
     public static let shared = GRPCManager()
 
     @Published public var tunnelStatus: TunnelStatus = .disconnected
+    @Published public var lastError: GeneralNymError?
 
     private init() {
         channel = ClientConnection(
@@ -41,6 +43,7 @@ public final class GRPCManager: ObservableObject {
         call.response.whenComplete { result in
             switch result {
             case let .success(response):
+                // TODO: set connection time
                 print("Received response: \(response)")
             case let .failure(error):
                 print("Call failed with error: \(error)")
@@ -163,20 +166,24 @@ private extension GRPCManager {
 
     func setupListenToConnectionStateObserver() {
         let call = client.listenToConnectionStateChanges(Nym_Vpn_Empty()) { [weak self] connectionStateChange in
+            guard let self else { return }
             // TODO:
             print("Connection state \(connectionStateChange)")
-            if connectionStateChange.error != nil {
-                // TODO: output error
-            }
+
             switch connectionStateChange.status {
             case .UNRECOGNIZED, .connectionFailed, .notConnected, .statusUnspecified, .unknown:
-                self?.tunnelStatus = .disconnected
+                self.tunnelStatus = .disconnected
             case .connecting:
-                self?.tunnelStatus = .connecting
+                self.tunnelStatus = .connecting
             case .connected:
-                self?.tunnelStatus = .connected
+                self.tunnelStatus = .connected
+                // TODO: update time
             case .disconnecting:
-                self?.tunnelStatus = .disconnecting
+                self.tunnelStatus = .disconnecting
+            }
+
+            if !connectionStateChange.error.message.isEmpty {
+                self.lastError = convertToGeneralNymError(from: connectionStateChange.error)
             }
         }
 
@@ -203,6 +210,23 @@ private extension GRPCManager {
             case .failure(let error):
                 print("Stream failed with error: \(error)")
             }
+        }
+    }
+}
+
+private extension GRPCManager {
+    func convertToGeneralNymError(from error: Nym_Vpn_Error) -> GeneralNymError {
+        switch error.kind {
+        case .unspecified, .unhandled:
+            GeneralNymError.library(message: "error.unexpected".localizedString)
+        case .noValidCredentials:
+            GeneralNymError.invalidCredential
+        case .timeout:
+            GeneralNymError.library(message:  "error.timeout".localizedString)
+        case .gatewayDirectory:
+            GeneralNymError.library(message: "error.gatewayDirectory".localizedString)
+        case .UNRECOGNIZED(let code):
+            GeneralNymError.library(message:  "error.unrecognized".localizedString + " \(code)")
         }
     }
 }
