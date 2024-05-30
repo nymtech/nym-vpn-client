@@ -226,6 +226,9 @@ pub enum Error {
 
     #[error("failed to register wireguard key")]
     FailedWireguardRegistration,
+
+    #[error("received bad event for wireguard tunnel creation")]
+    BadWireguardEvent,
 }
 
 // Result type based on our error type

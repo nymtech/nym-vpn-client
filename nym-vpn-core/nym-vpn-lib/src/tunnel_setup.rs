@@ -10,6 +10,7 @@ use crate::wireguard_setup::create_wireguard_tunnel;
 use crate::{init_wireguard_config, MixnetVpn, SpecificVpn, WireguardVpn};
 use crate::{routing, MixnetConnectionInfo, NymVpn};
 use futures::channel::oneshot;
+use futures::StreamExt;
 use ipnetwork::IpNetwork;
 use log::*;
 use nym_gateway_directory::{
@@ -19,6 +20,7 @@ use nym_task::TaskManager;
 use talpid_core::dns::DnsMonitor;
 use talpid_core::firewall::Firewall;
 use talpid_routing::RouteManager;
+use talpid_tunnel::TunnelEvent;
 use tap::TapFallible;
 
 pub struct TunnelSetup<T: TunnelSpecifcSetup> {
@@ -182,13 +184,31 @@ async fn setup_wg_tunnel(
     )
     .await?;
     std::env::set_var("TALPID_FORCE_USERSPACE_WIREGUARD", "1");
-    let wireguard_waiting_entry = create_wireguard_tunnel(
+    let (wireguard_waiting_entry, mut event_rx) = create_wireguard_tunnel(
         &route_manager,
         nym_vpn.tun_provider.clone(),
         entry_wireguard_config,
     )
     .await?;
-    let wireguard_waiting_exit = create_wireguard_tunnel(
+    // Wait for entry gateway routes to be finished before moving to exit gateway routes, as the two might race if
+    // started one after the other
+    loop {
+        match event_rx.next().await {
+            Some((TunnelEvent::InterfaceUp(_, _), _)) => {
+                log::info!("Interface up");
+                continue;
+            }
+            Some((TunnelEvent::Up(_), _)) => {
+                log::info!("Tunnel up");
+                break;
+            }
+            Some((TunnelEvent::AuthFailed(_), _)) | Some((TunnelEvent::Down, _)) | None => {
+                log::info!("Error");
+                return Err(Error::BadWireguardEvent);
+            }
+        }
+    }
+    let (wireguard_waiting_exit, _) = create_wireguard_tunnel(
         &route_manager,
         nym_vpn.tun_provider.clone(),
         exit_wireguard_config,
