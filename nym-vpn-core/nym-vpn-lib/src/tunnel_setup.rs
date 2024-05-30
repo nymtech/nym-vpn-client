@@ -195,15 +195,12 @@ async fn setup_wg_tunnel(
     loop {
         match event_rx.next().await {
             Some((TunnelEvent::InterfaceUp(_, _), _)) => {
-                log::info!("Interface up");
                 continue;
             }
             Some((TunnelEvent::Up(_), _)) => {
-                log::info!("Tunnel up");
                 break;
             }
             Some((TunnelEvent::AuthFailed(_), _)) | Some((TunnelEvent::Down, _)) | None => {
-                log::info!("Error");
                 return Err(Error::BadWireguardEvent);
             }
         }
