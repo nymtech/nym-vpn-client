@@ -24,7 +24,7 @@ use states::app::AppState;
 use tauri::{api::path::config_dir, Manager};
 use tokio::sync::Mutex;
 use tokio::time::sleep;
-use tracing::{debug, error, info, trace};
+use tracing::{debug, error, info, trace, warn};
 
 mod cli;
 mod commands;
@@ -98,7 +98,19 @@ async fn main() -> Result<()> {
         &app_config_store.full_path.display()
     );
 
-    let app_config = app_config_store.read().await?;
+    let app_config = match app_config_store.read().await {
+        Ok(cfg) => cfg,
+        Err(e) => {
+            warn!("failed to read app config: {e}, falling back to default (empty) config");
+            debug!("clearing the config file");
+            app_config_store
+                .clear()
+                .await
+                .inspect_err(|e| error!("failed to clear the config file: {e}"))
+                .ok();
+            AppConfig::default()
+        }
+    };
     debug!("app_config: {app_config:?}");
 
     info!("network environment: mainnet");
