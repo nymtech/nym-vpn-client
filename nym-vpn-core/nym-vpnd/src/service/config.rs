@@ -15,7 +15,7 @@ pub(super) enum ConfigSetupError {
     #[error("failed to parse config file {file}: {error}")]
     Parse {
         file: PathBuf,
-        error: toml::de::Error,
+        error: Box<toml::de::Error>,
     },
 
     #[error("failed to read config file {file}: {error}")]
@@ -97,7 +97,7 @@ pub(super) fn read_config_file(
         })?;
     toml::from_str(&file_content).map_err(|error| ConfigSetupError::Parse {
         file: config_file.clone(),
-        error,
+        error: Box::new(error),
     })
 }
 
