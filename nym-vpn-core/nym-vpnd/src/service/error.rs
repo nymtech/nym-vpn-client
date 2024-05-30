@@ -181,7 +181,6 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::MixnetClientDeadlock
             | nym_vpn_lib::error::Error::NotStarted
             | nym_vpn_lib::error::Error::StopError
-            | nym_vpn_lib::error::Error::TunProvider(_)
             | nym_vpn_lib::error::Error::TalpidCoreMpsc(_)
             | nym_vpn_lib::error::Error::FailedToSerializeMessage { .. }
             | nym_vpn_lib::error::Error::IcmpEchoRequestPacketCreationFailure
@@ -194,13 +193,21 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::FailedToDecodeBase58Credential { .. }
             | nym_vpn_lib::error::Error::ConfigPathNotSet
             | nym_vpn_lib::error::Error::ConnectionMonitorError(_)
-            | nym_vpn_lib::error::Error::RootPrivilegesRequired { .. }
             | nym_vpn_lib::error::Error::RouteManagerPoisonedLock
             | nym_vpn_lib::error::Error::ImportCredentialError(_)
             | nym_vpn_lib::error::Error::IpPacketRouterClientError(_)
             | nym_vpn_lib::error::Error::FailedWireguardRegistration
             | nym_vpn_lib::error::Error::BadWireguardEvent => {
-                ConnectionFailedError::Unhandled(format!("unhandled error: {:#?}", err))
+                ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+            }
+            #[cfg(windows)]
+            nym_vpn_lib::error::Error::AdminPrivilegesRequired { .. } => {
+                ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+            }
+            #[cfg(unix)]
+            nym_vpn_lib::error::Error::TunProvider(_)
+            | nym_vpn_lib::error::Error::RootPrivilegesRequired { .. } => {
+                ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
             }
         }
     }

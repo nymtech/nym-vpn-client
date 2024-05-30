@@ -1,18 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#![cfg_attr(not(unix), allow(dead_code))]
-
-#[cfg(unix)]
 mod cli;
-#[cfg(unix)]
 mod command_interface;
-#[cfg(unix)]
 mod logging;
-#[cfg(unix)]
 mod service;
 
-#[cfg(unix)]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     use clap::Parser;
     use nym_task::TaskManager;
@@ -48,9 +41,4 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     command_handle.join().unwrap();
 
     Ok(())
-}
-
-#[cfg(not(unix))]
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    unimplemented!("Daemon not implemented for non-unix platforms");
 }

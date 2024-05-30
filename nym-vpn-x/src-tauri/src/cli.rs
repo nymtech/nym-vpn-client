@@ -22,10 +22,6 @@ pub struct Cli {
     #[arg(short, long)]
     pub build_info: bool,
 
-    /// Sandbox network
-    #[arg(short, long)]
-    pub sandbox: bool,
-
     /// Unix socket path of gRPC endpoint in IPC mode
     #[arg(short, long)]
     pub grpc_socket_endpoint: Option<PathBuf>,
@@ -41,6 +37,10 @@ pub struct Cli {
     /// IP address of the DNS server to use when connected to the VPN
     #[arg(short = 'D', long)]
     pub dns: Option<String>,
+
+    /// Open a console to see the log stream (Windows only)
+    #[arg(short, long)]
+    pub console: bool,
 }
 
 // TODO restore this

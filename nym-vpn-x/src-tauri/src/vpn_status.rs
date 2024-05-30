@@ -1,3 +1,4 @@
+use crate::error::BackendError;
 use crate::events::{ConnectionEventPayload, EVENT_CONNECTION_STATE};
 use crate::states::{app::ConnectionState, SharedAppState};
 use anyhow::Result;
@@ -9,7 +10,8 @@ use tracing::{info, instrument, trace, warn};
 pub async fn update(
     app: &tauri::AppHandle,
     status: ConnectionState,
-    error: Option<String>,
+    error: Option<BackendError>,
+    connection_time: Option<OffsetDateTime>,
 ) -> Result<()> {
     let state = app.state::<SharedAppState>();
     trace!("vpn status: {:?}", status);
@@ -26,17 +28,20 @@ pub async fn update(
     match status {
         ConnectionState::Connected => {
             info!("vpn status → [Connected]");
-            let now = OffsetDateTime::now_utc();
+            let t = connection_time.unwrap_or_else(|| {
+                info!("established connection time was not given, using current utc time");
+                OffsetDateTime::now_utc()
+            });
             let mut app_state = state.lock().await;
             app_state.state = status.clone();
-            app_state.connection_start_time = Some(now);
+            app_state.connection_start_time = Some(t);
             drop(app_state);
             app.emit_all(
                 EVENT_CONNECTION_STATE,
                 ConnectionEventPayload::new(
                     ConnectionState::Connected,
                     error,
-                    Some(now.unix_timestamp()),
+                    Some(t.unix_timestamp()),
                 ),
             )
             .ok();

@@ -2,6 +2,7 @@ import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
 import { Country, NodeLocation, ThemeMode, UiTheme } from './common';
+import { BackendError, BkdErrorKey } from './tauri-ipc';
 
 export type ConnectionState =
   | 'Connected'
@@ -42,7 +43,7 @@ export type AppState = {
   daemonStatus: DaemonStatus;
   version: string | null;
   loading: boolean;
-  error?: string | null;
+  error?: AppError | null;
   progressMessages: ConnectProgressMsg[];
   sessionStartDate?: Dayjs | null;
   vpnMode: VpnMode;
@@ -62,6 +63,8 @@ export type AppState = {
   exitCountryList: Country[];
   entryCountriesLoading: boolean;
   exitCountriesLoading: boolean;
+  entryCountriesError?: AppError | null;
+  exitCountriesError?: AppError | null;
   rootFontSize: number;
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
@@ -72,8 +75,8 @@ export type AppState = {
 
 export type ConnectionEventPayload = {
   state: ConnectionState;
-  error?: string | null;
-  start_time?: number | null; // unix timestamp in seconds
+  error?: BackendError | null;
+  start_time?: bigint | null; // unix timestamp in seconds
 };
 
 export type ConnectProgressMsg = 'Initializing' | 'InitDone';
@@ -85,3 +88,9 @@ export type ProgressEventPayload = {
 export type StateDispatch = Dispatch<StateAction>;
 
 export type FetchCountriesFn = () => Promise<void> | undefined;
+
+export type AppError = {
+  message: string;
+  key: BkdErrorKey;
+  data?: Record<string, string> | null;
+};

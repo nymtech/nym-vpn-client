@@ -1,11 +1,25 @@
 {
   "unknown": "Unknown error",
+  "internal": "Internal error",
+  "daemon": {
+    "not-connected": "Not connected to the daemon"
+  },
+  "grpc": "Internal gRPC error",
+  "connection": {
+    "timeout": "Connection timeout",
+    "gateway-lookup": "Failed to lookup gateway",
+    "no-valid-credential": "No valid credential, please add a credential first"
+  },
   "credential": {
     "invalid": "Invalid credential",
     "expired": "Credential expired",
     "no-duplicate": "This credential has already been imported",
     "storage": "Failed to import credential because of an internal error",
-    "deserialize": "Failed to import credential because of an internal error",
+    "deserialize": "Failed to deserialize the credential",
     "vpn-running": "You cannot import a credential while connected to the VPN"
+  },
+  "countries-request": {
+    "entry": "Failed to fetch the available entry node countries",
+    "exit": "Failed to fetch the available exit node countries"
   }
 }

@@ -36,8 +36,8 @@ pub struct ConnectionInfo {
 #[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq)]
 #[ts(export)]
 pub enum VpnMode {
-    Mixnet,
     #[default]
+    Mixnet,
     TwoHop,
 }
 
@@ -72,7 +72,6 @@ impl TryFrom<(&Db, &AppConfig, &Cli)> for AppState {
         let dns_server: Option<String> = store.2.dns.clone().or(store.1.dns_server.clone());
 
         // restore any state from the saved app data (previous user session)
-        // fallback to config file for locations if not present
         Ok(AppState {
             entry_node_location: entry_node_location
                 .unwrap_or(NodeLocation::Country(DEFAULT_ENTRY_COUNTRY.clone())),

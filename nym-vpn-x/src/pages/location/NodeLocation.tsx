@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api';
 import { useMainDispatch, useMainState } from '../../contexts';
 import {
-  CmdError,
+  AppError,
+  BackendError,
   Country,
   NodeHop,
   StateDispatch,
@@ -13,6 +14,7 @@ import {
 } from '../../types';
 import { FastestFeatureEnabled } from '../../constants';
 import { routes } from '../../router';
+import { useI18nError } from '../../hooks';
 import { PageAnim, TextInput } from '../../ui';
 import CountryList from './CountryList';
 
@@ -22,7 +24,6 @@ export type UiCountry = {
 };
 
 function NodeLocation({ node }: { node: NodeHop }) {
-  const { t } = useTranslation('nodeLocation');
   const {
     entryNodeLocation,
     exitNodeLocation,
@@ -33,7 +34,12 @@ function NodeLocation({ node }: { node: NodeHop }) {
     exitCountriesLoading,
     fetchEntryCountries,
     fetchExitCountries,
+    entryCountriesError,
+    exitCountriesError,
   } = useMainState();
+
+  const { t } = useTranslation('nodeLocation');
+  const { tE } = useI18nError();
 
   // the countries list used for UI rendering, Fastest country is at first position
   const [uiCountryList, setUiCountryList] = useState<UiCountry[]>(
@@ -47,7 +53,6 @@ function NodeLocation({ node }: { node: NodeHop }) {
     useState<UiCountry[]>(uiCountryList);
 
   const dispatch = useMainDispatch() as StateDispatch;
-
   const navigate = useNavigate();
 
   // request backend to refresh cache
@@ -62,7 +67,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
         .then((country) => {
           dispatch({ type: 'set-fastest-node-location', country });
         })
-        .catch((e: CmdError) => console.error(e));
+        .catch((e: BackendError) => console.error(e));
     }
   }, [node, dispatch, fetchEntryCountries, fetchExitCountries]);
 
@@ -127,6 +132,16 @@ function NodeLocation({ node }: { node: NodeHop }) {
     navigate(routes.root);
   };
 
+  const error =
+    (node === 'entry' && entryCountriesError) ||
+    (node === 'exit' && exitCountriesError);
+
+  const renderError = (e: AppError) => (
+    <div className="w-4/5 h-2/3 overflow-auto break-words text-center">
+      <p className="text-sm text-teaberry font-bold">{`${tE(e.key)}: ${e.data?.details || '-'}`}</p>
+    </div>
+  );
+
   return (
     <PageAnim className="h-full flex flex-col">
       <div className="h-70 flex flex-col justify-center items-center gap-y-2 pt-3">
@@ -140,19 +155,23 @@ function NodeLocation({ node }: { node: NodeHop }) {
           />
         </div>
         <span className="mt-2" />
-        <CountryList
-          countries={filteredCountries}
-          loading={
-            node === 'entry' ? entryCountriesLoading : exitCountriesLoading
-          }
-          onSelect={handleCountrySelection}
-          isSelected={(country: UiCountry) => {
-            return isCountrySelected(
-              node === 'entry' ? entryNodeLocation : exitNodeLocation,
-              country,
-            );
-          }}
-        />
+        {error ? (
+          renderError(error)
+        ) : (
+          <CountryList
+            countries={filteredCountries}
+            loading={
+              node === 'entry' ? entryCountriesLoading : exitCountriesLoading
+            }
+            onSelect={handleCountrySelection}
+            isSelected={(country: UiCountry) => {
+              return isCountrySelected(
+                node === 'entry' ? entryNodeLocation : exitNodeLocation,
+                country,
+              );
+            }}
+          />
+        )}
       </div>
     </PageAnim>
   );

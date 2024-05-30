@@ -1,14 +1,16 @@
-export type CmdErrorSource = 'InternalError' | 'CallerError' | 'Unknown';
+import { Country } from './common';
 
-export interface CmdError {
-  source: CmdErrorSource;
+export interface BackendError {
   message: string;
-  i18n_key?: CmdErrorI18nKey | null;
+  key: BkdErrorKey;
+  data: Record<string, string> | null;
 }
 
 export interface Cli {
   nosplash: boolean;
 }
+
+export type NodeLocationBackend = 'Fastest' | { Country: Country };
 
 export type DbKey =
   | 'Monitoring'
@@ -22,11 +24,19 @@ export type DbKey =
   | 'WindowSize'
   | 'WelcomeScreenSeen';
 
-export type CmdErrorI18nKey =
+export type BkdErrorKey =
   | 'UnknownError'
+  | 'InternalError'
+  | 'GrpcError'
+  | 'NotConnectedToDaemon'
+  | 'ConnectionTimeout'
+  | 'ConnectionGatewayLookup'
+  | 'ConnectionNoValidCredential'
   | 'CredentialInvalid'
   | 'CredentialVpnRunning'
   | 'CredentialAlreadyImported'
   | 'CredentialStorageError'
   | 'CredentialDeserializationFailure'
-  | 'CredentialExpired';
+  | 'CredentialExpired'
+  | 'GetEntryCountriesRequest'
+  | 'GetExitCountriesRequest';

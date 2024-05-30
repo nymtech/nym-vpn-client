@@ -37,8 +37,8 @@ pub struct ConnectionInfo {
 #[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq)]
 #[ts(export)]
 pub enum VpnMode {
-    Mixnet,
     #[default]
+    Mixnet,
     TwoHop,
 }
 
