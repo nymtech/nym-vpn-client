@@ -1,0 +1,36 @@
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/vpn_on"
+        android:shortcutDisabledMessage="@string/connect"
+        android:shortcutId="startOn1"
+        android:shortcutLongLabel="@string/connect"
+        android:shortcutShortLabel="@string/connect">
+        <intent
+            android:action="START"
+            android:targetClass="net.nymtech.nymvpn.ui.ShortcutActivity"
+            android:targetPackage="net.nymtech.nymvpn">
+            <extra
+                android:name="mode"
+                android:value="TWO_HOP" />
+        </intent>
+        <capability-binding android:key="actions.intent.START" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/vpn_off"
+        android:shortcutDisabledMessage="@string/disconnect"
+        android:shortcutId="stopOff1"
+        android:shortcutLongLabel="@string/disconnect"
+        android:shortcutShortLabel="@string/disconnect">
+        <intent
+            android:action="STOP"
+			android:targetClass="net.nymtech.nymvpn.ui.ShortcutActivity"
+			android:targetPackage="net.nymtech.nymvpn">
+            <extra
+                android:name="mode"
+                android:value="TWO_HOP" />
+        </intent>
+        <capability-binding android:key="actions.intent.STOP" />
+    </shortcut>
+</shortcuts>
