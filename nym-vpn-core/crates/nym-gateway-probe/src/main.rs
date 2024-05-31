@@ -17,7 +17,10 @@ struct CliArgs {
     config_env_file: Option<PathBuf>,
 
     #[arg(long, short)]
-    gateway: Option<String>,
+    gateway: Option<NodeIdentity>,
+
+    #[arg(long, requires("gateway"))]
+    test_blacklisted: bool,
 
     #[arg(long, short)]
     no_log: bool,
@@ -61,12 +64,12 @@ async fn run() -> anyhow::Result<ProbeResult> {
     setup_env(args.config_env_file.as_ref());
 
     let gateway = if let Some(gateway) = args.gateway {
-        EntryPoint::from_base58_string(&gateway)?
+        gateway.into()
     } else {
         fetch_random_gateway_with_ipr().await?
     };
 
-    nym_gateway_probe::probe(gateway).await
+    nym_gateway_probe::probe(gateway, args.test_blacklisted).await
 }
 
 async fn fetch_random_gateway_with_ipr() -> anyhow::Result<EntryPoint> {

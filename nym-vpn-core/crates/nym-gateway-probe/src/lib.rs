@@ -26,9 +26,11 @@ use crate::{
 };
 
 mod error;
+mod helpers;
 mod icmp;
 mod types;
 
+use crate::helpers::MaybeInjectableGateway;
 pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
 
@@ -41,10 +43,27 @@ pub async fn fetch_gateways_with_ipr() -> anyhow::Result<Vec<DescribedGatewayWit
     Ok(extract_out_exit_gateways(gateways).await)
 }
 
-pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
+pub async fn probe(entry_point: EntryPoint, test_blacklisted: bool) -> anyhow::Result<ProbeResult> {
     // Setup the entry gateways
-    let gateways = lookup_gateways().await?;
-    let (entry_gateway_id, _) = entry_point.lookup_gateway_identity(&gateways).await?;
+    let mut gateways = lookup_gateways().await?;
+    let mut hardcoded_gateway = None;
+
+    let entry_gateway_id = if test_blacklisted {
+        // a duplicate entry in gateways is not a problem
+
+        let EntryPoint::Gateway { identity } = entry_point else {
+            // SAFETY: clap forbids providing `test_blacklisted` WITHOUT explicitly specifying gateway identity
+            unreachable!()
+        };
+
+        let gateway = manually_extract_gateway_details(&identity.to_base58_string()).await?;
+        hardcoded_gateway = Some(gateway.clone());
+        gateways.push(gateway);
+        identity
+    } else {
+        let (entry_gateway_id, _) = entry_point.lookup_gateway_identity(&gateways).await?;
+        entry_gateway_id
+    };
 
     // Setup the exit gateway to be the same as entry gateway.
     let exit_point = ExitPoint::Gateway {
@@ -60,10 +79,13 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     let mixnet_client = MixnetClientBuilder::new_ephemeral()
         .request_gateway(entry_gateway_id.to_string())
         .network_details(NymNetworkDetails::new_from_env())
+        .maybe_inject_gateway(hardcoded_gateway)
+        .await?
         .debug_config(mixnet_debug_config())
         .build()?
         .connect_to_mixnet()
-        .await;
+        .await
+        .inspect_err(|err| warn!("failed to connect to the mixnet via our entry gateway: {err}"));
 
     let Ok(mixnet_client) = mixnet_client else {
         return Ok(ProbeResult {
@@ -93,6 +115,18 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
         gateway: entry_gateway.clone(),
         outcome,
     })
+}
+
+async fn manually_extract_gateway_details(
+    identity: &str,
+) -> anyhow::Result<DescribedGatewayWithLocation> {
+    let gateway_config = GatewayDirectoryConfig::new_from_env();
+    info!("nyxd: {}", gateway_config.rpc_url());
+
+    let gateway_client = GatewayDirectoryClient::new(gateway_config.clone())?;
+    Ok(gateway_client
+        .manually_lookup_contract_gateway(identity)
+        .await?)
 }
 
 async fn lookup_gateways() -> anyhow::Result<Vec<DescribedGatewayWithLocation>> {

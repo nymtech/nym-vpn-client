@@ -11,10 +11,19 @@ use crate::{
     DescribedGatewayWithLocation, Error,
 };
 use itertools::Itertools;
+use nym_config::defaults::{mainnet, DEFAULT_NYM_NODE_HTTP_PORT};
 use nym_explorer_client::{ExplorerClient, Location, PrettyDetailedGatewayBond};
 use nym_harbour_master_client::{Gateway as HmGateway, HarbourMasterApiClientExt};
-use nym_validator_client::{models::DescribedGateway, NymApiClient};
+use nym_node_requests::api::client::{NymNodeApiClientError, NymNodeApiClientExt};
+use nym_sdk::NymNetworkDetails;
+use nym_validator_client::client::MixNodeDetails;
+use nym_validator_client::models::{
+    IpPacketRouterDetails, NetworkRequesterDetails, NymNodeDescription,
+};
+use nym_validator_client::nyxd::contract_traits::MixnetQueryClient;
+use nym_validator_client::{models::DescribedGateway, nyxd, NymApiClient, QueryHttpRpcNyxdClient};
 use std::{fmt, net::IpAddr, time::Duration};
+use time::OffsetDateTime;
 use tracing::{debug, info, warn};
 use url::Url;
 
@@ -29,9 +38,12 @@ pub struct GatewayQueryResult {
 
 #[derive(Clone, Debug)]
 pub struct Config {
+    pub rpc_url: Url,
     pub api_url: Url,
     pub explorer_url: Option<Url>,
     pub harbour_master_url: Option<Url>,
+
+    pub network_details: NymNetworkDetails,
 }
 
 impl Default for Config {
@@ -62,15 +74,15 @@ impl fmt::Display for Config {
 impl Config {
     fn new_mainnet() -> Self {
         let mainnet_network_defaults = nym_sdk::NymNetworkDetails::default();
-        let default_api_url = mainnet_network_defaults
+        let mainnet_endpoints = mainnet_network_defaults
             .endpoints
             .first()
-            .expect("rust sdk mainnet default incorrectly configured")
-            .api_url
-            .clone()
-            .expect("rust sdk mainnet default missing api_url")
-            .parse()
-            .expect("rust sdk mainnet default api_url not parseable");
+            .expect("rust sdk mainnet default incorrectly configured");
+        let default_api_url = mainnet_endpoints
+            .api_url()
+            .expect("rust sdk mainnet default missing api_url");
+        let default_rpc_url = mainnet_endpoints.nyxd_url();
+
         let default_explorer_url = mainnet_network_defaults.explorer_api.clone().map(|url| {
             url.parse()
                 .expect("rust sdk mainnet default explorer url not parseable")
@@ -82,23 +94,25 @@ impl Config {
         );
 
         Config {
+            rpc_url: default_rpc_url,
             api_url: default_api_url,
             explorer_url: default_explorer_url,
             harbour_master_url: default_harbour_master_url,
+            network_details: mainnet_network_defaults,
         }
     }
 
     pub fn new_from_env() -> Self {
         let network = nym_sdk::NymNetworkDetails::new_from_env();
-        let api_url = network
+        let env_endpoints = network
             .endpoints
             .first()
-            .expect("network environment endpoints not correctly configured")
-            .api_url
-            .clone()
-            .expect("network environment missing api_url")
-            .parse()
-            .expect("network environment api_url not parseable");
+            .expect("network environment endpoints not correctly configured");
+        let api_url = env_endpoints
+            .api_url()
+            .expect("network environment missing api_url");
+        let rpc_url = env_endpoints.nyxd_url();
+
         let explorer_url = network.explorer_api.clone().map(|url| {
             url.parse()
                 .expect("network environment explorer url not parseable")
@@ -120,24 +134,33 @@ impl Config {
         };
 
         Config {
+            rpc_url,
             api_url,
             explorer_url,
             harbour_master_url,
+            network_details: network,
         }
     }
 
     // If you want to use a custom API URL, you are _very_ likely to also want to use custom URLs
     // for the explorer and harbour master as well.
     pub fn new_from_urls(
+        rpc_url: Url,
         api_url: Url,
         explorer_url: Option<Url>,
         harbour_master_url: Option<Url>,
     ) -> Self {
         Config {
+            rpc_url,
             api_url,
             explorer_url,
             harbour_master_url,
+            network_details: Default::default(),
         }
+    }
+
+    pub fn rpc_url(&self) -> &Url {
+        &self.rpc_url
     }
 
     pub fn api_url(&self) -> &Url {
@@ -169,6 +192,7 @@ impl Config {
 }
 
 pub struct GatewayClient {
+    nyxd_client: QueryHttpRpcNyxdClient,
     api_client: NymApiClient,
     explorer_client: Option<ExplorerClient>,
     harbour_master_client: Option<nym_harbour_master_client::Client>,
@@ -176,6 +200,11 @@ pub struct GatewayClient {
 
 impl GatewayClient {
     pub fn new(config: Config) -> Result<Self> {
+        let nyxd_client = QueryHttpRpcNyxdClient::connect(
+            nyxd::Config::try_from_nym_network_details(&config.network_details)?,
+            config.rpc_url().as_str(),
+        )?;
+
         let api_client = NymApiClient::new(config.api_url);
         let explorer_client = if let Some(url) = config.explorer_url {
             Some(ExplorerClient::new(url)?)
@@ -183,7 +212,7 @@ impl GatewayClient {
             None
         };
         let harbour_master_client = if let Some(url) = config.harbour_master_url {
-            Some(nym_harbour_master_client::Client::new_url(
+            Some(nym_harbour_master_client::Client::new_url::<_, String>(
                 url,
                 Some(HARBOUR_MASTER_CLIENT_TIMEOUT),
             )?)
@@ -192,6 +221,7 @@ impl GatewayClient {
         };
 
         Ok(GatewayClient {
+            nyxd_client,
             api_client,
             explorer_client,
             harbour_master_client,
@@ -233,6 +263,145 @@ impl GatewayClient {
             info!("Harbourmaster not configured, skipping...");
             None
         }
+    }
+
+    pub async fn lookup_current_mixnodes(&self) -> Result<Vec<MixNodeDetails>> {
+        self.api_client
+            .get_cached_mixnodes()
+            .await
+            .map_err(Into::into)
+    }
+
+    pub async fn manually_lookup_contract_gateway(
+        &self,
+        identity: &str,
+    ) -> Result<DescribedGatewayWithLocation> {
+        // long-term those should probably be made into shared library (I just copied the code out of nym-api)
+        async fn try_get_client(
+            identity: &str,
+            gateway_host: &str,
+        ) -> Result<nym_node_requests::api::Client> {
+            // first try the standard port in case the operator didn't put the node behind the proxy,
+            // then default https (443)
+            // finally default http (80)
+            let addresses_to_try = vec![
+                format!("http://{gateway_host}:{DEFAULT_NYM_NODE_HTTP_PORT}"),
+                format!("https://{gateway_host}"),
+                format!("http://{gateway_host}"),
+            ];
+
+            for address in addresses_to_try {
+                // if provided host was malformed, no point in continuing
+                let client = match nym_node_requests::api::Client::new_url(
+                    address,
+                    Some(Duration::from_secs(5)),
+                ) {
+                    Ok(client) => client,
+                    Err(err) => {
+                        warn!(
+                            "gateway {identity} provided a malformed host ({gateway_host}): {err}"
+                        );
+                        // just help our compiler a bit lol
+                        let _: NymNodeApiClientError = err;
+                        return Err(Error::ManualLookupFailure);
+                    }
+                };
+                if let Ok(health) = client.get_health().await {
+                    if health.status.is_up() {
+                        return Ok(client);
+                    }
+                }
+            }
+
+            warn!("gateway {identity} has not exposed its self-described API");
+            Err(Error::ManualLookupFailure)
+        }
+
+        async fn get_gateway_description(
+            identity: &str,
+            gateway_host: &str,
+        ) -> Result<NymNodeDescription> {
+            info!("attempting to manually fetch description of {identity}");
+            let client = try_get_client(identity, gateway_host).await?;
+
+            info!(
+                "gateway {identity} seems to be reachable on {}",
+                client.current_url()
+            );
+
+            let host_info = client.get_host_information().await?;
+            if !host_info.verify_host_information() {
+                warn!("{identity} has incorrectly signed its host information");
+                return Err(Error::ManualLookupFailure);
+            }
+
+            let build_info = client.get_build_information().await?;
+
+            // this can be an old node that hasn't yet exposed this
+            let auxiliary_details = client.get_auxiliary_details().await.inspect_err(|err| {
+                warn!("could not obtain auxiliary details of gateway {identity}: {err} is it running an old version?");
+            }).unwrap_or_default();
+
+            let websockets = client.get_mixnet_websockets().await?;
+
+            let network_requester = if let Ok(nr) = client.get_network_requester().await {
+                let exit_policy = client.get_exit_policy().await?;
+                let uses_nym_exit_policy = exit_policy.upstream_source == mainnet::EXIT_POLICY_URL;
+
+                Some(NetworkRequesterDetails {
+                    address: nr.address,
+                    uses_exit_policy: exit_policy.enabled && uses_nym_exit_policy,
+                })
+            } else {
+                None
+            };
+
+            let ip_packet_router = if let Ok(ipr) = client.get_ip_packet_router().await {
+                Some(IpPacketRouterDetails {
+                    address: ipr.address,
+                })
+            } else {
+                None
+            };
+
+            Ok(NymNodeDescription {
+                host_information: host_info.data.into(),
+                last_polled: OffsetDateTime::now_utc().into(),
+                build_information: build_info,
+                network_requester,
+                ip_packet_router,
+                mixnet_websockets: websockets.into(),
+                auxiliary_details,
+            })
+        }
+
+        info!("attempting to fetch gateway {identity} from the mixnet contract");
+        let Some(bond) = self
+            .nyxd_client
+            .get_gateway_bond(identity.to_string())
+            .await?
+            .gateway
+        else {
+            return Err(Error::NoMatchingGateway);
+        };
+
+        let self_described =
+            match get_gateway_description(&bond.gateway.identity_key, &bond.gateway.host).await {
+                Ok(description) => Some(description),
+                Err(err) => {
+                    warn!("failed to lookup gateway description: {err}");
+                    None
+                }
+            };
+
+        Ok(DescribedGatewayWithLocation {
+            gateway: DescribedGateway {
+                bond,
+                self_described,
+            },
+            // we could pull it from `self_described` it needed?
+            location: None,
+        })
     }
 
     pub async fn lookup_described_gateways_with_location(

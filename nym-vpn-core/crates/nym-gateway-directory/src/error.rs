@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_client_core::error::ClientCoreError;
+use nym_node_requests::api::client::NymNodeApiClientError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -11,8 +12,11 @@ pub enum Error {
     #[error("recipient is not formatted correctly")]
     RecipientFormattingError,
 
-    #[error("{0}")]
+    #[error(transparent)]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
+
+    #[error(transparent)]
+    NyxdClientError(#[from] nym_validator_client::nyxd::error::NyxdError),
 
     #[error(transparent)]
     ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
@@ -22,6 +26,9 @@ pub enum Error {
 
     #[error(transparent)]
     HarbourMasterApiError(#[from] nym_harbour_master_client::HarbourMasterApiError),
+
+    #[error(transparent)]
+    NymNodeApiError(#[from] NymNodeApiClientError),
 
     #[error("failed to fetch location data from explorer-api: {error}")]
     FailedFetchLocationData {
@@ -50,6 +57,9 @@ pub enum Error {
 
     #[error("no matching gateway found")]
     NoMatchingGateway,
+
+    #[error("failed to lookup gateway information")]
+    ManualLookupFailure,
 
     #[error("no gateway available for location {requested_location}, available countries: {available_countries:?}")]
     NoMatchingGatewayForLocation {
