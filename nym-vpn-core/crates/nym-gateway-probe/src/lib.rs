@@ -65,14 +65,18 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
         .connect_to_mixnet()
         .await;
 
-    let Ok(mixnet_client) = mixnet_client else {
-        return Ok(ProbeResult {
-            gateway: entry_gateway_id.to_string(),
-            outcome: ProbeOutcome {
-                as_entry: Entry::fail_to_connect(),
-                as_exit: None,
-            },
-        });
+    let mixnet_client = match mixnet_client {
+        Ok(mixnet_client) => mixnet_client,
+        Err(err) => {
+            error!("Failed to connect to mixnet: {err}");
+            return Ok(ProbeResult {
+                gateway: entry_gateway_id.to_string(),
+                outcome: ProbeOutcome {
+                    as_entry: Entry::fail_to_connect(),
+                    as_exit: None,
+                },
+            });
+        }
     };
 
     let nym_address = *mixnet_client.nym_address();
