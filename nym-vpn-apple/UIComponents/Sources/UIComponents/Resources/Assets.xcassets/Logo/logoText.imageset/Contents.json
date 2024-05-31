@@ -1,6 +1,16 @@
 {
   "images" : [
     {
+      "filename" : "Group 1116.svg",
+      "idiom" : "universal"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
       "filename" : "Group 1114.svg",
       "idiom" : "universal"
     }
