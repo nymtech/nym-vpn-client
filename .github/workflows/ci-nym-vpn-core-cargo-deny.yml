@@ -1,4 +1,4 @@
-name: ci-cargo-deny
+name: ci-nym-vpn-core-cargo-deny
 on:
   pull_request:
     paths:
