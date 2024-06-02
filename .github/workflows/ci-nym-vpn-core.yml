@@ -1,4 +1,4 @@
-name: ci-nym-vpn-cli
+name: ci-nym-vpn-core
 
 on:
   # push:
