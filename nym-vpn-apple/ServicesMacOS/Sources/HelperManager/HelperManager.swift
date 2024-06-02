@@ -73,6 +73,7 @@ public final class HelperManager {
 private extension HelperManager {
     func installHelper(with authRef: AuthorizationRef?, error: inout Unmanaged<CFError>?) -> Bool {
         // TODO: refactor using SMAPPService
+        // https://developer.apple.com/forums/thread/721737?answerId=739716022#739716022
         if !SMJobBless(kSMDomainSystemLaunchd, helperName as CFString, authRef, &error) {
             // TODO: throw
             print("SMJobBless error: \(String(describing: error))")
