@@ -1,4 +1,4 @@
-name: generate-build-info
+name: generate-build-info-desktop
 on:
   workflow_dispatch:
   workflow_call:
@@ -14,7 +14,7 @@ on:
         type: string
 
 jobs:
-  generate-build-info:
+  generate-build-info-desktop:
     runs-on: ubuntu-22.04-arc
     steps:
       - name: Checkout repo
