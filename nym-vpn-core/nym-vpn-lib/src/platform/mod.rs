@@ -205,10 +205,9 @@ pub fn checkCredential(credential: String) -> Result<Option<SystemTime>, FFIErro
 }
 
 async fn check_credential_string(credential: &str) -> Result<Option<SystemTime>, FFIError> {
-    match check_credential_base58(credential).await {
-        Ok(expiry) => Ok(expiry),
-        Err(_) => Err(FFIError::InvalidCredential),
-    }
+    check_credential_base58(credential)
+        .await
+        .map_err(|_| FFIError::InvalidCredential)
 }
 
 async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
