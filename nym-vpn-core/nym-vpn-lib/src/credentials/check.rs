@@ -33,7 +33,7 @@ pub async fn check_raw_credential(
         .map_err(|err| CheckRawCredentialError::FailedToUnpackRawCredential { source: err })?;
 
     // Check expiry
-    let system_time = match credential.variant_data() {
+    let expiry_date = match credential.variant_data() {
         BandwidthCredentialIssuedDataVariant::Voucher(_) => {
             debug!("credential is a bandwidth voucher");
             None
@@ -52,7 +52,7 @@ pub async fn check_raw_credential(
 
     // TODO: verify?
 
-    Ok(system_time)
+    Ok(expiry_date)
 }
 
 #[derive(Debug, thiserror::Error)]
