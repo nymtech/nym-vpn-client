@@ -90,7 +90,50 @@ message ConnectionStateChange {
 }
 
 message ConnectionStatusUpdate {
-  string message = 1;
+  enum StatusType {
+    STATUS_TYPE_UNSPECIFIED = 0;
+
+    // Status message that is not mapped to a specific type
+    UNKNOWN = 1;
+
+    // Connection to entry gateway established
+    ENTRY_GATEWAY_CONNECTION_ESTABLISHED = 2;
+
+    // Connection to exit router established
+    EXIT_ROUTER_CONNECTION_ESTABLISHED = 3;
+
+    // Tunnel establised and operational
+    TUNNEL_CONNECTION_ESTABLISHED = 4;
+
+    // Entry gateway not routing our mixnet messages
+    ENTRY_GATEWAY_DOWN = 5;
+
+    // The exit router is not responding to IPv4 traffic
+    EXIT_GATEWAY_DOWN_IPV4 = 6;
+
+    // The exit router is not responding to IPv6 traffic
+    EXIT_GATEWAY_DOWN_IPV6 = 7;
+
+    // The exit router is not routing IPv4 traffic
+    EXIT_GATEWAY_ROUTING_ERROR_IPV4 = 8;
+
+    // The exit router is not routing IPv6 traffic
+    EXIT_GATEWAY_ROUTING_ERROR_IPV6 = 9;
+
+    // The end-to-end IPv4 connection appears to be operation correctly
+    CONNECTED_IPV4 = 10;
+
+    // The end-to-end IPv6 connection appears to be operation correctly
+    CONNECTED_IPV6 = 11;
+  }
+
+  StatusType kind = 1;
+
+  // Detailed message for logging and debugging
+  string message = 2;
+
+  // Optional additional details
+  map<string, string> details = 3;
 }
 
 message Error {
@@ -102,8 +145,8 @@ message Error {
     // error that can happen
     UNHANDLED = 1;
 
-    // If the credential storage does not contain any valid credentials when connecting
-
+    // If the credential storage does not contain any valid credentials when
+    // connecting
     NO_VALID_CREDENTIALS = 2;
 
     // AUTHENTICATION_FAILED = 3;

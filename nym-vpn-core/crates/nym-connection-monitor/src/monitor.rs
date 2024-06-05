@@ -228,7 +228,7 @@ fn report_connectivity(connectivity: &ConnectivityState, task_client: &mut TaskC
 // Just like in nym_task::TaskManager and TaskStatus, strictly speaking this is not an error, but a
 // status message. We're just piggybacking on the error trait for now. In the future, we might want
 // to create a separate trait in nym_task::TaskManager
-#[derive(thiserror::Error, Debug)]
+#[derive(Clone, thiserror::Error, Debug)]
 pub enum ConnectionMonitorStatus {
     #[error("entry gateway appears down - it's not routing our mixnet traffic")]
     EntryGatewayDown,
