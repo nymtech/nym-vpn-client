@@ -36,7 +36,7 @@ tracing.workspace = true
 http = "0.2.12"
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
-nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
+nym-vpn-proto = { path = "../nym-vpn-proto" }
 nym-task.workspace = true
 
 [build-dependencies]
