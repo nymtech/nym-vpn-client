@@ -17,6 +17,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::SystemTime;
 use talpid_core::mpsc::Sender;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
@@ -199,15 +200,14 @@ async fn import_credential_from_string(credential: &str, path: &str) -> Result<(
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn checkCredential(credential: String) -> Result<(), FFIError> {
+pub fn checkCredential(credential: String) -> Result<Option<SystemTime>, FFIError> {
     RUNTIME.block_on(check_credential_string(&credential))
 }
 
-async fn check_credential_string(credential: &str) -> Result<(), FFIError> {
-    match check_credential_base58(credential).await {
-        Ok(_) => Ok(()),
-        Err(_) => Err(FFIError::InvalidCredential),
-    }
+async fn check_credential_string(credential: &str) -> Result<Option<SystemTime>, FFIError> {
+    check_credential_base58(credential)
+        .await
+        .map_err(|_| FFIError::InvalidCredential)
 }
 
 async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
