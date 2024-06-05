@@ -7,11 +7,11 @@ members = [
     "crates/nym-harbour-master-client",
     "crates/nym-ip-packet-client",
     "crates/nym-vpn-api-client",
+    "crates/nym-vpn-cli",
     "crates/nym-vpn-proto",
-    "nym-vpn-cli",
+    "crates/nym-vpnc",
+    "crates/nym-vpnd",
     "nym-vpn-lib",
-    "nym-vpnc",
-    "nym-vpnd",
 ]
 
 # For local development
