@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,7 +38,7 @@ fun RadioSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, le
 		modifier =
 		Modifier
 			.fillMaxWidth()
-			.height(64.dp.scaledHeight())
+			.height(IntrinsicSize.Min)
 			.clickable(interactionSource = interactionSource, indication = null) {
 				onClick()
 			},
@@ -48,7 +49,8 @@ fun RadioSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, le
 		Column(
 			modifier =
 			Modifier
-				.padding(end = 2.dp)
+				.padding(horizontal = 8.dp.scaledWidth(), vertical = 10.dp.scaledHeight())
+				.padding(end = 16.dp.scaledWidth()).padding(start = 8.dp.scaledWidth())
 				.fillMaxSize(),
 			verticalArrangement = Arrangement.Center,
 			horizontalAlignment = Alignment.Start,
@@ -64,15 +66,15 @@ fun RadioSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, le
 					Modifier
 						.size(
 							iconSize,
-						)
-						.padding(start = 16.dp.scaledWidth()),
+						),
 				)
 				Row(
-					horizontalArrangement = Arrangement.spacedBy(16.dp.scaledHeight()),
+					horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth()),
 					verticalAlignment = Alignment.CenterVertically,
+					modifier = Modifier.padding(vertical = if (description == null) 10.dp.scaledHeight() else 0.dp),
 				) {
 					leadingIcon?.let {
-						Icon(leadingIcon, leadingIcon.name, Modifier.size(iconSize))
+						Icon(leadingIcon, leadingIcon.name, Modifier.size(iconSize.scaledWidth()))
 					}
 					Column {
 						Text(title, style = MaterialTheme.typography.titleMedium)

@@ -18,6 +18,10 @@ android {
 	namespace = "${Constants.NAMESPACE}.${Constants.APP_NAME}"
 	compileSdk = Constants.COMPILE_SDK
 
+	androidResources {
+		generateLocaleConfig = true
+	}
+
 	defaultConfig {
 		applicationId = "${Constants.NAMESPACE}.${Constants.APP_NAME}"
 		minSdk = Constants.MIN_SDK
