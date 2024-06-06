@@ -19,7 +19,7 @@ constructor(
 	private val vpnClient: Provider<VpnClient>,
 ) : ViewModel() {
 
-	suspend fun onImportCredential(credential: String): Result<Instant> {
+	suspend fun onImportCredential(credential: String): Result<Instant?> {
 		val trimmedCred = credential.trim()
 		return withContext(viewModelScope.coroutineContext) {
 			vpnClient.get().validateCredential(trimmedCred).onSuccess {

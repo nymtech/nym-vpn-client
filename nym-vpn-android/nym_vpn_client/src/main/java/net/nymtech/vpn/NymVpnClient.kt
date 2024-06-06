@@ -80,7 +80,7 @@ object NymVpnClient {
 		private val _state = MutableStateFlow(VpnClientState())
 		override val stateFlow: Flow<VpnClientState> = _state.asStateFlow()
 
-		override suspend fun validateCredential(credential: String): Result<Instant> {
+		override suspend fun validateCredential(credential: String): Result<Instant?> {
 			return withContext(ioDispatcher) {
 				try {
 					val expiry = checkCredential(credential)
