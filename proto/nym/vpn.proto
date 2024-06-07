@@ -97,34 +97,36 @@ message ConnectionStatusUpdate {
     UNKNOWN = 1;
 
     // Connection to entry gateway established
+    // NOTE: currently not implemented by vpnd
     ENTRY_GATEWAY_CONNECTION_ESTABLISHED = 2;
 
     // Connection to exit router established
+    // NOTE: currently not implemented by vpnd
     EXIT_ROUTER_CONNECTION_ESTABLISHED = 3;
 
-    // Tunnel establised and operational
-    TUNNEL_CONNECTION_ESTABLISHED = 4;
+    // End-to-end tunnel establised and operational
+    TUNNEL_END_TO_END_CONNECTION_ESTABLISHED = 4;
 
     // Entry gateway not routing our mixnet messages
-    ENTRY_GATEWAY_DOWN = 5;
+    ENTRY_GATEWAY_NOT_ROUTING_MIXNET_MESSAGES = 5;
 
     // The exit router is not responding to IPv4 traffic
-    EXIT_GATEWAY_DOWN_IPV4 = 6;
+    EXIT_ROUTER_NOT_RESPONDING_TO_IPV4_PING = 6;
 
     // The exit router is not responding to IPv6 traffic
-    EXIT_GATEWAY_DOWN_IPV6 = 7;
+    EXIT_ROUTER_NOT_RESPONDING_TO_IPV6_PING = 7;
 
-    // The exit router is not routing IPv4 traffic
-    EXIT_GATEWAY_ROUTING_ERROR_IPV4 = 8;
+    // The ip packet router connected to on the exit side is not routing IPv4 traffic
+    EXIT_ROUTER_NOT_ROUTING_IPV4_TRAFFIC = 8;
 
-    // The exit router is not routing IPv6 traffic
-    EXIT_GATEWAY_ROUTING_ERROR_IPV6 = 9;
+    // The ip packet router connected to on the exit side is not routing IPv6 traffic
+    EXIT_ROUTER_NOT_ROUTING_IPV6_TRAFFIC = 9;
 
     // The end-to-end IPv4 connection appears to be operation correctly
-    CONNECTED_IPV4 = 10;
+    CONNECTION_OK_IPV4 = 10;
 
     // The end-to-end IPv6 connection appears to be operation correctly
-    CONNECTED_IPV6 = 11;
+    CONNECTION_OK_IPV6 = 11;
   }
 
   StatusType kind = 1;
