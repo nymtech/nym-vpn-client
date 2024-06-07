@@ -9,11 +9,13 @@ use std::path::Path;
 use std::sync::{Arc, Mutex};
 use talpid_routing::{RouteManager, RouteManagerHandle};
 use talpid_tunnel::tun_provider::TunProvider;
-use talpid_tunnel::TunnelArgs;
+use talpid_tunnel::{TunnelArgs, TunnelEvent};
 use talpid_wireguard::{config::Config, WireguardMonitor};
 use tokio::task::JoinHandle;
 
 use crate::config::WireguardConfig;
+
+pub type EventReceiver = mpsc::UnboundedReceiver<(TunnelEvent, Sender<()>)>;
 
 pub struct Tunnel {
     pub config: Config,
@@ -39,14 +41,14 @@ pub fn start_tunnel(
     tunnel: &Tunnel,
     tunnel_close_rx: Receiver<()>,
     finished_shutdown_tx: Sender<()>,
-) -> Result<JoinHandle<Result<(), crate::error::Error>>, crate::error::Error> {
+) -> Result<(JoinHandle<Result<(), crate::error::Error>>, EventReceiver), crate::error::Error> {
     let route_manager = tunnel.route_manager_handle.clone();
     // We only start the tunnel when we have wireguard enabled, and then we have the config
     let config = tunnel.config.clone();
     let id: Option<String> = config.tunnel.addresses.first().map(|a| a.to_string());
     let tun_provider = Arc::clone(&tunnel.tun_provider);
+    let (event_tx, event_rx) = mpsc::unbounded();
     let handle = tokio::task::spawn_blocking(move || -> Result<(), crate::error::Error> {
-        let (event_tx, _) = mpsc::unbounded();
         let on_tunnel_event =
             move |event| -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> {
                 let (tx, rx) = oneshot::channel::<()>();
@@ -88,7 +90,7 @@ pub fn start_tunnel(
         Ok(())
     });
 
-    Ok(handle)
+    Ok((handle, event_rx))
 }
 
 pub async fn setup_route_manager() -> crate::error::Result<RouteManager> {

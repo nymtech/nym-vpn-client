@@ -196,7 +196,8 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::RouteManagerPoisonedLock
             | nym_vpn_lib::error::Error::ImportCredentialError(_)
             | nym_vpn_lib::error::Error::IpPacketRouterClientError(_)
-            | nym_vpn_lib::error::Error::FailedWireguardRegistration => {
+            | nym_vpn_lib::error::Error::FailedWireguardRegistration
+            | nym_vpn_lib::error::Error::BadWireguardEvent => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
             }
             #[cfg(windows)]
