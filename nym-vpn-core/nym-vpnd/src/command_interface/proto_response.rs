@@ -22,7 +22,7 @@ impl From<VpnServiceStatusResult> for StatusResponse {
             } => {
                 let timestamp = prost_types::Timestamp {
                     seconds: since.unix_timestamp(),
-                    nanos: 0,
+                    nanos: since.nanosecond() as i32,
                 };
                 details = Some(nym_vpn_proto::ConnectionDetails {
                     nym_address: Some(nym_vpn_proto::Address {
