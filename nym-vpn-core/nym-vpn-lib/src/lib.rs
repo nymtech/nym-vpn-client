@@ -535,6 +535,10 @@ impl SpecificVpn {
                 mut specific_setup, ..
             }) => {
                 // Signal back that mixnet is ready and up with all cylinders firing
+                // TODO: this should actually be sent much earlier, when the mixnet client is
+                // connected. However that would also require starting the status listener earlier.
+                // This means that for now, we basically just ignore the status message and use the
+                // NymVpnStatusMessage2 sent below instead.
                 let start_status = TaskStatus::ReadyWithGateway(
                     specific_setup.mixnet_connection_info.entry_gateway.clone(),
                 );
