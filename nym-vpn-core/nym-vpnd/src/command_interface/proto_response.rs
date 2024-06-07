@@ -28,7 +28,9 @@ impl From<VpnServiceStatusResult> for StatusResponse {
                     nym_address: Some(nym_vpn_proto::Address {
                         nym_address: nym_address.to_string(),
                     }),
-                    entry_gateway,
+                    entry_gateway: Some(nym_vpn_proto::Gateway {
+                        id: entry_gateway.to_string(),
+                    }),
                     exit_gateway,
                     exit_ipr: Some(nym_vpn_proto::Address {
                         nym_address: exit_ipr.to_string(),

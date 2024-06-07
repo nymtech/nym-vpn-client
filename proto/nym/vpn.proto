@@ -74,7 +74,7 @@ import "google/protobuf/timestamp.proto";
 
 message ConnectionDetails {
   Address nym_address = 1;
-  string entry_gateway = 2;
+  Gateway entry_gateway = 2;
   string exit_gateway = 3;
   Address exit_ipr = 4;
   string ipv4 = 5;

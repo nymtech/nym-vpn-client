@@ -185,7 +185,7 @@ pub struct NymVpn<T: Vpn> {
 #[derive(Debug)]
 pub struct MixnetConnectionInfo {
     pub nym_address: Recipient,
-    pub entry_gateway: String,
+    pub entry_gateway: NodeIdentity,
 }
 
 #[derive(Debug)]
@@ -398,13 +398,13 @@ impl NymVpn<MixnetVpn> {
 
         // Now that we have a connection, collection some info about that and return
         let nym_address = mixnet_client.nym_address().await;
-        let entry_gateway = nym_address.gateway().to_base58_string();
+        let entry_gateway = *(nym_address.gateway());
+        info!("Successfully connected to entry gateway: {entry_gateway}");
+
         let our_mixnet_connection = MixnetConnectionInfo {
             nym_address,
-            entry_gateway: entry_gateway.clone(),
+            entry_gateway,
         };
-
-        info!("Successfully connected to entry gateway: {entry_gateway}");
 
         // Check that we can ping ourselves before continuing
         info!("Sending mixnet ping to ourselves to verify mixnet connection");
@@ -540,7 +540,10 @@ impl SpecificVpn {
                 // This means that for now, we basically just ignore the status message and use the
                 // NymVpnStatusMessage2 sent below instead.
                 let start_status = TaskStatus::ReadyWithGateway(
-                    specific_setup.mixnet_connection_info.entry_gateway.clone(),
+                    specific_setup
+                        .mixnet_connection_info
+                        .entry_gateway
+                        .to_base58_string(),
                 );
                 specific_setup
                     .task_manager

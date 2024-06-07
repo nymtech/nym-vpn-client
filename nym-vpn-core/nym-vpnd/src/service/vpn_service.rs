@@ -10,7 +10,7 @@ use futures::channel::{mpsc::UnboundedSender, oneshot::Receiver as OneshotReceiv
 use futures::SinkExt;
 use nym_vpn_lib::credentials::import_credential;
 use nym_vpn_lib::gateway_directory::{self, EntryPoint, ExitPoint};
-use nym_vpn_lib::Recipient;
+use nym_vpn_lib::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::{broadcast, oneshot};
@@ -31,7 +31,7 @@ pub enum VpnState {
     Connecting,
     Connected {
         nym_address: Recipient,
-        entry_gateway: String,
+        entry_gateway: NodeIdentity,
         exit_gateway: String,
         exit_ipr: String,
         ipv4: Ipv4Addr,
@@ -118,7 +118,7 @@ pub enum VpnServiceStatusResult {
     Connecting,
     Connected {
         nym_address: Recipient,
-        entry_gateway: String,
+        entry_gateway: NodeIdentity,
         exit_gateway: String,
         exit_ipr: String,
         ipv4: Ipv4Addr,

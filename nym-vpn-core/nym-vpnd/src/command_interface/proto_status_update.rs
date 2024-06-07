@@ -35,7 +35,7 @@ pub(super) fn status_update_from_status_message(
             message: status.to_string(),
             details: maplit::hashmap! {
                 "nym_address".to_string() => mixnet_connection_info.nym_address.to_string(),
-                "entry_gateway".to_string() => mixnet_connection_info.entry_gateway.clone(),
+                "entry_gateway".to_string() => mixnet_connection_info.entry_gateway.to_base58_string(),
                 "exit_gateway".to_string() => mixnet_exit_connection_info.exit_gateway.clone(),
                 "exit_ipr".to_string() => mixnet_exit_connection_info.exit_ipr.clone(),
                 "ipv4".to_string() => mixnet_exit_connection_info.ips.ipv4.to_string(),
