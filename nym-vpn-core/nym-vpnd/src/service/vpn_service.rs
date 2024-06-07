@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::fmt;
-use std::net::IpAddr;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -10,6 +10,7 @@ use futures::channel::{mpsc::UnboundedSender, oneshot::Receiver as OneshotReceiv
 use futures::SinkExt;
 use nym_vpn_lib::credentials::import_credential;
 use nym_vpn_lib::gateway_directory::{self, EntryPoint, ExitPoint};
+use nym_vpn_lib::Recipient;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::{broadcast, oneshot};
@@ -29,7 +30,12 @@ pub enum VpnState {
     NotConnected,
     Connecting,
     Connected {
-        gateway: String,
+        nym_address: Recipient,
+        entry_gateway: String,
+        exit_gateway: String,
+        exit_ipr: String,
+        ipv4: Ipv4Addr,
+        ipv6: Ipv6Addr,
         since: time::OffsetDateTime,
     },
     Disconnecting,
@@ -111,7 +117,12 @@ pub enum VpnServiceStatusResult {
     NotConnected,
     Connecting,
     Connected {
+        nym_address: Recipient,
         entry_gateway: String,
+        exit_gateway: String,
+        exit_ipr: String,
+        ipv4: Ipv4Addr,
+        ipv6: Ipv6Addr,
         since: time::OffsetDateTime,
     },
     Disconnecting,
@@ -132,8 +143,21 @@ impl From<VpnState> for VpnServiceStatusResult {
         match state {
             VpnState::NotConnected => VpnServiceStatusResult::NotConnected,
             VpnState::Connecting => VpnServiceStatusResult::Connecting,
-            VpnState::Connected { gateway, since } => VpnServiceStatusResult::Connected {
-                entry_gateway: gateway,
+            VpnState::Connected {
+                nym_address,
+                entry_gateway,
+                exit_gateway,
+                exit_ipr,
+                ipv4,
+                ipv6,
+                since,
+            } => VpnServiceStatusResult::Connected {
+                nym_address,
+                entry_gateway,
+                exit_gateway,
+                exit_ipr,
+                ipv4,
+                ipv6,
                 since,
             },
             VpnState::Disconnecting => VpnServiceStatusResult::Disconnecting,

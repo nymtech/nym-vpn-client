@@ -7,7 +7,9 @@ use crate::tunnel::setup_route_manager;
 use crate::util::handle_interrupt;
 use crate::wg_gateway_client::WgGatewayClient;
 use crate::wireguard_setup::create_wireguard_tunnel;
-use crate::{init_wireguard_config, MixnetVpn, SpecificVpn, WireguardVpn};
+use crate::{
+    init_wireguard_config, MixnetExitConnectionInfo, MixnetVpn, SpecificVpn, WireguardVpn,
+};
 use crate::{routing, MixnetConnectionInfo, NymVpn};
 use futures::channel::oneshot;
 use futures::StreamExt;
@@ -32,6 +34,7 @@ pub trait TunnelSpecifcSetup {}
 pub struct MixTunnelSetup {
     pub route_manager: RouteManager,
     pub mixnet_connection_info: MixnetConnectionInfo,
+    pub exit_connection_info: MixnetExitConnectionInfo,
     pub task_manager: TaskManager,
     pub dns_monitor: DnsMonitor,
 }
@@ -259,8 +262,8 @@ async fn setup_mix_tunnel(
             &mut dns_monitor,
         )
         .await;
-    let mixnet_connection_info = match ret {
-        Ok(mixnet_connection_info) => mixnet_connection_info,
+    let connection_info = match ret {
+        Ok(connection_info) => connection_info,
         Err(err) => {
             error!("Failed to setup tunnel services: {err}");
             debug!("{err:?}");
@@ -293,7 +296,8 @@ async fn setup_mix_tunnel(
     Ok(AllTunnelsSetup::Mix(TunnelSetup {
         specific_setup: MixTunnelSetup {
             route_manager,
-            mixnet_connection_info,
+            mixnet_connection_info: connection_info.0,
+            exit_connection_info: connection_info.1,
             task_manager,
             dns_monitor,
         },
