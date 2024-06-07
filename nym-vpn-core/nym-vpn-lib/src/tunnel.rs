@@ -41,13 +41,7 @@ pub fn start_tunnel(
     tunnel: &Tunnel,
     tunnel_close_rx: Receiver<()>,
     finished_shutdown_tx: Sender<()>,
-) -> Result<
-    (
-        JoinHandle<Result<(), crate::error::Error>>,
-        EventReceiver,
-    ),
-    crate::error::Error,
-> {
+) -> Result<(JoinHandle<Result<(), crate::error::Error>>, EventReceiver), crate::error::Error> {
     let route_manager = tunnel.route_manager_handle.clone();
     // We only start the tunnel when we have wireguard enabled, and then we have the config
     let config = tunnel.config.clone();
