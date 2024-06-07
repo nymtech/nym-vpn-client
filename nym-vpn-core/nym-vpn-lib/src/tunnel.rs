@@ -15,6 +15,8 @@ use tokio::task::JoinHandle;
 
 use crate::config::WireguardConfig;
 
+pub type EventReceiver = mpsc::UnboundedReceiver<(TunnelEvent, Sender<()>)>;
+
 pub struct Tunnel {
     pub config: Config,
     pub route_manager_handle: RouteManagerHandle,
@@ -42,7 +44,7 @@ pub fn start_tunnel(
 ) -> Result<
     (
         JoinHandle<Result<(), crate::error::Error>>,
-        mpsc::UnboundedReceiver<(TunnelEvent, Sender<()>)>,
+        EventReceiver,
     ),
     crate::error::Error,
 > {
