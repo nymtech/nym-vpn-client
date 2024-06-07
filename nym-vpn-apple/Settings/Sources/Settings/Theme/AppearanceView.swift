@@ -4,8 +4,7 @@ import Theme
 import UIComponents
 
 public struct AppearanceView: View {
-    @ObservedObject
-    private var viewModel: AppearanceViewModel
+    @ObservedObject private var viewModel: AppearanceViewModel
 
     public init(viewModel: AppearanceViewModel) {
         self.viewModel = viewModel

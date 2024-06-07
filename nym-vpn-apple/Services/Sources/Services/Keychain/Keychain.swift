@@ -56,7 +56,7 @@ public class Keychain {
         items[kSecAttrSynchronizable] = false
         items[kSecAttrAccessible] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
 
-        let pathComponent = "WireGuardNetworkExtension.appex"
+        let pathComponent = "NymVPN.appex"
         guard let extensionPath = Bundle.main.builtInPlugInsURL?.appendingPathComponent(pathComponent, isDirectory: true).path
         else {
             logger.log(level: .error, "Unable to determine app extension path")

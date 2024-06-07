@@ -480,6 +480,41 @@ fileprivate struct FfiConverterString: FfiConverter {
     }
 }
 
+fileprivate struct FfiConverterTimestamp: FfiConverterRustBuffer {
+    typealias SwiftType = Date
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Date {
+        let seconds: Int64 = try readInt(&buf)
+        let nanoseconds: UInt32 = try readInt(&buf)
+        if seconds >= 0 {
+            let delta = Double(seconds) + (Double(nanoseconds) / 1.0e9)
+            return Date.init(timeIntervalSince1970: delta)
+        } else {
+            let delta = Double(seconds) - (Double(nanoseconds) / 1.0e9)
+            return Date.init(timeIntervalSince1970: delta)
+        }
+    }
+
+    public static func write(_ value: Date, into buf: inout [UInt8]) {
+        var delta = value.timeIntervalSince1970
+        var sign: Int64 = 1
+        if delta < 0 {
+            // The nanoseconds portion of the epoch offset must always be
+            // positive, to simplify the calculation we will use the absolute
+            // value of the offset.
+            sign = -1
+            delta = -delta
+        }
+        if delta.rounded(.down) > Double(Int64.max) {
+            fatalError("Timestamp overflow, exceeds max bounds supported by Uniffi")
+        }
+        let seconds = Int64(delta)
+        let nanoseconds = UInt32((delta - Double(seconds)) * 1.0e9)
+        writeInt(&buf, sign * seconds)
+        writeInt(&buf, nanoseconds)
+    }
+}
+
 
 
 
@@ -1369,6 +1404,27 @@ fileprivate struct FfiConverterOptionDouble: FfiConverterRustBuffer {
     }
 }
 
+fileprivate struct FfiConverterOptionTimestamp: FfiConverterRustBuffer {
+    typealias SwiftType = Date?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTimestamp.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTimestamp.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
 fileprivate struct FfiConverterOptionTypeIpAddr: FfiConverterRustBuffer {
     typealias SwiftType = IpAddr?
 
@@ -1978,11 +2034,12 @@ public func FfiConverterTypeUrl_lower(_ value: Url) -> RustBuffer {
     return FfiConverterTypeUrl.lower(value)
 }
 
-public func checkCredential(credential: String)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
+public func checkCredential(credential: String)throws  -> Date? {
+    return try  FfiConverterOptionTimestamp.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_checkcredential(
         FfiConverterString.lower(credential),$0
     )
-}
+})
 }
 public func getGatewayCountries(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?, exitOnly: Bool)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
@@ -2037,7 +2094,7 @@ private var initializationResult: InitializationResult {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_checkcredential() != 37960) {
+    if (uniffi_nym_vpn_lib_checksum_func_checkcredential() != 2527) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 4475) {

@@ -1,0 +1,19 @@
+name: ci-nym-vpn-core-cargo-deny
+on:
+  pull_request:
+    paths:
+      - "nym-vpn-core/**"
+jobs:
+  cargo-deny:
+    runs-on: ubuntu-22.04-arc
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          sudo apt-get update && sudo apt-get install -y curl gcc git
+      - uses: dtolnay/rust-toolchain@stable
+      # The cargo-deny action uses docker which we currently can't run on
+      # ubuntu-22.04-arc, so we have to build manually for now
+      - run: cargo install --locked cargo-deny
+      - run: |
+          cd nym-vpn-core
+          cargo deny --all-features check licenses bans sources

@@ -26,6 +26,9 @@ public final class HelperManager {
 
         let rightName = kSMRightBlessPrivilegedHelper
 
+        if let authRef = authRef {
+
+        }
         let result = rightName.withCString { cStringName -> Bool in
             var authItem = AuthorizationItem(
                 name: cStringName,
@@ -65,7 +68,6 @@ public final class HelperManager {
         }
         return false
     }
-
 }
 
 private extension HelperManager {

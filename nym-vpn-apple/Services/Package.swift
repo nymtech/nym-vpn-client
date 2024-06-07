@@ -71,6 +71,7 @@ let package = Package(
         .target(
             name: "CredentialsManager",
             dependencies: [
+                "AppSettings",
                 "Constants",
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
