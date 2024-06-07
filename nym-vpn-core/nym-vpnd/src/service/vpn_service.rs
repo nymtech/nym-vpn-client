@@ -34,6 +34,18 @@ pub enum VpnState {
     ConnectionFailed(ConnectionFailedError),
 }
 
+impl fmt::Display for VpnState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            VpnState::NotConnected => write!(f, "NotConnected"),
+            VpnState::Connecting => write!(f, "Connecting"),
+            VpnState::Connected(details) => write!(f, "Connected({})", details),
+            VpnState::Disconnecting => write!(f, "Disconnecting"),
+            VpnState::ConnectionFailed(reason) => write!(f, "ConnectionFailed({})", reason),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct VpnConnectedStateDetails {
     pub nym_address: Recipient,
@@ -43,6 +55,22 @@ pub struct VpnConnectedStateDetails {
     pub ipv4: Ipv4Addr,
     pub ipv6: Ipv6Addr,
     pub since: time::OffsetDateTime,
+}
+
+impl fmt::Display for VpnConnectedStateDetails {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "nym_address: {}, entry_gateway: {}, exit_gateway: {}, exit_ipr: {}, ipv4: {}, ipv6: {}, since: {}",
+            self.nym_address,
+            self.entry_gateway,
+            self.exit_gateway,
+            self.exit_ipr,
+            self.ipv4,
+            self.ipv6,
+            self.since
+        )
+    }
 }
 
 #[allow(clippy::large_enum_variant)]
@@ -124,6 +152,20 @@ pub enum VpnServiceStatusResult {
     ConnectionFailed(ConnectionFailedError),
 }
 
+impl fmt::Display for VpnServiceStatusResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            VpnServiceStatusResult::NotConnected => write!(f, "NotConnected"),
+            VpnServiceStatusResult::Connecting => write!(f, "Connecting"),
+            VpnServiceStatusResult::Connected(details) => write!(f, "Connected({})", details),
+            VpnServiceStatusResult::Disconnecting => write!(f, "Disconnecting"),
+            VpnServiceStatusResult::ConnectionFailed(reason) => {
+                write!(f, "ConnectionFailed({})", reason)
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct ConnectedResultDetails {
     pub nym_address: Recipient,
@@ -133,6 +175,22 @@ pub struct ConnectedResultDetails {
     pub ipv4: Ipv4Addr,
     pub ipv6: Ipv6Addr,
     pub since: time::OffsetDateTime,
+}
+
+impl fmt::Display for ConnectedResultDetails {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "nym_address: {}, entry_gateway: {}, exit_gateway: {}, exit_ipr: {}, ipv4: {}, ipv6: {}, since: {}",
+            self.nym_address,
+            self.entry_gateway,
+            self.exit_gateway,
+            self.exit_ipr,
+            self.ipv4,
+            self.ipv6,
+            self.since
+        )
+    }
 }
 
 impl From<VpnConnectedStateDetails> for ConnectedResultDetails {
@@ -221,7 +279,7 @@ impl SharedVpnState {
     }
 
     pub(super) fn set(&self, state: VpnState) {
-        info!("VPN: Setting shared state to {:?}", state);
+        info!("VPN: Setting shared state to {}", state);
         *self.shared_vpn_state.lock().unwrap() = state.clone();
         self.vpn_state_changes_tx.send(state.into()).ok();
     }
