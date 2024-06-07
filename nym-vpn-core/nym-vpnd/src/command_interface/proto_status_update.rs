@@ -1,33 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib::{connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage2};
+use nym_vpn_lib::{connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage};
 use nym_vpn_proto::{connection_status_update::StatusType, ConnectionStatusUpdate};
 
-// pub(super) fn status_update_from_task_status(
-//     status: &nym_vpn_lib::TaskStatus,
-// ) -> ConnectionStatusUpdate {
-//     match status {
-//         nym_vpn_lib::TaskStatus::Ready => ConnectionStatusUpdate {
-//             kind: StatusType::TunnelEndToEndConnectionEstablished as i32,
-//             message: status.to_string(),
-//             details: Default::default(),
-//         },
-//         nym_vpn_lib::TaskStatus::ReadyWithGateway(ref gateway) => ConnectionStatusUpdate {
-//             kind: StatusType::TunnelEndToEndConnectionEstablished as i32,
-//             message: status.to_string(),
-//             details: maplit::hashmap! {
-//                 "entry_gateway".to_string() => gateway.to_string(),
-//             },
-//         },
-//     }
-// }
-
 pub(super) fn status_update_from_status_message(
-    status: &NymVpnStatusMessage2,
+    status: &NymVpnStatusMessage,
 ) -> ConnectionStatusUpdate {
     match status {
-        NymVpnStatusMessage2::MixnetConnectionInfo {
+        NymVpnStatusMessage::MixnetConnectionInfo {
             mixnet_connection_info,
             mixnet_exit_connection_info,
         } => ConnectionStatusUpdate {
@@ -36,8 +17,8 @@ pub(super) fn status_update_from_status_message(
             details: maplit::hashmap! {
                 "nym_address".to_string() => mixnet_connection_info.nym_address.to_string(),
                 "entry_gateway".to_string() => mixnet_connection_info.entry_gateway.to_base58_string(),
-                "exit_gateway".to_string() => mixnet_exit_connection_info.exit_gateway.clone(),
-                "exit_ipr".to_string() => mixnet_exit_connection_info.exit_ipr.clone(),
+                "exit_gateway".to_string() => mixnet_exit_connection_info.exit_gateway.to_base58_string(),
+                "exit_ipr".to_string() => mixnet_exit_connection_info.exit_ipr.to_string(),
                 "ipv4".to_string() => mixnet_exit_connection_info.ips.ipv4.to_string(),
                 "ipv6".to_string() => mixnet_exit_connection_info.ips.ipv6.to_string(),
             },

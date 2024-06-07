@@ -190,8 +190,8 @@ pub struct MixnetConnectionInfo {
 
 #[derive(Debug)]
 pub struct MixnetExitConnectionInfo {
-    pub exit_gateway: String,
-    pub exit_ipr: String,
+    pub exit_gateway: NodeIdentity,
+    pub exit_ipr: Recipient,
     pub ips: IpPair,
 }
 
@@ -288,7 +288,7 @@ impl NymVpn<MixnetVpn> {
         default_lan_gateway_ip: routing::LanGatewayIp,
         dns_monitor: &mut DnsMonitor,
     ) -> Result<MixnetExitConnectionInfo> {
-        let exit_gateway = exit_router.gateway().to_base58_string();
+        let exit_gateway = *exit_router.gateway();
         info!("Connecting to exit gateway: {exit_gateway}");
         debug!("Connecting to exit IPR: {exit_router}");
         // Currently the IPR client is only used to connect. The next step would be to use it to
@@ -358,13 +358,11 @@ impl NymVpn<MixnetVpn> {
             task_manager,
         );
 
-        let exit_connection_info = MixnetExitConnectionInfo {
+        Ok(MixnetExitConnectionInfo {
             exit_gateway,
-            exit_ipr: exit_router.to_string(),
+            exit_ipr: exit_router.0,
             ips: our_ips,
-        };
-
-        Ok(exit_connection_info)
+        })
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -551,7 +549,7 @@ impl SpecificVpn {
                     .await;
 
                 vpn_status_tx
-                    .send(Box::new(NymVpnStatusMessage2::MixnetConnectionInfo {
+                    .send(Box::new(NymVpnStatusMessage::MixnetConnectionInfo {
                         mixnet_connection_info: specific_setup.mixnet_connection_info,
                         mixnet_exit_connection_info: specific_setup.exit_connection_info,
                     }))
@@ -610,13 +608,8 @@ impl SpecificVpn {
     }
 }
 
-#[derive(Debug)]
-pub enum NymVpnStatusMessage {
-    Slow,
-}
-
 #[derive(thiserror::Error, Debug)]
-pub enum NymVpnStatusMessage2 {
+pub enum NymVpnStatusMessage {
     #[error("mixnet connection info")]
     MixnetConnectionInfo {
         mixnet_connection_info: MixnetConnectionInfo,

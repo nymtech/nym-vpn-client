@@ -11,32 +11,26 @@ impl From<VpnServiceStatusResult> for StatusResponse {
         let status = match status {
             VpnServiceStatusResult::NotConnected => ConnectionStatus::NotConnected,
             VpnServiceStatusResult::Connecting => ConnectionStatus::Connecting,
-            VpnServiceStatusResult::Connected {
-                nym_address,
-                entry_gateway,
-                exit_gateway,
-                exit_ipr,
-                ipv4,
-                ipv6,
-                since,
-            } => {
+            VpnServiceStatusResult::Connected(conn_details) => {
                 let timestamp = prost_types::Timestamp {
-                    seconds: since.unix_timestamp(),
-                    nanos: since.nanosecond() as i32,
+                    seconds: conn_details.since.unix_timestamp(),
+                    nanos: conn_details.since.nanosecond() as i32,
                 };
                 details = Some(nym_vpn_proto::ConnectionDetails {
                     nym_address: Some(nym_vpn_proto::Address {
-                        nym_address: nym_address.to_string(),
+                        nym_address: conn_details.nym_address.to_string(),
                     }),
                     entry_gateway: Some(nym_vpn_proto::Gateway {
-                        id: entry_gateway.to_string(),
+                        id: conn_details.entry_gateway.to_string(),
                     }),
-                    exit_gateway,
+                    exit_gateway: Some(nym_vpn_proto::Gateway {
+                        id: conn_details.exit_gateway.to_string(),
+                    }),
                     exit_ipr: Some(nym_vpn_proto::Address {
-                        nym_address: exit_ipr.to_string(),
+                        nym_address: conn_details.exit_ipr.to_string(),
                     }),
-                    ipv4: ipv4.to_string(),
-                    ipv6: ipv6.to_string(),
+                    ipv4: conn_details.ipv4.to_string(),
+                    ipv6: conn_details.ipv6.to_string(),
                     since: Some(timestamp),
                 });
                 ConnectionStatus::Connected

@@ -29,17 +29,20 @@ use super::status_listener::VpnServiceStatusListener;
 pub enum VpnState {
     NotConnected,
     Connecting,
-    Connected {
-        nym_address: Recipient,
-        entry_gateway: NodeIdentity,
-        exit_gateway: String,
-        exit_ipr: String,
-        ipv4: Ipv4Addr,
-        ipv6: Ipv6Addr,
-        since: time::OffsetDateTime,
-    },
+    Connected(Box<VpnConnectedStateDetails>),
     Disconnecting,
     ConnectionFailed(ConnectionFailedError),
+}
+
+#[derive(Debug, Clone)]
+pub struct VpnConnectedStateDetails {
+    pub nym_address: Recipient,
+    pub entry_gateway: NodeIdentity,
+    pub exit_gateway: NodeIdentity,
+    pub exit_ipr: Recipient,
+    pub ipv4: Ipv4Addr,
+    pub ipv6: Ipv6Addr,
+    pub since: time::OffsetDateTime,
 }
 
 #[allow(clippy::large_enum_variant)]
@@ -116,17 +119,40 @@ impl VpnServiceDisconnectResult {
 pub enum VpnServiceStatusResult {
     NotConnected,
     Connecting,
-    Connected {
-        nym_address: Recipient,
-        entry_gateway: NodeIdentity,
-        exit_gateway: String,
-        exit_ipr: String,
-        ipv4: Ipv4Addr,
-        ipv6: Ipv6Addr,
-        since: time::OffsetDateTime,
-    },
+    Connected(Box<ConnectedResultDetails>),
     Disconnecting,
     ConnectionFailed(ConnectionFailedError),
+}
+
+#[derive(Clone, Debug)]
+pub struct ConnectedResultDetails {
+    pub nym_address: Recipient,
+    pub entry_gateway: NodeIdentity,
+    pub exit_gateway: NodeIdentity,
+    pub exit_ipr: Recipient,
+    pub ipv4: Ipv4Addr,
+    pub ipv6: Ipv6Addr,
+    pub since: time::OffsetDateTime,
+}
+
+impl From<VpnConnectedStateDetails> for ConnectedResultDetails {
+    fn from(details: VpnConnectedStateDetails) -> Self {
+        ConnectedResultDetails {
+            nym_address: details.nym_address,
+            entry_gateway: details.entry_gateway,
+            exit_gateway: details.exit_gateway,
+            exit_ipr: details.exit_ipr,
+            ipv4: details.ipv4,
+            ipv6: details.ipv6,
+            since: details.since,
+        }
+    }
+}
+
+impl From<Box<VpnConnectedStateDetails>> for Box<ConnectedResultDetails> {
+    fn from(details: Box<VpnConnectedStateDetails>) -> Self {
+        Box::new((*details).into())
+    }
 }
 
 impl VpnServiceStatusResult {
@@ -143,23 +169,7 @@ impl From<VpnState> for VpnServiceStatusResult {
         match state {
             VpnState::NotConnected => VpnServiceStatusResult::NotConnected,
             VpnState::Connecting => VpnServiceStatusResult::Connecting,
-            VpnState::Connected {
-                nym_address,
-                entry_gateway,
-                exit_gateway,
-                exit_ipr,
-                ipv4,
-                ipv6,
-                since,
-            } => VpnServiceStatusResult::Connected {
-                nym_address,
-                entry_gateway,
-                exit_gateway,
-                exit_ipr,
-                ipv4,
-                ipv6,
-                since,
-            },
+            VpnState::Connected(details) => VpnServiceStatusResult::Connected(details.into()),
             VpnState::Disconnecting => VpnServiceStatusResult::Disconnecting,
             VpnState::ConnectionFailed(reason) => VpnServiceStatusResult::ConnectionFailed(reason),
         }
