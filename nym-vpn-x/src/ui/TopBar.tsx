@@ -163,7 +163,7 @@ export default function TopBar() {
       {currentNavLocation?.leftIcon ? (
         <AnimateIn from="-translate-x-2" to="translate-x-0" duration={200}>
           <button
-            className="w-6 mx-4 focus:outline-none"
+            className="w-6 mx-4 focus:outline-none cursor-default"
             onClick={currentNavLocation.handleLeftNav}
           >
             <MsIcon
@@ -188,7 +188,7 @@ export default function TopBar() {
       {currentNavLocation?.rightIcon ? (
         <AnimateIn from="translate-x-2" to="translate-x-0" duration={200}>
           <button
-            className="w-6 mx-4 focus:outline-none"
+            className="w-6 mx-4 focus:outline-none cursor-default"
             onClick={currentNavLocation.handleRightNav}
           >
             <MsIcon

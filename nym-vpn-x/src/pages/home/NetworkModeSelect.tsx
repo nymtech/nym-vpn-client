@@ -70,7 +70,6 @@ function NetworkModeSelect() {
         key: 'Mixnet',
         label: t('mixnet-mode.title'),
         desc: t('mixnet-mode.desc'),
-        cursor: state.state === 'Disconnected' ? 'pointer' : 'default',
         disabled: state.state !== 'Disconnected' || loading,
         icon: (
           <MixnetIcon className="w-7 h-7 fill-baltic-sea dark:fill-mercury-pinkish" />
@@ -80,7 +79,6 @@ function NetworkModeSelect() {
         key: 'TwoHop',
         label: t('twohop-mode.title'),
         desc: t('twohop-mode.desc'),
-        cursor: state.state === 'Disconnected' ? 'pointer' : 'default',
         disabled: state.state !== 'Disconnected' || loading,
         icon: (
           <span className="font-icon text-3xl text-baltic-sea dark:text-mercury-pinkish">

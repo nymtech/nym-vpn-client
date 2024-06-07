@@ -35,7 +35,7 @@ function Button({
         'text-white dark:text-baltic-sea',
         'focus:outline-none focus:ring-4 focus:ring-black focus:dark:ring-white',
         'transition hover:opacity-80 disabled:opacity-50',
-        'shadow tracking-normal',
+        'shadow tracking-normal cursor-default',
         getColorStyle(),
         className && className,
       ])}

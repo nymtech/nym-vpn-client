@@ -61,10 +61,7 @@ function RadioGroup<K extends Key>({
                     !checked &&
                     'hover:border-platinum dark:hover:border-baltic-sea-jaguar',
                   !option.disabled && 'hover:bg-platinum dark:hover:bg-onyx',
-                  'transition-noborder',
-                  option.cursor === 'default' && 'cursor-default',
-                  option.cursor === 'pointer' && 'cursor-pointer',
-                  option.cursor === 'not-allowed' && 'cursor-not-allowed',
+                  'transition-noborder cursor-default',
                 ])
               }
               disabled={option.disabled}

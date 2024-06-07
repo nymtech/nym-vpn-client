@@ -63,7 +63,7 @@ export default function HopSelect({
         'border border-cement-feet dark:border-gun-powder rounded-lg',
         'hover:border-baltic-sea hover:ring-baltic-sea',
         'dark:hover:border-mercury-pinkish dark:hover:ring-mercury-pinkish',
-        'relative transition select-none',
+        'relative transition select-none cursor-default',
       ])}
       onKeyDown={handleClick}
       role="presentation"

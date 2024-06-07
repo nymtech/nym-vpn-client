@@ -2,8 +2,6 @@ import { CSSProperties, ReactNode } from 'react';
 import clsx from 'clsx';
 import MsIcon from './MsIcon';
 
-export type SettingMenuCardCursor = 'default' | 'pointer' | 'not-allowed';
-
 export type SettingsMenuCardProps = {
   title: string;
   leadingIcon?: string;
@@ -13,7 +11,6 @@ export type SettingsMenuCardProps = {
   trailingIcon?: string;
   trailingComponent?: ReactNode;
   disabled?: boolean;
-  cursor?: SettingMenuCardCursor;
   className?: string;
   style?: CSSProperties;
 };
@@ -27,7 +24,6 @@ function SettingsMenuCard({
   trailingIcon,
   trailingComponent,
   disabled,
-  cursor,
   className,
   style,
 }: SettingsMenuCardProps) {
@@ -38,11 +34,8 @@ function SettingsMenuCard({
         'bg-white dark:bg-baltic-sea-jaguar px-5 py-4 rounded-lg min-h-16',
         desc ? 'py-2' : 'py-4',
         'hover:bg-platinum dark:hover:bg-onyx',
-        'transition',
+        'transition cursor-default',
         disabled && 'opacity-50 pointer-events-none',
-        cursor === 'default' && 'cursor-default',
-        cursor === 'pointer' && 'cursor-pointer',
-        cursor === 'not-allowed' && 'cursor-not-allowed',
         className,
       ])}
       onClick={onClick}
