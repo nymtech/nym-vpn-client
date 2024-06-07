@@ -10,8 +10,7 @@ import { StateDispatch, VpnMode } from '../../types';
 import { MixnetIcon } from '../../assets';
 import { RadioGroup, RadioGroupOption } from '../../ui';
 import { useThrottle } from '../../hooks';
-
-const snackbarThrottle = 6000;
+import { HomeThrottleDelay } from '../../constants';
 
 function NetworkModeSelect() {
   const state = useMainState();
@@ -35,7 +34,7 @@ function NetworkModeSelect() {
     }
   };
 
-  const showSnack = useThrottle(
+  const showSnackbar = useThrottle(
     async () => {
       let text = '';
       switch (state.state) {
@@ -54,13 +53,13 @@ function NetworkModeSelect() {
         position: 'top',
       });
     },
-    snackbarThrottle,
+    HomeThrottleDelay,
     [state.state],
   );
 
-  const handleClick = () => {
+  const handleDisabledState = () => {
     if (state.state !== 'Disconnected') {
-      showSnack();
+      showSnackbar();
     }
   };
 
@@ -91,7 +90,7 @@ function NetworkModeSelect() {
 
   return (
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
-    <div className="select-none" onClick={handleClick}>
+    <div className="select-none" onClick={handleDisabledState}>
       <RadioGroup
         defaultValue={state.vpnMode}
         options={vpnModes}

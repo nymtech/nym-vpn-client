@@ -4,8 +4,7 @@ import { NodeHop, NodeLocation, isCountry } from '../../types';
 import { useMainState, useNotifications } from '../../contexts';
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
 import { useThrottle } from '../../hooks';
-
-const snackbarThrottle = 6000;
+import { HomeThrottleDelay } from '../../constants';
 
 interface HopSelectProps {
   nodeLocation: NodeLocation;
@@ -24,7 +23,7 @@ export default function HopSelect({
   const { t } = useTranslation('home');
   const { push } = useNotifications();
 
-  const showSnack = useThrottle(
+  const showSnackbar = useThrottle(
     async () => {
       let text = '';
       switch (state) {
@@ -43,13 +42,13 @@ export default function HopSelect({
         position: 'top',
       });
     },
-    snackbarThrottle,
+    HomeThrottleDelay,
     [state],
   );
 
   const handleClick = () => {
     if (disabled) {
-      showSnack();
+      showSnackbar();
     } else {
       onClick();
     }
