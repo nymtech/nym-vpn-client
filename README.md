@@ -20,7 +20,7 @@ client ───► gateway ──┘  mix  │  mix  ┌─►mix ───► 
 
 ## CLI client
 
-[nym-vpn-cli](nym-vpn-cli/README.md)
+[nym-vpn-cli](nym-vpn-core/nym-vpn-cli/README.md)
 
 ## GUI client
 
