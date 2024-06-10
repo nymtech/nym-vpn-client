@@ -55,7 +55,8 @@
         "minWidth": 160,
         "minHeight": 346,
         "maxWidth": 600,
-        "maxHeight": 1299
+        "maxHeight": 1299,
+        "maximizable": false
       }
     ],
     "systemTray": {
