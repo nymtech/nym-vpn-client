@@ -4,8 +4,7 @@ use nym_credential_storage::persistent_storage::PersistentStorage;
 
 use nym_sdk::{mixnet::StoragePaths, NymNetworkDetails};
 use nym_validator_client::{
-    coconut::{all_coconut_api_clients, CoconutApiError},
-    nyxd::{error::NyxdError, Config as NyxdClientConfig, NyxdClient},
+    nyxd::{Config as NyxdClientConfig, NyxdClient},
     QueryHttpRpcNyxdClient,
 };
 use tracing::debug;
@@ -126,11 +125,6 @@ pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialNyxd
         .map_err(CredentialNyxdClientError::FailedToConnectUsingNyxdClient)
 }
 
-pub(super) enum CoconutClients {
-    Clients(Vec<nym_validator_client::coconut::CoconutApiClient>),
-    NoContractAvailable,
-}
-
 #[derive(Debug, thiserror::Error)]
 pub enum CredentialCoconutApiClientError {
     #[error("failed to query contract")]
@@ -138,18 +132,4 @@ pub enum CredentialCoconutApiClientError {
 
     #[error("failed to fetch coconut api clients: {0}")]
     FailedToFetchCoconutApiClients(nym_validator_client::coconut::CoconutApiError),
-}
-
-pub(super) async fn get_coconut_api_clients(
-    nyxd_client: QueryHttpRpcNyxdClient,
-    epoch_id: u64,
-) -> Result<CoconutClients, CredentialCoconutApiClientError> {
-    match all_coconut_api_clients(&nyxd_client, epoch_id).await {
-        Ok(clients) => Ok(CoconutClients::Clients(clients)),
-        Err(CoconutApiError::ContractQueryFailure { source }) => match source {
-            NyxdError::NoContractAddressAvailable(_) => Ok(CoconutClients::NoContractAvailable),
-            _ => Err(CredentialCoconutApiClientError::FailedToQueryContract),
-        },
-        Err(err) => Err(CredentialCoconutApiClientError::FailedToFetchCoconutApiClients(err)),
-    }
 }

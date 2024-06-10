@@ -1,18 +1,15 @@
 use std::time::SystemTime;
 use std::{fs, path::PathBuf};
 
-use nym_bandwidth_controller::{BandwidthController, PreparedCredential, RetrievedCredential};
+use nym_bandwidth_controller::BandwidthController;
 use nym_credentials::{
-    coconut::bandwidth::{
-        bandwidth_credential_params, issued::BandwidthCredentialIssuedDataVariant,
-    },
-    obtain_aggregate_verification_key, IssuedBandwidthCredential,
+    coconut::bandwidth::issued::BandwidthCredentialIssuedDataVariant, IssuedBandwidthCredential,
 };
 
-use tracing::{debug, info};
+use tracing::debug;
 
 use super::{
-    helpers::{get_coconut_api_clients, get_credentials_store, get_nyxd_client, CoconutClients},
+    helpers::{get_credentials_store, get_nyxd_client},
     CredentialCoconutApiClientError, CredentialNyxdClientError, CredentialStoreError,
 };
 
@@ -49,8 +46,6 @@ pub async fn check_raw_credential(
             }
         }
     };
-
-    // TODO: verify?
 
     Ok(expiry_date)
 }
@@ -148,7 +143,7 @@ pub async fn check_imported_credential(
     let client = get_nyxd_client()?;
     let (credentials_store, _location) = get_credentials_store(data_path.clone()).await?;
     let bandwidth_controller = BandwidthController::new(credentials_store, client);
-    let usable_credential = bandwidth_controller
+    let _usable_credential = bandwidth_controller
         .get_next_usable_credential(gateway_id)
         .await
         .map_err(
@@ -158,24 +153,7 @@ pub async fn check_imported_credential(
             },
         )?;
 
-    let epoch_id = usable_credential.credential.epoch_id();
-    let client = get_nyxd_client()?;
-    let coconut_api_clients = match get_coconut_api_clients(client, epoch_id).await? {
-        CoconutClients::Clients(clients) => clients,
-        CoconutClients::NoContractAvailable => {
-            info!("No Coconut API clients on this network, we are ok");
-            return Ok(());
-        }
-    };
-
-    if coconut_api_clients.is_empty() {
-        info!("No Coconut API clients on this network, we are ok");
-        return Ok(());
-    }
-
-    verify_credential(usable_credential, coconut_api_clients)
-        .await
-        .map_err(|err| CheckImportedCredentialError::VerifyCredentialError { source: err })
+    Ok(())
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -191,33 +169,4 @@ pub enum VerifyCredentialError {
 
     #[error("failed to verify credential")]
     FailedToVerifyCredential,
-}
-
-async fn verify_credential(
-    usable_credential: RetrievedCredential,
-    coconut_api_clients: Vec<nym_validator_client::coconut::CoconutApiClient>,
-) -> Result<(), VerifyCredentialError> {
-    let verification_key = obtain_aggregate_verification_key(&coconut_api_clients)
-        .map_err(VerifyCredentialError::FailedToObtainAggregateVerificationKey)?;
-    let spend_request = usable_credential
-        .credential
-        .prepare_for_spending(&verification_key)
-        .map_err(VerifyCredentialError::FailedToPrepareCredentialForSpending)?;
-    let prepared_credential = PreparedCredential {
-        data: spend_request,
-        epoch_id: usable_credential.credential.epoch_id(),
-        credential_id: usable_credential.credential_id,
-    };
-
-    if !prepared_credential.data.validate_type_attribute() {
-        return Err(VerifyCredentialError::MissingBandwidthTypeAttribute);
-    }
-
-    let params = bandwidth_credential_params();
-    if prepared_credential.data.verify(params, &verification_key) {
-        info!("Successfully verified credential");
-        Ok(())
-    } else {
-        Err(VerifyCredentialError::FailedToVerifyCredential)
-    }
 }
