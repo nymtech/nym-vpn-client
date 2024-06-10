@@ -8,11 +8,10 @@ use std::path::PathBuf;
 
 use commands::ImportCredentialTypeEnum;
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
-use nym_vpn_lib::wg_gateway_client::WgConfig as WgGatewayConfig;
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity, SpecificVpn};
 use nym_vpn_lib::{NymVpn, Recipient};
 
-use crate::commands::{wg_override_from_env, Commands};
+use crate::commands::Commands;
 use clap::Parser;
 use log::*;
 use nym_vpn_lib::nym_config::defaults::{setup_env, var_names};
@@ -131,9 +130,6 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
             .unwrap_or("unavailable".to_string())
     );
 
-    // Setup wireguard gateway configuration
-    let wg_gateway_config = wg_override_from_env(&args, WgGatewayConfig::default());
-
     let entry_point = parse_entry_point(&args)?;
     let exit_point = parse_exit_point(&args)?;
     let nym_ips = if let (Some(ipv4), Some(ipv6)) = (args.nym_ipv4, args.nym_ipv6) {
@@ -150,9 +146,6 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.dns = args.dns;
         nym_vpn.disable_routing = args.disable_routing;
         nym_vpn.enable_two_hop = args.enable_two_hop;
-        nym_vpn.vpn_config.wg_gateway_config = wg_gateway_config;
-        nym_vpn.vpn_config.entry_private_key = args.entry_private_key;
-        nym_vpn.vpn_config.exit_private_key = args.exit_private_key;
         nym_vpn.into()
     } else {
         let mut nym_vpn = NymVpn::new_mixnet_vpn(entry_point, exit_point);

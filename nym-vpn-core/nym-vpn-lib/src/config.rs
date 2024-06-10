@@ -3,10 +3,11 @@
 
 use crate::error::*;
 use crate::wg_gateway_client::GatewayData;
+use nym_crypto::asymmetric::x25519::KeyPair;
 use std::net::Ipv4Addr;
 use std::str::FromStr;
 use talpid_types::net::wireguard::{
-    ConnectionConfig, PeerConfig, PrivateKey, PublicKey, TunnelConfig, TunnelOptions,
+    ConnectionConfig, PeerConfig, PrivateKey, TunnelConfig, TunnelOptions,
 };
 use talpid_types::net::GenericTunnelOptions;
 
@@ -34,13 +35,9 @@ impl WireguardConfig {
         )?))
     }
 
-    pub fn init(private_key: &str, gateway_data: &GatewayData, mtu: u16) -> Result<Self> {
+    pub fn init(keypair: &KeyPair, gateway_data: &GatewayData, mtu: u16) -> Result<Self> {
         let tunnel = TunnelConfig {
-            private_key: PrivateKey::from(
-                *PublicKey::from_base64(private_key)
-                    .map_err(|_| Error::InvalidWireGuardKey)?
-                    .as_bytes(),
-            ),
+            private_key: PrivateKey::from(keypair.private_key().to_bytes()),
             addresses: vec![gateway_data.private_ip],
         };
         let peers = vec![PeerConfig {
