@@ -41,38 +41,35 @@ export default function CountryList({
                 'flex flex-row justify-between',
                 'hover:bg-gun-powder hover:bg-opacity-10',
                 'dark:hover:bg-laughing-jack dark:hover:bg-opacity-10',
-                'rounded-lg cursor-pointer px-3 py-1 transition duration-75',
+                'rounded-lg px-3 py-1 transition duration-75 cursor-default',
               ])}
               onClick={() => onSelect(uiCountry)}
             >
               {!uiCountry.isFastest && (
-                <div className="flex flex-row items-center m-1 gap-3 p-1 cursor-pointer overflow-hidden">
+                <div className="flex flex-row items-center m-1 gap-3 p-1 overflow-hidden">
                   <FlagIcon
                     code={uiCountry.country.code.toLowerCase() as countryCode}
                     alt={uiCountry.country.code}
                     className="h-6"
                   />
-                  <div className="dark:text-mercury-pinkish text-base cursor-pointer truncate">
+                  <div className="dark:text-mercury-pinkish text-base truncate">
                     {uiCountry.country.name}
                   </div>
                 </div>
               )}
               {uiCountry.isFastest && (
-                <div className="flex flex-row items-center m-1 gap-3 p-1 cursor-pointer overflow-hidden">
+                <div className="flex flex-row items-center m-1 gap-3 p-1 overflow-hidden">
                   <div className="w-7 max-h-6 flex justify-center items-center">
                     <MsIcon icon="bolt" />
                   </div>
-                  <div className="cursor-pointer text-base truncate">{`${t(
-                    'fastest',
-                    {
-                      ns: 'common',
-                    },
-                  )} (${uiCountry.country.name})`}</div>
+                  <div className="text-base truncate">{`${t('fastest', {
+                    ns: 'common',
+                  })} (${uiCountry.country.name})`}</div>
                 </div>
               )}
               <div
                 className={clsx([
-                  'pr-4 ml-2 flex items-center font-medium text-xs cursor-pointer',
+                  'pr-4 ml-2 flex items-center font-medium text-xs',
                   'text-cement-feet dark:text-mercury-mist',
                 ])}
               >

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback } from 'react';
+import { DependencyList, useCallback } from 'react';
 import * as _ from 'lodash-es';
 
 /**
@@ -7,12 +7,14 @@ import * as _ from 'lodash-es';
  *
  * @param fn - The function to throttle
  * @param wait - The number of milliseconds to throttle invocations to
+ * @param deps - The dependencies to watch for callback reset (passed to `useCallback`)
  * @param options - Throttle options
  * @returns The throttled function
  */
 function useThrottle<Fn extends (...args: any[]) => Promise<any> | any>(
   fn: Fn,
   wait: number,
+  deps: DependencyList = [],
   options?: _.ThrottleSettings,
 ) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -21,7 +23,7 @@ function useThrottle<Fn extends (...args: any[]) => Promise<any> | any>(
       trailing: false,
       ...options,
     }),
-    [wait],
+    [wait, ...deps],
   );
 
   return t;

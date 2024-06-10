@@ -34,18 +34,15 @@ function Display() {
         key: 'System',
         label: t('options.system'),
         desc: t('system-desc'),
-        cursor: 'pointer',
       },
       {
         key: 'Light',
         label: t('options.light'),
-        cursor: 'pointer',
         className: 'min-h-11',
       },
       {
         key: 'Dark',
         label: t('options.dark'),
-        cursor: 'pointer',
         className: 'min-h-11',
       },
     ];

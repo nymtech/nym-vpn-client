@@ -26,8 +26,9 @@ function SettingsGroup({ settings, className }: Props) {
           value={setting.title}
           onClick={setting.onClick}
           className={clsx([
+            'cursor-default',
             'bg-white dark:bg-baltic-sea-jaguar relative flex px-5 py-2 focus:outline-none min-h-16',
-            'hover:bg-platinum dark:hover:bg-onyx cursor-pointer',
+            'hover:bg-platinum dark:hover:bg-onyx',
             'transition duration-75',
             index === 0 && 'rounded-t-lg',
             index === settings.length - 1 &&
@@ -44,7 +45,7 @@ function SettingsGroup({ settings, className }: Props) {
         >
           <div
             role={setting.disabled ? 'none' : 'button'}
-            className="flex flex-1 items-center justify-between gap-4 overflow-hidden"
+            className="flex flex-1 items-center justify-between gap-4 overflow-hidden cursor-default"
           >
             {setting.leadingIcon && (
               <span className="font-icon text-2xl select-none dark:text-mercury-pinkish">

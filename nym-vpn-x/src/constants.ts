@@ -25,3 +25,4 @@ export const ContactSupportUrl =
 export const ToSUrl = 'https://nymvpn.com/en/terms';
 export const PrivacyPolicyUrl = 'https://nymvpn.com/en/privacy?type=apps';
 export const CountryCacheDuration = 120000; // 2 minutes
+export const HomeThrottleDelay = 6000;

@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { NodeHop, NodeLocation, isCountry } from '../../types';
-import { useMainState } from '../../contexts';
+import { useMainState, useNotifications } from '../../contexts';
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
+import { useThrottle } from '../../hooks';
+import { HomeThrottleDelay } from '../../constants';
 
 interface HopSelectProps {
   nodeLocation: NodeLocation;
@@ -17,11 +19,37 @@ export default function HopSelect({
   onClick,
   disabled,
 }: HopSelectProps) {
-  const { fastestNodeLocation } = useMainState();
+  const { fastestNodeLocation, state } = useMainState();
   const { t } = useTranslation('home');
+  const { push } = useNotifications();
+
+  const showSnackbar = useThrottle(
+    async () => {
+      let text = '';
+      switch (state) {
+        case 'Connected':
+          text = t('snackbar-disabled-message.connected');
+          break;
+        case 'Connecting':
+          text = t('snackbar-disabled-message.connecting');
+          break;
+        case 'Disconnecting':
+          text = t('snackbar-disabled-message.disconnecting');
+          break;
+      }
+      push({
+        text,
+        position: 'top',
+      });
+    },
+    HomeThrottleDelay,
+    [state],
+  );
 
   const handleClick = () => {
-    if (!disabled) {
+    if (disabled) {
+      showSnackbar();
+    } else {
       onClick();
     }
   };
@@ -29,13 +57,12 @@ export default function HopSelect({
   return (
     <div
       className={clsx([
-        !disabled && 'cursor-pointer hover:ring-4',
         'w-full flex flex-row justify-between items-center py-3 px-4',
         'text-baltic-sea dark:text-mercury-pinkish',
         'border border-cement-feet dark:border-gun-powder rounded-lg',
-        'ring-aluminium ring-opacity-35',
-        'dark:ring-onyx dark:ring-opacity-65',
-        'relative transition select-none',
+        'hover:border-baltic-sea hover:ring-baltic-sea',
+        'dark:hover:border-mercury-pinkish dark:hover:ring-mercury-pinkish',
+        'relative transition select-none cursor-default',
       ])}
       onKeyDown={handleClick}
       role="presentation"

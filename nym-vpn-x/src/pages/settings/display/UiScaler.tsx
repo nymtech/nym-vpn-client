@@ -44,7 +44,7 @@ function UiScaler() {
         onChange={handleChange}
         onMouseUp={setNewFontSize}
         onKeyUp={setNewFontSize}
-        className="range flex flex-1 accent-melon cursor-pointer"
+        className="range flex flex-1 accent-melon"
       />
     </div>
   );

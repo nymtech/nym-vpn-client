@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { ReactNode, isValidElement, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { AppName } from '../constants';
+import { NymVpnTextLogoDark, NymVpnTextLogoLight } from '../assets';
+import { useMainState } from '../contexts';
 import { routes } from '../router';
 import { Routes } from '../types';
 import AnimateIn from './AnimateIn';
 import MsIcon from './MsIcon';
 
 type NavLocation = {
-  title?: string;
+  title?: string | ReactNode;
   leftIcon?: string;
   handleLeftNav?: () => void;
   rightIcon?: string;
@@ -26,6 +27,8 @@ export default function TopBar() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  const { uiTheme } = useMainState();
+
   const [currentNavLocation, setCurrentNavLocation] = useState<NavLocation>({
     title: '',
     rightIcon: 'settings',
@@ -37,7 +40,12 @@ export default function TopBar() {
   const navBarData = useMemo<NavBarData>(() => {
     return {
       '/': {
-        title: AppName,
+        title:
+          uiTheme === 'Light' ? (
+            <NymVpnTextLogoLight className="w-28 h-4" />
+          ) : (
+            <NymVpnTextLogoDark className="w-28 h-4" />
+          ),
         rightIcon: 'settings',
         handleRightNav: () => {
           navigate(routes.settings);
@@ -138,11 +146,25 @@ export default function TopBar() {
       '/hideout': {},
       '/hideout/welcome': {},
     };
-  }, [t, navigate]);
+  }, [t, navigate, uiTheme]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);
   }, [location.pathname, navBarData]);
+
+  const renderTitle = (title?: string | ReactNode) => {
+    if (typeof title === 'string') {
+      return (
+        <p className="truncate justify-self-center tracking-normal">
+          {currentNavLocation.title}
+        </p>
+      );
+    }
+    if (isValidElement(title)) {
+      return title;
+    }
+    return <div></div>;
+  };
 
   return (
     <AnimateIn
@@ -163,7 +185,7 @@ export default function TopBar() {
       {currentNavLocation?.leftIcon ? (
         <AnimateIn from="-translate-x-2" to="translate-x-0" duration={200}>
           <button
-            className="w-6 mx-4 focus:outline-none"
+            className="w-6 mx-4 focus:outline-none cursor-default"
             onClick={currentNavLocation.handleLeftNav}
           >
             <MsIcon
@@ -178,17 +200,11 @@ export default function TopBar() {
       ) : (
         <div className="w-6 mx-4" />
       )}
-      {currentNavLocation.title ? (
-        <p className="truncate justify-self-center tracking-normal">
-          {currentNavLocation.title}
-        </p>
-      ) : (
-        <div></div>
-      )}
+      {renderTitle(currentNavLocation.title)}
       {currentNavLocation?.rightIcon ? (
         <AnimateIn from="translate-x-2" to="translate-x-0" duration={200}>
           <button
-            className="w-6 mx-4 focus:outline-none"
+            className="w-6 mx-4 focus:outline-none cursor-default"
             onClick={currentNavLocation.handleRightNav}
           >
             <MsIcon
