@@ -61,6 +61,14 @@ cd src-tauri
 RUST_LOG=info,nym_vpn_x=trace cargo tauri dev
 ```
 
+#### On Windows
+
+In a PowerShell terminal run
+
+```powershell
+$env:RUST_LOG='debug,nymvpn_x=trace'; cargo tauri dev; $env:RUST_LOG=$null
+```
+
 #### Disabling the splash-screen
 
 While developing, you might want to disable the splash-screen
