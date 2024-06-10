@@ -9,6 +9,7 @@ use crate::mixnet_connect::setup_mixnet_client;
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::{WgConfig, WgGatewayClient};
 use futures::channel::{mpsc, oneshot};
+use futures::SinkExt;
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_connection_monitor::ConnectionMonitorTask;
@@ -181,9 +182,17 @@ pub struct NymVpn<T: Vpn> {
     shadow_handle: ShadowHandle,
 }
 
+#[derive(Debug)]
 pub struct MixnetConnectionInfo {
     pub nym_address: Recipient,
-    pub entry_gateway: String,
+    pub entry_gateway: NodeIdentity,
+}
+
+#[derive(Debug)]
+pub struct MixnetExitConnectionInfo {
+    pub exit_gateway: NodeIdentity,
+    pub exit_ipr: Recipient,
+    pub ips: IpPair,
 }
 
 impl NymVpn<WireguardVpn> {
@@ -278,8 +287,8 @@ impl NymVpn<MixnetVpn> {
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         dns_monitor: &mut DnsMonitor,
-    ) -> Result<()> {
-        let exit_gateway = exit_router.gateway().to_base58_string();
+    ) -> Result<MixnetExitConnectionInfo> {
+        let exit_gateway = *exit_router.gateway();
         info!("Connecting to exit gateway: {exit_gateway}");
         debug!("Connecting to exit IPR: {exit_router}");
         // Currently the IPR client is only used to connect. The next step would be to use it to
@@ -349,7 +358,11 @@ impl NymVpn<MixnetVpn> {
             task_manager,
         );
 
-        Ok(())
+        Ok(MixnetExitConnectionInfo {
+            exit_gateway,
+            exit_ipr: exit_router.0,
+            ips: our_ips,
+        })
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -362,7 +375,7 @@ impl NymVpn<MixnetVpn> {
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         dns_monitor: &mut DnsMonitor,
-    ) -> Result<MixnetConnectionInfo> {
+    ) -> Result<(MixnetConnectionInfo, MixnetExitConnectionInfo)> {
         info!("Setting up mixnet client");
         info!("Connecting to entry gateway: {entry_gateway}");
         let mixnet_client = timeout(
@@ -383,20 +396,20 @@ impl NymVpn<MixnetVpn> {
 
         // Now that we have a connection, collection some info about that and return
         let nym_address = mixnet_client.nym_address().await;
-        let entry_gateway = nym_address.gateway().to_base58_string();
+        let entry_gateway = *(nym_address.gateway());
+        info!("Successfully connected to entry gateway: {entry_gateway}");
+
         let our_mixnet_connection = MixnetConnectionInfo {
             nym_address,
-            entry_gateway: entry_gateway.clone(),
+            entry_gateway,
         };
-
-        info!("Successfully connected to entry gateway: {entry_gateway}");
 
         // Check that we can ping ourselves before continuing
         info!("Sending mixnet ping to ourselves to verify mixnet connection");
         nym_connection_monitor::self_ping_and_wait(nym_address, mixnet_client.inner()).await?;
         info!("Successfully mixnet pinged ourselves");
 
-        if let Err(err) = self
+        match self
             .setup_post_mixnet(
                 mixnet_client.clone(),
                 route_manager,
@@ -408,12 +421,14 @@ impl NymVpn<MixnetVpn> {
             )
             .await
         {
-            error!("Failed to setup post mixnet: {err}");
-            debug!("{err:?}");
-            mixnet_client.disconnect().await;
-            return Err(err);
-        };
-        Ok(our_mixnet_connection)
+            Err(err) => {
+                error!("Failed to setup post mixnet: {err}");
+                debug!("{err:?}");
+                mixnet_client.disconnect().await;
+                Err(err)
+            }
+            Ok(exit_connection_info) => Ok((our_mixnet_connection, exit_connection_info)),
+        }
     }
 }
 
@@ -507,7 +522,7 @@ impl SpecificVpn {
     // controlling it.
     pub async fn run_and_listen(
         &mut self,
-        vpn_status_tx: nym_task::StatusSender,
+        mut vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let tunnels = setup_tunnel(self).await?;
@@ -518,13 +533,29 @@ impl SpecificVpn {
                 mut specific_setup, ..
             }) => {
                 // Signal back that mixnet is ready and up with all cylinders firing
+                // TODO: this should actually be sent much earlier, when the mixnet client is
+                // connected. However that would also require starting the status listener earlier.
+                // This means that for now, we basically just ignore the status message and use the
+                // NymVpnStatusMessage2 sent below instead.
                 let start_status = TaskStatus::ReadyWithGateway(
-                    specific_setup.mixnet_connection_info.entry_gateway.clone(),
+                    specific_setup
+                        .mixnet_connection_info
+                        .entry_gateway
+                        .to_base58_string(),
                 );
                 specific_setup
                     .task_manager
-                    .start_status_listener(vpn_status_tx, start_status)
+                    .start_status_listener(vpn_status_tx.clone(), start_status)
                     .await;
+
+                vpn_status_tx
+                    .send(Box::new(NymVpnStatusMessage::MixnetConnectionInfo {
+                        mixnet_connection_info: specific_setup.mixnet_connection_info,
+                        mixnet_exit_connection_info: specific_setup.exit_connection_info,
+                    }))
+                    .await
+                    .unwrap();
+
                 let result =
                     wait_for_interrupt_and_signal(Some(specific_setup.task_manager), vpn_ctrl_rx)
                         .await;
@@ -577,9 +608,13 @@ impl SpecificVpn {
     }
 }
 
-#[derive(Debug)]
+#[derive(thiserror::Error, Debug)]
 pub enum NymVpnStatusMessage {
-    Slow,
+    #[error("mixnet connection info")]
+    MixnetConnectionInfo {
+        mixnet_connection_info: MixnetConnectionInfo,
+        mixnet_exit_connection_info: MixnetExitConnectionInfo,
+    },
 }
 
 #[derive(Debug)]

@@ -77,7 +77,11 @@ async fn status(client_type: ClientType) -> Result<()> {
     let utc_since = response
         .details
         .and_then(|details| details.since)
-        .map(|timestamp| time::OffsetDateTime::from_unix_timestamp(timestamp.seconds));
+        .map(|timestamp| {
+            time::OffsetDateTime::from_unix_timestamp(timestamp.seconds)
+                .map(|t| t + time::Duration::nanoseconds(timestamp.nanos as i64))
+        });
+
     if let Some(utc_since) = utc_since {
         match utc_since {
             Ok(utc_since) => {

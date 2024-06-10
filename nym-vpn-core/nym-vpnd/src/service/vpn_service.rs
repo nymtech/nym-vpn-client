@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::fmt;
-use std::net::IpAddr;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -10,6 +10,7 @@ use futures::channel::{mpsc::UnboundedSender, oneshot::Receiver as OneshotReceiv
 use futures::SinkExt;
 use nym_vpn_lib::credentials::import_credential;
 use nym_vpn_lib::gateway_directory::{self, EntryPoint, ExitPoint};
+use nym_vpn_lib::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::{broadcast, oneshot};
@@ -28,12 +29,48 @@ use super::status_listener::VpnServiceStatusListener;
 pub enum VpnState {
     NotConnected,
     Connecting,
-    Connected {
-        gateway: String,
-        since: time::OffsetDateTime,
-    },
+    Connected(Box<VpnConnectedStateDetails>),
     Disconnecting,
     ConnectionFailed(ConnectionFailedError),
+}
+
+impl fmt::Display for VpnState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            VpnState::NotConnected => write!(f, "NotConnected"),
+            VpnState::Connecting => write!(f, "Connecting"),
+            VpnState::Connected(details) => write!(f, "Connected({})", details),
+            VpnState::Disconnecting => write!(f, "Disconnecting"),
+            VpnState::ConnectionFailed(reason) => write!(f, "ConnectionFailed({})", reason),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct VpnConnectedStateDetails {
+    pub nym_address: Recipient,
+    pub entry_gateway: NodeIdentity,
+    pub exit_gateway: NodeIdentity,
+    pub exit_ipr: Recipient,
+    pub ipv4: Ipv4Addr,
+    pub ipv6: Ipv6Addr,
+    pub since: time::OffsetDateTime,
+}
+
+impl fmt::Display for VpnConnectedStateDetails {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "nym_address: {}, entry_gateway: {}, exit_gateway: {}, exit_ipr: {}, ipv4: {}, ipv6: {}, since: {}",
+            self.nym_address,
+            self.entry_gateway,
+            self.exit_gateway,
+            self.exit_ipr,
+            self.ipv4,
+            self.ipv6,
+            self.since
+        )
+    }
 }
 
 #[allow(clippy::large_enum_variant)]
@@ -110,12 +147,70 @@ impl VpnServiceDisconnectResult {
 pub enum VpnServiceStatusResult {
     NotConnected,
     Connecting,
-    Connected {
-        entry_gateway: String,
-        since: time::OffsetDateTime,
-    },
+    Connected(Box<ConnectedResultDetails>),
     Disconnecting,
     ConnectionFailed(ConnectionFailedError),
+}
+
+impl fmt::Display for VpnServiceStatusResult {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            VpnServiceStatusResult::NotConnected => write!(f, "NotConnected"),
+            VpnServiceStatusResult::Connecting => write!(f, "Connecting"),
+            VpnServiceStatusResult::Connected(details) => write!(f, "Connected({})", details),
+            VpnServiceStatusResult::Disconnecting => write!(f, "Disconnecting"),
+            VpnServiceStatusResult::ConnectionFailed(reason) => {
+                write!(f, "ConnectionFailed({})", reason)
+            }
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct ConnectedResultDetails {
+    pub nym_address: Recipient,
+    pub entry_gateway: NodeIdentity,
+    pub exit_gateway: NodeIdentity,
+    pub exit_ipr: Recipient,
+    pub ipv4: Ipv4Addr,
+    pub ipv6: Ipv6Addr,
+    pub since: time::OffsetDateTime,
+}
+
+impl fmt::Display for ConnectedResultDetails {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "nym_address: {}, entry_gateway: {}, exit_gateway: {}, exit_ipr: {}, ipv4: {}, ipv6: {}, since: {}",
+            self.nym_address,
+            self.entry_gateway,
+            self.exit_gateway,
+            self.exit_ipr,
+            self.ipv4,
+            self.ipv6,
+            self.since
+        )
+    }
+}
+
+impl From<VpnConnectedStateDetails> for ConnectedResultDetails {
+    fn from(details: VpnConnectedStateDetails) -> Self {
+        ConnectedResultDetails {
+            nym_address: details.nym_address,
+            entry_gateway: details.entry_gateway,
+            exit_gateway: details.exit_gateway,
+            exit_ipr: details.exit_ipr,
+            ipv4: details.ipv4,
+            ipv6: details.ipv6,
+            since: details.since,
+        }
+    }
+}
+
+impl From<Box<VpnConnectedStateDetails>> for Box<ConnectedResultDetails> {
+    fn from(details: Box<VpnConnectedStateDetails>) -> Self {
+        Box::new((*details).into())
+    }
 }
 
 impl VpnServiceStatusResult {
@@ -132,10 +227,7 @@ impl From<VpnState> for VpnServiceStatusResult {
         match state {
             VpnState::NotConnected => VpnServiceStatusResult::NotConnected,
             VpnState::Connecting => VpnServiceStatusResult::Connecting,
-            VpnState::Connected { gateway, since } => VpnServiceStatusResult::Connected {
-                entry_gateway: gateway,
-                since,
-            },
+            VpnState::Connected(details) => VpnServiceStatusResult::Connected(details.into()),
             VpnState::Disconnecting => VpnServiceStatusResult::Disconnecting,
             VpnState::ConnectionFailed(reason) => VpnServiceStatusResult::ConnectionFailed(reason),
         }
@@ -187,7 +279,7 @@ impl SharedVpnState {
     }
 
     pub(super) fn set(&self, state: VpnState) {
-        info!("VPN: Setting shared state to {:?}", state);
+        info!("VPN: Setting shared state to {}", state);
         *self.shared_vpn_state.lock().unwrap() = state.clone();
         self.vpn_state_changes_tx.send(state.into()).ok();
     }

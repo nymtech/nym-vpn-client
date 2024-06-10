@@ -79,7 +79,7 @@ impl CommandInterfaceConnectionHandler {
         info!("Sent status command to VPN");
         info!("Waiting for response");
         let status = rx.await.unwrap();
-        info!("VPN status: {:?}", status);
+        info!("VPN status: {}", status);
         status
     }
 
