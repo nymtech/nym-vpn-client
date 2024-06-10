@@ -3,8 +3,14 @@
 
 use futures::StreamExt;
 use nym_vpn_lib::connection_monitor::ConnectionMonitorStatus;
-use nym_vpn_proto::{ConnectionStatus, ConnectionStatusUpdate};
+use nym_vpn_proto::{
+    connection_status_update::StatusType, ConnectionStatus, ConnectionStatusUpdate,
+};
 use tracing::{debug, info};
+
+use super::proto_status_update::{
+    status_update_from_monitor_status, status_update_from_task_status,
+};
 
 pub(super) struct ConnectionStatusBroadcaster {
     status_tx: tokio::sync::broadcast::Sender<ConnectionStatusUpdate>,
@@ -29,32 +35,22 @@ impl ConnectionStatusBroadcaster {
                     "Broadcasting connection status update: {:?}",
                     ConnectionStatus::Connected as i32
                 );
-                self.status_tx
-                    .send(ConnectionStatusUpdate {
-                        message: message.to_string(),
-                    })
-                    .ok();
             }
             nym_vpn_lib::TaskStatus::ReadyWithGateway(ref gateway) => {
                 info!(
                     "Broadcasting connection status update ({gateway}): {:?}",
                     ConnectionStatus::Connected as i32
                 );
-                self.status_tx
-                    .send(ConnectionStatusUpdate {
-                        message: message.to_string(),
-                    })
-                    .ok();
             }
         }
+        self.status_tx
+            .send(status_update_from_task_status(message))
+            .ok();
     }
 
     fn handle_connection_monitor_status(&self, message: &ConnectionMonitorStatus) {
-        // TODO: match on the message and send appropriate status
         self.status_tx
-            .send(ConnectionStatusUpdate {
-                message: message.to_string(),
-            })
+            .send(status_update_from_monitor_status(message))
             .ok();
     }
 
@@ -71,7 +67,9 @@ impl ConnectionStatusBroadcaster {
             } else {
                 self.status_tx
                     .send(ConnectionStatusUpdate {
+                        kind: StatusType::Unknown as i32,
                         message: status_update.to_string(),
+                        details: Default::default(),
                     })
                     .ok();
             }
