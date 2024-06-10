@@ -7,10 +7,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -47,20 +45,19 @@ fun SurfaceSelectionGroupButton(items: List<SelectionItem>) {
 						indication = null,
 					) {
 						it.onClick()
-					}.fillMaxWidth()
-					.width(360.dp.scaledWidth())
-					.height(it.height.dp.scaledHeight())
-					.padding(vertical = 8.dp.scaledHeight()),
+					}
+					.fillMaxWidth(),
 			) {
 				Row(
 					verticalAlignment = Alignment.CenterVertically,
-					horizontalArrangement = Arrangement.SpaceBetween,
-					modifier = Modifier.fillMaxWidth(),
+					modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp.scaledHeight()),
 				) {
 					Row(
 						verticalAlignment = Alignment.CenterVertically,
-						horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth()),
-						modifier = Modifier.padding(start = 16.dp.scaledWidth()),
+						modifier = Modifier
+							.padding(start = 16.dp.scaledWidth())
+							.weight(4f, false)
+							.fillMaxWidth(),
 					) {
 						it.leadingIcon?.let { icon ->
 							Icon(
@@ -72,17 +69,23 @@ fun SurfaceSelectionGroupButton(items: List<SelectionItem>) {
 						Column(
 							horizontalAlignment = Alignment.Start,
 							verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
-							modifier = Modifier.width(236.dp.scaledWidth()),
+							modifier = Modifier
+								.fillMaxWidth()
+								.padding(start = if (it.leadingIcon != null) 16.dp.scaledWidth() else 0.dp)
+								.padding(vertical = if (it.description == null) 16.dp.scaledHeight() else 6.dp.scaledHeight()),
 						) {
 							it.title()
-							it.description?.let { it() }
+							it.description?.let {
+								it()
+							}
 						}
 					}
 					it.trailing?.let {
 						Box(
 							contentAlignment = Alignment.CenterEnd,
 							modifier = Modifier
-								.padding(start = 16.dp.scaledWidth(), end = 24.dp.scaledWidth()),
+								.padding(end = 24.dp.scaledWidth(), start = 16.dp.scaledWidth())
+								.weight(1f),
 						) {
 							it()
 						}
@@ -90,11 +93,13 @@ fun SurfaceSelectionGroupButton(items: List<SelectionItem>) {
 						?: Box(
 							contentAlignment = Alignment.CenterEnd,
 							modifier = Modifier
-								.padding(start = 16.dp.scaledWidth(), end = 12.dp.scaledWidth()),
+								.padding(end = 12.dp.scaledWidth())
+								.weight(1f),
 						) {
+							val icon = ImageVector.vectorResource(R.drawable.link_arrow_right)
 							Icon(
-								ImageVector.vectorResource(R.drawable.link_arrow_right),
-								"arrow",
+								icon,
+								icon.name,
 								Modifier.size(
 									iconSize,
 								),
