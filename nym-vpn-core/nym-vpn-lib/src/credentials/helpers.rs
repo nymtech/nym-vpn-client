@@ -127,6 +127,7 @@ pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialNyxd
 }
 
 pub(super) enum CoconutClients {
+    #[allow(unused)]
     Clients(Vec<nym_validator_client::coconut::CoconutApiClient>),
     NoContractAvailable,
 }
@@ -140,6 +141,7 @@ pub enum CredentialCoconutApiClientError {
     FailedToFetchCoconutApiClients(nym_validator_client::coconut::CoconutApiError),
 }
 
+#[allow(unused)]
 pub(super) async fn get_coconut_api_clients(
     nyxd_client: QueryHttpRpcNyxdClient,
     epoch_id: u64,

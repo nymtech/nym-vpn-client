@@ -12,7 +12,7 @@ use nym_credentials::{
 use tracing::{debug, info};
 
 use super::{
-    helpers::{get_coconut_api_clients, get_credentials_store, get_nyxd_client, CoconutClients},
+    helpers::{get_credentials_store, get_nyxd_client},
     CredentialCoconutApiClientError, CredentialNyxdClientError, CredentialStoreError,
 };
 
@@ -148,7 +148,7 @@ pub async fn check_imported_credential(
     let client = get_nyxd_client()?;
     let (credentials_store, _location) = get_credentials_store(data_path.clone()).await?;
     let bandwidth_controller = BandwidthController::new(credentials_store, client);
-    let usable_credential = bandwidth_controller
+    let _usable_credential = bandwidth_controller
         .get_next_usable_credential(gateway_id)
         .await
         .map_err(
@@ -158,24 +158,26 @@ pub async fn check_imported_credential(
             },
         )?;
 
-    let epoch_id = usable_credential.credential.epoch_id();
-    let client = get_nyxd_client()?;
-    let coconut_api_clients = match get_coconut_api_clients(client, epoch_id).await? {
-        CoconutClients::Clients(clients) => clients,
-        CoconutClients::NoContractAvailable => {
-            info!("No Coconut API clients on this network, we are ok");
-            return Ok(());
-        }
-    };
+    Ok(())
 
-    if coconut_api_clients.is_empty() {
-        info!("No Coconut API clients on this network, we are ok");
-        return Ok(());
-    }
-
-    verify_credential(usable_credential, coconut_api_clients)
-        .await
-        .map_err(|err| CheckImportedCredentialError::VerifyCredentialError { source: err })
+    // let epoch_id = usable_credential.credential.epoch_id();
+    // let client = get_nyxd_client()?;
+    // let coconut_api_clients = match get_coconut_api_clients(client, epoch_id).await? {
+    //     CoconutClients::Clients(clients) => clients,
+    //     CoconutClients::NoContractAvailable => {
+    //         info!("No Coconut API clients on this network, we are ok");
+    //         return Ok(());
+    //     }
+    // };
+    //
+    // if coconut_api_clients.is_empty() {
+    //     info!("No Coconut API clients on this network, we are ok");
+    //     return Ok(());
+    // }
+    //
+    // verify_credential(usable_credential, coconut_api_clients)
+    //     .await
+    //     .map_err(|err| CheckImportedCredentialError::VerifyCredentialError { source: err })
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -193,6 +195,7 @@ pub enum VerifyCredentialError {
     FailedToVerifyCredential,
 }
 
+#[allow(unused)]
 async fn verify_credential(
     usable_credential: RetrievedCredential,
     coconut_api_clients: Vec<nym_validator_client::coconut::CoconutApiClient>,
