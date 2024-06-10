@@ -3,7 +3,7 @@
 
 use clap::{Args, Parser, Subcommand};
 use ipnetwork::{Ipv4Network, Ipv6Network};
-use nym_vpn_lib::{nym_bin_common::bin_info_local_vergen, wg_gateway_client::WgConfig};
+use nym_vpn_lib::nym_bin_common::bin_info_local_vergen;
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,
@@ -53,21 +53,8 @@ pub(crate) struct RunArgs {
     pub(crate) exit: CliExit,
 
     /// Enable the wireguard traffic between the client and the entry gateway.
-    #[arg(
-        long,
-        default_value_t = false,
-        requires = "entry_private_key",
-        requires = "exit_private_key"
-    )]
+    #[arg(long, default_value_t = false)]
     pub(crate) enable_wireguard: bool,
-
-    /// Associated entry private key.
-    #[arg(long, requires = "enable_wireguard")]
-    pub(crate) entry_private_key: Option<String>,
-
-    /// Associated exit private key.
-    #[arg(long, requires = "enable_wireguard")]
-    pub(crate) exit_private_key: Option<String>,
 
     /// The IPv4 address of the nym TUN device that wraps IP packets in sphinx packets.
     #[arg(long, alias = "ipv4", value_parser = validate_ipv4, requires = "nym_ipv6")]
@@ -185,16 +172,6 @@ fn validate_ipv6(ip: &str) -> Result<Ipv6Addr, String> {
         return Err("IPv6 address cannot be 2001:db8:a160::1".to_string());
     }
     Ok(ip)
-}
-
-pub fn wg_override_from_env(args: &RunArgs, mut config: WgConfig) -> WgConfig {
-    if let Some(ref private_key) = args.entry_private_key {
-        config = config.with_local_entry_private_key(private_key.clone());
-    }
-    if let Some(ref private_key) = args.exit_private_key {
-        config = config.with_local_exit_private_key(private_key.clone());
-    }
-    config
 }
 
 fn check_path(path: &str) -> Result<PathBuf, String> {

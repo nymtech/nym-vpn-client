@@ -17,6 +17,7 @@ use nym_gateway_directory::{
     GatewayClient, GatewayQueryResult, IpPacketRouterAddress, LookupGateway, NodeIdentity,
 };
 use nym_task::TaskManager;
+use rand::rngs::OsRng;
 use talpid_core::dns::DnsMonitor;
 use talpid_core::firewall::Firewall;
 use talpid_routing::RouteManager;
@@ -111,20 +112,9 @@ async fn setup_wg_tunnel(
     entry_gateway_id: NodeIdentity,
     exit_gateway_id: NodeIdentity,
 ) -> Result<AllTunnelsSetup> {
-    let wg_entry_gateway_client = WgGatewayClient::new(
-        nym_vpn
-            .vpn_config
-            .wg_gateway_config
-            .local_entry_private_key
-            .as_ref(),
-    )?;
-    let wg_exit_gateway_client = WgGatewayClient::new(
-        nym_vpn
-            .vpn_config
-            .wg_gateway_config
-            .local_exit_private_key
-            .as_ref(),
-    )?;
+    let mut rng = OsRng;
+    let wg_entry_gateway_client = WgGatewayClient::new(&mut rng);
+    let wg_exit_gateway_client = WgGatewayClient::new(&mut rng);
     log::info!("Created wg gateway client");
     // MTU is computed as (MTU of wire interface) - ((IP header size) + (UDP header size) + (WireGuard metadata size))
     // The IP header size is 20 for IPv4 and 40 for IPv6
@@ -140,11 +130,6 @@ async fn setup_wg_tunnel(
         &gateway_directory_client,
         &wg_entry_gateway_client,
         &entry_gateway_id.to_base58_string(),
-        nym_vpn
-            .vpn_config
-            .entry_private_key
-            .as_ref()
-            .expect("clap should enforce value when wireguard enabled"),
         entry_mtu,
     )
     .await?;
@@ -152,11 +137,6 @@ async fn setup_wg_tunnel(
         &gateway_directory_client,
         &wg_exit_gateway_client,
         &exit_gateway_id.to_base58_string(),
-        nym_vpn
-            .vpn_config
-            .exit_private_key
-            .as_ref()
-            .expect("clap should enforce value when wireguard enabled"),
         exit_mtu,
     )
     .await?;

@@ -7,7 +7,7 @@ use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::util::{handle_interrupt, wait_for_interrupt};
-use crate::wg_gateway_client::{WgConfig, WgGatewayClient};
+use crate::wg_gateway_client::WgGatewayClient;
 use futures::channel::{mpsc, oneshot};
 use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
@@ -69,7 +69,6 @@ async fn init_wireguard_config(
     gateway_client: &GatewayClient,
     wg_gateway_client: &WgGatewayClient,
     entry_gateway_identity: &str,
-    wireguard_private_key: &str,
     mtu: u16,
 ) -> Result<WireguardConfig> {
     // First we need to register with the gateway to setup keys and IP assignment
@@ -82,7 +81,8 @@ async fn init_wireguard_config(
         .await?;
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
-    let wireguard_config = WireguardConfig::init(wireguard_private_key, &wg_gateway_data, mtu)?;
+    let wireguard_config =
+        WireguardConfig::init(wg_gateway_client.keypair(), &wg_gateway_data, mtu)?;
     Ok(wireguard_config)
 }
 
@@ -105,15 +105,6 @@ pub struct MixnetVpn {
 }
 
 pub struct WireguardVpn {
-    /// Wireguard Gateway configuration
-    pub wg_gateway_config: WgConfig,
-
-    /// Associated entry private key.
-    pub entry_private_key: Option<String>,
-
-    /// Associated exit private key.
-    pub exit_private_key: Option<String>,
-
     /// The IP address of the entry wireguard interface.
     pub entry_wg_ip: Option<Ipv4Addr>,
 
@@ -214,9 +205,6 @@ impl NymVpn<WireguardVpn> {
             disable_routing: false,
             enable_two_hop: false,
             vpn_config: WireguardVpn {
-                wg_gateway_config: WgConfig::default(),
-                entry_private_key: None,
-                exit_private_key: None,
                 entry_wg_ip: None,
                 exit_wg_ip: None,
             },
