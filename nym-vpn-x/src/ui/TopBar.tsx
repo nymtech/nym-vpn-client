@@ -1,4 +1,11 @@
-import { ReactNode, isValidElement, useEffect, useMemo, useState } from 'react';
+import {
+  ReactNode,
+  isValidElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
@@ -15,7 +22,7 @@ type NavLocation = {
   handleLeftNav?: () => void;
   rightIcon?: string;
   handleRightNav?: () => void;
-  hidden?: boolean;
+  noBackground?: boolean;
 };
 
 type NavBarData = {
@@ -27,7 +34,7 @@ export default function TopBar() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const { uiTheme } = useMainState();
+  const { uiTheme, os } = useMainState();
 
   const [currentNavLocation, setCurrentNavLocation] = useState<NavLocation>({
     title: '',
@@ -37,26 +44,34 @@ export default function TopBar() {
     },
   });
 
+  const getMainScreenTitle = useCallback(() => {
+    if (os === 'windows' || os === 'macos') {
+      // we don't show the logo since the native window-bar already shows it
+      return null;
+    }
+    return uiTheme === 'Light' ? (
+      <NymVpnTextLogoLight className="w-28 h-4" />
+    ) : (
+      <NymVpnTextLogoDark className="w-28 h-4" />
+    );
+  }, [uiTheme, os]);
+
   const navBarData = useMemo<NavBarData>(() => {
     return {
       '/': {
-        title:
-          uiTheme === 'Light' ? (
-            <NymVpnTextLogoLight className="w-28 h-4" />
-          ) : (
-            <NymVpnTextLogoDark className="w-28 h-4" />
-          ),
+        title: getMainScreenTitle(),
         rightIcon: 'settings',
         handleRightNav: () => {
           navigate(routes.settings);
         },
+        noBackground: os === 'windows' || os === 'macos',
       },
       '/credential': {
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
         },
-        hidden: true,
+        noBackground: true,
       },
       '/settings': {
         title: t('settings'),
@@ -146,7 +161,7 @@ export default function TopBar() {
       '/hideout': {},
       '/hideout/welcome': {},
     };
-  }, [t, navigate, uiTheme]);
+  }, [t, navigate, os, getMainScreenTitle]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);
@@ -175,8 +190,7 @@ export default function TopBar() {
         'flex flex-row flex-nowrap justify-between items-center shrink-0',
         'text-baltic-sea dark:text-mercury-pinkish',
         'h-16 text-xl shadow z-50 select-none cursor-default',
-        // hide the Topbar on credential page
-        currentNavLocation.hidden
+        currentNavLocation.noBackground
           ? 'shadow-none dark:bg-baltic-sea bg-blanc-nacre'
           : 'dark:bg-baltic-sea-jaguar bg-white',
       ])}

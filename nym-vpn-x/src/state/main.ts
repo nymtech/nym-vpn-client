@@ -14,6 +14,7 @@ import {
   DaemonStatus,
   NodeHop,
   NodeLocation,
+  OsType,
   ThemeMode,
   UiTheme,
   VpnMode,
@@ -59,7 +60,8 @@ export type StateAction =
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
   | { type: 'set-window-size'; size: WindowSize }
   | { type: 'set-entry-countries-error'; payload: AppError | null }
-  | { type: 'set-exit-countries-error'; payload: AppError | null };
+  | { type: 'set-exit-countries-error'; payload: AppError | null }
+  | { type: 'set-os'; os: OsType };
 
 export const initialState: AppState = {
   initialized: false,
@@ -89,6 +91,7 @@ export const initialState: AppState = {
   codeDepsJs: [],
   fetchEntryCountries: async () => {},
   fetchExitCountries: async () => {},
+  os: 'unknown',
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -118,6 +121,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         vpnMode: action.mode,
+      };
+    case 'set-os':
+      return {
+        ...state,
+        os: action.os,
       };
     case 'set-entry-selector':
       return {
