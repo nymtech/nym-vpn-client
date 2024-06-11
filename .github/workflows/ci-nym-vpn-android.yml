@@ -23,6 +23,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: gradle
 
       - name: Install unzip
         run: sudo apt-get update && sudo apt-get install -y unzip
@@ -35,5 +36,6 @@ jobs:
 
       - name: Run ktlint
         run: ./gradlew ktlintCheck
+
       - name: Run detekt
         run: ./gradlew detekt --info
