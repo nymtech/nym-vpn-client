@@ -29,7 +29,7 @@ jobs:
     secrets: inherit
 
   generate-build-info-desktop:
-    uses: ./.github/workflows/generate-build-info-core.yml
+    uses: ./.github/workflows/generate-build-info-desktop.yml
     needs: build-nym-vpn-desktop-linux
     with:
       build-profile: release
@@ -40,7 +40,7 @@ jobs:
       - build-nym-vpn-desktop-linux
       - build-nym-vpn-desktop-mac
       - build-nym-vpn-desktop-windows
-      - generate-build-info
+      - generate-build-info-desktop
     runs-on: ubuntu-22.04-arc
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}

@@ -14,8 +14,10 @@ source "$(dirname "$0")/common.sh"
 
 TAG_BASE_NAME=nym-vpn-core
 PACKAGES=(nym-vpn-lib nym-vpn-cli nym-vpnd nym-vpnc)
+DIRNAME=nym-vpn-core
 
 cargo_version_bump() {
+    cd $DIRNAME
     local package_flags=""
     for PACKAGE in "${PACKAGES[@]}"; do
         package_flags+=" -p $PACKAGE"
@@ -24,9 +26,11 @@ cargo_version_bump() {
     echo "Running in dry-run mode: $command --dry-run"
     $command --dry-run
     ask_for_confirmation "$command"
+    cd ..
 }
 
 assert_same_versions() {
+    cd $DIRNAME
     local first_version=$(cargo get package.version --entry="${PACKAGES[0]}")
     for PACKAGE in "${PACKAGES[@]}"; do
         local version=$(cargo get package.version --entry="$PACKAGE")
@@ -36,9 +40,11 @@ assert_same_versions() {
         fi
     done
     echo "All packages have the same version: $first_version"
+    cd ..
 }
 
 tag_release() {
+    cd $DIRNAME
     local version=$(cargo get package.version --entry="${PACKAGES[0]}")
     local tag_name="$TAG_BASE_NAME-v$version"
     echo "New version: $version, prepared tag: $tag_name"
@@ -47,7 +53,7 @@ tag_release() {
 
 main() {
     check_unstaged_changes
-    confirm_nym_vpn_core_directory
+    confirm_root_directory
     cargo_version_bump
     assert_same_versions
     tag_release
