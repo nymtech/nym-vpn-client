@@ -5742,7 +5742,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-desktop"
-version = "0.1.5"
+version = "0.1.6-dev"
 dependencies = [
  "anyhow",
  "build-info",
@@ -5774,7 +5774,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib"
-version = "0.1.6"
+version = "0.1.7-dev"
 dependencies = [
  "android_logger",
  "anyhow",
