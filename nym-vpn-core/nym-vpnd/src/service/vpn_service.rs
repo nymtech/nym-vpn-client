@@ -124,6 +124,7 @@ impl VpnServiceConnectResult {
 #[derive(Debug)]
 pub struct VpnServiceConnectHandle {
     pub listener_vpn_status_rx: nym_vpn_lib::StatusReceiver,
+    #[allow(unused)]
     pub listener_vpn_exit_rx: OneshotReceiver<nym_vpn_lib::NymVpnExitStatusMessage>,
 }
 
