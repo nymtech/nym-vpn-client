@@ -95,6 +95,10 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
     return appWindow.onResized(
       _.debounce<EventCallback<PhysicalSize>>(
         ({ payload }) => {
+          if (payload.width === 0 || payload.height === 0) {
+            // that happens when window is minimized
+            return;
+          }
           if (
             payload.width !== state.windowSize?.width ||
             payload.height !== state.windowSize?.height
