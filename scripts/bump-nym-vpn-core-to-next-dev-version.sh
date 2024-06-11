@@ -9,6 +9,7 @@ source "$(dirname "$0")/common.sh"
 
 TAG_BASE_NAME="nym-vpn-core"
 PACKAGES=(nym-vpn-lib nym-vpn-cli nym-vpnd nym-vpnc)
+DIRNAME="nym-vpn-core"
 
 get_current_version() {
     echo "$(cargo get package.version --entry="${PACKAGES[0]}")"
@@ -33,7 +34,8 @@ run_cargo_set_version() {
 
 main() {
     check_unstaged_changes
-    confirm_nym_vpn_core_directory
+    confirm_root_directory
+    cd $DIRNAME
     local version=$(get_current_version)
     local next_version=$(increment_version "$version")
 
