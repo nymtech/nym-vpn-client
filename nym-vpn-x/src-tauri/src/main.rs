@@ -190,7 +190,8 @@ async fn main() -> Result<()> {
                 info!("starting vpn status watch");
                 loop {
                     if c_grpc.refresh_vpn_status(&handle).await.is_ok() {
-                        c_grpc.watch_vpn_status(&handle).await.ok();
+                        c_grpc.watch_vpn_state(&handle).await.ok();
+                        c_grpc.watch_vpn_status().await.ok();
                     }
                     sleep(VPND_RETRY_INTERVAL).await;
                     debug!("vpn status watch retry");

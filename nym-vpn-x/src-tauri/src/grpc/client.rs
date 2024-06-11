@@ -17,7 +17,7 @@ use time::OffsetDateTime;
 use tokio::sync::mpsc;
 use tonic::transport::Endpoint as TonicEndpoint;
 use tonic::{transport::Channel, Request};
-use tracing::{debug, error, info, instrument, warn};
+use tracing::{debug, error, info, instrument, trace, warn};
 use ts_rs::TS;
 
 use crate::cli::Cli;
@@ -175,9 +175,9 @@ impl GrpcClient {
         Ok(())
     }
 
-    /// Watch VPN status updates
+    /// Watch VPN state updates
     #[instrument(skip_all)]
-    pub async fn watch_vpn_status(&self, app: &AppHandle) -> Result<()> {
+    pub async fn watch_vpn_state(&self, app: &AppHandle) -> Result<()> {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(Empty {});
@@ -186,6 +186,55 @@ impl GrpcClient {
             .await
             .inspect_err(|e| {
                 error!("listen_to_connection_state_changes failed: {}", e);
+            })?
+            .into_inner();
+
+        let (tx, mut rx) = mpsc::channel(32);
+        tokio::spawn(async move {
+            loop {
+                match stream.message().await {
+                    Ok(Some(update)) => {
+                        tx.send(update).await.unwrap();
+                    }
+                    Ok(None) => {
+                        warn!("watch vpn state stream closed by the server");
+                        return;
+                    }
+                    Err(e) => {
+                        warn!("watch vpn state stream get a grpc error: {}", e);
+                    }
+                }
+            }
+        });
+
+        while let Some(state) = rx.recv().await {
+            debug!("vpn state update {:?}", state.status());
+            if let Some(e) = state.error.as_ref() {
+                warn!("vpn status error: {}", e.message);
+            }
+            vpn_status::update(
+                app,
+                ConnectionState::from(state.status()),
+                state.error.map(BackendError::from),
+                None,
+            )
+            .await?;
+        }
+
+        Ok(())
+    }
+
+    /// Watch VPN status updates
+    #[instrument(skip_all)]
+    pub async fn watch_vpn_status(&self) -> Result<()> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(Empty {});
+        let mut stream = vpnd
+            .listen_to_connection_status(request)
+            .await
+            .inspect_err(|e| {
+                error!("listen_to_connection_status failed: {}", e);
             })?
             .into_inner();
 
@@ -208,17 +257,15 @@ impl GrpcClient {
         });
 
         while let Some(status) = rx.recv().await {
-            debug!("vpn status update {:?}", status.status());
-            if let Some(e) = status.error.as_ref() {
-                warn!("vpn status error: {}", e.message);
+            // TODO handle status updates
+            debug!(
+                "vpn status update {:?}, {:?}",
+                status.kind(),
+                status.message
+            );
+            if !status.details.is_empty() {
+                trace!("vpn status details: {:?}", status.details);
             }
-            vpn_status::update(
-                app,
-                ConnectionState::from(status.status()),
-                status.error.map(BackendError::from),
-                None,
-            )
-            .await?;
         }
 
         Ok(())
