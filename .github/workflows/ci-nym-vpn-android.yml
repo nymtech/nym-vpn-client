@@ -23,12 +23,9 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: gradle
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
       - name: Run ktlint
-        uses: Raul6469/android-gradle-action@2.0.0
-        with:
-          script: ktlintCheck
+        run: ./gradlew ktlintCheck
       - name: Run detekt
-        uses: Raul6469/android-gradle-action@2.0.0
-        with:
-          script: detekt --info
+        run: ./gradlew detekt --info
