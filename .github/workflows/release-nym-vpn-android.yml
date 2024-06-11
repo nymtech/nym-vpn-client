@@ -22,10 +22,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-      SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-      SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-      SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+      SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+      SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+      SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+      SENTRY_DSN: ${{ secrets.ANDROID_SENTRY_DSN }}
       KEY_STORE_FILE: 'android_keystore.jks'
       KEY_STORE_LOCATION: ${{ github.workspace }}/app/keystore/
 
@@ -74,7 +74,7 @@ jobs:
         with:
           fileName: ${{ env.KEY_STORE_FILE }}
           fileDir: ${{ env.KEY_STORE_LOCATION }}
-          encodedString: ${{ secrets.KEYSTORE }}
+          encodedString: ${{ secrets.ANDROID_KEYSTORE }}
 
       # create keystore path for gradle to read
       - name: Create keystore path env var
@@ -86,7 +86,7 @@ jobs:
       - name: Create service_account.json
         working-directory: nym-vpn-android
         id: createServiceAccount
-        run: echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' > service_account.json
+        run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
       # Build and sign APK ("-x test" argument is used to skip tests)
       - name: Build Release APK
@@ -160,7 +160,7 @@ jobs:
       - name: Repository Dispatch for my F-Droid repo
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.ANDROID_PAT }}
           repository: nymtech/fdroid
           event-type: fdroid-update
       - name: Deploy with fastlane
