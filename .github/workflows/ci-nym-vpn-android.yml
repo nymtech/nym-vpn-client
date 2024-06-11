@@ -23,6 +23,8 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+      - name: Install unzip
+        run: sudo apt-get update && sudo apt-get install -y unzip
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
       - name: Run ktlint
