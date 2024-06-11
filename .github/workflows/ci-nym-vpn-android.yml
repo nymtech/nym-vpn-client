@@ -9,6 +9,9 @@ on:
 jobs:
   check:
     runs-on: ubuntu-22.04-arc
+    defaults:
+      run:
+        working-directory: nym-vpn-android
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,12 +25,10 @@ jobs:
           java-version: '17'
           cache: gradle
       - name: Run ktlint
-        working-directory: nym-vpn-android
         uses: Raul6469/android-gradle-action@2.0.0
         with:
           script: ktlintCheck
       - name: Run detekt
-        working-directory: nym-vpn-android
         uses: Raul6469/android-gradle-action@2.0.0
         with:
           script: detekt --info
