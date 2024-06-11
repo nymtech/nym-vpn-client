@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-desktop"
-version = "0.1.5-dev"
+version = "0.1.5"
 description = "Nym VPN Desktop Client"
 authors = [
     "pierre <dommerc.pierre@gmail.com>",
