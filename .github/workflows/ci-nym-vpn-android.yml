@@ -8,7 +8,10 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-arc
+    defaults:
+      run:
+        working-directory: nym-vpn-android
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,14 +24,21 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
           cache: gradle
-      - name: Grant execute permission for gradlew
-        working-directory: nym-vpn-android
-        run: chmod +x gradlew
+
+      - name: Install unzip
+        run: sudo apt-get update && sudo apt-get install -y unzip
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        run: sdkmanager "ndk;26.3.11579264"
+
       - name: Run ktlint
-        working-directory: nym-vpn-android
-        run: |
-          ./gradlew ktlintCheck
+        run: ./gradlew ktlintCheck
+
       - name: Run detekt
-        working-directory: nym-vpn-android
-        run: |
-          ./gradlew detekt --info
+        run: ./gradlew detekt --info
+
+  build-nym-vpn-android:
+    uses: ./.github/workflows/build-nym-vpn-android.yml
