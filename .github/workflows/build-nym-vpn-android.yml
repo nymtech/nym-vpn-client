@@ -1,0 +1,104 @@
+name: build-nym-vpn-android
+on: [workflow_dispatch, workflow_call]
+
+env:
+  SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+  SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+  SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+  SENTRY_DSN: ${{ secrets.ANDROID_SENTRY_DSN }}
+  KEY_STORE_FILE: 'android_keystore.jks'
+  KEY_STORE_LOCATION: ${{ github.workspace }}/app/keystore/
+  UPLOAD_DIR_ANDROID_APK: android_apk
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04-arc
+    defaults:
+      run:
+        working-directory: nym-vpn-android
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: gradle
+
+      - name: Install unzip
+        run: sudo apt-get update && sudo apt-get install -y unzip
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Android SDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25c
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      # Native build dependencies
+      - name: Setup Go
+        uses: actions/setup-go@v5
+
+      - name: Add rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add all targets
+        run: |
+          rustup target add \
+            aarch64-linux-android \
+            x86_64-linux-android \
+            i686-linux-android
+
+      - name: Add cargo-ndk
+        run: |
+          cargo install cargo-ndk
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+
+      - name: Install deps
+        run: |
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
+      # Here we need to decode keystore.jks from base64 string and place it
+      # in the folder specified in the release signing configuration
+      - name: Decode Keystore
+        id: decode_keystore
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: ${{ env.KEY_STORE_FILE }}
+          fileDir: ${{ env.KEY_STORE_LOCATION }}
+          encodedString: ${{ secrets.ANDROID_KEYSTORE }}
+
+      # create keystore path for gradle to read
+      - name: Create keystore path env var
+        run: |
+          store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
+          echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
+
+      - name: Create service_account.json
+        id: createServiceAccount
+        run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
+
+      - name: Build Release APK
+        run: ./gradlew :app:assembleRelease --stacktrace
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+      - name: Get apk path
+        id: apk-path
+        run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/release/.*\.apk$' -type f | head -1)" >> $GITHUB_OUTPUT
+
+      - name: Move things around to prepare for upload
+        run: |
+          mkdir ${{ env.UPLOAD_DIR_ANDROID_APK }}
+          cp -vpr ${{ steps.apk-path.outputs.path }} ${{ env.UPLOAD_DIR_ANDROID_APK }}
+
+      - name: Upload apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_ANDROID_APK }}
+          path: ${{ env.UPLOAD_DIR_ANDROID_APK }}
+          retention-days: 1

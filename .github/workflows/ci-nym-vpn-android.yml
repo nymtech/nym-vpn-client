@@ -39,3 +39,6 @@ jobs:
 
       - name: Run detekt
         run: ./gradlew detekt --info
+
+  build-nym-vpn-android:
+    uses: ./.github/workflows/build-nym-vpn-android.yml
