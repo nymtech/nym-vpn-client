@@ -11,6 +11,7 @@ use tracing::{debug, instrument, trace, warn};
 use crate::{
     grpc::client::GrpcClient,
     states::{app::ConnectionState, SharedAppState},
+    MAIN_WINDOW_LABEL,
 };
 
 #[derive(AsRefStr, Debug)]
@@ -30,7 +31,7 @@ pub fn systray(id: &str) -> SystemTray {
 }
 
 fn show_window(app: &AppHandle, toggle: bool) -> Result<()> {
-    let window = app.get_window("main").unwrap_or_else(|| {
+    let window = app.get_window(MAIN_WINDOW_LABEL).unwrap_or_else(|| {
         debug!("main window not found, re-creating it");
         tauri::WindowBuilder::from_config(app, app.config().tauri.windows.first().unwrap().clone())
             .build()

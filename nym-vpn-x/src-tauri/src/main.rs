@@ -42,6 +42,7 @@ mod vpn_status;
 mod window;
 
 pub const APP_DIR: &str = "nymvpn-x";
+pub const MAIN_WINDOW_LABEL: &str = "main";
 const APP_CONFIG_FILE: &str = "config.toml";
 const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
@@ -140,7 +141,9 @@ async fn main() -> Result<()> {
             let window_size = db.get_typed::<WindowSize>(Key::WindowSize)?;
             if let Some(s) = window_size {
                 debug!("restoring window size: {:?}", s);
-                let main_win = app.get_window("main").expect("failed to get main window");
+                let main_win = app
+                    .get_window(MAIN_WINDOW_LABEL)
+                    .expect("failed to get main window");
                 main_win
                     .set_size(s)
                     .inspect_err(|e| error!("failed to set window size {}", e))?;
@@ -153,7 +156,9 @@ async fn main() -> Result<()> {
             // the main window without waiting for frontend signal
             if cli.nosplash || env_nosplash {
                 debug!("splash screen disabled, showing main window");
-                let main_win = app.get_window("main").expect("failed to get main window");
+                let main_win = app
+                    .get_window(MAIN_WINDOW_LABEL)
+                    .expect("failed to get main window");
                 main_win
                     .eval("document.getElementById('splash').remove();")
                     .expect("failed to remove splash screen");
@@ -222,7 +227,7 @@ async fn main() -> Result<()> {
         .on_window_event(|event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event.event() {
                 let win = event.window();
-                if win.label() == "main" {
+                if win.label() == MAIN_WINDOW_LABEL {
                     win.hide()
                         .inspect_err(|e| error!("failed to hide main window: {e}"))
                         .ok();
