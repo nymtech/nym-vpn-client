@@ -1,14 +1,5 @@
 name: release-nym-vpn-android-play
 
-env:
-  SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
-  SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-  SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
-  SENTRY_DSN: ${{ secrets.ANDROID_SENTRY_DSN }}
-  KEY_STORE_FILE: 'android_keystore.jks'
-  KEY_STORE_LOCATION: ${{ github.workspace }}/app/keystore/
-  UPLOAD_DIR_ANDROID_APK: android_apk
-
 on:
   schedule:
     - cron: "4 3 * * *"

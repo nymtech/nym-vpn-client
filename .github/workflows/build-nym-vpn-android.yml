@@ -1,18 +1,17 @@
 name: build-nym-vpn-android
 on: [workflow_dispatch, workflow_call]
 
-env:
-  SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
-  SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-  SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
-  SENTRY_DSN: ${{ secrets.ANDROID_SENTRY_DSN }}
-  KEY_STORE_FILE: 'android_keystore.jks'
-  KEY_STORE_LOCATION: ${{ github.workspace }}/app/keystore/
-  UPLOAD_DIR_ANDROID_APK: android_apk
-
 jobs:
   build:
     runs-on: ubuntu-22.04-arc
+    env:
+      SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+      SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+      SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+      SENTRY_DSN: ${{ secrets.ANDROID_SENTRY_DSN }}
+      KEY_STORE_FILE: 'android_keystore.jks'
+      KEY_STORE_LOCATION: ${{ github.workspace }}/nym-vpn-android/app/keystore/
+      UPLOAD_DIR_ANDROID_APK: android_apk
     defaults:
       run:
         working-directory: nym-vpn-android
@@ -65,6 +64,7 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
+
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
       - name: Decode Keystore
