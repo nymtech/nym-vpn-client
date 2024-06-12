@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use anyhow::{anyhow, Result};
 use strum::AsRefStr;
 use tauri::{
     AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
@@ -10,6 +11,7 @@ use tracing::{debug, instrument, trace, warn};
 use crate::{
     grpc::client::GrpcClient,
     states::{app::ConnectionState, SharedAppState},
+    MAIN_WINDOW_LABEL,
 };
 
 #[derive(AsRefStr, Debug)]
@@ -28,6 +30,55 @@ pub fn systray(id: &str) -> SystemTray {
     SystemTray::new().with_id(id).with_menu(tray_menu)
 }
 
+fn show_window(app: &AppHandle, toggle: bool) -> Result<()> {
+    let window = app
+        .get_window(MAIN_WINDOW_LABEL)
+        .or_else(|| {
+            debug!("main window not found, re-creating it");
+            tauri::WindowBuilder::from_config(
+                app,
+                app.config().tauri.windows.first().unwrap().clone(),
+            )
+            .build()
+            .inspect_err(|e| warn!("failed to create main window: {e}"))
+            .ok()
+        })
+        .ok_or(anyhow!("failed to get the main window"))?;
+    let is_visible = window.is_visible().ok().unwrap_or(false);
+    let is_minimized = window.is_minimized().unwrap_or(false);
+    if !is_visible {
+        trace!("showing main window");
+        window
+            .show()
+            .inspect_err(|e| warn!("failed to show main window: {e}"))
+            .ok();
+        return window
+            .set_focus()
+            .inspect_err(|e| warn!("failed to focus main window: {e}"))
+            .map_err(|e| e.into());
+    }
+    if is_visible && !is_minimized && toggle {
+        trace!("hiding main window");
+        return window
+            .hide()
+            .inspect_err(|e| warn!("failed to hide main window: {e}"))
+            .map_err(|e| e.into());
+    }
+
+    if is_minimized {
+        trace!("unminimizing main window");
+        window
+            .unminimize()
+            .inspect_err(|e| warn!("failed to unminimize main window: {e}"))
+            .ok();
+        return window
+            .set_focus()
+            .inspect_err(|e| warn!("failed to focus main window: {e}"))
+            .map_err(|e| e.into());
+    }
+    Ok(())
+}
+
 #[instrument(skip_all)]
 pub async fn on_tray_event(app: &AppHandle, event: SystemTrayEvent) {
     let state = app.state::<SharedAppState>();
@@ -39,6 +90,7 @@ pub async fn on_tray_event(app: &AppHandle, event: SystemTrayEvent) {
             ..
         } => {
             trace!("event left click");
+            show_window(app, false).ok();
         }
         SystemTrayEvent::RightClick {
             position: _,
@@ -66,32 +118,7 @@ pub async fn on_tray_event(app: &AppHandle, event: SystemTrayEvent) {
             }
             "ShowHide" => {
                 trace!("event ShowHide");
-                let window = app.get_window("main").unwrap_or_else(|| {
-                    debug!("main window not found, re-creating it");
-                    tauri::WindowBuilder::from_config(
-                        app,
-                        app.config().tauri.windows.first().unwrap().clone(),
-                    )
-                    .build()
-                    .unwrap()
-                });
-                if window.is_visible().ok().unwrap_or(false) {
-                    trace!("hiding main window");
-                    window
-                        .hide()
-                        .inspect_err(|e| warn!("failed to hide main window: {e}"))
-                        .ok();
-                } else {
-                    trace!("showing main window");
-                    window
-                        .show()
-                        .inspect_err(|e| warn!("failed to show main window: {e}"))
-                        .ok();
-                    window
-                        .set_focus()
-                        .inspect_err(|e| warn!("failed to focus main window: {e}"))
-                        .ok();
-                }
+                show_window(app, true).ok();
             }
             _ => {}
         },
