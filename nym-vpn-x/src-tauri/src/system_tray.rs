@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use strum::AsRefStr;
 use tauri::{
     AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
@@ -31,12 +31,19 @@ pub fn systray(id: &str) -> SystemTray {
 }
 
 fn show_window(app: &AppHandle, toggle: bool) -> Result<()> {
-    let window = app.get_window(MAIN_WINDOW_LABEL).unwrap_or_else(|| {
-        debug!("main window not found, re-creating it");
-        tauri::WindowBuilder::from_config(app, app.config().tauri.windows.first().unwrap().clone())
+    let window = app
+        .get_window(MAIN_WINDOW_LABEL)
+        .or_else(|| {
+            debug!("main window not found, re-creating it");
+            tauri::WindowBuilder::from_config(
+                app,
+                app.config().tauri.windows.first().unwrap().clone(),
+            )
             .build()
-            .unwrap()
-    });
+            .inspect_err(|e| warn!("failed to create main window: {e}"))
+            .ok()
+        })
+        .ok_or(anyhow!("failed to get the main window"))?;
     let is_visible = window.is_visible().ok().unwrap_or(false);
     let is_minimized = window.is_minimized().unwrap_or(false);
     if !is_visible {
