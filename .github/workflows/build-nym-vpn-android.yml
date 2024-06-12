@@ -43,6 +43,8 @@ jobs:
       # Native build dependencies
       - name: Setup Go
         uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
 
       - name: Add rust stable toolchain
         uses: dtolnay/rust-toolchain@stable
