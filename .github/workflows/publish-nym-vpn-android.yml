@@ -1,4 +1,4 @@
-name: release-nym-vpn-android-play
+name: publish-nym-vpn-android
 
 on:
   schedule:
@@ -19,7 +19,7 @@ on:
       tag_name:
         description: "Tag name for release"
         required: false
-        default: nightly-vpn-android
+        default: nightly-android
       release_type:
         type: choice
         description: "GitHub release type"
@@ -33,12 +33,14 @@ on:
   push:
     tags:
       - 'nym-vpn-android-v*.*.*'
+env:
+  UPLOAD_DIR_ANDROID: android_artifacts
 
 jobs:
-
   build-nym-vpn-android:
     if: ${{ inputs.release_type != 'none' }}
     uses: ./.github/workflows/build-nym-vpn-android.yml
+    secrets: inherit
 
   publish-github:
     if: ${{ inputs.release_type != 'none' }}
@@ -48,16 +50,32 @@ jobs:
     defaults:
       run:
         working-directory: nym-vpn-android
+    env:
+      # GH needed for gh cli
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            nym-vpn-android
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update && sudo apt install -y gettext-base gh zip
+
       - name: Get version code
         run: |
-          version_code=$(grep "VERSION_CODE" buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
+          version_code=$(grep "VERSION_CODE" ${{ github.workspace }}/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
 
       - name: Set version release notes
         run: |
-          release_notes=$(cat ${{ github.workspace }}/fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt)
-          echo "RELEASE_NOTES=$release_notes" >> $GITHUB_ENV
+          RELEASE_NOTES="$(cat ${{ github.workspace }}/nym-vpn-android/fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt)"
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+          echo "$RELEASE_NOTES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       # Setup TAG_NAME, which is used as a general "name"
       - if: github.event_name == 'workflow_dispatch'
@@ -65,14 +83,23 @@ jobs:
       - if: github.event_name == 'schedule'
         run: |
           echo "TAG_NAME=nightly-android" >> $GITHUB_ENV
-          echo "RELEASE_NOTES=Nightly build of the latest development version of the android client." >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
-      - name: Delete old nightly
+      - name: On nightly release
         if: ${{ contains(env.TAG_NAME, 'nightly') }}
         run: |
+          echo "RELEASE_NOTES=Nightly build of the latest development version of the android client." >> $GITHUB_ENV
           gh release delete nightly-android --yes || true
+
+      - name: Make download dir
+        run: mkdir ${{ github.workspace }}/temp
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_ANDROID }}
+          path: ${{ github.workspace }}/temp
 
       - name: Create release with fastlane changelog notes
         id: create_release
@@ -87,7 +114,7 @@ jobs:
           make_latest: ${{ inputs.release_type == 'release' }}
           prerelease: ${{ inputs.release_type == 'prerelease' || inputs.release_type == '' }}
           files: |
-            ${{ github.workspace }}/${{ env.UPLOAD_DIR_ANDROID_APK }}
+            ${{ github.workspace }}/temp/*
 
       - name: Dispatch update for fdroid repo
         if: inputs.release_type == 'release'

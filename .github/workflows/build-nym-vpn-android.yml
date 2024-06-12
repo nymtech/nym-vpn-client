@@ -1,6 +1,19 @@
 name: build-nym-vpn-android
 on:
   workflow_dispatch:
+    secrets:
+      ANDROID_SIGNING_KEY_ALIAS:
+        required: true
+      ANDROID_SIGNING_KEY_PASSWORD:
+        required: true
+      ANDROID_SIGNING_STORE_PASSWORD:
+        required: true
+      ANDROID_SENTRY_DSN:
+        required: true
+      ANDROID_SERVICE_ACCOUNT_JSON:
+        required: true
+      ANDROID_KEYSTORE:
+        required: true
   workflow_call:
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
@@ -15,6 +28,8 @@ on:
         required: true
       ANDROID_KEYSTORE:
         required: true
+env:
+  UPLOAD_DIR_ANDROID: android_artifacts
 
 jobs:
   build:
@@ -26,10 +41,11 @@ jobs:
       SENTRY_DSN: ${{ secrets.ANDROID_SENTRY_DSN }}
       KEY_STORE_FILE: 'android_keystore.jks'
       KEY_STORE_LOCATION: ${{ github.workspace }}/nym-vpn-android/app/keystore/
-      UPLOAD_DIR_ANDROID_APK: android_apk
     defaults:
       run:
         working-directory: nym-vpn-android
+    outputs:
+      UPLOAD_DIR_ANDROID: ${{ env.UPLOAD_DIR_ANDROID }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,6 +65,7 @@ jobs:
 
       - name: Setup Android SDK
         uses: nttld/setup-ndk@v1
+        id: setup-ndk
         with:
           ndk-version: r25c
 
@@ -73,8 +90,6 @@ jobs:
       - name: Add cargo-ndk
         run: |
           cargo install cargo-ndk
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
 
       - name: Install deps
         run: |
@@ -104,18 +119,14 @@ jobs:
         run: ./gradlew :app:assembleRelease --stacktrace
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
       - name: Get apk path
         id: apk-path
-        run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/release/.*\.apk$' -type f | head -1)" >> $GITHUB_OUTPUT
-
-      - name: Move things around to prepare for upload
-        run: |
-          mkdir ${{ env.UPLOAD_DIR_ANDROID_APK }}
-          cp -vpr ${{ steps.apk-path.outputs.path }} ${{ env.UPLOAD_DIR_ANDROID_APK }}
+        run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/release/.*\.apk$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
 
       - name: Upload apk
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.UPLOAD_DIR_ANDROID_APK }}
-          path: ${{ env.UPLOAD_DIR_ANDROID_APK }}
+          name: ${{ env.UPLOAD_DIR_ANDROID }}
+          path: ${{github.workspace}}/nym-vpn-android${{ steps.apk-path.outputs.path }}
           retention-days: 1

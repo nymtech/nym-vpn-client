@@ -62,8 +62,6 @@ android {
 	buildFeatures {
 		buildConfig = true
 	}
-
-	ndkVersion = sdkDirectory.resolve("ndk").listFilesOrdered().last().name
 }
 
 dependencies {
@@ -87,9 +85,7 @@ dependencies {
 }
 
 tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
-	val ndkPath =
-		android.sdkDirectory.resolve("ndk").listFilesOrdered().last().path
-			?: System.getenv("ANDROID_NDK_HOME")
+	val ndkPath = android.sdkDirectory.resolve("ndk").listFilesOrdered().lastOrNull()?.path ?: System.getenv("ANDROID_NDK_HOME")
 	commandLine("echo", "NDK HOME: $ndkPath")
 	val script = "${projectDir.path}/src/main/scripts/build-libs.sh"
 	// TODO find a better way to limit builds
