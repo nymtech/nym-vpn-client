@@ -31,12 +31,6 @@ enum ListenerType {
     Uri(#[allow(unused)] SocketAddr),
 }
 
-#[derive(Default)]
-pub(crate) struct CommandInterfaceOptions {
-    pub(crate) disable_socket_listener: bool,
-    pub(crate) enable_http_listener: bool,
-}
-
 pub(super) struct CommandInterface {
     // Listen to state changes from the VPN service
     vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,

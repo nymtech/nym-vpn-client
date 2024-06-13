@@ -52,6 +52,12 @@ pub(crate) struct Command {
     pub(crate) run_as_service: bool,
 }
 
+impl Command {
+    pub(crate) fn is_any(&self) -> bool {
+        self.install || self.uninstall || self.start || self.run_as_service
+    }
+}
+
 fn check_path(path: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(path);
     if !path.exists() {

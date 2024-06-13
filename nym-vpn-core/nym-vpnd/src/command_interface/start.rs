@@ -14,7 +14,7 @@ use tracing::{debug, debug_span, error, info, info_span, trace, trace_span, Span
 
 use super::{
     config::{default_socket_path, default_uri_addr},
-    listener::{CommandInterface, CommandInterfaceOptions},
+    listener::CommandInterface,
     socket_stream::setup_socket_stream,
 };
 use crate::service::{VpnServiceCommand, VpnServiceStateChange};
@@ -99,10 +99,15 @@ fn spawn_socket_listener(
     });
 }
 
+#[derive(Default)]
+pub(crate) struct CommandInterfaceOptions {
+    pub(crate) disable_socket_listener: bool,
+    pub(crate) enable_http_listener: bool,
+}
+
 pub(crate) fn start_command_interface(
     vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     mut task_manager: TaskManager,
-    // args: &CliArgs,
     command_interface_options: Option<CommandInterfaceOptions>,
     mut event_rx: tokio::sync::mpsc::UnboundedReceiver<()>,
 ) -> (

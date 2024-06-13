@@ -1,6 +1,18 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use clap::Parser;
+use nym_task::TaskManager;
+use nym_vpn_lib::nym_config::defaults::setup_env;
+use tokio::sync::broadcast;
+
+use crate::{
+    cli::CliArgs,
+    command_interface::{start_command_interface, CommandInterfaceOptions},
+    logging::setup_logging,
+    service::start_vpn_service,
+};
+
 mod cli;
 mod command_interface;
 mod logging;
@@ -8,44 +20,27 @@ mod service;
 #[cfg(windows)]
 mod win_service;
 
-fn run_inner() -> Result<(), Box<dyn std::error::Error>> {
-    use clap::Parser;
-    use nym_task::TaskManager;
-    use nym_vpn_lib::nym_config::defaults::setup_env;
-    use tokio::sync::broadcast;
-
-    use crate::{
-        cli::CliArgs,
-        command_interface::{start_command_interface, CommandInterfaceOptions},
-        logging::setup_logging,
-        service::start_vpn_service,
-    };
-
-    setup_logging();
-    let args = CliArgs::parse();
-    setup_env(args.config_env_file.as_ref());
-
+fn run_inner(args: CliArgs) -> Result<(), Box<dyn std::error::Error>> {
     let task_manager = TaskManager::new(10).named("nym_vpnd");
     let service_task_client = task_manager.subscribe_named("vpn_service");
 
     let state_changes_tx = broadcast::channel(10).0;
 
+    // Channels used to send events from the OS system handler (windows service, dbus etc)
+    let (_event_tx, event_rx) = tokio::sync::mpsc::unbounded_channel();
+
     // The idea here for explicly starting two separate runtimes is to make sure they are properly
     // separated. Looking ahead a little ideally it would be nice to be able for the command
     // interface to be able to forcefully terminate the vpn if needed.
-
-    let command_interface_options = CommandInterfaceOptions {
-        disable_socket_listener: args.disable_socket_listener,
-        enable_http_listener: args.enable_http_listener,
-    };
-
-    let (_event_tx, event_rx) = tokio::sync::mpsc::unbounded_channel();
 
     // Start the command interface that listens for commands from the outside
     let (command_handle, vpn_command_rx) = start_command_interface(
         state_changes_tx.subscribe(),
         task_manager,
-        Some(command_interface_options),
+        Some(CommandInterfaceOptions {
+            disable_socket_listener: args.disable_socket_listener,
+            enable_http_listener: args.enable_http_listener,
+        }),
         event_rx,
     );
 
@@ -60,25 +55,23 @@ fn run_inner() -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(unix)]
 fn run() -> Result<(), Box<dyn std::error::Error>> {
-    run_inner()
+    setup_logging();
+    let args = CliArgs::parse();
+    setup_env(args.config_env_file.as_ref());
+
+    run_inner(args)
 }
 
 #[cfg(windows)]
 fn run() -> Result<(), Box<dyn std::error::Error>> {
-    // TODO: either run_inner or service
-    let service = true;
-    if service {
-        use clap::Parser;
-        use nym_vpn_lib::nym_config::defaults::setup_env;
+    let args = CliArgs::parse();
+    setup_env(args.config_env_file.as_ref());
 
-        use crate::cli::CliArgs;
-
-        // setup_logging();
-        let args = CliArgs::parse();
-        setup_env(args.config_env_file.as_ref());
+    if args.command.is_any() {
         Ok(win_service::start(args)?)
     } else {
-        run_inner()
+        setup_logging();
+        run_inner(args)
     }
 }
 

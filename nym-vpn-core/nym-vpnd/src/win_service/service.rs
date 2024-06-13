@@ -13,7 +13,7 @@ use windows_service::service_control_handler::{self, ServiceControlHandlerResult
 use windows_service::service_dispatcher;
 
 use crate::cli::CliArgs;
-use crate::command_interface::{start_command_interface, CommandInterfaceOptions};
+use crate::command_interface::start_command_interface;
 // use crate::service::start_vpn_service;
 
 use super::install;
@@ -62,18 +62,9 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
     // separated. Looking ahead a little ideally it would be nice to be able for the command
     // interface to be able to forcefully terminate the vpn if needed.
 
-    let command_interface_options = CommandInterfaceOptions {
-        disable_socket_listener: false,
-        enable_http_listener: false,
-    };
-
     // Start the command interface that listens for commands from the outside
-    let (command_handle, _vpn_command_rx) = start_command_interface(
-        state_changes_tx.subscribe(),
-        task_manager,
-        Some(command_interface_options),
-        event_rx,
-    );
+    let (command_handle, _vpn_command_rx) =
+        start_command_interface(state_changes_tx.subscribe(), task_manager, None, event_rx);
 
     // Start the VPN service that wraps the actual VPN
     // let vpn_handle = start_vpn_service(state_changes_tx, vpn_command_rx, service_task_client);
@@ -144,7 +135,6 @@ pub(super) fn get_service_info() -> ServiceInfo {
     }
 }
 
-// fn main() -> Result<(), windows_service::Error> {
 pub(crate) fn start(args: CliArgs) -> Result<(), windows_service::Error> {
     if args.command.install {
         println!(
@@ -170,11 +160,13 @@ pub(crate) fn start(args: CliArgs) -> Result<(), windows_service::Error> {
         return Ok(());
     }
 
-    println!("Configuring logging source...");
-    eventlog::init(SERVICE_DISPLAY_NAME, log::Level::Info).unwrap();
+    if args.command.run_as_service {
+        println!("Configuring logging source...");
+        eventlog::init(SERVICE_DISPLAY_NAME, log::Level::Info).unwrap();
 
-    // Register generated `ffi_service_main` with the system and start the service, blocking
-    // this thread until the service is stopped.
-    service_dispatcher::start(SERVICE_NAME, ffi_service_main)?;
+        // Register generated `ffi_service_main` with the system and start the service, blocking
+        // this thread until the service is stopped.
+        service_dispatcher::start(SERVICE_NAME, ffi_service_main)?;
+    }
     Ok(())
 }
