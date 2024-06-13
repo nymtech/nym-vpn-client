@@ -52,6 +52,7 @@ pub(crate) struct Command {
     pub(crate) run_as_service: bool,
 }
 
+#[cfg(windows)]
 impl Command {
     pub(crate) fn is_any(&self) -> bool {
         self.install || self.uninstall || self.start || self.run_as_service
