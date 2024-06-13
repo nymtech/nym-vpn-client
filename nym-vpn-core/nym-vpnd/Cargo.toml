@@ -9,7 +9,6 @@ documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
-
 [dependencies]
 anyhow.workspace = true
 clap.workspace = true
@@ -32,6 +31,10 @@ tonic.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
 log.workspace = true
+
+tower-http = { version = "0.5.2", features = ["cors"] }
+axum = { version = "0.7.4" }
+axum-server = { version = "0.6.0", features = ["tls-rustls"] }
 
 # match the version required by tonic
 http = "0.2.12"

@@ -14,7 +14,9 @@ fn run_inner() -> Result<(), Box<dyn std::error::Error>> {
     use tokio::sync::broadcast;
 
     use crate::{
-        cli::CliArgs, command_interface::start_command_interface, logging::setup_logging,
+        cli::CliArgs,
+        command_interface::{start_command_interface, CommandInterfaceOptions},
+        logging::setup_logging,
         service::start_vpn_service,
     };
 
@@ -31,9 +33,20 @@ fn run_inner() -> Result<(), Box<dyn std::error::Error>> {
     // separated. Looking ahead a little ideally it would be nice to be able for the command
     // interface to be able to forcefully terminate the vpn if needed.
 
+    let command_interface_options = CommandInterfaceOptions {
+        disable_socket_listener: args.disable_socket_listener,
+        enable_http_listener: args.enable_http_listener,
+    };
+
+    let (_event_tx, event_rx) = tokio::sync::mpsc::unbounded_channel();
+
     // Start the command interface that listens for commands from the outside
-    let (command_handle, vpn_command_rx) =
-        start_command_interface(state_changes_tx.subscribe(), task_manager, &args);
+    let (command_handle, vpn_command_rx) = start_command_interface(
+        state_changes_tx.subscribe(),
+        task_manager,
+        Some(command_interface_options),
+        event_rx,
+    );
 
     // Start the VPN service that wraps the actual VPN
     let vpn_handle = start_vpn_service(state_changes_tx, vpn_command_rx, service_task_client);
@@ -57,9 +70,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         use clap::Parser;
         use nym_vpn_lib::nym_config::defaults::setup_env;
 
-        use crate::{cli::CliArgs, logging::setup_logging};
+        use crate::cli::CliArgs;
 
-        setup_logging();
+        // setup_logging();
         let args = CliArgs::parse();
         setup_env(args.config_env_file.as_ref());
         Ok(win_service::start(args)?)

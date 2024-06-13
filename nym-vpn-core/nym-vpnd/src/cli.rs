@@ -45,6 +45,9 @@ pub(crate) struct Command {
 
     #[arg(long)]
     pub(crate) start: bool,
+
+    #[arg(long)]
+    pub(crate) run_as_service: bool,
 }
 
 fn check_path(path: &str) -> Result<PathBuf, String> {
