@@ -5,8 +5,9 @@ mod cli;
 mod command_interface;
 mod logging;
 mod service;
+mod win_service;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn run_inner() -> Result<(), Box<dyn std::error::Error>> {
     use clap::Parser;
     use nym_task::TaskManager;
     use nym_vpn_lib::nym_config::defaults::setup_env;
@@ -41,4 +42,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     command_handle.join().unwrap();
 
     Ok(())
+}
+
+#[cfg(unix)]
+fn run() -> Result<(), Box<dyn std::error::Error>> {
+    run_inner()
+}
+
+#[cfg(windows)]
+fn run() -> Result<(), Box<dyn std::error::Error>> {
+    // TODO: either run_inner or service
+    let service = true;
+    if service {
+        use clap::Parser;
+        use nym_vpn_lib::nym_config::defaults::setup_env;
+
+        use crate::{cli::CliArgs, logging::setup_logging};
+
+        setup_logging();
+        let args = CliArgs::parse();
+        setup_env(args.config_env_file.as_ref());
+        Ok(win_service::start(args)?)
+    } else {
+        run_inner()
+    }
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    run()
 }
