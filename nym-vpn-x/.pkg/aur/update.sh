@@ -49,10 +49,13 @@ sed -i "s/pkgver=.*/pkgver=$PKGVER/" "$PKGBUILD"
 echo " ✓ bump package version to $PKGVER"
 
 if [ -n "$PKGREL" ]; then
+  # ⚠ on new package version, pkgrel must be reset to 1
   sed -i "s/pkgrel=.*/pkgrel=$PKGREL/" "$PKGBUILD"
   echo " ✓ bump package rel to $PKGREL"
 fi
 
+# ⚠ order is important and should match the order of sources array
+# declared in the PKGBUILD
 sources=("$tarball" '.pkg/aur/nymvpn-x-wrapper.sh' '.pkg/aur/nymvpn-x.desktop' '.pkg/aur/nymvpn-x.svg')
 sums=()
 
