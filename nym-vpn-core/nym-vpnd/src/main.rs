@@ -5,6 +5,7 @@ mod cli;
 mod command_interface;
 mod logging;
 mod service;
+#[cfg(windows)]
 mod win_service;
 
 fn run_inner() -> Result<(), Box<dyn std::error::Error>> {
