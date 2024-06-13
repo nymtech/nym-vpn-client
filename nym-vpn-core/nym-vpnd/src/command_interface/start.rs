@@ -118,7 +118,6 @@ pub(crate) fn start_command_interface(
     // Channel to send commands to the vpn service
     let (vpn_command_tx, vpn_command_rx) = tokio::sync::mpsc::unbounded_channel();
 
-    // let args = args.clone();
     let command_interface_options = command_interface_options.unwrap_or_default();
     let socket_path = default_socket_path();
     let uri_addr = default_uri_addr();
@@ -133,7 +132,6 @@ pub(crate) fn start_command_interface(
             .unwrap();
 
         command_rt.block_on(async move {
-            // if !args.disable_socket_listener {
             if !command_interface_options.disable_socket_listener {
                 spawn_socket_listener(
                     vpn_state_changes_rx.resubscribe(),
@@ -142,7 +140,6 @@ pub(crate) fn start_command_interface(
                 );
             }
 
-            // if args.enable_http_listener {
             if command_interface_options.enable_http_listener {
                 spawn_uri_listener(vpn_state_changes_rx, vpn_command_tx.clone(), uri_addr);
             }
