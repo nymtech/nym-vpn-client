@@ -1,2 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="settings">Configurações</string>
+    <string name="connected">Conectado</string>
+    <string name="disconnected">Desconectado</string>
+    <string name="disconnecting">Desconectando</string>
+    <string name="connecting">Conectando</string>
+    <string name="first_hop">Primeiro salto</string>
+    <string name="last_hop">Último salto</string>
+    <string name="connect">Conectar</string>
+    <string name="disconnect">Desconectar</string>
+    <string name="init_client">Iniciando cliente…</string>
+    <string name="app_name">NymVPN</string>
+    <string name="two_hop_description">Melhor para pesquisar, trasmitir, compartilhar</string>
+</resources>
