@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - "nym-vpn-core/**"
+      - ".github/workflows/ci-nym-vpn-core.yml"
   workflow_dispatch:
 
 env:
@@ -217,5 +218,5 @@ jobs:
         run: |
           cargo clippy --target aarch64-apple-ios -p nym-vpn-lib -- -Dwarnings
 
-  build-nym-vpn-android:
-    uses: ./.github/workflows/build-nym-vpn-android.yml
+  # build-nym-vpn-android:
+  #   uses: ./.github/workflows/build-nym-vpn-android.yml

@@ -3,10 +3,9 @@ name: ci-nym-vpn-desktop-rust
 on:
   workflow_dispatch:
   pull_request:
-    paths-ignore:
-      - "nym-vpn-x/**"
-      - "nym-vpn-apple/**"
-      - "nym-vpn-android/**"
+    paths:
+      - "nym-vpn-core/**"
+      - "nym-vpn-desktop/**"
 
 env:
   CARGO_TERM_COLOR: always
