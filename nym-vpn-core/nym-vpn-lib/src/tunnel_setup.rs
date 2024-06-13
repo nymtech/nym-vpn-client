@@ -11,7 +11,7 @@ use crate::{
     init_wireguard_config, MixnetExitConnectionInfo, MixnetVpn, SpecificVpn, WireguardVpn,
 };
 use crate::{routing, MixnetConnectionInfo, NymVpn};
-use futures::channel::oneshot;
+use futures::channel::{mpsc, oneshot};
 use futures::StreamExt;
 use ipnetwork::IpNetwork;
 use log::*;
@@ -23,7 +23,7 @@ use rand::rngs::OsRng;
 use talpid_core::dns::DnsMonitor;
 use talpid_core::firewall::Firewall;
 use talpid_routing::RouteManager;
-use talpid_tunnel::TunnelEvent;
+use talpid_tunnel::{TunnelEvent, TunnelMetadata};
 use tap::TapFallible;
 
 pub struct TunnelSetup<T: TunnelSpecifcSetup> {
@@ -108,6 +108,24 @@ async fn init_firewall_dns(
     }
 }
 
+async fn wait_interface_up(
+    mut event_rx: mpsc::UnboundedReceiver<(TunnelEvent, oneshot::Sender<()>)>,
+) -> Result<TunnelMetadata> {
+    loop {
+        match event_rx.next().await {
+            Some((TunnelEvent::InterfaceUp(_, _), _)) => {
+                continue;
+            }
+            Some((TunnelEvent::Up(metadata), _)) => {
+                break Ok(metadata);
+            }
+            Some((TunnelEvent::AuthFailed(_), _)) | Some((TunnelEvent::Down, _)) | None => {
+                return Err(Error::BadWireguardEvent);
+            }
+        }
+    }
+}
+
 async fn setup_wg_tunnel(
     nym_vpn: &mut NymVpn<WireguardVpn>,
     route_manager: RouteManager,
@@ -153,12 +171,17 @@ async fn setup_wg_tunnel(
                 .collect::<Vec<_>>(),
         );
     });
-    exit_wireguard_config.0.peers.iter_mut().for_each(|peer| {
-        peer.allowed_ips
-            .append(&mut replace_default_prefixes(catch_all_ipv4()));
-        peer.allowed_ips
-            .append(&mut replace_default_prefixes(catch_all_ipv6()));
-    });
+    // If routing is disabled, we don't append the catch all routing rules
+    if !nym_vpn.disable_routing {
+        exit_wireguard_config.0.peers.iter_mut().for_each(|peer| {
+            peer.allowed_ips
+                .append(&mut replace_default_prefixes(catch_all_ipv4()));
+            peer.allowed_ips
+                .append(&mut replace_default_prefixes(catch_all_ipv6()));
+        });
+    } else {
+        info!("Routing is disabled, skipping adding routes");
+    }
     info!("Entry wireguard config: \n{entry_wireguard_config}");
     info!("Exit wireguard config: \n{exit_wireguard_config}");
     let (firewall, dns_monitor) = init_firewall_dns(
@@ -167,7 +190,7 @@ async fn setup_wg_tunnel(
     )
     .await?;
     std::env::set_var("TALPID_FORCE_USERSPACE_WIREGUARD", "1");
-    let (wireguard_waiting_entry, mut event_rx) = create_wireguard_tunnel(
+    let (wireguard_waiting_entry, event_rx) = create_wireguard_tunnel(
         &route_manager,
         nym_vpn.tun_provider.clone(),
         entry_wireguard_config,
@@ -175,25 +198,24 @@ async fn setup_wg_tunnel(
     .await?;
     // Wait for entry gateway routes to be finished before moving to exit gateway routes, as the two might race if
     // started one after the other
-    loop {
-        match event_rx.next().await {
-            Some((TunnelEvent::InterfaceUp(_, _), _)) => {
-                continue;
-            }
-            Some((TunnelEvent::Up(_), _)) => {
-                break;
-            }
-            Some((TunnelEvent::AuthFailed(_), _)) | Some((TunnelEvent::Down, _)) | None => {
-                return Err(Error::BadWireguardEvent);
-            }
-        }
-    }
-    let (wireguard_waiting_exit, _) = create_wireguard_tunnel(
+    let metadata = wait_interface_up(event_rx).await?;
+    info!(
+        "Created entry tun device {device_name} with ip={device_ip:?}",
+        device_name = metadata.interface,
+        device_ip = metadata.ips
+    );
+    let (wireguard_waiting_exit, event_rx) = create_wireguard_tunnel(
         &route_manager,
         nym_vpn.tun_provider.clone(),
         exit_wireguard_config,
     )
     .await?;
+    let metadata = wait_interface_up(event_rx).await?;
+    info!(
+        "Created exit tun device {device_name} with ip={device_ip:?}",
+        device_name = metadata.interface,
+        device_ip = metadata.ips
+    );
     let entry = TunnelSetup {
         specific_setup: wireguard_waiting_entry,
     };
