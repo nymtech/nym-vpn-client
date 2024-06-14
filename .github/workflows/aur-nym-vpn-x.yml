@@ -41,7 +41,7 @@ jobs:
         id: app-version
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry="src-tauri/Cargo.toml"
+          subcommand: package.version --entry="nym-vpn-x/src-tauri/Cargo.toml"
       - name: Update PKGBUILD
         env:
           PKGVER: ${{ steps.app-version.outputs.metadata }}
