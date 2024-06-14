@@ -11,9 +11,11 @@ on:
       pkgrel:
         description: "PKGBUILD package release number"
         required: false
+        type: number
         default: 1
       publish_aur:
         description: "publish PKGBUILD changes to AUR"
+        type: boolean
         required: false
         default: true
 
@@ -47,7 +49,7 @@ jobs:
       - name: Show PKGBUILD
         run: cat "$PKGBUILD"
       - name: Publish
-        if: publish_aur == true
+        if: inputs.publish_aur == true
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
         with:
           pkgname: ${{ env.PKGNAME }}
