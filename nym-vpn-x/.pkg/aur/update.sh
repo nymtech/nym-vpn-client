@@ -37,10 +37,8 @@ if ! [ -a "$PKGBUILD" ]; then
   exit 1
 fi
 
-tarball="$RELEASE_TAG.tar.gz"
-
-if ! [ -a "$tarball" ]; then
-  >&2 echo " ✕ no such file $tarball"
+if [ -a "$TARBALL" ]; then
+  >&2 echo " ✕ no such file $TARBALL"
   exit 1
 fi
 
@@ -59,7 +57,7 @@ fi
 
 # ⚠ order is important and should match the order of sources array
 # declared in the PKGBUILD
-sources=("$tarball" '.pkg/aur/nymvpn-x-wrapper.sh' '.pkg/aur/nymvpn-x.desktop' '.pkg/aur/nymvpn-x.svg')
+sources=("$TARBALL" '.pkg/aur/nymvpn-x-wrapper.sh' '.pkg/aur/nymvpn-x.desktop' '.pkg/aur/nymvpn-x.svg')
 sums=()
 
 for file in "${sources[@]}"; do
