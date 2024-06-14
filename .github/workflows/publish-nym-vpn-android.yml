@@ -1,4 +1,4 @@
-name: release-nym-vpn-android-play
+name: publish-nym-vpn-android
 
 on:
   schedule:
@@ -19,7 +19,7 @@ on:
       tag_name:
         description: "Tag name for release"
         required: false
-        default: nightly-vpn-android
+        default: nightly-android
       release_type:
         type: choice
         description: "GitHub release type"
@@ -33,12 +33,14 @@ on:
   push:
     tags:
       - 'nym-vpn-android-v*.*.*'
+env:
+  UPLOAD_DIR_ANDROID: android_artifacts
 
 jobs:
-
   build-nym-vpn-android:
     if: ${{ inputs.release_type != 'none' }}
     uses: ./.github/workflows/build-nym-vpn-android.yml
+    secrets: inherit
 
   publish-github:
     if: ${{ inputs.release_type != 'none' }}
@@ -48,16 +50,32 @@ jobs:
     defaults:
       run:
         working-directory: nym-vpn-android
+    env:
+      # GH needed for gh cli
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            nym-vpn-android
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update && sudo apt install -y gettext-base gh zip
+
       - name: Get version code
         run: |
-          version_code=$(grep "VERSION_CODE" buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
+          version_code=$(grep "VERSION_CODE" ${{ github.workspace }}/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
 
       - name: Set version release notes
         run: |
-          release_notes=$(cat ${{ github.workspace }}/fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt)
-          echo "RELEASE_NOTES=$release_notes" >> $GITHUB_ENV
+          RELEASE_NOTES="$(cat ${{ github.workspace }}/nym-vpn-android/fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt)"
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+          echo "$RELEASE_NOTES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       # Setup TAG_NAME, which is used as a general "name"
       - if: github.event_name == 'workflow_dispatch'
@@ -65,14 +83,23 @@ jobs:
       - if: github.event_name == 'schedule'
         run: |
           echo "TAG_NAME=nightly-android" >> $GITHUB_ENV
-          echo "RELEASE_NOTES=Nightly build of the latest development version of the android client." >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
-      - name: Delete old nightly
+      - name: On nightly release
         if: ${{ contains(env.TAG_NAME, 'nightly') }}
         run: |
+          echo "RELEASE_NOTES=Nightly build of the latest development version of the android client." >> $GITHUB_ENV
           gh release delete nightly-android --yes || true
+
+      - name: Make download dir
+        run: mkdir ${{ github.workspace }}/temp
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_ANDROID }}
+          path: ${{ github.workspace }}/temp
 
       - name: Create release with fastlane changelog notes
         id: create_release
@@ -80,6 +107,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          token: ${{ env.GITHUB_TOKEN }}
           body: ${{ env.RELEASE_NOTES }}
           tag_name: ${{ env.TAG_NAME }}
           name: ${{ github.TAG_NAME}}
@@ -87,30 +115,107 @@ jobs:
           make_latest: ${{ inputs.release_type == 'release' }}
           prerelease: ${{ inputs.release_type == 'prerelease' || inputs.release_type == '' }}
           files: |
-            ${{ github.workspace }}/${{ env.UPLOAD_DIR_ANDROID_APK }}
+            ${{ github.workspace }}/temp/*
 
       - name: Dispatch update for fdroid repo
         if: inputs.release_type == 'release'
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.ANDROID_PAT }}
           repository: nymtech/fdroid
           event-type: fdroid-update
 
   publish-play:
     if: ${{ inputs.track != 'none' && inputs.track != '' }}
-    runs-on: ubuntu-22.04-arc
+    # issue here: https://github.com/ruby/setup-ruby?tab=readme-ov-file#using-self-hosted-runners
+    #runs-on: ubuntu-22.04-arc
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: nym-vpn-android
+    env:
+      SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+      SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+      SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+      SENTRY_DSN: ${{ secrets.ANDROID_SENTRY_DSN }}
+      KEY_STORE_FILE: 'android_keystore.jks'
+      KEY_STORE_LOCATION: ${{ github.workspace }}/nym-vpn-android/app/keystore/
     steps:
-      - name: Deploy with fastlane
+      - name: Setup ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: '3.2' # Not needed with a .ruby-version file
           bundler-cache: true
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: gradle
+
+      - name: Install deps
+        run: |
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Android SDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r25c
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      # Native build dependencies
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "stable"
+
+      - name: Add rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add all targets
+        run: |
+          rustup target add \
+            aarch64-linux-android \
+            x86_64-linux-android \
+            i686-linux-android
+
+      - name: Add cargo-ndk
+        run: |
+          cargo install cargo-ndk
+
+      # Here we need to decode keystore.jks from base64 string and place it
+      # in the folder specified in the release signing configuration
+      - name: Decode Keystore
+        id: decode_keystore
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: ${{ env.KEY_STORE_FILE }}
+          fileDir: ${{ env.KEY_STORE_LOCATION }}
+          encodedString: ${{ secrets.ANDROID_KEYSTORE }}
+
+      # create keystore path for gradle to read
+      - name: Create keystore path env var
+        run: |
+          store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
+          echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
+
+      - name: Create service_account.json
+        id: createServiceAccount
+        run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
+
       - name: Distribute app to fastlane track 🚀
-        run: (cd ${{ github.workspace }} && bundle install && bundle exec fastlane ${{ inputs.track }})
+        working-directory: ${{ github.workspace }}/nym-vpn-android
+        run: |
+          bundle install 
+          bundle exec fastlane ${{ inputs.track }})
       
 
 
