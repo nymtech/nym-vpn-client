@@ -35,9 +35,10 @@ jobs:
       - name: Download sources
         run: |
           curl -LfsSo "$RELEASE_TAG.tar.gz" "https://github.com/$REPOSITORY/archive/refs/tags/$RELEASE_TAG.tar.gz"
+          ls -la
           mkdir tarball
           tar -xzf "$RELEASE_TAG.tar.gz" -C tarball
-          ls -la tarball/nym-vpn-client-$RELEASE_TAG
+          ls -la
       - name: Get app version
         id: app-version
         uses: nicolaiunrein/cargo-get@master
