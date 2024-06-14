@@ -30,13 +30,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       UPDATER_BUNDLE_DIR: updater_bundle
-      APPIMAGE_DIR: appimage
+      LINUX_DIR: linux
       WINDOWS_DIR: windows
       DEB_DIR: deb
       BUILD_INFO_FILE: build-info.txt
     outputs:
       pkg_version: ${{ steps.set_env.outputs.pkg_version }}
-      appimage_dir: ${{ env.APPIMAGE_DIR }}
+      linux_dir: ${{ env.LINUX_DIR }}
       windows_dir: ${{ env.WINDOWS_DIR }}
       deb_dir: ${{ env.DEB_DIR }}
 
@@ -268,18 +268,19 @@ jobs:
           cp -vpr nym-vpn-x/src-tauri/target/${{ env.ARCH_TARGET }}/release/bundle/dmg/nymvpn-x*.dmg ${{ env.ARTIFACT_DIR }}
           tar -cvzf ${{ env.ARTIFACT_ARCHIVE }} ${{ env.ARTIFACT_DIR }}
 
-      - name: Prepare AppImage
+      - name: Prepare for upload (Linux)
         if: contains(matrix.os, 'ubuntu-22.04')
         run: |
-          mkdir $APPIMAGE_DIR
-          mv -v nym-vpn-x/src-tauri/target/release/bundle/appimage/nymvpn-x_*.AppImage $APPIMAGE_DIR/nymvpn-x_${PKG_VERSION}.AppImage
+          mkdir $LINUX_DIR
+          mv -v nym-vpn-x/src-tauri/target/release/nymvpn-x $LINUX_DIR/nymvpn-x_${PKG_VERSION}_linux_x64
+          mv -v nym-vpn-x/src-tauri/target/release/bundle/appimage/nymvpn-x_*.AppImage $LINUX_DIR/nymvpn-x_${PKG_VERSION}.AppImage
 
-      - name: Upload AppImage
+      - name: Upload Linux artifacts
         if: contains(matrix.os, 'ubuntu-22.04')
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.APPIMAGE_DIR }}
-          path: ${{ env.APPIMAGE_DIR }}
+          name: ${{ env.LINUX_DIR }}
+          path: ${{ env.LINUX_DIR }}
           retention-days: 2
 
       - name: Upload deb
@@ -340,7 +341,7 @@ jobs:
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PKG_VERSION: ${{ needs.build.outputs.pkg_version }}
-      APPIMAGE_DIR: ${{ needs.build.outputs.appimage_dir }}
+      LINUX_DIR: ${{ needs.build.outputs.linux_dir }}
       WINDOWS_DIR: ${{ needs.build.outputs.windows_dir }}
       DEB_DIR: ${{ needs.build.outputs.deb_dir }}
     permissions:
@@ -401,8 +402,9 @@ jobs:
       # published, which would just be an empty archive.
       - name: Generate checksums
         run: |
-          pushd $APPIMAGE_DIR
+          pushd $LINUX_DIR
           sha256sum nymvpn-x*.AppImage > nymvpn-x_${PKG_VERSION}.AppImage.sha256sum
+          sha256sum nymvpn-x*linux_x64 > nymvpn-x_${PKG_VERSION}_linux_x64.sha256sum
           popd
           # pushd $WINDOWS_DIR
           # sha256sum nym-vpn*.exe > nym-vpn_${PKG_VERSION}_x64-setup.exe.sha256sum
@@ -414,7 +416,7 @@ jobs:
           for file in nym-vpn-x_*tar.gz; do pushd $file; for f in nym-vpn-x_*; do sha256sum ${f} > "${f}.sha256sum"; done; popd; done
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-x_*.tar.gz/*.sha256sum >> $GITHUB_ENV
-          cat $APPIMAGE_DIR/*.sha256sum >> $GITHUB_ENV
+          cat $LINUX_DIR/*.sha256sum >> $GITHUB_ENV
           # cat $WINDOWS_DIR/*.sha256sum >> $GITHUB_ENV
           cat $DEB_DIR/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
@@ -441,8 +443,8 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $APPIMAGE_DIR/* installer/* $DEB_DIR/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $APPIMAGE_DIR/* installer/* $DEB_DIR/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $LINUX_DIR/* installer/* $DEB_DIR/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $LINUX_DIR/* installer/* $DEB_DIR/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
