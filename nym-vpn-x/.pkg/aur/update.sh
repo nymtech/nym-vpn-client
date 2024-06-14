@@ -37,8 +37,8 @@ if ! [ -a "$PKGBUILD" ]; then
   exit 1
 fi
 
-if ! [ -a "$TARBALL" ]; then
-  >&2 echo " ✕ no such file $TARBALL"
+if ! [ -a "$ARTIFACT" ]; then
+  >&2 echo " ✕ no such file $ARTIFACT"
   exit 1
 fi
 
@@ -57,7 +57,7 @@ fi
 
 # ⚠ order is important and should match the order of sources array
 # declared in the PKGBUILD
-sources=("$TARBALL" 'nymvpn-x-wrapper.sh' 'nymvpn-x.desktop' 'nymvpn-x.svg')
+sources=("$ARTIFACT" 'nymvpn-x-wrapper.sh' 'nymvpn-x.desktop' 'nymvpn-x.svg')
 sums=()
 
 for file in "${sources[@]}"; do

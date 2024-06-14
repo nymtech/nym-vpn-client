@@ -1,4 +1,4 @@
-# Publish vpn-x on AUR
+# Publish nymvpn-x on AUR
 
 name: aur-nym-vpn-x
 on:
@@ -17,36 +17,54 @@ on:
         description: "publish PKGBUILD changes to AUR"
         type: boolean
         required: false
-        default: true
+        default: false
 
 jobs:
   aur-publish:
     name: Publish package in AUR
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # bfs → build from sources
+        # bin → prebuilt
+        pkgtype: [bfs, bin]
+        include:
+          - pkgtype: bfs
+            pkgbuild: PKGBUILD
+            pkgname: nymvpn-x
+          - pkgtype: bin
+            pkgbuild: PKGBUILD-bin
+            pkgname: nymvpn-x-bin
     env:
-      PKGNAME: nymvpn-x
-      PKGBUILD: nym-vpn-x/.pkg/aur/PKGBUILD
+      PKGNAME: ${{ matrix.pkgname }}
+      PKGBUILD: nym-vpn-x/.pkg/aur/${{ matrix.pkgbuild }}
       PKGREL: ${{ inputs.pkgrel }}
       RELEASE_TAG: ${{ inputs.release_tag }}
       REPOSITORY: ${{ github.repository }}
+      TARBALL: ${{ github.workspace }}/sources.tar.gz
+      LINUX_BIN: ${{ github.workspace }}/linux-bin
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Download sources
         run: |
-          curl -LfsSo "$RELEASE_TAG.tar.gz" "https://github.com/$REPOSITORY/archive/refs/tags/$RELEASE_TAG.tar.gz"
+          curl -LfsSo sources.tar.gz "https://github.com/$REPOSITORY/archive/refs/tags/$RELEASE_TAG.tar.gz"
           mkdir tarball
-          tar -xzf "$RELEASE_TAG.tar.gz" -C tarball
+          tar -xzf sources.tar.gz -C tarball
       - name: Get app version
         id: app-version
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: package.version --entry="tarball/nym-vpn-client-${{ env.RELEASE_TAG }}/nym-vpn-x/src-tauri"
+      - name: Download prebuilt binary
+        if: matrix.pkgtype == 'bin'
+        run: |
+          curl -LfsSo linux-bin "https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/nymvpn-x_${{ steps.app-version.outputs.metadata }}_linux_x64"
       - name: Update PKGBUILD
         working-directory: nym-vpn-x/.pkg/aur
         env:
-          PKGBUILD: PKGBUILD
-          TARBALL: ${{ github.workspace }}/${{ env.RELEASE_TAG }}.tar.gz
+          PKGBUILD: ${{ matrix.pkgbuild }}
+          ARTIFACT: ${{ matrix.pkgtype == 'bfs' && env.TARBALL || env.LINUX_BIN }}
           PKGVER: ${{ steps.app-version.outputs.metadata }}
         run: ./update.sh
       - name: Show PKGBUILD
