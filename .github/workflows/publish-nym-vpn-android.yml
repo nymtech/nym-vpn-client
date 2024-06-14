@@ -156,8 +156,9 @@ jobs:
           java-version: '17'
           cache: gradle
 
-      - name: Install unzip
-        run: sudo apt-get update && sudo apt-get install -y unzip
+      - name: Install deps
+        run: |
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -190,10 +191,6 @@ jobs:
         run: |
           cargo install cargo-ndk
 
-      - name: Install deps
-        run: |
-          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
-
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
       - name: Decode Keystore
@@ -215,7 +212,10 @@ jobs:
         run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
       - name: Distribute app to fastlane track 🚀
-        run: (cd ${{ github.workspace }}/nym-vpn-android && bundle install && bundle exec fastlane ${{ inputs.track }})
+        working-directory: ${{ github.workspace }}/nym-vpn-android
+        run: |
+          bundle install 
+          bundle exec fastlane ${{ inputs.track }})
       
 
 
