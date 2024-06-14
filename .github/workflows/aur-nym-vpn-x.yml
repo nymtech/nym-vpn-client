@@ -42,7 +42,7 @@ jobs:
         id: app-version
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry="tarball/nym-vpn-client-{{ env.RELEASE_TAG }}/nym-vpn-x/src-tauri"
+          subcommand: package.version --entry="tarball/nym-vpn-client-${{ env.RELEASE_TAG }}/nym-vpn-x/src-tauri"
       - name: Update PKGBUILD
         working-directory: nym-vpn-x
         env:
