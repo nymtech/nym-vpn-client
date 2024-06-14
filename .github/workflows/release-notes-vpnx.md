@@ -10,6 +10,7 @@ Release build.
 
 - `deb` package suitable for Debian and Ubuntu
 - AppImage bundle that should be compatible with most Linux distributions
+- Prebuilt binary (x86_64)
 
 ### Mac
 

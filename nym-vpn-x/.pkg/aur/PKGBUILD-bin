@@ -12,7 +12,7 @@ makedepends=()
 optdepends=('nym-vpnd: NymVPN daemon as a systemd service')
 provides=('nymvpn-x')
 conflicts=('nymvpn-x')
-source=("$url/releases/download/nym-vpn-x-v$pkgver/nymvpn-x_$pkgver_linux_x64
+source=("$url/releases/download/nym-vpn-x-v$pkgver/nymvpn-x_$pkgver_linux_x64"
     'nymvpn-x-wrapper.sh'
     'nymvpn-x.desktop'
     'nymvpn-x.svg')
