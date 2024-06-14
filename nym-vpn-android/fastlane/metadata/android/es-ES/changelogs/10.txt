@@ -1,0 +1,4 @@
+Novedades
+- Agregar soporte para mantener encendido la VPN
+- Agregar soporte para configuración rápida
+-
