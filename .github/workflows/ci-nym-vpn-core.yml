@@ -220,3 +220,4 @@ jobs:
 
   build-nym-vpn-android:
     uses: ./.github/workflows/build-nym-vpn-android.yml
+    secrets: inherit
