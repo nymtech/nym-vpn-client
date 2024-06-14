@@ -37,7 +37,7 @@ if ! [ -a "$PKGBUILD" ]; then
   exit 1
 fi
 
-if [ -a "$TARBALL" ]; then
+if ! [ -a "$TARBALL" ]; then
   >&2 echo " ✕ no such file $TARBALL"
   exit 1
 fi
