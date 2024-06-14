@@ -44,11 +44,12 @@ jobs:
         with:
           subcommand: package.version --entry="tarball/nym-vpn-client-${{ env.RELEASE_TAG }}/nym-vpn-x/src-tauri"
       - name: Update PKGBUILD
-        working-directory: nym-vpn-x
+        working-directory: nym-vpn-x/.pkg/aur
         env:
+          PKGBUILD: PKGBUILD
           TARBALL: ${{ github.workspace }}/${{ env.RELEASE_TAG }}.tar.gz
           PKGVER: ${{ steps.app-version.outputs.metadata }}
-        run: .pkg/aur/update.sh
+        run: update.sh
       - name: Show PKGBUILD
         run: cat "$PKGBUILD"
       - name: Publish

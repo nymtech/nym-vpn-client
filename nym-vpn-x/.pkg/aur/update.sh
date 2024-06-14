@@ -57,7 +57,7 @@ fi
 
 # ⚠ order is important and should match the order of sources array
 # declared in the PKGBUILD
-sources=("$TARBALL" '.pkg/aur/nymvpn-x-wrapper.sh' '.pkg/aur/nymvpn-x.desktop' '.pkg/aur/nymvpn-x.svg')
+sources=("$TARBALL" 'nymvpn-x-wrapper.sh' 'nymvpn-x.desktop' 'nymvpn-x.svg')
 sums=()
 
 for file in "${sources[@]}"; do
