@@ -44,6 +44,9 @@ if ! [ -a "$tarball" ]; then
   exit 1
 fi
 
+# ⚠ pkgver does not allow dashes, replace any - by _
+PKGVER=${PKGVER//-/_}
+
 # bump package version
 sed -i "s/pkgver=.*/pkgver=$PKGVER/" "$PKGBUILD"
 echo " ✓ bump package version to $PKGVER"

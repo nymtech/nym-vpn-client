@@ -8,14 +8,14 @@ on:
         description: "Tag name of the release"
         required: true
         default: nym-vpn-x-v0.1.0
-      pkgver:
-        description: "PKGBUILD package version (should match the release version)"
-        required: true
-        default: 0.1.0
       pkgrel:
         description: "PKGBUILD package release number"
         required: false
         default: 1
+      publish_aur:
+        description: "publish PKGBUILD changes to AUR"
+        required: false
+        default: true
 
 jobs:
   aur-publish:
@@ -27,7 +27,6 @@ jobs:
     env:
       PKGNAME: nymvpn-x
       PKGBUILD: .pkg/aur/PKGBUILD
-      PKGVER: ${{ inputs.pkgver }}
       PKGREL: ${{ inputs.pkgrel }}
       RELEASE_TAG: ${{ inputs.release_tag }}
       REPOSITORY: ${{ github.repository }}
@@ -36,11 +35,19 @@ jobs:
         uses: actions/checkout@v4
       - name: Download sources
         run: curl -LfsSo "$RELEASE_TAG.tar.gz" "https://github.com/$REPOSITORY/archive/refs/tags/$RELEASE_TAG.tar.gz"
+      - name: Get app version
+        id: app-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry src-tauri
       - name: Update PKGBUILD
+        env:
+          PKGVER: ${{ steps.app-version.outputs.metadata }}
         run: .pkg/aur/update.sh
       - name: Show PKGBUILD
         run: cat "$PKGBUILD"
       - name: Publish
+        if: publish_aur == true
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
         with:
           pkgname: ${{ env.PKGNAME }}
