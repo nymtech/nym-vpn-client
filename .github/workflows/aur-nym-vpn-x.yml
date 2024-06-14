@@ -24,6 +24,7 @@ jobs:
     name: Publish package in AUR
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         # bfs → build from sources
         # bin → prebuilt
