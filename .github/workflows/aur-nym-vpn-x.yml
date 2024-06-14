@@ -11,9 +11,11 @@ on:
       pkgrel:
         description: "PKGBUILD package release number"
         required: false
+        type: number
         default: 1
       publish_aur:
         description: "publish PKGBUILD changes to AUR"
+        type: boolean
         required: false
         default: true
 
@@ -21,12 +23,9 @@ jobs:
   aur-publish:
     name: Publish package in AUR
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: nym-vpn-x
     env:
       PKGNAME: nymvpn-x
-      PKGBUILD: .pkg/aur/PKGBUILD
+      PKGBUILD: nym-vpn-x/.pkg/aur/PKGBUILD
       PKGREL: ${{ inputs.pkgrel }}
       RELEASE_TAG: ${{ inputs.release_tag }}
       REPOSITORY: ${{ github.repository }}
@@ -34,20 +33,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Download sources
-        run: curl -LfsSo "$RELEASE_TAG.tar.gz" "https://github.com/$REPOSITORY/archive/refs/tags/$RELEASE_TAG.tar.gz"
+        run: |
+          curl -LfsSo "$RELEASE_TAG.tar.gz" "https://github.com/$REPOSITORY/archive/refs/tags/$RELEASE_TAG.tar.gz"
+          mkdir tarball
+          tar -xzf "$RELEASE_TAG.tar.gz" -C tarball
       - name: Get app version
         id: app-version
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry src-tauri
+          subcommand: package.version --entry="tarball/nym-vpn-client-${{ env.RELEASE_TAG }}/nym-vpn-x/src-tauri"
       - name: Update PKGBUILD
+        working-directory: nym-vpn-x/.pkg/aur
         env:
+          PKGBUILD: PKGBUILD
+          TARBALL: ${{ github.workspace }}/${{ env.RELEASE_TAG }}.tar.gz
           PKGVER: ${{ steps.app-version.outputs.metadata }}
-        run: .pkg/aur/update.sh
+        run: ./update.sh
       - name: Show PKGBUILD
         run: cat "$PKGBUILD"
       - name: Publish
-        if: publish_aur == true
+        if: inputs.publish_aur == true
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
         with:
           pkgname: ${{ env.PKGNAME }}
@@ -57,7 +62,6 @@ jobs:
           ssh_private_key: ${{ secrets.AUR_SSH_KEY }}
           commit_message: ${{ inputs.release_tag }}
           assets: |
-            .pkg/aur/nymvpn-x-wrapper.sh
-            .pkg/aur/nymvpn-x.desktop
-            .pkg/aur/nymvpn-x.svg
-
+            nym-vpn-x/.pkg/aur/nymvpn-x-wrapper.sh
+            nym-vpn-x/.pkg/aur/nymvpn-x.desktop
+            nym-vpn-x/.pkg/aur/nymvpn-x.svg
