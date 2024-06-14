@@ -121,7 +121,7 @@ jobs:
         if: inputs.release_type == 'release'
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.ANDROID_PAT }}
           repository: nymtech/fdroid
           event-type: fdroid-update
 
