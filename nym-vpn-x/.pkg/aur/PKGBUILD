@@ -9,6 +9,7 @@ url='https://github.com/nymtech/nym-vpn-client'
 license=('GPL-3.0-only')
 depends=('glibc' 'gcc-libs' 'bash' 'cairo' 'pango' 'gtk3' 'webkit2gtk' 'gdk-pixbuf2' 'glib2' 'openssl' 'libsoup')
 makedepends=('rust' 'cargo' 'npm')
+optdepends=('nym-vpnd: NymVPN daemon as a systemd service')
 provides=('nymvpn-x')
 conflicts=('nymvpn-x')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/nym-vpn-x-v$pkgver.tar.gz"
