@@ -13,4 +13,4 @@ mod socket_stream;
 mod start;
 mod status_broadcaster;
 
-pub(crate) use start::start_command_interface;
+pub(crate) use start::{start_command_interface, CommandInterfaceOptions};

@@ -10,17 +10,14 @@ use tokio::sync::{
     mpsc::{UnboundedReceiver, UnboundedSender},
 };
 use tonic::transport::Server;
-use tracing::{debug, debug_span, info, info_span, trace, trace_span, Span};
+use tracing::{debug, debug_span, error, info, info_span, trace, trace_span, Span};
 
 use super::{
     config::{default_socket_path, default_uri_addr},
     listener::CommandInterface,
     socket_stream::setup_socket_stream,
 };
-use crate::{
-    cli::CliArgs,
-    service::{VpnServiceCommand, VpnServiceStateChange},
-};
+use crate::service::{VpnServiceCommand, VpnServiceStateChange};
 
 fn grpc_span(req: &http::Request<()>) -> Span {
     let service = req.uri().path().trim_start_matches('/');
@@ -102,10 +99,17 @@ fn spawn_socket_listener(
     });
 }
 
+#[derive(Default)]
+pub(crate) struct CommandInterfaceOptions {
+    pub(crate) disable_socket_listener: bool,
+    pub(crate) enable_http_listener: bool,
+}
+
 pub(crate) fn start_command_interface(
     vpn_state_changes_rx: broadcast::Receiver<VpnServiceStateChange>,
     mut task_manager: TaskManager,
-    args: &CliArgs,
+    command_interface_options: Option<CommandInterfaceOptions>,
+    mut event_rx: tokio::sync::mpsc::UnboundedReceiver<()>,
 ) -> (
     std::thread::JoinHandle<()>,
     UnboundedReceiver<VpnServiceCommand>,
@@ -114,7 +118,7 @@ pub(crate) fn start_command_interface(
     // Channel to send commands to the vpn service
     let (vpn_command_tx, vpn_command_rx) = tokio::sync::mpsc::unbounded_channel();
 
-    let args = args.clone();
+    let command_interface_options = command_interface_options.unwrap_or_default();
     let socket_path = default_socket_path();
     let uri_addr = default_uri_addr();
 
@@ -128,7 +132,7 @@ pub(crate) fn start_command_interface(
             .unwrap();
 
         command_rt.block_on(async move {
-            if !args.disable_socket_listener {
+            if !command_interface_options.disable_socket_listener {
                 spawn_socket_listener(
                     vpn_state_changes_rx.resubscribe(),
                     vpn_command_tx.clone(),
@@ -136,7 +140,7 @@ pub(crate) fn start_command_interface(
                 );
             }
 
-            if args.enable_http_listener {
+            if command_interface_options.enable_http_listener {
                 spawn_uri_listener(vpn_state_changes_rx, vpn_command_tx.clone(), uri_addr);
             }
 
@@ -163,7 +167,16 @@ pub(crate) fn start_command_interface(
             // Wait for interrupt
             // Send shutdown signal to all tasks
             // Wait for all tasks to finish
-            let _ = task_manager.catch_interrupt().await;
+            tokio::select! {
+                _ = task_manager.catch_interrupt() => {
+                    info!("caught interrupt");
+                },
+                _ = event_rx.recv() => {
+                    error!("caught event stop");
+                    task_manager.signal_shutdown().ok();
+                    task_manager.wait_for_shutdown().await;
+                }
+            }
 
             info!("Command interface exiting");
         });

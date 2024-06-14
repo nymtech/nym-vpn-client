@@ -9,7 +9,6 @@ documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
-
 [dependencies]
 anyhow.workspace = true
 clap.workspace = true
@@ -31,6 +30,11 @@ tonic-reflection.workspace = true
 tonic.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
+log.workspace = true
+
+tower-http = { version = "0.5.2", features = ["cors"] }
+axum = { version = "0.7.4" }
+axum-server = { version = "0.6.0", features = ["tls-rustls"] }
 
 # match the version required by tonic
 http = "0.2.12"
@@ -38,6 +42,24 @@ http = "0.2.12"
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
 nym-task.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-service = "0.6.0"
+eventlog = "0.2.2"
+winapi = { version = "0.3", features = ["winnt", "excpt"] }
+
+[target.'cfg(windows)'.dependencies.windows-sys]
+version = "0.45.0"
+features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_Security_Authentication_Identity",
+    "Win32_System_Diagnostics_Debug",
+    "Win32_System_Kernel",
+    "Win32_System_Memory",
+    "Win32_System_Threading",
+]
 
 [build-dependencies]
 vergen = { workspace = true, default-features = false, features = [

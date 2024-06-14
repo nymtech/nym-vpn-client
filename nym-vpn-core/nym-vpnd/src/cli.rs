@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(windows)]
+use clap::Args;
 use clap::Parser;
 use nym_vpn_lib::nym_bin_common::bin_info_local_vergen;
 use std::{path::PathBuf, sync::OnceLock};
@@ -23,6 +25,38 @@ pub(crate) struct CliArgs {
 
     #[arg(long)]
     pub(crate) disable_socket_listener: bool,
+
+    #[cfg(windows)]
+    #[arg(long)]
+    pub(crate) disable_service: bool,
+
+    #[cfg(windows)]
+    #[command(flatten)]
+    pub(crate) command: Command,
+}
+
+#[cfg(windows)]
+#[derive(Args, Debug, Clone)]
+#[group(multiple = false)]
+pub(crate) struct Command {
+    #[arg(long)]
+    pub(crate) install: bool,
+
+    #[arg(long)]
+    pub(crate) uninstall: bool,
+
+    #[arg(long)]
+    pub(crate) start: bool,
+
+    #[arg(long)]
+    pub(crate) run_as_service: bool,
+}
+
+#[cfg(windows)]
+impl Command {
+    pub(crate) fn is_any(&self) -> bool {
+        self.install || self.uninstall || self.start || self.run_as_service
+    }
 }
 
 fn check_path(path: &str) -> Result<PathBuf, String> {
