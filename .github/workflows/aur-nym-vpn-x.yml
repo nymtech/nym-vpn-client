@@ -49,7 +49,7 @@ jobs:
           PKGBUILD: PKGBUILD
           TARBALL: ${{ github.workspace }}/${{ env.RELEASE_TAG }}.tar.gz
           PKGVER: ${{ steps.app-version.outputs.metadata }}
-        run: update.sh
+        run: ./update.sh
       - name: Show PKGBUILD
         run: cat "$PKGBUILD"
       - name: Publish
