@@ -1,0 +1,55 @@
+# Maintainer: Pierre Dommerc <pierre@nymtech.net>
+
+pkgname=nymvpn-x
+pkgver=0.1.1
+pkgrel=1
+pkgdesc='NymVPN next desktop client'
+arch=('x86_64')
+url='https://github.com/nymtech/nym-vpn-client'
+license=('GPL-3.0-only')
+depends=('glibc' 'gcc-libs' 'bash' 'cairo' 'pango' 'gtk3' 'webkit2gtk' 'gdk-pixbuf2' 'glib2' 'openssl' 'libsoup')
+makedepends=('rust' 'cargo' 'npm')
+optdepends=('nym-vpnd: NymVPN daemon as a systemd service')
+provides=('nymvpn-x')
+conflicts=('nymvpn-x')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/nym-vpn-x-v$pkgver.tar.gz"
+    'nymvpn-x-wrapper.sh'
+    'nymvpn-x.desktop'
+    'nymvpn-x.svg')
+sha256sums=()
+_srcdir="nym-vpn-client-nym-vpn-x-v$pkgver"
+
+prepare() {
+  pushd "$_srcdir"
+
+  # rip off all useless sources
+  rm -rf nym-vpn-android
+  rm -rf nym-vpn-apple
+  rm -rf nym-vpn-desktop
+  popd
+}
+
+build() {
+  pushd "$_srcdir/nym-vpn-x"
+
+  # install UI dependencies
+  npm i
+
+  # build app
+  pushd src-tauri
+  # sqlx does not support LTO build flag, which is enabled by default in Arch
+  # set the C flag -ffat-lto-objects to solve the issue
+  # see https://github.com/launchbadge/sqlx/issues/3149
+  CFLAGS+=" -ffat-lto-objects" npm run tauri build -- -b none
+}
+
+package() {
+  pushd "$_srcdir/nym-vpn-x"
+  install -Dm755 "src-tauri/target/release/nymvpn-x" "$pkgdir/usr/bin/nymvpn-x"
+  popd
+
+  install -Dm755 "nymvpn-x-wrapper.sh" "$pkgdir/usr/bin/nymvpn-x-wrapper.sh"
+  install -Dm644 "nymvpn-x.desktop"    "$pkgdir/usr/share/applications/nymvpn-x.desktop"
+  install -Dm644 "nymvpn-x.svg"        "$pkgdir/usr/share/icons/nymvpn-x.svg"
+}
+
