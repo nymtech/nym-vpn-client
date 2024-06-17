@@ -37,8 +37,8 @@ if ! [ -a "$PKGBUILD" ]; then
   exit 1
 fi
 
-if ! [ -a "$ARTIFACT" ]; then
-  >&2 echo " ✕ no such file $ARTIFACT"
+if [ -z "$SOURCES" ]; then
+  >&2 echo " ✕ SOURCES not set"
   exit 1
 fi
 
@@ -55,9 +55,9 @@ if [ -n "$PKGREL" ]; then
   echo " ✓ bump package rel to $PKGREL"
 fi
 
-# ⚠ order is important and should match the order of sources array
-# declared in the PKGBUILD
-sources=("$ARTIFACT" 'nymvpn-x-wrapper.sh' 'nymvpn-x.desktop' 'nymvpn-x.svg')
+# SOURCES must be a string array with newline separated values
+mapfile -t sources <<< "$SOURCES"
+echo "sources: ${sources[*]}"
 sums=()
 
 for file in "${sources[@]}"; do

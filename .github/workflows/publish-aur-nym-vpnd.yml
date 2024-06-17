@@ -62,12 +62,16 @@ jobs:
         run: |
           curl -LfsSo linux-bin "https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/nym-vpn-core-v${{ steps.app-version.outputs.metadata }}_linux_x86_64.tar.gz"
       - name: Update PKGBUILD
-        working-directory: nym-vpn-core/nym-vpnd/.pkg/aur/
         env:
-          PKGBUILD: ${{ matrix.pkgbuild }}
-          ARTIFACT: ${{ matrix.pkgtype == 'bfs' && env.TARBALL || env.LINUX_BIN }}
+          PKGBUILD: ${{ env.PKGBUILD }}
           PKGVER: ${{ steps.app-version.outputs.metadata }}
-        run: ./update.sh
+          # SOURCES must be a multiline string
+          # ⚠ order is important and must match the order of
+          #   the sources array declared in PKGBUILD
+          SOURCES: |
+            ${{ matrix.pkgtype == 'bfs' && env.TARBALL || env.LINUX_BIN }}
+            nym-vpn-core/nym-vpnd/.pkg/aur/nym-vpnd.service
+        run: ./.pkg/aur_update.sh
       - name: Show PKGBUILD
         run: cat "$PKGBUILD"
       - name: Publish
