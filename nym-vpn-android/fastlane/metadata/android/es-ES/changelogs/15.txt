@@ -1,0 +1,3 @@
+Novedades:
+- Añadir comprobación de credenciales
+- Almacenamiento cifrado de credenciales

@@ -1,0 +1,7 @@
+Novedades:
+- Mejora del rendimiento de la API
+- Añadidos accesos directos básicos a la aplicación
+- Mejoras en la interfaz de usuario
+- Corrección de la comprobación de caducidad de credenciales
+- Corregido un error de sincronización de la interfaz de usuario de la conexión
+- Mejora de la sincronización rápida de mosaicos

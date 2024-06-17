@@ -1,0 +1,2 @@
+Novedades:
+- Bump versión api
