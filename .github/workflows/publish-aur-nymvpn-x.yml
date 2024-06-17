@@ -1,6 +1,6 @@
 # Publish nymvpn-x on AUR
 
-name: aur-nym-vpn-x
+name: publish-aur-nymvpn-x
 on:
   workflow_dispatch:
     inputs:
