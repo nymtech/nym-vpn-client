@@ -1,0 +1,92 @@
+# Publish nymvpn-x on AUR
+
+name: publish-aur-nymvpn-x
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag name of the release"
+        required: true
+        default: nym-vpn-x-v0.1.0
+      pkgrel:
+        description: "PKGBUILD package release number"
+        required: false
+        type: number
+        default: 1
+      publish_aur:
+        description: "publish PKGBUILD changes to AUR"
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  aur-publish:
+    name: Publish package in AUR
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # bfs → build from sources
+        # bin → prebuilt
+        pkgtype: [bfs, bin]
+        include:
+          - pkgtype: bfs
+            pkgbuild: PKGBUILD
+            pkgname: nymvpn-x
+          - pkgtype: bin
+            pkgbuild: PKGBUILD-bin
+            pkgname: nymvpn-x-bin
+    env:
+      PKGNAME: ${{ matrix.pkgname }}
+      PKGBUILD: nym-vpn-x/.pkg/aur/${{ matrix.pkgbuild }}
+      PKGREL: ${{ inputs.pkgrel }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      REPOSITORY: ${{ github.repository }}
+      TARBALL: ${{ github.workspace }}/sources.tar.gz
+      LINUX_BIN: ${{ github.workspace }}/linux-bin
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download sources
+        run: |
+          curl -LfsSo sources.tar.gz "https://github.com/$REPOSITORY/archive/refs/tags/$RELEASE_TAG.tar.gz"
+          mkdir tarball
+          tar -xzf sources.tar.gz -C tarball
+      - name: Get app version
+        id: app-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry="tarball/nym-vpn-client-${{ env.RELEASE_TAG }}/nym-vpn-x/src-tauri"
+      - name: Download prebuilt binary
+        if: matrix.pkgtype == 'bin'
+        run: |
+          curl -LfsSo linux-bin "https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/nymvpn-x_${{ steps.app-version.outputs.metadata }}_linux_x64"
+      - name: Update PKGBUILD
+        env:
+          PKGBUILD: ${{ env.PKGBUILD }}
+          PKGVER: ${{ steps.app-version.outputs.metadata }}
+          # SOURCES must be a multiline string
+          # ⚠ order is important and must match the order of
+          #   the sources array declared in PKGBUILD
+          SOURCES: |
+            ${{ matrix.pkgtype == 'bfs' && env.TARBALL || env.LINUX_BIN }}
+            nym-vpn-x/.pkg/aur/nymvpn-x-wrapper.sh
+            nym-vpn-x/.pkg/aur/nymvpn-x.desktop
+            nym-vpn-x/.pkg/aur/nymvpn-x.svg
+        run: ./.pkg/aur_update.sh
+      - name: Show PKGBUILD
+        run: cat "$PKGBUILD"
+      - name: Publish
+        if: inputs.publish_aur == true
+        uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
+        with:
+          pkgname: ${{ env.PKGNAME }}
+          pkgbuild: ${{ env.PKGBUILD }}
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_KEY }}
+          commit_message: ${{ inputs.release_tag }}
+          # assets: |
+          #   nym-vpn-x/.pkg/aur/nymvpn-x-wrapper.sh
+          #   nym-vpn-x/.pkg/aur/nymvpn-x.desktop
+          #   nym-vpn-x/.pkg/aur/nymvpn-x.svg

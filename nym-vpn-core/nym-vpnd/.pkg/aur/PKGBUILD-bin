@@ -1,0 +1,22 @@
+# Maintainer: Pierre Dommerc <pierre@nymtech.net>
+
+pkgname=nym-vpnd-bin
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='NymVPN daemon as a systemd service'
+arch=('x86_64')
+url='https://github.com/nymtech/nym-vpn-client'
+license=('GPL-3.0-only')
+depends=('glibc' 'gcc-libs' 'dbus' 'libnftnl' 'libmnl')
+makedepends=()
+provides=('nym-vpnd')
+conflicts=('nym-vpnd')
+source=("$url/releases/download/nym-vpn-core-v$pkgver/nym-vpn-core-v${pkgver}_linux_x86_64.tar.gz"
+    'nym-vpnd.service')
+sha256sums=()
+
+package() {
+  install -Dm755 "nym-vpn-core-v${pkgver}_linux_x86_64/nym-vpnd" "$pkgdir/usr/bin/nym-vpnd"
+  install -Dm644 nym-vpnd.service "$pkgdir/usr/lib/systemd/system/nym-vpnd.service"
+}
+

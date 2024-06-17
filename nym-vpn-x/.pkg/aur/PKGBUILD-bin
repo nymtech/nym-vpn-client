@@ -1,0 +1,27 @@
+# Maintainer: Pierre Dommerc <pierre@nymtech.net>
+
+pkgname=nymvpn-x-bin
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='NymVPN next desktop client'
+arch=('x86_64')
+url='https://github.com/nymtech/nym-vpn-client'
+license=('GPL-3.0-only')
+depends=('gcc-libs' 'bash' 'cairo' 'pango' 'gtk3' 'webkit2gtk' 'gdk-pixbuf2' 'glib2' 'openssl' 'libsoup')
+makedepends=()
+optdepends=('nym-vpnd: NymVPN daemon as a systemd service')
+provides=('nymvpn-x')
+conflicts=('nymvpn-x')
+source=("$url/releases/download/nym-vpn-x-v$pkgver/nymvpn-x_$pkgver_linux_x64"
+    'nymvpn-x-wrapper.sh'
+    'nymvpn-x.desktop'
+    'nymvpn-x.svg')
+sha256sums=()
+
+package() {
+  install -Dm755 "nymvpn-x_$pkgver_linux_x64" "$pkgdir/usr/bin/nymvpn-x"
+  install -Dm755 "nymvpn-x-wrapper.sh" "$pkgdir/usr/bin/nymvpn-x-wrapper.sh"
+  install -Dm644 "nymvpn-x.desktop"    "$pkgdir/usr/share/applications/nymvpn-x.desktop"
+  install -Dm644 "nymvpn-x.svg"        "$pkgdir/usr/share/icons/nymvpn-x.svg"
+}
+
