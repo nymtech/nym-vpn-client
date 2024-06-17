@@ -86,7 +86,7 @@ jobs:
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_KEY }}
           commit_message: ${{ inputs.release_tag }}
-          assets: |
-            nym-vpn-x/.pkg/aur/nymvpn-x-wrapper.sh
-            nym-vpn-x/.pkg/aur/nymvpn-x.desktop
-            nym-vpn-x/.pkg/aur/nymvpn-x.svg
+          # assets: |
+          #   nym-vpn-x/.pkg/aur/nymvpn-x-wrapper.sh
+          #   nym-vpn-x/.pkg/aur/nymvpn-x.desktop
+          #   nym-vpn-x/.pkg/aur/nymvpn-x.svg
