@@ -1,0 +1,2 @@
+Novedades:
+- Corrección de cambios en la API

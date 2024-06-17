@@ -1,0 +1,3 @@
+Novedades:
+- Corrección del problema de almacenamiento en caché de los países.
+- Mejoras en el rendimiento de la empuñadura

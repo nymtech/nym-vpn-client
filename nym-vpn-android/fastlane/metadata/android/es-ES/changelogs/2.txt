@@ -1,0 +1,3 @@
+Novedades:
+- Arreglar proguard
+- Actualizar la interfaz de usuario

@@ -1,0 +1,4 @@
+Novedades:
+- Añadir integración vpn lib
+- Pantalla de bienvenida
+- Lista de países

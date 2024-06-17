@@ -1,0 +1,5 @@
+Novedades:
+- Corregida la sincronización del estado de la conexión
+- Mensajes de error mejorados
+- Añadido flujo de permisos denegados
+- Eliminados los registros de depuración de la versión
