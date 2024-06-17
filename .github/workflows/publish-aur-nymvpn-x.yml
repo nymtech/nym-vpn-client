@@ -42,16 +42,16 @@ jobs:
       PKGREL: ${{ inputs.pkgrel }}
       RELEASE_TAG: ${{ inputs.release_tag }}
       REPOSITORY: ${{ github.repository }}
-      TARBALL: ${{ github.workspace }}/sources.tar.gz
-      LINUX_BIN: ${{ github.workspace }}/linux-bin
+      TARBALL: sources.tar.gz
+      LINUX_BIN: linux-bin
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Download sources
         run: |
-          curl -LfsSo sources.tar.gz "https://github.com/$REPOSITORY/archive/refs/tags/$RELEASE_TAG.tar.gz"
+          curl -LfsSo $TARBALL "https://github.com/$REPOSITORY/archive/refs/tags/$RELEASE_TAG.tar.gz"
           mkdir tarball
-          tar -xzf sources.tar.gz -C tarball
+          tar -xzf $TARBALL -C tarball
       - name: Get app version
         id: app-version
         uses: nicolaiunrein/cargo-get@master
@@ -60,7 +60,7 @@ jobs:
       - name: Download prebuilt binary
         if: matrix.pkgtype == 'bin'
         run: |
-          curl -LfsSo linux-bin "https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/nymvpn-x_${{ steps.app-version.outputs.metadata }}_linux_x64"
+          curl -LfsSo $LINUX_BIN "https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/nymvpn-x_${{ steps.app-version.outputs.metadata }}_linux_x64"
       - name: Update PKGBUILD
         env:
           PKGBUILD: ${{ env.PKGBUILD }}

@@ -8,37 +8,37 @@ set -o pipefail
 trap 'catch $? ${FUNCNAME[0]:-main} $LINENO' ERR
 
 catch() {
-  >&2 echo " ✗ unexpected error, [$1] $2 L#$3"
+  echo >&2 " ✗ unexpected error, [$1] $2 L#$3"
   exit 1
 }
 
 if [ -z "$PKGBUILD" ]; then
-  >&2 echo " ✕ PKGBUILD not set"
+  echo >&2 " ✕ PKGBUILD not set"
   exit 1
 fi
 
 if [ -z "$PKGNAME" ]; then
-  >&2 echo " ✕ PKGNAME not set"
+  echo >&2 " ✕ PKGNAME not set"
   exit 1
 fi
 
 if [ -z "$PKGVER" ]; then
-  >&2 echo " ✕ PKGVER not set"
+  echo >&2 " ✕ PKGVER not set"
   exit 1
 fi
 
 if [ -z "$RELEASE_TAG" ]; then
-  >&2 echo " ✕ RELEASE_TAG not set"
+  echo >&2 " ✕ RELEASE_TAG not set"
   exit 1
 fi
 
 if ! [ -a "$PKGBUILD" ]; then
-  >&2 echo " ✕ no such file $PKGBUILD"
+  echo >&2 " ✕ no such file $PKGBUILD"
   exit 1
 fi
 
 if [ -z "$SOURCES" ]; then
-  >&2 echo " ✕ SOURCES not set"
+  echo >&2 " ✕ SOURCES not set"
   exit 1
 fi
 
@@ -56,11 +56,14 @@ if [ -n "$PKGREL" ]; then
 fi
 
 # SOURCES must be a string array with newline separated values
-mapfile -t sources <<< "$SOURCES"
+mapfile -t sources <<<"$SOURCES"
 echo "sources: ${sources[*]}"
 sums=()
 
 for file in "${sources[@]}"; do
+  if [ -z "$file" ]; then
+    continue
+  fi
   sum=$(sha256sum "$file" | awk '{print $1}')
   sums+=("\n    '$sum'")
   echo "sha256sum for $file: $sum"
