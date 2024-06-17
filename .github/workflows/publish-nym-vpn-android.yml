@@ -63,7 +63,7 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt update && sudo apt install -y gettext-base gh zip
+          sudo apt update && sudo apt install -y gettext-base gh zip apksigner
 
       - name: Get version code
         run: |
@@ -101,6 +101,11 @@ jobs:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/temp
 
+      - name: Get checksum
+        id: checksum
+        run: echo "checksum=$(apksigner verify -print-certs -d ${{ github.workspace }}/temp/*.apk | grep -Po "(?<=SHA-256 digest:) .*" | tr -d "[:blank:]")" >> $GITHUB_OUTPUT
+
+
       - name: Create release with fastlane changelog notes
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -110,12 +115,29 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
           body: ${{ env.RELEASE_NOTES }}
           tag_name: ${{ env.TAG_NAME }}
-          name: ${{ github.TAG_NAME}}
+          name: ${{ env.TAG_NAME }}
           draft: false
           make_latest: ${{ inputs.release_type == 'release' }}
           prerelease: ${{ inputs.release_type == 'prerelease' || inputs.release_type == '' }}
           files: |
             ${{ github.workspace }}/temp/*
+
+      - name: Append checksum
+        id: append_checksum
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          body: |
+
+            SHA256 fingerprint:
+            ```${{ steps.checksum.outputs.checksum }}```
+          tag_name: ${{ env.TAG_NAME }}
+          name: ${{ env.TAG_NAME }}
+          draft: false
+          prerelease: ${{ inputs.release_type == 'prerelease' || inputs.release_type == '' }}
+          append_body: true
+
 
       - name: Dispatch update for fdroid repo
         if: inputs.release_type == 'release'
