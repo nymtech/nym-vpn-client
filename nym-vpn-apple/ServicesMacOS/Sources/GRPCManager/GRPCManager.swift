@@ -18,6 +18,7 @@ public final class GRPCManager: ObservableObject {
 
     @Published public var tunnelStatus: TunnelStatus = .disconnected
     @Published public var lastError: GeneralNymError?
+    @Published public var connectedDate: Date?
 
     private init() {
         channel = ClientConnection(
@@ -40,11 +41,11 @@ public final class GRPCManager: ObservableObject {
         let request = Nym_Vpn_StatusRequest()
         let call = client.vpnStatus(request)
 
-        call.response.whenComplete { result in
+        call.response.whenComplete { [weak self] result in
             switch result {
             case let .success(response):
-                // TODO: set connection time
-                print("Received response: \(response)")
+                // Set VPN connected date
+                self?.connectedDate = Date(timeIntervalSince1970: response.details.since.timeIntervalSince1970)
             case let .failure(error):
                 print("Call failed with error: \(error)")
             }

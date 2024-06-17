@@ -36,8 +36,8 @@ public class HomeViewModel: HomeFlowState {
 #endif
     var entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
     var exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
-    @Published var selectedNetwork: NetworkButtonViewModel.ButtonType
 
+    @Published var selectedNetwork: NetworkButtonViewModel.ButtonType
     // If no time connected is shown, should be set to empty string,
     // so the time connected label would not disappear and re-center other UI elements.
     @Published var timeConnected = " "
@@ -116,23 +116,6 @@ public extension HomeViewModel {
         appSettings.isEntryLocationSelectionOn && !(countriesManager.entryCountries?.isEmpty ?? false)
     }
 
-    func updateTimeConnected() {
-        Task { @MainActor in
-            let emptyTime = " "
-            guard
-                let activeTunnel,
-                activeTunnel.status == .connected,
-                let connectedDate = activeTunnel.tunnel.connection.connectedDate
-            else {
-
-                guard timeConnected != emptyTime else { return }
-                timeConnected = emptyTime
-                return
-            }
-            timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTime
-        }
-    }
-
     func configureConnectedTimeTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
             self?.updateTimeConnected()
@@ -148,8 +131,9 @@ public extension HomeViewModel {
 public extension HomeViewModel {
     func connectDisconnect() {
         statusInfoState = .unknown
+#if os(macOS)
         installHelperIfNeeded()
-
+#endif
         guard appSettings.isCredentialImported
         else {
             navigateToAddCredentials()
@@ -198,7 +182,9 @@ private extension HomeViewModel {
         setupDateFormatter()
         setupTunnelManagerObservers()
         setupAppSettingsObservers()
+#if os(macOS)
         setupGRPCManagerObservers()
+#endif
         setupCountriesManagerObservers()
         fetchCountries()
     }
@@ -243,18 +229,6 @@ private extension HomeViewModel {
         .store(in: &cancellables)
     }
 
-    func setupGRPCManagerObservers() {
-#if os(macOS)
-        grpcManager.$lastError.sink { [weak self] error in
-            guard let self, let message = error?.localizedDescription else { return }
-            Task { @MainActor in
-                self.statusInfoState = .error(message: message)
-            }
-        }
-        .store(in: &cancellables)
-#endif
-    }
-
     func setupCountriesManagerObservers() {
         countriesManager.$hasCountries.sink { [weak self] value in
             guard let self else { return }
@@ -289,26 +263,14 @@ private extension HomeViewModel {
     }
 #endif
 
-    func installHelperIfNeeded() {
-#if os(macOS)
-        // TODO: check if possible to split is helper running vs isHelperAuthorized
-        guard helperManager.isHelperRunning() && helperManager.isHelperAuthorized()
-        else {
-            do {
-                _ = try helperManager.authorizeAndInstallHelper()
-            } catch let error {
-                statusInfoState = .error(message: error.localizedDescription)
-            }
-            return
-        }
-#endif
-    }
-
     func updateUI(with status: TunnelStatus) {
         Task { @MainActor in
             statusButtonConfig = StatusButtonConfig(tunnelStatus: status)
             statusInfoState = StatusInfoState(tunnelStatus: status)
             connectButtonState = ConnectButtonState(tunnelStatus: status)
+#if os(macOS)
+            updateConnectedStartDateMacOS(with: status)
+#endif
         }
     }
 
@@ -322,3 +284,70 @@ private extension HomeViewModel {
         }
     }
 }
+
+// MARK: - iOS -
+#if os(iOS)
+private extension HomeViewModel {
+    func updateTimeConnected() {
+        Task { @MainActor in
+            let emptyTimeText = " "
+            guard let activeTunnel,
+                  activeTunnel.status == .connected,
+                  let connectedDate = activeTunnel.tunnel.connection.connectedDate
+            else {
+                guard timeConnected != emptyTimeText else { return }
+                timeConnected = emptyTimeText
+                return
+            }
+            timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
+        }
+    }
+}
+#endif
+
+// MARK: - macOS -
+#if os(macOS)
+private extension HomeViewModel {
+    func setupGRPCManagerObservers() {
+        grpcManager.$lastError.sink { [weak self] error in
+            guard let self, let message = error?.localizedDescription else { return }
+            Task { @MainActor in
+                self.statusInfoState = .error(message: message)
+            }
+        }
+        .store(in: &cancellables)
+    }
+
+    func installHelperIfNeeded() {
+        // TODO: check if possible to split is helper running vs isHelperAuthorized
+        guard helperManager.isHelperRunning() && helperManager.isHelperAuthorized()
+        else {
+            do {
+                _ = try helperManager.authorizeAndInstallHelper()
+            } catch let error {
+                statusInfoState = .error(message: error.localizedDescription)
+            }
+            return
+        }
+    }
+
+    func updateConnectedStartDateMacOS(with status: TunnelStatus) {
+        guard status == .connected else { return }
+        grpcManager.status()
+    }
+
+    func updateTimeConnected() {
+        Task { @MainActor in
+            let emptyTimeText = " "
+            guard grpcManager.tunnelStatus == .connected,
+                  let connectedDate = grpcManager.connectedDate
+            else {
+                guard timeConnected != emptyTimeText else { return }
+                timeConnected = emptyTimeText
+                return
+            }
+            timeConnected = dateFormatter.string(from: connectedDate, to: Date()) ?? emptyTimeText
+        }
+    }
+}
+#endif
