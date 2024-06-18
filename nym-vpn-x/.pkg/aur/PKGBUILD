@@ -4,6 +4,9 @@
 
 pkgname=nymvpn-x
 pkgver=0.1.0
+# upstream version
+_pkgver=
+_release_tag=
 pkgrel=1
 pkgdesc='NymVPN next desktop client'
 arch=('x86_64')
@@ -14,12 +17,12 @@ makedepends=('rust' 'cargo' 'protobuf' 'npm')
 optdepends=('nym-vpnd: NymVPN daemon as a systemd service')
 provides=('nymvpn-x')
 conflicts=('nymvpn-x')
-source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/nym-vpn-x-v$pkgver.tar.gz"
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$_release_tag.tar.gz"
     'nymvpn-x-wrapper.sh'
     'nymvpn-x.desktop'
     'nymvpn-x.svg')
 sha256sums=()
-_srcdir="nym-vpn-client-nym-vpn-x-v$pkgver"
+_srcdir="nym-vpn-client-$_release_tag"
 
 prepare() {
   pushd "$_srcdir"
