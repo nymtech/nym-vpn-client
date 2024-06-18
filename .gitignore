@@ -6,7 +6,7 @@
 target
 .idea
 build
-android
+/android
 bin
 .env
 .env.dev
