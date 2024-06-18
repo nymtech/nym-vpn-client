@@ -1,2 +1,2 @@
 Novedades:
-- Bump versión api
+- Incremento de la versión de la API
