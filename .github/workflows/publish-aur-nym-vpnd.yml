@@ -72,6 +72,12 @@ jobs:
             ${{ matrix.pkgtype == 'bfs' && env.TARBALL || env.LINUX_BIN }}
             nym-vpn-core/nym-vpnd/.pkg/aur/nym-vpnd.service
         run: ./.pkg/aur_update.sh
+      - name: Rename PKGBUILD (bin)
+        if: matrix.pkgtype == 'bin'
+        run: |
+          # rename PKGBUILD-bin to PKGBUILD
+          mv ${{ env.PKGBUILD }} PKGBUILD
+          echo "PKGBUILD=./PKGBUILD" >> $GITHUB_ENV
       - name: Show PKGBUILD
         run: cat "$PKGBUILD"
       - name: Publish
