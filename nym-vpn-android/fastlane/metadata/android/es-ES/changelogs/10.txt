@@ -1,4 +1,4 @@
-Novedades
-- Agregar soporte para mantener encendido la VPN
-- Agregar soporte para configuración rápida
--
+Novedades:
+- Añadido soporte para VPN siempre activa
+- Añadido soporte para el acceso directo en Configuración rápida
+- Solucionado error con la conexión automática al iniciar

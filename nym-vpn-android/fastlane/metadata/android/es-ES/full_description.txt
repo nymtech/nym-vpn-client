@@ -1,10 +1,10 @@
 Descarga NymVPN y haz que tu actividad online sea segura.
-Con nuestra aplicación VPN puedes ocultar tu dirección IP, cifrar tu tráfico, ocultar tu identidad en línea y mucho más.
+Con nuestra aplicación VPN puede ocultar su dirección IP, cifrar su tráfico, ocultar su identidad en línea y mucho más.
 
 Muchas entidades en Internet pueden espiar tu actividad y tomar tus datos.
-Los gobiernos, las grandes empresas tecnológicas, los intermediarios de datos, los proveedores de servicios de Internet y los anunciantes pueden intentar monitorear su actividad en línea. Los recientes escándalos de fuga de datos dejaron claro que ni siquiera podemos confiar en las empresas de VPN tradicionales.
+Los gobiernos, las grandes empresas tecnológicas, los intermediarios de datos, los proveedores de servicios de Internet y los anunciantes pueden intentar monitorear tu actividad en línea. Los recientes escándalos de fugas de datos dejaron claro que ni siquiera podemos confiar en las empresas de VPN tradicionales.
 
-Nuestra VPN nació para hacer que sus actividades en Internet sean privadas y una parte crucial de esto es no hacer posible el registro y seguimiento de actividades.
+Nuestra VPN nació para hacer que sus actividades en Internet sean privadas y una parte crucial de esto es hacer que no sea posible el registro y seguimiento de actividades.
 NymVPN es un nuevo tipo de VPN diseñado de manera que sea imposible para cualquier persona monitorear o registrar su actividad en línea, incluso para nosotros. Nuestra VPN opera en una red descentralizada, sin partes confiables, componentes centralizados ni puntos únicos de falla. Todas las funcionalidades de NymVPN se realizan de forma descentralizada y distribuida, y no existe la posibilidad de habilitar el registro centralizado.
 Nuestra VPN cifra datos y protege los metadatos del análisis de tráfico a través de una Mixnet descentralizada. En pocas palabras: no hay forma de que registremos su actividad, por lo tanto, nadie puede acceder a ella.
 
@@ -36,7 +36,7 @@ Sin anuncios
 Disfrute de su VPN sin anuncios. Nuestro objetivo principal es proteger su privacidad y, por eso, no verá ningún anuncio en nuestra aplicación VPN.
 
 Uso ilimitado
-Disfruta de Internet tanto como quieras, NymVPN nunca limitará tu tráfico.
+Disfrute de Internet tanto como quiera, NymVPN nunca limitará su tráfico.
 
 Nuestras funciones VPN más queridas:
 - Mixnet de 5 saltos: su tráfico de Internet se cifrará y se enviará a mixnodes que lo mezclarán con otros paquetes de tráfico 5 veces, haciendo imposible que alguien rastree su actividad en línea.

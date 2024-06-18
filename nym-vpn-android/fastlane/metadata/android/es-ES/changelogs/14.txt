@@ -1,4 +1,4 @@
 Novedades:
 - Mejoras en la interfaz de usuario
 - Pantalla de selección de análisis
-- Varias mejoras
+- Varias mejoras y optimizaciones

@@ -1,5 +1,5 @@
 Novedades:
-- Caducidad de las credenciales
-- Escaneado del código QR de la credencial
+- Tiempo de expiración de credenciales
+- Escaneo del código QR de la credencial
 - Enlace al killswitch
 - Mejoras en la interfaz de usuario
