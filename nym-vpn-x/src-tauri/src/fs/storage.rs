@@ -7,6 +7,7 @@ use tracing::{debug, error, instrument};
 use super::util::{check_dir, check_file};
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct AppStorage<T>
 where
     T: Serialize + DeserializeOwned + Default + fmt::Debug,

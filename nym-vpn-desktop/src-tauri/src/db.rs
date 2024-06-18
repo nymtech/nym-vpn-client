@@ -51,6 +51,7 @@ impl Display for Key {
 }
 
 /// Sled db wrapper, embedded k/v store
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Db {
     pub db: sled::Db,
