@@ -84,5 +84,5 @@ jobs:
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_KEY }}
           commit_message: ${{ inputs.release_tag }}
-          # assets: |
-          #   nym-vpn-core/nym-vpnd/.pkg/aur/nym-vpnd.service
+          assets: |
+            nym-vpn-core/nym-vpnd/.pkg/aur/nym-vpnd.service

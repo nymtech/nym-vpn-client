@@ -1,4 +1,6 @@
+# Maintainer: Nym <ops@nymte.ch>
 # Maintainer: Pierre Dommerc <pierre@nymtech.net>
+# Maintainer: Lawrence Stalder <lawrence.stalder@pm.me>
 
 pkgname=nymvpn-x
 pkgver=0.1.0
