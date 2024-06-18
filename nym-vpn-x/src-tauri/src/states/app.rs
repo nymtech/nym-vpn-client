@@ -52,11 +52,9 @@ pub struct TunnelConfig {
 pub struct AppState {
     pub vpnd_status: VpndStatus,
     pub state: ConnectionState,
-    pub error: Option<String>,
     pub vpn_mode: VpnMode,
     pub entry_node_location: NodeLocation,
     pub exit_node_location: NodeLocation,
-    pub tunnel: Option<TunnelConfig>,
     pub connection_start_time: Option<OffsetDateTime>,
     pub dns_server: Option<String>,
 }
