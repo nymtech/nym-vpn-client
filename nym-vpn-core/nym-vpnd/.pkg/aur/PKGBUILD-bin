@@ -16,6 +16,7 @@ depends=('glibc' 'gcc-libs' 'dbus' 'libnftnl' 'libmnl')
 makedepends=()
 provides=('nym-vpnd')
 conflicts=('nym-vpnd')
+options=(!debug)
 source=("$url/releases/download/$_release_tag/nym-vpn-core-v${_pkgver}_linux_x86_64.tar.gz"
     'nym-vpnd.service')
 sha256sums=()

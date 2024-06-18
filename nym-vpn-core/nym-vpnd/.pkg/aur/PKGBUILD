@@ -16,6 +16,7 @@ depends=('glibc' 'gcc-libs' 'dbus' 'libnftnl' 'libmnl')
 makedepends=('rust' 'cargo' 'go' 'protobuf')
 provides=('nym-vpnd')
 conflicts=('nym-vpnd')
+options=(!debug)
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$_release_tag.tar.gz"
     'nym-vpnd.service')
 sha256sums=()

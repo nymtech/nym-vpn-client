@@ -17,6 +17,7 @@ makedepends=('rust' 'cargo' 'protobuf' 'npm')
 optdepends=('nym-vpnd: NymVPN daemon as a systemd service')
 provides=('nymvpn-x')
 conflicts=('nymvpn-x')
+options=(!debug)
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$_release_tag.tar.gz"
     'nymvpn-x-wrapper.sh'
     'nymvpn-x.desktop'
