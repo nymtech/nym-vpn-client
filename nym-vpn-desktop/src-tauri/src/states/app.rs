@@ -52,11 +52,9 @@ pub struct TunnelConfig {
 #[derive(Debug, Default)]
 pub struct AppState {
     pub state: ConnectionState,
-    pub error: Option<String>,
     pub vpn_mode: VpnMode,
     pub entry_node_location: NodeLocation,
     pub exit_node_location: NodeLocation,
-    pub tunnel: Option<TunnelConfig>,
     pub connection_start_time: Option<OffsetDateTime>,
     pub vpn_ctrl_tx: Option<UnboundedSender<NymVpnCtrlMessage>>,
 }

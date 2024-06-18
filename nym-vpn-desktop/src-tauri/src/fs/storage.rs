@@ -6,6 +6,7 @@ use tracing::{debug, error, instrument};
 
 use super::util::{check_dir, check_file};
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct AppStorage<T>
 where
