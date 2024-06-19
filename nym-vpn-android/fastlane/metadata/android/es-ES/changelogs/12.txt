@@ -1,4 +1,4 @@
 Novedades:
-- Añadido abi división para la optimización de tamaño apk
+- Añadido división abi para la optimización de tamaño del apk
 - Añadida prueba de humo
 - Corregido error de minificación
