@@ -21,4 +21,6 @@ object Constants {
 	const val DISCONNECT_TEST_TAG = "disconnectTag"
 
 	const val VPN_SETTINGS_PACKAGE = "android.net.vpn.SETTINGS"
+
+	const val FREE_PASS_CRED_DURATION = 30f
 }

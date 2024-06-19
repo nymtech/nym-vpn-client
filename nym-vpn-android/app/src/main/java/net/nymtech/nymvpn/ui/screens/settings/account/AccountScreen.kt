@@ -41,6 +41,7 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.durationFromNow
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
@@ -99,8 +100,7 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState, navControl
 						Modifier
 							.fillMaxWidth(),
 						progress = {
-							// TODO need to think about this more, setting to full for now
-							1f
+							days.toFloat() / Constants.FREE_PASS_CRED_DURATION
 						},
 					)
 				}
