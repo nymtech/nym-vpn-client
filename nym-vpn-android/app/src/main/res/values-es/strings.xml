@@ -19,9 +19,9 @@
     <string name="connection_time">Tiempo de conexión</string>
     <string name="select_network">Seleccionar red</string>
     <string name="connect_to">Conectar a</string>
-    <string name="first_hop_selection">Selección del primer salto</string>
-    <string name="last_hop_selection">Selección del último salto</string>
-    <string name="display_theme">Tema de pantalla</string>
+    <string name="first_hop_selection">Gateway entrada</string>
+    <string name="last_hop_selection">Gateway salida</string>
+    <string name="display_theme">Tema</string>
     <string name="light_theme">Tema claro</string>
     <string name="dark_theme">Tema oscuro</string>
     <string name="automatic">Automático</string>
@@ -46,11 +46,11 @@
     <string name="terms_of_use">Términos de uso</string>
     <string name="privacy_policy">Declaración de privacidad</string>
     <string name="licenses">Licencias</string>
-    <string name="open_github">Abrir un problema en GitHub</string>
+    <string name="open_github">Abrir un ticket en GitHub</string>
     <string name="send_feedback">Envíanos tus comentarios</string>
     <string name="check_faq">Consulta las preguntas frecuentes</string>
-    <string name="join_matrix">Únete a nosotros en Matrix</string>
-    <string name="join_discord">Únete a nosotros en Discord</string>
+    <string name="join_matrix">Únete en Matrix</string>
+    <string name="join_discord">Únete en Discord</string>
     <string name="matrix_url" translatable="false">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
     <string name="discord_url" translatable="false">https://discord.com/invite/nym</string>
     <string name="faq_url" translatable="false">https://support.nymvpn.com</string>
@@ -69,7 +69,7 @@
     <string name="credential_failed_message">Credencial inválida</string>
     <string name="unknown_error">Ocurrió un error desconocido</string>
     <string name="credential">Credencial</string>
-    <string name="left">Izquierda</string>
+    <string name="left">quedan</string>
     <string name="top_up_credential">Recarga tu credencial</string>
     <string name="top_up">Recargar</string>
     <string name="devices">Dispositivos</string>
@@ -109,8 +109,8 @@
     <string name="error_invalid_credential">La credencial importada es inválida</string>
     <string name="missing_credential">Falta la credencial</string>
     <string name="country_load_failure">No se pudieron cargar los países de salto</string>
-    <string name="app_shortcuts">Atajos de la aplicación</string>
-    <string name="enable_shortcuts">Habilitar atajos de aplicación</string>
+    <string name="app_shortcuts">Accesos directos</string>
+    <string name="enable_shortcuts">Habilitar accesos directos</string>
     <string name="disabled_while_connected">Desactivado mientras está conectado a VPN</string>
     <string name="experimental_software_disclaimer">Este es un software experimental. No confíes en él para obtener un anonimato fuerte (todavía).</string>
     <string name="permission_required">Permiso requerido</string>
@@ -125,7 +125,7 @@
     <string name="error_bad_peer_cert">"El gateway seleccionado tiene un certificado peer incorrecto. Inténtalo de nuevo para conectarte a un gateway diferente. "</string>
     <string name="error_no_hostname_address">Falta la dirección del nombre de host del gateway. Por favor, inténtalo de nuevo para conectarte a un gateway diferente.</string>
     <string name="error_vpn_halted_unexpectedly">La VPN se ha detenido inesperadamente. Intenta conectar de nuevo.</string>
-    <string name="kill_switch">Interruptor de corte</string>
+    <string name="kill_switch">Kill switch</string>
     <string name="contact_support">Contactar soporte</string>
     <string name="hours">horas</string>
     <string name="hour">hora</string>
