@@ -10,6 +10,5 @@ public struct BoltImage: View {
             .frame(width: 24, height: 24)
             .cornerRadius(50)
             .foregroundStyle(NymColor.sysOnSurface)
-            .padding(.horizontal, 12)
     }
 }

@@ -13,6 +13,7 @@ public struct HopButton: View {
         StrokeBorderView(strokeTitle: viewModel.hopType.hopLocalizedTitle) {
             HStack {
                 flagOrBoltImage()
+                    .padding(.horizontal, 12)
 
                 if let countryName = viewModel.countryName {
                     Text(countryName)

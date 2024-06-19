@@ -7,6 +7,8 @@ import UIComponents
 public class HopListViewModel: ObservableObject {
     let type: HopType
 
+    public let noResultsText = "search.noResults".localizedString
+
     var appSettings: AppSettings
     var connectionManager: ConnectionManager
     var countriesManager: CountriesManager
@@ -76,15 +78,13 @@ extension HopListViewModel {
             switch type {
             case .entry:
                 newCountries = !searchText.isEmpty ? countriesManager.entryCountries?.filter {
-                    $0.name.contains(
-                        searchText
-                    )
+                    $0.name.lowercased().contains(searchText.lowercased()) ||
+                    $0.code.lowercased().contains(searchText.lowercased())
                 } : countriesManager.entryCountries
             case .exit:
                 newCountries = !searchText.isEmpty ? countriesManager.exitCountries?.filter {
-                    $0.name.contains(
-                        searchText
-                    )
+                    $0.name.lowercased().contains(searchText.lowercased()) ||
+                    $0.code.lowercased().contains(searchText.lowercased())
                 } : countriesManager.exitCountries
             }
             Task { @MainActor in

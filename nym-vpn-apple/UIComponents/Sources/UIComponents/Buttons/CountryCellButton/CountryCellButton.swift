@@ -11,10 +11,11 @@ public struct CountryCellButton: View {
     public var body: some View {
         HStack {
             flagOrBoltImage()
+                .padding(.trailing, 12)
 
             Text(viewModel.title)
                 .foregroundStyle(NymColor.sysOnSurface)
-                .textStyle(.Body.Large.primary)
+                .textStyle(.Body.Large.regular)
 
             Spacer()
             selectedTitleView()

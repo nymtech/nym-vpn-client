@@ -10,8 +10,8 @@ public struct FlagImage: View {
     public var body: some View {
         Image(countryCode, bundle: .module)
             .resizable()
+            .scaledToFit()
             .frame(width: 24, height: 24)
             .cornerRadius(50)
-            .padding(12)
     }
 }

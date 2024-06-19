@@ -771,6 +771,17 @@
         }
       }
     },
+    "search.noResults" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No results found. Please try another search."
+          }
+        }
+      }
+    },
     "searchCountry" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -953,7 +964,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : ") and analytics at will—you can opt out anytime. Thanks for your support!"
+            "value" : ") and analytics at will—you can opt out anytime.\nThanks for your support!"
           }
         }
       }
@@ -964,7 +975,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Welcome to NymVPN alpha"
+            "value" : "Welcome\nto NymVPN alpha"
           }
         }
       }
