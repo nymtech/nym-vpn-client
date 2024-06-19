@@ -1,48 +1,48 @@
 Descarga NymVPN y haz que tu actividad online sea segura.
-Con nuestra aplicación VPN puede ocultar su dirección IP, cifrar su tráfico, ocultar su identidad en línea y mucho más.
+Con nuestra aplicación VPN puedes ocultar tu dirección IP, cifrar tu tráfico, ocultar tu identidad en línea y mucho más.
 
 Muchas entidades en Internet pueden espiar tu actividad y tomar tus datos.
 Los gobiernos, las grandes empresas tecnológicas, los intermediarios de datos, los proveedores de servicios de Internet y los anunciantes pueden intentar monitorear tu actividad en línea. Los recientes escándalos de fugas de datos dejaron claro que ni siquiera podemos confiar en las empresas de VPN tradicionales.
 
-Nuestra VPN nació para hacer que sus actividades en Internet sean privadas y una parte crucial de esto es hacer que no sea posible el registro y seguimiento de actividades.
-NymVPN es un nuevo tipo de VPN diseñado de manera que sea imposible para cualquier persona monitorear o registrar su actividad en línea, incluso para nosotros. Nuestra VPN opera en una red descentralizada, sin partes confiables, componentes centralizados ni puntos únicos de falla. Todas las funcionalidades de NymVPN se realizan de forma descentralizada y distribuida, y no existe la posibilidad de habilitar el registro centralizado.
-Nuestra VPN cifra datos y protege los metadatos del análisis de tráfico a través de una Mixnet descentralizada. En pocas palabras: no hay forma de que registremos su actividad, por lo tanto, nadie puede acceder a ella.
+Nuestra VPN nació para hacer que tus actividades en Internet sean privadas y una parte crucial de esto es hacer que no sea posible el registro y seguimiento de actividades.
+NymVPN es un nuevo tipo de VPN diseñado de manera que sea imposible para cualquier persona monitorear o registrar tu actividad en línea, incluso para nosotros. Nuestra VPN opera en una red descentralizada, sin partes "confiables" o componentes centralizados ni puntos únicos de falla. Todas las funcionalidades de NymVPN se realizan de forma descentralizada y distribuida, y no existe la posibilidad de habilitar el registro centralizado.
+Nuestra VPN cifra datos y protege los metadatos del análisis de tráfico a través de una Mixnet descentralizada. En pocas palabras: no hay forma de que registremos tu actividad, por lo tanto, nadie puede acceder a ella.
 
 Pero ¿qué es exactamente una Mixnet? Una Mixnet es una red de nodos que:
-1. Reciba tráfico cifrado
-2. Mezclar el tráfico
-3. Redirigir el tráfico
-Este proceso se realiza hasta 5 veces (5 saltos) y hace imposible que alguien pueda monitorear o rastrear su actividad en línea.
+1. Recibe tráfico cifrado.
+2. Mezcla el tráfico.
+3. Redirige el tráfico.
+Este proceso se realiza hasta 5 veces (5 saltos) y hace imposible que alguien pueda monitorear o rastrear tu actividad en línea.
 
 Por eso deberías elegir nuestra VPN descentralizada, segura y privada
 
 Privacidad
-Nuestro dVPN se creó teniendo en cuenta la privacidad. No almacenamos registros (política de no registros) ni rastreamos su actividad. Incluso si alguien quisiera robarnos sus datos, no habría nada que robar.
+Nuestro dVPN se creó teniendo en cuenta la privacidad. No almacenamos registros (política de no registros) ni rastreamos tu actividad. Incluso si alguien quisiera robarnos tus datos, no habría nada que robar.
 
 Resistencia a la censura
-Nuestra aplicación VPN hace que su actividad en línea sea completamente anónima. Ciframos tu tráfico, dirección IP, ubicación y todo lo que alguien con malas intenciones pueda monitorear. Estás completamente seguro también gracias a funciones como el interruptor de emergencia.
+Nuestra aplicación VPN hace que tu actividad en línea sea completamente anónima. Ciframos tu tráfico, dirección IP, ubicación y todo lo que alguien con malas intenciones pueda monitorear. Estás completamente seguro también gracias a funciones como el interruptor de emergencia.
 
 Velocidad
-La velocidad de nuestra red VPN crece minuto a minuto gracias a que muchos nodos adicionales se unen a la red Mixnet. Además, utilizamos algoritmos criptográficos modernos y protocolos innovadores como Sphinx y Loopix para que su conexión sea lo más rápida posible.
+La velocidad de nuestra red VPN crece minuto a minuto gracias a que muchos nodos adicionales se unen a la red Mixnet. Además, utilizamos algoritmos criptográficos modernos y protocolos innovadores como Sphinx y Loopix para que tu conexión sea lo más rápida posible.
 
 Ubicación de elección
 Con NymVPN puedes elegir conectarte desde cientos de ubicaciones en todo el mundo.
 Descarga la aplicación --> Elige la ubicación --> Conectar
 
-Pagos criptográficos
-¿Está buscando una VPN que acepte pagos criptográficos? Aquí estamos. Estaremos encantados de aceptar pagos con criptomonedas.
+Pagos cripto
+¿Está buscando una VPN que acepte pagos cripto? Aquí estamos. Estaremos encantados de aceptar pagos con criptomonedas.
 
 Sin anuncios
-Disfrute de su VPN sin anuncios. Nuestro objetivo principal es proteger su privacidad y, por eso, no verá ningún anuncio en nuestra aplicación VPN.
+Disfrute de su VPN sin anuncios. Nuestro objetivo principal es proteger tu privacidad y, por eso, no verás ningún anuncio en nuestra aplicación VPN.
 
 Uso ilimitado
-Disfrute de Internet tanto como quiera, NymVPN nunca limitará su tráfico.
+Disfruta de Internet tanto como quieras, NymVPN nunca limitará tu tráfico.
 
 Nuestras funciones VPN más queridas:
-- Mixnet de 5 saltos: su tráfico de Internet se cifrará y se enviará a mixnodes que lo mezclarán con otros paquetes de tráfico 5 veces, haciendo imposible que alguien rastree su actividad en línea.
-- dVPN de 2 saltos: en este caso su tráfico se cifra y se envía a 2 mixnodes que lo mezclarán. El número reducido de saltos da como resultado una mayor velocidad.
+- Mixnet de 5 saltos: tu tráfico de Internet se cifrará y se enviará a mixnodes que lo mezclarán con otros paquetes de tráfico 5 veces, haciendo imposible que alguien rastree tu actividad en línea.
+- dVPN de 2 saltos: en este caso tu tráfico se cifra y se envía a 2 mixnodes que lo mezclarán. El número reducido de saltos da como resultado una mayor velocidad.
 - Sin registros centralizados: no almacenamos ningún registro de actividad, esto hace imposible que alguien tenga acceso a su actividad en Internet a través de nosotros.
-- Garantía de devolución de dinero: si no estás satisfecho con el producto te ofrecemos una política de garantía de devolución de dinero. Si no está satisfecho con algo, envíenos un correo electrónico a support@nymvpn.com, siempre estamos buscando mejorar.
+- Garantía de devolución de dinero: si no estás satisfecho con el producto te ofrecemos una política de garantía de devolución de dinero. Si no estás satisfecho con algo, envíanos un correo electrónico a support@nymvpn.com, siempre estamos buscando mejorar.
 - Túnel dividido: puedes elegir fácilmente cuáles de tus aplicaciones accederán a Internet a través de la VPN y cuáles accederán a Internet directamente.
-- Ocultar IP: nuestro dVPN ocultará toda la información vinculada a usted, incluida su dirección IP.
-- Killswitch: nuestra VPN está diseñada para brindar privacidad y seguridad, es por eso que, en caso de que su conexión VPN se caiga, el killswitch bloqueará su acceso a Internet, manteniéndolo a usted y a sus datos seguros.
+- Ocultar IP: nuestro dVPN ocultará toda la información vinculada a ti, incluida tu dirección IP.
+- Killswitch: nuestra VPN está diseñada para brindar privacidad y seguridad, es por eso que, en caso de que tu conexión VPN se caiga, el killswitch bloqueará tu acceso a Internet, manteniéndote a ti y a tus datos seguros.
