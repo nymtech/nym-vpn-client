@@ -6,9 +6,9 @@
     <string name="disconnected">Desconectado</string>
     <string name="disconnecting">Desconectando</string>
     <string name="connecting">Conectando</string>
-    <string name="five_hop_mixnet">5 saltos Mixnet</string>
+    <string name="five_hop_mixnet">Mixnet de 5 saltos</string>
     <string name="five_hop_description">Mejor para pagos, correos electrónicos, mensajes</string>
-    <string name="two_hop_mixnet">2 saltos Mixnet</string>
+    <string name="two_hop_mixnet">Mixnet de 2 saltos</string>
     <string name="two_hop_description">Mejor para navegar, streaming, compartir</string>
     <string name="first_hop">Primer salto</string>
     <string name="last_hop">Último salto</string>
@@ -101,8 +101,8 @@
     <string name="to_alpha">a NymVPN alfa</string>
     <string name="welcome">Bienvenido</string>
     <string name="cont">Continuar</string>
-    <string name="continue_agree">Al continuar, aceptas los</string>
-    <string name="and_acknowledge">y reconoces los</string>
+    <string name="continue_agree">Al continuar, aceptas los NymVPN</string>
+    <string name="and_acknowledge">y reconoces los NymVPN</string>
     <string name="share_anonymous_analytics">Compartir análisis anónimos del producto</string>
     <string name="anonymous_error_reports">Informes de errores anónimos</string>
     <string name="gateways_error">No se pudo recuperar los gateways</string>
