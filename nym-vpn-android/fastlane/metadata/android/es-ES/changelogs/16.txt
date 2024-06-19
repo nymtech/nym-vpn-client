@@ -2,4 +2,4 @@ Novedades:
 - Mejoras en la interfaz de usuario
 - Mejoras en el caché
 - Integración con harbour master
-- Mejora de la sincronización rápida del estado de las baldosas
+- Mejora de la sincronización rápida del estado de los mosaicos
