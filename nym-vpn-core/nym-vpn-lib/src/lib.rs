@@ -27,6 +27,7 @@ use talpid_routing::RouteManager;
 use tokio::time::timeout;
 use tunnel_setup::{setup_tunnel, AllTunnelsSetup, TunnelSetup};
 use util::wait_for_interrupt_and_signal;
+use routing::default_dns_servers;
 
 // Public re-export
 pub use nym_connection_monitor as connection_monitor;
@@ -159,7 +160,7 @@ pub struct NymVpn<T: Vpn> {
     pub nym_mtu: Option<u16>,
 
     /// The DNS server to use
-    pub dns: Option<IpAddr>,
+    pub dns: Vec<IpAddr>,
 
     /// Disable routing all traffic through the VPN TUN device.
     pub disable_routing: bool,
@@ -210,7 +211,7 @@ impl NymVpn<WireguardVpn> {
             exit_point,
             nym_ips: None,
             nym_mtu: None,
-            dns: None,
+            dns: default_dns_servers(),
             disable_routing: false,
             enable_two_hop: false,
             vpn_config: WireguardVpn {
@@ -249,7 +250,7 @@ impl NymVpn<MixnetVpn> {
             exit_point,
             nym_ips: None,
             nym_mtu: None,
-            dns: None,
+            dns: default_dns_servers(),
             disable_routing: false,
             enable_two_hop: false,
             vpn_config: MixnetVpn {
@@ -312,7 +313,7 @@ impl NymVpn<MixnetVpn> {
             #[cfg(target_os = "ios")]
             self.ios_tun_provider.clone(),
             dns_monitor,
-            self.dns,
+            self.dns.clone(),
         )
         .await?;
 
