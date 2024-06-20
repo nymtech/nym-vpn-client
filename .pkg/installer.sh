@@ -300,6 +300,32 @@ start_service() {
   fi
 }
 
+# check for ubuntu version > 22.04 missing required deps
+ubuntu_check_fuse2() {
+  log "  ${B_GRN}Checking$RS for distro dependencies"
+  distro=$(uname -a)
+  if [[ "$distro" == *"Ubuntu"* ]]; then
+    need_cmd dpkg
+    need_cmd grep
+    fuse_output=$(dpkg --get-selections | grep fuse)
+    if [[ "$fuse_output" != *"libfuse2"* ]]; then
+      choice=""
+      log "  ${B_GRN}Install required$RS package libfuse2?"
+      prompt="    ${B_YLW}Y${RS}es (recommended) ${B_YLW}N${RS}o "
+      user_prompt choice "$prompt"
+
+      if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
+        sudo apt install libfuse2
+        log "   ${B_GRN}Installed$RS libfuse2"
+      else
+        log "   Installing libfuse2 is required for the application to run properly, please install and try again:
+        ${I_YLW}sudo apt install libfuse2$RS"
+        exit 1
+      fi
+    fi
+  fi
+}
+
 install_client() {
   log "  ${B_GRN}Installing$RS nymvpn-x.AppImage"
   _pushd "$temp_dir"
@@ -367,6 +393,7 @@ cleanup() {
   rm -rf "$temp_dir"
 }
 
+need_cmd uname
 need_cmd install
 need_cmd sudo
 need_cmd sed
@@ -382,6 +409,7 @@ log "  nym-vpnd $ITL${B_YLW}$vpnd_version$RS\n"
 pre_check
 check_install_dir
 sanity_check
+ubuntu_check_fuse2
 download_client
 download_daemon
 install_client
