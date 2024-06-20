@@ -1,0 +1,60 @@
+# Create a new release of the Linux installer script
+
+name: release-linux-installer
+on:
+  workflow_dispatch:
+    inputs:
+      client_tag:
+        description: "Tag name of the client release"
+        required: true
+        default: nym-vpn-x-v0.1.0
+      client_version:
+        description: "Version of the client"
+        required: true
+        default: 0.1.0
+      daemon_tag:
+        description: "Tag name of the daemon release"
+        required: true
+        default: nym-vpn-core-v0.1.0
+      daemon_version:
+        description: "Version of the daemon"
+        required: true
+        default: 0.1.0
+      create_release:
+        description: "Create a release"
+        type: boolean
+        required: false
+        default: false
+
+
+jobs:
+  release-installer:
+    name: Release Linux installer
+    runs-on: ubuntu-latest
+    env:
+      VPNX_TAG: ${{ inputs.client_tag }}
+      VPNX_VERSION: ${{ inputs.client_version }}
+      VPND_TAG: ${{ inputs.daemon_tag }}
+      VPND_VERSION: ${{ inputs.daemon_version }}
+      INSTALLER: .pkg/installer.sh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Bump installer script
+        run: |
+          sed -i "s/^vpnx_tag=.*/vpnx_tag=${{ inputs.client_tag }}/" $INSTALLER
+          sed -i "s/^vpnd_tag=.*/vpnd_tag=${{ inputs.daemon_tag }}/" $INSTALLER
+          sed -i "s/^vpnx_version=.*/vpnx_version=${{ inputs.client_version }}/" $INSTALLER
+          sed -i "s/^vpnd_version=.*/vpnd_version=${{ inputs.daemon_version }}/" $INSTALLER
+          cp $INSTALLER nymvpn.sh
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: inputs.create_release == true
+        env:
+          RELEASE_NAME: linux-installer-${{ inputs.client_version }}
+        with:
+          name: ${{ env.RELEASE_NAME }}
+          tag_name: ${{ env.RELEASE_NAME }}
+          body: Linux installer
+          files: nymvpn.sh
+
