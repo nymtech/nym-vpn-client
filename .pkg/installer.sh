@@ -231,6 +231,22 @@ check_install_dir() {
   fi
 }
 
+# check if a unit exists
+# return 0 if found, 1 if not found
+check_unit() {
+  if systemctl status nym-vpnd &>/dev/null; then
+    return 0
+  else
+    status=$?
+    if [ $status -eq 4 ]; then
+      # exit code 4 means the service is not found
+      return 1
+    fi
+  fi
+  # other exit code mean the service exists
+  return 0
+}
+
 sanity_check() {
   log "  ${B_GRN}Checking$RS for existing installation"
   # check for any existing installation, if found cancel the script
@@ -238,6 +254,7 @@ sanity_check() {
     log "  ${I_YLW}Please remove or cleanup any existing installation before running this script$RS"
     exit 1
   fi
+
   files_check=("$install_dir/$target_appimage" "$install_dir/$wrapper_sh" "$desktop_dir/nymvpn-x.desktop" "$icons_dir/$icon_name" "$install_dir/$vpnd_bin" "$units_dir/$vpnd_service")
 
   for file in "${files_check[@]}"; do
@@ -247,6 +264,12 @@ sanity_check() {
       exit 1
     fi
   done
+
+  if check_unit "nym_vpnd"; then
+    log "  ${I_YLW}⚠$RS nym-vpnd unit service found on the system$RS"
+    log "  ${I_YLW}Please remove or cleanup any existing installation before running this script$RS"
+    exit 1
+  fi
 }
 
 # prompt user to enable and start the service
