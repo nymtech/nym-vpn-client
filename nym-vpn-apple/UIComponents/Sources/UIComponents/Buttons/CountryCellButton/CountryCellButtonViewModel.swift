@@ -35,8 +35,4 @@ public struct CountryCellButtonViewModel {
             return country.name
         }
     }
-
-    public var backgroundColor: Color {
-        isSelected ? NymColor.countrySelectionSelectedBackground : .clear
-    }
 }

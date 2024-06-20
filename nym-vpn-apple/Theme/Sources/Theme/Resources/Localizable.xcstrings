@@ -106,7 +106,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To generate a new credential, please use the link provided in the alpha phase invitation email."
+            "value" : "To generate a new credential, please use the link\nprovided in the alpha phase invitation email."
           }
         }
       }

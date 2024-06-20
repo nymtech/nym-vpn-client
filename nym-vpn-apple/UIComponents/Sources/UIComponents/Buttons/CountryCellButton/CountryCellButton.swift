@@ -24,7 +24,6 @@ public struct CountryCellButton: View {
             RoundedRectangle(cornerRadius: 8)
         )
         .frame(height: 56, alignment: .center)
-        .background(viewModel.backgroundColor)
         .cornerRadius(8)
         .padding(.horizontal, 24)
     }

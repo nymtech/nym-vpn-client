@@ -57,6 +57,17 @@ public class HopListViewModel: ObservableObject {
         }
         navigateHome()
     }
+
+    func isCountrySelected(countryCode: String) -> Bool {
+        switch type {
+        case .entry:
+            guard let entryGateway = connectionManager.entryGateway else { return false }
+            return entryGateway.countryCode == countryCode
+        case .exit:
+            guard let exitRouter = connectionManager.exitRouter else { return false }
+            return exitRouter.countryCode == countryCode
+        }
+    }
 }
 
 // MARK: - Navigation -

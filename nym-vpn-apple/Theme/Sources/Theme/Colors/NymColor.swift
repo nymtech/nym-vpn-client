@@ -49,4 +49,8 @@ public struct NymColor {
     // MARK: - Toggle -
     public static let toggleBackground = Color(.toggleBackground)
     public static let toggleStroke = Color(.toggleStroke)
+
+    // MARK: - Credentials -
+    public static let credetnialsTitle = Color(.credentialTitle)
+    public static let credetnialsSubtitle = Color(.credentialSubtitle)
 }
