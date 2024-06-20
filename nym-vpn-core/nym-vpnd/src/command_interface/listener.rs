@@ -192,12 +192,10 @@ impl NymVpnd for CommandInterface {
             Ok(()) => ImportUserCredentialResponse {
                 success: true,
                 error: None,
-                expiry:
             },
             Err(err) => ImportUserCredentialResponse {
                 success: false,
                 error: Some(err.into()),
-                expiry: None,
             },
         };
 

@@ -186,7 +186,6 @@ message ImportUserCredentialRequest {
 message ImportUserCredentialResponse {
   bool success = 1;
   ImportError error = 2;
-  optional google.protobuf.Timestamp expiry = 3;
 }
 
 message ImportError {
