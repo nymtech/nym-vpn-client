@@ -300,7 +300,7 @@ start_service() {
   fi
 }
 
-# prompt user to enable and start the service
+# check for ubuntu version > 22.04 missing required deps
 ubuntu_check_fuse2() {
   log "  ${B_GRN}Checking$RS for distro dependencies"
   distro=$(uname -a)
