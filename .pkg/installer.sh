@@ -84,6 +84,16 @@ bin_in_path() {
   return 1
 }
 
+user_prompt() {
+  # check if the script is running in a terminal, if not,
+  # ie. piped into bash read from /dev/tty to get user input
+  if [ -t 0 ]; then
+    read -r -p "$(echo -e "$2")" "$1"
+  else
+    read -r -p "$(echo -e "$2")" "$1" </dev/tty
+  fi
+}
+
 need_cmd mktemp
 temp_dir=$(mktemp -d)
 
@@ -195,7 +205,7 @@ select_install_dir() {
   choice=""
   log "  ${B_GRN}Select$RS the install directory"
   prompt="    ${B_YLW}H$RS ~/.local (default) or ${B_YLW}U$RS /usr (${B_YLW}h$RS/${B_YLW}u$RS) "
-  read -r -p "$(echo -e "$prompt")" choice
+  user_prompt choice "$prompt"
 
   if [ "$choice" = "u" ] || [ "$choice" = "U" ]; then
     prefix_install="/usr"
@@ -224,7 +234,7 @@ check_install_dir() {
     install_dir="$usr_bin_dir"
     desktop_dir="/usr/share/applications"
     icons_dir="/usr/share/icons"
-    log "  ${B_GRN}Install directory$RS $prefix_install"
+    log "  ${B_GRN}Install$RS directory set to $prefix_install"
   else
     select_install_dir
     log "  ${B_GRN}Selected$RS install directory $prefix_install"
@@ -277,7 +287,7 @@ start_service() {
   choice=""
   log "  ${B_GRN}Enable$RS and ${B_GRN}start$RS nym-vpnd service?"
   prompt="    ${B_YLW}Y${RS}es (recommended) ${B_YLW}N${RS}o "
-  read -r -p "$(echo -e "$prompt")" choice
+  user_prompt choice "$prompt"
 
   if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
     sudo systemctl enable $vpnd_service
@@ -366,6 +376,8 @@ need_cmd sha256sum
 need_cmd which
 
 log "$ITL${B_GRN}nym$RS$ITL${B_GRY}VPN$RS\n"
+log "  nymvpn-x $ITL${B_YLW}$vpnx_version$RS"
+log "  nym-vpnd $ITL${B_YLW}$vpnd_version$RS\n"
 
 pre_check
 check_install_dir
