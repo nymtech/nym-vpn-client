@@ -300,6 +300,27 @@ start_service() {
   fi
 }
 
+# prompt user to enable and start the service
+ubuntu_check_fuse2() {
+  distro=$(lsb_release -i)
+  fuse_output=$(dpkg --get-selections | grep fuse)
+  if [ $fuse_output != *"libfuse2"* ] && [ $distro == *"Ubuntu"* ]; then
+    choice=""
+    log "  ${B_GRN}Install$RS ${B_GRN}required$RS package libfuse2?"
+    prompt="    ${B_YLW}Y${RS}es (recommended) ${B_YLW}N${RS}o "
+    read -r -p "$(echo -e "$prompt")" choice
+
+    if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
+      sudo apt install libfuse2
+      log "   ${B_GRN}Installed$RS libfuse2"
+    else
+      log "   Installing libfuse2 is required for the application to run properly, please install and try again:
+      ${I_YLW}sudo apt install libfuse2$RS"
+      exit 1
+    fi
+  fi
+}
+
 install_client() {
   log "  ${B_GRN}Installing$RS nymvpn-x.AppImage"
   _pushd "$temp_dir"
@@ -382,6 +403,7 @@ log "  nym-vpnd $ITL${B_YLW}$vpnd_version$RS\n"
 pre_check
 check_install_dir
 sanity_check
+ubuntu_check_fuse2
 download_client
 download_daemon
 install_client
