@@ -41,6 +41,7 @@ private extension WelcomeView {
     func titleView() -> some View {
         Text(viewModel.titleText)
             .textStyle(.Headline.Small.primary)
+            .multilineTextAlignment(.center)
         Spacer()
             .frame(height: 16)
     }
@@ -48,11 +49,11 @@ private extension WelcomeView {
     @ViewBuilder
     func subtitleView() -> some View {
         Text("\(Text(viewModel.subtitle1Text)) \(Text("[\(viewModel.sentryText)](https://sentry.io)"))\(Text(viewModel.subtitle2Text)) \n\n\(Text(viewModel.disclaimerText))")
-            .textStyle(.Body.Large.primary)
+            .textStyle(.Body.Large.regular)
             .tint(NymColor.primaryOrange)
             .foregroundStyle(NymColor.statusInfoText)
             .multilineTextAlignment(.center)
-            .padding(.horizontal, 16)
+            .padding(.horizontal, viewModel.subtitleViewHorizontalPadding())
         Spacer()
     }
 

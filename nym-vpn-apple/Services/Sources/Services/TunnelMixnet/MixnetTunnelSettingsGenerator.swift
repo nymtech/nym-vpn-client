@@ -56,6 +56,9 @@ public final class MixnetTunnelSettingsGenerator {
         ipv6Settings.excludedRoutes = ipv6ExcludedRoutes
         networkSettings.ipv6Settings = ipv6Settings
 
+        // TODO: expose DNS settings in uniffy layer and set the values here
+        networkSettings.dnsSettings = NEDNSSettings(servers: ["1.1.1.1", "1.0.0.1"])
+
         return networkSettings
     }
 

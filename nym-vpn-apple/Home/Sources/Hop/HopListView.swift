@@ -5,6 +5,7 @@ import UIComponents
 
 public struct HopListView: View {
     @StateObject private var viewModel: HopListViewModel
+    @FocusState private var isSearchFocused: Bool
 
     public init(viewModel: HopListViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -21,6 +22,7 @@ public struct HopListView: View {
                 .frame(height: 24)
 
             ScrollView {
+                noSearchResultsView()
                 quickestConnection()
                 availableCountryList()
             }
@@ -32,6 +34,9 @@ public struct HopListView: View {
         .background {
             NymColor.background
                 .ignoresSafeArea()
+        }
+        .onTapGesture {
+            isSearchFocused = false
         }
     }
 }
@@ -47,8 +52,20 @@ private extension HopListView {
 
     @ViewBuilder
     func searchView() -> some View {
-        SearchView(searchText: $viewModel.searchText)
+        SearchView(searchText: $viewModel.searchText, isSearchFocused: $isSearchFocused)
             .padding(.horizontal, 24)
+    }
+
+    @ViewBuilder
+    func noSearchResultsView() -> some View {
+        if !viewModel.searchText.isEmpty && viewModel.countries?.isEmpty ?? true {
+            VStack {
+                Text(viewModel.noResultsText)
+                    .textStyle(.Body.Medium.primary)
+                    .padding(.top, 96)
+                Spacer()
+            }
+        }
     }
 
     @ViewBuilder

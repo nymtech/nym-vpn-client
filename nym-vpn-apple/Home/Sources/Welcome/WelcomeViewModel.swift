@@ -18,6 +18,10 @@ public final class WelcomeViewModel: ObservableObject {
         self.appSettings = appSettings
     }
 
+    func subtitleViewHorizontalPadding() -> CGFloat {
+        appSettings.isSmallScreen ? 16 : 65
+    }
+
     func sentryViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
             accessory: .toggle(

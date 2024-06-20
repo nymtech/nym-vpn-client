@@ -6,12 +6,13 @@ public struct SearchView: View {
     private let searchCountryTitle = "searchCountry".localizedString
     private let searchImageName = "searchIcon"
 
-    @FocusState private var isSearchFocused: Bool
+    @FocusState.Binding private var isSearchFocused: Bool
 
     @Binding var searchText: String
 
-    public init(searchText: Binding<String>) {
+    public init(searchText: Binding<String>, isSearchFocused: FocusState<Bool>.Binding) {
         _searchText = searchText
+        _isSearchFocused = isSearchFocused
     }
 
     public var body: some View {
@@ -38,7 +39,7 @@ extension SearchView {
             .resizable()
             .frame(width: 24, height: 24)
             .cornerRadius(50)
-            .padding(16)
+            .padding(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 0))
     }
 
     @ViewBuilder
