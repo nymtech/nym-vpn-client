@@ -312,7 +312,7 @@ ubuntu_check_fuse2() {
       choice=""
       log "  ${B_GRN}Install$RS ${B_GRN}required$RS package libfuse2?"
       prompt="    ${B_YLW}Y${RS}es (recommended) ${B_YLW}N${RS}o "
-      read -r -p "$(echo -e "$prompt")" choice
+      user_prompt choice "$prompt"
 
       if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
         sudo apt install libfuse2
