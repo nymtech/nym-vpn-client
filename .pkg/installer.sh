@@ -304,17 +304,18 @@ start_service() {
 ubuntu_check_fuse2() {
   log "  ${B_GRN}Checking$RS for distro dependencies"
   distro=$(uname -a)
-  if [ $distro == *"Ubuntu"* ]
-  then
+  if [[ "$distro" == *"Ubuntu"* ]]; then
+    need_cmd dpkg
+    need_cmd grep
     fuse_output=$(dpkg --get-selections | grep fuse)
-    if [ $fuse_output != *"libfuse2"* ]
-    then
+    if [[ "$fuse_output" != *"libfuse2"* ]]; then
       choice=""
       log "  ${B_GRN}Install$RS ${B_GRN}required$RS package libfuse2?"
       prompt="    ${B_YLW}Y${RS}es (recommended) ${B_YLW}N${RS}o "
       read -r -p "$(echo -e "$prompt")" choice
 
       if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
+        need_cmd apt
         sudo apt install libfuse2
         log "   ${B_GRN}Installed$RS libfuse2"
       else
@@ -393,6 +394,7 @@ cleanup() {
   rm -rf "$temp_dir"
 }
 
+need_cmd uname
 need_cmd install
 need_cmd sudo
 need_cmd sed
