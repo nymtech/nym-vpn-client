@@ -46,7 +46,9 @@ jobs:
           sed -i "s/^vpnd_tag=.*/vpnd_tag=${{ inputs.daemon_tag }}/" $INSTALLER
           sed -i "s/^vpnx_version=.*/vpnx_version=${{ inputs.client_version }}/" $INSTALLER
           sed -i "s/^vpnd_version=.*/vpnd_version=${{ inputs.daemon_version }}/" $INSTALLER
-          cp $INSTALLER nymvpn.sh
+          mv $INSTALLER nymvpn.sh
+      - name: Show installer script
+        run: cat nymvpn.sh
       - name: Release
         uses: softprops/action-gh-release@v2
         if: inputs.create_release == true
