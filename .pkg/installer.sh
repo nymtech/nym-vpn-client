@@ -310,7 +310,7 @@ ubuntu_check_fuse2() {
     fuse_output=$(dpkg --get-selections | grep fuse)
     if [[ "$fuse_output" != *"libfuse2"* ]]; then
       choice=""
-      log "  ${B_GRN}Install$RS ${B_GRN}required$RS package libfuse2?"
+      log "  ${B_GRN}Install required$RS package libfuse2?"
       prompt="    ${B_YLW}Y${RS}es (recommended) ${B_YLW}N${RS}o "
       user_prompt choice "$prompt"
 
