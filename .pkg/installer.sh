@@ -76,6 +76,14 @@ tilded() {
   echo "${1/#$HOME/\~}"
 }
 
+bin_in_path() {
+  if which "$1" &>/dev/null; then
+    log "${B_YLW}⚠$RS $1 is present in the system"
+    return 0
+  fi
+  return 1
+}
+
 need_cmd mktemp
 temp_dir=$(mktemp -d)
 
@@ -203,7 +211,7 @@ select_install_dir() {
 }
 
 # checking if a directory is in the PATH
-in_path() {
+dir_in_path() {
   if [[ ":$PATH:" == *":$1:"* ]]; then
     return 0
   fi
@@ -211,7 +219,7 @@ in_path() {
 }
 
 check_install_dir() {
-  if ! in_path "$xdg_bin_home"; then
+  if ! dir_in_path "$xdg_bin_home"; then
     prefix_install="/usr"
     install_dir="$usr_bin_dir"
     desktop_dir="/usr/share/applications"
@@ -221,6 +229,24 @@ check_install_dir() {
     select_install_dir
     log "  ${B_GRN}Selected$RS install directory $prefix_install"
   fi
+}
+
+sanity_check() {
+  log "  ${B_GRN}Checking$RS for existing installation"
+  # check for any existing installation, if found cancel the script
+  if bin_in_path $vpnd_bin || bin_in_path nymvpn-x || bin_in_path $target_appimage; then
+    log "  ${I_YLW}Please remove or cleanup any existing installation before running this script$RS"
+    exit 1
+  fi
+  files_check=("$install_dir/$target_appimage" "$install_dir/$wrapper_sh" "$desktop_dir/nymvpn-x.desktop" "$icons_dir/$icon_name" "$install_dir/$vpnd_bin" "$units_dir/$vpnd_service")
+
+  for file in "${files_check[@]}"; do
+    if [ -a "$file" ]; then
+      log "${B_YLW}⚠$RS $file already exists"
+      log "  ${I_YLW}Please remove or cleanup any existing installation before running this script$RS"
+      exit 1
+    fi
+  done
 }
 
 # prompt user to enable and start the service
@@ -298,7 +324,7 @@ install_daemon() {
 }
 
 post_install() {
-  if ! in_path "$install_dir"; then
+  if ! dir_in_path "$install_dir"; then
     log "${B_YLW}⚠$RS $install_dir is not in the ${BLD}PATH$RS
   please add it using your shell configuration"
   fi
@@ -314,11 +340,13 @@ need_cmd sed
 need_cmd curl
 need_cmd tar
 need_cmd sha256sum
+need_cmd which
 
 log "$ITL${B_GRN}nym$RS$ITL${B_GRY}VPN$RS\n"
 
 pre_check
 check_install_dir
+sanity_check
 download_client
 download_daemon
 install_client

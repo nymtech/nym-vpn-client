@@ -21,7 +21,7 @@ on:
         required: true
         default: 0.1.0
       create_release:
-        description: "Create a release"
+        description: "Publish a new release of the installer"
         type: boolean
         required: false
         default: false
