@@ -302,7 +302,7 @@ start_service() {
 
 # check for ubuntu version > 22.04 missing required deps
 ubuntu_check_fuse2() {
-  log "  ${B_GRN}Checking$RS for distro dependencies"
+  log "  ${B_GRN}Checking$RS for system dependencies"
   distro=$(uname -a)
   if [[ "$distro" == *"Ubuntu"* ]]; then
     need_cmd dpkg
@@ -318,9 +318,8 @@ ubuntu_check_fuse2() {
         sudo apt install libfuse2
         log "   ${B_GRN}Installed$RS libfuse2"
       else
-        log "   Installing libfuse2 is required for the application to run properly, please install and try again:
+        log "   libfuse2 is required for the app to work, install it with:
         ${I_YLW}sudo apt install libfuse2$RS"
-        exit 1
       fi
     fi
   fi
