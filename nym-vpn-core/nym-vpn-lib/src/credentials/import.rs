@@ -1,4 +1,5 @@
 use std::{fs, path::PathBuf};
+use time::OffsetDateTime;
 use tracing::info;
 
 use super::{helpers::get_credentials_store, CredentialStoreError};
@@ -22,7 +23,7 @@ pub enum ImportCredentialError {
 pub async fn import_credential(
     raw_credential: Vec<u8>,
     data_path: PathBuf,
-) -> Result<(), ImportCredentialError> {
+) -> Result<Option<OffsetDateTime>, ImportCredentialError> {
     info!("Importing credential");
     let (credentials_store, location) =
         get_credentials_store(data_path.clone())
@@ -59,7 +60,7 @@ pub enum ImportCredentialBase58Error {
 pub async fn import_credential_base58(
     credential: &str,
     data_path: PathBuf,
-) -> Result<(), ImportCredentialBase58Error> {
+) -> Result<Option<OffsetDateTime>, ImportCredentialBase58Error> {
     let raw_credential = bs58::decode(credential).into_vec()?;
     import_credential(raw_credential, data_path)
         .await
@@ -88,7 +89,7 @@ pub enum ImportCredentialFileError {
 pub async fn import_credential_file(
     credential_file: PathBuf,
     data_path: PathBuf,
-) -> Result<(), ImportCredentialFileError> {
+) -> Result<Option<OffsetDateTime>, ImportCredentialFileError> {
     let raw_credential = fs::read(credential_file.clone()).map_err(|err| {
         ImportCredentialFileError::ImportCredentialFile {
             path: credential_file,

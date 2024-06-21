@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
+use time::OffsetDateTime;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 use tracing::{info, warn};
 
@@ -86,7 +87,7 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_import_credential(
         &self,
         credential: Vec<u8>,
-    ) -> Result<(), ImportCredentialError> {
+    ) -> Result<Option<OffsetDateTime>, ImportCredentialError> {
         let (tx, rx) = oneshot::channel();
         self.vpn_command_tx
             .send(VpnServiceCommand::ImportCredential(tx, credential))

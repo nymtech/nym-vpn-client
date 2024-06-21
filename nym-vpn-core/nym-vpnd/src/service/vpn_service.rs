@@ -12,6 +12,7 @@ use nym_vpn_lib::credentials::import_credential;
 use nym_vpn_lib::gateway_directory::{self, EntryPoint, ExitPoint};
 use nym_vpn_lib::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
+use time::OffsetDateTime;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::{broadcast, oneshot};
 use tracing::{error, info};
@@ -78,7 +79,10 @@ pub enum VpnServiceCommand {
     Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
-    ImportCredential(oneshot::Sender<Result<(), ImportCredentialError>>, Vec<u8>),
+    ImportCredential(
+        oneshot::Sender<Result<Option<OffsetDateTime>, ImportCredentialError>>,
+        Vec<u8>,
+    ),
 }
 
 impl fmt::Display for VpnServiceCommand {
@@ -463,7 +467,7 @@ impl NymVpnService {
     async fn handle_import_credential(
         &mut self,
         credential: Vec<u8>,
-    ) -> Result<(), ImportCredentialError> {
+    ) -> Result<Option<OffsetDateTime>, ImportCredentialError> {
         if self.is_running() {
             return Err(ImportCredentialError::VpnRunning);
         }
