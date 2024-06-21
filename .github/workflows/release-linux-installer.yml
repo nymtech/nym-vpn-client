@@ -61,6 +61,12 @@ jobs:
           \`\`\`
           curl -fsSL https://github.com/nymtech/nym-vpn-client/releases/download/${{ env.RELEASE_TAG }}/install.sh | bash
           \`\`\`
+
+          #### To uninstall
+
+          \`\`\`
+          curl -fsSL https://github.com/nymtech/nym-vpn-client/releases/download/${{ env.RELEASE_TAG }}/install.sh | bash -s uninstall
+          \`\`\`
           " > ${{ env.RELEASE_NOTES }}
           cat ${{ env.RELEASE_NOTES }}
       - name: Release

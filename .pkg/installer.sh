@@ -94,6 +94,13 @@ user_prompt() {
   fi
 }
 
+rmfile() {
+  if [ -f "$1" ]; then
+    sudo rm -f "$1"
+    log "   removed $I_YLW${1/#$HOME/\~}$RS"
+  fi
+}
+
 need_cmd mktemp
 temp_dir=$(mktemp -d)
 
@@ -115,6 +122,9 @@ core_archive="nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
 vpnd_bin="nym-vpnd"
 vpnd_service="nym-vpnd.service"
 units_dir="/usr/lib/systemd/system"
+os=$(uname -a)
+# → to lowercase
+os="${os,,}"
 
 ### desktop entry wrapper script ###
 wrapper="#! /bin/bash
@@ -158,6 +168,33 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target"
 ###
+
+# do not install/uninstall if system packages are installed
+check_system_pkg() {
+  packages=('nym-vpnd' 'nymvpn-x')
+
+  case "$os" in
+  *debian* | *ubuntu* | *mint*)
+    for pkg in "${packages[@]}"; do
+      if dpkg-query -W "$pkg"; then
+        log "${B_YLW}⚠$RS $pkg system package is installed, aborting…"
+        exit 1
+      fi
+    done
+    ;;
+  *arch* | *manjaro* | *endeavour* | *garuda*)
+    for pkg in "${packages[@]}"; do
+      if pacman -Qs "$pkg"; then
+        log "${B_YLW}⚠$RS $pkg system package is installed, aborting…"
+        exit 1
+      fi
+    done
+    ;;
+  *)
+    return 0
+    ;;
+  esac
+}
 
 pre_check() {
   if [ -z "$vpnx_tag" ] || [ -z "$vpnx_version" ]; then
@@ -303,10 +340,7 @@ start_service() {
 # check for ubuntu version > 22.04 missing required deps
 ubuntu_check_fuse2() {
   log "  ${B_GRN}Checking$RS for system dependencies"
-  distro=$(uname -a)
-  if [[ "$distro" == *"Ubuntu"* ]]; then
-    need_cmd dpkg
-    need_cmd grep
+  if [[ "$os" == *"ubuntu"* ]]; then
     fuse_output=$(dpkg --get-selections | grep fuse)
     if [[ "$fuse_output" != *"libfuse2"* ]]; then
       choice=""
@@ -392,6 +426,63 @@ cleanup() {
   rm -rf "$temp_dir"
 }
 
+_install() {
+  log "$ITL${B_GRN}nym$RS$ITL${B_GRY}VPN$RS\n"
+  log "  nymvpn-x $ITL${B_YLW}$vpnx_version$RS"
+  log "  nym-vpnd $ITL${B_YLW}$vpnd_version$RS\n"
+
+  pre_check
+  check_system_pkg
+  check_install_dir
+  sanity_check
+  ubuntu_check_fuse2
+  download_client
+  download_daemon
+  install_client
+  install_daemon
+  start_service
+  post_install
+  cleanup
+
+  log "\n${B_GRN}✓$RS"
+}
+
+_uninstall() {
+  log "$ITL${B_GRN}nym$RS$ITL${B_GRY}VPN$RS ${ITL}uninstaller$RS\n"
+  check_system_pkg
+
+  files=(
+    "$HOME/.local/bin/nym-vpnd"
+    "$HOME/.local/bin/nymvpn-x.appimage"
+    "$HOME/.local/bin/nymvpn-x-wrapper.sh"
+    "/usr/bin/nym-vpnd"
+    "/usr/bin/nymvpn-x.appimage"
+    "/usr/bin/nymvpn-x-wrapper.sh"
+    ~/.local/share/applications/nymvpn-x.desktop
+    ~/.local/share/icons/nymvpn-x.svg
+    /usr/share/applications/nymvpn-x.desktop
+    /usr/share/icons/nymvpn-x.svg
+  )
+
+  log "  ${B_GRN}Removing$RS installed files"
+  for file in "${files[@]}"; do
+    if [ -f "$file" ]; then
+      rmfile "$file"
+    fi
+  done
+
+  log "  ${B_GRN}Removing$RS nym-vpnd service"
+  if sudo systemctl stop nym-vpnd.service &>/dev/null; then
+    log "   ${B_GRN}Stopped$RS nym-vpnd service"
+  fi
+  if sudo systemctl disable nym-vpnd.service &>/dev/null; then
+    log "   ${B_GRN}Disabled$RS nym-vpnd service"
+  fi
+  rmfile /usr/lib/systemd/system/nym-vpnd.service
+
+  log "\n${B_GRN}✓$RS"
+}
+
 need_cmd uname
 need_cmd install
 need_cmd sudo
@@ -400,21 +491,10 @@ need_cmd curl
 need_cmd tar
 need_cmd sha256sum
 need_cmd which
+need_cmd grep
 
-log "$ITL${B_GRN}nym$RS$ITL${B_GRY}VPN$RS\n"
-log "  nymvpn-x $ITL${B_YLW}$vpnx_version$RS"
-log "  nym-vpnd $ITL${B_YLW}$vpnd_version$RS\n"
-
-pre_check
-check_install_dir
-sanity_check
-ubuntu_check_fuse2
-download_client
-download_daemon
-install_client
-install_daemon
-start_service
-post_install
-cleanup
-
-log "\n${B_GRN}✓$RS"
+if [ "$1" == uninstall ]; then
+  _uninstall
+  exit 0
+fi
+_install
