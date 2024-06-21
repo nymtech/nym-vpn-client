@@ -101,9 +101,6 @@ rmfile() {
   fi
 }
 
-need_cmd mktemp
-temp_dir=$(mktemp -d)
-
 data_home=${XDG_DATA_HOME:-$HOME/.local/share}
 state_home=${XDG_STATE_HOME:-$HOME/.local/state}
 xdg_bin_home="$HOME/.local/bin"
@@ -337,14 +334,16 @@ start_service() {
   fi
 }
 
-# check for ubuntu version > 22.04 missing required deps
-ubuntu_check_fuse2() {
+check_system_deps() {
   log "  ${B_GRN}Checking$RS for system dependencies"
-  if [[ "$os" == *"ubuntu"* ]]; then
+
+  case "$os" in
+  *ubuntu*)
+    # check for ubuntu version > 22.04 libfuse2 (needed for AppImage)
     fuse_output=$(dpkg --get-selections | grep fuse)
     if [[ "$fuse_output" != *"libfuse2"* ]]; then
       choice=""
-      log "  ${B_GRN}Install required$RS package libfuse2?"
+      log "  ${B_GRN}Install$RS required package libfuse2?"
       prompt="    ${B_YLW}Y${RS}es (recommended) ${B_YLW}N${RS}o "
       user_prompt choice "$prompt"
 
@@ -352,11 +351,31 @@ ubuntu_check_fuse2() {
         sudo apt install libfuse2
         log "   ${B_GRN}Installed$RS libfuse2"
       else
-        log "   libfuse2 is required for the app to work, install it with:
+        log "   ${B_YLW}⚠$RS libfuse2 is required for the app to work, install it with:
         ${I_YLW}sudo apt install libfuse2$RS"
       fi
     fi
-  fi
+    ;;
+  *arch* | *manjaro* | *endeavour* | *garuda*)
+    # check if fuse2 is installed (needed for AppImage)
+    if ! pacman -Qk fuse2 &>/dev/null; then
+      choice=""
+      log "  ${B_GRN}Install$RS required package fuse2?"
+      user_prompt choice "    ${B_YLW}Y${RS}es ${B_YLW}N${RS}o "
+
+      if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
+        sudo pacman -S fuse2 --noconfirm
+        log "   ${B_GRN}Installed$RS fuse2"
+      else
+        log "   ${B_YLW}⚠$RS fuse2 is required for the app to work, install it with:
+        ${I_YLW}sudo pacman -S fuse2$RS"
+      fi
+    fi
+    ;;
+  *)
+    return 0
+    ;;
+  esac
 }
 
 install_client() {
@@ -431,11 +450,14 @@ _install() {
   log "  nymvpn-x $ITL${B_YLW}$vpnx_version$RS"
   log "  nym-vpnd $ITL${B_YLW}$vpnd_version$RS\n"
 
+  need_cmd mktemp
+  temp_dir=$(mktemp -d)
+
   pre_check
   check_system_pkg
-  check_install_dir
   sanity_check
-  ubuntu_check_fuse2
+  check_system_deps
+  check_install_dir
   download_client
   download_daemon
   install_client
