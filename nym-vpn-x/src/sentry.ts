@@ -6,7 +6,6 @@ import {
   useNavigationType,
 } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
-import { captureConsoleIntegration } from '@sentry/integrations';
 import { getVersion } from '@tauri-apps/api/app';
 import logu from './log';
 
@@ -43,7 +42,7 @@ async function initSentry() {
         blockAllMedia: false,
       }),
       // captures console API calls
-      captureConsoleIntegration({ levels: ['error', 'warn'] }),
+      Sentry.captureConsoleIntegration({ levels: ['error', 'warn'] }),
     ],
     tracePropagationTargets: ['localhost'],
 
@@ -63,6 +62,7 @@ async function initSentry() {
   });
 
   Sentry.setTag('app_version', version);
+  Sentry.setTag('client_version', 'x');
   Sentry.setUser({ id: 'nym', ip_address: undefined });
 }
 

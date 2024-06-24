@@ -9,6 +9,8 @@ type TextAreaProps = {
   rows?: number;
   resize?: 'none' | 'vertical' | 'horizontal' | 'both';
   spellCheck?: boolean;
+  // Additional css style for textarea element
+  className?: string;
 };
 
 function TextArea({
@@ -18,6 +20,7 @@ function TextArea({
   spellCheck,
   resize,
   label,
+  className,
 }: TextAreaProps) {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
@@ -59,6 +62,7 @@ function TextArea({
           ...inputStates,
           resize && getResizeClass(resize),
           label && 'relative',
+          className,
         ])}
         onChange={handleChange}
         rows={rows}

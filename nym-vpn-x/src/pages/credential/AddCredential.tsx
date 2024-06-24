@@ -77,6 +77,7 @@ function AddCredential() {
           resize="none"
           rows={10}
           label={t('input-label')}
+          className="sentry-ignore"
         />
         {error ? (
           <motion.div
