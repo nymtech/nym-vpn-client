@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.core.os.ConfigurationCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -47,18 +48,19 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
-import net.nymtech.vpn.model.Country
+import java.text.Collator
 
 @Composable
 fun HopScreen(navController: NavController, hopType: HopType, viewModel: HopViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 
-	val countryComparator = compareBy<Country> { it.name }
+	val currentLocale = ConfigurationCompat.getLocales(context.resources.configuration)[0]
+	val collator = Collator.getInstance(currentLocale)
 
 	val sortedCountries =
-		remember(uiState.queriedCountries, countryComparator) {
-			uiState.queriedCountries.sortedWith(countryComparator)
+		remember(uiState.queriedCountries) {
+			uiState.queriedCountries.sortedWith(compareBy(collator) { it.name })
 		}
 
 	LaunchedEffect(Unit) {
