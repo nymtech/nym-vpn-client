@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { Field, Label, Textarea } from '@headlessui/react';
 import { inputStates } from './common-styles';
 
 type TextAreaProps = {
@@ -42,13 +43,13 @@ function TextArea({
   };
 
   return (
-    <div
+    <Field
       className={clsx([
         'w-full flex flex-row items-center mb-2',
         label && 'relative',
       ])}
     >
-      <textarea
+      <Textarea
         id="passphrase"
         name="passphrase"
         value={value}
@@ -69,7 +70,7 @@ function TextArea({
         spellCheck={spellCheck}
       />
       {label && (
-        <div
+        <Label
           className={clsx([
             'select-none absolute left-3 -top-2 px-1',
             'dark:text-mercury-pinkish',
@@ -77,9 +78,9 @@ function TextArea({
           ])}
         >
           {label}
-        </div>
+        </Label>
       )}
-    </div>
+    </Field>
   );
 }
 

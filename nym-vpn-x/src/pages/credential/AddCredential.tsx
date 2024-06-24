@@ -30,6 +30,9 @@ function AddCredential() {
   };
 
   const handleClick = async () => {
+    if (credential.length === 0) {
+      return;
+    }
     await invoke('add_credential', { credential: credential.trim() })
       .then(() => {
         navigate(routes.root);

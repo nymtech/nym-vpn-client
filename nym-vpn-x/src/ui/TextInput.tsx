@@ -1,5 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
+import { Field, Input, Label } from '@headlessui/react';
 import { inputStates } from './common-styles';
 import MsIcon from './MsIcon';
 
@@ -32,15 +33,16 @@ function TextInput({
   };
 
   return (
-    <div
+    <Field
       className={clsx([
         'w-full flex flex-row items-center',
         label && 'relative',
       ])}
     >
-      <input
+      <Input
         id="passphrase"
         name="passphrase"
+        type="text"
         value={value}
         aria-multiline={true}
         className={clsx([
@@ -59,7 +61,7 @@ function TextInput({
         autoFocus={autoFocus}
       />
       {label && (
-        <div
+        <Label
           className={clsx([
             'select-none absolute left-3 -top-2 px-1',
             'dark:text-mercury-pinkish',
@@ -67,15 +69,15 @@ function TextInput({
           ])}
         >
           {label}
-        </div>
+        </Label>
       )}
       {leftIcon && (
         <MsIcon
           icon={leftIcon}
-          className="absolute left-3 text-baltic-sea dark:text-laughing-jack"
+          className="absolute left-3 text-baltic-sea dark:text-laughing-jack hover:cursor-text"
         />
       )}
-    </div>
+    </Field>
   );
 }
 
