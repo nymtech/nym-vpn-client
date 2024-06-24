@@ -1,6 +1,5 @@
 import type { Config } from 'tailwindcss';
 import defaultTheme from 'tailwindcss/defaultTheme';
-import headlessui from '@headlessui/tailwindcss';
 
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
@@ -98,7 +97,7 @@ export default {
       },
     },
   },
-  plugins: [headlessui],
+  plugins: [],
   // Toggling dark mode manually
   darkMode: 'class',
 } satisfies Config;

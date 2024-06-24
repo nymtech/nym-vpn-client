@@ -1,5 +1,10 @@
 import React, { Key, useState } from 'react';
-import { RadioGroup as HuRadioGroup } from '@headlessui/react';
+import {
+  Description,
+  RadioGroup as HuRadioGroup,
+  Label,
+  Radio,
+} from '@headlessui/react';
 import clsx from 'clsx';
 
 export type RadioGroupOptionCursor = 'default' | 'pointer' | 'not-allowed';
@@ -39,16 +44,16 @@ function RadioGroup<K extends Key>({
     <div className="select-none">
       <HuRadioGroup value={selected} onChange={handleChange}>
         {rootLabel && (
-          <HuRadioGroup.Label
+          <Label
             as="div"
             className="font-semibold text-base text-baltic-sea dark:text-white mb-6 cursor-default"
           >
             {rootLabel}
-          </HuRadioGroup.Label>
+          </Label>
         )}
         <div className="space-y-4">
           {options.map((option) => (
-            <HuRadioGroup.Option
+            <Radio
               key={option.key}
               value={option.key}
               className={({ checked }) =>
@@ -89,27 +94,27 @@ function RadioGroup<K extends Key>({
                       </div>
                     )}
                     <div className="min-w-0 flex flex-col justify-center">
-                      <HuRadioGroup.Label
+                      <Label
                         as="p"
                         className={clsx([
                           'truncate text-base text-baltic-sea dark:text-mercury-pinkish',
                         ])}
                       >
                         {option.label}
-                      </HuRadioGroup.Label>
+                      </Label>
                       {option.desc && (
-                        <HuRadioGroup.Description
+                        <Description
                           as="span"
                           className="truncate text-sm text-cement-feet dark:text-mercury-mist"
                         >
                           <span>{option.desc}</span>
-                        </HuRadioGroup.Description>
+                        </Description>
                       )}
                     </div>
                   </div>
                 );
               }}
-            </HuRadioGroup.Option>
+            </Radio>
           ))}
         </div>
       </HuRadioGroup>

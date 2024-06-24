@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import clsx from 'clsx';
+import { Button as HuButton } from '@headlessui/react';
 
 type ButtonProps = {
   children: ReactNode;
@@ -28,7 +29,7 @@ function Button({
   };
 
   return (
-    <button
+    <HuButton
       className={clsx([
         'flex justify-center items-center w-full',
         'rounded-lg text-lg font-bold py-3 px-6',
@@ -43,7 +44,7 @@ function Button({
       disabled={disabled}
     >
       {children}
-    </button>
+    </HuButton>
   );
 }
 

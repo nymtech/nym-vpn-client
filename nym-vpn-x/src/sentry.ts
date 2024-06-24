@@ -59,7 +59,7 @@ async function initSentry() {
     // 'development' or 'production'
     environment: import.meta.env.MODE,
 
-    release: `nym-vpn-desktop@${version}`,
+    release: `nymvpn-x@${version}`,
   });
 
   Sentry.setTag('app_version', version);

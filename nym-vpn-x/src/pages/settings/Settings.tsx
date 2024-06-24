@@ -16,7 +16,8 @@ import SettingsGroup from './SettingsGroup';
 const ThrottleDelay = 10000; // ms
 
 function Settings() {
-  const { entrySelector, autoConnect, version, monitoring } = useMainState();
+  const { entrySelector, autoConnect, version, monitoring, daemonStatus } =
+    useMainState();
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
@@ -54,7 +55,10 @@ function Settings() {
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
       {import.meta.env.APP_DISABLE_DATA_STORAGE !== 'true' && (
-        <Button onClick={async () => navigate(routes.credential)}>
+        <Button
+          onClick={async () => navigate(routes.credential)}
+          disabled={daemonStatus !== 'Ok'}
+        >
           {t('add-credential-button')}
         </Button>
       )}

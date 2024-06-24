@@ -29,8 +29,7 @@
     "gen:licenses:rust": "cd src-tauri && cargo about generate --all-features --format json -o ../public/licenses-rust.json"
   },
   "dependencies": {
-    "@headlessui/react": "^1.7.17",
-    "@headlessui/tailwindcss": "^0.2.0",
+    "@headlessui/react": "^2.1.0",
     "@mui/base": "^5.0.0-beta.39",
     "@sentry/integrations": "^7.106.1",
     "@sentry/react": "^7.106.1",
@@ -61,6 +60,7 @@
     "eslint": "^8.52.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-deprecation": "^3.0.0",
     "eslint-plugin-import": "^2.29.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
     "eslint-plugin-react": "^7.33.2",
