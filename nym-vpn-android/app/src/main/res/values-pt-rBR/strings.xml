@@ -131,4 +131,6 @@
     <string name="exception_permission_not_granted"></string>
     <string name="exception_cred_invalid"></string>
     <string name="notifications"></string>
+    <string name="five_hop_mixnet"></string>
+    <string name="two_hop_mixnet"></string>
 </resources>
