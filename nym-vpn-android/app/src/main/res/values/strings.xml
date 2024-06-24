@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">NymVPN</string>
     <string name="settings">Settings</string>
@@ -5,9 +6,9 @@
     <string name="disconnected">Disconnected</string>
     <string name="disconnecting">Disconnecting</string>
     <string name="connecting">Connecting</string>
-    <string name="five_hop_mixnet">5-hop mixnet</string>
+    <string name="five_hop_mixnet">Anonymous</string>
     <string name="five_hop_description">Best for payments, emails, messages</string>
-    <string name="two_hop_mixnet">2-hop mixnet</string>
+    <string name="two_hop_mixnet">Fast</string>
     <string name="two_hop_description">Best for browsing, streaming, sharing</string>
     <string name="first_hop">First hop</string>
     <string name="last_hop">Last hop</string>
@@ -36,8 +37,8 @@
     <string name="feedback">Feedback</string>
     <string name="support">Support</string>
     <string name="error_reporting">Share anonymous error reports</string>
-	<string name="sentry">Sentry</string>
-	<string name="via">via</string>
+    <string name="sentry">Sentry</string>
+    <string name="via">via</string>
     <string name="required_app_restart">applies on restart</string>
     <string name="legal">Legal</string>
     <string name="faq_link" translatable="false">https://nymtech.net</string>
@@ -53,7 +54,7 @@
     <string name="matrix_url" translatable="false">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
     <string name="discord_url" translatable="false">https://discord.com/invite/nym</string>
     <string name="faq_url" translatable="false">https://support.nymvpn.com</string>
-	<string name="contact_url" translatable="false">https://support.nymvpn.com/hc/en-us/requests/new</string>
+    <string name="contact_url" translatable="false">https://support.nymvpn.com/hc/en-us/requests/new</string>
     <string name="support_email" translatable="false">support@nymvpn.com</string>
     <string name="github_issues_url" translatable="false">https://github.com/nymtech/nymvpn-android/issues/new/choose</string>
     <string name="email_subject">NymVPN Support</string>
@@ -90,46 +91,46 @@
     <string name="error_reporting_alert">Changes to error reporting will not fully take effect until the app has been restarted.</string>
     <string name="feature_in_progress">This feature is still in progress.</string>
     <string name="logs_saved">Logs saved to downloads folder</string>
-	<string name="sentry_url">https://sentry.io</string>
-	<string name="anonymous_analytics">Anonymous analytics</string>
-	<string name="anonymous_analytics_description">Help us improve NymVPN</string>
-	<string name="alpha_help_message">Help us refine our app during the alpha phase! Your feedback is crucial for identifying and resolving issues.</string>
-	<string name="opt_in_message_first">Opt-in for anonymous error monitoring</string>
-	<string name="opt_in_message_second">and analytics at will—you can opt out anytime.</string>
-	<string name="thanks_for_support">Thanks for your support!</string>
-	<string name="to_alpha">to NymVPN alpha</string>
-	<string name="welcome">Welcome</string>
-	<string name="cont">Continue</string>
-	<string name="continue_agree">By continuing, you agree to NymVPN\'s</string>
-	<string name="and_acknowledge">and acknowledge NymVPN\'s</string>
-	<string name="share_anonymous_analytics">Share anonymous product analytics</string>
-	<string name="anonymous_error_reports">Anonymous error reports</string>
+    <string name="sentry_url">https://sentry.io</string>
+    <string name="anonymous_analytics">Anonymous analytics</string>
+    <string name="anonymous_analytics_description">Help us improve NymVPN</string>
+    <string name="alpha_help_message">Help us refine our app during the alpha phase! Your feedback is crucial for identifying and resolving issues.</string>
+    <string name="opt_in_message_first">Opt-in for anonymous error monitoring</string>
+    <string name="opt_in_message_second">and analytics at will—you can opt out anytime.</string>
+    <string name="thanks_for_support">Thanks for your support!</string>
+    <string name="to_alpha">to NymVPN alpha</string>
+    <string name="welcome">Welcome</string>
+    <string name="cont">Continue</string>
+    <string name="continue_agree">By continuing, you agree to NymVPN\'s</string>
+    <string name="and_acknowledge">and acknowledge NymVPN\'s</string>
+    <string name="share_anonymous_analytics">Share anonymous product analytics</string>
+    <string name="anonymous_error_reports">Anonymous error reports</string>
     <string name="gateways_error">Failed to retrieve gateways</string>
-	<string name="error_invalid_credential">Imported credential is invalid</string>
-	<string name="missing_credential">Missing credential</string>
-	<string name="country_load_failure">Failed to load hop countries</string>
+    <string name="error_invalid_credential">Imported credential is invalid</string>
+    <string name="missing_credential">Missing credential</string>
+    <string name="country_load_failure">Failed to load hop countries</string>
     <string name="app_shortcuts">App shortcuts</string>
-	<string name="enable_shortcuts">Enable app shortcuts</string>
+    <string name="enable_shortcuts">Enable app shortcuts</string>
     <string name="disabled_while_connected">Disabled while connected to VPN</string>
     <string name="experimental_software_disclaimer">This is experimental software. Do not rely on it for strong anonymity (yet).</string>
-	<string name="permission_required">Permission required</string>
-	<string name="exception_cred_missing">No imported credential found.</string>
-	<string name="exception_permission_not_granted">Required permission has not be granted. </string>
+    <string name="permission_required">Permission required</string>
+    <string name="exception_cred_missing">No imported credential found.</string>
+    <string name="exception_permission_not_granted">Required permission has not be granted. </string>
     <string name="exception_cred_invalid">Credential is invalid or expired</string>
     <string name="permission_message">To ensure the app works correctly on your device, please allow the following permissions. These permissions are required for that app to function.</string>
-	<string name="notifications">Notifications</string>
-	<string name="allow_permissions">Allow permissions</string>
-	<string name="notification_permission_message">Required to keep VPN services running while the app is closed.</string>
-	<string name="error_gateway_lookup">Failed to lookup Nym gateways. Please check your network connection and try again.</string>
-	<string name="error_bad_peer_cert">"Selected gateway has a bad peer certificate. Please try again to connect to a different gateway. "</string>
-	<string name="error_no_hostname_address">Gateway missing hostname address. Please try again to connect to a different gateway.</string>
-	<string name="error_vpn_halted_unexpectedly">VPN has come to an unexpected halt. Please try connecting again.</string>
-	<string name="kill_switch">Kill switch</string>
-	<string name="contact_support">Contact support</string>
-	<string name="hours">hours</string>
-	<string name="hour">hour</string>
-	<string name="days">days</string>
-	<string name="day">day</string>
-	<string name="scan_nym_vpn_credential">Scan NymVPN Credential QR</string>
+    <string name="notifications">Notifications</string>
+    <string name="allow_permissions">Allow permissions</string>
+    <string name="notification_permission_message">Required to keep VPN services running while the app is closed.</string>
+    <string name="error_gateway_lookup">Failed to lookup Nym gateways. Please check your network connection and try again.</string>
+    <string name="error_bad_peer_cert">"Selected gateway has a bad peer certificate. Please try again to connect to a different gateway. "</string>
+    <string name="error_no_hostname_address">Gateway missing hostname address. Please try again to connect to a different gateway.</string>
+    <string name="error_vpn_halted_unexpectedly">VPN has come to an unexpected halt. Please try connecting again.</string>
+    <string name="kill_switch">Kill switch</string>
+    <string name="contact_support">Contact support</string>
+    <string name="hours">hours</string>
+    <string name="hour">hour</string>
+    <string name="days">days</string>
+    <string name="day">day</string>
+    <string name="scan_nym_vpn_credential">Scan NymVPN Credential QR</string>
     <string name="error_logs_not_saved">Failed to save logs</string>
 </resources>
