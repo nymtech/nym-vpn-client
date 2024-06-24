@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - "nym-vpn-android/**"
+      - ".github/workflows/ci-nym-vpn-android.yml"
 
 jobs:
   check:
@@ -42,3 +43,4 @@ jobs:
 
   build-nym-vpn-android:
     uses: ./.github/workflows/build-nym-vpn-android.yml
+    secrets: inherit
