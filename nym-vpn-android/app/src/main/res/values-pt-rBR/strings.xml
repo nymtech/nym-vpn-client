@@ -131,4 +131,6 @@
     <string name="day"></string>
     <string name="scan_nym_vpn_credential"></string>
     <string name="error_logs_not_saved"></string>
+    <string name="two_hop_mixnet"></string>
+    <string name="five_hop_mixnet"></string>
 </resources>
