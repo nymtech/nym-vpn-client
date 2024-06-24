@@ -33,7 +33,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.core.os.ConfigurationCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -49,7 +48,6 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
-import net.nymtech.vpn.model.Country
 import java.text.Collator
 
 @Composable
