@@ -1,2 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="app_name">NymVPN</string>
+    <string name="settings">Налаштування</string>
+    <string name="connected">Підключенно</string>
+    <string name="disconnected">Відключенно</string>
+    <string name="connecting">Підключення</string>
+    <string name="five_hop_mixnet">Анонімно</string>
+    <string name="two_hop_mixnet">Швидко</string>
+    <string name="first_hop">Перше підключення</string>
+    <string name="last_hop">Останнє підключення</string>
+    <string name="connect">Підключитись</string>
+    <string name="disconnect">Відключитись</string>
+    <string name="five_hop_description">Найкраще для платежів, пошти, повідомлень</string>
+    <string name="disconnecting">Відключення</string>
+    <string name="init_client">Створення клієнту…</string>
+</resources>
