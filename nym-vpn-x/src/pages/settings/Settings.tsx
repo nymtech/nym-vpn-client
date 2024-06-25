@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import dayjs from "dayjs";
+import dayjs from 'dayjs';
 import { useThrottle } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
@@ -17,8 +17,7 @@ import SettingsGroup from './SettingsGroup';
 const ThrottleDelay = 10000; // ms
 
 function Settings() {
-  const { entrySelector, autoConnect, version, monitoring, daemonStatus, credentialExpiry } =
-    useMainState();
+  const { entrySelector, autoConnect, version, monitoring, daemonStatus, credentialExpiry } = useMainState();
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');

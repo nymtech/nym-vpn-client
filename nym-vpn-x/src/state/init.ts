@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
 import { platform } from '@tauri-apps/api/os';
 import { appWindow } from '@tauri-apps/api/window';
-import {Dayjs} from "dayjs";
+import dayjs from 'dayjs';
 import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
@@ -120,11 +120,11 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     },
   };
 
-  const getCredentialExpiryRq: TauriReq<() => Promise<Dayjs | undefined>> = {
+  const getCredentialExpiryRq: TauriReq<() => Promise<string | undefined>> = {
     name: 'getCredentialExpiry',
-    request: () => kvGet<Dayjs>('CredentialExpiry'),
+    request: () => kvGet<string>('CredentialExpiry'),
     onFulfilled: (expiry) => {
-      dispatch({ type: 'set-expiry', expiry: expiry || null });
+      dispatch({ type: 'set-expiry', expiry: dayjs(expiry) || null });
     },
   };
 

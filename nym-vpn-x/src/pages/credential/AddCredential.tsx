@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import { NymDarkOutlineIcon, NymIcon } from '../../assets';
 import {
   useMainDispatch,
@@ -16,6 +16,7 @@ import { routes } from '../../router';
 import { BackendError, StateDispatch } from '../../types';
 import { Button, PageAnim, TextArea } from '../../ui';
 import { kvSet } from '../../kvStore';
+import logu from "../../log";
 
 function AddCredential() {
   const { uiTheme, daemonStatus } = useMainState();
@@ -42,7 +43,7 @@ function AddCredential() {
     invoke<number>('add_credential', { credential: credential.trim() })
       .then((expiry) => {
         const date = dayjs.unix(expiry);
-        kvSet<Dayjs>('CredentialExpiry', date);
+        kvSet<string>('CredentialExpiry', date.toISOString())
         dispatch({ type: 'set-expiry', expiry: date });
         navigate(routes.root);
         push({
