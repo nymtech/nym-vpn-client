@@ -1,1 +1,8 @@
-{}
+{
+    "options": {
+        "system": "Otomatik",
+        "light": "Açık tema",
+        "dark": "Koyu tema"
+    },
+    "system-desc": "Cihaz temasını kullan"
+}
