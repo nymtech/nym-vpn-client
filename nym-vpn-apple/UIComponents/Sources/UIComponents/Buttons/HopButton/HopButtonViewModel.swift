@@ -32,11 +32,13 @@ public class HopButtonViewModel: ObservableObject {
 private extension HopButtonViewModel {
     func setupConnectionManagerObserver() {
         connectionManager.$entryGateway.sink { [weak self] _ in
+            guard self?.hopType == .entry else { return }
             self?.updateData()
         }
         .store(in: &cancellables)
 
         connectionManager.$exitRouter.sink { [weak self] _ in
+            guard self?.hopType == .exit else { return }
             self?.updateData()
         }
         .store(in: &cancellables)
@@ -49,12 +51,12 @@ private extension HopButtonViewModel {
             let text: String?
             switch hopType {
             case .entry:
-                isQuickest = connectionManager.entryGateway?.isQuickest ?? false
-                countryCode = connectionManager.entryGateway?.countryCode
+                isQuickest = connectionManager.entryGateway.isQuickest
+                countryCode = connectionManager.entryGateway.countryCode
                 text = countriesManager.country(with: countryCode ?? "", isEntryHop: hopType == .entry)?.name
             case .exit:
-                isQuickest = connectionManager.exitRouter?.isQuickest ?? false
-                countryCode = connectionManager.exitRouter?.countryCode
+                isQuickest = connectionManager.exitRouter.isQuickest
+                countryCode = connectionManager.exitRouter.countryCode
                 text = countriesManager.country(with: countryCode ?? "", isEntryHop: false)?.name
             }
 

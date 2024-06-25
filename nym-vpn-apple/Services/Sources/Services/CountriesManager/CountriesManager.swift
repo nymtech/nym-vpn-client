@@ -10,19 +10,21 @@ public final class CountriesManager: ObservableObject {
     let logger = Logger(label: "CountriesManager")
 
     var isLoading = false
-    var lastHopStore = LastHopStore(lastFetchDate: Date())
-    var entryLastHopStore = EntryLastHopStore(lastFetchDate: Date())
+    var entryLastHopStore = EntryLastHopStore()
     var cancellables = Set<AnyCancellable>()
 
     public static let shared = CountriesManager(appSettings: AppSettings.shared)
 
-    @Published public var entryCountries: [Country]?
-    @Published public var exitCountries: [Country]?
-    @Published public var hasCountries = false
+    @Published public var entryCountries: [Country]
+    @Published public var exitCountries: [Country]
     @Published public var lastError: Error?
 
     public init(appSettings: AppSettings) {
         self.appSettings = appSettings
+        self.entryCountries = []
+        self.exitCountries = []
+
+        setup()
     }
 
     public func fetchCountries() throws {
@@ -34,36 +36,81 @@ public final class CountriesManager: ObservableObject {
         isLoading = true
 
         Task {
-            if appSettings.isEntryLocationSelectionOn {
-                fetchEntryExitCountries()
-            } else {
-                fetchExitCountries()
-            }
+            fetchEntryExitCountries()
         }
     }
 
     public func country(with code: String, isEntryHop: Bool) -> Country? {
         if isEntryHop {
-            return entryCountries?.first(where: { $0.code == code })
+            return entryCountries.first(where: { $0.code == code })
         } else {
-            return exitCountries?.first(where: { $0.code == code })
+            return exitCountries.first(where: { $0.code == code })
+        }
+    }
+}
+
+// MARK: - Setup -
+private extension CountriesManager {
+    func setup() {
+        loadPrebundledCountries()
+    }
+}
+
+// MARK: - Pre bundled countries -
+private extension CountriesManager {
+    func loadPrebundledCountries() {
+        guard let entryCountriesURL = Bundle.main.url(forResource: "gatewaysEntryCountries", withExtension: "json"),
+              let exitCountriesURL = Bundle.main.url(forResource: "gatewaysExitCountries", withExtension: "json")
+        else {
+            updateError(with: GeneralNymError.noPrebundledCountries)
+            return
+        }
+
+        do {
+            let prebundledEntryCountries = try loadPrebundledCountries(from: entryCountriesURL)
+            let prebundledExitCountries = try loadPrebundledCountries(from: exitCountriesURL)
+
+            entryLastHopStore.entryCountries = prebundledEntryCountries
+            entryLastHopStore.exitCountries = prebundledExitCountries
+
+            entryCountries = prebundledEntryCountries
+            exitCountries = prebundledExitCountries
+        } catch let error {
+            updateError(with: error)
+            return
+        }
+    }
+
+    func loadPrebundledCountries(from fileURL: URL) throws -> [Country] {
+        do {
+            let data = try Data(contentsOf: fileURL)
+            let countryCodes = try JSONDecoder().decode([String].self, from: data)
+            let countries = countryCodes.compactMap { [weak self] countryCode in
+                self?.country(with: countryCode)
+            }
+            .sorted(by: { $0.name < $1.name })
+
+            return countries
+        } catch {
+            throw GeneralNymError.cannotParseCountries
         }
     }
 }
 
 private extension CountriesManager {
-    // TODO: extrac API layer to service
+    // TODO: extract API layer to service
     func fetchEntryExitCountries() {
         let dispatchGroup = DispatchGroup()
 
         dispatchGroup.enter()
         fetchCountries(uri: Constants.entryCountries.rawValue)
+            .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
                 dispatchGroup.leave()
 
                 switch completion {
                 case .finished:
-                    self?.updateHasCountries()
+                    break
                 case .failure:
                     self?.updateError(with: GeneralNymError.cannotFetchCountries)
                 }
@@ -76,12 +123,13 @@ private extension CountriesManager {
 
         dispatchGroup.enter()
         fetchCountries(uri: Constants.exitCountries.rawValue)
+            .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { [weak self] completion in
                 dispatchGroup.leave()
 
                 switch completion {
                 case .finished:
-                    self?.updateHasCountries()
+                    break
                 case .failure:
                     self?.updateError(with: GeneralNymError.cannotFetchCountries)
                 }
@@ -96,31 +144,11 @@ private extension CountriesManager {
             self?.isLoading = false
         }
     }
-
-    func fetchExitCountries() {
-        fetchCountries(uri: Constants.exitCountries.rawValue)
-            .sink(receiveCompletion: { [weak self] completion in
-                self?.isLoading = false
-
-                switch completion {
-                case .finished:
-                    self?.updateHasCountries()
-                case .failure:
-                    self?.updateError(with: GeneralNymError.cannotFetchCountries)
-                }
-            }, receiveValue: { [weak self] countries in
-                self?.lastHopStore.countries = countries
-                self?.lastHopStore.lastFetchDate = Date()
-                self?.entryCountries = nil
-                self?.exitCountries = countries
-            })
-            .store(in: &cancellables)
-    }
 }
 
 private extension CountriesManager {
     func fetchCountries(uri: String) -> AnyPublisher<[Country], Error> {
-        guard let url = URL(string: Constants.exitCountries.rawValue)
+        guard let url = URL(string: uri)
         else {
             return Fail(error: GeneralNymError.invalidUrl).eraseToAnyPublisher()
         }
@@ -150,19 +178,8 @@ private extension CountriesManager {
 // MARK: - Temp storage -
 private extension CountriesManager {
     func needsReload(shouldFetchEntryCountries: Bool) -> Bool {
-        if shouldFetchEntryCountries {
-            guard let countries = entryLastHopStore.entryCountries, !countries.isEmpty else { return true }
-        } else {
-            guard let countries = lastHopStore.countries, !countries.isEmpty else { return true }
-        }
-
-        if shouldFetchEntryCountries {
-            let lastFetchDate = entryLastHopStore.lastFetchDate
-            return isLongerThan10Minutes(date: lastFetchDate)
-        } else {
-            let lastFetchDate = lastHopStore.lastFetchDate
-            return isLongerThan10Minutes(date: lastFetchDate)
-        }
+        guard let lastFetchDate = entryLastHopStore.lastFetchDate else { return true }
+        return isLongerThan10Minutes(date: lastFetchDate)
     }
 
     func isLongerThan10Minutes(date: Date) -> Bool {
@@ -176,28 +193,14 @@ private extension CountriesManager {
 
     func loadTemporaryCountries(shouldFetchEntryCountries: Bool) {
         Task { @MainActor in
-            if shouldFetchEntryCountries {
-                exitCountries = entryLastHopStore.exitCountries
-                entryCountries = entryLastHopStore.entryCountries
-            } else {
-                exitCountries = lastHopStore.countries ?? entryLastHopStore.exitCountries
-                entryCountries = nil
-            }
-            updateHasCountries()
+            exitCountries = entryLastHopStore.exitCountries
+            entryCountries = entryLastHopStore.entryCountries
         }
     }
 }
 
 // MARK: - Helper -
 extension CountriesManager {
-    func updateHasCountries() {
-        if appSettings.isEntryLocationSelectionOn {
-            hasCountries = ((entryCountries?.isEmpty) != nil)
-        } else {
-            hasCountries = ((exitCountries?.isEmpty) != nil)
-        }
-    }
-
     func updateError(with error: Error) {
         lastError = error
     }
