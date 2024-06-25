@@ -1,4 +1,30 @@
 {
     "disconnect": "Bağlantı kesildi",
-    "connect": "Bağlandı"
+    "connect": "Bağlandı",
+    "status": {
+        "connected": "Bağlandı",
+        "disconnected": "Bağlantı kesildi",
+        "connecting": "Bağlanıyor",
+        "disconnecting": "Bağlantı koptu",
+        "unknown": "Bilinmeyen bir hata oluştu"
+    },
+    "last-hop": "Son sekme",
+    "first-hop": "İlk sekme",
+    "connecting-message": "Bağlantı kuruluyor",
+    "connection-time": "Bağlantı süresi",
+    "select-network-label": "Ağ seç",
+    "select-node-title": "Bağlan",
+    "mixnet-mode": {
+        "desc": "Ödemeler, e-postalar, mesajlar için en iyisi"
+    },
+    "twohop-mode": {
+        "title": "2-sekme",
+        "desc": "İnternet tarama, yayın, paylaşım için en iyisi"
+    },
+    "last-node-select": {
+        "label": "Son sekme"
+    },
+    "snackbar-disabled-message": {
+        "connected": "VPN bağlıyken devre dışı"
+    }
 }
