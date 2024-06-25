@@ -1,1 +1,11 @@
-{}
+{
+    "title": {
+        "part1": "Bienvenue"
+    },
+    "tos": {
+        "part1": "En continuant, vous acceptez les's",
+        "part2": "et reconnaissez avoir pris connaissance de la's"
+    },
+    "continue-button": "Continuer",
+    "experimental": "Ce logiciel est expérimental. Ne vous reposez pas dessus pour protéger votre vie privée."
+}
