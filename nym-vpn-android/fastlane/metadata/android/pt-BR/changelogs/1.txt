@@ -1,2 +1,2 @@
 Novidades:
-- Criação UI
+- Criação de UI
