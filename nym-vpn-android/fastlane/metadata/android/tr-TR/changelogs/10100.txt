@@ -1,0 +1,4 @@
+Yenilikler:
+- Kullanıcı arayüzü iyileştirmeleri
+- Anahtar düzenleme ekleme
+- Bağlantı hataları için geçici düzeltme

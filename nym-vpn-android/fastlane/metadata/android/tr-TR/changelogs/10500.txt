@@ -1,0 +1,3 @@
+Yenilikler:
+- PT, FR, ES dilleri eklendi.
+- Hata düzeltmeleri

@@ -1,0 +1,5 @@
+Yenilikler:
+- Anahtar sona erme zamanı
+- Anahtar için QR kodu tarama
+- Acil kapatma anahtarı bağlantısı
+- Kullanıcı arayüzü iyileştirmeleri

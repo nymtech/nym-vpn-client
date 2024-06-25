@@ -1,0 +1,3 @@
+Yenilikler:
+- Hata düzeltmeleri
+- Lisanslar eklendi
