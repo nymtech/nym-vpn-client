@@ -13,7 +13,7 @@ module.exports = {
   parserOptions: {
     project: './tsconfig.json',
   },
-  plugins: ['@typescript-eslint', 'import'],
+  plugins: ['@typescript-eslint', 'import', 'deprecation'],
   root: true,
   settings: {
     react: {
@@ -46,5 +46,6 @@ module.exports = {
       },
     ],
     'import/extensions': ['error', 'never', { json: 'always', svg: 'always' }],
+    'deprecation/deprecation': 'warn',
   },
 };

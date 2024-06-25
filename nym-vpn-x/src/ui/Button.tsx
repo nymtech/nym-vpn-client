@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import clsx from 'clsx';
+import { Button as HuButton } from '@headlessui/react';
 
 type ButtonProps = {
   children: ReactNode;
@@ -28,13 +29,13 @@ function Button({
   };
 
   return (
-    <button
+    <HuButton
       className={clsx([
         'flex justify-center items-center w-full',
         'rounded-lg text-lg font-bold py-3 px-6',
         'text-white dark:text-baltic-sea',
-        'focus:outline-none focus:ring-4 focus:ring-black focus:dark:ring-white',
-        'transition hover:opacity-80 disabled:opacity-50',
+        'focus:outline-none data-[focus]:ring-2 data-[focus]:ring-black data-[focus]:dark:ring-white',
+        'transition data-[hover]:opacity-80 data-[disabled]:opacity-60 data-[active]:ring-0',
         'shadow tracking-normal cursor-default',
         getColorStyle(),
         className && className,
@@ -43,7 +44,7 @@ function Button({
       disabled={disabled}
     >
       {children}
-    </button>
+    </HuButton>
   );
 }
 

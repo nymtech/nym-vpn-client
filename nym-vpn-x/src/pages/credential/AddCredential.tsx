@@ -30,6 +30,9 @@ function AddCredential() {
   };
 
   const handleClick = async () => {
+    if (credential.length === 0) {
+      return;
+    }
     await invoke('add_credential', { credential: credential.trim() })
       .then(() => {
         navigate(routes.root);
@@ -77,6 +80,7 @@ function AddCredential() {
           resize="none"
           rows={10}
           label={t('input-label')}
+          className="sentry-ignore"
         />
         {error ? (
           <motion.div
