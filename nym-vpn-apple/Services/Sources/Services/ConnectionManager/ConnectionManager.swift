@@ -30,8 +30,8 @@ public final class ConnectionManager: ObservableObject {
     }
 #endif
     @Published public var currentTunnelStatus: TunnelStatus?
-    @Published public var entryGateway: EntryGateway? = .randomLowLatency
-    @Published public var exitRouter: ExitRouter?
+    @Published public var entryGateway: EntryGateway
+    @Published public var exitRouter: ExitRouter
 
 #if os(iOS)
     public init(
@@ -42,6 +42,16 @@ public final class ConnectionManager: ObservableObject {
         self.appSettings = appSettings
         self.countriesManager = countriesManager
         self.tunnelsManager = tunnelsManager
+
+        guard let entryCountry = self.countriesManager.entryCountries.first,
+              let exitCountry = self.countriesManager.exitCountries.first
+        else {
+            // TODO: think a way to avoid fatalError
+            fatalError("No countries found")
+        }
+        self.entryGateway = .country(code: entryCountry.code)
+        self.exitRouter = .country(code: exitCountry.code)
+
         setup()
     }
 #endif
@@ -56,6 +66,16 @@ public final class ConnectionManager: ObservableObject {
         self.countriesManager = countriesManager
         self.tunnelsManager = tunnelsManager
         self.grpcManager = grpcManager
+
+        guard let entryCountry = self.countriesManager.entryCountries.first,
+              let exitCountry = self.countriesManager.exitCountries.first
+        else {
+            // TODO: think a way to avoid fatalError
+            fatalError("No countries found")
+        }
+        self.entryGateway = .country(code: entryCountry.code)
+        self.exitRouter = .country(code: exitCountry.code)
+
         setup()
     }
 #endif
@@ -186,27 +206,21 @@ private extension ConnectionManager {
     }
 
     func updateCountriesEntryExit() {
-        guard
-            let exitCountries = countriesManager.exitCountries,
-            let firstExitCountry = exitCountries.first
+        guard let firstExitCountry = countriesManager.exitCountries.first
         else {
-            // TODO: get country
-            exitRouter = .country(code: "AU")
             return
         }
-        if let unwrappedExitRouter = exitRouter, !unwrappedExitRouter.isCountry {
-            exitRouter = .country(code: firstExitCountry.code)
-        }
+        exitRouter = .country(code: firstExitCountry.code)
     }
 
     func updateCountriesExitOnly() {
-        guard let country = countriesManager.exitCountries?.first
+        guard let entryCountry = countriesManager.entryCountries.first,
+              let exitCountry = countriesManager.exitCountries.first
         else {
-            exitRouter = .random
             return
         }
 
-        entryGateway = .randomLowLatency
-        exitRouter = .country(code: country.code)
+        entryGateway = .country(code: entryCountry.code)
+        exitRouter = .country(code: exitCountry.code)
     }
 }
