@@ -1,1 +1,27 @@
-{}
+{
+    "auto-connect": {
+        "title": "Auto-connexion"
+    },
+    "error-monitoring": {
+        "title": "Rapports d'erreur anonymes"
+    },
+    "feedback": {
+        "title": "Commentaires",
+        "github": "Créer un ticket GitHub",
+        "send": "Envoyer un commentaire",
+        "matrix": "Rejoignez-nous sur Matrix",
+        "discord": "Rejoignez-nous sur Discord"
+    },
+    "support": {
+        "title": "Service clients",
+        "faq": "Lire la F.A.Q."
+    },
+    "legal": {
+        "title": "Juridique",
+        "policy": "Politique de confidentialité",
+        "tos": "C.G.U."
+    },
+    "display-theme": "Apparence d'affichage",
+    "logs": "Journaux",
+    "add-credential-button": "Ajoutez un identifiant pour vous connecter"
+}
