@@ -1,1 +1,8 @@
-{}
+{
+    "options": {
+        "system": "Automatique",
+        "light": "Apparence claire",
+        "dark": "Apparence sombre"
+    },
+    "system-desc": "Apparence de l'appareil"
+}
