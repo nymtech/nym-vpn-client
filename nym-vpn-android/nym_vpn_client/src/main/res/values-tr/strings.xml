@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="vpn_notification_title">NymVPN</string>
+    <string name="channel_name">NymVPN Kanalı</string>
+    <string name="channel_description">VPN ile ilgili bildirimler için bir iletişim kanalı.</string>
+    <string name="vpn_notification_text">Çalışıyor</string>
 </resources>
