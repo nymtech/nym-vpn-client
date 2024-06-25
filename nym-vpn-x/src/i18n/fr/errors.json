@@ -1,1 +1,5 @@
-{}
+{
+    "credential": {
+        "invalid": "Identifiant invalide"
+    }
+}
