@@ -10,16 +10,19 @@ function LicenseDetails() {
   const [language, setLanguage] = useState<'rust' | 'js' | null>(null);
 
   const { t } = useTranslation('licenses');
-  const { state } = useLocation();
+  const locationState = useLocation().state as {
+    license: CodeDependency;
+    language: string;
+  };
 
   useEffect(() => {
-    if (state.license) {
-      setLicense(state.license as CodeDependency);
+    if (locationState.license) {
+      setLicense(locationState.license);
     }
-    if (state.language) {
-      setLanguage(state.language as 'rust' | 'js');
+    if (locationState.language) {
+      setLanguage(locationState.language as 'rust' | 'js');
     }
-  }, [state]);
+  }, [locationState]);
 
   const { licenses, name, repository, authors, licenseTexts, version } =
     license || {};

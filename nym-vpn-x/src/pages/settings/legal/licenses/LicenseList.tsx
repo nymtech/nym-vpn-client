@@ -31,7 +31,7 @@ const Row = ({
         key={name}
         title={`${name} ${version ? ` v${version}` : ''}`}
         desc={Array.isArray(licenses) ? licenses.join(', ') : licenses}
-        onClick={async () =>
+        onClick={() =>
           navigate(routes.licenseDetails, { state: { license, language } })
         }
         trailingIcon="arrow_right"

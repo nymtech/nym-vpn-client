@@ -4,7 +4,7 @@ import { Button as HuButton } from '@headlessui/react';
 
 type ButtonProps = {
   children: ReactNode;
-  onClick: () => Promise<void>;
+  onClick: () => void;
   disabled?: boolean;
   color?: 'melon' | 'cornflower' | 'grey';
   className?: string;

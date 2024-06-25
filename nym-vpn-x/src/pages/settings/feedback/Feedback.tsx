@@ -16,7 +16,9 @@ function Feedback() {
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
       <SettingsMenuCard
         title={t('feedback.github')}
-        onClick={async () => open(GitHubIssuesUrl)}
+        onClick={() => {
+          open(GitHubIssuesUrl);
+        }}
         leadingComponent={
           <GitHubIcon className="w-6 h-7 fill-baltic-sea dark:fill-mercury-pinkish" />
         }
@@ -26,11 +28,15 @@ function Feedback() {
         title={t('feedback.send')}
         leadingIcon="send"
         trailingIcon="arrow_right"
-        onClick={async () => open(ContactSupportUrl)}
+        onClick={() => {
+          open(ContactSupportUrl);
+        }}
       />
       <SettingsMenuCard
         title={t('feedback.matrix')}
-        onClick={async () => open(MatrixRoomUrl)}
+        onClick={() => {
+          open(MatrixRoomUrl);
+        }}
         leadingComponent={
           <ElementIcon className="w-6 h-6 fill-baltic-sea dark:fill-mercury-pinkish" />
         }
@@ -38,7 +44,9 @@ function Feedback() {
       />
       <SettingsMenuCard
         title={t('feedback.discord')}
-        onClick={async () => open(DiscordInviteUrl)}
+        onClick={() => {
+          open(DiscordInviteUrl);
+        }}
         leadingComponent={
           <DiscordIcon className="w-6 h-6 fill-baltic-sea dark:fill-mercury-pinkish" />
         }

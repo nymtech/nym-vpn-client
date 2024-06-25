@@ -3,15 +3,15 @@ import clsx from 'clsx';
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
 import { UiCountry } from './NodeLocation';
 
-interface CountryListProps {
+type CountryListProps = {
   countries: UiCountry[];
   onSelect: (country: UiCountry) => void;
   isSelected: (country: UiCountry) => boolean;
   loading: boolean;
-}
+};
 
 export default function CountryList({
-  countries,
+  countries = [],
   onSelect,
   isSelected,
   loading,
@@ -28,7 +28,7 @@ export default function CountryList({
 
   return (
     <ul className="flex flex-col w-full items-stretch gap-1">
-      {countries && countries.length > 0 ? (
+      {countries.length > 0 ? (
         countries.map((uiCountry) => (
           <li
             key={uiCountry.isFastest ? 'fastest' : uiCountry.country.code}

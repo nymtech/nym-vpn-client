@@ -7,7 +7,7 @@ export type SettingsMenuCardProps = {
   leadingIcon?: string;
   leadingComponent?: ReactNode;
   desc?: string;
-  onClick?: () => Promise<void>;
+  onClick?: () => void;
   trailingIcon?: string;
   trailingComponent?: ReactNode;
   disabled?: boolean;
