@@ -1,1 +1,18 @@
-{}
+{
+    "connect": "Conectar",
+    "disconnect": "Desconectar",
+    "status": {
+        "connected": "Conectado",
+        "disconnected": "Desconectado",
+        "connecting": "Conectando",
+        "disconnecting": "Desconectando"
+    },
+    "last-hop": "Último salto",
+    "first-hop": "Primeiro salto",
+    "twohop-mode": {
+        "desc": "Melhor para pesquisar, trasmitir, compartilhar"
+    },
+    "last-node-select": {
+        "label": "Último salto"
+    }
+}
