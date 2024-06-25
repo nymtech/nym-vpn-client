@@ -1,4 +1,15 @@
 {
     "connect": "Підключитись",
-    "disconnect": "Відключитись"
+    "disconnect": "Відключитись",
+    "status": {
+        "connecting": "Підключення",
+        "disconnecting": "Відключення",
+        "connected": "Підключенно",
+        "disconnected": "Відключенно"
+    },
+    "last-hop": "Останнє підключення",
+    "first-hop": "Перше підключення",
+    "last-node-select": {
+        "label": "Останнє підключення"
+    }
 }
