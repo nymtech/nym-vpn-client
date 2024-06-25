@@ -11,5 +11,10 @@
     "fastest": "Le plus rapide",
     "sentry": "Sentry",
     "tos": "C.G.U.",
-    "privacy-statement": "Politique de confidentialité"
+    "privacy-statement": "Politique de confidentialité",
+    "display-theme": "Affichage",
+    "ui-mode": {
+        "dark": "Apparence sombre",
+        "light": "Apparence claire"
+    }
 }
