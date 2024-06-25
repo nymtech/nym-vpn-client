@@ -73,8 +73,13 @@ enum ConnectionStatus {
 import "google/protobuf/timestamp.proto";
 
 message ConnectionDetails {
-  string entry_gateway = 1;
-  google.protobuf.Timestamp since = 2;
+  Address nym_address = 1;
+  Gateway entry_gateway = 2;
+  Gateway exit_gateway = 3;
+  Address exit_ipr = 4;
+  string ipv4 = 5;
+  string ipv6 = 6;
+  google.protobuf.Timestamp since = 7;
 }
 
 message StatusRequest {}
@@ -90,7 +95,52 @@ message ConnectionStateChange {
 }
 
 message ConnectionStatusUpdate {
-  string message = 1;
+  enum StatusType {
+    STATUS_TYPE_UNSPECIFIED = 0;
+
+    // Status message that is not mapped to a specific type
+    UNKNOWN = 1;
+
+    // Connection to entry gateway established
+    // NOTE: currently not implemented by vpnd
+    ENTRY_GATEWAY_CONNECTION_ESTABLISHED = 2;
+
+    // Connection to exit router established
+    // NOTE: currently not implemented by vpnd
+    EXIT_ROUTER_CONNECTION_ESTABLISHED = 3;
+
+    // End-to-end tunnel establised and operational
+    TUNNEL_END_TO_END_CONNECTION_ESTABLISHED = 4;
+
+    // Entry gateway not routing our mixnet messages
+    ENTRY_GATEWAY_NOT_ROUTING_MIXNET_MESSAGES = 5;
+
+    // The exit router is not responding to IPv4 traffic
+    EXIT_ROUTER_NOT_RESPONDING_TO_IPV4_PING = 6;
+
+    // The exit router is not responding to IPv6 traffic
+    EXIT_ROUTER_NOT_RESPONDING_TO_IPV6_PING = 7;
+
+    // The ip packet router connected to on the exit side is not routing IPv4 traffic
+    EXIT_ROUTER_NOT_ROUTING_IPV4_TRAFFIC = 8;
+
+    // The ip packet router connected to on the exit side is not routing IPv6 traffic
+    EXIT_ROUTER_NOT_ROUTING_IPV6_TRAFFIC = 9;
+
+    // The end-to-end IPv4 connection appears to be operation correctly
+    CONNECTION_OK_IPV4 = 10;
+
+    // The end-to-end IPv6 connection appears to be operation correctly
+    CONNECTION_OK_IPV6 = 11;
+  }
+
+  StatusType kind = 1;
+
+  // Detailed message for logging and debugging
+  string message = 2;
+
+  // Optional additional details
+  map<string, string> details = 3;
 }
 
 message Error {
@@ -102,8 +152,8 @@ message Error {
     // error that can happen
     UNHANDLED = 1;
 
-    // If the credential storage does not contain any valid credentials when connecting
-
+    // If the credential storage does not contain any valid credentials when
+    // connecting
     NO_VALID_CREDENTIALS = 2;
 
     // AUTHENTICATION_FAILED = 3;
