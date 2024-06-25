@@ -101,8 +101,8 @@
     <string name="to_alpha">en phase de tests alpha de NymVPN</string>
     <string name="welcome">Bienvenue</string>
     <string name="cont">Continuer</string>
-    <string name="continue_agree">En continuant, vous acceptez les\'s</string>
-    <string name="and_acknowledge">et reconnaissez avoir pris connaissance de la\'s</string>
+    <string name="continue_agree">En continuant, vous acceptez les</string>
+    <string name="and_acknowledge">et reconnaissez avoir pris connaissance de la</string>
     <string name="share_anonymous_analytics">Partager les rapports d\'analyses anonymes</string>
     <string name="anonymous_error_reports">Rapports d\'erreur anonymes</string>
     <string name="gateways_error">Échec du chargement des passerelles (gateways)</string>
