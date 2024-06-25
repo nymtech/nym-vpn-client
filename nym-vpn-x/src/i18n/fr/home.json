@@ -1,1 +1,30 @@
-{}
+{
+    "connect": "Connecter",
+    "disconnect": "Déconnecter",
+    "status": {
+        "connected": "Connecté",
+        "disconnected": "Déconnecté",
+        "connecting": "Connexion",
+        "disconnecting": "Déconnexion",
+        "unknown": "Inconnu"
+    },
+    "last-hop": "Nœud de sortie",
+    "first-hop": "Nœud d'entrée",
+    "connecting-message": "Connexion en cours",
+    "connection-time": "Temps de connexion",
+    "select-network-label": "Choix du réseau",
+    "select-node-title": "Choix des nœuds",
+    "mixnet-mode": {
+        "desc": "Pour les paiements, emails et messages"
+    },
+    "twohop-mode": {
+        "title": "2 nœuds",
+        "desc": "Pour la navigation, le streaming et les téléchargements"
+    },
+    "last-node-select": {
+        "label": "Nœud de sortie"
+    },
+    "snackbar-disabled-message": {
+        "connected": "Désactivé pendant la connexion"
+    }
+}
