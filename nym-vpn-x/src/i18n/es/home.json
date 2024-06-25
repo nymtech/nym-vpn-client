@@ -1,1 +1,30 @@
-{}
+{
+    "connect": "Conectar",
+    "disconnect": "Desconectar",
+    "status": {
+        "connected": "Conectado",
+        "disconnected": "Desconectado",
+        "connecting": "Conectando",
+        "disconnecting": "Desconectando",
+        "unknown": "Desconocido"
+    },
+    "last-hop": "Último salto",
+    "first-hop": "Primer salto",
+    "connecting-message": "Estableciendo conexión",
+    "connection-time": "Tiempo de conexión",
+    "select-network-label": "Seleccionar red",
+    "select-node-title": "Conectar a",
+    "mixnet-mode": {
+        "desc": "Mejor para pagos, correos electrónicos, mensajes"
+    },
+    "twohop-mode": {
+        "title": "2 saltos",
+        "desc": "Mejor para navegar, streaming, compartir"
+    },
+    "last-node-select": {
+        "label": "Último salto"
+    },
+    "snackbar-disabled-message": {
+        "connected": "Desactivado mientras está conectado a VPN"
+    }
+}
