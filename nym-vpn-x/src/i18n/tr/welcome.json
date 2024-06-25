@@ -2,5 +2,11 @@
     "title": {
         "part1": "Hoş geldiniz",
         "part2": "NymVPN Alpha'ya"
-    }
+    },
+    "experimental": "Bu deneysel yazılımdır. Şu anda güçlü anonimlik için buna güvenmeyin.",
+    "tos": {
+        "part1": "Devam ederek, NymVPN'in şartlarını kabul etmiş olursunuz",
+        "part2": "ve NymVPN'in tanı"
+    },
+    "continue-button": "Devam et"
 }
