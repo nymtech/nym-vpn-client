@@ -1,1 +1,4 @@
-{}
+{
+    "disconnect": "Bağlantı kesildi",
+    "connect": "Bağlandı"
+}
