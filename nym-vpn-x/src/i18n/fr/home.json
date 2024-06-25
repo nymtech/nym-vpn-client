@@ -15,16 +15,20 @@
     "select-network-label": "Choix du réseau",
     "select-node-title": "Choix des nœuds",
     "mixnet-mode": {
-        "desc": "Pour les paiements, emails et messages"
+        "desc": "Pour les paiements, emails et messages",
+        "title": "Anonyme"
     },
     "twohop-mode": {
-        "title": "2 nœuds",
+        "title": "Rapide",
         "desc": "Pour la navigation, le streaming et les téléchargements"
     },
     "last-node-select": {
-        "label": "Nœud de sortie"
+        "label": "Nœud de sortie",
+        "text": "Connexion rapide vers ({{country}})"
     },
     "snackbar-disabled-message": {
-        "connected": "Désactivé pendant la connexion"
+        "connected": "Désactivé pendant la connexion",
+        "disconnecting": "Désactivé pendant la déconnexion du réseau",
+        "connecting": "Désactivé pendant la connexion au réseau"
     }
 }
