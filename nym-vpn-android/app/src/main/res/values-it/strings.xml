@@ -1,2 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="five_hop_description">Migliore per pagamenti, email, messaggi</string>
+    <string name="disconnecting">Disconnessione</string>
+    <string name="app_name">NymVPN</string>
+    <string name="settings">Impostazioni</string>
+    <string name="connected">Connesso</string>
+    <string name="disconnected">Disconnesso</string>
+    <string name="connecting">Connessione</string>
+    <string name="five_hop_mixnet">Anonimo</string>
+    <string name="two_hop_mixnet">Veloce</string>
+    <string name="first_hop">Primo hop</string>
+    <string name="last_hop">Ultimo hop</string>
+    <string name="connect">Connetti</string>
+    <string name="disconnect">Disconnetti</string>
+    <string name="init_client">Inizializzazione client…</string>
+</resources>
