@@ -1,1 +1,11 @@
-{}
+{
+    "title": {
+        "part1": "Bienvenido"
+    },
+    "tos": {
+        "part1": "Al continuar, aceptas los NymVPN",
+        "part2": "y reconoces los NymVPN"
+    },
+    "experimental": "Este es un software experimental. No confíes en él para obtener un anonimato fuerte (todavía).",
+    "continue-button": "Continuar"
+}
