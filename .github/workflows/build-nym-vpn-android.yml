@@ -110,8 +110,8 @@ jobs:
       - name: Nightly versioning
         if: ${{ inputs.nightly }}
         run: |
-          export versionCode=$(date '+%s')
-          sed -i -e 's/\(VERSION_CODE = \).\(.*\)/\$versionCode/' buildSrc/src/main/kotlin/Constants.kt
+          versionCode=$(date '+%s')
+          sed -i -e 's/\(VERSION_CODE = \).\(.*\)/\VERSION_CODE = '"$versionCode"'/' buildSrc/src/main/kotlin/Constants.kt
           versionName=$(grep "VERSION_NAME" buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '"')
           headCount=$(git rev-list --first-parent --count HEAD)
           sed -i -e 's/\(VERSION_NAME = \).\(.*\)/\VERSION_NAME = "'"$versionName"'-'"$headCount"'"/' buildSrc/src/main/kotlin/Constants.kt
