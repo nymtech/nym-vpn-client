@@ -71,6 +71,7 @@ export type AppState = {
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
   windowSize?: WindowSize | null;
+  credentialExpiry?: Dayjs | null;
   fetchEntryCountries: FetchCountriesFn;
   fetchExitCountries: FetchCountriesFn;
   os: OsType;

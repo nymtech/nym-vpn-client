@@ -31,7 +31,7 @@ function SettingsMenuCard({
     <div
       className={clsx([
         'flex flex-row justify-between items-center gap-4 select-none',
-        'bg-white dark:bg-baltic-sea-jaguar px-5 py-4 rounded-lg min-h-16',
+        'bg-white dark:bg-baltic-sea-jaguar px-5 rounded-lg min-h-16',
         desc ? 'py-2' : 'py-4',
         'hover:bg-platinum dark:hover:bg-onyx',
         'transition cursor-default',

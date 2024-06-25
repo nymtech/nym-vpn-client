@@ -22,7 +22,8 @@ export type DbKey =
   | 'EntryNodeLocation'
   | 'ExitNodeLocation'
   | 'WindowSize'
-  | 'WelcomeScreenSeen';
+  | 'WelcomeScreenSeen'
+  | 'CredentialExpiry';
 
 export type BkdErrorKey =
   | 'UnknownError'

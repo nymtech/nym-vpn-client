@@ -4,13 +4,18 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { NymDarkOutlineIcon, NymIcon } from '../../assets';
-import { useMainState, useNotifications } from '../../contexts';
+import {
+  useMainDispatch,
+  useMainState,
+  useNotifications,
+} from '../../contexts';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
-import { BackendError } from '../../types';
+import { BackendError, StateDispatch } from '../../types';
 import { Button, PageAnim, TextArea } from '../../ui';
+import { kvSet } from '../../kvStore';
 
 function AddCredential() {
   const { uiTheme, daemonStatus } = useMainState();
@@ -21,6 +26,7 @@ function AddCredential() {
   const navigate = useNavigate();
   const { t } = useTranslation('addCredential');
   const { tE } = useI18nError();
+  const dispatch = useMainDispatch() as StateDispatch;
 
   const onChange = (credential: string) => {
     setCredential(credential);
@@ -33,8 +39,11 @@ function AddCredential() {
     if (credential.length === 0) {
       return;
     }
-    invoke('add_credential', { credential: credential.trim() })
-      .then(() => {
+    invoke<number>('add_credential', { credential: credential.trim() })
+      .then((expiry) => {
+        const date = dayjs.unix(expiry);
+        kvSet<Dayjs>('CredentialExpiry', date);
+        dispatch({ type: 'set-expiry', expiry: date });
         navigate(routes.root);
         push({
           text: t('added-notification'),

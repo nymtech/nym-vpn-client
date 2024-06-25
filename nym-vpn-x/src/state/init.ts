@@ -2,6 +2,7 @@ import { invoke } from '@tauri-apps/api';
 import { getVersion } from '@tauri-apps/api/app';
 import { platform } from '@tauri-apps/api/os';
 import { appWindow } from '@tauri-apps/api/window';
+import {Dayjs} from "dayjs";
 import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
@@ -116,6 +117,14 @@ export async function initFirstBatch(dispatch: StateDispatch) {
           location: location === 'Fastest' ? 'Fastest' : location.Country,
         },
       });
+    },
+  };
+
+  const getCredentialExpiryRq: TauriReq<() => Promise<Dayjs | undefined>> = {
+    name: 'getCredentialExpiry',
+    request: () => kvGet<Dayjs>('CredentialExpiry'),
+    onFulfilled: (expiry) => {
+      dispatch({ type: 'set-expiry', expiry: expiry || null });
     },
   };
 
@@ -248,6 +257,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getExitLocationRq,
     getVersionRq,
     getThemeRq,
+    getCredentialExpiryRq,
     getRootFontSizeRq,
     getEntrySelectorRq,
     getMonitoringRq,

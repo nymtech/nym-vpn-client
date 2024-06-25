@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import dayjs from "dayjs";
 import { useThrottle } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
@@ -16,7 +17,7 @@ import SettingsGroup from './SettingsGroup';
 const ThrottleDelay = 10000; // ms
 
 function Settings() {
-  const { entrySelector, autoConnect, version, monitoring, daemonStatus } =
+  const { entrySelector, autoConnect, version, monitoring, daemonStatus, credentialExpiry } =
     useMainState();
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
@@ -54,13 +55,21 @@ function Settings() {
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
-      {import.meta.env.APP_DISABLE_DATA_STORAGE !== 'true' && (
+      {import.meta.env.APP_DISABLE_DATA_STORAGE !== 'true' && (credentialExpiry === null || ((credentialExpiry!.valueOf() - dayjs().valueOf()) <= 0)) ? (
         <Button
           onClick={() => navigate(routes.credential)}
           disabled={daemonStatus !== 'Ok'}
         >
           {t('add-credential-button')}
         </Button>
+      ) : (
+        <SettingsMenuCard
+          title={t('credential.title')}
+          desc={credentialExpiry?.diff(dayjs(), 'day') + ' ' + t('credential.desc')}
+          onClick={() => navigate(routes.display)}
+          leadingIcon="account_circle"
+          trailingIcon="arrow_right"
+        />
       )}
       <SettingsGroup
         settings={[

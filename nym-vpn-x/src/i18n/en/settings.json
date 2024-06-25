@@ -1,4 +1,8 @@
 {
+  "credential": {
+    "title": "Credential",
+    "desc": "days left"
+  },
   "auto-connect": {
     "title": "Auto-connect",
     "desc": "Auto connect at app startup"
