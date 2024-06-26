@@ -1,6 +1,6 @@
 {
     "connect": "Підключитись",
-    "disconnect": "Відключитись",
+    "disconnect": "Від'єднати",
     "status": {
         "connecting": "Підключення",
         "disconnecting": "Відключення",
