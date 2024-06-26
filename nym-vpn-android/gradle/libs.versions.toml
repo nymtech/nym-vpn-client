@@ -35,7 +35,7 @@ converterMoshi = "2.11.0"
 zxingAndroidEmbedded = "4.3.0"
 
 gradlePlugins-kotlinxSerialization = "2.0.0"
-gradlePlugins-licensee = "1.7.0"
+gradlePlugins-licensee = "1.11.0"
 gradlePlugins-detekt = "1.23.6"
 gradlePlugins-gross = "0.1.0"
 gradlePlugins-sentry = "4.5.1"
