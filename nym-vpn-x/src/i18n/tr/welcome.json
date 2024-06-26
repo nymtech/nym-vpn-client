@@ -6,7 +6,14 @@
     "experimental": "Bu deneysel yazılımdır. Şu anda güçlü anonimlik için buna güvenmeyin.",
     "tos": {
         "part1": "Devam ederek, NymVPN'in şartlarını kabul etmiş olursunuz",
-        "part2": "ve NymVPN'in tanı"
+        "part2": "ve NymVPN'in tanı",
+        "part3": "."
     },
-    "continue-button": "Devam et"
+    "continue-button": "Devam et",
+    "description": {
+        "part1": "Alpha aşamasında uygulamamızı geliştirmemize yardımcı olun!",
+        "part2": "Geribildiriminiz çok önemli",
+        "part3": "Sorunları tespit etmek ve çözmek için. Anonim hata izleme seçeneğini tercih edin.",
+        "part4": "ve analizler, istediğiniz zaman vazgeçebilirsiniz. Desteğiniz için teşekkürler!"
+    }
 }
