@@ -35,12 +35,15 @@ on:
       - 'nym-vpn-android-v*.*.*'
 env:
   UPLOAD_DIR_ANDROID: android_artifacts
+  RELEASE_NOTES: ''
 
 jobs:
   build-nym-vpn-android:
     if: ${{ inputs.release_type != 'none' }}
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
+    with:
+      nightly: ${{ inputs.release_type == 'prerelease' || inputs.release_type == '' }}
 
   publish-github:
     if: ${{ inputs.release_type != 'none' }}
@@ -71,6 +74,7 @@ jobs:
           echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
 
       - name: Set version release notes
+        if: ${{ inputs.release_type == 'release' }}
         run: |
           RELEASE_NOTES="$(cat ${{ github.workspace }}/nym-vpn-android/fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt)"
           echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV

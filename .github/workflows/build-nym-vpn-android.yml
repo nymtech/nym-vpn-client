@@ -1,6 +1,12 @@
 name: build-nym-vpn-android
 on:
   workflow_dispatch:
+    inputs:
+      nightly:
+        description: "Android nightly version"
+        required: true
+        default: true
+        type: boolean
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
         required: true
@@ -15,6 +21,12 @@ on:
       ANDROID_KEYSTORE:
         required: true
   workflow_call:
+    inputs:
+      nightly:
+        description: "Android nightly version"
+        required: true
+        default: true
+        type: boolean
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
         required: true
@@ -94,6 +106,15 @@ jobs:
       - name: Install deps
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
+
+      - name: Nightly versioning
+        if: ${{ inputs.nightly }}
+        run: |
+          versionCode=$(date '+%s')
+          sed -i -e 's/\(VERSION_CODE = \).\(.*\)/\VERSION_CODE = '"$versionCode"'/' buildSrc/src/main/kotlin/Constants.kt
+          versionName=$(grep "VERSION_NAME" buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '"')
+          headCount=$(git rev-list --first-parent --count HEAD)
+          sed -i -e 's/\(VERSION_NAME = \).\(.*\)/\VERSION_NAME = "'"$versionName"'-'"$headCount"'"/' buildSrc/src/main/kotlin/Constants.kt
 
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
