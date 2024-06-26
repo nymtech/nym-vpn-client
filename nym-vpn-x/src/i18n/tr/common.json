@@ -7,5 +7,10 @@
     "feedback": "Geri bildirim",
     "support": "Destek",
     "sentry": "Sentry",
-    "legal": "Hukuki"
+    "legal": "Hukuki",
+    "display-theme": "Panel",
+    "ui-mode": {
+        "dark": "Karanlık mod",
+        "light": "Aydınlık mod"
+    }
 }
