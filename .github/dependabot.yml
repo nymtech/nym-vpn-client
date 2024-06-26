@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+  - package-ecosystem: gradle
+    directory: /nym-vpn-android
+    schedule:
+      interval: daily
+  - package-ecosystem: swift
+    directory: /nym-vpn-apple
+    schedule:
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /nym-vpn-core
+    schedule:
+      interval: daily
+  - package-ecosystem: npm
+    directory: /nym-vpn-x
+    schedule:
+      interval: daily
