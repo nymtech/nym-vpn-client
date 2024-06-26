@@ -4,7 +4,7 @@ on:
     inputs:
       nightly:
         description: "Android nightly version"
-        required: true
+        required: false
         default: true
         type: boolean
     secrets:
@@ -24,7 +24,7 @@ on:
     inputs:
       nightly:
         description: "Android nightly version"
-        required: true
+        required: false
         default: true
         type: boolean
     secrets:
