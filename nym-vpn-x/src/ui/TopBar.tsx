@@ -196,7 +196,7 @@ export default function TopBar() {
       ])}
       as="nav"
     >
-      {currentNavLocation?.leftIcon ? (
+      {currentNavLocation.leftIcon ? (
         <AnimateIn from="-translate-x-2" to="translate-x-0" duration={200}>
           <button
             className="w-6 mx-4 focus:outline-none cursor-default"
@@ -215,7 +215,7 @@ export default function TopBar() {
         <div className="w-6 mx-4" />
       )}
       {renderTitle(currentNavLocation.title)}
-      {currentNavLocation?.rightIcon ? (
+      {currentNavLocation.rightIcon ? (
         <AnimateIn from="translate-x-2" to="translate-x-0" duration={200}>
           <button
             className="w-6 mx-4 focus:outline-none cursor-default"

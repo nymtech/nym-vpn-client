@@ -26,7 +26,7 @@ function Home() {
   const navigate = useNavigate();
   const { t } = useTranslation('home');
 
-  const handleClick = async () => {
+  const handleClick = () => {
     dispatch({ type: 'disconnect' });
     if (state === 'Connected') {
       invoke('disconnect')
@@ -34,9 +34,9 @@ function Home() {
           console.log('disconnect result');
           console.log(result);
         })
-        .catch((e: BackendError) => {
+        .catch((e: unknown) => {
           console.warn('backend error:', e);
-          dispatch({ type: 'set-error', error: e });
+          dispatch({ type: 'set-error', error: e as BackendError });
         });
     } else if (state === 'Disconnected') {
       dispatch({ type: 'connect' });
@@ -45,9 +45,9 @@ function Home() {
           console.log('connect result');
           console.log(result);
         })
-        .catch((e: BackendError) => {
+        .catch((e: unknown) => {
           console.warn('backend error:', e);
-          dispatch({ type: 'set-error', error: e });
+          dispatch({ type: 'set-error', error: e as BackendError });
         });
     }
   };

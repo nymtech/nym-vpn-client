@@ -16,13 +16,13 @@ function Welcome() {
   const navigate = useNavigate();
   const { t } = useTranslation('welcome');
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     kvSet('WelcomeScreenSeen', true).then(() => {
       navigate(routes.root);
     });
   };
 
-  const handleMonitoringChanged = async () => {
+  const handleMonitoringChanged = () => {
     const isChecked = !monitoring;
     setMonitoring(isChecked);
     dispatch({ type: 'set-monitoring', monitoring: isChecked });

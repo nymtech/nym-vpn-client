@@ -10,6 +10,7 @@ export type TauriReq<
 // Fires a list of Tauri requests concurrently and handles the results
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function fireRequests(requests: TauriReq<any>[]) {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   const promises = await Promise.allSettled(requests.map((r) => r.request()));
 
   promises.forEach((res, index) => {

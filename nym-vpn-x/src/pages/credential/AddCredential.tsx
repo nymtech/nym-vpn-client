@@ -29,11 +29,11 @@ function AddCredential() {
     }
   };
 
-  const handleClick = async () => {
+  const handleClick = () => {
     if (credential.length === 0) {
       return;
     }
-    await invoke('add_credential', { credential: credential.trim() })
+    invoke('add_credential', { credential: credential.trim() })
       .then(() => {
         navigate(routes.root);
         push({
@@ -42,16 +42,17 @@ function AddCredential() {
           closeIcon: true,
         });
       })
-      .catch((e: BackendError) => {
+      .catch((e: unknown) => {
+        const eT = e as BackendError;
         console.log('backend error:', e);
-        if (e.key === 'CredentialExpired' && e.data?.expiration) {
+        if (eT.key === 'CredentialExpired' && eT.data?.expiration) {
           // TODO the expiration date format passed from the backend is not ISO_8601
           // So we have to parse it manually
           setError(
-            `${tE(e.key)}: ${dayjs(e.data.expiration, 'YYYY-MM-DD').format('YYYY-MM-DD')}`,
+            `${tE(eT.key)}: ${dayjs(eT.data.expiration, 'YYYY-MM-DD').format('YYYY-MM-DD')}`,
           );
         } else {
-          setError(tE(e.key));
+          setError(tE(eT.key));
         }
       });
   };

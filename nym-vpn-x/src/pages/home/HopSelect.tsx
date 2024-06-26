@@ -6,12 +6,12 @@ import { FlagIcon, MsIcon, countryCode } from '../../ui';
 import { useThrottle } from '../../hooks';
 import { HomeThrottleDelay } from '../../constants';
 
-interface HopSelectProps {
+type HopSelectProps = {
   nodeLocation: NodeLocation;
   onClick: () => void;
   nodeHop: NodeHop;
   disabled?: boolean;
-}
+};
 
 export default function HopSelect({
   nodeHop,
@@ -24,7 +24,7 @@ export default function HopSelect({
   const { push } = useNotifications();
 
   const showSnackbar = useThrottle(
-    async () => {
+    () => {
       let text = '';
       switch (state) {
         case 'Connected':

@@ -13,10 +13,10 @@ export type ConnectionState =
 
 export type VpnMode = 'TwoHop' | 'Mixnet';
 
-export interface TunnelConfig {
+export type TunnelConfig = {
   id: string;
   name: string;
-}
+};
 
 export type CodeDependency = {
   name: string;

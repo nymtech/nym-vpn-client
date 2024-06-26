@@ -10,7 +10,9 @@ export function useSystemTheme() {
       const winTheme = await appWindow.theme();
       setTheme(winTheme === 'dark' ? 'Dark' : 'Light');
     }
-    getTheme().catch((e) => console.warn('Failed to get system theme', e));
+    getTheme().catch((e: unknown) =>
+      console.warn('Failed to get system theme', e),
+    );
   }, []);
 
   return { theme };

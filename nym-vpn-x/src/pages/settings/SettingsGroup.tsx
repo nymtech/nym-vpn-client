@@ -6,16 +6,16 @@ type Setting = {
   title: string;
   leadingIcon?: string;
   desc?: string | ReactNode;
-  onClick?: () => Promise<void>;
+  onClick?: () => void;
   trailing?: ReactNode;
   disabled?: boolean;
   className?: string;
 };
 
-interface Props {
+type Props = {
   settings: Setting[];
   className?: string;
-}
+};
 
 function SettingsGroup({ settings, className }: Props) {
   return (

@@ -43,14 +43,15 @@ type Crate = {
 };
 
 // types of generated JS licenses JSON file
-export type JsLicensesJson = {
+export type JsLicensesJson = Record<
   // key is the package name with this structure: `package@semver`
-  [key: string]: {
+  string,
+  {
     licenses?: string | string[];
     repository?: string;
     publisher?: string;
     email?: string;
     licenseText?: string;
     copyright?: string;
-  };
-};
+  }
+>;

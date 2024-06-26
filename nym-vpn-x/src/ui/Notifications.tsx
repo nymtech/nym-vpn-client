@@ -7,7 +7,7 @@ function Notifications() {
   const onClose = () => {
     next();
     if (current?.onClose) {
-      current?.onClose();
+      current.onClose();
     }
   };
 

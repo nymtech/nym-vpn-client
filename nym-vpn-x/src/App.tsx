@@ -21,7 +21,7 @@ function App() {
     const showSplashAnimation = async () => {
       const args = await invoke<Cli>(`cli_args`);
       // if NOSPLASH is set, skip the splash-screen animation
-      if (import.meta.env.APP_NOSPLASH || args?.nosplash) {
+      if (import.meta.env.APP_NOSPLASH || args.nosplash) {
         console.log('splash-screen disabled');
         const splash = document.getElementById('splash');
         if (splash) {
@@ -41,7 +41,7 @@ function App() {
             splashLogo.style.opacity = '100';
           }
         })
-        .catch((e) => console.error(e));
+        .catch((e: unknown) => console.error(e));
     };
     showSplashAnimation();
   }, []);

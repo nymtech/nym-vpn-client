@@ -35,7 +35,7 @@ function NetworkModeSelect() {
   };
 
   const showSnackbar = useThrottle(
-    async () => {
+    () => {
       let text = '';
       switch (state.state) {
         case 'Connected':
@@ -94,7 +94,9 @@ function NetworkModeSelect() {
       <RadioGroup
         defaultValue={state.vpnMode}
         options={vpnModes}
-        onChange={handleNetworkModeChange}
+        onChange={(mode) => {
+          handleNetworkModeChange(mode);
+        }}
         rootLabel={t('select-network-label')}
       />
     </div>

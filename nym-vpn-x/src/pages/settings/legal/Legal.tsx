@@ -16,12 +16,16 @@ function Legal() {
         settings={[
           {
             title: t('legal.tos'),
-            onClick: async () => open(ToSUrl),
+            onClick: () => {
+              open(ToSUrl);
+            },
             trailing: <MsIcon icon="arrow_right" />,
           },
           {
             title: t('legal.policy'),
-            onClick: async () => open(PrivacyPolicyUrl),
+            onClick: () => {
+              open(PrivacyPolicyUrl);
+            },
             trailing: <MsIcon icon="arrow_right" />,
           },
         ]}
@@ -30,12 +34,16 @@ function Legal() {
         settings={[
           {
             title: t('legal.licenses-rust'),
-            onClick: async () => navigate(routes.licensesRust),
+            onClick: () => {
+              navigate(routes.licensesRust);
+            },
             trailing: <MsIcon icon="arrow_right" />,
           },
           {
             title: t('legal.licenses-js'),
-            onClick: async () => navigate(routes.licensesJs),
+            onClick: () => {
+              navigate(routes.licensesJs);
+            },
             trailing: <MsIcon icon="arrow_right" />,
           },
         ]}
