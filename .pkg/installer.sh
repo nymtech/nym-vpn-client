@@ -26,13 +26,13 @@ B_GRY="$BLD$GRY"
 ####
 
 # nymvpn-x AppImage
-vpnx_tag=nightly-x
-vpnx_version=0.1.2-dev
+vpnx_tag=nym-vpn-x-v0.1.2
+vpnx_version=0.1.2
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnx_tag/nymvpn-x_${vpnx_version}.AppImage"
 
 # nym-vpnd prebuilt binary
-vpnd_tag=nightly
-vpnd_version=0.1.7-dev
+vpnd_tag=nym-vpn-core-v0.1.6
+vpnd_version=0.1.6
 vpnd_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
 
 # function called when an error occurs, will print the exit
@@ -101,8 +101,17 @@ rmfile() {
   fi
 }
 
+_rmdir() {
+  if [ -d "$1" ]; then
+    sudo rm -rf "$1"
+    log "   removed $I_YLW${1/#$HOME/\~}$RS"
+  fi
+}
+
 data_home=${XDG_DATA_HOME:-$HOME/.local/share}
 state_home=${XDG_STATE_HOME:-$HOME/.local/state}
+config_home=${XDG_CONFIG_HOME:-$HOME/.config}
+cache_home=${XDG_CACHE_HOME:-$HOME/.cache}
 xdg_bin_home="$HOME/.local/bin"
 app_dir="nymvpn-x"
 usr_bin_dir="/usr/bin"
@@ -434,6 +443,19 @@ install_daemon() {
   log "   ${B_GRN}Installed$RS $(tilded "$units_dir/$vpnd_service")"
 }
 
+cleanup_app_local_files() {
+  log "  ${B_GRN}Remove$RS app config and cache files?"
+  prompt="    ${B_YLW}Y${RS}es (recommended) ${B_YLW}N${RS}o "
+  user_prompt choice "$prompt"
+
+  if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
+    _rmdir "$config_home/$app_dir"
+    _rmdir "$data_home/$app_dir"
+    _rmdir "$state_home/$app_dir"
+    _rmdir "$cache_home/$app_dir"
+  fi
+}
+
 post_install() {
   if ! dir_in_path "$install_dir"; then
     log "${B_YLW}⚠$RS $install_dir is not in the ${BLD}PATH$RS
@@ -474,14 +496,14 @@ _uninstall() {
   check_system_pkg
 
   files=(
-    "$HOME/.local/bin/nym-vpnd"
-    "$HOME/.local/bin/nymvpn-x.appimage"
-    "$HOME/.local/bin/nymvpn-x-wrapper.sh"
+    "$xdg_bin_home/nym-vpnd"
+    "$xdg_bin_home/nymvpn-x.appimage"
+    "$xdg_bin_home/nymvpn-x-wrapper.sh"
+    "$data_home/applications/nymvpn-x.desktop"
+    "$data_home/icons/nymvpn-x.svg"
     "/usr/bin/nym-vpnd"
     "/usr/bin/nymvpn-x.appimage"
     "/usr/bin/nymvpn-x-wrapper.sh"
-    ~/.local/share/applications/nymvpn-x.desktop
-    ~/.local/share/icons/nymvpn-x.svg
     /usr/share/applications/nymvpn-x.desktop
     /usr/share/icons/nymvpn-x.svg
   )
@@ -492,6 +514,8 @@ _uninstall() {
       rmfile "$file"
     fi
   done
+
+  cleanup_app_local_files
 
   log "  ${B_GRN}Removing$RS nym-vpnd service"
   if sudo systemctl stop nym-vpnd.service &>/dev/null; then
