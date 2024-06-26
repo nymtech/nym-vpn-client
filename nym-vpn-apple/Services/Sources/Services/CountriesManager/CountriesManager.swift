@@ -27,7 +27,7 @@ public final class CountriesManager: ObservableObject {
         setup()
     }
 
-    public func fetchCountries() throws {
+    public func fetchCountries() {
         guard !isLoading, needsReload(shouldFetchEntryCountries: appSettings.isEntryLocationSelectionOn)
         else {
             loadTemporaryCountries(shouldFetchEntryCountries: appSettings.isEntryLocationSelectionOn)
@@ -53,6 +53,15 @@ public final class CountriesManager: ObservableObject {
 private extension CountriesManager {
     func setup() {
         loadPrebundledCountries()
+        setupAppSettingsObservers()
+        fetchCountries()
+    }
+
+    func setupAppSettingsObservers() {
+        appSettings.$isEntryLocationSelectionOnPublisher.sink { [weak self] _ in
+            self?.fetchCountries()
+        }
+        .store(in: &cancellables)
     }
 }
 
