@@ -41,7 +41,7 @@ url.workspace = true
 
 # Used in order to correctly import rustls for sub-dependencies
 reqwest = { workspace = true, default_features = false, features = ["rustls-tls"] }
-tokio-tungstenite = { version = "0.20.1", features = ["rustls"] }
+tokio-tungstenite = { version = "0.21.0", features = ["rustls"] }
 tungstenite = { version = "0.20.1", default-features = false, features = ["rustls"] }
 
 talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
