@@ -139,24 +139,26 @@ public extension HomeViewModel {
             return
         }
 
-        let exitRouter = connectionManager.exitRouter
-
         do {
             let credentialURL = try credentialsManager.dataFolderURL()
-            var config = MixnetConfig(exitRouter: exitRouter, credentialsDataPath: credentialURL.path())
+            var config = MixnetConfig(
+                entryGateway: connectionManager.entryGateway,
+                exitRouter: connectionManager.exitRouter,
+                credentialsDataPath: credentialURL.path()
+            )
 
             switch selectedNetwork {
             case .mixnet2hop:
                 config = MixnetConfig(
                     entryGateway: connectionManager.entryGateway,
-                    exitRouter: exitRouter,
+                    exitRouter: connectionManager.exitRouter,
                     isTwoHopEnabled: true,
                     credentialsDataPath: credentialURL.path()
                 )
             case .mixnet5hop:
                 config = MixnetConfig(
                     entryGateway: connectionManager.entryGateway,
-                    exitRouter: exitRouter,
+                    exitRouter: connectionManager.exitRouter,
                     isTwoHopEnabled: false,
                     credentialsDataPath: credentialURL.path()
                 )
@@ -252,13 +254,7 @@ private extension HomeViewModel {
     }
 
     func fetchCountries() {
-        do {
-            try countriesManager.fetchCountries()
-        } catch let error {
-            Task { @MainActor in
-                statusInfoState = .error(message: error.localizedDescription)
-            }
-        }
+        countriesManager.fetchCountries()
     }
 }
 
