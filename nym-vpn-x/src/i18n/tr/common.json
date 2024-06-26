@@ -13,8 +13,8 @@
         "dark": "Karanlık mod",
         "light": "Aydınlık mod"
     },
-    "first-hop-selection": "İlk sekme seçimi",
-    "last-hop-selection": "Son sekme seçimi",
+    "first-hop-selection": "İlk hop seçimi",
+    "last-hop-selection": "Son hop seçimi",
     "tos": "Kullanım şartları",
     "privacy-statement": "Gizlilik politikası"
 }
