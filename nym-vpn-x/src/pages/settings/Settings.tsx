@@ -17,7 +17,14 @@ import SettingsGroup from './SettingsGroup';
 const ThrottleDelay = 10000; // ms
 
 function Settings() {
-  const { entrySelector, autoConnect, version, monitoring, daemonStatus, credentialExpiry } = useMainState();
+  const {
+    entrySelector,
+    autoConnect,
+    version,
+    monitoring,
+    daemonStatus,
+    credentialExpiry,
+  } = useMainState();
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
@@ -54,7 +61,9 @@ function Settings() {
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
-      {import.meta.env.APP_DISABLE_DATA_STORAGE !== 'true' && (credentialExpiry === null || ((credentialExpiry!.valueOf() - dayjs().valueOf()) <= 0)) ? (
+      {import.meta.env.APP_DISABLE_DATA_STORAGE !== 'true' &&
+      (credentialExpiry === null ||
+        credentialExpiry!.valueOf() - dayjs().valueOf() <= 0) ? (
         <Button
           onClick={() => navigate(routes.credential)}
           disabled={daemonStatus !== 'Ok'}
@@ -64,7 +73,9 @@ function Settings() {
       ) : (
         <SettingsMenuCard
           title={t('credential.title')}
-          desc={credentialExpiry?.diff(dayjs(), 'day') + ' ' + t('credential.desc')}
+          desc={
+            credentialExpiry?.diff(dayjs(), 'day') + ' ' + t('credential.desc')
+          }
           onClick={() => navigate(routes.display)}
           leadingIcon="account_circle"
           trailingIcon="arrow_right"
