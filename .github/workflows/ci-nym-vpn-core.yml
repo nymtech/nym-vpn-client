@@ -106,7 +106,7 @@ jobs:
           go-version: "stable"
 
       - name: Install Protoc
-        uses: arduino/setup-protoc@v2
+        uses: arduino/setup-protoc@v3
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'windows')
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
