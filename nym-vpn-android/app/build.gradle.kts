@@ -4,6 +4,7 @@ var fdroidApkReleasePath = ""
 var generateChecksum = false
 
 plugins {
+	alias(libs.plugins.compose.compiler)
 	alias(libs.plugins.androidApplication)
 	alias(libs.plugins.jetbrainsKotlinAndroid)
 	alias(libs.plugins.hilt.android)
@@ -175,9 +176,6 @@ android {
 	buildFeatures {
 		compose = true
 		buildConfig = true
-	}
-	composeOptions {
-		kotlinCompilerExtensionVersion = Constants.COMPOSE_COMPILER_EXTENSION_VERSION
 	}
 
 	packaging {

@@ -10,7 +10,6 @@ object Constants {
     const val JVM_TARGET = "17"
     val JAVA_VERSION = JavaVersion.VERSION_17
 
-    const val COMPOSE_COMPILER_EXTENSION_VERSION = "1.5.11"
     const val NAMESPACE = "net.nymtech"
 
     const val APP_NAME = "nymvpn"

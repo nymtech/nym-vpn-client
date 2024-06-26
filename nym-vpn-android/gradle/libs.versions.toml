@@ -5,25 +5,25 @@ coreSplashscreen = "1.0.1"
 detektRulesCompose = "1.3.0"
 javaClient = "9.2.2"
 jna = "5.14.0"
-kotlin = "1.9.23"
-ksp = "1.9.23-1.0.19"
+kotlin = "2.0.0"
+ksp = "2.0.0-1.0.21"
 coreKtx = "1.13.1"
 junit = "4.13.2"
-junitVersion = "1.1.5"
-espressoCore = "3.5.1"
+junitVersion = "1.2.0"
+espressoCore = "3.6.0"
 materialIconsExtended = "1.6.8"
 navigationCompose = "2.7.7"
 hiltNavigationCompose = "1.2.0"
-lifecycleRuntimeKtx = "2.7.0"
-lifecycle-runtime-compose = "2.7.0"
+lifecycleRuntimeKtx = "2.8.2"
+lifecycle-runtime-compose = "2.8.2"
 activityCompose = "1.9.0"
 composeBom = "2024.06.00"
 datastorePreferences = "1.1.1"
 securityCrypto = "1.1.0-alpha06"
 timber = "5.0.1"
 hiltAndroid = "2.51.1"
-kotlinx-serialization-json = "1.6.3"
-kotlinxCoroutinesCore = "1.8.0"
+kotlinx-serialization-json = "1.7.1"
+kotlinxCoroutinesCore = "1.8.1"
 uiautomator = "2.3.0"
 window = "1.3.0"
 windowCoreAndroid = "1.3.0"
@@ -34,7 +34,7 @@ moshiKotlinCodegen = "1.15.1"
 converterMoshi = "2.11.0"
 zxingAndroidEmbedded = "4.3.0"
 
-gradlePlugins-kotlinxSerialization = "1.9.23"
+gradlePlugins-kotlinxSerialization = "2.0.0"
 gradlePlugins-licensee = "1.7.0"
 gradlePlugins-detekt = "1.23.6"
 gradlePlugins-gross = "0.1.0"
@@ -60,7 +60,6 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
-androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle-runtime-compose" }
 androidx-lifecycle-service = { module = "androidx.lifecycle:lifecycle-service", version.ref = "lifecycle-runtime-compose" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -107,6 +106,7 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroid" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
