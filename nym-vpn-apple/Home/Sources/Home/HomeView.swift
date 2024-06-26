@@ -111,27 +111,25 @@ private extension HomeView {
 
     @ViewBuilder
     func hopSection() -> some View {
-        if viewModel.shouldShowHopSection {
-            HStack {
-                Text(viewModel.connectToLocalizedTitle)
-                    .foregroundStyle(NymColor.sysOnSurfaceWhite)
-                    .textStyle(.Title.Medium.primary)
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-
+        HStack {
+            Text(viewModel.connectToLocalizedTitle)
+                .foregroundStyle(NymColor.sysOnSurfaceWhite)
+                .textStyle(.Title.Medium.primary)
             Spacer()
-                .frame(height: 20)
-
-            VStack {
-                entryHop()
-                exitHop()
-            }
-            .padding(.horizontal, 16)
-
-            Spacer()
-                .frame(height: appSettings.isSmallScreen ? 20 : 32)
         }
+        .padding(.horizontal, 16)
+
+        Spacer()
+            .frame(height: 20)
+
+        VStack {
+            entryHop()
+            exitHop()
+        }
+        .padding(.horizontal, 16)
+
+        Spacer()
+            .frame(height: appSettings.isSmallScreen ? 20 : 32)
     }
 
     @ViewBuilder

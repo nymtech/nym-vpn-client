@@ -61,11 +61,9 @@ public class HopListViewModel: ObservableObject {
     func isCountrySelected(countryCode: String) -> Bool {
         switch type {
         case .entry:
-            guard let entryGateway = connectionManager.entryGateway else { return false }
-            return entryGateway.countryCode == countryCode
+            return connectionManager.entryGateway.countryCode == countryCode
         case .exit:
-            guard let exitRouter = connectionManager.exitRouter else { return false }
-            return exitRouter.countryCode == countryCode
+            return connectionManager.exitRouter.countryCode == countryCode
         }
     }
 }
@@ -88,12 +86,12 @@ extension HopListViewModel {
             let newCountries: [Country]?
             switch type {
             case .entry:
-                newCountries = !searchText.isEmpty ? countriesManager.entryCountries?.filter {
+                newCountries = !searchText.isEmpty ? countriesManager.entryCountries.filter {
                     $0.name.lowercased().contains(searchText.lowercased()) ||
                     $0.code.lowercased().contains(searchText.lowercased())
                 } : countriesManager.entryCountries
             case .exit:
-                newCountries = !searchText.isEmpty ? countriesManager.exitCountries?.filter {
+                newCountries = !searchText.isEmpty ? countriesManager.exitCountries.filter {
                     $0.name.lowercased().contains(searchText.lowercased()) ||
                     $0.code.lowercased().contains(searchText.lowercased())
                 } : countriesManager.exitCountries

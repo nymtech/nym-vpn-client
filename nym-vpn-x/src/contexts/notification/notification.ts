@@ -4,9 +4,15 @@ import { NotificationState } from './type';
 export const initialState: NotificationState = {
   stack: [],
   current: null,
-  next: () => {},
-  push: () => {},
-  clear: () => {},
+  next: () => {
+    /* SCARECROW */
+  },
+  push: () => {
+    /* SCARECROW */
+  },
+  clear: () => {
+    /* SCARECROW */
+  },
 };
 
 export const NotificationContext =

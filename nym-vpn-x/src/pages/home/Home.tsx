@@ -1,5 +1,4 @@
 import { useCallback, useEffect } from 'react';
-import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api';
 import { useNavigate } from 'react-router-dom';
@@ -27,7 +26,7 @@ function Home() {
   const navigate = useNavigate();
   const { t } = useTranslation('home');
 
-  const handleClick = async () => {
+  const handleClick = () => {
     dispatch({ type: 'disconnect' });
     if (state === 'Connected') {
       invoke('disconnect')
@@ -35,9 +34,9 @@ function Home() {
           console.log('disconnect result');
           console.log(result);
         })
-        .catch((e: BackendError) => {
+        .catch((e: unknown) => {
           console.warn('backend error:', e);
-          dispatch({ type: 'set-error', error: e });
+          dispatch({ type: 'set-error', error: e as BackendError });
         });
     } else if (state === 'Disconnected') {
       dispatch({ type: 'connect' });
@@ -46,9 +45,9 @@ function Home() {
           console.log('connect result');
           console.log(result);
         })
-        .catch((e: BackendError) => {
+        .catch((e: unknown) => {
           console.warn('backend error:', e);
-          dispatch({ type: 'set-error', error: e });
+          dispatch({ type: 'set-error', error: e as BackendError });
         });
     }
   };
@@ -132,10 +131,6 @@ function Home() {
           onClick={handleClick}
           color={getButtonColor()}
           disabled={loading || daemonStatus !== 'Ok'}
-          className={clsx(
-            daemonStatus !== 'Ok' &&
-              'opacity-50 disabled:opacity-50 hover:opacity-50',
-          )}
         >
           {getButtonText()}
         </Button>

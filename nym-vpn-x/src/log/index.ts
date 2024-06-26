@@ -5,7 +5,7 @@ export type Level = 'Trace' | 'Debug' | 'Info' | 'Warn' | 'Error';
 /**
  * Rust logger
  */
-export interface Logu {
+export type Logu = {
   /**
    * Log a `trace` message
    *
@@ -36,7 +36,7 @@ export interface Logu {
    * @param msg - The message to log
    */
   readonly error: (msg: string) => void;
-}
+};
 
 async function logJs(level: Level, message: string) {
   try {

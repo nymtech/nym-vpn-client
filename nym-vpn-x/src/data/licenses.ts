@@ -5,15 +5,13 @@ import { CodeDependency, JsLicensesJson, RustLicensesJson } from '../types';
 const LicensesJs = '/licenses-js.json';
 const LicensesRust = '/licenses-rust.json';
 
-export type DependencyByNames = {
-  [key: string]: CodeDependency;
-};
+export type DependencyByNames = Record<string, CodeDependency>;
 
 export async function getRustLicenses(): Promise<CodeDependency[] | undefined> {
   let json: RustLicensesJson;
   try {
     const response = await fetch(LicensesRust);
-    json = await response.json();
+    json = (await response.json()) as RustLicensesJson;
   } catch (e) {
     console.warn('Failed to fetch Rust licenses data', e);
     return;
@@ -26,9 +24,9 @@ export async function getRustLicenses(): Promise<CodeDependency[] | undefined> {
         used_by.forEach(({ crate }) => {
           const key = `${crate.name}@${crate.version}`;
           if (acc[key]) {
-            if (!acc[key].licenses?.includes(licenseName)) {
-              acc[key].licenses?.push(licenseName);
-              acc[key].licenseTexts?.push(licenseText);
+            if (!acc[key].licenses.includes(licenseName)) {
+              acc[key].licenses.push(licenseName);
+              acc[key].licenseTexts.push(licenseText);
             }
           } else {
             acc[key] = {
@@ -60,7 +58,7 @@ export async function getJsLicenses(): Promise<CodeDependency[] | undefined> {
   let json: JsLicensesJson;
   try {
     const response = await fetch(LicensesJs);
-    json = await response.json();
+    json = (await response.json()) as JsLicensesJson;
   } catch (e) {
     console.warn('Failed to fetch Js licenses data', e);
     return;

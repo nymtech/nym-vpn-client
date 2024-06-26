@@ -16,19 +16,25 @@ function Support() {
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
       <SettingsMenuCard
         title={t('support.faq')}
-        onClick={async () => open(FaqUrl)}
+        onClick={() => {
+          open(FaqUrl);
+        }}
         leadingIcon="help"
         trailingIcon="arrow_right"
       />
       <SettingsMenuCard
         title={t('support.contact')}
-        onClick={async () => open(ContactSupportUrl)}
+        onClick={() => {
+          open(ContactSupportUrl);
+        }}
         leadingIcon="email"
         trailingIcon="arrow_right"
       />
       <SettingsMenuCard
         title={t('feedback.matrix')}
-        onClick={async () => open(MatrixRoomUrl)}
+        onClick={() => {
+          open(MatrixRoomUrl);
+        }}
         leadingComponent={
           <ElementIcon className="w-6 h-6 fill-baltic-sea dark:fill-mercury-pinkish" />
         }
@@ -36,7 +42,9 @@ function Support() {
       />
       <SettingsMenuCard
         title={t('feedback.discord')}
-        onClick={async () => open(DiscordInviteUrl)}
+        onClick={() => {
+          open(DiscordInviteUrl);
+        }}
         leadingComponent={
           <DiscordIcon className="w-6 h-6 fill-baltic-sea dark:fill-mercury-pinkish" />
         }

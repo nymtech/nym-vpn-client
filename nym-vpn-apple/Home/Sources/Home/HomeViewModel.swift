@@ -44,7 +44,6 @@ public class HomeViewModel: HomeFlowState {
     @Published var statusButtonConfig = StatusButtonConfig.disconnected
     @Published var statusInfoState = StatusInfoState.initialising
     @Published var connectButtonState = ConnectButtonState.connect
-    @Published var shouldShowHopSection = false
 
 #if os(iOS)
     public init(
@@ -113,7 +112,7 @@ public extension HomeViewModel {
 
 public extension HomeViewModel {
     func shouldShowEntryHop() -> Bool {
-        appSettings.isEntryLocationSelectionOn && !(countriesManager.entryCountries?.isEmpty ?? false)
+        appSettings.isEntryLocationSelectionOn && !countriesManager.entryCountries.isEmpty
     }
 
     func configureConnectedTimeTimer() {
@@ -140,11 +139,7 @@ public extension HomeViewModel {
             return
         }
 
-        guard let exitRouter = connectionManager.exitRouter
-        else {
-            statusInfoState = .error(message: "TODO")
-            return
-        }
+        let exitRouter = connectionManager.exitRouter
 
         do {
             let credentialURL = try credentialsManager.dataFolderURL()
@@ -181,12 +176,10 @@ private extension HomeViewModel {
     func setup() {
         setupDateFormatter()
         setupTunnelManagerObservers()
-        setupAppSettingsObservers()
 #if os(macOS)
         setupGRPCManagerObservers()
 #endif
         setupCountriesManagerObservers()
-        fetchCountries()
     }
 
     func setupTunnelManagerObservers() {
@@ -222,23 +215,7 @@ private extension HomeViewModel {
         dateFormatter.zeroFormattingBehavior = .pad
     }
 
-    func setupAppSettingsObservers() {
-        appSettings.$isEntryLocationSelectionOnPublisher.sink { [weak self] _ in
-            self?.fetchCountries()
-        }
-        .store(in: &cancellables)
-    }
-
     func setupCountriesManagerObservers() {
-        countriesManager.$hasCountries.sink { [weak self] value in
-            guard let self else { return }
-
-            Task { @MainActor in
-                self.shouldShowHopSection = value
-            }
-        }
-        .store(in: &cancellables)
-
         countriesManager.$lastError.sink { [weak self] error in
             guard
                 let self,

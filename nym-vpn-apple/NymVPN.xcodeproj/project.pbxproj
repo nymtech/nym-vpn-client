@@ -53,6 +53,10 @@
 		D96740232B56A67A001F6891 /* Tunnels in Frameworks */ = {isa = PBXBuildFile; productRef = D96740222B56A67A001F6891 /* Tunnels */; };
 		D968BDC92B6AEA9D003F42E5 /* AppSettings in Frameworks */ = {isa = PBXBuildFile; productRef = D968BDC82B6AEA9D003F42E5 /* AppSettings */; };
 		D968BDCB2B6BC98E003F42E5 /* AppVersionProvider in Frameworks */ = {isa = PBXBuildFile; productRef = D968BDCA2B6BC98E003F42E5 /* AppVersionProvider */; };
+		D96B94DE2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */ = {isa = PBXBuildFile; fileRef = D96B94DC2C2AB62D00E98B15 /* gatewaysEntryCountries.json */; };
+		D96B94DF2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */ = {isa = PBXBuildFile; fileRef = D96B94DC2C2AB62D00E98B15 /* gatewaysEntryCountries.json */; };
+		D96B94E02C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */ = {isa = PBXBuildFile; fileRef = D96B94DD2C2AB62D00E98B15 /* gatewaysExitCountries.json */; };
+		D96B94E12C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */ = {isa = PBXBuildFile; fileRef = D96B94DD2C2AB62D00E98B15 /* gatewaysExitCountries.json */; };
 		D97065E12B8DD44A00C27A9B /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D97065E02B8DD44A00C27A9B /* TunnelStatus */; };
 		D974C03B2BBED2460011924A /* ConnectionManager in Frameworks */ = {isa = PBXBuildFile; productRef = D974C03A2BBED2460011924A /* ConnectionManager */; };
 		D9870CF32BE3A12800551A86 /* Home in Frameworks */ = {isa = PBXBuildFile; productRef = D9870CF22BE3A12800551A86 /* Home */; };
@@ -218,6 +222,8 @@
 		D954C0BD2B51C1CA00C6BAAC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D954C0BE2B51C1CA00C6BAAC /* NymMixnetTunnel.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NymMixnetTunnel.entitlements; sourceTree = "<group>"; };
 		D955FA002B73CF6F005BA27D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D96B94DC2C2AB62D00E98B15 /* gatewaysEntryCountries.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = gatewaysEntryCountries.json; sourceTree = "<group>"; };
+		D96B94DD2C2AB62D00E98B15 /* gatewaysExitCountries.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = gatewaysExitCountries.json; sourceTree = "<group>"; };
 		D990950D2BC6B31900C98E3F /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk/System/Library/Frameworks/SystemConfiguration.framework; sourceTree = DEVELOPER_DIR; };
 		D99095142BC6B54200C98E3F /* NymMixnetTunnelmacOS.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NymMixnetTunnelmacOS.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D99095172BC6B54200C98E3F /* PacketTunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelProvider.swift; sourceTree = "<group>"; };
@@ -429,6 +435,8 @@
 		D967402C2B56CA1A001F6891 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				D96B94DC2C2AB62D00E98B15 /* gatewaysEntryCountries.json */,
+				D96B94DD2C2AB62D00E98B15 /* gatewaysExitCountries.json */,
 				D9F699E32B4C47DE005576A9 /* BridgingHeader.h */,
 				D955FA002B73CF6F005BA27D /* Info.plist */,
 			);
@@ -903,6 +911,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9538E2E2B7E3F28002FA8B5 /* LaunchScreen.storyboard in Resources */,
+				D96B94E02C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
+				D96B94DE2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
 				D9264E262B3DA062004594A8 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -912,6 +922,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9BEF2DA2BEB63320036C566 /* Preview Assets.xcassets in Resources */,
+				D96B94E12C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
+				D96B94DF2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
 				D9BEF2D72BEB63320036C566 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -1,0 +1,33 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+    assignees:
+      - "Bykow"
+  - package-ecosystem: gradle
+    directory: /nym-vpn-android
+    schedule:
+      interval: daily
+    assignees:
+      - "zaneschepke"
+  - package-ecosystem: swift
+    directory: /nym-vpn-apple
+    schedule:
+      interval: daily
+    assignees:
+      - "rokas-ambrazevicius"
+  - package-ecosystem: cargo
+    directory: /nym-vpn-core
+    schedule:
+      interval: daily
+    assignees:
+      - "octol"
+      - "neacsu"
+  - package-ecosystem: npm
+    directory: /nym-vpn-x
+    schedule:
+      interval: daily
+    assignees:
+      - "doums"

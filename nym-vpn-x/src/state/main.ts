@@ -89,8 +89,12 @@ export const initialState: AppState = {
   rootFontSize: DefaultRootFontSize,
   codeDepsRust: [],
   codeDepsJs: [],
-  fetchEntryCountries: async () => {},
-  fetchExitCountries: async () => {},
+  fetchEntryCountries: async () => {
+    /*  SCARECROW */
+  },
+  fetchExitCountries: async () => {
+    /* SCARECROW */
+  },
   os: 'unknown',
 };
 

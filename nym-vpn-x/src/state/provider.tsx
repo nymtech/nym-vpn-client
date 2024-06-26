@@ -34,7 +34,7 @@ export function MainStateProvider({ children }: Props) {
       dispatch({ type: 'init-done' });
       const args = await invoke<Cli>(`cli_args`);
       // skip the animation if NOSPLASH is set
-      if (import.meta.env.APP_NOSPLASH || args?.nosplash) {
+      if (import.meta.env.APP_NOSPLASH || args.nosplash) {
         return;
       }
       // wait for the splash screen to be visible for a short time as
@@ -126,6 +126,7 @@ export function MainStateProvider({ children }: Props) {
             payload: { hop, location },
           });
         } catch (e) {
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           console.warn(`failed to update the selected country: ${e}`);
         }
       }

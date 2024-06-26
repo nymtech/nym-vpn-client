@@ -14,7 +14,7 @@ function Display() {
 
   const { theme: systemTheme } = useSystemTheme();
 
-  const handleThemeChange = async (mode: ThemeMode) => {
+  const handleThemeChange = (mode: ThemeMode) => {
     if (mode !== state.themeMode) {
       dispatch({
         type: 'set-ui-theme',

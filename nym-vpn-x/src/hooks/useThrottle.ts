@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { DependencyList, useCallback } from 'react';
 import * as _ from 'lodash-es';
 
@@ -11,7 +10,8 @@ import * as _ from 'lodash-es';
  * @param options - Throttle options
  * @returns The throttled function
  */
-function useThrottle<Fn extends (...args: any[]) => Promise<any> | any>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function useThrottle<Fn extends (...args: any[]) => Promise<void> | void>(
   fn: Fn,
   wait: number,
   deps: DependencyList = [],

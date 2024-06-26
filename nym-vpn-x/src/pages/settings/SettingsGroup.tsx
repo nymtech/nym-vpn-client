@@ -1,27 +1,27 @@
 import clsx from 'clsx';
 import { ReactNode } from 'react';
-import { RadioGroup } from '@headlessui/react';
+import { Description, Label, Radio, RadioGroup } from '@headlessui/react';
 
 type Setting = {
   title: string;
   leadingIcon?: string;
   desc?: string | ReactNode;
-  onClick?: () => Promise<void>;
+  onClick?: () => void;
   trailing?: ReactNode;
   disabled?: boolean;
   className?: string;
 };
 
-interface Props {
+type Props = {
   settings: Setting[];
   className?: string;
-}
+};
 
 function SettingsGroup({ settings, className }: Props) {
   return (
     <RadioGroup className={clsx([className])}>
       {settings.map((setting, index) => (
-        <RadioGroup.Option
+        <Radio
           key={setting.title}
           value={setting.title}
           onClick={setting.onClick}
@@ -53,13 +53,13 @@ function SettingsGroup({ settings, className }: Props) {
               </span>
             )}
             <div className="flex flex-col flex-1 justify-center min-w-4">
-              <RadioGroup.Label
+              <Label
                 as="div"
                 className="text-base text-baltic-sea dark:text-mercury-pinkish select-none truncate"
               >
                 {setting.title}
-              </RadioGroup.Label>
-              <RadioGroup.Description
+              </Label>
+              <Description
                 as="div"
                 className="text-sm text-cement-feet dark:text-mercury-mist select-none truncate"
               >
@@ -68,11 +68,11 @@ function SettingsGroup({ settings, className }: Props) {
                 ) : (
                   setting.desc
                 )}
-              </RadioGroup.Description>
+              </Description>
             </div>
             {setting.trailing}
           </div>
-        </RadioGroup.Option>
+        </Radio>
       ))}
     </RadioGroup>
   );

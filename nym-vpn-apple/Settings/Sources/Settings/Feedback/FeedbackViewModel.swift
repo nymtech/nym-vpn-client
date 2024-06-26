@@ -4,7 +4,7 @@ import AppSettings
 import UIComponents
 
 struct FeedbackViewModel {
-    private let githubIssueLink = "https://github.com/nymtech/nym-vpn-apple/issues"
+    private let githubIssueLink = "https://github.com/nymtech/nym-vpn-client/issues"
     private let faqLink = Constants.supportURL.rawValue
     private let emailLink = "mailto:support@nymvpn.com"
     private let matrixLink = "https://matrix.to/#/%23NymVPN:nymtech.chat"

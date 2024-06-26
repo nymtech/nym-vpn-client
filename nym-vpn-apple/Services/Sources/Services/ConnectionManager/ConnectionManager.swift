@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 import AppSettings
 import CountriesManager
 import TunnelMixnet
@@ -10,6 +11,7 @@ import GRPCManager
 
 public final class ConnectionManager: ObservableObject {
     private let appSettings: AppSettings
+    private let connectionStorage: ConnectionStorage
     private let countriesManager: CountriesManager
     private let tunnelsManager: TunnelsManager
 #if os(macOS)
@@ -30,32 +32,52 @@ public final class ConnectionManager: ObservableObject {
     }
 #endif
     @Published public var currentTunnelStatus: TunnelStatus?
-    @Published public var entryGateway: EntryGateway? = .randomLowLatency
-    @Published public var exitRouter: ExitRouter?
+    @Published public var entryGateway: EntryGateway {
+        didSet {
+            guard entryGateway.isCountry else { return }
+            appSettings.entryCountryCode = entryGateway.countryCode ?? "CH"
+        }
+    }
+    @Published public var exitRouter: ExitRouter {
+        didSet {
+            guard exitRouter.isCountry else { return }
+            appSettings.exitCountryCode = exitRouter.countryCode ?? "CH"
+        }
+    }
 
 #if os(iOS)
     public init(
         appSettings: AppSettings = AppSettings.shared,
+        connectionStorage: ConnectionStorage = ConnectionStorage.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
         tunnelsManager: TunnelsManager = TunnelsManager.shared
     ) {
         self.appSettings = appSettings
+        self.connectionStorage = connectionStorage
         self.countriesManager = countriesManager
         self.tunnelsManager = tunnelsManager
+        self.entryGateway = connectionStorage.entryGateway()
+        self.exitRouter = connectionStorage.exitRouter()
+
         setup()
     }
 #endif
 #if os(macOS)
     public init(
         appSettings: AppSettings = AppSettings.shared,
+        connectionStorage: ConnectionStorage = ConnectionStorage.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
         tunnelsManager: TunnelsManager = TunnelsManager.shared,
         grpcManager: GRPCManager = GRPCManager.shared
     ) {
         self.appSettings = appSettings
+        self.connectionStorage = connectionStorage
         self.countriesManager = countriesManager
         self.tunnelsManager = tunnelsManager
         self.grpcManager = grpcManager
+        self.entryGateway = connectionStorage.entryGateway()
+        self.exitRouter = connectionStorage.exitRouter()
+
         setup()
     }
 #endif
@@ -186,27 +208,12 @@ private extension ConnectionManager {
     }
 
     func updateCountriesEntryExit() {
-        guard
-            let exitCountries = countriesManager.exitCountries,
-            let firstExitCountry = exitCountries.first
-        else {
-            // TODO: get country
-            exitRouter = .country(code: "AU")
-            return
-        }
-        if let unwrappedExitRouter = exitRouter, !unwrappedExitRouter.isCountry {
-            exitRouter = .country(code: firstExitCountry.code)
-        }
+        entryGateway = connectionStorage.entryGateway()
+        exitRouter = connectionStorage.exitRouter()
     }
 
     func updateCountriesExitOnly() {
-        guard let country = countriesManager.exitCountries?.first
-        else {
-            exitRouter = .random
-            return
-        }
-
-        entryGateway = .randomLowLatency
-        exitRouter = .country(code: country.code)
+        entryGateway = connectionStorage.entryGateway()
+        exitRouter = connectionStorage.exitRouter()
     }
 }

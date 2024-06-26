@@ -5,7 +5,6 @@ import { invoke } from '@tauri-apps/api';
 import { useMainDispatch, useMainState } from '../../contexts';
 import {
   AppError,
-  BackendError,
   Country,
   NodeHop,
   StateDispatch,
@@ -67,7 +66,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
         .then((country) => {
           dispatch({ type: 'set-fastest-node-location', country });
         })
-        .catch((e: BackendError) => console.error(e));
+        .catch((e: unknown) => console.error(e));
     }
   }, [node, dispatch, fetchEntryCountries, fetchExitCountries]);
 
@@ -163,7 +162,9 @@ function NodeLocation({ node }: { node: NodeHop }) {
             loading={
               node === 'entry' ? entryCountriesLoading : exitCountriesLoading
             }
-            onSelect={handleCountrySelection}
+            onSelect={(country) => {
+              handleCountrySelection(country);
+            }}
             isSelected={(country: UiCountry) => {
               return isCountrySelected(
                 node === 'entry' ? entryNodeLocation : exitNodeLocation,

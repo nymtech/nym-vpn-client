@@ -1,14 +1,14 @@
 import { Country } from './common';
 
-export interface BackendError {
+export type BackendError = {
   message: string;
   key: BkdErrorKey;
   data: Record<string, string> | null;
-}
+};
 
-export interface Cli {
+export type Cli = {
   nosplash: boolean;
-}
+};
 
 export type NodeLocationBackend = 'Fastest' | { Country: Country };
 

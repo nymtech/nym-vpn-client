@@ -101,7 +101,7 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
           }
           if (
             payload.width !== state.windowSize?.width ||
-            payload.height !== state.windowSize?.height
+            payload.height !== state.windowSize.height
           ) {
             const size: WindowSize = {
               type: 'Physical',

@@ -606,6 +606,17 @@
         }
       }
     },
+    "generalNymError.cannotParseCountries" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something went wrong: Cannot parse pre-bundled countries"
+          }
+        }
+      }
+    },
     "generalNymError.invalidUrl" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -613,6 +624,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong: Invalid url"
+          }
+        }
+      }
+    },
+    "generalNymError.noPrebundledCountries" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something went wrong: Cannot load pre-bundled countries"
           }
         }
       }
