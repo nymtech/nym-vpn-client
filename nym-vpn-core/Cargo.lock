@@ -3715,7 +3715,7 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tokio-tungstenite",
- "tungstenite",
+ "tungstenite 0.20.1",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -4054,7 +4054,7 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tokio-tungstenite",
- "tungstenite",
+ "tungstenite 0.20.1",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -4135,7 +4135,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
- "tungstenite",
+ "tungstenite 0.20.1",
  "wasmtimer",
  "zeroize",
 ]
@@ -4848,7 +4848,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "tun2",
- "tungstenite",
+ "tungstenite 0.21.0",
  "uniffi",
  "url",
 ]
@@ -7536,7 +7536,7 @@ dependencies = [
  "rustls 0.21.10",
  "tokio",
  "tokio-rustls 0.24.1",
- "tungstenite",
+ "tungstenite 0.20.1",
  "webpki-roots 0.25.4",
 ]
 
@@ -8038,6 +8038,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "tungstenite"
+version = "0.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9ef1a641ea34f399a848dea702823bbecfb4c486f911735368f1f137cb8257e1"
+dependencies = [
+ "byteorder",
+ "bytes",
+ "log",
+ "rand 0.8.5",
+ "rustls 0.22.4",
+ "thiserror",
+ "utf-8",
+]
+
+[[package]]
 name = "tunnel-obfuscation"
 version = "0.0.0"
 source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=164e254aa#164e254aa14e0189e54d40dbf98fbc8ada1e359b"
@@ -8481,7 +8496,7 @@ dependencies = [
  "gloo-net",
  "gloo-utils",
  "js-sys",
- "tungstenite",
+ "tungstenite 0.20.1",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
