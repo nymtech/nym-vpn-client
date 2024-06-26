@@ -24,6 +24,7 @@ updates:
       interval: daily
     assignees:
       - "octol"
+      - "neacsu"
   - package-ecosystem: npm
     directory: /nym-vpn-x
     schedule:
