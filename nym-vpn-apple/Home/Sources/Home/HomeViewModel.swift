@@ -176,12 +176,10 @@ private extension HomeViewModel {
     func setup() {
         setupDateFormatter()
         setupTunnelManagerObservers()
-        setupAppSettingsObservers()
 #if os(macOS)
         setupGRPCManagerObservers()
 #endif
         setupCountriesManagerObservers()
-        fetchCountries()
     }
 
     func setupTunnelManagerObservers() {
@@ -215,13 +213,6 @@ private extension HomeViewModel {
     func setupDateFormatter() {
         dateFormatter.allowedUnits = [.hour, .minute, .second]
         dateFormatter.zeroFormattingBehavior = .pad
-    }
-
-    func setupAppSettingsObservers() {
-        appSettings.$isEntryLocationSelectionOnPublisher.sink { [weak self] _ in
-            self?.fetchCountries()
-        }
-        .store(in: &cancellables)
     }
 
     func setupCountriesManagerObservers() {

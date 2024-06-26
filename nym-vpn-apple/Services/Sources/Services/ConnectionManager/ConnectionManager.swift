@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 import AppSettings
 import CountriesManager
 import TunnelMixnet
@@ -10,6 +11,7 @@ import GRPCManager
 
 public final class ConnectionManager: ObservableObject {
     private let appSettings: AppSettings
+    private let connectionStorage: ConnectionStorage
     private let countriesManager: CountriesManager
     private let tunnelsManager: TunnelsManager
 #if os(macOS)
@@ -30,27 +32,32 @@ public final class ConnectionManager: ObservableObject {
     }
 #endif
     @Published public var currentTunnelStatus: TunnelStatus?
-    @Published public var entryGateway: EntryGateway
-    @Published public var exitRouter: ExitRouter
+    @Published public var entryGateway: EntryGateway {
+        didSet {
+            guard entryGateway.isCountry else { return }
+            appSettings.entryCountryCode = entryGateway.countryCode ?? "CH"
+        }
+    }
+    @Published public var exitRouter: ExitRouter {
+        didSet {
+            guard exitRouter.isCountry else { return }
+            appSettings.exitCountryCode = exitRouter.countryCode ?? "CH"
+        }
+    }
 
 #if os(iOS)
     public init(
         appSettings: AppSettings = AppSettings.shared,
+        connectionStorage: ConnectionStorage = ConnectionStorage.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
         tunnelsManager: TunnelsManager = TunnelsManager.shared
     ) {
         self.appSettings = appSettings
+        self.connectionStorage = connectionStorage
         self.countriesManager = countriesManager
         self.tunnelsManager = tunnelsManager
-
-        guard let entryCountry = self.countriesManager.entryCountries.first,
-              let exitCountry = self.countriesManager.exitCountries.first
-        else {
-            // TODO: think a way to avoid fatalError
-            fatalError("No countries found")
-        }
-        self.entryGateway = .country(code: entryCountry.code)
-        self.exitRouter = .country(code: exitCountry.code)
+        self.entryGateway = connectionStorage.entryGateway()
+        self.exitRouter = connectionStorage.exitRouter()
 
         setup()
     }
@@ -58,23 +65,18 @@ public final class ConnectionManager: ObservableObject {
 #if os(macOS)
     public init(
         appSettings: AppSettings = AppSettings.shared,
+        connectionStorage: ConnectionStorage = ConnectionStorage.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
         tunnelsManager: TunnelsManager = TunnelsManager.shared,
         grpcManager: GRPCManager = GRPCManager.shared
     ) {
         self.appSettings = appSettings
+        self.connectionStorage = connectionStorage
         self.countriesManager = countriesManager
         self.tunnelsManager = tunnelsManager
         self.grpcManager = grpcManager
-
-        guard let entryCountry = self.countriesManager.entryCountries.first,
-              let exitCountry = self.countriesManager.exitCountries.first
-        else {
-            // TODO: think a way to avoid fatalError
-            fatalError("No countries found")
-        }
-        self.entryGateway = .country(code: entryCountry.code)
-        self.exitRouter = .country(code: exitCountry.code)
+        self.entryGateway = connectionStorage.entryGateway()
+        self.exitRouter = connectionStorage.exitRouter()
 
         setup()
     }
@@ -206,21 +208,12 @@ private extension ConnectionManager {
     }
 
     func updateCountriesEntryExit() {
-        guard let firstExitCountry = countriesManager.exitCountries.first
-        else {
-            return
-        }
-        exitRouter = .country(code: firstExitCountry.code)
+        entryGateway = connectionStorage.entryGateway()
+        exitRouter = connectionStorage.exitRouter()
     }
 
     func updateCountriesExitOnly() {
-        guard let entryCountry = countriesManager.entryCountries.first,
-              let exitCountry = countriesManager.exitCountries.first
-        else {
-            return
-        }
-
-        entryGateway = .country(code: entryCountry.code)
-        exitRouter = .country(code: exitCountry.code)
+        entryGateway = connectionStorage.entryGateway()
+        exitRouter = connectionStorage.exitRouter()
     }
 }

@@ -31,6 +31,12 @@ public final class AppSettings: ObservableObject {
     @AppStorage(AppSettingKey.welcomeScreenDidDisplay.rawValue)
     public var welcomeScreenDidDisplay = false
 
+    @AppStorage(AppSettingKey.entryCountry.rawValue)
+    public var entryCountryCode = ""
+
+    @AppStorage(AppSettingKey.exitCountry.rawValue)
+    public var exitCountryCode = ""
+
     // Observed values for view models
     @Published public var isEntryLocationSelectionOnPublisher = false
     @Published public var isErrorReportingOnPublisher = false
@@ -52,4 +58,6 @@ enum AppSettingKey: String {
     case credenitalExists
     case smallScreen
     case welcomeScreenDidDisplay
+    case entryCountry
+    case exitCountry
 }
