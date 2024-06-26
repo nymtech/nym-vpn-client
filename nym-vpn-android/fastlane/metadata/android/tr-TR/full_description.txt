@@ -10,7 +10,7 @@ Mixnet nedir? Mixnet, şu işlemleri gerçekleştiren bir node ağıdır:
 1. Şifrelenmiş trafiği alır
 2. Trafikleri karıştırır
 3. Trafikleri yeniden yönlendirir
-Bu süreç, 5 kez (5-sekme) kadar tekrarlanır ve kimse çevrimiçi etkinliğinizi izleyemez veya takip edemez.
+Bu süreç, 5 kez (5-hop) kadar tekrarlanır ve kimse çevrimiçi etkinliğinizi izleyemez veya takip edemez.
 İşte neden merkeziyetsiz, güvenli ve gizli VPN'imizi seçmeniz gerektiği:
 Gizlilik: 
 Gizlilik odaklı olarak oluşturulan dVPN'imiz aktivite günlükleri tutmaz (günlük tutmama politikası) ve etkinliğinizi izlemez. Bize ait verilerinizi çalmak isteyen biri bile, çalacak hiçbir şey bulamaz.
@@ -28,8 +28,8 @@ VPN'inizi reklamsız olarak kullanın. Temel hedefimiz gizliliğinizi korumaktı
 Sınırsız Kullanım: 
 İnterneti istediğiniz kadar kullanın, NymVPN trafiğinizi asla sınırlamaz.
 VPN'nin en sevilen özellikleri:
--  5-sekme Mixnet: İnternet trafiğiniz şifrelenir ve mixnode'lara gönderilir, diğer trafik paketleriyle 5 kez karıştırılır, böylece çevrimiçi etkinliğinizi izlemek imkansız hale gelir.
--  2-sekme dVPN: Bu durumda trafiğiniz şifrelenir ve 2 mixnode'a gönderilir, azaltılmış sekme sayısı daha yüksek hız sağlar.
+-  5-hop Mixnet: İnternet trafiğiniz şifrelenir ve mixnode'lara gönderilir, diğer trafik paketleriyle 5 kez karıştırılır, böylece çevrimiçi etkinliğinizi izlemek imkansız hale gelir.
+-  2-hop dVPN: Bu durumda trafiğiniz şifrelenir ve 2 mixnode'a gönderilir, azaltılmış hop sayısı daha yüksek hız sağlar.
 -  Merkezi Kayıt Tutma Yok: Hiçbir etkinlik kaydı tutmuyoruz, bu da internet etkinliğinize bizden erişimi olan hiçkimse için imkansız hale getirir.
 -  Para İade Garantisi: Üründen memnun değil misiniz? Para iade garantisi sunuyoruz. Bir şeylerden memnun değilseniz support@nymvpn.com adresine e-posta gönderin, sürekli olarak gelişim için çaba gösteriyoruz.
 -  Bölünmüş tünelleme: Hangi uygulamalarınızın VPN üzerinden internete erişeceğini ve hangilerinin doğrudan erişeceğini kolayca seçebilirsiniz.
