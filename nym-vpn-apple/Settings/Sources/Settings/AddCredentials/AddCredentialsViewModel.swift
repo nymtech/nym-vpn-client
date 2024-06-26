@@ -16,13 +16,19 @@ final class AddCredentialsViewModel: ObservableObject {
 
     @Binding var path: NavigationPath
 
-    @Published var credentialText = ""
+    @Published var credentialText = "" {
+        willSet(newText) {
+            guard newText != credentialText else { return }
+            error = CredentialsManagerError.noError
+        }
+    }
     @Published var error: Error = CredentialsManagerError.noError {
         didSet {
             configureError()
         }
     }
     @Published var textFieldStrokeColor = NymColor.sysOutlineVariant
+    @Published var credentialSubtitleColor = NymColor.sysOnSurface
     @Published var bottomPadding: CGFloat = 12
     @Published var errorMessageTitle = ""
 
@@ -71,6 +77,7 @@ extension AddCredentialsViewModel {
             let error = error as? CredentialsManagerError
 
             textFieldStrokeColor = error == .noError ? NymColor.sysOutlineVariant : NymColor.sysError
+            credentialSubtitleColor = error == .noError ? NymColor.sysOnSurface : NymColor.sysError
             bottomPadding = error != .noError ? 4 : 12
 
             errorMessageTitle = (error == .noError ? "" : error?.localizedTitle)

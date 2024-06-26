@@ -57,9 +57,9 @@ private extension AddCredentialsView {
     func scrollViewContent(geometry: GeometryProxy) -> some View {
         ScrollView {
             VStack {
-                content()
+                content(safeAreaInsets: geometry.safeAreaInsets)
             }
-            .frame(width: geometry.size.width, height: geometry.size.height )
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .onTapGesture {
             isFocused = false
@@ -67,7 +67,7 @@ private extension AddCredentialsView {
     }
 
     @ViewBuilder
-    func content() -> some View {
+    func content(safeAreaInsets: EdgeInsets) -> some View {
             Spacer()
             getStartedSection()
                 .onTapGesture {
@@ -87,7 +87,7 @@ private extension AddCredentialsView {
 
             addCredentialButton()
             Spacer()
-                .frame(height: 24)
+                .frame(height: viewModel.appSettings.isSmallScreen ? 24 : 40)
     }
 
     @ViewBuilder
@@ -119,13 +119,16 @@ private extension AddCredentialsView {
     @ViewBuilder
     func getStartedTitleText() -> some View {
         Text(viewModel.getStartedTitle)
-            .textStyle(.Body.Large.primary)
+            .textStyle(.Body.Large.regular)
+            .foregroundStyle(NymColor.credetnialsTitle)
     }
 
     @ViewBuilder
     func getStartedSubtitleText() -> some View {
         Text(viewModel.getStartedSubtitle)
             .textStyle(.Body.Small.primary)
+            .foregroundStyle(NymColor.credetnialsSubtitle)
+            .multilineTextAlignment(.center)
             .padding(.horizontal, 16)
     }
 
@@ -153,13 +156,13 @@ private extension AddCredentialsView {
         }
         .overlay(alignment: .topLeading) {
             Text(viewModel.credentialSubtitle)
-                .foregroundStyle(NymColor.sysOnSurface)
+                .foregroundStyle(viewModel.credentialSubtitleColor)
                 .textStyle(.Body.Small.primary)
                 .padding(4)
                 .background(NymColor.background)
                 .position(x: 50, y: 0)
         }
-        .padding(EdgeInsets(top: 12, leading: 12, bottom: viewModel.bottomPadding, trailing: 12))
+        .padding(EdgeInsets(top: 12, leading: 16, bottom: viewModel.bottomPadding, trailing: 16))
     }
 
     @ViewBuilder

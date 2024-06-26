@@ -48,7 +48,7 @@ extension SearchView {
             if searchText.isEmpty {
                 Text(searchCountryTitle)
                     .foregroundStyle(NymColor.sysOutline)
-                    .textStyle(.Body.Large.primary)
+                    .textStyle(.Body.Large.regular)
             }
             TextField("", text: $searchText)
                 .foregroundStyle(NymColor.sysOnSurface)

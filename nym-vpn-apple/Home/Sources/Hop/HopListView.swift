@@ -100,7 +100,7 @@ private extension HopListView {
                 type: .country(
                     country: country
                 ),
-                isSelected: false
+                isSelected: viewModel.isCountrySelected(countryCode: country.code)
             )
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
