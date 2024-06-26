@@ -20,7 +20,7 @@ public struct MixnetConfig: Codable {
     public init(
         apiUrlString: String = Constants.apiUrl.rawValue,
         explorerURLString: String = Constants.explorerURL.rawValue,
-        entryGateway: EntryGateway? = .randomLowLatency,
+        entryGateway: EntryGateway,
         exitRouter: ExitRouter,
         isTwoHopEnabled: Bool = false,
         name: String = "NymVPN Mixnet",

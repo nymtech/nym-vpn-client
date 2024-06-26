@@ -7,13 +7,16 @@ extension TunnelsManager {
         onDemandOption: OnDemandRule = .off,
         completionHandler: @escaping (Result<Tunnel, TunnelsManagerError>) -> Void
     ) {
-        guard !tunnels.contains(where: { $0.name == tunnelConfiguration.name })
-        else {
-            completionHandler(.failure(TunnelsManagerError.alreadyExists))
-            return
+        let tunnelProviderManager: NETunnelProviderManager
+        let tunnel: Tunnel
+        if let existingTunnel = tunnels.first(where: { $0.name == tunnelConfiguration.name }) {
+            tunnelProviderManager = existingTunnel.tunnel
+            tunnel = existingTunnel
+        } else {
+            tunnelProviderManager = NETunnelProviderManager()
+            tunnel = Tunnel(tunnel: tunnelProviderManager)
         }
 
-        let tunnelProviderManager = NETunnelProviderManager()
         tunnelProviderManager.setTunnelConfiguration(tunnelConfiguration)
         tunnelProviderManager.isEnabled = true
         // TODO: add on demand rules support
@@ -44,8 +47,10 @@ extension TunnelsManager {
             }
             #endif
 
-            let tunnel = Tunnel(tunnel: tunnelProviderManager)
-            self.tunnels.append(tunnel)
+            if !self.tunnels.contains(where: { $0.name == tunnelConfiguration.name }) {
+                self.tunnels.append(tunnel)
+            }
+
             // self.tunnels.sort { TunnelsManager.tunnelNameIsLessThan($0.name, $1.name) }
             completionHandler(.success(tunnel))
         }

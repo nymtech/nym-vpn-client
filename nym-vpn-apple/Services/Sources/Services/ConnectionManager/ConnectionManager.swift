@@ -167,12 +167,7 @@ private extension ConnectionManager {
 #if os(iOS)
 private extension ConnectionManager {
     func connectMixnet(with config: MixnetConfig) {
-        if let tunnel = tunnelsManager.tunnels.first(where: { $0.name == config.name }) {
-            currentTunnel = tunnel
-            tunnelsManager.connect(tunnel: tunnel)
-        } else {
-            addMixnetConfigurationAndConnect(with: config)
-        }
+        addMixnetConfigurationAndConnect(with: config)
     }
 
     func connectWireguard() {}
