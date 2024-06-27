@@ -37,5 +37,8 @@
     },
     "monitoring-alert": "Redémarrez l'application pour que le changement s'applique.",
     "faq": "F.A.Q.",
-    "quit": "Quitter NymVPN"
+    "quit": "Quitter NymVPN",
+    "credential": {
+        "title": "Identifiant"
+    }
 }
