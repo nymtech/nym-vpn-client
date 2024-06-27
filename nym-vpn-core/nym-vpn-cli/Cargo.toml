@@ -15,6 +15,7 @@ log.workspace = true
 tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
 tracing-subscriber.workspace = true
 tracing.workspace = true
+time.workspace = true
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 
