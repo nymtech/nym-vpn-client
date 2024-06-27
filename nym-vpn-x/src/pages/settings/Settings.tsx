@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';
 import { useThrottle } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
@@ -12,17 +13,36 @@ import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
 import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
 import SettingsGroup from './SettingsGroup';
+import { useEffect, useState } from 'react';
+import { capitalizeFirst } from '../../helpers.ts';
 
 const ThrottleDelay = 10000; // ms
 
 function Settings() {
-  const { entrySelector, autoConnect, version, monitoring, daemonStatus } =
-    useMainState();
+  const {
+    entrySelector,
+    autoConnect,
+    version,
+    monitoring,
+    daemonStatus,
+    credentialExpiry,
+  } = useMainState();
+
+  const [hasValidCredential, setHasValidCredential] = useState(false);
+
   const navigate = useNavigate();
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
   const { exit } = useExit();
   const { push } = useNotifications();
+
+  useEffect(() => {
+    if (!credentialExpiry || dayjs().isAfter(credentialExpiry)) {
+      setHasValidCredential(false);
+    } else {
+      setHasValidCredential(true);
+    }
+  }, [credentialExpiry]);
 
   const handleEntrySelectorChange = () => {
     const isChecked = !entrySelector;
@@ -54,13 +74,21 @@ function Settings() {
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
-      {import.meta.env.APP_DISABLE_DATA_STORAGE !== 'true' && (
-        <Button
-          onClick={() => navigate(routes.credential)}
-          disabled={daemonStatus !== 'Ok'}
-        >
-          {t('add-credential-button')}
-        </Button>
+      {import.meta.env.APP_DISABLE_DATA_STORAGE !== 'true' &&
+        !hasValidCredential && (
+          <Button
+            onClick={() => navigate(routes.credential)}
+            disabled={daemonStatus !== 'Ok'}
+          >
+            {t('add-credential-button')}
+          </Button>
+        )}
+      {credentialExpiry && hasValidCredential && (
+        <SettingsMenuCard
+          title={t('credential.title')}
+          desc={`${capitalizeFirst(dayjs().to(credentialExpiry, true))} ${t('left', { ns: 'glossary' })}`}
+          leadingIcon="account_circle"
+        />
       )}
       <SettingsGroup
         settings={[

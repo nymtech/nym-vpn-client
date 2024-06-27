@@ -10,6 +10,7 @@ use commands::ImportCredentialTypeEnum;
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity, SpecificVpn};
 use nym_vpn_lib::{NymVpn, Recipient};
+use time::OffsetDateTime;
 
 use crate::commands::Commands;
 use clap::Parser;
@@ -106,7 +107,11 @@ async fn run() -> Result<()> {
         Commands::Run(args) => run_vpn(args, data_path).await,
         Commands::ImportCredential(args) => {
             let data_path = data_path.ok_or(Error::ConfigPathNotSet)?;
-            import_credential(args, data_path).await
+            import_credential(args, data_path).await.map(|d| {
+                if let Some(d) = d {
+                    info!("Credential expiry date: {}", d);
+                }
+            })
         }
     }
 }
@@ -167,7 +172,10 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
     Ok(())
 }
 
-async fn import_credential(args: commands::ImportCredentialArgs, data_path: PathBuf) -> Result<()> {
+async fn import_credential(
+    args: commands::ImportCredentialArgs,
+    data_path: PathBuf,
+) -> Result<Option<OffsetDateTime>> {
     info!("Importing credential data into: {}", data_path.display());
     let data: ImportCredentialTypeEnum = args.credential_type.into();
     let raw_credential = match data {

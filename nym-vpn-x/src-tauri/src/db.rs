@@ -44,6 +44,8 @@ pub enum Key {
     WindowSize,
     #[strum(serialize = "welcome_screen_seen")]
     WelcomeScreenSeen,
+    #[strum(serialize = "credential_expiry")]
+    CredentialExpiry,
 }
 
 impl Display for Key {

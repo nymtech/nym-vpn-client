@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::time::SystemTime;
 use std::{
     fs,
     net::SocketAddr,
@@ -13,6 +14,7 @@ use nym_vpn_proto::{
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
     ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
 };
+use prost_types::Timestamp;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
 
@@ -189,13 +191,15 @@ impl NymVpnd for CommandInterface {
 
         info!("Returning import credential response");
         let response = match response {
-            Ok(()) => ImportUserCredentialResponse {
+            Ok(time) => ImportUserCredentialResponse {
                 success: true,
                 error: None,
+                expiry: time.map(|t| Timestamp::from(SystemTime::from(t))),
             },
             Err(err) => ImportUserCredentialResponse {
                 success: false,
                 error: Some(err.into()),
+                expiry: None,
             },
         };
 
