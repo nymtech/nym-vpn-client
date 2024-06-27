@@ -37,7 +37,7 @@ axum = { version = "0.7.4" }
 axum-server = { version = "0.6.0", features = ["tls-rustls"] }
 
 # match the version required by tonic
-http = "0.2.12"
+http = "1.1.0"
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
