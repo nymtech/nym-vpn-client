@@ -1,70 +1,75 @@
 import SwiftUI
+import Combine
+import AppSettings
+import ConnectionManager
 import Theme
 
-public struct NetworkButtonViewModel {
-    public enum ButtonType {
-        case mixnet5hop
-        case mixnet2hop
-        case wireguard
+public final class NetworkButtonViewModel: ObservableObject {
+    let type: ConnectionType
 
-        var imageName: String {
-            switch self {
-            case .mixnet5hop:
-                return "mixnetIcon"
-            case .mixnet2hop:
-                return "mixnetIcon"
-            case .wireguard:
-                return "wireguardIcon"
-            }
-        }
+    private let appSettings: AppSettings
+    private let connectionManager: ConnectionManager
+    private var cancellables = Set<AnyCancellable>()
 
-        var title: String {
-            switch self {
-            case .mixnet5hop:
-                "5hopMixnetTitle".localizedString
-            case .mixnet2hop:
-                "2hopMixnetTitle".localizedString
-            case .wireguard:
-                "2hopWireGuardTitle".localizedString
-            }
-        }
-
-        var subtitle: String {
-            switch self {
-            case .mixnet5hop:
-                "5hopMixnetSubtitle".localizedString
-            case .mixnet2hop:
-                "2hopWireGuardSubtitle".localizedString
-            case .wireguard:
-                "2hopWireGuardSubtitle".localizedString
-            }
-        }
-    }
-
-    let type: ButtonType
-
-    var isSmallScreen: Bool
-    @Binding var selectedNetwork: ButtonType
-
-    public init(type: ButtonType, selectedNetwork: Binding<ButtonType>, isSmallScreen: Bool = false) {
+    public init(
+        type: ConnectionType,
+        appSettings: AppSettings = AppSettings.shared,
+        connectionManager: ConnectionManager = ConnectionManager.shared
+    ) {
         self.type = type
-        self._selectedNetwork = selectedNetwork
-        self.isSmallScreen = isSmallScreen
+        self.connectionManager = connectionManager
+        self.appSettings = appSettings
+
+        self.isSmallScreen = appSettings.isSmallScreen
+
+        connectionManager.$connectionType.sink { [weak self] newType in
+            let isSelected = newType == self?.type
+            self?.updateUI(isSelected: isSelected)
+        }
+        .store(in: &cancellables)
     }
 
-    private var isSelected: Bool {
-        type == selectedNetwork
+    @Published var isSmallScreen: Bool
+    @Published var selectionImageName: String = "networkCircle"
+    @Published var selectionImageColor: Color = NymColor.networkButtonCircle
+    @Published var selectionStrokeColor: Color = .clear
+
+    var imageName: String {
+        switch type {
+        case .mixnet5hop:
+            return "mixnetIcon"
+        case .mixnet2hop:
+            return "mixnetIcon"
+        case .wireguard:
+            return "wireguardIcon"
+        }
     }
 
-    var selectionImageName: String {
-        isSelected ? "networkSelectedCircle" : "networkCircle"
+    var title: String {
+        switch type {
+        case .mixnet5hop:
+            "5hopMixnetTitle".localizedString
+        case .mixnet2hop:
+            "2hopMixnetTitle".localizedString
+        case .wireguard:
+            "2hopWireGuardTitle".localizedString
+        }
     }
 
-    var selectionImageColor: Color {
-        isSelected ? NymColor.primaryOrange : NymColor.networkButtonCircle
+    var subtitle: String {
+        switch type {
+        case .mixnet5hop:
+            "5hopMixnetSubtitle".localizedString
+        case .mixnet2hop:
+            "2hopWireGuardSubtitle".localizedString
+        case .wireguard:
+            "2hopWireGuardSubtitle".localizedString
+        }
     }
 
-    var selectionStrokeColor: Color {
-        isSelected ? NymColor.primaryOrange : .clear
+    func updateUI(isSelected: Bool) {
+        self.selectionImageName = isSelected ? "networkSelectedCircle" : "networkCircle"
+        self.selectionImageColor = isSelected ? NymColor.primaryOrange : NymColor.networkButtonCircle
+        self.selectionStrokeColor = isSelected ? NymColor.primaryOrange : .clear
     }
 }

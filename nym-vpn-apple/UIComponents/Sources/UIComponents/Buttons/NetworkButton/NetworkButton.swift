@@ -2,10 +2,10 @@ import SwiftUI
 import Theme
 
 public struct NetworkButton: View {
-    private let viewModel: NetworkButtonViewModel
+    @StateObject private var viewModel: NetworkButtonViewModel
 
     public init(viewModel: NetworkButtonViewModel) {
-        self.viewModel = viewModel
+        self._viewModel = StateObject(wrappedValue: viewModel)
     }
 
     public var body: some View {
@@ -15,15 +15,15 @@ public struct NetworkButton: View {
                     .foregroundStyle(viewModel.selectionImageColor)
                     .padding(.leading, 16)
 
-                Image(viewModel.type.imageName, bundle: .module)
+                Image(viewModel.imageName, bundle: .module)
                     .foregroundStyle(NymColor.sysOnSurface)
                     .padding(.leading, 8)
 
                 VStack(alignment: .leading) {
-                    Text(viewModel.type.title)
+                    Text(viewModel.title)
                         .foregroundStyle(NymColor.sysOnSurface)
                         .textStyle(.Body.Large.primary)
-                    Text(viewModel.type.subtitle)
+                    Text(viewModel.subtitle)
                         .foregroundStyle(NymColor.sysOutline)
                         .textStyle(viewModel.isSmallScreen ? .Body.Small.primary : .Body.Medium.primary)
                 }

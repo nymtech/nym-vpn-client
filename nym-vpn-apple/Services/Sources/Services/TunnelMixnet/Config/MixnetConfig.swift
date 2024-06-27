@@ -7,7 +7,7 @@ import CredentialsManager
 import MixnetLibrary
 #endif
 
-public struct MixnetConfig: Codable {
+public struct MixnetConfig: Codable, Equatable {
     let apiUrlString: String
     let explorerURLString: String
     public let entryGateway: EntryGateway?
@@ -18,21 +18,21 @@ public struct MixnetConfig: Codable {
     public var name = "NymVPN Mixnet"
 
     public init(
-        apiUrlString: String = Constants.apiUrl.rawValue,
-        explorerURLString: String = Constants.explorerURL.rawValue,
         entryGateway: EntryGateway,
         exitRouter: ExitRouter,
+        credentialsDataPath: String,
         isTwoHopEnabled: Bool = false,
         name: String = "NymVPN Mixnet",
-        credentialsDataPath: String
+        apiUrlString: String = Constants.apiUrl.rawValue,
+        explorerURLString: String = Constants.explorerURL.rawValue
     ) {
-        self.apiUrlString = apiUrlString
-        self.explorerURLString = explorerURLString
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
+        self.credentialsDataPath = credentialsDataPath
         self.isTwoHopEnabled = isTwoHopEnabled
         self.name = name
-        self.credentialsDataPath = credentialsDataPath
+        self.apiUrlString = apiUrlString
+        self.explorerURLString = explorerURLString
     }
 }
 

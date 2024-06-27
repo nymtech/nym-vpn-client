@@ -47,6 +47,7 @@ let package = Package(
         .target(
             name: "ConnectionManager",
             dependencies: [
+                "CredentialsManager",
                 "Tunnels",
                 "TunnelMixnet"
             ],

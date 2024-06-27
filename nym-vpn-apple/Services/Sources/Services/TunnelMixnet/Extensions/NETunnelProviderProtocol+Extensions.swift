@@ -6,8 +6,7 @@ extension NETunnelProviderProtocol {
         self.init()
         guard
             let appId = Bundle.main.bundleIdentifier,
-            let configEncoded = try? JSONEncoder().encode(mixnetConfiguration),
-            let configString = String(data: configEncoded, encoding: .utf8)
+            let configString = mixnetConfiguration.toJson()
         else {
             return nil
         }
@@ -33,8 +32,7 @@ extension NETunnelProviderProtocol {
         guard
             let passwordReference,
             let encodedConfig = Keychain.openReference(called: passwordReference),
-            let configData = encodedConfig.data(using: .utf8),
-            let mixnetConfig = try? JSONDecoder().decode(MixnetConfig.self, from: configData)
+            let mixnetConfig = MixnetConfig.fromJson(jsonString: encodedConfig)
         else {
             return nil
         }

@@ -1,7 +1,9 @@
 import Combine
 import Foundation
+import NetworkExtension
 import AppSettings
 import CountriesManager
+import CredentialsManager
 import TunnelMixnet
 import Tunnels
 import TunnelStatus
@@ -14,14 +16,25 @@ public final class ConnectionManager: ObservableObject {
     private let connectionStorage: ConnectionStorage
     private let countriesManager: CountriesManager
     private let tunnelsManager: TunnelsManager
+
+#if os(iOS)
+    private let credentialsManager: CredentialsManager
+#endif
 #if os(macOS)
     private let grpcManager: GRPCManager
 #endif
 
     private var cancellables = Set<AnyCancellable>()
+    public var isReconnecting = false
 
     public static let shared = ConnectionManager()
 
+    @Published public var connectionType: ConnectionType {
+        didSet {
+            appSettings.connectionType = connectionType.rawValue
+            reconnectIfNeeded()
+        }
+    }
     @Published public var isTunnelManagerLoaded: Result<Void, Error>?
 #if os(iOS)
     @Published public var currentTunnel: Tunnel? {
@@ -31,17 +44,29 @@ public final class ConnectionManager: ObservableObject {
         }
     }
 #endif
-    @Published public var currentTunnelStatus: TunnelStatus?
+    @Published public var currentTunnelStatus: TunnelStatus? {
+        didSet {
+            guard isReconnecting,
+                  currentTunnelStatus == .disconnected
+            else {
+                return
+            }
+            isReconnecting = false
+            try? connectDisconnect()
+        }
+    }
     @Published public var entryGateway: EntryGateway {
         didSet {
             guard entryGateway.isCountry else { return }
             appSettings.entryCountryCode = entryGateway.countryCode ?? "CH"
+            reconnectIfNeeded()
         }
     }
     @Published public var exitRouter: ExitRouter {
         didSet {
             guard exitRouter.isCountry else { return }
             appSettings.exitCountryCode = exitRouter.countryCode ?? "CH"
+            reconnectIfNeeded()
         }
     }
 
@@ -50,15 +75,17 @@ public final class ConnectionManager: ObservableObject {
         appSettings: AppSettings = AppSettings.shared,
         connectionStorage: ConnectionStorage = ConnectionStorage.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
+        credentialsManager: CredentialsManager = CredentialsManager.shared,
         tunnelsManager: TunnelsManager = TunnelsManager.shared
     ) {
         self.appSettings = appSettings
         self.connectionStorage = connectionStorage
         self.countriesManager = countriesManager
+        self.credentialsManager = credentialsManager
         self.tunnelsManager = tunnelsManager
         self.entryGateway = connectionStorage.entryGateway()
         self.exitRouter = connectionStorage.exitRouter()
-
+        self.connectionType = connectionStorage.connectionType()
         setup()
     }
 #endif
@@ -83,12 +110,65 @@ public final class ConnectionManager: ObservableObject {
 #endif
 
 #if os(iOS)
-    public func connectDisconnect(with config: MixnetConfig) {
-        if let activeTunnel = currentTunnel,
-           activeTunnel.status == .connected || activeTunnel.status == .connecting {
-            disconnect(tunnel: activeTunnel)
-        } else {
-            connectMixnet(with: config)
+    public func isReconnecting(newConfig: MixnetConfig) -> Bool {
+        guard let tunnelProviderProtocol = currentTunnel?.tunnel.protocolConfiguration as? NETunnelProviderProtocol,
+              let mixnetConfig = tunnelProviderProtocol.asMixnetConfig(),
+              currentTunnelStatus == .connected, newConfig != mixnetConfig
+        else {
+            return false
+        }
+        return true
+    }
+
+    // Reconnect after connection type, hop change
+    public func reconnectIfNeeded() {
+        guard currentTunnelStatus == .connected else { return }
+        try? connectDisconnect()
+    }
+
+    public func connectDisconnect() throws {
+        do {
+            let credentialURL = try credentialsManager.dataFolderURL()
+            var config = MixnetConfig(
+                entryGateway: entryGateway,
+                exitRouter: exitRouter,
+                credentialsDataPath: credentialURL.path()
+            )
+
+            switch connectionType {
+            case .mixnet5hop:
+                config = MixnetConfig(
+                    entryGateway: entryGateway,
+                    exitRouter: exitRouter,
+                    credentialsDataPath: credentialURL.path(),
+                    isTwoHopEnabled: false
+                )
+            case .mixnet2hop:
+                config = MixnetConfig(
+                    entryGateway: entryGateway,
+                    exitRouter: exitRouter,
+                    credentialsDataPath: credentialURL.path(),
+                    isTwoHopEnabled: true
+                )
+            case .wireguard:
+                break
+            }
+            isReconnecting = isReconnecting(newConfig: config)
+
+            if isReconnecting,
+               let activeTunnel = currentTunnel,
+               activeTunnel.status == .connected || activeTunnel.status == .connecting {
+                disconnect(tunnel: activeTunnel)
+            } else {
+                if let activeTunnel = currentTunnel,
+                   activeTunnel.status == .connected || activeTunnel.status == .connecting {
+                    disconnect(tunnel: activeTunnel)
+                } else {
+                    connectMixnet(with: config)
+                }
+            }
+        } catch let error {
+            throw error
         }
     }
 #endif
@@ -145,11 +225,12 @@ private extension ConnectionManager {
     }
 }
 #endif
-// MARK: - Tunnel config -
+
+// MARK: - Connection -
 #if os(iOS)
 private extension ConnectionManager {
-    func addMixnetConfigurationAndConnect(with config: MixnetConfig) {
-        tunnelsManager.add(tunnelConfiguration: config) { [weak self] result in
+    func connectMixnet(with config: MixnetConfig) {
+        tunnelsManager.addUpdate(tunnelConfiguration: config) { [weak self] result in
             switch result {
             case .success(let tunnel):
                 self?.currentTunnel = tunnel
@@ -159,15 +240,6 @@ private extension ConnectionManager {
                 print("Error: \(error)")
             }
         }
-    }
-}
-#endif
-
-// MARK: - Connection -
-#if os(iOS)
-private extension ConnectionManager {
-    func connectMixnet(with config: MixnetConfig) {
-        addMixnetConfigurationAndConnect(with: config)
     }
 
     func connectWireguard() {}

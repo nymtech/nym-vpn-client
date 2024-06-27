@@ -3,13 +3,11 @@ import SwiftUI
 import AppSettings
 import ConnectionManager
 import CountriesManager
-import CredentialsManager
 import Settings
 import TunnelMixnet
 import TunnelStatus
 import Tunnels
 import UIComponents
-
 #if os(macOS)
 import GRPCManager
 import HelperManager
@@ -29,15 +27,16 @@ public class HomeViewModel: HomeFlowState {
     var appSettings: AppSettings
     var connectionManager: ConnectionManager
     var countriesManager: CountriesManager
-    var credentialsManager: CredentialsManager
+
 #if os(macOS)
     var grpcManager: GRPCManager
     var helperManager: HelperManager
 #endif
     var entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
     var exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
+    var anonymousButtonViewModel = NetworkButtonViewModel(type: .mixnet5hop)
+    var fastButtonViewModel = NetworkButtonViewModel(type: .mixnet2hop)
 
-    @Published var selectedNetwork: NetworkButtonViewModel.ButtonType
     // If no time connected is shown, should be set to empty string,
     // so the time connected label would not disappear and re-center other UI elements.
     @Published var timeConnected = " "
@@ -47,17 +46,13 @@ public class HomeViewModel: HomeFlowState {
 
 #if os(iOS)
     public init(
-        selectedNetwork: NetworkButtonViewModel.ButtonType,
         appSettings: AppSettings = AppSettings.shared,
         connectionManager: ConnectionManager = ConnectionManager.shared,
-        countriesManager: CountriesManager = CountriesManager.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared
+        countriesManager: CountriesManager = CountriesManager.shared
     ) {
-        self.selectedNetwork = selectedNetwork
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
-        self.credentialsManager = credentialsManager
         super.init()
 
         setup()
@@ -65,19 +60,15 @@ public class HomeViewModel: HomeFlowState {
 #endif
 #if os(macOS)
     public init(
-        selectedNetwork: NetworkButtonViewModel.ButtonType,
         appSettings: AppSettings = AppSettings.shared,
         connectionManager: ConnectionManager = ConnectionManager.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
-        credentialsManager: CredentialsManager = CredentialsManager.shared,
         grpcManager: GRPCManager = GRPCManager.shared,
         helperManager: HelperManager = HelperManager.shared
     ) {
-        self.selectedNetwork = selectedNetwork
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
-        self.credentialsManager = credentialsManager
         self.grpcManager = grpcManager
         self.helperManager = helperManager
         super.init()
@@ -140,33 +131,7 @@ public extension HomeViewModel {
         }
 
         do {
-            let credentialURL = try credentialsManager.dataFolderURL()
-            var config = MixnetConfig(
-                entryGateway: connectionManager.entryGateway,
-                exitRouter: connectionManager.exitRouter,
-                credentialsDataPath: credentialURL.path()
-            )
-
-            switch selectedNetwork {
-            case .mixnet2hop:
-                config = MixnetConfig(
-                    entryGateway: connectionManager.entryGateway,
-                    exitRouter: connectionManager.exitRouter,
-                    isTwoHopEnabled: true,
-                    credentialsDataPath: credentialURL.path()
-                )
-            case .mixnet5hop:
-                config = MixnetConfig(
-                    entryGateway: connectionManager.entryGateway,
-                    exitRouter: connectionManager.exitRouter,
-                    isTwoHopEnabled: false,
-                    credentialsDataPath: credentialURL.path()
-                )
-            case .wireguard:
-                break
-            }
-
-            connectionManager.connectDisconnect(with: config)
+            try connectionManager.connectDisconnect()
         } catch let error {
             statusInfoState = .error(message: error.localizedDescription)
         }
@@ -235,18 +200,29 @@ private extension HomeViewModel {
 
 #if os(iOS)
     func configureTunnelStatusObservation(with tunnel: Tunnel) {
-        tunnel.$status.sink { [weak self] status in
-            self?.updateUI(with: status)
-        }
-        .store(in: &cancellables)
+        tunnel.$status
+            .debounce(for: .seconds(0.2), scheduler: DispatchQueue.global(qos: .background))
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] status in
+                self?.updateUI(with: status)
+            }
+            .store(in: &cancellables)
     }
 #endif
 
     func updateUI(with status: TunnelStatus) {
         Task { @MainActor in
-            statusButtonConfig = StatusButtonConfig(tunnelStatus: status)
-            statusInfoState = StatusInfoState(tunnelStatus: status)
-            connectButtonState = ConnectButtonState(tunnelStatus: status)
+            let newStatus: TunnelStatus
+            if connectionManager.isReconnecting
+                && (status == .disconnecting || status == .disconnected || status == .connecting) {
+                newStatus = .reasserting
+            } else {
+                newStatus = status
+            }
+            statusButtonConfig = StatusButtonConfig(tunnelStatus: newStatus)
+            statusInfoState = StatusInfoState(tunnelStatus: newStatus)
+            connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
 #if os(macOS)
             updateConnectedStartDateMacOS(with: status)
 #endif
