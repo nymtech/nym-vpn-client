@@ -124,7 +124,10 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     name: 'getCredentialExpiry',
     request: () => kvGet<string>('CredentialExpiry'),
     onFulfilled: (expiry) => {
-      dispatch({ type: 'set-expiry', expiry: dayjs(expiry) || null });
+      dispatch({
+        type: 'set-credential-expiry',
+        expiry: expiry ? dayjs(expiry) : null,
+      });
     },
   };
 

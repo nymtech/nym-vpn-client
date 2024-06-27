@@ -9,7 +9,7 @@ edition = "2021"
 
 [build-dependencies]
 tauri-build = { version = "1.5", features = [] }
-build-info-build = "0.0.34"
+build-info-build = "0.0.36"
 
 [dependencies]
 tauri = { version = "1.6.0", features = [ "system-tray", "window-set-size", "os-all", "process-all", "shell-open"] }
@@ -25,9 +25,9 @@ ts-rs = { version = "7.0.0", features = ["chrono-impl"] }
 once_cell = "1.18.0"
 toml = "0.8.5"
 time = "0.3.9"
-itertools = "0.12"
+itertools = "0.13"
 clap = { version = "4.5", features = ["derive"] }
-build-info = "0.0.34"
+build-info = "0.0.36"
 sled = "0.34.7"
 strum = { version = "0.26", features = ["derive"] }
 tonic =  { version = "0.11", features = ["channel"] }
@@ -43,7 +43,7 @@ nym-gateway-directory = { path = "../../nym-vpn-core/crates/nym-gateway-director
 nym-config = { git = "https://github.com/nymtech/nym", rev = "b8b66fa" }
 
 [target."cfg(windows)".dependencies]
-windows = { version = "0.56.0", features = ["Win32_System_Console", "Win32_Foundation"] }
+windows = { version = "0.57.0", features = ["Win32_System_Console", "Win32_Foundation"] }
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

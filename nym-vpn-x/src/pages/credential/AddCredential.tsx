@@ -39,11 +39,15 @@ function AddCredential() {
     if (credential.length === 0) {
       return;
     }
-    invoke<number>('add_credential', { credential: credential.trim() })
+    invoke<number | null>('add_credential', { credential: credential.trim() })
       .then((expiry) => {
-        const date = dayjs.unix(expiry);
-        kvSet<string>('CredentialExpiry', date.toISOString());
-        dispatch({ type: 'set-expiry', expiry: date });
+        if (expiry) {
+          const date = dayjs.unix(expiry);
+          kvSet<string>('CredentialExpiry', date.toISOString());
+          dispatch({ type: 'set-credential-expiry', expiry: date });
+        } else {
+          console.warn('no expiry date returned from the backend');
+        }
         navigate(routes.root);
         push({
           text: t('added-notification'),

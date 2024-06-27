@@ -1,7 +1,6 @@
 {
   "credential": {
-    "title": "Credential",
-    "desc": "days left"
+    "title": "Credential"
   },
   "auto-connect": {
     "title": "Auto-connect",

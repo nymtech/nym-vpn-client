@@ -23,9 +23,7 @@ pub async fn add_credential(
     let res = grpc.import_credential(bytes).await?;
     if res.success {
         info!("successfully imported credential");
-        Ok(res.expiry.map(|t| {
-            t.seconds
-        }))
+        Ok(res.expiry.map(|t| t.seconds))
     } else {
         warn!("failed to import credential");
         let error = res.error.map(|e| e.into()).unwrap_or_else(|| {

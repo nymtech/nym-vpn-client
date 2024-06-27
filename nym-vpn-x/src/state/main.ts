@@ -59,7 +59,7 @@ export type StateAction =
   | { type: 'set-code-deps-js'; dependencies: CodeDependency[] }
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
   | { type: 'set-window-size'; size: WindowSize }
-  | { type: 'set-expiry'; expiry: Dayjs | null }
+  | { type: 'set-credential-expiry'; expiry: Dayjs | null }
   | { type: 'set-entry-countries-error'; payload: AppError | null }
   | { type: 'set-exit-countries-error'; payload: AppError | null }
   | { type: 'set-os'; os: OsType };
@@ -219,7 +219,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
         sessionStartDate: null,
       };
     }
-    case 'set-expiry': {
+    case 'set-credential-expiry': {
       return {
         ...state,
         credentialExpiry: action.expiry,
