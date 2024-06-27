@@ -36,7 +36,7 @@ jobs:
         if: contains(matrix.os, 'ubuntu')
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
-            protobuf-compiler libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
+            libwebkit2gtk-4.0-dev build-essential curl wget libssl-dev \
             libgtk-3-dev squashfs-tools libayatana-appindicator3-dev git curl gcc g++ make unzip
 
       - name: Support longpaths on windows

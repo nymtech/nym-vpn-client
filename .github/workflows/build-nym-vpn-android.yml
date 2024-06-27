@@ -105,7 +105,12 @@ jobs:
 
       - name: Install deps
         run: |
-          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
+          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev git curl gcc g++ make unzip
+
+      - name: Install protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Nightly versioning
         if: ${{ inputs.nightly }}
