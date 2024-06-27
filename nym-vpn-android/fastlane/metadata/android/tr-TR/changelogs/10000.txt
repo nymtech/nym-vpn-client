@@ -1,0 +1,7 @@
+Yenilikler:
+- API performansı iyileştirildi.
+- Temel uygulama başlatma kısayolları eklendi.
+- Kullanıcı arayüzü iyileştirmeleri yapıldı.
+- Anahtar sona erme kontrolü düzeltildi.
+- Bağlantı kullanıcı arayüzü senkronizasyon hatası düzeltildi.
+- Başlangıçta hızlı senkronizasyon iyileştirildi.

@@ -1,0 +1,4 @@
+Yenilikler:
+- Günlük ekranı eklendi
+- VPN durumunu gösterimini iyileştirildi
+- Sentry entegrasyonu eklendi

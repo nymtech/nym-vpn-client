@@ -1,0 +1,4 @@
+Yenilikler:
+- APK boyut optimizasyonu için ABI bölünmesi eklendi.
+- Temel işlev testi eklendi.
+- Minifikasyon hatası düzeltildi.

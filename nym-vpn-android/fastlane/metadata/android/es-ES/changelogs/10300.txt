@@ -1,0 +1,5 @@
+Novedades:
+- Tiempo de expiración de credenciales
+- Escaneo del código QR de la credencial
+- Enlace al killswitch
+- Mejoras en la interfaz de usuario

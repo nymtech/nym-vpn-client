@@ -1,0 +1,3 @@
+Novedades:
+- Añadidos idiomas PT, FR, ES
+- Corrección de errores

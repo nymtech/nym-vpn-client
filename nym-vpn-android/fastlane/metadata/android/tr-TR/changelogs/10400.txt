@@ -1,0 +1,4 @@
+Yenilikler:
+- Günlük dosyası kaydetme işlemi iyileştirildi
+- Hata düzeltmeleri
+- Diğer etkinlik ve geliştirmeler

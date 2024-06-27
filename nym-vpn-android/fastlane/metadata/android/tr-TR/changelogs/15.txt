@@ -1,0 +1,3 @@
+Yenilikler:
+- Anahtar kontrolü eklendi.
+- Anahtar için şifreli depolama eklendi.

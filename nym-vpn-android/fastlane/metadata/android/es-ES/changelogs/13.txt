@@ -1,0 +1,5 @@
+Novedades:
+- Corregido error en el descriptor de archivo
+- Mejorado el problema de v5 nym api
+- Mejorado los altos de ipv6/ipv4 en la vpn
+- Otros errores corregidos

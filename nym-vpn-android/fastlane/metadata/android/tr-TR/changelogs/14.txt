@@ -1,0 +1,4 @@
+Yenilikler:
+- Kullanıcı arayüzü iyileştirmeleri
+- Analitik seçim ekranı
+- Çeşitli iyileştirmeler ve geliştirmeler

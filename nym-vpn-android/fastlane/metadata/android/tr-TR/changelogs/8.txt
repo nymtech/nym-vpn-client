@@ -1,0 +1,3 @@
+Yenilikler:
+- Günlük ekranı iyileştirmeleri
+- Hata düzeltmeleri
