@@ -4832,7 +4832,7 @@ dependencies = [
  "rand 0.8.5",
  "serde",
  "serde_json",
- "signature 1.4.0",
+ "signature 2.2.0",
  "talpid-core",
  "talpid-platform-metadata",
  "talpid-routing",
