@@ -6,7 +6,7 @@ license.workspace = true
 
 [dependencies]
 async-trait.workspace = true
-chrono = "0.4.37"
+chrono = "0.4.38"
 hickory-resolver.workspace = true
 itertools.workspace = true
 log.workspace = true
