@@ -23,5 +23,8 @@
     },
     "display-theme": "Tema",
     "logs": "Registros",
-    "add-credential-button": "Agregar credencial para conectar"
+    "add-credential-button": "Agregar credencial para conectar",
+    "credential": {
+        "title": "Credencial"
+    }
 }
