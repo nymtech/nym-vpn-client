@@ -7,7 +7,7 @@ type ButtonProps = {
 
 function DaemonDot({ status }: ButtonProps) {
   return (
-    <div className="absolute z-50 left-1 top-1 pointer-events-none select-none">
+    <div className="absolute z-30 left-1 top-1 pointer-events-none select-none">
       <div className="relative flex h-3 w-3">
         <div
           className={clsx([

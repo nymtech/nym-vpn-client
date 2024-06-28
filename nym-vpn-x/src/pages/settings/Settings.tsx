@@ -78,7 +78,9 @@ function Settings() {
         !hasValidCredential && (
           <Button
             onClick={() => navigate(routes.credential)}
-            disabled={daemonStatus !== 'Ok'}
+            disabled={
+              import.meta.env.MODE !== 'dev-browser' && daemonStatus !== 'Ok'
+            }
           >
             {t('add-credential-button')}
           </Button>
