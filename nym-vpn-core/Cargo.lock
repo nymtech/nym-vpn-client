@@ -4789,6 +4789,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-vpn-store"
+version = "0.1.0"
+dependencies = [
+ "nym-crypto",
+ "nym-pemstore",
+ "rand 0.8.5",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "nym-vpnc"
 version = "0.1.10-dev"
 dependencies = [

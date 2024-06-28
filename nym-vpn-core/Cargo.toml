@@ -8,6 +8,7 @@ members = [
     "crates/nym-ip-packet-client",
     "crates/nym-vpn-api-client",
     "crates/nym-vpn-proto",
+    "crates/nym-vpn-store",
     "nym-vpn-cli",
     "nym-vpn-lib",
     "nym-vpnc",
