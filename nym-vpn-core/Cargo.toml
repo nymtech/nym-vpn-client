@@ -108,3 +108,4 @@ nym-task = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084
 nym-topology = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }

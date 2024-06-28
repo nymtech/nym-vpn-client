@@ -62,6 +62,7 @@ nym-task.workspace = true
 nym-topology.workspace = true
 nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
+nym-pemstore.workspace = true
 
 nym-connection-monitor = { path = "../crates/nym-connection-monitor" }
 nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
