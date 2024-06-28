@@ -12,14 +12,14 @@
   "first-hop": "First hop",
   "connecting-message": "Establishing connection",
   "connection-time": "Connection time",
-  "select-network-label": "Select network",
+  "select-mode-label": "Select mode",
   "select-node-title": "Connect to",
-  "mixnet-mode": {
-    "title": "5-hop mixnet",
+  "privacy-mode": {
+    "title": "Anonymous",
     "desc": "Best for payments, emails, messages"
   },
-  "twohop-mode": {
-    "title": "2-hop",
+  "fast-mode": {
+    "title": "Fast",
     "desc": "Best for browsing, streaming, sharing"
   },
   "last-node-select": {
@@ -30,5 +30,11 @@
     "connected": "Disabled while connected to VPN",
     "connecting": "Disabled while connecting to VPN",
     "disconnecting": "Disabled while disconnecting from VPN"
+  },
+  "modes-dialog": {
+    "title": "Mode selection",
+    "privacy-description": "Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages.",
+    "fast-description": "Experience maximum speed with 2-server connectivity using the WireGuard protocol. Perfect for fast browsing, streaming, and file sharing.",
+    "link": "Continue reading"
   }
 }

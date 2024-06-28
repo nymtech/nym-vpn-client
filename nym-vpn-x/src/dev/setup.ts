@@ -1,6 +1,6 @@
 import { mockIPC, mockWindows } from '@tauri-apps/api/mocks';
 import { emit } from '@tauri-apps/api/event';
-import { ConnectionState, DbKey, NodeLocationBackend } from '../types';
+import { Cli, ConnectionState, DbKey, NodeLocationBackend } from '../types';
 import { ConnectionEvent } from '../constants';
 import { Country } from '../types';
 
@@ -96,6 +96,14 @@ export function mockTauriIPC() {
           return null;
       }
       return new Promise((resolve) => resolve(res));
+    }
+
+    if (cmd === 'cli_args') {
+      return new Promise<Cli>((resolve) =>
+        resolve({
+          nosplash: false,
+        }),
+      );
     }
   });
 }

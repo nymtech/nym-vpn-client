@@ -1,20 +1,24 @@
 import { useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api';
+import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@headlessui/react';
 import {
   useMainDispatch,
   useMainState,
   useNotifications,
 } from '../../contexts';
 import { StateDispatch, VpnMode } from '../../types';
-import { MixnetIcon } from '../../assets';
 import { RadioGroup, RadioGroupOption } from '../../ui';
 import { useThrottle } from '../../hooks';
 import { HomeThrottleDelay } from '../../constants';
+import MsIcon from '../../ui/MsIcon.tsx';
+import ModeDetailsDialog from './ModeDetailsDialog.tsx';
 
 function NetworkModeSelect() {
   const state = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
+  const [isDialogModesOpen, setIsDialogModesOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { push } = useNotifications();
 
@@ -67,21 +71,23 @@ function NetworkModeSelect() {
     return [
       {
         key: 'Mixnet',
-        label: t('mixnet-mode.title'),
-        desc: t('mixnet-mode.desc'),
+        label: t('privacy-mode.title'),
+        desc: t('privacy-mode.desc'),
         disabled: state.state !== 'Disconnected' || loading,
         icon: (
-          <MixnetIcon className="w-7 h-7 fill-baltic-sea dark:fill-mercury-pinkish" />
+          <span className="font-icon text-3xl text-baltic-sea dark:text-mercury-pinkish">
+            visibility_off
+          </span>
         ),
       },
       {
         key: 'TwoHop',
-        label: t('twohop-mode.title'),
-        desc: t('twohop-mode.desc'),
+        label: t('fast-mode.title'),
+        desc: t('fast-mode.desc'),
         disabled: state.state !== 'Disconnected' || loading,
         icon: (
           <span className="font-icon text-3xl text-baltic-sea dark:text-mercury-pinkish">
-            security
+            speed
           </span>
         ),
       },
@@ -89,16 +95,42 @@ function NetworkModeSelect() {
   }, [loading, state.state, t]);
 
   return (
-    // eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions
-    <div className="select-none" onClick={handleDisabledState}>
-      <RadioGroup
-        defaultValue={state.vpnMode}
-        options={vpnModes}
-        onChange={(mode) => {
-          handleNetworkModeChange(mode);
-        }}
-        rootLabel={t('select-network-label')}
+    <div>
+      <div
+        className={clsx([
+          'flex flex-row items-center justify-between',
+          'font-semibold text-base text-baltic-sea dark:text-white mb-5 cursor-default',
+        ])}
+      >
+        <label>{t('select-mode-label')}</label>
+        <Button
+          className="w-6 focus:outline-none cursor-default"
+          onClick={() => setIsDialogModesOpen(true)}
+        >
+          <MsIcon
+            icon="info"
+            className={clsx([
+              'text-lg',
+              'text-cement-feet dark:text-mercury-mist transition duration-150',
+              'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-gun-powder hover:dark:text-mercury-pinkish',
+            ])}
+          />
+        </Button>
+      </div>
+      <ModeDetailsDialog
+        isOpen={isDialogModesOpen}
+        onClose={() => setIsDialogModesOpen(false)}
       />
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions */}
+      <div className="select-none" onClick={handleDisabledState}>
+        <RadioGroup
+          defaultValue={state.vpnMode}
+          options={vpnModes}
+          onChange={(mode) => {
+            handleNetworkModeChange(mode);
+          }}
+        />
+      </div>
     </div>
   );
 }
