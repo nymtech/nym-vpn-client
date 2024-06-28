@@ -12,8 +12,8 @@ import { StateDispatch, VpnMode } from '../../types';
 import { RadioGroup, RadioGroupOption } from '../../ui';
 import { useThrottle } from '../../hooks';
 import { HomeThrottleDelay } from '../../constants';
-import MsIcon from '../../ui/MsIcon.tsx';
-import ModeDetailsDialog from './ModeDetailsDialog.tsx';
+import MsIcon from '../../ui/MsIcon';
+import ModeDetailsDialog from './ModeDetailsDialog';
 
 function NetworkModeSelect() {
   const state = useMainState();
