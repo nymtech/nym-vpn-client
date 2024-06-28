@@ -13,6 +13,10 @@ export default defineConfig(async () => ({
   server: {
     port: 1420,
     strictPort: true,
+    watch: {
+      // 3. tell vite to ignore watching `src-tauri`
+      ignored: ['**/src-tauri/**'],
+    },
   },
   // 3. to make use of `TAURI_DEBUG` and other env variables
   // https://tauri.app/v1/api/config#buildconfig.beforedevcommand

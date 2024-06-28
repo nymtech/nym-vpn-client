@@ -554,9 +554,9 @@ dependencies = [
 
 [[package]]
 name = "build-info"
-version = "0.0.36"
+version = "0.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc978ce446e6cd132434049d6a3e9b92982228fd27e0ae11437b8e121b50e7e4"
+checksum = "8164a6499aae6b0085e6da8fa528c4b0c37fcb1ed3cc00e175e9f98005807ffc"
 dependencies = [
  "bincode",
  "build-info-common",
@@ -565,12 +565,12 @@ dependencies = [
 
 [[package]]
 name = "build-info-build"
-version = "0.0.36"
+version = "0.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02216ebb53a94c78f65d93293607c5bb1b3e9c156c456791c4aabf45a7d9d55d"
+checksum = "9da85beeeebafe621669220862ddd8e08ac741a56d171e2ab11cb8a16544d1e6"
 dependencies = [
  "anyhow",
- "base64 0.21.7",
+ "base64 0.22.1",
  "bincode",
  "build-info-common",
  "cargo_metadata",
@@ -585,9 +585,9 @@ dependencies = [
 
 [[package]]
 name = "build-info-common"
-version = "0.0.36"
+version = "0.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c212154d5082e4f891f6750a791f83731bdbf706c97f8e0c3d16c53723e4881e"
+checksum = "8e049ed5c6d1f7cb5d2ee6838b9a284a1a20b9c17c9504eae08253f428af2eaa"
 dependencies = [
  "chrono",
  "derive_more",
@@ -597,12 +597,12 @@ dependencies = [
 
 [[package]]
 name = "build-info-proc"
-version = "0.0.36"
+version = "0.0.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ff68aa3f555464fa21e676884d6ef00c1f97ce5b42e65ae9b49f9cacdb87ae3"
+checksum = "3d6be54b4df52147ae16dd43edf11990c1e628b25eaa8ed77a9b708c390f7963"
 dependencies = [
  "anyhow",
- "base64 0.21.7",
+ "base64 0.22.1",
  "bincode",
  "build-info-common",
  "chrono",
@@ -2340,9 +2340,9 @@ dependencies = [
 
 [[package]]
 name = "git2"
-version = "0.18.3"
+version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "232e6a7bfe35766bf715e55a88b39a700596c0ccfd88cd3680b4cdb40d66ef70"
+checksum = "b903b73e45dc0c6c596f2d37eccece7c1c8bb6e4407b001096387c63d0d93724"
 dependencies = [
  "bitflags 2.5.0",
  "libc",
@@ -3345,9 +3345,9 @@ checksum = "9c198f91728a82281a64e1f4f9eeb25d82cb32a5de251c6bd1b5154d63a8e7bd"
 
 [[package]]
 name = "libgit2-sys"
-version = "0.16.2+1.7.2"
+version = "0.17.0+1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee4126d8b4ee5c9d9ea891dd875cfdc1e9d0950437179104b183d7d8a74d24e8"
+checksum = "10472326a8a6477c3c20a64547b0059e4b0d086869eee31e6d7da728a8eb7224"
 dependencies = [
  "cc",
  "libc",
