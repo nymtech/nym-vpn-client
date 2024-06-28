@@ -1,0 +1,16 @@
+[package]
+name = "nym-vpn-store"
+version = "0.1.0"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+nym-crypto = { workspace = true, features = ["symmetric", "asymmetric"] }
+nym-pemstore.workspace = true
+rand.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = ["sync"] }
