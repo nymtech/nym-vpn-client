@@ -11,9 +11,13 @@ license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+axum-server = { workspace = true, features = ["tls-rustls"] }
+axum.workspace = true
 clap.workspace = true
 dirs.workspace = true
 futures.workspace = true
+http.workspace = true
+log.workspace = true
 maplit.workspace = true
 parity-tokio-ipc.workspace = true
 prost-types.workspace = true
@@ -28,16 +32,9 @@ toml.workspace = true
 tonic-health.workspace = true
 tonic-reflection.workspace = true
 tonic.workspace = true
+tower-http = { workspace = true, features = ["cors"] }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
-log.workspace = true
-
-tower-http = { version = "0.5.2", features = ["cors"] }
-axum = { version = "0.7.4" }
-axum-server = { version = "0.6.0", features = ["tls-rustls"] }
-
-# match the version required by tonic
-http = "0.2.12"
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
