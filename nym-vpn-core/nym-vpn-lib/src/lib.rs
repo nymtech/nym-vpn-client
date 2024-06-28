@@ -50,6 +50,7 @@ use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
 
+mod keys;
 mod platform;
 mod tunnel_setup;
 mod uniffi_custom_impls;
