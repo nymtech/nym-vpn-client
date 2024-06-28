@@ -7,10 +7,7 @@ use std::{
     sync::Arc,
 };
 
-use nym_crypto::{
-    asymmetric::identity,
-    // ctr::cipher::zeroize::ZeroizeOnDrop
-};
+use nym_crypto::{asymmetric::identity, ctr::cipher::zeroize::ZeroizeOnDrop};
 use nym_pemstore::{traits::PemStorableKeyPair, KeyPairPath};
 use rand::{CryptoRng, RngCore};
 use tokio::sync::Mutex;
@@ -54,7 +51,10 @@ fn _assert_keys_zeroize_on_drop() {
 pub trait KeyStore {
     type StorageError: Error;
 
+    #[allow(async_fn_in_trait)]
     async fn load_keys(&self) -> Result<DeviceKeys, Self::StorageError>;
+
+    #[allow(async_fn_in_trait)]
     async fn store_keys(&self, keys: &DeviceKeys) -> Result<(), Self::StorageError>;
 }
 

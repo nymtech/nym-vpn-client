@@ -67,6 +67,7 @@ nym-pemstore.workspace = true
 nym-connection-monitor = { path = "../crates/nym-connection-monitor" }
 nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
 nym-ip-packet-client = { path = "../crates/nym-ip-packet-client" }
+nym-vpn-store = { path = "../crates/nym-vpn-store" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.14.1"

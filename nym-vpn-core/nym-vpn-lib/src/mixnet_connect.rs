@@ -22,13 +22,13 @@ use nym_sdk::mixnet::{
     MixnetClient, MixnetClientBuilder, MixnetClientSender, MixnetMessageSender, NodeIdentity,
     Recipient, StoragePaths,
 };
+use nym_vpn_store::KeyStore;
 use tracing::{debug, error, info};
 
 use nym_gateway_directory::IpPacketRouterAddress;
 
 use crate::credentials::check_imported_credential;
 use crate::error::{Error, Result};
-use crate::keys;
 
 #[derive(Clone)]
 pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
@@ -308,13 +308,12 @@ pub(crate) async fn setup_mixnet_client(
 
         let key_storage_path = StoragePaths::new_from_dir(path)?;
 
-        let device_key_paths = keys::DeviceKeysPaths::new(path);
-        let key_store = keys::OnDiskKeys::new(device_key_paths);
+        let device_key_paths = nym_vpn_store::DeviceKeysPaths::new(path);
+        let key_store = nym_vpn_store::OnDiskKeys::new(device_key_paths);
 
-        use crate::keys::KeyStore;
         if key_store.load_keys().await.is_err() {
             info!("Generating new device keys");
-            keys::generate_new_device_keys(&mut rand::rngs::OsRng, &key_store)
+            nym_vpn_store::generate_new_device_keys(&mut rand::rngs::OsRng, &key_store)
                 .await
                 .unwrap();
         } else {
@@ -335,8 +334,8 @@ pub(crate) async fn setup_mixnet_client(
             .await?
     } else {
         debug!("Using ephemeral key storage");
-        let key_store = keys::InMemEphemeralKeys::default();
-        keys::generate_new_device_keys(&mut rand::rngs::OsRng, &key_store)
+        let key_store = nym_vpn_store::InMemEphemeralKeys::default();
+        nym_vpn_store::generate_new_device_keys(&mut rand::rngs::OsRng, &key_store)
             .await
             .unwrap();
 
