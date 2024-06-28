@@ -74,11 +74,19 @@ pub struct OnDiskKeys {
 }
 
 pub struct DeviceKeysPaths {
-    private_device_key_file: PathBuf,
-    public_device_key_file: PathBuf,
+    pub private_device_key_file: PathBuf,
+    pub public_device_key_file: PathBuf,
 }
 
 impl DeviceKeysPaths {
+    pub fn new<P: AsRef<Path>>(base_data_directory: P) -> Self {
+        let base_dir = base_data_directory.as_ref();
+        DeviceKeysPaths {
+            private_device_key_file: base_dir.join("private_device.pem"),
+            public_device_key_file: base_dir.join("public_device.pem"),
+        }
+    }
+
     pub fn device_key_pair_path(&self) -> nym_pemstore::KeyPairPath {
         nym_pemstore::KeyPairPath::new(
             self.private_device_key().to_path_buf(),

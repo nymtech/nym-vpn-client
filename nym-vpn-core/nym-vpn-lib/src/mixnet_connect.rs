@@ -28,6 +28,7 @@ use nym_gateway_directory::IpPacketRouterAddress;
 
 use crate::credentials::check_imported_credential;
 use crate::error::{Error, Result};
+use crate::keys;
 
 #[derive(Clone)]
 pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
@@ -306,6 +307,20 @@ pub(crate) async fn setup_mixnet_client(
         };
 
         let key_storage_path = StoragePaths::new_from_dir(path)?;
+
+        let device_key_paths = keys::DeviceKeysPaths::new(path);
+        let key_store = keys::OnDiskKeys::new(device_key_paths);
+
+        use crate::keys::KeyStore;
+        if key_store.load_keys().await.is_err() {
+            info!("Generating new device keys");
+            keys::generate_new_device_keys(&mut rand::rngs::OsRng, &key_store)
+                .await
+                .unwrap();
+        } else {
+            info!("Loaded existing device keys");
+        }
+
         MixnetClientBuilder::new_with_default_storage(key_storage_path)
             .await?
             .with_wireguard_mode(enable_wireguard)
@@ -320,6 +335,11 @@ pub(crate) async fn setup_mixnet_client(
             .await?
     } else {
         debug!("Using ephemeral key storage");
+        let key_store = keys::InMemEphemeralKeys::default();
+        keys::generate_new_device_keys(&mut rand::rngs::OsRng, &key_store)
+            .await
+            .unwrap();
+
         MixnetClientBuilder::new_ephemeral()
             .with_wireguard_mode(enable_wireguard)
             .with_user_agent(user_agent)
