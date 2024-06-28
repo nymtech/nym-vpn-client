@@ -72,7 +72,7 @@ android_logger = "0.13.3"
 err-derive = "0.3.1"
 jnix = { version = "=0.5.0", features = ["derive"] }
 nix = "0.23"
-rand = "0.7.3"
+rand = "0.8.5"
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 oslog = "0.2.0"
