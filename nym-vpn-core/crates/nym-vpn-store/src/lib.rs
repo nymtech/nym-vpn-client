@@ -7,7 +7,7 @@ use nym_crypto::{asymmetric::identity, ctr::cipher::zeroize::ZeroizeOnDrop};
 use rand::{CryptoRng, RngCore};
 
 pub use ephemeral::InMemEphemeralKeys;
-pub use on_disk::{DeviceKeysPaths, OnDiskKeys};
+pub use on_disk::{DeviceKeysPaths, OnDiskKeys, OnDiskKeysError};
 
 mod ephemeral;
 mod on_disk;
