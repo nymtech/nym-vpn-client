@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">NymVPN</string>
     <string name="settings">设置</string>
+    <string name="welcome_exclaim">欢迎！</string>
 </resources>
