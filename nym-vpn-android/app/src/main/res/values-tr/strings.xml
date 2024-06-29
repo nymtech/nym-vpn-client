@@ -15,7 +15,6 @@
     <string name="init_client">İstemci başlatılıyor…</string>
     <string name="establishing_connection">Bağlantı kuruluyor</string>
     <string name="connection_time">Bağlantı süresi</string>
-    <string name="select_network">Ağ seç</string>
     <string name="connect_to">Bağlan</string>
     <string name="connect">Bağlandı</string>
     <string name="last_hop_selection">Son hop seçimi</string>

@@ -14,9 +14,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.logcathelper.LogcatHelper
 import net.nymtech.logcathelper.model.LogLevel
-import net.nymtech.vpn.model.VpnClientState
 import net.nymtech.vpn.model.Environment
 import net.nymtech.vpn.model.ErrorState
+import net.nymtech.vpn.model.VpnClientState
 import net.nymtech.vpn.model.VpnMode
 import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.util.Constants

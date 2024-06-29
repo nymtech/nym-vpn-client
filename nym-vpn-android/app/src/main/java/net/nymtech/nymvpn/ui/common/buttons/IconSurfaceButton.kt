@@ -17,7 +17,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -30,7 +29,7 @@ import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 
 @Composable
-fun RadioSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, leadingIcon: ImageVector? = null, description: String? = null) {
+fun IconSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, leadingIcon: ImageVector? = null, description: String? = null) {
 	val border: BorderStroke? =
 		if (selected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
 	val interactionSource = remember { MutableInteractionSource() }
@@ -59,22 +58,18 @@ fun RadioSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, le
 				verticalAlignment = Alignment.CenterVertically,
 				horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth()),
 			) {
-				RadioButton(
-					selected = selected,
-					onClick = { onClick() },
-					modifier =
-					Modifier
-						.size(
-							iconSize,
-						),
-				)
 				Row(
 					horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth()),
 					verticalAlignment = Alignment.CenterVertically,
 					modifier = Modifier.padding(vertical = if (description == null) 10.dp.scaledHeight() else 0.dp),
 				) {
 					leadingIcon?.let {
-						Icon(leadingIcon, leadingIcon.name, Modifier.size(iconSize.scaledWidth()))
+						Icon(
+							leadingIcon,
+							leadingIcon.name,
+							Modifier.size(iconSize.scaledWidth()),
+							if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+						)
 					}
 					Column {
 						Text(title, style = MaterialTheme.typography.titleMedium)
