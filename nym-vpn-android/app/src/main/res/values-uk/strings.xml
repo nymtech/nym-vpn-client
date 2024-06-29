@@ -124,13 +124,4 @@
     <string name="alpha_help_message">Допоможіть нам вдосконалити наш додаток під час альфа-тесту! Ваші відгуки мають вирішальне значення для виявлення та вирішення проблем.</string>
     <string name="disabled_while_connected">Вимкнено при підключенні до VPN</string>
     <string name="error_gateway_lookup">Не вдалося знайти шлюзи Nym. Будь ласка, перевірте підключення до мережі та спробуйте ще раз.</string>
-    <string name="faq_link" translatable="false"></string>
-    <string name="privacy_link" translatable="false"></string>
-    <string name="matrix_url" translatable="false"></string>
-    <string name="discord_url" translatable="false"></string>
-    <string name="faq_url" translatable="false"></string>
-    <string name="contact_url" translatable="false"></string>
-    <string name="support_email" translatable="false"></string>
-    <string name="github_issues_url" translatable="false"></string>
-    <string name="terms_link" translatable="false"></string>
 </resources>
