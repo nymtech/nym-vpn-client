@@ -5,14 +5,28 @@
         "connected": "Conectado",
         "disconnected": "Desconectado",
         "connecting": "Conectando",
-        "disconnecting": "Desconectando"
+        "disconnecting": "Desconectando",
+        "unknown": "Desconhecido"
     },
     "last-hop": "Último salto",
     "first-hop": "Primeiro salto",
     "twohop-mode": {
-        "desc": "Melhor para pesquisar, trasmitir, compartilhar"
+        "desc": "Melhor para pesquisar, trasmitir, compartilhar",
+        "title": "2-saltos"
     },
     "last-node-select": {
-        "label": "Último salto"
+        "label": "Último salto",
+        "text": "Conexão rápida ({{país}})"
+    },
+    "connecting-message": "Estabelecendo conexão",
+    "select-network-label": "Selecionar rede",
+    "select-node-title": "Conectar ao",
+    "mixnet-mode": {
+        "title": "5-saltos mixnet",
+        "desc": "Melhor para pagamentos, e-mails e mensagens"
+    },
+    "snackbar-disabled-message": {
+        "connected": "Desativado enquanto conectado à VPN",
+        "connecting": "Desativado durante a conexão com a VPN"
     }
 }
