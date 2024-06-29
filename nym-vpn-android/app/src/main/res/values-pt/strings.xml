@@ -122,7 +122,7 @@
     <string name="allow_permissions">Permitir permissões</string>
     <string name="notification_permission_message">Requerido para manter os serviços de VPN executando enquanto o app está fechado.</string>
     <string name="error_gateway_lookup">Falhou em procurar por NYM Gateways.Por favor, cheque sua conexão de rede e tente novamente.</string>
-    <string name="error_bad_peer_cert">"Gateway selecionado tem um certificado de peer inválido. Por favor, tente se conectar com um gateway diferente."</string>
+    <string name="error_bad_peer_cert">Gateway selecionado tem um certificado de peer inválido. Por favor, tente se conectar com um gateway diferente.</string>
     <string name="error_no_hostname_address">Faltando o endereço de hostname do gateway. Por favor, tente se conectar com um gateway diferente.</string>
     <string name="error_vpn_halted_unexpectedly">A VPN parou inesperadamente. Por favor, tente conectar novamente.</string>
     <string name="kill_switch">Desligar</string>

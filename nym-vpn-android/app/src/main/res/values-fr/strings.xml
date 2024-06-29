@@ -6,9 +6,9 @@
     <string name="disconnected">Déconnecté</string>
     <string name="disconnecting">Déconnexion</string>
     <string name="connecting">Connexion</string>
-    <string name="five_hop_mixnet">Mixnet (via 5 nœuds)</string>
+    <string name="five_hop_mixnet">Anonyme</string>
     <string name="five_hop_description">Pour les paiements, emails et messages</string>
-    <string name="two_hop_mixnet">Mixnet (via 2 nœuds)</string>
+    <string name="two_hop_mixnet">Rapide</string>
     <string name="two_hop_description">Pour la navigation, le streaming et les téléchargements</string>
     <string name="first_hop">Nœud d\'entrée</string>
     <string name="last_hop">Nœud de sortie</string>
@@ -115,7 +115,7 @@
     <string name="experimental_software_disclaimer">Ce logiciel est expérimental. Ne vous reposez pas dessus pour protéger votre vie privée.</string>
     <string name="permission_required">Permission demandée</string>
     <string name="exception_cred_missing">Aucun identifiant trouvé.</string>
-    <string name="exception_permission_not_granted">La permission n\'a pas été accordée. </string>
+    <string name="exception_permission_not_granted">La permission n\'a pas été accordée.</string>
     <string name="exception_cred_invalid">L\'identifiant est invalide ou a expiré</string>
     <string name="permission_message">Pour assurer un fonctionnement optimal de l\'application, merci d\'accorder les permissions suivantes.</string>
     <string name="notifications">Notifications</string>
