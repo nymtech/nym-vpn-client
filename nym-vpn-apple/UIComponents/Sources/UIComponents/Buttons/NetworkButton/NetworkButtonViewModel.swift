@@ -30,18 +30,17 @@ public final class NetworkButtonViewModel: ObservableObject {
     }
 
     @Published var isSmallScreen: Bool
-    @Published var selectionImageName: String = "networkCircle"
     @Published var selectionImageColor: Color = NymColor.networkButtonCircle
     @Published var selectionStrokeColor: Color = .clear
 
     var imageName: String {
         switch type {
         case .mixnet5hop:
-            return "mixnetIcon"
+            return "anonymous"
         case .mixnet2hop:
-            return "mixnetIcon"
+            return "fast"
         case .wireguard:
-            return "wireguardIcon"
+            return "fast"
         }
     }
 
@@ -68,7 +67,6 @@ public final class NetworkButtonViewModel: ObservableObject {
     }
 
     func updateUI(isSelected: Bool) {
-        self.selectionImageName = isSelected ? "networkSelectedCircle" : "networkCircle"
         self.selectionImageColor = isSelected ? NymColor.primaryOrange : NymColor.networkButtonCircle
         self.selectionStrokeColor = isSelected ? NymColor.primaryOrange : .clear
     }

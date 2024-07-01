@@ -11,13 +11,9 @@ public struct NetworkButton: View {
     public var body: some View {
         VStack {
             HStack {
-                Image(viewModel.selectionImageName, bundle: .module)
+                Image(viewModel.imageName, bundle: .module)
                     .foregroundStyle(viewModel.selectionImageColor)
                     .padding(.leading, 16)
-
-                Image(viewModel.imageName, bundle: .module)
-                    .foregroundStyle(NymColor.sysOnSurface)
-                    .padding(.leading, 8)
 
                 VStack(alignment: .leading) {
                     Text(viewModel.title)
