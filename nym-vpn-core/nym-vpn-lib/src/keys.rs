@@ -1,30 +1,70 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_store::{DeviceKeys, VpnStoreError};
-use std::path::Path;
+use nym_vpn_store::{DeviceKeys, KeyStore};
+use std::path::{Path, PathBuf};
 
-pub async fn load_device_keys<P: AsRef<Path>>(path: P) -> Result<DeviceKeys, VpnStoreError> {
-    let device_key_paths = nym_vpn_store::DeviceKeysPaths::new(path);
-    let key_store = nym_vpn_store::OnDiskKeys::new(device_key_paths);
+#[derive(Debug, thiserror::Error)]
+pub enum KeyStoreError {
+    #[error("failed to load device keys")]
+    Load {
+        path: PathBuf,
+        error: nym_vpn_store::OnDiskKeysError,
+    },
 
-    nym_vpn_store::load_device_keys(&key_store).await
+    #[error("failed to create device keys")]
+    Create {
+        path: PathBuf,
+        error: nym_vpn_store::OnDiskKeysError,
+    },
+
+    #[error("failed to store device keys")]
+    Store {
+        path: PathBuf,
+        error: nym_vpn_store::OnDiskKeysError,
+    },
 }
 
-pub async fn create_device_keys<P: AsRef<Path>>(path: P) -> Result<(), VpnStoreError> {
-    let device_key_paths = nym_vpn_store::DeviceKeysPaths::new(path);
+pub async fn load_device_keys<P: AsRef<Path> + Clone>(
+    path: P,
+) -> Result<DeviceKeys, KeyStoreError> {
+    let device_key_paths = nym_vpn_store::DeviceKeysPaths::new(path.clone());
+    let key_store = nym_vpn_store::OnDiskKeys::new(device_key_paths);
+
+    key_store
+        .load_keys()
+        .await
+        .map_err(|error| KeyStoreError::Load {
+            path: path.as_ref().to_path_buf(),
+            error,
+        })
+}
+
+pub async fn create_device_keys<P: AsRef<Path> + Clone>(path: P) -> Result<(), KeyStoreError> {
+    let device_key_paths = nym_vpn_store::DeviceKeysPaths::new(path.clone());
     let key_store = nym_vpn_store::OnDiskKeys::new(device_key_paths);
 
     let mut rng = rand::rngs::OsRng;
-    nym_vpn_store::generate_new_device_keys(&mut rng, &key_store).await
+    DeviceKeys::generate_new(&mut rng)
+        .persist_keys(&key_store)
+        .await
+        .map_err(|error| KeyStoreError::Create {
+            path: path.as_ref().to_path_buf(),
+            error,
+        })
 }
 
-pub async fn store_device_keys<P: AsRef<Path>>(
+pub async fn store_device_keys<P: AsRef<Path> + Clone>(
     path: P,
     keys: &DeviceKeys,
-) -> Result<(), VpnStoreError> {
-    let device_key_paths = nym_vpn_store::DeviceKeysPaths::new(path);
+) -> Result<(), KeyStoreError> {
+    let device_key_paths = nym_vpn_store::DeviceKeysPaths::new(path.clone());
     let key_store = nym_vpn_store::OnDiskKeys::new(device_key_paths);
 
-    nym_vpn_store::store_device_keys(keys, &key_store).await
+    keys.persist_keys(&key_store)
+        .await
+        .map_err(|error| KeyStoreError::Store {
+            path: path.as_ref().to_path_buf(),
+            error,
+        })
 }
