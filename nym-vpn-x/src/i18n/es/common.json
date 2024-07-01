@@ -11,5 +11,9 @@
     "fastest": "Más rápido",
     "sentry": "Sentry",
     "tos": "Términos de uso",
-    "privacy-statement": "Declaración de privacidad"
+    "privacy-statement": "Declaración de privacidad",
+    "vpn-modes": {
+        "privacy": "Anónimo",
+        "fast": "Rápido"
+    }
 }
