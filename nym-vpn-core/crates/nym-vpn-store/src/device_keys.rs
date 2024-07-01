@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use nym_crypto::asymmetric::identity;
+use nym_crypto::asymmetric::ed25519;
 use rand::{CryptoRng, RngCore};
 use zeroize::ZeroizeOnDrop;
 
@@ -11,7 +11,7 @@ use super::key_store::KeyStore;
 
 #[derive(Clone)]
 pub struct DeviceKeys {
-    device_keypair: Arc<identity::KeyPair>,
+    device_keypair: Arc<ed25519::KeyPair>,
 }
 
 impl DeviceKeys {
@@ -20,11 +20,11 @@ impl DeviceKeys {
         R: RngCore + CryptoRng,
     {
         DeviceKeys {
-            device_keypair: Arc::new(identity::KeyPair::new(rng)),
+            device_keypair: Arc::new(ed25519::KeyPair::new(rng)),
         }
     }
 
-    pub fn from_keys(device_keypair: identity::KeyPair) -> Self {
+    pub fn from_keys(device_keypair: ed25519::KeyPair) -> Self {
         DeviceKeys {
             device_keypair: Arc::new(device_keypair),
         }
@@ -38,7 +38,7 @@ impl DeviceKeys {
         store.store_keys(self).await
     }
 
-    pub fn device_keypair(&self) -> Arc<identity::KeyPair> {
+    pub fn device_keypair(&self) -> Arc<ed25519::KeyPair> {
         Arc::clone(&self.device_keypair)
     }
 }
@@ -46,5 +46,5 @@ impl DeviceKeys {
 fn _assert_keys_zeroize_on_drop() {
     fn _assert_zeroize_on_drop<T: ZeroizeOnDrop>() {}
 
-    _assert_zeroize_on_drop::<identity::KeyPair>();
+    _assert_zeroize_on_drop::<ed25519::KeyPair>();
 }
