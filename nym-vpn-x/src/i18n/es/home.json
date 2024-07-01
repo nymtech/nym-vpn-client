@@ -26,5 +26,13 @@
     },
     "snackbar-disabled-message": {
         "connected": "Desactivado mientras está conectado a VPN"
+    },
+    "privacy-mode": {
+        "title": "Anónimo",
+        "desc": "Mejor para pagos, correos electrónicos, mensajes"
+    },
+    "fast-mode": {
+        "title": "Rápido",
+        "desc": "Mejor para navegar, streaming, compartir"
     }
 }
