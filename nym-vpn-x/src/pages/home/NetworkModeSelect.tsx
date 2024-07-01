@@ -129,6 +129,7 @@ function NetworkModeSelect() {
           onChange={(mode) => {
             handleNetworkModeChange(mode);
           }}
+          radioIcons={false}
         />
       </div>
     </div>
