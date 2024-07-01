@@ -30,5 +30,13 @@
         "connected": "VPN bağlıyken devre dışı",
         "connecting": "VPN bağlantısı sırasında devre dışı bırakıldı",
         "disconnecting": "VPN'den bağlantı kesilirken devre dışı bırakıldı"
+    },
+    "privacy-mode": {
+        "title": "Anonim",
+        "desc": "Ödemeler, e-postalar, mesajlar için en iyisi"
+    },
+    "fast-mode": {
+        "title": "Hızlı",
+        "desc": "İnternet tarama, yayın, paylaşım için en iyisi"
     }
 }
