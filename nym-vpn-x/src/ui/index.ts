@@ -1,4 +1,5 @@
 export { default as Button } from './Button';
+export { default as Dialog } from './Dialog';
 export { default as MsIcon } from './MsIcon';
 export { default as DaemonDot } from './DaemonDot';
 export { default as RadioGroup } from './RadioGroup';
@@ -15,6 +16,7 @@ export { default as RouteLoading } from './RouteLoading';
 export { default as FlagIcon } from './FlagIcon';
 export { default as Notifications } from './Notifications';
 export * from './Button';
+export * from './Dialog';
 export * from './FlagIcon';
 export * from './MsIcon';
 export * from './RadioGroup';
