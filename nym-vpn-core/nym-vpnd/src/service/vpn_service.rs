@@ -18,8 +18,9 @@ use tokio::sync::{broadcast, oneshot};
 use tracing::{error, info};
 
 use super::config::{
-    create_config_file, create_data_dir, read_config_file, write_config_file, ConfigSetupError,
-    NymVpnServiceConfig, DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR,
+    create_config_file, create_data_dir, create_device_keys, read_config_file, write_config_file,
+    ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE,
+    DEFAULT_DATA_DIR,
 };
 use super::error::{ConnectionFailedError, ImportCredentialError};
 use super::exit_listener::VpnServiceExitListener;
@@ -388,6 +389,18 @@ impl NymVpnService {
                 self.shared_vpn_state.set(VpnState::NotConnected);
                 return VpnServiceConnectResult::Fail(format!(
                     "Failed to create data directory {:?}: {}",
+                    self.data_dir, err
+                ));
+            }
+        }
+
+        // Device specific keys
+        match create_device_keys(&self.data_dir).await {
+            Ok(()) => {}
+            Err(err) => {
+                self.shared_vpn_state.set(VpnState::NotConnected);
+                return VpnServiceConnectResult::Fail(format!(
+                    "Failed to create device keys in {:?}: {}",
                     self.data_dir, err
                 ));
             }
