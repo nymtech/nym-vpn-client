@@ -14,7 +14,7 @@ import { StateDispatch } from '../../types';
 import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
 import SettingsGroup from './SettingsGroup';
 import { useEffect, useState } from 'react';
-import { capitalizeFirst } from '../../helpers.ts';
+import { capFirst } from '../../helpers';
 
 const ThrottleDelay = 10000; // ms
 
@@ -78,7 +78,9 @@ function Settings() {
         !hasValidCredential && (
           <Button
             onClick={() => navigate(routes.credential)}
-            disabled={daemonStatus !== 'Ok'}
+            disabled={
+              import.meta.env.MODE !== 'dev-browser' && daemonStatus !== 'Ok'
+            }
           >
             {t('add-credential-button')}
           </Button>
@@ -86,7 +88,7 @@ function Settings() {
       {credentialExpiry && hasValidCredential && (
         <SettingsMenuCard
           title={t('credential.title')}
-          desc={`${capitalizeFirst(dayjs().to(credentialExpiry, true))} ${t('left', { ns: 'glossary' })}`}
+          desc={`${capFirst(dayjs().to(credentialExpiry, true))} ${t('left', { ns: 'glossary' })}`}
           leadingIcon="account_circle"
         />
       )}
