@@ -85,7 +85,7 @@ impl OnDiskKeys {
 
     fn store_keys(&self, keys: &DeviceKeys) -> Result<(), OnDiskKeysError> {
         let device_paths = self.paths.device_key_pair_path();
-        self.store_keypair(keys.device_keypair.as_ref(), device_paths, "device")
+        self.store_keypair(keys.device_keypair().as_ref(), device_paths, "device")
     }
 }
 

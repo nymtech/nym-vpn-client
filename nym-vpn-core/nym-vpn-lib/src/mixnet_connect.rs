@@ -22,7 +22,6 @@ use nym_sdk::mixnet::{
     MixnetClient, MixnetClientBuilder, MixnetClientSender, MixnetMessageSender, NodeIdentity,
     Recipient, StoragePaths,
 };
-use nym_vpn_store::KeyStore;
 use tracing::{debug, error, info};
 
 use nym_gateway_directory::IpPacketRouterAddress;
@@ -308,18 +307,6 @@ pub(crate) async fn setup_mixnet_client(
 
         let key_storage_path = StoragePaths::new_from_dir(path)?;
 
-        let device_key_paths = nym_vpn_store::DeviceKeysPaths::new(path);
-        let key_store = nym_vpn_store::OnDiskKeys::new(device_key_paths);
-
-        if key_store.load_keys().await.is_err() {
-            info!("Generating new device keys");
-            nym_vpn_store::generate_new_device_keys(&mut rand::rngs::OsRng, &key_store)
-                .await
-                .unwrap();
-        } else {
-            info!("Loaded existing device keys");
-        }
-
         MixnetClientBuilder::new_with_default_storage(key_storage_path)
             .await?
             .with_wireguard_mode(enable_wireguard)
@@ -334,10 +321,6 @@ pub(crate) async fn setup_mixnet_client(
             .await?
     } else {
         debug!("Using ephemeral key storage");
-        let key_store = nym_vpn_store::InMemEphemeralKeys::default();
-        nym_vpn_store::generate_new_device_keys(&mut rand::rngs::OsRng, &key_store)
-            .await
-            .unwrap();
 
         MixnetClientBuilder::new_ephemeral()
             .with_wireguard_mode(enable_wireguard)
