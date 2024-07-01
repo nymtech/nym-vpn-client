@@ -4796,8 +4796,10 @@ dependencies = [
  "nym-crypto",
  "nym-pemstore",
  "rand 0.8.5",
+ "rand_chacha 0.3.1",
  "thiserror",
  "tokio",
+ "zeroize",
 ]
 
 [[package]]
@@ -4833,9 +4835,9 @@ dependencies = [
  "log",
  "maplit",
  "nym-bandwidth-controller",
- "nym-task",
  "nym-vpn-lib",
  "nym-vpn-proto",
+ "nym-vpn-store",
  "parity-tokio-ipc",
  "prost 0.12.6",
  "prost-types 0.12.6",

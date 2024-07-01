@@ -9,8 +9,13 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-nym-crypto = { workspace = true, features = ["symmetric", "asymmetric"] }
+nym-crypto = { workspace = true, features = ["rand", "symmetric", "asymmetric"] }
 nym-pemstore.workspace = true
 rand.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["sync"] }
+zeroize.workspace = true
+rand_chacha = "0.3.1"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["sync", "macros", "rt-multi-thread"] }

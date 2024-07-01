@@ -68,6 +68,7 @@ pnet_packet = "0.35.0"
 prost = "0.12.6"
 prost-types = "0.12.6"
 rand = "0.8.5"
+rand_chacha = "0.3.1"
 reqwest = { version = "0.11.27", default-features = false }
 serde = "1.0.203"
 serde_json = "1.0.120"
@@ -91,6 +92,7 @@ tun2 = { version = "2.0.1", features = ["async"] }
 uniffi = { version = "0.27.3", features = ["cli"] }
 url = "2.5"
 vergen = { version = "8.3.1", default-features = false }
+zeroize = "1.6.0"
 
 nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
 nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }

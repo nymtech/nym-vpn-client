@@ -3,8 +3,9 @@
 
 use std::sync::Arc;
 
-use nym_crypto::{asymmetric::identity, ctr::cipher::zeroize::ZeroizeOnDrop};
+use nym_crypto::asymmetric::identity;
 use rand::{CryptoRng, RngCore};
+use zeroize::ZeroizeOnDrop;
 
 use super::key_store::KeyStore;
 

@@ -1,7 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, fs, path::PathBuf};
+use std::{
+    fmt, fs,
+    path::{Path, PathBuf},
+};
 
 use nym_vpn_lib::gateway_directory;
 use tracing::info;
@@ -155,4 +158,16 @@ pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError
     })?;
     info!("Making sure data dir exists at {:?}", data_dir);
     Ok(())
+}
+
+pub(super) async fn create_device_keys(
+    data_dir: &Path,
+) -> Result<(), nym_vpn_store::KeyStoreError> {
+    // Check if the device keys already exists, if not then create them
+    if nym_vpn_store::keypair_exists(data_dir)? {
+        nym_vpn_store::create_device_keys(data_dir).await?;
+    }
+
+    // Check that we can successfully load them
+    nym_vpn_store::load_device_keys(data_dir).await.map(|_| ())
 }
