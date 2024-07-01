@@ -14,4 +14,3 @@ pub trait KeyStore {
     #[allow(async_fn_in_trait)]
     async fn store_keys(&self, keys: &DeviceKeys) -> Result<(), Self::StorageError>;
 }
-

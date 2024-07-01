@@ -3,7 +3,7 @@
 
 use std::path::{Path, PathBuf};
 
-use nym_crypto::asymmetric::identity;
+use nym_crypto::asymmetric::ed25519;
 use nym_pemstore::{traits::PemStorableKeyPair, KeyPairPath};
 
 use crate::{DeviceKeys, KeyStore};
@@ -56,7 +56,7 @@ impl OnDiskKeys {
         OnDiskKeys { paths }
     }
 
-    fn load_device_keypair(&self) -> Result<identity::KeyPair, OnDiskKeysError> {
+    fn load_device_keypair(&self) -> Result<ed25519::KeyPair, OnDiskKeysError> {
         let device_paths = self.paths.device_key_pair_path();
         self.load_keypair(device_paths, "device")
     }
