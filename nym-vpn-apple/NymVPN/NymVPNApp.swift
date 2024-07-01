@@ -9,6 +9,7 @@ import Theme
 @main
 struct NymVPNApp: App {
     @StateObject private var appSettings = AppSettings.shared
+    @StateObject private var homeViewModel = HomeViewModel()
 
     init() {
         setup()
@@ -21,7 +22,7 @@ struct NymVPNApp: App {
                     WelcomeView(viewModel: WelcomeViewModel())
                         .transition(.slide)
                 } else {
-                    HomeView(viewModel: HomeViewModel(selectedNetwork: .mixnet5hop))
+                    HomeView(viewModel: homeViewModel)
                         .transition(.slide)
                 }
             }

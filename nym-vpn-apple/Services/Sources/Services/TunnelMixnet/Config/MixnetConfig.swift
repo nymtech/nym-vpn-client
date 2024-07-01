@@ -7,33 +7,48 @@ import CredentialsManager
 import MixnetLibrary
 #endif
 
-public struct MixnetConfig: Codable {
+public struct MixnetConfig: Codable, Equatable {
+#if os(iOS)
     let apiUrlString: String
     let explorerURLString: String
+    let credentialsDataPath: String
+#endif
     public let entryGateway: EntryGateway?
     public let exitRouter: ExitRouter
     public let isTwoHopEnabled: Bool
-    let credentialsDataPath: String
 
     public var name = "NymVPN Mixnet"
-
+#if os(iOS)
     public init(
-        apiUrlString: String = Constants.apiUrl.rawValue,
-        explorerURLString: String = Constants.explorerURL.rawValue,
         entryGateway: EntryGateway,
         exitRouter: ExitRouter,
+        credentialsDataPath: String,
         isTwoHopEnabled: Bool = false,
         name: String = "NymVPN Mixnet",
-        credentialsDataPath: String
+        apiUrlString: String = Constants.apiUrl.rawValue,
+        explorerURLString: String = Constants.explorerURL.rawValue
     ) {
+        self.entryGateway = entryGateway
+        self.exitRouter = exitRouter
+        self.credentialsDataPath = credentialsDataPath
+        self.isTwoHopEnabled = isTwoHopEnabled
+        self.name = name
         self.apiUrlString = apiUrlString
         self.explorerURLString = explorerURLString
+    }
+#endif
+
+#if os(macOS)
+    public init(
+        entryGateway: EntryGateway,
+        exitRouter: ExitRouter,
+        isTwoHopEnabled: Bool = false
+    ) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
         self.isTwoHopEnabled = isTwoHopEnabled
-        self.name = name
-        self.credentialsDataPath = credentialsDataPath
     }
+#endif
 }
 
 #if os(iOS)
@@ -58,3 +73,19 @@ extension MixnetConfig {
     }
 }
 #endif
+
+// MARK: - JSON -
+extension MixnetConfig {
+    // TODO: inject JSONEncoder + JSONDecoder
+    public func toJson() -> String? {
+        let encoder = JSONEncoder()
+        guard let jsonData = try? encoder.encode(self) else { return nil }
+        return String(data: jsonData, encoding: .utf8)
+    }
+
+    public static func from(jsonString: String) -> MixnetConfig? {
+        let decoder = JSONDecoder()
+        guard let jsonData = jsonString.data(using: .utf8) else { return nil }
+        return try? decoder.decode(MixnetConfig.self, from: jsonData)
+    }
+}

@@ -15,7 +15,16 @@ public final class ConnectionStorage {
         self.countriesManager = countriesManager
     }
 
-    public func entryGateway() -> EntryGateway {
+    func connectionType() -> ConnectionType {
+        if let typeValue = appSettings.connectionType,
+           let connectionType = ConnectionType(rawValue: typeValue) {
+            return connectionType
+        } else {
+            return ConnectionType.mixnet5hop
+        }
+    }
+
+    func entryGateway() -> EntryGateway {
         if !appSettings.isEntryLocationSelectionOn {
             return .randomLowLatency
         }

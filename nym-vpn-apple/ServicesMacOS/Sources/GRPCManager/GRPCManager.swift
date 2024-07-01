@@ -223,11 +223,11 @@ private extension GRPCManager {
         case .noValidCredentials:
             GeneralNymError.invalidCredential
         case .timeout:
-            GeneralNymError.library(message:  "error.timeout".localizedString)
+            GeneralNymError.library(message: "error.timeout".localizedString)
         case .gatewayDirectory:
             GeneralNymError.library(message: "error.gatewayDirectory".localizedString)
         case .UNRECOGNIZED(let code):
-            GeneralNymError.library(message:  "error.unrecognized".localizedString + " \(code)")
+            GeneralNymError.library(message: "error.unrecognized".localizedString + " \(code)")
         }
     }
 }
