@@ -174,11 +174,11 @@ private extension GRPCManager {
             switch connectionStateChange.status {
             case .UNRECOGNIZED, .connectionFailed, .notConnected, .statusUnspecified, .unknown:
                 self.tunnelStatus = .disconnected
+                self.connectedDate = nil
             case .connecting:
                 self.tunnelStatus = .connecting
             case .connected:
                 self.tunnelStatus = .connected
-                // TODO: update time
             case .disconnecting:
                 self.tunnelStatus = .disconnecting
             }
