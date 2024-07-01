@@ -5,11 +5,26 @@
         "connecting": "Підключення",
         "disconnecting": "Відключення",
         "connected": "Підключенно",
-        "disconnected": "Відключенно"
+        "disconnected": "Відключенно",
+        "unknown": "Невідомо"
     },
     "last-hop": "Останнє підключення",
     "first-hop": "Перше підключення",
     "last-node-select": {
         "label": "Останнє підключення"
+    },
+    "privacy-mode": {
+        "title": "Анонімний",
+        "desc": "Найкраще для платежів, електронних листів, повідомлень"
+    },
+    "fast-mode": {
+        "title": "Швидкий",
+        "desc": "Найкраще для серфінгу, відео, спільного використання"
+    },
+    "connecting-message": "Встановлення з'єднання",
+    "connection-time": "Час підключення",
+    "select-node-title": "Підключитись до",
+    "snackbar-disabled-message": {
+        "connected": "Вимкнено при підключенні до VPN"
     }
 }
