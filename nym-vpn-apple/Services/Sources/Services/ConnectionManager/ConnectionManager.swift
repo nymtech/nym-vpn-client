@@ -16,10 +16,8 @@ public final class ConnectionManager: ObservableObject {
     private let connectionStorage: ConnectionStorage
     private let countriesManager: CountriesManager
     private let tunnelsManager: TunnelsManager
-
-#if os(iOS)
     private let credentialsManager: CredentialsManager
-#endif
+
 #if os(macOS)
     private let grpcManager: GRPCManager
 #endif
@@ -94,17 +92,19 @@ public final class ConnectionManager: ObservableObject {
         appSettings: AppSettings = AppSettings.shared,
         connectionStorage: ConnectionStorage = ConnectionStorage.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
+        credentialsManager: CredentialsManager = CredentialsManager.shared,
         tunnelsManager: TunnelsManager = TunnelsManager.shared,
         grpcManager: GRPCManager = GRPCManager.shared
     ) {
         self.appSettings = appSettings
         self.connectionStorage = connectionStorage
         self.countriesManager = countriesManager
+        self.credentialsManager = credentialsManager
         self.tunnelsManager = tunnelsManager
         self.grpcManager = grpcManager
         self.entryGateway = connectionStorage.entryGateway()
         self.exitRouter = connectionStorage.exitRouter()
-
+        self.connectionType = connectionStorage.connectionType()
         setup()
     }
 #endif

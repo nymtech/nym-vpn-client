@@ -18,6 +18,7 @@ public class HomeViewModel: HomeFlowState {
 
     private var timer = Timer()
     private var cancellables = Set<AnyCancellable>()
+    private var lastError: Error?
     @MainActor @Published private var activeTunnel: Tunnel?
 
     let title = "NymVPN".localizedString
@@ -120,6 +121,7 @@ public extension HomeViewModel {
 // MARK: - Connection -
 public extension HomeViewModel {
     func connectDisconnect() {
+        lastError = nil
         statusInfoState = .unknown
 #if os(macOS)
         installHelperIfNeeded()
@@ -169,12 +171,6 @@ private extension HomeViewModel {
         }
         .store(in: &cancellables)
 #endif
-#if os(macOS)
-        grpcManager.$tunnelStatus.sink { [weak self] status in
-            self?.updateUI(with: status)
-        }
-        .store(in: &cancellables)
-#endif
     }
 
     func setupDateFormatter() {
@@ -184,16 +180,7 @@ private extension HomeViewModel {
 
     func setupCountriesManagerObservers() {
         countriesManager.$lastError.sink { [weak self] error in
-            guard
-                let self,
-                let localizedDescription = error?.localizedDescription
-            else {
-                return
-            }
-
-            Task { @MainActor in
-                self.statusInfoState = .error(message: localizedDescription)
-            }
+            self?.lastError = error
         }
         .store(in: &cancellables)
     }
@@ -221,8 +208,13 @@ private extension HomeViewModel {
                 newStatus = status
             }
             statusButtonConfig = StatusButtonConfig(tunnelStatus: newStatus)
-            statusInfoState = StatusInfoState(tunnelStatus: newStatus)
             connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
+
+            if let lastError {
+                self.statusInfoState = .error(message: lastError.localizedDescription)
+            } else {
+                statusInfoState = StatusInfoState(tunnelStatus: newStatus)
+            }
 #if os(macOS)
             updateConnectedStartDateMacOS(with: status)
 #endif
@@ -259,10 +251,7 @@ private extension HomeViewModel {
 private extension HomeViewModel {
     func setupGRPCManagerObservers() {
         grpcManager.$lastError.sink { [weak self] error in
-            guard let self, let message = error?.localizedDescription else { return }
-            Task { @MainActor in
-                self.statusInfoState = .error(message: message)
-            }
+            self?.lastError = error
         }
         .store(in: &cancellables)
     }
