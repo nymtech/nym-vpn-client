@@ -110,7 +110,7 @@ function NetworkModeSelect() {
           <MsIcon
             icon="info"
             className={clsx([
-              'text-lg',
+              'text-xl',
               'text-cement-feet dark:text-mercury-mist transition duration-150',
               'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-gun-powder hover:dark:text-mercury-pinkish',
             ])}

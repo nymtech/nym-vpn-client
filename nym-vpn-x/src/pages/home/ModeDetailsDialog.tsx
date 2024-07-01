@@ -1,7 +1,7 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { Button, Dialog, MsIcon } from '../../ui';
-import { capitalizeFirst } from '../../helpers';
+import { capFirst } from '../../helpers';
 
 export type Props = {
   isOpen: boolean;
@@ -47,7 +47,7 @@ function ModeDetailsDialog({ isOpen, onClose }: Props) {
       </div>
       <Button onClick={onClose} className="mt-2">
         <span className="text-base text-white dark:text-baltic-sea">
-          {capitalizeFirst(t('ok', { ns: 'glossary' }))}
+          {capFirst(t('ok', { ns: 'glossary' }))}
         </span>
       </Button>
     </Dialog>
