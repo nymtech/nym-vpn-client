@@ -1,4 +1,30 @@
 {
     "connect": "Подключиться",
-    "disconnect": "Отключиться"
+    "disconnect": "Отключиться",
+    "privacy-mode": {
+        "title": "Анонимный",
+        "desc": "Лучший для платежей, писем и переписок"
+    },
+    "fast-mode": {
+        "title": "Быстрый",
+        "desc": "Лучший для просмотра страниц, стриминга, обмена файлами"
+    },
+    "select-node-title": "Подключиться к",
+    "last-node-select": {
+        "label": "Последняя ступень"
+    },
+    "snackbar-disabled-message": {
+        "connected": "Отключён при подключении к VPN"
+    },
+    "status": {
+        "connected": "Подключено",
+        "disconnected": "Отключено",
+        "connecting": "Подключение",
+        "disconnecting": "Отключение",
+        "unknown": "Неизвестно"
+    },
+    "last-hop": "Последняя ступень",
+    "first-hop": "Первая ступень",
+    "connecting-message": "Настройка соединения",
+    "connection-time": "Время подключения"
 }
