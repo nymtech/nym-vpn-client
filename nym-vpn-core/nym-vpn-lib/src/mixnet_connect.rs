@@ -304,7 +304,6 @@ pub(crate) async fn setup_mixnet_client(
         };
 
         let key_storage_path = StoragePaths::new_from_dir(path)?;
-
         MixnetClientBuilder::new_with_default_storage(key_storage_path)
             .await?
             .with_wireguard_mode(enable_wireguard)
@@ -318,7 +317,6 @@ pub(crate) async fn setup_mixnet_client(
             .await?
     } else {
         debug!("Using ephemeral key storage");
-
         MixnetClientBuilder::new_ephemeral()
             .with_wireguard_mode(enable_wireguard)
             .request_gateway(mixnet_entry_gateway.to_string())
