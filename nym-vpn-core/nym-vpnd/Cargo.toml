@@ -38,6 +38,8 @@ tracing.workspace = true
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
+nym-vpn-store = { path = "../crates/nym-vpn-store" }
+
 nym-task.workspace = true
 
 [target.'cfg(windows)'.dependencies]

@@ -4821,10 +4821,12 @@ dependencies = [
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
  "nym-node-requests",
+ "nym-pemstore",
  "nym-sdk",
  "nym-task",
  "nym-topology",
  "nym-validator-client",
+ "nym-vpn-store",
  "nym-wireguard-types",
  "oslog",
  "pnet_packet",
@@ -4863,6 +4865,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-vpn-store"
+version = "0.1.0"
+dependencies = [
+ "nym-crypto",
+ "nym-pemstore",
+ "rand 0.8.5",
+ "rand_chacha 0.3.1",
+ "thiserror",
+ "tokio",
+ "zeroize",
+]
+
+[[package]]
 name = "nym-vpnc"
 version = "0.1.7-dev"
 dependencies = [
@@ -4897,6 +4912,7 @@ dependencies = [
  "nym-task",
  "nym-vpn-lib",
  "nym-vpn-proto",
+ "nym-vpn-store",
  "parity-tokio-ipc",
  "prost 0.12.6",
  "prost-types 0.12.6",

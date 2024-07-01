@@ -56,6 +56,7 @@ mod uniffi_custom_impls;
 pub mod config;
 pub mod credentials;
 pub mod error;
+pub mod keys;
 pub mod mixnet_connect;
 pub mod mixnet_processor;
 pub mod routing;
