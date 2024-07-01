@@ -30,5 +30,13 @@
         "connected": "Désactivé pendant la connexion",
         "disconnecting": "Désactivé pendant la déconnexion du réseau",
         "connecting": "Désactivé pendant la connexion au réseau"
+    },
+    "privacy-mode": {
+        "title": "Anonyme",
+        "desc": "Pour les paiements, emails et messages"
+    },
+    "fast-mode": {
+        "title": "Rapide",
+        "desc": "Pour la navigation, le streaming et les téléchargements"
     }
 }
