@@ -13,5 +13,12 @@
     },
     "last-node-select": {
         "label": "Ultimo hop"
+    },
+    "privacy-mode": {
+        "title": "Anonimo",
+        "desc": "Migliore per pagamenti, email, messaggi"
+    },
+    "fast-mode": {
+        "title": "Veloce"
     }
 }
