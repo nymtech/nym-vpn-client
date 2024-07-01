@@ -30,5 +30,11 @@
         "connecting": "Desativado durante a conexão com a VPN",
         "disconnecting": "Desativado ao se desconectar da VPN"
     },
-    "connection-time": "tempo de conexão"
+    "connection-time": "tempo de conexão",
+    "privacy-mode": {
+        "desc": "Melhor para pagamentos, e-mails e mensagens"
+    },
+    "fast-mode": {
+        "desc": "Melhor para pesquisar, trasmitir, compartilhar"
+    }
 }
