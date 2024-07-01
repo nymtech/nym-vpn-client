@@ -50,7 +50,9 @@ public final class ConnectionManager: ObservableObject {
                 return
             }
             isReconnecting = false
-            try? connectDisconnect()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+                try? self?.connectDisconnect()
+            }
         }
     }
     @Published public var entryGateway: EntryGateway {
@@ -120,49 +122,22 @@ public final class ConnectionManager: ObservableObject {
         return true
     }
 
-    // Reconnect after connection type, hop change
-    public func reconnectIfNeeded() {
-        guard currentTunnelStatus == .connected else { return }
-        try? connectDisconnect()
-    }
-
-    public func connectDisconnect() throws {
+    /// connects disconnects VPN, depending on current VPN status
+    /// - Parameter isAutoConnect: Bool. 
+    /// true - when reconnecting automatically, after change of connection settings:  country(UK, DE) or type(5hop, 2hop...).
+    /// false - when user manually taps "Connect".
+    /// On reconnect, after disconnect, the connectDisconnect is called as a user tapped connect.
+    public func connectDisconnect(isAutoConnect: Bool = false) throws {
         do {
-            let credentialURL = try credentialsManager.dataFolderURL()
-            var config = MixnetConfig(
-                entryGateway: entryGateway,
-                exitRouter: exitRouter,
-                credentialsDataPath: credentialURL.path()
-            )
-
-            switch connectionType {
-            case .mixnet5hop:
-                config = MixnetConfig(
-                    entryGateway: entryGateway,
-                    exitRouter: exitRouter,
-                    credentialsDataPath: credentialURL.path(),
-                    isTwoHopEnabled: false
-                )
-            case .mixnet2hop:
-                config = MixnetConfig(
-                    entryGateway: entryGateway,
-                    exitRouter: exitRouter,
-                    credentialsDataPath: credentialURL.path(),
-                    isTwoHopEnabled: true
-                )
-            case .wireguard:
-                break
-            }
-            isReconnecting = isReconnecting(newConfig: config)
-
-            if isReconnecting,
-               let activeTunnel = currentTunnel,
-               activeTunnel.status == .connected || activeTunnel.status == .connecting {
-                disconnect(tunnel: activeTunnel)
+            let config = try generateConfig()
+            if isReconnecting {
+                // Reconnecting after change of country, 5hop...
+                disconnectActiveTunnel()
             } else {
-                if let activeTunnel = currentTunnel,
-                   activeTunnel.status == .connected || activeTunnel.status == .connecting {
-                    disconnect(tunnel: activeTunnel)
+                // User "Connect" button actions
+                guard !isAutoConnect else { return }
+                if currentTunnel?.status == .connected || currentTunnel?.status == .connecting {
+                    disconnectActiveTunnel()
                 } else {
                     connectMixnet(with: config)
                 }
@@ -174,15 +149,36 @@ public final class ConnectionManager: ObservableObject {
 #endif
 
 #if os(macOS)
-    public func connectDisconnect(with config: MixnetConfig) {
-        if grpcManager.tunnelStatus == .connected || grpcManager.tunnelStatus == .connecting {
+    public func isReconnecting(newConfig: MixnetConfig) -> Bool {
+        if currentTunnelStatus == .connected,
+           let lastConfig = MixnetConfig.from(jsonString: appSettings.lastConnectionIntent ?? ""),
+           lastConfig != newConfig {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    public func connectDisconnect(isAutoConnect: Bool = false) throws {
+        let config = generateConfig()
+        if isReconnecting {
+            // Reconnecting after change of country, 5hop...
             grpcManager.disconnect()
         } else {
-            grpcManager.connect(
-                entryGatewayCountryCode: config.entryGateway?.countryCode,
-                exitRouterCountryCode: config.exitRouter.countryCode,
-                isTwoHopEnabled: config.isTwoHopEnabled
-            )
+            // User "Connect" button actions
+            guard !isAutoConnect else { return }
+            if grpcManager.tunnelStatus == .connected || grpcManager.tunnelStatus == .connecting {
+                grpcManager.disconnect()
+            } else {
+                Task { @MainActor in
+                    appSettings.lastConnectionIntent = config.toJson()
+                }
+                grpcManager.connect(
+                    entryGatewayCountryCode: config.entryGateway?.countryCode,
+                    exitRouterCountryCode: config.exitRouter.countryCode,
+                    isTwoHopEnabled: config.isTwoHopEnabled
+                )
+            }
         }
     }
 #endif
@@ -220,8 +216,15 @@ private extension ConnectionManager {
 #if os(macOS)
 private extension ConnectionManager {
     func setup() {
-//        setupTunnelManagerObservers()
+        setupGRPCManagerObservers()
         setupCountriesManagerObserver()
+    }
+
+    func setupGRPCManagerObservers() {
+        grpcManager.$tunnelStatus.sink { [weak self] status in
+            self?.currentTunnelStatus = status
+        }
+        .store(in: &cancellables)
     }
 }
 #endif
@@ -244,11 +247,88 @@ private extension ConnectionManager {
 
     func connectWireguard() {}
 
-    func disconnect(tunnel: Tunnel) {
-        tunnelsManager.disconnect(tunnel: tunnel)
+    func disconnectActiveTunnel() {
+        guard let activeTunnel = currentTunnel,
+              activeTunnel.status == .connected || activeTunnel.status == .connecting
+        else {
+            return
+        }
+        tunnelsManager.disconnect(tunnel: activeTunnel)
+    }
+
+    func generateConfig() throws -> MixnetConfig {
+        do {
+            let credentialURL = try credentialsManager.dataFolderURL()
+            var config = MixnetConfig(
+                entryGateway: entryGateway,
+                exitRouter: exitRouter,
+                credentialsDataPath: credentialURL.path()
+            )
+
+            switch connectionType {
+            case .mixnet5hop:
+                config = MixnetConfig(
+                    entryGateway: entryGateway,
+                    exitRouter: exitRouter,
+                    credentialsDataPath: credentialURL.path(),
+                    isTwoHopEnabled: false
+                )
+            case .mixnet2hop:
+                config = MixnetConfig(
+                    entryGateway: entryGateway,
+                    exitRouter: exitRouter,
+                    credentialsDataPath: credentialURL.path(),
+                    isTwoHopEnabled: true
+                )
+            case .wireguard:
+                break
+            }
+            isReconnecting = isReconnecting(newConfig: config)
+            return config
+        } catch let error {
+            throw error
+        }
     }
 }
 #endif
+
+#if os(macOS)
+extension ConnectionManager {
+    func generateConfig() -> MixnetConfig {
+        var config = MixnetConfig(
+            entryGateway: entryGateway,
+            exitRouter: exitRouter
+        )
+
+        switch connectionType {
+        case .mixnet5hop:
+            config = MixnetConfig(
+                entryGateway: entryGateway,
+                exitRouter: exitRouter,
+                isTwoHopEnabled: false
+            )
+        case .mixnet2hop:
+            config = MixnetConfig(
+                entryGateway: entryGateway,
+                exitRouter: exitRouter,
+                isTwoHopEnabled: true
+            )
+        case .wireguard:
+            break
+        }
+        isReconnecting = isReconnecting(newConfig: config)
+        return config
+    }
+}
+#endif
+
+private extension ConnectionManager {
+    // Reconnect after connection type, hop change
+    func reconnectIfNeeded() {
+        guard currentTunnelStatus == .connected else { return }
+        try? connectDisconnect(isAutoConnect: true)
+    }
+}
 // MARK: - Countries -
 
 private extension ConnectionManager {

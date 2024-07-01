@@ -32,7 +32,7 @@ extension NETunnelProviderProtocol {
         guard
             let passwordReference,
             let encodedConfig = Keychain.openReference(called: passwordReference),
-            let mixnetConfig = MixnetConfig.fromJson(jsonString: encodedConfig)
+            let mixnetConfig = MixnetConfig.from(jsonString: encodedConfig)
         else {
             return nil
         }

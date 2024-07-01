@@ -8,15 +8,17 @@ import MixnetLibrary
 #endif
 
 public struct MixnetConfig: Codable, Equatable {
+#if os(iOS)
     let apiUrlString: String
     let explorerURLString: String
+    let credentialsDataPath: String
+#endif
     public let entryGateway: EntryGateway?
     public let exitRouter: ExitRouter
     public let isTwoHopEnabled: Bool
-    let credentialsDataPath: String
 
     public var name = "NymVPN Mixnet"
-
+#if os(iOS)
     public init(
         entryGateway: EntryGateway,
         exitRouter: ExitRouter,
@@ -34,6 +36,19 @@ public struct MixnetConfig: Codable, Equatable {
         self.apiUrlString = apiUrlString
         self.explorerURLString = explorerURLString
     }
+#endif
+
+#if os(macOS)
+    public init(
+        entryGateway: EntryGateway,
+        exitRouter: ExitRouter,
+        isTwoHopEnabled: Bool = false
+    ) {
+        self.entryGateway = entryGateway
+        self.exitRouter = exitRouter
+        self.isTwoHopEnabled = isTwoHopEnabled
+    }
+#endif
 }
 
 #if os(iOS)
@@ -58,3 +73,19 @@ extension MixnetConfig {
     }
 }
 #endif
+
+// MARK: - JSON -
+extension MixnetConfig {
+    // TODO: inject JSONEncoder + JSONDecoder
+    public func toJson() -> String? {
+        let encoder = JSONEncoder()
+        guard let jsonData = try? encoder.encode(self) else { return nil }
+        return String(data: jsonData, encoding: .utf8)
+    }
+
+    public static func from(jsonString: String) -> MixnetConfig? {
+        let decoder = JSONDecoder()
+        guard let jsonData = jsonString.data(using: .utf8) else { return nil }
+        return try? decoder.decode(MixnetConfig.self, from: jsonData)
+    }
+}

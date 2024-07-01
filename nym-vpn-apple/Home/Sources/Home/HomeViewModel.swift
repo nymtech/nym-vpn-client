@@ -254,6 +254,15 @@ private extension HomeViewModel {
             self?.lastError = error
         }
         .store(in: &cancellables)
+
+        grpcManager.$tunnelStatus
+            .debounce(for: .seconds(0.15), scheduler: DispatchQueue.global(qos: .background))
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] status in
+                self?.updateUI(with: status)
+            }
+            .store(in: &cancellables)
     }
 
     func installHelperIfNeeded() {
