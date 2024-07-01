@@ -16,5 +16,9 @@
     "first-hop-selection": "İlk hop seçimi",
     "last-hop-selection": "Son hop seçimi",
     "tos": "Kullanım şartları",
-    "privacy-statement": "Gizlilik politikası"
+    "privacy-statement": "Gizlilik politikası",
+    "vpn-modes": {
+        "privacy": "Anonim",
+        "fast": "Hızlı"
+    }
 }
