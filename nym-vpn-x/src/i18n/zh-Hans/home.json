@@ -1,1 +1,30 @@
-{}
+{
+    "connect": "连接",
+    "disconnect": "断开",
+    "status": {
+        "connected": "已连接",
+        "disconnected": "未连接",
+        "connecting": "正在连接",
+        "disconnecting": "断开连接",
+        "unknown": "未知"
+    },
+    "last-hop": "最后一跳",
+    "first-hop": "第一跳",
+    "connecting-message": "建立连接",
+    "connection-time": "连接时间",
+    "select-node-title": "连接到",
+    "privacy-mode": {
+        "title": "匿名",
+        "desc": "适用于付款、电子邮件和信息"
+    },
+    "fast-mode": {
+        "title": "快速",
+        "desc": "适用于浏览、流媒体、共享"
+    },
+    "last-node-select": {
+        "label": "最后一跳"
+    },
+    "snackbar-disabled-message": {
+        "connected": "连接 VPN 时禁用"
+    }
+}
