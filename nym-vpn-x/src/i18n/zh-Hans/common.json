@@ -1,1 +1,19 @@
-{}
+{
+    "vpn-modes": {
+        "privacy": "匿名",
+        "fast": "快速"
+    },
+    "connect": "连接",
+    "disconnect": "断开",
+    "first-hop-selection": "第一跳选择",
+    "last-hop-selection": "最后一跳选择",
+    "settings": "设置",
+    "logs": "日志",
+    "feedback": "反馈",
+    "legal": "法律",
+    "support": "支持",
+    "fastest": "最快",
+    "sentry": "哨兵",
+    "tos": "使用条款",
+    "privacy-statement": "隐私声明"
+}
