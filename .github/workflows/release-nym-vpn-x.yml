@@ -25,7 +25,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04-16-core, macos-14]
+        # os: [ubuntu-22.04-16-core, macos-14, custom-windows-11]
+        os: [custom-windows-11]
         target: [native]
     runs-on: ${{ matrix.os }}
     env:
