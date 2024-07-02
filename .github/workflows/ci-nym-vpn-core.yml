@@ -217,7 +217,3 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           cargo clippy --target aarch64-apple-ios -p nym-vpn-lib -- -Dwarnings
-
-  build-nym-vpn-android:
-    uses: ./.github/workflows/build-nym-vpn-android.yml
-    secrets: inherit
