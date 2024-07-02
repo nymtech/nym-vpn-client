@@ -1,5 +1,8 @@
 {
     "selected": "Seleccionado",
     "search-country": "Buscar país",
-    "input-label": "Buscar"
+    "input-label": "Buscar",
+    "loading": "Cargando...",
+    "none-found": "Resultados no encontrados. Por favor intente otra búsqueda",
+    "list-loading": "Cargando lista de países…"
 }
