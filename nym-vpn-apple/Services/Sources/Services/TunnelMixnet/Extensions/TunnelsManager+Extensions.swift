@@ -2,7 +2,7 @@ import NetworkExtension
 import Tunnels
 
 extension TunnelsManager {
-    public func add(
+    public func addUpdate(
         tunnelConfiguration: MixnetConfig,
         onDemandOption: OnDemandRule = .off,
         completionHandler: @escaping (Result<Tunnel, TunnelsManagerError>) -> Void

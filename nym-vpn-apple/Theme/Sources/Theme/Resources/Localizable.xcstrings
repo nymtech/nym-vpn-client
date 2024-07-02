@@ -7,7 +7,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "2-hop mixnet"
+            "value" : "Fast"
           }
         }
       }
@@ -51,7 +51,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "5-hop mixnet"
+            "value" : "Anonymous"
           }
         }
       }
@@ -832,7 +832,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Select network"
+            "value" : "Select mode"
           }
         }
       }

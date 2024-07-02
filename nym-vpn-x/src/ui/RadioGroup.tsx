@@ -25,6 +25,8 @@ export type RadioGroupProps<K extends Key> = {
   defaultValue?: K;
   onChange: (value: K) => void;
   rootLabel?: string;
+  // either or not to show checked/unchecked circular icons
+  radioIcons?: boolean;
 };
 
 function RadioGroup<K extends Key>({
@@ -32,12 +34,28 @@ function RadioGroup<K extends Key>({
   defaultValue,
   onChange,
   rootLabel,
+  radioIcons = true,
 }: RadioGroupProps<K>) {
   const [selected, setSelected] = useState(defaultValue || options[0]);
 
   const handleChange = (value: K) => {
     setSelected(value);
     onChange(value);
+  };
+
+  const checkedIcon = (checked: boolean) => {
+    if (checked) {
+      return (
+        <span className="font-icon text-2xl text-melon">
+          radio_button_checked
+        </span>
+      );
+    }
+    return (
+      <span className="font-icon text-2xl text-cement-feet dark:laughing-jack">
+        radio_button_unchecked
+      </span>
+    );
   };
 
   return (
@@ -75,19 +93,11 @@ function RadioGroup<K extends Key>({
                 return (
                   <div
                     className={clsx([
-                      'overflow-hidden flex flex-1 items-center justify-start gap-4',
+                      'overflow-hidden flex flex-1 items-center justify-start gap-5',
                       option.className && option.className,
                     ])}
                   >
-                    {checked ? (
-                      <span className="font-icon text-2xl text-melon">
-                        radio_button_checked
-                      </span>
-                    ) : (
-                      <span className="font-icon text-2xl text-cement-feet dark:laughing-jack">
-                        radio_button_unchecked
-                      </span>
-                    )}
+                    {radioIcons && checkedIcon(checked)}
                     {option.icon && (
                       <div className="w-7 flex justify-center items-center">
                         {option.icon}

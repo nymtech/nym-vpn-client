@@ -65,8 +65,14 @@ extension CredentialsManager {
     func setupGRPCManagerObservers() {
 #if os(macOS)
         grpcManager.$lastError.sink { [weak self] error in
-            guard error == GeneralNymError.invalidCredential else { return }
-            self?.appSettings.isCredentialImported = false
+            guard let self,
+                  error == GeneralNymError.invalidCredential
+            else {
+                return
+            }
+            Task { @MainActor in
+                self.appSettings.isCredentialImported = false
+            }
         }
         .store(in: &cancellables)
 #endif

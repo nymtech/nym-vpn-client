@@ -5,7 +5,7 @@ public enum TunnelStatus: Int, Equatable {
     case connecting
     case disconnected
     case disconnecting
-    case reasserting // Not a possible state at present
+    case reasserting
     case restarting // Restarting tunnel (done after saving modifications to an active tunnel)
     // case waiting    // Waiting for another tunnel to be brought down
 

@@ -28,7 +28,10 @@ use crate::vpn_status;
 use crate::{events::AppHandleEventEmitter, states::SharedAppState};
 
 const VPND_SERVICE: &str = "nym.vpn.NymVpnd";
+#[cfg(not(windows))]
 const DEFAULT_SOCKET_PATH: &str = "/var/run/nym-vpn.sock";
+#[cfg(windows)]
+const DEFAULT_SOCKET_PATH: &str = r"\\.\pipe\nym-vpn";
 const DEFAULT_HTTP_ENDPOINT: &str = "http://[::1]:53181";
 
 #[derive(Clone, Debug)]

@@ -84,7 +84,7 @@ jobs:
         run: cat "$PKGBUILD"
       - name: Publish
         if: inputs.publish_aur == true
-        uses: KSXGitHub/github-actions-deploy-aur@v2.7.1
+        uses: KSXGitHub/github-actions-deploy-aur@v2.7.2
         with:
           pkgname: ${{ env.PKGNAME }}
           pkgbuild: ${{ env.PKGBUILD }}

@@ -9,6 +9,7 @@ import SentryManager
 @main
 struct NymVPNDaemonApp: App {
     @StateObject private var appSettings = AppSettings.shared
+    @StateObject private var homeViewModel = HomeViewModel()
 
     init() {
         setup()
@@ -21,7 +22,7 @@ struct NymVPNDaemonApp: App {
                     WelcomeView(viewModel: WelcomeViewModel())
                         .transition(.slide)
                 } else {
-                    HomeView(viewModel: HomeViewModel(selectedNetwork: .mixnet5hop))
+                    HomeView(viewModel: homeViewModel)
                         .transition(.slide)
                 }
             }

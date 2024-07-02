@@ -1,4 +1,8 @@
 {
+  "vpn-modes": {
+    "privacy": "Anonymous",
+    "fast": "Fast"
+  },
   "connect": "Connect",
   "disconnect": "Disconnect",
   "first-hop-selection": "First hop selection",
