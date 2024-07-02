@@ -1,0 +1,25 @@
+{
+    "credential": {
+        "invalid": "Geçersiz anahtar",
+        "vpn-running": "VPN bağlantısı sırasında anahtarı içe aktaramazsınız",
+        "expired": "Anahtarın süresi dolmuş",
+        "no-duplicate": "Bu anahtar zaten içe aktarılmış",
+        "storage": "Dahili hata nedeniyle anahtar içe aktarılamadı",
+        "deserialize": "Anahtar ayrıştırılamadı"
+    },
+    "daemon": {
+        "not-connected": "Daemon'a bağlı değil"
+    },
+    "connection": {
+        "no-valid-credential": "Geçerli anahtar yok, lütfen önce bir anahtar ekleyin",
+        "timeout": "Bağlantı zaman aşımı",
+        "gateway-lookup": "Gateway araması başarısız oldu"
+    },
+    "countries-request": {
+        "entry": "Kullanılabilir entry node ülke bilgileri alınamadı",
+        "exit": "Kullanılabilir exit node ülke bilgileri alınamadı."
+    },
+    "unknown": "Bilinmeyen hata",
+    "internal": "Dahili hata",
+    "grpc": "Dahili gRPC hatası"
+}

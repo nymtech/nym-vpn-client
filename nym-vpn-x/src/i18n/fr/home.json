@@ -1,0 +1,42 @@
+{
+    "connect": "Connecter",
+    "disconnect": "Déconnecter",
+    "status": {
+        "connected": "Connecté",
+        "disconnected": "Déconnecté",
+        "connecting": "Connexion",
+        "disconnecting": "Déconnexion",
+        "unknown": "Inconnu"
+    },
+    "last-hop": "Nœud de sortie",
+    "first-hop": "Nœud d'entrée",
+    "connecting-message": "Connexion en cours",
+    "connection-time": "Temps de connexion",
+    "select-network-label": "Choix du réseau",
+    "select-node-title": "Choix des nœuds",
+    "mixnet-mode": {
+        "desc": "Pour les paiements, emails et messages",
+        "title": "Anonyme"
+    },
+    "twohop-mode": {
+        "title": "Rapide",
+        "desc": "Pour la navigation, le streaming et les téléchargements"
+    },
+    "last-node-select": {
+        "label": "Nœud de sortie",
+        "text": "Connexion rapide vers ({{country}})"
+    },
+    "snackbar-disabled-message": {
+        "connected": "Désactivé pendant la connexion",
+        "disconnecting": "Désactivé pendant la déconnexion du réseau",
+        "connecting": "Désactivé pendant la connexion au réseau"
+    },
+    "privacy-mode": {
+        "title": "Anonyme",
+        "desc": "Pour les paiements, emails et messages"
+    },
+    "fast-mode": {
+        "title": "Rapide",
+        "desc": "Pour la navigation, le streaming et les téléchargements"
+    }
+}
