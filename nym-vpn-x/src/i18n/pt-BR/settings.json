@@ -4,10 +4,12 @@
         "title": "Credencial"
     },
     "auto-connect": {
-        "title": "Conexão automática"
+        "title": "Conexão automática",
+        "desc": "Conexão automática na inicialização do aplicativo"
     },
     "error-monitoring": {
-        "title": "Relatórios de erros anônimos"
+        "title": "Relatórios de erros anônimos",
+        "desc": "aplica-se ao reiniciar o aplicativo"
     },
     "feedback": {
         "title": "Comentário",
@@ -18,13 +20,25 @@
     },
     "support": {
         "title": "Suporte",
-        "faq": "Verifique as perguntas frequentes"
+        "faq": "Verifique as perguntas frequentes",
+        "contact": "Contato com o suporte"
     },
     "legal": {
         "policy": "Declaração de privacidade",
         "tos": "Termos de uso",
-        "title": "Legal"
+        "title": "Legal",
+        "license": "Licença",
+        "licenses-rust": "Licença (Rust)",
+        "licenses-js": "Licença (JS)",
+        "emptyData": "Não há dados de licença disponíveis"
     },
     "display-theme": "Exibir tema",
-    "add-credential-button": "adicionar credencial para conectar"
+    "add-credential-button": "adicionar credencial para conectar",
+    "entry-selector": {
+        "title": "Seletor de local de entrada",
+        "desc": "Selecione manualmente seu salto de entrada"
+    },
+    "monitoring-alert": "Você deve reiniciar o aplicativo para que a alteração tenha efeito.",
+    "faq": "Perguntas frequentes",
+    "quit": "Sair da NymVPN"
 }
