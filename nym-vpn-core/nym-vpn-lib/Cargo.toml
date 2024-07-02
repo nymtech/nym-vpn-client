@@ -71,7 +71,7 @@ nym-ip-packet-client = { path = "../crates/nym-ip-packet-client" }
 android_logger = "0.13.3"
 err-derive = "0.3.1"
 jnix = { version = "=0.5.0", features = ["derive"] }
-nix = "0.29"
+nix = { version = "0.29", features = ["poll"] }
 rand = "0.8.5"
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
