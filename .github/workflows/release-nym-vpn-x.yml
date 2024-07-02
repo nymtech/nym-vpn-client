@@ -25,8 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [ubuntu-22.04-16-core, macos-14, custom-windows-11]
-        os: [custom-windows-11]
+        os: [ubuntu-22.04-16-core, macos-14, custom-windows-11]
         target: [native]
     runs-on: ${{ matrix.os }}
     env:
@@ -407,9 +406,9 @@ jobs:
           sha256sum nymvpn-x*.AppImage > nymvpn-x_${PKG_VERSION}.AppImage.sha256sum
           sha256sum nymvpn-x*linux_x64 > nymvpn-x_${PKG_VERSION}_linux_x64.sha256sum
           popd
-          # pushd $WINDOWS_DIR
-          # sha256sum nym-vpn*.exe > nym-vpn_${PKG_VERSION}_x64-setup.exe.sha256sum
-          # popd
+          pushd $WINDOWS_DIR
+          sha256sum nym-vpn*.exe > nym-vpn_${PKG_VERSION}_x64-setup.exe.sha256sum
+          popd
           pushd $DEB_DIR
           for f in nymvpn-x*.deb; do sha256sum ${f} > ${f}.sha256sum; done
           popd
@@ -418,7 +417,7 @@ jobs:
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
           cat nym-vpn-x_*.tar.gz/*.sha256sum >> $GITHUB_ENV
           cat $LINUX_DIR/*.sha256sum >> $GITHUB_ENV
-          # cat $WINDOWS_DIR/*.sha256sum >> $GITHUB_ENV
+          cat $WINDOWS_DIR/*.sha256sum >> $GITHUB_ENV
           cat $DEB_DIR/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
@@ -444,8 +443,8 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $LINUX_DIR/* installer/* $DEB_DIR/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $LINUX_DIR/* installer/* $DEB_DIR/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $LINUX_DIR/* installer/* $WINDOWS_DIR/* $DEB_DIR/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $LINUX_DIR/* $WINDOWS_DIR/* installer/* $DEB_DIR/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
