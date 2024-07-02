@@ -1,3 +1,30 @@
 {
-    "logs": "Registros"
+    "logs": "Registros",
+    "credential": {
+        "title": "Credencial"
+    },
+    "auto-connect": {
+        "title": "Conexão automática"
+    },
+    "error-monitoring": {
+        "title": "Relatórios de erros anônimos"
+    },
+    "feedback": {
+        "title": "Comentário",
+        "github": "Abrir um problema no GitHub",
+        "send": "Envie-nos seu feedback",
+        "matrix": "Junte-se a nós no Matrix",
+        "discord": "Junte-se a nós no Discord"
+    },
+    "support": {
+        "title": "Suporte",
+        "faq": "Verifique as perguntas frequentes"
+    },
+    "legal": {
+        "policy": "Declaração de privacidade",
+        "tos": "Termos de uso",
+        "title": "Legal"
+    },
+    "display-theme": "Exibir tema",
+    "add-credential-button": "adicionar credencial para conectar"
 }
