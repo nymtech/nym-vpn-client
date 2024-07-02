@@ -407,7 +407,7 @@ jobs:
           sha256sum nymvpn-x*linux_x64 > nymvpn-x_${PKG_VERSION}_linux_x64.sha256sum
           popd
           pushd $WINDOWS_DIR
-          sha256sum nym-vpn*.exe > nym-vpn_${PKG_VERSION}_x64-setup.exe.sha256sum
+          sha256sum nymvpn-x*.exe > nymvpn-x_${PKG_VERSION}_x64-setup.exe.sha256sum
           popd
           pushd $DEB_DIR
           for f in nymvpn-x*.deb; do sha256sum ${f} > ${f}.sha256sum; done
