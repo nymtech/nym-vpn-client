@@ -1,1 +1,11 @@
-{}
+{
+    "title": {
+        "part1": "欢迎"
+    },
+    "tos": {
+        "part1": "如果您继续使用，即表示您同意NymVPN的",
+        "part2": "并承认 NymVPN"
+    },
+    "experimental": "这是一款实验软件。请勿依赖它实现强大的匿名性（暂时）。",
+    "continue-button": "继续"
+}
