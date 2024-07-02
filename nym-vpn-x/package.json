@@ -46,7 +46,7 @@
     "react-window": "^1.8.10"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^1.5.0",
+    "@tauri-apps/cli": "^1.6.0",
     "@types/lodash-es": "^4.17.0",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
