@@ -4,5 +4,7 @@
         "light": "Tema claro",
         "dark": "Tema escuro"
     },
-    "system-desc": "Usar o tema do dispositivo"
+    "system-desc": "Usar o tema do dispositivo",
+    "theme-section-title": "Tema",
+    "zoom-section-title": "Nível de zoom"
 }
