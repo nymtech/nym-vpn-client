@@ -18,7 +18,7 @@ mod command_interface;
 mod logging;
 mod service;
 #[cfg(windows)]
-mod win_service;
+mod windows_service;
 
 fn run_inner(args: CliArgs) -> Result<(), Box<dyn std::error::Error>> {
     let task_manager = TaskManager::new(10).named("nym_vpnd");
@@ -68,7 +68,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     setup_env(args.config_env_file.as_ref());
 
     if args.command.is_any() {
-        Ok(win_service::start(args)?)
+        Ok(windows_service::start(args)?)
     } else {
         setup_logging();
         run_inner(args)

@@ -35,6 +35,7 @@ tonic.workspace = true
 tower-http = { workspace = true, features = ["cors"] }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
+tracing-appender = "0.2.3"
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }

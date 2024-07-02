@@ -7,10 +7,9 @@ use crate::tunnel::setup_route_manager;
 use crate::util::handle_interrupt;
 use crate::wg_gateway_client::WgGatewayClient;
 use crate::wireguard_setup::create_wireguard_tunnel;
-use crate::{
-    init_wireguard_config, MixnetExitConnectionInfo, MixnetVpn, SpecificVpn, WireguardVpn,
-};
+use crate::{init_wireguard_config, WireguardVpn};
 use crate::{routing, MixnetConnectionInfo, NymVpn};
+use crate::{MixnetExitConnectionInfo, MixnetVpn, SpecificVpn};
 use futures::channel::{mpsc, oneshot};
 use futures::StreamExt;
 use ipnetwork::IpNetwork;

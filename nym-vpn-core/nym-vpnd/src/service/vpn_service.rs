@@ -18,8 +18,8 @@ use tokio::sync::{broadcast, oneshot};
 use tracing::{error, info};
 
 use super::config::{
-    create_config_file, create_data_dir, read_config_file, write_config_file, ConfigSetupError,
-    NymVpnServiceConfig, DEFAULT_CONFIG_DIR, DEFAULT_CONFIG_FILE, DEFAULT_DATA_DIR,
+    self, create_config_file, create_data_dir, read_config_file, write_config_file,
+    ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
 };
 use super::error::{ConnectionFailedError, ImportCredentialError};
 use super::exit_listener::VpnServiceExitListener;
@@ -294,7 +294,7 @@ impl SharedVpnState {
     }
 }
 
-pub(super) struct NymVpnService {
+pub(crate) struct NymVpnService {
     shared_vpn_state: SharedVpnState,
 
     // Listen for commands from the command interface, like the grpc listener that listens user
@@ -310,17 +310,17 @@ pub(super) struct NymVpnService {
 }
 
 impl NymVpnService {
-    pub(super) fn new(
+    pub(crate) fn new(
         vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
         vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
     ) -> Self {
         let config_dir = std::env::var("NYM_VPND_CONFIG_DIR")
             .map(PathBuf::from)
-            .unwrap_or_else(|_| PathBuf::from(DEFAULT_CONFIG_DIR));
+            .unwrap_or_else(|_| config::default_config_dir());
         let config_file = config_dir.join(DEFAULT_CONFIG_FILE);
         let data_dir = std::env::var("NYM_VPND_DATA_DIR")
             .map(PathBuf::from)
-            .unwrap_or_else(|_| PathBuf::from(DEFAULT_DATA_DIR));
+            .unwrap_or_else(|_| config::default_data_dir());
         Self {
             shared_vpn_state: SharedVpnState::new(vpn_state_changes_tx),
             vpn_command_rx,
@@ -477,7 +477,7 @@ impl NymVpnService {
             .map_err(|err| err.into())
     }
 
-    pub(super) async fn run(mut self) -> anyhow::Result<()> {
+    pub(crate) async fn run(mut self) -> anyhow::Result<()> {
         while let Some(command) = self.vpn_command_rx.recv().await {
             info!("VPN: Received command: {command}");
             match command {

@@ -6,9 +6,43 @@ use std::{fmt, fs, path::PathBuf};
 use nym_vpn_lib::gateway_directory;
 use tracing::info;
 
-pub(super) const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
-pub(super) const DEFAULT_CONFIG_DIR: &str = "/etc/nym";
+#[cfg(not(windows))]
+const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
+#[cfg(not(windows))]
+const DEFAULT_LOG_DIR: &str = "/var/log/nym-vpnd";
+#[cfg(not(windows))]
+const DEFAULT_CONFIG_DIR: &str = "/etc/nym";
 pub(super) const DEFAULT_CONFIG_FILE: &str = "nym-vpnd.toml";
+pub(crate) const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
+
+#[cfg(windows)]
+pub(crate) fn program_data_path() -> PathBuf {
+    PathBuf::from(std::env::var("ProgramData").unwrap_or(std::env::var("PROGRAMDATA").unwrap()))
+}
+
+pub(super) fn default_data_dir() -> PathBuf {
+    #[cfg(windows)]
+    return program_data_path().join("nym-vpnd").join("data");
+
+    #[cfg(not(windows))]
+    return DEFAULT_DATA_DIR.into();
+}
+
+pub(crate) fn default_log_dir() -> PathBuf {
+    #[cfg(windows)]
+    return program_data_path().join("nym-vpnd").join("log");
+
+    #[cfg(not(windows))]
+    return DEFAULT_LOG_DIR.into();
+}
+
+pub(super) fn default_config_dir() -> PathBuf {
+    #[cfg(windows)]
+    return program_data_path().join("nym-vpnd").join("config");
+
+    #[cfg(not(windows))]
+    return DEFAULT_CONFIG_DIR.into();
+}
 
 #[derive(thiserror::Error, Debug)]
 pub(super) enum ConfigSetupError {
