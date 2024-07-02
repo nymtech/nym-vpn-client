@@ -12,4 +12,11 @@
     <string name="init_client">Iniciando cliente…</string>
     <string name="app_name">NymVPN</string>
     <string name="two_hop_description">Melhor para pesquisar, trasmitir, compartilhar</string>
+    <string name="five_hop_description">Melhor para pagamentos, e-mails e mensagens</string>
+    <string name="establishing_connection">Estabelecendo conexão</string>
+    <string name="select_network">Selecionar rede</string>
+    <string name="connect_to">Conectar ao</string>
+    <string name="two_hop">2-saltos</string>
+    <string name="disabled_while_connected">Desativado enquanto conectado à VPN</string>
+    <string name="unknown">Desconhecido</string>
 </resources>
