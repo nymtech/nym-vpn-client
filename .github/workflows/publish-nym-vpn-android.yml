@@ -148,8 +148,13 @@ jobs:
           append_body: true
 
 
+  publish-nym-fdroid:
+    runs-on: ubuntu-22.04-arc
+    needs:
+      - publish-github
+    if: inputs.release_type == 'release'
+    steps:
       - name: Dispatch update for fdroid repo
-        if: inputs.release_type == 'release'
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.ANDROID_PAT }}
