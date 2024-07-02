@@ -1,1 +1,5 @@
-{}
+{
+    "credential": {
+        "invalid": "无效凭证"
+    }
+}
