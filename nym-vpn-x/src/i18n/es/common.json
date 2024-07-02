@@ -15,5 +15,10 @@
     "vpn-modes": {
         "privacy": "Anónimo",
         "fast": "Rápido"
+    },
+    "display-theme": "Mostrar",
+    "ui-mode": {
+        "dark": "Modo oscuro",
+        "light": "Modo claro"
     }
 }
