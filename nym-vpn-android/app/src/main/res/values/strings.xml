@@ -17,7 +17,7 @@
     <string name="init_client">Initializing client…</string>
     <string name="establishing_connection">Establishing connection</string>
     <string name="connection_time">Connection time</string>
-    <string name="select_network">Select network</string>
+    <string name="select_mode">Select mode</string>
     <string name="connect_to">Connect to</string>
     <string name="first_hop_selection">First hop selection</string>
     <string name="last_hop_selection">Last hop selection</string>
@@ -133,4 +133,8 @@
     <string name="day">day</string>
     <string name="scan_nym_vpn_credential">Scan NymVPN Credential QR</string>
     <string name="error_logs_not_saved">Failed to save logs</string>
+	<string name="mode_selection">Mode selection</string>
+	<string name="five_hop_explanation">Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages.</string>
+	<string name="two_hop_explanation">Experience maximum speed with  2-server connectivity using the WireGuard protocol. Perfect for fast browsing, streaming, and file sharing.</string>
+	<string name="continue_reading">Continue reading</string>
 </resources>

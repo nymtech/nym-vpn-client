@@ -17,7 +17,6 @@
     <string name="init_client">Iniciando cliente…</string>
     <string name="establishing_connection">Estableciendo conexión</string>
     <string name="connection_time">Tiempo de conexión</string>
-    <string name="select_network">Seleccionar red</string>
     <string name="connect_to">Conectar a</string>
     <string name="first_hop_selection">Gateway entrada</string>
     <string name="last_hop_selection">Gateway salida</string>

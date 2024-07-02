@@ -3,19 +3,18 @@ accompanist = "0.34.0"
 agp = "8.5.0"
 coreSplashscreen = "1.0.1"
 detektRulesCompose = "1.3.0"
-javaClient = "9.2.2"
+javaClient = "9.2.3"
 jna = "5.14.0"
 kotlin = "2.0.0"
-ksp = "2.0.0-1.0.21"
+ksp = "2.0.0-1.0.22"
 coreKtx = "1.13.1"
 junit = "4.13.2"
-junitVersion = "1.2.0"
-espressoCore = "3.6.0"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
 materialIconsExtended = "1.6.8"
 navigationCompose = "2.7.7"
 hiltNavigationCompose = "1.2.0"
-lifecycleRuntimeKtx = "2.8.2"
-lifecycle-runtime-compose = "2.8.2"
+lifecycle-compose = "2.8.3"
 activityCompose = "1.9.0"
 composeBom = "2024.06.00"
 datastorePreferences = "1.1.1"
@@ -38,10 +37,10 @@ gradlePlugins-kotlinxSerialization = "2.0.0"
 gradlePlugins-licensee = "1.7.0"
 gradlePlugins-detekt = "1.23.6"
 gradlePlugins-gross = "0.1.0"
-gradlePlugins-sentry = "4.5.1"
+gradlePlugins-sentry = "4.8.0"
 appcompat = "1.7.0"
 material = "1.12.0"
-gradlePlugins-ktlint="12.1.0"
+gradlePlugins-ktlint="12.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -59,8 +58,8 @@ jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
-androidx-lifecycle-service = { module = "androidx.lifecycle:lifecycle-service", version.ref = "lifecycle-runtime-compose" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-compose" }
+androidx-lifecycle-service = { module = "androidx.lifecycle:lifecycle-service", version.ref = "lifecycle-compose" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
@@ -89,7 +88,7 @@ com-android-tools-desugar = { module = "com.android.tools:desugar_jdk_libs", ver
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 
 #compose
-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle-runtime-compose" }
+lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycle-compose" }
 
 
 #storage

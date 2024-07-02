@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.common.buttons.RadioSurfaceButton
+import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
@@ -31,7 +31,7 @@ fun DisplayScreen(viewModel: DisplayViewModel = hiltViewModel()) {
 			.padding(top = 24.dp.scaledHeight())
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
-		RadioSurfaceButton(
+		IconSurfaceButton(
 			title = stringResource(R.string.automatic),
 			description = stringResource(R.string.device_theme),
 			onClick = {
@@ -39,12 +39,12 @@ fun DisplayScreen(viewModel: DisplayViewModel = hiltViewModel()) {
 			},
 			selected = uiState.theme == Theme.AUTOMATIC,
 		)
-		RadioSurfaceButton(
+		IconSurfaceButton(
 			title = stringResource(R.string.light_theme),
 			onClick = { viewModel.onThemeChange(Theme.LIGHT_MODE) },
 			selected = uiState.theme == Theme.LIGHT_MODE,
 		)
-		RadioSurfaceButton(
+		IconSurfaceButton(
 			title = stringResource(R.string.dark_theme),
 			onClick = { viewModel.onThemeChange(Theme.DARK_MODE) },
 			selected = uiState.theme == Theme.DARK_MODE,

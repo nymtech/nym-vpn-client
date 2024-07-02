@@ -12,13 +12,20 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,8 +56,8 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
+import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
-import net.nymtech.nymvpn.ui.common.buttons.RadioSurfaceButton
 import net.nymtech.nymvpn.ui.common.functions.countryIcon
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
@@ -59,6 +66,7 @@ import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.NymVpnExceptions
 import net.nymtech.nymvpn.util.StringUtils
@@ -81,6 +89,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 		}
 
 	var vpnIntent by rememberSaveable { mutableStateOf(VpnService.prepare(context)) }
+	var showDialog by remember { mutableStateOf(false) }
 
 	val vpnActivityResultState =
 		rememberLauncherForActivityResult(
@@ -104,10 +113,11 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 		return Result.failure(NymVpnExceptions.PermissionsNotGrantedException())
 	}
 
+	ModeDialog(show = showDialog, onDismiss = { showDialog = false })
+
 	LaunchedEffect(uiState.firstHopCounty, uiState.lastHopCountry, uiState.networkMode, uiState.connectionState) {
 		NymVpn.requestTileServiceStateUpdate()
 	}
-
 	Column(
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -154,36 +164,51 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 				.padding(bottom = 24.dp.scaledHeight()),
 		) {
 			Column(
-				verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Bottom),
 				modifier = Modifier.padding(horizontal = 24.dp.scaledWidth()),
 			) {
-				GroupLabel(title = stringResource(R.string.select_network))
-				RadioSurfaceButton(
-					leadingIcon = ImageVector.vectorResource(R.drawable.mixnet),
-					title = stringResource(R.string.five_hop_mixnet),
-					description = stringResource(R.string.five_hop_description),
-					onClick = {
-						if (uiState.connectionState == ConnectionState.Disconnected) {
-							viewModel.onFiveHopSelected()
-						} else {
-							appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
-						}
-					},
-					selected = uiState.networkMode == VpnMode.FIVE_HOP_MIXNET,
-				)
-				RadioSurfaceButton(
-					leadingIcon = ImageVector.vectorResource(R.drawable.shield),
-					title = stringResource(R.string.two_hop_mixnet),
-					description = stringResource(R.string.two_hop_description),
-					onClick = {
-						if (uiState.connectionState == ConnectionState.Disconnected) {
-							viewModel.onTwoHopSelected()
-						} else {
-							appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
-						}
-					},
-					selected = uiState.networkMode == VpnMode.TWO_HOP_MIXNET,
-				)
+				Row(
+					horizontalArrangement = Arrangement.SpaceBetween,
+					verticalAlignment = Alignment.CenterVertically,
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(bottom = 16.dp.scaledHeight()),
+				) {
+					GroupLabel(title = stringResource(R.string.select_mode))
+					IconButton(onClick = {
+						showDialog = true
+					}, modifier = Modifier.size(iconSize)) {
+						val icon = Icons.Outlined.Info
+						Icon(icon, icon.name, tint = MaterialTheme.colorScheme.outline)
+					}
+				}
+				Column(verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Bottom)) {
+					IconSurfaceButton(
+						leadingIcon = Icons.Outlined.VisibilityOff,
+						title = stringResource(R.string.five_hop_mixnet),
+						description = stringResource(R.string.five_hop_description),
+						onClick = {
+							if (uiState.connectionState == ConnectionState.Disconnected) {
+								viewModel.onFiveHopSelected()
+							} else {
+								appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
+							}
+						},
+						selected = uiState.networkMode == VpnMode.FIVE_HOP_MIXNET,
+					)
+					IconSurfaceButton(
+						leadingIcon = Icons.Outlined.Speed,
+						title = stringResource(R.string.two_hop_mixnet),
+						description = stringResource(R.string.two_hop_description),
+						onClick = {
+							if (uiState.connectionState == ConnectionState.Disconnected) {
+								viewModel.onTwoHopSelected()
+							} else {
+								appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
+							}
+						},
+						selected = uiState.networkMode == VpnMode.TWO_HOP_MIXNET,
+					)
+				}
 			}
 			Column(
 				verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Bottom),

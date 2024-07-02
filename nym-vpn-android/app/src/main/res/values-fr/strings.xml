@@ -17,7 +17,6 @@
     <string name="init_client">Démarrage du client…</string>
     <string name="establishing_connection">Connexion en cours</string>
     <string name="connection_time">Temps de connexion</string>
-    <string name="select_network">Choix du réseau</string>
     <string name="connect_to">Choix des nœuds</string>
     <string name="first_hop_selection">Premier nœud</string>
     <string name="last_hop_selection">Dernier nœud</string>

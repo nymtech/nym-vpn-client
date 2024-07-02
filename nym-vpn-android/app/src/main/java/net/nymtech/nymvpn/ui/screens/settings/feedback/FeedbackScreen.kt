@@ -27,40 +27,6 @@ import net.nymtech.nymvpn.util.scaledWidth
 fun FeedbackScreen(appViewModel: AppViewModel) {
 	val context = LocalContext.current
 
-// 	AnimatedVisibility(showErrorReportingDialog) {
-// 		AlertDialog(
-// 			containerColor = CustomColors.snackBarBackgroundColor,
-// 			onDismissRequest = { showErrorReportingDialog = false },
-// 			confirmButton = {
-// 				TextButton(
-// 					onClick = {
-// 						showErrorReportingDialog = false
-// 						appViewModel.onErrorReportingSelected()
-// 					},
-// 				) {
-// 					Text(text = stringResource(R.string.okay))
-// 				}
-// 			},
-// 			dismissButton = {
-// 				TextButton(onClick = { showErrorReportingDialog = false }) {
-// 					Text(text = stringResource(R.string.cancel))
-// 				}
-// 			},
-// 			title = {
-// 				Text(
-// 					text = stringResource(R.string.error_reporting),
-// 					color = CustomColors.snackbarTextColor,
-// 				)
-// 			},
-// 			text = {
-// 				Text(
-// 					text = stringResource(R.string.error_reporting_alert),
-// 					color = CustomColors.snackbarTextColor,
-// 				)
-// 			},
-// 		)
-// 	}
-
 	Column(
 		horizontalAlignment = Alignment.Start,
 		verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),

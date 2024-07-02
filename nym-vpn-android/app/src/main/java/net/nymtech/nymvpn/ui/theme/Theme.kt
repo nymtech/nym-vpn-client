@@ -40,6 +40,7 @@ private val DarkColorScheme =
 		onPrimary = ThemeColors.Dark.onPrimary,
 		onSurfaceVariant = ThemeColors.Dark.onSurfaceVariant,
 		onSecondary = ThemeColors.Dark.onSecondary,
+		surfaceContainer = ThemeColors.Dark.surfaceContainer,
 	)
 
 private val LightColorScheme =
@@ -53,6 +54,7 @@ private val LightColorScheme =
 		onPrimary = ThemeColors.Light.onPrimary,
 		onSurfaceVariant = ThemeColors.Light.onSurfaceVariant,
 		onSecondary = ThemeColors.Light.onSecondary,
+		surfaceContainer = ThemeColors.Light.surfaceContainer,
 	)
 
 @Composable
