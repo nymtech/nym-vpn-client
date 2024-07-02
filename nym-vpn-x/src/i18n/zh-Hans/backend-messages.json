@@ -1,1 +1,6 @@
-{}
+{
+    "connection-progress": {
+        "Initializing": "初始化 Nym VPN 客户端…",
+        "InitDone": "Nym VPN 客户端已初始化"
+    }
+}
