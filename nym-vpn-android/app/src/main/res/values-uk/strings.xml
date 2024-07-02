@@ -19,7 +19,6 @@
     <string name="auto_connect_description">Авто-підключення при перезавантаженні</string>
     <string name="establishing_connection">Встановлення з\'єднання</string>
     <string name="connection_time">Час підключення</string>
-    <string name="select_network">Вибір підключення</string>
     <string name="connect_to">Підключитись до</string>
     <string name="first_hop_selection">Вибір першої ланки</string>
     <string name="last_hop_selection">Вибрі останньої ланки</string>
