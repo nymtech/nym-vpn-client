@@ -1,5 +1,11 @@
 {
     "connect": "Conectar",
     "disconnect": "Desconectar",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "fastest": "Mais rápido",
+    "support": "Suporte",
+    "legal": "Legal",
+    "feedback": "Comentário",
+    "sentry": "Sentry",
+    "logs": "Registros"
 }
