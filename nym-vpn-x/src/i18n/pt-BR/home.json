@@ -32,9 +32,11 @@
     },
     "connection-time": "tempo de conexão",
     "privacy-mode": {
-        "desc": "Melhor para pagamentos, e-mails e mensagens"
+        "desc": "Melhor para pagamentos, e-mails e mensagens",
+        "title": "Anônimo"
     },
     "fast-mode": {
-        "desc": "Melhor para pesquisar, trasmitir, compartilhar"
+        "desc": "Melhor para pesquisar, trasmitir, compartilhar",
+        "title": "rápido"
     }
 }
