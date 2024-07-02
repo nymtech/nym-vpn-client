@@ -15,5 +15,10 @@
     "fastest": "最快",
     "sentry": "哨兵",
     "tos": "使用条款",
-    "privacy-statement": "隐私声明"
+    "privacy-statement": "隐私声明",
+    "display-theme": "显示",
+    "ui-mode": {
+        "dark": "黑暗模式",
+        "light": "亮光模式"
+    }
 }
