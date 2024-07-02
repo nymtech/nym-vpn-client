@@ -113,8 +113,7 @@ jobs:
           versionCode=$(date '+%s')
           sed -i -e 's/\(VERSION_CODE = \).\(.*\)/\VERSION_CODE = '"$versionCode"'/' buildSrc/src/main/kotlin/Constants.kt
           versionName=$(grep "VERSION_NAME" buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '"')
-          headCount=$(git rev-list --first-parent --count HEAD)
-          sed -i -e 's/\(VERSION_NAME = \).\(.*\)/\VERSION_NAME = "'"$versionName"'-'"$headCount"'"/' buildSrc/src/main/kotlin/Constants.kt
+          sed -i -e 's/\(VERSION_NAME = \).\(.*\)/\VERSION_NAME = "'"$versionName"'-'"$versionCode"'"/' buildSrc/src/main/kotlin/Constants.kt
 
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
