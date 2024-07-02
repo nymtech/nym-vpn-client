@@ -10,7 +10,7 @@ use tokio::sync::{
     mpsc::{UnboundedReceiver, UnboundedSender},
 };
 use tonic::transport::Server;
-use tracing::{debug, debug_span, error, info, info_span, trace, trace_span, Span};
+use tracing::{debug, debug_span, info, info_span, trace, trace_span, Span};
 
 use super::{
     config::{default_socket_path, default_uri_addr},
@@ -169,11 +169,13 @@ pub(crate) fn start_command_interface(
             // Wait for all tasks to finish
             tokio::select! {
                 _ = task_manager.catch_interrupt() => {
-                    info!("caught interrupt");
+                    info!("Caught interrupt");
                 },
                 _ = event_rx.recv() => {
-                    error!("caught event stop");
+                    info!("Caught event stop");
+                    info!("Signalling shutdown...");
                     task_manager.signal_shutdown().ok();
+                    info!("Waiting for shutdown ...");
                     task_manager.wait_for_shutdown().await;
                 }
             }
