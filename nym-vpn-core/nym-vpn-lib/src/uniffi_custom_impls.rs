@@ -186,7 +186,7 @@ impl From<ExpLocation> for Location {
 }
 
 // TODO: generate uniffi
-// #[derive(uniffi::Record)]
+#[derive(uniffi::Record)]
 pub struct UserAgent {
     // The name of the application
     // Example: nym-vpnd
