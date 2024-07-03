@@ -16,6 +16,10 @@ on:
           - production
         default: alpha
         required: true
+      publish-metadata:
+        type: boolean
+        default: false
+        description: With fastlane metadata
       tag_name:
         description: "Tag name for release"
         required: false
@@ -29,10 +33,6 @@ on:
           - release
         default: release
         required: true
-      publish-metadata:
-        type: boolean
-        default: false
-        description: Publish Google Play metadata
 
   push:
     tags:
