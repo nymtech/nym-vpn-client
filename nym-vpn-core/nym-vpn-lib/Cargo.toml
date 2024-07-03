@@ -68,7 +68,7 @@ nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
 nym-ip-packet-client = { path = "../crates/nym-ip-packet-client" }
 
 [target.'cfg(target_os = "android")'.dependencies]
-android_logger = "0.13.3"
+android_logger = "0.14.1"
 err-derive = "0.3.1"
 jnix = { version = "=0.5.0", features = ["derive"] }
 nix = "0.23"
