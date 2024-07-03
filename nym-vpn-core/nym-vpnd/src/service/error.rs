@@ -52,16 +52,10 @@ impl From<VpnLibImportCredentialError> for ImportCredentialError {
                         }
                     }
                     NymIdError::StorageError { source } => {
-                        // There was a recent change for the upstream crate that adds a new variant
-                        // to StorageError to capture duplicate entries. Until that change makes
-                        // its way to the vpn-lib, we just match on the string as a temporary
-                        // solution.
-                        if let Some(StorageError::InternalDatabaseError(db_error)) =
+                        if let Some(StorageError::ConstraintUnique) =
                             source.downcast_ref::<StorageError>()
                         {
-                            if db_error.to_string().contains("code: 2067") {
-                                return ImportCredentialError::CredentialAlreadyImported;
-                            }
+                            return ImportCredentialError::CredentialAlreadyImported;
                         }
                         ImportCredentialError::StorageError {
                             path: location,
