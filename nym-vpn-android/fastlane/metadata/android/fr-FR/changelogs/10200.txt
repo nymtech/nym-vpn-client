@@ -1,0 +1,5 @@
+What's new:
+- Fixed connection state sync
+- Improved error messaging
+- Added permission denied flow
+- Removed debug logs from release
