@@ -181,7 +181,24 @@ jobs:
           rm public/licenses-rust.json || true
           npm run gen:licenses:rust
 
-      - name: Build desktop client
+      - name: Build desktop client (linux)
+        if: contains(matrix.os, 'ubuntu')
+        working-directory: nym-vpn-x/src-tauri
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
+        run: |
+          npm run tauri build -- ${{ env.CARGO_TARGET }}
+          ls -la target/release/ || true
+          ls -la target/release/bundle || true
+          ls -la target/release/bundle/* || true
+          ls -la target/${{ env.ARCH_TARGET }}/release/ || true
+          ls -la target/${{ env.ARCH_TARGET }}/release/bundle || true
+          ls -la target/${{ env.ARCH_TARGET }}/release/bundle/* || true
+
+      - name: Build desktop client (windows, mac)
+        if: contains(matrix.os, 'windows') || contains(matrix.os, 'mac')
         working-directory: nym-vpn-x/src-tauri
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
