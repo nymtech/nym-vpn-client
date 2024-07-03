@@ -3,7 +3,7 @@ use tracing::debug;
 use crate::{
     error::Result,
     responses::{Country, Gateway},
-    Client, VpnApiClientExt,
+    Client, ClientBuilder, VpnApiClientExt,
 };
 
 const NYM_VPN_API: &str = "https://nymvpn.com/api";
@@ -11,7 +11,9 @@ const NYM_VPN_API: &str = "https://nymvpn.com/api";
 pub async fn get_gateways() -> Result<Vec<Gateway>> {
     debug!("Fetching gateways");
     let timeout = std::time::Duration::from_secs(10);
-    let client = Client::new_url(NYM_VPN_API, Some(timeout))?;
+    let client = ClientBuilder::new(NYM_VPN_API)?
+        .with_timeout(timeout)
+        .build()?;
     Ok(client.get_gateways().await?)
 }
 
