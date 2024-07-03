@@ -1,3 +1,4 @@
+use nym_http_api_client::UserAgent;
 use tracing::debug;
 
 use crate::{
@@ -8,40 +9,53 @@ use crate::{
 
 const NYM_VPN_API: &str = "https://nymvpn.com/api";
 
-pub async fn get_gateways() -> Result<Vec<Gateway>> {
+pub async fn get_gateways(user_agent: UserAgent) -> Result<Vec<Gateway>> {
     debug!("Fetching gateways");
     let timeout = std::time::Duration::from_secs(10);
     let client = ClientBuilder::new(NYM_VPN_API)?
         .with_timeout(timeout)
+        .with_user_agent(user_agent)
         .build()?;
     Ok(client.get_gateways().await?)
 }
 
-pub async fn get_entry_gateways() -> Result<Vec<Gateway>> {
+pub async fn get_entry_gateways(user_agent: UserAgent) -> Result<Vec<Gateway>> {
     debug!("Fetching entry gateways");
     let timeout = std::time::Duration::from_secs(10);
-    let client = Client::new_url(NYM_VPN_API, Some(timeout))?;
+    let client = ClientBuilder::new(NYM_VPN_API)?
+        .with_timeout(timeout)
+        .with_user_agent(user_agent)
+        .build()?;
     Ok(client.get_entry_gateways().await?)
 }
 
-pub async fn get_exit_gateways() -> Result<Vec<Gateway>> {
+pub async fn get_exit_gateways(user_agent: UserAgent) -> Result<Vec<Gateway>> {
     debug!("Fetching exit gateways");
     let timeout = std::time::Duration::from_secs(10);
-    let client = Client::new_url(NYM_VPN_API, Some(timeout))?;
+    let client = ClientBuilder::new(NYM_VPN_API)?
+        .with_timeout(timeout)
+        .with_user_agent(user_agent)
+        .build()?;
     Ok(client.get_exit_gateways().await?)
 }
 
-pub async fn get_countries() -> Result<Vec<Country>> {
+pub async fn get_countries(user_agent: UserAgent) -> Result<Vec<Country>> {
     debug!("Fetching countries");
     let timeout = std::time::Duration::from_secs(10);
-    let client = Client::new_url(NYM_VPN_API, Some(timeout))?;
+    let client = ClientBuilder::new(NYM_VPN_API)?
+        .with_timeout(timeout)
+        .with_user_agent(user_agent)
+        .build()?;
     Ok(client.get_countries().await?)
 }
 
-pub async fn get_entry_countries() -> Result<Vec<Country>> {
+pub async fn get_entry_countries(user_agent: UserAgent) -> Result<Vec<Country>> {
     debug!("Fetching entry countries");
     let timeout = std::time::Duration::from_secs(10);
-    let client = Client::new_url(NYM_VPN_API, Some(timeout))?;
+    let client = ClientBuilder::new(NYM_VPN_API)?
+        .with_timeout(timeout)
+        .with_user_agent(user_agent)
+        .build()?;
     Ok(client.get_entry_countries().await?)
 }
 
@@ -58,6 +72,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_gateways() {
+        let user_agent = UserAgent::new("nym-vpn-api-client", "arch", "test", "test");
         let gateways = get_gateways().await.unwrap();
         assert!(!gateways.is_empty());
     }
