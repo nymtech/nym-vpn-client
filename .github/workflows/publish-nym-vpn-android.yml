@@ -255,31 +255,6 @@ jobs:
         working-directory: ${{ github.workspace }}/nym-vpn-android
         run: |
           bundle install
-          bundle exec fastlane ${{ inputs.track }}
-
-  publish-play-metadata:
-    if: github.event.inputs.publish-metadata == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: nym-vpn-android
-    steps:
-      - name: Setup ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2' # Not needed with a .ruby-version file
-          bundler-cache: true
-
-      - uses: actions/checkout@v4
-
-      - name: Create service_account.json
-        id: createServiceAccount
-        run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
-
-      - name: Distribute app to fastlane track 🚀
-        working-directory: ${{ github.workspace }}/nym-vpn-android
-        run: |
-          bundle install
-          bundle exec fastlane metadata
+          bundle exec fastlane ${{ inputs.track }} metadata:${{github.event.inputs.publish-metadata == 'true'}}
       
 

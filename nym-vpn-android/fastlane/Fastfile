@@ -3,32 +3,39 @@ default_platform(:android)
 platform :android do
 
   desc 'Deploy an internal version to Google Play'
-  lane :internal do
+  lane :internal do |options|
     gradle(task: "clean bundleGeneralRelease")
     upload_to_play_store(track: 'internal', skip_upload_apk: true, skip_upload_metadata: true)
+    if options[:metadata]
+      upload_to_play_store(skip_upload_apk: true, skip_upload_aab: true)
+    end
   end
 
   desc "Deploy an alpha version to Google Play"
-    lane :alpha do
-      gradle(task: "clean bundleGeneralRelease")
-      upload_to_play_store(track: 'alpha', skip_upload_apk: true, skip_upload_metadata: true)
+  lane :alpha do |options|
+    gradle(task: "clean bundleGeneralRelease")
+    upload_to_play_store(track: 'alpha', skip_upload_apk: true, skip_upload_metadata: true)
+    if options[:metadata]
+	  upload_to_play_store(skip_upload_apk: true, skip_upload_aab: true)
+    end
   end
 
   desc "Deploy a beta version to Google Play"
-  lane :beta do
+  lane :beta do |options|
     gradle(task: "clean bundleGeneralRelease")
     upload_to_play_store(track: 'beta', skip_upload_apk: true, skip_upload_metadata: true)
+    if options[:metadata]
+	  upload_to_play_store(skip_upload_apk: true, skip_upload_aab: true)
+	end
   end
 
   desc "Deploy a production version to Google Play"
-    lane :production do
-      gradle(task: "clean bundleGeneralRelease")
-      upload_to_play_store(track: 'production', skip_upload_apk: true, skip_upload_metadata: true)
-  end
-
-  desc "Deploy metadata to Google Play"
-    lane :metadata do
-      upload_to_play_store(skip_upload_apk: true, skip_upload_aab: true)
+  lane :production do |options|
+    gradle(task: "clean bundleGeneralRelease")
+    upload_to_play_store(track: 'production', skip_upload_apk: true, skip_upload_metadata: true)
+    if options[:metadata]
+	  upload_to_play_store(skip_upload_apk: true, skip_upload_aab: true)
+    end
   end
 
 end
