@@ -106,7 +106,7 @@
     <string name="fastest">En hızlı</string>
     <string name="error_reporting">Hata raporlarını anonim olarak paylaş</string>
     <string name="feedback">Geri bildirim</string>
-    <string name="left">sol</string>
+    <string name="left">kaldı</string>
     <string name="licenses">Lisanslar</string>
     <string name="entry_location_description">İlk hop seçimini manuel olarak yap</string>
     <string name="join_matrix">Matrix\'te bize katılın</string>
