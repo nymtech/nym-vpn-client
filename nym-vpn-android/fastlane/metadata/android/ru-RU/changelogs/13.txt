@@ -1,5 +1,5 @@
-What's new:
-- Fix file descriptor bug
-- Fix v5 nym api bug
-- Fix ipv6/ipv4 vpn stops
-- Other bug fixes
+Что нового:
+- Исправлена ошибка с файловым дескриптором
+- Исправлена ошибка в API v5 Nym
+- Исправлены проблемы с остановкой VPN при использовании IPv6/IPv4
+- Исправлены другие ошибки

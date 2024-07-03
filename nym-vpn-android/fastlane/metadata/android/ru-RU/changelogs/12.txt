@@ -1,4 +1,4 @@
-What's new:
-- Added abi splitting for apk size optimization
-- Added smoke test
-- Fixed minification bug
+Что нового:
+- Добавлена возможность разделения ABI для оптимизации размера APK
+- Внедрен тест на работоспособность (smoke test)
+- Исправлена ошибка минификации

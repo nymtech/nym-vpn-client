@@ -1,4 +1,4 @@
-What's new:
-- Added support for Always-on VPN
-- Added support for Quick Settings tile
-- Fixed bug with auto-connect on boot
+Что нового:
+- Внедрена поддержка VPN с функцией "Всегда включен" (Always-on VPN)
+- Добавлена поддержка быстрых настроек
+- Исправлена ошибка автоматического подключения при загрузке системы

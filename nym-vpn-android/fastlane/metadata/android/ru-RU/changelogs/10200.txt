@@ -1,5 +1,5 @@
-What's new:
-- Fixed connection state sync
-- Improved error messaging
-- Added permission denied flow
-- Removed debug logs from release
+Что нового:
+- Исправлена синхронизация состояния подключения
+- Улучшены сообщения об ошибках
+- Добавлен обработчик отказа в разрешении
+- Удалены отладочные логи из релизной версии

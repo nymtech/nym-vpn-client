@@ -1,5 +1,5 @@
-What's new:
-- Credential expiry time
-- QR code scanning for credential
-- Kill switch link
-- UI enhancements
+Что нового:
+- Время истечения учетных данных
+- Сканирование QR-кода для учетных данных
+- Ссылка на функцию "kill switch"
+- Улучшения пользовательского интерфейса

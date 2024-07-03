@@ -1,4 +1,4 @@
-What's new:
-- Improved logging to file
-- Bug fixes
-- Other efficiencies and improvements
+Что нового:
+- Улучшена запись логов в файл
+- Исправлены ошибки
+- Другие улучшения и оптимизации

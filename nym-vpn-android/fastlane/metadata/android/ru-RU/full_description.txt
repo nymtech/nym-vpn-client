@@ -1,48 +1,48 @@
-Download NymVPN and make your online activity safe.
-With our VPN app you can hide your IP address, encrypt your traffic, hide your identity online and much more.
+Скачайте NymVPN и обеспечьте безопасность вашей онлайн-активности.
+С нашим приложением VPN вы сможете скрыть свой IP-адрес, зашифровать трафик, скрыть вашу личность в сети и многое другое.
 
-Many entities on the internet can spy on your activity and take your data.
-Governments, big tech, data brokers, internet service providers and advertisers can all try to monitor your online activity. Recent data leakage scandals made it clear that we can't even trust traditional VPN companies.
+Многие субъекты в интернете могут следить за вашей активностью и захватывать ваши данные.
+Государства, крупные технологические компании, брокеры данных, поставщики интернет-услуг и рекламодатели могут пытаться отслеживать вашу онлайн-активность. Скандальные утечки данных недавних лет показали, что даже традиционным VPN-компаниям нельзя доверять.
 
-Our VPN was born to make your internet activities private and a crucial part of this is not making activity logging and tracking possible.
-NymVPN is a new type of VPN designed in a way that makes it impossible for anyone to monitor or log your online activity, even for us. Our VPN operates on a decentralized network, with no trusted parties, centralized components, or single points of failure. All functionalities of NymVPN are performed in a decentralized and distributed way, and there is no possibility of enabling centralized logging.
-Our VPN encrypts data and shields metadata from traffic analysis through a decentralized Mixnet. Simply put: there is no way for us to log your activity, therefore no one can access it.
+Наш VPN создан для обеспечения приватности ваших интернет-деятельностей, и важной частью этого является отсутствие возможности ведения логирования и отслеживания активности.
+NymVPN представляет собой новый тип VPN, разработанный таким образом, что невозможно отслеживать или записывать вашу онлайн-активность, даже для нас. Наш VPN функционирует на децентрализованной сети без доверенных сторон, централизованных компонентов или единой точки отказа. Все функции NymVPN выполняются в децентрализованном и распределенном режиме, и не существует возможности для централизованной слежки.
+Наш VPN шифрует данные и защищает метаданные от анализа трафика с помощью децентрализованного Микснета. Простыми словами: мы не можем записывать вашу активность, и никто не может получить к ней доступ.
 
-But what exactly is a Mixnet? A Mixnet is a network of nodes that:
-1. Receive encrypted traffic
-2. Mix the traffic
-3. Redirect the traffic
-This process is done up to 5 times (5-hops) and makes it impossible for anyone to monitor or track your online activity.
+Но что такое Mixnet? Mixnet - это сеть нод, которые:
+Получают зашифрованный трафик
+Смешивают трафик
+Перенаправляют трафик
+Этот процесс повторяется до 5 раз (5 ступеней) и делает невозможным для кого-либо отслеживать или отслеживать вашу онлайн-активность.
 
-This is why you should choose our decentralized, secure, and private VPN
+Вот почему вы должны выбрать наш децентрализованный, безопасный и приватный VPN:
 
-Privacy
-Our dVPN was built with privacy in mind. We don't store logs (no-logs policy) nor track your activity. Even if someone wanted to steal your data from us, there would be nothing to steal.
+Приватность
+Наш dVPN создан с учетом приватности. Мы не храним логи (политика no-logs) и не отслеживаем вашу активность. Даже если кто-то захотел украсть ваши данные у нас, красть было бы нечего.
 
-Censorship resistance
-Our VPN app makes your online activity completely anonymous. We encrypt your traffic, IP address, location and everything that someone with bad intentions could monitor. You are completely safe also thanks to features like the killswitch.
+Устойчивость к цензуре
+Наше приложение VPN делает вашу онлайн-активность полностью анонимной. Мы шифруем ваш трафик, IP-адрес, местоположение и все, что кто-то с плохими намерениями мог бы отслеживать. Вы также полностью защищены благодаря функциям, таким как killswitch.
 
-Speed
-The speed of our VPN network grows by the minute thanks to many additional nodes joining the Mixnet network. Moreover, we use modern cryptographic algorithms and innovative protocols such as Sphinx and Loopix to make your connection as fast as possible.
+Скорость
+Скорость нашей сети VPN растет с каждой минутой благодаря множеству новых узлов, присоединяющихся к сети Микснет. Кроме того, мы используем современные криптографические алгоритмы и инновационные протоколы, такие как Sphinx и Loopix, чтобы обеспечить максимально быстрое соединение.
 
-Location of choice
-With NymVPN you can choose to connect from hundreds of locations around the world.
-Download the app --> Choose the location --> Connect
+Выбор местоположения
+С NymVPN вы можете выбирать из сотен местоположений по всему миру.
+Скачайте приложение -> Выберите местоположение -> Подключитесь
 
-Crypto payments
-You are looking for a VPN that accepts crypto payments? Here we are. We are happy to accept payments with cryptocurrencies.
+Криптоплатежи
+Ищете VPN, который принимает криптовалютные платежи? Вот мы. Мы с радостью принимаем платежи криптовалютами.
 
-No-ads
-Enjoy your VPN ads-free. Our main goal is to protect your privacy, also because of this you won't see any ads in our VPN app.
+Никакой рекламы
+Наслаждайтесь VPN без рекламы. Наша главная цель - защита вашей конфиденциальности, поэтому в нашем VPN вы не увидите рекламы.
 
-Limitless usage
-Enjoy the internet as much as you want, NymVPN will never limit your traffic.
+Неограниченное использование
+Наслаждайтесь интернетом насколько хотите, NymVPN никогда не ограничит ваш трафик.
 
-Our VPN most beloved features:
-- 5-hop Mixnet: your internet traffic will be encrypted and sent to mixnodes that will mix it with other traffic packages 5 times, making it impossible for someone to track your online activity.
-- 2-hop dVPN: in this case your traffic is encrypted and sent to 2 mixnodes that will mix it. The reduced number of hops results in higher speed.
-- No centralized logs: we don't store any activity logs, this makes it impossible for anyone to have access to your internet activity through us.
-- Money-back guarantee: if you are not happy with the product we offer a money-back guarantee policy. If you are not happy with something email us at support@nymvpn.com, we are always looking to improve.
-- Split tunneling: you can easily choose which of your apps will access the internet through the VPN and which ones will access the internet directly.
-- Hide IP: our dVPN will hide all the information linked to you including your IP address.
-- Killswitch: our VPN is built to provide privacy and security, that's why in case your VPN connection drops the killswitch will block your internet access, keeping you and your data safe
+Самые любимые функции нашего VPN:
+- 5-ступенчатый Микснет: ваш интернет-трафик будет зашифрован и отправлен в миксноды, которые 5 раз перемешают его с другими пакетами трафика, что сделает невозможным отслеживание вашей онлайн-активности.
+- 2-ступенчатый dVPN: в этом случае ваш трафик будет зашифрован и отправлен к 2 микснодам, которые перемешают его. Уменьшенное количество ступеней обеспечивает более высокую скорость.
+- Отсутствие централизованных логов: мы не храним логи активности, что делает невозможным для кого-либо получение доступа к вашей интернет-активности через нас.
+- Гарантия возврата денег: если вы не удовлетворены продуктом, мы предлагаем политику гарантии возврата денег. Если вам что-то не нравится, напишите нам на support@nymvpn.com, мы всегда стремимся к улучшению.
+- Раздельное туннелирование: вы легко можете выбрать, какие из ваших приложений будут использовать интернет через VPN, а какие - напрямую.
+- Скрытие IP: наш dVPN скрывает всю информацию, связанную с вами, включая ваш IP-адрес.
+- Killswitch: наш VPN создан для обеспечения конфиденциальности и безопасности, поэтому в случае разрыва VPN-соединения killswitch блокирует ваш доступ в интернет, обеспечивая защиту вас и ваших данных.
