@@ -8,9 +8,6 @@
     },
     "last-hop": "Ultimo hop",
     "first-hop": "Primo hop",
-    "mixnet-mode": {
-        "desc": "Migliore per pagamenti, email, messaggi"
-    },
     "last-node-select": {
         "label": "Ultimo hop"
     },

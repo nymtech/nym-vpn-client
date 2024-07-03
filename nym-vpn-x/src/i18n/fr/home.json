@@ -12,16 +12,7 @@
     "first-hop": "Nœud d'entrée",
     "connecting-message": "Connexion en cours",
     "connection-time": "Temps de connexion",
-    "select-network-label": "Choix du réseau",
     "select-node-title": "Choix des nœuds",
-    "mixnet-mode": {
-        "desc": "Pour les paiements, emails et messages",
-        "title": "Anonyme"
-    },
-    "twohop-mode": {
-        "title": "Rapide",
-        "desc": "Pour la navigation, le streaming et les téléchargements"
-    },
     "last-node-select": {
         "label": "Nœud de sortie",
         "text": "Connexion rapide vers ({{country}})"

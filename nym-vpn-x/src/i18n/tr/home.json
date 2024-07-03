@@ -12,16 +12,7 @@
     "first-hop": "İlk hop",
     "connecting-message": "Bağlantı kuruluyor",
     "connection-time": "Bağlantı süresi",
-    "select-network-label": "Ağ seç",
     "select-node-title": "Bağlan",
-    "mixnet-mode": {
-        "desc": "Ödemeler, e-postalar, mesajlar için en iyisi",
-        "title": "5-hop mixnet"
-    },
-    "twohop-mode": {
-        "title": "2-hop",
-        "desc": "İnternet tarama, yayın, paylaşım için en iyisi"
-    },
     "last-node-select": {
         "label": "Son hop",
         "text": "Hızlı bağlantı ({{ülke}})"
