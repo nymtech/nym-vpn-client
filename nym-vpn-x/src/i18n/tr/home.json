@@ -29,5 +29,12 @@
     "fast-mode": {
         "title": "Hızlı",
         "desc": "İnternet tarama, yayın, paylaşım için en iyisi"
+    },
+    "select-mode-label": "Mod seçin",
+    "modes-dialog": {
+        "title": "Mod seçimi",
+        "privacy-description": "Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek maksimum düzeyde gizliliğin tadını çıkarın. Ödemeleri, e-postaları ve mesajları güvenli bir şekilde yönetmek için mükemmeldir.",
+        "fast-description": "WireGuard protokolünü kullanarak 2 sunucu bağlantısıyla maksimum hızın keyfini çıkarın. Hızlı tarama, yayın izleme ve dosya paylaşımı için mükemmeldir.",
+        "link": "Okumaya devam edin"
     }
 }
