@@ -130,13 +130,13 @@ jobs:
           echo "ARCHIVE_MAC=${ARCHIVE_MAC}" >> $GITHUB_ENV
           echo "ARCHIVE_ANDROID=${ARCHIVE_ANDROID}" >> $GITHUB_ENV
           echo "ARCHIVE_IOS=${ARCHIVE_IOS}" >> $GITHUB_ENV
-          echo "ARCHIVE_WINDOWS=${ARCHIVE_IOS}" >> $GITHUB_ENV
+          echo "ARCHIVE_WINDOWS=${ARCHIVE_WINDOWS}" >> $GITHUB_ENV
 
           mv ${{ env.UPLOAD_DIR_LINUX }} ${ARCHIVE_LINUX}
           mv ${{ env.UPLOAD_DIR_MAC }} ${ARCHIVE_MAC}
           mv ${{ env.UPLOAD_DIR_ANDROID }} ${ARCHIVE_ANDROID}
           mv ${{ env.UPLOAD_DIR_IOS }} ${ARCHIVE_IOS}
-          mv ${{ env.UPLOAD_DIR_WINDOWS }} ${ARCHIVE_IOS}
+          mv ${{ env.UPLOAD_DIR_WINDOWS }} ${ARCHIVE_WINDOWS}
 
           tar cvzf ${ARCHIVE_LINUX}.tar.gz ${ARCHIVE_LINUX}
           tar cvzf ${ARCHIVE_MAC}.tar.gz ${ARCHIVE_MAC}
