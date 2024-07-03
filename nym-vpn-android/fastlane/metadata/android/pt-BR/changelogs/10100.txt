@@ -1,4 +1,4 @@
-What's new:
-- UI improvements
-- Add credential trimming
-- Temp fix for connection errors
+Novidades:
+- Melhorias na interface do usuário
+- Adição de corte de credenciais
+- Correção temporária de erros de conexão
