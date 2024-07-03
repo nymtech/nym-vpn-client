@@ -8,6 +8,7 @@ use std::path::PathBuf;
 
 use commands::ImportCredentialTypeEnum;
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
+use nym_vpn_lib::nym_bin_common::bin_info;
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity, SpecificVpn};
 use nym_vpn_lib::{NymVpn, Recipient};
 use time::OffsetDateTime;
@@ -151,6 +152,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.dns = args.dns;
         nym_vpn.disable_routing = args.disable_routing;
         nym_vpn.enable_two_hop = args.enable_two_hop;
+        nym_vpn.user_agent = Some(bin_info!().into());
         nym_vpn.into()
     } else {
         let mut nym_vpn = NymVpn::new_mixnet_vpn(entry_point, exit_point);
@@ -164,6 +166,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.vpn_config.enable_poisson_rate = args.enable_poisson_rate;
         nym_vpn.vpn_config.disable_background_cover_traffic = args.disable_background_cover_traffic;
         nym_vpn.vpn_config.enable_credentials_mode = args.enable_credentials_mode;
+        nym_vpn.user_agent = Some(bin_info!().into());
         nym_vpn.into()
     };
 

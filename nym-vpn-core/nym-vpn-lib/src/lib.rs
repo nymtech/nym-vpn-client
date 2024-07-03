@@ -17,6 +17,7 @@ use nym_gateway_directory::{
     Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress,
 };
 use nym_ip_packet_client::IprClient;
+use nym_sdk::UserAgent;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
@@ -164,6 +165,10 @@ pub struct NymVpn<T: Vpn> {
     /// Disable routing all traffic through the VPN TUN device.
     pub disable_routing: bool,
 
+    /// The user agent to use for HTTP requests. This includes client name, version, platform and
+    /// git commit hash.
+    pub user_agent: Option<UserAgent>,
+
     tun_provider: Arc<Mutex<TunProvider>>,
 
     #[cfg(target_os = "ios")]
@@ -213,6 +218,7 @@ impl NymVpn<WireguardVpn> {
             dns: None,
             disable_routing: false,
             enable_two_hop: false,
+            user_agent: None,
             vpn_config: WireguardVpn {
                 entry_wg_ip: None,
                 exit_wg_ip: None,
@@ -252,6 +258,7 @@ impl NymVpn<MixnetVpn> {
             dns: None,
             disable_routing: false,
             enable_two_hop: false,
+            user_agent: None,
             vpn_config: MixnetVpn {
                 mixnet_data_path: None,
                 enable_poisson_rate: false,
@@ -446,6 +453,13 @@ impl SpecificVpn {
         match self {
             SpecificVpn::Wg(vpn) => vpn.exit_point.clone(),
             SpecificVpn::Mix(vpn) => vpn.exit_point.clone(),
+        }
+    }
+
+    pub fn user_agent(&self) -> Option<UserAgent> {
+        match self {
+            SpecificVpn::Wg(vpn) => vpn.user_agent.clone(),
+            SpecificVpn::Mix(vpn) => vpn.user_agent.clone(),
         }
     }
 

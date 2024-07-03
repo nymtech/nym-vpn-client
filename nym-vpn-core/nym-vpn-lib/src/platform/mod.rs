@@ -12,6 +12,7 @@ use crate::{
 use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
+use nym_bin_common::bin_info;
 use nym_task::manager::TaskStatus;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -279,7 +280,9 @@ async fn get_gateway_countries(
         explorer_url: Some(explorer_url),
         harbour_master_url,
     };
-    let gateway_client = GatewayClient::new(config)?;
+    // TODO: pass user agent from the caller to capture the platform correctly
+    let user_agent = bin_info!().into();
+    let gateway_client = GatewayClient::new(config, user_agent)?;
 
     let locations = if !exit_only {
         gateway_client.lookup_all_countries_iso().await?
@@ -313,7 +316,9 @@ async fn get_low_latency_entry_country(
         explorer_url: Some(explorer_url),
         harbour_master_url,
     };
-    let gateway_client = GatewayClient::new(config)?;
+    // TODO: pass user agent from the caller to capture the platform correctly
+    let user_agent = bin_info!().into();
+    let gateway_client = GatewayClient::new(config, user_agent)?;
     let described = gateway_client.lookup_low_latency_entry_gateway().await?;
     let country = described
         .location()
