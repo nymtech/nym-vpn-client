@@ -52,7 +52,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     };
     let exit_gateways = extract_out_exit_gateways(gateways.clone()).await;
     let exit_router_address = exit_point
-        .lookup_router_address(&exit_gateways)
+        .lookup_router_address(&exit_gateways, None)
         .map(|(address, _)| address)
         .ok();
 
