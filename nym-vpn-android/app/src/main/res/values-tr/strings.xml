@@ -127,4 +127,5 @@
     <string name="mode_selection">Mod seçimi</string>
     <string name="five_hop_explanation">Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek maksimum düzeyde gizliliğin tadını çıkarın. Ödemeleri, e-postaları ve mesajları güvenli bir şekilde yönetmek için mükemmeldir.</string>
     <string name="continue_reading">Okumaya devam edin</string>
+    <string name="two_hop_explanation">WireGuard protokolünü kullanarak 2 sunucu bağlantısıyla maksimum hızı deneyimleyin. Hızlı tarama, yayın akışı ve dosya paylaşımı için mükemmeldir.</string>
 </resources>
