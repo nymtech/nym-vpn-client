@@ -60,7 +60,7 @@ jobs:
           name: ${{ env.MULLVAD_LIB_NAME }}.dll
           path: ${{ env.LIBS_PATH }}/
 
-      - name: Download/Unzip/Move wintun.zip, winpcap.zip also move wireguard lib for windows
+      - name: Download/Unzip/Move wintun.zip, winpcap.zip also move libwg and winfw lib
         shell: bash
         run: |
           curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
@@ -68,6 +68,8 @@ jobs:
           mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll nym-vpn-core/
           mv '${{ env.LIBS_PATH }}/libwg.dll' nym-vpn-core/
           mv '${{ env.LIBS_PATH }}/libwg.lib' nym-vpn-core/
+          mv '${{ env.LIBS_PATH }}/winfw.dll' nym-vpn-core/
+          mv '${{ env.LIBS_PATH }}/winfw.lib' nym-vpn-core/
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
