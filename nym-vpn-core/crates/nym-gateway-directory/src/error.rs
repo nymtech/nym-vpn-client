@@ -3,6 +3,8 @@
 
 use nym_client_core::error::ClientCoreError;
 
+use crate::DescribedGatewayWithLocation;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("identity not formatted correctly")]
@@ -77,6 +79,12 @@ pub enum Error {
 
     #[error("tunnel in a tunnel works for gateway id or location")]
     InvalidExitPointDescription,
+
+    #[error("the only available exit gateway is the entry gateway")]
+    OnlyAvailableExitGatewayIsTheEntryGateway {
+        requested_location: String,
+        gateway: DescribedGatewayWithLocation,
+    },
 }
 
 // Result type based on our error type

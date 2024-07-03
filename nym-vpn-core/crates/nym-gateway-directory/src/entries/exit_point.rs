@@ -73,9 +73,25 @@ impl ExitPoint {
                     .iter()
                     .filter(|g| g.has_ip_packet_router())
                     .filter(|g| g.is_current_build())
-                    .filter(|g| g.node_identity().as_ref() != entry_gateway)
                     .cloned()
                     .collect::<Vec<_>>();
+
+                // If there is only one exit gateway available and it is the entry gateway, we
+                // should not use it as the exit gateway.
+                if exit_gateways.len() == 1
+                    && exit_gateways[0].node_identity().as_ref() == entry_gateway
+                {
+                    return Err(Error::OnlyAvailableExitGatewayIsTheEntryGateway {
+                        requested_location: location.clone(),
+                        gateway: exit_gateways[0].clone(),
+                    });
+                }
+
+                let exit_gateways = exit_gateways
+                    .into_iter()
+                    .filter(|g| g.node_identity().as_ref() != entry_gateway)
+                    .collect::<Vec<_>>();
+
                 let gateway = by_location_described(&exit_gateways, location)?;
                 Ok((
                     IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
