@@ -9,14 +9,20 @@ use crate::{
 
 const NYM_VPN_API: &str = "https://nymvpn.com/api";
 
-pub async fn get_gateways(user_agent: UserAgent) -> Result<Vec<Gateway>> {
-    debug!("Fetching gateways");
+fn get_client_with_user_agent(user_agent: UserAgent) -> Result<Client> {
     let timeout = std::time::Duration::from_secs(10);
-    let client = ClientBuilder::new(NYM_VPN_API)?
+    ClientBuilder::new(NYM_VPN_API)?
         .with_timeout(timeout)
         .with_user_agent(user_agent)
-        .build()?;
-    Ok(client.get_gateways().await?)
+        .build()
+        .map_err(Into::into)
+}
+
+pub async fn get_gateways(user_agent: UserAgent) -> Result<Vec<Gateway>> {
+    debug!("Fetching gateways");
+    Ok(get_client_with_user_agent(user_agent)?
+        .get_gateways()
+        .await?)
 }
 
 pub async fn get_entry_gateways(user_agent: UserAgent) -> Result<Vec<Gateway>> {
