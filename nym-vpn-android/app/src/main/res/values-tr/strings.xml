@@ -123,4 +123,8 @@
     <string name="share_anonymous_analytics">Anonim ürün analizlerini paylaş</string>
     <string name="continue_agree">Devam ederek, NymVPN\'in şartlarını kabul etmiş olursunuz</string>
     <string name="opt_in_message_second">ve isteğe bağlı olarak analitiklere katılabilirsiniz —dilediğiniz zaman vazgeçebilirsiniz.</string>
+    <string name="select_mode">Mod seçin</string>
+    <string name="mode_selection">Mod seçimi</string>
+    <string name="five_hop_explanation">Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek maksimum düzeyde gizliliğin tadını çıkarın. Ödemeleri, e-postaları ve mesajları güvenli bir şekilde yönetmek için mükemmeldir.</string>
+    <string name="continue_reading">Okumaya devam edin</string>
 </resources>

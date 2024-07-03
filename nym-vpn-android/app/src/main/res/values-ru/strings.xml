@@ -123,4 +123,8 @@
     <string name="days">дней</string>
     <string name="day">день</string>
     <string name="error_logs_not_saved">Не удалось сохранить логи</string>
+    <string name="select_mode">Выберите режим</string>
+    <string name="mode_selection">Выбор режима</string>
+    <string name="continue_reading">Продолжить чтение</string>
+    <string name="five_hop_explanation">Наивысший уровень конфиденциальности с маршрутизацией соединения сквозь 5 серверов через микснет. Идеально подходит для безопасной обработки платежей, электронных писем и сообщений.</string>
 </resources>

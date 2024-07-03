@@ -132,4 +132,8 @@
     <string name="day">día</string>
     <string name="scan_nym_vpn_credential">Escanear QR de la credencial NymVPN</string>
     <string name="error_logs_not_saved">Error al guardar los registros</string>
+    <string name="select_mode">Seleccione el modo</string>
+    <string name="mode_selection">Seleccione el modo</string>
+    <string name="continue_reading">Continúe leyendo</string>
+    <string name="five_hop_explanation">Disfrute de la máxima privacidad enrutando su conexión a través de 5 servidores mediante mixnet. Perfecto para gestionar pagos, correos electrónicos y mensajes de forma segura.</string>
 </resources>
