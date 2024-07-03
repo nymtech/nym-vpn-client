@@ -123,4 +123,8 @@
     <string name="day">天</string>
     <string name="scan_nym_vpn_credential">扫描 NymVPN 凭证二维码</string>
     <string name="error_logs_not_saved">保存日志失败</string>
+    <string name="select_mode">选择模式</string>
+    <string name="mode_selection">模式选择</string>
+    <string name="five_hop_explanation">通过 mixnet 通过 5 个服务器路由连接，享受最高级别的隐私保护。是安全处理付款、电子邮件和信息的完美选择。</string>
+    <string name="continue_reading">继续阅读</string>
 </resources>
