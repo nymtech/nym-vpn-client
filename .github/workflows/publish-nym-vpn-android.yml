@@ -258,7 +258,7 @@ jobs:
           bundle exec fastlane ${{ inputs.track }}
 
   publish-play-metadata:
-    if: github.event.inputs.use-emoji == 'true'
+    if: github.event.inputs.publish-metadata == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
