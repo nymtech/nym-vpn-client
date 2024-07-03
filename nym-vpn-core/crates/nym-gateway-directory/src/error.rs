@@ -83,7 +83,7 @@ pub enum Error {
     #[error("the only available exit gateway is the entry gateway")]
     OnlyAvailableExitGatewayIsTheEntryGateway {
         requested_location: String,
-        gateway: DescribedGatewayWithLocation,
+        gateway: Box<DescribedGatewayWithLocation>,
     },
 }
 

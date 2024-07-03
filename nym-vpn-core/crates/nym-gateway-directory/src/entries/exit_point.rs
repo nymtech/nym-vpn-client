@@ -83,7 +83,7 @@ impl ExitPoint {
                 {
                     return Err(Error::OnlyAvailableExitGatewayIsTheEntryGateway {
                         requested_location: location.clone(),
-                        gateway: exit_gateways[0].clone(),
+                        gateway: Box::new(exit_gateways[0].clone()),
                     });
                 }
 
