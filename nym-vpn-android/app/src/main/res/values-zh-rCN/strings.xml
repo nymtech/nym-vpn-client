@@ -23,7 +23,7 @@
     <string name="disconnecting">断开连接</string>
     <string name="connecting">正在连接</string>
     <string name="five_hop_mixnet">匿名</string>
-    <string name="two_hop_description">适用于浏览、流媒体、共享</string>
+    <string name="two_hop_description">适用于浏览、流媒体、分享</string>
     <string name="first_hop">第一跳</string>
     <string name="last_hop">最后一跳</string>
     <string name="connect">连接</string>
@@ -63,7 +63,7 @@
     <string name="email_chooser">发送邮件…</string>
     <string name="login">登录</string>
     <string name="add_credential">添加凭证</string>
-    <string name="add_cred_to_connect">添加凭证连接</string>
+    <string name="add_cred_to_connect">添加凭证以连接</string>
     <string name="credential_disclaimer">要生成新的凭证，请使用alpha阶段邀请函电子邮件中提供的链接。</string>
     <string name="credential_label">凭证</string>
     <string name="credential_failed_message">无效凭证</string>
@@ -96,7 +96,7 @@
     <string name="to_alpha">到 NymVPN alpha</string>
     <string name="welcome">欢迎</string>
     <string name="cont">继续</string>
-    <string name="and_acknowledge">并承认 NymVPN</string>
+    <string name="and_acknowledge">并承认 NymVPN的</string>
     <string name="share_anonymous_analytics">共享匿名产品分析</string>
     <string name="anonymous_error_reports">匿名错误报告</string>
     <string name="gateways_error">检索网关失败</string>
@@ -117,7 +117,7 @@
     <string name="error_vpn_halted_unexpectedly">VPN 意外中断。请尝试重新连接。</string>
     <string name="kill_switch">熄火开关</string>
     <string name="contact_support">联系支持</string>
-    <string name="hours">小时</string>
+    <string name="hours">小时数</string>
     <string name="hour">小时</string>
     <string name="days">天数</string>
     <string name="day">天</string>
