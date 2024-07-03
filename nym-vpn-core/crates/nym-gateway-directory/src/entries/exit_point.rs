@@ -52,6 +52,7 @@ impl ExitPoint {
     pub fn lookup_router_address(
         &self,
         gateways: &[DescribedGatewayWithLocation],
+        entry_gateway: Option<&NodeIdentity>,
     ) -> Result<(IpPacketRouterAddress, Option<String>)> {
         match &self {
             ExitPoint::Address { address } => {
@@ -72,6 +73,7 @@ impl ExitPoint {
                     .iter()
                     .filter(|g| g.has_ip_packet_router())
                     .filter(|g| g.is_current_build())
+                    .filter(|g| g.node_identity().as_ref() != entry_gateway)
                     .cloned()
                     .collect::<Vec<_>>();
                 let gateway = by_location_described(&exit_gateways, location)?;
@@ -86,6 +88,7 @@ impl ExitPoint {
                     .iter()
                     .filter(|g| g.has_ip_packet_router())
                     .filter(|g| g.is_current_build())
+                    .filter(|g| g.node_identity().as_ref() != entry_gateway)
                     .cloned()
                     .collect::<Vec<_>>();
                 let gateway = by_random_described(&exit_gateways)?;

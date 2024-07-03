@@ -336,7 +336,7 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
 
     let (exit_router_address, exit_location) = nym_vpn
         .exit_point()
-        .lookup_router_address(&exit_gateways)
+        .lookup_router_address(&exit_gateways, Some(&entry_gateway_id))
         .map_err(|err| Error::FailedToLookupRouterAddress { source: err })?;
     let exit_location_str = exit_location.as_deref().unwrap_or("unknown");
     let exit_gateway_id = exit_router_address.gateway();
