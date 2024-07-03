@@ -126,6 +126,33 @@ jobs:
           # set gh outputs
           echo "pkg_version=$version" >> "$GITHUB_OUTPUT"
 
+      # Download latest release of nym-vpnd (windows)
+      - name: Get nym-vpn-core release info
+        if: contains(matrix.os, 'windows')
+        id: get_release
+        run: |
+          $releases = Invoke-RestMethod -Uri https://api.github.com/repos/nymtech/nym-vpn-client/releases
+          $release = $releases | Where-Object { $_.tag_name -match '^nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+$' } | Sort-Object { [version]($_.tag_name -replace 'nym-vpn-core-v', '0.') } | Select-Object -Last 1
+          $asset = $release.assets | Where-Object { $_.name -match 'windows_x86_64.zip$' }
+          Write-Output "Release Tag: $($release.tag_name)"
+          Write-Output "Asset URL: $($asset.browser_download_url)"
+          echo "::set-output name=release_tag::$($release.tag_name)"
+          echo "::set-output name=asset_url::$($asset.browser_download_url)"
+
+      - name: Download nym-vpn-core artifact
+        if: contains(matrix.os, 'windows')
+        run: |
+          $url = '${{ steps.get_release.outputs.asset_url }}'
+          $output = 'nym-vpn-core.zip'
+          Invoke-WebRequest -Uri $url -OutFile $output
+
+      - name: Unzip nym-vpn-core artifact
+        if: contains(matrix.os, 'windows')
+        run: |
+          $output = 'nym-vpn-core.zip'
+          $destination = 'nym-vpn-core'
+          Expand-Archive -Path $output -DestinationPath $destination -Force
+
       - name: Install cargo-about
         run: cargo install --locked cargo-about
 
