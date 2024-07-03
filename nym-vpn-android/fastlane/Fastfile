@@ -27,8 +27,8 @@ platform :android do
   end
 
   desc "Deploy metadata to Google Play"
-      lane :metadata do
-        upload_to_play_store(skip_upload_apk: true, skip_upload_aab: true)
+    lane :metadata do
+      upload_to_play_store(skip_upload_apk: true, skip_upload_aab: true)
   end
 
 end
