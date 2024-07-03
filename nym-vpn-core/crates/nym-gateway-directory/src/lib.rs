@@ -11,7 +11,7 @@ pub use crate::{
         described_gateway::{DescribedGatewayWithLocation, LookupGateway},
         entry_point::EntryPoint,
         exit_point::ExitPoint,
-        ipr_address::IpPacketRouterAddress,
+        mix_addresses::MixAddresses,
     },
     error::Error,
     gateway_client::{Config, GatewayClient, GatewayQueryResult},

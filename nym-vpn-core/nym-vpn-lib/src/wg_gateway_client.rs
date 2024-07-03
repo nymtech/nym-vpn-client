@@ -5,7 +5,6 @@ use crate::error::Result;
 use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
 use nym_crypto::asymmetric::encryption;
 use nym_crypto::asymmetric::x25519::KeyPair;
-use nym_node_requests::api::client::NymNodeApiClientExt;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
@@ -39,14 +38,8 @@ impl WgGatewayClient {
         &self.keypair
     }
 
-    pub async fn register_wireguard(
-        &self,
-        // gateway_identity: &str,
-        gateway_host: IpAddr,
-    ) -> Result<GatewayData> {
-        // info!("Lookup ip for {}", gateway_identity);
-        // let gateway_host = self.lookup_gateway_ip(gateway_identity).await?;
-        // info!("Received wg gateway ip: {}", gateway_host);
+    pub async fn register_wireguard(&self, gateway_identity: &str) -> Result<GatewayData> {
+        let gateway_host = self.lookup_gateway_ip(gateway_identity).await?;
 
         let gateway_api_client = nym_node_requests::api::Client::new_url(
             format!("{}:{}", gateway_host, DEFAULT_NYM_NODE_HTTP_PORT),

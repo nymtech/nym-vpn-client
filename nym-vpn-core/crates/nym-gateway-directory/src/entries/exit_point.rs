@@ -6,7 +6,7 @@ use std::fmt::{Display, Formatter};
 use crate::{
     entries::described_gateway::{by_location_described, by_random_described},
     error::Result,
-    DescribedGatewayWithLocation, Error, IpPacketRouterAddress,
+    DescribedGatewayWithLocation, Error, MixAddresses,
 };
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
@@ -49,20 +49,26 @@ impl ExitPoint {
         matches!(self, ExitPoint::Location { .. })
     }
 
-    pub fn lookup_router_address(
+    pub fn lookup_mix_addresses(
         &self,
         gateways: &[DescribedGatewayWithLocation],
-    ) -> Result<(IpPacketRouterAddress, Option<String>)> {
+    ) -> Result<(MixAddresses, Option<String>)> {
         match &self {
             ExitPoint::Address { address } => {
                 // There is no validation done when a ip packet router is specified by address
                 // since it might be private and not available in any directory.
-                Ok((IpPacketRouterAddress(*address), None))
+                Ok((
+                    MixAddresses {
+                        ip_packet_router_address: *address,
+                        authenticator_address: None,
+                    },
+                    None,
+                ))
             }
             ExitPoint::Gateway { identity } => {
                 let gateway = by_identity(gateways, identity)?;
                 Ok((
-                    IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
+                    MixAddresses::try_from_described_gateway(&gateway.gateway)?,
                     gateway.two_letter_iso_country_code(),
                 ))
             }
@@ -76,7 +82,7 @@ impl ExitPoint {
                     .collect::<Vec<_>>();
                 let gateway = by_location_described(&exit_gateways, location)?;
                 Ok((
-                    IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
+                    MixAddresses::try_from_described_gateway(&gateway.gateway)?,
                     gateway.two_letter_iso_country_code(),
                 ))
             }
@@ -90,7 +96,7 @@ impl ExitPoint {
                     .collect::<Vec<_>>();
                 let gateway = by_random_described(&exit_gateways)?;
                 Ok((
-                    IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
+                    MixAddresses::try_from_described_gateway(&gateway.gateway)?,
                     gateway.two_letter_iso_country_code(),
                 ))
             }

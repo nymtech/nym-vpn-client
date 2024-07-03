@@ -1,13 +1,16 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::time::Duration;
+
 use crate::error::{Error, Result};
+use crate::mixnet_connect::SharedMixnetClient;
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
 use crate::tunnel::setup_route_manager;
 use crate::util::handle_interrupt;
 use crate::wg_gateway_client::WgGatewayClient;
 use crate::wireguard_setup::create_wireguard_tunnel;
-use crate::{init_wireguard_config, WireguardVpn};
+use crate::{init_wireguard_config, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS};
 use crate::{routing, MixnetConnectionInfo, NymVpn};
 use crate::{MixnetExitConnectionInfo, MixnetVpn, SpecificVpn};
 use futures::channel::{mpsc, oneshot};
@@ -15,7 +18,7 @@ use futures::StreamExt;
 use ipnetwork::IpNetwork;
 use log::*;
 use nym_gateway_directory::{
-    GatewayClient, GatewayQueryResult, IpPacketRouterAddress, LookupGateway, NodeIdentity,
+    GatewayClient, GatewayQueryResult, LookupGateway, MixAddresses, NodeIdentity,
 };
 use nym_task::TaskManager;
 use rand::rngs::OsRng;
@@ -24,6 +27,7 @@ use talpid_core::firewall::Firewall;
 use talpid_routing::RouteManager;
 use talpid_tunnel::{TunnelEvent, TunnelMetadata};
 use tap::TapFallible;
+use tokio::time::timeout;
 
 pub struct TunnelSetup<T: TunnelSpecifcSetup> {
     pub specific_setup: T,
@@ -233,11 +237,11 @@ async fn setup_wg_tunnel(
 
 async fn setup_mix_tunnel(
     nym_vpn: &mut NymVpn<MixnetVpn>,
+    mixnet_client: SharedMixnetClient,
     mut task_manager: TaskManager,
     mut route_manager: RouteManager,
     gateway_directory_client: GatewayClient,
-    entry_gateway_id: NodeIdentity,
-    exit_router_address: IpPacketRouterAddress,
+    exit_mix_addresses: MixAddresses,
     default_lan_gateway_ip: routing::LanGatewayIp,
 ) -> Result<AllTunnelsSetup> {
     info!("Wireguard is disabled");
@@ -254,9 +258,9 @@ async fn setup_mix_tunnel(
     // - Starts processing packets
     let ret = nym_vpn
         .setup_tunnel_services(
+            mixnet_client,
             &mut route_manager,
-            &entry_gateway_id,
-            &exit_router_address,
+            &exit_mix_addresses,
             &task_manager,
             &gateway_directory_client,
             default_lan_gateway_ip,
@@ -334,16 +338,16 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
         .map_err(|err| Error::FailedToLookupGatewayIdentity { source: err })?;
     let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
 
-    let (exit_router_address, exit_location) = nym_vpn
+    let (exit_mix_addresses, exit_location) = nym_vpn
         .exit_point()
-        .lookup_router_address(&exit_gateways)
+        .lookup_mix_addresses(&exit_gateways)
         .map_err(|err| Error::FailedToLookupRouterAddress { source: err })?;
     let exit_location_str = exit_location.as_deref().unwrap_or("unknown");
-    let exit_gateway_id = exit_router_address.gateway();
+    let exit_gateway_id = exit_mix_addresses.gateway();
 
     info!("Using entry gateway: {entry_gateway_id}, location: {entry_location_str}");
     info!("Using exit gateway: {exit_gateway_id}, location: {exit_location_str}");
-    info!("Using exit router address {exit_router_address}");
+    info!("Using exit router address {exit_mix_addresses}");
 
     // Get the IP address of the local LAN gateway
     let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
@@ -352,6 +356,26 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
     let task_manager = TaskManager::new(10).named("nym_vpn_lib");
     info!("Setting up route manager");
     let route_manager = setup_route_manager().await?;
+
+    info!("Setting up mixnet client");
+    info!("Connecting to entry gateway: {entry_gateway_id}");
+    let mixnet_client = timeout(
+        Duration::from_secs(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS),
+        crate::setup_mixnet_client(
+            &entry_gateway_id,
+            &nym_vpn.mixnet_client_config().mixnet_data_path,
+            task_manager.subscribe_named("mixnet_client_main"),
+            false,
+            nym_vpn.enable_two_hop(),
+            nym_vpn.mixnet_client_config().enable_poisson_rate,
+            nym_vpn
+                .mixnet_client_config()
+                .disable_background_cover_traffic,
+            nym_vpn.mixnet_client_config().enable_credentials_mode,
+        ),
+    )
+    .await
+    .map_err(|_| Error::StartMixnetTimeout(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS))??;
 
     match nym_vpn {
         SpecificVpn::Wg(vpn) => {
@@ -367,11 +391,11 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
         SpecificVpn::Mix(vpn) => {
             setup_mix_tunnel(
                 vpn,
+                mixnet_client,
                 task_manager,
                 route_manager,
                 gateway_directory_client,
-                entry_gateway_id,
-                exit_router_address,
+                exit_mix_addresses,
                 default_lan_gateway_ip,
             )
             .await

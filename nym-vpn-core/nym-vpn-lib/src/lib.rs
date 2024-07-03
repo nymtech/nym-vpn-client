@@ -14,7 +14,7 @@ use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_connection_monitor::ConnectionMonitorTask;
 use nym_gateway_directory::{
-    Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress,
+    Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, GatewayClient, MixAddresses,
 };
 use nym_ip_packet_client::IprClient;
 use nym_task::TaskManager;
@@ -91,19 +91,7 @@ struct ShadowHandle {
     _inner: Option<JoinHandle<Result<AsyncDevice>>>,
 }
 
-pub struct MixnetVpn {
-    /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
-    pub mixnet_data_path: Option<PathBuf>,
-
-    /// Enable Poission process rate limiting of outbound traffic.
-    pub enable_poisson_rate: bool,
-
-    /// Disable constant rate background loop cover traffic
-    pub disable_background_cover_traffic: bool,
-
-    /// Enable the wireguard traffic between the client and the entry gateway.
-    pub enable_credentials_mode: bool,
-}
+pub struct MixnetVpn {}
 
 pub struct WireguardVpn {
     /// The IP address of the entry wireguard interface.
@@ -135,7 +123,24 @@ impl From<NymVpn<MixnetVpn>> for SpecificVpn {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct MixnetClientConfig {
+    /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
+    pub mixnet_data_path: Option<PathBuf>,
+
+    /// Enable Poission process rate limiting of outbound traffic.
+    pub enable_poisson_rate: bool,
+
+    /// Disable constant rate background loop cover traffic
+    pub disable_background_cover_traffic: bool,
+
+    /// Enable the credentials mode between the client and the entry gateway.
+    pub enable_credentials_mode: bool,
+}
+
 pub struct NymVpn<T: Vpn> {
+    pub mixnet_client_config: MixnetClientConfig,
+
     /// Gateway configuration
     pub gateway_config: GatewayDirectoryConfig,
 
@@ -205,6 +210,12 @@ impl NymVpn<WireguardVpn> {
         )));
 
         Self {
+            mixnet_client_config: MixnetClientConfig {
+                mixnet_data_path: None,
+                enable_poisson_rate: false,
+                disable_background_cover_traffic: false,
+                enable_credentials_mode: false,
+            },
             gateway_config: nym_gateway_directory::Config::default(),
             entry_point,
             exit_point,
@@ -244,6 +255,12 @@ impl NymVpn<MixnetVpn> {
         )));
 
         Self {
+            mixnet_client_config: MixnetClientConfig {
+                mixnet_data_path: None,
+                enable_poisson_rate: false,
+                disable_background_cover_traffic: false,
+                enable_credentials_mode: false,
+            },
             gateway_config: nym_gateway_directory::Config::default(),
             entry_point,
             exit_point,
@@ -252,12 +269,7 @@ impl NymVpn<MixnetVpn> {
             dns: None,
             disable_routing: false,
             enable_two_hop: false,
-            vpn_config: MixnetVpn {
-                mixnet_data_path: None,
-                enable_poisson_rate: false,
-                disable_background_cover_traffic: false,
-                enable_credentials_mode: false,
-            },
+            vpn_config: MixnetVpn {},
             tun_provider,
             #[cfg(target_os = "ios")]
             ios_tun_provider,
@@ -270,20 +282,23 @@ impl NymVpn<MixnetVpn> {
         &mut self,
         mixnet_client: SharedMixnetClient,
         route_manager: &mut RouteManager,
-        exit_router: &IpPacketRouterAddress,
+        exit_mix_addresses: &MixAddresses,
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         dns_monitor: &mut DnsMonitor,
     ) -> Result<MixnetExitConnectionInfo> {
-        let exit_gateway = *exit_router.gateway();
+        let exit_gateway = *exit_mix_addresses.gateway();
         info!("Connecting to exit gateway: {exit_gateway}");
-        debug!("Connecting to exit IPR: {exit_router}");
         // Currently the IPR client is only used to connect. The next step would be to use it to
         // spawn a separate task that handles IPR request/responses.
         let mut ipr_client = IprClient::new_from_inner(mixnet_client.inner()).await;
         let our_ips = ipr_client
-            .connect(exit_router, self.nym_ips, self.enable_two_hop)
+            .connect(
+                exit_mix_addresses.ip_packet_router_address,
+                self.nym_ips,
+                self.enable_two_hop,
+            )
             .await?;
         info!("Successfully connected to exit gateway");
         info!("Using mixnet VPN IP addresses: {our_ips}");
@@ -317,7 +332,8 @@ impl NymVpn<MixnetVpn> {
         .await?;
 
         info!("Setting up mixnet processor");
-        let processor_config = mixnet_processor::Config::new(*exit_router);
+        let processor_config =
+            mixnet_processor::Config::new(exit_mix_addresses.ip_packet_router_address);
         debug!("Mixnet processor config: {:#?}", processor_config);
 
         // For other components that will want to send mixnet packets
@@ -342,13 +358,13 @@ impl NymVpn<MixnetVpn> {
             mixnet_client_sender,
             mixnet_client_address,
             our_ips,
-            exit_router.0,
+            exit_mix_addresses.ip_packet_router_address,
             task_manager,
         );
 
         Ok(MixnetExitConnectionInfo {
             exit_gateway,
-            exit_ipr: exit_router.0,
+            exit_ipr: exit_mix_addresses.ip_packet_router_address,
             ips: our_ips,
         })
     }
@@ -356,32 +372,14 @@ impl NymVpn<MixnetVpn> {
     #[allow(clippy::too_many_arguments)]
     async fn setup_tunnel_services(
         &mut self,
+        mixnet_client: SharedMixnetClient,
         route_manager: &mut RouteManager,
-        entry_gateway: &NodeIdentity,
-        exit_router: &IpPacketRouterAddress,
+        exit_mix_addresses: &MixAddresses,
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         dns_monitor: &mut DnsMonitor,
     ) -> Result<(MixnetConnectionInfo, MixnetExitConnectionInfo)> {
-        info!("Setting up mixnet client");
-        info!("Connecting to entry gateway: {entry_gateway}");
-        let mixnet_client = timeout(
-            Duration::from_secs(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS),
-            setup_mixnet_client(
-                entry_gateway,
-                &self.vpn_config.mixnet_data_path,
-                task_manager.subscribe_named("mixnet_client_main"),
-                false,
-                self.enable_two_hop,
-                self.vpn_config.enable_poisson_rate,
-                self.vpn_config.disable_background_cover_traffic,
-                self.vpn_config.enable_credentials_mode,
-            ),
-        )
-        .await
-        .map_err(|_| Error::StartMixnetTimeout(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS))??;
-
         // Now that we have a connection, collection some info about that and return
         let nym_address = mixnet_client.nym_address().await;
         let entry_gateway = *(nym_address.gateway());
@@ -401,7 +399,7 @@ impl NymVpn<MixnetVpn> {
             .setup_post_mixnet(
                 mixnet_client.clone(),
                 route_manager,
-                exit_router,
+                exit_mix_addresses,
                 task_manager,
                 gateway_client,
                 default_lan_gateway_ip,
@@ -428,6 +426,13 @@ impl<T: Vpn> NymVpn<T> {
     }
 }
 impl SpecificVpn {
+    pub fn mixnet_client_config(&self) -> MixnetClientConfig {
+        match self {
+            SpecificVpn::Wg(vpn) => vpn.mixnet_client_config.clone(),
+            SpecificVpn::Mix(vpn) => vpn.mixnet_client_config.clone(),
+        }
+    }
+
     pub fn gateway_config(&self) -> GatewayDirectoryConfig {
         match self {
             SpecificVpn::Wg(vpn) => vpn.gateway_config.clone(),
@@ -446,6 +451,13 @@ impl SpecificVpn {
         match self {
             SpecificVpn::Wg(vpn) => vpn.exit_point.clone(),
             SpecificVpn::Mix(vpn) => vpn.exit_point.clone(),
+        }
+    }
+
+    pub fn enable_two_hop(&self) -> bool {
+        match self {
+            SpecificVpn::Wg(vpn) => vpn.enable_two_hop,
+            SpecificVpn::Mix(vpn) => vpn.enable_two_hop,
         }
     }
 
