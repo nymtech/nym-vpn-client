@@ -187,9 +187,18 @@ impl From<ExpLocation> for Location {
 
 #[derive(uniffi::Record)]
 pub struct UserAgent {
+    // The name of the application
+    // Example: nym-vpnd
     pub application: String,
+
+    // The version
     pub version: String,
+
+    // The platform triple
+    // Example: x86_64-unknown-linux-gnu
     pub platform: String,
+
+    // The git commit hash
     pub git_commit: String,
 }
 
