@@ -91,20 +91,20 @@ uniffi = { version = "0.27.3", features = ["cli"] }
 url = "2.5"
 vergen = { version = "8.3.1", default-features = false }
 
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-client-core = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-config = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-credentials = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-crypto = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-id = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-sdk = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-task = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-topology = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "e65e611" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-client-core = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-config = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-credentials = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-crypto = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-id = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-sdk = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-task = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-topology = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "6d93f36" }
