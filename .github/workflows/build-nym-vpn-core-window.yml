@@ -76,8 +76,6 @@ jobs:
 
       - name: Build nym-vpn-core
         working-directory: nym-vpn-core
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
           cargo build --${{ env.CARGO_TARGET }}
 
