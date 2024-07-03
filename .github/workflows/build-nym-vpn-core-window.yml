@@ -1,0 +1,111 @@
+name: build-nym-vpn-core-windows
+on:
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      RUST_VERSION:
+        value: ${{ jobs.build-linux.outputs.RUST_VERSION }}
+      UPLOAD_DIR_WINDOWS:
+        value: ${{ jobs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TARGET: release
+  LIBS_PATH: '${{ github.workspace }}/lib'
+  WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
+  MULLVAD_LIB_NAME: winfw
+  UPLOAD_DIR_WINDOWS: windows_artifacts
+
+jobs:
+  build-wireguard-go-windows:
+    uses: ./.github/workflows/build-wireguard-go-windows.yml
+
+  build-mullvad-windows:
+    uses: ./.github/workflows/build-mullvad-windows.yml
+
+  build-windows:
+    needs: [build-wireguard-go-windows, build-mullvad-windows]
+    runs-on: custom-windows-11
+    outputs:
+      UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
+      RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Download wireguard-go-windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WG_GO_LIB_NAME }}
+          path: ${{ env.LIBS_PATH }}/
+
+      - name: Download mullvad lib artifact (winfw.lib)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.MULLVAD_LIB_NAME }}.lib
+          path: ${{ env.LIBS_PATH }}/
+
+      - name: Download mullvad lib artifact (winfw.dll)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.MULLVAD_LIB_NAME }}.dll
+          path: ${{ env.LIBS_PATH }}/
+
+      - name: Download/Unzip/Move wintun.zip, winpcap.zip also move wireguard lib for windows
+        shell: bash
+        run: |
+          curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
+          unzip ${GITHUB_WORKSPACE}/wintun.zip
+          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll nym-vpn-core/
+          mv '${{ env.LIBS_PATH }}/libwg.dll' nym-vpn-core/
+          mv '${{ env.LIBS_PATH }}/libwg.lib' nym-vpn-core/
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build nym-vpn-core
+        working-directory: nym-vpn-core
+        env:
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
+        run: |
+          cargo build --${{ env.CARGO_TARGET }}
+          ls -la nym-vpn-core/target/release/ || true
+
+      - name: Get rust version used for build
+        id: rust-version
+        run: |
+          echo "rustc=$(rustc -V)" >> $GITHUB_OUTPUT
+
+      - name: Move things around to prepare for upload
+        shell: bash
+        env:
+          SRC_BINARY: nym-vpn-core/target/${{ env.CARGO_TARGET }}/
+        run: |
+          echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
+          rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
+          mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-gateway-probe.exe ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-vpn-cli.exe ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc.exe ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd.exe ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr nym-vpn-core/libwg.dll ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr nym-vpn-core/wintun.dll ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr nym-vpn-core/winfw.dll ${{ env.UPLOAD_DIR_WINDOWS }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_WINDOWS }}
+          path: ${{ env.UPLOAD_DIR_WINDOWS }}
+          retention-days: 1
