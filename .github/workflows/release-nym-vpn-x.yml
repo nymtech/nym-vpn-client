@@ -25,7 +25,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04-arc, macos-14, custom-windows-11]
+        # os: [ubuntu-22.04-arc, macos-14, custom-windows-11]
+        os: [ubuntu-22.04-arc]
         target: [native]
     runs-on: ${{ matrix.os }}
     env:
@@ -189,7 +190,8 @@ jobs:
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
         run: |
-          npm run tauri build -- ${{ env.CARGO_TARGET }}
+          npm ci
+          npm run tauri build -- ${{ env.CARGO_TARGET }} --verbose
           ls -la target/release/ || true
           ls -la target/release/bundle || true
           ls -la target/release/bundle/* || true
