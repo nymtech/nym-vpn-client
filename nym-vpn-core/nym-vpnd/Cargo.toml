@@ -42,7 +42,7 @@ nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
 nym-task.workspace = true
 
 [target.'cfg(windows)'.dependencies]
-windows-service = "0.6.0"
+windows-service = "0.7.0"
 eventlog = "0.2.2"
 winapi = { version = "0.3", features = ["winnt", "excpt"] }
 
