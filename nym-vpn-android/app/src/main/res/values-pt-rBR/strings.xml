@@ -108,4 +108,9 @@
     <string name="exception_cred_invalid">Credencial inválida ou expirou</string>
     <string name="notifications">Notificações</string>
     <string name="allow_permissions">Permitir permissões</string>
+    <string name="select_mode">Selecionar modo</string>
+    <string name="mode_selection">Modo se seleção</string>
+    <string name="continue_reading">Continuar lendo</string>
+    <string name="five_hop_explanation">Aproveite a privacidade de nível máximo ao rotear sua conexão por meio de 5 servidores via mixnet. Perfeito para lidar com segurança com pagamentos, emails e mensagens.</string>
+    <string name="via">via</string>
 </resources>
