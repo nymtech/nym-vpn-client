@@ -308,11 +308,13 @@ async fn setup_mix_tunnel(
 pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> {
     // Create a gateway client that we use to interact with the entry gateway, in particular to
     // handle wireguard registration
-    let gateway_directory_client = GatewayClient::new(nym_vpn.gateway_config()).map_err(|err| {
-        Error::FailedtoSetupGatewayDirectoryClient {
-            config: Box::new(nym_vpn.gateway_config()),
-            source: err,
-        }
+    let gateway_directory_client = GatewayClient::new(
+        nym_vpn.gateway_config(),
+        nym_vpn.user_agent().expect("missing user_agent"),
+    )
+    .map_err(|err| Error::FailedtoSetupGatewayDirectoryClient {
+        config: Box::new(nym_vpn.gateway_config()),
+        source: err,
     })?;
     let GatewayQueryResult {
         entry_gateways,

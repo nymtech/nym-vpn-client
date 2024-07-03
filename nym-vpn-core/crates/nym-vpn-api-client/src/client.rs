@@ -1,6 +1,6 @@
 use nym_http_api_client::{ApiClient, HttpClientError, NO_PARAMS};
 
-pub use nym_http_api_client::Client;
+pub use nym_http_api_client::{Client, ClientBuilder};
 use tracing::debug;
 
 use crate::{

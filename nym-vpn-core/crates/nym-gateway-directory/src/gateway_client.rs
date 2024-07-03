@@ -13,6 +13,7 @@ use crate::{
 use itertools::Itertools;
 use nym_explorer_client::{ExplorerClient, Location, PrettyDetailedGatewayBond};
 use nym_harbour_master_client::{Gateway as HmGateway, HarbourMasterApiClientExt};
+use nym_sdk::UserAgent;
 use nym_validator_client::{models::DescribedGateway, NymApiClient};
 use std::{fmt, net::IpAddr, time::Duration};
 use tracing::{debug, info, warn};
@@ -175,8 +176,8 @@ pub struct GatewayClient {
 }
 
 impl GatewayClient {
-    pub fn new(config: Config) -> Result<Self> {
-        let api_client = NymApiClient::new(config.api_url);
+    pub fn new(config: Config, user_agent: UserAgent) -> Result<Self> {
+        let api_client = NymApiClient::new_with_user_agent(config.api_url, user_agent);
         let explorer_client = if let Some(url) = config.explorer_url {
             Some(ExplorerClient::new(url)?)
         } else {

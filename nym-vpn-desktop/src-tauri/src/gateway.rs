@@ -8,7 +8,8 @@ use crate::country::Country;
 
 pub static GATEWAY_CLIENT: Lazy<Option<GatewayClient>> = Lazy::new(|| {
     let config = Config::new_from_env();
-    GatewayClient::new(config)
+    let user_agent = nym_bin_common::bin_info!().into();
+    GatewayClient::new(config, user_agent)
         .inspect_err(|e| {
             error!("failed to create gateway client: {}", e);
         })

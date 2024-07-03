@@ -287,6 +287,8 @@ pub(crate) async fn setup_mixnet_client(
     // TODO: add support for two-hop mixnet traffic as a setting on the mixnet_client.
     // For now it's something we explicitly set on each set InputMessage.
 
+    let user_agent = nym_bin_common::bin_info_owned!().into();
+
     debug!("mixnet client has wireguard_mode={enable_wireguard}");
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
         debug!("Using custom key storage path: {:?}", path);
@@ -307,6 +309,7 @@ pub(crate) async fn setup_mixnet_client(
         MixnetClientBuilder::new_with_default_storage(key_storage_path)
             .await?
             .with_wireguard_mode(enable_wireguard)
+            .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(debug_config)
@@ -319,6 +322,7 @@ pub(crate) async fn setup_mixnet_client(
         debug!("Using ephemeral key storage");
         MixnetClientBuilder::new_ephemeral()
             .with_wireguard_mode(enable_wireguard)
+            .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(debug_config)
