@@ -4,7 +4,7 @@
 
 use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
-use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location};
+use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location, UserAgent};
 use crate::{
     spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
     NymVpnHandle, SpecificVpn,
@@ -12,7 +12,6 @@ use crate::{
 use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
-use nym_bin_common::bin_info;
 use nym_task::manager::TaskStatus;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -260,12 +259,14 @@ pub fn getGatewayCountries(
     explorer_url: Url,
     harbour_master_url: Option<Url>,
     exit_only: bool,
+    user_agent: UserAgent,
 ) -> Result<Vec<Location>, FFIError> {
     RUNTIME.block_on(get_gateway_countries(
         api_url,
         explorer_url,
         harbour_master_url,
         exit_only,
+        user_agent,
     ))
 }
 
@@ -274,14 +275,14 @@ async fn get_gateway_countries(
     explorer_url: Url,
     harbour_master_url: Option<Url>,
     exit_only: bool,
+    user_agent: UserAgent,
 ) -> Result<Vec<Location>, FFIError> {
     let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
         harbour_master_url,
     };
-    // TODO: pass user agent from the caller to capture the platform correctly
-    let user_agent = bin_info!().into();
+    let user_agent = nym_sdk::UserAgent::from(user_agent);
     let gateway_client = GatewayClient::new(config, user_agent)?;
 
     let locations = if !exit_only {
@@ -298,11 +299,13 @@ pub fn getLowLatencyEntryCountry(
     api_url: Url,
     explorer_url: Url,
     harbour_master_url: Option<Url>,
+    user_agent: UserAgent,
 ) -> Result<Location, FFIError> {
     RUNTIME.block_on(get_low_latency_entry_country(
         api_url,
         explorer_url,
         harbour_master_url,
+        user_agent,
     ))
 }
 
@@ -310,14 +313,14 @@ async fn get_low_latency_entry_country(
     api_url: Url,
     explorer_url: Url,
     harbour_master_url: Option<Url>,
+    user_agent: UserAgent,
 ) -> Result<Location, FFIError> {
     let config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
         harbour_master_url,
     };
-    // TODO: pass user agent from the caller to capture the platform correctly
-    let user_agent = bin_info!().into();
+    let user_agent = nym_sdk::UserAgent::from(user_agent);
     let gateway_client = GatewayClient::new(config, user_agent)?;
     let described = gateway_client.lookup_low_latency_entry_gateway().await?;
     let country = described

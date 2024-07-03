@@ -6,6 +6,7 @@ use crate::{NodeIdentity, Recipient, UniffiCustomTypeConverter};
 use ipnetwork::IpNetwork;
 use nym_explorer_client::Location as ExpLocation;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
+use nym_sdk::UserAgent as NymUserAgent;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -180,6 +181,25 @@ impl From<ExpLocation> for Location {
             country_name: value.country_name,
             latitude: value.latitude,
             longitude: value.longitude,
+        }
+    }
+}
+
+#[derive(uniffi::Record)]
+pub struct UserAgent {
+    pub application: String,
+    pub version: String,
+    pub platform: String,
+    pub git_commit: String,
+}
+
+impl From<UserAgent> for NymUserAgent {
+    fn from(value: UserAgent) -> Self {
+        NymUserAgent {
+            application: value.application,
+            version: value.version,
+            platform: value.platform,
+            git_commit: value.git_commit,
         }
     }
 }
