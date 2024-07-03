@@ -21,7 +21,7 @@ public struct NetworkButton: View {
                         .textStyle(.Body.Large.primary)
                     Text(viewModel.subtitle)
                         .foregroundStyle(NymColor.sysOutline)
-                        .textStyle(viewModel.isSmallScreen ? .Body.Small.primary : .Body.Medium.primary)
+                        .textStyle(viewModel.isSmallScreen ? .Body.Small.primary : .Body.Medium.regular)
                 }
                 .padding(.leading, 8)
                 Spacer()

@@ -70,7 +70,7 @@ private extension SettingsListItem {
             if let subtitle = viewModel.subtitle {
                 Text(subtitle)
                     .foregroundStyle(NymColor.sysOutline)
-                    .textStyle(.Body.Medium.primary)
+                    .textStyle(.Body.Medium.regular)
             }
         }
         .padding(.leading, 16)

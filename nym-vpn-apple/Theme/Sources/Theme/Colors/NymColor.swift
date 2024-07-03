@@ -53,4 +53,9 @@ public struct NymColor {
     // MARK: - Credentials -
     public static let credetnialsTitle = Color(.credentialTitle)
     public static let credetnialsSubtitle = Color(.credentialSubtitle)
+
+    // MARK: - Mode Info View -
+    public static let modeInfoViewDescription = Color(.modeInfoViewDescription)
+    public static let modeInfoViewTitle = Color(.modeInfoViewTitle)
+    public static let modeInfoViewBackground = Color(.modeInfoViewBackground)
 }

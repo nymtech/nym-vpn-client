@@ -28,7 +28,7 @@ private extension StatusInfoView {
     func infoLabel() -> some View {
         Text(infoState.localizedTitle)
             .foregroundStyle(NymColor.statusInfoText)
-            .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.primary)
+            .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.bold)
         Spacer()
             .frame(height: 8)
     }
@@ -37,6 +37,6 @@ private extension StatusInfoView {
     func timeConnectedLabel(timeConnected: String) -> some View {
         Text("\(timeConnected)")
             .foregroundStyle(NymColor.statusTimer)
-            .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.primary)
+            .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.bold)
     }
 }

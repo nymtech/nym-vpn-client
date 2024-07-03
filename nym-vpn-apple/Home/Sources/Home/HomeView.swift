@@ -28,8 +28,8 @@ private extension HomeView {
             Spacer()
             statusAreaSection()
             Spacer()
-            networkSection()
-            hopSection()
+            networkModeSection()
+            countryHopSection()
             connectButton()
         }
         .appearanceUpdate()
@@ -37,6 +37,17 @@ private extension HomeView {
         .background {
             NymColor.background
                 .ignoresSafeArea()
+        }
+        .overlay {
+            if viewModel.isModeInfoOverlayDisplayed {
+                ModeSelectionInfoView(
+                    viewModel:
+                        ModeSelectionInfoViewModel(
+                            externalLinkManager: viewModel.externalLinkManager,
+                            isDisplayed: $viewModel.isModeInfoOverlayDisplayed
+                        )
+                )
+            }
         }
         .onAppear {
             viewModel.configureConnectedTimeTimer()
@@ -71,11 +82,17 @@ private extension HomeView {
     }
 
     @ViewBuilder
-    func networkSection() -> some View {
+    func networkModeSection() -> some View {
         HStack {
             Text(viewModel.networkSelectLocalizedTitle)
                 .textStyle(.Title.Medium.primary)
             Spacer()
+            Image(systemName: "info.circle")
+                .foregroundColor(NymColor.sysOutline)
+                .frame(width: 24, height: 24)
+                .onTapGesture {
+                    viewModel.isModeInfoOverlayDisplayed.toggle()
+                }
         }
         .padding(.horizontal, 16)
         Spacer()
@@ -101,7 +118,7 @@ private extension HomeView {
     }
 
     @ViewBuilder
-    func hopSection() -> some View {
+    func countryHopSection() -> some View {
         HStack {
             Text(viewModel.connectToLocalizedTitle)
                 .foregroundStyle(NymColor.sysOnSurfaceWhite)

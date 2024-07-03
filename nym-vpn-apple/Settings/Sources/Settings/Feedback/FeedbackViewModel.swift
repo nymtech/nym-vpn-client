@@ -1,6 +1,7 @@
 import SwiftUI
 import Constants
 import AppSettings
+import ExternalLinkManager
 import UIComponents
 
 struct FeedbackViewModel {
@@ -10,6 +11,7 @@ struct FeedbackViewModel {
     private let matrixLink = "https://matrix.to/#/%23NymVPN:nymtech.chat"
     private let discordLink = "https://discord.com/invite/nym"
     private let appSettings: AppSettings
+    private let externalLinkManager: ExternalLinkManager
 
     let title = "support".localizedString
 
@@ -23,9 +25,14 @@ struct FeedbackViewModel {
         ]
     }
 
-    init(path: Binding<NavigationPath>, appSettings: AppSettings = AppSettings.shared) {
+    init(
+        path: Binding<NavigationPath>,
+        appSettings: AppSettings = AppSettings.shared,
+        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
+    ) {
         _path = path
         self.appSettings = appSettings
+        self.externalLinkManager = externalLinkManager
     }
 }
 
@@ -40,12 +47,8 @@ extension FeedbackViewModel {
     }
 
     func openExternalURL(urlString: String?) {
-        guard let urlString, let url = URL(string: urlString) else { return }
-        #if os(iOS)
-        UIApplication.shared.open(url)
-        #else
-        NSWorkspace.shared.open(url)
-        #endif
+        // TODO: log error
+        try? externalLinkManager.openExternalURL(urlString: urlString)
     }
 }
 

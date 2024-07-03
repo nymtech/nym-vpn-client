@@ -1,8 +1,10 @@
 import SwiftUI
 import Constants
+import ExternalLinkManager
 import UIComponents
 
 struct LegalViewModel {
+    private let externalLinkManager: ExternalLinkManager
     private let termsOfUseLink = Constants.termsOfUseURL.rawValue
     private let privacyPolicyLink = Constants.privacyPolicyURL.rawValue
     #if os(iOS)
@@ -18,6 +20,11 @@ struct LegalViewModel {
             licencesViewModel()
         ]
     }
+
+    init(path: Binding<NavigationPath>, externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared) {
+        self._path = path
+        self.externalLinkManager = externalLinkManager
+    }
 }
 
 // MARK: - Navigation -
@@ -27,12 +34,10 @@ extension LegalViewModel {
     }
 
     func openExternalURL(urlString: String?) {
-        #if os(iOS)
-        guard let urlString, let url = URL(string: urlString) else { return }
-        UIApplication.shared.open(url)
-        #else
-        NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-        #endif
+        // TODO: log error
+        // TODO: fix opening settings after macos after macOS Sequoia release
+        // https://www.reddit.com/r/SwiftUI/comments/16ibgy3/settingslink_on_macos_14_why_it_sucks_and_how_i/
+        try? externalLinkManager.openExternalURL(urlString: urlString)
     }
 }
 

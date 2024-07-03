@@ -17,6 +17,7 @@ let package = Package(
         .library(name: "Constants", targets: ["Constants"]),
         .library(name: "CountriesManager", targets: ["CountriesManager"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
+        .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
@@ -79,6 +80,13 @@ let package = Package(
                 "Theme"
             ],
             path: "Sources/Services/CredentialsManager"
+        ),
+        .target(
+            name: "ExternalLinkManager",
+            dependencies: [
+                "Constants"
+            ],
+            path: "Sources/Services/ExternalLinkManager"
         ),
         .target(
             name: "Keychain",
