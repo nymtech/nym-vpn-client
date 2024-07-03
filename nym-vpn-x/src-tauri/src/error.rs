@@ -179,11 +179,25 @@ impl From<ImportError> for BackendError {
                 ErrorKey::CredentialAlreadyImported,
                 data,
             ),
-            ImportErrorType::StorageError => BackendError::new_with_optional_data(
-                "credential strorage error",
-                ErrorKey::CredentialStorageError,
-                data,
-            ),
+            ImportErrorType::StorageError => {
+                // TODO remove this
+                // backward compatibility check with the old error message from daemon
+                if data.as_ref().is_some_and(|d| {
+                    d.get("error")
+                        .is_some_and(|e| e.contains("unique constraint violation"))
+                }) {
+                    return BackendError::new_with_optional_data(
+                        "credential already imported",
+                        ErrorKey::CredentialAlreadyImported,
+                        data,
+                    );
+                }
+                BackendError::new_with_optional_data(
+                    "credential strorage error",
+                    ErrorKey::CredentialStorageError,
+                    data,
+                )
+            }
             ImportErrorType::DeserializationFailure => BackendError::new_with_optional_data(
                 "credential deserialization failure",
                 ErrorKey::CredentialDeserializationFailure,
