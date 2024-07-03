@@ -80,7 +80,6 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
           cargo build --${{ env.CARGO_TARGET }}
-          ls -la nym-vpn-core/target/release/ || true
 
       - name: Get rust version used for build
         id: rust-version
