@@ -3,6 +3,7 @@ import SwiftUI
 import AppSettings
 import ConnectionManager
 import CountriesManager
+import ExternalLinkManager
 import Settings
 import TunnelMixnet
 import TunnelStatus
@@ -25,18 +26,19 @@ public class HomeViewModel: HomeFlowState {
     let connectToLocalizedTitle = "connectTo".localizedString
     let networkSelectLocalizedTitle = "selectNetwork".localizedString
 
-    var appSettings: AppSettings
-    var connectionManager: ConnectionManager
-    var countriesManager: CountriesManager
+    let appSettings: AppSettings
+    let connectionManager: ConnectionManager
+    let countriesManager: CountriesManager
+    let externalLinkManager: ExternalLinkManager
 
 #if os(macOS)
-    var grpcManager: GRPCManager
-    var helperManager: HelperManager
+    let grpcManager: GRPCManager
+    let helperManager: HelperManager
 #endif
-    var entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
-    var exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
-    var anonymousButtonViewModel = NetworkButtonViewModel(type: .mixnet5hop)
-    var fastButtonViewModel = NetworkButtonViewModel(type: .mixnet2hop)
+    let entryHopButtonViewModel = HopButtonViewModel(hopType: .entry)
+    let exitHopButtonViewModel = HopButtonViewModel(hopType: .exit)
+    let anonymousButtonViewModel = NetworkButtonViewModel(type: .mixnet5hop)
+    let fastButtonViewModel = NetworkButtonViewModel(type: .mixnet2hop)
 
     // If no time connected is shown, should be set to empty string,
     // so the time connected label would not disappear and re-center other UI elements.
@@ -44,16 +46,20 @@ public class HomeViewModel: HomeFlowState {
     @Published var statusButtonConfig = StatusButtonConfig.disconnected
     @Published var statusInfoState = StatusInfoState.initialising
     @Published var connectButtonState = ConnectButtonState.connect
+    @Published var isModeInfoOverlayDisplayed = false
 
 #if os(iOS)
     public init(
         appSettings: AppSettings = AppSettings.shared,
         connectionManager: ConnectionManager = ConnectionManager.shared,
-        countriesManager: CountriesManager = CountriesManager.shared
+        countriesManager: CountriesManager = CountriesManager.shared,
+        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
+        self.externalLinkManager = externalLinkManager
+
         super.init()
 
         setup()
@@ -65,13 +71,15 @@ public class HomeViewModel: HomeFlowState {
         connectionManager: ConnectionManager = ConnectionManager.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
         grpcManager: GRPCManager = GRPCManager.shared,
-        helperManager: HelperManager = HelperManager.shared
+        helperManager: HelperManager = HelperManager.shared,
+        externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
         self.grpcManager = grpcManager
         self.helperManager = helperManager
+        self.externalLinkManager = externalLinkManager
         super.init()
 
         setup()

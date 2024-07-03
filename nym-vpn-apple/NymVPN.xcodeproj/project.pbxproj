@@ -10,6 +10,8 @@
 		879945902A074AE4A361BDE5 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = 039BC834E17A4D65A7B58E47 /* Sentry */; };
 		D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */ = {isa = PBXBuildFile; productRef = D91E36A82BF3AA7F00BDE84A /* HelperManager */; };
 		D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
+		D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */ = {isa = PBXBuildFile; productRef = D924A8E52C33F3D400465E84 /* ExternalLinkManager */; };
+		D924A8E82C33F3DA00465E84 /* ExternalLinkManager in Frameworks */ = {isa = PBXBuildFile; productRef = D924A8E72C33F3DA00465E84 /* ExternalLinkManager */; };
 		D9264E262B3DA062004594A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D9264E252B3DA062004594A8 /* Assets.xcassets */; };
 		D9281C452B877B8800834B53 /* Keychain in Frameworks */ = {isa = PBXBuildFile; productRef = D9281C442B877B8800834B53 /* Keychain */; };
 		D9309AF92BC81B7600C387F4 /* TunnelMixnet in Frameworks */ = {isa = PBXBuildFile; productRef = D9309AF82BC81B7600C387F4 /* TunnelMixnet */; };
@@ -330,6 +332,7 @@
 				D99A148C2B35A74200F2728B /* Theme in Frameworks */,
 				D94867012BE035FB00F5331B /* Constants in Frameworks */,
 				D9FB33DA2BECC163009C3419 /* Extensions in Frameworks */,
+				D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */,
 				D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */,
 				D9BD6A142BD84EF400B42D6F /* SentryManager in Frameworks */,
 				D974C03B2BBED2460011924A /* ConnectionManager in Frameworks */,
@@ -348,6 +351,7 @@
 				D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */,
 				D9FB33DE2BECD47E009C3419 /* Theme in Frameworks */,
 				D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */,
+				D924A8E82C33F3DA00465E84 /* ExternalLinkManager in Frameworks */,
 				D9FB33E82BECFD1F009C3419 /* ServiceManagement.framework in Frameworks */,
 				D9E6D8C92BF5FF5F009612CE /* TunnelStatus in Frameworks */,
 				D9BEF2E32BEB8D7E0036C566 /* Constants in Frameworks */,
@@ -723,6 +727,7 @@
 				D9870CF22BE3A12800551A86 /* Home */,
 				D9D483572BEBA72F0005A41C /* UIComponents */,
 				D9FB33D92BECC163009C3419 /* Extensions */,
+				D924A8E52C33F3D400465E84 /* ExternalLinkManager */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -753,6 +758,7 @@
 				D9ABF2832BF4989B009089FA /* Shell */,
 				D9CDF2DB2BF49909007E5DAF /* Home */,
 				D9E6D8C82BF5FF5F009612CE /* TunnelStatus */,
+				D924A8E72C33F3DA00465E84 /* ExternalLinkManager */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -1905,6 +1911,14 @@
 		D91E36A82BF3AA7F00BDE84A /* HelperManager */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = HelperManager;
+		};
+		D924A8E52C33F3D400465E84 /* ExternalLinkManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ExternalLinkManager;
+		};
+		D924A8E72C33F3DA00465E84 /* ExternalLinkManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ExternalLinkManager;
 		};
 		D9281C442B877B8800834B53 /* Keychain */ = {
 			isa = XCSwiftPackageProductDependency;
