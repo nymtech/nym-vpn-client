@@ -12,7 +12,6 @@
     <string name="init_client">Инициализация клиента…</string>
     <string name="establishing_connection">Настройка соединения</string>
     <string name="connection_time">Время подключения</string>
-    <string name="select_network">Выберите сеть</string>
     <string name="connect_to">Подключиться к</string>
     <string name="first_hop_selection">Выбор первой ступени</string>
     <string name="display_theme">Выбор темы</string>
