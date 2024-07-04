@@ -207,19 +207,24 @@ private extension HomeViewModel {
 #endif
 
     func updateUI(with status: TunnelStatus) {
+        let newStatus: TunnelStatus
+        // Fake satus, until we get support from the tunnel
+        if connectionManager.isReconnecting &&
+            (status == .disconnecting || status == .disconnected || status == .connecting) {
+            newStatus = .reasserting
+        } else if connectionManager.isDisconnecting &&
+                (status == .connecting || status == .connected) {
+            newStatus = .disconnecting
+        } else {
+            newStatus = status
+        }
+
         Task { @MainActor in
-            let newStatus: TunnelStatus
-            if connectionManager.isReconnecting
-                && (status == .disconnecting || status == .disconnected || status == .connecting) {
-                newStatus = .reasserting
-            } else {
-                newStatus = status
-            }
             statusButtonConfig = StatusButtonConfig(tunnelStatus: newStatus)
             connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
 
             if let lastError {
-                self.statusInfoState = .error(message: lastError.localizedDescription)
+                statusInfoState = .error(message: lastError.localizedDescription)
             } else {
                 statusInfoState = StatusInfoState(tunnelStatus: newStatus)
             }
@@ -287,7 +292,7 @@ private extension HomeViewModel {
     }
 
     func updateConnectedStartDateMacOS(with status: TunnelStatus) {
-        guard status == .connected else { return }
+        guard status == .connected, !connectionManager.isDisconnecting else { return }
         grpcManager.status()
     }
 
