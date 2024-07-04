@@ -1,5 +1,5 @@
-What's new:
-- Credential expiry time
-- QR code scanning for credential
-- Kill switch link
-- UI enhancements
+新功能： 
+- 凭据到期时间 
+- 凭据 QR 码扫描 
+- 关闭开关链接 
+- 用户界面改进

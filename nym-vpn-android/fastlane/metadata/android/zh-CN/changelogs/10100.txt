@@ -1,4 +1,4 @@
-What's new:
-- UI improvements
-- Add credential trimming
-- Temp fix for connection errors
+新功能： 
+- 改进用户界面 
+- 添加凭证修剪功能 
+- 临时修复连接错误

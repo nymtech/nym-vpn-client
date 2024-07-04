@@ -1,5 +1,5 @@
-What's new:
-- UI improvements
-- Caching improvements
-- Added harbour master integration
-- Improved quick tile state sync
+新功能： 
+- 改进用户界面 
+- 改进缓存功能 
+- 新增海港管理器集成功能 
+- 改进快速磁贴状态同步功能

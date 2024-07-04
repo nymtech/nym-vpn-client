@@ -1,2 +1,2 @@
-What's new:
-- Fix for API changes
+新功能： 
+- 修复应用程序接口的更改

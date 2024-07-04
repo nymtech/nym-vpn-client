@@ -1,7 +1,7 @@
-What's new:
-- Improved API performance
-- Added basic application shortcuts
-- UI enhancements
-- Fixed credential expiry check
-- Fixed connection UI sync bug
-- Improved quick tile sync
+新功能：
+- 改进应用程序接口性能 
+- 添加基本应用程序快捷方式 
+- 改进用户界面 
+- 修复凭证过期检查问题 
+- 修复连接用户界面同步错误 
+- 改进快速磁贴同步功能

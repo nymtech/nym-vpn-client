@@ -1,2 +1,2 @@
-What's new:
-- Bump api version
+新功能： 
+- 提升 api 版本

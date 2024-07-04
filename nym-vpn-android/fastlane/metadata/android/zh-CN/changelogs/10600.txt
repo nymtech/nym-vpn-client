@@ -1,3 +1,3 @@
-What's new:
-- Add more languages
-- Add home screen improvements
+新功能： 
+- 增加更多语言 
+- 改进主屏幕

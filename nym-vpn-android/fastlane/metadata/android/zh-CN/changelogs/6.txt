@@ -1,4 +1,4 @@
-What's new:
-- Add logs screen
-- Improve VPN status display
-- Add Sentry
+新功能： 
+- 增加日志界面 
+- 改进 VPN 状态显示 
+- 增加哨兵功能

@@ -1,4 +1,4 @@
-What's new:
-- Added support for Always-on VPN
-- Added support for Quick Settings tile
-- Fixed bug with auto-connect on boot
+新功能： 
+- 增加了对始终在线 VPN 的支持 
+- 增加了对快速设置磁贴的支持 
+- 修复了启动时自动连接的错误

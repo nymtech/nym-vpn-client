@@ -1,4 +1,4 @@
-What's new:
-- Fixes navigation animation bug
-- Fixes credential screen bugs
-- Fixes country list API and search
+新功能： 
+- 修复导航动画错误 
+- 修复证书屏幕错误 
+- 修复国家列表 API 和搜索错误

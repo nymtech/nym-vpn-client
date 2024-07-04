@@ -1,4 +1,4 @@
-What's new:
-- UI enhancements
-- Analytics selection screen
-- Various enhancements and improvements
+新功能： 
+- UI 增强 
+- 分析选择屏幕 
+- 各种增强和改进

@@ -1,4 +1,4 @@
-What's new:
-- Add vpn lib integration
-- Splash screen
-- Country list
+新功能： 
+- 添加 vpn lib 集成 
+- 闪屏 
+- 国家列表

@@ -1,5 +1,5 @@
-What's new:
-- Fixed connection state sync
-- Improved error messaging
-- Added permission denied flow
-- Removed debug logs from release
+新功能： 
+- 修复了连接状态同步问题 
+- 改进了错误信息传递 
+- 添加了拒绝权限流程 
+- 删除了发布版本中的调试日志
