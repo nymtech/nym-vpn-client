@@ -4746,7 +4746,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-x"
-version = "0.1.4-dev"
+version = "0.1.4"
 dependencies = [
  "anyhow",
  "bs58 0.5.1",
