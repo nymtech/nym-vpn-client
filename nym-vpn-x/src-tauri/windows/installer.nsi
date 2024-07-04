@@ -546,6 +546,14 @@ Section Install
   ; Copy main executable
   File "${MAINBINARYSRCPATH}"
 
+  ; Copy service
+  File "..\..\..\..\nym-vpnd.exe"
+
+  ; Copy libraries
+  File "..\..\..\..\winfw.dll"
+  File "..\..\..\..\libwg.dll"
+  File "..\..\..\..\wintun.dll"
+
   ; Copy resources
   {{#each resources_dirs}}
     CreateDirectory "$INSTDIR\\{{this}}"
@@ -581,6 +589,10 @@ Section Install
   WriteRegDWORD SHCTX "${UNINSTKEY}" "NoModify" "1"
   WriteRegDWORD SHCTX "${UNINSTKEY}" "NoRepair" "1"
   WriteRegDWORD SHCTX "${UNINSTKEY}" "EstimatedSize" "${ESTIMATEDSIZE}"
+
+  ; Install NymVPN service
+  ExecWait '"$INSTDIR\nym-vpnd.exe" --install-service'
+  ExecWait '"$INSTDIR\nym-vpnd.exe" --start-service'
 
   ; Create start menu shortcut (GUI)
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
@@ -660,9 +672,15 @@ FunctionEnd
 Section Uninstall
   !insertmacro CheckIfAppIsRunning
 
+  ; Uninstall NymVPN service
+  ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall-service'
+
   ; Delete the app directory and its content from disk
   ; Copy main executable
   Delete "$INSTDIR\${MAINBINARYNAME}.exe"
+
+  ; Delete service
+  Delete "$INSTDIR\nym-vpnd.exe"
 
   ; Delete resources
   {{#each resources}}
