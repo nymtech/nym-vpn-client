@@ -154,11 +154,13 @@ jobs:
           Expand-Archive -Path $output -DestinationPath $destination -Force
 
       - name: List files
+        if: contains(matrix.os, 'windows')
         run: |
           $destination = 'nym-vpn-core-bin'
           Get-ChildItem -Path $destination -Recurse
 
       - name: Copy files
+        if: contains(matrix.os, 'windows')
         run: |
           $destination = 'nym-vpn-core-bin'
           $subdirectory = Get-ChildItem -Path $destination | Where-Object { $_.PSIsContainer } | Select-Object -First 1
