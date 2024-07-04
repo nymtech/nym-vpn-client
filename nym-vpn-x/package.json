@@ -1,7 +1,7 @@
 {
   "name": "nymvpn-x",
   "private": true,
-  "version": "0.1.4",
+  "version": "0.1.5-dev",
   "type": "module",
   "authors": [
     "pierre <dommerc.pierre@gmail.com>",
