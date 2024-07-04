@@ -1,5 +1,5 @@
-What's new:
-- UI improvements
-- Caching improvements
-- Added harbour master integration
-- Improved quick tile state sync
+Что нового:
+- Улучшения интерфейса
+- Улучшено кэширование
+- Добавлена интеграция с Harbour Master
+- Улучшена синхронизация состояния быстрых настроек

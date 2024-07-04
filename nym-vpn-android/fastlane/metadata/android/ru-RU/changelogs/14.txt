@@ -1,4 +1,4 @@
-What's new:
-- UI enhancements
-- Analytics selection screen
-- Various enhancements and improvements
+Что нового:
+- Улучшения пользовательского интерфейса
+- Экран выбора аналитики
+- Различные улучшения и доработки
