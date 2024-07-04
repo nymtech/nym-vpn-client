@@ -14,6 +14,7 @@ use futures::channel::{mpsc, oneshot};
 use futures::StreamExt;
 use ipnetwork::IpNetwork;
 use log::*;
+use nym_bin_common::bin_info;
 use nym_gateway_directory::{
     GatewayClient, GatewayQueryResult, IpPacketRouterAddress, LookupGateway, NodeIdentity,
 };
@@ -306,16 +307,23 @@ async fn setup_mix_tunnel(
 }
 
 pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> {
+    // The user agent is set on HTTP REST API calls, and ideally should idenfy the type of client.
+    // This means it needs to be set way higher in the call stack, but set a default for what we
+    // know here if we don't have anything.
+    let user_agent = nym_vpn.user_agent().unwrap_or_else(|| {
+        warn!("No user agent provided, using default");
+        bin_info!().into()
+    });
+    info!("User agent: {user_agent}");
+
     // Create a gateway client that we use to interact with the entry gateway, in particular to
     // handle wireguard registration
-    let gateway_directory_client = GatewayClient::new(
-        nym_vpn.gateway_config(),
-        nym_vpn.user_agent().expect("missing user_agent"),
-    )
-    .map_err(|err| Error::FailedtoSetupGatewayDirectoryClient {
-        config: Box::new(nym_vpn.gateway_config()),
-        source: err,
-    })?;
+    let gateway_directory_client = GatewayClient::new(nym_vpn.gateway_config(), user_agent)
+        .map_err(|err| Error::FailedtoSetupGatewayDirectoryClient {
+            config: Box::new(nym_vpn.gateway_config()),
+            source: err,
+        })?;
+
     let GatewayQueryResult {
         entry_gateways,
         exit_gateways,

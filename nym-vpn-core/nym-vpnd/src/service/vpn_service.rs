@@ -10,6 +10,7 @@ use futures::channel::{mpsc::UnboundedSender, oneshot::Receiver as OneshotReceiv
 use futures::SinkExt;
 use nym_vpn_lib::credentials::import_credential;
 use nym_vpn_lib::gateway_directory::{self, EntryPoint, ExitPoint};
+use nym_vpn_lib::nym_bin_common::bin_info;
 use nym_vpn_lib::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
@@ -400,6 +401,9 @@ impl NymVpnService {
         nym_vpn.dns = options.dns;
         nym_vpn.disable_routing = options.disable_routing;
         nym_vpn.enable_two_hop = options.enable_two_hop;
+        // TODO: add user agent to options struct so we can pass it from the connected client if we
+        // want to
+        nym_vpn.user_agent = Some(bin_info!().into());
         nym_vpn.vpn_config.enable_poisson_rate = options.enable_poisson_rate;
         nym_vpn.vpn_config.disable_background_cover_traffic =
             options.disable_background_cover_traffic;
