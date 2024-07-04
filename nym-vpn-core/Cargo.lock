@@ -4746,7 +4746,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-cli"
-version = "0.1.7-dev"
+version = "0.1.8-dev"
 dependencies = [
  "anyhow",
  "bs58 0.5.1",
@@ -4766,7 +4766,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib"
-version = "0.1.7-dev"
+version = "0.1.8-dev"
 dependencies = [
  "android_logger",
  "anyhow",
@@ -4841,7 +4841,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnc"
-version = "0.1.7-dev"
+version = "0.1.8-dev"
 dependencies = [
  "anyhow",
  "bs58 0.5.1",
@@ -4859,7 +4859,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd"
-version = "0.1.7-dev"
+version = "0.1.8-dev"
 dependencies = [
  "anyhow",
  "axum 0.7.5",
