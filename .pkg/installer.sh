@@ -347,10 +347,10 @@ check_system_deps() {
   log "  ${B_GRN}Checking$RS for system dependencies"
 
   case "$os" in
-  *ubuntu*)
+  *ubuntu* | *debian*)
     # check for ubuntu version > 22.04 libfuse2 (needed for AppImage)
     fuse_output=$(dpkg --get-selections | grep fuse)
-    if [[ "$fuse_output" != *"libfuse2"* ]]; then
+    if [[ "$fuse_output" =~ "libfuse2" ]]; then
       choice=""
       log "  ${B_GRN}Install$RS required package libfuse2?"
       prompt="    ${B_YLW}Y${RS}es (recommended) ${B_YLW}N${RS}o "
