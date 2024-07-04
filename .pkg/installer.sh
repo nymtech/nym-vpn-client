@@ -23,6 +23,10 @@ B_GRN="$BLD$GRN"
 B_YLW="$BLD$YLW"
 I_YLW="$ITL$YLW"
 B_GRY="$BLD$GRY"
+I_GRY="$ITL$GRY"
+BI_YLW="$ITL$B_YLW"
+BI_GRY="$ITL$B_GRY"
+BI="$ITL$BLD"
 ####
 
 # nymvpn-x AppImage
@@ -76,12 +80,14 @@ tilded() {
   echo "${1/#$HOME/\~}"
 }
 
+# check if a binary is in the PATH
+# outputs 0 if found, 1 if not found
 bin_in_path() {
   if which "$1" &>/dev/null; then
     log "${B_YLW}⚠$RS $1 is present in the system"
-    return 0
+    echo 0
   fi
-  return 1
+  echo 1
 }
 
 user_prompt() {
@@ -95,16 +101,13 @@ user_prompt() {
 }
 
 rmfile() {
+  filename="$I_YLW${1/#$HOME/\~}$RS"
   if [ -f "$1" ]; then
     sudo rm -f "$1"
-    log "   removed $I_YLW${1/#$HOME/\~}$RS"
-  fi
-}
-
-_rmdir() {
-  if [ -d "$1" ]; then
+    log "    removed $filename"
+  elif [ -d "$1" ]; then
     sudo rm -rf "$1"
-    log "   removed $I_YLW${1/#$HOME/\~}$RS"
+    log "    removed $filename"
   fi
 }
 
@@ -131,6 +134,13 @@ units_dir="/usr/lib/systemd/system"
 os=$(uname -a)
 # → to lowercase
 os="${os,,}"
+
+# components to install/uninstall
+# 0 = to be (un)installed
+_vpnd=1
+_vpnx=1
+# system packages to check
+sys_pkgs=()
 
 ### desktop entry wrapper script ###
 wrapper="#! /bin/bash
@@ -176,12 +186,11 @@ WantedBy=multi-user.target"
 ###
 
 # do not install/uninstall if system packages are installed
+# ⚠ be sure to call `select_components` before this function
 check_system_pkg() {
-  packages=('nym-vpnd' 'nymvpn-x')
-
   case "$os" in
   *debian* | *ubuntu* | *mint*)
-    for pkg in "${packages[@]}"; do
+    for pkg in "${sys_pkgs[@]}"; do
       if dpkg-query -W "$pkg"; then
         log "${B_YLW}⚠$RS $pkg system package is installed, aborting…"
         exit 1
@@ -189,7 +198,7 @@ check_system_pkg() {
     done
     ;;
   *arch* | *manjaro* | *endeavour* | *garuda*)
-    for pkg in "${packages[@]}"; do
+    for pkg in "${sys_pkgs[@]}"; do
       if pacman -Qs "$pkg"; then
         log "${B_YLW}⚠$RS $pkg system package is installed, aborting…"
         exit 1
@@ -211,6 +220,30 @@ pre_check() {
     log "${B_RED}✗$RS \`vpnd_tag\` and \`vpnd_version\` must be set"
     exit 1
   fi
+}
+
+select_components() {
+  operation=${1:-install}
+  choice=""
+  log "  ${B_GRN}Select$RS the component(s) to $operation"
+  prompt="    ${BI_YLW}N$RS vpnd and vpn-x combo (default)\n    ${BI_YLW}D$RS vpnd only\n    ${BI_YLW}X$RS vpn-x only\n(${BI_YLW}N$RS/${BI_YLW}D$RS/${BI_YLW}X$RS) "
+  user_prompt choice "$prompt"
+
+  case "$choice" in
+  d | D)
+    _vpnd=0
+    sys_pkgs+=('nym-vpnd')
+    ;;
+  x | X)
+    _vpnx=0
+    sys_pkgs+=('nymvpn-x')
+    ;;
+  *)
+    _vpnd=0
+    _vpnx=0
+    sys_pkgs+=('nym-vpnd' 'nymvpn-x')
+    ;;
+  esac
 }
 
 # Download `nymvpn-x` appimage
@@ -247,7 +280,7 @@ select_install_dir() {
   # 2. /usr
   choice=""
   log "  ${B_GRN}Select$RS the install directory"
-  prompt="    ${B_YLW}H$RS ~/.local (default) or ${B_YLW}U$RS /usr (${B_YLW}h$RS/${B_YLW}u$RS) "
+  prompt="    ${BI_YLW}H$RS ~/.local (default) or ${BI_YLW}U$RS /usr\n(${BI_YLW}H$RS/${BI_YLW}U$RS) "
   user_prompt choice "$prompt"
 
   if [ "$choice" = "u" ] || [ "$choice" = "U" ]; then
@@ -300,15 +333,27 @@ check_unit() {
   return 0
 }
 
+# check for existing installation presence
 sanity_check() {
   log "  ${B_GRN}Checking$RS for existing installation"
+
+  vpnd_in_path=$(bin_in_path $vpnd_bin)
+  vpnx_in_path=$(bin_in_path $target_appimage)
+
   # check for any existing installation, if found cancel the script
-  if bin_in_path $vpnd_bin || bin_in_path nymvpn-x || bin_in_path $target_appimage; then
+  if [[ "$_vpnd" == 0 && $vpnd_in_path == 0 ]] ||
+    [[ "$_vpnx" == 0 && $vpnx_in_path == 0 ]]; then
     log "  ${I_YLW}Please remove or cleanup any existing installation before running this script$RS"
     exit 1
   fi
 
-  files_check=("$install_dir/$target_appimage" "$install_dir/$wrapper_sh" "$desktop_dir/nymvpn-x.desktop" "$icons_dir/$icon_name" "$install_dir/$vpnd_bin" "$units_dir/$vpnd_service")
+  files_check=()
+  if [ "$_vpnd" == 0 ]; then
+    files_check+=("$install_dir/$vpnd_bin" "$units_dir/$vpnd_service")
+  fi
+  if [ "$_vpnx" == 0 ]; then
+    files_check+=("$install_dir/$target_appimage" "$install_dir/$wrapper_sh" "$desktop_dir/nymvpn-x.desktop" "$icons_dir/$icon_name")
+  fi
 
   for file in "${files_check[@]}"; do
     if [ -a "$file" ]; then
@@ -318,7 +363,7 @@ sanity_check() {
     fi
   done
 
-  if check_unit "nym_vpnd"; then
+  if [ "$_vpnd" == 0 ] && check_unit "nym_vpnd"; then
     log "  ${I_YLW}⚠$RS nym-vpnd unit service found on the system$RS"
     log "  ${I_YLW}Please remove or cleanup any existing installation before running this script$RS"
     exit 1
@@ -328,8 +373,8 @@ sanity_check() {
 # prompt user to enable and start the service
 start_service() {
   choice=""
-  log "  ${B_GRN}Enable$RS and ${B_GRN}start$RS nym-vpnd service?"
-  prompt="    ${B_YLW}Y${RS}es (recommended) ${B_YLW}N${RS}o "
+  log "  ${B_GRN}Enable$RS and start nym-vpnd service?"
+  prompt="    ${BI_YLW}Y${RS}es (recommended) ${BI_YLW}N${RS}o "
   user_prompt choice "$prompt"
 
   if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
@@ -346,14 +391,20 @@ start_service() {
 check_system_deps() {
   log "  ${B_GRN}Checking$RS for system dependencies"
 
+  # this check only applies to the client for now
+  # if client is not selected, skip it
+  if [ "$_vpnx" != 0 ]; then
+    return 0
+  fi
+
   case "$os" in
   *ubuntu* | *debian*)
     # check for ubuntu version > 22.04 libfuse2 (needed for AppImage)
     fuse_output=$(dpkg --get-selections | grep fuse)
-    if [[ "$fuse_output" =~ "libfuse2" ]]; then
+    if [[ "$fuse_output" != *"libfuse2"* ]]; then
       choice=""
       log "  ${B_GRN}Install$RS required package libfuse2?"
-      prompt="    ${B_YLW}Y${RS}es (recommended) ${B_YLW}N${RS}o "
+      prompt="    ${BI_YLW}Y${RS}es (recommended) ${BI_YLW}N${RS}o "
       user_prompt choice "$prompt"
 
       if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
@@ -370,7 +421,7 @@ check_system_deps() {
     if ! pacman -Qk fuse2 &>/dev/null; then
       choice=""
       log "  ${B_GRN}Install$RS required package fuse2?"
-      user_prompt choice "    ${B_YLW}Y${RS}es ${B_YLW}N${RS}o "
+      user_prompt choice "    ${BI_YLW}Y${RS}es ${BI_YLW}N${RS}o "
 
       if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
         sudo pacman -S fuse2 --noconfirm
@@ -443,16 +494,57 @@ install_daemon() {
   log "   ${B_GRN}Installed$RS $(tilded "$units_dir/$vpnd_service")"
 }
 
-cleanup_app_local_files() {
-  log "  ${B_GRN}Remove$RS app config and cache files?"
-  prompt="    ${B_YLW}Y${RS}es (recommended) ${B_YLW}N${RS}o "
+# try to remove a bunch of files or directories
+# $1 the array of files
+remove_file_set() {
+  local -n _files=$1
+  declare -a file_set
+
+  # filter out files that don't exist
+  for file in "${_files[@]}"; do
+    if [ -a "$file" ]; then
+      file_set+=("$file")
+    fi
+  done
+
+  if [ "${#file_set[@]}" == 0 ]; then
+    log "    ${ITL}No files found to remove$RS"
+    return 0
+  fi
+
+  log "  Files to remove:"
+  for file in "${file_set[@]}"; do
+    log "    $I_YLW${file/#$HOME/\~}$RS"
+  done
+
+  choice=""
+  log "  Proceed?"
+  prompt="    ${BI_YLW}Y${RS}es ${BI_YLW}N${RS}o "
   user_prompt choice "$prompt"
 
   if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
-    _rmdir "$config_home/$app_dir"
-    _rmdir "$data_home/$app_dir"
-    _rmdir "$state_home/$app_dir"
-    _rmdir "$cache_home/$app_dir"
+    for file in "${file_set[@]}"; do
+      rmfile "$file"
+    done
+  fi
+}
+
+uninstall_vpnd_service() {
+  log "  ${B_GRN}Remove$RS nym-vpnd service?"
+
+  choice=""
+  prompt="    ${BI_YLW}Y${RS}es ${BI_YLW}N${RS}o "
+  user_prompt choice "$prompt"
+
+  if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
+    log "  ${B_YLW}sudo$RS needed to stop and disable the service"
+    if sudo systemctl stop nym-vpnd.service &>/dev/null; then
+      log "   ${B_GRN}Stopped$RS nym-vpnd service"
+    fi
+    if sudo systemctl disable nym-vpnd.service &>/dev/null; then
+      log "   ${B_GRN}Disabled$RS nym-vpnd service"
+    fi
+    rmfile /usr/lib/systemd/system/nym-vpnd.service
   fi
 }
 
@@ -468,23 +560,26 @@ cleanup() {
 }
 
 _install() {
-  log "$ITL${B_GRN}nym$RS$ITL${B_GRY}VPN$RS\n"
-  log "  nymvpn-x $ITL${B_YLW}$vpnx_version$RS"
-  log "  nym-vpnd $ITL${B_YLW}$vpnd_version$RS\n"
+  log "$ITL${B_GRN}nym$RS${BI_GRY}VPN$RS ${BI}installer$RS\n"
+  log "  nym-vpnd $ITL${B_YLW}$vpnd_version$RS ${I_GRY}daemon$RS"
+  log "  nymvpn-x $ITL${B_YLW}$vpnx_version$RS ${I_GRY}client$RS\n"
 
   need_cmd mktemp
   temp_dir=$(mktemp -d)
 
   pre_check
+  select_components
   check_system_pkg
   sanity_check
   check_system_deps
   check_install_dir
-  download_client
-  download_daemon
-  install_client
-  install_daemon
-  start_service
+  [[ "$_vpnx" == 0 ]] && download_client
+  [[ "$_vpnd" == 0 ]] && download_daemon
+  [[ "$_vpnx" == 0 ]] && install_client
+  if [ "$_vpnd" == 0 ]; then
+    install_daemon
+    start_service
+  fi
   post_install
   cleanup
 
@@ -492,39 +587,53 @@ _install() {
 }
 
 _uninstall() {
-  log "$ITL${B_GRN}nym$RS$ITL${B_GRY}VPN$RS ${ITL}uninstaller$RS\n"
+  log "$ITL${B_GRN}nym$RS${BI_GRY}VPN$RS ${BI}uninstaller$RS\n"
+
+  select_components uninstall
   check_system_pkg
 
-  files=(
-    "$xdg_bin_home/nym-vpnd"
-    "$xdg_bin_home/nymvpn-x.appimage"
-    "$xdg_bin_home/nymvpn-x-wrapper.sh"
-    "$data_home/applications/nymvpn-x.desktop"
-    "$data_home/icons/nymvpn-x.svg"
-    "/usr/bin/nym-vpnd"
-    "/usr/bin/nymvpn-x.appimage"
-    "/usr/bin/nymvpn-x-wrapper.sh"
-    /usr/share/applications/nymvpn-x.desktop
-    /usr/share/icons/nymvpn-x.svg
-  )
+  local files=()
+  if [ "$_vpnd" == 0 ]; then
+    files+=(
+      "$xdg_bin_home/nym-vpnd"
+      "/usr/bin/nym-vpnd"
+    )
+  fi
+  if [ "$_vpnx" == 0 ]; then
+    files+=(
+      "$xdg_bin_home/nymvpn-x.appimage"
+      "$xdg_bin_home/nymvpn-x-wrapper.sh"
+      "$data_home/applications/nymvpn-x.desktop"
+      "$data_home/icons/nymvpn-x.svg"
+      "/usr/bin/nymvpn-x.appimage"
+      "/usr/bin/nymvpn-x-wrapper.sh"
+      /usr/share/applications/nymvpn-x.desktop
+      /usr/share/icons/nymvpn-x.svg
+    )
+  fi
 
   log "  ${B_GRN}Removing$RS installed files"
-  for file in "${files[@]}"; do
-    if [ -f "$file" ]; then
-      rmfile "$file"
+  remove_file_set 'files'
+
+  if [ "$_vpnx" == 0 ]; then
+    log "  ${B_GRN}Remove$RS app config and cache files?"
+
+    choice=""
+    prompt="    ${BI_YLW}Y${RS}es ${BI_YLW}N${RS}o "
+    user_prompt choice "$prompt"
+
+    if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
+      local app_dirs=(
+        "$config_home/$app_dir"
+        "$data_home/$app_dir"
+        "$state_home/$app_dir"
+        "$cache_home/$app_dir"
+      )
+      remove_file_set 'app_dirs'
     fi
-  done
-
-  cleanup_app_local_files
-
-  log "  ${B_GRN}Removing$RS nym-vpnd service"
-  if sudo systemctl stop nym-vpnd.service &>/dev/null; then
-    log "   ${B_GRN}Stopped$RS nym-vpnd service"
   fi
-  if sudo systemctl disable nym-vpnd.service &>/dev/null; then
-    log "   ${B_GRN}Disabled$RS nym-vpnd service"
-  fi
-  rmfile /usr/lib/systemd/system/nym-vpnd.service
+
+  [[ "$_vpnd" == 0 ]] && uninstall_vpnd_service
 
   log "\n${B_GRN}✓$RS"
 }
