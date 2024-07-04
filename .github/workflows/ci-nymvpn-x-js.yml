@@ -43,7 +43,7 @@ jobs:
 
       - name: Check formatting
         working-directory: nym-vpn-x
-        run: npm run fmt:check
+        run: npm run fmt:ci
 
       #      - name: Run tests
       #        working-directory: nym-vpn-x

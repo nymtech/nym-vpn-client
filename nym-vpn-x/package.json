@@ -22,6 +22,7 @@
     "lint:fix": "eslint --fix src/",
     "fmt": "prettier --write --ignore-unknown \"**/*\"",
     "fmt:check": "prettier --check --ignore-unknown \"**/*\"",
+    "fmt:ci": "prettier --check --ignore-unknown --ignore-path .gitignore --ignore-path .prettierignore-ci \"**/*\"",
     "tscheck": "tsc --noEmit",
     "tauri": "tauri",
     "gen:licenses": "run-p --aggregate-output gen:licenses:rust gen:licenses:js",
