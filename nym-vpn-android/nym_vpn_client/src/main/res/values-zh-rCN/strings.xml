@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vpn_notification_title">NymVPN</string>
+    <string name="vpn_notification_text">运行中</string>
+    <string name="channel_name">NymVPN 频道</string>
+    <string name="channel_description">VPN 相关通知的通道。</string>
+</resources>
