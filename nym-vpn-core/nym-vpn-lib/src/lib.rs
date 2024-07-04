@@ -21,10 +21,8 @@ use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
 use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
-use tokio::time::timeout;
 use tunnel_setup::{setup_tunnel, AllTunnelsSetup, TunnelSetup};
 use util::wait_for_interrupt_and_signal;
 
@@ -69,16 +67,16 @@ const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
     wg_gateway_client: &WgGatewayClient,
-    entry_gateway_identity: &str,
+    auth_recipient: Recipient,
     mtu: u16,
 ) -> Result<WireguardConfig> {
     // First we need to register with the gateway to setup keys and IP assignment
     info!("Registering with wireguard gateway");
-    let entry_gateway_identity = gateway_client
-        .lookup_gateway_ip(entry_gateway_identity)
+    let gateway_host = gateway_client
+        .lookup_gateway_ip(&auth_recipient.gateway().to_base58_string())
         .await?;
     let wg_gateway_data = wg_gateway_client
-        .register_wireguard(entry_gateway_identity)
+        .register_wireguard(auth_recipient, gateway_host)
         .await?;
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 

@@ -18,7 +18,7 @@ use futures::StreamExt;
 use ipnetwork::IpNetwork;
 use log::*;
 use nym_gateway_directory::{
-    GatewayClient, GatewayQueryResult, LookupGateway, MixAddresses, NodeIdentity,
+    GatewayClient, GatewayQueryResult, LookupGateway, MixAddresses, Recipient,
 };
 use nym_task::TaskManager;
 use rand::rngs::OsRng;
@@ -131,14 +131,14 @@ async fn wait_interface_up(
 
 async fn setup_wg_tunnel(
     nym_vpn: &mut NymVpn<WireguardVpn>,
+    mixnet_client: SharedMixnetClient,
     route_manager: RouteManager,
     gateway_directory_client: GatewayClient,
-    entry_gateway_id: NodeIdentity,
-    exit_gateway_id: NodeIdentity,
+    auth_recipient: Recipient,
 ) -> Result<AllTunnelsSetup> {
     let mut rng = OsRng;
-    let wg_entry_gateway_client = WgGatewayClient::new(&mut rng);
-    let wg_exit_gateway_client = WgGatewayClient::new(&mut rng);
+    let wg_entry_gateway_client = WgGatewayClient::new(&mut rng, mixnet_client.clone());
+    let wg_exit_gateway_client = WgGatewayClient::new(&mut rng, mixnet_client);
     log::info!("Created wg gateway client");
     // MTU is computed as (MTU of wire interface) - ((IP header size) + (UDP header size) + (WireGuard metadata size))
     // The IP header size is 20 for IPv4 and 40 for IPv6
@@ -153,14 +153,14 @@ async fn setup_wg_tunnel(
     let mut entry_wireguard_config = init_wireguard_config(
         &gateway_directory_client,
         &wg_entry_gateway_client,
-        &entry_gateway_id.to_base58_string(),
+        auth_recipient,
         entry_mtu,
     )
     .await?;
     let mut exit_wireguard_config = init_wireguard_config(
         &gateway_directory_client,
         &wg_exit_gateway_client,
-        &exit_gateway_id.to_base58_string(),
+        auth_recipient,
         exit_mtu,
     )
     .await?;
@@ -381,10 +381,10 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
         SpecificVpn::Wg(vpn) => {
             setup_wg_tunnel(
                 vpn,
+                mixnet_client,
                 route_manager,
                 gateway_directory_client,
-                entry_gateway_id,
-                *exit_gateway_id,
+                exit_mix_addresses.authenticator_address.unwrap(),
             )
             .await
         }

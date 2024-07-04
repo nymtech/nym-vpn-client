@@ -2,9 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::error::Result;
-use nym_config::defaults::DEFAULT_NYM_NODE_HTTP_PORT;
+use crate::mixnet_connect::SharedMixnetClient;
+use nym_authenticator_client::AuthClient;
+use nym_authenticator_requests::v1::response::AuthenticatorResponse;
 use nym_crypto::asymmetric::encryption;
 use nym_crypto::asymmetric::x25519::KeyPair;
+use nym_gateway_directory::Recipient;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
 };
@@ -25,38 +28,40 @@ pub struct GatewayData {
 
 pub struct WgGatewayClient {
     keypair: encryption::KeyPair,
+    mixnet_client: SharedMixnetClient,
 }
 
 impl WgGatewayClient {
-    pub fn new<R: RngCore + CryptoRng>(rng: &mut R) -> Self {
+    pub fn new<R: RngCore + CryptoRng>(rng: &mut R, mixnet_client: SharedMixnetClient) -> Self {
         let keypair = KeyPair::new(rng);
 
-        WgGatewayClient { keypair }
+        WgGatewayClient {
+            keypair,
+            mixnet_client,
+        }
     }
 
     pub fn keypair(&self) -> &encryption::KeyPair {
         &self.keypair
     }
 
-    pub async fn register_wireguard(&self, gateway_identity: &str) -> Result<GatewayData> {
-        let gateway_host = self.lookup_gateway_ip(gateway_identity).await?;
-
-        let gateway_api_client = nym_node_requests::api::Client::new_url(
-            format!("{}:{}", gateway_host, DEFAULT_NYM_NODE_HTTP_PORT),
-            None,
-        )?;
+    pub async fn register_wireguard(
+        &self,
+        auth_recipient: Recipient,
+        gateway_host: IpAddr,
+    ) -> Result<GatewayData> {
+        let mut auth_client = AuthClient::new_from_inner(self.mixnet_client.inner()).await;
 
         debug!("Registering with the wg gateway...");
         let init_message = ClientMessage::Initial(InitMessage {
             pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
         });
-        let ClientRegistrationResponse::PendingRegistration(RegistrationData {
+        let mixnet_client = self.mixnet_client.lock().await.unwrap();
+        let AuthenticatorResponse::PendingRegistration(RegistrationData {
             nonce,
             gateway_data,
             wg_port,
-        }) = gateway_api_client
-            .post_gateway_register_client(&init_message)
-            .await?
+        }) = auth_client.connect(init_message, auth_recipient)?
         else {
             return Err(crate::error::Error::InvalidGatewayAPIResponse);
         };
@@ -74,8 +79,8 @@ impl WgGatewayClient {
             gateway_data.private_ip,
             nonce,
         ));
-        let ClientRegistrationResponse::Registered = gateway_api_client
-            .post_gateway_register_client(&finalized_message)
+        let ClientRegistrationResponse::Registered = auth_client
+            .connect(finalized_message, auth_recipient)
             .await?
         else {
             return Err(crate::error::Error::InvalidGatewayAPIResponse);
