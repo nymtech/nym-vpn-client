@@ -17,7 +17,6 @@ use nym_gateway_directory::{
     Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress,
 };
 use nym_ip_packet_client::IprClient;
-use nym_sdk::UserAgent;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
@@ -37,6 +36,7 @@ pub use nym_id as id;
 
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient, StoragePaths};
+pub use nym_sdk::UserAgent;
 pub use nym_task::{
     manager::{SentStatus, TaskStatus},
     StatusReceiver,
