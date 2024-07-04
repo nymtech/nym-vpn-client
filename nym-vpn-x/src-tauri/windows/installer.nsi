@@ -591,8 +591,8 @@ Section Install
   WriteRegDWORD SHCTX "${UNINSTKEY}" "EstimatedSize" "${ESTIMATEDSIZE}"
 
   ; Install NymVPN service
-  ExecWait '"$INSTDIR\nym-vpnd.exe" --install-service'
-  ExecWait '"$INSTDIR\nym-vpnd.exe" --start-service'
+  ExecWait '"$INSTDIR\nym-vpnd.exe" --install'
+  ExecWait '"$INSTDIR\nym-vpnd.exe" --start'
 
   ; Create start menu shortcut (GUI)
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
@@ -673,7 +673,7 @@ Section Uninstall
   !insertmacro CheckIfAppIsRunning
 
   ; Uninstall NymVPN service
-  ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall-service'
+  ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
 
   ; Delete the app directory and its content from disk
   ; Copy main executable
@@ -681,6 +681,10 @@ Section Uninstall
 
   ; Delete service
   Delete "$INSTDIR\nym-vpnd.exe"
+
+  Delete "$INSTDIR\libwg.dll"
+  Delete "$INSTDIR\winfw.dll"
+  Delete "$INSTDIR\wintun.dll"
 
   ; Delete resources
   {{#each resources}}
