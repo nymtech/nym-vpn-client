@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vpn_notification_title">NymVPN</string>
+    <string name="channel_name">Canal NymVPN</string>
+    <string name="vpn_notification_text">Executando</string>
+    <string name="channel_description">Um canal para notificações relacionadas a VPN.</string>
+</resources>
