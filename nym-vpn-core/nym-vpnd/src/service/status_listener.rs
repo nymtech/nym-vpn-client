@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::{SinkExt, StreamExt};
+use nym_bandwidth_controller::BandwidthStatusMessage;
 use nym_task::StatusSender;
 use nym_vpn_lib::{
     connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage, SentStatus, StatusReceiver,
@@ -52,6 +53,12 @@ impl VpnServiceStatusListener {
             }
         } else if let Some(msg) = msg.downcast_ref::<ConnectionMonitorStatus>() {
             info!("VPN connection monitor status: {msg}");
+        } else if let Some(msg) = msg.downcast_ref::<BandwidthStatusMessage>() {
+            info!("VPN bandwidth status: monitor status: {msg}");
+            match msg {
+                BandwidthStatusMessage::RemainingBandwidth(_) => {}
+                BandwidthStatusMessage::NoBandwidth => {}
+            }
         } else {
             info!("VPN status: unknown: {msg}");
         }

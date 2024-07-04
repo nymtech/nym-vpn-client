@@ -37,9 +37,13 @@ tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
 tracing-appender = "0.2.3"
 
+# Nym monorepo
+nym-bandwidth-controller.workspace = true
+nym-task.workspace = true
+
+# Local crates
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
-nym-task.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 windows-service = "0.6.0"
