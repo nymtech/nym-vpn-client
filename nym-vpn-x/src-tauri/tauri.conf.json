@@ -39,6 +39,12 @@
         "exceptionDomain": "",
         "signingIdentity": "Developer ID Application: Nym Technologies SA (VW5DZLFHM5)",
         "entitlements": null
+      },
+      "windows": {
+        "nsis": {
+          "template": "./windows/installer.nsi",
+          "installMode": "perMachine"
+        }
       }
     },
     "security": { "csp": null },
