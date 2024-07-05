@@ -72,15 +72,15 @@ impl AuthClient {
         Self::new(mixnet_client).await
     }
 
-    pub async fn connect(
+    pub async fn send(
         &mut self,
         message: ClientMessage,
         authenticator_address: Recipient,
     ) -> Result<AuthenticatorResponse> {
-        self.connect_inner(message, authenticator_address).await
+        self.send_inner(message, authenticator_address).await
     }
 
-    async fn connect_inner(
+    async fn send_inner(
         &mut self,
         message: ClientMessage,
         authenticator_address: Recipient,
@@ -118,24 +118,7 @@ impl AuthClient {
         Ok(request_id)
     }
 
-    async fn handle_pending_registration_response(&self, reg_data: RegistrationData) -> Result<()> {
-        debug!("Handling registration response");
-    }
-
-    async fn handle_authenticator_response(&self, response: AuthenticatorResponse) -> Result<()> {
-        if response.reply_to != self.nym_address {
-            error!("Got reply intended for wrong address");
-            return Err(Error::GotReplyIntendedForWrongAddress);
-        }
-        match response.data {
-            AuthenticatorResponseData::PendingRegistration(reg_data) => {
-                self.handle_pending_registration_response(reg_data).await
-            }
-            AuthenticatorResponseData::Registered => Ok(()),
-        }
-    }
-
-    async fn listen_for_connect_response(&self, request_id: u64) -> Result<()> {
+    async fn listen_for_connect_response(&self, request_id: u64) -> Result<AuthenticatorResponse> {
         // Connecting is basically synchronous from the perspective of the mixnet client, so it's safe
         // to just grab ahold of the mutex and keep it until we get the response.
         let mut mixnet_client_handle = self.mixnet_client.lock().await;
@@ -169,7 +152,7 @@ impl AuthClient {
 
                             if response.id() == Some(request_id) {
                                 debug!("Got response with matching id");
-                                return self.handle_authenticator_response(response).await;
+                                return Ok(response);
                             }
                         }
                     }

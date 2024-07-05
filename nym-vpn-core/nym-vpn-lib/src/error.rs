@@ -81,9 +81,6 @@ pub enum Error {
     #[error("gateway was requested by location, but we don't have any location data - is the explorer-api set correctly?")]
     RequestedGatewayByLocationWithoutLocationDataAvailable,
 
-    #[error("invalid Gateway API response")]
-    InvalidGatewayAPIResponse,
-
     #[error("{0}")]
     WireguardTypesError(#[from] nym_wireguard_types::error::Error),
 
@@ -229,6 +226,9 @@ pub enum Error {
 
     #[error("received bad event for wireguard tunnel creation")]
     BadWireguardEvent,
+
+    #[error("received invalid response from gateway API")]
+    InvalidGatewayAPIResponse,
 }
 
 // Result type based on our error type

@@ -4,7 +4,7 @@
 use crate::error::Result;
 use crate::mixnet_connect::SharedMixnetClient;
 use nym_authenticator_client::AuthClient;
-use nym_authenticator_requests::v1::response::AuthenticatorResponse;
+use nym_authenticator_requests::v1::response::{AuthenticatorResponse, AuthenticatorResponseData};
 use nym_crypto::asymmetric::encryption;
 use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::Recipient;
@@ -57,11 +57,12 @@ impl WgGatewayClient {
             pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
         });
         let mixnet_client = self.mixnet_client.lock().await.unwrap();
-        let AuthenticatorResponse::PendingRegistration(RegistrationData {
+        let response = auth_client.send(init_message, auth_recipient).await?;
+        let AuthenticatorResponseData::PendingRegistration(RegistrationData {
             nonce,
             gateway_data,
             wg_port,
-        }) = auth_client.connect(init_message, auth_recipient)?
+        }) = response.data
         else {
             return Err(crate::error::Error::InvalidGatewayAPIResponse);
         };
@@ -79,9 +80,8 @@ impl WgGatewayClient {
             gateway_data.private_ip,
             nonce,
         ));
-        let ClientRegistrationResponse::Registered = auth_client
-            .connect(finalized_message, auth_recipient)
-            .await?
+        let AuthenticatorResponseData::Registered =
+            auth_client.send(finalized_message, auth_recipient).await?
         else {
             return Err(crate::error::Error::InvalidGatewayAPIResponse);
         };
