@@ -70,14 +70,16 @@ rustc channel:   {}
         info.compiler.channel,
     );
     if let Some(git) = info.version_control.as_ref().and_then(|vc| vc.git()) {
-        println!(
+        print!(
             r"commit sha:      {}
 commit date:     {}
-git branch:      {}
 ",
-            git.commit_id,
-            git.commit_timestamp,
-            git.branch.as_ref().unwrap_or(&"".to_string())
+            git.commit_id, git.commit_timestamp,
         );
+
+        if let Some(branch) = git.branch.as_ref() {
+            print!("git branch:      {}", branch);
+        }
     }
+    println!("\n");
 }
