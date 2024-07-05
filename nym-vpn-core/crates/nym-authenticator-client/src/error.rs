@@ -15,6 +15,9 @@ pub enum Error {
     #[error("received response with version v{received}, the client is too old and can only understand v{expected}")]
     ReceivedResponseWithNewVersion { expected: u8, received: u8 },
 
+    #[error(transparent)]
+    SdkError(#[from] nym_sdk::Error),
+
     #[error("timeout waiting for connect response from exit gateway (authenticator)")]
     TimeoutWaitingForConnectResponse,
 }

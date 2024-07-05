@@ -1,14 +1,13 @@
-use std::sync::Arc;
+use std::{cmp::Ordering, sync::Arc, time::Duration};
 
 use nym_authenticator_requests::v1::{
-    response::{AuthenticatorResponse, AuthenticatorResponseData},
-    AuthenticatorResponseData::request::AuthenticatorRequest,
+    request::AuthenticatorRequest, response::AuthenticatorResponse,
 };
 use nym_sdk::mixnet::{
     MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, ReconstructedMessage,
     TransmissionLane,
 };
-use nym_wireguard_types::{registration::RegistrationData, ClientMessage};
+use nym_wireguard_types::ClientMessage;
 use tracing::{debug, error};
 
 mod error;
@@ -99,10 +98,12 @@ impl AuthClient {
         authenticator_address: Recipient,
     ) -> Result<u64> {
         let (request, request_id) = match message {
-            ClientMessage::Initial(message) => {
-                AuthenticatorRequest::new_initial_request(message, self.nym_address)
+            ClientMessage::Initial(init_message) => {
+                AuthenticatorRequest::new_initial_request(init_message, self.nym_address)
             }
-            ClientMessage::Final(message) => {}
+            ClientMessage::Final(gateway_client) => {
+                AuthenticatorRequest::new_final_request(gateway_client, self.nym_address)
+            }
         };
         debug!("Sent connect request with version v{}", request.version);
 

@@ -4,12 +4,14 @@
 use crate::error::Result;
 use crate::mixnet_connect::SharedMixnetClient;
 use nym_authenticator_client::AuthClient;
-use nym_authenticator_requests::v1::response::{AuthenticatorResponse, AuthenticatorResponseData};
+use nym_authenticator_requests::v1::response::{
+    AuthenticatorResponseData, PendingRegistrationResponse,
+};
 use nym_crypto::asymmetric::encryption;
 use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::Recipient;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
-    ClientMessage, ClientRegistrationResponse, InitMessage, PeerPublicKey,
+    ClientMessage, InitMessage, PeerPublicKey,
 };
 use nym_wireguard_types::registration::RegistrationData;
 use nym_wireguard_types::GatewayClient;
@@ -56,12 +58,15 @@ impl WgGatewayClient {
         let init_message = ClientMessage::Initial(InitMessage {
             pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
         });
-        let mixnet_client = self.mixnet_client.lock().await.unwrap();
         let response = auth_client.send(init_message, auth_recipient).await?;
-        let AuthenticatorResponseData::PendingRegistration(RegistrationData {
-            nonce,
-            gateway_data,
-            wg_port,
+        let AuthenticatorResponseData::PendingRegistration(PendingRegistrationResponse {
+            reply:
+                RegistrationData {
+                    nonce,
+                    gateway_data,
+                    wg_port,
+                },
+            ..
         }) = response.data
         else {
             return Err(crate::error::Error::InvalidGatewayAPIResponse);
@@ -80,9 +85,8 @@ impl WgGatewayClient {
             gateway_data.private_ip,
             nonce,
         ));
-        let AuthenticatorResponseData::Registered =
-            auth_client.send(finalized_message, auth_recipient).await?
-        else {
+        let response = auth_client.send(finalized_message, auth_recipient).await?;
+        let AuthenticatorResponseData::Registered(_) = response.data else {
             return Err(crate::error::Error::InvalidGatewayAPIResponse);
         };
         let gateway_data = GatewayData {

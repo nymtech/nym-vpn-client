@@ -162,10 +162,12 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.dns = args.dns;
         nym_vpn.disable_routing = args.disable_routing;
         nym_vpn.enable_two_hop = args.enable_two_hop;
-        nym_vpn.vpn_config.mixnet_data_path = data_path;
-        nym_vpn.vpn_config.enable_poisson_rate = args.enable_poisson_rate;
-        nym_vpn.vpn_config.disable_background_cover_traffic = args.disable_background_cover_traffic;
-        nym_vpn.vpn_config.enable_credentials_mode = args.enable_credentials_mode;
+        nym_vpn.mixnet_client_config.mixnet_data_path = data_path;
+        nym_vpn.mixnet_client_config.enable_poisson_rate = args.enable_poisson_rate;
+        nym_vpn
+            .mixnet_client_config
+            .disable_background_cover_traffic = args.disable_background_cover_traffic;
+        nym_vpn.mixnet_client_config.enable_credentials_mode = args.enable_credentials_mode;
         nym_vpn.user_agent = Some(bin_info!().into());
         nym_vpn.into()
     };

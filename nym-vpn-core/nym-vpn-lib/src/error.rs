@@ -229,6 +229,9 @@ pub enum Error {
 
     #[error("received invalid response from gateway API")]
     InvalidGatewayAPIResponse,
+
+    #[error(transparent)]
+    AtuenticatorClientError(#[from] nym_authenticator_client::Error),
 }
 
 // Result type based on our error type
