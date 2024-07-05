@@ -1,0 +1,44 @@
+{
+    "auto-connect": {
+        "title": "Conexión automática",
+        "desc": "Conectar automáticamente al iniciar la aplicación"
+    },
+    "error-monitoring": {
+        "title": "Informes de errores anónimos",
+        "desc": "se aplica al reiniciar la aplicación"
+    },
+    "feedback": {
+        "title": "Retroalimentación",
+        "github": "Abrir un ticket en GitHub",
+        "send": "Envíanos tus comentarios",
+        "matrix": "Únete en Matrix",
+        "discord": "Únete en Discord"
+    },
+    "support": {
+        "title": "Soporte",
+        "faq": "Consulta las preguntas frecuentes",
+        "contact": "Contacto para soporte"
+    },
+    "legal": {
+        "title": "Legal",
+        "policy": "Declaración de privacidad",
+        "tos": "Términos de uso",
+        "emptyData": "No hay datos de licencia disponible",
+        "license": "Licencia",
+        "licenses-rust": "Licencia (Rust)",
+        "licenses-js": "Licencia (JS)"
+    },
+    "display-theme": "Tema",
+    "logs": "Registros",
+    "add-credential-button": "Agregar credencial para conectar",
+    "credential": {
+        "title": "Credencial"
+    },
+    "entry-selector": {
+        "desc": "Seleccione manualmente el salto de entrada",
+        "title": "Selector de ubicación de entrada"
+    },
+    "monitoring-alert": "Debes reiniciar la aplicación para que el cambio surta efecto.",
+    "faq": "FAQ",
+    "quit": "Cerrar NymVPN"
+}

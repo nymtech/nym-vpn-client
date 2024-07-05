@@ -1,0 +1,40 @@
+{
+    "disconnect": "Bağlantı kesildi",
+    "connect": "Bağlandı",
+    "status": {
+        "connected": "Bağlandı",
+        "disconnected": "Bağlantı kesildi",
+        "connecting": "Bağlanıyor",
+        "disconnecting": "Bağlantı koptu",
+        "unknown": "Bilinmeyen bir hata oluştu"
+    },
+    "last-hop": "Son hop",
+    "first-hop": "İlk hop",
+    "connecting-message": "Bağlantı kuruluyor",
+    "connection-time": "Bağlantı süresi",
+    "select-node-title": "Bağlan",
+    "last-node-select": {
+        "label": "Son hop",
+        "text": "Hızlı bağlantı ({{ülke}})"
+    },
+    "snackbar-disabled-message": {
+        "connected": "VPN bağlıyken devre dışı",
+        "connecting": "VPN bağlantısı sırasında devre dışı bırakıldı",
+        "disconnecting": "VPN'den bağlantı kesilirken devre dışı bırakıldı"
+    },
+    "privacy-mode": {
+        "title": "Anonim",
+        "desc": "Ödemeler, e-postalar, mesajlar için en iyisi"
+    },
+    "fast-mode": {
+        "title": "Hızlı",
+        "desc": "İnternet tarama, yayın, paylaşım için en iyisi"
+    },
+    "select-mode-label": "Mod seçin",
+    "modes-dialog": {
+        "title": "Mod seçimi",
+        "privacy-description": "Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek maksimum düzeyde gizliliğin tadını çıkarın. Ödemeleri, e-postaları ve mesajları güvenli bir şekilde yönetmek için mükemmeldir.",
+        "fast-description": "WireGuard protokolünü kullanarak 2 sunucu bağlantısıyla maksimum hızın keyfini çıkarın. Hızlı tarama, yayın izleme ve dosya paylaşımı için mükemmeldir.",
+        "link": "Okumaya devam edin"
+    }
+}

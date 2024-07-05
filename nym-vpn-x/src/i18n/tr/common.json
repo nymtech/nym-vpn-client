@@ -1,0 +1,24 @@
+{
+    "settings": "Ayarlar",
+    "disconnect": "Bağlantı kesildi",
+    "connect": "Bağlandı",
+    "fastest": "En hızlı",
+    "logs": "Günlükler",
+    "feedback": "Geri bildirim",
+    "support": "Destek",
+    "sentry": "Sentry",
+    "legal": "Hukuki",
+    "display-theme": "Panel",
+    "ui-mode": {
+        "dark": "Karanlık mod",
+        "light": "Aydınlık mod"
+    },
+    "first-hop-selection": "İlk hop seçimi",
+    "last-hop-selection": "Son hop seçimi",
+    "tos": "Kullanım şartları",
+    "privacy-statement": "Gizlilik politikası",
+    "vpn-modes": {
+        "privacy": "Anonim",
+        "fast": "Hızlı"
+    }
+}

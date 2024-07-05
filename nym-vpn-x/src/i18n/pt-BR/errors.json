@@ -1,0 +1,25 @@
+{
+    "credential": {
+        "invalid": "Credencial inválida",
+        "expired": "Credencial expirada",
+        "no-duplicate": "Essa credencial já foi importada",
+        "storage": "Falha ao importar a credencial devido a um erro interno",
+        "deserialize": "Falha ao desserializar a credencial",
+        "vpn-running": "Não é possível importar uma credencial enquanto estiver conectado à VPN"
+    },
+    "unknown": "Erro desconhecido",
+    "internal": "Erro interno",
+    "daemon": {
+        "not-connected": "Não conectado ao daemon"
+    },
+    "grpc": "Erro interno do gRPC",
+    "connection": {
+        "timeout": "Tempo limite de conexão",
+        "gateway-lookup": "Falha na pesquisa do gateway",
+        "no-valid-credential": "Nenhuma credencial válida, adicione uma credencial primeiro"
+    },
+    "countries-request": {
+        "entry": "Falha ao buscar os países com nós de entrada disponíveis",
+        "exit": "Falha ao buscar os países de nós de saída disponíveis"
+    }
+}

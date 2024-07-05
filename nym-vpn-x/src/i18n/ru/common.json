@@ -1,0 +1,24 @@
+{
+    "settings": "Настройки",
+    "connect": "Подключиться",
+    "disconnect": "Отключиться",
+    "fastest": "Быстрейший",
+    "logs": "Логи",
+    "feedback": "Обратная связь",
+    "support": "Поддержка",
+    "sentry": "Sentry",
+    "legal": "Юридические аспекты",
+    "first-hop-selection": "Выбор первой ступени",
+    "vpn-modes": {
+        "privacy": "Анонимный",
+        "fast": "Быстрый"
+    },
+    "tos": "Условия использования",
+    "privacy-statement": "Заявление о конфиденциальности",
+    "last-hop-selection": "Выбор последней ступени",
+    "display-theme": "Интерфейс",
+    "ui-mode": {
+        "dark": "Тёмный режим",
+        "light": "Светлый режим"
+    }
+}

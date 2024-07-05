@@ -1,0 +1,44 @@
+{
+    "auto-connect": {
+        "desc": "应用程序启动时自动连接",
+        "title": "自动连接"
+    },
+    "entry-selector": {
+        "title": "输入位置选择器",
+        "desc": "手动选择进入跳数"
+    },
+    "error-monitoring": {
+        "desc": "适用于应用程序重启",
+        "title": "匿名错误报告"
+    },
+    "monitoring-alert": "您必须重新启动应用程序才能使更改生效。",
+    "support": {
+        "contact": "联系支持",
+        "title": "支持",
+        "faq": "查看常见问题"
+    },
+    "legal": {
+        "license": "许可证",
+        "licenses-rust": "许可证 (Rust)",
+        "licenses-js": "许可证 (JS)",
+        "emptyData": "无许可证数据",
+        "title": "法律",
+        "policy": "隐私声明",
+        "tos": "使用条款"
+    },
+    "faq": "FAQ",
+    "quit": "退出 NymVPN",
+    "feedback": {
+        "title": "反馈",
+        "github": "打开 GitHub 问题",
+        "send": "向我们反馈",
+        "matrix": "加入Matrix",
+        "discord": "加入Discord"
+    },
+    "display-theme": "显示模式",
+    "logs": "日志",
+    "add-credential-button": "添加凭证以连接",
+    "credential": {
+        "title": "凭证"
+    }
+}

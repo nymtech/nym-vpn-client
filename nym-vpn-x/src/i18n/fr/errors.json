@@ -1,0 +1,25 @@
+{
+    "credential": {
+        "invalid": "Identifiant invalide",
+        "vpn-running": "Ajout d'un identifiant impossible pendant la connexion au réseau",
+        "expired": "Identifiant expiré",
+        "no-duplicate": "Cet identifiant a déjà été importé",
+        "storage": "L'identifiant n'a pas pu être ajouté en raison d'une erreur interne",
+        "deserialize": "Échec de la désérialisation de l'identifiant"
+    },
+    "unknown": "Erreur inconnue",
+    "internal": "Erreur interne",
+    "daemon": {
+        "not-connected": "Non connecté au daemon"
+    },
+    "grpc": "Erreur du gRPC",
+    "connection": {
+        "timeout": "Connexion expirée",
+        "gateway-lookup": "Échec de la recherche de passerelle",
+        "no-valid-credential": "Pas d'identifiant valide, ajoutez un identifiant et réessayez"
+    },
+    "countries-request": {
+        "entry": "Échec de la récupération des nœuds d'entrée",
+        "exit": "Échec de la récupération des nœuds de sortie"
+    }
+}

@@ -1,0 +1,19 @@
+{
+    "title": {
+        "part1": "Bienvenue",
+        "part2": "dans NymVPN (alpha)"
+    },
+    "tos": {
+        "part1": "En continuant, vous acceptez les's",
+        "part2": "et reconnaissez avoir pris connaissance de la's",
+        "part3": "."
+    },
+    "continue-button": "Continuer",
+    "experimental": "Ce logiciel est expérimental. Ne vous reposez pas dessus pour protéger votre vie privée.",
+    "description": {
+        "part1": "Aidez-nous à améliorer l'application en phase alpha !",
+        "part2": "Vos retours utilisateurs sont indispensables",
+        "part3": "pour identifier et résoudre les bogues. Activez les rapports d'erreurs anonymes",
+        "part4": "et les rapports d'analyse. Vous pouvez changer vos préférences à tout moment. Merci de votre soutien !"
+    }
+}

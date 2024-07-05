@@ -1,0 +1,24 @@
+{
+    "connect": "Conectar",
+    "disconnect": "Desconectar",
+    "settings": "Configurações",
+    "fastest": "Mais rápido",
+    "support": "Suporte",
+    "legal": "Legal",
+    "feedback": "Comentário",
+    "sentry": "Sentry",
+    "logs": "Registros",
+    "vpn-modes": {
+        "privacy": "Anônimo",
+        "fast": "Rápido"
+    },
+    "tos": "Termos de uso",
+    "privacy-statement": "Declaração de privacidade",
+    "ui-mode": {
+        "dark": "Modo escuro",
+        "light": "Modo claro"
+    },
+    "first-hop-selection": "Seleção do primeiro salto",
+    "last-hop-selection": "Seleção do último salto",
+    "display-theme": "Exibir"
+}

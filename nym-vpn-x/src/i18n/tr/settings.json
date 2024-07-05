@@ -1,0 +1,44 @@
+{
+    "logs": "Günlükler",
+    "display-theme": "Görünüm teması",
+    "add-credential-button": "Bağlanmak için anahtar ekleyin",
+    "auto-connect": {
+        "title": "Otomatik bağlan",
+        "desc": "Uygulama başlangıcında otomatik bağlan"
+    },
+    "error-monitoring": {
+        "title": "Anonim hata raporları",
+        "desc": "uygulama yeniden başlatıldığında geçerlidir"
+    },
+    "feedback": {
+        "title": "Geri bildirim",
+        "github": "GitHub hata raporu açın",
+        "send": "Bize geri bildirim gönderin",
+        "matrix": "Matrix'te bize katılın",
+        "discord": "Discord'da bize katılın"
+    },
+    "support": {
+        "title": "Destek",
+        "faq": "SSS'i kontrol edin",
+        "contact": "Destek ile iletişime geçin"
+    },
+    "legal": {
+        "title": "Hukuki",
+        "policy": "Gizlilik politikası",
+        "tos": "Kullanım şartları",
+        "license": "Lisans",
+        "licenses-rust": "Lisanslar (Rust)",
+        "licenses-js": "Lisanslar (JS)",
+        "emptyData": "Lisans verisi bulunmamaktadır"
+    },
+    "entry-selector": {
+        "title": "Entry konumu seçici",
+        "desc": "Entry'i hop'unu manuel olarak seçin"
+    },
+    "monitoring-alert": "Değişikliğin etkili olması için uygulamayı yeniden başlatmalısınız.",
+    "faq": "SSS",
+    "quit": "NymVPN'yi kapat",
+    "credential": {
+        "title": "Anahtar"
+    }
+}

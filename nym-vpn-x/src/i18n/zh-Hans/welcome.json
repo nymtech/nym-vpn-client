@@ -1,0 +1,19 @@
+{
+    "title": {
+        "part1": "欢迎",
+        "part2": "到 NymVPN Alpha"
+    },
+    "tos": {
+        "part1": "如果您继续使用，即表示您同意NymVPN的",
+        "part2": "并承认 NymVPN",
+        "part3": "."
+    },
+    "experimental": "这是一款实验软件。请勿依赖它实现强大的匿名性（暂时）。",
+    "continue-button": "继续",
+    "description": {
+        "part1": "在 alpha 阶段帮助我们完善应用程序！",
+        "part2": "您的反馈至关重要",
+        "part3": "以发现和解决问题。选择匿名错误监控",
+        "part4": "和分析，您可以随时退出。感谢您的支持！"
+    }
+}
