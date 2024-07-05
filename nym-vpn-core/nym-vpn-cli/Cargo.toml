@@ -1,9 +1,13 @@
 [package]
 name = "nym-vpn-cli"
 version = "0.1.10-dev"
-edition = "2021"
-license = "GPL-3.0-only"
-authors = ["Nym Technologies"]
+description = "Standalone NymVPN commandline client"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
@@ -34,5 +38,10 @@ metrics-server = ["nym-vpn-lib/metrics-server"]
 # Debian
 [package.metadata.deb]
 name = "nym-vpn-cli"
+extended-description = '''NymVPN is a vpn service that uses the Nym mixnet.
+
+This package contains the nym-vpn-cli binary, that connects in the terminal and runs in the foreground
+
+It's primarily used for testing and not aimed and end-users'''
 maintainer-scripts = "debian"
 systemd-units = { enable = false }
