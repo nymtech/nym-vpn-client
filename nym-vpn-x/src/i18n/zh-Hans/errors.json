@@ -1,25 +1,25 @@
 {
-    "credential": {
-        "invalid": "无效凭证",
-        "expired": "凭证过期",
-        "no-duplicate": "该凭证已被导入",
-        "storage": "由于内部错误，导入凭证失败",
-        "deserialize": "反序列化凭证失败",
-        "vpn-running": "连接 VPN 时不能导入凭证"
-    },
-    "unknown": "未知错误",
-    "internal": "内部错误",
-    "daemon": {
-        "not-connected": "未连接到进程"
-    },
-    "grpc": "gRPC内部错误",
-    "connection": {
-        "timeout": "连接超时",
-        "gateway-lookup": "查询网关失败",
-        "no-valid-credential": "无有效凭证，请先添加凭证"
-    },
-    "countries-request": {
-        "entry": "获取可用条目节点国家失败",
-        "exit": "获取可用出口节点国家失败"
-    }
+  "credential": {
+    "invalid": "无效凭证",
+    "expired": "凭证过期",
+    "no-duplicate": "该凭证已被导入",
+    "storage": "由于内部错误，导入凭证失败",
+    "deserialize": "反序列化凭证失败",
+    "vpn-running": "连接 VPN 时不能导入凭证"
+  },
+  "unknown": "未知错误",
+  "internal": "内部错误",
+  "daemon": {
+    "not-connected": "未连接到进程"
+  },
+  "grpc": "gRPC内部错误",
+  "connection": {
+    "timeout": "连接超时",
+    "gateway-lookup": "查询网关失败",
+    "no-valid-credential": "无有效凭证，请先添加凭证"
+  },
+  "countries-request": {
+    "entry": "获取可用条目节点国家失败",
+    "exit": "获取可用出口节点国家失败"
+  }
 }

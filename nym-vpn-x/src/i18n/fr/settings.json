@@ -1,44 +1,44 @@
 {
-    "auto-connect": {
-        "title": "Auto-connexion",
-        "desc": "Auto-connexion au démarrage"
-    },
-    "error-monitoring": {
-        "title": "Rapports d'erreur anonymes",
-        "desc": "prend effet au redémarrage"
-    },
-    "feedback": {
-        "title": "Commentaires",
-        "github": "Créer un ticket GitHub",
-        "send": "Envoyer un commentaire",
-        "matrix": "Rejoignez-nous sur Matrix",
-        "discord": "Rejoignez-nous sur Discord"
-    },
-    "support": {
-        "title": "Service clients",
-        "faq": "Lire la F.A.Q.",
-        "contact": "Contacter le Service clients"
-    },
-    "legal": {
-        "title": "Juridique",
-        "policy": "Politique de confidentialité",
-        "tos": "C.G.U.",
-        "emptyData": "Pas de licence disponible",
-        "license": "Licences",
-        "licenses-rust": "Licences (Rust)",
-        "licenses-js": "Licences (JavaScript)"
-    },
-    "display-theme": "Apparence d'affichage",
-    "logs": "Journaux",
-    "add-credential-button": "Ajoutez un identifiant pour vous connecter",
-    "entry-selector": {
-        "title": "Choisir le nœud d'entrée",
-        "desc": "Choix manuel du nœud d'entrée"
-    },
-    "monitoring-alert": "Redémarrez l'application pour que le changement s'applique.",
-    "faq": "F.A.Q.",
-    "quit": "Quitter NymVPN",
-    "credential": {
-        "title": "Identifiant"
-    }
+  "auto-connect": {
+    "title": "Auto-connexion",
+    "desc": "Auto-connexion au démarrage"
+  },
+  "error-monitoring": {
+    "title": "Rapports d'erreur anonymes",
+    "desc": "prend effet au redémarrage"
+  },
+  "feedback": {
+    "title": "Commentaires",
+    "github": "Créer un ticket GitHub",
+    "send": "Envoyer un commentaire",
+    "matrix": "Rejoignez-nous sur Matrix",
+    "discord": "Rejoignez-nous sur Discord"
+  },
+  "support": {
+    "title": "Service clients",
+    "faq": "Lire la F.A.Q.",
+    "contact": "Contacter le Service clients"
+  },
+  "legal": {
+    "title": "Juridique",
+    "policy": "Politique de confidentialité",
+    "tos": "C.G.U.",
+    "emptyData": "Pas de licence disponible",
+    "license": "Licences",
+    "licenses-rust": "Licences (Rust)",
+    "licenses-js": "Licences (JavaScript)"
+  },
+  "display-theme": "Apparence d'affichage",
+  "logs": "Journaux",
+  "add-credential-button": "Ajoutez un identifiant pour vous connecter",
+  "entry-selector": {
+    "title": "Choisir le nœud d'entrée",
+    "desc": "Choix manuel du nœud d'entrée"
+  },
+  "monitoring-alert": "Redémarrez l'application pour que le changement s'applique.",
+  "faq": "F.A.Q.",
+  "quit": "Quitter NymVPN",
+  "credential": {
+    "title": "Identifiant"
+  }
 }

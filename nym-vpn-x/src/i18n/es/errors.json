@@ -1,25 +1,25 @@
 {
-    "credential": {
-        "invalid": "Credencial inválida",
-        "expired": "Credencial caducada",
-        "no-duplicate": "Ya se ha importado esta credencial",
-        "storage": "Fallo al importar credencial debido a un error interno",
-        "deserialize": "Fallo al deserializar la credencial",
-        "vpn-running": "No se puede importar credencial mientras se está conectado a la VPN"
-    },
-    "countries-request": {
-        "entry": "Fallo al obtener los países disponibles del gateway de entrada",
-        "exit": "Fallo al obtener los países disponibles del gateway de salida"
-    },
-    "unknown": "Error desconocido",
-    "internal": "Error interno",
-    "daemon": {
-        "not-connected": "No conectado al demonio"
-    },
-    "grpc": "Error interno gRPC",
-    "connection": {
-        "timeout": "Tiempo de conexión agotado",
-        "gateway-lookup": "Error al buscar gateway",
-        "no-valid-credential": "Credencial no válida, por favor añada credencial"
-    }
+  "credential": {
+    "invalid": "Credencial inválida",
+    "expired": "Credencial caducada",
+    "no-duplicate": "Ya se ha importado esta credencial",
+    "storage": "Fallo al importar credencial debido a un error interno",
+    "deserialize": "Fallo al deserializar la credencial",
+    "vpn-running": "No se puede importar credencial mientras se está conectado a la VPN"
+  },
+  "countries-request": {
+    "entry": "Fallo al obtener los países disponibles del gateway de entrada",
+    "exit": "Fallo al obtener los países disponibles del gateway de salida"
+  },
+  "unknown": "Error desconocido",
+  "internal": "Error interno",
+  "daemon": {
+    "not-connected": "No conectado al demonio"
+  },
+  "grpc": "Error interno gRPC",
+  "connection": {
+    "timeout": "Tiempo de conexión agotado",
+    "gateway-lookup": "Error al buscar gateway",
+    "no-valid-credential": "Credencial no válida, por favor añada credencial"
+  }
 }

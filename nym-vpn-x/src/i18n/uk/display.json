@@ -1,10 +1,10 @@
 {
-    "theme-section-title": "Тема",
-    "zoom-section-title": "Масштаб",
-    "options": {
-        "system": "Автоматичний",
-        "light": "Світла тема",
-        "dark": "Темна тема"
-    },
-    "system-desc": "Використовувати тему пристрою"
+  "theme-section-title": "Тема",
+  "zoom-section-title": "Масштаб",
+  "options": {
+    "system": "Автоматичний",
+    "light": "Світла тема",
+    "dark": "Темна тема"
+  },
+  "system-desc": "Використовувати тему пристрою"
 }

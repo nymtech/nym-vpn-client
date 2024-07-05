@@ -1,10 +1,10 @@
 {
-    "zoom-section-title": "缩放级别",
-    "theme-section-title": "主题",
-    "options": {
-        "system": "自动",
-        "light": "亮光模式",
-        "dark": "黑夜模式"
-    },
-    "system-desc": "使用设备模式"
+  "zoom-section-title": "缩放级别",
+  "theme-section-title": "主题",
+  "options": {
+    "system": "自动",
+    "light": "亮光模式",
+    "dark": "黑夜模式"
+  },
+  "system-desc": "使用设备模式"
 }
