@@ -1,10 +1,10 @@
 {
-    "name": "nombre",
-    "version": "versión",
-    "authors": "autor",
-    "repository": "repositorio",
-    "language": "Lenguaje de programación",
-    "no-data": "No hay datos de licencia",
-    "licenses": "licencias",
-    "license-texts": "texto de la licencia"
+  "name": "nombre",
+  "version": "versión",
+  "authors": "autor",
+  "repository": "repositorio",
+  "language": "Lenguaje de programación",
+  "no-data": "No hay datos de licencia",
+  "licenses": "licencias",
+  "license-texts": "texto de la licencia"
 }

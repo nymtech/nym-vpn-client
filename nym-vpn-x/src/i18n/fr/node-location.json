@@ -1,8 +1,8 @@
 {
-    "selected": "Sélectionné",
-    "search-country": "Rechercher un pays",
-    "input-label": "Recherche",
-    "loading": "Chargement...",
-    "none-found": "Pas de résultats, essayez une autre recherche",
-    "list-loading": "Chargement de la liste des pays…"
+  "selected": "Sélectionné",
+  "search-country": "Rechercher un pays",
+  "input-label": "Recherche",
+  "loading": "Chargement...",
+  "none-found": "Pas de résultats, essayez une autre recherche",
+  "list-loading": "Chargement de la liste des pays…"
 }

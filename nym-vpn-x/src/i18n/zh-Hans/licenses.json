@@ -1,10 +1,10 @@
 {
-    "licenses": "许可证",
-    "license-texts": "许可证文本",
-    "name": "名字",
-    "version": "版本",
-    "authors": "作者",
-    "repository": "知识库",
-    "language": "编程语言",
-    "no-data": "无许可证数据"
+  "licenses": "许可证",
+  "license-texts": "许可证文本",
+  "name": "名字",
+  "version": "版本",
+  "authors": "作者",
+  "repository": "知识库",
+  "language": "编程语言",
+  "no-data": "无许可证数据"
 }
