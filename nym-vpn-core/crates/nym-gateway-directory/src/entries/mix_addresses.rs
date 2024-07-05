@@ -38,7 +38,7 @@ impl MixAddresses {
     }
 
     pub fn gateway(&self) -> &NodeIdentity {
-        &self.ip_packet_router_address.gateway()
+        self.ip_packet_router_address.gateway()
     }
 }
 
