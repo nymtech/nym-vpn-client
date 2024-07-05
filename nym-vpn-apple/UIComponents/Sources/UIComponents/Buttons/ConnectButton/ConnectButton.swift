@@ -12,7 +12,7 @@ public struct ConnectButton: View {
         HStack {
             Text(state.localizedTitle)
                 .foregroundStyle(NymColor.connectTitle)
-                .textStyle(.Label.Huge.primary)
+                .textStyle(.Label.Huge.bold)
         }
         .frame(maxWidth: .infinity, minHeight: 56, maxHeight: 56)
         .background(state.backgroundColor)

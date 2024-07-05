@@ -12,7 +12,7 @@ public struct GenericButton: View {
         HStack {
             Text(title)
                 .foregroundStyle(NymColor.connectTitle)
-                .textStyle(.Label.Huge.primary)
+                .textStyle(.Label.Huge.bold)
         }
         .frame(maxWidth: .infinity, minHeight: 56, maxHeight: 56)
         .background(NymColor.primaryOrange)

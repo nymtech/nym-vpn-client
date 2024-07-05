@@ -1,7 +1,7 @@
 {
   "name": "nymvpn-x",
   "private": true,
-  "version": "0.1.4-dev",
+  "version": "0.1.6-dev",
   "type": "module",
   "authors": [
     "pierre <dommerc.pierre@gmail.com>",
@@ -22,6 +22,7 @@
     "lint:fix": "eslint --fix src/",
     "fmt": "prettier --write --ignore-unknown \"**/*\"",
     "fmt:check": "prettier --check --ignore-unknown \"**/*\"",
+    "fmt:ci": "prettier --check --ignore-unknown --ignore-path .gitignore --ignore-path .prettierignore-ci \"**/*\"",
     "tscheck": "tsc --noEmit",
     "tauri": "tauri",
     "gen:licenses": "run-p --aggregate-output gen:licenses:rust gen:licenses:js",
@@ -31,17 +32,17 @@
   "dependencies": {
     "@headlessui/react": "^2.1.1",
     "@mui/base": "^5.0.0-beta.39",
-    "@sentry/react": "^8.13.0",
+    "@sentry/react": "^8.14.0",
     "@tauri-apps/api": "^1.5.0",
     "clsx": "^2.0.0",
     "dayjs": "^1.11.10",
-    "framer-motion": "^11.0.13",
+    "framer-motion": "^11.2.13",
     "i18next": "^23.7.6",
     "lodash-es": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-i18next": "^14.0.0",
-    "react-router-dom": "^6.18.0",
+    "react-router-dom": "^6.24.1",
     "react-virtualized-auto-sizer": "^1.0.23",
     "react-window": "^1.8.10"
   },
@@ -70,7 +71,7 @@
     "prettier": "^3.0.3",
     "tailwindcss": "^3.3.3",
     "typescript": "^5.0.2",
-    "vite": "^5.3.2",
+    "vite": "^5.3.3",
     "vite-plugin-svgr": "^4.2.0"
   }
 }

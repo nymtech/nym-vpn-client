@@ -71,7 +71,7 @@ private extension SurveyView {
     @ViewBuilder
     func introText() -> some View {
         Text(viewModel.introText)
-            .textStyle(NymTextStyle.Label.Huge.primary)
+            .textStyle(NymTextStyle.Label.Huge.bold)
             .foregroundStyle(NymColor.surveyText)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 12)

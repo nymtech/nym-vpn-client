@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_bandwidth_controller::BandwidthStatusMessage;
 use nym_vpn_lib::{connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage};
 use nym_vpn_proto::{connection_status_update::StatusType, ConnectionStatusUpdate};
 
@@ -62,6 +63,25 @@ pub(super) fn status_update_from_monitor_status(
         },
         ConnectionMonitorStatus::ConnectedIpv6 => ConnectionStatusUpdate {
             kind: StatusType::ConnectionOkIpv6 as i32,
+            message: status.to_string(),
+            details: Default::default(),
+        },
+    }
+}
+
+pub(super) fn status_update_from_bandwidth_status_message(
+    status: &BandwidthStatusMessage,
+) -> ConnectionStatusUpdate {
+    match status {
+        BandwidthStatusMessage::RemainingBandwidth(amount) => ConnectionStatusUpdate {
+            kind: StatusType::RemainingBandwidth as i32,
+            message: status.to_string(),
+            details: maplit::hashmap! {
+                "amount".to_string() => amount.to_string(),
+            },
+        },
+        BandwidthStatusMessage::NoBandwidth => ConnectionStatusUpdate {
+            kind: StatusType::NoBandwidth as i32,
             message: status.to_string(),
             details: Default::default(),
         },

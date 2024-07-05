@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpnd"
-version = "0.1.7-dev"
+version = "0.1.10-dev"
 description = "Nym VPN daemon"
 authors.workspace = true
 repository.workspace = true
@@ -37,17 +37,21 @@ tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
 tracing-appender = "0.2.3"
 
-nym-vpn-lib = { path = "../nym-vpn-lib" }
-nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
+# Nym monorepo
+nym-bandwidth-controller.workspace = true
 nym-task.workspace = true
 
+# Local crates
+nym-vpn-lib = { path = "../nym-vpn-lib" }
+nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
+
 [target.'cfg(windows)'.dependencies]
-windows-service = "0.6.0"
+windows-service = "0.7.0"
 eventlog = "0.2.2"
 winapi = { version = "0.3", features = ["winnt", "excpt"] }
 
 [target.'cfg(windows)'.dependencies.windows-sys]
-version = "0.45.0"
+version = "0.52.0"
 features = [
     "Win32_Foundation",
     "Win32_Security",

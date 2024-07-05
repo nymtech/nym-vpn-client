@@ -36,6 +36,10 @@ impl DescribedGatewayWithLocation {
         self.has_current_build_timestamp() && self.has_current_build_version()
     }
 
+    pub fn node_identity(&self) -> Option<NodeIdentity> {
+        NodeIdentity::from_base58_string(self.identity_key()).ok()
+    }
+
     fn has_current_build_timestamp(&self) -> bool {
         let expected_build_time: DateTime<Utc> = BUILD_TIME.parse().expect("Invalid timestamp");
         self.build_timestamp()

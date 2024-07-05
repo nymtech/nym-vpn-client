@@ -34,6 +34,7 @@ pub use nym_id as id;
 
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient, StoragePaths};
+pub use nym_sdk::UserAgent;
 pub use nym_task::{
     manager::{SentStatus, TaskStatus},
     StatusReceiver,
@@ -167,6 +168,10 @@ pub struct NymVpn<T: Vpn> {
     /// Disable routing all traffic through the VPN TUN device.
     pub disable_routing: bool,
 
+    /// The user agent to use for HTTP requests. This includes client name, version, platform and
+    /// git commit hash.
+    pub user_agent: Option<UserAgent>,
+
     tun_provider: Arc<Mutex<TunProvider>>,
 
     #[cfg(target_os = "ios")]
@@ -222,6 +227,7 @@ impl NymVpn<WireguardVpn> {
             dns: None,
             disable_routing: false,
             enable_two_hop: false,
+            user_agent: None,
             vpn_config: WireguardVpn {
                 entry_wg_ip: None,
                 exit_wg_ip: None,
@@ -267,6 +273,7 @@ impl NymVpn<MixnetVpn> {
             dns: None,
             disable_routing: false,
             enable_two_hop: false,
+            user_agent: None,
             vpn_config: MixnetVpn {},
             tun_provider,
             #[cfg(target_os = "ios")]
@@ -456,6 +463,13 @@ impl SpecificVpn {
         match self {
             SpecificVpn::Wg(vpn) => vpn.enable_two_hop,
             SpecificVpn::Mix(vpn) => vpn.enable_two_hop,
+        }
+    }
+
+    pub fn user_agent(&self) -> Option<UserAgent> {
+        match self {
+            SpecificVpn::Wg(vpn) => vpn.user_agent.clone(),
+            SpecificVpn::Mix(vpn) => vpn.user_agent.clone(),
         }
     }
 

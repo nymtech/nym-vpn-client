@@ -126,6 +126,48 @@ jobs:
           # set gh outputs
           echo "pkg_version=$version" >> "$GITHUB_OUTPUT"
 
+      # Download latest release of nym-vpnd (windows)
+      - name: Get nym-vpn-core release info
+        if: contains(matrix.os, 'windows')
+        id: get_release
+        run: |
+          $releases = Invoke-RestMethod -Uri https://api.github.com/repos/nymtech/nym-vpn-client/releases
+          $release = $releases | Where-Object { $_.tag_name -match '^nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+$' } | Sort-Object { [version]($_.tag_name -replace 'nym-vpn-core-v', '0.') } | Select-Object -Last 1
+          $asset = $release.assets | Where-Object { $_.name -match 'windows_x86_64.zip$' }
+          Write-Output "Release Tag: $($release.tag_name)"
+          Write-Output "Asset URL: $($asset.browser_download_url)"
+          echo "::set-output name=release_tag::$($release.tag_name)"
+          echo "::set-output name=asset_url::$($asset.browser_download_url)"
+
+      - name: Download nym-vpn-core artifact
+        if: contains(matrix.os, 'windows')
+        run: |
+          $url = '${{ steps.get_release.outputs.asset_url }}'
+          $output = 'nym-vpn-core.zip'
+          Invoke-WebRequest -Uri $url -OutFile $output
+
+      - name: Unzip nym-vpn-core artifact
+        if: contains(matrix.os, 'windows')
+        run: |
+          $output = 'nym-vpn-core.zip'
+          $destination = 'nym-vpn-core-bin'
+          Expand-Archive -Path $output -DestinationPath $destination -Force
+
+      - name: List files
+        if: contains(matrix.os, 'windows')
+        run: |
+          $destination = 'nym-vpn-core-bin'
+          Get-ChildItem -Path $destination -Recurse
+
+      - name: Copy files
+        if: contains(matrix.os, 'windows')
+        run: |
+          $destination = 'nym-vpn-core-bin'
+          $subdirectory = Get-ChildItem -Path $destination | Where-Object { $_.PSIsContainer } | Select-Object -First 1
+          $sourcePath = Join-Path -Path $destination -ChildPath $subdirectory.Name
+          $targetPath = 'nym-vpn-x/src-tauri'
+          Copy-Item -Path (Join-Path -Path $sourcePath -ChildPath '*') -Destination $targetPath -Recurse -Force
+
       - name: Install cargo-about
         run: cargo install --locked cargo-about
 
@@ -421,17 +463,6 @@ jobs:
           cat $DEB_DIR/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-      - name: AppImage installer bump version
-        env:
-          appimg_installer: nym-vpn-x/scripts/appimage.sh
-        run: |
-          echo "tag: $TAG_NAME"
-          echo "version: $PKG_VERSION"
-          sed -i "s/^tag=.*$/tag=$TAG_NAME/" $appimg_installer
-          sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
-          mkdir installer
-          cp -v $appimg_installer installer
-
       - name: Publish release
         run: |
           echo "build info"
@@ -443,8 +474,8 @@ jobs:
           echo "Creating release nodes: output"
           cat $RUNNER_TEMP/release-notes.md
           echo "Creating release"
-          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $LINUX_DIR/* installer/* $WINDOWS_DIR/* $DEB_DIR/*
-          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $LINUX_DIR/* $WINDOWS_DIR/* installer/* $DEB_DIR/*
+          echo gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $LINUX_DIR/* $WINDOWS_DIR/* $DEB_DIR/*
+          gh release create $TAG_NAME $PRERELEASE --notes-file "$RUNNER_TEMP/release-notes.md" --title "$SUBJECT" --target $GITHUB_SHA nym-vpn-x_*.tar.gz/* $LINUX_DIR/* $WINDOWS_DIR/* $DEB_DIR/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml

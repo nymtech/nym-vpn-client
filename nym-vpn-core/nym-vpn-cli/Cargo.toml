@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-cli"
-version = "0.1.7-dev"
+version = "0.1.10-dev"
 edition = "2021"
 license = "GPL-3.0-only"
 authors = ["Nym Technologies"]
@@ -18,11 +18,6 @@ tracing.workspace = true
 time.workspace = true
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
-
-# Ugly workaround to force a working setup of dependencies. We should get rid
-# of this ASAP
-shadowsocks = { version = "~1.14.2" }
-shadowsocks-service = { version = "~1.14.3" }
 
 [build-dependencies]
 vergen = { workspace = true, default-features = false, features = [

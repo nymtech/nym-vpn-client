@@ -40,13 +40,13 @@ extension NymTextStyle {
     // MARK: - Label -
     public struct Label {
         public struct Huge {
-            public static var primary: NymTextStyle {
+            public static var bold: NymTextStyle {
                 NymTextStyle(nymFont: .lato(size: 18, weight: .bold))
             }
         }
 
         public struct Large {
-            public static var primary: NymTextStyle {
+            public static var bold: NymTextStyle {
                 NymTextStyle(nymFont: .lato(size: 14, weight: .bold), kerning: 0.1)
             }
         }
@@ -77,7 +77,7 @@ extension NymTextStyle {
         }
 
         public struct Medium {
-            public static var primary: NymTextStyle {
+            public static var regular: NymTextStyle {
                 NymTextStyle(nymFont: .lato(size: 14, weight: .regular), kerning: 0.25)
             }
         }

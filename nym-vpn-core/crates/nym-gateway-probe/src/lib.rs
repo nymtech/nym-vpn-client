@@ -1,5 +1,6 @@
 use bytes::BytesMut;
 use futures::StreamExt;
+use nym_bin_common::bin_info;
 use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
@@ -52,7 +53,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     };
     let exit_gateways = extract_out_exit_gateways(gateways.clone()).await;
     let exit_router_address = exit_point
-        .lookup_mix_addresses(&exit_gateways)
+        .lookup_mix_addresses(&exit_gateways, None)
         .map(|(address, _)| address)
         .ok();
 
@@ -117,7 +118,8 @@ async fn lookup_gateways() -> anyhow::Result<Vec<DescribedGatewayWithLocation>> 
             .unwrap_or("unavailable".to_string())
     );
 
-    let gateway_client = GatewayDirectoryClient::new(gateway_config.clone())?;
+    let user_agent = bin_info!().into();
+    let gateway_client = GatewayDirectoryClient::new(gateway_config.clone(), user_agent)?;
     Ok(gateway_client
         .lookup_described_gateways_with_location()
         .await?)

@@ -24,6 +24,7 @@ public final class ConnectionManager: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     public var isReconnecting = false
+    public var isDisconnecting = false
 
     public static let shared = ConnectionManager()
 
@@ -44,15 +45,8 @@ public final class ConnectionManager: ObservableObject {
 #endif
     @Published public var currentTunnelStatus: TunnelStatus? {
         didSet {
-            guard isReconnecting,
-                  currentTunnelStatus == .disconnected
-            else {
-                return
-            }
-            isReconnecting = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
-                try? self?.connectDisconnect()
-            }
+            updateTunnelStatusIfReconnecting()
+            updateTunnelStatusIfDisconnecting()
         }
     }
     @Published public var entryGateway: EntryGateway {
@@ -137,6 +131,7 @@ public final class ConnectionManager: ObservableObject {
                 // User "Connect" button actions
                 guard !isAutoConnect else { return }
                 if currentTunnel?.status == .connected || currentTunnel?.status == .connecting {
+                    isDisconnecting = true
                     disconnectActiveTunnel()
                 } else {
                     connectMixnet(with: config)
@@ -168,6 +163,7 @@ public final class ConnectionManager: ObservableObject {
             // User "Connect" button actions
             guard !isAutoConnect else { return }
             if grpcManager.tunnelStatus == .connected || grpcManager.tunnelStatus == .connecting {
+                isDisconnecting = true
                 grpcManager.disconnect()
             } else {
                 Task { @MainActor in
@@ -327,6 +323,27 @@ private extension ConnectionManager {
     func reconnectIfNeeded() {
         guard currentTunnelStatus == .connected else { return }
         try? connectDisconnect(isAutoConnect: true)
+    }
+
+    func updateTunnelStatusIfReconnecting() {
+        guard isReconnecting,
+              currentTunnelStatus == .disconnected
+        else {
+            return
+        }
+        isReconnecting = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+            try? self?.connectDisconnect()
+        }
+    }
+
+    func updateTunnelStatusIfDisconnecting() {
+        guard isDisconnecting,
+              currentTunnelStatus == .disconnected
+        else {
+            return
+        }
+        isDisconnecting = false
     }
 }
 // MARK: - Countries -

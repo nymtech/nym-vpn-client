@@ -147,7 +147,7 @@ pub(crate) fn start(args: CliArgs) -> Result<(), windows_service::Error> {
         return Ok(());
     }
 
-    if args.command.install {
+    if args.command.uninstall {
         println!(
             "Processing request to uninstall {} as a service...",
             SERVICE_NAME

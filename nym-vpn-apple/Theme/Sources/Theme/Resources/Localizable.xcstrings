@@ -771,6 +771,50 @@
         }
       }
     },
+    "modeSelectionInfo.anonymousDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages."
+          }
+        }
+      }
+    },
+    "modeSelectionInfo.continueReading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue reading"
+          }
+        }
+      }
+    },
+    "modeSelectionInfo.fastDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experience maximum speed with  2-server connectivity using the WireGuard protocol. Perfect for fast browsing, streaming, and file sharing."
+          }
+        }
+      }
+    },
+    "modeSelectionInfo.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode selection"
+          }
+        }
+      }
+    },
     "NymVPN" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -778,6 +822,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "NymVPN"
+          }
+        }
+      }
+    },
+    "ok" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ok"
           }
         }
       }

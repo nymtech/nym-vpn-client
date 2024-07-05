@@ -1,8 +1,10 @@
 import SwiftUI
 import Constants
+import ExternalLinkManager
 import UIComponents
 
 struct SupportViewModel {
+    private let externalLinkManager: ExternalLinkManager
     private let faqLink = Constants.supportURL.rawValue
     private let emailLink = "mailto:support@nymvpn.com"
     private let matrixLink = "https://matrix.to/#/%23NymVPN:nymtech.chat"
@@ -20,8 +22,9 @@ struct SupportViewModel {
         ]
     }
 
-    init(path: Binding<NavigationPath>) {
+    init(path: Binding<NavigationPath>, externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared) {
         _path = path
+        self.externalLinkManager = externalLinkManager
     }
 }
 
@@ -32,12 +35,7 @@ extension SupportViewModel {
     }
 
     func openExternalURL(urlString: String?) {
-        guard let urlString, let url = URL(string: urlString) else { return }
-        #if os(iOS)
-        UIApplication.shared.open(url)
-        #else
-        NSWorkspace.shared.open(url)
-        #endif
+        try? externalLinkManager.openExternalURL(urlString: urlString)
     }
 }
 

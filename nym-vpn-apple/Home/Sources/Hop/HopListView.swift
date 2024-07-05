@@ -61,7 +61,7 @@ private extension HopListView {
         if !viewModel.searchText.isEmpty && viewModel.countries?.isEmpty ?? true {
             VStack {
                 Text(viewModel.noResultsText)
-                    .textStyle(.Body.Medium.primary)
+                    .textStyle(.Body.Medium.regular)
                     .padding(.top, 96)
                 Spacer()
             }
