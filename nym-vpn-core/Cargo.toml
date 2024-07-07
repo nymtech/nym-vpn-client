@@ -29,6 +29,7 @@ members = [
 # nym-id = { path = "../../nym/common/nym-id" }
 # nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
 # nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
+# nym-pemstore = { path = "../../nym/common/nym-pemstore" }
 # nym-sdk = { path = "../../nym/sdk/rust/nym-sdk" }
 # nym-task = { path = "../../nym/common/task" }
 # nym-topology = { path = "../../nym/common/topology" }
@@ -106,9 +107,9 @@ nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8
 nym-id = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
 nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
 nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
 nym-sdk = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
 nym-task = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
 nym-topology = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", rev = "3fe33dec8bf65a9e0084add8427b61371a13872e" }
