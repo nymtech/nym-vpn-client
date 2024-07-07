@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpnd"
-version = "0.1.10-dev"
+version = "0.1.10"
 description = "NymVPN daemon"
 authors.workspace = true
 repository.workspace = true
