@@ -19,8 +19,8 @@ use tokio::sync::{broadcast, oneshot};
 use tracing::{error, info};
 
 use super::config::{
-    self, create_config_file, create_data_dir, create_device_keys, read_config_file, write_config_file,
-    ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
+    self, create_config_file, create_data_dir, create_device_keys, read_config_file,
+    write_config_file, ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
 };
 use super::error::{ConnectionFailedError, ImportCredentialError};
 use super::exit_listener::VpnServiceExitListener;
