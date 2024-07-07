@@ -11,10 +11,18 @@ use crate::{DeviceKeys, KeyStore};
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskKeysError {
     #[error("unable to load keys")]
-    UnableToLoadKeys,
+    UnableToLoadKeys {
+        paths: KeyPairPath,
+        name: String,
+        error: std::io::Error,
+    },
 
     #[error("unable to store keys")]
-    UnableToStoreKeys,
+    UnableToStoreKeys {
+        paths: KeyPairPath,
+        name: String,
+        error: std::io::Error,
+    },
 }
 
 pub struct OnDiskKeys {
@@ -64,18 +72,28 @@ impl OnDiskKeys {
     fn load_keypair<T: PemStorableKeyPair>(
         &self,
         paths: KeyPairPath,
-        _name: impl Into<String>,
+        name: impl Into<String>,
     ) -> Result<T, OnDiskKeysError> {
-        nym_pemstore::load_keypair(&paths).map_err(|_| OnDiskKeysError::UnableToLoadKeys)
+        nym_pemstore::load_keypair(&paths).map_err(|error| OnDiskKeysError::UnableToLoadKeys {
+            paths,
+            name: name.into(),
+            error,
+        })
     }
 
     fn store_keypair<T: PemStorableKeyPair>(
         &self,
         keypair: &T,
         paths: KeyPairPath,
-        _name: impl Into<String>,
+        name: impl Into<String>,
     ) -> Result<(), OnDiskKeysError> {
-        nym_pemstore::store_keypair(keypair, &paths).map_err(|_| OnDiskKeysError::UnableToStoreKeys)
+        nym_pemstore::store_keypair(keypair, &paths).map_err(|error| {
+            OnDiskKeysError::UnableToStoreKeys {
+                paths,
+                name: name.into(),
+                error,
+            }
+        })
     }
 
     fn load_keys(&self) -> Result<DeviceKeys, OnDiskKeysError> {

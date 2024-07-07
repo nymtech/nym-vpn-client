@@ -164,10 +164,11 @@ pub(super) async fn create_device_keys(
     data_dir: &Path,
 ) -> Result<(), nym_vpn_store::KeyStoreError> {
     // Check if the device keys already exists, if not then create them
-    if nym_vpn_store::keypair_exists(data_dir)? {
+    if !nym_vpn_store::keypair_exists(data_dir) {
         nym_vpn_store::create_device_keys(data_dir).await?;
     }
 
-    // Check that we can successfully load them
+    // Check that we can successfully load them.
+    // We don't actually need to use them at this point, so discard the return value.
     nym_vpn_store::load_device_keys(data_dir).await.map(|_| ())
 }

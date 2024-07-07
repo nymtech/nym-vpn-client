@@ -28,20 +28,9 @@ pub enum KeyStoreError {
     InvalidKeyPair { path: PathBuf },
 }
 
-pub fn keypair_exists<P: AsRef<Path>>(path: P) -> Result<bool, KeyStoreError> {
+pub fn keypair_exists<P: AsRef<Path>>(path: P) -> bool {
     let device_key_paths = DeviceKeysPaths::new(path);
-    let private_key_exists = device_key_paths.private_device_key().exists();
-    let public_key_exists = device_key_paths.public_device_key().exists();
-    match (private_key_exists, public_key_exists) {
-        (true, true) => Ok(true),
-        (false, false) => Ok(false),
-        (true, false) => Err(KeyStoreError::InvalidKeyPair {
-            path: device_key_paths.public_device_key().to_path_buf(),
-        }),
-        (false, true) => Err(KeyStoreError::InvalidKeyPair {
-            path: device_key_paths.private_device_key().to_path_buf(),
-        }),
-    }
+    device_key_paths.private_device_key().exists()
 }
 
 pub async fn load_device_keys<P: AsRef<Path> + Clone>(
@@ -49,6 +38,8 @@ pub async fn load_device_keys<P: AsRef<Path> + Clone>(
 ) -> Result<DeviceKeys, KeyStoreError> {
     let device_key_paths = DeviceKeysPaths::new(path.clone());
     let key_store = OnDiskKeys::new(device_key_paths);
+
+    // TODO: handle the public key missing, we can just regenerate it and log a warning
 
     key_store
         .load_keys()
