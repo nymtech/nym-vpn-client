@@ -330,17 +330,17 @@ pub fn getLowLatencyEntryCountry(
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getLowLatencyEntryCountryUserAgent(
-   api_url: Url,
-   explorer_url: Url,
-   harbour_master_url: Option<Url>,
-   user_agent: UserAgent,
+    api_url: Url,
+    explorer_url: Url,
+    harbour_master_url: Option<Url>,
+    user_agent: UserAgent,
 ) -> Result<Location, FFIError> {
-   RUNTIME.block_on(get_low_latency_entry_country(
-       api_url,
-       explorer_url,
-       harbour_master_url,
-       Some(user_agent),
-   ))
+    RUNTIME.block_on(get_low_latency_entry_country(
+        api_url,
+        explorer_url,
+        harbour_master_url,
+        Some(user_agent),
+    ))
 }
 
 async fn get_low_latency_entry_country(
