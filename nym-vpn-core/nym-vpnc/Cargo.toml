@@ -1,7 +1,7 @@
 [package]
 name = "nym-vpnc"
 version = "0.1.10-dev"
-description = "Nym VPN console client"
+description = "NymVPN commandline client"
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
@@ -35,5 +35,9 @@ vergen = { workspace = true, default-features = false, features = [
 # Debian
 [package.metadata.deb]
 name = "nym-vpnc"
+extended-description = '''NymVPN is a vpn service that uses the Nym mixnet.
+
+This package contains the nym-vpnc binary, which is a CLI application used to interact with the nym-vpnd daemon.'''
+recommends = "nym-vpnd"
 maintainer-scripts = "debian"
 systemd-units = { enable = false }
