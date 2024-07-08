@@ -255,10 +255,15 @@ jobs:
         id: createServiceAccount
         run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
+      - name: Get version code
+        run: |
+          version_code=$(grep "VERSION_CODE" ${{ github.workspace }}/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
+          echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
+
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}/nym-vpn-android
         run: |
           bundle install
-          bundle exec fastlane ${{ inputs.track }} bundle:${{github.event.inputs.publish-bundle == 'true'}} metadata:${{github.event.inputs.publish-metadata == 'true'}}
+          bundle exec fastlane ${{ inputs.track }} bundle:${{github.event.inputs.publish-bundle == 'true'}} metadata:${{github.event.inputs.publish-metadata == 'true'}} version:${{ env.VERSION_CODE }}
           
           
