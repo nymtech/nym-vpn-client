@@ -250,7 +250,7 @@ jobs:
         run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
       - name: Install bundler
-        run: gem install bundler
+        run: sudo gem install bundler
 
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}/nym-vpn-android
