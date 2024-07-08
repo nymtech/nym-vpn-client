@@ -255,7 +255,7 @@ jobs:
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}/nym-vpn-android
         run: |
-          bundle install
-          bundle exec fastlane ${{ inputs.track }} bundle:${{github.event.inputs.publish-bundle == 'true'}} metadata:${{github.event.inputs.publish-metadata == 'true'}}
+          sudo bundle install
+          sudo bundle exec fastlane ${{ inputs.track }} bundle:${{github.event.inputs.publish-bundle == 'true'}} metadata:${{github.event.inputs.publish-metadata == 'true'}}
           
           
