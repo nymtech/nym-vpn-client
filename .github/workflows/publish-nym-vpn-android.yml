@@ -185,7 +185,6 @@ jobs:
       KEY_STORE_FILE: 'android_keystore.jks'
       KEY_STORE_LOCATION: ${{ github.workspace }}/nym-vpn-android/app/keystore/
     steps:
-      -
       - uses: actions/checkout@v4
 
       - name: Set up JDK 17
