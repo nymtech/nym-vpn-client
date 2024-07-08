@@ -29,7 +29,7 @@
     "gen:licenses:rust": "cd src-tauri && cargo about generate --all-features --format json -o ../public/licenses-rust.json"
   },
   "dependencies": {
-    "@headlessui/react": "^2.1.1",
+    "@headlessui/react": "^2.1.2",
     "@mui/base": "^5.0.0-beta.39",
     "@sentry/react": "^8.14.0",
     "@tauri-apps/api": "^1.5.0",
