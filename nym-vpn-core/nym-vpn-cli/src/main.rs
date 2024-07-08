@@ -144,7 +144,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         None
     };
 
-    let mut nym_vpn: SpecificVpn = if args.enable_wireguard {
+    let nym_vpn: SpecificVpn = if args.enable_wireguard {
         let mut nym_vpn = NymVpn::new_wireguard_vpn(entry_point, exit_point);
         nym_vpn.gateway_config = gateway_config;
         nym_vpn.nym_ips = nym_ips;

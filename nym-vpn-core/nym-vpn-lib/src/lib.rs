@@ -466,8 +466,8 @@ impl SpecificVpn {
     // Start the Nym VPN client, and wait for it to shutdown. The use case is in simple console
     // applications where the main way to interact with the running process is to send SIGINT
     // (ctrl-c)
-    pub async fn run(&mut self) -> Result<()> {
-        let tunnels = setup_tunnel(self).await?;
+    async fn blocking_run(mut self) -> Result<()> {
+        let tunnels = setup_tunnel(&mut self).await?;
         info!("Nym VPN is now running");
 
         // Finished starting everything, now wait for mixnet client shutdown
@@ -515,6 +515,13 @@ impl SpecificVpn {
             }
         }
 
+        Ok(())
+    }
+
+    pub async fn run(self) -> Result<()> {
+        tokio::task::spawn_blocking(move || self.blocking_run())
+            .await?
+            .await?;
         Ok(())
     }
 
