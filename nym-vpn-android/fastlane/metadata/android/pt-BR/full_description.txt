@@ -1,18 +1,22 @@
 Baixe a NymVPN e torne sua atividade online segura.
 Com nosso aplicativo VPN, você pode esconder seu endereço IP, criptografar seu tráfego, esconder sua identidade online e muito mais.
+
 Muitas entidades na internet podem espionar sua atividade e roubar seus dados.
 Governos, grandes empresas de tecnologia, corretores de dados, provedores de serviços de internet e anunciantes podem tentar monitorar sua atividade online.
 Recentes escândalos de vazamento de dados deixaram claro que não podemos nem confiar em empresas tradicionais de VPN.
+
 Nossa VPN nasceu para tornar suas atividades na internet privadas e uma parte crucial disso é não possibilitar o registro e rastreamento de atividades.
 A NymVPN é um novo tipo de VPN projetada de uma maneira que torna impossível para qualquer um monitorar ou registrar sua atividade online, até mesmo para nós. Nossa VPN opera em uma rede descentralizada, sem partes confiáveis, componentes centralizados ou pontos únicos de falha. Todas as funcionalidades da NymVPN são realizadas de maneira descentralizada e distribuída, e não há possibilidade de habilitar o registro centralizado.
 Nossa VPN criptografa dados e protege metadados da análise de tráfego através de uma Mixnet descentralizada. Simplificando: não há como registrarmos sua atividade, portanto, ninguém pode acessá-la.
-Mas o que exatamente é uma Mixnet? Uma Mixnet é uma rede de nós que:
 
+Mas o que exatamente é uma Mixnet? Uma Mixnet é uma rede de nós que:
 1. Recebem tráfego criptografado
 2. Misturam o tráfego
 3. Redirecionam o tráfego
-4. Esse processo é realizado até 5 vezes (5 saltos) e torna impossível para qualquer um monitorar ou rastrear sua atividade online.
+
+Esse processo é realizado até 5 vezes (5 saltos) e torna impossível para qualquer um monitorar ou rastrear sua atividade online.
 É por isso que você deve escolher nossa VPN descentralizada, segura e privada.
+
 Privacidade
 Nossa dVPN foi construída com a privacidade em mente. Não armazenamos logs (política de não registros) nem rastreamos sua atividade. Mesmo que alguém quisesse roubar seus dados de nós, não haveria nada para roubar.
 
@@ -36,7 +40,6 @@ Uso ilimitado
 Desfrute da internet o quanto quiser, a NymVPN nunca limitará seu tráfego.
 
 Nossos recursos mais amados da VPN:
-
 - Mixnet de 5 saltos: seu tráfego na internet será criptografado e enviado para mixnodes que o misturarão com outros pacotes de tráfego 5 vezes, tornando impossível para alguém rastrear sua atividade online.
 - dVPN de 2 saltos: neste caso, seu tráfego é criptografado e enviado para 2 mixnodes que o misturam. O número reduzido de saltos resulta em maior velocidade.
 - Sem logs centralizados: não armazenamos nenhum log de atividade, isso torna impossível para qualquer um acessar sua atividade na internet através de nós.
