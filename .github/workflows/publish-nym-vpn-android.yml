@@ -18,12 +18,12 @@ on:
         required: true
       publish-bundle:
         type: boolean
-        default: true
-        description: With app
+        default: false
+        description: Skip app bundle
       publish-metadata:
         type: boolean
-        default: false
-        description: With metadata
+        default: true
+        description: Skip app metadata
       tag_name:
         description: "Tag name for release"
         required: false
@@ -264,6 +264,6 @@ jobs:
         working-directory: ${{ github.workspace }}/nym-vpn-android
         run: |
           bundle install
-          bundle exec fastlane ${{ inputs.track }} bundle:${{github.event.inputs.publish-bundle == 'true'}} metadata:${{github.event.inputs.publish-metadata == 'true'}} version:${{ env.VERSION_CODE }}
+          bundle exec fastlane ${{ inputs.track }} skip_bundle:${{github.event.inputs.publish-bundle == 'true'}} skip_metadata:${{github.event.inputs.publish-metadata == 'true'}}
           
           
