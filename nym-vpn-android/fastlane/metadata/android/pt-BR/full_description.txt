@@ -1,17 +1,21 @@
 Baixe a NymVPN e torne sua atividade online segura.
 Com nosso aplicativo VPN, você pode esconder seu endereço IP, criptografar seu tráfego, esconder sua identidade online e muito mais.
 
-Muitas entidades, como governos, empresas de tecnologia, ISPs e anunciantes, podem espionar sua atividade online. Escândalos recentes mostram que não podemos confiar nem mesmo em VPNs tradicionais. A NymVPN é diferente: projetada para tornar impossível o monitoramento ou registro de suas atividades, até mesmo por nós. Operando em uma rede descentralizada, a NymVPN elimina pontos únicos de falha e não permite registro centralizado.
+Muitas entidades na internet podem espionar sua atividade e roubar seus dados.
+Governos, grandes empresas de tecnologia, corretores de dados, provedores de serviços de internet e anunciantes podem tentar monitorar sua atividade online.
+Recentes escândalos de vazamento de dados deixaram claro que não podemos nem confiar em empresas tradicionais de VPN.
 
-O que é uma Mixnet?
-Uma Mixnet é uma rede de nós que:
+Nossa VPN nasceu para tornar suas atividades na internet privadas e uma parte crucial disso é não possibilitar o registro e rastreamento de atividades.
+A NymVPN é um novo tipo de VPN projetada de uma maneira que torna impossível para qualquer um monitorar ou registrar sua atividade online, até mesmo para nós. Nossa VPN opera em uma rede descentralizada, sem partes confiáveis, componentes centralizados ou pontos únicos de falha. Todas as funcionalidades da NymVPN são realizadas de maneira descentralizada e distribuída, e não há possibilidade de habilitar o registro centralizado.
+Nossa VPN criptografa dados e protege metadados da análise de tráfego através de uma Mixnet descentralizada. Simplificando: não há como registrarmos sua atividade, portanto, ninguém pode acessá-la.
 
-1- Recebem tráfego criptografado
-2- Misturam o tráfego
-3- Redirecionam o tráfego
+Mas o que exatamente é uma Mixnet? Uma Mixnet é uma rede de nós que:
+1. Recebem tráfego criptografado
+2. Misturam o tráfego
+3. Redirecionam o tráfego
 
-Este processo ocorre até 5 vezes, impossibilitando o rastreamento de sua atividade online.
-Por que escolher a NymVPN?
+Esse processo é realizado até 5 vezes (5 saltos) e torna impossível para qualquer um monitorar ou rastrear sua atividade online.
+É por isso que você deve escolher nossa VPN descentralizada, segura e privada.
 
 Privacidade
 Nossa dVPN foi criada para garantir privacidade, sem armazenamento de logs nem rastreamento de atividades. Mesmo que alguém tentasse roubar seus dados, não haveria nada para pegar.
@@ -35,10 +39,11 @@ Uso Ilimitado
 Use a internet o quanto quiser; a NymVPN nunca limitará seu tráfego.
 Recursos Destacados:
 
-- Mixnet de 5 Saltos: Criptografa e mistura seu tráfego 5 vezes, tornando o rastreamento impossível.
-- dVPN de 2 Saltos: Maior velocidade com dois saltos de criptografia.
-- Sem Logs Centralizados: Nenhum registro de atividades.
-- Garantia de Devolução do Dinheiro: Não satisfeito? Oferecemos garantia de devolução do dinheiro.
-- Túnel Dividido: Escolha quais aplicativos usarão a VPN.
-- Esconder IP: Esconde todas as informações ligadas a você.
-- Killswitch: Protege seus dados caso a conexão caia.
+Nossos recursos mais amados da VPN:
+- Mixnet de 5 saltos: seu tráfego na internet será criptografado e enviado para mixnodes que o misturarão com outros pacotes de tráfego 5 vezes, tornando impossível para alguém rastrear sua atividade online.
+- dVPN de 2 saltos: neste caso, seu tráfego é criptografado e enviado para 2 mixnodes que o misturam. O número reduzido de saltos resulta em maior velocidade.
+- Sem logs centralizados: não armazenamos nenhum log de atividade, isso torna impossível para qualquer um acessar sua atividade na internet através de nós.
+- Garantia de devolução do dinheiro: se você não estiver satisfeito com o produto, oferecemos uma política de garantia de devolução do dinheiro. Se você não estiver satisfeito com algo, envie um e-mail para support@nymvpn.com, estamos sempre buscando melhorar.
+- Túnel dividido: você pode escolher facilmente quais dos seus aplicativos acessarão a internet através da VPN e quais acessarão diretamente.
+- Esconder IP: nossa dVPN esconderá todas as informações ligadas a você, incluindo seu endereço IP.
+- Killswitch: nossa VPN é construída para fornecer privacidade e segurança, por isso, caso sua conexão VPN caia, o killswitch bloqueará seu acesso à internet, mantendo você e seus dados seguros.
