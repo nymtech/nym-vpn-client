@@ -1,8 +1,12 @@
 #!/bin/bash
 
-# All-in-one NymVPN installer
-# It installs the daemon (nym-vpnd) from prebuilt binary
-# and the client (nymvpn-x) from AppImage
+# NymVPN installer combo
+#
+# Install the following components:
+# - daemon (nym-vpnd) as prebuilt binary
+# - client (nymvpn-x) as AppImage
+#
+# To uninstall, run with `uninstall` as argument
 
 set -E
 set -o pipefail
@@ -30,13 +34,13 @@ BI="$ITL$BLD"
 ####
 
 # nymvpn-x AppImage
-vpnx_tag=nym-vpn-x-v0.1.2
-vpnx_version=0.1.2
+vpnx_tag=nym-vpn-x-v0.1.5
+vpnx_version=0.1.5
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnx_tag/nymvpn-x_${vpnx_version}.AppImage"
 
 # nym-vpnd prebuilt binary
-vpnd_tag=nym-vpn-core-v0.1.6
-vpnd_version=0.1.6
+vpnd_tag=nym-vpn-core-v0.1.10
+vpnd_version=0.1.10
 vpnd_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
 
 # function called when an error occurs, will print the exit
