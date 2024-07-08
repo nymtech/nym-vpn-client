@@ -173,7 +173,7 @@ jobs:
     if: ${{ inputs.track != 'none' && inputs.track != '' }}
     # issue here: https://github.com/ruby/setup-ruby?tab=readme-ov-file#using-self-hosted-runners
     #runs-on: ubuntu-22.04-arc
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-arc
     defaults:
       run:
         working-directory: nym-vpn-android
@@ -185,12 +185,7 @@ jobs:
       KEY_STORE_FILE: 'android_keystore.jks'
       KEY_STORE_LOCATION: ${{ github.workspace }}/nym-vpn-android/app/keystore/
     steps:
-      - name: Setup ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2' # Not needed with a .ruby-version file
-          bundler-cache: true
-
+      -
       - uses: actions/checkout@v4
 
       - name: Set up JDK 17
