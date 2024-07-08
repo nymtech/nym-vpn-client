@@ -173,7 +173,7 @@ jobs:
     if: ${{ inputs.track != 'none' && inputs.track != '' }}
     # issue here: https://github.com/ruby/setup-ruby?tab=readme-ov-file#using-self-hosted-runners
     #runs-on: ubuntu-22.04-arc
-    runs-on: ubuntu-22.04-arc
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: nym-vpn-android
@@ -185,6 +185,12 @@ jobs:
       KEY_STORE_FILE: 'android_keystore.jks'
       KEY_STORE_LOCATION: ${{ github.workspace }}/nym-vpn-android/app/keystore/
     steps:
+      - name: Setup ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2' # Not needed with a .ruby-version file
+          bundler-cache: true
+
       - uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -249,13 +255,10 @@ jobs:
         id: createServiceAccount
         run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
-      - name: Install bundler
-        run: sudo gem install bundler
-
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}/nym-vpn-android
         run: |
-          sudo bundle install
-          sudo bundle exec fastlane ${{ inputs.track }} bundle:${{github.event.inputs.publish-bundle == 'true'}} metadata:${{github.event.inputs.publish-metadata == 'true'}}
+          bundle install
+          bundle exec fastlane ${{ inputs.track }} bundle:${{github.event.inputs.publish-bundle == 'true'}} metadata:${{github.event.inputs.publish-metadata == 'true'}}
           
           
