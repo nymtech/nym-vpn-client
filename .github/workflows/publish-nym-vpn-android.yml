@@ -7,7 +7,7 @@ on:
     inputs:
       track:
         type: choice
-        description: "Fastlane release track"
+        description: "Google play release track"
         options:
           - none
           - internal
@@ -16,10 +16,14 @@ on:
           - production
         default: alpha
         required: true
+      publish-bundle:
+        type: boolean
+        default: true
+        description: With app
       publish-metadata:
         type: boolean
         default: false
-        description: With fastlane metadata
+        description: With metadata
       tag_name:
         description: "Tag name for release"
         required: false
@@ -255,6 +259,6 @@ jobs:
         working-directory: ${{ github.workspace }}/nym-vpn-android
         run: |
           bundle install
-          bundle exec fastlane ${{ inputs.track }} metadata:${{github.event.inputs.publish-metadata == 'true'}}
-      
-
+          bundle exec fastlane ${{ inputs.track }} bundle:${{github.event.inputs.publish-bundle == 'true'}} metadata:${{github.event.inputs.publish-metadata == 'true'}}
+          
+          
