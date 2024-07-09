@@ -225,6 +225,8 @@ dependencies {
 
 	// logging
 	implementation(libs.timber)
+	implementation(libs.sentry.sentry.opentelemetry.core)
+
 
 	// navigation
 	implementation(libs.androidx.navigation.compose)

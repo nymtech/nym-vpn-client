@@ -19,6 +19,7 @@ activityCompose = "1.9.0"
 composeBom = "2024.06.00"
 datastorePreferences = "1.1.1"
 securityCrypto = "1.1.0-alpha06"
+sentryOpentelemetryCoreVersion = "7.11.0"
 timber = "5.0.1"
 hiltAndroid = "2.51.1"
 kotlinx-serialization-json = "1.7.1"
@@ -78,6 +79,7 @@ moshi-kotlin-codegen = { module = "com.squareup.moshi:moshi-kotlin-codegen", ver
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterMoshi" }
 
 #barcode
+sentry-sentry-opentelemetry-core = { module = "io.sentry:sentry-opentelemetry-core", version.ref = "sentryOpentelemetryCoreVersion" }
 zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
 
 #util
