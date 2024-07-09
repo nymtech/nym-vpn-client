@@ -18,6 +18,7 @@ import {
   ThemeMode,
   UiTheme,
   VpnMode,
+  WindowPosition,
   WindowSize,
 } from '../types';
 import fireRequests, { TauriReq } from './helper';
@@ -215,7 +216,23 @@ export async function initFirstBatch(dispatch: StateDispatch) {
       if (size) {
         appWindow.setSize(size);
         dispatch({ type: 'set-window-size', size });
-        logu.debug(`restored window size to ${size.width}x${size.height}`);
+        logu.trace(`___restored window size to ${size.width}x${size.height}`);
+      }
+    },
+  };
+
+  const getWindowPositionRq: TauriReq<
+    () => Promise<WindowPosition | undefined>
+  > = {
+    name: 'getWindowPosition',
+    request: () => kvGet<WindowPosition>('WindowPosition'),
+    onFulfilled: (position) => {
+      if (position) {
+        appWindow.setPosition(position);
+        dispatch({ type: 'set-window-position', position });
+        logu.trace(
+          `___restored window ${position.type} position to ${position.x},${position.y}`,
+        );
       }
     },
   };
@@ -266,7 +283,8 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getMonitoringRq,
     getDepsRustRq,
     getDepsJsRq,
-    getWindowSizeRq,
+    // getWindowSizeRq,
+    // getWindowPositionRq,
     getOsRq,
   ]);
 }

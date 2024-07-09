@@ -34,6 +34,12 @@ export type WindowSize = {
   height: number;
 };
 
+export type WindowPosition = {
+  type: 'Physical' | 'Logical';
+  x: number;
+  y: number;
+};
+
 export type DaemonStatus = 'Ok' | 'NotOk';
 
 export type OsType = 'linux' | 'windows' | 'macos' | 'unknown';
@@ -71,6 +77,7 @@ export type AppState = {
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
   windowSize?: WindowSize | null;
+  windowPosition?: WindowPosition | null;
   credentialExpiry?: Dayjs | null;
   fetchEntryCountries: FetchCountriesFn;
   fetchExitCountries: FetchCountriesFn;

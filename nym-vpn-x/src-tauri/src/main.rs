@@ -6,7 +6,7 @@ use std::time::Duration;
 use std::{env, sync::Arc};
 
 use crate::cli::{db_command, Commands};
-use crate::window::WindowSize;
+use crate::window::{AppWindow, WindowPosition};
 use crate::{
     cli::{print_build_info, Cli},
     db::{Db, Key},
@@ -22,6 +22,7 @@ use commands::window as cmd_window;
 use commands::*;
 use nym_config::defaults;
 use states::app::AppState;
+use tauri::WindowEvent;
 use tauri::{api::path::config_dir, Manager};
 use tokio::sync::Mutex;
 use tokio::time::sleep;
@@ -145,17 +146,10 @@ async fn main() -> Result<()> {
         .setup(move |app| {
             info!("app setup");
 
-            // restore any previously saved window size
-            let window_size = db.get_typed::<WindowSize>(Key::WindowSize)?;
-            if let Some(s) = window_size {
-                debug!("restoring window size: {:?}", s);
-                let main_win = app
-                    .get_window(MAIN_WINDOW_LABEL)
-                    .expect("failed to get main window");
-                main_win
-                    .set_size(s)
-                    .inspect_err(|e| error!("failed to set window size {}", e))?;
-            }
+            let mut app_win = AppWindow::new(&app.handle(), MAIN_WINDOW_LABEL)?;
+            app_win.setup(&db)?;
+            // app_win.listen_to_resize();
+            // app_win.listen_to_move();
 
             let env_nosplash = env::var(ENV_APP_NOSPLASH).map(|_| true).unwrap_or(false);
             trace!("env APP_NOSPLASH: {}", env_nosplash);
@@ -164,14 +158,7 @@ async fn main() -> Result<()> {
             // the main window without waiting for frontend signal
             if cli.nosplash || env_nosplash {
                 debug!("splash screen disabled, showing main window");
-                let main_win = app
-                    .get_window(MAIN_WINDOW_LABEL)
-                    .expect("failed to get main window");
-                main_win
-                    .eval("document.getElementById('splash').remove();")
-                    .expect("failed to remove splash screen");
-
-                main_win.show().expect("failed to show main window");
+                app_win.no_splash();
             }
 
             debug!("building system tray");

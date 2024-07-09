@@ -9,8 +9,10 @@ use tauri::{
 use tracing::{debug, instrument, trace, warn};
 
 use crate::{
+    db::Db,
     grpc::client::GrpcClient,
     states::{app::ConnectionState, SharedAppState},
+    window::AppWindow,
     MAIN_WINDOW_LABEL,
 };
 
@@ -31,47 +33,42 @@ pub fn systray(id: &str) -> SystemTray {
 }
 
 fn show_window(app: &AppHandle, toggle: bool) -> Result<()> {
-    let window = app
-        .get_window(MAIN_WINDOW_LABEL)
-        .or_else(|| {
-            debug!("main window not found, re-creating it");
-            tauri::WindowBuilder::from_config(
-                app,
-                app.config().tauri.windows.first().unwrap().clone(),
-            )
-            .build()
-            .inspect_err(|e| warn!("failed to create main window: {e}"))
-            .ok()
-        })
-        .ok_or(anyhow!("failed to get the main window"))?;
-    let is_visible = window.is_visible().ok().unwrap_or(false);
-    let is_minimized = window.is_minimized().unwrap_or(false);
-    if !is_visible {
+    let db = app.state::<Db>();
+
+    let mut window = AppWindow::get_or_create(app, MAIN_WINDOW_LABEL)?;
+    if !window.is_visible() {
         trace!("showing main window");
         window
+            .0
             .show()
             .inspect_err(|e| warn!("failed to show main window: {e}"))
             .ok();
+        window.setup(&db).ok();
         return window
+            .0
             .set_focus()
             .inspect_err(|e| warn!("failed to focus main window: {e}"))
             .map_err(|e| e.into());
     }
-    if is_visible && !is_minimized && toggle {
+    if window.is_visible() && !window.is_minimized() && toggle {
         trace!("hiding main window");
         return window
+            .0
             .hide()
             .inspect_err(|e| warn!("failed to hide main window: {e}"))
             .map_err(|e| e.into());
     }
 
-    if is_minimized {
+    if window.is_minimized() {
         trace!("unminimizing main window");
         window
+            .0
             .unminimize()
             .inspect_err(|e| warn!("failed to unminimize main window: {e}"))
             .ok();
+        window.setup(&db).ok();
         return window
+            .0
             .set_focus()
             .inspect_err(|e| warn!("failed to focus main window: {e}"))
             .map_err(|e| e.into());
