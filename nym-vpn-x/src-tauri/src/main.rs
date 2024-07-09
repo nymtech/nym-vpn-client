@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use std::time::Duration;
 use std::{env, sync::Arc};
 
+use crate::cli::{db_command, Commands};
 use crate::window::WindowSize;
 use crate::{
     cli::{print_build_info, Cli},
@@ -73,6 +74,16 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
     trace!("cli args: {:#?}", cli);
 
+    info!("Creating k/v embedded db");
+    let db = Db::new()?;
+
+    if let Some(Commands::Db {
+        command: Some(db_cmd),
+    }) = &cli.command
+    {
+        return db_command(&db, db_cmd);
+    }
+
     #[cfg(windows)]
     if cli.console {
         use windows::Win32::System::Console::AllocConsole;
@@ -116,9 +127,6 @@ async fn main() -> Result<()> {
 
     info!("network environment: mainnet");
     defaults::setup_env::<PathBuf>(None);
-
-    info!("Creating k/v embedded db");
-    let db = Db::new()?;
 
     let app_state = AppState::try_from((&db, &app_config, &cli)).map_err(|e| {
         error!("failed to create app state from saved app data and config: {e}");
