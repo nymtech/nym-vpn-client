@@ -1,4 +1,4 @@
-What's new:
-- Added abi splitting for apk size optimization
-- Added smoke test
-- Fixed minification bug
+Novidades:
+- Adição do abi splitting para otimização do tamanho do APK
+- Adição do teste de fumaça
+- Corrigido bug de minificação
