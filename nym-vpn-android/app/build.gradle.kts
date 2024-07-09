@@ -227,7 +227,6 @@ dependencies {
 	implementation(libs.timber)
 	implementation(libs.sentry.sentry.opentelemetry.core)
 
-
 	// navigation
 	implementation(libs.androidx.navigation.compose)
 	implementation(libs.androidx.hilt.navigation.compose)
