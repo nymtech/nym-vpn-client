@@ -9,7 +9,7 @@ use crate::cli::{db_command, Commands};
 use crate::window::{AppWindow, WindowPosition};
 use crate::{
     cli::{print_build_info, Cli},
-    db::{Db, Key},
+    db::Db,
     fs::{config::AppConfig, storage::AppStorage},
     grpc::client::GrpcClient,
 };
@@ -22,8 +22,7 @@ use commands::window as cmd_window;
 use commands::*;
 use nym_config::defaults;
 use states::app::AppState;
-use tauri::WindowEvent;
-use tauri::{api::path::config_dir, Manager};
+use tauri::api::path::config_dir;
 use tokio::sync::Mutex;
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace, warn};
@@ -146,7 +145,7 @@ async fn main() -> Result<()> {
         .setup(move |app| {
             info!("app setup");
 
-            let mut app_win = AppWindow::new(&app.handle(), MAIN_WINDOW_LABEL)?;
+            let app_win = AppWindow::new(&app.handle(), MAIN_WINDOW_LABEL)?;
             app_win.setup(&db)?;
             // app_win.listen_to_resize();
             // app_win.listen_to_move();

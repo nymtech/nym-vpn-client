@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use strum::AsRefStr;
 use tauri::{
     AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
     SystemTrayMenuItem,
 };
-use tracing::{debug, instrument, trace, warn};
+use tracing::{instrument, trace, warn};
 
 use crate::{
     db::Db,
@@ -35,7 +35,7 @@ pub fn systray(id: &str) -> SystemTray {
 fn show_window(app: &AppHandle, toggle: bool) -> Result<()> {
     let db = app.state::<Db>();
 
-    let mut window = AppWindow::get_or_create(app, MAIN_WINDOW_LABEL)?;
+    let window = AppWindow::get_or_create(app, MAIN_WINDOW_LABEL)?;
     if !window.is_visible() {
         trace!("showing main window");
         window

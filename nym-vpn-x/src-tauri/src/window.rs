@@ -33,7 +33,7 @@ impl AppWindow {
     }
 
     /// restore any saved window size and position
-    pub fn setup(&mut self, db: &Db) -> Result<()> {
+    pub fn setup(&self, db: &Db) -> Result<()> {
         let size = db.get_typed::<WindowSize>(Key::WindowSize)?;
         if let Some(s) = size {
             debug!("___restoring window size: {:?}", s);
@@ -62,7 +62,7 @@ impl AppWindow {
         self.0.is_maximized().ok().unwrap_or(false)
     }
 
-    pub fn listen_to_resize(&self, db: &Db) {
+    pub fn _listen_to_resize(&self, db: &Db) {
         let c_db = db.clone();
         self.0.on_window_event(move |event| {
             if let WindowEvent::Resized(s) = event {
@@ -74,7 +74,7 @@ impl AppWindow {
         });
     }
 
-    pub fn listen_to_move(&self, db: &Db) {
+    pub fn _listen_to_move(&self, db: &Db) {
         let c_db = db.clone();
         self.0.on_window_event(move |event| {
             if let WindowEvent::Moved(p) = event {
