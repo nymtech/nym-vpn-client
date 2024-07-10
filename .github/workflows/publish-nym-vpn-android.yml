@@ -211,6 +211,7 @@ jobs:
         id: setup-ndk
         with:
           ndk-version: r25c
+          link-to-sdk: true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -264,5 +265,7 @@ jobs:
         run: |
           bundle install
           bundle exec fastlane ${{ inputs.track }} skip_bundle:${{github.event.inputs.publish-bundle == 'true'}} skip_metadata:${{github.event.inputs.publish-metadata == 'true'}}
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           
           
