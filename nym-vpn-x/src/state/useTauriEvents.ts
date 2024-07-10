@@ -115,7 +115,7 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
               height: payload.height,
             };
             logu.trace(
-              `___win onResized ${payload.type} ${size.width}x${size.height}`,
+              `window resized ${payload.type} ${size.width}x${size.height}`,
             );
             kvSet<WindowSize>('WindowSize', size);
             dispatch({ type: 'set-window-size', size });
@@ -134,6 +134,10 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
     return appWindow.onMoved(
       _.debounce<EventCallback<PhysicalPosition>>(
         ({ payload }) => {
+          if (payload.x < 0 || payload.y < 0) {
+            // that happens when moving the window on a secondary monitor
+            return;
+          }
           if (
             payload.x !== state.windowPosition?.x ||
             payload.y !== state.windowPosition.y
@@ -144,7 +148,7 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
               y: payload.y,
             };
             logu.trace(
-              `___win onMoved ${payload.type} ${payload.x},${payload.y}`,
+              `window moved ${payload.type} ${payload.x},${payload.y}`,
             );
             kvSet<WindowPosition>('WindowPosition', position);
             dispatch({ type: 'set-window-position', position });

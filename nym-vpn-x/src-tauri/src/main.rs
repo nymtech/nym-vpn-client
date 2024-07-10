@@ -6,7 +6,7 @@ use std::time::Duration;
 use std::{env, sync::Arc};
 
 use crate::cli::{db_command, Commands};
-use crate::window::{AppWindow, WindowPosition};
+use crate::window::AppWindow;
 use crate::{
     cli::{print_build_info, Cli},
     db::Db,
@@ -77,11 +77,8 @@ async fn main() -> Result<()> {
     info!("Creating k/v embedded db");
     let db = Db::new()?;
 
-    if let Some(Commands::Db {
-        command: Some(db_cmd),
-    }) = &cli.command
-    {
-        return db_command(&db, db_cmd);
+    if let Some(Commands::Db { command: Some(cmd) }) = &cli.command {
+        return db_command(&db, cmd);
     }
 
     #[cfg(windows)]
@@ -146,9 +143,8 @@ async fn main() -> Result<()> {
             info!("app setup");
 
             let app_win = AppWindow::new(&app.handle(), MAIN_WINDOW_LABEL)?;
-            app_win.setup(&db)?;
-            // app_win.listen_to_resize();
-            // app_win.listen_to_move();
+            app_win.restore_size(&db)?;
+            app_win.restore_position(&db)?;
 
             let env_nosplash = env::var(ENV_APP_NOSPLASH).map(|_| true).unwrap_or(false);
             trace!("env APP_NOSPLASH: {}", env_nosplash);

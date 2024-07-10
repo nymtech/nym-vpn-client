@@ -6,7 +6,6 @@ import dayjs from 'dayjs';
 import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
-import logu from '../log';
 import {
   CodeDependency,
   ConnectionState,
@@ -214,9 +213,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     request: () => kvGet<WindowSize>('WindowSize'),
     onFulfilled: (size) => {
       if (size) {
-        appWindow.setSize(size);
         dispatch({ type: 'set-window-size', size });
-        logu.trace(`___restored window size to ${size.width}x${size.height}`);
       }
     },
   };
@@ -228,11 +225,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     request: () => kvGet<WindowPosition>('WindowPosition'),
     onFulfilled: (position) => {
       if (position) {
-        appWindow.setPosition(position);
         dispatch({ type: 'set-window-position', position });
-        logu.trace(
-          `___restored window ${position.type} position to ${position.x},${position.y}`,
-        );
       }
     },
   };
@@ -283,8 +276,8 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getMonitoringRq,
     getDepsRustRq,
     getDepsJsRq,
-    // getWindowSizeRq,
-    // getWindowPositionRq,
+    getWindowSizeRq,
+    getWindowPositionRq,
     getOsRq,
   ]);
 }

@@ -2,9 +2,9 @@ use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
 use tauri::{
     AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, PhysicalSize,
-    Window as TauriWindow, WindowBuilder, WindowEvent,
+    Window as TauriWindow, WindowBuilder,
 };
-use tracing::{debug, error, trace};
+use tracing::{debug, error};
 use ts_rs::TS;
 
 use crate::db::{Db, Key};
@@ -18,34 +18,50 @@ impl AppWindow {
         })?))
     }
 
+    /// try to get the window, if not found recreate it from its config
     pub fn get_or_create(app: &AppHandle, label: &str) -> Result<Self> {
         let window = app
             .get_window(label)
             .or_else(|| {
                 debug!("main window not found, re-creating it");
-                WindowBuilder::from_config(app, app.config().tauri.windows.first().unwrap().clone())
-                    .build()
-                    .inspect_err(|e| error!("failed to create window: {e}"))
-                    .ok()
+                app.config()
+                    .tauri
+                    .windows
+                    .iter()
+                    .find(|cfg| cfg.label == label)
+                    .or_else(|| {
+                        error!("window config not found for label {}", label);
+                        None
+                    })
+                    .and_then(|cfg| {
+                        WindowBuilder::from_config(app, cfg.clone())
+                            .build()
+                            .inspect_err(|e| error!("failed to create window: {e}"))
+                            .ok()
+                    })
             })
             .ok_or_else(|| anyhow!("failed to get window {}", label))?;
         Ok(AppWindow(window))
     }
 
-    /// restore any saved window size and position
-    pub fn setup(&self, db: &Db) -> Result<()> {
+    /// restore any saved window size
+    pub fn restore_size(&self, db: &Db) -> Result<()> {
         let size = db.get_typed::<WindowSize>(Key::WindowSize)?;
         if let Some(s) = size {
-            debug!("___restoring window size: {:?}", s);
+            debug!("restoring window size: {:?}", s);
             self.0
                 .set_size(s)
                 .inspect_err(|e| error!("failed to set window size {}", e))
                 .ok();
         }
+        Ok(())
+    }
 
+    /// restore any saved window position
+    pub fn restore_position(&self, db: &Db) -> Result<()> {
         let position = db.get_typed::<WindowPosition>(Key::WindowPosition)?;
         if let Some(p) = position {
-            debug!("___restoring window position: {:?}", p);
+            debug!("restoring window position: {:?}", p);
             self.0
                 .set_position(p)
                 .inspect_err(|e| error!("failed to set window position {}", e))
@@ -59,34 +75,10 @@ impl AppWindow {
     }
 
     pub fn is_minimized(&self) -> bool {
-        self.0.is_maximized().ok().unwrap_or(false)
+        self.0.is_minimized().ok().unwrap_or(false)
     }
 
-    pub fn _listen_to_resize(&self, db: &Db) {
-        let c_db = db.clone();
-        self.0.on_window_event(move |event| {
-            if let WindowEvent::Resized(s) = event {
-                trace!("___RESIZED {}x{}", s.width, s.height);
-                c_db.insert(Key::WindowSize, WindowSize::from(s))
-                    .inspect_err(|e| error!("failed to save window size: {e}"))
-                    .ok();
-            }
-        });
-    }
-
-    pub fn _listen_to_move(&self, db: &Db) {
-        let c_db = db.clone();
-        self.0.on_window_event(move |event| {
-            if let WindowEvent::Moved(p) = event {
-                trace!("___MOVED {},{}", p.x, p.y);
-                c_db.insert(Key::WindowPosition, WindowPosition::from(p))
-                    .inspect_err(|e| error!("failed to save window position: {e}"))
-                    .ok();
-            }
-        });
-    }
-
-    // remove splash screen from HTML and show main window
+    /// remove splash screen from HTML and show main window
     pub fn no_splash(&self) {
         self.0
             .eval("document.getElementById('splash').remove();")

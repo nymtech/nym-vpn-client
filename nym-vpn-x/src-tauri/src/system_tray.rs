@@ -6,10 +6,9 @@ use tauri::{
     AppHandle, CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu,
     SystemTrayMenuItem,
 };
-use tracing::{instrument, trace, warn};
+use tracing::{error, instrument, trace, warn};
 
 use crate::{
-    db::Db,
     grpc::client::GrpcClient,
     states::{app::ConnectionState, SharedAppState},
     window::AppWindow,
@@ -33,9 +32,8 @@ pub fn systray(id: &str) -> SystemTray {
 }
 
 fn show_window(app: &AppHandle, toggle: bool) -> Result<()> {
-    let db = app.state::<Db>();
-
-    let window = AppWindow::get_or_create(app, MAIN_WINDOW_LABEL)?;
+    let window = AppWindow::get_or_create(app, MAIN_WINDOW_LABEL)
+        .inspect_err(|e| error!("failed to get main window {e}"))?;
     if !window.is_visible() {
         trace!("showing main window");
         window
@@ -43,20 +41,21 @@ fn show_window(app: &AppHandle, toggle: bool) -> Result<()> {
             .show()
             .inspect_err(|e| warn!("failed to show main window: {e}"))
             .ok();
-        window.setup(&db).ok();
-        return window
+        window
             .0
             .set_focus()
             .inspect_err(|e| warn!("failed to focus main window: {e}"))
-            .map_err(|e| e.into());
+            .ok();
+        return Ok(());
     }
     if window.is_visible() && !window.is_minimized() && toggle {
         trace!("hiding main window");
-        return window
+        window
             .0
             .hide()
             .inspect_err(|e| warn!("failed to hide main window: {e}"))
-            .map_err(|e| e.into());
+            .ok();
+        return Ok(());
     }
 
     if window.is_minimized() {
@@ -66,13 +65,20 @@ fn show_window(app: &AppHandle, toggle: bool) -> Result<()> {
             .unminimize()
             .inspect_err(|e| warn!("failed to unminimize main window: {e}"))
             .ok();
-        window.setup(&db).ok();
-        return window
+        window
             .0
             .set_focus()
             .inspect_err(|e| warn!("failed to focus main window: {e}"))
-            .map_err(|e| e.into());
+            .ok();
+        return Ok(());
     }
+
+    window
+        .0
+        .set_focus()
+        .inspect_err(|e| warn!("failed to focus main window: {e}"))
+        .ok();
+
     Ok(())
 }
 
