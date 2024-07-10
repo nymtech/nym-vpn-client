@@ -172,8 +172,7 @@ jobs:
   publish-play:
     if: ${{ inputs.track != 'none' && inputs.track != '' }}
     # issue here: https://github.com/ruby/setup-ruby?tab=readme-ov-file#using-self-hosted-runners
-    #runs-on: ubuntu-22.04-arc
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-arc
     defaults:
       run:
         working-directory: nym-vpn-android
