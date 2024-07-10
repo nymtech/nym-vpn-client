@@ -182,7 +182,7 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
         return Err(FFIError::VpnAlreadyRunning);
     }
 
-    *LISTENER.lock().unwrap() = config.tun_status_listener.clone();
+    *LISTENER.lock().unwrap().clone_from(&config.tun_status_listener);
 
     set_listener_status(TunStatus::InitializingClient);
 
