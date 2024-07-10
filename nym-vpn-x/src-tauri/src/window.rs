@@ -82,9 +82,13 @@ impl AppWindow {
     pub fn no_splash(&self) {
         self.0
             .eval("document.getElementById('splash').remove();")
-            .expect("failed to remove splash screen");
+            .inspect_err(|e| error!("failed to remove splash screen: {e}"))
+            .ok();
 
-        self.0.show().expect("failed to show main window");
+        self.0
+            .show()
+            .inspect_err(|e| error!("failed to show the window: {e}"))
+            .ok();
     }
 }
 
