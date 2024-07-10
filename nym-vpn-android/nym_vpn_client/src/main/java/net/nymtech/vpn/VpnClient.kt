@@ -21,7 +21,7 @@ interface VpnClient {
 	@Throws(InvalidCredentialException::class)
 	suspend fun start(context: Context, credential: String, foreground: Boolean = false): Result<Unit>
 
-	suspend fun stop(context: Context, foreground: Boolean = false)
+	suspend fun stop(foreground: Boolean = false)
 
 	fun prepare(context: Context): Intent?
 

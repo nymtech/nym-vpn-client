@@ -65,7 +65,6 @@ android {
 }
 
 dependencies {
-	implementation(project(":logcat_helper"))
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 
 	implementation(libs.androidx.core.ktx)
