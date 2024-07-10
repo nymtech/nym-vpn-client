@@ -23,7 +23,6 @@ import net.nymtech.vpn.util.InvalidCredentialException
 import net.nymtech.vpn.util.ServiceManager
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
-import nym_vpn_lib.FfiException
 import nym_vpn_lib.TunStatus
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
@@ -104,10 +103,10 @@ object NymVpnClient {
 
 		override suspend fun stop(foreground: Boolean) {
 			withContext(ioDispatcher) {
-				try {
+				runCatching {
 					stopVpn()
-				} catch (e: FfiException) {
-					Timber.e(e)
+				}.onFailure {
+					Timber.e(it)
 				}
 			}
 		}
@@ -217,21 +216,20 @@ object NymVpnClient {
 		}
 
 		override fun onTunStatusChange(status: TunStatus) {
-			setVpnState(
-				when (status) {
-					TunStatus.INITIALIZING_CLIENT -> VpnState.Connecting.InitializingClient
-					TunStatus.ESTABLISHING_CONNECTION -> VpnState.Connecting.EstablishingConnection
-					TunStatus.DOWN -> VpnState.Down
-					TunStatus.UP -> {
-						statsJob = onConnect()
-						VpnState.Up
-					}
-					TunStatus.DISCONNECTING -> {
-						onDisconnect()
-						VpnState.Disconnecting
-					}
-				},
-			)
+			val vpnState = when (status) {
+				TunStatus.INITIALIZING_CLIENT -> VpnState.Connecting.InitializingClient
+				TunStatus.ESTABLISHING_CONNECTION -> VpnState.Connecting.EstablishingConnection
+				TunStatus.DOWN -> VpnState.Down
+				TunStatus.UP -> {
+					statsJob = onConnect()
+					VpnState.Up
+				}
+				TunStatus.DISCONNECTING -> {
+					onDisconnect()
+					VpnState.Disconnecting
+				}
+			}
+			setVpnState(vpnState)
 		}
 	}
 }
