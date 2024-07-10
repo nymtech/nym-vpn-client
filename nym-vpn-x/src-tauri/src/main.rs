@@ -6,10 +6,10 @@ use std::time::Duration;
 use std::{env, sync::Arc};
 
 use crate::cli::{db_command, Commands};
-use crate::window::WindowSize;
+use crate::window::AppWindow;
 use crate::{
     cli::{print_build_info, Cli},
-    db::{Db, Key},
+    db::Db,
     fs::{config::AppConfig, storage::AppStorage},
     grpc::client::GrpcClient,
 };
@@ -22,7 +22,7 @@ use commands::window as cmd_window;
 use commands::*;
 use nym_config::defaults;
 use states::app::AppState;
-use tauri::{api::path::config_dir, Manager};
+use tauri::api::path::config_dir;
 use tokio::sync::Mutex;
 use tokio::time::sleep;
 use tracing::{debug, error, info, trace, warn};
@@ -77,11 +77,8 @@ async fn main() -> Result<()> {
     info!("Creating k/v embedded db");
     let db = Db::new()?;
 
-    if let Some(Commands::Db {
-        command: Some(db_cmd),
-    }) = &cli.command
-    {
-        return db_command(&db, db_cmd);
+    if let Some(Commands::Db { command: Some(cmd) }) = &cli.command {
+        return db_command(&db, cmd);
     }
 
     #[cfg(windows)]
@@ -145,17 +142,9 @@ async fn main() -> Result<()> {
         .setup(move |app| {
             info!("app setup");
 
-            // restore any previously saved window size
-            let window_size = db.get_typed::<WindowSize>(Key::WindowSize)?;
-            if let Some(s) = window_size {
-                debug!("restoring window size: {:?}", s);
-                let main_win = app
-                    .get_window(MAIN_WINDOW_LABEL)
-                    .expect("failed to get main window");
-                main_win
-                    .set_size(s)
-                    .inspect_err(|e| error!("failed to set window size {}", e))?;
-            }
+            let app_win = AppWindow::new(&app.handle(), MAIN_WINDOW_LABEL)?;
+            app_win.restore_size(&db)?;
+            app_win.restore_position(&db)?;
 
             let env_nosplash = env::var(ENV_APP_NOSPLASH).map(|_| true).unwrap_or(false);
             trace!("env APP_NOSPLASH: {}", env_nosplash);
@@ -164,14 +153,7 @@ async fn main() -> Result<()> {
             // the main window without waiting for frontend signal
             if cli.nosplash || env_nosplash {
                 debug!("splash screen disabled, showing main window");
-                let main_win = app
-                    .get_window(MAIN_WINDOW_LABEL)
-                    .expect("failed to get main window");
-                main_win
-                    .eval("document.getElementById('splash').remove();")
-                    .expect("failed to remove splash screen");
-
-                main_win.show().expect("failed to show main window");
+                app_win.no_splash();
             }
 
             debug!("building system tray");
