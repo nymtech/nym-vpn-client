@@ -59,4 +59,13 @@
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
   }
+
+  @keyframes pulse-fast {
+    50% {
+      opacity: 0.6;
+    }
+  }
+  .animate-pulse-fast {
+    animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
 }
