@@ -80,7 +80,7 @@ class NymVpnService : VpnService() {
 			CoroutineScope(vpnThread).launch {
 				val logLevel = if (BuildConfig.DEBUG) "info" else "info"
 				initVPN(this@NymVpnService, logLevel)
-				NymVpnClient.NymVpn.connect()
+				NymVpnClient.NymVpn.connect(this@NymVpnService)
 			}
 		}
 	}
@@ -91,7 +91,7 @@ class NymVpnService : VpnService() {
 			NotificationManager.createNotificationChannel(this@NymVpnService)
 		}
 		val notification = NotificationManager.createVpnRunningNotification(this@NymVpnService)
-		startForeground(123, notification)
+		startForeground(NotificationManager.VPN_NOTIFICATION_ID, notification)
 	}
 
 	override fun onDestroy() {

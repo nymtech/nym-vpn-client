@@ -180,7 +180,7 @@ object NymVpnClient {
 			else -> false
 		}
 
-		internal suspend fun connect() {
+		internal suspend fun connect(context: Context) {
 			withContext(ioDispatcher) {
 				runCatching {
 					runVpn(
@@ -197,6 +197,7 @@ object NymVpnClient {
 				}.onFailure {
 					// TODO better handle error messaging based on failure message
 					Timber.e(it)
+					NotificationManager.notify(context, NotificationManager.createVpnFailedNotification(context))
 					setErrorState(ErrorState.GatewayLookupFailure)
 				}
 			}
