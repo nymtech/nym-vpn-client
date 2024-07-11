@@ -34,7 +34,7 @@
   "modes-dialog": {
     "title": "Modo se seleção",
     "privacy-description": "Aproveite a privacidade de nível máximo ao rotear sua conexão por meio de 5 servidores via mixnet. Perfeito para lidar com segurança com pagamentos, emails e mensagens.",
-    "fast-description": "Experimente a velocidade máxima com a conectividade de 2 servidores usando o protocolo WireGuard. Perfeito para navegação rápida, streaming e compartilhamento de arquivos.",
+    "fast-description": "Experimente a velocidade máxima com 2 servidores. Perfeito para navegação rápida, streaming e compartilhamento de arquivos.",
     "link": "Continuar lendo"
   }
 }
