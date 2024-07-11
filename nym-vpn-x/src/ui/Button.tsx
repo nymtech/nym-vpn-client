@@ -8,7 +8,19 @@ type ButtonProps = {
   disabled?: boolean;
   color?: 'melon' | 'cornflower' | 'grey';
   className?: string;
+  loading?: boolean;
 };
+
+function spinner() {
+  return (
+    <span
+      className={clsx([
+        'loader h-[32px] w-[32px]',
+        'border:white dark:border-black border-b-transparent dark:border-b-transparent',
+      ])}
+    ></span>
+  );
+}
 
 function Button({
   onClick,
@@ -16,6 +28,7 @@ function Button({
   disabled,
   color = 'melon',
   className,
+  loading,
 }: ButtonProps) {
   const getColorStyle = () => {
     switch (color) {
@@ -43,7 +56,7 @@ function Button({
       onClick={onClick}
       disabled={disabled}
     >
-      {children}
+      {loading ? spinner() : children}
     </HuButton>
   );
 }
