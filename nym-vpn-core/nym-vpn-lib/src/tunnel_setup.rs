@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::error::{Error, Result};
+use crate::platform;
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
 use crate::tunnel::setup_route_manager;
 use crate::uniffi_custom_impls::TunStatus;
@@ -364,7 +365,7 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
     info!("Setting up route manager");
     let route_manager = setup_route_manager().await?;
 
-    crate::platform::set_listener_status(TunStatus::EstablishingConnection);
+    platform::set_listener_status(TunStatus::EstablishingConnection);
 
     match nym_vpn {
         SpecificVpn::Wg(vpn) => {
