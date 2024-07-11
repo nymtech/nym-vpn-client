@@ -170,7 +170,7 @@ private extension HomeViewModel {
         }
         .store(in: &cancellables)
 #if os(iOS)
-        connectionManager.$currentTunnel.sink { [weak self] tunnel in
+        connectionManager.$activeTunnel.sink { [weak self] tunnel in
             guard let tunnel, let self else { return }
             Task { @MainActor in
                 self.activeTunnel = tunnel
@@ -197,7 +197,6 @@ private extension HomeViewModel {
     func configureTunnelStatusObservation(with tunnel: Tunnel) {
         tunnel.$status
             .debounce(for: .seconds(0.2), scheduler: DispatchQueue.global(qos: .background))
-            .dropFirst()
             .receive(on: RunLoop.main)
             .sink { [weak self] status in
                 self?.updateUI(with: status)
