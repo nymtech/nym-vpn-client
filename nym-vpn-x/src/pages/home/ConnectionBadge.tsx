@@ -66,15 +66,17 @@ function ConnectionBadge({ state }: { state: ConnectionState }) {
       {(state === 'Connecting' || state === 'Disconnecting') && (
         <div
           className={clsx([
-            os === 'windows' ? 'h-3 w-3' : 'h-[14px] w-[14px]',
             'relative flex justify-center items-center',
+            // use static pixel sizes for animated elements to avoid glitches
+            // with the different UI scaling factors
+            os === 'windows' ? 'h-[12px] w-[12px]' : 'h-[14px] w-[14px]',
           ])}
         >
           <div className="animate-ping absolute h-full w-full rounded-full bg-cornflower opacity-75" />
           <div
             className={clsx([
-              'relative rounded-full h-2.5 w-2.5 bg-cornflower',
-              os === 'windows' ? 'h-2.5 w-2.5' : 'h-[10px] w-[10px]',
+              'relative rounded-full bg-cornflower',
+              os === 'windows' ? 'h-[8px] w-[8px]' : 'h-[10px] w-[10px]',
             ])}
           />
         </div>
