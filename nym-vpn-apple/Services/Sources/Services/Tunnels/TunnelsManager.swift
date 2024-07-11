@@ -21,7 +21,7 @@ public final class TunnelsManager: ObservableObject {
 
 // MARK: - Management -
 extension TunnelsManager {
-    func loadTunnels() {
+    public func loadTunnels(didLoadClosure: (() -> Void)? = nil) {
         loadAllTunnelManagers { [weak self] result in
             switch result {
             case .success(let loadedTunnels):
@@ -32,6 +32,7 @@ extension TunnelsManager {
                 self?.logger.log(level: .error, "Failed loading tunnel managers with \(error)")
                 self?.isLoaded = .failure(error)
             }
+            didLoadClosure?()
         }
     }
 }

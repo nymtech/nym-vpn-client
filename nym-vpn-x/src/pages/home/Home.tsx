@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api';
 import { useNavigate } from 'react-router-dom';
+import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { useMainDispatch, useMainState } from '../../contexts';
 import { BackendError, StateDispatch } from '../../types';
@@ -76,9 +77,9 @@ function Home() {
       case 'Disconnected':
         return t('connect');
       case 'Connecting':
-        return <span className="font-icon text-xl font-medium">autorenew</span>;
+        return null;
       case 'Disconnecting':
-        return <span className="font-icon text-xl font-medium">autorenew</span>;
+        return null;
       case 'Unknown':
         return t('status.unknown');
     }
@@ -131,6 +132,8 @@ function Home() {
           onClick={handleClick}
           color={getButtonColor()}
           disabled={loading || daemonStatus !== 'Ok'}
+          loading={loading}
+          className={clsx(['h-14', loading && 'data-[disabled]:opacity-80'])}
         >
           {getButtonText()}
         </Button>

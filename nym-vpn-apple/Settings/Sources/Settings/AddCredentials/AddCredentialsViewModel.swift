@@ -88,6 +88,7 @@ extension AddCredentialsViewModel {
     func credentialsDidAdd() {
         Task { @MainActor in
             appSettings.isCredentialImported = true
+            credentialText = ""
             navigateHome()
         }
     }

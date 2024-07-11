@@ -9,7 +9,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newSingleThreadContext
-import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.tun_provider.TunConfig
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
@@ -92,15 +91,14 @@ class NymVpnService : VpnService() {
 			NotificationManager.createNotificationChannel(this@NymVpnService)
 		}
 		val notification = NotificationManager.createVpnRunningNotification(this@NymVpnService)
-		startForeground(123, notification)
+		startForeground(NotificationManager.VPN_NOTIFICATION_ID, notification)
 	}
 
 	override fun onDestroy() {
 		connectivityListener.unregister()
-		NymVpnClient.NymVpn.setVpnState(VpnState.Down)
 		stopForeground(STOP_FOREGROUND_REMOVE)
-		Timber.i("VpnService destroyed")
 		vpnThread.cancel()
+		Timber.i("VpnService destroyed")
 	}
 
 	fun getTun(config: TunConfig): CreateTunResult {

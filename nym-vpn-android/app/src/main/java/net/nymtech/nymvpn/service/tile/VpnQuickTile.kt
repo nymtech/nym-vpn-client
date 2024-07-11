@@ -85,7 +85,7 @@ class VpnQuickTile : TileService() {
 					applicationScope.launch {
 						setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
 						qsTile.updateTile()
-						vpnClient.get().stop(this@VpnQuickTile, true)
+						vpnClient.get().stop(true)
 						job = updateOnState(VpnState.Down)
 					}
 				}

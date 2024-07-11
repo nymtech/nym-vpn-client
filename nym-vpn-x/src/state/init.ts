@@ -6,7 +6,6 @@ import dayjs from 'dayjs';
 import { DefaultRootFontSize, DefaultThemeMode } from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
-import logu from '../log';
 import {
   CodeDependency,
   ConnectionState,
@@ -18,6 +17,7 @@ import {
   ThemeMode,
   UiTheme,
   VpnMode,
+  WindowPosition,
   WindowSize,
 } from '../types';
 import fireRequests, { TauriReq } from './helper';
@@ -213,9 +213,19 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     request: () => kvGet<WindowSize>('WindowSize'),
     onFulfilled: (size) => {
       if (size) {
-        appWindow.setSize(size);
         dispatch({ type: 'set-window-size', size });
-        logu.debug(`restored window size to ${size.width}x${size.height}`);
+      }
+    },
+  };
+
+  const getWindowPositionRq: TauriReq<
+    () => Promise<WindowPosition | undefined>
+  > = {
+    name: 'getWindowPosition',
+    request: () => kvGet<WindowPosition>('WindowPosition'),
+    onFulfilled: (position) => {
+      if (position) {
+        dispatch({ type: 'set-window-position', position });
       }
     },
   };
@@ -267,6 +277,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getDepsRustRq,
     getDepsJsRq,
     getWindowSizeRq,
+    getWindowPositionRq,
     getOsRq,
   ]);
 }
