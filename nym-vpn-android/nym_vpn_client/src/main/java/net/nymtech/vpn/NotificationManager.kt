@@ -61,7 +61,7 @@ internal object NotificationManager {
 		with(NotificationManagerCompat.from(context)) {
 			if (ActivityCompat.checkSelfPermission(
 					context,
-					Manifest.permission.POST_NOTIFICATIONS
+					Manifest.permission.POST_NOTIFICATIONS,
 				) == PackageManager.PERMISSION_GRANTED
 			) {
 				notify(VPN_NOTIFICATION_ID, notification)
