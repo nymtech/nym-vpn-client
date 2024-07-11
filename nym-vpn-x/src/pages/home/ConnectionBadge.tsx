@@ -2,8 +2,10 @@ import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { ConnectionState } from '../../types';
 import { AnimateIn } from '../../ui';
+import { useMainState } from '../../contexts';
 
 function ConnectionBadge({ state }: { state: ConnectionState }) {
+  const { os } = useMainState();
   const { t } = useTranslation('home');
 
   const statusBadgeDynStyles = {
@@ -62,9 +64,19 @@ function ConnectionBadge({ state }: { state: ConnectionState }) {
     >
       {getStatusText(state)}
       {(state === 'Connecting' || state === 'Disconnecting') && (
-        <div className="relative flex h-3 w-3">
-          <div className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cornflower opacity-75" />
-          <div className="relative inline-flex dot h-3 w-3 bg-cornflower" />
+        <div
+          className={clsx([
+            os === 'windows' ? 'h-3 w-3' : 'h-[14px] w-[14px]',
+            'relative flex justify-center items-center',
+          ])}
+        >
+          <div className="animate-ping absolute h-full w-full rounded-full bg-cornflower opacity-75" />
+          <div
+            className={clsx([
+              'relative rounded-full h-2.5 w-2.5 bg-cornflower',
+              os === 'windows' ? 'h-2.5 w-2.5' : 'h-[10px] w-[10px]',
+            ])}
+          />
         </div>
       )}
     </AnimateIn>
