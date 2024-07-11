@@ -4,4 +4,5 @@
     <string name="vpn_notification_text">运行中</string>
     <string name="channel_name">NymVPN 频道</string>
     <string name="channel_description">VPN 相关通知的通道。</string>
+    <string name="failed">失败</string>
 </resources>
