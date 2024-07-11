@@ -7,7 +7,7 @@ use nym_connection_monitor::{
     },
     ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply,
 };
-use nym_gateway_directory::MixAddresses;
+use nym_gateway_directory::IpPacketRouterAddress;
 use nym_ip_packet_client::SharedMixnetClient;
 use nym_ip_packet_requests::{codec::MultiIpPacketCodec, IpPair};
 use nym_sdk::mixnet::{InputMessage, Recipient};
@@ -26,7 +26,7 @@ pub async fn send_ping_v4(
     our_ips: IpPair,
     sequence_number: u16,
     destination: Ipv4Addr,
-    exit_router_address: MixAddresses,
+    exit_router_address: IpPacketRouterAddress,
 ) -> anyhow::Result<()> {
     let icmp_identifier = icmp_identifier();
     let icmp_echo_request = create_icmpv4_echo_request(sequence_number, icmp_identifier)?;
@@ -38,11 +38,7 @@ pub async fn send_ping_v4(
 
     // Wrap into a mixnet input message addressed to the IPR
     let two_hop = true;
-    let mixnet_message = create_input_message(
-        exit_router_address.ip_packet_router_address,
-        bundled_packet,
-        two_hop,
-    )?;
+    let mixnet_message = create_input_message(exit_router_address.0, bundled_packet, two_hop)?;
 
     shared_mixnet_client.send(mixnet_message).await?;
     Ok(())
@@ -53,7 +49,7 @@ pub async fn send_ping_v6(
     our_ips: IpPair,
     sequence_number: u16,
     destination: Ipv6Addr,
-    exit_router_address: MixAddresses,
+    exit_router_address: IpPacketRouterAddress,
 ) -> anyhow::Result<()> {
     let icmp_identifier = icmp_identifier();
     let icmp_echo_request = create_icmpv6_echo_request(
@@ -70,11 +66,7 @@ pub async fn send_ping_v6(
 
     // Wrap into a mixnet input message addressed to the IPR
     let two_hop = true;
-    let mixnet_message = create_input_message(
-        exit_router_address.ip_packet_router_address,
-        bundled_packet,
-        two_hop,
-    )?;
+    let mixnet_message = create_input_message(exit_router_address.0, bundled_packet, two_hop)?;
 
     // Send across the mixnet
     shared_mixnet_client.send(mixnet_message).await?;

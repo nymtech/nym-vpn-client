@@ -24,7 +24,7 @@ use nym_sdk::mixnet::{
 };
 use tracing::{debug, error, info};
 
-use nym_gateway_directory::MixAddresses;
+use nym_gateway_directory::IpPacketRouterAddress;
 
 use crate::credentials::check_imported_credential;
 use crate::error::{Error, Result};
@@ -76,7 +76,7 @@ impl SharedMixnetClient {
 
 async fn send_connect_to_ip_packet_router(
     mixnet_client: &SharedMixnetClient,
-    ip_packet_router_address: &MixAddresses,
+    ip_packet_router_address: &IpPacketRouterAddress,
     ips: Option<IpPair>,
     enable_two_hop: bool,
 ) -> Result<u64> {
@@ -93,7 +93,7 @@ async fn send_connect_to_ip_packet_router(
 
     mixnet_client
         .send(nym_sdk::mixnet::InputMessage::new_regular_with_custom_hops(
-            ip_packet_router_address.ip_packet_router_address,
+            ip_packet_router_address.0,
             request.to_bytes().unwrap(),
             nym_task::connections::TransmissionLane::General,
             None,
@@ -204,7 +204,7 @@ async fn handle_dynamic_connect_response(
 
 pub async fn connect_to_ip_packet_router(
     mixnet_client: SharedMixnetClient,
-    ip_packet_router_address: &MixAddresses,
+    ip_packet_router_address: &IpPacketRouterAddress,
     ips: Option<IpPair>,
     enable_two_hop: bool,
 ) -> Result<IpPair> {

@@ -5,7 +5,7 @@ use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
     Config as GatewayDirectoryConfig, DescribedGatewayWithLocation, EntryPoint, ExitPoint,
-    GatewayClient as GatewayDirectoryClient, LookupGateway, MixAddresses,
+    GatewayClient as GatewayDirectoryClient, IpPacketRouterAddress, LookupGateway,
 };
 use nym_ip_packet_client::{IprClient, SharedMixnetClient};
 use nym_ip_packet_requests::{
@@ -53,7 +53,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     };
     let exit_gateways = extract_out_exit_gateways(gateways.clone()).await;
     let exit_router_address = exit_point
-        .lookup_mix_addresses(&exit_gateways, None)
+        .lookup_router_address(&exit_gateways, None)
         .map(|(address, _)| address)
         .ok();
 
@@ -145,7 +145,7 @@ fn mixnet_debug_config() -> nym_client_core::config::DebugConfig {
 
 async fn do_ping(
     shared_mixnet_client: SharedMixnetClient,
-    exit_router_address: Option<MixAddresses>,
+    exit_router_address: Option<IpPacketRouterAddress>,
 ) -> anyhow::Result<ProbeOutcome> {
     // Step 1: confirm that the entry gateway is routing our mixnet traffic
     info!("Sending mixnet ping to ourselves to verify mixnet connection");
@@ -176,10 +176,7 @@ async fn do_ping(
         exit_router_address.gateway().to_base58_string()
     );
     let mut ipr_client = IprClient::new(shared_mixnet_client.clone()).await;
-    let Ok(our_ips) = ipr_client
-        .connect(exit_router_address.ip_packet_router_address, None, false)
-        .await
-    else {
+    let Ok(our_ips) = ipr_client.connect(exit_router_address.0, None, false).await else {
         return Ok(ProbeOutcome {
             as_entry: Entry::success(),
             as_exit: Some(Exit::fail_to_connect()),
@@ -196,7 +193,7 @@ async fn do_ping(
 async fn send_icmp_pings(
     shared_mixnet_client: SharedMixnetClient,
     our_ips: IpPair,
-    exit_router_address: MixAddresses,
+    exit_router_address: IpPacketRouterAddress,
 ) -> anyhow::Result<()> {
     let ipr_tun_ip_v4 = Ipv4Addr::new(10, 0, 0, 1);
     let ipr_tun_ip_v6 = Ipv6Addr::new(0x2001, 0xdb8, 0xa160, 0, 0, 0, 0, 0x1);

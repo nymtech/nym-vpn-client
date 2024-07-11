@@ -8,10 +8,11 @@ mod helpers;
 
 pub use crate::{
     entries::{
+        auth_addresses::{extract_authenticator, AuthAddress, AuthAddresses},
         described_gateway::{DescribedGatewayWithLocation, LookupGateway},
         entry_point::EntryPoint,
-        exit_point::ExitPoint,
-        mix_addresses::MixAddresses,
+        exit_point::{extract_router_address, ExitPoint},
+        ipr_addresses::IpPacketRouterAddress,
     },
     error::Error,
     gateway_client::{Config, GatewayClient, GatewayQueryResult},

@@ -1,12 +1,15 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt::{Display, Formatter};
+use std::{
+    fmt::{Display, Formatter},
+    str::FromStr,
+};
 
 use crate::{
     entries::described_gateway::{by_location_described, by_random_described},
     error::Result,
-    DescribedGatewayWithLocation, Error, MixAddresses,
+    DescribedGatewayWithLocation, Error, IpPacketRouterAddress,
 };
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
@@ -49,27 +52,21 @@ impl ExitPoint {
         matches!(self, ExitPoint::Location { .. })
     }
 
-    pub fn lookup_mix_addresses(
+    pub fn lookup_router_address(
         &self,
         gateways: &[DescribedGatewayWithLocation],
         entry_gateway: Option<&NodeIdentity>,
-    ) -> Result<(MixAddresses, Option<String>)> {
+    ) -> Result<(IpPacketRouterAddress, Option<String>)> {
         match &self {
             ExitPoint::Address { address } => {
                 // There is no validation done when a ip packet router is specified by address
                 // since it might be private and not available in any directory.
-                Ok((
-                    MixAddresses {
-                        ip_packet_router_address: *address,
-                        authenticator_address: None,
-                    },
-                    None,
-                ))
+                Ok((IpPacketRouterAddress(*address), None))
             }
             ExitPoint::Gateway { identity } => {
                 let gateway = by_identity(gateways, identity)?;
                 Ok((
-                    MixAddresses::try_from_described_gateway(&gateway.gateway)?,
+                    IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
                     gateway.two_letter_iso_country_code(),
                 ))
             }
@@ -100,7 +97,7 @@ impl ExitPoint {
 
                 let gateway = by_location_described(&exit_gateways, location)?;
                 Ok((
-                    MixAddresses::try_from_described_gateway(&gateway.gateway)?,
+                    IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
                     gateway.two_letter_iso_country_code(),
                 ))
             }
@@ -115,7 +112,7 @@ impl ExitPoint {
                     .collect::<Vec<_>>();
                 let gateway = by_random_described(&exit_gateways)?;
                 Ok((
-                    MixAddresses::try_from_described_gateway(&gateway.gateway)?,
+                    IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
                     gateway.two_letter_iso_country_code(),
                 ))
             }
@@ -150,4 +147,26 @@ impl LookupGateway for ExitPoint {
             }
         }
     }
+}
+
+pub fn extract_router_address(
+    gateways: &[DescribedGatewayWithLocation],
+    identity_key: String,
+) -> Result<IpPacketRouterAddress> {
+    Ok(IpPacketRouterAddress(
+        Recipient::from_str(
+            &gateways
+                .iter()
+                .find(|gw| *gw.gateway.bond.identity() == identity_key)
+                .ok_or(Error::NoMatchingGateway)?
+                .gateway
+                .self_described
+                .clone()
+                .ok_or(Error::NoGatewayDescriptionAvailable(identity_key))?
+                .ip_packet_router
+                .ok_or(Error::MissingIpPacketRouterAddress)?
+                .address,
+        )
+        .map_err(|_| Error::RecipientFormattingError)?,
+    ))
 }

@@ -14,7 +14,7 @@ use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_connection_monitor::ConnectionMonitorTask;
 use nym_gateway_directory::{
-    Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, GatewayClient, MixAddresses,
+    Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress,
 };
 use nym_ip_packet_client::IprClient;
 use nym_task::TaskManager;
@@ -287,7 +287,7 @@ impl NymVpn<MixnetVpn> {
         &mut self,
         mixnet_client: SharedMixnetClient,
         route_manager: &mut RouteManager,
-        exit_mix_addresses: &MixAddresses,
+        exit_mix_addresses: &IpPacketRouterAddress,
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
@@ -299,11 +299,7 @@ impl NymVpn<MixnetVpn> {
         // spawn a separate task that handles IPR request/responses.
         let mut ipr_client = IprClient::new_from_inner(mixnet_client.inner()).await;
         let our_ips = ipr_client
-            .connect(
-                exit_mix_addresses.ip_packet_router_address,
-                self.nym_ips,
-                self.enable_two_hop,
-            )
+            .connect(exit_mix_addresses.0, self.nym_ips, self.enable_two_hop)
             .await?;
         info!("Successfully connected to exit gateway");
         info!("Using mixnet VPN IP addresses: {our_ips}");
@@ -337,8 +333,7 @@ impl NymVpn<MixnetVpn> {
         .await?;
 
         info!("Setting up mixnet processor");
-        let processor_config =
-            mixnet_processor::Config::new(exit_mix_addresses.ip_packet_router_address);
+        let processor_config = mixnet_processor::Config::new(exit_mix_addresses.0);
         debug!("Mixnet processor config: {:#?}", processor_config);
 
         // For other components that will want to send mixnet packets
@@ -363,13 +358,13 @@ impl NymVpn<MixnetVpn> {
             mixnet_client_sender,
             mixnet_client_address,
             our_ips,
-            exit_mix_addresses.ip_packet_router_address,
+            exit_mix_addresses.0,
             task_manager,
         );
 
         Ok(MixnetExitConnectionInfo {
             exit_gateway,
-            exit_ipr: exit_mix_addresses.ip_packet_router_address,
+            exit_ipr: exit_mix_addresses.0,
             ips: our_ips,
         })
     }
@@ -379,7 +374,7 @@ impl NymVpn<MixnetVpn> {
         &mut self,
         mixnet_client: SharedMixnetClient,
         route_manager: &mut RouteManager,
-        exit_mix_addresses: &MixAddresses,
+        exit_mix_addresses: &IpPacketRouterAddress,
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,

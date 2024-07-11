@@ -19,7 +19,8 @@ use ipnetwork::IpNetwork;
 use log::*;
 use nym_bin_common::bin_info;
 use nym_gateway_directory::{
-    GatewayClient, GatewayQueryResult, LookupGateway, MixAddresses, Recipient,
+    extract_authenticator, extract_router_address, AuthAddresses, GatewayClient,
+    GatewayQueryResult, IpPacketRouterAddress, LookupGateway,
 };
 use nym_task::TaskManager;
 use rand::rngs::OsRng;
@@ -135,7 +136,7 @@ async fn setup_wg_tunnel(
     mixnet_client: SharedMixnetClient,
     route_manager: RouteManager,
     gateway_directory_client: GatewayClient,
-    auth_recipient: Recipient,
+    auth_addresses: AuthAddresses,
 ) -> Result<AllTunnelsSetup> {
     let mut rng = OsRng;
     let wg_entry_gateway_client = WgGatewayClient::new(&mut rng, mixnet_client.clone());
@@ -151,17 +152,23 @@ async fn setup_wg_tunnel(
     // 1440 - (40 + 8 + 32)
     let exit_mtu = 1360;
 
+    let (Some(entry_auth_recipient), Some(exit_auth_recipient)) =
+        (auth_addresses.entry().0, auth_addresses.exit().0)
+    else {
+        return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
+    };
+
     let mut entry_wireguard_config = init_wireguard_config(
         &gateway_directory_client,
         &wg_entry_gateway_client,
-        auth_recipient,
+        entry_auth_recipient,
         entry_mtu,
     )
     .await?;
     let mut exit_wireguard_config = init_wireguard_config(
         &gateway_directory_client,
         &wg_exit_gateway_client,
-        auth_recipient,
+        exit_auth_recipient,
         exit_mtu,
     )
     .await?;
@@ -242,7 +249,7 @@ async fn setup_mix_tunnel(
     mut task_manager: TaskManager,
     mut route_manager: RouteManager,
     gateway_directory_client: GatewayClient,
-    exit_mix_addresses: MixAddresses,
+    exit_mix_addresses: &IpPacketRouterAddress,
     default_lan_gateway_ip: routing::LanGatewayIp,
 ) -> Result<AllTunnelsSetup> {
     info!("Wireguard is disabled");
@@ -347,17 +354,26 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
         .await
         .map_err(|err| Error::FailedToLookupGatewayIdentity { source: err })?;
     let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
+    let entry_authenticator_address =
+        extract_authenticator(&entry_gateways, entry_gateway_id.to_string())?;
 
-    let (exit_mix_addresses, exit_location) = nym_vpn
+    let (exit_gateway_id, exit_location) = nym_vpn
         .exit_point()
-        .lookup_mix_addresses(&exit_gateways, Some(&entry_gateway_id))
-        .map_err(|err| Error::FailedToLookupRouterAddress { source: err })?;
+        .lookup_gateway_identity(&exit_gateways)
+        .await
+        .map_err(|err| Error::FailedToLookupGatewayIdentity { source: err })?;
+    let exit_authenticator_address =
+        extract_authenticator(&exit_gateways, exit_gateway_id.to_string())?;
+
+    let exit_router_address = extract_router_address(&exit_gateways, exit_gateway_id.to_string())?;
     let exit_location_str = exit_location.as_deref().unwrap_or("unknown");
-    let exit_gateway_id = exit_mix_addresses.gateway();
+    let exit_gateway_id = exit_router_address.gateway();
+    let auth_addresses =
+        AuthAddresses::new(entry_authenticator_address, exit_authenticator_address);
 
     info!("Using entry gateway: {entry_gateway_id}, location: {entry_location_str}");
     info!("Using exit gateway: {exit_gateway_id}, location: {exit_location_str}");
-    info!("Using exit router address {exit_mix_addresses}");
+    info!("Using exit router address {exit_router_address}");
 
     // Get the IP address of the local LAN gateway
     let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
@@ -394,7 +410,7 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
                 mixnet_client,
                 route_manager,
                 gateway_directory_client,
-                exit_mix_addresses.authenticator_address.unwrap(),
+                auth_addresses,
             )
             .await
         }
@@ -405,7 +421,7 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
                 task_manager,
                 route_manager,
                 gateway_directory_client,
-                exit_mix_addresses,
+                &exit_router_address,
                 default_lan_gateway_ip,
             )
             .await
