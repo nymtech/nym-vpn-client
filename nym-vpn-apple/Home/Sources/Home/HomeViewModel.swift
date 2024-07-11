@@ -19,6 +19,7 @@ public class HomeViewModel: HomeFlowState {
 
     private var timer = Timer()
     private var cancellables = Set<AnyCancellable>()
+    private var tunnelStatusUpdateCancellable: AnyCancellable?
     private var lastError: Error?
     @MainActor @Published private var activeTunnel: Tunnel?
 
@@ -195,13 +196,13 @@ private extension HomeViewModel {
 
 #if os(iOS)
     func configureTunnelStatusObservation(with tunnel: Tunnel) {
-        tunnel.$status
-            .debounce(for: .seconds(0.2), scheduler: DispatchQueue.global(qos: .background))
+        tunnelStatusUpdateCancellable = tunnel.$status
+            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.global(qos: .background))
+            .removeDuplicates()
             .receive(on: RunLoop.main)
             .sink { [weak self] status in
                 self?.updateUI(with: status)
             }
-            .store(in: &cancellables)
     }
 #endif
 

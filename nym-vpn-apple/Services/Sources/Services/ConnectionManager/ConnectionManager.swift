@@ -23,6 +23,8 @@ public final class ConnectionManager: ObservableObject {
 #endif
 
     private var cancellables = Set<AnyCancellable>()
+    private var tunnelStatusUpdateCancellable: AnyCancellable?
+
     public var isReconnecting = false
     public var isDisconnecting = false
 
@@ -201,10 +203,9 @@ private extension ConnectionManager {
     }
 
     func configureTunnelStatusObserver(tunnel: Tunnel) {
-        tunnel.$status.sink { [weak self] status in
+        tunnelStatusUpdateCancellable = tunnel.$status.sink { [weak self] status in
             self?.currentTunnelStatus = status
         }
-        .store(in: &cancellables)
     }
 }
 #endif
@@ -229,15 +230,20 @@ private extension ConnectionManager {
 #if os(iOS)
 private extension ConnectionManager {
     func connectMixnet(with config: MixnetConfig) {
-        tunnelsManager.addUpdate(tunnelConfiguration: config) { [weak self] result in
-            switch result {
-            case .success(let tunnel):
-                self?.activeTunnel = tunnel
-                self?.tunnelsManager.connect(tunnel: tunnel)
-            case .failure(let error):
-                // TODO: handle error
-                print("Error: \(error)")
+        let updateTunnelClosure = { [weak self] in
+            self?.tunnelsManager.addUpdate(tunnelConfiguration: config) { [weak self] result in
+                switch result {
+                case .success(let tunnel):
+                    self?.activeTunnel = tunnel
+                    self?.tunnelsManager.connect(tunnel: tunnel)
+                case .failure(let error):
+                    // TODO: handle error
+                    print("Error: \(error)")
+                }
             }
+        }
+        tunnelsManager.loadTunnels {
+            updateTunnelClosure()
         }
     }
 
@@ -332,7 +338,7 @@ private extension ConnectionManager {
             return
         }
         isReconnecting = false
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             try? self?.connectDisconnect()
         }
     }
