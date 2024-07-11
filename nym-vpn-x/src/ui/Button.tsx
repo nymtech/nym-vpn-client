@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import clsx from 'clsx';
 import { Button as HuButton } from '@headlessui/react';
+import { useMainState } from '../contexts';
 
 type ButtonProps = {
   children: ReactNode;
@@ -8,7 +9,21 @@ type ButtonProps = {
   disabled?: boolean;
   color?: 'melon' | 'cornflower' | 'grey';
   className?: string;
+  loading?: boolean;
 };
+
+function Spinner() {
+  const { os } = useMainState();
+  return (
+    <span
+      className={clsx([
+        'loader',
+        os === 'linux' ? 'h-[32px] w-[32px]' : 'h-[22px] w-[22px] border-4',
+        'border:white dark:border-black border-b-transparent dark:border-b-transparent',
+      ])}
+    ></span>
+  );
+}
 
 function Button({
   onClick,
@@ -16,6 +31,7 @@ function Button({
   disabled,
   color = 'melon',
   className,
+  loading,
 }: ButtonProps) {
   const getColorStyle = () => {
     switch (color) {
@@ -43,7 +59,7 @@ function Button({
       onClick={onClick}
       disabled={disabled}
     >
-      {children}
+      {loading ? Spinner() : children}
     </HuButton>
   );
 }
