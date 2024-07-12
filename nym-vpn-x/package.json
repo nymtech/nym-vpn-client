@@ -55,7 +55,7 @@
     "@vitejs/plugin-react-swc": "^3.3.2",
     "autoprefixer": "^10.4.16",
     "@types/eslint__js": "^8.42.3",
-    "@eslint/compat": "^1.1.0",
+    "@eslint/compat": "^1.1.1",
     "@eslint/js": "^8.57.0",
     "eslint": "^8.57.0",
     "globals": "^15.7.0",
