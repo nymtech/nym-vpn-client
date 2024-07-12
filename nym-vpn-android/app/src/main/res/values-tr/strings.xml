@@ -15,7 +15,7 @@
     <string name="init_client">İstemci başlatılıyor…</string>
     <string name="establishing_connection">Bağlantı kuruluyor</string>
     <string name="connection_time">Bağlantı süresi</string>
-    <string name="connect_to">-e bağlan</string>
+    <string name="connect_to">Bağlan</string>
     <string name="connect">Bağlan</string>
     <string name="last_hop_selection">Son hop seçimi</string>
     <string name="display_theme">Panel teması</string>
@@ -59,7 +59,7 @@
     <string name="credential_successful">Anahtar başarıyla eklendi</string>
     <string name="no_browser_detected">Tarayıcı bulunamadı</string>
     <string name="no_email_detected">E-posta uygulaması bulunamadı</string>
-    <string name="unknown">Tanımlanamayan</string>
+    <string name="unknown">Bilinmeyen</string>
     <string name="no_scm_found">Kaynak kodu URL\'si bulunamadı</string>
 	<string name="five_hop">5-hop</string>
     <string name="mode">Mod</string>
@@ -124,5 +124,5 @@
     <string name="mode_selection">Mod seçimi</string>
     <string name="five_hop_explanation">Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek maksimum düzeyde gizliliğin tadını çıkarın. Ödemeleri, e-postaları ve mesajları güvenli bir şekilde yönetmek için mükemmeldir.</string>
     <string name="continue_reading">Okumaya devam edin</string>
-    <string name="two_hop_explanation">WireGuard protokolünü kullanarak 2 sunucu bağlantısıyla maksimum hızı deneyimleyin. Hızlı tarama, yayın akışı ve dosya paylaşımı için mükemmeldir.</string>
+    <string name="two_hop_explanation">Maksimum hızı 2 sunucu bağlantısıyla deneyimleyin. Hızlı tarama, yayın akışı ve dosya paylaşımı için mükemmeldir.</string>
 </resources>
