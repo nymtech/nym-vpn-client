@@ -498,10 +498,11 @@ impl SpecificVpn {
                 _mixnet_client,
                 entry,
                 exit,
+                task_manager,
                 mut firewall,
                 mut dns_monitor,
             } => {
-                wait_for_interrupt(TaskManager::new(10)).await;
+                wait_for_interrupt(task_manager).await;
                 handle_interrupt(
                     route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
@@ -586,10 +587,11 @@ impl SpecificVpn {
                 _mixnet_client,
                 entry,
                 exit,
+                task_manager,
                 mut firewall,
                 mut dns_monitor,
             } => {
-                let result = wait_for_interrupt_and_signal(None, vpn_ctrl_rx).await;
+                let result = wait_for_interrupt_and_signal(Some(task_manager), vpn_ctrl_rx).await;
                 handle_interrupt(
                     route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),

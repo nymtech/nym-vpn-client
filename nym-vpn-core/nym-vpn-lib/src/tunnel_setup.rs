@@ -62,6 +62,7 @@ pub enum AllTunnelsSetup {
         _mixnet_client: SharedMixnetClient,
         entry: TunnelSetup<WgTunnelSetup>,
         exit: TunnelSetup<WgTunnelSetup>,
+        task_manager: TaskManager,
         firewall: Firewall,
         dns_monitor: DnsMonitor,
     },
@@ -135,6 +136,7 @@ async fn wait_interface_up(
 async fn setup_wg_tunnel(
     nym_vpn: &mut NymVpn<WireguardVpn>,
     mixnet_client: SharedMixnetClient,
+    task_manager: TaskManager,
     route_manager: RouteManager,
     gateway_directory_client: GatewayClient,
     auth_addresses: AuthAddresses,
@@ -240,6 +242,7 @@ async fn setup_wg_tunnel(
         _mixnet_client: mixnet_client,
         entry,
         exit,
+        task_manager,
         firewall,
         dns_monitor,
     })
@@ -410,6 +413,7 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
             setup_wg_tunnel(
                 vpn,
                 mixnet_client,
+                task_manager,
                 route_manager,
                 gateway_directory_client,
                 auth_addresses,
