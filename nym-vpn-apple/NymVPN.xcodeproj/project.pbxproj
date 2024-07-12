@@ -91,6 +91,8 @@
 		D9DB4D792BAB1272005E8E02 /* WireGuardLogLevel+Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93214422B84D91500FFDC5E /* WireGuardLogLevel+Logging.swift */; };
 		D9E048302BC58CE700599157 /* MixnetLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = D9E0482F2BC58CE700599157 /* MixnetLibrary */; };
 		D9E6D8C92BF5FF5F009612CE /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D9E6D8C82BF5FF5F009612CE /* TunnelStatus */; };
+		D9E9F19D2C3806BB0056EB8C /* AutoUpdater in Frameworks */ = {isa = PBXBuildFile; productRef = D9E9F19C2C3806BB0056EB8C /* AutoUpdater */; };
+		D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = D9E9F19F2C3807A00056EB8C /* Sparkle */; };
 		D9EACBD62BC016D60094CDDF /* NymVPNUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EACBD52BC016D60094CDDF /* NymVPNUITests.swift */; };
 		D9EACBDF2BC01D790094CDDF /* SwiftyPing in Frameworks */ = {isa = PBXBuildFile; productRef = D9EACBDE2BC01D790094CDDF /* SwiftyPing */; };
 		D9F699E02B4C1862005576A9 /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = D9F699DF2B4C1862005576A9 /* Settings */; };
@@ -98,6 +100,7 @@
 		D9FB33DC2BECD473009C3419 /* SentryManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9FB33DB2BECD473009C3419 /* SentryManager */; };
 		D9FB33DE2BECD47E009C3419 /* Theme in Frameworks */ = {isa = PBXBuildFile; productRef = D9FB33DD2BECD47E009C3419 /* Theme */; };
 		D9FB33E82BECFD1F009C3419 /* ServiceManagement.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9FB33E72BECFD1F009C3419 /* ServiceManagement.framework */; };
+		D9FFC1F92C40F65F00A4766C /* AutoUpdates in Frameworks */ = {isa = PBXBuildFile; productRef = D9FFC1F82C40F65F00A4766C /* AutoUpdates */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -250,6 +253,7 @@
 		D9DB4D672BAB0F37005E8E02 /* PacketTunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelProvider.swift; sourceTree = "<group>"; };
 		D9DB4D692BAB0F37005E8E02 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D9DB4D6A2BAB0F37005E8E02 /* NymWGTunnel.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NymWGTunnel.entitlements; sourceTree = "<group>"; };
+		D9E9F1A12C3D51650056EB8C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		D9EACBD32BC016D60094CDDF /* NymVPNUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NymVPNUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9EACBD52BC016D60094CDDF /* NymVPNUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NymVPNUITests.swift; sourceTree = "<group>"; };
 		D9F699E32B4C47DE005576A9 /* BridgingHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BridgingHeader.h; sourceTree = "<group>"; };
@@ -352,7 +356,10 @@
 				D9FB33DE2BECD47E009C3419 /* Theme in Frameworks */,
 				D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */,
 				D924A8E82C33F3DA00465E84 /* ExternalLinkManager in Frameworks */,
+				D9FFC1F92C40F65F00A4766C /* AutoUpdates in Frameworks */,
 				D9FB33E82BECFD1F009C3419 /* ServiceManagement.framework in Frameworks */,
+				D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */,
+				D9E9F19D2C3806BB0056EB8C /* AutoUpdater in Frameworks */,
 				D9E6D8C92BF5FF5F009612CE /* TunnelStatus in Frameworks */,
 				D9BEF2E32BEB8D7E0036C566 /* Constants in Frameworks */,
 				D9ABF2842BF4989B009089FA /* Shell in Frameworks */,
@@ -460,6 +467,7 @@
 		D99A146D2B357E9900F2728B = {
 			isa = PBXGroup;
 			children = (
+				D9E9F1A12C3D51650056EB8C /* README.md */,
 				D9FB33F02BEE31E2009C3419 /* Daemon */,
 				D99A14782B357E9900F2728B /* NymVPN */,
 				D9BEF2D12BEB63310036C566 /* NymVPNDaemon */,
@@ -759,6 +767,9 @@
 				D9CDF2DB2BF49909007E5DAF /* Home */,
 				D9E6D8C82BF5FF5F009612CE /* TunnelStatus */,
 				D924A8E72C33F3DA00465E84 /* ExternalLinkManager */,
+				D9E9F19C2C3806BB0056EB8C /* AutoUpdater */,
+				D9E9F19F2C3807A00056EB8C /* Sparkle */,
+				D9FFC1F82C40F65F00A4766C /* AutoUpdates */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -863,6 +874,7 @@
 				D95E2E0D2B837CE4009F9E2F /* XCRemoteSwiftPackageReference "wireguard-apple" */,
 				D932143F2B84D29200FFDC5E /* XCRemoteSwiftPackageReference "swift-log" */,
 				D9EACBCC2BBFFE420094CDDF /* XCRemoteSwiftPackageReference "SwiftyPing" */,
+				D9E9F19E2C3807A00056EB8C /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			productRefGroup = D99A14772B357E9900F2728B /* Products */;
 			projectDirPath = "";
@@ -1892,6 +1904,14 @@
 				version = "1.0.15-26";
 			};
 		};
+		D9E9F19E2C3807A00056EB8C /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.4;
+			};
+		};
 		D9EACBCC2BBFFE420094CDDF /* XCRemoteSwiftPackageReference "SwiftyPing" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/samiyr/SwiftyPing";
@@ -2124,6 +2144,15 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = TunnelStatus;
 		};
+		D9E9F19C2C3806BB0056EB8C /* AutoUpdater */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AutoUpdater;
+		};
+		D9E9F19F2C3807A00056EB8C /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D9E9F19E2C3807A00056EB8C /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
 		D9EACBDE2BC01D790094CDDF /* SwiftyPing */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D9EACBCC2BBFFE420094CDDF /* XCRemoteSwiftPackageReference "SwiftyPing" */;
@@ -2144,6 +2173,10 @@
 		D9FB33DD2BECD47E009C3419 /* Theme */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Theme;
+		};
+		D9FFC1F82C40F65F00A4766C /* AutoUpdates */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AutoUpdates;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
