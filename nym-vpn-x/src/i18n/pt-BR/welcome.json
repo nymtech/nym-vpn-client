@@ -1,0 +1,19 @@
+{
+  "tos": {
+    "part1": "Ao continuar, você concorda com os termos e condições da NymVPN",
+    "part2": "e rechonhecer a NymVPN",
+    "part3": "."
+  },
+  "title": {
+    "part1": "Bem vindo",
+    "part2": "para NymVPN Alfa"
+  },
+  "description": {
+    "part1": "Ajude-nos a refinar nosso aplicativo durante a fase alfa!",
+    "part2": "Seu feedback é fundamental",
+    "part3": "para identificar e resolver problemas. Opte pelo monitoramento anônimo de erros",
+    "part4": "e análises, você pode cancelar a qualquer momento. Obrigado por seu apoio!"
+  },
+  "experimental": "Este é um software experimental. Não confie nele para obter um anonimato forte (ainda).",
+  "continue-button": "Continuar"
+}

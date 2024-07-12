@@ -1,8 +1,12 @@
-use std::{path::PathBuf, sync::Arc};
-
-use clap::Parser;
+use crate::db::{Db, Key};
+use anyhow::{anyhow, Result};
+use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::str::FromStr;
+use std::{path::PathBuf, sync::Arc};
 use tauri::PackageInfo;
+use tracing::{error, info};
 
 pub type ManagedCli = Arc<Cli>;
 
@@ -41,28 +45,95 @@ pub struct Cli {
     /// Open a console to see the log stream (Windows only)
     #[arg(short, long)]
     pub console: bool,
+
+    #[command(subcommand)]
+    pub command: Option<Commands>,
+}
+
+#[derive(Subcommand, Serialize, Deserialize, Debug, Clone)]
+pub enum Commands {
+    /// Embedded database operations (for debugging purposes only)
+    Db {
+        #[command(subcommand)]
+        command: Option<DbCommands>,
+    },
+}
+
+#[derive(Subcommand, Serialize, Deserialize, Debug, Clone)]
+pub enum DbCommands {
+    /// Get a key
+    Get {
+        #[arg()]
+        key: String,
+    },
+    /// Set a key
+    Set {
+        #[arg()]
+        key: String,
+        /// as JSON string
+        #[arg()]
+        value: String,
+    },
+    /// Delete a key
+    Del {
+        #[arg()]
+        key: String,
+    },
+}
+
+pub fn db_command(db: &Db, command: &DbCommands) -> Result<()> {
+    match command {
+        DbCommands::Get { key: k } => {
+            info!("cli db get {k}");
+            let key = Key::from_str(k).map_err(|_| anyhow!("invalid key"))?;
+            if let Some(value) = db.get(key)? {
+                println!("{value}");
+            } else {
+                println!("key is not set");
+            }
+            Ok(())
+        }
+        DbCommands::Set { key: k, value: v } => {
+            info!("cli db set {k} {v}");
+            let key = Key::from_str(k).map_err(|_| anyhow!("invalid key"))?;
+            let value: Value = serde_json::from_str(v).map_err(|e| {
+                error!("failed to deserialize json value: {e}");
+                anyhow!("invalid value")
+            })?;
+            db.insert(key, value)?;
+            println!("key set to {v}");
+            Ok(())
+        }
+        DbCommands::Del { key: k } => {
+            info!("cli db del {k}");
+            let key = Key::from_str(k).map_err(|_| anyhow!("invalid key"))?;
+            db.remove(key)?;
+            println!("key removed");
+            Ok(())
+        }
+    }
 }
 
 pub fn print_build_info(package_info: &PackageInfo) {
     let info = build_info();
 
     print!(
-        r"crate name:      {}
-version:         {}
-tauri version:   {}
-package name:    {}
-package version: {}
-target:          {}
-profile:         {}
-build date:      {}
-rustc version:   {}
-rustc channel:   {}
+        r"pkg name:      {}
+pkg version:   {}
+crate name:    {}
+crate version: {}
+tauri version: {}
+target:        {}
+profile:       {}
+build date:    {}
+rustc version: {}
+rustc channel: {}
 ",
+        package_info.name,
+        package_info.version,
         info.crate_info.name,
         info.crate_info.version,
         tauri::VERSION,
-        package_info.name,
-        package_info.version,
         info.target.triple,
         info.profile,
         info.timestamp,
@@ -70,14 +141,16 @@ rustc channel:   {}
         info.compiler.channel,
     );
     if let Some(git) = info.version_control.as_ref().and_then(|vc| vc.git()) {
-        println!(
-            r"commit sha:      {}
-commit date:     {}
-git branch:      {}
+        print!(
+            r"commit sha:    {}
+commit date:   {}
 ",
-            git.commit_id,
-            git.commit_timestamp,
-            git.branch.as_ref().unwrap_or(&"".to_string())
+            git.commit_id, git.commit_timestamp,
         );
+
+        if let Some(branch) = git.branch.as_ref() {
+            print!("git branch:    {}", branch);
+        }
     }
+    println!("\n");
 }

@@ -3,6 +3,7 @@ package net.nymtech.vpn
 import android.content.Context
 import android.content.Intent
 import android.net.VpnService
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -12,8 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.nymtech.logcathelper.LogcatHelper
-import net.nymtech.logcathelper.model.LogLevel
 import net.nymtech.vpn.model.Environment
 import net.nymtech.vpn.model.ErrorState
 import net.nymtech.vpn.model.VpnClientState
@@ -22,10 +21,10 @@ import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.InvalidCredentialException
 import net.nymtech.vpn.util.ServiceManager
-import net.nymtech.vpn.util.safeCollect
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
-import nym_vpn_lib.FfiException
+import nym_vpn_lib.TunStatus
+import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.checkCredential
 import nym_vpn_lib.runVpn
@@ -65,7 +64,7 @@ object NymVpnClient {
 			return NymVpn
 		}
 	}
-	internal object NymVpn : VpnClient {
+	internal object NymVpn : VpnClient, TunnelStatusListener {
 
 		private val ioDispatcher = Dispatchers.IO
 
@@ -74,7 +73,6 @@ object NymVpnClient {
 		override var mode: VpnMode = NymVpnClientInit.mode
 		private val environment: Environment = NymVpnClientInit.environment
 
-		private var logsJob: Job? = null
 		private var statsJob: Job? = null
 
 		private val _state = MutableStateFlow(VpnClientState())
@@ -82,11 +80,10 @@ object NymVpnClient {
 
 		override suspend fun validateCredential(credential: String): Result<Instant?> {
 			return withContext(ioDispatcher) {
-				try {
-					val expiry = checkCredential(credential)
-					Result.success(expiry)
-				} catch (_: FfiException) {
-					Result.failure(InvalidCredentialException("Credential invalid or expired"))
+				runCatching {
+					checkCredential(credential)
+				}.onFailure {
+					return@withContext Result.failure(InvalidCredentialException("Credential invalid or expired"))
 				}
 			}
 		}
@@ -97,7 +94,6 @@ object NymVpnClient {
 					return@withContext Result.failure(it)
 				}
 				if (_state.value.vpnState == VpnState.Down) {
-					setVpnState(VpnState.Connecting.InitializingClient)
 					clearErrorStatus()
 					if (foreground) ServiceManager.startVpnServiceForeground(context) else ServiceManager.startVpnService(context)
 				}
@@ -105,24 +101,23 @@ object NymVpnClient {
 			}
 		}
 
-		override suspend fun stop(context: Context, foreground: Boolean) {
+		override suspend fun stop(foreground: Boolean) {
 			withContext(ioDispatcher) {
-				clearStatisticState()
-				setVpnState(VpnState.Disconnecting)
-				try {
+				runCatching {
 					stopVpn()
-				} catch (e: FfiException) {
-					Timber.e(e)
+				}.onFailure {
+					Timber.e(it)
 				}
-				delay(1000)
-				handleClientShutdown(context)
 			}
 		}
 
-		private fun handleClientShutdown(context: Context) {
-			ServiceManager.stopVpnService(context)
+		private fun onDisconnect() {
 			clearStatisticState()
-			cancelJobs()
+			statsJob?.cancel()
+		}
+
+		private fun onConnect() = CoroutineScope(ioDispatcher).launch {
+			startConnectionTimer()
 		}
 
 		override fun prepare(context: Context): Intent? {
@@ -130,11 +125,6 @@ object NymVpnClient {
 		}
 		override fun getState(): VpnClientState {
 			return _state.value
-		}
-
-		private fun cancelJobs() {
-			statsJob?.cancel()
-			logsJob?.cancel()
 		}
 
 		private fun clearErrorStatus() {
@@ -175,7 +165,7 @@ object NymVpnClient {
 			}
 		}
 
-		internal fun setVpnState(state: VpnState) {
+		private fun setVpnState(state: VpnState) {
 			if (state != _state.value.vpnState) {
 				_state.update {
 					it.copy(
@@ -191,17 +181,8 @@ object NymVpnClient {
 		}
 
 		internal suspend fun connect(context: Context) {
-			cancelJobs()
 			withContext(ioDispatcher) {
-				logsJob = launch(ioDispatcher) {
-					monitorLogs(context)
-				}
-
-				statsJob = launch {
-					startConnectionTimer()
-				}
-
-				try {
+				runCatching {
 					runVpn(
 						VpnConfig(
 							environment.apiUrl,
@@ -210,28 +191,14 @@ object NymVpnClient {
 							exitPoint,
 							isTwoHop(mode),
 							null,
+							this@NymVpn,
 						),
 					)
-				} catch (e: FfiException) {
-					Timber.e(e)
+				}.onFailure {
+					// TODO better handle error messaging based on failure message
+					Timber.e(it)
+					NotificationManager.notify(context, NotificationManager.createVpnFailedNotification(context))
 					setErrorState(ErrorState.GatewayLookupFailure)
-					handleClientShutdown(context)
-				}
-			}
-		}
-
-		private suspend fun monitorLogs(context: Context) {
-			LogcatHelper.init(context = context).liveLogs.safeCollect {
-				if (it.tag.contains(Constants.NYM_VPN_LIB_TAG)) {
-					when (it.level) {
-						LogLevel.ERROR -> {
-							parseErrorMessageForState(it.message) { handleClientShutdown(context) }
-						}
-						LogLevel.INFO -> {
-							parseInfoMessageForState(it.message)
-						}
-						else -> Unit
-					}
 				}
 			}
 		}
@@ -249,33 +216,21 @@ object NymVpnClient {
 			}
 		}
 
-		private fun parseInfoMessageForState(message: String) {
-			// TODO make this more robust in the future
-			with(message) {
-				when {
-					contains("Mixnet processor is running") -> setVpnState(VpnState.Up)
-					contains("Setting up connection monitor") -> setVpnState(VpnState.Up)
-					contains(
-						"Obtaining initial network topology",
-					) -> setVpnState(VpnState.Connecting.EstablishingConnection)
+		override fun onTunStatusChange(status: TunStatus) {
+			val vpnState = when (status) {
+				TunStatus.INITIALIZING_CLIENT -> VpnState.Connecting.InitializingClient
+				TunStatus.ESTABLISHING_CONNECTION -> VpnState.Connecting.EstablishingConnection
+				TunStatus.DOWN -> VpnState.Down
+				TunStatus.UP -> {
+					statsJob = onConnect()
+					VpnState.Up
+				}
+				TunStatus.DISCONNECTING -> {
+					onDisconnect()
+					VpnState.Disconnecting
 				}
 			}
-		}
-
-		private fun parseErrorMessageForState(message: String, onError: () -> Unit) {
-			with(message) {
-				val errorState = when {
-					contains("failed to lookup described gateways") -> ErrorState.GatewayLookupFailure
-					contains("invalid peer certificate") -> ErrorState.BadGatewayPeerCertificate
-					contains("No address associated with hostname") -> ErrorState.BadGatewayNoHostnameAddress
-					contains("halted unexpectedly") -> ErrorState.VpnHaltedUnexpectedly(message)
-					else -> null
-				}
-				errorState?.let {
-					setErrorState(it)
-					onError()
-				}
-			}
+			setVpnState(vpnState)
 		}
 	}
 }

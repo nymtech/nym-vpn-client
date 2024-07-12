@@ -1,0 +1,6 @@
+{
+  "connection-progress": {
+    "InitDone": "Cliente Nym VPN inicializado",
+    "Initializing": "Inicializando cliente Nym VPN…"
+  }
+}

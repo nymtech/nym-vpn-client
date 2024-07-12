@@ -22,6 +22,7 @@ export type DbKey =
   | 'EntryNodeLocation'
   | 'ExitNodeLocation'
   | 'WindowSize'
+  | 'WindowPosition'
   | 'WelcomeScreenSeen'
   | 'CredentialExpiry';
 

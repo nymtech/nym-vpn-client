@@ -1,10 +1,11 @@
 [package]
 name = "nym-vpn-x"
-version = "0.1.6-dev"
-description = "NymVPN Desktop Client"
-authors = ["pierre <dommerc.pierre@gmail.com>", "zane <zanecschepke@gmail.com>", "nym"]
+version = "0.1.7-dev"
+description = "NymVPN desktop client"
+authors = ["Nym Technologies SA", "Pierre <dommerc.pierre@gmail.com>", "Zane <zanecschepke@gmail.com>"]
 license = "GPL-3.0-only"
-repository = ""
+documentation = "https://nymtech.net"
+repository = "https://github.com/nymtech/nym-vpn-client"
 edition = "2021"
 
 [build-dependencies]

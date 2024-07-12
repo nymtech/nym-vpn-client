@@ -4,9 +4,14 @@
 use std::time::Duration;
 
 use crate::error::{Error, Result};
+<<<<<<< HEAD
 use crate::mixnet_connect::SharedMixnetClient;
+=======
+use crate::platform;
+>>>>>>> origin/main
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
 use crate::tunnel::setup_route_manager;
+use crate::uniffi_custom_impls::TunStatus;
 use crate::util::handle_interrupt;
 use crate::wg_gateway_client::WgGatewayClient;
 use crate::wireguard_setup::create_wireguard_tunnel;
@@ -387,6 +392,8 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
     let task_manager = TaskManager::new(10).named("nym_vpn_lib");
     info!("Setting up route manager");
     let route_manager = setup_route_manager().await?;
+
+    platform::set_listener_status(TunStatus::EstablishingConnection);
 
     info!("Setting up mixnet client");
     info!("Connecting to entry gateway: {entry_gateway_id}");

@@ -55,8 +55,8 @@
     <string name="sentry">Sentry</string>
     <string name="email_chooser">Envie um email…</string>
     <string name="login">Entrar</string>
-    <string name="add_credential">adicionar credencial</string>
-    <string name="add_cred_to_connect">adicionar credencial para conectar</string>
+    <string name="add_credential">Adicionar credencial</string>
+    <string name="add_cred_to_connect">Adicionar credencial para conectar</string>
     <string name="welcome_exclaim">Bem vindo!</string>
     <string name="credential_message">Digite sua credencial para começar</string>
     <string name="credential_label">Credencial</string>
@@ -68,10 +68,10 @@
     <string name="android">Android</string>
     <string name="windows">Windows</string>
     <string name="macos">masOS</string>
-    <string name="linux">Kinux</string>
+    <string name="linux">Linux</string>
     <string name="ios">IOS</string>
     <string name="credential_successful">Creddencial adicionada com sucesso</string>
-    <string name="no_scm_found">URL do código-fonte não encontrado</string>
+    <string name="no_scm_found">URL do código fonte não encontrado</string>
     <string name="five_hop">5-saltos</string>
     <string name="mode">Modo</string>
     <string name="okay">Ok</string>
@@ -99,7 +99,7 @@
     <string name="two_hop_mixnet">rápido</string>
     <string name="last_hop_selection">Seleção do último salto</string>
     <string name="privacy_policy">Declaração de privacidade</string>
-    <string name="licenses">licenças</string>
+    <string name="licenses">Licenças</string>
     <string name="open_github">Abrir um problema no GitHub</string>
     <string name="no_email_detected">Nenhum aplicativo de email foi detectado</string>
     <string name="permission_required">É necessária permissão</string>
@@ -113,4 +113,19 @@
     <string name="continue_reading">Continuar lendo</string>
     <string name="five_hop_explanation">Aproveite a privacidade de nível máximo ao rotear sua conexão por meio de 5 servidores via mixnet. Perfeito para lidar com segurança com pagamentos, emails e mensagens.</string>
     <string name="via">via</string>
+    <string name="error_bad_peer_cert">"O gateway selecionado possui um certificado de peer inválido. Por favor, tente conectar-se a um gateway diferente. "</string>
+    <string name="error_vpn_halted_unexpectedly">A VPN parou inesperadamente. Por favor, tente conectar novamente.</string>
+    <string name="kill_switch">interruptor de segurança</string>
+    <string name="contact_support">Contatar o suporte</string>
+    <string name="hours">horas</string>
+    <string name="hour">hora</string>
+    <string name="days">dias</string>
+    <string name="day">dia</string>
+    <string name="scan_nym_vpn_credential">Escanear QR da Credencial NymVPN</string>
+    <string name="error_logs_not_saved">Falha ao salvar logs</string>
+    <string name="error_no_hostname_address">O gateway está sem o endereço do hostname. Por favor, tente novamente conectando-se a um gateway diferente.</string>
+    <string name="top_up">Recarregar</string>
+    <string name="notification_permission_message">Necessário para manter os serviços de VPN em funcionamento enquanto o aplicativo está fechado.</string>
+    <string name="two_hop_explanation">Experimente velocidade máxima com conectividade de 2 servidores usando o protocolo WireGuard. Perfeito para navegação rápida, streaming e compartilhamento de arquivos.</string>
+    <string name="error_gateway_lookup">Falha ao buscar os gateways da Nym. Por favor, verifique sua conexão de rede e tente novamente.</string>
 </resources>

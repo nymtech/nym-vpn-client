@@ -1,7 +1,7 @@
 [package]
 name = "nym-vpnd"
-version = "0.1.10-dev"
-description = "Nym VPN daemon"
+version = "0.1.11-dev"
+description = "NymVPN daemon"
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
@@ -75,7 +75,13 @@ vergen = { workspace = true, default-features = false, features = [
 # Debian
 [package.metadata.deb]
 name = "nym-vpnd"
+extended-description = '''NymVPN is a vpn service that uses the Nym mixnet.
+
+This package contains the nym-vpnd daemon binary, which runs as a background service.
+
+End-users should use either the CLI client, nym-vpnc, or the GUI client, nym-vpn-x.'''
 maintainer-scripts = "debian"
+recommends = "nym-vpnc"
 
 [package.metadata.deb.systemd-units]
 unit-name = "nym-vpnd"

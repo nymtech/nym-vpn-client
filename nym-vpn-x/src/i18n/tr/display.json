@@ -1,0 +1,10 @@
+{
+  "options": {
+    "system": "Otomatik",
+    "light": "Açık tema",
+    "dark": "Koyu tema"
+  },
+  "system-desc": "Cihaz temasını kullan",
+  "theme-section-title": "Tema",
+  "zoom-section-title": "Yakınlaştırma düzeyi"
+}

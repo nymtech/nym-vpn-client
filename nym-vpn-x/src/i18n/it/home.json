@@ -1,0 +1,21 @@
+{
+  "connect": "Connetti",
+  "disconnect": "Disconnetti",
+  "status": {
+    "connected": "Connesso",
+    "disconnected": "Disconnesso",
+    "disconnecting": "Disconnessione"
+  },
+  "last-hop": "Ultimo hop",
+  "first-hop": "Primo hop",
+  "last-node-select": {
+    "label": "Ultimo hop"
+  },
+  "privacy-mode": {
+    "title": "Anonimo",
+    "desc": "Migliore per pagamenti, email, messaggi"
+  },
+  "fast-mode": {
+    "title": "Veloce"
+  }
+}

@@ -18,8 +18,8 @@
     <string name="establishing_connection">Connexion en cours</string>
     <string name="connection_time">Temps de connexion</string>
     <string name="connect_to">Choix des nœuds</string>
-    <string name="first_hop_selection">Premier nœud</string>
-    <string name="last_hop_selection">Dernier nœud</string>
+    <string name="first_hop_selection">Nœud d\'entrée</string>
+    <string name="last_hop_selection">Nœud de sortie</string>
     <string name="display_theme">Apparence d\'affichage</string>
     <string name="light_theme">Apparence claire</string>
     <string name="dark_theme">Apparence sombre</string>

@@ -1,7 +1,0 @@
-src-tauri/target
-src-tauri/src
-src-tauri/about.hbs
-public
-
-# weblate generated json files do not respect prettier code format
-src/i18n/*/**

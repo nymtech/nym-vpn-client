@@ -1,0 +1,10 @@
+{
+  "licenses": "lisanslar",
+  "license-texts": "lisans metinleri",
+  "name": "isim",
+  "version": "sürüm",
+  "repository": "repository",
+  "language": "programlama dili",
+  "no-data": "lisans bilgisi yok",
+  "authors": "geliştiriciler"
+}

@@ -1,0 +1,9 @@
+{
+  "connect": "Connetti",
+  "disconnect": "Disconnetti",
+  "settings": "Impostazioni",
+  "vpn-modes": {
+    "privacy": "Anonimo",
+    "fast": "Veloce"
+  }
+}

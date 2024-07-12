@@ -1,4 +1,4 @@
 Novidades:
-- Correção do erro de animação da navegação
+- Correção do bug na animação de navegação
 - Correção de erros na tela de credenciais
 - Correção da API da lista de países e pesquisa

@@ -16,7 +16,7 @@ class NymVpnManager @Inject constructor(
 	private val context: Context,
 ) : VpnManager {
 	override suspend fun stopVpn(foreground: Boolean) {
-		vpnClient.get().stop(context, foreground)
+		vpnClient.get().stop(foreground)
 		NymVpn.requestTileServiceStateUpdate()
 	}
 

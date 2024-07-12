@@ -1,0 +1,24 @@
+{
+  "connect": "Connecter",
+  "disconnect": "Déconnecter",
+  "first-hop-selection": "Premier nœud",
+  "last-hop-selection": "Dernier nœud",
+  "settings": "Réglages",
+  "logs": "Journaux",
+  "feedback": "Commentaires",
+  "legal": "Juridique",
+  "support": "Service clients",
+  "fastest": "Le plus rapide",
+  "sentry": "Sentry",
+  "tos": "C.G.U.",
+  "privacy-statement": "Politique de confidentialité",
+  "display-theme": "Affichage",
+  "ui-mode": {
+    "dark": "Apparence sombre",
+    "light": "Apparence claire"
+  },
+  "vpn-modes": {
+    "privacy": "Anonyme",
+    "fast": "Rapide"
+  }
+}
