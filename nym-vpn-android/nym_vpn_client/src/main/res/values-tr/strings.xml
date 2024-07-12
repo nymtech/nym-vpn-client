@@ -4,4 +4,5 @@
     <string name="channel_name">NymVPN Kanalı</string>
     <string name="channel_description">VPN ile ilgili bildirimler için bir iletişim kanalı.</string>
     <string name="vpn_notification_text">Çalışıyor</string>
+    <string name="failed">Başarısız</string>
 </resources>
