@@ -495,6 +495,7 @@ impl SpecificVpn {
             }
             AllTunnelsSetup::Wg {
                 route_manager,
+                _mixnet_client,
                 entry,
                 exit,
                 mut firewall,
@@ -582,6 +583,7 @@ impl SpecificVpn {
             }
             AllTunnelsSetup::Wg {
                 route_manager,
+                _mixnet_client,
                 entry,
                 exit,
                 mut firewall,

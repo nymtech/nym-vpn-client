@@ -59,6 +59,7 @@ pub enum AllTunnelsSetup {
     Mix(TunnelSetup<MixTunnelSetup>),
     Wg {
         route_manager: RouteManager,
+        _mixnet_client: SharedMixnetClient,
         entry: TunnelSetup<WgTunnelSetup>,
         exit: TunnelSetup<WgTunnelSetup>,
         firewall: Firewall,
@@ -140,7 +141,7 @@ async fn setup_wg_tunnel(
 ) -> Result<AllTunnelsSetup> {
     let mut rng = OsRng;
     let wg_entry_gateway_client = WgGatewayClient::new(&mut rng, mixnet_client.clone());
-    let wg_exit_gateway_client = WgGatewayClient::new(&mut rng, mixnet_client);
+    let wg_exit_gateway_client = WgGatewayClient::new(&mut rng, mixnet_client.clone());
     log::info!("Created wg gateway client");
     // MTU is computed as (MTU of wire interface) - ((IP header size) + (UDP header size) + (WireGuard metadata size))
     // The IP header size is 20 for IPv4 and 40 for IPv6
@@ -236,6 +237,7 @@ async fn setup_wg_tunnel(
 
     Ok(AllTunnelsSetup::Wg {
         route_manager,
+        _mixnet_client: mixnet_client,
         entry,
         exit,
         firewall,
