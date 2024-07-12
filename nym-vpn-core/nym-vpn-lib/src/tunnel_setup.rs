@@ -4,11 +4,8 @@
 use std::time::Duration;
 
 use crate::error::{Error, Result};
-<<<<<<< HEAD
 use crate::mixnet_connect::SharedMixnetClient;
-=======
 use crate::platform;
->>>>>>> origin/main
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
 use crate::tunnel::setup_route_manager;
 use crate::uniffi_custom_impls::TunStatus;
