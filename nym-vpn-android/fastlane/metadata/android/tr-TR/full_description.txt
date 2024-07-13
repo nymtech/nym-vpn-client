@@ -2,8 +2,8 @@ NymVPN'i indirin ve çevrimiçi etkinliklerinizi güvenli hale getirin.
 VPN uygulamamız ile IP adresinizi gizleyebilir, trafiğinizi şifreleyebilir, çevrimiçi kimliğinizi gizleyebilir ve çok daha fazlasını yapabilirsiniz.
 İnternet üzerinde birçok kuruluş etkinliğinizi izleyebilir ve verilerinizi alabilir. 
 Hükümetler, büyük teknoloji şirketleri, veri aracıları, internet servis sağlayıcıları ve reklam verenler hepsi çevrimiçi etkinliğinizi izlemeye çalışabilir. Son veri sızıntıları skandalları, geleneksel VPN şirketlerine bile güvenemeyeceğimizi açıkça ortaya koymuştur.
-NymVPN, internet etkinliklerinizi özel hale getirmek için geliştirilmiştir ve bunun önemli bir parçası etkinlik kaydı ve izleme yapmamaktır. 
-NymVPN, kimse tarafından çevrimiçi etkinliğinizi izlemesini veya kaydetmesini imkansız kılan bir şekilde tasarlanmış yeni bir VPN türüdür. 
+NymVPN, internet etkinliklerinizi özel hale getirmek için geliştirilmiştir ve bunun önemli bir parçası etkinlik kaydı ve izleme yapmamaktır.
+NymVPN, kimse tarafından çevrimiçi etkinliğinizi izlemesini veya kaydetmesini imkansız kılan bir şekilde tasarlanmış yeni bir VPN türüdür.
 VPN'imiz merkeziyetsiz bir ağ üzerinde çalışır, güvenilen taraflar, merkezi bileşenler veya tek nokta arızaları yoktur. NymVPN'in tüm işlevleri merkeziyetsiz ve dağıtılmış bir şekilde gerçekleştirilir ve merkezi kayıt tutma imkanı yoktur. 
 VPN'imiz veriyi şifreler ve trafiğin meta verilerini merkeziyetsiz bir Mixnet aracılığıyla korur. Basitçe söylemek gerekirse: Etkinliğinizi kaydetmek için hiçbir yol yok, bu yüzden kimse ona erişemez.
 Mixnet nedir? Mixnet, şu işlemleri gerçekleştiren bir node ağıdır:
@@ -19,7 +19,7 @@ VPN uygulamamız çevrimiçi etkinliğinizi tamamen anonim hale getirir. Trafik,
 Hız: 
 VPN ağımızın hızı Mixnet ağına katılan ek node'lar sayesinde sürekli olarak artar. Sphinx ve Loopix gibi modern şifreleme algoritmaları ve yenilikçi protokoller kullanarak bağlantınızı mümkün olduğunca hızlı hale getiriyoruz.
 Bölge seçimi:
-NymVPN ile dünya genelinde yüzlerce yerden bağlantı kurabilirsiniz. 
+NymVPN ile dünya genelinde yüzlerce yerden bağlantı kurabilirsiniz.
 Uygulamayı indirin --> Bölgeyi seçin --> Bağlanın
 Kripto Ödemeler: 
 Kripto ödemeleri kabul eden bir VPN mi arıyorsunuz? İşte buradayız. Kripto paralarla ödeme almaktan memnuniyet duyarız.
