@@ -15,7 +15,7 @@
     <string name="init_client">İstemci başlatılıyor…</string>
     <string name="establishing_connection">Bağlantı kuruluyor</string>
     <string name="connection_time">Bağlantı süresi</string>
-    <string name="connect_to">Bağlan</string>
+    <string name="connect_to">-e bağlan</string>
     <string name="connect">Bağlan</string>
     <string name="last_hop_selection">Son hop seçimi</string>
     <string name="display_theme">Panel teması</string>
@@ -30,7 +30,8 @@
     <string name="auto_connect_description">Yeniden başlatıldığında otomatik bağlan</string>
     <string name="logs">Günlükler</string>
     <string name="last_hop">Son hop</string>
-	<string name="support">Destek</string>
+    <string name="first_hop_selection">İlk hop seçimi</string>
+    <string name="support">Destek</string>
     <string name="sentry">Gözcü</string>
     <string name="via">aracılığıyla</string>
     <string name="required_app_restart">Yeniden başlatıldığında geçerli olur</string>
@@ -59,7 +60,7 @@
     <string name="credential_successful">Anahtar başarıyla eklendi</string>
     <string name="no_browser_detected">Tarayıcı bulunamadı</string>
     <string name="no_email_detected">E-posta uygulaması bulunamadı</string>
-    <string name="unknown">Bilinmeyen</string>
+    <string name="unknown">Tanımlanamayan</string>
     <string name="no_scm_found">Kaynak kodu URL\'si bulunamadı</string>
 	<string name="five_hop">5-hop</string>
     <string name="mode">Mod</string>
