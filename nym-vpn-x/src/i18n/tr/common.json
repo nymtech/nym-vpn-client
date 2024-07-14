@@ -6,9 +6,9 @@
   "logs": "Günlükler",
   "feedback": "Geri bildirim",
   "support": "Destek",
-  "sentry": "Sentry",
+  "sentry": "Gözcü",
   "legal": "Hukuki",
-  "display-theme": "Panel",
+  "display-theme": "Ekran",
   "ui-mode": {
     "dark": "Karanlık mod",
     "light": "Aydınlık mod"
