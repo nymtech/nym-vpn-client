@@ -4,5 +4,5 @@
     <string name="vpn_notification_text">Funcionando</string>
     <string name="channel_name">Canal NymVPN</string>
     <string name="channel_description">Un canal para las notificaciones de la VPN.</string>
-    <string name="failed">Fallo</string>
+    <string name="failed">Falló</string>
 </resources>
