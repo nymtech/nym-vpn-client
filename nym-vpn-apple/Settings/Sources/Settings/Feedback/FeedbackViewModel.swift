@@ -9,7 +9,7 @@ struct FeedbackViewModel {
     private let faqLink = Constants.supportURL.rawValue
     private let emailLink = "mailto:support@nymvpn.com"
     private let matrixLink = "https://matrix.to/#/%23NymVPN:nymtech.chat"
-    private let discordLink = "https://discord.com/invite/nym"
+    private let discordLink = Constants.discordURL.rawValue
     private let appSettings: AppSettings
     private let externalLinkManager: ExternalLinkManager
 

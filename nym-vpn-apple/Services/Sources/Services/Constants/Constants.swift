@@ -15,4 +15,6 @@ public enum Constants: String {
 
     case entryCountries = "https://nymvpn.com/api/directory/gateways/entry/countries"
     case exitCountries = "https://nymvpn.com/api/directory/gateways/exit/countries"
+
+    case discordURL = "http://discord.gg/nymproject"
 }
