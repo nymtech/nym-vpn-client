@@ -7,7 +7,7 @@
     <string name="disconnecting">Desconectando</string>
     <string name="connecting">Conectando</string>
     <string name="five_hop_mixnet">Anônimo</string>
-    <string name="five_hop_description">Para pagamentos, e-mails e mensagens</string>
+    <string name="five_hop_description">Melhor para pagamentos, emails e mensagens</string>
     <string name="two_hop_mixnet">Rápido</string>
     <string name="two_hop_description">Melhor para navegação, transmissão e compartilhamento</string>
     <string name="first_hop">Primeiro salto</string>
