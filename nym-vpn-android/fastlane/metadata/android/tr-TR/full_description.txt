@@ -20,7 +20,7 @@ Hız:
 VPN ağımızın hızı Mixnet ağına katılan ek node'lar sayesinde sürekli olarak artar. Sphinx ve Loopix gibi modern şifreleme algoritmaları ve yenilikçi protokoller kullanarak bağlantınızı mümkün olduğunca hızlı hale getiriyoruz.
 Bölge seçimi:
 NymVPN ile dünya genelinde yüzlerce yerden bağlantı kurabilirsiniz.
-Uygulamayı indirin --> Bölgeyi seçin --> Bağlanın
+Uygulamayı indir --> Bölgeyi seç--> Bağlan
 Kripto Ödemeler: 
 Kripto ödemeleri kabul eden bir VPN mi arıyorsunuz? İşte buradayız. Kripto paralarla ödeme almaktan memnuniyet duyarız.
 Reklamsız Deneyim: 
