@@ -5,7 +5,7 @@
     <string name="open_github">GitHub hata raporu açın</string>
     <string name="join_discord">Discord\'da bize katılın</string>
     <string name="and_acknowledge">ve NymVPN\'i tanı</string>
-    <string name="connected">Bağlandı</string>
+    <string name="connected">Bağlantı sağlandı</string>
     <string name="connecting">Bağlanıyor</string>
     <string name="five_hop_mixnet">Anonim</string>
     <string name="disconnecting">Bağlantı koptu</string>
@@ -82,7 +82,7 @@
     <string name="days">günler</string>
     <string name="hour">saat</string>
     <string name="hours">saatler</string>
-    <string name="contact_support">Destek ile iletişime geçin</string>
+    <string name="contact_support">Bizimle iletişime geçin</string>
     <string name="exception_cred_missing">İçe aktarılan anahtar bulunamadı.</string>
     <string name="error_no_hostname_address">Gateway\'in hostname\'i eksik. Lütfen farklı bir gateway\'e yeniden bağlanmayı deneyin.</string>
     <string name="error_gateway_lookup">Nym gateway\'leri bulunamadı. Lütfen ağ bağlantınızı kontrol edip yeniden deneyin.</string>
@@ -107,7 +107,7 @@
     <string name="error_reporting">Hata raporlarını anonim olarak paylaş</string>
     <string name="feedback">Geri bildirim</string>
     <string name="left">kaldı</string>
-    <string name="licenses">Lisanslar</string>
+    <string name="licenses">Sertifikalar</string>
     <string name="entry_location_description">İlk hop seçimini manuel olarak yap</string>
     <string name="join_matrix">Matrix\'te bize katılın</string>
     <string name="permission_message">Cihazınızda uygulamanın doğru çalışmasını sağlamak için lütfen aşağıdaki izinleri kabul edin. Bu izinler, uygulamanın işlevini yerine getirebilmesi için gereklidir.</string>
