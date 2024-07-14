@@ -2,7 +2,7 @@
   "disconnect": "Bağlantı kesildi",
   "connect": "Bağlan",
   "status": {
-    "connected": "Bağlandı",
+    "connected": "Bağlantı sağlandı",
     "disconnected": "Bağlantı kesildi",
     "connecting": "Bağlanıyor",
     "disconnecting": "Bağlantı koptu",
@@ -12,10 +12,10 @@
   "first-hop": "İlk hop",
   "connecting-message": "Bağlantı kuruluyor",
   "connection-time": "Bağlantı süresi",
-  "select-node-title": "Bağlan",
+  "select-node-title": "-e bağlan",
   "last-node-select": {
     "label": "Son hop",
-    "text": "Hızlı bağlantı ({{ülke}})"
+    "text": "Hızlı bağlantı ({{country}}"
   },
   "snackbar-disabled-message": {
     "connected": "VPN bağlıyken devre dışı",
