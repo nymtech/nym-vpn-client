@@ -12,7 +12,7 @@
   "first-hop": "Primeiro salto",
   "last-node-select": {
     "label": "Último salto",
-    "text": "Conexão rápida ({{país}})"
+    "text": "Conexão rápida {{country}}"
   },
   "connecting-message": "Estabelecendo conexão",
   "select-node-title": "Conectar ao",
@@ -21,14 +21,14 @@
     "connecting": "Desativado durante a conexão com a VPN",
     "disconnecting": "Desativado ao se desconectar da VPN"
   },
-  "connection-time": "tempo de conexão",
+  "connection-time": "Tempo de conexão",
   "privacy-mode": {
     "desc": "Melhor para pagamentos, e-mails e mensagens",
     "title": "Anônimo"
   },
   "fast-mode": {
     "desc": "Melhor para pesquisar, trasmitir, compartilhar",
-    "title": "rápido"
+    "title": "Rápido"
   },
   "select-mode-label": "Selecionar modo",
   "modes-dialog": {
