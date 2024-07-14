@@ -1,0 +1,4 @@
+Novidade:
+- Adicionado suporte para VPN sempre ativa
+- Adicionado suporte ao bloco Configurações rápidas
+- Correção de bug com conexão automática na inicialização

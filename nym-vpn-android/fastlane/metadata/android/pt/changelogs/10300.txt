@@ -1,0 +1,5 @@
+Novidade:
+- Tempo de expiração da credencial
+- Leitura de código QR para credenciais
+- Link do interruptor de desligamento
+- Aprimoramentos da interface do usuário

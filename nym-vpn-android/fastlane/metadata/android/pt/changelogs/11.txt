@@ -1,0 +1,2 @@
+Novidade:
+- Aumento da versão da API
