@@ -472,7 +472,7 @@ impl SpecificVpn {
     // applications where the main way to interact with the running process is to send SIGINT
     // (ctrl-c)
     pub async fn run(&mut self) -> Result<()> {
-        let tunnels = setup_tunnel(self).await?;
+        let (tunnels, task_manager) = setup_tunnel(self).await?;
         info!("Nym VPN is now running");
 
         // Finished starting everything, now wait for mixnet client shutdown
@@ -480,7 +480,7 @@ impl SpecificVpn {
             AllTunnelsSetup::Mix(TunnelSetup {
                 mut specific_setup, ..
             }) => {
-                wait_for_interrupt(specific_setup.task_manager).await;
+                wait_for_interrupt(task_manager).await;
                 handle_interrupt(specific_setup.route_manager, None)
                     .await
                     .inspect_err(|err| {
@@ -498,7 +498,6 @@ impl SpecificVpn {
                 _mixnet_client,
                 entry,
                 exit,
-                task_manager,
                 mut firewall,
                 mut dns_monitor,
             } => {
@@ -534,7 +533,7 @@ impl SpecificVpn {
         mut vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let tunnels = setup_tunnel(self).await?;
+        let (tunnels, mut task_manager) = setup_tunnel(self).await?;
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
@@ -552,8 +551,7 @@ impl SpecificVpn {
                         .entry_gateway
                         .to_base58_string(),
                 );
-                specific_setup
-                    .task_manager
+                task_manager
                     .start_status_listener(vpn_status_tx.clone(), start_status)
                     .await;
 
@@ -565,9 +563,7 @@ impl SpecificVpn {
                     .await
                     .unwrap();
 
-                let result =
-                    wait_for_interrupt_and_signal(Some(specific_setup.task_manager), vpn_ctrl_rx)
-                        .await;
+                let result = wait_for_interrupt_and_signal(Some(task_manager), vpn_ctrl_rx).await;
                 handle_interrupt(specific_setup.route_manager, None)
                     .await
                     .map_err(|err| {
@@ -587,7 +583,6 @@ impl SpecificVpn {
                 _mixnet_client,
                 entry,
                 exit,
-                task_manager,
                 mut firewall,
                 mut dns_monitor,
             } => {

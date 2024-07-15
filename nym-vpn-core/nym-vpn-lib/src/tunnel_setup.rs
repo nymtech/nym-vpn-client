@@ -43,7 +43,6 @@ pub struct MixTunnelSetup {
     pub route_manager: RouteManager,
     pub mixnet_connection_info: MixnetConnectionInfo,
     pub exit_connection_info: MixnetExitConnectionInfo,
-    pub task_manager: TaskManager,
     pub dns_monitor: DnsMonitor,
 }
 
@@ -64,7 +63,6 @@ pub enum AllTunnelsSetup {
         _mixnet_client: SharedMixnetClient,
         entry: TunnelSetup<WgTunnelSetup>,
         exit: TunnelSetup<WgTunnelSetup>,
-        task_manager: TaskManager,
         firewall: Firewall,
         dns_monitor: DnsMonitor,
     },
@@ -138,7 +136,6 @@ async fn wait_interface_up(
 async fn setup_wg_tunnel(
     nym_vpn: &mut NymVpn<WireguardVpn>,
     mixnet_client: SharedMixnetClient,
-    task_manager: TaskManager,
     route_manager: RouteManager,
     gateway_directory_client: GatewayClient,
     auth_addresses: AuthAddresses,
@@ -244,7 +241,6 @@ async fn setup_wg_tunnel(
         _mixnet_client: mixnet_client,
         entry,
         exit,
-        task_manager,
         firewall,
         dns_monitor,
     })
@@ -253,7 +249,7 @@ async fn setup_wg_tunnel(
 async fn setup_mix_tunnel(
     nym_vpn: &mut NymVpn<MixnetVpn>,
     mixnet_client: SharedMixnetClient,
-    mut task_manager: TaskManager,
+    task_manager: &mut TaskManager,
     mut route_manager: RouteManager,
     gateway_directory_client: GatewayClient,
     exit_mix_addresses: &IpPacketRouterAddress,
@@ -276,7 +272,7 @@ async fn setup_mix_tunnel(
             mixnet_client,
             &mut route_manager,
             &exit_mix_addresses,
-            &task_manager,
+            task_manager,
             &gateway_directory_client,
             default_lan_gateway_ip,
             &mut dns_monitor,
@@ -318,13 +314,12 @@ async fn setup_mix_tunnel(
             route_manager,
             mixnet_connection_info: connection_info.0,
             exit_connection_info: connection_info.1,
-            task_manager,
             dns_monitor,
         },
     }))
 }
 
-pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> {
+pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<(AllTunnelsSetup, TaskManager)> {
     // The user agent is set on HTTP REST API calls, and ideally should idenfy the type of client.
     // This means it needs to be set way higher in the call stack, but set a default for what we
     // know here if we don't have anything.
@@ -386,7 +381,7 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
     let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
     debug!("default_lan_gateway_ip: {default_lan_gateway_ip}");
 
-    let task_manager = TaskManager::new(10).named("nym_vpn_lib");
+    let mut task_manager = TaskManager::new(10).named("nym_vpn_lib");
     info!("Setting up route manager");
     let route_manager = setup_route_manager().await?;
 
@@ -412,12 +407,11 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
     .await
     .map_err(|_| Error::StartMixnetTimeout(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS))??;
 
-    match nym_vpn {
+    let tunnels_setup = match nym_vpn {
         SpecificVpn::Wg(vpn) => {
             setup_wg_tunnel(
                 vpn,
                 mixnet_client,
-                task_manager,
                 route_manager,
                 gateway_directory_client,
                 auth_addresses,
@@ -428,7 +422,7 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
             setup_mix_tunnel(
                 vpn,
                 mixnet_client,
-                task_manager,
+                &mut task_manager,
                 route_manager,
                 gateway_directory_client,
                 &exit_router_address,
@@ -436,5 +430,6 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<AllTunnelsSetup> 
             )
             .await
         }
-    }
+    }?;
+    Ok((tunnels_setup, task_manager))
 }
