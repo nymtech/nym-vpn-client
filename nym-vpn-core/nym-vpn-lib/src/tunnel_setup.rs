@@ -3,6 +3,7 @@
 
 use std::time::Duration;
 
+use crate::bandwidth_controller::BandwidthController;
 use crate::error::{Error, Result};
 use crate::mixnet_connect::SharedMixnetClient;
 use crate::platform;
@@ -319,7 +320,10 @@ async fn setup_mix_tunnel(
     }))
 }
 
-pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<(AllTunnelsSetup, TaskManager)> {
+pub async fn setup_tunnel(
+    nym_vpn: &mut SpecificVpn,
+    task_manager: &mut TaskManager,
+) -> Result<AllTunnelsSetup> {
     // The user agent is set on HTTP REST API calls, and ideally should idenfy the type of client.
     // This means it needs to be set way higher in the call stack, but set a default for what we
     // know here if we don't have anything.
@@ -381,7 +385,6 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<(AllTunnelsSetup,
     let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
     debug!("default_lan_gateway_ip: {default_lan_gateway_ip}");
 
-    let mut task_manager = TaskManager::new(10).named("nym_vpn_lib");
     info!("Setting up route manager");
     let route_manager = setup_route_manager().await?;
 
@@ -407,6 +410,10 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<(AllTunnelsSetup,
     .await
     .map_err(|_| Error::StartMixnetTimeout(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS))??;
 
+    let bandwidth_controller =
+        BandwidthController::new(mixnet_client.clone(), task_manager.subscribe());
+    tokio::spawn(bandwidth_controller.run());
+
     let tunnels_setup = match nym_vpn {
         SpecificVpn::Wg(vpn) => {
             setup_wg_tunnel(
@@ -422,7 +429,7 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<(AllTunnelsSetup,
             setup_mix_tunnel(
                 vpn,
                 mixnet_client,
-                &mut task_manager,
+                task_manager,
                 route_manager,
                 gateway_directory_client,
                 &exit_router_address,
@@ -431,5 +438,5 @@ pub async fn setup_tunnel(nym_vpn: &mut SpecificVpn) -> Result<(AllTunnelsSetup,
             .await
         }
     }?;
-    Ok((tunnels_setup, task_manager))
+    Ok(tunnels_setup)
 }

@@ -48,6 +48,7 @@ use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
 
+mod bandwidth_controller;
 mod platform;
 mod tunnel_setup;
 mod uniffi_custom_impls;
@@ -472,7 +473,8 @@ impl SpecificVpn {
     // applications where the main way to interact with the running process is to send SIGINT
     // (ctrl-c)
     pub async fn run(&mut self) -> Result<()> {
-        let (tunnels, task_manager) = setup_tunnel(self).await?;
+        let mut task_manager = TaskManager::new(10).named("nym_vpn_lib");
+        let tunnels = setup_tunnel(self, &mut task_manager).await?;
         info!("Nym VPN is now running");
 
         // Finished starting everything, now wait for mixnet client shutdown
@@ -533,7 +535,8 @@ impl SpecificVpn {
         mut vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let (tunnels, mut task_manager) = setup_tunnel(self).await?;
+        let mut task_manager = TaskManager::new(10).named("nym_vpn_lib");
+        let tunnels = setup_tunnel(self, &mut task_manager).await?;
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
