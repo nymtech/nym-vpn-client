@@ -5,10 +5,8 @@ disabled_rules:
   - todo
 
 opt_in_rules:
-  - anyobject_protocol
   - attributes
   - balanced_xctest_lifecycle
-  - capture_variable
   - closure_body_length
   - closure_end_indentation
   - closure_parameter_position
@@ -72,8 +70,6 @@ opt_in_rules:
   - trailing_closure
   - unavailable_function
   - unneeded_parentheses_in_closure_argument
-  - unused_declaration
-  - unused_import
   - vertical_parameter_alignment_on_call
   - vertical_whitespace_closing_braces
   - weak_delegate
@@ -88,6 +84,11 @@ attributes:
     - "@objc"
     - "@MainActor"
     - "@discardableResult"
+
+analyzer_rules:
+    - capture_variable
+    - unused_declaration
+    - unused_import
 
 conditional_returns_on_newline:
   if_only: true

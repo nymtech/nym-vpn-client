@@ -9,15 +9,24 @@ let package = Package(
         .macOS(.v13)
     ],
     products: [
+        .library(name: "AutoUpdater", targets: ["AutoUpdater"]),
         .library(name: "GRPCManager", targets: ["GRPCManager"]),
         .library(name: "HelperManager", targets: ["HelperManager"]),
         .library(name: "Shell", targets: ["Shell"])
     ],
     dependencies: [
         .package(url: "https://github.com/grpc/grpc-swift.git", from: "1.21.0"),
-        .package(url: "https://github.com/keefertaylor/Base58Swift", from: "2.1.7")
+        .package(url: "https://github.com/keefertaylor/Base58Swift", from: "2.1.7"),
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.4")
     ],
     targets: [
+        .target(
+            name: "AutoUpdater",
+            dependencies: [
+                "Sparkle"
+            ],
+            path: "Sources/AutoUpdater"
+        ),
         .target(
             name: "GRPCManager",
             dependencies: [

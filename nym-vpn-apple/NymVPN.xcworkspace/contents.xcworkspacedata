@@ -5,6 +5,9 @@
       location = "group:NymVPN.xcodeproj">
    </FileRef>
    <FileRef
+      location = "group:AutoUpdates">
+   </FileRef>
+   <FileRef
       location = "group:Home">
    </FileRef>
    <FileRef
