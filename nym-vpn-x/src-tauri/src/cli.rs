@@ -52,7 +52,7 @@ pub struct Cli {
 
 #[derive(Subcommand, Serialize, Deserialize, Debug, Clone)]
 pub enum Commands {
-    /// Embedded database operations
+    /// Embedded database operations (for debugging purposes only)
     Db {
         #[command(subcommand)]
         command: Option<DbCommands>,
@@ -118,22 +118,22 @@ pub fn print_build_info(package_info: &PackageInfo) {
     let info = build_info();
 
     print!(
-        r"crate name:      {}
-version:         {}
-tauri version:   {}
-package name:    {}
-package version: {}
-target:          {}
-profile:         {}
-build date:      {}
-rustc version:   {}
-rustc channel:   {}
+        r"pkg name:      {}
+pkg version:   {}
+crate name:    {}
+crate version: {}
+tauri version: {}
+target:        {}
+profile:       {}
+build date:    {}
+rustc version: {}
+rustc channel: {}
 ",
+        package_info.name,
+        package_info.version,
         info.crate_info.name,
         info.crate_info.version,
         tauri::VERSION,
-        package_info.name,
-        package_info.version,
         info.target.triple,
         info.profile,
         info.timestamp,
@@ -142,14 +142,14 @@ rustc channel:   {}
     );
     if let Some(git) = info.version_control.as_ref().and_then(|vc| vc.git()) {
         print!(
-            r"commit sha:      {}
-commit date:     {}
+            r"commit sha:    {}
+commit date:   {}
 ",
             git.commit_id, git.commit_timestamp,
         );
 
         if let Some(branch) = git.branch.as_ref() {
-            print!("git branch:      {}", branch);
+            print!("git branch:    {}", branch);
         }
     }
     println!("\n");

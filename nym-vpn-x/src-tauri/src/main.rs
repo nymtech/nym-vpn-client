@@ -74,13 +74,6 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
     trace!("cli args: {:#?}", cli);
 
-    info!("Creating k/v embedded db");
-    let db = Db::new()?;
-
-    if let Some(Commands::Db { command: Some(cmd) }) = &cli.command {
-        return db_command(&db, cmd);
-    }
-
     #[cfg(windows)]
     if cli.console {
         use windows::Win32::System::Console::AllocConsole;
@@ -92,6 +85,13 @@ async fn main() -> Result<()> {
     if cli.build_info {
         print_build_info(context.package_info());
         return Ok(());
+    }
+
+    info!("Creating k/v embedded db");
+    let db = Db::new()?;
+
+    if let Some(Commands::Db { command: Some(cmd) }) = &cli.command {
+        return db_command(&db, cmd);
     }
 
     let app_config_store = {

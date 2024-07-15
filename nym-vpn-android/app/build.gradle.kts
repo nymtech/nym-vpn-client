@@ -116,7 +116,7 @@ android {
 				getDefaultProguardFile("proguard-android-optimize.txt"),
 				"proguard-rules.pro",
 			)
-			signingConfig = signingConfigs.getByName(Constants.RELEASE)
+			signingConfig = signingConfigs.getByName("debug")
 		}
 		debug {
 			isMinifyEnabled = false
@@ -128,13 +128,19 @@ android {
 	productFlavors {
 		create(Constants.FDROID) {
 			dimension = Constants.TYPE
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.FDROID}\"")
 		}
 		create(Constants.GENERAL) {
 			dimension = Constants.TYPE
 			proguardFile("proguard-rules.pro")
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.GENERAL}\"")
 		}
 		create(Constants.SANDBOX) {
-			buildConfigField("Boolean", "IS_SANDBOX", "true")
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.SANDBOX}\"")
+			dimension = Constants.TYPE
+		}
+		create(Constants.CANARY) {
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.CANARY}\"")
 			dimension = Constants.TYPE
 		}
 	}

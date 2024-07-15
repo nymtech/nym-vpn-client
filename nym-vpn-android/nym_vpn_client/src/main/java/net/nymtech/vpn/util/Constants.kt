@@ -8,7 +8,7 @@ object Constants {
 	// Add Rust environment vars for lib
 	const val DEFAULT_COUNTRY_ISO = "DE"
 
-	fun setupEnvironmentMainnet() {
+	private fun setupCommon() {
 		Os.setenv("CONFIGURED", "true", true)
 		Os.setenv("RUST_LOG", "info", true)
 		Os.setenv("RUST_BACKTRACE", "1", true)
@@ -19,6 +19,10 @@ object Constants {
 		Os.setenv("STAKE_DENOM", "unyx", true)
 		Os.setenv("STAKE_DENOM_DISPLAY", "nyx", true)
 		Os.setenv("DENOMS_EXPONENT", "6", true)
+	}
+
+	fun setupEnvironmentMainnet() {
+		setupCommon()
 
 		Os.setenv("REWARDING_VALIDATOR_ADDRESS", "n10yyd98e2tuwu0f7ypz9dy3hhjw7v772q6287gy", true)
 		Os.setenv(
@@ -40,16 +44,7 @@ object Constants {
 	}
 
 	fun setupEnvironmentSandbox() {
-		Os.setenv("CONFIGURED", "true", true)
-		Os.setenv("RUST_LOG", "info", true)
-		Os.setenv("RUST_BACKTRACE", "1", true)
-		Os.setenv("NETWORK_NAME", "sandbox", true)
-		Os.setenv("BECH32_PREFIX", "n", true)
-		Os.setenv("MIX_DENOM", "unym", true)
-		Os.setenv("MIX_DENOM_DISPLAY", "nym", true)
-		Os.setenv("STAKE_DENOM", "unyx", true)
-		Os.setenv("STAKE_DENOM_DISPLAY", "nyx", true)
-		Os.setenv("DENOMS_EXPONENT", "6", true)
+		setupCommon()
 
 		Os.setenv("REWARDING_VALIDATOR_ADDRESS", "n1pefc2utwpy5w78p2kqdsfmpjxfwmn9d39k5mqa", true)
 		Os.setenv(
@@ -99,5 +94,45 @@ object Constants {
 		Os.setenv("NYXD", "https://rpc.sandbox.nymtech.net", true)
 		Os.setenv("NYXD_WS", "wss://rpc.sandbox.nymtech.net/websocket", true)
 		Os.setenv("NYM_API", "https://sandbox-nym-api1.nymtech.net/api", true)
+	}
+
+	fun setupEnvironmentCanary() {
+		setupCommon()
+
+		Os.setenv("REWARDING_VALIDATOR_ADDRESS", "n1duuyj2th2y0z4u4f4wtljpdz9s3pxtu0xx6zdz", true)
+		Os.setenv(
+			"MIXNET_CONTRACT_ADDRESS",
+			"n14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sjyvg3g",
+			true,
+		)
+		Os.setenv(
+			"VESTING_CONTRACT_ADDRESS",
+			"n1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5qackslz",
+			true,
+		)
+		Os.setenv(
+			"COCONUT_BANDWIDTH_CONTRACT_ADDRESS",
+			"n1mf6ptkssddfmxvhdx0ech0k03ktp6kf9yk59renau2gvht3nq2gqt5tdrk",
+			true,
+		)
+		Os.setenv(
+			"GROUP_CONTRACT_ADDRESS",
+			"n1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sa07c47",
+			true,
+		)
+		Os.setenv(
+			"MULTISIG_CONTRACT_ADDRESS",
+			"n1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftqx5a364",
+			true,
+		)
+		Os.setenv(
+			"COCONUT_DKG_CONTRACT_ADDRESS",
+			"n1aakfpghcanxtc45gpqlx8j3rq0zcpyf49qmhm9mdjrfx036h4z5sy2vfh9",
+			true,
+		)
+
+		Os.setenv("EXPLORER_API", "https://canary-explorer.performance.nymte.ch/api", true)
+		Os.setenv("NYXD", "https://canary-validator.performance.nymte.ch", true)
+		Os.setenv("NYM_API", "https://canary-api.performance.nymte.ch/api", true)
 	}
 }

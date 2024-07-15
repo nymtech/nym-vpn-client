@@ -1,5 +1,7 @@
 import SwiftUI
 import AppSettings
+import AutoUpdater
+import AutoUpdates
 import Constants
 import Home
 import HelperManager
@@ -8,7 +10,9 @@ import SentryManager
 
 @main
 struct NymVPNDaemonApp: App {
-    @StateObject private var appSettings = AppSettings.shared
+    private let appSettings = AppSettings.shared
+    private let autoUpdater = AutoUpdater.shared
+
     @StateObject private var homeViewModel = HomeViewModel()
 
     init() {
@@ -31,6 +35,11 @@ struct NymVPNDaemonApp: App {
             .environmentObject(appSettings)
         }
         .windowResizability(.contentSize)
+        .commands {
+            CommandGroup(after: .appInfo) {
+                CheckForUpdatesView(viewModel: CheckForUpdatesViewModel(updater: autoUpdater.updater))
+            }
+        }
     }
 }
 

@@ -15,7 +15,7 @@ function DaemonDot({ status }: ButtonProps) {
     >
       <div
         className={clsx([
-          'relative dot w-3 h-3',
+          'relative w-2.5 h-2.5 rounded-full',
           status === 'Ok' ? 'bg-vert-menthe' : 'bg-teaberry',
         ])}
       />
