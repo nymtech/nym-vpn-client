@@ -661,6 +661,28 @@
         }
       }
     },
+    "home.installDaemon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installing and authorizing daemon..."
+          }
+        }
+      }
+    },
+    "home.installDaemonFailure" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error: Failed to install and authorize daemon"
+          }
+        }
+      }
+    },
     "initializingClient" : {
       "extractionState" : "manual",
       "localizations" : {

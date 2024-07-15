@@ -65,6 +65,10 @@ public final class HelperManager {
         }
         return false
     }
+
+    public func isHelperAuthorizedAndRunning() -> Bool {
+        isHelperAuthorized() && isHelperRunning()
+    }
 }
 
 private extension HelperManager {
