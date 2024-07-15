@@ -231,7 +231,7 @@ pub enum Error {
     InvalidGatewayAPIResponse,
 
     #[error(transparent)]
-    AtuenticatorClientError(#[from] nym_authenticator_client::Error),
+    AuthenticatorClientError(#[from] nym_authenticator_client::Error),
 
     #[error("wiregurad authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
     AuthenticationNotPossible(String),
