@@ -129,4 +129,7 @@
     <string name="day">jour</string>
     <string name="scan_nym_vpn_credential">Scannez l\'identifiant QR de NymVPN</string>
     <string name="error_logs_not_saved">Les journaux n\'ont pas été enregistrés</string>
+    <string name="select_mode">Sélectionnez le mode</string>
+    <string name="mode_selection">Sélection de mode</string>
+    <string name="continue_reading">Continuer la lecture</string>
 </resources>
