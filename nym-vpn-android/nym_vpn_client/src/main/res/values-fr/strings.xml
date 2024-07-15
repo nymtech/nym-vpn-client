@@ -4,4 +4,5 @@
     <string name="channel_name">Canal NymVPN</string>
     <string name="channel_description">Un canal pour les notifications relatives à NymVPN.</string>
     <string name="vpn_notification_text">En cours</string>
+    <string name="failed">Échoué</string>
 </resources>
