@@ -59,6 +59,7 @@ object NymVpnClient {
 			when (NymVpnClientInit.environment) {
 				Environment.MAINNET -> Constants.setupEnvironmentMainnet()
 				Environment.SANDBOX -> Constants.setupEnvironmentSandbox()
+				Environment.CANARY -> Constants.setupEnvironmentCanary()
 			}
 
 			return NymVpn

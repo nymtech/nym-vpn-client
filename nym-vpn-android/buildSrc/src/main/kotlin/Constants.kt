@@ -17,6 +17,7 @@ object Constants {
 
     const val RELEASE = "release"
     const val TYPE = "type"
+	const val FLAVOR = "FLAVOR"
 
     const val STORE_PASS_VAR = "SIGNING_STORE_PASSWORD"
     const val KEY_ALIAS_VAR = "SIGNING_KEY_ALIAS"
@@ -26,6 +27,7 @@ object Constants {
     const val FDROID = "fdroid"
     const val GENERAL = "general"
     const val SANDBOX = "sandbox"
+	const val CANARY = "canary"
     const val BUILD_LIB_TASK = "buildDeps"
 
     //licensee

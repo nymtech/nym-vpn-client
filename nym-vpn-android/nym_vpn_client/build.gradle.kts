@@ -44,6 +44,9 @@ android {
 			create(Constants.SANDBOX) {
 				dimension = Constants.TYPE
 			}
+			create(Constants.CANARY) {
+				dimension = Constants.TYPE
+			}
 		}
 	}
 	compileOptions {
