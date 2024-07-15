@@ -272,7 +272,7 @@ async fn setup_mix_tunnel(
         .setup_tunnel_services(
             mixnet_client,
             &mut route_manager,
-            &exit_mix_addresses,
+            exit_mix_addresses,
             task_manager,
             &gateway_directory_client,
             default_lan_gateway_ip,
