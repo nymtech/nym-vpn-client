@@ -1,0 +1,3 @@
+Novidades:
+- Correção do problema de cache de países
+- Melhorias no desempenho do punho

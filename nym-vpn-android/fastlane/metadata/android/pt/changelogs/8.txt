@@ -1,0 +1,3 @@
+Novidades:
+- Melhoria na tela de registros
+- Correções de bugs
