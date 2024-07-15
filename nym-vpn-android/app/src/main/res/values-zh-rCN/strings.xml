@@ -85,7 +85,7 @@
     <string name="two_hop">2跳</string>
     <string name="five_hop">5跳</string>
     <string name="mode">模式</string>
-    <string name="okay">Okay</string>
+    <string name="okay">好的</string>
     <string name="feature_in_progress">该功能仍在开发中。</string>
     <string name="logs_saved">日志保存到下载文件夹</string>
     <string name="sentry_url">https://sentry.io</string>
@@ -106,7 +106,7 @@
     <string name="app_shortcuts">应用程序快捷方式</string>
     <string name="disabled_while_connected">连接 VPN 时禁用</string>
     <string name="permission_required">需要许可</string>
-    <string name="exception_cred_missing">未找到导入的凭证</string>
+    <string name="exception_cred_missing">未找到导入的凭证。</string>
     <string name="exception_permission_not_granted">未获得所需的许可。</string>
     <string name="exception_cred_invalid">凭证无效或过期</string>
     <string name="permission_message">为确保应用程序在您的设备上正常运行，请允许以下权限。这些权限是该应用程序运行所必需的。</string>
@@ -127,5 +127,5 @@
     <string name="mode_selection">模式选择</string>
     <string name="five_hop_explanation">通过 mixnet 通过 5 个服务器路由连接，享受最高级别的隐私保护。是安全处理付款、电子邮件和信息的完美选择。</string>
     <string name="continue_reading">继续阅读</string>
-    <string name="two_hop_explanation">通过使用 WireGuard 协议的双服务器连接，体验最高速度。 是快速浏览、流媒体和文件共享的完美选择。</string>
+    <string name="two_hop_explanation">通过双服务器连接，体验最快速度。 是快速浏览、流媒体和文件共享的完美选择。</string>
 </resources>

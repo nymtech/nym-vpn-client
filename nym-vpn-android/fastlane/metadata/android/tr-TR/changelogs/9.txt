@@ -1,4 +1,4 @@
 Yenilikler:
-- Navigasyon animasyonu hatası düzeltildi.
-- Anahtar ekranı hataları düzeltildi.
-- Ülke listesi API ve arama sorunları düzeltildi.
+- Navigasyon animasyonu hatası düzeltildi
+- Anahtar ekranı hataları düzeltildi
+- Ülke listesi API ve arama sorunları düzeltildi

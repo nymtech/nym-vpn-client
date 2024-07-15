@@ -1,5 +1,5 @@
 Yenilikler:
-- Bağlantı durumu senkronizasyonu düzeltildi.
-- Hata iletileri iyileştirildi.
-- İzin reddedildi akışı eklendi.
-- Yayından hata ayıklama günlükleri kaldırıldı.
+- Bağlantı durumu senkronizasyonu düzeltildi
+- Hata iletileri iyileştirildi
+- İzin reddedildi akışı eklendi
+- Yayından hata ayıklama günlükleri kaldırıldı

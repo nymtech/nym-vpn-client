@@ -6,16 +6,16 @@
     <string name="disconnected">Desconectado</string>
     <string name="disconnecting">Desconectando</string>
     <string name="connecting">Conectando</string>
-    <string name="five_hop_mixnet">5-saltos mixnet</string>
+    <string name="five_hop_mixnet">Anônimo</string>
     <string name="five_hop_description">Melhor para pagamentos, emails e mensagens</string>
-    <string name="two_hop_mixnet">2-saltos mixnet</string>
+    <string name="two_hop_mixnet">Rápido</string>
     <string name="two_hop_description">Melhor para navegação, transmissão e compartilhamento</string>
     <string name="first_hop">Primeiro salto</string>
     <string name="last_hop">Último salto</string>
     <string name="connect">Conectar</string>
     <string name="disconnect">Desconectar</string>
     <string name="init_client">Inicializando cliente…</string>
-    <string name="establishing_connection">Estabelecendo conexão...</string>
+    <string name="establishing_connection">Estabelecendo conexão</string>
     <string name="connection_time">Tempo de Conexão</string>
     <string name="connect_to">Conectar ao</string>
     <string name="first_hop_selection">Seleção do primeiro salto</string>
@@ -51,11 +51,11 @@
     <string name="join_matrix">Junte-se a nós no Matrix</string>
     <string name="join_discord">Junte-se a nós no Discord</string>
     <string name="matrix_url" translatable="false">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
-    <string name="discord_url" translatable="false">https://discord.com/invite/nym</string>
+    <string name="discord_url" translatable="false">http://nymtech.net/go/discord</string>
     <string name="faq_url" translatable="false">https://support.nymvpn.com</string>
     <string name="contact_url" translatable="false">https://support.nymvpn.com/hc/en-us/requests/new</string>
     <string name="support_email" translatable="false">support@nymvpn.com</string>
-    <string name="github_issues_url" translatable="false">https://github.com/nymtech/nymvpn-android/issues/new/choose</string>
+    <string name="github_issues_url" translatable="false">https://github.com/nymtech/nym-vpn-client/issues/new/choose</string>
     <string name="email_subject">Suporte NymVPN</string>
     <string name="email_chooser">Envie um email…</string>
     <string name="login">Login</string>
@@ -99,7 +99,7 @@
     <string name="thanks_for_support">Obrigado pelo seu apoio!</string>
     <string name="to_alpha">para NymVPN alpha</string>
     <string name="welcome">Bem Vindo</string>
-    <string name="cont">Continue</string>
+    <string name="cont">Continuar</string>
     <string name="continue_agree">Por continuar, você concorda com NymVPN\'s</string>
     <string name="and_acknowledge">e reconhece NymVPN\'s</string>
     <string name="share_anonymous_analytics">Compartilhe análises anônimas do produto</string>
@@ -121,7 +121,7 @@
     <string name="allow_permissions">Permitir permissões</string>
     <string name="notification_permission_message">Requerido para manter os serviços de VPN executando enquanto o app está fechado.</string>
     <string name="error_gateway_lookup">Falhou em procurar por NYM Gateways.Por favor, cheque sua conexão de rede e tente novamente.</string>
-    <string name="error_bad_peer_cert">Gateway selecionado tem um certificado de peer inválido. Por favor, tente se conectar com um gateway diferente.</string>
+    <string name="error_bad_peer_cert">"Gateway selecionado tem um certificado de peer inválido. Por favor, tente se conectar com um gateway diferente. "</string>
     <string name="error_no_hostname_address">Faltando o endereço de hostname do gateway. Por favor, tente se conectar com um gateway diferente.</string>
     <string name="error_vpn_halted_unexpectedly">A VPN parou inesperadamente. Por favor, tente conectar novamente.</string>
     <string name="kill_switch">Desligar</string>
@@ -132,4 +132,9 @@
     <string name="day">dia</string>
     <string name="scan_nym_vpn_credential">Scanear QR da Credencial NymVPN</string>
     <string name="error_logs_not_saved">Falhou em salvar logs</string>
+    <string name="select_mode">Selecionar modo</string>
+    <string name="mode_selection">Seleção de modo</string>
+    <string name="five_hop_explanation">Desfrute do nível máximo de privacidade roteando sua conexão através de 5 servidores via mixnet. Perfeito para lidar com pagamentos, e-mails e mensagens com segurança.</string>
+    <string name="continue_reading">Continue lendo</string>
+    <string name="two_hop_explanation">Experimente a máxima velocidade com conectividade de 2 servidores. Perfeito para navegação rápida, streaming e compartilhamento de arquivos.</string>
 </resources>
