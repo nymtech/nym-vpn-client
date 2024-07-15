@@ -5,11 +5,11 @@ import ExternalLinkManager
 import UIComponents
 
 struct FeedbackViewModel {
-    private let githubIssueLink = "https://github.com/nymtech/nym-vpn-client/issues"
+    private let githubIssueLink = Constants.ghIssuesLink.rawValue
     private let faqLink = Constants.supportURL.rawValue
     private let emailLink = "mailto:support@nymvpn.com"
     private let matrixLink = "https://matrix.to/#/%23NymVPN:nymtech.chat"
-    private let discordLink = "https://discord.com/invite/nym"
+    private let discordLink = Constants.discordLink.rawValue
     private let appSettings: AppSettings
     private let externalLinkManager: ExternalLinkManager
 
