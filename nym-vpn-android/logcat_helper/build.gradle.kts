@@ -26,17 +26,6 @@ android {
 			)
 		}
 		flavorDimensions.add(Constants.TYPE)
-		productFlavors {
-			create(Constants.FDROID) {
-				dimension = Constants.TYPE
-			}
-			create(Constants.GENERAL) {
-				dimension = Constants.TYPE
-			}
-			create(Constants.SANDBOX) {
-				dimension = Constants.TYPE
-			}
-		}
 	}
 	compileOptions {
 		isCoreLibraryDesugaringEnabled = true

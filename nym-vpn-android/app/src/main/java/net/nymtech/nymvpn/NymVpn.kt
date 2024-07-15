@@ -80,7 +80,7 @@ class NymVpn : Application() {
 		lateinit var instance: NymVpn
 			private set
 
-		val environment = if (BuildConfig.IS_SANDBOX) Environment.SANDBOX else Environment.MAINNET
+		val environment = Environment.from(BuildConfig.FLAVOR)
 
 		private const val BASELINE_HEIGHT = 2201
 		private const val BASELINE_WIDTH = 1080
