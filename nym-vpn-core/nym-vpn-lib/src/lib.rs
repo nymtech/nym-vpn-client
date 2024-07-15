@@ -65,6 +65,7 @@ pub mod wg_gateway_client;
 mod wireguard_setup;
 
 const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
+pub const SHUTDOWN_TIMER_SECS: u64 = 10;
 
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
@@ -473,7 +474,7 @@ impl SpecificVpn {
     // applications where the main way to interact with the running process is to send SIGINT
     // (ctrl-c)
     pub async fn run(&mut self) -> Result<()> {
-        let mut task_manager = TaskManager::new(10).named("nym_vpn_lib");
+        let mut task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
         let tunnels = setup_tunnel(self, &mut task_manager).await?;
         info!("Nym VPN is now running");
 
@@ -535,7 +536,7 @@ impl SpecificVpn {
         mut vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let mut task_manager = TaskManager::new(10).named("nym_vpn_lib");
+        let mut task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
         let tunnels = setup_tunnel(self, &mut task_manager).await?;
 
         // Finished starting everything, now wait for mixnet client shutdown
