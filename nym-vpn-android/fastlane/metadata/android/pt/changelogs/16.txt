@@ -1,0 +1,5 @@
+Novidades:
+- Melhorias na IU
+- Melhorias de cache
+- Adicionada a integração do harbour master
+- Melhoria da sincronização rápida do estado dos mosaicos
