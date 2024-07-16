@@ -19,7 +19,7 @@
     "entry": "Kullanılabilir entry node ülke bilgileri alınamadı",
     "exit": "Kullanılabilir exit node ülke bilgileri alınamadı"
   },
-  "unknown": "Tanımlanamayan hata",
+  "unknown": "Bilinmeyen hata",
   "internal": "Dahili hata",
   "grpc": "Dahili gRPC hatası"
 }
