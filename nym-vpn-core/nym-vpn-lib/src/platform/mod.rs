@@ -7,7 +7,7 @@ use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
 use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location, TunStatus, UserAgent};
 use crate::{
-    spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
+    spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
     NymVpnHandle, SpecificVpn,
 };
 use futures::StreamExt;
@@ -142,13 +142,14 @@ pub struct VPNConfig {
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
+    pub enable_wireguard: bool,
     #[cfg(target_os = "ios")]
     pub tun_provider: Arc<dyn crate::OSTunProvider>,
     pub credential_data_path: Option<PathBuf>,
     pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
 }
 
-fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
+fn sync_run_vpn(config: VPNConfig) -> Result<SpecificVpn, FFIError> {
     #[cfg(any(target_os = "ios", target_os = "macos"))]
     crate::platform::swift::init_logs();
 
@@ -156,22 +157,43 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
     let context = crate::platform::android::get_context().ok_or(FFIError::NoContext)?;
     debug!("got android context to create new vpn");
 
-    let mut vpn = NymVpn::new_mixnet_vpn(
-        config.entry_gateway.into(),
-        config.exit_router.into(),
-        #[cfg(target_os = "android")]
-        context,
-        #[cfg(target_os = "ios")]
-        config.tun_provider,
-    );
-    debug!("Created new mixnet vpn");
-    vpn.gateway_config.api_url = config.api_url;
-    vpn.gateway_config.explorer_url = Some(config.explorer_url);
-    vpn.gateway_config.harbour_master_url = None;
-    vpn.enable_two_hop = config.enable_two_hop;
-    vpn.mixnet_client_config
-        .mixnet_data_path
-        .clone_from(&config.credential_data_path);
+    let vpn: SpecificVpn = if config.enable_wireguard {
+        let mut vpn = NymVpn::new_wireguard_vpn(
+            config.entry_gateway.into(),
+            config.exit_router.into(),
+            #[cfg(target_os = "android")]
+            context,
+            #[cfg(target_os = "ios")]
+            config.tun_provider,
+        );
+        debug!("Created new wireguard vpn");
+        vpn.gateway_config.api_url = config.api_url;
+        vpn.gateway_config.explorer_url = Some(config.explorer_url);
+        vpn.gateway_config.harbour_master_url = None;
+        vpn.enable_two_hop = config.enable_two_hop;
+        vpn.mixnet_client_config
+            .mixnet_data_path
+            .clone_from(&config.credential_data_path);
+        vpn.into()
+    } else {
+        let mut vpn = NymVpn::new_mixnet_vpn(
+            config.entry_gateway.into(),
+            config.exit_router.into(),
+            #[cfg(target_os = "android")]
+            context,
+            #[cfg(target_os = "ios")]
+            config.tun_provider,
+        );
+        debug!("Created new mixnet vpn");
+        vpn.gateway_config.api_url = config.api_url;
+        vpn.gateway_config.explorer_url = Some(config.explorer_url);
+        vpn.gateway_config.harbour_master_url = None;
+        vpn.enable_two_hop = config.enable_two_hop;
+        vpn.mixnet_client_config
+            .mixnet_data_path
+            .clone_from(&config.credential_data_path);
+        vpn.into()
+    };
     Ok(vpn)
 }
 
@@ -197,7 +219,7 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
         set_listener_status(TunStatus::Down);
         RUNNING.store(false, Ordering::Relaxed);
     }
-    let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
+    let ret = RUNTIME.block_on(run_vpn(vpn?));
     if ret.is_err() {
         error!("Error running VPN");
         set_listener_status(TunStatus::Down);

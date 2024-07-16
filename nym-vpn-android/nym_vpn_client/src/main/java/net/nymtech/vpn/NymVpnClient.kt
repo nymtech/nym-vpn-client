@@ -194,6 +194,7 @@ object NymVpnClient {
 							entryPoint,
 							exitPoint,
 							isTwoHop(mode),
+							isTwoHop(mode),
 							null,
 							this@NymVpn,
 						),
