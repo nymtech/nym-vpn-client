@@ -208,18 +208,24 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn importCredential(credential: String, path: String) -> Result<(), FFIError> {
+pub fn importCredential(credential: String, path: String) -> Result<Option<SystemTime>, FFIError> {
     RUNTIME.block_on(import_credential_from_string(&credential, &path))
 }
 
-async fn import_credential_from_string(credential: &str, path: &str) -> Result<(), FFIError> {
+async fn import_credential_from_string(
+    credential: &str,
+    path: &str,
+) -> Result<Option<SystemTime>, FFIError> {
     let path_result = PathBuf::from_str(path);
     let path_buf = match path_result {
         Ok(p) => p,
         Err(_) => return Err(FFIError::InvalidPath),
     };
     match import_credential_base58(credential, path_buf).await {
-        Ok(_) => Ok(()),
+        Ok(time) => match time {
+            None => Ok(None),
+            Some(t) => Ok(Some(SystemTime::from(t))),
+        },
         Err(_) => Err(FFIError::InvalidCredential),
     }
 }

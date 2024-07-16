@@ -18,8 +18,10 @@ interface VpnClient {
 
 	suspend fun validateCredential(credential: String): Result<Instant?>
 
+	suspend fun importCredential(credential: String, path: String): Result<Instant?>
+
 	@Throws(InvalidCredentialException::class)
-	suspend fun start(context: Context, credential: String, foreground: Boolean = false): Result<Unit>
+	suspend fun start(context: Context, foreground: Boolean = false): Result<Unit>
 
 	suspend fun stop(foreground: Boolean = false)
 

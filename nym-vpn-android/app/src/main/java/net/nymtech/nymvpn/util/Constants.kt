@@ -23,4 +23,6 @@ object Constants {
 	const val VPN_SETTINGS_PACKAGE = "android.net.vpn.SETTINGS"
 
 	const val FREE_PASS_CRED_DURATION = 30f
+
+	const val NATIVE_STORAGE_PATH = "/data/data/net.nymtech.nymvpn/files/"
 }
