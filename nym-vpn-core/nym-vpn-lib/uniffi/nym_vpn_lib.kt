@@ -764,7 +764,7 @@ internal interface UniffiLib : Library {
     fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_importcredential(`credential`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
+    ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_runvpn(`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_nym_vpn_lib_fn_func_stopvpn(uniffi_out_err: UniffiRustCallStatus, 
@@ -921,7 +921,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 20907.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_importcredential() != 47691.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_importcredential() != 8591.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_runvpn() != 2496.toShort()) {
@@ -2256,13 +2256,14 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
     }
     
 
-    @Throws(FfiException::class) fun `importCredential`(`credential`: kotlin.String, `path`: kotlin.String)
-        = 
+    @Throws(FfiException::class) fun `importCredential`(`credential`: kotlin.String, `path`: kotlin.String): java.time.Instant? {
+            return FfiConverterOptionalTimestamp.lift(
     uniffiRustCallWithError(FfiException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_importcredential(
         FfiConverterString.lower(`credential`),FfiConverterString.lower(`path`),_status)
 }
-    
+    )
+    }
     
 
     @Throws(FfiException::class) fun `runVpn`(`config`: VpnConfig)

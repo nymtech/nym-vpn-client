@@ -2311,12 +2311,13 @@ public func getLowLatencyEntryCountry(apiUrl: Url, explorerUrl: Url, harbourMast
     )
 })
 }
-public func importCredential(credential: String, path: String)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
+public func importCredential(credential: String, path: String)throws  -> Date? {
+    return try  FfiConverterOptionTimestamp.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_importcredential(
         FfiConverterString.lower(credential),
         FfiConverterString.lower(path),$0
     )
-}
+})
 }
 public func runVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_runvpn(
@@ -2354,7 +2355,7 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 20907) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 47691) {
+    if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 8591) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_runvpn() != 2496) {
