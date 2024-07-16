@@ -24,7 +24,6 @@ use nym_connection_monitor::{
     is_icmp_beacon_reply, is_icmp_v6_beacon_reply, ConnectionMonitorTask, ConnectionStatusEvent,
     IcmpBeaconReply, Icmpv6BeaconReply,
 };
-use nym_gateway_directory::IpPacketRouterAddress;
 
 use crate::{
     error::{Error, Result},
@@ -33,11 +32,11 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Config {
-    pub ip_packet_router_address: IpPacketRouterAddress,
+    pub ip_packet_router_address: Recipient,
 }
 
 impl Config {
-    pub fn new(ip_packet_router_address: IpPacketRouterAddress) -> Self {
+    pub fn new(ip_packet_router_address: Recipient) -> Self {
         Config {
             ip_packet_router_address,
         }
@@ -78,7 +77,7 @@ pub struct MixnetProcessor {
     device: AsyncDevice,
     mixnet_client: SharedMixnetClient,
     connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
-    ip_packet_router_address: IpPacketRouterAddress,
+    ip_packet_router_address: Recipient,
     our_ips: nym_ip_packet_requests::IpPair,
     icmp_beacon_identifier: u16,
     // TODO: handle this as part of setting up the mixnet client
@@ -90,7 +89,7 @@ impl MixnetProcessor {
         device: AsyncDevice,
         mixnet_client: SharedMixnetClient,
         connection_monitor: &ConnectionMonitorTask,
-        ip_packet_router_address: IpPacketRouterAddress,
+        ip_packet_router_address: Recipient,
         our_ips: nym_ip_packet_requests::IpPair,
         enable_two_hop: bool,
     ) -> Self {
@@ -131,7 +130,7 @@ impl MixnetProcessor {
         let mut multi_ip_packet_decoder =
             MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
 
-        let message_creator = MessageCreator::new(recipient.0, self.enable_two_hop);
+        let message_creator = MessageCreator::new(recipient, self.enable_two_hop);
 
         info!("Mixnet processor is running");
         while !shutdown.is_shutdown() {

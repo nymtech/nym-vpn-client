@@ -161,7 +161,6 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::KeyRecoveryError(_)
             | nym_vpn_lib::error::Error::NymNodeApiClientError(_)
             | nym_vpn_lib::error::Error::RequestedGatewayByLocationWithoutLocationDataAvailable
-            | nym_vpn_lib::error::Error::InvalidGatewayAPIResponse
             | nym_vpn_lib::error::Error::WireguardTypesError(_)
             | nym_vpn_lib::error::Error::DefaultInterfaceError
             | nym_vpn_lib::error::Error::ReceivedResponseWithOldVersion { .. }
@@ -191,6 +190,9 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::ImportCredentialError(_)
             | nym_vpn_lib::error::Error::IpPacketRouterClientError(_)
             | nym_vpn_lib::error::Error::FailedWireguardRegistration
+            | nym_vpn_lib::error::Error::InvalidGatewayAPIResponse
+            | nym_vpn_lib::error::Error::AuthenticatorClientError(_)
+            | nym_vpn_lib::error::Error::AuthenticationNotPossible(_)
             | nym_vpn_lib::error::Error::BadWireguardEvent => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
             }

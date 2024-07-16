@@ -169,7 +169,7 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
     vpn.gateway_config.explorer_url = Some(config.explorer_url);
     vpn.gateway_config.harbour_master_url = None;
     vpn.enable_two_hop = config.enable_two_hop;
-    vpn.vpn_config
+    vpn.mixnet_client_config
         .mixnet_data_path
         .clone_from(&config.credential_data_path);
     Ok(vpn)
