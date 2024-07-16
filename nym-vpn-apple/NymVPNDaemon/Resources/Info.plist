@@ -5,7 +5,7 @@
 	<key>SUPublicEDKey</key>
 	<string>9OobPkT0p5WGp0wf2aSbADivVllEKZaz0gKhElMocU0=</string>
 	<key>SUFeedURL</key>
-	<string>https://github.com/nymtech/nym-vpn-client/releases/download/macOS_autoUpdater_test/appcast.xml</string>
+	<string>https://nymtech.net/.wellknown/macos-vpn/appcast.xml</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>SMPrivilegedExecutables</key>

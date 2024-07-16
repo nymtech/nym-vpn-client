@@ -30,7 +30,7 @@ public final class ConnectionStorage {
         }
 
         if !appSettings.entryCountryCode.isEmpty {
-            return .country(code: appSettings.entryCountryCode)
+            return .country(code: existingCountryCode(with: appSettings.entryCountryCode, isEntryHop: true))
         } else {
             guard let entryCountry = self.countriesManager.entryCountries.first
             else {
@@ -42,13 +42,31 @@ public final class ConnectionStorage {
 
     func exitRouter() -> ExitRouter {
         if !appSettings.exitCountryCode.isEmpty {
-            return .country(code: appSettings.exitCountryCode)
+            return .country(code:  existingCountryCode(with: appSettings.entryCountryCode, isEntryHop: false))
         } else {
             guard let exitCountry = self.countriesManager.exitCountries.first
             else {
                 return .country(code: "CH")
             }
             return .country(code: exitCountry.code)
+        }
+    }
+}
+
+private extension ConnectionStorage {
+    /// Checks if selected gateway country exists. If not - returns first country from the country list, if no countries present - returns Switzerland
+    /// - Parameter countryCode: String
+    /// - Parameter isEntryHop: Bool. Determines from which country array(entry/exit) to return the country from
+    /// - Returns: String with countryCode
+    func existingCountryCode(with countryCode: String, isEntryHop: Bool) -> String {
+        let country = countriesManager.country(with: countryCode, isEntryHop: isEntryHop)
+
+        if let country {
+            return country.code
+        } else if let country = countriesManager.entryCountries.first {
+            return country.code
+        } else {
+            return "CH"
         }
     }
 }
