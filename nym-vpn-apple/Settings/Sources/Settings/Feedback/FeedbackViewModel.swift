@@ -7,7 +7,7 @@ import UIComponents
 struct FeedbackViewModel {
     private let githubIssueLink = Constants.ghIssuesLink.rawValue
     private let faqLink = Constants.supportURL.rawValue
-    private let emailLink = "mailto:support@nymvpn.com"
+    private let emailLink = Constants.emailLink.rawValue
     private let matrixLink = "https://matrix.to/#/%23NymVPN:nymtech.chat"
     private let discordLink = Constants.discordLink.rawValue
     private let appSettings: AppSettings
@@ -42,9 +42,9 @@ extension FeedbackViewModel {
         if !path.isEmpty { path.removeLast() }
     }
 
-    func navigateToSurvey() {
-        path.append(SettingsLink.survey)
-    }
+//    func navigateToSurvey() {
+//        path.append(SettingsLink.survey)
+//    }
 
     func openExternalURL(urlString: String?) {
         // TODO: log error
@@ -74,7 +74,7 @@ private extension FeedbackViewModel {
             imageName: "sendEmail",
             position: SettingsListItemPosition(isFirst: true, isLast: true),
             action: {
-                navigateToSurvey()
+                openExternalURL(urlString: emailLink)
             }
         )
     }

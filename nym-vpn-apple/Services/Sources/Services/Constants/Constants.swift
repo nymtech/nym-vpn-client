@@ -9,9 +9,10 @@ public enum Constants: String {
     case sandboxApiUrl = "https://sandbox-nym-api1.nymtech.net/api"
     case sandboxExplorerURL = "https://sandbox-explorer.nymtech.net/api"
 
-    case supportURL = "https://support.nymvpn.com"
+    case supportURL = "https://support.nymvpn.com/hc/en-us"
     case termsOfUseURL = "https://nymvpn.com/en/terms"
     case privacyPolicyURL = "https://nymvpn.com/en/privacy?type=apps"
+    case emailLink = "https://support.nymvpn.com/hc/en-us/requests/new"
 
     case entryCountries = "https://nymvpn.com/api/directory/gateways/entry/countries"
     case exitCountries = "https://nymvpn.com/api/directory/gateways/exit/countries"

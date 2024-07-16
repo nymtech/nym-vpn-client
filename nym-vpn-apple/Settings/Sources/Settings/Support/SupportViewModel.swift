@@ -6,7 +6,7 @@ import UIComponents
 struct SupportViewModel {
     private let externalLinkManager: ExternalLinkManager
     private let faqLink = Constants.supportURL.rawValue
-    private let emailLink = "mailto:support@nymvpn.com"
+    private let emailLink = Constants.emailLink.rawValue
     private let matrixLink = "https://matrix.to/#/%23NymVPN:nymtech.chat"
     private let discordLink = Constants.discordLink.rawValue
 
