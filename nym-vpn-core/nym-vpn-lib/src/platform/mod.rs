@@ -3,9 +3,7 @@
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
 use self::error::FFIError;
-use crate::credentials::{
-    check_credential_base58, import_credential_base58,
-};
+use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
 use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location, TunStatus, UserAgent};
 use crate::{
