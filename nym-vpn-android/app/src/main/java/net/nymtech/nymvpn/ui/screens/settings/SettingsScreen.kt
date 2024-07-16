@@ -45,6 +45,7 @@ import net.nymtech.nymvpn.util.durationFromNow
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 import net.nymtech.vpn.model.VpnState
+import java.time.Instant
 
 @Composable
 fun SettingsScreen(
@@ -67,7 +68,7 @@ fun SettingsScreen(
 			.padding(top = 24.dp)
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
-		if (!appUiState.isNonExpiredCredentialImported) {
+		if (appUiState.credentialExpiryTime == null || appUiState.credentialExpiryTime.isBefore(Instant.now())) {
 			MainStyledButton(
 				onClick = { navController.navigate(NavItem.Settings.Credential.route) },
 				content = {
@@ -79,7 +80,7 @@ fun SettingsScreen(
 				color = MaterialTheme.colorScheme.primary,
 			)
 		} else {
-			appUiState.credentialExpiryTime?.let {
+			appUiState.credentialExpiryTime.let {
 				val credentialDuration = it.durationFromNow()
 				val days = credentialDuration.toDaysPart()
 				val hours = credentialDuration.toHoursPart()

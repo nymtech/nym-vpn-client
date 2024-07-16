@@ -89,11 +89,14 @@ object NymVpnClient {
 			}
 		}
 
-		override suspend fun start(context: Context, credential: String, foreground: Boolean): Result<Unit> {
+		override suspend fun importCredential(credential: String, path: String): Result<Instant?> {
+			return runCatching {
+				nym_vpn_lib.importCredential(credential, path)
+			}
+		}
+
+		override suspend fun start(context: Context, foreground: Boolean): Result<Unit> {
 			return withContext(ioDispatcher) {
-				validateCredential(credential).onFailure {
-					return@withContext Result.failure(it)
-				}
 				if (_state.value.vpnState == VpnState.Down) {
 					clearErrorStatus()
 					if (foreground) ServiceManager.startVpnServiceForeground(context) else ServiceManager.startVpnService(context)
