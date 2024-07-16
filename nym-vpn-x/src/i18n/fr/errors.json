@@ -1,7 +1,7 @@
 {
   "credential": {
     "invalid": "Identifiant invalide",
-    "vpn-running": "Ajout d'un identifiant impossible pendant la connexion au réseau",
+    "vpn-running": "Vous ne pouvez pas importer d'identifiant lorsque vous êtes connecté au VPN",
     "expired": "Identifiant expiré",
     "no-duplicate": "Cet identifiant a déjà été importé",
     "storage": "L'identifiant n'a pas pu être ajouté en raison d'une erreur interne",
@@ -12,7 +12,7 @@
   "daemon": {
     "not-connected": "Non connecté au daemon"
   },
-  "grpc": "Erreur du gRPC",
+  "grpc": "Erreur interne gRPC",
   "connection": {
     "timeout": "Connexion expirée",
     "gateway-lookup": "Échec de la recherche de passerelle",
