@@ -1148,18 +1148,20 @@ public struct VpnConfig {
     public var entryGateway: EntryPoint
     public var exitRouter: ExitPoint
     public var enableTwoHop: Bool
+    public var enableWireguard: Bool
     public var tunProvider: OsTunProvider
     public var credentialDataPath: PathBuf?
     public var tunStatusListener: TunnelStatusListener?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(apiUrl: Url, explorerUrl: Url, entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?) {
+    public init(apiUrl: Url, explorerUrl: Url, entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, enableWireguard: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?) {
         self.apiUrl = apiUrl
         self.explorerUrl = explorerUrl
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
         self.enableTwoHop = enableTwoHop
+        self.enableWireguard = enableWireguard
         self.tunProvider = tunProvider
         self.credentialDataPath = credentialDataPath
         self.tunStatusListener = tunStatusListener
@@ -1177,6 +1179,7 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
                 entryGateway: FfiConverterTypeEntryPoint.read(from: &buf), 
                 exitRouter: FfiConverterTypeExitPoint.read(from: &buf), 
                 enableTwoHop: FfiConverterBool.read(from: &buf), 
+                enableWireguard: FfiConverterBool.read(from: &buf), 
                 tunProvider: FfiConverterTypeOSTunProvider.read(from: &buf), 
                 credentialDataPath: FfiConverterOptionTypePathBuf.read(from: &buf), 
                 tunStatusListener: FfiConverterOptionTypeTunnelStatusListener.read(from: &buf)
@@ -1189,6 +1192,7 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
         FfiConverterTypeEntryPoint.write(value.entryGateway, into: &buf)
         FfiConverterTypeExitPoint.write(value.exitRouter, into: &buf)
         FfiConverterBool.write(value.enableTwoHop, into: &buf)
+        FfiConverterBool.write(value.enableWireguard, into: &buf)
         FfiConverterTypeOSTunProvider.write(value.tunProvider, into: &buf)
         FfiConverterOptionTypePathBuf.write(value.credentialDataPath, into: &buf)
         FfiConverterOptionTypeTunnelStatusListener.write(value.tunStatusListener, into: &buf)
