@@ -16,9 +16,9 @@ export const DefaultThemeMode = 'System';
 
 // Various external links
 export const GitHubIssuesUrl =
-  'https://github.com/nymtech/nym-vpn-client/issues';
+  'https://www.nymtech.net/go/github/nym-vpn-client/issues';
 export const MatrixRoomUrl = 'https://matrix.to/#/%23NymVPN:nymtech.chat';
-export const DiscordInviteUrl = 'https://discord.com/invite/nym';
+export const DiscordInviteUrl = 'https://nymtech.net/go/discord';
 export const FaqUrl = 'https://support.nymvpn.com/hc/en-us';
 export const ContactSupportUrl =
   'https://support.nymvpn.com/hc/en-us/requests/new';
