@@ -42,10 +42,6 @@ extension FeedbackViewModel {
         if !path.isEmpty { path.removeLast() }
     }
 
-//    func navigateToSurvey() {
-//        path.append(SettingsLink.survey)
-//    }
-
     func openExternalURL(urlString: String?) {
         // TODO: log error
         try? externalLinkManager.openExternalURL(urlString: urlString)
