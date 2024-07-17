@@ -43,7 +43,10 @@
       "windows": {
         "nsis": {
           "template": "./windows/installer.nsi",
-          "installMode": "perMachine"
+          "installMode": "perMachine",
+          "installerIcon": "icons/nsis_icon.ico",
+          "headerImage": "icons/nsis_header.bmp",
+          "sidebarImage": "icons/nsis_sidebar.bmp"
         }
       }
     },

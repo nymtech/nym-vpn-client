@@ -93,6 +93,7 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 ; installer icon
 !if "${INSTALLERICON}" != ""
   !define MUI_ICON "${INSTALLERICON}"
+  !define MUI_UNICON "${INSTALLERICON}"
 !endif
 
 ; installer sidebar image
@@ -104,6 +105,8 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 !if "${HEADERIMAGE}" != ""
   !define MUI_HEADERIMAGE
   !define MUI_HEADERIMAGE_BITMAP  "${HEADERIMAGE}"
+  !define MUI_HEADERIMAGE_UNBITMAP "${HEADERIMAGE}"
+  !define MUI_HEADERIMAGE_RIGHT
 !endif
 
 ; Define registry key to store installer language
