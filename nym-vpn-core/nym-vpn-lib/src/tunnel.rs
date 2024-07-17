@@ -4,6 +4,7 @@
 use futures::channel::oneshot::{Receiver, Sender};
 use futures::channel::{mpsc, oneshot};
 use log::*;
+use nym_sdk::TaskClient;
 use std::collections::HashSet;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
@@ -39,6 +40,7 @@ impl Tunnel {
 
 pub fn start_tunnel(
     tunnel: &Tunnel,
+    mut shutdown: TaskClient,
     tunnel_close_rx: Receiver<()>,
     finished_shutdown_tx: Sender<()>,
 ) -> Result<(JoinHandle<Result<(), crate::error::Error>>, EventReceiver), crate::error::Error> {
@@ -81,6 +83,7 @@ pub fn start_tunnel(
         debug!("Wireguard monitor started, blocking current thread until shutdown");
         if let Err(e) = monitor.wait() {
             error!("Tunnel disconnected with error {:?}", e);
+            shutdown.send_status_msg(Box::new(e));
         } else {
             finished_shutdown_tx
                 .send(())

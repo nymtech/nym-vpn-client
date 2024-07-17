@@ -137,6 +137,7 @@ async fn wait_interface_up(
 async fn setup_wg_tunnel(
     nym_vpn: &mut NymVpn<WireguardVpn>,
     mixnet_client: SharedMixnetClient,
+    task_manager: &mut TaskManager,
     route_manager: RouteManager,
     gateway_directory_client: GatewayClient,
     auth_addresses: AuthAddresses,
@@ -206,6 +207,7 @@ async fn setup_wg_tunnel(
     std::env::set_var("TALPID_FORCE_USERSPACE_WIREGUARD", "1");
     let (wireguard_waiting_entry, event_rx) = create_wireguard_tunnel(
         &route_manager,
+        task_manager.subscribe_named("entry_wg_tunnel"),
         nym_vpn.tun_provider.clone(),
         entry_wireguard_config,
     )
@@ -220,6 +222,7 @@ async fn setup_wg_tunnel(
     );
     let (wireguard_waiting_exit, event_rx) = create_wireguard_tunnel(
         &route_manager,
+        task_manager.subscribe_named("exit_wg_tunnel"),
         nym_vpn.tun_provider.clone(),
         exit_wireguard_config,
     )
@@ -419,6 +422,7 @@ pub async fn setup_tunnel(
             setup_wg_tunnel(
                 vpn,
                 mixnet_client,
+                task_manager,
                 route_manager,
                 gateway_directory_client,
                 auth_addresses,
