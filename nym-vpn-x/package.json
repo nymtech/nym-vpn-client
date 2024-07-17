@@ -31,7 +31,7 @@
   "dependencies": {
     "@headlessui/react": "^2.1.2",
     "@mui/base": "^5.0.0-beta.39",
-    "@sentry/react": "^8.16.0",
+    "@sentry/react": "^8.18.0",
     "@tauri-apps/api": "^1.5.0",
     "clsx": "^2.0.0",
     "dayjs": "^1.11.10",
