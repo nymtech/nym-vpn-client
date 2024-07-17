@@ -39,12 +39,12 @@ tun2 = { workspace = true, features = ["async"] }
 uniffi = { workspace = true, features = ["cli"] }
 url.workspace = true
 
-talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
-talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
-talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
-talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
-talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
-talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
+talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", branch = "zane/android-multi-tun" }
+talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", branch = "zane/android-multi-tun" }
+talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", branch = "zane/android-multi-tun" }
+talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", branch = "zane/android-multi-tun" }
+talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", branch = "zane/android-multi-tun" }
+talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", branch = "zane/android-multi-tun" }
 
 nym-authenticator-requests.workspace = true
 nym-bandwidth-controller.workspace = true
