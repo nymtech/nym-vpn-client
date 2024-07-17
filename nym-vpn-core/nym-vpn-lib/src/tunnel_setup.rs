@@ -26,7 +26,6 @@ use nym_gateway_directory::{
     GatewayQueryResult, IpPacketRouterAddress, LookupGateway,
 };
 use nym_task::TaskManager;
-use rand::rngs::OsRng;
 use talpid_core::dns::DnsMonitor;
 use talpid_core::firewall::Firewall;
 use talpid_routing::RouteManager;
@@ -142,10 +141,11 @@ async fn setup_wg_tunnel(
     gateway_directory_client: GatewayClient,
     auth_addresses: AuthAddresses,
 ) -> Result<AllTunnelsSetup> {
-    let mut rng = OsRng;
-    let wg_entry_gateway_client = WgGatewayClient::new(&mut rng, mixnet_client.clone());
-    let wg_exit_gateway_client = WgGatewayClient::new(&mut rng, mixnet_client.clone());
-    log::info!("Created wg gateway client");
+    let wg_entry_gateway_client =
+        WgGatewayClient::new_entry(&nym_vpn.data_path, mixnet_client.clone());
+    let wg_exit_gateway_client =
+        WgGatewayClient::new_exit(&nym_vpn.data_path, mixnet_client.clone());
+    log::info!("Created wg gateway clients");
     // MTU is computed as (MTU of wire interface) - ((IP header size) + (UDP header size) + (WireGuard metadata size))
     // The IP header size is 20 for IPv4 and 40 for IPv6
     // The UDP header size is 8
@@ -394,12 +394,12 @@ pub async fn setup_tunnel(
     platform::set_listener_status(TunStatus::EstablishingConnection);
 
     info!("Setting up mixnet client");
-    info!("Connecting to entry gateway: {entry_gateway_id}");
+    info!("Connecting to mixnet gateway: {entry_gateway_id}");
     let mixnet_client = timeout(
         Duration::from_secs(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS),
         crate::setup_mixnet_client(
             &entry_gateway_id,
-            &nym_vpn.mixnet_client_config().mixnet_data_path,
+            &nym_vpn.data_path(),
             task_manager.subscribe_named("mixnet_client_main"),
             false,
             nym_vpn.enable_two_hop(),

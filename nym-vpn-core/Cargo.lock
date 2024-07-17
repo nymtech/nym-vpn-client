@@ -2631,7 +2631,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.4.10",
+ "socket2 0.5.6",
  "tokio",
  "tower-service",
  "tracing",
@@ -4754,6 +4754,7 @@ dependencies = [
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
  "nym-node-requests",
+ "nym-pemstore",
  "nym-sdk",
  "nym-task",
  "nym-topology",
@@ -5469,7 +5470,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81bddcdb20abf9501610992b6759a4c888aef7d1a7247ef75e2404275ac24af1"
 dependencies = [
  "anyhow",
- "itertools 0.10.5",
+ "itertools 0.12.1",
  "proc-macro2",
  "quote",
  "syn 2.0.58",

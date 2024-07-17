@@ -126,9 +126,6 @@ impl From<NymVpn<MixnetVpn>> for SpecificVpn {
 
 #[derive(Clone, Debug)]
 pub struct MixnetClientConfig {
-    /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
-    pub mixnet_data_path: Option<PathBuf>,
-
     /// Enable Poission process rate limiting of outbound traffic.
     pub enable_poisson_rate: bool,
 
@@ -141,6 +138,9 @@ pub struct MixnetClientConfig {
 
 pub struct NymVpn<T: Vpn> {
     pub mixnet_client_config: MixnetClientConfig,
+
+    /// Path to the data directory, where keys reside.
+    pub data_path: Option<PathBuf>,
 
     /// Gateway configuration
     pub gateway_config: GatewayDirectoryConfig,
@@ -216,11 +216,11 @@ impl NymVpn<WireguardVpn> {
 
         Self {
             mixnet_client_config: MixnetClientConfig {
-                mixnet_data_path: None,
                 enable_poisson_rate: false,
                 disable_background_cover_traffic: false,
                 enable_credentials_mode: false,
             },
+            data_path: None,
             gateway_config: nym_gateway_directory::Config::default(),
             entry_point,
             exit_point,
@@ -262,11 +262,11 @@ impl NymVpn<MixnetVpn> {
 
         Self {
             mixnet_client_config: MixnetClientConfig {
-                mixnet_data_path: None,
                 enable_poisson_rate: false,
                 disable_background_cover_traffic: false,
                 enable_credentials_mode: false,
             },
+            data_path: None,
             gateway_config: nym_gateway_directory::Config::default(),
             entry_point,
             exit_point,
@@ -432,6 +432,13 @@ impl SpecificVpn {
         match self {
             SpecificVpn::Wg(vpn) => vpn.mixnet_client_config.clone(),
             SpecificVpn::Mix(vpn) => vpn.mixnet_client_config.clone(),
+        }
+    }
+
+    pub fn data_path(&self) -> Option<PathBuf> {
+        match self {
+            SpecificVpn::Wg(vpn) => vpn.data_path.clone(),
+            SpecificVpn::Mix(vpn) => vpn.data_path.clone(),
         }
     }
 

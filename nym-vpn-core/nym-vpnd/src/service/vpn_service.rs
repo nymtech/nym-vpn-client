@@ -397,7 +397,7 @@ impl NymVpnService {
         let mut nym_vpn =
             nym_vpn_lib::NymVpn::new_mixnet_vpn(config.entry_point, config.exit_point);
         nym_vpn.gateway_config = gateway_directory::Config::new_from_env();
-        nym_vpn.mixnet_client_config.mixnet_data_path = Some(self.data_dir.clone());
+        nym_vpn.data_path = Some(self.data_dir.clone());
         nym_vpn.dns = options.dns;
         nym_vpn.disable_routing = options.disable_routing;
         nym_vpn.enable_two_hop = options.enable_two_hop;

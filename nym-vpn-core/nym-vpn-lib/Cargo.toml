@@ -31,7 +31,12 @@ signature.workspace = true
 tap.workspace = true
 thiserror.workspace = true
 time.workspace = true
-tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
+tokio = { workspace = true, features = [
+    "process",
+    "rt-multi-thread",
+    "fs",
+    "sync",
+] }
 tokio-util = { workspace = true, features = ["codec"] }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
@@ -58,6 +63,7 @@ nym-explorer-client.workspace = true
 nym-id.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-node-requests.workspace = true
+nym-pemstore.workspace = true
 nym-sdk.workspace = true
 nym-task.workspace = true
 nym-topology.workspace = true
