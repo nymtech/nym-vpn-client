@@ -18,7 +18,7 @@ Release build.
 
 ### Windows
 
-_coming soon_
+- `setup.exe` NSIS installer (install both the client app and the daemon)
 
 ## SHA256 Checksums
 

@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-x"
-version = "0.1.7-dev"
+version = "0.1.8-dev"
 description = "NymVPN desktop client"
 authors = ["Nym Technologies SA", "Pierre <dommerc.pierre@gmail.com>", "Zane <zanecschepke@gmail.com>"]
 license = "GPL-3.0-only"
