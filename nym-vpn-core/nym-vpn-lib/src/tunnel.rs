@@ -94,6 +94,7 @@ pub fn start_tunnel(
             error!("Tunnel disconnected with error {:?}", e);
             shutdown.send_status_msg(Box::new(e));
         } else {
+            shutdown.mark_as_success();
             if finished_shutdown_tx.send(()).is_err() {
                 shutdown
                     .send_status_msg(Box::new(crate::error::Error::FailedToSendWireguardShutdown));
