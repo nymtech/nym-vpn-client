@@ -1509,6 +1509,7 @@ data class VpnConfig (
     var `entryGateway`: EntryPoint, 
     var `exitRouter`: ExitPoint, 
     var `enableTwoHop`: kotlin.Boolean, 
+    var `enableWireguard`: kotlin.Boolean, 
     var `credentialDataPath`: PathBuf?, 
     var `tunStatusListener`: TunnelStatusListener?
 ) : Disposable {
@@ -1522,6 +1523,7 @@ data class VpnConfig (
         this.`entryGateway`, 
         this.`exitRouter`, 
         this.`enableTwoHop`, 
+        this.`enableWireguard`, 
         this.`credentialDataPath`, 
         this.`tunStatusListener`)
     }
@@ -1537,6 +1539,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeEntryPoint.read(buf),
             FfiConverterTypeExitPoint.read(buf),
             FfiConverterBoolean.read(buf),
+            FfiConverterBoolean.read(buf),
             FfiConverterOptionalTypePathBuf.read(buf),
             FfiConverterOptionalTypeTunnelStatusListener.read(buf),
         )
@@ -1548,6 +1551,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeEntryPoint.allocationSize(value.`entryGateway`) +
             FfiConverterTypeExitPoint.allocationSize(value.`exitRouter`) +
             FfiConverterBoolean.allocationSize(value.`enableTwoHop`) +
+            FfiConverterBoolean.allocationSize(value.`enableWireguard`) +
             FfiConverterOptionalTypePathBuf.allocationSize(value.`credentialDataPath`) +
             FfiConverterOptionalTypeTunnelStatusListener.allocationSize(value.`tunStatusListener`)
     )
@@ -1558,6 +1562,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterTypeEntryPoint.write(value.`entryGateway`, buf)
             FfiConverterTypeExitPoint.write(value.`exitRouter`, buf)
             FfiConverterBoolean.write(value.`enableTwoHop`, buf)
+            FfiConverterBoolean.write(value.`enableWireguard`, buf)
             FfiConverterOptionalTypePathBuf.write(value.`credentialDataPath`, buf)
             FfiConverterOptionalTypeTunnelStatusListener.write(value.`tunStatusListener`, buf)
     }

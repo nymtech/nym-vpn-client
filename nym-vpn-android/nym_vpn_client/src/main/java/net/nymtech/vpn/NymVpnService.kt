@@ -29,8 +29,6 @@ class NymVpnService : VpnService() {
 	@OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
 	private val vpnThread = newSingleThreadContext("VpnThread")
 
-	private var activeTunStatus: CreateTunResult? = null
-
 	// Once we make sure Rust library doesn't close the fd first, we should re-use this code for closing fd,
 	// as it's more general, including for wireguard tunnels
 // 	private var activeTunStatus by observable<CreateTunResult?>(null) { _, oldTunStatus, _ ->
@@ -46,10 +44,7 @@ class NymVpnService : VpnService() {
 // 		}
 // 	}
 
-	private val tunIsOpen
-		get() = activeTunStatus?.isOpen ?: false
-
-	private var currentTunConfig = defaultTunConfig()
+	private var currentTunConfigs = initTunConfigs()
 
 	private var tunIsStale = false
 
@@ -57,10 +52,14 @@ class NymVpnService : VpnService() {
 
 	val connectivityListener = ConnectivityListener()
 
+	private fun initTunConfigs() : MutableMap<TunConfig, CreateTunResult?> {
+		return mutableMapOf(defaultTunConfig() to null, defaultTunConfig() to null)
+	}
+
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 		when (intent?.action) {
 			Action.START.name, Action.START_FOREGROUND.name -> {
-				currentTunConfig = defaultTunConfig()
+				currentTunConfigs = initTunConfigs()
 				Timber.i("VPN start called")
 				if (prepare(this) == null) {
 					startService()
@@ -103,30 +102,32 @@ class NymVpnService : VpnService() {
 
 	fun getTun(config: TunConfig): CreateTunResult {
 		synchronized(this) {
-			val tunStatus = activeTunStatus
-			if (config == currentTunConfig && tunIsOpen && !tunIsStale) {
-				return tunStatus!!
-			} else {
-				Timber.d("Creating new tunnel with config : $config")
-				val newTunStatus = createTun(config)
-				currentTunConfig = config
-				activeTunStatus = newTunStatus
-				tunIsStale = false
-
-				return newTunStatus
+			if (currentTunConfigs.containsKey(config) && !tunIsStale) {
+				val tunStatus = currentTunConfigs[config]
+				if (tunStatus?.isOpen == true) {
+					return tunStatus
+				}
 			}
+			Timber.d("Creating new tunnel with config : $config")
+			val newTunStatus = createTun(config)
+			currentTunConfigs.plus(config to newTunStatus)
+			tunIsStale = false
+			return newTunStatus
 		}
 	}
 
 	fun createTun() {
-		synchronized(this) { activeTunStatus = createTun(currentTunConfig) }
+		synchronized(this) {
+			currentTunConfigs.forEach {(key) ->
+				currentTunConfigs[key] = createTun(key)
+			}
+		}
 	}
 
 	fun recreateTunIfOpen(config: TunConfig) {
 		synchronized(this) {
-			if (tunIsOpen) {
-				currentTunConfig = config
-				activeTunStatus = createTun(config)
+			if(currentTunConfigs.containsKey(config) && currentTunConfigs[config]?.isOpen == true) {
+				currentTunConfigs[config] = createTun(config)
 			}
 		}
 	}
@@ -134,7 +135,9 @@ class NymVpnService : VpnService() {
 	fun closeTun() {
 		Timber.d("CLOSE TUN CALLED")
 		synchronized(this) {
-			activeTunStatus = null
+			currentTunConfigs.forEach{(key) ->
+				currentTunConfigs[key] = null
+			}
 		}
 	}
 
