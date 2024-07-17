@@ -52,7 +52,7 @@ impl TunnelSpecifcSetup for MixTunnelSetup {}
 pub struct WgTunnelSetup {
     pub receiver: oneshot::Receiver<()>,
     pub tunnel_close_tx: oneshot::Sender<()>,
-    pub handle: tokio::task::JoinHandle<Result<()>>,
+    pub handle: tokio::task::JoinHandle<()>,
 }
 
 impl TunnelSpecifcSetup for WgTunnelSetup {}

@@ -43,14 +43,14 @@ pub fn start_tunnel(
     mut shutdown: TaskClient,
     tunnel_close_rx: Receiver<()>,
     finished_shutdown_tx: Sender<()>,
-) -> Result<(JoinHandle<Result<(), crate::error::Error>>, EventReceiver), crate::error::Error> {
+) -> Result<(JoinHandle<()>, EventReceiver), crate::error::Error> {
     let route_manager = tunnel.route_manager_handle.clone();
     // We only start the tunnel when we have wireguard enabled, and then we have the config
     let config = tunnel.config.clone();
     let id: Option<String> = config.tunnel.addresses.first().map(|a| a.to_string());
     let tun_provider = Arc::clone(&tunnel.tun_provider);
     let (event_tx, event_rx) = mpsc::unbounded();
-    let handle = tokio::task::spawn_blocking(move || -> Result<(), crate::error::Error> {
+    let handle = tokio::task::spawn_blocking(move || {
         let on_tunnel_event =
             move |event| -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> {
                 let (tx, rx) = oneshot::channel::<()>();
@@ -63,7 +63,10 @@ pub fn start_tunnel(
         if let Some(id) = id {
             resource_dir = resource_dir.join(id);
         }
-        std::fs::create_dir_all(&resource_dir).unwrap();
+        if let Err(e) = std::fs::create_dir_all(&resource_dir) {
+            shutdown.send_status_msg(Box::new(e));
+            return;
+        }
         debug!("Tunnel resource dir: {:?}", resource_dir);
         let args = TunnelArgs {
             runtime: tokio::runtime::Handle::current(),
@@ -74,23 +77,29 @@ pub fn start_tunnel(
             retry_attempt: 3,
             route_manager,
         };
-        let monitor = WireguardMonitor::start(
+        let monitor = match WireguardMonitor::start(
             config,
             None,
             Some(Path::new(&resource_dir.join("logs"))),
             args,
-        )?;
+        ) {
+            Ok(monitor) => monitor,
+            Err(e) => {
+                shutdown.send_status_msg(Box::new(e));
+                return;
+            }
+        };
         debug!("Wireguard monitor started, blocking current thread until shutdown");
         if let Err(e) = monitor.wait() {
             error!("Tunnel disconnected with error {:?}", e);
             shutdown.send_status_msg(Box::new(e));
         } else {
-            finished_shutdown_tx
-                .send(())
-                .map_err(|_| crate::error::Error::FailedToSendWireguardShutdown)?;
+            if finished_shutdown_tx.send(()).is_err() {
+                shutdown
+                    .send_status_msg(Box::new(crate::error::Error::FailedToSendWireguardShutdown));
+            }
             debug!("Sent shutdown message");
         }
-        Ok(())
     });
 
     Ok((handle, event_rx))
