@@ -29,7 +29,9 @@ pub(crate) fn setup_logging(args: &CliArgs) {
         .add_directive("netlink_proto=info".parse().unwrap());
     if let Commands::Run(run_args) = &args.command {
         if run_args.enable_wireguard {
-            filter = filter.add_directive("nym_client_core=warn".parse().unwrap());
+            filter = filter
+                .add_directive("nym_client_core=warn".parse().unwrap())
+                .add_directive("nym_gateway_client=warn".parse().unwrap());
         }
     }
 
