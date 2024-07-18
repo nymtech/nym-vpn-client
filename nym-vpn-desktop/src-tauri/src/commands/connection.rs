@@ -107,7 +107,7 @@ pub async fn connect(
             "using path for mixnet data: {}",
             BACKEND_DATA_PATH.to_string_lossy()
         );
-        vpn_config.mixnet_client_config.mixnet_data_path = Some(BACKEND_DATA_PATH.clone());
+        vpn_config.data_path = Some(BACKEND_DATA_PATH.clone());
     }
 
     // spawn the VPN client and start a new connection
