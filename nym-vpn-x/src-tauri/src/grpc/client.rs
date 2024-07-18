@@ -17,7 +17,7 @@ use time::OffsetDateTime;
 use tokio::sync::mpsc;
 use tonic::transport::Endpoint as TonicEndpoint;
 use tonic::{transport::Channel, Request};
-use tracing::{debug, error, info, instrument, trace, warn};
+use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
 
 use crate::cli::Cli;
@@ -227,9 +227,9 @@ impl GrpcClient {
         Ok(())
     }
 
-    /// Watch VPN status updates
+    /// Watch VPN connection status updates
     #[instrument(skip_all)]
-    pub async fn watch_vpn_status(&self) -> Result<()> {
+    pub async fn watch_vpn_connection_updates(&self, app: &AppHandle) -> Result<()> {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(Empty {});
@@ -249,26 +249,18 @@ impl GrpcClient {
                         tx.send(update).await.unwrap();
                     }
                     Ok(None) => {
-                        warn!("watch vpn status stream closed by the server");
+                        warn!("watch vpn connection status stream closed by the server");
                         return;
                     }
                     Err(e) => {
-                        warn!("watch vpn status stream get a grpc error: {}", e);
+                        warn!("watch vpn connection status stream get a grpc error: {}", e);
                     }
                 }
             }
         });
 
-        while let Some(status) = rx.recv().await {
-            // TODO handle status updates
-            debug!(
-                "vpn status update {:?}, {:?}",
-                status.kind(),
-                status.message
-            );
-            if !status.details.is_empty() {
-                trace!("vpn status details: {:?}", status.details);
-            }
+        while let Some(update) = rx.recv().await {
+            vpn_status::connection_update(app, update).await?;
         }
 
         Ok(())

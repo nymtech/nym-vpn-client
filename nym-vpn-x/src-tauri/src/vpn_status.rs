@@ -2,6 +2,8 @@ use crate::error::BackendError;
 use crate::events::{ConnectionEventPayload, EVENT_CONNECTION_STATE};
 use crate::states::{app::ConnectionState, SharedAppState};
 use anyhow::Result;
+use nym_vpn_proto::connection_status_update::StatusType;
+use nym_vpn_proto::ConnectionStatusUpdate;
 use tauri::Manager;
 use time::OffsetDateTime;
 use tracing::{info, instrument, trace, warn};
@@ -82,6 +84,35 @@ pub async fn update(
             )
             .ok();
         }
+    }
+    Ok(())
+}
+
+#[instrument(skip_all)]
+pub async fn connection_update(
+    _app: &tauri::AppHandle,
+    update: ConnectionStatusUpdate,
+) -> Result<()> {
+    trace!("{:?}, {}", update.kind(), update.message);
+    if !update.details.is_empty() {
+        trace!("details: {:?}", update.details);
+    }
+    // TODO handle updates
+    match update.kind() {
+        StatusType::Unspecified => {}
+        StatusType::Unknown => {}
+        StatusType::EntryGatewayConnectionEstablished => {}
+        StatusType::ExitRouterConnectionEstablished => {}
+        StatusType::TunnelEndToEndConnectionEstablished => {}
+        StatusType::EntryGatewayNotRoutingMixnetMessages => {}
+        StatusType::ExitRouterNotRespondingToIpv4Ping => {}
+        StatusType::ExitRouterNotRespondingToIpv6Ping => {}
+        StatusType::ExitRouterNotRoutingIpv4Traffic => {}
+        StatusType::ExitRouterNotRoutingIpv6Traffic => {}
+        StatusType::ConnectionOkIpv4 => {}
+        StatusType::ConnectionOkIpv6 => {}
+        StatusType::RemainingBandwidth => {}
+        StatusType::NoBandwidth => {}
     }
     Ok(())
 }
