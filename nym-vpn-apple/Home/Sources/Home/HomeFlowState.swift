@@ -1,7 +1,7 @@
 import SwiftUI
 
 public class HomeFlowState: ObservableObject {
-    @Published var path = NavigationPath()
-    @Published var presentedItem: HomeLink?
-    @Published var coverItem: HomeLink?
+    @MainActor @Published var path = NavigationPath()
+    @MainActor @Published var presentedItem: HomeLink?
+    @MainActor @Published var coverItem: HomeLink?
 }
