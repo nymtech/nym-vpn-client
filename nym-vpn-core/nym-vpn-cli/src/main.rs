@@ -6,7 +6,7 @@ mod commands;
 use std::fs;
 use std::path::PathBuf;
 
-use commands::ImportCredentialTypeEnum;
+use commands::{CliArgs, ImportCredentialTypeEnum};
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::nym_bin_common::bin_info;
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity, SpecificVpn};
@@ -20,13 +20,18 @@ use nym_vpn_lib::nym_config::defaults::{setup_env, var_names};
 
 const CONFIG_DIRECTORY_NAME: &str = "nym-vpn-cli";
 
-pub fn setup_logging() {
-    let filter = tracing_subscriber::EnvFilter::builder()
+pub(crate) fn setup_logging(args: &CliArgs) {
+    let mut filter = tracing_subscriber::EnvFilter::builder()
         .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
         .from_env()
         .unwrap()
         .add_directive("hyper::proto=info".parse().unwrap())
         .add_directive("netlink_proto=info".parse().unwrap());
+    if let Commands::Run(run_args) = &args.command {
+        if run_args.enable_wireguard {
+            filter = filter.add_directive("nym_client_core=warn".parse().unwrap());
+        }
+    }
 
     tracing_subscriber::fmt()
         .with_env_filter(filter)
@@ -95,8 +100,8 @@ fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
 }
 
 async fn run() -> Result<()> {
-    setup_logging();
     let args = commands::CliArgs::parse();
+    setup_logging(&args);
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
     setup_env(args.config_env_file.as_ref());
 
