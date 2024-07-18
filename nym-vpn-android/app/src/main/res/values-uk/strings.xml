@@ -11,7 +11,7 @@
     <string name="last_hop">Останнє підключення</string>
     <string name="connect">Підключитись</string>
     <string name="disconnect">Від\'єднати</string>
-    <string name="five_hop_description">Найкраще для платежів, електронних листів, повідомлень</string>
+    <string name="five_hop_description">Для платежів, електронних листів, повідомлень</string>
     <string name="disconnecting">Від\'єднання</string>
     <string name="init_client">Ініціалізація клієнта…</string>
     <string name="two_hop_description">Найкраще для серфінгу, відео, спільного використання</string>
@@ -120,4 +120,9 @@
     <string name="alpha_help_message">Допоможіть нам вдосконалити наш додаток під час альфа-тесту! Ваші відгуки мають вирішальне значення для виявлення та вирішення проблем.</string>
     <string name="disabled_while_connected">Вимкнено при підключенні до VPN</string>
     <string name="error_gateway_lookup">Не вдалося знайти шлюзи Nym. Будь ласка, перевірте підключення до мережі та спробуйте ще раз.</string>
+    <string name="select_mode">Вибір режиму</string>
+    <string name="mode_selection">Режим вибрано</string>
+    <string name="two_hop_explanation">Відчуйте максимальну швидкість завдяки підключенню до 2-hop. Ідеально підходить для швидкого перегляду веб-сторінок, відео та обміну файлами.</string>
+    <string name="five_hop_explanation">Насолоджуйтесь максимальним рівнем конфіденційності, маршрутизуючи свій трафік через 5-hop mixnet. Ідеально підходить для безпечної обробки платежів, електронних листів та повідомлень.</string>
+    <string name="continue_reading">Продовжити читання</string>
 </resources>
