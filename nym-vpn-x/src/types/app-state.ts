@@ -84,6 +84,10 @@ export type AppState = {
   os: OsType;
 };
 
+export type ConnectionEvent =
+  | ({ type: 'Update' } & ConnectionEventPayload)
+  | ({ type: 'Failed' } & (BackendError | null));
+
 export type ConnectionEventPayload = {
   state: ConnectionState;
   error?: BackendError | null;

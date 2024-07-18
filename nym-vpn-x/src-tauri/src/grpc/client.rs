@@ -3,7 +3,8 @@ use std::path::PathBuf;
 use anyhow::Result;
 use nym_vpn_proto::{
     health_check_response::ServingStatus, health_client::HealthClient,
-    nym_vpnd_client::NymVpndClient, DisconnectRequest, HealthCheckRequest, StatusRequest,
+    nym_vpnd_client::NymVpndClient, ConnectionStatus, DisconnectRequest, HealthCheckRequest,
+    StatusRequest,
 };
 use nym_vpn_proto::{
     ConnectRequest, Dns, Empty, EntryNode, ExitNode, ImportUserCredentialRequest,
@@ -168,11 +169,13 @@ impl GrpcClient {
             })
         });
 
+        let status = res.status();
         vpn_status::update(
             app,
-            ConnectionState::from(res.status()),
+            ConnectionState::from(status),
             res.error.map(BackendError::from),
             connection_time,
+            status == ConnectionStatus::ConnectionFailed,
         )
         .await?;
         Ok(())
@@ -215,11 +218,13 @@ impl GrpcClient {
             if let Some(e) = state.error.as_ref() {
                 warn!("vpn status error: {}", e.message);
             }
+            let status = state.status();
             vpn_status::update(
                 app,
                 ConnectionState::from(state.status()),
                 state.error.map(BackendError::from),
                 None,
+                status == ConnectionStatus::ConnectionFailed,
             )
             .await?;
         }

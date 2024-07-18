@@ -1,5 +1,5 @@
 use crate::error::BackendError;
-use crate::events::{ConnectionEventPayload, EVENT_CONNECTION_STATE};
+use crate::events::{ConnectionEvent, EVENT_CONNECTION_STATE};
 use crate::states::{app::ConnectionState, SharedAppState};
 use anyhow::Result;
 use nym_vpn_proto::connection_status_update::StatusType;
@@ -14,9 +14,18 @@ pub async fn update(
     status: ConnectionState,
     error: Option<BackendError>,
     connection_time: Option<OffsetDateTime>,
+    failed: bool,
 ) -> Result<()> {
     let state = app.state::<SharedAppState>();
     trace!("vpn status: {:?}", status);
+
+    if failed {
+        app.emit_all(
+            EVENT_CONNECTION_STATE,
+            ConnectionEvent::Failed(error.clone()),
+        )
+        .ok();
+    }
 
     let mut app_state = state.lock().await;
     let current_state = app_state.state.clone();
@@ -40,7 +49,7 @@ pub async fn update(
             drop(app_state);
             app.emit_all(
                 EVENT_CONNECTION_STATE,
-                ConnectionEventPayload::new(
+                ConnectionEvent::update(
                     ConnectionState::Connected,
                     error,
                     Some(t.unix_timestamp()),
@@ -56,7 +65,7 @@ pub async fn update(
             drop(app_state);
             app.emit_all(
                 EVENT_CONNECTION_STATE,
-                ConnectionEventPayload::new(ConnectionState::Disconnected, error, None),
+                ConnectionEvent::update(ConnectionState::Disconnected, error, None),
             )
             .ok();
         }
@@ -64,7 +73,7 @@ pub async fn update(
             info!("vpn status → [Connecting]");
             app.emit_all(
                 EVENT_CONNECTION_STATE,
-                ConnectionEventPayload::new(ConnectionState::Connecting, error, None),
+                ConnectionEvent::update(ConnectionState::Connecting, error, None),
             )
             .ok();
         }
@@ -72,7 +81,7 @@ pub async fn update(
             info!("vpn status → [Disconnecting]");
             app.emit_all(
                 EVENT_CONNECTION_STATE,
-                ConnectionEventPayload::new(ConnectionState::Disconnecting, error, None),
+                ConnectionEvent::update(ConnectionState::Disconnecting, error, None),
             )
             .ok();
         }
@@ -80,7 +89,7 @@ pub async fn update(
             warn!("vpn status → [Unknown]");
             app.emit_all(
                 EVENT_CONNECTION_STATE,
-                ConnectionEventPayload::new(ConnectionState::Unknown, error, None),
+                ConnectionEvent::update(ConnectionState::Unknown, error, None),
             )
             .ok();
         }
