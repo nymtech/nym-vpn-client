@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::error::Result;
-use crate::mixnet_connect::SharedMixnetClient;
 use nym_authenticator_client::AuthClient;
 use nym_authenticator_requests::v1::response::{
     AuthenticatorResponseData, PendingRegistrationResponse,
@@ -38,13 +37,13 @@ pub struct GatewayData {
 
 pub struct WgGatewayClient {
     keypair: encryption::KeyPair,
-    mixnet_client: SharedMixnetClient,
+    auth_client: AuthClient,
 }
 
 impl WgGatewayClient {
     fn new_type(
         data_path: &Option<PathBuf>,
-        mixnet_client: SharedMixnetClient,
+        auth_client: AuthClient,
         private_file_name: &str,
         public_file_name: &str,
     ) -> Self {
@@ -57,38 +56,38 @@ impl WgGatewayClient {
             let keypair = load_or_generate_keypair(&mut rng, paths);
             WgGatewayClient {
                 keypair,
-                mixnet_client,
+                auth_client,
             }
         } else {
             WgGatewayClient {
                 keypair: KeyPair::new(&mut rng),
-                mixnet_client,
+                auth_client,
             }
         }
     }
 
-    pub fn new_entry(data_path: &Option<PathBuf>, mixnet_client: SharedMixnetClient) -> Self {
+    pub fn new_entry(data_path: &Option<PathBuf>, auth_client: AuthClient) -> Self {
         Self::new_type(
             data_path,
-            mixnet_client,
+            auth_client,
             DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME,
             DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME,
         )
     }
 
-    pub fn new_exit(data_path: &Option<PathBuf>, mixnet_client: SharedMixnetClient) -> Self {
+    pub fn new_exit(data_path: &Option<PathBuf>, auth_client: AuthClient) -> Self {
         Self::new_type(
             data_path,
-            mixnet_client,
+            auth_client,
             DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME,
             DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME,
         )
     }
 
-    pub fn new(keypair: encryption::KeyPair, mixnet_client: SharedMixnetClient) -> Self {
+    pub fn new(keypair: encryption::KeyPair, auth_client: AuthClient) -> Self {
         WgGatewayClient {
             keypair,
-            mixnet_client,
+            auth_client,
         }
     }
 
@@ -97,17 +96,15 @@ impl WgGatewayClient {
     }
 
     pub async fn register_wireguard(
-        &self,
+        &mut self,
         auth_recipient: Recipient,
         gateway_host: IpAddr,
     ) -> Result<GatewayData> {
-        let mut auth_client = AuthClient::new_from_inner(self.mixnet_client.inner()).await;
-
         debug!("Registering with the wg gateway...");
         let init_message = ClientMessage::Initial(InitMessage {
             pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
         });
-        let response = auth_client.send(init_message, auth_recipient).await?;
+        let response = self.auth_client.send(init_message, auth_recipient).await?;
         let AuthenticatorResponseData::PendingRegistration(PendingRegistrationResponse {
             reply:
                 RegistrationData {
@@ -134,7 +131,10 @@ impl WgGatewayClient {
             gateway_data.private_ip,
             nonce,
         ));
-        let response = auth_client.send(finalized_message, auth_recipient).await?;
+        let response = self
+            .auth_client
+            .send(finalized_message, auth_recipient)
+            .await?;
         let AuthenticatorResponseData::Registered(_) = response.data else {
             return Err(crate::error::Error::InvalidGatewayAPIResponse);
         };

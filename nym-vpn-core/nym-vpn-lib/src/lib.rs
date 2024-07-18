@@ -69,7 +69,7 @@ pub const SHUTDOWN_TIMER_SECS: u64 = 10;
 
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
-    wg_gateway_client: &WgGatewayClient,
+    wg_gateway_client: &mut WgGatewayClient,
     auth_recipient: Recipient,
     mtu: u16,
 ) -> Result<WireguardConfig> {

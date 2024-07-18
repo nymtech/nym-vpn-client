@@ -20,6 +20,7 @@ use futures::channel::{mpsc, oneshot};
 use futures::StreamExt;
 use ipnetwork::IpNetwork;
 use log::*;
+use nym_authenticator_client::AuthClient;
 use nym_bin_common::bin_info;
 use nym_gateway_directory::{
     extract_authenticator, extract_router_address, AuthAddresses, GatewayClient,
@@ -140,10 +141,10 @@ async fn setup_wg_tunnel(
     gateway_directory_client: GatewayClient,
     auth_addresses: AuthAddresses,
 ) -> Result<AllTunnelsSetup> {
-    let wg_entry_gateway_client =
-        WgGatewayClient::new_entry(&nym_vpn.data_path, mixnet_client.clone());
-    let wg_exit_gateway_client =
-        WgGatewayClient::new_exit(&nym_vpn.data_path, mixnet_client.clone());
+    let auth_client = AuthClient::new_from_inner(mixnet_client.inner()).await;
+    let mut wg_entry_gateway_client =
+        WgGatewayClient::new_entry(&nym_vpn.data_path, auth_client.clone());
+    let mut wg_exit_gateway_client = WgGatewayClient::new_exit(&nym_vpn.data_path, auth_client);
     log::info!("Created wg gateway clients");
     // MTU is computed as (MTU of wire interface) - ((IP header size) + (UDP header size) + (WireGuard metadata size))
     // The IP header size is 20 for IPv4 and 40 for IPv6
@@ -163,14 +164,14 @@ async fn setup_wg_tunnel(
 
     let mut entry_wireguard_config = init_wireguard_config(
         &gateway_directory_client,
-        &wg_entry_gateway_client,
+        &mut wg_entry_gateway_client,
         entry_auth_recipient,
         entry_mtu,
     )
     .await?;
     let mut exit_wireguard_config = init_wireguard_config(
         &gateway_directory_client,
-        &wg_exit_gateway_client,
+        &mut wg_exit_gateway_client,
         exit_auth_recipient,
         exit_mtu,
     )
