@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::channel::oneshot::{Receiver, Sender};
+use futures::channel::oneshot::Sender;
 use futures::channel::{mpsc, oneshot};
 use log::*;
 use nym_sdk::TaskClient;
@@ -41,7 +41,6 @@ impl Tunnel {
 pub fn start_tunnel(
     tunnel: &Tunnel,
     mut shutdown: TaskClient,
-    tunnel_close_rx: Receiver<()>,
     finished_shutdown_tx: Sender<()>,
 ) -> Result<(JoinHandle<()>, EventReceiver), crate::error::Error> {
     let route_manager = tunnel.route_manager_handle.clone();
@@ -50,6 +49,12 @@ pub fn start_tunnel(
     let id: Option<String> = config.tunnel.addresses.first().map(|a| a.to_string());
     let tun_provider = Arc::clone(&tunnel.tun_provider);
     let (event_tx, event_rx) = mpsc::unbounded();
+    let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel::<()>();
+    let mut shutdown_forwarder = shutdown.clone();
+    tokio::spawn(async move {
+        shutdown_forwarder.recv().await;
+        tunnel_close_tx.send(()).unwrap();
+    });
     let handle = tokio::task::spawn_blocking(move || {
         let on_tunnel_event =
             move |event| -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> {
@@ -94,7 +99,6 @@ pub fn start_tunnel(
             error!("Tunnel disconnected with error {:?}", e);
             shutdown.send_status_msg(Box::new(e));
         } else {
-            shutdown.mark_as_success();
             if finished_shutdown_tx.send(()).is_err() {
                 shutdown
                     .send_status_msg(Box::new(crate::error::Error::FailedToSendWireguardShutdown));

@@ -147,7 +147,6 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::WireguardError(_)
             | nym_vpn_lib::error::Error::JoinError(_)
             | nym_vpn_lib::error::Error::CanceledError(_)
-            | nym_vpn_lib::error::Error::FailedToSendWireguardTunnelClose
             | nym_vpn_lib::error::Error::FailedToSendWireguardShutdown
             | nym_vpn_lib::error::Error::SDKError(_)
             | nym_vpn_lib::error::Error::NodeIdentityFormattingError

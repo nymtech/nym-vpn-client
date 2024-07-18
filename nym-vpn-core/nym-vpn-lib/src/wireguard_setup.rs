@@ -23,18 +23,14 @@ pub async fn create_wireguard_tunnel(
     WgTunnelSetup,
     mpsc::UnboundedReceiver<(TunnelEvent, oneshot::Sender<()>)>,
 )> {
-    let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel();
-
     let handle = route_manager.handle()?;
     let tunnel = Tunnel::new(wireguard_config, handle, tun_provider);
 
     let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
-    let (tunnel_handle, event_rx) =
-        start_tunnel(&tunnel, shutdown, tunnel_close_rx, finished_shutdown_tx)?;
+    let (tunnel_handle, event_rx) = start_tunnel(&tunnel, shutdown, finished_shutdown_tx)?;
 
     let wireguard_waiting = WgTunnelSetup {
         receiver: finished_shutdown_rx,
-        tunnel_close_tx,
         handle: tunnel_handle,
     };
 

@@ -65,13 +65,12 @@ pub(crate) async fn handle_interrupt(
     mut route_manager: RouteManager,
     wireguard_waiting: Option<[WgTunnelSetup; 2]>,
 ) -> Result<()> {
-    let (tunnel_close_tx, finished_shutdown_rx, tunnel_handle) = match wireguard_waiting {
+    let (finished_shutdown_rx, tunnel_handle) = match wireguard_waiting {
         Some([entry_setup, exit_setup]) => (
-            Some([entry_setup.tunnel_close_tx, exit_setup.tunnel_close_tx]),
             Some([entry_setup.receiver, exit_setup.receiver]),
             Some([entry_setup.handle, exit_setup.handle]),
         ),
-        None => (None, None, None),
+        None => (None, None),
     };
 
     let sig_handle = tokio::task::spawn_blocking(move || -> Result<RouteManager> {
@@ -85,14 +84,6 @@ pub(crate) async fn handle_interrupt(
                 "{}",
                 error.display_chain_with_msg("Failed to clear routing rules")
             );
-        }
-
-        if let Some([entry_tx, exit_tx]) = tunnel_close_tx {
-            let ret1 = entry_tx.send(());
-            let ret2 = exit_tx.send(());
-            if ret1.is_err() || ret2.is_err() {
-                return Err(Error::FailedToSendWireguardTunnelClose);
-            }
         }
         Ok(route_manager)
     });
