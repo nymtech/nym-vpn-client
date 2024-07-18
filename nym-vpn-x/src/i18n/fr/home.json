@@ -12,7 +12,7 @@
   "first-hop": "Nœud d'entrée",
   "connecting-message": "Connexion en cours",
   "connection-time": "Temps de connexion",
-  "select-node-title": "Choix des nœuds",
+  "select-node-title": "Se connecter à",
   "last-node-select": {
     "label": "Nœud de sortie",
     "text": "Connexion rapide vers ({{country}})"
