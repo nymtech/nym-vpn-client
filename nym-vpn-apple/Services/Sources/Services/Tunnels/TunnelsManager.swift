@@ -1,7 +1,8 @@
 import Combine
 import NetworkExtension
-import Keychain
 import Logging
+import Keychain
+import NymLogger
 
 public final class TunnelsManager: ObservableObject {
     public static let shared = TunnelsManager()
@@ -9,7 +10,7 @@ public final class TunnelsManager: ObservableObject {
     @Published public var isLoaded: Result<Void, Error>?
     @Published public var activeTunnel: Tunnel?
     public var tunnels = [Tunnel]()
-    public var logger = Logger(label: "TunnelsManager")
+    public var logger = NymLogger(label: "TunnelsManager").logger
 
     private var cancellables = Set<AnyCancellable>()
 

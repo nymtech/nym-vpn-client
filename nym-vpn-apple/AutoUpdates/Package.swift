@@ -9,7 +9,7 @@ let package = Package(
         .macOS(.v13)
     ],
     products: [
-        .library(name: "AutoUpdates", targets: ["AutoUpdates"]),
+        .library(name: "AutoUpdates", targets: ["AutoUpdates"])
     ],
     dependencies: [
         .package(path: "../ServicesMacOS")

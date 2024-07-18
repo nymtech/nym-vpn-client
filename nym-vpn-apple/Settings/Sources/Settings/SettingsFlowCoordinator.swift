@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import NymLogger
 
 struct SettingsFlowCoordinator<Content: View>: View {
     @ObservedObject var flowState: SettingsFlowState
@@ -23,6 +24,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             LegalView(viewModel: LegalViewModel(path: $flowState.path))
         case .addCredentials:
             AddCredentialsView(viewModel: AddCredentialsViewModel(path: $flowState.path))
+        case .logs:
+            LogsView(viewModel: LogsViewModel(path: $flowState.path))
         }
     }
 }

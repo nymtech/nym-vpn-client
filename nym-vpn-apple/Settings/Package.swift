@@ -34,6 +34,7 @@ let package = Package(
                 .product(name: "KeyboardManager", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "SentryManager", package: "Services"),
                 .product(name: "Modifiers", package: "Services"),
+                .product(name: "NymLogger", package: "Services"),
                 .product(name: "Theme", package: "Theme"),
                 .product(name: "UIComponents", package: "UIComponents")
             ]

@@ -5,8 +5,8 @@ import AutoUpdates
 import Constants
 import Home
 import HelperManager
-import Theme
 import SentryManager
+import Theme
 
 @main
 struct NymVPNDaemonApp: App {

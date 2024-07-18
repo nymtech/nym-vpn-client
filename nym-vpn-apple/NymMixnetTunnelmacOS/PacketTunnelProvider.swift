@@ -5,7 +5,7 @@ import MixnetLibrary
 class PacketTunnelProvider: NEPacketTunnelProvider {
     private lazy var mixnetTunnelProvider = MixnetTunnelProvider()
     private lazy var mixnetAdapter: MixnetAdapter = {
-        return MixnetAdapter(
+        MixnetAdapter(
             with: self,
             mixnetTunnelProvider: mixnetTunnelProvider
         )

@@ -16,7 +16,7 @@ public class SettingsViewModel: SettingsFlowState {
         [
             connectionSection(),
             themeSection(),
-//            logsSection(),
+            logsSection(),
             feedbackSection(),
             legalSection()
         ]
@@ -43,6 +43,10 @@ public class SettingsViewModel: SettingsFlowState {
 private extension SettingsViewModel {
     func navigateToTheme() {
         path.append(SettingsLink.theme)
+    }
+
+    func navigateToLogs() {
+        path.append(SettingsLink.logs)
     }
 
     func navigateToFeedback() {
@@ -106,7 +110,9 @@ private extension SettingsViewModel {
                     accessory: .arrow,
                     title: "logs".localizedString,
                     imageName: "logs",
-                    action: {}
+                    action: { [weak self] in
+                        self?.navigateToLogs()
+                    }
                 )
             ]
         )
