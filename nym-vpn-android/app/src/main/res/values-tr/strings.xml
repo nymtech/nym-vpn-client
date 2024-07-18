@@ -60,7 +60,7 @@
     <string name="credential_successful">Anahtar başarıyla eklendi</string>
     <string name="no_browser_detected">Tarayıcı bulunamadı</string>
     <string name="no_email_detected">E-posta uygulaması bulunamadı</string>
-    <string name="unknown">Bilinmeyen</string>
+    <string name="unknown">Tanımlanamayan</string>
     <string name="no_scm_found">Kaynak kodu URL\'si bulunamadı</string>
 	<string name="five_hop">5-hop</string>
     <string name="mode">Mod</string>
@@ -71,7 +71,7 @@
     <string name="anonymous_analytics">Anonim analizler</string>
     <string name="anonymous_analytics_description">NymVPN\'i geliştirmemize yardımcı olun</string>
     <string name="cont">Devam et</string>
-    <string name="welcome">Hoş geldiniz</string>
+    <string name="welcome">Merhaba</string>
     <string name="to_alpha">NymVPN alpha sürümüne</string>
     <string name="thanks_for_support">Destekleriniz için teşekkür ederiz!</string>
     <string name="opt_in_message_first">Anonim hata izleme için katıl</string>
@@ -91,7 +91,7 @@
     <string name="notification_permission_message">Uygulama kapalıyken VPN hizmetlerinin çalışması sağlanmalıdır.</string>
     <string name="scan_nym_vpn_credential">NymVPN anahtar QR kodunu tarayın</string>
     <string name="permission_required">İzin gereklidir</string>
-    <string name="five_hop_description">Ödemeler, e-postalar, mesajlar için en iyisi</string>
+    <string name="five_hop_description">Ödemeler, e-postalar, mesajlar için</string>
     <string name="enable_shortcuts">Uygulama kısayollarını etkinleştir</string>
     <string name="app_shortcuts">Uygulama kısayolları</string>
     <string name="country_load_failure">Hop ülkeleri yüklenemedi</string>
@@ -106,7 +106,7 @@
     <string name="error_reporting">Hata raporlarını anonim olarak paylaş</string>
     <string name="feedback">Geri bildirim</string>
     <string name="left">kaldı</string>
-    <string name="licenses">Lisans Bilgileri</string>
+    <string name="licenses">Lisanslar</string>
     <string name="entry_location_description">İlk hop seçimini manuel olarak yap</string>
     <string name="join_matrix">Matrix\'te bize katılın</string>
     <string name="permission_message">Cihazınızda uygulamanın doğru çalışmasını sağlamak için lütfen aşağıdaki izinleri kabul edin. Bu izinler, uygulamanın işlevini yerine getirebilmesi için gereklidir.</string>
