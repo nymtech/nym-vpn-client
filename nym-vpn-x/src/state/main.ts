@@ -39,6 +39,7 @@ export type StateAction =
   | { type: 'set-disconnected' }
   | { type: 'set-auto-connect'; autoConnect: boolean }
   | { type: 'set-monitoring'; monitoring: boolean }
+  | { type: 'set-desktop-notifications'; enabled: boolean }
   | { type: 'reset' }
   | { type: 'set-ui-theme'; theme: UiTheme }
   | { type: 'set-theme-mode'; mode: ThemeMode }
@@ -80,6 +81,7 @@ export const initialState: AppState = {
   progressMessages: [],
   autoConnect: false,
   monitoring: false,
+  desktopNotifications: true,
   // TODO ⚠ these should be set to 'Fastest' when the backend is ready
   entryNodeLocation: DefaultNodeCountry,
   // TODO ⚠ these should be set to 'Fastest' when the backend is ready
@@ -149,6 +151,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         monitoring: action.monitoring,
+      };
+    case 'set-desktop-notifications':
+      return {
+        ...state,
+        desktopNotifications: action.enabled,
       };
     case 'set-country-list':
       if (action.payload.hop === 'entry') {

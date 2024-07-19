@@ -177,6 +177,19 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     },
   };
 
+  const getDesktopNotificationsRq: TauriReq<
+    () => Promise<boolean | undefined>
+  > = {
+    name: 'getDesktopNotificationsRq',
+    request: () => kvGet<boolean>('DesktopNotifications'),
+    onFulfilled: (enabled) => {
+      dispatch({
+        type: 'set-desktop-notifications',
+        enabled: enabled || false,
+      });
+    },
+  };
+
   const getRootFontSizeRq: TauriReq<() => Promise<number | undefined>> = {
     name: 'getRootFontSize',
     request: () => kvGet<number>('UiRootFontSize'),
@@ -279,6 +292,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getWindowSizeRq,
     getWindowPositionRq,
     getOsRq,
+    getDesktopNotificationsRq,
   ]);
 }
 

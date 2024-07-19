@@ -44,8 +44,8 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
   const registerStateListener = useCallback(() => {
     return listen<ConnectionEventData>(ConnectionEvent, (event) => {
       if (event.payload.type === 'Failed') {
-        // TODO handle connection failed event
         console.log(`received event [${event.event}], connection failed`);
+        handleError(dispatch, event.payload);
         return;
       }
       console.log(

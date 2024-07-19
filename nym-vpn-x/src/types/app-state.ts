@@ -64,6 +64,7 @@ export type AppState = {
   entrySelector: boolean;
   autoConnect: boolean;
   monitoring: boolean;
+  desktopNotifications: boolean;
   entryNodeLocation: NodeLocation;
   exitNodeLocation: NodeLocation;
   fastestNodeLocation: Country;

@@ -13,7 +13,7 @@ tauri-build = { version = "1.5", features = [] }
 build-info-build = "0.0.37"
 
 [dependencies]
-tauri = { version = "1.7.1", features = [ "system-tray", "window-set-size", "os-all", "process-all", "shell-open"] }
+tauri = { version = "1.7.1", features = [ "notification-all", "system-tray", "window-set-size", "os-all", "process-all", "shell-open"] }
 tokio = { version = "1.33", features = ["rt", "sync", "time", "fs"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

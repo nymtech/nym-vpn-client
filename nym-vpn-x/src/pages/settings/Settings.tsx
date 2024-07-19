@@ -122,11 +122,31 @@ function Settings() {
           },
         ]}
       />
-      <SettingsMenuCard
-        title={t('display-theme')}
-        onClick={() => navigate(routes.display)}
-        leadingIcon="contrast"
-        trailingIcon="arrow_right"
+      <SettingsGroup
+        settings={[
+          {
+            title: t('display-theme'),
+            onClick: () => navigate(routes.display),
+            leadingIcon: 'contrast',
+            trailing: (
+              <MsIcon
+                icon="arrow_right"
+                className="dark:text-mercury-pinkish"
+              />
+            ),
+          },
+          {
+            title: t('notifications', { ns: 'common' }),
+            leadingIcon: 'notifications',
+            onClick: () => navigate(routes.notifications),
+            trailing: (
+              <MsIcon
+                icon="arrow_right"
+                className="dark:text-mercury-pinkish"
+              />
+            ),
+          },
+        ]}
       />
       <SettingsMenuCard
         title={t('logs')}
