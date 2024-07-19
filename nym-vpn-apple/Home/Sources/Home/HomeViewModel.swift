@@ -43,7 +43,7 @@ public class HomeViewModel: HomeFlowState {
 
     // If no time connected is shown, should be set to empty string,
     // so the time connected label would not disappear and re-center other UI elements.
-    @Published var timeConnected = " "
+    @MainActor @Published var timeConnected = " "
     @MainActor @Published var statusButtonConfig = StatusButtonConfig.disconnected
     @MainActor @Published var statusInfoState = StatusInfoState.initialising
     @MainActor @Published var connectButtonState = ConnectButtonState.connect
