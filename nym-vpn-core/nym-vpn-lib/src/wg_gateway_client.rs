@@ -4,7 +4,8 @@
 use crate::error::Result;
 use nym_authenticator_client::AuthClient;
 use nym_authenticator_requests::v1::response::{
-    AuthenticatorResponseData, PendingRegistrationResponse, RemainingBandwidthResponse,
+    AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
+    RemainingBandwidthResponse,
 };
 use nym_crypto::asymmetric::encryption;
 use nym_crypto::asymmetric::x25519::KeyPair;
@@ -119,43 +120,48 @@ impl WgGatewayClient {
             .auth_client
             .send(init_message, self.auth_recipient)
             .await?;
-        let AuthenticatorResponseData::PendingRegistration(PendingRegistrationResponse {
-            reply:
-                RegistrationData {
+        let registred_data = match response.data {
+            AuthenticatorResponseData::PendingRegistration(PendingRegistrationResponse {
+                reply:
+                    RegistrationData {
+                        nonce,
+                        gateway_data,
+                        ..
+                    },
+                ..
+            }) => {
+                // Unwrap since we have already checked that we have the keypair.
+                debug!("Verifying data");
+                gateway_data.verify(self.keypair.private_key(), nonce)?;
+
+                let finalized_message = ClientMessage::Final(GatewayClient::new(
+                    self.keypair.private_key(),
+                    gateway_data.pub_key().inner(),
+                    gateway_data.private_ip,
                     nonce,
-                    gateway_data,
-                    wg_port,
-                },
-            ..
-        }) = response.data
-        else {
-            return Err(crate::error::Error::InvalidGatewayAuthResponse);
+                ));
+                let response = self
+                    .auth_client
+                    .send(finalized_message, self.auth_recipient)
+                    .await?;
+                let AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) =
+                    response.data
+                else {
+                    return Err(crate::error::Error::InvalidGatewayAuthResponse);
+                };
+                reply
+            }
+            AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) => reply,
+            _ => return Err(crate::error::Error::InvalidGatewayAuthResponse),
         };
-        debug!("Received nonce: {}", nonce);
-        debug!("Received wg_port: {}", wg_port);
-        debug!("Received gateway data: {:?}", gateway_data);
 
-        // Unwrap since we have already checked that we have the keypair.
-        debug!("Verifying data");
-        gateway_data.verify(self.keypair.private_key(), nonce)?;
-
-        let finalized_message = ClientMessage::Final(GatewayClient::new(
-            self.keypair.private_key(),
-            gateway_data.pub_key().inner(),
-            gateway_data.private_ip,
-            nonce,
-        ));
-        let response = self
-            .auth_client
-            .send(finalized_message, self.auth_recipient)
-            .await?;
-        let AuthenticatorResponseData::Registered(_) = response.data else {
-            return Err(crate::error::Error::InvalidGatewayAuthResponse);
-        };
         let gateway_data = GatewayData {
-            public_key: PublicKey::from(gateway_data.pub_key().to_bytes()),
-            endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, wg_port))?,
-            private_ip: gateway_data.private_ip,
+            public_key: PublicKey::from(registred_data.pub_key.to_bytes()),
+            endpoint: SocketAddr::from_str(&format!(
+                "{}:{}",
+                gateway_host, registred_data.wg_port
+            ))?,
+            private_ip: registred_data.private_ip,
         };
 
         Ok(gateway_data)
