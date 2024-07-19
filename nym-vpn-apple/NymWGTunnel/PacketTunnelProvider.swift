@@ -2,13 +2,13 @@ import NetworkExtension
 import WireGuardKit
 import Tunnels
 import TunnelWG
-import Logging
+import NymLogger
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
-    private lazy var logger = Logger(label: "WireguardAdapter")
+    private lazy var logger = NymLogger(label: "WireGuardAdapter").logger
 
     private lazy var adapter: WireGuardAdapter = {
-        let wireguardLogger = Logger(label: "WireGuard")
+        let wireguardLogger = NymLogger(label: "WireGuard").logger
         return WireGuardAdapter(
             with: self,
             logHandler: { level, message in

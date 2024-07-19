@@ -232,6 +232,17 @@
         }
       }
     },
+    "copy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
+        }
+      }
+    },
     "darkThemeTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -327,6 +338,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong with the Gateway Directory"
+          }
+        }
+      }
+    },
+    "error.noLogFile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to create log file"
           }
         }
       }
@@ -657,6 +679,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Logs"
+          }
+        }
+      }
+    },
+    "logs.noLogs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No logs available"
           }
         }
       }
