@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { listen } from '@tauri-apps/api/event';
-import { ConnectionEvent } from '../constants';
+import { AppName, ConnectionEvent } from '../constants';
 import { useMainState } from '../contexts';
 import { useNotify } from '../hooks';
 import { routes } from '../router';
@@ -30,16 +30,21 @@ function MainLayout({
   const registerStateListener = useCallback(() => {
     return listen<ConnectionEventData>(ConnectionEvent, (event) => {
       if (event.payload.type === 'Failed') {
-        notify(t('vpn-tunnel-state.failed'), null, false, routes.root);
+        notify(t('vpn-tunnel-state.failed'), AppName, false, routes.root);
         return;
       }
 
       switch (event.payload.state) {
         case 'Connected':
-          notify(t('vpn-tunnel-state.connected'), null, false, routes.root);
+          notify(t('vpn-tunnel-state.connected'), AppName, false, routes.root);
           break;
         case 'Disconnected':
-          notify(t('vpn-tunnel-state.disconnected'), null, false, routes.root);
+          notify(
+            t('vpn-tunnel-state.disconnected'),
+            AppName,
+            false,
+            routes.root,
+          );
           break;
         default:
           break;
