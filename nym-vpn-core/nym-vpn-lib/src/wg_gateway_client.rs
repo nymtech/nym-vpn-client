@@ -38,12 +38,14 @@ pub struct GatewayData {
 pub struct WgGatewayClient {
     keypair: encryption::KeyPair,
     auth_client: AuthClient,
+    auth_recipient: Recipient,
 }
 
 impl WgGatewayClient {
     fn new_type(
         data_path: &Option<PathBuf>,
         auth_client: AuthClient,
+        auth_recipient: Recipient,
         private_file_name: &str,
         public_file_name: &str,
     ) -> Self {
@@ -57,54 +59,62 @@ impl WgGatewayClient {
             WgGatewayClient {
                 keypair,
                 auth_client,
+                auth_recipient,
             }
         } else {
             WgGatewayClient {
                 keypair: KeyPair::new(&mut rng),
                 auth_client,
+                auth_recipient,
             }
         }
     }
 
-    pub fn new_entry(data_path: &Option<PathBuf>, auth_client: AuthClient) -> Self {
+    pub fn new_entry(
+        data_path: &Option<PathBuf>,
+        auth_client: AuthClient,
+        auth_recipient: Recipient,
+    ) -> Self {
         Self::new_type(
             data_path,
             auth_client,
+            auth_recipient,
             DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME,
             DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME,
         )
     }
 
-    pub fn new_exit(data_path: &Option<PathBuf>, auth_client: AuthClient) -> Self {
+    pub fn new_exit(
+        data_path: &Option<PathBuf>,
+        auth_client: AuthClient,
+        auth_recipient: Recipient,
+    ) -> Self {
         Self::new_type(
             data_path,
             auth_client,
+            auth_recipient,
             DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME,
             DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME,
         )
-    }
-
-    pub fn new(keypair: encryption::KeyPair, auth_client: AuthClient) -> Self {
-        WgGatewayClient {
-            keypair,
-            auth_client,
-        }
     }
 
     pub fn keypair(&self) -> &encryption::KeyPair {
         &self.keypair
     }
 
-    pub async fn register_wireguard(
-        &mut self,
-        auth_recipient: Recipient,
-        gateway_host: IpAddr,
-    ) -> Result<GatewayData> {
+    pub fn auth_recipient(&self) -> Recipient {
+        self.auth_recipient
+    }
+
+    pub async fn register_wireguard(&mut self, gateway_host: IpAddr) -> Result<GatewayData> {
         debug!("Registering with the wg gateway...");
         let init_message = ClientMessage::Initial(InitMessage {
             pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
         });
-        let response = self.auth_client.send(init_message, auth_recipient).await?;
+        let response = self
+            .auth_client
+            .send(init_message, self.auth_recipient)
+            .await?;
         let AuthenticatorResponseData::PendingRegistration(PendingRegistrationResponse {
             reply:
                 RegistrationData {
@@ -133,7 +143,7 @@ impl WgGatewayClient {
         ));
         let response = self
             .auth_client
-            .send(finalized_message, auth_recipient)
+            .send(finalized_message, self.auth_recipient)
             .await?;
         let AuthenticatorResponseData::Registered(_) = response.data else {
             return Err(crate::error::Error::InvalidGatewayAPIResponse);

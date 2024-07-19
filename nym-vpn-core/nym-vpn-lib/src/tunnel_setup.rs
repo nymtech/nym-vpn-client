@@ -60,7 +60,6 @@ pub enum AllTunnelsSetup {
     Mix(TunnelSetup<MixTunnelSetup>),
     Wg {
         route_manager: RouteManager,
-        _mixnet_client: SharedMixnetClient,
         entry: TunnelSetup<WgTunnelSetup>,
         exit: TunnelSetup<WgTunnelSetup>,
         firewall: Firewall,
@@ -141,11 +140,6 @@ async fn setup_wg_tunnel(
     gateway_directory_client: GatewayClient,
     auth_addresses: AuthAddresses,
 ) -> Result<AllTunnelsSetup> {
-    let auth_client = AuthClient::new_from_inner(mixnet_client.inner()).await;
-    let mut wg_entry_gateway_client =
-        WgGatewayClient::new_entry(&nym_vpn.data_path, auth_client.clone());
-    let mut wg_exit_gateway_client = WgGatewayClient::new_exit(&nym_vpn.data_path, auth_client);
-    log::info!("Created wg gateway clients");
     // MTU is computed as (MTU of wire interface) - ((IP header size) + (UDP header size) + (WireGuard metadata size))
     // The IP header size is 20 for IPv4 and 40 for IPv6
     // The UDP header size is 8
@@ -161,18 +155,25 @@ async fn setup_wg_tunnel(
     else {
         return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
     };
+    let auth_client = AuthClient::new_from_inner(mixnet_client.inner()).await;
+    log::info!("Created wg gateway clients");
+    let mut wg_entry_gateway_client = WgGatewayClient::new_entry(
+        &nym_vpn.data_path,
+        auth_client.clone(),
+        entry_auth_recipient,
+    );
+    let mut wg_exit_gateway_client =
+        WgGatewayClient::new_exit(&nym_vpn.data_path, auth_client.clone(), exit_auth_recipient);
 
     let mut entry_wireguard_config = init_wireguard_config(
         &gateway_directory_client,
         &mut wg_entry_gateway_client,
-        entry_auth_recipient,
         entry_mtu,
     )
     .await?;
     let mut exit_wireguard_config = init_wireguard_config(
         &gateway_directory_client,
         &mut wg_exit_gateway_client,
-        exit_auth_recipient,
         exit_mtu,
     )
     .await?;
@@ -242,7 +243,6 @@ async fn setup_wg_tunnel(
 
     Ok(AllTunnelsSetup::Wg {
         route_manager,
-        _mixnet_client: mixnet_client,
         entry,
         exit,
         firewall,
