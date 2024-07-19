@@ -49,7 +49,7 @@ function Notifications() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col py-6 gap-6">
+    <PageAnim className="h-full flex flex-col mt-2 gap-6">
       <SettingsMenuCard
         title={t('notifications.title')}
         onClick={handleNotificationsChange}

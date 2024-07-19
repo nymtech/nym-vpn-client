@@ -203,12 +203,7 @@ function Settings() {
         onClick={() => navigate(routes.legal)}
         trailingIcon="arrow_right"
       />
-      <SettingsMenuCard
-        title={t('quit')}
-        onClick={() => {
-          exit();
-        }}
-      />
+      <SettingsMenuCard title={t('quit')} onClick={exit} />
       <div className="flex grow flex-col justify-end text-comet text-sm tracking-tight leading-tight mb-4">
         Version {version}
       </div>
