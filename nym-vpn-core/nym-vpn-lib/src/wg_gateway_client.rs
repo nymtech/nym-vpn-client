@@ -4,7 +4,7 @@
 use crate::error::Result;
 use nym_authenticator_client::AuthClient;
 use nym_authenticator_requests::v1::response::{
-    AuthenticatorResponseData, PendingRegistrationResponse,
+    AuthenticatorResponseData, PendingRegistrationResponse, RemainingBandwidthResponse,
 };
 use nym_crypto::asymmetric::encryption;
 use nym_crypto::asymmetric::x25519::KeyPair;
@@ -13,6 +13,7 @@ use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, InitMessage, PeerPublicKey,
 };
 use nym_pemstore::KeyPairPath;
+use nym_sdk::TaskClient;
 use nym_wireguard_types::registration::RegistrationData;
 use nym_wireguard_types::GatewayClient;
 use rand::rngs::OsRng;
@@ -20,13 +21,16 @@ use rand::{CryptoRng, RngCore};
 use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
 use std::str::FromStr;
+use std::time::Duration;
 use talpid_types::net::wireguard::PublicKey;
-use tracing::debug;
+use tokio_stream::StreamExt;
+use tracing::*;
 
 const DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME: &str = "private_entry_wireguard.pem";
 const DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME: &str = "public_entry_wireguard.pem";
 const DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME: &str = "private_exit_wireguard.pem";
 const DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME: &str = "public_exit_wireguard.pem";
+const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(60); // 1 minute
 
 #[derive(Clone, Debug)]
 pub struct GatewayData {
@@ -125,7 +129,7 @@ impl WgGatewayClient {
             ..
         }) = response.data
         else {
-            return Err(crate::error::Error::InvalidGatewayAPIResponse);
+            return Err(crate::error::Error::InvalidGatewayAuthResponse);
         };
         debug!("Received nonce: {}", nonce);
         debug!("Received wg_port: {}", wg_port);
@@ -146,7 +150,7 @@ impl WgGatewayClient {
             .send(finalized_message, self.auth_recipient)
             .await?;
         let AuthenticatorResponseData::Registered(_) = response.data else {
-            return Err(crate::error::Error::InvalidGatewayAPIResponse);
+            return Err(crate::error::Error::InvalidGatewayAuthResponse);
         };
         let gateway_data = GatewayData {
             public_key: PublicKey::from(gateway_data.pub_key().to_bytes()),
@@ -156,6 +160,64 @@ impl WgGatewayClient {
 
         Ok(gateway_data)
     }
+
+    async fn query_bandwidth(&mut self) -> Result<()> {
+        let query_message = ClientMessage::Query(PeerPublicKey::new(
+            self.keypair.public_key().to_bytes().into(),
+        ));
+        let response = self
+            .auth_client
+            .send(query_message, self.auth_recipient)
+            .await?;
+
+        let AuthenticatorResponseData::RemainingBandwidth(RemainingBandwidthResponse {
+            reply: Some(remaining_bandwidth_data),
+            ..
+        }) = response.data
+        else {
+            return Err(crate::error::Error::InvalidGatewayAuthResponse);
+        };
+
+        if remaining_bandwidth_data.suspended {
+            warn!("Wireguard access to gateway {} is suspended until tomorrow, UTC time. The client will shutdown", self.auth_recipient.gateway());
+        } else {
+            let remaining_pretty = if remaining_bandwidth_data.available_bandwidth > 1024 * 1024 {
+                format!(
+                    "{} MB",
+                    remaining_bandwidth_data.available_bandwidth as f64 / 1024.0 / 1024.0
+                )
+            } else {
+                format!("{} KB", remaining_bandwidth_data.available_bandwidth / 1024)
+            };
+            info!(
+                "Remaining wireguard bandwidth for today: {}",
+                remaining_pretty
+            );
+            if remaining_bandwidth_data.available_bandwidth < 1024 * 1024 {
+                warn!("Remaining bandwidth is under 1 MB. The wireguard mode will get suspended after that until tomorrow, UTC time. The client might shutdown with timeout soon");
+            }
+        }
+
+        Ok(())
+    }
+
+    pub async fn run(mut self, mut shutdown: TaskClient) {
+        let mut timeout_check_interval = tokio_stream::wrappers::IntervalStream::new(
+            tokio::time::interval(DEFAULT_BANDWIDTH_CHECK),
+        );
+        while !shutdown.is_shutdown() {
+            tokio::select! {
+                _ = shutdown.recv_with_delay() => {
+                    trace!("WgGatewayClient: Received shutdown");
+                }
+                _ = timeout_check_interval.next() => {
+                    if let Err(e) = self.query_bandwidth().await {
+                        error!("Error querying remaining bandwidth {:?}", e);
+                    }
+                }
+            }
+        }
+    }
 }
 
 fn load_or_generate_keypair<R: RngCore + CryptoRng>(rng: &mut R, paths: KeyPairPath) -> KeyPair {
@@ -164,10 +226,9 @@ fn load_or_generate_keypair<R: RngCore + CryptoRng>(rng: &mut R, paths: KeyPairP
         Err(_) => {
             let keypair = KeyPair::new(rng);
             if let Err(e) = nym_pemstore::store_keypair(&keypair, &paths) {
-                log::error!(
+                error!(
                     "could not store generated keypair at {:?} - {:?}; will use ephemeral keys",
-                    paths,
-                    e
+                    paths, e
                 );
             }
             keypair

@@ -224,8 +224,8 @@ pub enum Error {
     #[error("received bad event for wireguard tunnel creation")]
     BadWireguardEvent,
 
-    #[error("received invalid response from gateway API")]
-    InvalidGatewayAPIResponse,
+    #[error("received invalid response from gateway authenticator")]
+    InvalidGatewayAuthResponse,
 
     #[error(transparent)]
     AuthenticatorClientError(#[from] nym_authenticator_client::Error),
