@@ -177,6 +177,10 @@ async fn setup_wg_tunnel(
         exit_mtu,
     )
     .await?;
+    tokio::spawn(
+        wg_entry_gateway_client.run(task_manager.subscribe_named("bandwidth_entry_client")),
+    );
+    tokio::spawn(wg_exit_gateway_client.run(task_manager.subscribe_named("bandwidth_exit_client")));
     entry_wireguard_config.0.peers.iter_mut().for_each(|peer| {
         peer.allowed_ips.append(
             &mut exit_wireguard_config

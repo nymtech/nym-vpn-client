@@ -190,7 +190,8 @@ impl WgGatewayClient {
                 format!("{} KB", remaining_bandwidth_data.available_bandwidth / 1024)
             };
             info!(
-                "Remaining wireguard bandwidth for today: {}",
+                "Remaining wireguard bandwidth with gateway {} for today: {}",
+                self.auth_recipient.gateway(),
                 remaining_pretty
             );
             if remaining_bandwidth_data.available_bandwidth < 1024 * 1024 {

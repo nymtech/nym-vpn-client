@@ -54,8 +54,8 @@ rust_iso3166 = "0.1"
 # nym deps
 nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto" }
 nym-gateway-directory = { path = "../../nym-vpn-core/crates/nym-gateway-directory/" }
-nym-config = { git = "https://github.com/nymtech/nym", rev = "90fa20cbc46423f5f13df5c727de0827883bdcc5" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "90fa20cbc46423f5f13df5c727de0827883bdcc5" }
+nym-config = { git = "https://github.com/nymtech/nym", rev = "4b51470e2462125fc138272990fc96798e1990a9" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "4b51470e2462125fc138272990fc96798e1990a9" }
 
 [target."cfg(windows)".dependencies]
 windows = { version = "0.57.0", features = [
