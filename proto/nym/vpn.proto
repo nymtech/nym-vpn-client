@@ -109,7 +109,7 @@ message ConnectionStatusUpdate {
     // NOTE: currently not implemented by vpnd
     EXIT_ROUTER_CONNECTION_ESTABLISHED = 3;
 
-    // End-to-end tunnel establised and operational
+    // End-to-end tunnel established and operational
     TUNNEL_END_TO_END_CONNECTION_ESTABLISHED = 4;
 
     // Entry gateway not routing our mixnet messages

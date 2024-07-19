@@ -64,6 +64,7 @@ export type AppState = {
   entrySelector: boolean;
   autoConnect: boolean;
   monitoring: boolean;
+  desktopNotifications: boolean;
   entryNodeLocation: NodeLocation;
   exitNodeLocation: NodeLocation;
   fastestNodeLocation: Country;
@@ -83,6 +84,10 @@ export type AppState = {
   fetchExitCountries: FetchCountriesFn;
   os: OsType;
 };
+
+export type ConnectionEvent =
+  | ({ type: 'Update' } & ConnectionEventPayload)
+  | ({ type: 'Failed' } & (BackendError | null));
 
 export type ConnectionEventPayload = {
   state: ConnectionState;

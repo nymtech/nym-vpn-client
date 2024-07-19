@@ -24,7 +24,8 @@ export type DbKey =
   | 'WindowSize'
   | 'WindowPosition'
   | 'WelcomeScreenSeen'
-  | 'CredentialExpiry';
+  | 'CredentialExpiry'
+  | 'DesktopNotifications';
 
 export type BkdErrorKey =
   | 'UnknownError'

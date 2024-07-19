@@ -1,0 +1,7 @@
+{
+  "vpn-tunnel-state": {
+    "connected": "VPN tunnel connected",
+    "disconnected": "VPN tunnel disconnected",
+    "failed": "VPN tunnel connection failed!"
+  }
+}

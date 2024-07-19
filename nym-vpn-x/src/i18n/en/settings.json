@@ -14,6 +14,9 @@
     "title": "Anonymous error reports",
     "desc": "applies on app restart"
   },
+  "notifications": {
+    "title": "Desktop notifications"
+  },
   "monitoring-alert": "You must restart the app for the change to take effect.",
   "feedback": {
     "title": "Feedback",

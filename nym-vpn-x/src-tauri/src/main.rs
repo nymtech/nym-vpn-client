@@ -171,25 +171,35 @@ async fn main() -> Result<()> {
             let handle = app.handle();
             let c_grpc = grpc.clone();
             tokio::spawn(async move {
-                info!("starting vpnd health watch");
+                info!("starting vpnd health spy");
                 loop {
                     c_grpc.watch(&handle).await.ok();
                     sleep(VPND_RETRY_INTERVAL).await;
-                    debug!("vpnd health watch retry");
+                    debug!("vpnd health spy retry");
                 }
             });
 
             let handle = app.handle();
             let c_grpc = grpc.clone();
             tokio::spawn(async move {
-                info!("starting vpn status watch");
+                info!("starting vpn status spy");
                 loop {
                     if c_grpc.refresh_vpn_status(&handle).await.is_ok() {
                         c_grpc.watch_vpn_state(&handle).await.ok();
-                        c_grpc.watch_vpn_status().await.ok();
                     }
                     sleep(VPND_RETRY_INTERVAL).await;
-                    debug!("vpn status watch retry");
+                    debug!("vpn status spy retry");
+                }
+            });
+
+            let handle = app.handle();
+            let c_grpc = grpc.clone();
+            tokio::spawn(async move {
+                info!("starting vpn connection updates spy");
+                loop {
+                    c_grpc.watch_vpn_connection_updates(&handle).await.ok();
+                    sleep(VPND_RETRY_INTERVAL).await;
+                    debug!("vpn connection updates spy retry");
                 }
             });
 

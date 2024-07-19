@@ -12,6 +12,7 @@ import {
   LicenseList,
   MainLayout,
   NodeLocation,
+  Notifications,
   Settings,
   SettingsRouteIndex,
   Support,
@@ -26,6 +27,7 @@ export const routes = {
   credential: '/credential',
   settings: '/settings',
   display: '/settings/display',
+  notifications: '/settings/notifications',
   logs: '/settings/logs',
   feedback: '/settings/feedback',
   feedbackSend: '/settings/feedback/send',
@@ -73,6 +75,11 @@ const router = createRouterFn([
           {
             path: routes.display,
             element: <Display />,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.notifications,
+            element: <Notifications />,
             errorElement: <Error />,
           },
           {

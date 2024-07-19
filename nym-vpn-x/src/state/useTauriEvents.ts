@@ -11,7 +11,7 @@ import { kvSet } from '../kvStore';
 import {
   AppState,
   BackendError,
-  ConnectionEventPayload,
+  ConnectionEvent as ConnectionEventData,
   DaemonStatus,
   ProgressEventPayload,
   StateDispatch,
@@ -33,7 +33,7 @@ function handleError(dispatch: StateDispatch, error?: BackendError | null) {
 export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
   const registerDaemonListener = useCallback(() => {
     return listen<DaemonStatus>(DaemonEvent, (event) => {
-      console.log(`received event ${event.event}, status: ${event.payload}`);
+      console.log(`received event [${event.event}], status: ${event.payload}`);
       dispatch({
         type: 'set-daemon-status',
         status: event.payload,
@@ -42,9 +42,14 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
   }, [dispatch]);
 
   const registerStateListener = useCallback(() => {
-    return listen<ConnectionEventPayload>(ConnectionEvent, (event) => {
+    return listen<ConnectionEventData>(ConnectionEvent, (event) => {
+      if (event.payload.type === 'Failed') {
+        console.log(`received event [${event.event}], connection failed`);
+        handleError(dispatch, event.payload);
+        return;
+      }
       console.log(
-        `received event ${event.event}, state: ${event.payload.state}`,
+        `received event [${event.event}], state: ${event.payload.state}`,
       );
       switch (event.payload.state) {
         case 'Connected':
@@ -78,7 +83,7 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
   const registerProgressListener = useCallback(() => {
     return listen<ProgressEventPayload>(ProgressEvent, (event) => {
       console.log(
-        `received event ${event.event}, message: ${event.payload.key}`,
+        `received event [${event.event}], message: ${event.payload.key}`,
       );
       dispatch({
         type: 'new-progress-message',

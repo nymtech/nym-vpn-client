@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMainState } from '../../contexts';
+import { setToString } from '../../helpers';
 import { AnimateIn } from '../../ui';
 import { useI18nError } from '../../hooks';
 import ConnectionBadge from './ConnectionBadge';
@@ -60,6 +61,11 @@ function ConnectionStatus() {
             <p className="text-sm text-teaberry font-bold">
               {state.error.key ? tE(state.error.key) : state.error.message}
             </p>
+            {state.error.data && (
+              <p className="text-sm text-teaberry font-bold text-left">
+                {setToString(state.error.data)}
+              </p>
+            )}
           </AnimateIn>
         )}
       </div>

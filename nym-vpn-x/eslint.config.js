@@ -65,6 +65,12 @@ export default [
       '@typescript-eslint/restrict-template-expressions': 0,
       '@typescript-eslint/use-unknown-in-catch-callback-variable': 'error',
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+      '@typescript-eslint/no-misused-promises': [
+        'error',
+        {
+          checksVoidReturn: false,
+        },
+      ],
       // TODO enable these rules once ESLint 9 ready
       // 'import/first': 'error',
       // 'import/order': [
