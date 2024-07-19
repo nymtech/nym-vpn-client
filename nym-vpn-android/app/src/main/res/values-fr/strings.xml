@@ -24,7 +24,7 @@
     <string name="light_theme">Apparence claire</string>
     <string name="dark_theme">Apparence sombre</string>
     <string name="automatic">Automatique</string>
-    <string name="device_theme">Apparence de l\'appareil</string>
+    <string name="device_theme">Utiliser le thème de l\'appareil</string>
     <string name="search">Recherche</string>
     <string name="search_country">Rechercher un pays</string>
     <string name="is_selected">Sélectionné</string>
