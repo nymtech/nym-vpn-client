@@ -129,7 +129,7 @@ impl AuthClient {
         let mut mixnet_client_handle = self.mixnet_client.lock().await;
         let mixnet_client = mixnet_client_handle.as_mut().unwrap();
 
-        let timeout = tokio::time::sleep(Duration::from_secs(5));
+        let timeout = tokio::time::sleep(Duration::from_secs(10));
         tokio::pin!(timeout);
 
         loop {

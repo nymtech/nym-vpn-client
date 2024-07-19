@@ -183,7 +183,7 @@ impl WgGatewayClient {
         } else {
             let remaining_pretty = if remaining_bandwidth_data.available_bandwidth > 1024 * 1024 {
                 format!(
-                    "{} MB",
+                    "{:.2} MB",
                     remaining_bandwidth_data.available_bandwidth as f64 / 1024.0 / 1024.0
                 )
             } else {
@@ -206,6 +206,8 @@ impl WgGatewayClient {
         let mut timeout_check_interval = tokio_stream::wrappers::IntervalStream::new(
             tokio::time::interval(DEFAULT_BANDWIDTH_CHECK),
         );
+        // Skip the first, immediate tick
+        timeout_check_interval.next().await;
         while !shutdown.is_shutdown() {
             tokio::select! {
                 _ = shutdown.recv_with_delay() => {
