@@ -20,5 +20,6 @@
   "ui-mode": {
     "dark": "Modo oscuro",
     "light": "Modo claro"
-  }
+  },
+  "notifications": "Notificaciones"
 }
