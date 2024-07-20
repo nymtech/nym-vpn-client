@@ -72,7 +72,7 @@
     <string name="anonymous_analytics">Anonim analizler</string>
     <string name="anonymous_analytics_description">NymVPN\'i geliştirmemize yardımcı olun</string>
     <string name="cont">Devam et</string>
-    <string name="welcome">Merhaba</string>
+    <string name="welcome">Hoş geldiniz</string>
     <string name="to_alpha">NymVPN alpha sürümüne</string>
     <string name="thanks_for_support">Destekleriniz için teşekkür ederiz!</string>
     <string name="opt_in_message_first">Anonim hata izleme için katıl</string>
