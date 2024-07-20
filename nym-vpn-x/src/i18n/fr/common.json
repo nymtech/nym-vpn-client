@@ -20,5 +20,6 @@
   "vpn-modes": {
     "privacy": "Anonyme",
     "fast": "Rapide"
-  }
+  },
+  "notifications": "Notifications"
 }
