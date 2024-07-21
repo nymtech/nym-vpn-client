@@ -18,9 +18,9 @@
     "text": "Connexion rapide vers ({{country}})"
   },
   "snackbar-disabled-message": {
-    "connected": "Désactivé pendant la connexion",
-    "disconnecting": "Désactivé pendant la déconnexion du réseau",
-    "connecting": "Désactivé pendant la connexion au réseau"
+    "connected": "Désactivé lors de la connexion au VPN",
+    "disconnecting": "Désactivé lors de la déconnexion du VPN",
+    "connecting": "Désactivé lors de la connexion au VPN"
   },
   "privacy-mode": {
     "title": "Anonyme",
