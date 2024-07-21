@@ -8,10 +8,12 @@ import kotlinx.coroutines.flow.map
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.VpnMode
 import timber.log.Timber
 import java.time.Instant
+import java.util.Locale
 
 class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager) :
 	SettingsRepository {
@@ -28,6 +30,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val analyticsShown = booleanPreferencesKey("ANALYTICS_SHOWN")
 	private val applicationShortcuts = booleanPreferencesKey("APPLICATION_SHORTCUTS")
 	private val credentialExpiry = longPreferencesKey("CREDENTIAL_EXPIRY")
+	private val locale = stringPreferencesKey("LOCALE")
 
 	override suspend fun init() {
 		val firstHop = dataStoreManager.getFromStore(firstHopCountry)

@@ -10,10 +10,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.AppShortcut
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.ViewQuilt
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -160,7 +162,17 @@ fun SettingsScreen(
 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 						)
 					},
+
 				),
+				SelectionItem(
+					Icons.AutoMirrored.Outlined.ViewQuilt,
+					title = { Text(stringResource(R.string.appearance), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					onClick = { navController.navigate(NavItem.Settings.Appearance.route) },
+				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.two),
 					{
@@ -176,30 +188,11 @@ fun SettingsScreen(
 					},
 					title = {
 						Text(
-							stringResource(R.string.first_hop_selection),
+							stringResource(R.string.entry_location_selector),
 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 						)
 					},
-					description = {
-						Text(
-							stringResource(id = R.string.entry_location_description),
-							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-						)
-					},
 				),
-			),
-		)
-		SurfaceSelectionGroupButton(
-			listOf(
-				SelectionItem(
-					ImageVector.vectorResource(R.drawable.contrast),
-					title = { Text(stringResource(R.string.display_theme), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(NavItem.Settings.Display.route) },
-				),
-			),
-		)
-		SurfaceSelectionGroupButton(
-			listOf(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.logs),
 					title = { Text(stringResource(R.string.logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },

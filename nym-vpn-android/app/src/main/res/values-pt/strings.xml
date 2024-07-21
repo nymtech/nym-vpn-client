@@ -18,8 +18,7 @@
     <string name="establishing_connection">Estabelecendo conexão</string>
     <string name="connection_time">Tempo de Conexão</string>
     <string name="connect_to">Conectar ao</string>
-    <string name="first_hop_selection">Seleção do primeiro salto</string>
-    <string name="last_hop_selection">Seleção do último salto</string>
+	<string name="last_hop_selection">Seleção do último salto</string>
     <string name="display_theme">Tema da Tela</string>
     <string name="light_theme">Tema claro</string>
     <string name="dark_theme">Tema escuro</string>
@@ -31,8 +30,7 @@
     <string name="fastest">Mais rápido</string>
     <string name="auto_connect">Conexão Automática</string>
     <string name="auto_connect_description">Conexão Automática ao reiniciar</string>
-    <string name="entry_location_description">Selecione manualmente seu primeiro salto</string>
-    <string name="logs">Logs</string>
+	<string name="logs">Logs</string>
     <string name="feedback">Feedback</string>
     <string name="support">Suporte</string>
     <string name="error_reporting">Compartilhe o relatório de erros anonimamente</string>
@@ -40,8 +38,7 @@
     <string name="via">via</string>
     <string name="required_app_restart">aplique ao reiniciar</string>
     <string name="legal">Legal</string>
-    <string name="faq_link" translatable="false">https://nymtech.net</string>
-    <string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
+	<string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
     <string name="terms_of_use">Termos de uso</string>
     <string name="privacy_policy">Declaração de Privacidade</string>
     <string name="licenses">Licenças</string>
@@ -83,8 +80,7 @@
     <string name="unknown">Desconhecido</string>
     <string name="no_scm_found">Url do código de origem não encontrada</string>
     <string name="terms_link" translatable="false">https://nymvpn.com/en/terms</string>
-    <string name="two_hop">2-laços</string>
-    <string name="five_hop">5-laços</string>
+	<string name="five_hop">5-laços</string>
     <string name="mode">Modo</string>
     <string name="okay">Okay</string>
     <string name="error_reporting_alert">Mudanças para o relatório de erros não terão efeito completo até o aplicativo ser reiniciado.</string>

@@ -39,6 +39,7 @@ android {
 			Constants.SENTRY_DSN,
 			"\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\"",
 		)
+		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languageList().joinToString(separator = ", ") { "\"$it\"" }} }")
 		buildConfigField("Boolean", "IS_SANDBOX", "false")
 		proguardFile("fdroid-rules.pro")
 	}
@@ -199,11 +200,13 @@ dependencies {
 
 	implementation(project(":nym_vpn_client"))
 	implementation(project(":logcat_helper"))
+	implementation(libs.androidx.lifecycle.process)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 
 	implementation(libs.androidx.core.ktx)
 	implementation(libs.androidx.lifecycle.runtime.ktx)
 	implementation(libs.androidx.activity.compose)
+	implementation(libs.androidx.appcompat)
 	implementation(libs.androidx.material.icons.extended)
 	implementation(platform(libs.androidx.compose.bom))
 	implementation(libs.androidx.ui)

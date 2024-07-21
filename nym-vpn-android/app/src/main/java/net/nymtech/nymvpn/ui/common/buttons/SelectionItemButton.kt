@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.util.scaledHeight
 
 @Composable
-fun SelectionItemButton(leading: @Composable () -> Unit, buttonText: String, trailing: (@Composable () -> Unit)? = null, onClick: () -> Unit) {
+fun SelectionItemButton(leading: (@Composable () -> Unit)? = null, buttonText: String, trailing: (@Composable () -> Unit)? = null, onClick: () -> Unit) {
 	Card(
 		modifier =
 		Modifier.clip(RoundedCornerShape(8.dp))
@@ -39,9 +40,11 @@ fun SelectionItemButton(leading: @Composable () -> Unit, buttonText: String, tra
 		Row(
 			verticalAlignment = Alignment.CenterVertically,
 			horizontalArrangement = Arrangement.Start,
-			modifier = Modifier.fillMaxWidth(),
+			modifier = Modifier.fillMaxSize(),
 		) {
-			leading()
+			leading?.let {
+				it()
+			}
 			Text(
 				buttonText,
 				style = MaterialTheme.typography.bodyLarge,

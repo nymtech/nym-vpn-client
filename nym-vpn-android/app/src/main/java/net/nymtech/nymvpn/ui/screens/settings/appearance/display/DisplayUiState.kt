@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.settings.display
+package net.nymtech.nymvpn.ui.screens.settings.appearance.display
 
 import net.nymtech.nymvpn.ui.theme.Theme
 

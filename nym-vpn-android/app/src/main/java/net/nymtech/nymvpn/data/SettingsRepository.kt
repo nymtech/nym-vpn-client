@@ -6,6 +6,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.VpnMode
 import java.time.Instant
+import java.util.Locale
 
 interface SettingsRepository {
 

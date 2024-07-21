@@ -21,6 +21,8 @@ enum class Screen {
 	LICENSES,
 	ANALYTICS,
 	PERMISSION,
+	LANGUAGE,
+	APPEARANCE,
 }
 
 enum class HopType {
@@ -30,8 +32,8 @@ enum class HopType {
 
 	fun hopTitle(): StringValue {
 		return when (this) {
-			FIRST -> StringValue.StringResource(R.string.first_hop_selection)
-			LAST -> StringValue.StringResource(R.string.last_hop_selection)
+			FIRST -> StringValue.StringResource(R.string.entry_location)
+			LAST -> StringValue.StringResource(R.string.exit_location)
 		}
 	}
 }
@@ -59,11 +61,6 @@ sealed class NavItem(
 
 	data object Settings :
 		NavItem(Screen.SETTINGS.name, StringValue.StringResource(R.string.settings), backIcon) {
-		data object Display : NavItem(
-			"${Screen.SETTINGS.name}/${Screen.DISPLAY.name}",
-			StringValue.StringResource(R.string.display_theme),
-			backIcon,
-		)
 
 		data object Logs : NavItem(
 			"${Screen.SETTINGS.name}/${Screen.LOGS.name}",
@@ -106,6 +103,23 @@ sealed class NavItem(
 			StringValue.StringResource(R.string.credential),
 			backIcon,
 		)
+
+		data object Appearance : NavItem(
+			"${Screen.SETTINGS.name}/${Screen.APPEARANCE.name}",
+			StringValue.StringResource(R.string.appearance),
+			backIcon
+		) {
+			data object Display : NavItem(
+				"${Screen.SETTINGS.name}/${Screen.APPEARANCE.name}/${Screen.DISPLAY.name}",
+				StringValue.StringResource(R.string.display_theme),
+				backIcon,
+			)
+			data object Language : NavItem(
+				"${Screen.SETTINGS.name}/${Screen.APPEARANCE.name}/${Screen.LANGUAGE.name}",
+				StringValue.StringResource(R.string.language),
+				backIcon,
+			)
+		}
 	}
 
 	sealed class Hop {
@@ -128,13 +142,16 @@ sealed class NavItem(
 				Settings.route -> Settings
 				Hop.Entry.route -> Hop.Entry
 				Hop.Exit.route -> Hop.Exit
-				Settings.Display.route -> Settings.Display
+				Settings.Appearance.Display.route -> Settings.Appearance.Display
 				Settings.Logs.route -> Settings.Logs
 				Settings.Support.route -> Settings.Support
 				Settings.Feedback.route -> Settings.Feedback
 				Settings.Legal.route -> Settings.Legal
 				Settings.Credential.route -> Settings.Credential
 				Settings.Account.route -> Settings.Account
+				Settings.Appearance.route -> Settings.Appearance
+				Settings.Appearance.Display.route -> Settings.Appearance.Display
+				Settings.Appearance.Language.route -> Settings.Appearance.Language
 				Settings.Legal.Licenses.route -> Settings.Legal.Licenses
 				else -> Main
 			}
