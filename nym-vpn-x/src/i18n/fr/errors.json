@@ -19,7 +19,7 @@
     "no-valid-credential": "Pas d'identifiant valide, ajoutez un identifiant et réessayez"
   },
   "countries-request": {
-    "entry": "Échec de la récupération des nœuds d'entrée",
-    "exit": "Échec de la récupération des nœuds de sortie"
+    "entry": "Échec de la recherche des pays de nœuds d'entrée disponibles",
+    "exit": "Échec de la recherche des pays de nœuds de sortie disponibles"
   }
 }
