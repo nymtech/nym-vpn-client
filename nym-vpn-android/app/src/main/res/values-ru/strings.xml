@@ -42,7 +42,7 @@
     <string name="settings">Настройки</string>
     <string name="disconnecting">Отключение</string>
     <string name="join_discord">Присоединяйтесь к нам в Discord</string>
-    <string name="five_hop_description">Лучший для платежей, писем и переписок</string>
+    <string name="five_hop_description">Для платежей, писем и переписок</string>
     <string name="email_chooser">Напишите нам…</string>
     <string name="two_hop_description">Лучший для просмотра страниц, стриминга, обмена файлами</string>
     <string name="search_country">Выбрать страну</string>
