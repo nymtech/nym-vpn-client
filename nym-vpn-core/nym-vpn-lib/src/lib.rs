@@ -503,7 +503,7 @@ impl SpecificVpn {
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
-            AllTunnelsSetup::Mix(TunnelSetup { specific_setup, .. }) => {
+            AllTunnelsSetup::Mix(_) => {
                 wait_for_interrupt(task_manager).await;
                 handle_interrupt(route_manager, None)
                     .await
