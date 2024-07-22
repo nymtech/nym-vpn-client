@@ -4839,7 +4839,6 @@ dependencies = [
  "eventlog",
  "futures",
  "http 0.2.12",
- "log",
  "maplit",
  "nym-bandwidth-controller",
  "nym-task",
