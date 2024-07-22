@@ -8,13 +8,13 @@ import android.os.StrictMode.ThreadPolicy
 import android.service.quicksettings.TileService
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
-import com.zaneschepke.localization_util.LocaleStorage
-import com.zaneschepke.localization_util.LocaleUtil
+import com.zaneschepke.localizationutil.LocaleStorage
+import com.zaneschepke.localizationutil.LocaleUtil
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import net.nymtech.logcathelper.LogCollect
+import net.nymtech.logcatutil.LogCollect
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.service.tile.VpnQuickTile

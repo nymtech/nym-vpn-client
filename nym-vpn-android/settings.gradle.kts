@@ -23,6 +23,6 @@ dependencyResolutionManagement {
 rootProject.name = "NymVPN"
 
 include(":app")
-include(":nym_vpn_client")
-include(":logcat_helper")
-include(":localization_util")
+include(":nym-vpn-client")
+include(":logcat-util")
+include(":localization-util")

@@ -31,8 +31,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.zaneschepke.localization_util.LocaleStorage
-import com.zaneschepke.localization_util.LocaleUtil
+import com.zaneschepke.localizationutil.LocaleStorage
+import com.zaneschepke.localizationutil.LocaleUtil
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay

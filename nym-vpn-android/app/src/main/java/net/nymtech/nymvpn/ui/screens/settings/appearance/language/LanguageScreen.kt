@@ -15,9 +15,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.zaneschepke.localization_util.LocaleStorage
-import com.zaneschepke.localization_util.LocaleUtil
-import net.nymtech.nymvpn.BuildConfig
+import com.zaneschepke.localizationutil.LocaleStorage
+import com.zaneschepke.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
