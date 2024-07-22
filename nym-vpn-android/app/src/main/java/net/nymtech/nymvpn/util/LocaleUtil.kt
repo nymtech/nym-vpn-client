@@ -21,19 +21,19 @@ object LocaleUtil {
 	 * else it returns the locale code e.g. "en", "bn" etc.
 	 */
 	private fun getLocaleFromPrefCode(prefCode: String): Locale {
-		val localeCode = if(prefCode != OPTION_PHONE_LANGUAGE) {
+		val localeCode = if (prefCode != OPTION_PHONE_LANGUAGE) {
 			prefCode
 		} else {
 			val systemLang = ConfigurationCompat.getLocales(Resources.getSystem().configuration).get(0)?.language ?: DEFAULT_LANG
 			val deviceLanguages: LocaleListCompat = ConfigurationCompat.getLocales(Resources.getSystem().configuration)
 			Timber.d(deviceLanguages.toLanguageTags())
-			if(systemLang in supportedLocales){
+			if (systemLang in supportedLocales) {
 				systemLang
 			} else {
 				DEFAULT_LANG
 			}
 		}
-		return Locale(localeCode)
+		return Locale.forLanguageTag(localeCode)
 	}
 
 	fun getLocalizedConfiguration(prefLocaleCode: String): Configuration {
@@ -57,7 +57,7 @@ object LocaleUtil {
 	}
 
 	fun getLocalizedContext(baseContext: Context, prefLocaleCode: String?): Context {
-		if(prefLocaleCode == null) return baseContext
+		if (prefLocaleCode == null) return baseContext
 		val currentLocale = getLocaleFromPrefCode(prefLocaleCode)
 		val baseLocale = getLocaleFromConfiguration(baseContext.resources.configuration)
 		Locale.setDefault(currentLocale)

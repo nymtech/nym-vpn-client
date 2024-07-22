@@ -107,7 +107,7 @@ sealed class NavItem(
 		data object Appearance : NavItem(
 			"${Screen.SETTINGS.name}/${Screen.APPEARANCE.name}",
 			StringValue.StringResource(R.string.appearance),
-			backIcon
+			backIcon,
 		) {
 			data object Display : NavItem(
 				"${Screen.SETTINGS.name}/${Screen.APPEARANCE.name}/${Screen.DISPLAY.name}",

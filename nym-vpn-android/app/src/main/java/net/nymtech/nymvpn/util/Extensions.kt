@@ -137,7 +137,7 @@ fun <T> CoroutineScope.asChannel(flow: Flow<T>): ReceiveChannel<T> = produce {
 	}
 }
 
-fun LocaleListCompat.toSet() : Set<Locale> {
+fun LocaleListCompat.toSet(): Set<Locale> {
 	val set = HashSet<Locale>()
 	var counter = 0
 	while (this[counter] != null) {
@@ -145,4 +145,8 @@ fun LocaleListCompat.toSet() : Set<Locale> {
 		counter++
 	}
 	return set
+}
+
+fun String.capitalize(locale: Locale): String {
+	return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
 }

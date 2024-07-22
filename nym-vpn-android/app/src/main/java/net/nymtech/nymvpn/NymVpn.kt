@@ -33,7 +33,7 @@ import javax.inject.Inject
 @HiltAndroidApp
 class NymVpn : Application() {
 
-	val localeStorage : LocaleStorage by lazy {
+	val localeStorage: LocaleStorage by lazy {
 		LocaleStorage(this)
 	}
 

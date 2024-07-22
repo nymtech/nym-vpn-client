@@ -5,7 +5,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ripple.rememberRipple
@@ -22,7 +21,12 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.util.scaledHeight
 
 @Composable
-fun SelectionItemButton(leading: (@Composable () -> Unit)? = null, buttonText: String, trailing: (@Composable () -> Unit)? = null, onClick: () -> Unit) {
+fun SelectionItemButton(
+	leading: (@Composable () -> Unit)? = null,
+	buttonText: String,
+	trailing: (@Composable () -> Unit)? = null,
+	onClick: () -> Unit,
+) {
 	Card(
 		modifier =
 		Modifier.clip(RoundedCornerShape(8.dp))

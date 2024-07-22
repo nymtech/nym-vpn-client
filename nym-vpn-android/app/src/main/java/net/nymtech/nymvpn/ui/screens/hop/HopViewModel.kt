@@ -1,8 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.hop
 
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.os.ConfigurationCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +15,6 @@ import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.ui.HopType
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.Country
-import java.text.Collator
 import javax.inject.Inject
 
 @HiltViewModel

@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -25,6 +24,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,8 +34,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.datastore.LocaleStorage
@@ -60,15 +60,16 @@ import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
-	private val localeStorage : LocaleStorage by lazy {
+	private val localeStorage: LocaleStorage by lazy {
 		(application as NymVpn).localeStorage
 	}
 
@@ -83,13 +84,13 @@ class MainActivity : AppCompatActivity() {
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
 
-	private lateinit var oldPrefLocaleCode : String
+	private lateinit var oldPrefLocaleCode: String
 
 	private fun resetTitle() {
 		try {
-			val label = packageManager.getActivityInfo(componentName, PackageManager.GET_META_DATA).labelRes;
+			val label = packageManager.getActivityInfo(componentName, PackageManager.GET_META_DATA).labelRes
 			if (label != 0) {
-				setTitle(label);
+				setTitle(label)
 			}
 		} catch (e: PackageManager.NameNotFoundException) {
 			Timber.e(e)
@@ -111,6 +112,20 @@ class MainActivity : AppCompatActivity() {
 			val snackbarHostState = remember { SnackbarHostState() }
 			var navHeight by remember { mutableStateOf(0.dp) }
 			val density = LocalDensity.current
+
+			navController.addOnDestinationChangedListener { controller, destination, _ ->
+				if (destination.route == NavItem.Main.route &&
+					controller.previousBackStackEntry?.destination?.route == NavItem.Settings.Appearance.Language.route
+				) {
+					val locale = localeStorage.getPreferredLocale()
+					if (locale != Locale.current.toLanguageTag()) {
+						lifecycleScope.launch {
+							delay(Constants.LANGUAGE_SWITCH_DELAY)
+							recreate()
+						}
+					}
+				}
+			}
 
 			fun showSnackBarMessage(message: StringValue) {
 				lifecycleScope.launch(mainImmediateDispatcher) {
@@ -223,7 +238,7 @@ class MainActivity : AppCompatActivity() {
 							DisplayScreen()
 						}
 						composable(NavItem.Settings.Appearance.Language.route) {
-							LanguageScreen(navController,localeStorage) { recreate() }
+							LanguageScreen(navController, localeStorage)
 						}
 					}
 				}
@@ -239,8 +254,8 @@ class MainActivity : AppCompatActivity() {
 
 	override fun onResume() {
 		val currentLocaleCode = LocaleStorage(this).getPreferredLocale()
-		if(oldPrefLocaleCode != currentLocaleCode){
-			recreate() //locale is changed, restart the activty to update
+		if (oldPrefLocaleCode != currentLocaleCode) {
+			recreate() // locale is changed, restart the activty to update
 			oldPrefLocaleCode = currentLocaleCode
 		}
 		super.onResume()

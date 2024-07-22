@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import net.nymtech.nymvpn.util.LocaleUtil
 
-class LocaleStorage(context : Context) {
+class LocaleStorage(context: Context) {
 	private var preferences: SharedPreferences = context.getSharedPreferences("sp", Context.MODE_PRIVATE)
 
 	fun getPreferredLocale(): String {
