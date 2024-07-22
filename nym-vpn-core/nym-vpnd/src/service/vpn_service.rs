@@ -17,7 +17,7 @@ use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::{broadcast, oneshot};
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 use super::config::{
     self, create_config_file, create_data_dir, create_device_keys, read_config_file,
@@ -517,7 +517,7 @@ impl NymVpnService {
 
     pub(crate) async fn run(mut self) -> anyhow::Result<()> {
         while let Some(command) = self.vpn_command_rx.recv().await {
-            info!("VPN: Received command: {command}");
+            debug!("VPN: Received command: {command}");
             match command {
                 VpnServiceCommand::Connect(tx, connect_args) => {
                     let result = self.handle_connect(connect_args).await;

@@ -4,7 +4,7 @@
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 use time::OffsetDateTime;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
-use tracing::{info, warn};
+use tracing::{debug, info, warn};
 
 use crate::service::{
     ConnectArgs, ConnectOptions, ImportCredentialError, VpnServiceCommand, VpnServiceConnectResult,
@@ -36,8 +36,8 @@ impl CommandInterfaceConnectionHandler {
         self.vpn_command_tx
             .send(VpnServiceCommand::Connect(tx, connect_args))
             .unwrap();
-        info!("Sent start command to VPN");
-        info!("Waiting for response");
+        debug!("Sent start command to VPN");
+        debug!("Waiting for response");
         let result = rx.await.unwrap();
         match result {
             VpnServiceConnectResult::Success(ref _connect_handle) => {
@@ -55,12 +55,12 @@ impl CommandInterfaceConnectionHandler {
         self.vpn_command_tx
             .send(VpnServiceCommand::Disconnect(tx))
             .unwrap();
-        info!("Sent stop command to VPN");
-        info!("Waiting for response");
+        debug!("Sent stop command to VPN");
+        debug!("Waiting for response");
         let result = rx.await.unwrap();
         match result {
             VpnServiceDisconnectResult::Success => {
-                info!("VPN disconnect command sent successfully");
+                debug!("VPN disconnect command sent successfully");
             }
             VpnServiceDisconnectResult::NotRunning => {
                 info!("VPN can't stop - it's not running");
@@ -77,10 +77,10 @@ impl CommandInterfaceConnectionHandler {
         self.vpn_command_tx
             .send(VpnServiceCommand::Info(tx))
             .unwrap();
-        info!("Sent info command to VPN");
-        info!("Waiting for response");
+        debug!("Sent info command to VPN");
+        debug!("Waiting for response");
         let info = rx.await.unwrap();
-        info!("VPN info: {:?}", info);
+        debug!("VPN info: {:?}", info);
         info
     }
 
@@ -89,10 +89,10 @@ impl CommandInterfaceConnectionHandler {
         self.vpn_command_tx
             .send(VpnServiceCommand::Status(tx))
             .unwrap();
-        info!("Sent status command to VPN");
-        info!("Waiting for response");
+        debug!("Sent status command to VPN");
+        debug!("Waiting for response");
         let status = rx.await.unwrap();
-        info!("VPN status: {}", status);
+        debug!("VPN status: {}", status);
         status
     }
 
@@ -104,10 +104,10 @@ impl CommandInterfaceConnectionHandler {
         self.vpn_command_tx
             .send(VpnServiceCommand::ImportCredential(tx, credential))
             .unwrap();
-        info!("Sent import credential command to VPN");
-        info!("Waiting for response");
+        debug!("Sent import credential command to VPN");
+        debug!("Waiting for response");
         let result = rx.await.unwrap();
-        info!("VPN import credential result: {:?}", result);
+        debug!("VPN import credential result: {:?}", result);
         result
     }
 }

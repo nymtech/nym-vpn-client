@@ -111,8 +111,9 @@ impl NymVpnd for CommandInterface {
             .handle_info()
             .await;
 
-        info!("Returning info response");
-        Ok(tonic::Response::new(InfoResponse::from(info)))
+        let response = InfoResponse::from(info);
+        info!("Returning info response: {:?}", response);
+        Ok(tonic::Response::new(response))
     }
 
     async fn vpn_connect(
@@ -158,8 +159,9 @@ impl NymVpnd for CommandInterface {
             .start();
         }
 
-        info!("Returning connect response");
-        Ok(tonic::Response::new(ConnectResponse { success }))
+        let response = ConnectResponse { success };
+        info!("Returning connect response: {:?}", response);
+        Ok(tonic::Response::new(response))
     }
 
     async fn vpn_disconnect(
@@ -172,10 +174,11 @@ impl NymVpnd for CommandInterface {
             .handle_disconnect()
             .await;
 
-        info!("Returning disconnect response");
-        Ok(tonic::Response::new(DisconnectResponse {
+        let response = DisconnectResponse {
             success: status.is_success(),
-        }))
+        };
+        info!("Returning disconnect response: {:?}", response);
+        Ok(tonic::Response::new(response))
     }
 
     async fn vpn_status(
@@ -188,8 +191,9 @@ impl NymVpnd for CommandInterface {
             .handle_status()
             .await;
 
-        info!("Returning status response");
-        Ok(tonic::Response::new(StatusResponse::from(status)))
+        let response = StatusResponse::from(status);
+        info!("Returning status response: {:?}", response);
+        Ok(tonic::Response::new(response))
     }
 
     async fn import_user_credential(
@@ -204,7 +208,6 @@ impl NymVpnd for CommandInterface {
             .handle_import_credential(credential)
             .await;
 
-        info!("Returning import credential response");
         let response = match response {
             Ok(time) => ImportUserCredentialResponse {
                 success: true,
@@ -217,6 +220,7 @@ impl NymVpnd for CommandInterface {
                 expiry: None,
             },
         };
+        info!("Returning import credential response: {:?}", response);
 
         Ok(tonic::Response::new(response))
     }
