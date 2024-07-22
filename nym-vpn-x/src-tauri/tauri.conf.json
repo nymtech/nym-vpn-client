@@ -37,9 +37,7 @@
         "icons/icon.ico"
       ],
       "deb": {
-        "depends": [
-          "nym-vpnd"
-        ]
+        "depends": ["nym-vpnd"]
       },
       "macOS": {
         "frameworks": [],
