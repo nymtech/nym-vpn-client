@@ -98,3 +98,11 @@ pub(crate) fn into_exit_point(exit: ExitPoint) -> nym_vpn_proto::ExitNode {
 pub(crate) fn ipaddr_into_string(ip: std::net::IpAddr) -> nym_vpn_proto::Dns {
     nym_vpn_proto::Dns { ip: ip.to_string() }
 }
+
+pub(crate) fn parse_offset_datetime(
+    timestamp: prost_types::Timestamp,
+) -> Result<time::OffsetDateTime, time::Error> {
+    time::OffsetDateTime::from_unix_timestamp(timestamp.seconds)
+        .map(|t| t + time::Duration::nanoseconds(timestamp.nanos as i64))
+        .map_err(time::Error::from)
+}

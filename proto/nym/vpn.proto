@@ -40,6 +40,15 @@ message Dns {
   string ip = 1;
 }
 
+message InfoRequest {}
+
+message InfoResponse {
+  string version = 1;
+  google.protobuf.Timestamp build_timestamp = 2;
+  string triple = 3;
+  string git_commit = 4;
+}
+
 message ConnectRequest {
   EntryNode entry = 1;
   ExitNode exit = 2;
@@ -227,6 +236,7 @@ message ImportError {
 }
 
 service NymVpnd {
+  rpc Info (InfoRequest) returns (InfoResponse) {}
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
   rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
   rpc VpnStatus (StatusRequest) returns (StatusResponse) {}

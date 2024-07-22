@@ -14,6 +14,7 @@ use nym_vpn_proto::{
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
     ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
 };
+use nym_vpn_proto::{InfoRequest, InfoResponse};
 use prost_types::Timestamp;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
@@ -100,6 +101,21 @@ impl Drop for CommandInterface {
 
 #[tonic::async_trait]
 impl NymVpnd for CommandInterface {
+    async fn info(
+        &self,
+        request: tonic::Request<InfoRequest>,
+    ) -> Result<tonic::Response<InfoResponse>, tonic::Status> {
+        info!("Got info request: {:?}", request);
+
+        let info = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_info()
+            .await;
+
+        let response = InfoResponse::from(info);
+        info!("Returning info response: {:?}", response);
+        Ok(tonic::Response::new(response))
+    }
+
     async fn vpn_connect(
         &self,
         request: tonic::Request<ConnectRequest>,
@@ -143,8 +159,9 @@ impl NymVpnd for CommandInterface {
             .start();
         }
 
-        info!("Returning connect response");
-        Ok(tonic::Response::new(ConnectResponse { success }))
+        let response = ConnectResponse { success };
+        info!("Returning connect response: {:?}", response);
+        Ok(tonic::Response::new(response))
     }
 
     async fn vpn_disconnect(
@@ -157,10 +174,11 @@ impl NymVpnd for CommandInterface {
             .handle_disconnect()
             .await;
 
-        info!("Returning disconnect response");
-        Ok(tonic::Response::new(DisconnectResponse {
+        let response = DisconnectResponse {
             success: status.is_success(),
-        }))
+        };
+        info!("Returning disconnect response: {:?}", response);
+        Ok(tonic::Response::new(response))
     }
 
     async fn vpn_status(
@@ -173,8 +191,9 @@ impl NymVpnd for CommandInterface {
             .handle_status()
             .await;
 
-        info!("Returning status response");
-        Ok(tonic::Response::new(StatusResponse::from(status)))
+        let response = StatusResponse::from(status);
+        info!("Returning status response: {:?}", response);
+        Ok(tonic::Response::new(response))
     }
 
     async fn import_user_credential(
@@ -189,7 +208,6 @@ impl NymVpnd for CommandInterface {
             .handle_import_credential(credential)
             .await;
 
-        info!("Returning import credential response");
         let response = match response {
             Ok(time) => ImportUserCredentialResponse {
                 success: true,
@@ -202,6 +220,7 @@ impl NymVpnd for CommandInterface {
                 expiry: None,
             },
         };
+        info!("Returning import credential response: {:?}", response);
 
         Ok(tonic::Response::new(response))
     }
