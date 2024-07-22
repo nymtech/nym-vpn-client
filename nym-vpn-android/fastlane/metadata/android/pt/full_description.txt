@@ -1,0 +1,44 @@
+Baixe a NymVPN e torne sua atividade online segura.
+Com nosso aplicativo VPN, você pode esconder seu endereço IP, criptografar seu tráfego, esconder sua identidade online e muito mais.
+
+Muitas entidades, como governos, empresas de tecnologia, ISPs e anunciantes, podem espionar sua atividade online. Escândalos recentes mostram que não podemos confiar nem mesmo em VPNs tradicionais. A NymVPN é diferente: projetada para tornar impossível o monitoramento ou registro de suas atividades, até mesmo por nós. Operando em uma rede descentralizada, a NymVPN elimina pontos únicos de falha e não permite registro centralizado.
+
+O que é uma Mixnet?
+Uma Mixnet é uma rede de nós que:
+
+1- Recebem tráfego criptografado
+2- Misturam o tráfego
+3- Redirecionam o tráfego
+
+Este processo ocorre até 5 vezes, impossibilitando o rastreamento de sua atividade online.
+Por que escolher a NymVPN?
+
+Privacidade
+Nossa dVPN foi criada para garantir privacidade, sem armazenamento de logs nem rastreamento de atividades. Mesmo que alguém tentasse roubar seus dados, não haveria nada para pegar.
+
+Resistência à Censura
+Criptografamos seu tráfego, endereço IP e localização, garantindo anonimato total. Recursos como o killswitch garantem segurança adicional.
+
+Velocidade
+Nossa rede VPN cresce continuamente com novos nós se juntando à Mixnet. Usamos algoritmos modernos como Sphinx e Loopix para garantir conexões rápidas.
+
+Escolha de Localização
+Conecte-se a partir de centenas de locais ao redor do mundo com a NymVPN.
+
+Pagamentos com Criptomoedas
+Aceitamos pagamentos em criptomoedas, adicionando uma camada extra de anonimato.
+
+Sem Anúncios
+Desfrute de uma VPN sem anúncios. Nossa prioridade é sua privacidade.
+
+Uso Ilimitado
+Use a internet o quanto quiser; a NymVPN nunca limitará seu tráfego.
+
+Recursos Destacados:
+- Mixnet de 5 Saltos: Criptografa e mistura seu tráfego 5 vezes, tornando o rastreamento impossível.
+- dVPN de 2 Saltos: Maior velocidade com dois saltos de criptografia.
+- Sem Logs Centralizados: Nenhum registro de atividades.
+- Garantia de Devolução do Dinheiro: Não satisfeito? Oferecemos garantia de devolução do dinheiro.
+- Túnel Dividido: Escolha quais aplicativos usarão a VPN.
+- Esconder IP: Esconde todas as informações ligadas a você.
+- Killswitch: Protege seus dados caso a conexão caia.
