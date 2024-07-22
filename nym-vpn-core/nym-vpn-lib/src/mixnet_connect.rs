@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_config::defaults::NymNetworkDetails;
+use nym_sdk::mixnet::{
+    MixnetClient, MixnetClientBuilder, MixnetClientSender, MixnetMessageSender, NodeIdentity,
+    Recipient, StoragePaths,
+};
 #[cfg(target_family = "unix")]
 use std::os::fd::RawFd;
 #[cfg(not(target_family = "unix"))]
 use std::os::raw::c_int as RawFd;
 use std::path::PathBuf;
 use std::sync::Arc;
-use nym_sdk::mixnet::{
-    MixnetClient, MixnetClientBuilder, MixnetClientSender, MixnetMessageSender, NodeIdentity,
-    Recipient, StoragePaths,
-};
 use tracing::{debug, info};
 
 use crate::credentials::check_imported_credential;
