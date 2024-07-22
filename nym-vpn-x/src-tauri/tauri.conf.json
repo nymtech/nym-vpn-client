@@ -36,6 +36,11 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
+      "deb": {
+        "depends": [
+          "nym-vpnd"
+        ]
+      },
       "macOS": {
         "frameworks": [],
         "minimumSystemVersion": "",
