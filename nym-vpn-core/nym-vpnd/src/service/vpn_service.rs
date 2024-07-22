@@ -164,7 +164,7 @@ pub enum VpnServiceStatusResult {
 #[derive(Clone, Debug)]
 pub struct VpnServiceInfoResult {
     pub version: String,
-    pub build_timestamp: time::OffsetDateTime,
+    pub build_timestamp: Option<time::OffsetDateTime>,
     pub triple: String,
     pub git_commit: String,
 }
@@ -496,8 +496,7 @@ impl NymVpnService {
         let bin_info = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!();
         VpnServiceInfoResult {
             version: bin_info.build_version.to_string(),
-            build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339)
-                .unwrap(),
+            build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339).ok(),
             triple: bin_info.cargo_triple.to_string(),
             git_commit: bin_info.commit_sha.to_string(),
         }
