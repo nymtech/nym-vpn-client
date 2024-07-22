@@ -6,8 +6,6 @@ import android.content.res.Resources
 import android.os.Build
 import android.os.LocaleList
 import androidx.core.os.ConfigurationCompat
-import androidx.core.os.LocaleListCompat
-import timber.log.Timber
 import java.util.Locale
 
 object LocaleUtil {
@@ -20,13 +18,11 @@ object LocaleUtil {
 	 * when preference value = "sys_def" returns the locale of current system
 	 * else it returns the locale code e.g. "en", "bn" etc.
 	 */
-	private fun getLocaleFromPrefCode(prefCode: String): Locale {
+	fun getLocaleFromPrefCode(prefCode: String): Locale {
 		val localeCode = if (prefCode != OPTION_PHONE_LANGUAGE) {
 			prefCode
 		} else {
 			val systemLang = ConfigurationCompat.getLocales(Resources.getSystem().configuration).get(0)?.language ?: DEFAULT_LANG
-			val deviceLanguages: LocaleListCompat = ConfigurationCompat.getLocales(Resources.getSystem().configuration)
-			Timber.d(deviceLanguages.toLanguageTags())
 			if (systemLang in supportedLocales) {
 				systemLang
 			} else {

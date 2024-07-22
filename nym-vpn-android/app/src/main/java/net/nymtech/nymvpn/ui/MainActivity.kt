@@ -24,7 +24,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -64,6 +63,7 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import timber.log.Timber
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -117,8 +117,9 @@ class MainActivity : ComponentActivity() {
 				if (destination.route == NavItem.Main.route &&
 					controller.previousBackStackEntry?.destination?.route == NavItem.Settings.Appearance.Language.route
 				) {
-					val locale = localeStorage.getPreferredLocale()
-					if (locale != Locale.current.toLanguageTag()) {
+					val locale = LocaleUtil.getLocaleFromPrefCode(localeStorage.getPreferredLocale())
+					val currentLocale = Locale.getDefault()
+					if (locale != currentLocale) {
 						lifecycleScope.launch {
 							delay(Constants.LANGUAGE_SWITCH_DELAY)
 							recreate()
