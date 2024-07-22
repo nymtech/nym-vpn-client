@@ -2,13 +2,13 @@ use std::cmp::Ordering;
 use std::sync::Arc;
 use std::time::Duration;
 
-use nym_ip_packet_requests::response::{DynamicConnectResponseReply, StaticConnectResponseReply};
-use nym_ip_packet_requests::IpPair;
 use nym_ip_packet_requests::{
-    request::IpPacketRequest,
-    response::{
-        DynamicConnectResponse, IpPacketResponse, IpPacketResponseData, StaticConnectResponse,
+    v6::response::{
+        DynamicConnectResponse, DynamicConnectResponseReply, IpPacketResponse,
+        IpPacketResponseData, StaticConnectResponse, StaticConnectResponseReply,
     },
+    v7::request::IpPacketRequest,
+    IpPair,
 };
 use nym_sdk::mixnet::{
     MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, ReconstructedMessage,
