@@ -44,7 +44,7 @@ fun LanguageScreen(navController: NavController, localeStorage: LocaleStorage) {
 
 	val sortedLocales =
 		remember(locales) {
-			locales.sortedWith(compareBy(collator) { it.displayName })
+			locales.sortedWith(compareBy(collator) { it.getDisplayName(it) })
 		}
 
 	LaunchedEffect(Unit) {
