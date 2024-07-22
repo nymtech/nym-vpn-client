@@ -5800,6 +5800,7 @@ dependencies = [
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
  "nym-node-requests",
+ "nym-pemstore",
  "nym-sdk",
  "nym-task",
  "nym-topology",

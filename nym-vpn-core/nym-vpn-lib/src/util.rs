@@ -91,8 +91,8 @@ pub(crate) async fn handle_interrupt(
     if let Some([h1, h2]) = tunnel_handle {
         let ret1 = h1.await;
         let ret2 = h2.await;
-        ret1??;
-        ret2??;
+        ret1?;
+        ret2?;
     }
     let route_manager = sig_handle.await??;
     if let Some([rx1, rx2]) = finished_shutdown_rx {

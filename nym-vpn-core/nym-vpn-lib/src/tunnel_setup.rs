@@ -18,13 +18,13 @@ use futures::channel::{mpsc, oneshot};
 use futures::StreamExt;
 use ipnetwork::IpNetwork;
 use log::*;
+use nym_authenticator_client::AuthClient;
 use nym_bin_common::bin_info;
 use nym_gateway_directory::{
     extract_authenticator, extract_router_address, AuthAddresses, GatewayClient,
     GatewayQueryResult, IpPacketRouterAddress, LookupGateway,
 };
 use nym_task::TaskManager;
-use rand::rngs::OsRng;
 use talpid_core::dns::DnsMonitor;
 use talpid_core::firewall::Firewall;
 use talpid_routing::RouteManager;
@@ -46,8 +46,7 @@ impl TunnelSpecifcSetup for MixTunnelSetup {}
 
 pub struct WgTunnelSetup {
     pub receiver: oneshot::Receiver<()>,
-    pub tunnel_close_tx: oneshot::Sender<()>,
-    pub handle: tokio::task::JoinHandle<Result<()>>,
+    pub handle: tokio::task::JoinHandle<()>,
 }
 
 impl TunnelSpecifcSetup for WgTunnelSetup {}
@@ -55,7 +54,6 @@ impl TunnelSpecifcSetup for WgTunnelSetup {}
 pub enum AllTunnelsSetup {
     Mix(TunnelSetup<MixTunnelSetup>),
     Wg {
-        _mixnet_client: SharedMixnetClient,
         entry: TunnelSetup<WgTunnelSetup>,
         exit: TunnelSetup<WgTunnelSetup>,
     },
@@ -130,13 +128,10 @@ async fn setup_wg_tunnel(
     nym_vpn: &mut NymVpn<WireguardVpn>,
     mixnet_client: SharedMixnetClient,
     route_manager: &RouteManager,
+    task_manager: &mut TaskManager,
     gateway_directory_client: GatewayClient,
     auth_addresses: AuthAddresses,
 ) -> Result<AllTunnelsSetup> {
-    let mut rng = OsRng;
-    let wg_entry_gateway_client = WgGatewayClient::new(&mut rng, mixnet_client.clone());
-    let wg_exit_gateway_client = WgGatewayClient::new(&mut rng, mixnet_client.clone());
-    log::info!("Created wg gateway client");
     // MTU is computed as (MTU of wire interface) - ((IP header size) + (UDP header size) + (WireGuard metadata size))
     // The IP header size is 20 for IPv4 and 40 for IPv6
     // The UDP header size is 8
@@ -152,21 +147,32 @@ async fn setup_wg_tunnel(
     else {
         return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
     };
+    let auth_client = AuthClient::new_from_inner(mixnet_client.inner()).await;
+    log::info!("Created wg gateway clients");
+    let mut wg_entry_gateway_client = WgGatewayClient::new_entry(
+        &nym_vpn.data_path,
+        auth_client.clone(),
+        entry_auth_recipient,
+    );
+    let mut wg_exit_gateway_client =
+        WgGatewayClient::new_exit(&nym_vpn.data_path, auth_client.clone(), exit_auth_recipient);
 
     let mut entry_wireguard_config = init_wireguard_config(
         &gateway_directory_client,
-        &wg_entry_gateway_client,
-        entry_auth_recipient,
+        &mut wg_entry_gateway_client,
         entry_mtu,
     )
     .await?;
     let mut exit_wireguard_config = init_wireguard_config(
         &gateway_directory_client,
-        &wg_exit_gateway_client,
-        exit_auth_recipient,
+        &mut wg_exit_gateway_client,
         exit_mtu,
     )
     .await?;
+    tokio::spawn(
+        wg_entry_gateway_client.run(task_manager.subscribe_named("bandwidth_entry_client")),
+    );
+    tokio::spawn(wg_exit_gateway_client.run(task_manager.subscribe_named("bandwidth_exit_client")));
     entry_wireguard_config.0.peers.iter_mut().for_each(|peer| {
         peer.allowed_ips.append(
             &mut exit_wireguard_config
@@ -193,6 +199,7 @@ async fn setup_wg_tunnel(
     std::env::set_var("TALPID_FORCE_USERSPACE_WIREGUARD", "1");
     let (wireguard_waiting_entry, event_rx) = create_wireguard_tunnel(
         &route_manager,
+        task_manager.subscribe_named("entry_wg_tunnel"),
         nym_vpn.tun_provider.clone(),
         entry_wireguard_config,
     )
@@ -207,6 +214,7 @@ async fn setup_wg_tunnel(
     );
     let (wireguard_waiting_exit, event_rx) = create_wireguard_tunnel(
         &route_manager,
+        task_manager.subscribe_named("exit_wg_tunnel"),
         nym_vpn.tun_provider.clone(),
         exit_wireguard_config,
     )
@@ -224,11 +232,7 @@ async fn setup_wg_tunnel(
         specific_setup: wireguard_waiting_exit,
     };
 
-    Ok(AllTunnelsSetup::Wg {
-        _mixnet_client: mixnet_client,
-        entry,
-        exit,
-    })
+    Ok(AllTunnelsSetup::Wg { entry, exit })
 }
 
 async fn setup_mix_tunnel(
@@ -338,12 +342,12 @@ pub async fn setup_tunnel(
     platform::set_listener_status(TunStatus::EstablishingConnection);
 
     info!("Setting up mixnet client");
-    info!("Connecting to entry gateway: {entry_gateway_id}");
+    info!("Connecting to mixnet gateway: {entry_gateway_id}");
     let mixnet_client = timeout(
         Duration::from_secs(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS),
         crate::setup_mixnet_client(
             &entry_gateway_id,
-            &nym_vpn.mixnet_client_config().mixnet_data_path,
+            &nym_vpn.data_path(),
             task_manager.subscribe_named("mixnet_client_main"),
             false,
             nym_vpn.enable_two_hop(),
@@ -367,6 +371,7 @@ pub async fn setup_tunnel(
                 vpn,
                 mixnet_client,
                 route_manager,
+                task_manager,
                 gateway_directory_client,
                 auth_addresses,
             )

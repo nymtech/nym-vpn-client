@@ -70,18 +70,20 @@ pub const SHUTDOWN_TIMER_SECS: u64 = 10;
 
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
-    wg_gateway_client: &WgGatewayClient,
-    auth_recipient: Recipient,
+    wg_gateway_client: &mut WgGatewayClient,
     mtu: u16,
 ) -> Result<WireguardConfig> {
     // First we need to register with the gateway to setup keys and IP assignment
     info!("Registering with wireguard gateway");
     let gateway_host = gateway_client
-        .lookup_gateway_ip(&auth_recipient.gateway().to_base58_string())
+        .lookup_gateway_ip(
+            &wg_gateway_client
+                .auth_recipient()
+                .gateway()
+                .to_base58_string(),
+        )
         .await?;
-    let wg_gateway_data = wg_gateway_client
-        .register_wireguard(auth_recipient, gateway_host)
-        .await?;
+    let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
     let wireguard_config =
@@ -127,9 +129,6 @@ impl From<NymVpn<MixnetVpn>> for SpecificVpn {
 
 #[derive(Clone, Debug)]
 pub struct MixnetClientConfig {
-    /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
-    pub mixnet_data_path: Option<PathBuf>,
-
     /// Enable Poission process rate limiting of outbound traffic.
     pub enable_poisson_rate: bool,
 
@@ -142,6 +141,9 @@ pub struct MixnetClientConfig {
 
 pub struct NymVpn<T: Vpn> {
     pub mixnet_client_config: MixnetClientConfig,
+
+    /// Path to the data directory, where keys reside.
+    pub data_path: Option<PathBuf>,
 
     /// Gateway configuration
     pub gateway_config: GatewayDirectoryConfig,
@@ -217,11 +219,11 @@ impl NymVpn<WireguardVpn> {
 
         Self {
             mixnet_client_config: MixnetClientConfig {
-                mixnet_data_path: None,
                 enable_poisson_rate: false,
                 disable_background_cover_traffic: false,
                 enable_credentials_mode: false,
             },
+            data_path: None,
             gateway_config: nym_gateway_directory::Config::default(),
             entry_point,
             exit_point,
@@ -263,11 +265,11 @@ impl NymVpn<MixnetVpn> {
 
         Self {
             mixnet_client_config: MixnetClientConfig {
-                mixnet_data_path: None,
                 enable_poisson_rate: false,
                 disable_background_cover_traffic: false,
                 enable_credentials_mode: false,
             },
+            data_path: None,
             gateway_config: nym_gateway_directory::Config::default(),
             entry_point,
             exit_point,
@@ -436,6 +438,13 @@ impl SpecificVpn {
         }
     }
 
+    pub fn data_path(&self) -> Option<PathBuf> {
+        match self {
+            SpecificVpn::Wg(vpn) => vpn.data_path.clone(),
+            SpecificVpn::Mix(vpn) => vpn.data_path.clone(),
+        }
+    }
+
     pub fn gateway_config(&self) -> GatewayDirectoryConfig {
         match self {
             SpecificVpn::Wg(vpn) => vpn.gateway_config.clone(),
@@ -508,11 +517,7 @@ impl SpecificVpn {
                 })
                 .await??;
             }
-            AllTunnelsSetup::Wg {
-                _mixnet_client,
-                entry,
-                exit,
-            } => {
+            AllTunnelsSetup::Wg { entry, exit } => {
                 wait_for_interrupt(task_manager).await;
                 handle_interrupt(
                     route_manager,
@@ -600,11 +605,7 @@ impl SpecificVpn {
                 .await??;
                 result
             }
-            AllTunnelsSetup::Wg {
-                _mixnet_client,
-                entry,
-                exit,
-            } => {
+            AllTunnelsSetup::Wg { entry, exit } => {
                 let result = wait_for_interrupt_and_signal(Some(task_manager), vpn_ctrl_rx).await;
                 handle_interrupt(
                     route_manager,
