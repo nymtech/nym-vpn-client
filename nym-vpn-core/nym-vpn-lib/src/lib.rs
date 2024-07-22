@@ -6,6 +6,7 @@ uniffi::setup_scaffolding!();
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
 use crate::mixnet_connect::setup_mixnet_client;
+use crate::tunnel::setup_route_manager;
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::WgGatewayClient;
 use futures::channel::{mpsc, oneshot};
@@ -23,7 +24,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
-use tunnel_setup::{setup_tunnel, AllTunnelsSetup, TunnelSetup};
+use tunnel_setup::{init_firewall_dns, setup_tunnel, AllTunnelsSetup, TunnelSetup};
 use util::wait_for_interrupt_and_signal;
 
 // Public re-export
@@ -475,34 +476,42 @@ impl SpecificVpn {
     // (ctrl-c)
     pub async fn run(&mut self) -> Result<()> {
         let mut task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
-        let tunnels = setup_tunnel(self, &mut task_manager).await?;
+        info!("Setting up route manager");
+        let mut route_manager = setup_route_manager().await?;
+        let (mut firewall, mut dns_monitor) = init_firewall_dns(
+            #[cfg(target_os = "linux")]
+            route_manager.handle()?,
+        )
+        .await?;
+        let tunnels = setup_tunnel(
+            self,
+            &mut task_manager,
+            &mut route_manager,
+            &mut dns_monitor,
+        )
+        .await?;
         info!("Nym VPN is now running");
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
-            AllTunnelsSetup::Mix(TunnelSetup {
-                mut specific_setup, ..
-            }) => {
+            AllTunnelsSetup::Mix(TunnelSetup { specific_setup, .. }) => {
                 wait_for_interrupt(task_manager).await;
-                handle_interrupt(specific_setup.route_manager, None)
+                handle_interrupt(route_manager, None)
                     .await
                     .inspect_err(|err| {
                         error!("Failed to handle interrupt: {err}");
                     })?;
                 tokio::task::spawn_blocking(move || {
-                    specific_setup.dns_monitor.reset().inspect_err(|err| {
+                    dns_monitor.reset().inspect_err(|err| {
                         log::error!("Failed to reset dns monitor: {err}");
                     })
                 })
                 .await??;
             }
             AllTunnelsSetup::Wg {
-                route_manager,
                 _mixnet_client,
                 entry,
                 exit,
-                mut firewall,
-                mut dns_monitor,
             } => {
                 wait_for_interrupt(task_manager).await;
                 handle_interrupt(
@@ -537,13 +546,24 @@ impl SpecificVpn {
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let mut task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
-        let tunnels = setup_tunnel(self, &mut task_manager).await?;
+        info!("Setting up route manager");
+        let mut route_manager = setup_route_manager().await?;
+        let (mut firewall, mut dns_monitor) = init_firewall_dns(
+            #[cfg(target_os = "linux")]
+            route_manager.handle()?,
+        )
+        .await?;
+        let tunnels = setup_tunnel(
+            self,
+            &mut task_manager,
+            &mut route_manager,
+            &mut dns_monitor,
+        )
+        .await?;
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
-            AllTunnelsSetup::Mix(TunnelSetup {
-                mut specific_setup, ..
-            }) => {
+            AllTunnelsSetup::Mix(TunnelSetup { specific_setup, .. }) => {
                 // Signal back that mixnet is ready and up with all cylinders firing
                 // TODO: this should actually be sent much earlier, when the mixnet client is
                 // connected. However that would also require starting the status listener earlier.
@@ -568,14 +588,12 @@ impl SpecificVpn {
                     .unwrap();
 
                 let result = wait_for_interrupt_and_signal(Some(task_manager), vpn_ctrl_rx).await;
-                handle_interrupt(specific_setup.route_manager, None)
-                    .await
-                    .map_err(|err| {
-                        error!("Failed to handle interrupt: {err}");
-                        Box::new(NymVpnExitError::Generic { reason: err })
-                    })?;
+                handle_interrupt(route_manager, None).await.map_err(|err| {
+                    error!("Failed to handle interrupt: {err}");
+                    Box::new(NymVpnExitError::Generic { reason: err })
+                })?;
                 tokio::task::spawn_blocking(move || {
-                    specific_setup.dns_monitor.reset().inspect_err(|err| {
+                    dns_monitor.reset().inspect_err(|err| {
                         log::error!("Failed to reset dns monitor: {err}");
                     })
                 })
@@ -583,12 +601,9 @@ impl SpecificVpn {
                 result
             }
             AllTunnelsSetup::Wg {
-                route_manager,
                 _mixnet_client,
                 entry,
                 exit,
-                mut firewall,
-                mut dns_monitor,
             } => {
                 let result = wait_for_interrupt_and_signal(Some(task_manager), vpn_ctrl_rx).await;
                 handle_interrupt(

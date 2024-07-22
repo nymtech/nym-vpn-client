@@ -8,9 +8,7 @@ use crate::error::{Error, Result};
 use crate::mixnet_connect::SharedMixnetClient;
 use crate::platform;
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
-use crate::tunnel::setup_route_manager;
 use crate::uniffi_custom_impls::TunStatus;
-use crate::util::handle_interrupt;
 use crate::wg_gateway_client::WgGatewayClient;
 use crate::wireguard_setup::create_wireguard_tunnel;
 use crate::{init_wireguard_config, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS};
@@ -31,7 +29,6 @@ use talpid_core::dns::DnsMonitor;
 use talpid_core::firewall::Firewall;
 use talpid_routing::RouteManager;
 use talpid_tunnel::{TunnelEvent, TunnelMetadata};
-use tap::TapFallible;
 use tokio::time::timeout;
 
 pub struct TunnelSetup<T: TunnelSpecifcSetup> {
@@ -41,10 +38,8 @@ pub struct TunnelSetup<T: TunnelSpecifcSetup> {
 pub trait TunnelSpecifcSetup {}
 
 pub struct MixTunnelSetup {
-    pub route_manager: RouteManager,
     pub mixnet_connection_info: MixnetConnectionInfo,
     pub exit_connection_info: MixnetExitConnectionInfo,
-    pub dns_monitor: DnsMonitor,
 }
 
 impl TunnelSpecifcSetup for MixTunnelSetup {}
@@ -60,16 +55,13 @@ impl TunnelSpecifcSetup for WgTunnelSetup {}
 pub enum AllTunnelsSetup {
     Mix(TunnelSetup<MixTunnelSetup>),
     Wg {
-        route_manager: RouteManager,
         _mixnet_client: SharedMixnetClient,
         entry: TunnelSetup<WgTunnelSetup>,
         exit: TunnelSetup<WgTunnelSetup>,
-        firewall: Firewall,
-        dns_monitor: DnsMonitor,
     },
 }
 
-async fn init_firewall_dns(
+pub(crate) async fn init_firewall_dns(
     #[cfg(target_os = "linux")] route_manager_handle: talpid_routing::RouteManagerHandle,
 ) -> Result<(Firewall, DnsMonitor)> {
     #[cfg(target_os = "macos")]
@@ -137,7 +129,7 @@ async fn wait_interface_up(
 async fn setup_wg_tunnel(
     nym_vpn: &mut NymVpn<WireguardVpn>,
     mixnet_client: SharedMixnetClient,
-    route_manager: RouteManager,
+    route_manager: &RouteManager,
     gateway_directory_client: GatewayClient,
     auth_addresses: AuthAddresses,
 ) -> Result<AllTunnelsSetup> {
@@ -198,11 +190,6 @@ async fn setup_wg_tunnel(
     }
     info!("Entry wireguard config: \n{entry_wireguard_config}");
     info!("Exit wireguard config: \n{exit_wireguard_config}");
-    let (firewall, dns_monitor) = init_firewall_dns(
-        #[cfg(target_os = "linux")]
-        route_manager.handle()?,
-    )
-    .await?;
     std::env::set_var("TALPID_FORCE_USERSPACE_WIREGUARD", "1");
     let (wireguard_waiting_entry, event_rx) = create_wireguard_tunnel(
         &route_manager,
@@ -238,12 +225,9 @@ async fn setup_wg_tunnel(
     };
 
     Ok(AllTunnelsSetup::Wg {
-        route_manager,
         _mixnet_client: mixnet_client,
         entry,
         exit,
-        firewall,
-        dns_monitor,
     })
 }
 
@@ -251,71 +235,35 @@ async fn setup_mix_tunnel(
     nym_vpn: &mut NymVpn<MixnetVpn>,
     mixnet_client: SharedMixnetClient,
     task_manager: &mut TaskManager,
-    mut route_manager: RouteManager,
+    route_manager: &mut RouteManager,
+    dns_monitor: &mut DnsMonitor,
     gateway_directory_client: GatewayClient,
     exit_mix_addresses: &IpPacketRouterAddress,
     default_lan_gateway_ip: routing::LanGatewayIp,
 ) -> Result<AllTunnelsSetup> {
     info!("Wireguard is disabled");
-    let (mut firewall, mut dns_monitor) = init_firewall_dns(
-        #[cfg(target_os = "linux")]
-        route_manager.handle()?,
-    )
-    .await?;
 
     // Now it's time start all the stuff that needs running inside the tunnel, and that we need
     // correctly unwind if it fails
     // - Sets up mixnet client, and connects
     // - Sets up routing
     // - Starts processing packets
-    let ret = nym_vpn
+    let connection_info = nym_vpn
         .setup_tunnel_services(
             mixnet_client,
-            &mut route_manager,
+            route_manager,
             exit_mix_addresses,
             task_manager,
             &gateway_directory_client,
             default_lan_gateway_ip,
-            &mut dns_monitor,
+            dns_monitor,
         )
-        .await;
-    let connection_info = match ret {
-        Ok(connection_info) => connection_info,
-        Err(err) => {
-            error!("Failed to setup tunnel services: {err}");
-            debug!("{err:?}");
-            task_manager.signal_shutdown().ok();
-            task_manager.wait_for_shutdown().await;
-            info!("Interrupt handled");
-            // Ignore if these fail since we're interesting in the original error anyway
-            handle_interrupt(route_manager, None)
-                .await
-                .tap_err(|err| {
-                    warn!("Failed to handle interrupt: {err}");
-                })
-                .ok();
-            dns_monitor
-                .reset()
-                .tap_err(|err| {
-                    warn!("Failed to reset dns monitor: {err}");
-                })
-                .ok();
-            firewall
-                .reset_policy()
-                .tap_err(|err| {
-                    warn!("Failed to reset firewall policy: {err}");
-                })
-                .ok();
-            return Err(err);
-        }
-    };
+        .await?;
 
     Ok(AllTunnelsSetup::Mix(TunnelSetup {
         specific_setup: MixTunnelSetup {
-            route_manager,
             mixnet_connection_info: connection_info.0,
             exit_connection_info: connection_info.1,
-            dns_monitor,
         },
     }))
 }
@@ -323,6 +271,8 @@ async fn setup_mix_tunnel(
 pub async fn setup_tunnel(
     nym_vpn: &mut SpecificVpn,
     task_manager: &mut TaskManager,
+    route_manager: &mut RouteManager,
+    dns_monitor: &mut DnsMonitor,
 ) -> Result<AllTunnelsSetup> {
     // The user agent is set on HTTP REST API calls, and ideally should idenfy the type of client.
     // This means it needs to be set way higher in the call stack, but set a default for what we
@@ -385,9 +335,6 @@ pub async fn setup_tunnel(
     let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
     debug!("default_lan_gateway_ip: {default_lan_gateway_ip}");
 
-    info!("Setting up route manager");
-    let route_manager = setup_route_manager().await?;
-
     platform::set_listener_status(TunStatus::EstablishingConnection);
 
     info!("Setting up mixnet client");
@@ -431,6 +378,7 @@ pub async fn setup_tunnel(
                 mixnet_client,
                 task_manager,
                 route_manager,
+                dns_monitor,
                 gateway_directory_client,
                 &exit_router_address,
                 default_lan_gateway_ip,
