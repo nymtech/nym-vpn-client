@@ -1,6 +1,7 @@
 use std::{env, ffi::OsString, time::Duration};
 
 use nym_task::TaskManager;
+use nym_vpn_lib::SHUTDOWN_TIMER_SECS;
 use tokio::sync::broadcast;
 use tracing::{error, info};
 use windows_service::{
@@ -66,7 +67,7 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
         process_id: None,
     })?;
 
-    let task_manager = TaskManager::new(10).named("nym_vpnd");
+    let task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpnd");
     let service_task_client = task_manager.subscribe_named("vpn_service");
 
     let state_changes_tx = broadcast::channel(10).0;

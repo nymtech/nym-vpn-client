@@ -20,7 +20,10 @@
       "process": { "all": true },
       "shell": { "all": false, "open": true },
       "os": { "all": true },
-      "window": { "setSize": true }
+      "window": { "setSize": true },
+      "notification": {
+        "all": true
+      }
     },
     "bundle": {
       "active": true,
@@ -43,7 +46,10 @@
       "windows": {
         "nsis": {
           "template": "./windows/installer.nsi",
-          "installMode": "perMachine"
+          "installMode": "perMachine",
+          "installerIcon": "icons/nsis_icon.ico",
+          "headerImage": "icons/nsis_header.bmp",
+          "sidebarImage": "icons/nsis_sidebar.bmp"
         }
       }
     },
@@ -56,8 +62,8 @@
         "center": true,
         "title": "NymVPN",
         "hiddenTitle": true,
-        "width": 410,
-        "height": 888,
+        "width": 328,
+        "height": 710,
         "minWidth": 160,
         "minHeight": 346,
         "maxWidth": 600,

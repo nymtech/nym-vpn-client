@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.data.datastore
 
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -10,6 +11,7 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.VpnMode
 import timber.log.Timber
+import java.time.Instant
 
 class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager) :
 	SettingsRepository {
@@ -25,6 +27,8 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val autoStart = booleanPreferencesKey("AUTO_START")
 	private val analyticsShown = booleanPreferencesKey("ANALYTICS_SHOWN")
 	private val applicationShortcuts = booleanPreferencesKey("APPLICATION_SHORTCUTS")
+	private val credentialExpiry = longPreferencesKey("CREDENTIAL_EXPIRY")
+	private val locale = stringPreferencesKey("LOCALE")
 
 	override suspend fun init() {
 		val firstHop = dataStoreManager.getFromStore(firstHopCountry)
@@ -131,6 +135,16 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(applicationShortcuts, enabled)
 	}
 
+	override suspend fun getCredentialExpiry(): Instant? {
+		return dataStoreManager.getFromStore(credentialExpiry)?.let {
+			Instant.ofEpochSecond(it)
+		}
+	}
+
+	override suspend fun saveCredentialExpiry(instant: Instant) {
+		dataStoreManager.saveToDataStore(credentialExpiry, instant.epochSecond)
+	}
+
 	override val settingsFlow: Flow<Settings> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
@@ -157,6 +171,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						firstHopCountry = Country.from(pref[firstHopCountry]) ?: default,
 						lastHopCountry = Country.from(pref[lastHopCountry]) ?: default,
 						isShortcutsEnabled = pref[applicationShortcuts] ?: Settings.SHORTCUTS_DEFAULT,
+						credentialExpiry = pref[credentialExpiry]?.let { Instant.ofEpochSecond(it) },
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

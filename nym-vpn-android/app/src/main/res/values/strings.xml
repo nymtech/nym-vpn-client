@@ -19,8 +19,7 @@
     <string name="connection_time">Connection time</string>
     <string name="select_mode">Select mode</string>
     <string name="connect_to">Connect to</string>
-    <string name="first_hop_selection">First hop selection</string>
-    <string name="last_hop_selection">Last hop selection</string>
+	<string name="last_hop_selection">Last hop selection</string>
     <string name="display_theme">Display theme</string>
     <string name="light_theme">Light theme</string>
     <string name="dark_theme">Dark theme</string>
@@ -32,8 +31,7 @@
     <string name="fastest">Fastest</string>
     <string name="auto_connect">Auto-connect</string>
     <string name="auto_connect_description">Auto connect on reboot</string>
-    <string name="entry_location_description">Manually select your first hop</string>
-    <string name="logs">Logs</string>
+	<string name="logs">Logs</string>
     <string name="feedback">Feedback</string>
     <string name="support">Support</string>
     <string name="error_reporting">Share anonymous error reports</string>
@@ -41,8 +39,7 @@
     <string name="via">via</string>
     <string name="required_app_restart">applies on restart</string>
     <string name="legal">Legal</string>
-    <string name="faq_link" translatable="false">https://nymtech.net</string>
-    <string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
+	<string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
     <string name="terms_of_use">Terms of use</string>
     <string name="privacy_policy">Privacy statement</string>
     <string name="licenses">Licenses</string>
@@ -52,11 +49,11 @@
     <string name="join_matrix">Join us on Matrix</string>
     <string name="join_discord">Join us on Discord</string>
     <string name="matrix_url" translatable="false">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
-    <string name="discord_url" translatable="false">https://discord.com/invite/nym</string>
+    <string name="discord_url" translatable="false">http://nymtech.net/go/discord</string>
     <string name="faq_url" translatable="false">https://support.nymvpn.com</string>
     <string name="contact_url" translatable="false">https://support.nymvpn.com/hc/en-us/requests/new</string>
     <string name="support_email" translatable="false">support@nymvpn.com</string>
-    <string name="github_issues_url" translatable="false">https://github.com/nymtech/nymvpn-android/issues/new/choose</string>
+    <string name="github_issues_url" translatable="false">https://github.com/nymtech/nym-vpn-client/issues/new/choose</string>
     <string name="email_subject">NymVPN Support</string>
     <string name="email_chooser">Send an email…</string>
     <string name="login">Login</string>
@@ -84,8 +81,7 @@
     <string name="unknown">Unknown</string>
     <string name="no_scm_found">Source code url not found</string>
     <string name="terms_link" translatable="false">https://nymvpn.com/en/terms</string>
-    <string name="two_hop">2-hop</string>
-    <string name="five_hop">5-hop</string>
+	<string name="five_hop">5-hop</string>
     <string name="mode">Mode</string>
     <string name="okay">Okay</string>
     <string name="error_reporting_alert">Changes to error reporting will not fully take effect until the app has been restarted.</string>
@@ -135,6 +131,12 @@
     <string name="error_logs_not_saved">Failed to save logs</string>
 	<string name="mode_selection">Mode selection</string>
 	<string name="five_hop_explanation">Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages.</string>
-	<string name="two_hop_explanation">Experience maximum speed with  2-server connectivity using the WireGuard protocol. Perfect for fast browsing, streaming, and file sharing.</string>
+	<string name="two_hop_explanation">Experience maximum speed with  2-server connectivity. Perfect for fast browsing, streaming, and file sharing.</string>
 	<string name="continue_reading">Continue reading</string>
+	<string name="entry_location_selector">Entry location selector</string>
+	<string name="entry_location">Entry location</string>
+	<string name="exit_location">Exit location</string>
+	<string name="two_hop">2-hop</string>
+	<string name="appearance">Appearance</string>
+	<string name="language">Language</string>
 </resources>

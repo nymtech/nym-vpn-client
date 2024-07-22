@@ -18,8 +18,7 @@
     <string name="establishing_connection">Connexion en cours</string>
     <string name="connection_time">Temps de connexion</string>
     <string name="connect_to">Choix des nœuds</string>
-    <string name="first_hop_selection">Premier nœud</string>
-    <string name="last_hop_selection">Dernier nœud</string>
+	<string name="last_hop_selection">Nœud de sortie</string>
     <string name="display_theme">Apparence d\'affichage</string>
     <string name="light_theme">Apparence claire</string>
     <string name="dark_theme">Apparence sombre</string>
@@ -31,8 +30,7 @@
     <string name="fastest">Le plus rapide</string>
     <string name="auto_connect">Auto-connexion</string>
     <string name="auto_connect_description">Auto-connexion au redémarrage</string>
-    <string name="entry_location_description">Choix du nœud d\'entrée</string>
-    <string name="logs">Journaux</string>
+	<string name="logs">Journaux</string>
     <string name="feedback">Commentaires</string>
     <string name="support">Service clients</string>
     <string name="error_reporting">Partager les rapports d\'erreurs anonymes</string>
@@ -40,8 +38,7 @@
     <string name="via">via</string>
     <string name="required_app_restart">prend effet au redémarrage</string>
     <string name="legal">Juridique</string>
-    <string name="faq_link" translatable="false">https://nymtech.net</string>
-    <string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
+	<string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
     <string name="terms_of_use">C.G.U.</string>
     <string name="privacy_policy">Politique de confidentialité</string>
     <string name="licenses">Licences</string>
@@ -51,11 +48,11 @@
     <string name="join_matrix">Rejoignez-nous sur Matrix</string>
     <string name="join_discord">Rejoignez-nous sur Discord</string>
     <string name="matrix_url" translatable="false">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
-    <string name="discord_url" translatable="false">https://discord.com/invite/nym</string>
+    <string name="discord_url" translatable="false">http://nymtech.net/go/discord</string>
     <string name="faq_url" translatable="false">https://support.nymvpn.com</string>
     <string name="contact_url" translatable="false">https://support.nymvpn.com/hc/en-us/requests/new</string>
     <string name="support_email" translatable="false">support@nymvpn.com</string>
-    <string name="github_issues_url" translatable="false">https://github.com/nymtech/nymvpn-android/issues/new/choose</string>
+    <string name="github_issues_url" translatable="false">https://github.com/nymtech/nym-vpn-client/issues/new/choose</string>
     <string name="email_subject">Service clients NymVPN</string>
     <string name="email_chooser">Envoyer un email…</string>
     <string name="login">Inscription</string>
@@ -83,8 +80,7 @@
     <string name="unknown">Inconnu</string>
     <string name="no_scm_found">Impossible de trouver le code source de l\'URL</string>
     <string name="terms_link" translatable="false">https://nymvpn.com/en/terms</string>
-    <string name="two_hop">2 nœuds</string>
-    <string name="five_hop">5 nœuds</string>
+	<string name="five_hop">5 nœuds</string>
     <string name="mode">Mode</string>
     <string name="okay">OK</string>
     <string name="error_reporting_alert">Le changement de préférence pour les rapports d\'erreur prendra effet au redémarrage de l\'application.</string>

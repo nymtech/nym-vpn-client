@@ -22,6 +22,8 @@ client ───► gateway ──┘  mix  │  mix  ┌─►mix ───► 
 
 [nym-vpn-cli](nym-vpn-cli/README.md)
 
-## GUI client
+## GUI clients
 
+[nym-vpn-android](nym-vpn-android/README.md)\
+[nym-vpn-apple](nym-vpn-apple/README.md)\
 [nym-vpn-desktop](nym-vpn-desktop/README.md)

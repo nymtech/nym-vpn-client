@@ -23,6 +23,8 @@ public final class ConnectionManager: ObservableObject {
 #endif
 
     private var cancellables = Set<AnyCancellable>()
+    private var tunnelStatusUpdateCancellable: AnyCancellable?
+
     public var isReconnecting = false
     public var isDisconnecting = false
 
@@ -36,10 +38,10 @@ public final class ConnectionManager: ObservableObject {
     }
     @Published public var isTunnelManagerLoaded: Result<Void, Error>?
 #if os(iOS)
-    @Published public var currentTunnel: Tunnel? {
+    @Published public var activeTunnel: Tunnel? {
         didSet {
-            guard let currentTunnel else { return }
-            configureTunnelStatusObserver(tunnel: currentTunnel)
+            guard let activeTunnel else { return }
+            configureTunnelStatusObserver(tunnel: activeTunnel)
         }
     }
 #endif
@@ -107,7 +109,7 @@ public final class ConnectionManager: ObservableObject {
 
 #if os(iOS)
     public func isReconnecting(newConfig: MixnetConfig) -> Bool {
-        guard let tunnelProviderProtocol = currentTunnel?.tunnel.protocolConfiguration as? NETunnelProviderProtocol,
+        guard let tunnelProviderProtocol = activeTunnel?.tunnel.protocolConfiguration as? NETunnelProviderProtocol,
               let mixnetConfig = tunnelProviderProtocol.asMixnetConfig(),
               currentTunnelStatus == .connected, newConfig != mixnetConfig
         else {
@@ -130,7 +132,7 @@ public final class ConnectionManager: ObservableObject {
             } else {
                 // User "Connect" button actions
                 guard !isAutoConnect else { return }
-                if currentTunnel?.status == .connected || currentTunnel?.status == .connecting {
+                if activeTunnel?.status == .connected || activeTunnel?.status == .connecting {
                     isDisconnecting = true
                     disconnectActiveTunnel()
                 } else {
@@ -195,16 +197,15 @@ private extension ConnectionManager {
         .store(in: &cancellables)
 
         tunnelsManager.$activeTunnel.sink { [weak self] tunnel in
-            self?.currentTunnel = tunnel
+            self?.activeTunnel = tunnel
         }
         .store(in: &cancellables)
     }
 
     func configureTunnelStatusObserver(tunnel: Tunnel) {
-        tunnel.$status.sink { [weak self] status in
+        tunnelStatusUpdateCancellable = tunnel.$status.sink { [weak self] status in
             self?.currentTunnelStatus = status
         }
-        .store(in: &cancellables)
     }
 }
 #endif
@@ -229,22 +230,27 @@ private extension ConnectionManager {
 #if os(iOS)
 private extension ConnectionManager {
     func connectMixnet(with config: MixnetConfig) {
-        tunnelsManager.addUpdate(tunnelConfiguration: config) { [weak self] result in
-            switch result {
-            case .success(let tunnel):
-                self?.currentTunnel = tunnel
-                self?.tunnelsManager.connect(tunnel: tunnel)
-            case .failure(let error):
-                // TODO: handle error
-                print("Error: \(error)")
+        let updateTunnelClosure = { [weak self] in
+            self?.tunnelsManager.addUpdate(tunnelConfiguration: config) { [weak self] result in
+                switch result {
+                case .success(let tunnel):
+                    self?.activeTunnel = tunnel
+                    self?.tunnelsManager.connect(tunnel: tunnel)
+                case .failure(let error):
+                    // TODO: handle error
+                    print("Error: \(error)")
+                }
             }
+        }
+        tunnelsManager.loadTunnels {
+            updateTunnelClosure()
         }
     }
 
     func connectWireguard() {}
 
     func disconnectActiveTunnel() {
-        guard let activeTunnel = currentTunnel,
+        guard let activeTunnel,
               activeTunnel.status == .connected || activeTunnel.status == .connecting
         else {
             return
@@ -332,7 +338,7 @@ private extension ConnectionManager {
             return
         }
         isReconnecting = false
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             try? self?.connectDisconnect()
         }
     }

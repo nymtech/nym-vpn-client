@@ -15,11 +15,9 @@
     <string name="five_hop_description">Melhor para pagamentos, e-mails e mensagens</string>
     <string name="establishing_connection">Estabelecendo conexão</string>
     <string name="connect_to">Conectar ao</string>
-    <string name="two_hop">2-saltos</string>
-    <string name="disabled_while_connected">Desativado enquanto conectado à VPN</string>
+	<string name="disabled_while_connected">Desativado enquanto conectado à VPN</string>
     <string name="unknown">Desconhecido</string>
-    <string name="entry_location_description">Selecione manualmente seu primeiro salto</string>
-    <string name="credential_disclaimer">Para gerar uma nova credencial, use o link fornecido no email de convite da fase alfa.</string>
+	<string name="credential_disclaimer">Para gerar uma nova credencial, use o link fornecido no email de convite da fase alfa.</string>
     <string name="error_reporting_alert">As alterações no relatório de erros não entrarão em vigor totalmente até que o aplicativo seja reiniciado.</string>
     <string name="light_theme">Tema claro</string>
     <string name="search_country">Pesquisar país</string>
@@ -33,8 +31,7 @@
     <string name="terms_of_use">Termos de uso</string>
     <string name="no_browser_detected">Nenhum navegador detectado</string>
     <string name="connection_time">tempo de conexão</string>
-    <string name="first_hop_selection">Seleção do primeiro salto</string>
-    <string name="display_theme">Exibir tema</string>
+	<string name="display_theme">Exibir tema</string>
     <string name="top_up_credential">Atualize sua credencial</string>
     <string name="dark_theme">Tema escuro</string>
     <string name="search">Pesquisar</string>
@@ -55,8 +52,8 @@
     <string name="sentry">Sentry</string>
     <string name="email_chooser">Envie um email…</string>
     <string name="login">Entrar</string>
-    <string name="add_credential">adicionar credencial</string>
-    <string name="add_cred_to_connect">adicionar credencial para conectar</string>
+    <string name="add_credential">Adicionar credencial</string>
+    <string name="add_cred_to_connect">Adicionar credencial para conectar</string>
     <string name="welcome_exclaim">Bem vindo!</string>
     <string name="credential_message">Digite sua credencial para começar</string>
     <string name="credential_label">Credencial</string>
@@ -68,10 +65,10 @@
     <string name="android">Android</string>
     <string name="windows">Windows</string>
     <string name="macos">masOS</string>
-    <string name="linux">Kinux</string>
+    <string name="linux">Linux</string>
     <string name="ios">IOS</string>
     <string name="credential_successful">Creddencial adicionada com sucesso</string>
-    <string name="no_scm_found">URL do código-fonte não encontrado</string>
+    <string name="no_scm_found">URL do código fonte não encontrado</string>
     <string name="five_hop">5-saltos</string>
     <string name="mode">Modo</string>
     <string name="okay">Ok</string>
@@ -99,7 +96,7 @@
     <string name="two_hop_mixnet">rápido</string>
     <string name="last_hop_selection">Seleção do último salto</string>
     <string name="privacy_policy">Declaração de privacidade</string>
-    <string name="licenses">licenças</string>
+    <string name="licenses">Licenças</string>
     <string name="open_github">Abrir um problema no GitHub</string>
     <string name="no_email_detected">Nenhum aplicativo de email foi detectado</string>
     <string name="permission_required">É necessária permissão</string>
@@ -113,4 +110,19 @@
     <string name="continue_reading">Continuar lendo</string>
     <string name="five_hop_explanation">Aproveite a privacidade de nível máximo ao rotear sua conexão por meio de 5 servidores via mixnet. Perfeito para lidar com segurança com pagamentos, emails e mensagens.</string>
     <string name="via">via</string>
+    <string name="error_bad_peer_cert">"O gateway selecionado possui um certificado de peer inválido. Por favor, tente conectar-se a um gateway diferente. "</string>
+    <string name="error_vpn_halted_unexpectedly">A VPN parou inesperadamente. Por favor, tente conectar novamente.</string>
+    <string name="kill_switch">interruptor de segurança</string>
+    <string name="contact_support">Contatar o suporte</string>
+    <string name="hours">horas</string>
+    <string name="hour">hora</string>
+    <string name="days">dias</string>
+    <string name="day">dia</string>
+    <string name="scan_nym_vpn_credential">Escanear QR da Credencial NymVPN</string>
+    <string name="error_logs_not_saved">Falha ao salvar logs</string>
+    <string name="error_no_hostname_address">O gateway está sem o endereço do hostname. Por favor, tente novamente conectando-se a um gateway diferente.</string>
+    <string name="top_up">Recarregar</string>
+    <string name="notification_permission_message">Necessário para manter os serviços de VPN em funcionamento enquanto o aplicativo está fechado.</string>
+    <string name="two_hop_explanation">Experimente velocidade máxima com conectividade de 2 servidores. Perfeito para navegação rápida, streaming e compartilhamento de arquivos.</string>
+    <string name="error_gateway_lookup">Falha ao buscar os gateways da Nym. Por favor, verifique sua conexão de rede e tente novamente.</string>
 </resources>

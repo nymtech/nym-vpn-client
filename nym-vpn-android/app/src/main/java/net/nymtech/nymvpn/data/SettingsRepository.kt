@@ -5,6 +5,7 @@ import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.VpnMode
+import java.time.Instant
 
 interface SettingsRepository {
 
@@ -48,6 +49,10 @@ interface SettingsRepository {
 	suspend fun isApplicationShortcutsEnabled(): Boolean
 
 	suspend fun setApplicationShortcuts(enabled: Boolean)
+
+	suspend fun getCredentialExpiry(): Instant?
+
+	suspend fun saveCredentialExpiry(instant: Instant)
 
 	val settingsFlow: Flow<Settings>
 }

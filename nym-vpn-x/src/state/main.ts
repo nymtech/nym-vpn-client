@@ -18,6 +18,7 @@ import {
   ThemeMode,
   UiTheme,
   VpnMode,
+  WindowPosition,
   WindowSize,
 } from '../types';
 
@@ -38,6 +39,7 @@ export type StateAction =
   | { type: 'set-disconnected' }
   | { type: 'set-auto-connect'; autoConnect: boolean }
   | { type: 'set-monitoring'; monitoring: boolean }
+  | { type: 'set-desktop-notifications'; enabled: boolean }
   | { type: 'reset' }
   | { type: 'set-ui-theme'; theme: UiTheme }
   | { type: 'set-theme-mode'; mode: ThemeMode }
@@ -59,6 +61,7 @@ export type StateAction =
   | { type: 'set-code-deps-js'; dependencies: CodeDependency[] }
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
   | { type: 'set-window-size'; size: WindowSize }
+  | { type: 'set-window-position'; position: WindowPosition }
   | { type: 'set-credential-expiry'; expiry: Dayjs | null }
   | { type: 'set-entry-countries-error'; payload: AppError | null }
   | { type: 'set-exit-countries-error'; payload: AppError | null }
@@ -78,6 +81,7 @@ export const initialState: AppState = {
   progressMessages: [],
   autoConnect: false,
   monitoring: false,
+  desktopNotifications: true,
   // TODO ⚠ these should be set to 'Fastest' when the backend is ready
   entryNodeLocation: DefaultNodeCountry,
   // TODO ⚠ these should be set to 'Fastest' when the backend is ready
@@ -148,6 +152,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ...state,
         monitoring: action.monitoring,
       };
+    case 'set-desktop-notifications':
+      return {
+        ...state,
+        desktopNotifications: action.enabled,
+      };
     case 'set-country-list':
       if (action.payload.hop === 'entry') {
         return {
@@ -171,9 +180,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
         exitCountriesLoading: action.payload.loading,
       };
     case 'change-connection-state': {
-      console.log(
-        `__REDUCER [change-connection-state] changing connection state to ${action.state}`,
-      );
       if (action.state === state.state) {
         return state;
       }
@@ -185,9 +191,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
       };
     }
     case 'connect': {
-      console.log(
-        `__REDUCER [connect] changing connection state to Connecting`,
-      );
       return { ...state, state: 'Connecting', loading: true };
     }
     case 'disconnect': {
@@ -199,9 +202,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
         version: action.version,
       };
     case 'set-connected': {
-      console.log(
-        `__REDUCER [set-connected] changing connection state to Connected`,
-      );
       return {
         ...state,
         state: 'Connected',
@@ -282,6 +282,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         windowSize: action.size,
+      };
+    case 'set-window-position':
+      return {
+        ...state,
+        windowPosition: action.position,
       };
     case 'set-entry-countries-error':
       return {

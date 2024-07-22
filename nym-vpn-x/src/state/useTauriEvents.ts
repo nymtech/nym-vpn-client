@@ -1,19 +1,25 @@
 import * as _ from 'lodash-es';
 import { useCallback, useEffect } from 'react';
 import { EventCallback, listen } from '@tauri-apps/api/event';
-import { PhysicalSize, appWindow } from '@tauri-apps/api/window';
+import {
+  PhysicalPosition,
+  PhysicalSize,
+  appWindow,
+} from '@tauri-apps/api/window';
 import dayjs from 'dayjs';
 import { kvSet } from '../kvStore';
 import {
   AppState,
   BackendError,
-  ConnectionEventPayload,
+  ConnectionEvent as ConnectionEventData,
   DaemonStatus,
   ProgressEventPayload,
   StateDispatch,
+  WindowPosition,
   WindowSize,
 } from '../types';
 import { ConnectionEvent, DaemonEvent, ProgressEvent } from '../constants';
+import logu from '../log';
 
 function handleError(dispatch: StateDispatch, error?: BackendError | null) {
   if (!error) {
@@ -27,7 +33,7 @@ function handleError(dispatch: StateDispatch, error?: BackendError | null) {
 export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
   const registerDaemonListener = useCallback(() => {
     return listen<DaemonStatus>(DaemonEvent, (event) => {
-      console.log(`received event ${event.event}, status: ${event.payload}`);
+      console.log(`received event [${event.event}], status: ${event.payload}`);
       dispatch({
         type: 'set-daemon-status',
         status: event.payload,
@@ -36,9 +42,14 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
   }, [dispatch]);
 
   const registerStateListener = useCallback(() => {
-    return listen<ConnectionEventPayload>(ConnectionEvent, (event) => {
+    return listen<ConnectionEventData>(ConnectionEvent, (event) => {
+      if (event.payload.type === 'Failed') {
+        console.log(`received event [${event.event}], connection failed`);
+        handleError(dispatch, event.payload);
+        return;
+      }
       console.log(
-        `received event ${event.event}, state: ${event.payload.state}`,
+        `received event [${event.event}], state: ${event.payload.state}`,
       );
       switch (event.payload.state) {
         case 'Connected':
@@ -72,7 +83,7 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
   const registerProgressListener = useCallback(() => {
     return listen<ProgressEventPayload>(ProgressEvent, (event) => {
       console.log(
-        `received event ${event.event}, message: ${event.payload.key}`,
+        `received event [${event.event}], message: ${event.payload.key}`,
       );
       dispatch({
         type: 'new-progress-message',
@@ -108,6 +119,9 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
               width: payload.width,
               height: payload.height,
             };
+            logu.trace(
+              `window resized ${payload.type} ${size.width}x${size.height}`,
+            );
             kvSet<WindowSize>('WindowSize', size);
             dispatch({ type: 'set-window-size', size });
           }
@@ -121,6 +135,39 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
     );
   }, [dispatch, state.windowSize]);
 
+  const registerWindowMovedListener = useCallback(() => {
+    return appWindow.onMoved(
+      _.debounce<EventCallback<PhysicalPosition>>(
+        ({ payload }) => {
+          if (payload.x < 0 || payload.y < 0) {
+            // that happens when moving the window on a secondary monitor
+            return;
+          }
+          if (
+            payload.x !== state.windowPosition?.x ||
+            payload.y !== state.windowPosition.y
+          ) {
+            const position: WindowPosition = {
+              type: 'Physical',
+              x: payload.x,
+              y: payload.y,
+            };
+            logu.trace(
+              `window moved ${payload.type} ${payload.x},${payload.y}`,
+            );
+            kvSet<WindowPosition>('WindowPosition', position);
+            dispatch({ type: 'set-window-position', position });
+          }
+        },
+        200,
+        {
+          leading: false,
+          trailing: true,
+        },
+      ),
+    );
+  }, [dispatch, state.windowPosition]);
+
   // register/unregister event listener
   useEffect(() => {
     const unlistenDaemon = registerDaemonListener();
@@ -128,6 +175,7 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
     const unlistenProgress = registerProgressListener();
     const unlistenThemeChanges = registerThemeChangedListener();
     const unlistenWindowResized = registerWindowResizedListener();
+    const unlistenWindowMoved = registerWindowMovedListener();
 
     return () => {
       unlistenDaemon.then((f) => f());
@@ -135,6 +183,7 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
       unlistenProgress.then((f) => f());
       unlistenThemeChanges.then((f) => f());
       unlistenWindowResized.then((f) => f());
+      unlistenWindowMoved.then((f) => f());
     };
   }, [
     registerDaemonListener,
@@ -142,5 +191,6 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
     registerProgressListener,
     registerThemeChangedListener,
     registerWindowResizedListener,
+    registerWindowMovedListener,
   ]);
 }

@@ -7,23 +7,18 @@ type ButtonProps = {
 
 function DaemonDot({ status }: ButtonProps) {
   return (
-    <div className="absolute z-30 left-1 top-1 pointer-events-none select-none">
-      <div className="relative flex h-3 w-3">
-        <div
-          className={clsx([
-            'absolute inline-flex h-full w-full rounded-full',
-            status === 'Ok'
-              ? 'bg-vert-menthe opacity-0'
-              : 'animate-ping bg-teaberry opacity-75',
-          ])}
-        />
-        <div
-          className={clsx([
-            'relative inline-flex dot h-3 w-3',
-            status === 'Ok' ? 'animate-pulse bg-vert-menthe' : 'bg-teaberry',
-          ])}
-        />
-      </div>
+    <div
+      className={clsx([
+        'absolute z-30 left-1 top-1 pointer-events-none select-none',
+        status === 'Ok' ? 'animate-pulse' : 'animate-pulse-fast',
+      ])}
+    >
+      <div
+        className={clsx([
+          'relative w-2.5 h-2.5 rounded-full',
+          status === 'Ok' ? 'bg-vert-menthe' : 'bg-teaberry',
+        ])}
+      />
     </div>
   );
 }

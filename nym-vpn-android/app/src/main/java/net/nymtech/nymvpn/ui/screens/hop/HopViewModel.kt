@@ -25,6 +25,7 @@ constructor(
 	private val settingsRepository: SettingsRepository,
 	private val countryCacheService: CountryCacheService,
 ) : ViewModel() {
+
 	private val _uiState = MutableStateFlow(HopUiState())
 
 	val uiState =

@@ -5,7 +5,7 @@
     <string name="open_github">GitHub hata raporu açın</string>
     <string name="join_discord">Discord\'da bize katılın</string>
     <string name="and_acknowledge">ve NymVPN\'i tanı</string>
-    <string name="connected">Bağlandı</string>
+    <string name="connected">Bağlantı sağlandı</string>
     <string name="connecting">Bağlanıyor</string>
     <string name="five_hop_mixnet">Anonim</string>
     <string name="disconnecting">Bağlantı koptu</string>
@@ -15,8 +15,8 @@
     <string name="init_client">İstemci başlatılıyor…</string>
     <string name="establishing_connection">Bağlantı kuruluyor</string>
     <string name="connection_time">Bağlantı süresi</string>
-    <string name="connect_to">Bağlan</string>
-    <string name="connect">Bağlandı</string>
+    <string name="connect_to">-e bağlan</string>
+    <string name="connect">Bağlan</string>
     <string name="last_hop_selection">Son hop seçimi</string>
     <string name="display_theme">Panel teması</string>
     <string name="light_theme">Açık tema</string>
@@ -30,9 +30,8 @@
     <string name="auto_connect_description">Yeniden başlatıldığında otomatik bağlan</string>
     <string name="logs">Günlükler</string>
     <string name="last_hop">Son hop</string>
-    <string name="first_hop_selection">İlk hop seçimi</string>
-    <string name="support">Destek</string>
-    <string name="sentry">Sentry</string>
+	<string name="support">Destek</string>
+    <string name="sentry">Gözcü</string>
     <string name="via">aracılığıyla</string>
     <string name="required_app_restart">Yeniden başlatıldığında geçerli olur</string>
     <string name="legal">Hukuki</string>
@@ -60,10 +59,9 @@
     <string name="credential_successful">Anahtar başarıyla eklendi</string>
     <string name="no_browser_detected">Tarayıcı bulunamadı</string>
     <string name="no_email_detected">E-posta uygulaması bulunamadı</string>
-    <string name="unknown">Bilinmeyen bir hata oluştu</string>
+    <string name="unknown">Tanımlanamayan</string>
     <string name="no_scm_found">Kaynak kodu URL\'si bulunamadı</string>
-    <string name="two_hop">2-hop</string>
-    <string name="five_hop">5-hop</string>
+	<string name="five_hop">5-hop</string>
     <string name="mode">Mod</string>
     <string name="okay">Tamam</string>
     <string name="feature_in_progress">Bu özellik hala geliştirilmektedir.</string>
@@ -72,7 +70,7 @@
     <string name="anonymous_analytics">Anonim analizler</string>
     <string name="anonymous_analytics_description">NymVPN\'i geliştirmemize yardımcı olun</string>
     <string name="cont">Devam et</string>
-    <string name="welcome">Hoş geldiniz</string>
+    <string name="welcome">Merhaba</string>
     <string name="to_alpha">NymVPN alpha sürümüne</string>
     <string name="thanks_for_support">Destekleriniz için teşekkür ederiz!</string>
     <string name="opt_in_message_first">Anonim hata izleme için katıl</string>
@@ -82,7 +80,7 @@
     <string name="days">günler</string>
     <string name="hour">saat</string>
     <string name="hours">saatler</string>
-    <string name="contact_support">Destek ile iletişime geçin</string>
+    <string name="contact_support">Bizimle iletişime geçin</string>
     <string name="exception_cred_missing">İçe aktarılan anahtar bulunamadı.</string>
     <string name="error_no_hostname_address">Gateway\'in hostname\'i eksik. Lütfen farklı bir gateway\'e yeniden bağlanmayı deneyin.</string>
     <string name="error_gateway_lookup">Nym gateway\'leri bulunamadı. Lütfen ağ bağlantınızı kontrol edip yeniden deneyin.</string>
@@ -107,13 +105,12 @@
     <string name="error_reporting">Hata raporlarını anonim olarak paylaş</string>
     <string name="feedback">Geri bildirim</string>
     <string name="left">kaldı</string>
-    <string name="licenses">Lisanslar</string>
-    <string name="entry_location_description">İlk hop seçimini manuel olarak yap</string>
-    <string name="join_matrix">Matrix\'te bize katılın</string>
+    <string name="licenses">Sertifikalar</string>
+	<string name="join_matrix">Matrix\'te bize katılın</string>
     <string name="permission_message">Cihazınızda uygulamanın doğru çalışmasını sağlamak için lütfen aşağıdaki izinleri kabul edin. Bu izinler, uygulamanın işlevini yerine getirebilmesi için gereklidir.</string>
     <string name="error_bad_peer_cert">"Seçilen gateway\'in kötü bir peer sertifikası var. Lütfen başka bir gateway\'e yeniden bağlanmayı deneyin "</string>
     <string name="credential_message">Başlamak için anahtarınızı girin</string>
-    <string name="unknown_error">Bilinmeyen bir hata oluştu</string>
+    <string name="unknown_error">Tanımlanamayan bir hata meydana geldi</string>
     <string name="send_feedback">Bize geri bildirim gönderin</string>
     <string name="check_faq">SSS\'i kontrol edin</string>
     <string name="credential_disclaimer">Yeni bir anahtar oluşturmak için lütfen alpha aşaması davet e-postasında verilen bağlantıyı kullanın.</string>
@@ -127,4 +124,5 @@
     <string name="mode_selection">Mod seçimi</string>
     <string name="five_hop_explanation">Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek maksimum düzeyde gizliliğin tadını çıkarın. Ödemeleri, e-postaları ve mesajları güvenli bir şekilde yönetmek için mükemmeldir.</string>
     <string name="continue_reading">Okumaya devam edin</string>
+    <string name="two_hop_explanation">Maksimum hızı 2 sunucu bağlantısıyla deneyimleyin. Hızlı tarama, yayın akışı ve dosya paylaşımı için mükemmeldir.</string>
 </resources>

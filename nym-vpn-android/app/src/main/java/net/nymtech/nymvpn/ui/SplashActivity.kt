@@ -10,7 +10,9 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import io.sentry.Instrumenter
 import io.sentry.android.core.SentryAndroid
+import io.sentry.opentelemetry.OpenTelemetryLinkErrorEventProcessor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import net.nymtech.logcathelper.LogCollect
@@ -93,6 +95,8 @@ class SplashActivity : ComponentActivity() {
 				options.sampleRate = 1.0
 				options.tracesSampleRate = 1.0
 				options.profilesSampleRate = 1.0
+				options.instrumenter = Instrumenter.OTEL
+				options.addEventProcessor(OpenTelemetryLinkErrorEventProcessor())
 				options.environment =
 					if (BuildConfig.DEBUG) Constants.SENTRY_DEV_ENV else Constants.SENTRY_PROD_ENV
 			}

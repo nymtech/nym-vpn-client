@@ -708,6 +708,156 @@ public func FfiConverterTypeOSTunProvider_lower(_ value: OsTunProvider) -> Unsaf
 }
 
 
+
+
+public protocol TunnelStatusListener : AnyObject {
+    
+    func onTunStatusChange(status: TunStatus) 
+    
+}
+
+open class TunnelStatusListenerImpl:
+    TunnelStatusListener {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_nym_vpn_lib_fn_clone_tunnelstatuslistener(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_nym_vpn_lib_fn_free_tunnelstatuslistener(pointer, $0) }
+    }
+
+    
+
+    
+open func onTunStatusChange(status: TunStatus) {try! rustCall() {
+    uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_tun_status_change(self.uniffiClonePointer(),
+        FfiConverterTypeTunStatus.lower(status),$0
+    )
+}
+}
+    
+
+}
+
+
+// Put the implementation in a struct so we don't pollute the top-level namespace
+fileprivate struct UniffiCallbackInterfaceTunnelStatusListener {
+
+    // Create the VTable using a series of closures.
+    // Swift automatically converts these into C callback functions.
+    static var vtable: UniffiVTableCallbackInterfaceTunnelStatusListener = UniffiVTableCallbackInterfaceTunnelStatusListener(
+        onTunStatusChange: { (
+            uniffiHandle: UInt64,
+            status: RustBuffer,
+            uniffiOutReturn: UnsafeMutableRawPointer,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeTunnelStatusListener.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return uniffiObj.onTunStatusChange(
+                     status: try FfiConverterTypeTunStatus.lift(status)
+                )
+            }
+
+            
+            let writeReturn = { () }
+            uniffiTraitInterfaceCall(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn
+            )
+        },
+        uniffiFree: { (uniffiHandle: UInt64) -> () in
+            let result = try? FfiConverterTypeTunnelStatusListener.handleMap.remove(handle: uniffiHandle)
+            if result == nil {
+                print("Uniffi callback interface TunnelStatusListener: handle missing in uniffiFree")
+            }
+        }
+    )
+}
+
+private func uniffiCallbackInitTunnelStatusListener() {
+    uniffi_nym_vpn_lib_fn_init_callback_vtable_tunnelstatuslistener(&UniffiCallbackInterfaceTunnelStatusListener.vtable)
+}
+
+public struct FfiConverterTypeTunnelStatusListener: FfiConverter {
+    fileprivate static var handleMap = UniffiHandleMap<TunnelStatusListener>()
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = TunnelStatusListener
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> TunnelStatusListener {
+        return TunnelStatusListenerImpl(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: TunnelStatusListener) -> UnsafeMutableRawPointer {
+        guard let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: handleMap.insert(obj: value))) else {
+            fatalError("Cast to UnsafeMutableRawPointer failed")
+        }
+        return ptr
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TunnelStatusListener {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: TunnelStatusListener, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeTunnelStatusListener_lift(_ pointer: UnsafeMutableRawPointer) throws -> TunnelStatusListener {
+    return try FfiConverterTypeTunnelStatusListener.lift(pointer)
+}
+
+public func FfiConverterTypeTunnelStatusListener_lower(_ value: TunnelStatusListener) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeTunnelStatusListener.lower(value)
+}
+
+
 public struct Location {
     public var twoLetterIsoCountryCode: String
     public var threeLetterIsoCountryCode: String
@@ -1000,10 +1150,11 @@ public struct VpnConfig {
     public var enableTwoHop: Bool
     public var tunProvider: OsTunProvider
     public var credentialDataPath: PathBuf?
+    public var tunStatusListener: TunnelStatusListener?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(apiUrl: Url, explorerUrl: Url, entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?) {
+    public init(apiUrl: Url, explorerUrl: Url, entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?) {
         self.apiUrl = apiUrl
         self.explorerUrl = explorerUrl
         self.entryGateway = entryGateway
@@ -1011,6 +1162,7 @@ public struct VpnConfig {
         self.enableTwoHop = enableTwoHop
         self.tunProvider = tunProvider
         self.credentialDataPath = credentialDataPath
+        self.tunStatusListener = tunStatusListener
     }
 }
 
@@ -1026,7 +1178,8 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
                 exitRouter: FfiConverterTypeExitPoint.read(from: &buf), 
                 enableTwoHop: FfiConverterBool.read(from: &buf), 
                 tunProvider: FfiConverterTypeOSTunProvider.read(from: &buf), 
-                credentialDataPath: FfiConverterOptionTypePathBuf.read(from: &buf)
+                credentialDataPath: FfiConverterOptionTypePathBuf.read(from: &buf), 
+                tunStatusListener: FfiConverterOptionTypeTunnelStatusListener.read(from: &buf)
         )
     }
 
@@ -1038,6 +1191,7 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
         FfiConverterBool.write(value.enableTwoHop, into: &buf)
         FfiConverterTypeOSTunProvider.write(value.tunProvider, into: &buf)
         FfiConverterOptionTypePathBuf.write(value.credentialDataPath, into: &buf)
+        FfiConverterOptionTypeTunnelStatusListener.write(value.tunStatusListener, into: &buf)
     }
 }
 
@@ -1383,6 +1537,82 @@ extension FfiError: Equatable, Hashable {}
 
 extension FfiError: Error { }
 
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum TunStatus {
+    
+    case up
+    case down
+    case initializingClient
+    case establishingConnection
+    case disconnecting
+}
+
+
+public struct FfiConverterTypeTunStatus: FfiConverterRustBuffer {
+    typealias SwiftType = TunStatus
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TunStatus {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .up
+        
+        case 2: return .down
+        
+        case 3: return .initializingClient
+        
+        case 4: return .establishingConnection
+        
+        case 5: return .disconnecting
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: TunStatus, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .up:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .down:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .initializingClient:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .establishingConnection:
+            writeInt(&buf, Int32(4))
+        
+        
+        case .disconnecting:
+            writeInt(&buf, Int32(5))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeTunStatus_lift(_ buf: RustBuffer) throws -> TunStatus {
+    return try FfiConverterTypeTunStatus.lift(buf)
+}
+
+public func FfiConverterTypeTunStatus_lower(_ value: TunStatus) -> RustBuffer {
+    return FfiConverterTypeTunStatus.lower(value)
+}
+
+
+
+extension TunStatus: Equatable, Hashable {}
+
+
+
 fileprivate struct FfiConverterOptionDouble: FfiConverterRustBuffer {
     typealias SwiftType = Double?
 
@@ -1420,6 +1650,27 @@ fileprivate struct FfiConverterOptionTimestamp: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTimestamp.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeTunnelStatusListener: FfiConverterRustBuffer {
+    typealias SwiftType = TunnelStatusListener?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeTunnelStatusListener.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeTunnelStatusListener.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -2060,12 +2311,13 @@ public func getLowLatencyEntryCountry(apiUrl: Url, explorerUrl: Url, harbourMast
     )
 })
 }
-public func importCredential(credential: String, path: String)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
+public func importCredential(credential: String, path: String)throws  -> Date? {
+    return try  FfiConverterOptionTimestamp.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_importcredential(
         FfiConverterString.lower(credential),
         FfiConverterString.lower(path),$0
     )
-}
+})
 }
 public func runVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_runvpn(
@@ -2103,7 +2355,7 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 20907) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 47691) {
+    if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 8591) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_runvpn() != 2496) {
@@ -2118,8 +2370,12 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_configure_nym() != 42844) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_tun_status_change() != 55105) {
+        return InitializationResult.apiChecksumMismatch
+    }
 
     uniffiCallbackInitOSTunProvider()
+    uniffiCallbackInitTunnelStatusListener()
     return InitializationResult.ok
 }
 

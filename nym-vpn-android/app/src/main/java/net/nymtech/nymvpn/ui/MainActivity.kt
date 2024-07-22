@@ -1,5 +1,7 @@
 package net.nymtech.nymvpn.ui
 
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -31,7 +33,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.NymVpn
+import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.datastore.LocaleStorage
+import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.module.MainImmediateDispatcher
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
@@ -41,8 +48,10 @@ import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.account.AccountScreen
+import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
 import net.nymtech.nymvpn.ui.screens.settings.credential.CredentialScreen
-import net.nymtech.nymvpn.ui.screens.settings.display.DisplayScreen
+import net.nymtech.nymvpn.ui.screens.settings.appearance.display.DisplayScreen
+import net.nymtech.nymvpn.ui.screens.settings.appearance.language.LanguageScreen
 import net.nymtech.nymvpn.ui.screens.settings.feedback.FeedbackScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
@@ -50,18 +59,48 @@ import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
+import timber.log.Timber
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+	private val localeStorage: LocaleStorage by lazy {
+		(application as NymVpn).localeStorage
+	}
+
 	@Inject
 	@MainImmediateDispatcher
 	lateinit var mainImmediateDispatcher: CoroutineDispatcher
 
+	@Inject
+	@IoDispatcher
+	lateinit var ioDispatcher: CoroutineDispatcher
+
+	@Inject
+	lateinit var settingsRepository: SettingsRepository
+
+	private lateinit var oldPrefLocaleCode: String
+
+	private fun resetTitle() {
+		try {
+			val label = packageManager.getActivityInfo(componentName, PackageManager.GET_META_DATA).labelRes
+			if (label != 0) {
+				setTitle(label)
+			}
+		} catch (e: PackageManager.NameNotFoundException) {
+			Timber.e(e)
+		}
+	}
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+
+		resetTitle()
 
 		val isAnalyticsShown = intent.extras?.getBoolean(SplashActivity.IS_ANALYTICS_SHOWN_INTENT_KEY)
 		val theme = intent.extras?.getString(SplashActivity.THEME)
@@ -73,6 +112,21 @@ class MainActivity : ComponentActivity() {
 			val snackbarHostState = remember { SnackbarHostState() }
 			var navHeight by remember { mutableStateOf(0.dp) }
 			val density = LocalDensity.current
+
+			navController.addOnDestinationChangedListener { controller, destination, _ ->
+				if (destination.route == NavItem.Main.route &&
+					controller.previousBackStackEntry?.destination?.route == NavItem.Settings.Appearance.Language.route
+				) {
+					val locale = LocaleUtil.getLocaleFromPrefCode(localeStorage.getPreferredLocale())
+					val currentLocale = Locale.getDefault()
+					if (locale != currentLocale) {
+						lifecycleScope.launch {
+							delay(Constants.LANGUAGE_SWITCH_DELAY)
+							recreate()
+						}
+					}
+				}
+			}
 
 			fun showSnackBarMessage(message: StringValue) {
 				lifecycleScope.launch(mainImmediateDispatcher) {
@@ -135,7 +189,7 @@ class MainActivity : ComponentActivity() {
 							.fillMaxSize()
 							.padding(it),
 					) {
-						composable(NavItem.Main.route) { MainScreen(navController, appViewModel) }
+						composable(NavItem.Main.route) { MainScreen(navController, appViewModel, uiState) }
 						composable(NavItem.Analytics.route) { AnalyticsScreen(navController, appViewModel, uiState) }
 						composable(NavItem.Permission.route) { PermissionScreen(navController) }
 						composable(NavItem.Settings.route) {
@@ -157,7 +211,6 @@ class MainActivity : ComponentActivity() {
 								hopType = HopType.LAST,
 							)
 						}
-						composable(NavItem.Settings.Display.route) { DisplayScreen() }
 						composable(NavItem.Settings.Logs.route) { LogsScreen(appViewModel = appViewModel) }
 						composable(NavItem.Settings.Support.route) { SupportScreen(appViewModel) }
 						composable(NavItem.Settings.Feedback.route) { FeedbackScreen(appViewModel) }
@@ -179,9 +232,33 @@ class MainActivity : ComponentActivity() {
 								appViewModel,
 							)
 						}
+						composable(NavItem.Settings.Appearance.route) {
+							AppearanceScreen(navController)
+						}
+						composable(NavItem.Settings.Appearance.Display.route) {
+							DisplayScreen()
+						}
+						composable(NavItem.Settings.Appearance.Language.route) {
+							LanguageScreen(navController, localeStorage)
+						}
 					}
 				}
 			}
 		}
+	}
+
+	override fun attachBaseContext(newBase: Context) {
+		oldPrefLocaleCode = LocaleStorage(newBase).getPreferredLocale()
+		applyOverrideConfiguration(LocaleUtil.getLocalizedConfiguration(oldPrefLocaleCode))
+		super.attachBaseContext(newBase)
+	}
+
+	override fun onResume() {
+		val currentLocaleCode = LocaleStorage(this).getPreferredLocale()
+		if (oldPrefLocaleCode != currentLocaleCode) {
+			recreate() // locale is changed, restart the activty to update
+			oldPrefLocaleCode = currentLocaleCode
+		}
+		super.onResume()
 	}
 }

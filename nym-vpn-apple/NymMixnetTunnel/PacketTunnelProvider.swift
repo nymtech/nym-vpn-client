@@ -1,7 +1,8 @@
 import NetworkExtension
+import NymLogger
+import MixnetLibrary
 import TunnelMixnet
 import Tunnels
-import MixnetLibrary
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
     private lazy var mixnetTunnelProvider = MixnetTunnelProvider()

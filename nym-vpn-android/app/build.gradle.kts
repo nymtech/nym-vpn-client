@@ -39,6 +39,7 @@ android {
 			Constants.SENTRY_DSN,
 			"\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\"",
 		)
+		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languageList().joinToString(separator = ", ") { "\"$it\"" }} }")
 		buildConfigField("Boolean", "IS_SANDBOX", "false")
 		proguardFile("fdroid-rules.pro")
 	}
@@ -128,13 +129,19 @@ android {
 	productFlavors {
 		create(Constants.FDROID) {
 			dimension = Constants.TYPE
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.FDROID}\"")
 		}
 		create(Constants.GENERAL) {
 			dimension = Constants.TYPE
 			proguardFile("proguard-rules.pro")
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.GENERAL}\"")
 		}
 		create(Constants.SANDBOX) {
-			buildConfigField("Boolean", "IS_SANDBOX", "true")
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.SANDBOX}\"")
+			dimension = Constants.TYPE
+		}
+		create(Constants.CANARY) {
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.CANARY}\"")
 			dimension = Constants.TYPE
 		}
 	}
@@ -198,6 +205,7 @@ dependencies {
 	implementation(libs.androidx.core.ktx)
 	implementation(libs.androidx.lifecycle.runtime.ktx)
 	implementation(libs.androidx.activity.compose)
+	implementation(libs.androidx.appcompat)
 	implementation(libs.androidx.material.icons.extended)
 	implementation(platform(libs.androidx.compose.bom))
 	implementation(libs.androidx.ui)
@@ -225,6 +233,7 @@ dependencies {
 
 	// logging
 	implementation(libs.timber)
+	implementation(libs.sentry.sentry.opentelemetry.core)
 
 	// navigation
 	implementation(libs.androidx.navigation.compose)

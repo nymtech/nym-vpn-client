@@ -1,3 +1,3 @@
-What's new:
-- Improve logs screen
-- Bug fixes
+Novidades:
+- Melhorada a tela de registros
+- Correções de bugs

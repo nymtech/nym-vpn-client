@@ -126,9 +126,7 @@ function NetworkModeSelect() {
         <RadioGroup
           defaultValue={state.vpnMode}
           options={vpnModes}
-          onChange={(mode) => {
-            handleNetworkModeChange(mode);
-          }}
+          onChange={handleNetworkModeChange}
           radioIcons={false}
         />
       </div>

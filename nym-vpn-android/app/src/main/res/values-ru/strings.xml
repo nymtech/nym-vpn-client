@@ -13,8 +13,7 @@
     <string name="establishing_connection">Настройка соединения</string>
     <string name="connection_time">Время подключения</string>
     <string name="connect_to">Подключиться к</string>
-    <string name="first_hop_selection">Выбор первой ступени</string>
-    <string name="display_theme">Выбор темы</string>
+	<string name="display_theme">Выбор темы</string>
     <string name="light_theme">Светлая тема</string>
     <string name="dark_theme">Тёмная тема</string>
     <string name="automatic">Автоматически</string>
@@ -23,8 +22,7 @@
     <string name="is_selected">Выбрано</string>
     <string name="fastest">Быстрейший</string>
     <string name="auto_connect">Авто-подключение</string>
-    <string name="entry_location_description">Выбрать первую ступень вручную</string>
-    <string name="logs">Логи</string>
+	<string name="logs">Логи</string>
     <string name="feedback">Обратная связь</string>
     <string name="support">Поддержка</string>
     <string name="error_reporting">Поделиться анонимным отчетом об ошибке</string>
@@ -82,8 +80,7 @@
     <string name="no_browser_detected">Браузер не обнаружен</string>
     <string name="no_email_detected">Приложений электронной почты не обнаружено</string>
     <string name="no_scm_found">URL-адрес исходного кода не найден</string>
-    <string name="two_hop">2-ступенчатый</string>
-    <string name="five_hop">5-ступенчатый</string>
+	<string name="five_hop">5-ступенчатый</string>
     <string name="okay">Окей</string>
     <string name="feature_in_progress">Эта функция все ещё находится в разработке.</string>
     <string name="logs_saved">Логи сохранены в загрузки</string>
@@ -127,4 +124,5 @@
     <string name="mode_selection">Выбор режима</string>
     <string name="continue_reading">Продолжить чтение</string>
     <string name="five_hop_explanation">Наивысший уровень конфиденциальности с маршрутизацией соединения сквозь 5 серверов через микснет. Идеально подходит для безопасной обработки платежей, электронных писем и сообщений.</string>
+    <string name="two_hop_explanation">Получите максимальную скорость благодаря подключению к 2. Прекрасно подходит для быстрого просмотра веб-сайтов, стриминга и обмена файлами.</string>
 </resources>

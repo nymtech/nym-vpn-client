@@ -409,17 +409,18 @@ impl NymVpnService {
         let mut nym_vpn =
             nym_vpn_lib::NymVpn::new_mixnet_vpn(config.entry_point, config.exit_point);
         nym_vpn.gateway_config = gateway_directory::Config::new_from_env();
-        nym_vpn.vpn_config.mixnet_data_path = Some(self.data_dir.clone());
+        nym_vpn.mixnet_client_config.mixnet_data_path = Some(self.data_dir.clone());
         nym_vpn.dns = options.dns;
         nym_vpn.disable_routing = options.disable_routing;
         nym_vpn.enable_two_hop = options.enable_two_hop;
         // TODO: add user agent to options struct so we can pass it from the connected client if we
         // want to
         nym_vpn.user_agent = Some(bin_info!().into());
-        nym_vpn.vpn_config.enable_poisson_rate = options.enable_poisson_rate;
-        nym_vpn.vpn_config.disable_background_cover_traffic =
-            options.disable_background_cover_traffic;
-        nym_vpn.vpn_config.enable_credentials_mode = options.enable_credentials_mode;
+        nym_vpn.mixnet_client_config.enable_poisson_rate = options.enable_poisson_rate;
+        nym_vpn
+            .mixnet_client_config
+            .disable_background_cover_traffic = options.disable_background_cover_traffic;
+        nym_vpn.mixnet_client_config.enable_credentials_mode = options.enable_credentials_mode;
 
         let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn.into()).unwrap();
 

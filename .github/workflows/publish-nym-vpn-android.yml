@@ -7,7 +7,7 @@ on:
     inputs:
       track:
         type: choice
-        description: "Fastlane release track"
+        description: "Google play release track"
         options:
           - none
           - internal
@@ -16,6 +16,14 @@ on:
           - production
         default: alpha
         required: true
+      publish-bundle:
+        type: boolean
+        default: false
+        description: Skip app bundle
+      publish-metadata:
+        type: boolean
+        default: true
+        description: Skip app metadata
       tag_name:
         description: "Tag name for release"
         required: false
@@ -164,8 +172,7 @@ jobs:
   publish-play:
     if: ${{ inputs.track != 'none' && inputs.track != '' }}
     # issue here: https://github.com/ruby/setup-ruby?tab=readme-ov-file#using-self-hosted-runners
-    #runs-on: ubuntu-22.04-arc
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04-arc
     defaults:
       run:
         working-directory: nym-vpn-android
@@ -182,9 +189,9 @@ jobs:
         with:
           ruby-version: '3.2' # Not needed with a .ruby-version file
           bundler-cache: true
+
       - uses: actions/checkout@v4
-        with:
-          submodules: true
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -204,6 +211,7 @@ jobs:
         id: setup-ndk
         with:
           ndk-version: r25c
+          link-to-sdk: true
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -247,8 +255,17 @@ jobs:
         id: createServiceAccount
         run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
+      - name: Get version code
+        run: |
+          version_code=$(grep "VERSION_CODE" ${{ github.workspace }}/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
+          echo "VERSION_CODE=$version_code" >> $GITHUB_ENV
+
       - name: Distribute app to fastlane track 🚀
         working-directory: ${{ github.workspace }}/nym-vpn-android
         run: |
           bundle install
-          bundle exec fastlane ${{ inputs.track }}
+          bundle exec fastlane ${{ inputs.track }} skip_bundle:${{github.event.inputs.publish-bundle == 'true'}} skip_metadata:${{github.event.inputs.publish-metadata == 'true'}}
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          
+          

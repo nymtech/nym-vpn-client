@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.util
 
 object Constants {
 
+	const val LANGUAGE_SWITCH_DELAY = 500L
 	const val VPN_API_BASE_URL = "https://nymvpn.com/api/"
 	const val SUBSCRIPTION_TIMEOUT = 5_000L
 	const val LOG_BUFFER_SIZE = 5_000L
@@ -23,4 +24,6 @@ object Constants {
 	const val VPN_SETTINGS_PACKAGE = "android.net.vpn.SETTINGS"
 
 	const val FREE_PASS_CRED_DURATION = 30f
+
+	const val NATIVE_STORAGE_PATH = "/data/data/net.nymtech.nymvpn/files/"
 }

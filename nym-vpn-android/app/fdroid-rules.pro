@@ -1,4 +1,5 @@
 -dontwarn com.google.errorprone.annotations.**
+-dontwarn com.google.auto.**
 
 -keepclassmembers class * extends androidx.datastore.preferences.protobuf.GeneratedMessageLite {
     <fields>;

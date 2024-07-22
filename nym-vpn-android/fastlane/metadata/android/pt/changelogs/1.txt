@@ -1,0 +1,2 @@
+Novidade:
+- Criação da interface de usuário
