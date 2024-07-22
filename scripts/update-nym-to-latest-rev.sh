@@ -21,9 +21,9 @@ update_cargo_file() {
     sed -i -E "s/(nym-.* = \{ git = \"https:\/\/github\.com\/nymtech\/nym\", rev = \")([a-f0-9]+)/\1$latest_commit/" "$cargo_file"
 
     if [ $? -eq 0 ]; then
-        echo "Updated Cargo.toml with the latest commit SHA: $latest_commit"
+        echo "Updated $cargo_file with the latest commit SHA: $latest_commit"
     else
-        echo "Failed to update Cargo.toml"
+        echo "Failed to update $cargo_file"
         return 1
     fi
 }
