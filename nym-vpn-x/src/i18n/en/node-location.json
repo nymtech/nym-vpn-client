@@ -1,8 +1,13 @@
 {
   "loading": "Loading..",
   "none-found": "No results found. Please try another search",
-  "list-loading": "The country list is loading…",
+  "list-loading": "The location list is loading…",
   "selected": "Selected",
-  "search-country": "Search country",
-  "input-label": "Search"
+  "search-country": "Search location",
+  "input-label": "Search",
+  "location-details": {
+    "title": "Details on server locations",
+    "description": "We infer server locations based on their IP addresses, but the actual locations may vary slightly.",
+    "link": "Read more"
+  }
 }

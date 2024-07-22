@@ -8,8 +8,8 @@
     "disconnecting": "Disconnecting",
     "unknown": "Unknown"
   },
-  "last-hop": "Last hop",
-  "first-hop": "First hop",
+  "last-hop": "Exit location",
+  "first-hop": "Entry location",
   "connecting-message": "Establishing connection",
   "connection-time": "Connection time",
   "select-mode-label": "Select mode",

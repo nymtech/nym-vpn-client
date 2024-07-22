@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Notification } from './type';
-import { NotificationContext } from './notification';
+import { NotificationContext } from './context';
 
 type Timeout = ReturnType<typeof setTimeout>;
 
