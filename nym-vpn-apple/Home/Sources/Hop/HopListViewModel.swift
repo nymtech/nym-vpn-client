@@ -14,6 +14,7 @@ public class HopListViewModel: ObservableObject {
     var countriesManager: CountriesManager
     @Binding var path: NavigationPath
 
+    @Published var isGeolocationModalDisplayed = false
     @Published var quickestCountry: Country?
     @Published var countries: [Country]?
     @Published var searchText: String = "" {
@@ -65,6 +66,10 @@ public class HopListViewModel: ObservableObject {
         case .exit:
             return connectionManager.exitRouter.countryCode == countryCode
         }
+    }
+
+    func displayInfoTooltip() {
+        isGeolocationModalDisplayed.toggle()
     }
 }
 
