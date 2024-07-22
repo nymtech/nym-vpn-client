@@ -80,7 +80,6 @@ private extension SettingsViewModel {
                         }
                     ),
                     title: "entryLocationTitle".localizedString,
-                    subtitle: "entryLocationSubtitle".localizedString,
                     imageName: "entryHop",
                     action: {}
                 )
