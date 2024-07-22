@@ -32,8 +32,7 @@
     <string name="establishing_connection">建立连接</string>
     <string name="connection_time">连接时间</string>
     <string name="connect_to">连接到</string>
-    <string name="first_hop_selection">第一跳选择</string>
-    <string name="last_hop_selection">最后一跳选择</string>
+	<string name="last_hop_selection">最后一跳选择</string>
     <string name="display_theme">屏幕模式</string>
     <string name="dark_theme">黑夜模式</string>
     <string name="automatic">自动</string>
@@ -43,8 +42,7 @@
     <string name="is_selected">已选择</string>
     <string name="fastest">最快</string>
     <string name="auto_connect">自动连接</string>
-    <string name="entry_location_description">手动选择第一个跳转点</string>
-    <string name="logs">日志</string>
+	<string name="logs">日志</string>
     <string name="feedback">反馈</string>
     <string name="support">支持</string>
     <string name="error_reporting">共享匿名错误报告</string>
@@ -82,8 +80,7 @@
     <string name="no_email_detected">未检测到电子邮件应用程序</string>
     <string name="unknown">未知</string>
     <string name="no_scm_found">未找到源代码网址</string>
-    <string name="two_hop">2跳</string>
-    <string name="five_hop">5跳</string>
+	<string name="five_hop">5跳</string>
     <string name="mode">模式</string>
     <string name="okay">好的</string>
     <string name="feature_in_progress">该功能仍在开发中。</string>

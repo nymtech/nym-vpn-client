@@ -120,6 +120,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 	LaunchedEffect(uiState.firstHopCounty, uiState.lastHopCountry, uiState.networkMode, uiState.connectionState) {
 		NymVpn.requestTileServiceStateUpdate()
 	}
+
 	Column(
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
 		horizontalAlignment = Alignment.CenterHorizontally,

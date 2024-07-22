@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.settings.display
+package net.nymtech.nymvpn.ui.screens.settings.appearance.display
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

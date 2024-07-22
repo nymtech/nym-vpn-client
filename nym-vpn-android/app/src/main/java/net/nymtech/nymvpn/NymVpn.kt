@@ -2,6 +2,7 @@ package net.nymtech.nymvpn
 
 import android.app.Application
 import android.content.ComponentName
+import android.content.Context
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.service.quicksettings.TileService
@@ -15,10 +16,12 @@ import kotlinx.coroutines.launch
 import net.nymtech.logcathelper.LogCollect
 import net.nymtech.logcathelper.model.LogLevel
 import net.nymtech.logcathelper.model.LogMessage
+import net.nymtech.nymvpn.data.datastore.LocaleStorage
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.service.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.actionBarSize
 import net.nymtech.nymvpn.util.log.DebugTree
 import net.nymtech.nymvpn.util.log.NymLibException
@@ -29,6 +32,10 @@ import javax.inject.Inject
 
 @HiltAndroidApp
 class NymVpn : Application() {
+
+	val localeStorage: LocaleStorage by lazy {
+		LocaleStorage(this)
+	}
 
 	@Inject
 	@ApplicationScope
@@ -60,6 +67,10 @@ class NymVpn : Application() {
 		applicationScope.launch(ioDispatcher) {
 			logCollect.start(onLogMessage = { reportLibExceptions(it) })
 		}
+	}
+
+	override fun attachBaseContext(base: Context) {
+		super.attachBaseContext(LocaleUtil.getLocalizedContext(base, LocaleStorage(base).getPreferredLocale()))
 	}
 
 	private fun reportLibExceptions(message: LogMessage) {

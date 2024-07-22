@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,6 +41,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.HopType
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
+import net.nymtech.nymvpn.ui.common.labels.SelectedLabel
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.iconSize
@@ -204,23 +204,7 @@ fun HopScreen(navController: NavController, hopType: HopType, viewModel: HopView
 				},
 				trailing = {
 					if (it == uiState.selected) {
-						Row(
-							modifier = Modifier.fillMaxWidth(),
-							horizontalArrangement = Arrangement.End,
-							verticalAlignment = Alignment.CenterVertically,
-						) {
-							Text(
-								stringResource(id = R.string.is_selected),
-								modifier =
-								Modifier.padding(
-									horizontal = 24.dp.scaledWidth(),
-									vertical = 16.dp.scaledHeight(),
-								),
-								color =
-								MaterialTheme.colorScheme.onSurfaceVariant,
-								style = MaterialTheme.typography.labelSmall,
-							)
-						}
+						SelectedLabel()
 					}
 				},
 			)

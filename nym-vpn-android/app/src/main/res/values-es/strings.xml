@@ -18,8 +18,7 @@
     <string name="establishing_connection">Estableciendo conexión</string>
     <string name="connection_time">Tiempo de conexión</string>
     <string name="connect_to">Conectar a</string>
-    <string name="first_hop_selection">Gateway entrada</string>
-    <string name="last_hop_selection">Gateway salida</string>
+	<string name="last_hop_selection">Gateway salida</string>
     <string name="display_theme">Tema</string>
     <string name="light_theme">Tema claro</string>
     <string name="dark_theme">Tema oscuro</string>
@@ -31,8 +30,7 @@
     <string name="fastest">Más rápido</string>
     <string name="auto_connect">Conexión automática</string>
     <string name="auto_connect_description">Conectar automáticamente al reiniciar</string>
-    <string name="entry_location_description">Selecciona manualmente tu primer salto</string>
-    <string name="logs">Registros</string>
+	<string name="logs">Registros</string>
     <string name="feedback">Retroalimentación</string>
     <string name="support">Soporte</string>
     <string name="error_reporting">Compartir informes de errores anónimos</string>
@@ -40,8 +38,7 @@
     <string name="via">vía</string>
     <string name="required_app_restart">aplica al reiniciar</string>
     <string name="legal">Legal</string>
-    <string name="faq_link" translatable="false">https://nymtech.net</string>
-    <string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
+	<string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
     <string name="terms_of_use">Términos de uso</string>
     <string name="privacy_policy">Declaración de privacidad</string>
     <string name="licenses">Licencias</string>
@@ -83,8 +80,7 @@
     <string name="unknown">Desconocido</string>
     <string name="no_scm_found">URL del código fuente no encontrada</string>
     <string name="terms_link" translatable="false">https://nymvpn.com/en/terms</string>
-    <string name="two_hop">2 saltos</string>
-    <string name="five_hop">5 saltos</string>
+	<string name="five_hop">5 saltos</string>
     <string name="mode">Modo</string>
     <string name="okay">De acuerdo</string>
     <string name="error_reporting_alert">Los cambios en los informes de errores no se aplicarán completamente hasta que la aplicación se haya reiniciado.</string>

@@ -39,6 +39,7 @@ android {
 			Constants.SENTRY_DSN,
 			"\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\"",
 		)
+		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languageList().joinToString(separator = ", ") { "\"$it\"" }} }")
 		buildConfigField("Boolean", "IS_SANDBOX", "false")
 		proguardFile("fdroid-rules.pro")
 	}
@@ -204,6 +205,7 @@ dependencies {
 	implementation(libs.androidx.core.ktx)
 	implementation(libs.androidx.lifecycle.runtime.ktx)
 	implementation(libs.androidx.activity.compose)
+	implementation(libs.androidx.appcompat)
 	implementation(libs.androidx.material.icons.extended)
 	implementation(platform(libs.androidx.compose.bom))
 	implementation(libs.androidx.ui)

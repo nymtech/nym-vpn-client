@@ -20,3 +20,15 @@ fun Project.isReleaseBuild(): Boolean {
 fun Project.isBundleBuild() : Boolean {
     return gradle.startParameter.taskNames.find { it.lowercase().contains("bundle") } != null
 }
+
+fun Project.languageList(): List<String> {
+	return fileTree("src/main/res") { include("**/strings.xml") }
+		.asSequence()
+		.map { stringFile -> stringFile.parentFile.name }
+		.map { valuesFolderName -> valuesFolderName.replace("values-", "") }
+		.filter { valuesFolderName -> valuesFolderName != "values" }
+		.map { languageCode -> languageCode.replace("-r", "_") }
+		.distinct()
+		.sorted()
+		.toList() + "en"
+}
