@@ -77,6 +77,7 @@ fun LanguageScreen(navController: NavController, localeStorage: LocaleStorage) {
 						SelectedLabel()
 					}
 				},
+				ripple = false,
 			)
 		}
 		items(sortedLocales.toList()) { locale ->
@@ -91,6 +92,7 @@ fun LanguageScreen(navController: NavController, localeStorage: LocaleStorage) {
 						SelectedLabel()
 					}
 				},
+				ripple = false,
 			)
 		}
 	}
