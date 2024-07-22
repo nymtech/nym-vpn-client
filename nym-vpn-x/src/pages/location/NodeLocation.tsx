@@ -1,8 +1,8 @@
-import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api';
-import { useMainDispatch, useMainState } from '../../contexts';
+import { useDialog, useMainDispatch, useMainState } from '../../contexts';
 import {
   AppError,
   Country,
@@ -16,6 +16,7 @@ import { routes } from '../../router';
 import { useI18nError } from '../../hooks';
 import { PageAnim, TextInput } from '../../ui';
 import CountryList from './CountryList';
+import LocationDetailsDialog from './LocationDetailsDialog';
 
 export type UiCountry = {
   country: Country;
@@ -36,6 +37,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
     entryCountriesError,
     exitCountriesError,
   } = useMainState();
+  const { isOpen, close } = useDialog();
 
   const { t } = useTranslation('nodeLocation');
   const { tE } = useI18nError();
@@ -142,39 +144,45 @@ function NodeLocation({ node }: { node: NodeHop }) {
   );
 
   return (
-    <PageAnim className="h-full flex flex-col">
-      <div className="h-70 flex flex-col justify-center items-center gap-y-2 pt-3">
-        <div className="w-full flex flex-row items-center px-4 mb-2">
-          <TextInput
-            value={search}
-            onChange={filter}
-            placeholder={t('search-country')}
-            leftIcon="search"
-            label={t('input-label')}
-          />
+    <>
+      <LocationDetailsDialog
+        isOpen={isOpen('location-info')}
+        onClose={() => close('location-info')}
+      />
+      <PageAnim className="h-full flex flex-col">
+        <div className="h-70 flex flex-col justify-center items-center gap-y-2 pt-3">
+          <div className="w-full flex flex-row items-center px-4 mb-2">
+            <TextInput
+              value={search}
+              onChange={filter}
+              placeholder={t('search-country')}
+              leftIcon="search"
+              label={t('input-label')}
+            />
+          </div>
+          <span className="mt-2" />
+          {error ? (
+            renderError(error)
+          ) : (
+            <CountryList
+              countries={filteredCountries}
+              loading={
+                node === 'entry' ? entryCountriesLoading : exitCountriesLoading
+              }
+              onSelect={(country) => {
+                handleCountrySelection(country);
+              }}
+              isSelected={(country: UiCountry) => {
+                return isCountrySelected(
+                  node === 'entry' ? entryNodeLocation : exitNodeLocation,
+                  country,
+                );
+              }}
+            />
+          )}
         </div>
-        <span className="mt-2" />
-        {error ? (
-          renderError(error)
-        ) : (
-          <CountryList
-            countries={filteredCountries}
-            loading={
-              node === 'entry' ? entryCountriesLoading : exitCountriesLoading
-            }
-            onSelect={(country) => {
-              handleCountrySelection(country);
-            }}
-            isSelected={(country: UiCountry) => {
-              return isCountrySelected(
-                node === 'entry' ? entryNodeLocation : exitNodeLocation,
-                country,
-              );
-            }}
-          />
-        )}
-      </div>
-    </PageAnim>
+      </PageAnim>
+    </>
   );
 }
 

@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
 import { NotificationState } from './type';
 
-export const initialState: NotificationState = {
+const initialState: NotificationState = {
   stack: [],
   current: null,
   next: () => {

@@ -10,7 +10,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { NymVpnTextLogoDark, NymVpnTextLogoLight } from '../assets';
-import { useMainState } from '../contexts';
+import { useDialog, useMainState } from '../contexts';
 import { routes } from '../router';
 import { Routes } from '../types';
 import AnimateIn from './AnimateIn';
@@ -21,6 +21,7 @@ type NavLocation = {
   leftIcon?: string;
   handleLeftNav?: () => void;
   rightIcon?: string;
+  rightIconClassName?: string;
   handleRightNav?: () => void;
   noBackground?: boolean;
 };
@@ -35,6 +36,7 @@ export default function TopBar() {
   const { t } = useTranslation();
 
   const { uiTheme, os } = useMainState();
+  const { show } = useDialog();
 
   const [currentNavLocation, setCurrentNavLocation] = useState<NavLocation>({
     title: '',
@@ -156,6 +158,12 @@ export default function TopBar() {
         handleLeftNav: () => {
           navigate(-1);
         },
+        rightIcon: 'info',
+        rightIconClassName:
+          'text-cement-feet dark:text-mercury-mist hover:text-gun-powder hover:dark:text-mercury-pinkish',
+        handleRightNav: () => {
+          show('location-info');
+        },
       },
       '/exit-node-location': {
         title: t('last-hop-selection'),
@@ -163,12 +171,18 @@ export default function TopBar() {
         handleLeftNav: () => {
           navigate(-1);
         },
+        rightIcon: 'info',
+        rightIconClassName:
+          'text-cement-feet dark:text-mercury-mist hover:text-gun-powder hover:dark:text-mercury-pinkish',
+        handleRightNav: () => {
+          show('location-info');
+        },
       },
       // these pages do not use the TopBar
       '/hideout': {},
       '/hideout/welcome': {},
     };
-  }, [t, navigate, os, getMainScreenTitle]);
+  }, [t, navigate, os, getMainScreenTitle, show]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);
@@ -233,6 +247,7 @@ export default function TopBar() {
               className={clsx([
                 'dark:text-laughing-jack transition duration-150',
                 'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black hover:dark:text-blanc-nacre',
+                currentNavLocation.rightIconClassName,
               ])}
             />
           </button>

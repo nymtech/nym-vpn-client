@@ -110,7 +110,6 @@ function Settings() {
           },
           {
             title: t('entry-selector.title'),
-            desc: t('entry-selector.desc'),
             leadingIcon: 'looks_two',
             onClick: handleEntrySelectorChange,
             trailing: (

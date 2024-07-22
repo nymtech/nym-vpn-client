@@ -1,13 +1,32 @@
 #!/bin/bash
 
-# File to update
-cargo_file="./nym-vpn-core/Cargo.toml"
+# List of Cargo.toml files to update
+cargo_files=(
+    "./nym-vpn-core/Cargo.toml"
+    "./nym-vpn-x/src-tauri/Cargo.toml"
+    "./nym-vpn-desktop/src-tauri/Cargo.toml"
+)
 
-# Check if the Cargo.toml file exists
-if [ ! -f "$cargo_file" ]; then
-    echo "File: "$cargo_file" does not exist!"
-    exit 1
-fi
+# Function to update Cargo.toml with the latest commit SHA
+update_cargo_file() {
+    local cargo_file="$1"
+
+    # Check if the Cargo.toml file exists
+    if [ ! -f "$cargo_file" ]; then
+        echo "File: "$cargo_file" does not exist!"
+        return 1
+    fi
+
+    # Update the Cargo.toml file with the latest commit SHA
+    sed -i -E "s/(nym-.* = \{ git = \"https:\/\/github\.com\/nymtech\/nym\", rev = \")([a-f0-9]+)/\1$latest_commit/" "$cargo_file"
+
+    if [ $? -eq 0 ]; then
+        echo "Updated $cargo_file with the latest commit SHA: $latest_commit"
+    else
+        echo "Failed to update $cargo_file"
+        return 1
+    fi
+}
 
 # GitHub API URL for the latest commit on the develop branch
 api_url="https://api.github.com/repos/nymtech/nym/commits/develop"
@@ -23,12 +42,8 @@ fi
 
 echo "Latest commit SHA: $latest_commit"
 
-# Update the Cargo.toml file with the latest commit SHA
-sed -i -E "s/(nym-.* = \{ git = \"https:\/\/github\.com\/nymtech\/nym\", rev = \")([a-f0-9]+)/\1$latest_commit/" "$cargo_file"
-
-if [ $? -eq 0 ]; then
-    echo "Updated Cargo.toml with the latest commit SHA: $latest_commit"
-else
-    echo "Failed to update Cargo.toml"
-fi
+# Loop through each Cargo.toml file and update it
+for cargo_file in "${cargo_files[@]}"; do
+    update_cargo_file "$cargo_file"
+done
 
