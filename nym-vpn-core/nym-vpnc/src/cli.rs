@@ -22,6 +22,7 @@ pub(crate) enum Command {
     Connect(ConnectArgs),
     Disconnect,
     Status,
+    Info,
     ImportCredential(ImportCredentialArgs),
     ListenToStatus,
     ListenToStateChanges,

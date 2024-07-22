@@ -80,6 +80,7 @@ pub enum VpnServiceCommand {
     Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
+    Info(oneshot::Sender<VpnServiceInfoResult>),
     ImportCredential(
         oneshot::Sender<Result<Option<OffsetDateTime>, ImportCredentialError>>,
         Vec<u8>,
@@ -92,6 +93,7 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::Connect(_, args) => write!(f, "Connect {{ {args:?} }}"),
             VpnServiceCommand::Disconnect(_) => write!(f, "Disconnect"),
             VpnServiceCommand::Status(_) => write!(f, "Status"),
+            VpnServiceCommand::Info(_) => write!(f, "Info"),
             VpnServiceCommand::ImportCredential(_, _) => write!(f, "ImportCredential"),
         }
     }
@@ -156,6 +158,14 @@ pub enum VpnServiceStatusResult {
     Connected(Box<ConnectedResultDetails>),
     Disconnecting,
     ConnectionFailed(ConnectionFailedError),
+}
+
+#[derive(Clone, Debug)]
+pub struct VpnServiceInfoResult {
+    pub version: String,
+    pub build_timestamp: String,
+    pub triple: String,
+    pub git_commit: String,
 }
 
 impl fmt::Display for VpnServiceStatusResult {
@@ -481,6 +491,16 @@ impl NymVpnService {
         self.shared_vpn_state.get().into()
     }
 
+    async fn handle_info(&self) -> VpnServiceInfoResult {
+        let bin_info = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!();
+        VpnServiceInfoResult {
+            version: bin_info.build_version.to_string(),
+            build_timestamp: bin_info.build_timestamp.to_string(),
+            triple: bin_info.cargo_triple.to_string(),
+            git_commit: bin_info.commit_sha.to_string(),
+        }
+    }
+
     async fn handle_import_credential(
         &mut self,
         credential: Vec<u8>,
@@ -508,6 +528,10 @@ impl NymVpnService {
                 }
                 VpnServiceCommand::Status(tx) => {
                     let result = self.handle_status().await;
+                    tx.send(result).unwrap();
+                }
+                VpnServiceCommand::Info(tx) => {
+                    let result = self.handle_info().await;
                     tx.send(result).unwrap();
                 }
                 VpnServiceCommand::ImportCredential(tx, credential) => {

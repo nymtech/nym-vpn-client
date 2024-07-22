@@ -14,6 +14,7 @@ use nym_vpn_proto::{
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
     ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
 };
+use nym_vpn_proto::{InfoRequest, InfoResponse};
 use prost_types::Timestamp;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
@@ -100,6 +101,20 @@ impl Drop for CommandInterface {
 
 #[tonic::async_trait]
 impl NymVpnd for CommandInterface {
+    async fn info(
+        &self,
+        request: tonic::Request<InfoRequest>,
+    ) -> Result<tonic::Response<InfoResponse>, tonic::Status> {
+        info!("Got info request: {:?}", request);
+
+        let info = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_info()
+            .await;
+
+        info!("Returning info response");
+        Ok(tonic::Response::new(InfoResponse::from(info)))
+    }
+
     async fn vpn_connect(
         &self,
         request: tonic::Request<ConnectRequest>,

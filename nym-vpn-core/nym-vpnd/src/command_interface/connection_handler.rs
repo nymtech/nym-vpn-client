@@ -8,7 +8,7 @@ use tracing::{info, warn};
 
 use crate::service::{
     ConnectArgs, ConnectOptions, ImportCredentialError, VpnServiceCommand, VpnServiceConnectResult,
-    VpnServiceDisconnectResult, VpnServiceStatusResult,
+    VpnServiceDisconnectResult, VpnServiceInfoResult, VpnServiceStatusResult,
 };
 
 pub(super) struct CommandInterfaceConnectionHandler {
@@ -70,6 +70,18 @@ impl CommandInterfaceConnectionHandler {
             }
         };
         result
+    }
+
+    pub(crate) async fn handle_info(&self) -> VpnServiceInfoResult {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::Info(tx))
+            .unwrap();
+        info!("Sent info command to VPN");
+        info!("Waiting for response");
+        let info = rx.await.unwrap();
+        info!("VPN info: {:?}", info);
+        info
     }
 
     pub(crate) async fn handle_status(&self) -> VpnServiceStatusResult {

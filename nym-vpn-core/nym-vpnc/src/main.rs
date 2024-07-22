@@ -4,7 +4,8 @@
 use anyhow::Result;
 use clap::Parser;
 use nym_vpn_proto::{
-    ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, StatusRequest,
+    ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, InfoRequest,
+    StatusRequest,
 };
 use vpnd_client::ClientType;
 
@@ -30,6 +31,7 @@ async fn main() -> Result<()> {
         Command::Connect(ref connect_args) => connect(client_type, connect_args).await?,
         Command::Disconnect => disconnect(client_type).await?,
         Command::Status => status(client_type).await?,
+        Command::Info => info(client_type).await?,
         Command::ImportCredential(ref import_args) => {
             import_credential(client_type, import_args).await?
         }
@@ -91,6 +93,14 @@ async fn status(client_type: ClientType) -> Result<()> {
             Err(err) => eprintln!("failed to parse timestamp: {err}"),
         }
     }
+    Ok(())
+}
+
+async fn info(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(InfoRequest {});
+    let response = client.info(request).await?.into_inner();
+    println!("{:?}", response);
     Ok(())
 }
 
