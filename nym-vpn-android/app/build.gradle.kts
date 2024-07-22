@@ -39,7 +39,6 @@ android {
 			Constants.SENTRY_DSN,
 			"\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\"",
 		)
-		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languageList().joinToString(separator = ", ") { "\"$it\"" }} }")
 		buildConfigField("Boolean", "IS_SANDBOX", "false")
 		proguardFile("fdroid-rules.pro")
 	}
@@ -200,6 +199,7 @@ dependencies {
 
 	implementation(project(":nym_vpn_client"))
 	implementation(project(":logcat_helper"))
+	implementation(project(":localization_util"))
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 
 	implementation(libs.androidx.core.ktx)

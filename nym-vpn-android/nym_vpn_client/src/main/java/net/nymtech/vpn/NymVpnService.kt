@@ -1,8 +1,12 @@
 package net.nymtech.vpn
 
 import android.content.Intent
+import android.content.res.Resources
 import android.net.VpnService
 import android.os.Build
+import androidx.annotation.CallSuper
+import com.zaneschepke.localization_util.LocaleStorage
+import com.zaneschepke.localization_util.LocaleUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -57,7 +61,9 @@ class NymVpnService : VpnService() {
 
 	val connectivityListener = ConnectivityListener()
 
+	@CallSuper
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+		LocaleUtil.applyLocalizedContext(baseContext, LocaleStorage(this).getPreferredLocale())
 		when (intent?.action) {
 			Action.START.name, Action.START_FOREGROUND.name -> {
 				currentTunConfig = defaultTunConfig()
@@ -82,6 +88,15 @@ class NymVpnService : VpnService() {
 				initVPN(this@NymVpnService, logLevel)
 				NymVpnClient.NymVpn.connect(this@NymVpnService)
 			}
+		}
+	}
+
+	override fun getResources(): Resources {
+		return if(Build.VERSION.SDK_INT > Build.VERSION_CODES.O){
+			super.getResources()
+		} else {
+			//before Android PIE we should override resources also
+			LocaleUtil.getLocalizedResources(super.getResources(), LocaleStorage(this).getPreferredLocale())
 		}
 	}
 

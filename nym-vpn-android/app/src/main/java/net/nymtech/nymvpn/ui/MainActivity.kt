@@ -31,13 +31,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.zaneschepke.localization_util.LocaleStorage
+import com.zaneschepke.localization_util.LocaleUtil
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.data.datastore.LocaleStorage
 import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.module.MainImmediateDispatcher
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
@@ -60,7 +61,6 @@ import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import timber.log.Timber
 import java.util.Locale

@@ -1,8 +1,7 @@
-package net.nymtech.nymvpn.data.datastore
+package com.zaneschepke.localization_util
 
 import android.content.Context
 import android.content.SharedPreferences
-import net.nymtech.nymvpn.util.LocaleUtil
 
 class LocaleStorage(context: Context) {
 	private var preferences: SharedPreferences = context.getSharedPreferences("sp", Context.MODE_PRIVATE)

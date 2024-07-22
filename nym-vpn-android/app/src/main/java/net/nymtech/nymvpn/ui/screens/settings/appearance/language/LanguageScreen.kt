@@ -15,13 +15,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.zaneschepke.localization_util.LocaleStorage
+import com.zaneschepke.localization_util.LocaleUtil
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.data.datastore.LocaleStorage
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
 import net.nymtech.nymvpn.ui.common.labels.SelectedLabel
-import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.capitalize
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
@@ -37,7 +37,7 @@ fun LanguageScreen(navController: NavController, localeStorage: LocaleStorage) {
 
 	val currentLocale = remember { mutableStateOf(LocaleUtil.OPTION_PHONE_LANGUAGE) }
 
-	val locales = BuildConfig.LANGUAGES.map {
+	val locales = LocaleUtil.supportedLocales.map {
 		val tag = it.replace("_", "-")
 		Locale.forLanguageTag(tag)
 	}

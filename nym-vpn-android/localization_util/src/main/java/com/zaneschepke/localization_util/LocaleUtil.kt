@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.util
+package com.zaneschepke.localization_util
 
 import android.content.Context
 import android.content.res.Configuration
@@ -10,7 +10,7 @@ import java.util.Locale
 
 object LocaleUtil {
 	private const val DEFAULT_LANG = "en"
-	private val supportedLocales: Array<String> = net.nymtech.nymvpn.BuildConfig.LANGUAGES
+	val supportedLocales: Array<String> = BuildConfig.LANGUAGES
 	const val OPTION_PHONE_LANGUAGE = "sys_def"
 
 	/**
