@@ -45,5 +45,6 @@ jobs:
         run: ./gradlew detekt --info
 
   build-nym-vpn-android:
+    if: github.triggering_actor != 'dependabot[bot]'
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
