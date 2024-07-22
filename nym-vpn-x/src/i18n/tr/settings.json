@@ -40,5 +40,8 @@
   "quit": "NymVPN'yi kapat",
   "credential": {
     "title": "Anahtar"
+  },
+  "notifications": {
+    "title": "Bilgisayar masaüstü bildirimleri"
   }
 }
