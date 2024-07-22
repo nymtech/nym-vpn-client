@@ -298,17 +298,6 @@
         }
       }
     },
-    "entryLocationSubtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manually select your entry hop"
-          }
-        }
-      }
-    },
     "entryLocationTitle" : {
       "extractionState" : "manual",
       "localizations" : {
