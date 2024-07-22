@@ -8,23 +8,18 @@ import android.os.StrictMode.ThreadPolicy
 import android.service.quicksettings.TileService
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
+import com.zaneschepke.localizationutil.LocaleStorage
+import com.zaneschepke.localizationutil.LocaleUtil
 import dagger.hilt.android.HiltAndroidApp
-import io.sentry.Sentry
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import net.nymtech.logcathelper.LogCollect
-import net.nymtech.logcathelper.model.LogLevel
-import net.nymtech.logcathelper.model.LogMessage
-import net.nymtech.nymvpn.data.datastore.LocaleStorage
+import net.nymtech.logcatutil.LogCollect
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.service.tile.VpnQuickTile
-import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.actionBarSize
 import net.nymtech.nymvpn.util.log.DebugTree
-import net.nymtech.nymvpn.util.log.NymLibException
 import net.nymtech.nymvpn.util.log.ReleaseTree
 import net.nymtech.vpn.model.Environment
 import timber.log.Timber
@@ -65,25 +60,12 @@ class NymVpn : Application() {
 			Timber.plant(ReleaseTree())
 		}
 		applicationScope.launch(ioDispatcher) {
-			logCollect.start(onLogMessage = { reportLibExceptions(it) })
+			logCollect.start()
 		}
 	}
 
 	override fun attachBaseContext(base: Context) {
 		super.attachBaseContext(LocaleUtil.getLocalizedContext(base, LocaleStorage(base).getPreferredLocale()))
-	}
-
-	private fun reportLibExceptions(message: LogMessage) {
-		when (message.level) {
-			LogLevel.ERROR -> {
-				if (message.tag.contains(Constants.NYM_VPN_LIB_TAG)) {
-					Sentry.captureException(
-						NymLibException("${message.time} - ${message.tag} ${message.message}"),
-					)
-				}
-			}
-			else -> Unit
-		}
 	}
 
 	companion object {

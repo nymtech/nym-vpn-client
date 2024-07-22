@@ -15,13 +15,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import net.nymtech.nymvpn.BuildConfig
+import com.zaneschepke.localizationutil.LocaleStorage
+import com.zaneschepke.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.data.datastore.LocaleStorage
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
 import net.nymtech.nymvpn.ui.common.labels.SelectedLabel
-import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.capitalize
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
@@ -37,14 +36,14 @@ fun LanguageScreen(navController: NavController, localeStorage: LocaleStorage) {
 
 	val currentLocale = remember { mutableStateOf(LocaleUtil.OPTION_PHONE_LANGUAGE) }
 
-	val locales = BuildConfig.LANGUAGES.map {
+	val locales = LocaleUtil.supportedLocales.map {
 		val tag = it.replace("_", "-")
 		Locale.forLanguageTag(tag)
 	}
 
 	val sortedLocales =
 		remember(locales) {
-			locales.sortedWith(compareBy(collator) { it.displayName })
+			locales.sortedWith(compareBy(collator) { it.getDisplayName(it) })
 		}
 
 	LaunchedEffect(Unit) {
@@ -78,6 +77,7 @@ fun LanguageScreen(navController: NavController, localeStorage: LocaleStorage) {
 						SelectedLabel()
 					}
 				},
+				ripple = false,
 			)
 		}
 		items(sortedLocales.toList()) { locale ->
@@ -92,6 +92,7 @@ fun LanguageScreen(navController: NavController, localeStorage: LocaleStorage) {
 						SelectedLabel()
 					}
 				},
+				ripple = false,
 			)
 		}
 	}

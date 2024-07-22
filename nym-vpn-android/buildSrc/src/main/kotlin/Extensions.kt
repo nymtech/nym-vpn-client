@@ -22,7 +22,7 @@ fun Project.isBundleBuild() : Boolean {
 }
 
 fun Project.languageList(): List<String> {
-	return fileTree("src/main/res") { include("**/strings.xml") }
+	return fileTree("../app/src/main/res") { include("**/strings.xml") }
 		.asSequence()
 		.map { stringFile -> stringFile.parentFile.name }
 		.map { valuesFolderName -> valuesFolderName.replace("values-", "") }

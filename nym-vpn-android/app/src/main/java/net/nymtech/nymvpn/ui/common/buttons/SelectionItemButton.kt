@@ -26,12 +26,13 @@ fun SelectionItemButton(
 	buttonText: String,
 	trailing: (@Composable () -> Unit)? = null,
 	onClick: () -> Unit,
+	ripple: Boolean = true,
 ) {
 	Card(
 		modifier =
 		Modifier.clip(RoundedCornerShape(8.dp))
 			.clickable(
-				indication = rememberRipple(),
+				indication = if (ripple) rememberRipple() else null,
 				interactionSource = remember { MutableInteractionSource() },
 				onClick = { onClick() },
 			)
