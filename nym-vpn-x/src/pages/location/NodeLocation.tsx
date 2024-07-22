@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api';
-import { Button } from '@headlessui/react';
-import { useMainDispatch, useMainState } from '../../contexts';
+import { useDialog, useMainDispatch, useMainState } from '../../contexts';
 import {
   AppError,
   Country,
@@ -17,7 +15,6 @@ import { FastestFeatureEnabled } from '../../constants';
 import { routes } from '../../router';
 import { useI18nError } from '../../hooks';
 import { PageAnim, TextInput } from '../../ui';
-import MsIcon from '../../ui/MsIcon';
 import CountryList from './CountryList';
 import LocationDetailsDialog from './LocationDetailsDialog';
 
@@ -40,6 +37,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
     entryCountriesError,
     exitCountriesError,
   } = useMainState();
+  const { isOpen, close } = useDialog();
 
   const { t } = useTranslation('nodeLocation');
   const { tE } = useI18nError();
@@ -50,7 +48,6 @@ function NodeLocation({ node }: { node: NodeHop }) {
       ? [{ country: fastestNodeLocation, isFastest: true }]
       : [],
   );
-  const [isDialogDetailsOpen, setIsDialogDetailsOpen] = useState(false);
 
   const [search, setSearch] = useState('');
   const [filteredCountries, setFilteredCountries] =
@@ -148,21 +145,9 @@ function NodeLocation({ node }: { node: NodeHop }) {
 
   return (
     <>
-      <Button
-        className="fixed top-4 right-4 w-6 focus:outline-none cursor-default z-50"
-        onClick={() => setIsDialogDetailsOpen(true)}
-      >
-        <MsIcon
-          icon="info"
-          className={clsx([
-            'text-cement-feet dark:text-mercury-mist transition duration-150',
-            'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-gun-powder hover:dark:text-mercury-pinkish',
-          ])}
-        />
-      </Button>
       <LocationDetailsDialog
-        isOpen={isDialogDetailsOpen}
-        onClose={() => setIsDialogDetailsOpen(false)}
+        isOpen={isOpen('location-info')}
+        onClose={() => close('location-info')}
       />
       <PageAnim className="h-full flex flex-col">
         <div className="h-70 flex flex-col justify-center items-center gap-y-2 pt-3">

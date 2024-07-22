@@ -4,7 +4,7 @@ import { RouterProvider } from 'react-router-dom';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useTranslation } from 'react-i18next';
-import { NotificationProvider } from './contexts';
+import { DialogProvider, NotificationProvider } from './contexts';
 import router from './router';
 import { sleep } from './helpers';
 import { MainStateProvider } from './state';
@@ -50,9 +50,11 @@ function App() {
     <MainStateProvider>
       <ThemeSetter>
         <NotificationProvider>
-          <Suspense fallback={<RouteLoading />}>
-            <RouterProvider router={router} />
-          </Suspense>
+          <DialogProvider>
+            <Suspense fallback={<RouteLoading />}>
+              <RouterProvider router={router} />
+            </Suspense>
+          </DialogProvider>
         </NotificationProvider>
       </ThemeSetter>
     </MainStateProvider>
