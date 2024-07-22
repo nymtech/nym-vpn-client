@@ -54,9 +54,13 @@ impl From<VpnServiceStatusResult> for StatusResponse {
 
 impl From<VpnServiceInfoResult> for InfoResponse {
     fn from(info: VpnServiceInfoResult) -> Self {
+        let build_timestamp = prost_types::Timestamp {
+            seconds: info.build_timestamp.unix_timestamp(),
+            nanos: info.build_timestamp.nanosecond() as i32,
+        };
         InfoResponse {
             version: info.version,
-            build_timestamp: info.build_timestamp,
+            build_timestamp: Some(build_timestamp),
             triple: info.triple,
             git_commit: info.git_commit,
         }

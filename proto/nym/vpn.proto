@@ -44,7 +44,7 @@ message InfoRequest {}
 
 message InfoResponse {
   string version = 1;
-  string build_timestamp = 2;
+  google.protobuf.Timestamp build_timestamp = 2;
   string triple = 3;
   string git_commit = 4;
 }

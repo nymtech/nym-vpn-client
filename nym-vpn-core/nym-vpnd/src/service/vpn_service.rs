@@ -13,6 +13,7 @@ use nym_vpn_lib::gateway_directory::{self, EntryPoint, ExitPoint};
 use nym_vpn_lib::nym_bin_common::bin_info;
 use nym_vpn_lib::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
+use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::{broadcast, oneshot};
@@ -163,7 +164,7 @@ pub enum VpnServiceStatusResult {
 #[derive(Clone, Debug)]
 pub struct VpnServiceInfoResult {
     pub version: String,
-    pub build_timestamp: String,
+    pub build_timestamp: time::OffsetDateTime,
     pub triple: String,
     pub git_commit: String,
 }
@@ -495,7 +496,8 @@ impl NymVpnService {
         let bin_info = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!();
         VpnServiceInfoResult {
             version: bin_info.build_version.to_string(),
-            build_timestamp: bin_info.build_timestamp.to_string(),
+            build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339)
+                .unwrap(),
             triple: bin_info.cargo_triple.to_string(),
             git_commit: bin_info.commit_sha.to_string(),
         }
