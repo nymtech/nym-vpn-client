@@ -40,5 +40,8 @@
   },
   "monitoring-alert": "Debes reiniciar la aplicación para que el cambio surta efecto.",
   "faq": "FAQ",
-  "quit": "Cerrar NymVPN"
+  "quit": "Cerrar NymVPN",
+  "notifications": {
+    "title": "Notificaciones de escritorio"
+  }
 }
