@@ -42,7 +42,6 @@ gradlePlugins-sentry = "4.10.0"
 appcompat = "1.7.0"
 material = "1.12.0"
 gradlePlugins-ktlint="12.1.1"
-lifecycleProcess = "2.8.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -106,7 +105,6 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 androidx-window-core-android = { group = "androidx.window", name = "window-core-android", version.ref = "windowCoreAndroid" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

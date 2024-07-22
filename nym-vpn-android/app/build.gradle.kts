@@ -200,7 +200,6 @@ dependencies {
 
 	implementation(project(":nym_vpn_client"))
 	implementation(project(":logcat_helper"))
-	implementation(libs.androidx.lifecycle.process)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 
 	implementation(libs.androidx.core.ktx)
