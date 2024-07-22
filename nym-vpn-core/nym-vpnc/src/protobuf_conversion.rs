@@ -104,5 +104,5 @@ pub(crate) fn parse_offset_datetime(
 ) -> Result<time::OffsetDateTime, time::Error> {
     time::OffsetDateTime::from_unix_timestamp(timestamp.seconds)
         .map(|t| t + time::Duration::nanoseconds(timestamp.nanos as i64))
-        .map_err(|e| e.into())
+        .map_err(time::Error::from)
 }
