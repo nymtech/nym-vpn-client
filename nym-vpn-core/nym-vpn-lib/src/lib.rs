@@ -492,24 +492,42 @@ impl SpecificVpn {
             route_manager.handle()?,
         )
         .await?;
-        let tunnels = setup_tunnel(
+        let tunnels = match setup_tunnel(
             self,
             &mut task_manager,
             &mut route_manager,
             &mut dns_monitor,
         )
-        .await?;
+        .await
+        {
+            Ok(tunnels) => tunnels,
+            Err(e) => {
+                tokio::task::spawn_blocking(move || {
+                    dns_monitor
+                        .reset()
+                        .inspect_err(|err| {
+                            log::error!("Failed to reset dns monitor: {err}");
+                        })
+                        .ok();
+                    firewall
+                        .reset_policy()
+                        .inspect_err(|err| {
+                            error!("Failed to reset firewall policy: {err}");
+                        })
+                        .ok();
+                    drop(route_manager);
+                })
+                .await?;
+                return Err(e);
+            }
+        };
         info!("Nym VPN is now running");
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
             AllTunnelsSetup::Mix(_) => {
                 wait_for_interrupt(task_manager).await;
-                handle_interrupt(route_manager, None)
-                    .await
-                    .inspect_err(|err| {
-                        error!("Failed to handle interrupt: {err}");
-                    })?;
+                handle_interrupt(route_manager, None).await;
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
                         log::error!("Failed to reset dns monitor: {err}");
@@ -523,10 +541,7 @@ impl SpecificVpn {
                     route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
-                .await
-                .inspect_err(|err| {
-                    error!("Failed to handle interrupt: {err}");
-                })?;
+                .await;
 
                 dns_monitor.reset().inspect_err(|err| {
                     error!("Failed to reset dns monitor: {err}");
@@ -593,10 +608,7 @@ impl SpecificVpn {
                     .unwrap();
 
                 let result = wait_for_interrupt_and_signal(Some(task_manager), vpn_ctrl_rx).await;
-                handle_interrupt(route_manager, None).await.map_err(|err| {
-                    error!("Failed to handle interrupt: {err}");
-                    Box::new(NymVpnExitError::Generic { reason: err })
-                })?;
+                handle_interrupt(route_manager, None).await;
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
                         log::error!("Failed to reset dns monitor: {err}");
@@ -611,11 +623,7 @@ impl SpecificVpn {
                     route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
-                .await
-                .map_err(|err| {
-                    error!("Failed to handle interrupt: {err}");
-                    Box::new(NymVpnExitError::Generic { reason: err })
-                })?;
+                .await;
                 dns_monitor.reset().map_err(|err| {
                     error!("Failed to reset dns monitor: {err}");
                     NymVpnExitError::FailedToResetDnsMonitor {
