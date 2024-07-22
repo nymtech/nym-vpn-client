@@ -38,7 +38,7 @@ ts-rs = { version = "7.0.0", features = ["chrono-impl"] }
 once_cell = "1.18.0"
 toml = "0.8.5"
 time = "0.3.9"
-nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "1f144690da9692ad61c60b754f0333dabeaf29d8" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "4e51188" }
 nym-vpn-lib = { path = "../../nym-vpn-core/nym-vpn-lib" }
 futures = "0.3.15"
 reqwest = { version = "0.11", features = ["json"] }
