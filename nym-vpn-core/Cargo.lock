@@ -4820,6 +4820,7 @@ dependencies = [
  "nym-vpn-proto",
  "parity-tokio-ipc",
  "prost 0.12.6",
+ "prost-types 0.12.6",
  "time",
  "tokio",
  "tonic 0.11.0",

@@ -11,7 +11,9 @@ use vpnd_client::ClientType;
 
 use crate::{
     cli::{Command, ImportCredentialTypeEnum},
-    protobuf_conversion::{into_entry_point, into_exit_point, ipaddr_into_string},
+    protobuf_conversion::{
+        into_entry_point, into_exit_point, ipaddr_into_string, parse_offset_datetime,
+    },
 };
 
 mod cli;
@@ -76,23 +78,15 @@ async fn status(client_type: ClientType) -> Result<()> {
     let response = client.vpn_status(request).await?.into_inner();
     println!("{:?}", response);
 
-    let utc_since = response
+    if let Some(Ok(utc_since)) = response
         .details
         .and_then(|details| details.since)
-        .map(|timestamp| {
-            time::OffsetDateTime::from_unix_timestamp(timestamp.seconds)
-                .map(|t| t + time::Duration::nanoseconds(timestamp.nanos as i64))
-        });
-
-    if let Some(utc_since) = utc_since {
-        match utc_since {
-            Ok(utc_since) => {
-                println!("since (utc): {:?}", utc_since);
-                println!("duration: {}", time::OffsetDateTime::now_utc() - utc_since);
-            }
-            Err(err) => eprintln!("failed to parse timestamp: {err}"),
-        }
+        .map(parse_offset_datetime)
+    {
+        println!("since (utc): {:?}", utc_since);
+        println!("duration: {}", time::OffsetDateTime::now_utc() - utc_since);
     }
+
     Ok(())
 }
 
@@ -102,24 +96,12 @@ async fn info(client_type: ClientType) -> Result<()> {
     let response = client.info(request).await?.into_inner();
     println!("{:?}", response);
 
-    let utc_build_timestamp = response
-        .build_timestamp
-        .map(|timestamp| {
-            time::OffsetDateTime::from_unix_timestamp(timestamp.seconds)
-                .map(|t| t + time::Duration::nanoseconds(timestamp.nanos as i64))
-        });
-
-    if let Some(utc_build_timestamp) = utc_build_timestamp {
-        match utc_build_timestamp {
-            Ok(utc_build_timestamp) => {
-                println!("build timestamp (utc): {:?}", utc_build_timestamp);
-                println!(
-                    "age: {}",
-                    time::OffsetDateTime::now_utc() - utc_build_timestamp
-                );
-            }
-            Err(err) => eprintln!("failed to parse timestamp: {err}"),
-        }
+    if let Some(Ok(utc_build_timestamp)) = response.build_timestamp.map(parse_offset_datetime) {
+        println!("build timestamp (utc): {:?}", utc_build_timestamp);
+        println!(
+            "build age: {}",
+            time::OffsetDateTime::now_utc() - utc_build_timestamp
+        );
     }
     Ok(())
 }
