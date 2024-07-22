@@ -2631,7 +2631,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.4.10",
+ "socket2 0.5.6",
  "tokio",
  "tower-service",
  "tracing",
@@ -4754,10 +4754,12 @@ dependencies = [
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
  "nym-node-requests",
+ "nym-pemstore",
  "nym-sdk",
  "nym-task",
  "nym-topology",
  "nym-validator-client",
+ "nym-vpn-store",
  "nym-wireguard-types",
  "oslog",
  "pnet_packet",
@@ -4792,6 +4794,19 @@ dependencies = [
  "tonic 0.11.0",
  "tonic-build 0.11.0",
  "tonic-reflection",
+]
+
+[[package]]
+name = "nym-vpn-store"
+version = "0.1.0"
+dependencies = [
+ "nym-crypto",
+ "nym-pemstore",
+ "rand 0.8.5",
+ "rand_chacha 0.3.1",
+ "thiserror",
+ "tokio",
+ "zeroize",
 ]
 
 [[package]]
@@ -4830,6 +4845,7 @@ dependencies = [
  "nym-task",
  "nym-vpn-lib",
  "nym-vpn-proto",
+ "nym-vpn-store",
  "parity-tokio-ipc",
  "prost 0.12.6",
  "prost-types 0.12.6",
@@ -5469,7 +5485,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81bddcdb20abf9501610992b6759a4c888aef7d1a7247ef75e2404275ac24af1"
 dependencies = [
  "anyhow",
- "itertools 0.10.5",
+ "itertools 0.12.1",
  "proc-macro2",
  "quote",
  "syn 2.0.58",

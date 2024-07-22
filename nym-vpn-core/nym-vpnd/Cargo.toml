@@ -44,6 +44,7 @@ nym-task.workspace = true
 # Local crates
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
+nym-vpn-store = { path = "../crates/nym-vpn-store" }
 
 [target.'cfg(windows)'.dependencies]
 windows-service = "0.7.0"

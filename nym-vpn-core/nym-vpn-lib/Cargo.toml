@@ -63,11 +63,13 @@ nym-task.workspace = true
 nym-topology.workspace = true
 nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
+nym-pemstore.workspace = true
 
 nym-authenticator-client = { path = "../crates/nym-authenticator-client" }
 nym-connection-monitor = { path = "../crates/nym-connection-monitor" }
 nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
 nym-ip-packet-client = { path = "../crates/nym-ip-packet-client" }
+nym-vpn-store = { path = "../crates/nym-vpn-store" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.14.1"

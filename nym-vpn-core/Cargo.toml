@@ -9,6 +9,7 @@ members = [
     "crates/nym-ip-packet-client",
     "crates/nym-vpn-api-client",
     "crates/nym-vpn-proto",
+    "crates/nym-vpn-store",
     "nym-vpn-cli",
     "nym-vpn-lib",
     "nym-vpnc",
@@ -17,6 +18,7 @@ members = [
 
 # For local development
 # [patch."https://github.com/nymtech/nym"]
+# nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
 # nym-bandwidth-controller = { path = "../../nym/common/bandwidth-controller" }
 # nym-bin-common = { path = "../../nym/common/bin-common" }
 # nym-client-core = { path = "../../nym/common/client-core" }
@@ -29,6 +31,7 @@ members = [
 # nym-id = { path = "../../nym/common/nym-id" }
 # nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
 # nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
+# nym-pemstore = { path = "../../nym/common/nym-pemstore" }
 # nym-sdk = { path = "../../nym/sdk/rust/nym-sdk" }
 # nym-task = { path = "../../nym/common/task" }
 # nym-topology = { path = "../../nym/common/topology" }
@@ -68,6 +71,7 @@ pnet_packet = "0.35.0"
 prost = "0.12.6"
 prost-types = "0.12.6"
 rand = "0.8.5"
+rand_chacha = "0.3.1"
 reqwest = { version = "0.11.27", default-features = false }
 serde = "1.0.203"
 serde_json = "1.0.120"
@@ -91,6 +95,7 @@ tun2 = { version = "2.0.1", features = ["async"] }
 uniffi = { version = "0.27.3", features = ["cli"] }
 url = "2.5"
 vergen = { version = "8.3.1", default-features = false }
+zeroize = "1.6.0"
 
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "f86050d" }
 nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "f86050d" }
@@ -105,6 +110,7 @@ nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "f86050d" 
 nym-id = { git = "https://github.com/nymtech/nym", rev = "f86050d" }
 nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "f86050d" }
 nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "f86050d" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", rev = "f86050d" }
 nym-sdk = { git = "https://github.com/nymtech/nym", rev = "f86050d" }
 nym-task = { git = "https://github.com/nymtech/nym", rev = "f86050d" }
 nym-topology = { git = "https://github.com/nymtech/nym", rev = "f86050d" }
