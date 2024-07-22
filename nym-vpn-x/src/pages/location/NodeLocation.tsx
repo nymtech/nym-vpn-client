@@ -1,7 +1,9 @@
-import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api';
+import { Button } from '@headlessui/react';
 import { useMainDispatch, useMainState } from '../../contexts';
 import {
   AppError,
@@ -15,7 +17,9 @@ import { FastestFeatureEnabled } from '../../constants';
 import { routes } from '../../router';
 import { useI18nError } from '../../hooks';
 import { PageAnim, TextInput } from '../../ui';
+import MsIcon from '../../ui/MsIcon';
 import CountryList from './CountryList';
+import LocationDetailsDialog from './LocationDetailsDialog';
 
 export type UiCountry = {
   country: Country;
@@ -46,6 +50,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
       ? [{ country: fastestNodeLocation, isFastest: true }]
       : [],
   );
+  const [isDialogDetailsOpen, setIsDialogDetailsOpen] = useState(false);
 
   const [search, setSearch] = useState('');
   const [filteredCountries, setFilteredCountries] =
@@ -142,39 +147,57 @@ function NodeLocation({ node }: { node: NodeHop }) {
   );
 
   return (
-    <PageAnim className="h-full flex flex-col">
-      <div className="h-70 flex flex-col justify-center items-center gap-y-2 pt-3">
-        <div className="w-full flex flex-row items-center px-4 mb-2">
-          <TextInput
-            value={search}
-            onChange={filter}
-            placeholder={t('search-country')}
-            leftIcon="search"
-            label={t('input-label')}
-          />
+    <>
+      <Button
+        className="fixed top-4 right-4 w-6 focus:outline-none cursor-default z-50"
+        onClick={() => setIsDialogDetailsOpen(true)}
+      >
+        <MsIcon
+          icon="info"
+          className={clsx([
+            'text-cement-feet dark:text-mercury-mist transition duration-150',
+            'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-gun-powder hover:dark:text-mercury-pinkish',
+          ])}
+        />
+      </Button>
+      <LocationDetailsDialog
+        isOpen={isDialogDetailsOpen}
+        onClose={() => setIsDialogDetailsOpen(false)}
+      />
+      <PageAnim className="h-full flex flex-col">
+        <div className="h-70 flex flex-col justify-center items-center gap-y-2 pt-3">
+          <div className="w-full flex flex-row items-center px-4 mb-2">
+            <TextInput
+              value={search}
+              onChange={filter}
+              placeholder={t('search-country')}
+              leftIcon="search"
+              label={t('input-label')}
+            />
+          </div>
+          <span className="mt-2" />
+          {error ? (
+            renderError(error)
+          ) : (
+            <CountryList
+              countries={filteredCountries}
+              loading={
+                node === 'entry' ? entryCountriesLoading : exitCountriesLoading
+              }
+              onSelect={(country) => {
+                handleCountrySelection(country);
+              }}
+              isSelected={(country: UiCountry) => {
+                return isCountrySelected(
+                  node === 'entry' ? entryNodeLocation : exitNodeLocation,
+                  country,
+                );
+              }}
+            />
+          )}
         </div>
-        <span className="mt-2" />
-        {error ? (
-          renderError(error)
-        ) : (
-          <CountryList
-            countries={filteredCountries}
-            loading={
-              node === 'entry' ? entryCountriesLoading : exitCountriesLoading
-            }
-            onSelect={(country) => {
-              handleCountrySelection(country);
-            }}
-            isSelected={(country: UiCountry) => {
-              return isCountrySelected(
-                node === 'entry' ? entryNodeLocation : exitNodeLocation,
-                country,
-              );
-            }}
-          />
-        )}
-      </div>
-    </PageAnim>
+      </PageAnim>
+    </>
   );
 }
 
