@@ -235,8 +235,33 @@ message ImportError {
   map<string, string> details = 3;
 }
 
+message AsEntry {
+  bool can_connect = 1;
+  bool can_route = 2;
+}
+
+message AsExit {
+  bool can_connect = 1;
+  bool can_route_ip_v4 = 2;
+  bool can_route_ip_v6 = 3;
+  bool can_route_ip_external_v4 = 4;
+  bool can_route_ip_external_v6 = 5;
+}
+
+message ProbeOutcome {
+  AsEntry as_entry = 1;
+  AsExit as_exit = 2;
+}
+
+message Probe {
+  google.protobuf.Timestamp last_updated_utc = 1;
+  ProbeOutcome outcome = 2;
+}
+
 message EntryGateway {
-  string id = 1;
+  Gateway id = 1;
+  Location location = 2;
+  Probe last_probe = 3;
 }
 
 message ListEntryGatewaysRequest {}

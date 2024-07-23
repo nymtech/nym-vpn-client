@@ -5,6 +5,7 @@ use crate::service::{VpnServiceInfoResult, VpnServiceStateChange, VpnServiceStat
 use nym_vpn_proto::{
     ConnectionStateChange, ConnectionStatus, Error as ProtoError, InfoResponse, StatusResponse,
 };
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 impl From<VpnServiceStatusResult> for StatusResponse {
     fn from(status: VpnServiceStatusResult) -> Self {
@@ -88,7 +89,46 @@ impl From<VpnServiceStateChange> for ConnectionStateChange {
 pub(super) fn entry_gateway_from_vpn_api(
     gateway: nym_vpn_api_client::Gateway,
 ) -> nym_vpn_proto::EntryGateway {
+    let last_updated = gateway
+        .last_probe.clone()
+        .and_then(|probe| OffsetDateTime::parse(&probe.last_updated_utc, &Rfc3339).ok());
+    let last_updated_utc = last_updated.map(|timestamp| prost_types::Timestamp {
+        seconds: timestamp.unix_timestamp(),
+        nanos: timestamp.nanosecond() as i32,
+    });
+
+    let as_entry = gateway.last_probe.clone().map(|probe| {
+        nym_vpn_proto::AsEntry {
+            can_connect: probe.outcome.as_entry.can_connect,
+            can_route: probe.outcome.as_entry.can_route,
+        }
+    });
+
+    let as_exit = gateway.last_probe.and_then(|probe| {
+        probe.outcome.as_exit.map(|as_exit| {
+            nym_vpn_proto::AsExit {
+                can_connect: as_exit.can_connect,
+                can_route_ip_v4: as_exit.can_route_ip_v4,
+                can_route_ip_v6: as_exit.can_route_ip_v6,
+                can_route_ip_external_v4: as_exit.can_route_ip_external_v4,
+                can_route_ip_external_v6: as_exit.can_route_ip_external_v6,
+            }
+        })
+    });
+
     nym_vpn_proto::EntryGateway {
-        id: gateway.identity_key.to_string(),
+        id: Some(nym_vpn_proto::Gateway {
+            id: gateway.identity_key.to_string(),
+        }),
+        location: Some(nym_vpn_proto::Location {
+            two_letter_iso_country_code: gateway.location.two_letter_iso_country_code,
+        }),
+        last_probe: Some(nym_vpn_proto::Probe {
+            last_updated_utc,
+            outcome: Some(nym_vpn_proto::ProbeOutcome {
+                as_entry,
+                as_exit,
+            }),
+        }),
     }
 }

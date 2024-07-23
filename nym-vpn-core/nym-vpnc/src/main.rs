@@ -160,5 +160,15 @@ async fn list_entry_gateways(client_type: ClientType) -> Result<()> {
     let request = tonic::Request::new(ListEntryGatewaysRequest {});
     let response = client.list_entry_gateways(request).await?.into_inner();
     println!("{:#?}", response);
+
+    // TODO: support a flag that enabled brief output
+    if false {
+        for r in response.gateways {
+            let id = r.id.unwrap();
+            let last_updated_utc =
+                parse_offset_datetime(r.last_probe.unwrap().last_updated_utc.unwrap());
+            println!("id: {:?}, last_updated_utc: {:?}", id, last_updated_utc);
+        }
+    }
     Ok(())
 }
