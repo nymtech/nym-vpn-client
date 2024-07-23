@@ -8,8 +8,8 @@
     "disconnecting": "Desconectando",
     "unknown": "Desconocido"
   },
-  "last-hop": "Último salto",
-  "first-hop": "Primer salto",
+  "last-hop": "Ubicación de salida",
+  "first-hop": "Gateway de entrada",
   "connecting-message": "Estableciendo conexión",
   "connection-time": "Tiempo de conexión",
   "select-node-title": "Conectar a",
