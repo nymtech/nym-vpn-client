@@ -4,7 +4,6 @@
 cargo_files=(
     "./nym-vpn-core/Cargo.toml"
     "./nym-vpn-x/src-tauri/Cargo.toml"
-    "./nym-vpn-desktop/src-tauri/Cargo.toml"
 )
 
 # Function to update Cargo.toml with the latest commit SHA
