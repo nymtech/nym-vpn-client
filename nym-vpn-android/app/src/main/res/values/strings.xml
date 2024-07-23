@@ -139,4 +139,6 @@
 	<string name="two_hop">2-hop</string>
 	<string name="appearance">Appearance</string>
 	<string name="language">Language</string>
+	<string name="gateway_modal_description">We infer server locations based on their IP addresses, but the actual locations may vary slightly.</string>
+	<string name="gateway_locations_title">Details on server locations</string>
 </resources>
