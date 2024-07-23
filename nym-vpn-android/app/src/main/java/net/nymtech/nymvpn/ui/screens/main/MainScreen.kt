@@ -56,6 +56,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
+import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
@@ -115,7 +116,15 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 		return Result.failure(NymVpnExceptions.PermissionsNotGrantedException())
 	}
 
-	ModeDialog(show = showDialog, onDismiss = { showDialog = false })
+	Modal(show = showDialog, onDismiss = { showDialog = false }, title = {
+		Text(
+			text = stringResource(R.string.mode_selection),
+			color = MaterialTheme.colorScheme.onSurface,
+			style = CustomTypography.labelHuge,
+		)
+	}, text = {
+		ModeModalBody()
+	})
 
 	LaunchedEffect(uiState.firstHopCounty, uiState.lastHopCountry, uiState.networkMode, uiState.connectionState) {
 		NymVpn.requestTileServiceStateUpdate()
@@ -246,7 +255,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 							) {
 								if (selectionEnabled) {
 									navController.navigate(
-										NavItem.Hop.Entry.route,
+										NavItem.Location.Entry.route,
 									)
 								} else {
 									appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
@@ -276,7 +285,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) rememberRipple() else null) {
 							if (selectionEnabled) {
 								navController.navigate(
-									NavItem.Hop.Exit.route,
+									NavItem.Location.Exit.route,
 								)
 							} else {
 								appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))

@@ -108,6 +108,8 @@ class MainActivity : ComponentActivity() {
 		setContent {
 			val appViewModel = hiltViewModel<AppViewModel>()
 			val uiState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
+			val showGatewayInfoModal = remember { mutableStateOf(false) }
+
 			val navController = rememberNavController()
 			val snackbarHostState = remember { SnackbarHostState() }
 			var navHeight by remember { mutableStateOf(0.dp) }
@@ -145,6 +147,15 @@ class MainActivity : ComponentActivity() {
 				}
 			}
 
+			fun onTrailingClick() {
+				when (navController.currentBackStackEntry?.destination?.route) {
+					NavItem.Main.route -> navController.navigate(NavItem.Settings.route)
+					NavItem.Location.Entry.route, NavItem.Location.Entry.route -> {
+						showGatewayInfoModal.value = true
+					}
+				}
+			}
+
 			LaunchedEffect(uiState.snackbarMessageConsumed) {
 				if (!uiState.snackbarMessageConsumed) {
 					showSnackBarMessage(StringValue.DynamicString(uiState.snackbarMessage))
@@ -167,6 +178,7 @@ class MainActivity : ComponentActivity() {
 						NavBar(
 							uiState,
 							navController,
+							{ onTrailingClick() },
 							Modifier
 								.onGloballyPositioned {
 									navHeight = with(density) {
@@ -199,16 +211,18 @@ class MainActivity : ComponentActivity() {
 								uiState,
 							)
 						}
-						composable(NavItem.Hop.Entry.route) {
+						composable(NavItem.Location.Entry.route) {
 							HopScreen(
 								navController = navController,
-								hopType = HopType.FIRST,
+								gatewayLocation = GatewayLocation.Entry,
+								showGatewayInfoModal,
 							)
 						}
-						composable(NavItem.Hop.Exit.route) {
+						composable(NavItem.Location.Exit.route) {
 							HopScreen(
 								navController = navController,
-								hopType = HopType.LAST,
+								gatewayLocation = GatewayLocation.Exit,
+								showGatewayInfoModal,
 							)
 						}
 						composable(NavItem.Settings.Logs.route) { LogsScreen(appViewModel = appViewModel) }
