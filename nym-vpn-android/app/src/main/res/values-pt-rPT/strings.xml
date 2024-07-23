@@ -65,7 +65,6 @@
     <string name="credential_failed_message">Credencial Inválida</string>
     <string name="unknown_error">Um erro desconhecido ocorreu</string>
     <string name="credential">Credencial</string>
-    <string name="left">restando</string>
     <string name="top_up_credential">Recarregue sua credencial</string>
     <string name="top_up">Recarregue</string>
     <string name="devices">Dispositivos</string>

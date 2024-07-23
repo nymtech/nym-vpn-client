@@ -67,7 +67,6 @@
     <string name="credential_failed_message">无效凭证</string>
     <string name="unknown_error">出现未知错误</string>
     <string name="credential">凭证</string>
-    <string name="left">左侧</string>
     <string name="top_up_credential">充值您的凭证</string>
     <string name="top_up">填满</string>
     <string name="devices">设备</string>

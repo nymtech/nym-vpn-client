@@ -68,7 +68,6 @@
     <string name="credential_failed_message">Identifiant invalide</string>
     <string name="unknown_error">Une erreur inconnue s\'est produite</string>
     <string name="credential">Identifiant</string>
-    <string name="left">gauche</string>
     <string name="top_up_credential">Ajoutez du crédit</string>
     <string name="top_up">Recharger</string>
     <string name="devices">Appareils</string>

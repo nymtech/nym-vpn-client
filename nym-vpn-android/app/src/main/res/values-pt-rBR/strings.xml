@@ -60,7 +60,6 @@
     <string name="credential_failed_message">Credencial inválida</string>
     <string name="unknown_error">Ocorreu um erro desconhecido</string>
     <string name="credential">Credencial</string>
-    <string name="left">faltam</string>
     <string name="devices">Dispositivos</string>
     <string name="android">Android</string>
     <string name="windows">Windows</string>

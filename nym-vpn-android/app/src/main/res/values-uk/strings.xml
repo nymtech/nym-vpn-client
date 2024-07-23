@@ -51,7 +51,6 @@
     <string name="credential_failed_message">Невірні облікові дані</string>
     <string name="unknown_error">Виникла невідома помилка</string>
     <string name="credential">Облікові дані</string>
-    <string name="left">Час до завершення</string>
     <string name="top_up">Поповнити</string>
     <string name="top_up_credential">Поповнити облікові дані</string>
     <string name="devices">Пристрої</string>
