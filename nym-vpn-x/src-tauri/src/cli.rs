@@ -152,5 +152,5 @@ commit date:   {}
             print!("git branch:    {}", branch);
         }
     }
-    println!("\n");
+    println!();
 }

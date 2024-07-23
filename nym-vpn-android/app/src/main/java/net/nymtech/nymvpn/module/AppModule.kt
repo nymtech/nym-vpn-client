@@ -11,8 +11,8 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import net.nymtech.logcathelper.LogCollect
-import net.nymtech.logcathelper.LogcatHelper
+import net.nymtech.logcatutil.LogCollect
+import net.nymtech.logcatutil.LogcatHelper
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService

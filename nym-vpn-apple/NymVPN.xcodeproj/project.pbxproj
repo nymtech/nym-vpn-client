@@ -70,6 +70,10 @@
 		D99A148C2B35A74200F2728B /* Theme in Frameworks */ = {isa = PBXBuildFile; productRef = D99A148B2B35A74200F2728B /* Theme */; };
 		D9ABF2842BF4989B009089FA /* Shell in Frameworks */ = {isa = PBXBuildFile; productRef = D9ABF2832BF4989B009089FA /* Shell */; };
 		D9AC152E2BF3845E0041E334 /* net.nymtech.vpn.helper in Embed Helper Tool */ = {isa = PBXBuildFile; fileRef = D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		D9B7BAF82C4866A0005AF2D6 /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9B7BAF72C4866A0005AF2D6 /* NymLogger */; };
+		D9B7BAFA2C4866A8005AF2D6 /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9B7BAF92C4866A8005AF2D6 /* NymLogger */; };
+		D9B7BAFC2C4866AF005AF2D6 /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9B7BAFB2C4866AF005AF2D6 /* NymLogger */; };
+		D9B7BAFE2C491059005AF2D6 /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9B7BAFD2C491059005AF2D6 /* NymLogger */; };
 		D9BB534F2BAB16D500917C97 /* WireGuardKit in Frameworks */ = {isa = PBXBuildFile; productRef = D9BB534E2BAB16D500917C97 /* WireGuardKit */; };
 		D9BB53552BAC4AE500917C97 /* Tunnels in Frameworks */ = {isa = PBXBuildFile; productRef = D9BB53542BAC4AE500917C97 /* Tunnels */; };
 		D9BD6A142BD84EF400B42D6F /* SentryManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9BD6A132BD84EF400B42D6F /* SentryManager */; };
@@ -82,6 +86,9 @@
 		D9CD835D2B6C32D4008DA864 /* Modifiers in Frameworks */ = {isa = PBXBuildFile; productRef = D9CD835C2B6C32D4008DA864 /* Modifiers */; };
 		D9CDF2DC2BF49909007E5DAF /* Home in Frameworks */ = {isa = PBXBuildFile; productRef = D9CDF2DB2BF49909007E5DAF /* Home */; };
 		D9D483582BEBA72F0005A41C /* UIComponents in Frameworks */ = {isa = PBXBuildFile; productRef = D9D483572BEBA72F0005A41C /* UIComponents */; };
+		D9D4AF2D2C4914B100B2DC3D /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9D4AF2C2C4914B100B2DC3D /* NymLogger */; };
+		D9D4AF2F2C4914BC00B2DC3D /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9D4AF2E2C4914BC00B2DC3D /* NymLogger */; };
+		D9D4AF312C4914C100B2DC3D /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9D4AF302C4914C100B2DC3D /* NymLogger */; };
 		D9DB4D652BAB0F37005E8E02 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */; };
 		D9DB4D682BAB0F37005E8E02 /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9DB4D672BAB0F37005E8E02 /* PacketTunnelProvider.swift */; };
 		D9DB4D6D2BAB0F37005E8E02 /* NymWGTunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D9DB4D642BAB0F37005E8E02 /* NymWGTunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -278,6 +285,7 @@
 				D94301262BC5209F0031048B /* TunnelStatus in Frameworks */,
 				D94301342BC532420031048B /* Logging in Frameworks */,
 				D94301222BC520900031048B /* AppSettings in Frameworks */,
+				D9B7BAFA2C4866A8005AF2D6 /* NymLogger in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -290,6 +298,7 @@
 				D94F40392BC7BDBD00912696 /* Logging in Frameworks */,
 				D94F40372BC7BDB900912696 /* Keychain in Frameworks */,
 				D94F402A2BC7BD0600912696 /* NetworkExtension.framework in Frameworks */,
+				D9D4AF312C4914C100B2DC3D /* NymLogger in Frameworks */,
 				D94F403E2BC7BDD300912696 /* SystemConfiguration.framework in Frameworks */,
 				D94F403B2BC7BDC900912696 /* MixnetLibrary in Frameworks */,
 			);
@@ -304,6 +313,7 @@
 				D99820982BB6E8D9000C1FEE /* MixnetLibrary in Frameworks */,
 				D9BB53552BAC4AE500917C97 /* Tunnels in Frameworks */,
 				D93214472B84EBEA00FFDC5E /* Logging in Frameworks */,
+				D9B7BAFE2C491059005AF2D6 /* NymLogger in Frameworks */,
 				D954C0B92B51C1CA00C6BAAC /* NetworkExtension.framework in Frameworks */,
 				D9281C452B877B8800834B53 /* Keychain in Frameworks */,
 			);
@@ -318,6 +328,7 @@
 				D93B3A082BC6BD2E006AA558 /* Logging in Frameworks */,
 				D93B3A0B2BC6BD3D006AA558 /* SystemConfiguration.framework in Frameworks */,
 				D93B3A062BC6BD2A006AA558 /* Keychain in Frameworks */,
+				D9D4AF2F2C4914BC00B2DC3D /* NymLogger in Frameworks */,
 				D99095152BC6B54200C98E3F /* NetworkExtension.framework in Frameworks */,
 				D93B3A0A2BC6BD32006AA558 /* MixnetLibrary in Frameworks */,
 			);
@@ -335,6 +346,7 @@
 				D968BDC92B6AEA9D003F42E5 /* AppSettings in Frameworks */,
 				D99A148C2B35A74200F2728B /* Theme in Frameworks */,
 				D94867012BE035FB00F5331B /* Constants in Frameworks */,
+				D9B7BAFC2C4866AF005AF2D6 /* NymLogger in Frameworks */,
 				D9FB33DA2BECC163009C3419 /* Extensions in Frameworks */,
 				D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */,
 				D94866FF2BE035C300F5331B /* CredentialsManager in Frameworks */,
@@ -356,6 +368,7 @@
 				D9FB33DE2BECD47E009C3419 /* Theme in Frameworks */,
 				D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */,
 				D924A8E82C33F3DA00465E84 /* ExternalLinkManager in Frameworks */,
+				D9B7BAF82C4866A0005AF2D6 /* NymLogger in Frameworks */,
 				D9FFC1F92C40F65F00A4766C /* AutoUpdates in Frameworks */,
 				D9FB33E82BECFD1F009C3419 /* ServiceManagement.framework in Frameworks */,
 				D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */,
@@ -378,6 +391,7 @@
 				D94301322BC530F60031048B /* TunnelWG in Frameworks */,
 				D9DB4D722BAB11E3005E8E02 /* Keychain in Frameworks */,
 				D9BB534F2BAB16D500917C97 /* WireGuardKit in Frameworks */,
+				D9D4AF2D2C4914B100B2DC3D /* NymLogger in Frameworks */,
 				D9DB4D652BAB0F37005E8E02 /* NetworkExtension.framework in Frameworks */,
 				879945902A074AE4A361BDE5 /* Sentry in Frameworks */,
 			);
@@ -621,6 +635,7 @@
 				D943012B2BC523710031048B /* Settings */,
 				D94301332BC532420031048B /* Logging */,
 				D9E0482F2BC58CE700599157 /* MixnetLibrary */,
+				D9B7BAF92C4866A8005AF2D6 /* NymLogger */,
 			);
 			productName = "NymVPN macOS NE";
 			productReference = D94301102BC51FD30031048B /* NymVPN macOS NE.app */;
@@ -645,6 +660,7 @@
 				D94F403A2BC7BDC900912696 /* MixnetLibrary */,
 				D94F403C2BC7BDCF00912696 /* Tunnels */,
 				D9309AFC2BC81B8000C387F4 /* TunnelMixnet */,
+				D9D4AF302C4914C100B2DC3D /* NymLogger */,
 			);
 			productName = NymMixnetTunnelSystemExtensionMacOS;
 			productReference = D94F40292BC7BD0600912696 /* NymMixnetTunnelSystemExtensionMacOS.appex */;
@@ -670,6 +686,7 @@
 				D9BB53542BAC4AE500917C97 /* Tunnels */,
 				D99820972BB6E8D9000C1FEE /* MixnetLibrary */,
 				D9309AF82BC81B7600C387F4 /* TunnelMixnet */,
+				D9B7BAFD2C491059005AF2D6 /* NymLogger */,
 			);
 			productName = NymMixnetTunnel;
 			productReference = D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */;
@@ -694,6 +711,7 @@
 				D93B3A092BC6BD32006AA558 /* MixnetLibrary */,
 				D93B3A0C2BC6BD44006AA558 /* Tunnels */,
 				D9309AFA2BC81B7C00C387F4 /* TunnelMixnet */,
+				D9D4AF2E2C4914BC00B2DC3D /* NymLogger */,
 			);
 			productName = NymMixnetTunnelmacOS;
 			productReference = D99095142BC6B54200C98E3F /* NymMixnetTunnelmacOS.appex */;
@@ -736,6 +754,7 @@
 				D9D483572BEBA72F0005A41C /* UIComponents */,
 				D9FB33D92BECC163009C3419 /* Extensions */,
 				D924A8E52C33F3D400465E84 /* ExternalLinkManager */,
+				D9B7BAFB2C4866AF005AF2D6 /* NymLogger */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -770,6 +789,7 @@
 				D9E9F19C2C3806BB0056EB8C /* AutoUpdater */,
 				D9E9F19F2C3807A00056EB8C /* Sparkle */,
 				D9FFC1F82C40F65F00A4766C /* AutoUpdates */,
+				D9B7BAF72C4866A0005AF2D6 /* NymLogger */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -795,6 +815,7 @@
 				D9DB4D752BAB11EC005E8E02 /* Tunnels */,
 				D9BB534E2BAB16D500917C97 /* WireGuardKit */,
 				D94301312BC530F60031048B /* TunnelWG */,
+				D9D4AF2C2C4914B100B2DC3D /* NymLogger */,
 			);
 			productName = NymWG;
 			productReference = D9DB4D642BAB0F37005E8E02 /* NymWGTunnel.appex */;
@@ -2086,6 +2107,22 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = Shell;
 		};
+		D9B7BAF72C4866A0005AF2D6 /* NymLogger */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NymLogger;
+		};
+		D9B7BAF92C4866A8005AF2D6 /* NymLogger */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NymLogger;
+		};
+		D9B7BAFB2C4866AF005AF2D6 /* NymLogger */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NymLogger;
+		};
+		D9B7BAFD2C491059005AF2D6 /* NymLogger */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NymLogger;
+		};
 		D9BB534E2BAB16D500917C97 /* WireGuardKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D95E2E0D2B837CE4009F9E2F /* XCRemoteSwiftPackageReference "wireguard-apple" */;
@@ -2122,6 +2159,18 @@
 		D9D483572BEBA72F0005A41C /* UIComponents */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = UIComponents;
+		};
+		D9D4AF2C2C4914B100B2DC3D /* NymLogger */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NymLogger;
+		};
+		D9D4AF2E2C4914BC00B2DC3D /* NymLogger */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NymLogger;
+		};
+		D9D4AF302C4914C100B2DC3D /* NymLogger */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NymLogger;
 		};
 		D9DB4D712BAB11E3005E8E02 /* Keychain */ = {
 			isa = XCSwiftPackageProductDependency;

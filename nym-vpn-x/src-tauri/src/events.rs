@@ -21,6 +21,24 @@ pub struct ProgressEventPayload {
 
 #[derive(Clone, serde::Serialize, TS)]
 #[ts(export)]
+#[serde(tag = "type")]
+pub enum ConnectionEvent {
+    Update(ConnectionEventPayload),
+    Failed(Option<BackendError>),
+}
+
+impl ConnectionEvent {
+    pub fn update(
+        state: ConnectionState,
+        error: Option<BackendError>,
+        start_time: Option<i64>,
+    ) -> Self {
+        Self::Update(ConnectionEventPayload::new(state, error, start_time))
+    }
+}
+
+#[derive(Clone, serde::Serialize, TS)]
+#[ts(export)]
 pub struct ConnectionEventPayload {
     state: ConnectionState,
     error: Option<BackendError>,
@@ -58,7 +76,7 @@ impl AppHandleEventEmitter for tauri::AppHandle {
         debug!("sending event [{}]: Connecting", EVENT_CONNECTION_STATE);
         self.emit_all(
             EVENT_CONNECTION_STATE,
-            ConnectionEventPayload::new(ConnectionState::Connecting, None, None),
+            ConnectionEvent::update(ConnectionState::Connecting, None, None),
         )
         .ok();
     }
@@ -67,7 +85,7 @@ impl AppHandleEventEmitter for tauri::AppHandle {
         debug!("sending event [{}]: Disconnecting", EVENT_CONNECTION_STATE);
         self.emit_all(
             EVENT_CONNECTION_STATE,
-            ConnectionEventPayload::new(ConnectionState::Disconnecting, None, None),
+            ConnectionEvent::update(ConnectionState::Disconnecting, None, None),
         )
         .ok();
     }
@@ -76,7 +94,7 @@ impl AppHandleEventEmitter for tauri::AppHandle {
         debug!("sending event [{}]: Disconnected", EVENT_CONNECTION_STATE);
         self.emit_all(
             EVENT_CONNECTION_STATE,
-            ConnectionEventPayload::new(ConnectionState::Disconnected, error, None),
+            ConnectionEvent::update(ConnectionState::Disconnected, error, None),
         )
         .ok();
     }

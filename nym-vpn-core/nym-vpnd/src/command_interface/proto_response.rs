@@ -1,8 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::service::{VpnServiceStateChange, VpnServiceStatusResult};
-use nym_vpn_proto::{ConnectionStateChange, ConnectionStatus, Error as ProtoError, StatusResponse};
+use crate::service::{VpnServiceInfoResult, VpnServiceStateChange, VpnServiceStatusResult};
+use nym_vpn_proto::{
+    ConnectionStateChange, ConnectionStatus, Error as ProtoError, InfoResponse, StatusResponse,
+};
 
 impl From<VpnServiceStatusResult> for StatusResponse {
     fn from(status: VpnServiceStatusResult) -> Self {
@@ -46,6 +48,21 @@ impl From<VpnServiceStatusResult> for StatusResponse {
             status,
             details,
             error,
+        }
+    }
+}
+
+impl From<VpnServiceInfoResult> for InfoResponse {
+    fn from(info: VpnServiceInfoResult) -> Self {
+        let build_timestamp = info.build_timestamp.map(|ts| prost_types::Timestamp {
+            seconds: ts.unix_timestamp(),
+            nanos: ts.nanosecond() as i32,
+        });
+        InfoResponse {
+            version: info.version,
+            build_timestamp,
+            triple: info.triple,
+            git_commit: info.git_commit,
         }
     }
 }

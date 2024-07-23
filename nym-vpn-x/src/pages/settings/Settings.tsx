@@ -110,7 +110,6 @@ function Settings() {
           },
           {
             title: t('entry-selector.title'),
-            desc: t('entry-selector.desc'),
             leadingIcon: 'looks_two',
             onClick: handleEntrySelectorChange,
             trailing: (
@@ -122,11 +121,31 @@ function Settings() {
           },
         ]}
       />
-      <SettingsMenuCard
-        title={t('display-theme')}
-        onClick={() => navigate(routes.display)}
-        leadingIcon="contrast"
-        trailingIcon="arrow_right"
+      <SettingsGroup
+        settings={[
+          {
+            title: t('display-theme'),
+            onClick: () => navigate(routes.display),
+            leadingIcon: 'contrast',
+            trailing: (
+              <MsIcon
+                icon="arrow_right"
+                className="dark:text-mercury-pinkish"
+              />
+            ),
+          },
+          {
+            title: t('notifications', { ns: 'common' }),
+            leadingIcon: 'notifications',
+            onClick: () => navigate(routes.notifications),
+            trailing: (
+              <MsIcon
+                icon="arrow_right"
+                className="dark:text-mercury-pinkish"
+              />
+            ),
+          },
+        ]}
       />
       <SettingsMenuCard
         title={t('logs')}
@@ -183,12 +202,7 @@ function Settings() {
         onClick={() => navigate(routes.legal)}
         trailingIcon="arrow_right"
       />
-      <SettingsMenuCard
-        title={t('quit')}
-        onClick={() => {
-          exit();
-        }}
-      />
+      <SettingsMenuCard title={t('quit')} onClick={exit} />
       <div className="flex grow flex-col justify-end text-comet text-sm tracking-tight leading-tight mb-4">
         Version {version}
       </div>

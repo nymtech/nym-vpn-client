@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
+import androidx.core.os.LocaleListCompat
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -24,6 +25,7 @@ import net.nymtech.nymvpn.NymVpn
 import timber.log.Timber
 import java.time.Duration
 import java.time.Instant
+import java.util.Locale
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -133,4 +135,18 @@ fun <T> CoroutineScope.asChannel(flow: Flow<T>): ReceiveChannel<T> = produce {
 	flow.collect { value ->
 		channel.send(value)
 	}
+}
+
+fun LocaleListCompat.toSet(): Set<Locale> {
+	val set = HashSet<Locale>()
+	var counter = 0
+	while (this[counter] != null) {
+		this[counter]?.let { set.add(it) }
+		counter++
+	}
+	return set
+}
+
+fun String.capitalize(locale: Locale): String {
+	return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
 }

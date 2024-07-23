@@ -4,13 +4,16 @@
 use anyhow::Result;
 use clap::Parser;
 use nym_vpn_proto::{
-    ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, StatusRequest,
+    ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, InfoRequest,
+    StatusRequest,
 };
 use vpnd_client::ClientType;
 
 use crate::{
     cli::{Command, ImportCredentialTypeEnum},
-    protobuf_conversion::{into_entry_point, into_exit_point, ipaddr_into_string},
+    protobuf_conversion::{
+        into_entry_point, into_exit_point, ipaddr_into_string, parse_offset_datetime,
+    },
 };
 
 mod cli;
@@ -30,6 +33,7 @@ async fn main() -> Result<()> {
         Command::Connect(ref connect_args) => connect(client_type, connect_args).await?,
         Command::Disconnect => disconnect(client_type).await?,
         Command::Status => status(client_type).await?,
+        Command::Info => info(client_type).await?,
         Command::ImportCredential(ref import_args) => {
             import_credential(client_type, import_args).await?
         }
@@ -74,22 +78,30 @@ async fn status(client_type: ClientType) -> Result<()> {
     let response = client.vpn_status(request).await?.into_inner();
     println!("{:?}", response);
 
-    let utc_since = response
+    if let Some(Ok(utc_since)) = response
         .details
         .and_then(|details| details.since)
-        .map(|timestamp| {
-            time::OffsetDateTime::from_unix_timestamp(timestamp.seconds)
-                .map(|t| t + time::Duration::nanoseconds(timestamp.nanos as i64))
-        });
+        .map(parse_offset_datetime)
+    {
+        println!("since (utc): {:?}", utc_since);
+        println!("duration: {}", time::OffsetDateTime::now_utc() - utc_since);
+    }
 
-    if let Some(utc_since) = utc_since {
-        match utc_since {
-            Ok(utc_since) => {
-                println!("since (utc): {:?}", utc_since);
-                println!("duration: {}", time::OffsetDateTime::now_utc() - utc_since);
-            }
-            Err(err) => eprintln!("failed to parse timestamp: {err}"),
-        }
+    Ok(())
+}
+
+async fn info(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(InfoRequest {});
+    let response = client.info(request).await?.into_inner();
+    println!("{:?}", response);
+
+    if let Some(Ok(utc_build_timestamp)) = response.build_timestamp.map(parse_offset_datetime) {
+        println!("build timestamp (utc): {:?}", utc_build_timestamp);
+        println!(
+            "build age: {}",
+            time::OffsetDateTime::now_utc() - utc_build_timestamp
+        );
     }
     Ok(())
 }

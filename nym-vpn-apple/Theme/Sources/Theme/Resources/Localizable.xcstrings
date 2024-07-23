@@ -232,6 +232,17 @@
         }
       }
     },
+    "copy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
+        }
+      }
+    },
     "darkThemeTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -287,17 +298,6 @@
         }
       }
     },
-    "entryLocationSubtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manually select your entry hop"
-          }
-        }
-      }
-    },
     "entryLocationTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -327,6 +327,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong with the Gateway Directory"
+          }
+        }
+      }
+    },
+    "error.noLogFile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to create log file"
           }
         }
       }
@@ -650,6 +661,39 @@
         }
       }
     },
+    "locationModal.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We infer server locations based on their IP addresses, but the actual locations may vary slightly."
+          }
+        }
+      }
+    },
+    "locationModal.readMore" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read more"
+          }
+        }
+      }
+    },
+    "locationModal.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Details on server locations"
+          }
+        }
+      }
+    },
     "logs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -657,6 +701,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Logs"
+          }
+        }
+      }
+    },
+    "logs.noLogs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No logs available"
           }
         }
       }

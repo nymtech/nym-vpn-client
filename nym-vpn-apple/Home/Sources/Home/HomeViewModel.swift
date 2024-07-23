@@ -43,7 +43,7 @@ public class HomeViewModel: HomeFlowState {
 
     // If no time connected is shown, should be set to empty string,
     // so the time connected label would not disappear and re-center other UI elements.
-    @Published var timeConnected = " "
+    @MainActor @Published var timeConnected = " "
     @MainActor @Published var statusButtonConfig = StatusButtonConfig.disconnected
     @MainActor @Published var statusInfoState = StatusInfoState.initialising
     @MainActor @Published var connectButtonState = ConnectButtonState.connect
@@ -92,20 +92,28 @@ public class HomeViewModel: HomeFlowState {
 
 public extension HomeViewModel {
     func navigateToSettings() {
-        path.append(HomeLink.settings)
+        Task { @MainActor in
+            path.append(HomeLink.settings)
+        }
     }
 
     func navigateToFirstHopSelection() {
-        path.append(HomeLink.entryHop)
+        Task { @MainActor in
+            path.append(HomeLink.entryHop)
+        }
     }
 
     func navigateToLastHopSelection() {
-        path.append(HomeLink.exitHop)
+        Task { @MainActor in
+            path.append(HomeLink.exitHop)
+        }
     }
 
     func navigateToAddCredentials() {
-        path.append(HomeLink.settings)
-        path.append(SettingsLink.addCredentials)
+        Task { @MainActor in
+            path.append(HomeLink.settings)
+            path.append(SettingsLink.addCredentials)
+        }
     }
 }
 

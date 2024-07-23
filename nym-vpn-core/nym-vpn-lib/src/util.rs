@@ -64,7 +64,7 @@ pub(crate) async fn wait_for_interrupt_and_signal(
 pub(crate) async fn handle_interrupt(
     mut route_manager: RouteManager,
     wireguard_waiting: Option<[WgTunnelSetup; 2]>,
-) -> Result<()> {
+) {
     let (finished_shutdown_rx, tunnel_handle) = match wireguard_waiting {
         Some([entry_setup, exit_setup]) => (
             Some([entry_setup.receiver, exit_setup.receiver]),
@@ -73,9 +73,9 @@ pub(crate) async fn handle_interrupt(
         None => (None, None),
     };
 
-    let sig_handle = tokio::task::spawn_blocking(move || -> Result<RouteManager> {
+    let sig_handle = tokio::task::spawn_blocking(move || -> RouteManager {
         debug!("Received interrupt signal");
-        route_manager.clear_routes()?;
+        route_manager.clear_routes().ok();
         #[cfg(target_os = "linux")]
         if let Err(error) =
             tokio::runtime::Handle::current().block_on(route_manager.clear_routing_rules())
@@ -85,24 +85,27 @@ pub(crate) async fn handle_interrupt(
                 error.display_chain_with_msg("Failed to clear routing rules")
             );
         }
-        Ok(route_manager)
+        route_manager
     });
 
     if let Some([h1, h2]) = tunnel_handle {
         let ret1 = h1.await;
         let ret2 = h2.await;
-        ret1?;
-        ret2?;
+        if ret1.is_err() || ret2.is_err() {
+            error!("Error on tunnel handle");
+        }
     }
-    let route_manager = sig_handle.await??;
+    let route_manager = sig_handle.await.ok();
     if let Some([rx1, rx2]) = finished_shutdown_rx {
         let ret1 = rx1.await;
         let ret2 = rx2.await;
-        ret1?;
-        ret2?;
+        if ret1.is_err() || ret2.is_err() {
+            error!("Error on signal handle");
+        }
     }
-    tokio::task::spawn_blocking(|| drop(route_manager)).await?;
-    Ok(())
+    tokio::task::spawn_blocking(|| drop(route_manager))
+        .await
+        .ok();
 }
 
 #[cfg(unix)]

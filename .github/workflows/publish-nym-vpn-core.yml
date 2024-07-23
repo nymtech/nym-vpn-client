@@ -1,4 +1,4 @@
-name: publish-nym-vpn-core.yml
+name: publish-nym-vpn-core
 on:
   schedule:
     - cron: "4 3 * * *"

@@ -1,5 +1,6 @@
 import SwiftUI
 import CountriesManager
+import ExternalLinkManager
 import Theme
 import UIComponents
 
@@ -35,6 +36,16 @@ public struct HopListView: View {
             NymColor.background
                 .ignoresSafeArea()
         }
+        .overlay {
+            if viewModel.isGeolocationModalDisplayed {
+                LocationInfoView(
+                    viewModel: LocationInfoViewModel(
+                        externalLinkManager: ExternalLinkManager.shared,
+                        isDisplayed: $viewModel.isGeolocationModalDisplayed
+                    )
+                )
+            }
+        }
         .onTapGesture {
             isSearchFocused = false
         }
@@ -46,7 +57,8 @@ private extension HopListView {
     func navbar() -> some View {
         CustomNavBar(
             title: viewModel.type.selectHopLocalizedTitle,
-            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateHome() })
+            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateHome() }),
+            rightButton: CustomNavBarButton(type: .info, action: { viewModel.displayInfoTooltip() })
         )
     }
 

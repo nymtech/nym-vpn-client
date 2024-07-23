@@ -197,13 +197,15 @@ android {
 
 dependencies {
 
-	implementation(project(":nym_vpn_client"))
-	implementation(project(":logcat_helper"))
+	implementation(project(":nym-vpn-client"))
+	implementation(project(":logcat-util"))
+	implementation(project(":localization-util"))
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 
 	implementation(libs.androidx.core.ktx)
 	implementation(libs.androidx.lifecycle.runtime.ktx)
 	implementation(libs.androidx.activity.compose)
+	implementation(libs.androidx.appcompat)
 	implementation(libs.androidx.material.icons.extended)
 	implementation(platform(libs.androidx.compose.bom))
 	implementation(libs.androidx.ui)

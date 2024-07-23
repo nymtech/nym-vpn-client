@@ -34,8 +34,8 @@ BI="$ITL$BLD"
 ####
 
 # nymvpn-x AppImage
-vpnx_tag=nym-vpn-x-v0.1.6
-vpnx_version=0.1.6
+vpnx_tag=nym-vpn-x-v0.1.7
+vpnx_version=0.1.7
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnx_tag/nymvpn-x_${vpnx_version}.AppImage"
 
 # nym-vpnd prebuilt binary

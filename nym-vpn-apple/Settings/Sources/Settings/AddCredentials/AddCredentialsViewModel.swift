@@ -14,7 +14,7 @@ final class AddCredentialsViewModel: ObservableObject {
     let appSettings: AppSettings
     let credentialsManager: CredentialsManager
 
-    @Binding var path: NavigationPath
+    @Binding private var path: NavigationPath
 
     @Published var credentialText = "" {
         willSet(newText) {

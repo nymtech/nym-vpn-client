@@ -48,6 +48,8 @@ pub enum Key {
     WelcomeScreenSeen,
     #[strum(serialize = "credential_expiry")]
     CredentialExpiry,
+    #[strum(serialize = "desktop_notifications")]
+    DesktopNotifications,
 }
 
 impl Display for Key {

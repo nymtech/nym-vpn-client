@@ -42,7 +42,7 @@ public final class ConnectionStorage {
 
     func exitRouter() -> ExitRouter {
         if !appSettings.exitCountryCode.isEmpty {
-            return .country(code:  existingCountryCode(with: appSettings.entryCountryCode, isEntryHop: false))
+            return .country(code: existingCountryCode(with: appSettings.entryCountryCode, isEntryHop: false))
         } else {
             guard let exitCountry = self.countriesManager.exitCountries.first
             else {

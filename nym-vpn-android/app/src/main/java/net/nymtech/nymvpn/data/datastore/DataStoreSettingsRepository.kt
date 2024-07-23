@@ -28,6 +28,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val analyticsShown = booleanPreferencesKey("ANALYTICS_SHOWN")
 	private val applicationShortcuts = booleanPreferencesKey("APPLICATION_SHORTCUTS")
 	private val credentialExpiry = longPreferencesKey("CREDENTIAL_EXPIRY")
+	private val locale = stringPreferencesKey("LOCALE")
 
 	override suspend fun init() {
 		val firstHop = dataStoreManager.getFromStore(firstHopCountry)

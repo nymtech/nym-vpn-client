@@ -1,6 +1,7 @@
 import NetworkExtension
-import Logging
 import SwiftUI
+import Logging
+import NymLogger
 import TunnelStatus
 
 public final class Tunnel: NSObject, ObservableObject {
@@ -21,7 +22,7 @@ public final class Tunnel: NSObject, ObservableObject {
         self.name = tunnel.localizedDescription ?? "Unnamed"
         self.tunnel = tunnel
         self.status = TunnelStatus(from: tunnel.connection.status)
-        self.logger = Logger(label: "Tunnel \(name)")
+        self.logger = NymLogger(label: "Tunnel \(name)").logger
     }
 
     func connect(recursionCount: UInt = 0, lastError: Error? = nil) {
