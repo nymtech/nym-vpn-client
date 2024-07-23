@@ -104,7 +104,7 @@ pub(super) fn entry_gateway_from_vpn_api(
         }
     });
 
-    let as_exit = gateway.last_probe.and_then(|probe| {
+    let as_exit = gateway.last_probe.clone().and_then(|probe| {
         probe.outcome.as_exit.map(|as_exit| {
             nym_vpn_proto::AsExit {
                 can_connect: as_exit.can_connect,
@@ -116,6 +116,16 @@ pub(super) fn entry_gateway_from_vpn_api(
         })
     });
 
+    let last_probe = gateway.last_probe.map(|p| {
+        nym_vpn_proto::Probe {
+            last_updated_utc,
+            outcome: Some(nym_vpn_proto::ProbeOutcome {
+                as_entry,
+                as_exit,
+            }),
+        }
+    });
+
     nym_vpn_proto::EntryGateway {
         id: Some(nym_vpn_proto::Gateway {
             id: gateway.identity_key.to_string(),
@@ -123,12 +133,13 @@ pub(super) fn entry_gateway_from_vpn_api(
         location: Some(nym_vpn_proto::Location {
             two_letter_iso_country_code: gateway.location.two_letter_iso_country_code,
         }),
-        last_probe: Some(nym_vpn_proto::Probe {
-            last_updated_utc,
-            outcome: Some(nym_vpn_proto::ProbeOutcome {
-                as_entry,
-                as_exit,
-            }),
-        }),
+        // last_probe: Some(nym_vpn_proto::Probe {
+        //     last_updated_utc,
+        //     outcome: Some(nym_vpn_proto::ProbeOutcome {
+        //         as_entry,
+        //         as_exit,
+        //     }),
+        // }),
+        last_probe,
     }
 }

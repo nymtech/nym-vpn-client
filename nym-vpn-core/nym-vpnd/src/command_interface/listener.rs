@@ -290,6 +290,7 @@ impl NymVpnd for CommandInterface {
                 .collect(),
         };
 
+        info!("response: {:#?}", response);
         info!(
             "Returning list entry gateways response: {} entries",
             response.gateways.len()
