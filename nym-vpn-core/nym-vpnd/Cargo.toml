@@ -21,11 +21,13 @@ maplit.workspace = true
 parity-tokio-ipc.workspace = true
 prost-types.workspace = true
 prost.workspace = true
-reqwest = { workspace = true, default-features = false, features = ["rustls-tls"] }
+reqwest = { workspace = true, default-features = false, features = [
+    "rustls-tls",
+] }
 serde.workspace = true
 thiserror.workspace = true
 time.workspace = true
-tokio = { workspace = true, features = ["full"]}
+tokio = { workspace = true, features = ["full"] }
 tokio-stream.workspace = true
 toml.workspace = true
 tonic-health.workspace = true
@@ -41,6 +43,7 @@ nym-bandwidth-controller.workspace = true
 nym-task.workspace = true
 
 # Local crates
+nym-crypto = { workspace = true, features = ["symmetric", "asymmetric"] }
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
 nym-vpn-store = { path = "../crates/nym-vpn-store" }

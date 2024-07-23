@@ -4842,6 +4842,7 @@ dependencies = [
  "http 0.2.12",
  "maplit",
  "nym-bandwidth-controller",
+ "nym-crypto",
  "nym-task",
  "nym-vpn-lib",
  "nym-vpn-proto",

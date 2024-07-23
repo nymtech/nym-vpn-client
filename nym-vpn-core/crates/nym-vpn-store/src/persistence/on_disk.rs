@@ -3,10 +3,9 @@
 
 use std::path::{Path, PathBuf};
 
-use nym_crypto::asymmetric::ed25519;
-use nym_pemstore::{traits::PemStorableKeyPair, KeyPairPath};
+use nym_pemstore::KeyPairPath;
 
-use crate::{DeviceKeys, KeyStore};
+use crate::{device_keys::DeviceKeyPair, DeviceKeys, KeyStore};
 
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskKeysError {
@@ -64,12 +63,12 @@ impl OnDiskKeys {
         OnDiskKeys { paths }
     }
 
-    fn load_device_keypair(&self) -> Result<ed25519::KeyPair, OnDiskKeysError> {
+    fn load_device_keypair<T: DeviceKeyPair>(&self) -> Result<T, OnDiskKeysError> {
         let device_paths = self.paths.device_key_pair_path();
         self.load_keypair(device_paths, "device")
     }
 
-    fn load_keypair<T: PemStorableKeyPair>(
+    fn load_keypair<T: DeviceKeyPair>(
         &self,
         paths: KeyPairPath,
         name: impl Into<String>,
@@ -81,7 +80,7 @@ impl OnDiskKeys {
         })
     }
 
-    fn store_keypair<T: PemStorableKeyPair>(
+    fn store_keypair<T: DeviceKeyPair>(
         &self,
         keypair: &T,
         paths: KeyPairPath,
@@ -96,25 +95,25 @@ impl OnDiskKeys {
         })
     }
 
-    fn load_keys(&self) -> Result<DeviceKeys, OnDiskKeysError> {
+    fn load_keys<T: DeviceKeyPair>(&self) -> Result<DeviceKeys<T>, OnDiskKeysError> {
         let device_keypair = self.load_device_keypair()?;
         Ok(DeviceKeys::from_keys(device_keypair))
     }
 
-    fn store_keys(&self, keys: &DeviceKeys) -> Result<(), OnDiskKeysError> {
+    fn store_keys<T: DeviceKeyPair>(&self, keys: &DeviceKeys<T>) -> Result<(), OnDiskKeysError> {
         let device_paths = self.paths.device_key_pair_path();
         self.store_keypair(keys.device_keypair().as_ref(), device_paths, "device")
     }
 }
 
-impl KeyStore for OnDiskKeys {
+impl<T: DeviceKeyPair> KeyStore<T> for OnDiskKeys {
     type StorageError = OnDiskKeysError;
 
-    async fn load_keys(&self) -> Result<DeviceKeys, Self::StorageError> {
+    async fn load_keys(&self) -> Result<DeviceKeys<T>, Self::StorageError> {
         self.load_keys()
     }
 
-    async fn store_keys(&self, keys: &DeviceKeys) -> Result<(), Self::StorageError> {
+    async fn store_keys(&self, keys: &DeviceKeys<T>) -> Result<(), Self::StorageError> {
         self.store_keys(keys)
     }
 }

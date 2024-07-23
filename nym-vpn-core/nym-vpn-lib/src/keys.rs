@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_store::{DeviceKeys, KeyStore};
+use nym_vpn_store::{DeviceKeyPair, DeviceKeys, KeyStore};
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, thiserror::Error)]
@@ -25,9 +25,9 @@ pub enum KeyStoreError {
     },
 }
 
-pub async fn load_device_keys<P: AsRef<Path> + Clone>(
+pub async fn load_device_keys<P: AsRef<Path> + Clone, T: DeviceKeyPair>(
     path: P,
-) -> Result<DeviceKeys, KeyStoreError> {
+) -> Result<DeviceKeys<T>, KeyStoreError> {
     let device_key_paths = nym_vpn_store::DeviceKeysPaths::new(path.clone());
     let key_store = nym_vpn_store::OnDiskKeys::new(device_key_paths);
 
@@ -45,7 +45,7 @@ pub async fn create_device_keys<P: AsRef<Path> + Clone>(path: P) -> Result<(), K
     let key_store = nym_vpn_store::OnDiskKeys::new(device_key_paths);
 
     let mut rng = rand::rngs::OsRng;
-    DeviceKeys::generate_new(&mut rng)
+    DeviceKeys::generate_new_ed25519(&mut rng)
         .persist_keys(&key_store)
         .await
         .map_err(|error| KeyStoreError::Create {
@@ -54,9 +54,9 @@ pub async fn create_device_keys<P: AsRef<Path> + Clone>(path: P) -> Result<(), K
         })
 }
 
-pub async fn store_device_keys<P: AsRef<Path> + Clone>(
+pub async fn store_device_keys<P: AsRef<Path> + Clone, T: DeviceKeyPair>(
     path: P,
-    keys: &DeviceKeys,
+    keys: &DeviceKeys<T>,
 ) -> Result<(), KeyStoreError> {
     let device_key_paths = nym_vpn_store::DeviceKeysPaths::new(path.clone());
     let key_store = nym_vpn_store::OnDiskKeys::new(device_key_paths);

@@ -6,7 +6,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use nym_crypto::asymmetric::ed25519;
 use nym_vpn_lib::gateway_directory;
+use nym_vpn_store::DeviceKeys;
 use tracing::info;
 
 #[cfg(not(windows))]
@@ -170,5 +172,7 @@ pub(super) async fn create_device_keys(
 
     // Check that we can successfully load them.
     // We don't actually need to use them at this point, so discard the return value.
-    nym_vpn_store::load_device_keys(data_dir).await.map(|_| ())
+    nym_vpn_store::load_device_keys(data_dir)
+        .await
+        .map(|_: DeviceKeys<ed25519::KeyPair>| ())
 }

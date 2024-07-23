@@ -2,7 +2,10 @@ use std::path::{Path, PathBuf};
 
 use rand::SeedableRng;
 
-use crate::{key_store::KeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeys, OnDiskKeysError};
+use crate::{
+    device_keys::DeviceKeyPair, key_store::KeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeys,
+    OnDiskKeysError,
+};
 
 #[derive(Debug, thiserror::Error)]
 pub enum KeyStoreError {
@@ -33,9 +36,9 @@ pub fn keypair_exists<P: AsRef<Path>>(path: P) -> bool {
     device_key_paths.private_device_key().exists()
 }
 
-pub async fn load_device_keys<P: AsRef<Path> + Clone>(
+pub async fn load_device_keys<P: AsRef<Path> + Clone, T: DeviceKeyPair>(
     path: P,
-) -> Result<DeviceKeys, KeyStoreError> {
+) -> Result<DeviceKeys<T>, KeyStoreError> {
     let device_key_paths = DeviceKeysPaths::new(path.clone());
     let key_store = OnDiskKeys::new(device_key_paths);
 
@@ -55,7 +58,7 @@ pub async fn create_device_keys<P: AsRef<Path> + Clone>(path: P) -> Result<(), K
     let key_store = OnDiskKeys::new(device_key_paths);
 
     let mut rng = rand::rngs::OsRng;
-    DeviceKeys::generate_new(&mut rng)
+    DeviceKeys::generate_new_ed25519(&mut rng)
         .persist_keys(&key_store)
         .await
         .map_err(|error| KeyStoreError::Create {
@@ -73,7 +76,7 @@ pub async fn create_device_keys_from_seed<P: AsRef<Path> + Clone>(
 
     let mut rng = rand_chacha::ChaCha20Rng::from_seed(seed);
 
-    DeviceKeys::generate_new(&mut rng)
+    DeviceKeys::generate_new_ed25519(&mut rng)
         .persist_keys(&key_store)
         .await
         .map_err(|error| KeyStoreError::Create {
@@ -82,9 +85,9 @@ pub async fn create_device_keys_from_seed<P: AsRef<Path> + Clone>(
         })
 }
 
-pub async fn store_device_keys<P: AsRef<Path> + Clone>(
+pub async fn store_device_keys<P: AsRef<Path> + Clone, T: DeviceKeyPair>(
     path: P,
-    keys: &DeviceKeys,
+    keys: &DeviceKeys<T>,
 ) -> Result<(), KeyStoreError> {
     let device_key_paths = DeviceKeysPaths::new(path.clone());
     let key_store = OnDiskKeys::new(device_key_paths);

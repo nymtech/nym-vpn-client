@@ -3,11 +3,11 @@
 
 use tokio::sync::Mutex;
 
-use crate::{DeviceKeys, KeyStore};
+use crate::{device_keys::DeviceKeyPair, DeviceKeys, KeyStore};
 
 #[derive(Default)]
-pub struct InMemEphemeralKeys {
-    keys: Mutex<Option<DeviceKeys>>,
+pub struct InMemEphemeralKeys<T: DeviceKeyPair> {
+    keys: Mutex<Option<DeviceKeys<T>>>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -16,10 +16,10 @@ pub enum EphemeralKeysError {
     UnableToLoadKeys,
 }
 
-impl KeyStore for InMemEphemeralKeys {
+impl<T: Clone + DeviceKeyPair> KeyStore<T> for InMemEphemeralKeys<T> {
     type StorageError = EphemeralKeysError;
 
-    async fn load_keys(&self) -> Result<DeviceKeys, Self::StorageError> {
+    async fn load_keys(&self) -> Result<DeviceKeys<T>, Self::StorageError> {
         self.keys
             .lock()
             .await
@@ -28,7 +28,7 @@ impl KeyStore for InMemEphemeralKeys {
             .ok_or(EphemeralKeysError::UnableToLoadKeys)
     }
 
-    async fn store_keys(&self, keys: &DeviceKeys) -> Result<(), Self::StorageError> {
+    async fn store_keys(&self, keys: &DeviceKeys<T>) -> Result<(), Self::StorageError> {
         *self.keys.lock().await = Some(keys.clone());
         Ok(())
     }
