@@ -143,6 +143,10 @@ async fn setup_wg_tunnel(
     // 1440 - (40 + 8 + 32)
     let exit_mtu = 1360;
 
+    let bandwidth_controller =
+        BandwidthController::new(mixnet_client.clone(), task_manager.subscribe());
+    tokio::spawn(bandwidth_controller.run());
+
     let (Some(entry_auth_recipient), Some(exit_auth_recipient)) =
         (auth_addresses.entry().0, auth_addresses.exit().0)
     else {
@@ -357,10 +361,6 @@ pub async fn setup_tunnel(
     )
     .await
     .map_err(|_| Error::StartMixnetTimeout(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS))??;
-
-    let bandwidth_controller =
-        BandwidthController::new(mixnet_client.clone(), task_manager.subscribe());
-    tokio::spawn(bandwidth_controller.run());
 
     let tunnels_setup = match nym_vpn {
         SpecificVpn::Wg(vpn) => {
