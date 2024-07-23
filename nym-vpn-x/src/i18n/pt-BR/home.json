@@ -8,8 +8,8 @@
     "disconnecting": "Desconectando",
     "unknown": "Desconhecido"
   },
-  "last-hop": "Último salto",
-  "first-hop": "Primeiro salto",
+  "last-hop": "Local de saída",
+  "first-hop": "Local de entrada",
   "last-node-select": {
     "label": "Último salto",
     "text": "Conexão rápida {{country}}"
