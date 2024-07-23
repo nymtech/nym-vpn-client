@@ -1,8 +1,8 @@
 {
   "connect": "Conectar",
   "disconnect": "Desconectar",
-  "first-hop-selection": "Gateway entrada",
-  "last-hop-selection": "Gateway salida",
+  "first-hop-selection": "Gateway de entrada",
+  "last-hop-selection": "Gateway de salida",
   "settings": "Configuración",
   "logs": "Registros",
   "feedback": "Retroalimentación",
