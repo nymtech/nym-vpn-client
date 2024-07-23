@@ -7,7 +7,7 @@
     <string name="disconnecting">Desconectando</string>
     <string name="connecting">Conectando</string>
     <string name="five_hop_mixnet">Anónimo</string>
-    <string name="five_hop_description">Mejor para pagos, correos electrónicos, mensajes</string>
+    <string name="five_hop_description">Para pagos, correos electrónicos, mensajes</string>
     <string name="two_hop_mixnet">Rápido</string>
     <string name="two_hop_description">Mejor para navegar, streaming, compartir</string>
     <string name="first_hop">Primer salto</string>
@@ -65,7 +65,6 @@
     <string name="credential_failed_message">Credencial inválida</string>
     <string name="unknown_error">Ocurrió un error desconocido</string>
     <string name="credential">Credencial</string>
-    <string name="left">quedan</string>
     <string name="top_up_credential">Recarga tu credencial</string>
     <string name="top_up">Recargar</string>
     <string name="devices">Dispositivos</string>

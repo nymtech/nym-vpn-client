@@ -88,7 +88,7 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState, navControl
 							append(" ")
 							append(if (hours != 1) stringResource(id = R.string.hours) else stringResource(id = R.string.hour))
 							append(" ")
-							append(stringResource(id = R.string.left))
+							append(stringResource(id = R.string.remaining))
 						}
 					Text(
 						durationLeft.text,

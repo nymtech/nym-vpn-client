@@ -33,8 +33,8 @@ Desfrute de uma VPN sem anúncios. Nossa prioridade é sua privacidade.
 
 Uso Ilimitado
 Use a internet o quanto quiser; a NymVPN nunca limitará seu tráfego.
-Recursos Destacados:
 
+Recursos Destacados:
 - Mixnet de 5 Saltos: Criptografa e mistura seu tráfego 5 vezes, tornando o rastreamento impossível.
 - dVPN de 2 Saltos: Maior velocidade com dois saltos de criptografia.
 - Sem Logs Centralizados: Nenhum registro de atividades.

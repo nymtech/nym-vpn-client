@@ -30,6 +30,9 @@ android {
 		versionCode = Constants.VERSION_CODE
 		versionName = Constants.VERSION_NAME
 
+		// keep all language resources
+		resourceConfigurations.addAll(languageList())
+
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {
 			useSupportLibrary = true

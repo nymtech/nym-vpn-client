@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NymVPN</string>
+    <string name="settings">सेटिंग्स</string>
+    <string name="two_hop_description">ब्राउज़िंग, स्ट्रीमिंग और साझाकरण के लिए</string>
+    <string name="connecting">कनेक्ट हो रहा है</string>
+    <string name="connected">कनेक्शन सफल हुआ</string>
+    <string name="disconnected">डिस्कनेक्टेड</string>
+    <string name="disconnecting">डिसकनेक्ट हो रहा है</string>
+    <string name="five_hop_mixnet">अनाम</string>
+    <string name="five_hop_description">भुगतान, ईमेल और मेसेज के लिए</string>
+    <string name="two_hop_mixnet">तेज़</string>
+    <string name="first_hop">पहली कड़ी</string>
+    <string name="last_hop">आखरी कड़ी</string>
+    <string name="connect">कनेक्ट</string>
+</resources>

@@ -12,7 +12,7 @@
     <string name="init_client">Iniciando cliente…</string>
     <string name="app_name">NymVPN</string>
     <string name="two_hop_description">Melhor para pesquisar, trasmitir, compartilhar</string>
-    <string name="five_hop_description">Melhor para pagamentos, e-mails e mensagens</string>
+    <string name="five_hop_description">Para pagamentos, e-mails e mensagens</string>
     <string name="establishing_connection">Estabelecendo conexão</string>
     <string name="connect_to">Conectar ao</string>
 	<string name="disabled_while_connected">Desativado enquanto conectado à VPN</string>
@@ -60,7 +60,6 @@
     <string name="credential_failed_message">Credencial inválida</string>
     <string name="unknown_error">Ocorreu um erro desconhecido</string>
     <string name="credential">Credencial</string>
-    <string name="left">faltam</string>
     <string name="devices">Dispositivos</string>
     <string name="android">Android</string>
     <string name="windows">Windows</string>

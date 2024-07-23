@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.Keep
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -67,6 +68,7 @@ import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
+@Keep
 class MainActivity : ComponentActivity() {
 
 	private val localeStorage: LocaleStorage by lazy {
