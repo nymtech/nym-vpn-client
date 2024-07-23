@@ -28,7 +28,7 @@ pub(crate) fn setup_logging(args: &CliArgs) {
         .add_directive("hyper::proto=info".parse().unwrap())
         .add_directive("netlink_proto=info".parse().unwrap());
     if let Commands::Run(run_args) = &args.command {
-        if run_args.enable_wireguard {
+        if run_args.wireguard_mode {
             filter = filter
                 .add_directive("nym_client_core=warn".parse().unwrap())
                 .add_directive("nym_gateway_client=warn".parse().unwrap());
@@ -151,7 +151,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         None
     };
 
-    let mut nym_vpn: SpecificVpn = if args.enable_wireguard {
+    let mut nym_vpn: SpecificVpn = if args.wireguard_mode {
         let mut nym_vpn = NymVpn::new_wireguard_vpn(entry_point, exit_point);
         nym_vpn.gateway_config = gateway_config;
         nym_vpn.nym_ips = nym_ips;
