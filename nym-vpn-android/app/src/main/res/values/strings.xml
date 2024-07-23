@@ -83,6 +83,7 @@
 	<string name="five_hop">5-hop</string>
     <string name="mode">Mode</string>
     <string name="okay">Okay</string>
+	<string name="two_hop">2-hop</string>
     <string name="error_reporting_alert">Changes to error reporting will not fully take effect until the app has been restarted.</string>
     <string name="feature_in_progress">This feature is still in progress.</string>
     <string name="logs_saved">Logs saved to downloads folder</string>
@@ -132,4 +133,12 @@
     <string name="five_hop_explanation">Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages.</string>
     <string name="two_hop_explanation">Experience maximum speed with  2-server connectivity. Perfect for fast browsing, streaming, and file sharing.</string>
     <string name="continue_reading">Continue reading</string>
+	<string name="entry_location">Entry location</string>
+	<string name="exit_location">Exit location</string>
+	<string name="appearance">Appearance</string>
+	<string name="language">Language</string>
+	<string name="gateway_modal_description">We infer server locations based on their IP addresses, but the actual locations may vary slightly.</string>
+	<string name="gateway_locations_title">Details on server locations</string>
+	<string name="remaining">remaining</string>
+	<string name="entry_location_selector">Entry location selector</string>
 </resources>
