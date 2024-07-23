@@ -31,7 +31,7 @@ pub async fn create_wireguard_tunnel(
 
     let wireguard_waiting = WgTunnelSetup {
         receiver: finished_shutdown_rx,
-        tunnel_close_tx,
+        _tunnel_close_tx: tunnel_close_tx,
         handle: tunnel_handle,
     };
 
