@@ -26,8 +26,8 @@
     "disconnecting": "Отключение",
     "unknown": "Неизвестно"
   },
-  "last-hop": "Последняя ступень",
-  "first-hop": "Первая ступень",
+  "last-hop": "Локация выхода",
+  "first-hop": "Локация входа",
   "connecting-message": "Настройка соединения",
   "connection-time": "Время подключения",
   "select-mode-label": "Выберите режим",
