@@ -8,14 +8,14 @@
   "support": "Поддержка",
   "sentry": "Sentry",
   "legal": "Юридические аспекты",
-  "first-hop-selection": "Выбор первой ступени",
+  "first-hop-selection": "Локация входа",
   "vpn-modes": {
     "privacy": "Анонимный",
     "fast": "Быстрый"
   },
   "tos": "Условия использования",
   "privacy-statement": "Заявление о конфиденциальности",
-  "last-hop-selection": "Выбор последней ступени",
+  "last-hop-selection": "Локация выхода",
   "display-theme": "Интерфейс",
   "ui-mode": {
     "dark": "Тёмный режим",
