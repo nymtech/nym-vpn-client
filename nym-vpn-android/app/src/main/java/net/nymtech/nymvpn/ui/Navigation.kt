@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import net.nymtech.nymvpn.R
@@ -10,7 +11,7 @@ import net.nymtech.nymvpn.util.StringValue
 enum class Screen {
 	MAIN,
 	SETTINGS,
-	HOP,
+	Location,
 	DISPLAY,
 	LOGS,
 	FEEDBACK,
@@ -25,15 +26,15 @@ enum class Screen {
 	APPEARANCE,
 }
 
-enum class HopType {
-	FIRST,
-	LAST,
+enum class GatewayLocation {
+	Entry,
+	Exit,
 	;
 
-	fun hopTitle(): StringValue {
+	fun title(): StringValue {
 		return when (this) {
-			FIRST -> StringValue.StringResource(R.string.entry_location)
-			LAST -> StringValue.StringResource(R.string.exit_location)
+			Entry -> StringValue.StringResource(R.string.entry_location)
+			Exit -> StringValue.StringResource(R.string.exit_location)
 		}
 	}
 }
@@ -122,17 +123,18 @@ sealed class NavItem(
 		}
 	}
 
-	sealed class Hop {
+	sealed class Location {
 		data object Entry :
-			NavItem("${Screen.HOP.name}/${HopType.FIRST.name}", HopType.FIRST.hopTitle(), backIcon)
+			NavItem("${Screen.Location.name}/${GatewayLocation.Entry.name}", GatewayLocation.Entry.title(), backIcon, infoIcon)
 
 		data object Exit :
-			NavItem("${Screen.HOP.name}/${HopType.LAST.name}", HopType.LAST.hopTitle(), backIcon)
+			NavItem("${Screen.Location.name}/${GatewayLocation.Exit.name}", GatewayLocation.Exit.title(), backIcon, infoIcon)
 	}
 
 	companion object {
 		val settingsIcon = Icons.Outlined.Settings
 		val backIcon = Icons.AutoMirrored.Filled.ArrowBack
+		val infoIcon = Icons.Outlined.Info
 
 		fun from(route: String?): NavItem {
 			return when (route) {
@@ -140,8 +142,8 @@ sealed class NavItem(
 				Analytics.route -> Analytics
 				Permission.route -> Permission
 				Settings.route -> Settings
-				Hop.Entry.route -> Hop.Entry
-				Hop.Exit.route -> Hop.Exit
+				Location.Entry.route -> Location.Entry
+				Location.Exit.route -> Location.Exit
 				Settings.Appearance.Display.route -> Settings.Appearance.Display
 				Settings.Logs.route -> Settings.Logs
 				Settings.Support.route -> Settings.Support

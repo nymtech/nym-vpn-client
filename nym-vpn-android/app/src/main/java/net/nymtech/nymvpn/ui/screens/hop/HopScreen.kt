@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,12 +39,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.HopType
+import net.nymtech.nymvpn.ui.GatewayLocation
 import net.nymtech.nymvpn.ui.NavItem
+import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
 import net.nymtech.nymvpn.ui.common.labels.SelectedLabel
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
@@ -51,7 +54,12 @@ import net.nymtech.nymvpn.util.scaledWidth
 import java.text.Collator
 
 @Composable
-fun HopScreen(navController: NavController, hopType: HopType, viewModel: HopViewModel = hiltViewModel()) {
+fun HopScreen(
+	navController: NavController,
+	gatewayLocation: GatewayLocation,
+	showGatewayInfoModal: MutableState<Boolean>,
+	viewModel: HopViewModel = hiltViewModel(),
+) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 
@@ -64,9 +72,19 @@ fun HopScreen(navController: NavController, hopType: HopType, viewModel: HopView
 		}
 
 	LaunchedEffect(Unit) {
-		viewModel.init(hopType)
-		viewModel.updateCountryCache(hopType)
+		viewModel.init(gatewayLocation)
+		viewModel.updateCountryCache(gatewayLocation)
 	}
+
+	Modal(show = showGatewayInfoModal.value, onDismiss = { showGatewayInfoModal.value = false }, title = {
+		Text(
+			text = stringResource(R.string.gateway_locations_title),
+			color = MaterialTheme.colorScheme.onSurface,
+			style = CustomTypography.labelHuge,
+		)
+	}, text = {
+		GatewayModalBody()
+	})
 
 	LazyColumn(
 		horizontalAlignment = Alignment.CenterHorizontally,
