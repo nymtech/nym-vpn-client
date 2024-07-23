@@ -1,5 +1,8 @@
 default_platform(:android)
 
+# Google Play supported metadata locales
+# https://support.google.com/googleplay/android-developer/table/4419860?hl=en
+
 platform :android do
 
 	desc 'Deploy an internal version to Google Play'
