@@ -56,7 +56,6 @@
     <string name="contact_url" translatable="false">https://support.nymvpn.com/hc/en-us/requests/new</string>
     <string name="support_email" translatable="false">support@nymvpn.com</string>
     <string name="github_issues_url" translatable="false">https://github.com/nymtech/nym-vpn-client/issues/new/choose</string>
-    <string name="email_subject">Service clients NymVPN</string>
     <string name="email_chooser">Envoyer un email…</string>
     <string name="login">Se connecter</string>
     <string name="add_credential">Ajouter un identifiant</string>
