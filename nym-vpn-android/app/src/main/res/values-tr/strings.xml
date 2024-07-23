@@ -30,7 +30,6 @@
     <string name="auto_connect_description">Yeniden başlatıldığında otomatik bağlan</string>
     <string name="logs">Günlükler</string>
     <string name="last_hop">Son hop</string>
-    <string name="first_hop_selection">İlk hop seçimi</string>
     <string name="support">Destek</string>
     <string name="sentry">Gözcü</string>
     <string name="via">aracılığıyla</string>
@@ -106,7 +105,6 @@
     <string name="error_reporting">Hata raporlarını anonim olarak paylaş</string>
     <string name="feedback">Geri bildirim</string>
     <string name="licenses">Lisanslar</string>
-    <string name="entry_location_description">İlk hop seçimini manuel olarak yap</string>
     <string name="join_matrix">Matrix\'te bize katılın</string>
     <string name="permission_message">Cihazınızda uygulamanın doğru çalışmasını sağlamak için lütfen aşağıdaki izinleri kabul edin. Bu izinler, uygulamanın işlevini yerine getirebilmesi için gereklidir.</string>
     <string name="error_bad_peer_cert">"Seçilen gateway\'in kötü bir peer sertifikası var. Lütfen başka bir gateway\'e yeniden bağlanmayı deneyin "</string>
