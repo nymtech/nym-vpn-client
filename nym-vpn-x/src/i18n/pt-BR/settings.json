@@ -40,5 +40,8 @@
   },
   "monitoring-alert": "Você deve reiniciar o aplicativo para que a alteração tenha efeito.",
   "faq": "Perguntas frequentes",
-  "quit": "Sair da NymVPN"
+  "quit": "Sair da NymVPN",
+  "notifications": {
+    "title": "Notificações na área de trabalho"
+  }
 }
