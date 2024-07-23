@@ -4846,6 +4846,7 @@ dependencies = [
  "maplit",
  "nym-bandwidth-controller",
  "nym-task",
+ "nym-vpn-api-client",
  "nym-vpn-lib",
  "nym-vpn-proto",
  "nym-vpn-store",

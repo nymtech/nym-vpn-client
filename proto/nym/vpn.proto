@@ -235,6 +235,15 @@ message ImportError {
   map<string, string> details = 3;
 }
 
+message EntryGateway {
+  string id = 1;
+}
+
+message ListEntryGatewaysRequest {}
+message ListEntryGatewaysResponse {
+  repeated EntryGateway gateways = 1;
+}
+
 service NymVpnd {
   rpc Info (InfoRequest) returns (InfoResponse) {}
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
@@ -243,5 +252,7 @@ service NymVpnd {
   rpc ImportUserCredential (ImportUserCredentialRequest) returns (ImportUserCredentialResponse) {}
   rpc ListenToConnectionStateChanges (Empty) returns (stream ConnectionStateChange) {}
   rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
+
+  rpc ListEntryGateways (ListEntryGatewaysRequest) returns (ListEntryGatewaysResponse) {}
 }
 

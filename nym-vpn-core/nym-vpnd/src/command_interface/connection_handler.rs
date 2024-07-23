@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_vpn_api_client::VpnApiClientError;
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 use time::OffsetDateTime;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
@@ -109,5 +110,16 @@ impl CommandInterfaceConnectionHandler {
         let result = rx.await.unwrap();
         debug!("VPN import credential result: {:?}", result);
         result
+    }
+
+    pub(crate) async fn handle_list_entry_gateways(
+        &self,
+    ) -> Result<Vec<nym_vpn_api_client::Gateway>, VpnApiClientError> {
+        // This assumes mainnet.
+        //
+        // TODO: handle other networks, which which we probably have to resort to querying
+        // nym-api for the gateways.
+        let user_agent = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!().into();
+        nym_vpn_api_client::get_entry_gateways(user_agent).await
     }
 }

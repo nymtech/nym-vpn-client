@@ -84,3 +84,11 @@ impl From<VpnServiceStateChange> for ConnectionStateChange {
         ConnectionStateChange { status, error }
     }
 }
+
+pub(super) fn entry_gateway_from_vpn_api(
+    gateway: nym_vpn_api_client::Gateway,
+) -> nym_vpn_proto::EntryGateway {
+    nym_vpn_proto::EntryGateway {
+        id: gateway.identity_key.to_string(),
+    }
+}
