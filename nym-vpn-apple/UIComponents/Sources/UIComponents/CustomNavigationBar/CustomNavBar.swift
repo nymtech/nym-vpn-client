@@ -5,12 +5,12 @@ import Theme
 public struct CustomNavBar: View {
     @EnvironmentObject private var appSettings: AppSettings
 
-    public let title: String
+    public let title: String?
     public let leftButton: CustomNavBarButton?
     public let rightButton: CustomNavBarButton?
 
     public init(
-        title: String,
+        title: String? = nil,
         leftButton: CustomNavBarButton? = CustomNavBarButton(type: .empty, action: {}),
         rightButton: CustomNavBarButton? = CustomNavBarButton(type: .empty, action: {})
     ) {
@@ -23,9 +23,13 @@ public struct CustomNavBar: View {
         HStack {
             leftButton
             Spacer()
-            Image("logoText", bundle: .module)
-                .frame(width: 110, height: 16)
-
+            if let title {
+                Text(title)
+                    .textStyle(.Title.Large.primary)
+            } else {
+                Image("logoText", bundle: .module)
+                    .frame(width: 110, height: 16)
+            }
             Spacer()
             rightButton
         }

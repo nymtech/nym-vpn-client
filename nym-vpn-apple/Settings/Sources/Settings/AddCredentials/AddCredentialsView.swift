@@ -1,6 +1,7 @@
 import SwiftUI
 import CredentialsManager
 #if os(iOS)
+import ExternalLinkManager
 import KeyboardManager
 #endif
 import Modifiers
@@ -38,8 +39,23 @@ struct AddCredentialsView: View {
             NymColor.background
                 .ignoresSafeArea()
         }
+#if os(iOS)
+        .fullScreenCover(isPresented: $viewModel.isScannerDisplayed) {
+            QRScannerView(
+                viewModel: QRScannerViewModel(
+                    isDisplayed: $viewModel.isScannerDisplayed,
+                    scannedText: $viewModel.credentialText,
+                    externalLinkManager: ExternalLinkManager.shared,
+                    keyboardManager: KeyboardManager.shared
+                )
+            )
+        }
+#endif
         .onAppear {
-            isFocused = true
+            isFocused = viewModel.isFocused
+        }
+        .onChange(of: isFocused) {
+            viewModel.isFocused = $0
         }
     }
 }
@@ -68,26 +84,33 @@ private extension AddCredentialsView {
 
     @ViewBuilder
     func content(safeAreaInsets: EdgeInsets) -> some View {
-            Spacer()
-            getStartedSection()
-                .onTapGesture {
-                    isFocused = false
-                }
-
-            inputView()
-                .onTapGesture {
-                    guard !isFocused else { return }
-                    isFocused = true
-                }
-            if !viewModel.errorMessageTitle.isEmpty {
-                errorMessageView(title: viewModel.errorMessageTitle)
+        Spacer()
+        getStartedSection()
+            .onTapGesture {
+                isFocused = false
             }
-            Spacer()
-                .frame(height: 8)
 
+        inputView()
+            .onTapGesture {
+                guard !isFocused else { return }
+                isFocused = true
+            }
+        if !viewModel.errorMessageTitle.isEmpty {
+            errorMessageView(title: viewModel.errorMessageTitle)
+        }
+        Spacer()
+            .frame(height: 8)
+
+        HStack {
             addCredentialButton()
-            Spacer()
-                .frame(height: viewModel.appSettings.isSmallScreen ? 24 : 40)
+#if os(iOS)
+            qrScannerButton()
+                .padding(.trailing, 16)
+#endif
+        }
+
+        Spacer()
+            .frame(height: viewModel.appSettings.isSmallScreen ? 24 : 40)
     }
 
     @ViewBuilder
@@ -183,6 +206,18 @@ private extension AddCredentialsView {
             .onTapGesture {
                 viewModel.importCredentials()
                 isFocused = false
+            }
+    }
+
+    @ViewBuilder
+    func qrScannerButton() -> some View {
+        GenericImage(systemImageName: viewModel.scannerIconName)
+            .frame(width: 56, height: 56)
+            .foregroundStyle(NymColor.connectTitle)
+            .background(NymColor.primaryOrange)
+            .cornerRadius(8)
+            .onTapGesture {
+                viewModel.isScannerDisplayed.toggle()
             }
     }
 }

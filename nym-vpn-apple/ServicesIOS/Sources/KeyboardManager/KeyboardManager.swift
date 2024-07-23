@@ -35,4 +35,8 @@ public final class KeyboardManager: ObservableObject {
             .assign(to: \.change, on: self)
             .store(in: &cancellables)
     }
+
+    public func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
 }

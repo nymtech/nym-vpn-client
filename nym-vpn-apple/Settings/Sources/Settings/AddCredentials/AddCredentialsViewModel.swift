@@ -1,9 +1,18 @@
 import SwiftUI
 import AppSettings
 import CredentialsManager
+#if os(iOS)
+import KeyboardManager
+#endif
 import Theme
 
 final class AddCredentialsViewModel: ObservableObject {
+    private let credentialsManager: CredentialsManager
+#if os(iOS)
+    private let keyboardManager: KeyboardManager
+#endif
+
+    let appSettings: AppSettings
     let addCredentialButtonTitle = "addCredentials.addCredential.Title".localizedString
     let welcomeTitle = "addCredentials.welcome.Title".localizedString
     let getStartedTitle = "addCredentials.getStarted.Title".localizedString
@@ -11,15 +20,16 @@ final class AddCredentialsViewModel: ObservableObject {
     let credentialSubtitle = "addCredtenials.credential".localizedString
     let credentialsPlaceholderTitle = "".localizedString
     let logoImageName = "addCredentialsLogo"
-    let appSettings: AppSettings
-    let credentialsManager: CredentialsManager
+    let scannerIconName = "qrcode.viewfinder"
 
     @Binding private var path: NavigationPath
 
-    @Published var credentialText = "" {
+    @MainActor @Published var credentialText = "" {
         willSet(newText) {
             guard newText != credentialText else { return }
             error = CredentialsManagerError.noError
+
+            scannerDidScanQRCode()
         }
     }
     @Published var error: Error = CredentialsManagerError.noError {
@@ -31,7 +41,23 @@ final class AddCredentialsViewModel: ObservableObject {
     @Published var credentialSubtitleColor = NymColor.sysOnSurface
     @Published var bottomPadding: CGFloat = 12
     @Published var errorMessageTitle = ""
+    @MainActor @Published var isScannerDisplayed = false
+    @Published var isFocused = true
 
+#if os(iOS)
+    init(
+        path: Binding<NavigationPath>,
+        appSettings: AppSettings = AppSettings.shared,
+        credentialsManager: CredentialsManager = CredentialsManager.shared,
+        keyboardManager: KeyboardManager = KeyboardManager.shared
+    ) {
+        _path = path
+        self.appSettings = appSettings
+        self.credentialsManager = credentialsManager
+        self.keyboardManager = keyboardManager
+    }
+#endif
+#if os(macOS)
     init(
         path: Binding<NavigationPath>,
         appSettings: AppSettings = AppSettings.shared,
@@ -41,11 +67,11 @@ final class AddCredentialsViewModel: ObservableObject {
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
     }
+#endif
 
-    func importCredentials() {
-        Task { @MainActor in
-            error = CredentialsManagerError.noError
-        }
+    @MainActor func importCredentials() {
+        error = CredentialsManagerError.noError
+
         Task {
             do {
                 try credentialsManager.add(credential: credentialText)
@@ -91,5 +117,16 @@ extension AddCredentialsViewModel {
             credentialText = ""
             navigateHome()
         }
+    }
+
+    @MainActor func scannerDidScanQRCode() {
+#if os(iOS)
+        if isScannerDisplayed {
+            isFocused = false
+            isScannerDisplayed = false
+            keyboardManager.hideKeyboard()
+            importCredentials()
+        }
+#endif
     }
 }
