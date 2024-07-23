@@ -245,11 +245,6 @@ async fn setup_mix_tunnel(
 ) -> Result<AllTunnelsSetup> {
     info!("Wireguard is disabled");
 
-    // Now it's time start all the stuff that needs running inside the tunnel, and that we need
-    // correctly unwind if it fails
-    // - Sets up mixnet client, and connects
-    // - Sets up routing
-    // - Starts processing packets
     let connection_info = nym_vpn
         .setup_tunnel_services(
             mixnet_client,
