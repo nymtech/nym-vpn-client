@@ -52,6 +52,7 @@ pub struct WgTunnelSetup {
 
 impl TunnelSpecifcSetup for WgTunnelSetup {}
 
+#[allow(clippy::large_enum_variant)]
 pub enum AllTunnelsSetup {
     Mix(TunnelSetup<MixTunnelSetup>),
     Wg {
@@ -192,7 +193,7 @@ async fn setup_wg_tunnel(
     info!("Exit wireguard config: \n{exit_wireguard_config}");
     std::env::set_var("TALPID_FORCE_USERSPACE_WIREGUARD", "1");
     let (wireguard_waiting_entry, event_rx) = create_wireguard_tunnel(
-        &route_manager,
+        route_manager,
         nym_vpn.tun_provider.clone(),
         entry_wireguard_config,
     )
@@ -206,7 +207,7 @@ async fn setup_wg_tunnel(
         device_ip = metadata.ips
     );
     let (wireguard_waiting_exit, event_rx) = create_wireguard_tunnel(
-        &route_manager,
+        route_manager,
         nym_vpn.tun_provider.clone(),
         exit_wireguard_config,
     )
@@ -231,6 +232,7 @@ async fn setup_wg_tunnel(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn setup_mix_tunnel(
     nym_vpn: &mut NymVpn<MixnetVpn>,
     mixnet_client: SharedMixnetClient,
