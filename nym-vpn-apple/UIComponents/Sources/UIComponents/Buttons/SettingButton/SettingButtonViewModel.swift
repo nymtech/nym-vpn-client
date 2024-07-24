@@ -17,7 +17,7 @@ public struct SettingButtonViewModel {
     }
 
     var selectionImageName: String {
-        isSelected ? "networkSelectedCircle" : "networkCircle"
+        isSelected ? "circleSelected" : "circle"
     }
 
     var selectionImageColor: Color {

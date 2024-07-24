@@ -1,7 +1,6 @@
 import NetworkExtension
 import SwiftUI
 import Logging
-import NymLogger
 import TunnelStatus
 
 public final class Tunnel: NSObject, ObservableObject {
@@ -22,7 +21,7 @@ public final class Tunnel: NSObject, ObservableObject {
         self.name = tunnel.localizedDescription ?? "Unnamed"
         self.tunnel = tunnel
         self.status = TunnelStatus(from: tunnel.connection.status)
-        self.logger = NymLogger(label: "Tunnel \(name)").logger
+        self.logger = Logger(label: "Tunnel \(name)")
     }
 
     func connect(recursionCount: UInt = 0, lastError: Error? = nil) {
@@ -30,7 +29,6 @@ public final class Tunnel: NSObject, ObservableObject {
             logger.log(level: .error, "Connecting failed after 8 attempts. Last error: \(String(describing: lastError))")
             // TODO: throw error to the UI
             // TODO: catch error invalid credential - remove credential is imported afterwards
-            print("Connect error: ", lastError ?? "")
             return
         }
 

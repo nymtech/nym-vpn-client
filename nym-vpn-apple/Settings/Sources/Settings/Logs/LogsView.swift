@@ -21,6 +21,9 @@ public struct LogsView: View {
 
             GenericButton(title: viewModel.copyLocalizedString)
                 .padding(16)
+                .onTapGesture {
+                    viewModel.copyToPasteBoard()
+                }
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

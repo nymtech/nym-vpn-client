@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import Base58Swift
 import GRPC
+import Logging
 import NIO
 import NIOConcurrencyHelpers
 import SwiftProtobuf
@@ -13,6 +14,7 @@ public final class GRPCManager: ObservableObject {
     private let client: Nym_Vpn_NymVpndClientProtocol
     private let channel: GRPCChannel
     private let unixDomainSocket = "/var/run/nym-vpn.sock"
+    private let logger = Logger(label: "GRPC Manager")
 
     public static let shared = GRPCManager()
 
@@ -91,6 +93,7 @@ public final class GRPCManager: ObservableObject {
         exitRouterCountryCode: String?,
         isTwoHopEnabled: Bool
     ) {
+        logger.log(level: .info, "Connecting...")
         var request = Nym_Vpn_ConnectRequest()
 
         var entryNode = Nym_Vpn_EntryNode()
