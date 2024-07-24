@@ -19,13 +19,34 @@ function NotificationProvider({ children }: NotificationProviderProps) {
 
   const transitionRef = useRef<Timeout | null>(null);
 
-  const push = (notification: Notification | Notification[]) => {
-    if (Array.isArray(notification)) {
-      setStack([...stack, ...notification]);
-    } else {
-      setStack([...stack, notification]);
-    }
-  };
+  const checkDuplicate = useCallback(
+    (stack: Notification[], toBeChecked: Notification) => {
+      return stack.some((n) => n.text === toBeChecked.text);
+    },
+    [],
+  );
+
+  const push = useCallback(
+    (notification: Notification | Notification[]) => {
+      if (Array.isArray(notification)) {
+        setStack((prev) => {
+          const isDuplicate = notification.some((n) => checkDuplicate(prev, n));
+          if (isDuplicate) {
+            return prev;
+          }
+          return [...prev, ...notification];
+        });
+      } else {
+        setStack((prev) => {
+          if (checkDuplicate(prev, notification)) {
+            return prev;
+          }
+          return [...prev, notification];
+        });
+      }
+    },
+    [checkDuplicate],
+  );
 
   const shift = useCallback(() => {
     if (stack.length === 0) {

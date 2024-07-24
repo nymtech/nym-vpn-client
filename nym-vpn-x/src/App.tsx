@@ -47,17 +47,17 @@ function App() {
   }, []);
 
   return (
-    <MainStateProvider>
-      <ThemeSetter>
-        <NotificationProvider>
+    <NotificationProvider>
+      <MainStateProvider>
+        <ThemeSetter>
           <DialogProvider>
             <Suspense fallback={<RouteLoading />}>
               <RouterProvider router={router} />
             </Suspense>
           </DialogProvider>
-        </NotificationProvider>
-      </ThemeSetter>
-    </MainStateProvider>
+        </ThemeSetter>
+      </MainStateProvider>
+    </NotificationProvider>
   );
 }
 

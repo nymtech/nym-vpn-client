@@ -39,9 +39,9 @@ function Snackbar({
       transition={{ duration: 0.1 }}
       exit={{ opacity: 0 }}
       className={clsx([
-        'fixed z-30 inset-x-0 mx-6 px-5 py-4',
+        'fixed z-30 inset-x-0 mx-6 px-5 py-4 min-w-56',
         position === 'top' ? 'top-20' : 'bottom-6',
-        'flex justify-between items-center rounded-lg',
+        'flex justify-between items-center rounded-lg select-none',
         'text-baltic-sea dark:text-mercury-pinkish bg-seashell dark:bg-poivre-noir',
       ])}
       {...getRootProps()}
