@@ -1,8 +1,13 @@
 {
   "selected": "Selecionado",
-  "search-country": "Pesquisar país",
+  "search-country": "Pesquisar locais",
   "input-label": "Pesquisar",
   "loading": "Carregando..",
   "none-found": "Nenhum resultado encontrado. Por favor tente outra pesquisa",
-  "list-loading": "A lista de países está sendo carregada…"
+  "list-loading": "A lista de locais está sendo carregada…",
+  "location-details": {
+    "title": "Detalhes sobre os locais dos servidores",
+    "description": "Inferimos a localização dos servidores com base em seus endereços IP, mas a localização real pode variar um pouco.",
+    "link": "Leia mais"
+  }
 }

@@ -1,8 +1,11 @@
 {
   "selected": "Seleccionado",
-  "search-country": "Buscar país",
+  "search-country": "Buscar ubicación",
   "input-label": "Buscar",
   "loading": "Cargando...",
   "none-found": "Resultados no encontrados. Por favor intente otra búsqueda",
-  "list-loading": "Cargando lista de países…"
+  "list-loading": "Cargando lista de ubicaciones…",
+  "location-details": {
+    "link": "Leer más"
+  }
 }

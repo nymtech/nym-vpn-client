@@ -18,7 +18,8 @@
     "dark": "Modo escuro",
     "light": "Modo claro"
   },
-  "first-hop-selection": "Seleção do primeiro salto",
-  "last-hop-selection": "Seleção do último salto",
-  "display-theme": "Exibir"
+  "first-hop-selection": "Local de entrada",
+  "last-hop-selection": "Local de saída",
+  "display-theme": "Exibir",
+  "notifications": "Notificações"
 }

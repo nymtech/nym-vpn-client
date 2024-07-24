@@ -40,5 +40,8 @@
   "add-credential-button": "添加凭证以连接",
   "credential": {
     "title": "凭证"
+  },
+  "notifications": {
+    "title": "桌面通知"
   }
 }

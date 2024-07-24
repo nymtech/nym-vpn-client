@@ -8,8 +8,8 @@
     "disconnecting": "Desconectando",
     "unknown": "Desconocido"
   },
-  "last-hop": "Último salto",
-  "first-hop": "Primer salto",
+  "last-hop": "Ubicación de salida",
+  "first-hop": "Gateway de entrada",
   "connecting-message": "Estableciendo conexión",
   "connection-time": "Tiempo de conexión",
   "select-node-title": "Conectar a",
@@ -30,9 +30,9 @@
     "title": "Rápido",
     "desc": "Mejor para navegar, streaming, compartir"
   },
-  "select-mode-label": "Seleccione el modo",
+  "select-mode-label": "Selecciona el modo",
   "modes-dialog": {
-    "fast-description": "Disfrute de la máxima velocidad con la conectividad de 2 servidores mediante el protocolo WireGuard. Perfecto para navegar, transmitir y compartir archivos a gran velocidad.",
+    "fast-description": "Disfrute de la máxima velocidad con 2 servidores. Perfecto para navegar, transmitir y compartir archivos a gran velocidad.",
     "link": "Continúe leyendo",
     "privacy-description": "Disfrute de la máxima privacidad enrutando su conexión a través de 5 servidores mediante mixnet. Perfecto para gestionar pagos, correos electrónicos y mensajes de forma segura.",
     "title": "Seleccione el modo"

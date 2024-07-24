@@ -1,8 +1,8 @@
 {
   "disconnect": "Bağlantı kesildi",
-  "connect": "Bağlandı",
+  "connect": "Bağlan",
   "status": {
-    "connected": "Bağlandı",
+    "connected": "Bağlantı sağlandı",
     "disconnected": "Bağlantı kesildi",
     "connecting": "Bağlanıyor",
     "disconnecting": "Bağlantı koptu",
@@ -12,10 +12,10 @@
   "first-hop": "İlk hop",
   "connecting-message": "Bağlantı kuruluyor",
   "connection-time": "Bağlantı süresi",
-  "select-node-title": "Bağlan",
+  "select-node-title": "-e bağlan",
   "last-node-select": {
     "label": "Son hop",
-    "text": "Hızlı bağlantı ({{ülke}})"
+    "text": "Hızlı bağlantı ({{country}}"
   },
   "snackbar-disabled-message": {
     "connected": "VPN bağlıyken devre dışı",
@@ -34,7 +34,7 @@
   "modes-dialog": {
     "title": "Mod seçimi",
     "privacy-description": "Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek maksimum düzeyde gizliliğin tadını çıkarın. Ödemeleri, e-postaları ve mesajları güvenli bir şekilde yönetmek için mükemmeldir.",
-    "fast-description": "WireGuard protokolünü kullanarak 2 sunucu bağlantısıyla maksimum hızın keyfini çıkarın. Hızlı tarama, yayın izleme ve dosya paylaşımı için mükemmeldir.",
+    "fast-description": "Maksimum hızı 2 sunucu bağlantısıyla deneyimleyin. Hızlı tarama, yayın izleme ve dosya paylaşımı için mükemmeldir.",
     "link": "Okumaya devam edin"
   }
 }

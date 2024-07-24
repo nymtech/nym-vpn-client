@@ -4,7 +4,7 @@
     "light": "Apparence claire",
     "dark": "Apparence sombre"
   },
-  "system-desc": "Apparence de l'appareil",
+  "system-desc": "Utiliser le thème de l'appareil",
   "theme-section-title": "Apparence",
   "zoom-section-title": "Niveau de zoom"
 }

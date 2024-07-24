@@ -5,5 +5,15 @@
   "vpn-modes": {
     "privacy": "Anonimo",
     "fast": "Veloce"
-  }
+  },
+  "feedback": "Feedsback",
+  "support": "Supporto",
+  "legal": "Legale",
+  "logs": "Logs",
+  "sentry": "Sentinella",
+  "fastest": "Più veloce",
+  "first-hop-selection": "Selezione del primo hop",
+  "tos": "Termini di utilizzo",
+  "privacy-statement": "Privacy policy",
+  "last-hop-selection": "Selezione dell'ultimo hop"
 }

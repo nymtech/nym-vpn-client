@@ -12,15 +12,15 @@
   "first-hop": "Nœud d'entrée",
   "connecting-message": "Connexion en cours",
   "connection-time": "Temps de connexion",
-  "select-node-title": "Choix des nœuds",
+  "select-node-title": "Se connecter à",
   "last-node-select": {
     "label": "Nœud de sortie",
     "text": "Connexion rapide vers ({{country}})"
   },
   "snackbar-disabled-message": {
-    "connected": "Désactivé pendant la connexion",
-    "disconnecting": "Désactivé pendant la déconnexion du réseau",
-    "connecting": "Désactivé pendant la connexion au réseau"
+    "connected": "Désactivé lors de la connexion au VPN",
+    "disconnecting": "Désactivé lors de la déconnexion du VPN",
+    "connecting": "Désactivé lors de la connexion au VPN"
   },
   "privacy-mode": {
     "title": "Anonyme",
@@ -29,5 +29,12 @@
   "fast-mode": {
     "title": "Rapide",
     "desc": "Pour la navigation, le streaming et les téléchargements"
+  },
+  "select-mode-label": "Sélectionner le mode",
+  "modes-dialog": {
+    "title": "Sélection de mode",
+    "link": "Poursuivre la lecture",
+    "privacy-description": "Bénéficiez d'une confidentialité maximale en acheminant votre connexion vers 5 serveurs via le mixnet. Parfait pour traiter en toute sécurité les paiements, les courriels et les messages.",
+    "fast-description": "Profitez d'une vitesse maximale avec 2 serveurs. Parfait pour la navigation rapide, la diffusion en continu et le partage de fichiers."
   }
 }

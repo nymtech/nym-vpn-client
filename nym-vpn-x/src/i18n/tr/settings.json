@@ -1,6 +1,6 @@
 {
   "logs": "Günlükler",
-  "display-theme": "Görünüm teması",
+  "display-theme": "Panel teması",
   "add-credential-button": "Bağlanmak için anahtar ekleyin",
   "auto-connect": {
     "title": "Otomatik bağlan",
@@ -40,5 +40,8 @@
   "quit": "NymVPN'yi kapat",
   "credential": {
     "title": "Anahtar"
+  },
+  "notifications": {
+    "title": "Bilgisayar masaüstü bildirimleri"
   }
 }

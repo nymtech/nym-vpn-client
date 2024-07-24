@@ -1,30 +1,30 @@
 {
   "auto-connect": {
-    "title": "Auto-connexion",
-    "desc": "Auto-connexion au démarrage"
+    "title": "Connexion automatique",
+    "desc": "Connexion automatique au démarrage"
   },
   "error-monitoring": {
     "title": "Rapports d'erreur anonymes",
-    "desc": "prend effet au redémarrage"
+    "desc": "s'applique au redémarrage de l'application"
   },
   "feedback": {
-    "title": "Commentaires",
+    "title": "Retour d'information",
     "github": "Créer un ticket GitHub",
-    "send": "Envoyer un commentaire",
+    "send": "Envoyez-nous un retour d'information",
     "matrix": "Rejoignez-nous sur Matrix",
     "discord": "Rejoignez-nous sur Discord"
   },
   "support": {
-    "title": "Service clients",
-    "faq": "Lire la F.A.Q.",
-    "contact": "Contacter le Service clients"
+    "title": "Support",
+    "faq": "Consulter la FAQ",
+    "contact": "Contacter le Support"
   },
   "legal": {
     "title": "Juridique",
-    "policy": "Politique de confidentialité",
-    "tos": "C.G.U.",
+    "policy": "Déclaration sur la protection des données",
+    "tos": "Conditions d'utilisation",
     "emptyData": "Pas de licence disponible",
-    "license": "Licences",
+    "license": "Licence",
     "licenses-rust": "Licences (Rust)",
     "licenses-js": "Licences (JavaScript)"
   },
@@ -32,7 +32,7 @@
   "logs": "Journaux",
   "add-credential-button": "Ajoutez un identifiant pour vous connecter",
   "entry-selector": {
-    "title": "Choisir le nœud d'entrée",
+    "title": "Sélecteur d'emplacement d'entrée",
     "desc": "Choix manuel du nœud d'entrée"
   },
   "monitoring-alert": "Redémarrez l'application pour que le changement s'applique.",
@@ -40,5 +40,8 @@
   "quit": "Quitter NymVPN",
   "credential": {
     "title": "Identifiant"
+  },
+  "notifications": {
+    "title": "Notifications sur le bureau"
   }
 }

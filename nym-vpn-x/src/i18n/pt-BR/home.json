@@ -8,11 +8,11 @@
     "disconnecting": "Desconectando",
     "unknown": "Desconhecido"
   },
-  "last-hop": "Último salto",
-  "first-hop": "Primeiro salto",
+  "last-hop": "Local de saída",
+  "first-hop": "Local de entrada",
   "last-node-select": {
     "label": "Último salto",
-    "text": "Conexão rápida ({{país}})"
+    "text": "Conexão rápida {{country}}"
   },
   "connecting-message": "Estabelecendo conexão",
   "select-node-title": "Conectar ao",
@@ -21,20 +21,20 @@
     "connecting": "Desativado durante a conexão com a VPN",
     "disconnecting": "Desativado ao se desconectar da VPN"
   },
-  "connection-time": "tempo de conexão",
+  "connection-time": "Tempo de conexão",
   "privacy-mode": {
     "desc": "Melhor para pagamentos, e-mails e mensagens",
     "title": "Anônimo"
   },
   "fast-mode": {
     "desc": "Melhor para pesquisar, trasmitir, compartilhar",
-    "title": "rápido"
+    "title": "Rápido"
   },
   "select-mode-label": "Selecionar modo",
   "modes-dialog": {
     "title": "Modo se seleção",
     "privacy-description": "Aproveite a privacidade de nível máximo ao rotear sua conexão por meio de 5 servidores via mixnet. Perfeito para lidar com segurança com pagamentos, emails e mensagens.",
-    "fast-description": "Experimente a velocidade máxima com a conectividade de 2 servidores usando o protocolo WireGuard. Perfeito para navegação rápida, streaming e compartilhamento de arquivos.",
+    "fast-description": "Experimente a velocidade máxima com 2 servidores. Perfeito para navegação rápida, streaming e compartilhamento de arquivos.",
     "link": "Continuar lendo"
   }
 }

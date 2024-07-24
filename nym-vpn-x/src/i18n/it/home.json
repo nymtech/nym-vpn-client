@@ -4,7 +4,8 @@
   "status": {
     "connected": "Connesso",
     "disconnected": "Disconnesso",
-    "disconnecting": "Disconnessione"
+    "disconnecting": "Disconnessione",
+    "unknown": "Sconosciuto"
   },
   "last-hop": "Ultimo hop",
   "first-hop": "Primo hop",
@@ -16,6 +17,11 @@
     "desc": "Migliore per pagamenti, email, messaggi"
   },
   "fast-mode": {
-    "title": "Veloce"
-  }
+    "title": "Veloce",
+    "desc": "Ideale per la navigazione, lo streaming e la condivisione"
+  },
+  "select-mode-label": "Seleziona modalità",
+  "connecting-message": "In connessione",
+  "connection-time": "Tempo di connessione",
+  "select-node-title": "Connettiti a"
 }
