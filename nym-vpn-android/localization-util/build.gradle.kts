@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-	namespace = "com.zaneschepke.localization_util"
+	namespace = "net.nymtech.localizationutil"
 	compileSdk = Constants.COMPILE_SDK
 
 	defaultConfig {

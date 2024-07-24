@@ -1,7 +1,7 @@
 package net.nymtech.nymvpn.ui
 
 import net.nymtech.nymvpn.data.domain.Settings
-import net.nymtech.vpn.model.VpnClientState
+import net.nymtech.vpnclient.model.VpnClientState
 import java.time.Instant
 
 data class AppUiState(

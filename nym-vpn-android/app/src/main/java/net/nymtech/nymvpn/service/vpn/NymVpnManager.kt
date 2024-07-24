@@ -3,8 +3,8 @@ package net.nymtech.nymvpn.service.vpn
 import android.content.Context
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.vpn.VpnClient
-import net.nymtech.vpn.util.InvalidCredentialException
+import net.nymtech.vpnclient.VpnClient
+import net.nymtech.vpnclient.util.InvalidCredentialException
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Provider

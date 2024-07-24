@@ -16,7 +16,7 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
-import net.nymtech.vpn.model.Country
+import net.nymtech.vpnclient.model.Country
 
 @Composable
 fun countryIcon(country: Country): @Composable () -> Unit {

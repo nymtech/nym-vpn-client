@@ -1,6 +1,6 @@
 package net.nymtech.nymvpn.data.domain
 
-import net.nymtech.vpn.model.Country
+import net.nymtech.vpnclient.model.Country
 
 data class Gateways(
 	val lowLatencyEntryCountry: Country? = null,

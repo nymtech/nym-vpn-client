@@ -21,7 +21,7 @@ import net.nymtech.nymvpn.service.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.actionBarSize
 import net.nymtech.nymvpn.util.log.DebugTree
 import net.nymtech.nymvpn.util.log.ReleaseTree
-import net.nymtech.vpn.model.Environment
+import net.nymtech.vpnclient.model.Environment
 import timber.log.Timber
 import javax.inject.Inject
 

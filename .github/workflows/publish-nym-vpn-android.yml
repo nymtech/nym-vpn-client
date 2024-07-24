@@ -52,6 +52,8 @@ jobs:
     secrets: inherit
     with:
       nightly: ${{ inputs.release_type == 'prerelease' || inputs.release_type == '' }}
+      debug: false
+
 
   publish-github:
     if: ${{ inputs.release_type != 'none' }}

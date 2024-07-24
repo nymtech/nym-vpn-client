@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.AppShortcut
 import androidx.compose.material.icons.outlined.BugReport
-import androidx.compose.material.icons.outlined.ViewQuilt
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,7 +45,7 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.durationFromNow
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
-import net.nymtech.vpn.model.VpnState
+import net.nymtech.vpnclient.model.VpnState
 import java.time.Instant
 
 @Composable

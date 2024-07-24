@@ -1,6 +1,6 @@
 package net.nymtech.nymvpn.service.gateway
 
-import net.nymtech.vpn.model.Country
+import net.nymtech.vpnclient.model.Country
 
 interface GatewayService {
 	suspend fun getLowLatencyCountry(): Result<Country>
