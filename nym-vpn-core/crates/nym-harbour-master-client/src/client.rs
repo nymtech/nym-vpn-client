@@ -25,7 +25,7 @@ pub trait HarbourMasterApiClientExt: ApiClient {
     ) -> Result<PagedResult<Gateway>, HarbourMasterApiError> {
         debug!("Fetching gateways page {}", page);
         self.get_json(
-            &[routes::API_VERSION, routes::GATEWAYS],
+            &[routes::API_VERSION, routes::GATEWAYS, routes::SKINNY],
             &[PAGINATION, (("page"), (&page.to_string()))],
         )
         .await

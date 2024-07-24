@@ -446,3 +446,39 @@ impl GatewayClient {
         Ok(ip)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use nym_sdk::UserAgent;
+
+    fn user_agent() -> UserAgent {
+        UserAgent {
+            application: "test".to_string(),
+            version: "0.0.1".to_string(),
+            platform: "test".to_string(),
+            git_commit: "test".to_string(),
+        }
+    }
+
+    #[tokio::test]
+    async fn lookup_described_gateways() {
+        let config = Config::new_mainnet();
+        let client = GatewayClient::new(config, user_agent()).unwrap();
+        let gateways = client.lookup_described_gateways().await.unwrap();
+        assert!(!gateways.is_empty());
+    }
+
+    #[tokio::test]
+    async fn lookup_gateways_in_harbour_master() {
+        let mut config = Config::new_mainnet();
+        config.harbour_master_url = Some(
+            "https://harbourmaster.nymtech.net"
+                .parse()
+                .expect("harbour master url not parseable"),
+        );
+        let client = GatewayClient::new(config, user_agent()).unwrap();
+        let gateways = client.lookup_gateways_in_harbour_master().await.unwrap().unwrap();
+        assert!(!gateways.is_empty());
+    }
+}
