@@ -52,9 +52,9 @@ pub(crate) struct RunArgs {
     #[command(flatten)]
     pub(crate) exit: CliExit,
 
-    /// Enable the wireguard traffic between the client and the entry gateway.
+    /// Enable the wireguard mode.
     #[arg(long, default_value_t = false)]
-    pub(crate) enable_wireguard: bool,
+    pub(crate) wireguard_mode: bool,
 
     /// The IPv4 address of the nym TUN device that wraps IP packets in sphinx packets.
     #[arg(long, alias = "ipv4", value_parser = validate_ipv4, requires = "nym_ipv6")]

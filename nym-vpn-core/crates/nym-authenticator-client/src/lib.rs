@@ -40,6 +40,7 @@ impl SharedMixnetClient {
     }
 }
 
+#[derive(Clone)]
 pub struct AuthClient {
     mixnet_client: SharedMixnetClient,
     mixnet_sender: MixnetClientSender,
@@ -104,6 +105,9 @@ impl AuthClient {
             ClientMessage::Final(gateway_client) => {
                 AuthenticatorRequest::new_final_request(gateway_client, self.nym_address)
             }
+            ClientMessage::Query(peer_public_key) => {
+                AuthenticatorRequest::new_query_request(peer_public_key, self.nym_address)
+            }
         };
         debug!("Sent connect request with version v{}", request.version);
 
@@ -125,7 +129,7 @@ impl AuthClient {
         let mut mixnet_client_handle = self.mixnet_client.lock().await;
         let mixnet_client = mixnet_client_handle.as_mut().unwrap();
 
-        let timeout = tokio::time::sleep(Duration::from_secs(5));
+        let timeout = tokio::time::sleep(Duration::from_secs(10));
         tokio::pin!(timeout);
 
         loop {
