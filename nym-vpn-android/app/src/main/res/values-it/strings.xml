@@ -91,4 +91,50 @@
     <string name="opt_in_message_second">e di analisi a piacimento - si può rinunciare in qualsiasi momento.</string>
     <string name="thanks_for_support">Grazie per il tuo supporto!</string>
     <string name="welcome">Benvenuto/a</string>
+    <string name="mode_selection"></string>
+    <string name="five_hop_explanation"></string>
+    <string name="continue_reading"></string>
+    <string name="two_hop_explanation"></string>
+    <string name="terms_link" translatable="false"></string>
+    <string name="privacy_link" translatable="false"></string>
+    <string name="error_bad_peer_cert"></string>
+    <string name="discord_url" translatable="false"></string>
+    <string name="faq_link" translatable="false"></string>
+    <string name="matrix_url" translatable="false"></string>
+    <string name="faq_url" translatable="false"></string>
+    <string name="contact_url" translatable="false"></string>
+    <string name="support_email" translatable="false"></string>
+    <string name="github_issues_url" translatable="false"></string>
+    <string name="to_alpha"></string>
+    <string name="continue_agree"></string>
+    <string name="and_acknowledge"></string>
+    <string name="share_anonymous_analytics"></string>
+    <string name="anonymous_error_reports"></string>
+    <string name="gateways_error"></string>
+    <string name="error_invalid_credential"></string>
+    <string name="missing_credential"></string>
+    <string name="country_load_failure"></string>
+    <string name="app_shortcuts"></string>
+    <string name="enable_shortcuts"></string>
+    <string name="disabled_while_connected"></string>
+    <string name="experimental_software_disclaimer"></string>
+    <string name="permission_required"></string>
+    <string name="exception_cred_missing"></string>
+    <string name="exception_permission_not_granted"></string>
+    <string name="exception_cred_invalid"></string>
+    <string name="permission_message"></string>
+    <string name="notifications"></string>
+    <string name="allow_permissions"></string>
+    <string name="notification_permission_message"></string>
+    <string name="error_gateway_lookup"></string>
+    <string name="error_no_hostname_address"></string>
+    <string name="hours"></string>
+    <string name="error_vpn_halted_unexpectedly"></string>
+    <string name="kill_switch"></string>
+    <string name="contact_support"></string>
+    <string name="hour"></string>
+    <string name="days"></string>
+    <string name="day"></string>
+    <string name="scan_nym_vpn_credential"></string>
+    <string name="error_logs_not_saved"></string>
 </resources>
