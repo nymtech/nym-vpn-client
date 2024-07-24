@@ -11,3 +11,4 @@ pub use helpers::{
     get_gateways,
 };
 pub use responses::Gateway;
+pub use responses::Country;

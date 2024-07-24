@@ -294,7 +294,8 @@ async fn get_gateway_countries(
     exit_only: bool,
     user_agent: Option<UserAgent>,
 ) -> Result<Vec<Location>, FFIError> {
-    let config = nym_gateway_directory::Config {
+    //TODO support other envs in the future
+    let _config = nym_gateway_directory::Config {
         api_url,
         explorer_url: Some(explorer_url),
         harbour_master_url,
@@ -302,13 +303,12 @@ async fn get_gateway_countries(
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)
         .unwrap_or_else(|| nym_bin_common::bin_info!().into());
-    let gateway_client = GatewayClient::new(config, user_agent)?;
 
     let locations = if !exit_only {
-        gateway_client.lookup_all_countries_iso().await?
+        nym_vpn_api_client::get_countries(user_agent).await
     } else {
-        gateway_client.lookup_all_exit_countries_iso().await?
-    };
+        nym_vpn_api_client::get_exit_countries(user_agent).await
+    }?;
     Ok(locations.into_iter().map(Into::into).collect())
 }
 

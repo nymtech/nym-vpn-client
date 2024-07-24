@@ -63,6 +63,7 @@ nym-topology.workspace = true
 nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
 
+nym-vpn-api-client = { path = "../crates/nym-vpn-api-client" }
 nym-connection-monitor = { path = "../crates/nym-connection-monitor" }
 nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
 nym-ip-packet-client = { path = "../crates/nym-ip-packet-client" }
