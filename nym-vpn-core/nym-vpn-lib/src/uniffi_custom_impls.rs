@@ -5,9 +5,9 @@ use crate::platform::error::FFIError;
 use crate::{NodeIdentity, Recipient, UniffiCustomTypeConverter};
 use ipnetwork::IpNetwork;
 use nym_explorer_client::Location as ExpLocation;
-use nym_vpn_api_client::Country;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use nym_sdk::UserAgent as NymUserAgent;
+use nym_vpn_api_client::Country;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -181,7 +181,7 @@ impl From<ExpLocation> for Location {
 impl From<Country> for Location {
     fn from(value: Country) -> Self {
         Location {
-            two_letter_iso_country_code: value.iso_code().to_string()
+            two_letter_iso_country_code: value.iso_code().to_string(),
         }
     }
 }
