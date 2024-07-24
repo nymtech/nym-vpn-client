@@ -3,6 +3,7 @@ pub mod connection;
 pub mod credential;
 pub mod daemon;
 pub mod db;
+pub mod fs;
 pub mod log;
 pub mod node_location;
 pub mod window;

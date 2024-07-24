@@ -18,6 +18,7 @@ use anyhow::{anyhow, Result};
 use clap::Parser;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
+use commands::fs as cmd_fs;
 use commands::log as cmd_log;
 use commands::window as cmd_window;
 use commands::*;
@@ -211,7 +212,8 @@ async fn main() -> Result<()> {
             commands::cli::cli_args,
             cmd_log::log_js,
             credential::add_credential,
-            cmd_daemon::daemon_status
+            cmd_daemon::daemon_status,
+            cmd_fs::log_dir,
         ])
         // keep the app running in the background on window close request
         .on_window_event(|event| {

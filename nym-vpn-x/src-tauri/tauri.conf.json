@@ -21,9 +21,8 @@
       "shell": { "all": false, "open": true },
       "os": { "all": true },
       "window": { "setSize": true },
-      "notification": {
-        "all": true
-      }
+      "notification": { "all": true },
+      "dialog": { "open": true }
     },
     "bundle": {
       "active": true,

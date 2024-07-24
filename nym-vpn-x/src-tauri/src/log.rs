@@ -7,7 +7,7 @@ use tracing_appender::{non_blocking::WorkerGuard, rolling};
 use crate::{envi, fs::util::check_dir, APP_DIR};
 
 const ENV_LOG_FILE: &str = "LOG_FILE";
-const LOG_DIR: &str = "log";
+pub const LOG_DIR: &str = "log";
 const LOG_FILE: &str = "app.log";
 
 fn rotate_log_file(log_dir: PathBuf) -> Result<()> {
