@@ -77,9 +77,6 @@ pub enum Error {
     #[error("failed to select gateway randomly")]
     FailedToSelectGatewayRandomly,
 
-    #[error("tunnel in a tunnel works for gateway id or location")]
-    InvalidExitPointDescription,
-
     #[error("gateway {0} doesn't have a description available")]
     NoGatewayDescriptionAvailable(String),
 

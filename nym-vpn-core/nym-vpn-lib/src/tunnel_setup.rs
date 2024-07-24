@@ -21,8 +21,8 @@ use log::*;
 use nym_authenticator_client::AuthClient;
 use nym_bin_common::bin_info;
 use nym_gateway_directory::{
-    extract_authenticator, extract_router_address, AuthAddresses, GatewayClient,
-    GatewayQueryResult, IpPacketRouterAddress, LookupGateway,
+    extract_authenticator, AuthAddresses, GatewayClient, GatewayQueryResult, IpPacketRouterAddress,
+    LookupGateway,
 };
 use nym_task::TaskManager;
 use talpid_core::dns::DnsMonitor;
@@ -315,25 +315,16 @@ pub async fn setup_tunnel(
         .await
         .map_err(|err| Error::FailedToLookupGatewayIdentity { source: err })?;
     let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
-    let entry_authenticator_address =
-        extract_authenticator(&entry_gateways, entry_gateway_id.to_string())?;
 
-    let (exit_gateway_id, exit_location) = nym_vpn
+    let (exit_router_address, exit_location) = nym_vpn
         .exit_point()
-        .lookup_gateway_identity(&exit_gateways)
-        .await
-        .map_err(|err| Error::FailedToLookupGatewayIdentity { source: err })?;
-    let exit_authenticator_address =
-        extract_authenticator(&exit_gateways, exit_gateway_id.to_string())?;
+        .lookup_router_address(&exit_gateways, Some(&entry_gateway_id))
+        .map_err(|err| Error::FailedToLookupRouterAddress { source: err })?;
 
-    let exit_router_address = extract_router_address(&exit_gateways, exit_gateway_id.to_string())?;
-    let exit_location_str = exit_location.as_deref().unwrap_or("unknown");
     let exit_gateway_id = exit_router_address.gateway();
-    let auth_addresses =
-        AuthAddresses::new(entry_authenticator_address, exit_authenticator_address);
 
     info!("Using entry gateway: {entry_gateway_id}, location: {entry_location_str}");
-    info!("Using exit gateway: {exit_gateway_id}, location: {exit_location_str}");
+    info!("Using exit gateway: {exit_gateway_id}, location: {exit_location:?}");
     info!("Using exit router address {exit_router_address}");
 
     // Get the IP address of the local LAN gateway
@@ -364,6 +355,12 @@ pub async fn setup_tunnel(
 
     let tunnels_setup = match nym_vpn {
         SpecificVpn::Wg(vpn) => {
+            let entry_authenticator_address =
+                extract_authenticator(&entry_gateways, entry_gateway_id.to_string())?;
+            let exit_authenticator_address =
+                extract_authenticator(&exit_gateways, exit_gateway_id.to_string())?;
+            let auth_addresses =
+                AuthAddresses::new(entry_authenticator_address, exit_authenticator_address);
             setup_wg_tunnel(
                 vpn,
                 mixnet_client,

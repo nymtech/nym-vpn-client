@@ -127,7 +127,20 @@ impl LookupGateway for ExitPoint {
         gateways: &[DescribedGatewayWithLocation],
     ) -> Result<(NodeIdentity, Option<String>)> {
         match &self {
-            ExitPoint::Address { .. } => Err(Error::InvalidExitPointDescription),
+            ExitPoint::Address { address } => {
+                let described_gateway = by_identity(gateways, address.identity())?;
+                if let Some(node_identity) = described_gateway.node_identity() {
+                    Ok((
+                        node_identity,
+                        described_gateway
+                            .location()
+                            .map(|l| l.two_letter_iso_country_code),
+                    ))
+                } else {
+                    Err(Error::RecipientFormattingError)
+                }
+            }
+
             ExitPoint::Gateway { identity } => verify_identity(gateways, identity),
             ExitPoint::Location { location } => {
                 by_location(gateways, location).map_err(|e| match e {
