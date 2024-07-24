@@ -166,6 +166,7 @@ jobs:
         run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/release/.*\.apk$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
 
       - name: Upload release apk
+        if: ${{ inputs.debug == false }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
