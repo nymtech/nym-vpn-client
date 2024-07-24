@@ -37,8 +37,10 @@ public class FileLogHandler: LogHandler {
         guard let logsDirectory else { return nil }
 
         try? fileManager.createDirectory(at: logsDirectory, withIntermediateDirectories: true, attributes: nil)
-
         let logFileURL = logsDirectory.appendingPathComponent("Log.log")
+        if !fileManager.fileExists(atPath: logFileURL.path()) {
+            try? Data().write(to: logFileURL)
+        }
         return logFileURL
     }
 

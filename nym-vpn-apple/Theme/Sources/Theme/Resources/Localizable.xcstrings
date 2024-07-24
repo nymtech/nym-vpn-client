@@ -89,6 +89,50 @@
         }
       }
     },
+    "addCredentials.qrScanner" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR code scanner"
+          }
+        }
+      }
+    },
+    "addCredentials.qrScanner.cameraNotAvailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera not available. Check permissions."
+          }
+        }
+      }
+    },
+    "addCredentials.qrScanner.openSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        }
+      }
+    },
+    "addCredentials.scanQrCode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan NymVPN credential QR code"
+          }
+        }
+      }
+    },
     "addCredentials.welcome.Title" : {
       "extractionState" : "manual",
       "localizations" : {
