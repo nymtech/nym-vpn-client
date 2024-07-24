@@ -46,3 +46,6 @@ jobs:
 
   build-nym-vpn-android:
     uses: ./.github/workflows/build-nym-vpn-android.yml
+    with:
+      debug: true
+      nightly: false
