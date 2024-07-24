@@ -408,19 +408,6 @@ fileprivate struct FfiConverterInt32: FfiConverterPrimitive {
     }
 }
 
-fileprivate struct FfiConverterDouble: FfiConverterPrimitive {
-    typealias FfiType = Double
-    typealias SwiftType = Double
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Double {
-        return try lift(readDouble(&buf))
-    }
-
-    public static func write(_ value: Double, into buf: inout [UInt8]) {
-        writeDouble(&buf, lower(value))
-    }
-}
-
 fileprivate struct FfiConverterBool : FfiConverter {
     typealias FfiType = Int8
     typealias SwiftType = Bool
@@ -860,19 +847,11 @@ public func FfiConverterTypeTunnelStatusListener_lower(_ value: TunnelStatusList
 
 public struct Location {
     public var twoLetterIsoCountryCode: String
-    public var threeLetterIsoCountryCode: String
-    public var countryName: String
-    public var latitude: Double?
-    public var longitude: Double?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(twoLetterIsoCountryCode: String, threeLetterIsoCountryCode: String, countryName: String, latitude: Double?, longitude: Double?) {
+    public init(twoLetterIsoCountryCode: String) {
         self.twoLetterIsoCountryCode = twoLetterIsoCountryCode
-        self.threeLetterIsoCountryCode = threeLetterIsoCountryCode
-        self.countryName = countryName
-        self.latitude = latitude
-        self.longitude = longitude
     }
 }
 
@@ -883,27 +862,11 @@ extension Location: Equatable, Hashable {
         if lhs.twoLetterIsoCountryCode != rhs.twoLetterIsoCountryCode {
             return false
         }
-        if lhs.threeLetterIsoCountryCode != rhs.threeLetterIsoCountryCode {
-            return false
-        }
-        if lhs.countryName != rhs.countryName {
-            return false
-        }
-        if lhs.latitude != rhs.latitude {
-            return false
-        }
-        if lhs.longitude != rhs.longitude {
-            return false
-        }
         return true
     }
 
     public func hash(into hasher: inout Hasher) {
         hasher.combine(twoLetterIsoCountryCode)
-        hasher.combine(threeLetterIsoCountryCode)
-        hasher.combine(countryName)
-        hasher.combine(latitude)
-        hasher.combine(longitude)
     }
 }
 
@@ -912,20 +875,12 @@ public struct FfiConverterTypeLocation: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Location {
         return
             try Location(
-                twoLetterIsoCountryCode: FfiConverterString.read(from: &buf), 
-                threeLetterIsoCountryCode: FfiConverterString.read(from: &buf), 
-                countryName: FfiConverterString.read(from: &buf), 
-                latitude: FfiConverterOptionDouble.read(from: &buf), 
-                longitude: FfiConverterOptionDouble.read(from: &buf)
+                twoLetterIsoCountryCode: FfiConverterString.read(from: &buf)
         )
     }
 
     public static func write(_ value: Location, into buf: inout [UInt8]) {
         FfiConverterString.write(value.twoLetterIsoCountryCode, into: &buf)
-        FfiConverterString.write(value.threeLetterIsoCountryCode, into: &buf)
-        FfiConverterString.write(value.countryName, into: &buf)
-        FfiConverterOptionDouble.write(value.latitude, into: &buf)
-        FfiConverterOptionDouble.write(value.longitude, into: &buf)
     }
 }
 
@@ -1139,6 +1094,79 @@ public func FfiConverterTypeTunnelConfig_lift(_ buf: RustBuffer) throws -> Tunne
 
 public func FfiConverterTypeTunnelConfig_lower(_ value: TunnelConfig) -> RustBuffer {
     return FfiConverterTypeTunnelConfig.lower(value)
+}
+
+
+public struct UserAgent {
+    public var application: String
+    public var version: String
+    public var platform: String
+    public var gitCommit: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(application: String, version: String, platform: String, gitCommit: String) {
+        self.application = application
+        self.version = version
+        self.platform = platform
+        self.gitCommit = gitCommit
+    }
+}
+
+
+
+extension UserAgent: Equatable, Hashable {
+    public static func ==(lhs: UserAgent, rhs: UserAgent) -> Bool {
+        if lhs.application != rhs.application {
+            return false
+        }
+        if lhs.version != rhs.version {
+            return false
+        }
+        if lhs.platform != rhs.platform {
+            return false
+        }
+        if lhs.gitCommit != rhs.gitCommit {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(application)
+        hasher.combine(version)
+        hasher.combine(platform)
+        hasher.combine(gitCommit)
+    }
+}
+
+
+public struct FfiConverterTypeUserAgent: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UserAgent {
+        return
+            try UserAgent(
+                application: FfiConverterString.read(from: &buf), 
+                version: FfiConverterString.read(from: &buf), 
+                platform: FfiConverterString.read(from: &buf), 
+                gitCommit: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: UserAgent, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.application, into: &buf)
+        FfiConverterString.write(value.version, into: &buf)
+        FfiConverterString.write(value.platform, into: &buf)
+        FfiConverterString.write(value.gitCommit, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeUserAgent_lift(_ buf: RustBuffer) throws -> UserAgent {
+    return try FfiConverterTypeUserAgent.lift(buf)
+}
+
+public func FfiConverterTypeUserAgent_lower(_ value: UserAgent) -> RustBuffer {
+    return FfiConverterTypeUserAgent.lower(value)
 }
 
 
@@ -1438,6 +1466,8 @@ public enum FfiError {
     
     case InvalidValueUniffi
     case InvalidCredential
+    case VpnApiClientError(inner: String
+    )
     case InvalidPath
     case FdNotFound
     case VpnNotStopped
@@ -1463,16 +1493,19 @@ public struct FfiConverterTypeFFIError: FfiConverterRustBuffer {
         
         case 1: return .InvalidValueUniffi
         case 2: return .InvalidCredential
-        case 3: return .InvalidPath
-        case 4: return .FdNotFound
-        case 5: return .VpnNotStopped
-        case 6: return .VpnNotStarted
-        case 7: return .VpnAlreadyRunning
-        case 8: return .VpnNotRunning
-        case 9: return .LibError(
+        case 3: return .VpnApiClientError(
             inner: try FfiConverterString.read(from: &buf)
             )
-        case 10: return .GatewayDirectoryError(
+        case 4: return .InvalidPath
+        case 5: return .FdNotFound
+        case 6: return .VpnNotStopped
+        case 7: return .VpnNotStarted
+        case 8: return .VpnAlreadyRunning
+        case 9: return .VpnNotRunning
+        case 10: return .LibError(
+            inner: try FfiConverterString.read(from: &buf)
+            )
+        case 11: return .GatewayDirectoryError(
             inner: try FfiConverterString.read(from: &buf)
             )
 
@@ -1495,37 +1528,42 @@ public struct FfiConverterTypeFFIError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(2))
         
         
-        case .InvalidPath:
+        case let .VpnApiClientError(inner):
             writeInt(&buf, Int32(3))
+            FfiConverterString.write(inner, into: &buf)
+            
         
-        
-        case .FdNotFound:
+        case .InvalidPath:
             writeInt(&buf, Int32(4))
         
         
-        case .VpnNotStopped:
+        case .FdNotFound:
             writeInt(&buf, Int32(5))
         
         
-        case .VpnNotStarted:
+        case .VpnNotStopped:
             writeInt(&buf, Int32(6))
         
         
-        case .VpnAlreadyRunning:
+        case .VpnNotStarted:
             writeInt(&buf, Int32(7))
         
         
-        case .VpnNotRunning:
+        case .VpnAlreadyRunning:
             writeInt(&buf, Int32(8))
         
         
-        case let .LibError(inner):
+        case .VpnNotRunning:
             writeInt(&buf, Int32(9))
+        
+        
+        case let .LibError(inner):
+            writeInt(&buf, Int32(10))
             FfiConverterString.write(inner, into: &buf)
             
         
         case let .GatewayDirectoryError(inner):
-            writeInt(&buf, Int32(10))
+            writeInt(&buf, Int32(11))
             FfiConverterString.write(inner, into: &buf)
             
         }
@@ -1612,27 +1650,6 @@ public func FfiConverterTypeTunStatus_lower(_ value: TunStatus) -> RustBuffer {
 extension TunStatus: Equatable, Hashable {}
 
 
-
-fileprivate struct FfiConverterOptionDouble: FfiConverterRustBuffer {
-    typealias SwiftType = Double?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterDouble.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterDouble.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
 
 fileprivate struct FfiConverterOptionTimestamp: FfiConverterRustBuffer {
     typealias SwiftType = Date?
@@ -2302,12 +2319,33 @@ public func getGatewayCountries(apiUrl: Url, explorerUrl: Url, harbourMasterUrl:
     )
 })
 }
+public func getGatewayCountriesUserAgent(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?, exitOnly: Bool, userAgent: UserAgent)throws  -> [Location] {
+    return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getgatewaycountriesuseragent(
+        FfiConverterTypeUrl.lower(apiUrl),
+        FfiConverterTypeUrl.lower(explorerUrl),
+        FfiConverterOptionTypeUrl.lower(harbourMasterUrl),
+        FfiConverterBool.lower(exitOnly),
+        FfiConverterTypeUserAgent.lower(userAgent),$0
+    )
+})
+}
 public func getLowLatencyEntryCountry(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?)throws  -> Location {
     return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
         FfiConverterTypeUrl.lower(apiUrl),
         FfiConverterTypeUrl.lower(explorerUrl),
         FfiConverterOptionTypeUrl.lower(harbourMasterUrl),$0
+    )
+})
+}
+public func getLowLatencyEntryCountryUserAgent(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?, userAgent: UserAgent)throws  -> Location {
+    return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountryuseragent(
+        FfiConverterTypeUrl.lower(apiUrl),
+        FfiConverterTypeUrl.lower(explorerUrl),
+        FfiConverterOptionTypeUrl.lower(harbourMasterUrl),
+        FfiConverterTypeUserAgent.lower(userAgent),$0
     )
 })
 }
@@ -2352,7 +2390,13 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 4475) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountriesuseragent() != 8388) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 20907) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountryuseragent() != 64176) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 8591) {

@@ -4759,6 +4759,7 @@ dependencies = [
  "nym-task",
  "nym-topology",
  "nym-validator-client",
+ "nym-vpn-api-client",
  "nym-vpn-store",
  "nym-wireguard-types",
  "oslog",

@@ -9,6 +9,9 @@ pub enum FFIError {
     #[error("Invalid credential passed in uniffi")]
     InvalidCredential,
 
+    #[error("{inner}")]
+    VpnApiClientError { inner: String },
+
     #[error("Invalid path")]
     InvalidPath,
 
@@ -49,6 +52,14 @@ impl From<crate::Error> for FFIError {
 impl From<nym_gateway_directory::Error> for FFIError {
     fn from(value: nym_gateway_directory::Error) -> Self {
         Self::GatewayDirectoryError {
+            inner: value.to_string(),
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::VpnApiClientError> for FFIError {
+    fn from(value: nym_vpn_api_client::VpnApiClientError) -> Self {
+        Self::VpnApiClientError {
             inner: value.to_string(),
         }
     }

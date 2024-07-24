@@ -7,6 +7,7 @@ use ipnetwork::IpNetwork;
 use nym_explorer_client::Location as ExpLocation;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use nym_sdk::UserAgent as NymUserAgent;
+use nym_vpn_api_client::Country;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -167,26 +168,26 @@ impl UniffiCustomTypeConverter for PresharedKey {
 #[derive(uniffi::Record)]
 pub struct Location {
     pub two_letter_iso_country_code: String,
-    pub three_letter_iso_country_code: String,
-    pub country_name: String,
-    pub latitude: Option<f64>,
-    pub longitude: Option<f64>,
 }
 
 impl From<ExpLocation> for Location {
     fn from(value: ExpLocation) -> Self {
         Location {
             two_letter_iso_country_code: value.two_letter_iso_country_code,
-            three_letter_iso_country_code: value.three_letter_iso_country_code,
-            country_name: value.country_name,
-            latitude: value.latitude,
-            longitude: value.longitude,
+        }
+    }
+}
+
+impl From<Country> for Location {
+    fn from(value: Country) -> Self {
+        Location {
+            two_letter_iso_country_code: value.iso_code().to_string(),
         }
     }
 }
 
 // TODO: generate uniffi
-// #[derive(uniffi::Record)]
+#[derive(uniffi::Record)]
 pub struct UserAgent {
     // The name of the application
     // Example: nym-vpnd
