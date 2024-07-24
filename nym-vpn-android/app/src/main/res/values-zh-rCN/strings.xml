@@ -128,4 +128,13 @@
     <string name="five_hop_explanation">通过 mixnet 通过 5 个服务器路由连接，享受最高级别的隐私保护。是安全处理付款、电子邮件和信息的完美选择。</string>
     <string name="continue_reading">继续阅读</string>
     <string name="two_hop_explanation">通过双服务器连接，体验最快速度。 是快速浏览、流媒体和文件共享的完美选择。</string>
+    <string name="privacy_link" translatable="false"></string>
+    <string name="matrix_url" translatable="false"></string>
+    <string name="discord_url" translatable="false"></string>
+    <string name="faq_url" translatable="false"></string>
+    <string name="contact_url" translatable="false"></string>
+    <string name="support_email" translatable="false"></string>
+    <string name="github_issues_url" translatable="false"></string>
+    <string name="terms_link" translatable="false"></string>
+    <string name="faq_link" translatable="false"></string>
 </resources>
