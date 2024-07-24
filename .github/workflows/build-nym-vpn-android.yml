@@ -160,17 +160,12 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
-      - name: Get apk path
+      - name: Get release apk path
         if: ${{ inputs.debug == false }}
         id: apk-path
         run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/release/.*\.apk$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
 
-      - name: Get apk path
-        if: ${{ inputs.debug }}
-        id: apk-path
-        run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/debug/.*\.apk$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
-
-      - name: Upload apk
+      - name: Upload release apk
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
