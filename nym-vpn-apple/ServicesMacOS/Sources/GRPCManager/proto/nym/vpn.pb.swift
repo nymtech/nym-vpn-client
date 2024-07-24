@@ -566,6 +566,12 @@ struct Nym_Vpn_ConnectionStatusUpdate {
 
     /// The end-to-end IPv6 connection appears to be operation correctly
     case connectionOkIpv6 // = 11
+
+    /// Remaining bandwidth available
+    case remainingBandwidth // = 12
+
+    /// The user has run out of available bandwidth
+    case noBandwidth // = 13
     case UNRECOGNIZED(Int)
 
     init() {
@@ -586,6 +592,8 @@ struct Nym_Vpn_ConnectionStatusUpdate {
       case 9: self = .exitRouterNotRoutingIpv6Traffic
       case 10: self = .connectionOkIpv4
       case 11: self = .connectionOkIpv6
+      case 12: self = .remainingBandwidth
+      case 13: self = .noBandwidth
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -604,6 +612,8 @@ struct Nym_Vpn_ConnectionStatusUpdate {
       case .exitRouterNotRoutingIpv6Traffic: return 9
       case .connectionOkIpv4: return 10
       case .connectionOkIpv6: return 11
+      case .remainingBandwidth: return 12
+      case .noBandwidth: return 13
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -630,6 +640,8 @@ extension Nym_Vpn_ConnectionStatusUpdate.StatusType: CaseIterable {
     .exitRouterNotRoutingIpv6Traffic,
     .connectionOkIpv4,
     .connectionOkIpv6,
+    .remainingBandwidth,
+    .noBandwidth,
   ]
 }
 
@@ -745,11 +757,21 @@ struct Nym_Vpn_ImportUserCredentialResponse {
   /// Clears the value of `error`. Subsequent reads from it will return its default value.
   mutating func clearError() {self._error = nil}
 
+  var expiry: SwiftProtobuf.Google_Protobuf_Timestamp {
+    get {return _expiry ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
+    set {_expiry = newValue}
+  }
+  /// Returns true if `expiry` has been explicitly set.
+  var hasExpiry: Bool {return self._expiry != nil}
+  /// Clears the value of `expiry`. Subsequent reads from it will return its default value.
+  mutating func clearExpiry() {self._expiry = nil}
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
   fileprivate var _error: Nym_Vpn_ImportError? = nil
+  fileprivate var _expiry: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
 }
 
 struct Nym_Vpn_ImportError {
@@ -1642,6 +1664,8 @@ extension Nym_Vpn_ConnectionStatusUpdate.StatusType: SwiftProtobuf._ProtoNamePro
     9: .same(proto: "EXIT_ROUTER_NOT_ROUTING_IPV6_TRAFFIC"),
     10: .same(proto: "CONNECTION_OK_IPV4"),
     11: .same(proto: "CONNECTION_OK_IPV6"),
+    12: .same(proto: "REMAINING_BANDWIDTH"),
+    13: .same(proto: "NO_BANDWIDTH"),
   ]
 }
 
@@ -1736,6 +1760,7 @@ extension Nym_Vpn_ImportUserCredentialResponse: SwiftProtobuf.Message, SwiftProt
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "success"),
     2: .same(proto: "error"),
+    3: .same(proto: "expiry"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1746,6 +1771,7 @@ extension Nym_Vpn_ImportUserCredentialResponse: SwiftProtobuf.Message, SwiftProt
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
       case 2: try { try decoder.decodeSingularMessageField(value: &self._error) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._expiry) }()
       default: break
       }
     }
@@ -1762,12 +1788,16 @@ extension Nym_Vpn_ImportUserCredentialResponse: SwiftProtobuf.Message, SwiftProt
     try { if let v = self._error {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     } }()
+    try { if let v = self._expiry {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Nym_Vpn_ImportUserCredentialResponse, rhs: Nym_Vpn_ImportUserCredentialResponse) -> Bool {
     if lhs.success != rhs.success {return false}
     if lhs._error != rhs._error {return false}
+    if lhs._expiry != rhs._expiry {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
