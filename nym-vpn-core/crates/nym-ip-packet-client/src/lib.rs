@@ -2,17 +2,17 @@ use std::cmp::Ordering;
 use std::sync::Arc;
 use std::time::Duration;
 
-use nym_ip_packet_requests::response::{DynamicConnectResponseReply, StaticConnectResponseReply};
-use nym_ip_packet_requests::IpPair;
 use nym_ip_packet_requests::{
-    request::IpPacketRequest,
-    response::{
-        DynamicConnectResponse, IpPacketResponse, IpPacketResponseData, StaticConnectResponse,
+    v6::response::{
+        DynamicConnectResponse, DynamicConnectResponseReply, IpPacketResponse,
+        IpPacketResponseData, StaticConnectResponse, StaticConnectResponseReply,
     },
+    v7::{request::IpPacketRequest, signature::SignedRequest},
+    IpPair,
 };
 use nym_sdk::mixnet::{
-    MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient, ReconstructedMessage,
-    TransmissionLane,
+    ed25519, MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient,
+    ReconstructedMessage, TransmissionLane,
 };
 use tracing::{debug, error};
 
@@ -39,6 +39,10 @@ impl SharedMixnetClient {
     pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
         self.lock().await.as_mut().unwrap().send(msg).await?;
         Ok(())
+    }
+
+    pub async fn sign(&self, data: &[u8]) -> ed25519::Signature {
+        self.lock().await.as_ref().unwrap().sign(data)
     }
 
     pub fn inner(&self) -> Arc<tokio::sync::Mutex<Option<MixnetClient>>> {
@@ -141,7 +145,7 @@ impl IprClient {
         enable_two_hop: bool,
     ) -> Result<u64> {
         let hops = enable_two_hop.then_some(0);
-        let (request, request_id) = if let Some(ips) = ips {
+        let (mut request, request_id) = if let Some(ips) = ips {
             debug!("Sending static connect request with ips: {ips}");
             IpPacketRequest::new_static_connect_request(ips, self.nym_address, hops, None, None)
         } else {
@@ -149,6 +153,14 @@ impl IprClient {
             IpPacketRequest::new_dynamic_connect_request(self.nym_address, hops, None, None)
         };
         debug!("Sent connect request with version v{}", request.version);
+
+        // With the request constructed, we need to sign it
+        if let Some(Ok(data_to_sign)) = request.data.signable_request() {
+            let signature = self.mixnet_client.sign(&data_to_sign).await;
+            request.data.add_signature(signature);
+        } else {
+            error!("Failed to add signature to connect the request");
+        }
 
         self.mixnet_sender
             .send(nym_sdk::mixnet::InputMessage::new_regular_with_custom_hops(
