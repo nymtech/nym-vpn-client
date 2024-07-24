@@ -40,6 +40,15 @@ message Dns {
   string ip = 1;
 }
 
+message InfoRequest {}
+
+message InfoResponse {
+  string version = 1;
+  google.protobuf.Timestamp build_timestamp = 2;
+  string triple = 3;
+  string git_commit = 4;
+}
+
 message ConnectRequest {
   EntryNode entry = 1;
   ExitNode exit = 2;
@@ -109,7 +118,7 @@ message ConnectionStatusUpdate {
     // NOTE: currently not implemented by vpnd
     EXIT_ROUTER_CONNECTION_ESTABLISHED = 3;
 
-    // End-to-end tunnel establised and operational
+    // End-to-end tunnel established and operational
     TUNNEL_END_TO_END_CONNECTION_ESTABLISHED = 4;
 
     // Entry gateway not routing our mixnet messages
@@ -227,6 +236,7 @@ message ImportError {
 }
 
 service NymVpnd {
+  rpc Info (InfoRequest) returns (InfoResponse) {}
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
   rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
   rpc VpnStatus (StatusRequest) returns (StatusResponse) {}

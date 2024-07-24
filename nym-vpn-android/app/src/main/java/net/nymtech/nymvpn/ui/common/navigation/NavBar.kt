@@ -30,7 +30,7 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NavBar(appUiState: AppUiState, navController: NavController, modifier: Modifier = Modifier) {
+fun NavBar(appUiState: AppUiState, navController: NavController, onTrailingClick: () -> Unit, modifier: Modifier = Modifier) {
 	val navBackStackEntry by navController.currentBackStackEntryAsState()
 	val navItem = NavItem.from(navBackStackEntry?.destination?.route)
 	val context = LocalContext.current
@@ -69,9 +69,7 @@ fun NavBar(appUiState: AppUiState, navController: NavController, modifier: Modif
 				navItem.trailing?.let {
 					IconButton(
 						onClick = {
-							when (it) {
-								NavItem.settingsIcon -> navController.navigate(NavItem.Settings.route)
-							}
+							onTrailingClick()
 						},
 					) {
 						Icon(

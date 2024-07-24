@@ -49,14 +49,33 @@
 }
 
 @layer components {
-  .dot {
-    clip-path: circle(0.3rem);
-  }
-
   .transition-noborder {
     transition-property: color, background-color, text-decoration-color, fill,
       stroke, opacity, box-shadow, transform, filter, backdrop-filter;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     transition-duration: 150ms;
+  }
+
+  @keyframes pulse-fast {
+    50% {
+      opacity: 0.6;
+    }
+  }
+  .animate-pulse-fast {
+    animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .loader {
+    border: 6px solid;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
+  }
+
+  @keyframes rotation {
+    to {
+      transform: rotate(1turn);
+    }
   }
 }

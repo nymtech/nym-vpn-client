@@ -9,7 +9,7 @@ import Constants
 import TunnelStatus
 
 public final class GRPCManager: ObservableObject {
-    private let group = PlatformSupport.makeEventLoopGroup(loopCount: 1)
+    private let group = MultiThreadedEventLoopGroup(numberOfThreads: 1)
     private let client: Nym_Vpn_NymVpndClientProtocol
     private let channel: GRPCChannel
     private let unixDomainSocket = "/var/run/nym-vpn.sock"
@@ -168,8 +168,6 @@ private extension GRPCManager {
     func setupListenToConnectionStateObserver() {
         let call = client.listenToConnectionStateChanges(Nym_Vpn_Empty()) { [weak self] connectionStateChange in
             guard let self else { return }
-            // TODO:
-            print("Connection state \(connectionStateChange)")
 
             switch connectionStateChange.status {
             case .UNRECOGNIZED, .connectionFailed, .notConnected, .statusUnspecified, .unknown:

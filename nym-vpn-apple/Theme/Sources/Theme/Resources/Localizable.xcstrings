@@ -89,6 +89,50 @@
         }
       }
     },
+    "addCredentials.qrScanner" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR code scanner"
+          }
+        }
+      }
+    },
+    "addCredentials.qrScanner.cameraNotAvailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera not available. Check permissions."
+          }
+        }
+      }
+    },
+    "addCredentials.qrScanner.openSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        }
+      }
+    },
+    "addCredentials.scanQrCode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan NymVPN credential QR code"
+          }
+        }
+      }
+    },
     "addCredentials.welcome.Title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -232,6 +276,17 @@
         }
       }
     },
+    "copy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
+        }
+      }
+    },
     "darkThemeTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -287,17 +342,6 @@
         }
       }
     },
-    "entryLocationSubtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manually select your entry hop"
-          }
-        }
-      }
-    },
     "entryLocationTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -327,6 +371,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong with the Gateway Directory"
+          }
+        }
+      }
+    },
+    "error.noLogFile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to create log file"
           }
         }
       }
@@ -452,138 +507,6 @@
         }
       }
     },
-    "feedback.survey.askFeedback" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Provide your feedback, be as descriptive as you can be"
-          }
-        }
-      }
-    },
-    "feedback.survey.error.provideFeedback" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Please provide feedback to submit"
-          }
-        }
-      }
-    },
-    "feedback.survey.error.selectRecommendation" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Please select a recommendation to submit"
-          }
-        }
-      }
-    },
-    "feedback.survey.howLikelyRecommend" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "How likely are you to recommend NymVPN to others?"
-          }
-        }
-      }
-    },
-    "feedback.survey.intro" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Take a part in short 2 question survey and provide your feedback"
-          }
-        }
-      }
-    },
-    "feedback.survey.likely" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Likely"
-          }
-        }
-      }
-    },
-    "feedback.survey.notAtAll" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not at all"
-          }
-        }
-      }
-    },
-    "feedback.survey.notLikely" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not likely"
-          }
-        }
-      }
-    },
-    "feedback.survey.submit" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Submit"
-          }
-        }
-      }
-    },
-    "feedback.survey.success.text" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Thank You for taking the time  to review NymVPN! Your feedback helps us improve the services we provide."
-          }
-        }
-      }
-    },
-    "feedback.survey.veryLikely" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Very likely"
-          }
-        }
-      }
-    },
-    "feedback.survey.yourFeedback" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your feedback..."
-          }
-        }
-      }
-    },
     "firstHopSelection" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -657,6 +580,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Last hop"
+          }
+        }
+      }
+    },
+    "home.installDaemon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installing and authorizing daemon..."
+          }
+        }
+      }
+    },
+    "home.installDaemonFailure" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error: Failed to install and authorize daemon"
           }
         }
       }
@@ -760,6 +705,39 @@
         }
       }
     },
+    "locationModal.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We infer server locations based on their IP addresses, but the actual locations may vary slightly."
+          }
+        }
+      }
+    },
+    "locationModal.readMore" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read more"
+          }
+        }
+      }
+    },
+    "locationModal.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Details on server locations"
+          }
+        }
+      }
+    },
     "logs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -767,6 +745,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Logs"
+          }
+        }
+      }
+    },
+    "logs.noLogs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No logs available"
           }
         }
       }
@@ -799,7 +788,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Experience maximum speed with  2-server connectivity using the WireGuard protocol. Perfect for fast browsing, streaming, and file sharing."
+            "value" : "Experience maximum speed with  2-server connectivity. Perfect for fast browsing, streaming, and file sharing."
           }
         }
       }

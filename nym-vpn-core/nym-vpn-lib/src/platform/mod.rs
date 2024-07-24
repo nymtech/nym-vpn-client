@@ -2,9 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
+use self::error::FFIError;
 use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
-use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location, UserAgent};
+use crate::uniffi_custom_impls::{EntryPoint, ExitPoint, Location, TunStatus, UserAgent};
 use crate::{
     spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
     NymVpnHandle, SpecificVpn,
@@ -13,6 +14,7 @@ use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
 use nym_task::manager::TaskStatus;
+use std::fmt::Debug;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -22,8 +24,6 @@ use talpid_core::mpsc::Sender;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
 use url::Url;
-
-use self::error::FFIError;
 
 #[cfg(target_os = "android")]
 pub mod android;
@@ -35,6 +35,8 @@ lazy_static! {
     static ref VPN_SHUTDOWN_HANDLE: Mutex<Option<Arc<Notify>>> = Mutex::new(None);
     static ref RUNNING: AtomicBool = AtomicBool::new(false);
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
+    static ref LISTENER: std::sync::Mutex<Option<Arc<dyn TunnelStatusListener>>> =
+        std::sync::Mutex::new(None);
 }
 
 async fn set_shutdown_handle(handle: Arc<Notify>) -> Result<(), FFIError> {
@@ -45,6 +47,14 @@ async fn set_shutdown_handle(handle: Arc<Notify>) -> Result<(), FFIError> {
     *guard = Some(handle);
 
     Ok(())
+}
+
+pub(crate) fn set_listener_status(status: TunStatus) {
+    let mut guard = LISTENER.lock().unwrap();
+    match &mut *guard {
+        Some(listener) => listener.on_tun_status_change(status),
+        None => {}
+    }
 }
 
 async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
@@ -61,6 +71,7 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
     }
     *guard = None;
     debug!("VPN shutdown handle reset");
+    set_listener_status(TunStatus::Down);
     Ok(())
 }
 
@@ -79,6 +90,7 @@ async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle),
     debug!("shutdown handle set with new stop handle");
     let mut handle = spawn_nym_vpn(vpn)?;
     debug!("spawned vpn handle");
+
     match handle
         .vpn_status_rx
         .next()
@@ -88,7 +100,10 @@ async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle),
         .ok_or(crate::Error::NotStarted)?
     {
         TaskStatus::Ready => debug!("Started Nym VPN"),
-        TaskStatus::ReadyWithGateway(gateway) => debug!("Started Nym VPN: connected to {gateway}"),
+        TaskStatus::ReadyWithGateway(gateway) => {
+            debug!("Started Nym VPN: connected to {gateway}");
+            set_listener_status(TunStatus::Up);
+        }
     }
 
     debug!("result with handles");
@@ -130,6 +145,7 @@ pub struct VPNConfig {
     #[cfg(target_os = "ios")]
     pub tun_provider: Arc<dyn crate::OSTunProvider>,
     pub credential_data_path: Option<PathBuf>,
+    pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
 }
 
 fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
@@ -153,9 +169,7 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
     vpn.gateway_config.explorer_url = Some(config.explorer_url);
     vpn.gateway_config.harbour_master_url = None;
     vpn.enable_two_hop = config.enable_two_hop;
-    vpn.vpn_config
-        .mixnet_data_path
-        .clone_from(&config.credential_data_path);
+    vpn.data_path.clone_from(&config.credential_data_path);
     Ok(vpn)
 }
 
@@ -165,16 +179,26 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
     if RUNNING.fetch_or(true, Ordering::Relaxed) {
         return Err(FFIError::VpnAlreadyRunning);
     }
+
+    LISTENER
+        .lock()
+        .unwrap()
+        .clone_from(&config.tun_status_listener);
+
+    set_listener_status(TunStatus::InitializingClient);
+
     debug!("Trying to run VPN");
     let vpn = sync_run_vpn(config);
     debug!("Got VPN");
     if vpn.is_err() {
         error!("Err creating VPN");
+        set_listener_status(TunStatus::Down);
         RUNNING.store(false, Ordering::Relaxed);
     }
     let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
     if ret.is_err() {
         error!("Error running VPN");
+        set_listener_status(TunStatus::Down);
         RUNNING.store(false, Ordering::Relaxed);
     }
     ret
@@ -182,18 +206,24 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn importCredential(credential: String, path: String) -> Result<(), FFIError> {
+pub fn importCredential(credential: String, path: String) -> Result<Option<SystemTime>, FFIError> {
     RUNTIME.block_on(import_credential_from_string(&credential, &path))
 }
 
-async fn import_credential_from_string(credential: &str, path: &str) -> Result<(), FFIError> {
+async fn import_credential_from_string(
+    credential: &str,
+    path: &str,
+) -> Result<Option<SystemTime>, FFIError> {
     let path_result = PathBuf::from_str(path);
     let path_buf = match path_result {
         Ok(p) => p,
         Err(_) => return Err(FFIError::InvalidPath),
     };
     match import_credential_base58(credential, path_buf).await {
-        Ok(_) => Ok(()),
+        Ok(time) => match time {
+            None => Ok(None),
+            Some(t) => Ok(Some(SystemTime::from(t))),
+        },
         Err(_) => Err(FFIError::InvalidCredential),
     }
 }
@@ -243,6 +273,7 @@ pub fn stopVPN() -> Result<(), FFIError> {
     if !RUNNING.fetch_and(false, Ordering::Relaxed) {
         return Err(FFIError::VpnNotStarted);
     }
+    set_listener_status(TunStatus::Disconnecting);
     debug!("Stopping VPN");
     RUNTIME.block_on(stop_vpn())
 }
@@ -365,4 +396,9 @@ async fn get_low_latency_entry_country(
         .into();
 
     Ok(country)
+}
+
+#[uniffi::export(with_foreign)]
+pub trait TunnelStatusListener: Send + Sync + Debug {
+    fn on_tun_status_change(&self, status: TunStatus);
 }

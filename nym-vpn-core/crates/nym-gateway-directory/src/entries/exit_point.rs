@@ -1,7 +1,10 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt::{Display, Formatter};
+use std::{
+    fmt::{Display, Formatter},
+    str::FromStr,
+};
 
 use crate::{
     entries::described_gateway::{by_location_described, by_random_described},
@@ -144,4 +147,26 @@ impl LookupGateway for ExitPoint {
             }
         }
     }
+}
+
+pub fn extract_router_address(
+    gateways: &[DescribedGatewayWithLocation],
+    identity_key: String,
+) -> Result<IpPacketRouterAddress> {
+    Ok(IpPacketRouterAddress(
+        Recipient::from_str(
+            &gateways
+                .iter()
+                .find(|gw| *gw.gateway.bond.identity() == identity_key)
+                .ok_or(Error::NoMatchingGateway)?
+                .gateway
+                .self_described
+                .clone()
+                .ok_or(Error::NoGatewayDescriptionAvailable(identity_key))?
+                .ip_packet_router
+                .ok_or(Error::MissingIpPacketRouterAddress)?
+                .address,
+        )
+        .map_err(|_| Error::RecipientFormattingError)?,
+    ))
 }

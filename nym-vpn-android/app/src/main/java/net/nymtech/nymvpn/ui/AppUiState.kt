@@ -9,6 +9,5 @@ data class AppUiState(
 	val snackbarMessageConsumed: Boolean = true,
 	val vpnClientState: VpnClientState = VpnClientState(),
 	val settings: Settings = Settings(),
-	val isNonExpiredCredentialImported: Boolean = false,
 	val credentialExpiryTime: Instant? = null,
 )

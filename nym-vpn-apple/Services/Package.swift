@@ -20,6 +20,7 @@ let package = Package(
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Modifiers", targets: ["Modifiers"]),
+        .library(name: "NymLogger", targets: ["NymLogger"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
         .library(name: "TunnelMixnet", targets: ["TunnelMixnet"]),
@@ -66,6 +67,7 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 "Constants",
+                "NymLogger",
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/Services/CountriesManager"
@@ -92,7 +94,7 @@ let package = Package(
             name: "Keychain",
             dependencies: [
                 "Constants",
-                .product(name: "Logging", package: "swift-log")
+                "NymLogger"
             ],
             path: "Sources/Services/Keychain"
         ),
@@ -102,6 +104,13 @@ let package = Package(
                 "AppSettings"
             ],
             path: "Sources/Services/Modifiers"
+        ),
+        .target(
+            name: "NymLogger",
+            dependencies: [
+                .product(name: "Logging", package: "swift-log")
+            ],
+            path: "Sources/Services/NymLogger"
         ),
         .target(
             name: "SentryManager",
@@ -115,8 +124,8 @@ let package = Package(
             name: "Tunnels",
             dependencies: [
                 "Keychain",
-                .product(name: "TunnelStatus", package: "ServicesMutual"),
-                .product(name: "Logging", package: "swift-log")
+                "NymLogger",
+                .product(name: "TunnelStatus", package: "ServicesMutual")
             ],
             path: "Sources/Services/Tunnels"
         ),
@@ -126,17 +135,19 @@ let package = Package(
                 "Constants",
                 "CountriesManager",
                 "CredentialsManager",
+                .product(name: "Logging", package: "swift-log"),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
-                "Tunnels",
-                .product(name: "Logging", package: "swift-log")
+                "NymLogger",
+                "Tunnels"
             ],
             path: "Sources/Services/TunnelMixnet"
         ),
         .target(
             name: "TunnelWG",
             dependencies: [
-                "Tunnels",
                 .product(name: "Logging", package: "swift-log"),
+                "NymLogger",
+                "Tunnels",
                 .product(name: "WireGuardKit", package: "wireguard-apple")
             ],
             path: "Sources/Services/TunnelWG"

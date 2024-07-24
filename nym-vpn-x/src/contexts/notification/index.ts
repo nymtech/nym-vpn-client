@@ -1,4 +1,4 @@
 export { default as NotificationProvider } from './provider';
-export * from './notification';
-export * from './type';
+export * from './context';
 export * from './provider';
+export * from './type';

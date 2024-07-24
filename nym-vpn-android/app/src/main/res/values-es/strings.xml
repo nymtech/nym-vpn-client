@@ -7,7 +7,7 @@
     <string name="disconnecting">Desconectando</string>
     <string name="connecting">Conectando</string>
     <string name="five_hop_mixnet">Anónimo</string>
-    <string name="five_hop_description">Mejor para pagos, correos electrónicos, mensajes</string>
+    <string name="five_hop_description">Para pagos, correos electrónicos, mensajes</string>
     <string name="two_hop_mixnet">Rápido</string>
     <string name="two_hop_description">Mejor para navegar, streaming, compartir</string>
     <string name="first_hop">Primer salto</string>
@@ -18,8 +18,7 @@
     <string name="establishing_connection">Estableciendo conexión</string>
     <string name="connection_time">Tiempo de conexión</string>
     <string name="connect_to">Conectar a</string>
-    <string name="first_hop_selection">Gateway entrada</string>
-    <string name="last_hop_selection">Gateway salida</string>
+	<string name="last_hop_selection">Gateway salida</string>
     <string name="display_theme">Tema</string>
     <string name="light_theme">Tema claro</string>
     <string name="dark_theme">Tema oscuro</string>
@@ -31,8 +30,7 @@
     <string name="fastest">Más rápido</string>
     <string name="auto_connect">Conexión automática</string>
     <string name="auto_connect_description">Conectar automáticamente al reiniciar</string>
-    <string name="entry_location_description">Selecciona manualmente tu primer salto</string>
-    <string name="logs">Registros</string>
+	<string name="logs">Registros</string>
     <string name="feedback">Retroalimentación</string>
     <string name="support">Soporte</string>
     <string name="error_reporting">Compartir informes de errores anónimos</string>
@@ -40,8 +38,7 @@
     <string name="via">vía</string>
     <string name="required_app_restart">aplica al reiniciar</string>
     <string name="legal">Legal</string>
-    <string name="faq_link" translatable="false">https://nymtech.net</string>
-    <string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
+	<string name="privacy_link" translatable="false">https://nymvpn.com/en/privacy?type=apps</string>
     <string name="terms_of_use">Términos de uso</string>
     <string name="privacy_policy">Declaración de privacidad</string>
     <string name="licenses">Licencias</string>
@@ -51,11 +48,11 @@
     <string name="join_matrix">Únete en Matrix</string>
     <string name="join_discord">Únete en Discord</string>
     <string name="matrix_url" translatable="false">https://matrix.to/#/%23NymVPN:nymtech.chat</string>
-    <string name="discord_url" translatable="false">https://discord.com/invite/nym</string>
+    <string name="discord_url" translatable="false">http://nymtech.net/go/discord</string>
     <string name="faq_url" translatable="false">https://support.nymvpn.com</string>
     <string name="contact_url" translatable="false">https://support.nymvpn.com/hc/en-us/requests/new</string>
     <string name="support_email" translatable="false">support@nymvpn.com</string>
-    <string name="github_issues_url" translatable="false">https://github.com/nymtech/nymvpn-android/issues/new/choose</string>
+    <string name="github_issues_url" translatable="false">https://github.com/nymtech/nym-vpn-client/issues/new/choose</string>
     <string name="email_subject">Soporte de NymVPN</string>
     <string name="email_chooser">Enviar un correo electrónico…</string>
     <string name="login">Iniciar sesión</string>
@@ -68,7 +65,6 @@
     <string name="credential_failed_message">Credencial inválida</string>
     <string name="unknown_error">Ocurrió un error desconocido</string>
     <string name="credential">Credencial</string>
-    <string name="left">quedan</string>
     <string name="top_up_credential">Recarga tu credencial</string>
     <string name="top_up">Recargar</string>
     <string name="devices">Dispositivos</string>
@@ -83,8 +79,7 @@
     <string name="unknown">Desconocido</string>
     <string name="no_scm_found">URL del código fuente no encontrada</string>
     <string name="terms_link" translatable="false">https://nymvpn.com/en/terms</string>
-    <string name="two_hop">2 saltos</string>
-    <string name="five_hop">5 saltos</string>
+	<string name="five_hop">5 saltos</string>
     <string name="mode">Modo</string>
     <string name="okay">De acuerdo</string>
     <string name="error_reporting_alert">Los cambios en los informes de errores no se aplicarán completamente hasta que la aplicación se haya reiniciado.</string>
@@ -132,8 +127,9 @@
     <string name="day">día</string>
     <string name="scan_nym_vpn_credential">Escanear QR de la credencial NymVPN</string>
     <string name="error_logs_not_saved">Error al guardar los registros</string>
-    <string name="select_mode">Seleccione el modo</string>
+    <string name="select_mode">Selecciona el modo</string>
     <string name="mode_selection">Seleccione el modo</string>
-    <string name="continue_reading">Continúe leyendo</string>
+    <string name="continue_reading">Continúa leyendo</string>
     <string name="five_hop_explanation">Disfrute de la máxima privacidad enrutando su conexión a través de 5 servidores mediante mixnet. Perfecto para gestionar pagos, correos electrónicos y mensajes de forma segura.</string>
+    <string name="two_hop_explanation">Disfruta de la máxima velocidad conectándote a 2 servidores. Perfecto para navegar, transmitir y compartir archivos a gran velocidad.</string>
 </resources>

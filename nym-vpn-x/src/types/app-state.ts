@@ -34,6 +34,12 @@ export type WindowSize = {
   height: number;
 };
 
+export type WindowPosition = {
+  type: 'Physical' | 'Logical';
+  x: number;
+  y: number;
+};
+
 export type DaemonStatus = 'Ok' | 'NotOk';
 
 export type OsType = 'linux' | 'windows' | 'macos' | 'unknown';
@@ -58,6 +64,7 @@ export type AppState = {
   entrySelector: boolean;
   autoConnect: boolean;
   monitoring: boolean;
+  desktopNotifications: boolean;
   entryNodeLocation: NodeLocation;
   exitNodeLocation: NodeLocation;
   fastestNodeLocation: Country;
@@ -71,11 +78,16 @@ export type AppState = {
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
   windowSize?: WindowSize | null;
+  windowPosition?: WindowPosition | null;
   credentialExpiry?: Dayjs | null;
   fetchEntryCountries: FetchCountriesFn;
   fetchExitCountries: FetchCountriesFn;
   os: OsType;
 };
+
+export type ConnectionEvent =
+  | ({ type: 'Update' } & ConnectionEventPayload)
+  | ({ type: 'Failed' } & (BackendError | null));
 
 export type ConnectionEventPayload = {
   state: ConnectionState;

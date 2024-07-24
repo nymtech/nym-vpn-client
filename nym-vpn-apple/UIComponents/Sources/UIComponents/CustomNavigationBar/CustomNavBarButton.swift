@@ -5,6 +5,7 @@ public struct CustomNavBarButton: View {
     public enum ButtonType: String {
         case back
         case settings
+        case info
         case empty
 
         var imageName: String? {
@@ -13,6 +14,8 @@ public struct CustomNavBarButton: View {
                 "arrowBack"
             case .settings:
                 "settingsGear"
+            case .info:
+                "info"
             case .empty:
                 nil
             }

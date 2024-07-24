@@ -5,11 +5,11 @@ import ExternalLinkManager
 import UIComponents
 
 struct FeedbackViewModel {
-    private let githubIssueLink = "https://github.com/nymtech/nym-vpn-client/issues"
+    private let githubIssueLink = Constants.ghIssuesLink.rawValue
     private let faqLink = Constants.supportURL.rawValue
-    private let emailLink = "mailto:support@nymvpn.com"
+    private let emailLink = Constants.emailLink.rawValue
     private let matrixLink = "https://matrix.to/#/%23NymVPN:nymtech.chat"
-    private let discordLink = "https://discord.com/invite/nym"
+    private let discordLink = Constants.discordLink.rawValue
     private let appSettings: AppSettings
     private let externalLinkManager: ExternalLinkManager
 
@@ -42,10 +42,6 @@ extension FeedbackViewModel {
         if !path.isEmpty { path.removeLast() }
     }
 
-    func navigateToSurvey() {
-        path.append(SettingsLink.survey)
-    }
-
     func openExternalURL(urlString: String?) {
         // TODO: log error
         try? externalLinkManager.openExternalURL(urlString: urlString)
@@ -74,7 +70,7 @@ private extension FeedbackViewModel {
             imageName: "sendEmail",
             position: SettingsListItemPosition(isFirst: true, isLast: true),
             action: {
-                navigateToSurvey()
+                openExternalURL(urlString: emailLink)
             }
         )
     }

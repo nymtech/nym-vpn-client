@@ -80,6 +80,9 @@ pub enum Error {
     #[error("tunnel in a tunnel works for gateway id or location")]
     InvalidExitPointDescription,
 
+    #[error("gateway {0} doesn't have a description available")]
+    NoGatewayDescriptionAvailable(String),
+
     #[error("the only available exit gateway is the entry gateway")]
     OnlyAvailableExitGatewayIsTheEntryGateway {
         requested_location: String,

@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.data.domain
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.model.VpnMode
+import java.time.Instant
 
 data class Settings(
 	val theme: Theme? = null,
@@ -15,6 +16,7 @@ data class Settings(
 	val firstHopCountry: Country = Country(),
 	val lastHopCountry: Country = Country(),
 	val isShortcutsEnabled: Boolean = SHORTCUTS_DEFAULT,
+	val credentialExpiry: Instant? = null,
 ) {
 	companion object {
 		const val FIRST_HOP_SELECTION_DEFAULT = false

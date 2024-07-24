@@ -59,7 +59,7 @@ fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, v
 		mutableStateOf("")
 	}
 
-	var isCredentialError by remember {
+	var isImportError: Boolean by remember {
 		mutableStateOf(false)
 	}
 
@@ -75,7 +75,7 @@ fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, v
 				appViewModel.showSnackbarMessage(context.getString(R.string.credential_successful))
 				navController.navigateNoBack(NavItem.Main.route)
 			}.onFailure {
-				isCredentialError = true
+				isImportError = true
 			}
 		}
 	}
@@ -163,22 +163,22 @@ fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, v
 			CustomTextField(
 				value = credential,
 				onValueChange = {
-					if (isCredentialError) isCredentialError = false
+					if (isImportError) isImportError = false
 					credential = it
 				},
 				modifier = Modifier
 					.width(358.dp.scaledWidth())
 					.height(212.dp.scaledHeight()),
 				supportingText = {
-					if (isCredentialError) {
+					if (isImportError) {
 						Text(
 							modifier = Modifier.fillMaxWidth(),
-							text = stringResource(id = R.string.credential_failed_message),
+							text = stringResource(R.string.credential_failed_message),
 							color = MaterialTheme.colorScheme.error,
 						)
 					}
 				},
-				isError = isCredentialError,
+				isError = isImportError,
 				label = { Text(text = stringResource(id = R.string.credential_label)) },
 				textStyle = MaterialTheme.typography.bodyMedium.copy(
 					color = MaterialTheme.colorScheme.onSurface,

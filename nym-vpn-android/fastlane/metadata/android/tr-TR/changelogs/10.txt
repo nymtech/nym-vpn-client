@@ -1,4 +1,4 @@
 Yenilikler:
-- Sürekli Bağlantı için VPN desteği eklendi.
-- Hızlı Ayarlar düğmesi desteği eklendi.
-- Başlangıçta otomatik bağlanma sorunu düzeltildi.
+- Sürekli Bağlantı için VPN desteği eklendi
+- Hızlı Ayarlar düğmesi desteği eklendi
+- Başlangıçta otomatik bağlanma sorunu düzeltildi

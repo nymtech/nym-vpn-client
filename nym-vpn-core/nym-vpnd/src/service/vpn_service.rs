@@ -13,14 +13,15 @@ use nym_vpn_lib::gateway_directory::{self, EntryPoint, ExitPoint};
 use nym_vpn_lib::nym_bin_common::bin_info;
 use nym_vpn_lib::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
+use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::{broadcast, oneshot};
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 use super::config::{
-    self, create_config_file, create_data_dir, read_config_file, write_config_file,
-    ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
+    self, create_config_file, create_data_dir, create_device_keys, read_config_file,
+    write_config_file, ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
 };
 use super::error::{ConnectionFailedError, ImportCredentialError};
 use super::exit_listener::VpnServiceExitListener;
@@ -80,6 +81,7 @@ pub enum VpnServiceCommand {
     Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
+    Info(oneshot::Sender<VpnServiceInfoResult>),
     ImportCredential(
         oneshot::Sender<Result<Option<OffsetDateTime>, ImportCredentialError>>,
         Vec<u8>,
@@ -92,6 +94,7 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::Connect(_, args) => write!(f, "Connect {{ {args:?} }}"),
             VpnServiceCommand::Disconnect(_) => write!(f, "Disconnect"),
             VpnServiceCommand::Status(_) => write!(f, "Status"),
+            VpnServiceCommand::Info(_) => write!(f, "Info"),
             VpnServiceCommand::ImportCredential(_, _) => write!(f, "ImportCredential"),
         }
     }
@@ -156,6 +159,14 @@ pub enum VpnServiceStatusResult {
     Connected(Box<ConnectedResultDetails>),
     Disconnecting,
     ConnectionFailed(ConnectionFailedError),
+}
+
+#[derive(Clone, Debug)]
+pub struct VpnServiceInfoResult {
+    pub version: String,
+    pub build_timestamp: Option<time::OffsetDateTime>,
+    pub triple: String,
+    pub git_commit: String,
 }
 
 impl fmt::Display for VpnServiceStatusResult {
@@ -394,20 +405,33 @@ impl NymVpnService {
             }
         }
 
+        // Device specific keys
+        match create_device_keys(&self.data_dir).await {
+            Ok(()) => {}
+            Err(err) => {
+                self.shared_vpn_state.set(VpnState::NotConnected);
+                return VpnServiceConnectResult::Fail(format!(
+                    "Failed to create device keys in {:?}: {}",
+                    self.data_dir, err
+                ));
+            }
+        }
+
         let mut nym_vpn =
             nym_vpn_lib::NymVpn::new_mixnet_vpn(config.entry_point, config.exit_point);
         nym_vpn.gateway_config = gateway_directory::Config::new_from_env();
-        nym_vpn.vpn_config.mixnet_data_path = Some(self.data_dir.clone());
+        nym_vpn.data_path = Some(self.data_dir.clone());
         nym_vpn.dns = options.dns;
         nym_vpn.disable_routing = options.disable_routing;
         nym_vpn.enable_two_hop = options.enable_two_hop;
         // TODO: add user agent to options struct so we can pass it from the connected client if we
         // want to
         nym_vpn.user_agent = Some(bin_info!().into());
-        nym_vpn.vpn_config.enable_poisson_rate = options.enable_poisson_rate;
-        nym_vpn.vpn_config.disable_background_cover_traffic =
-            options.disable_background_cover_traffic;
-        nym_vpn.vpn_config.enable_credentials_mode = options.enable_credentials_mode;
+        nym_vpn.mixnet_client_config.enable_poisson_rate = options.enable_poisson_rate;
+        nym_vpn
+            .mixnet_client_config
+            .disable_background_cover_traffic = options.disable_background_cover_traffic;
+        nym_vpn.mixnet_client_config.enable_credentials_mode = options.enable_credentials_mode;
 
         let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn.into()).unwrap();
 
@@ -468,6 +492,16 @@ impl NymVpnService {
         self.shared_vpn_state.get().into()
     }
 
+    async fn handle_info(&self) -> VpnServiceInfoResult {
+        let bin_info = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!();
+        VpnServiceInfoResult {
+            version: bin_info.build_version.to_string(),
+            build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339).ok(),
+            triple: bin_info.cargo_triple.to_string(),
+            git_commit: bin_info.commit_sha.to_string(),
+        }
+    }
+
     async fn handle_import_credential(
         &mut self,
         credential: Vec<u8>,
@@ -483,7 +517,7 @@ impl NymVpnService {
 
     pub(crate) async fn run(mut self) -> anyhow::Result<()> {
         while let Some(command) = self.vpn_command_rx.recv().await {
-            info!("VPN: Received command: {command}");
+            debug!("VPN: Received command: {command}");
             match command {
                 VpnServiceCommand::Connect(tx, connect_args) => {
                     let result = self.handle_connect(connect_args).await;
@@ -495,6 +529,10 @@ impl NymVpnService {
                 }
                 VpnServiceCommand::Status(tx) => {
                     let result = self.handle_status().await;
+                    tx.send(result).unwrap();
+                }
+                VpnServiceCommand::Info(tx) => {
+                    let result = self.handle_info().await;
                     tx.send(result).unwrap();
                 }
                 VpnServiceCommand::ImportCredential(tx, credential) => {

@@ -8,7 +8,7 @@ use std::{
     io,
     path::PathBuf,
 };
-use strum::AsRefStr;
+use strum::{AsRefStr, EnumString};
 use tauri::api::path::data_dir;
 use thiserror::Error;
 use tracing::{error, info, instrument, warn};
@@ -21,7 +21,7 @@ const DB_DIR: &str = "db";
 pub type JsonValue = Value;
 
 #[allow(dead_code)]
-#[derive(Deserialize, Serialize, AsRefStr, Debug, Clone, Copy, TS)]
+#[derive(Deserialize, Serialize, AsRefStr, EnumString, Debug, Clone, Copy, TS)]
 #[ts(export)]
 pub enum Key {
     #[strum(serialize = "monitoring")]
@@ -42,10 +42,14 @@ pub enum Key {
     ExitNodeLocation,
     #[strum(serialize = "window_size")]
     WindowSize,
+    #[strum(serialize = "window_position")]
+    WindowPosition,
     #[strum(serialize = "welcome_screen_seen")]
     WelcomeScreenSeen,
     #[strum(serialize = "credential_expiry")]
     CredentialExpiry,
+    #[strum(serialize = "desktop_notifications")]
+    DesktopNotifications,
 }
 
 impl Display for Key {

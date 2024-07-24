@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpnd"
-version = "0.1.10-dev"
+version = "0.1.11-dev"
 description = "NymVPN daemon"
 authors.workspace = true
 repository.workspace = true
@@ -17,7 +17,6 @@ clap.workspace = true
 dirs.workspace = true
 futures.workspace = true
 http.workspace = true
-log.workspace = true
 maplit.workspace = true
 parity-tokio-ipc.workspace = true
 prost-types.workspace = true
@@ -44,6 +43,7 @@ nym-task.workspace = true
 # Local crates
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
+nym-vpn-store = { path = "../crates/nym-vpn-store" }
 
 [target.'cfg(windows)'.dependencies]
 windows-service = "0.7.0"

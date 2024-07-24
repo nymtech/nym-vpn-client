@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-lib"
-version = "0.1.10-dev"
+version = "0.1.11-dev"
 edition = "2021"
 license = "GPL-3.0-only"
 
@@ -31,7 +31,13 @@ signature.workspace = true
 tap.workspace = true
 thiserror.workspace = true
 time.workspace = true
-tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
+tokio = { workspace = true, features = [
+    "process",
+    "rt-multi-thread",
+    "fs",
+    "sync",
+] }
+tokio-stream.workspace = true
 tokio-util = { workspace = true, features = ["codec"] }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
@@ -46,6 +52,7 @@ talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev =
 talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
 talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
 
+nym-authenticator-requests.workspace = true
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
 nym-client-core.workspace = true
@@ -57,16 +64,19 @@ nym-explorer-client.workspace = true
 nym-id.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-node-requests.workspace = true
+nym-pemstore.workspace = true
 nym-sdk.workspace = true
 nym-task.workspace = true
 nym-topology.workspace = true
 nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
 
-nym-vpn-api-client = { path = "../crates/nym-vpn-api-client" }
+nym-authenticator-client = { path = "../crates/nym-authenticator-client" }
 nym-connection-monitor = { path = "../crates/nym-connection-monitor" }
 nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
 nym-ip-packet-client = { path = "../crates/nym-ip-packet-client" }
+nym-vpn-api-client = { path = "../crates/nym-vpn-api-client" }
+nym-vpn-store = { path = "../crates/nym-vpn-store" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.14.1"

@@ -11,7 +11,7 @@
     <string name="last_hop">Останнє підключення</string>
     <string name="connect">Підключитись</string>
     <string name="disconnect">Від\'єднати</string>
-    <string name="five_hop_description">Найкраще для платежів, електронних листів, повідомлень</string>
+    <string name="five_hop_description">Для платежів, електронних листів, повідомлень</string>
     <string name="disconnecting">Від\'єднання</string>
     <string name="init_client">Ініціалізація клієнта…</string>
     <string name="two_hop_description">Найкраще для серфінгу, відео, спільного використання</string>
@@ -20,8 +20,7 @@
     <string name="establishing_connection">Встановлення з\'єднання</string>
     <string name="connection_time">Час підключення</string>
     <string name="connect_to">Підключитись до</string>
-    <string name="first_hop_selection">Вибір першої підключення</string>
-    <string name="last_hop_selection">Вибір останнього підключення</string>
+	<string name="last_hop_selection">Вибір останнього підключення</string>
     <string name="display_theme">Тема</string>
     <string name="light_theme">Світла</string>
     <string name="dark_theme">Темна</string>
@@ -30,8 +29,7 @@
     <string name="search_country">Пошук країни</string>
     <string name="is_selected">Вибрано</string>
     <string name="auto_connect">Авто-підключення</string>
-    <string name="entry_location_description">Ручний вибір першого підключення</string>
-    <string name="logs">Журнали</string>
+	<string name="logs">Журнали</string>
     <string name="support">Служба підтримки</string>
     <string name="via">через</string>
     <string name="required_app_restart">застосовується при перезапуску</string>
@@ -53,7 +51,6 @@
     <string name="credential_failed_message">Невірні облікові дані</string>
     <string name="unknown_error">Виникла невідома помилка</string>
     <string name="credential">Облікові дані</string>
-    <string name="left">Час до завершення</string>
     <string name="top_up">Поповнити</string>
     <string name="top_up_credential">Поповнити облікові дані</string>
     <string name="devices">Пристрої</string>
@@ -65,8 +62,7 @@
     <string name="no_browser_detected">Браузер не виявлено</string>
     <string name="no_email_detected">Електронну пошту не виявлено</string>
     <string name="unknown">Невідомо</string>
-    <string name="two_hop">2-ланки</string>
-    <string name="five_hop">5-ланок</string>
+	<string name="five_hop">5-ланок</string>
     <string name="mode">Режим</string>
     <string name="okay">Добре</string>
     <string name="feature_in_progress">Ця функція в процесі розробки.</string>
@@ -123,4 +119,9 @@
     <string name="alpha_help_message">Допоможіть нам вдосконалити наш додаток під час альфа-тесту! Ваші відгуки мають вирішальне значення для виявлення та вирішення проблем.</string>
     <string name="disabled_while_connected">Вимкнено при підключенні до VPN</string>
     <string name="error_gateway_lookup">Не вдалося знайти шлюзи Nym. Будь ласка, перевірте підключення до мережі та спробуйте ще раз.</string>
+    <string name="select_mode">Вибір режиму</string>
+    <string name="mode_selection">Режим вибрано</string>
+    <string name="two_hop_explanation">Відчуйте максимальну швидкість завдяки підключенню до 2-hop. Ідеально підходить для швидкого перегляду веб-сторінок, відео та обміну файлами.</string>
+    <string name="five_hop_explanation">Насолоджуйтесь максимальним рівнем конфіденційності, маршрутизуючи свій трафік через 5-hop mixnet. Ідеально підходить для безпечної обробки платежів, електронних листів та повідомлень.</string>
+    <string name="continue_reading">Продовжити читання</string>
 </resources>

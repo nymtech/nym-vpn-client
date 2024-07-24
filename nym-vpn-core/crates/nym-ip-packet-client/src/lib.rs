@@ -16,8 +16,6 @@ use nym_sdk::mixnet::{
 };
 use tracing::{debug, error};
 
-use nym_gateway_directory::IpPacketRouterAddress;
-
 mod error;
 
 pub use crate::error::{Error, Result};
@@ -95,7 +93,7 @@ impl IprClient {
 
     pub async fn connect(
         &mut self,
-        ip_packet_router_address: &IpPacketRouterAddress,
+        ip_packet_router_address: Recipient,
         ips: Option<IpPair>,
         enable_two_hop: bool,
     ) -> Result<IpPair> {
@@ -124,7 +122,7 @@ impl IprClient {
 
     async fn connect_inner(
         &mut self,
-        ip_packet_router_address: &IpPacketRouterAddress,
+        ip_packet_router_address: Recipient,
         ips: Option<IpPair>,
         enable_two_hop: bool,
     ) -> Result<IpPair> {
@@ -138,7 +136,7 @@ impl IprClient {
 
     async fn send_connect_request(
         &self,
-        ip_packet_router_address: &IpPacketRouterAddress,
+        ip_packet_router_address: Recipient,
         ips: Option<IpPair>,
         enable_two_hop: bool,
     ) -> Result<u64> {
@@ -154,7 +152,7 @@ impl IprClient {
 
         self.mixnet_sender
             .send(nym_sdk::mixnet::InputMessage::new_regular_with_custom_hops(
-                ip_packet_router_address.0,
+                ip_packet_router_address,
                 request.to_bytes().unwrap(),
                 TransmissionLane::General,
                 None,

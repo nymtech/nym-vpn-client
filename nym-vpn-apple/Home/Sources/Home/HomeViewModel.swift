@@ -19,6 +19,7 @@ public class HomeViewModel: HomeFlowState {
 
     private var timer = Timer()
     private var cancellables = Set<AnyCancellable>()
+    private var tunnelStatusUpdateCancellable: AnyCancellable?
     private var lastError: Error?
     @MainActor @Published private var activeTunnel: Tunnel?
 
@@ -42,11 +43,11 @@ public class HomeViewModel: HomeFlowState {
 
     // If no time connected is shown, should be set to empty string,
     // so the time connected label would not disappear and re-center other UI elements.
-    @Published var timeConnected = " "
-    @Published var statusButtonConfig = StatusButtonConfig.disconnected
-    @Published var statusInfoState = StatusInfoState.initialising
-    @Published var connectButtonState = ConnectButtonState.connect
-    @Published var isModeInfoOverlayDisplayed = false
+    @MainActor @Published var timeConnected = " "
+    @MainActor @Published var statusButtonConfig = StatusButtonConfig.disconnected
+    @MainActor @Published var statusInfoState = StatusInfoState.initialising
+    @MainActor @Published var connectButtonState = ConnectButtonState.connect
+    @MainActor @Published var isModeInfoOverlayDisplayed = false
 
 #if os(iOS)
     public init(
@@ -91,20 +92,28 @@ public class HomeViewModel: HomeFlowState {
 
 public extension HomeViewModel {
     func navigateToSettings() {
-        path.append(HomeLink.settings)
+        Task { @MainActor in
+            path.append(HomeLink.settings)
+        }
     }
 
     func navigateToFirstHopSelection() {
-        path.append(HomeLink.entryHop)
+        Task { @MainActor in
+            path.append(HomeLink.entryHop)
+        }
     }
 
     func navigateToLastHopSelection() {
-        path.append(HomeLink.exitHop)
+        Task { @MainActor in
+            path.append(HomeLink.exitHop)
+        }
     }
 
     func navigateToAddCredentials() {
-        path.append(HomeLink.settings)
-        path.append(SettingsLink.addCredentials)
+        Task { @MainActor in
+            path.append(HomeLink.settings)
+            path.append(SettingsLink.addCredentials)
+        }
     }
 }
 
@@ -129,23 +138,51 @@ public extension HomeViewModel {
 // MARK: - Connection -
 public extension HomeViewModel {
     func connectDisconnect() {
-        lastError = nil
-        statusInfoState = .unknown
-#if os(macOS)
-        installHelperIfNeeded()
-#endif
-        guard appSettings.isCredentialImported
-        else {
-            navigateToAddCredentials()
-            return
-        }
+        Task {
+            lastError = nil
+            resetStatusInfoState()
 
-        do {
-            try connectionManager.connectDisconnect()
-        } catch let error {
-            statusInfoState = .error(message: error.localizedDescription)
+#if os(macOS)
+            guard await isHelperInstalled() else { return }
+#endif
+
+            guard appSettings.isCredentialImported
+            else {
+                navigateToAddCredentials()
+                return
+            }
+
+            resetStatusInfoState()
+
+            Task { @MainActor in
+                do {
+                    try connectionManager.connectDisconnect()
+                } catch let error {
+                    statusInfoState = .error(message: error.localizedDescription)
+                }
+            }
         }
     }
+}
+
+private extension  HomeViewModel {
+#if os(macOS)
+    func isHelperInstalled() async -> Bool {
+        let isHelperInstalledAndRunning = await installHelperIfNeeded()
+
+        guard isHelperInstalledAndRunning
+        else {
+            updateStatusInfoState(with: .error(message: "home.installDaemonFailure".localizedString))
+            return false
+        }
+
+        guard helperManager.isHelperAuthorizedAndRunning()
+        else {
+            return false
+        }
+        return true
+    }
+#endif
 }
 
 // MARK: - Configuration -
@@ -163,14 +200,14 @@ private extension HomeViewModel {
         connectionManager.$isTunnelManagerLoaded.sink { [weak self] result in
             switch result {
             case .success, .none:
-                self?.statusInfoState = .unknown
+                self?.resetStatusInfoState()
             case let .failure(error):
-                self?.statusInfoState = .error(message: error.localizedDescription)
+                self?.updateStatusInfoState(with: .error(message: error.localizedDescription))
             }
         }
         .store(in: &cancellables)
 #if os(iOS)
-        connectionManager.$currentTunnel.sink { [weak self] tunnel in
+        connectionManager.$activeTunnel.sink { [weak self] tunnel in
             guard let tunnel, let self else { return }
             Task { @MainActor in
                 self.activeTunnel = tunnel
@@ -195,14 +232,13 @@ private extension HomeViewModel {
 
 #if os(iOS)
     func configureTunnelStatusObservation(with tunnel: Tunnel) {
-        tunnel.$status
-            .debounce(for: .seconds(0.2), scheduler: DispatchQueue.global(qos: .background))
-            .dropFirst()
+        tunnelStatusUpdateCancellable = tunnel.$status
+            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.global(qos: .background))
+            .removeDuplicates()
             .receive(on: RunLoop.main)
             .sink { [weak self] status in
                 self?.updateUI(with: status)
             }
-            .store(in: &cancellables)
     }
 #endif
 
@@ -270,7 +306,6 @@ private extension HomeViewModel {
 
         grpcManager.$tunnelStatus
             .debounce(for: .seconds(0.15), scheduler: DispatchQueue.global(qos: .background))
-            .dropFirst()
             .receive(on: RunLoop.main)
             .sink { [weak self] status in
                 self?.updateUI(with: status)
@@ -278,17 +313,21 @@ private extension HomeViewModel {
             .store(in: &cancellables)
     }
 
-    func installHelperIfNeeded() {
+    func installHelperIfNeeded() async -> Bool {
+        var isInstalledAndRunning = helperManager.isHelperAuthorizedAndRunning()
         // TODO: check if possible to split is helper running vs isHelperAuthorized
-        guard helperManager.isHelperRunning() && helperManager.isHelperAuthorized()
+        guard isInstalledAndRunning
         else {
             do {
-                _ = try helperManager.authorizeAndInstallHelper()
+                updateStatusInfoState(with: .error(message: "home.installDaemon".localizedString))
+                isInstalledAndRunning = try helperManager.authorizeAndInstallHelper()
+                resetStatusInfoState()
             } catch let error {
-                statusInfoState = .error(message: error.localizedDescription)
+                updateStatusInfoState(with: .error(message: error.localizedDescription))
             }
-            return
+            return isInstalledAndRunning
         }
+        return isInstalledAndRunning
     }
 
     func updateConnectedStartDateMacOS(with status: TunnelStatus) {
@@ -311,3 +350,17 @@ private extension HomeViewModel {
     }
 }
 #endif
+
+private extension HomeViewModel {
+    func resetStatusInfoState() {
+        Task { @MainActor in
+            statusInfoState = .unknown
+        }
+    }
+
+    func updateStatusInfoState(with newState: StatusInfoState) {
+        Task { @MainActor in
+            statusInfoState = newState
+        }
+    }
+}

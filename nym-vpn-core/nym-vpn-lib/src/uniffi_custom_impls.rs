@@ -252,6 +252,16 @@ impl From<ExitPoint> for GwExitPoint {
     }
 }
 
+#[derive(uniffi::Enum, Clone)]
+#[allow(clippy::large_enum_variant)]
+pub enum TunStatus {
+    Up,
+    Down,
+    InitializingClient,
+    EstablishingConnection,
+    Disconnecting,
+}
+
 impl UniffiCustomTypeConverter for PathBuf {
     type Builtin = String;
 

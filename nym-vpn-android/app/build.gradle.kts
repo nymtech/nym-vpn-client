@@ -30,6 +30,9 @@ android {
 		versionCode = Constants.VERSION_CODE
 		versionName = Constants.VERSION_NAME
 
+		// keep all language resources
+		resourceConfigurations.addAll(languageList())
+
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {
 			useSupportLibrary = true
@@ -128,13 +131,19 @@ android {
 	productFlavors {
 		create(Constants.FDROID) {
 			dimension = Constants.TYPE
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.FDROID}\"")
 		}
 		create(Constants.GENERAL) {
 			dimension = Constants.TYPE
 			proguardFile("proguard-rules.pro")
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.GENERAL}\"")
 		}
 		create(Constants.SANDBOX) {
-			buildConfigField("Boolean", "IS_SANDBOX", "true")
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.SANDBOX}\"")
+			dimension = Constants.TYPE
+		}
+		create(Constants.CANARY) {
+			buildConfigField("String", Constants.FLAVOR, "\"${Constants.CANARY}\"")
 			dimension = Constants.TYPE
 		}
 	}
@@ -191,13 +200,15 @@ android {
 
 dependencies {
 
-	implementation(project(":nym_vpn_client"))
-	implementation(project(":logcat_helper"))
+	implementation(project(":nym-vpn-client"))
+	implementation(project(":logcat-util"))
+	implementation(project(":localization-util"))
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 
 	implementation(libs.androidx.core.ktx)
 	implementation(libs.androidx.lifecycle.runtime.ktx)
 	implementation(libs.androidx.activity.compose)
+	implementation(libs.androidx.appcompat)
 	implementation(libs.androidx.material.icons.extended)
 	implementation(platform(libs.androidx.compose.bom))
 	implementation(libs.androidx.ui)
@@ -225,6 +236,7 @@ dependencies {
 
 	// logging
 	implementation(libs.timber)
+	implementation(libs.sentry.sentry.opentelemetry.core)
 
 	// navigation
 	implementation(libs.androidx.navigation.compose)

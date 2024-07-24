@@ -6,6 +6,7 @@ uniffi::setup_scaffolding!();
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
 use crate::mixnet_connect::setup_mixnet_client;
+use crate::tunnel::setup_route_manager;
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::WgGatewayClient;
 use futures::channel::{mpsc, oneshot};
@@ -21,11 +22,9 @@ use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
 use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
-use tokio::time::timeout;
-use tunnel_setup::{setup_tunnel, AllTunnelsSetup, TunnelSetup};
+use tunnel_setup::{init_firewall_dns, setup_tunnel, AllTunnelsSetup, TunnelSetup};
 use util::wait_for_interrupt_and_signal;
 
 // Public re-export
@@ -50,6 +49,7 @@ use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
 
+mod bandwidth_controller;
 mod platform;
 mod tunnel_setup;
 mod uniffi_custom_impls;
@@ -57,6 +57,7 @@ mod uniffi_custom_impls;
 pub mod config;
 pub mod credentials;
 pub mod error;
+pub mod keys;
 pub mod mixnet_connect;
 pub mod mixnet_processor;
 pub mod routing;
@@ -66,21 +67,24 @@ pub mod wg_gateway_client;
 mod wireguard_setup;
 
 const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
+pub const SHUTDOWN_TIMER_SECS: u64 = 10;
 
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
-    wg_gateway_client: &WgGatewayClient,
-    entry_gateway_identity: &str,
+    wg_gateway_client: &mut WgGatewayClient,
     mtu: u16,
 ) -> Result<WireguardConfig> {
     // First we need to register with the gateway to setup keys and IP assignment
     info!("Registering with wireguard gateway");
-    let entry_gateway_identity = gateway_client
-        .lookup_gateway_ip(entry_gateway_identity)
+    let gateway_host = gateway_client
+        .lookup_gateway_ip(
+            &wg_gateway_client
+                .auth_recipient()
+                .gateway()
+                .to_base58_string(),
+        )
         .await?;
-    let wg_gateway_data = wg_gateway_client
-        .register_wireguard(entry_gateway_identity)
-        .await?;
+    let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
     let wireguard_config =
@@ -92,19 +96,7 @@ struct ShadowHandle {
     _inner: Option<JoinHandle<Result<AsyncDevice>>>,
 }
 
-pub struct MixnetVpn {
-    /// Path to the data directory of a previously initialised mixnet client, where the keys reside.
-    pub mixnet_data_path: Option<PathBuf>,
-
-    /// Enable Poission process rate limiting of outbound traffic.
-    pub enable_poisson_rate: bool,
-
-    /// Disable constant rate background loop cover traffic
-    pub disable_background_cover_traffic: bool,
-
-    /// Enable the wireguard traffic between the client and the entry gateway.
-    pub enable_credentials_mode: bool,
-}
+pub struct MixnetVpn {}
 
 pub struct WireguardVpn {
     /// The IP address of the entry wireguard interface.
@@ -136,7 +128,24 @@ impl From<NymVpn<MixnetVpn>> for SpecificVpn {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct MixnetClientConfig {
+    /// Enable Poission process rate limiting of outbound traffic.
+    pub enable_poisson_rate: bool,
+
+    /// Disable constant rate background loop cover traffic
+    pub disable_background_cover_traffic: bool,
+
+    /// Enable the credentials mode between the client and the entry gateway.
+    pub enable_credentials_mode: bool,
+}
+
 pub struct NymVpn<T: Vpn> {
+    pub mixnet_client_config: MixnetClientConfig,
+
+    /// Path to the data directory, where keys reside.
+    pub data_path: Option<PathBuf>,
+
     /// Gateway configuration
     pub gateway_config: GatewayDirectoryConfig,
 
@@ -210,6 +219,12 @@ impl NymVpn<WireguardVpn> {
         )));
 
         Self {
+            mixnet_client_config: MixnetClientConfig {
+                enable_poisson_rate: false,
+                disable_background_cover_traffic: false,
+                enable_credentials_mode: false,
+            },
+            data_path: None,
             gateway_config: nym_gateway_directory::Config::default(),
             entry_point,
             exit_point,
@@ -250,6 +265,12 @@ impl NymVpn<MixnetVpn> {
         )));
 
         Self {
+            mixnet_client_config: MixnetClientConfig {
+                enable_poisson_rate: false,
+                disable_background_cover_traffic: false,
+                enable_credentials_mode: false,
+            },
+            data_path: None,
             gateway_config: nym_gateway_directory::Config::default(),
             entry_point,
             exit_point,
@@ -259,12 +280,7 @@ impl NymVpn<MixnetVpn> {
             disable_routing: false,
             enable_two_hop: false,
             user_agent: None,
-            vpn_config: MixnetVpn {
-                mixnet_data_path: None,
-                enable_poisson_rate: false,
-                disable_background_cover_traffic: false,
-                enable_credentials_mode: false,
-            },
+            vpn_config: MixnetVpn {},
             tun_provider,
             #[cfg(target_os = "ios")]
             ios_tun_provider,
@@ -277,20 +293,19 @@ impl NymVpn<MixnetVpn> {
         &mut self,
         mixnet_client: SharedMixnetClient,
         route_manager: &mut RouteManager,
-        exit_router: &IpPacketRouterAddress,
+        exit_mix_addresses: &IpPacketRouterAddress,
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         dns_monitor: &mut DnsMonitor,
     ) -> Result<MixnetExitConnectionInfo> {
-        let exit_gateway = *exit_router.gateway();
+        let exit_gateway = *exit_mix_addresses.gateway();
         info!("Connecting to exit gateway: {exit_gateway}");
-        debug!("Connecting to exit IPR: {exit_router}");
         // Currently the IPR client is only used to connect. The next step would be to use it to
         // spawn a separate task that handles IPR request/responses.
         let mut ipr_client = IprClient::new_from_inner(mixnet_client.inner()).await;
         let our_ips = ipr_client
-            .connect(exit_router, self.nym_ips, self.enable_two_hop)
+            .connect(exit_mix_addresses.0, self.nym_ips, self.enable_two_hop)
             .await?;
         info!("Successfully connected to exit gateway");
         info!("Using mixnet VPN IP addresses: {our_ips}");
@@ -324,7 +339,7 @@ impl NymVpn<MixnetVpn> {
         .await?;
 
         info!("Setting up mixnet processor");
-        let processor_config = mixnet_processor::Config::new(*exit_router);
+        let processor_config = mixnet_processor::Config::new(exit_mix_addresses.0);
         debug!("Mixnet processor config: {:#?}", processor_config);
 
         // For other components that will want to send mixnet packets
@@ -349,13 +364,13 @@ impl NymVpn<MixnetVpn> {
             mixnet_client_sender,
             mixnet_client_address,
             our_ips,
-            exit_router.0,
+            exit_mix_addresses.0,
             task_manager,
         );
 
         Ok(MixnetExitConnectionInfo {
             exit_gateway,
-            exit_ipr: exit_router.0,
+            exit_ipr: exit_mix_addresses.0,
             ips: our_ips,
         })
     }
@@ -363,32 +378,14 @@ impl NymVpn<MixnetVpn> {
     #[allow(clippy::too_many_arguments)]
     async fn setup_tunnel_services(
         &mut self,
+        mixnet_client: SharedMixnetClient,
         route_manager: &mut RouteManager,
-        entry_gateway: &NodeIdentity,
-        exit_router: &IpPacketRouterAddress,
+        exit_mix_addresses: &IpPacketRouterAddress,
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
         dns_monitor: &mut DnsMonitor,
     ) -> Result<(MixnetConnectionInfo, MixnetExitConnectionInfo)> {
-        info!("Setting up mixnet client");
-        info!("Connecting to entry gateway: {entry_gateway}");
-        let mixnet_client = timeout(
-            Duration::from_secs(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS),
-            setup_mixnet_client(
-                entry_gateway,
-                &self.vpn_config.mixnet_data_path,
-                task_manager.subscribe_named("mixnet_client_main"),
-                false,
-                self.enable_two_hop,
-                self.vpn_config.enable_poisson_rate,
-                self.vpn_config.disable_background_cover_traffic,
-                self.vpn_config.enable_credentials_mode,
-            ),
-        )
-        .await
-        .map_err(|_| Error::StartMixnetTimeout(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS))??;
-
         // Now that we have a connection, collection some info about that and return
         let nym_address = mixnet_client.nym_address().await;
         let entry_gateway = *(nym_address.gateway());
@@ -408,7 +405,7 @@ impl NymVpn<MixnetVpn> {
             .setup_post_mixnet(
                 mixnet_client.clone(),
                 route_manager,
-                exit_router,
+                exit_mix_addresses,
                 task_manager,
                 gateway_client,
                 default_lan_gateway_ip,
@@ -435,6 +432,20 @@ impl<T: Vpn> NymVpn<T> {
     }
 }
 impl SpecificVpn {
+    pub fn mixnet_client_config(&self) -> MixnetClientConfig {
+        match self {
+            SpecificVpn::Wg(vpn) => vpn.mixnet_client_config.clone(),
+            SpecificVpn::Mix(vpn) => vpn.mixnet_client_config.clone(),
+        }
+    }
+
+    pub fn data_path(&self) -> Option<PathBuf> {
+        match self {
+            SpecificVpn::Wg(vpn) => vpn.data_path.clone(),
+            SpecificVpn::Mix(vpn) => vpn.data_path.clone(),
+        }
+    }
+
     pub fn gateway_config(&self) -> GatewayDirectoryConfig {
         match self {
             SpecificVpn::Wg(vpn) => vpn.gateway_config.clone(),
@@ -456,6 +467,13 @@ impl SpecificVpn {
         }
     }
 
+    pub fn enable_two_hop(&self) -> bool {
+        match self {
+            SpecificVpn::Wg(vpn) => vpn.enable_two_hop,
+            SpecificVpn::Mix(vpn) => vpn.enable_two_hop,
+        }
+    }
+
     pub fn user_agent(&self) -> Option<UserAgent> {
         match self {
             SpecificVpn::Wg(vpn) => vpn.user_agent.clone(),
@@ -467,43 +485,64 @@ impl SpecificVpn {
     // applications where the main way to interact with the running process is to send SIGINT
     // (ctrl-c)
     pub async fn run(&mut self) -> Result<()> {
-        let tunnels = setup_tunnel(self).await?;
+        let mut task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
+        info!("Setting up route manager");
+        let mut route_manager = setup_route_manager().await?;
+        let (mut firewall, mut dns_monitor) = init_firewall_dns(
+            #[cfg(target_os = "linux")]
+            route_manager.handle()?,
+        )
+        .await?;
+        let tunnels = match setup_tunnel(
+            self,
+            &mut task_manager,
+            &mut route_manager,
+            &mut dns_monitor,
+        )
+        .await
+        {
+            Ok(tunnels) => tunnels,
+            Err(e) => {
+                tokio::task::spawn_blocking(move || {
+                    dns_monitor
+                        .reset()
+                        .inspect_err(|err| {
+                            log::error!("Failed to reset dns monitor: {err}");
+                        })
+                        .ok();
+                    firewall
+                        .reset_policy()
+                        .inspect_err(|err| {
+                            error!("Failed to reset firewall policy: {err}");
+                        })
+                        .ok();
+                    drop(route_manager);
+                })
+                .await?;
+                return Err(e);
+            }
+        };
         info!("Nym VPN is now running");
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
-            AllTunnelsSetup::Mix(TunnelSetup {
-                mut specific_setup, ..
-            }) => {
-                wait_for_interrupt(specific_setup.task_manager).await;
-                handle_interrupt(specific_setup.route_manager, None)
-                    .await
-                    .inspect_err(|err| {
-                        error!("Failed to handle interrupt: {err}");
-                    })?;
+            AllTunnelsSetup::Mix(_) => {
+                wait_for_interrupt(task_manager).await;
+                handle_interrupt(route_manager, None).await;
                 tokio::task::spawn_blocking(move || {
-                    specific_setup.dns_monitor.reset().inspect_err(|err| {
+                    dns_monitor.reset().inspect_err(|err| {
                         log::error!("Failed to reset dns monitor: {err}");
                     })
                 })
                 .await??;
             }
-            AllTunnelsSetup::Wg {
-                route_manager,
-                entry,
-                exit,
-                mut firewall,
-                mut dns_monitor,
-            } => {
-                wait_for_interrupt(TaskManager::new(10)).await;
+            AllTunnelsSetup::Wg { entry, exit } => {
+                wait_for_interrupt(task_manager).await;
                 handle_interrupt(
                     route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
-                .await
-                .inspect_err(|err| {
-                    error!("Failed to handle interrupt: {err}");
-                })?;
+                .await;
 
                 dns_monitor.reset().inspect_err(|err| {
                     error!("Failed to reset dns monitor: {err}");
@@ -527,13 +566,25 @@ impl SpecificVpn {
         mut vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let tunnels = setup_tunnel(self).await?;
+        let mut task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
+        info!("Setting up route manager");
+        let mut route_manager = setup_route_manager().await?;
+        let (mut firewall, mut dns_monitor) = init_firewall_dns(
+            #[cfg(target_os = "linux")]
+            route_manager.handle()?,
+        )
+        .await?;
+        let tunnels = setup_tunnel(
+            self,
+            &mut task_manager,
+            &mut route_manager,
+            &mut dns_monitor,
+        )
+        .await?;
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
-            AllTunnelsSetup::Mix(TunnelSetup {
-                mut specific_setup, ..
-            }) => {
+            AllTunnelsSetup::Mix(TunnelSetup { specific_setup, .. }) => {
                 // Signal back that mixnet is ready and up with all cylinders firing
                 // TODO: this should actually be sent much earlier, when the mixnet client is
                 // connected. However that would also require starting the status listener earlier.
@@ -545,8 +596,7 @@ impl SpecificVpn {
                         .entry_gateway
                         .to_base58_string(),
                 );
-                specific_setup
-                    .task_manager
+                task_manager
                     .start_status_listener(vpn_status_tx.clone(), start_status)
                     .await;
 
@@ -558,40 +608,23 @@ impl SpecificVpn {
                     .await
                     .unwrap();
 
-                let result =
-                    wait_for_interrupt_and_signal(Some(specific_setup.task_manager), vpn_ctrl_rx)
-                        .await;
-                handle_interrupt(specific_setup.route_manager, None)
-                    .await
-                    .map_err(|err| {
-                        error!("Failed to handle interrupt: {err}");
-                        Box::new(NymVpnExitError::Generic { reason: err })
-                    })?;
+                let result = wait_for_interrupt_and_signal(Some(task_manager), vpn_ctrl_rx).await;
+                handle_interrupt(route_manager, None).await;
                 tokio::task::spawn_blocking(move || {
-                    specific_setup.dns_monitor.reset().inspect_err(|err| {
+                    dns_monitor.reset().inspect_err(|err| {
                         log::error!("Failed to reset dns monitor: {err}");
                     })
                 })
                 .await??;
                 result
             }
-            AllTunnelsSetup::Wg {
-                route_manager,
-                entry,
-                exit,
-                mut firewall,
-                mut dns_monitor,
-            } => {
-                let result = wait_for_interrupt_and_signal(None, vpn_ctrl_rx).await;
+            AllTunnelsSetup::Wg { entry, exit } => {
+                let result = wait_for_interrupt_and_signal(Some(task_manager), vpn_ctrl_rx).await;
                 handle_interrupt(
                     route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
-                .await
-                .map_err(|err| {
-                    error!("Failed to handle interrupt: {err}");
-                    Box::new(NymVpnExitError::Generic { reason: err })
-                })?;
+                .await;
                 dns_monitor.reset().map_err(|err| {
                     error!("Failed to reset dns monitor: {err}");
                     NymVpnExitError::FailedToResetDnsMonitor {

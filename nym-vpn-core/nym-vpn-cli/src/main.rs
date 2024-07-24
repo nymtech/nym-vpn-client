@@ -6,7 +6,7 @@ mod commands;
 use std::fs;
 use std::path::PathBuf;
 
-use commands::ImportCredentialTypeEnum;
+use commands::{CliArgs, ImportCredentialTypeEnum};
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::nym_bin_common::bin_info;
 use nym_vpn_lib::{error::*, IpPair, NodeIdentity, SpecificVpn};
@@ -20,13 +20,20 @@ use nym_vpn_lib::nym_config::defaults::{setup_env, var_names};
 
 const CONFIG_DIRECTORY_NAME: &str = "nym-vpn-cli";
 
-pub fn setup_logging() {
-    let filter = tracing_subscriber::EnvFilter::builder()
+pub(crate) fn setup_logging(args: &CliArgs) {
+    let mut filter = tracing_subscriber::EnvFilter::builder()
         .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
         .from_env()
         .unwrap()
         .add_directive("hyper::proto=info".parse().unwrap())
         .add_directive("netlink_proto=info".parse().unwrap());
+    if let Commands::Run(run_args) = &args.command {
+        if run_args.wireguard_mode {
+            filter = filter
+                .add_directive("nym_client_core=warn".parse().unwrap())
+                .add_directive("nym_gateway_client=warn".parse().unwrap());
+        }
+    }
 
     tracing_subscriber::fmt()
         .with_env_filter(filter)
@@ -95,8 +102,8 @@ fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
 }
 
 async fn run() -> Result<()> {
-    setup_logging();
     let args = commands::CliArgs::parse();
+    setup_logging(&args);
     debug!("{:?}", nym_vpn_lib::nym_bin_common::bin_info!());
     setup_env(args.config_env_file.as_ref());
 
@@ -144,7 +151,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         None
     };
 
-    let mut nym_vpn: SpecificVpn = if args.enable_wireguard {
+    let mut nym_vpn: SpecificVpn = if args.wireguard_mode {
         let mut nym_vpn = NymVpn::new_wireguard_vpn(entry_point, exit_point);
         nym_vpn.gateway_config = gateway_config;
         nym_vpn.nym_ips = nym_ips;
@@ -152,6 +159,12 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.dns = args.dns;
         nym_vpn.disable_routing = args.disable_routing;
         nym_vpn.enable_two_hop = args.enable_two_hop;
+        nym_vpn.data_path = data_path;
+        nym_vpn.mixnet_client_config.enable_poisson_rate = args.enable_poisson_rate;
+        nym_vpn
+            .mixnet_client_config
+            .disable_background_cover_traffic = args.disable_background_cover_traffic;
+        nym_vpn.mixnet_client_config.enable_credentials_mode = args.enable_credentials_mode;
         nym_vpn.user_agent = Some(bin_info!().into());
         nym_vpn.into()
     } else {
@@ -162,10 +175,12 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.dns = args.dns;
         nym_vpn.disable_routing = args.disable_routing;
         nym_vpn.enable_two_hop = args.enable_two_hop;
-        nym_vpn.vpn_config.mixnet_data_path = data_path;
-        nym_vpn.vpn_config.enable_poisson_rate = args.enable_poisson_rate;
-        nym_vpn.vpn_config.disable_background_cover_traffic = args.disable_background_cover_traffic;
-        nym_vpn.vpn_config.enable_credentials_mode = args.enable_credentials_mode;
+        nym_vpn.data_path = data_path;
+        nym_vpn.mixnet_client_config.enable_poisson_rate = args.enable_poisson_rate;
+        nym_vpn
+            .mixnet_client_config
+            .disable_background_cover_traffic = args.disable_background_cover_traffic;
+        nym_vpn.mixnet_client_config.enable_credentials_mode = args.enable_credentials_mode;
         nym_vpn.user_agent = Some(bin_info!().into());
         nym_vpn.into()
     };

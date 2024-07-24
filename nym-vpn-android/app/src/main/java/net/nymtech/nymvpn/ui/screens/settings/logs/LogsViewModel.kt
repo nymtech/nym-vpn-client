@@ -7,8 +7,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import net.nymtech.logcathelper.LogCollect
-import net.nymtech.logcathelper.model.LogMessage
+import net.nymtech.logcatutil.LogCollect
+import net.nymtech.logcatutil.model.LogMessage
 import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.module.MainDispatcher
 import net.nymtech.nymvpn.util.Constants

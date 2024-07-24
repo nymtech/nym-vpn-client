@@ -53,8 +53,10 @@ import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
+import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
@@ -73,10 +75,11 @@ import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 import net.nymtech.vpn.model.VpnMode
+import java.time.Instant
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiState: AppUiState, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val scope = rememberCoroutineScope()
@@ -113,11 +116,20 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 		return Result.failure(NymVpnExceptions.PermissionsNotGrantedException())
 	}
 
-	ModeDialog(show = showDialog, onDismiss = { showDialog = false })
+	Modal(show = showDialog, onDismiss = { showDialog = false }, title = {
+		Text(
+			text = stringResource(R.string.mode_selection),
+			color = MaterialTheme.colorScheme.onSurface,
+			style = CustomTypography.labelHuge,
+		)
+	}, text = {
+		ModeModalBody()
+	})
 
 	LaunchedEffect(uiState.firstHopCounty, uiState.lastHopCountry, uiState.networkMode, uiState.connectionState) {
 		NymVpn.requestTileServiceStateUpdate()
 	}
+
 	Column(
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -243,7 +255,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 							) {
 								if (selectionEnabled) {
 									navController.navigate(
-										NavItem.Hop.Entry.route,
+										NavItem.Location.Entry.route,
 									)
 								} else {
 									appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
@@ -273,7 +285,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) rememberRipple() else null) {
 							if (selectionEnabled) {
 								navController.navigate(
-									NavItem.Hop.Exit.route,
+									NavItem.Location.Exit.route,
 								)
 							} else {
 								appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
@@ -288,25 +300,21 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, viewMod
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
 								scope.launch {
-									appViewModel.onValidCredentialCheck().onSuccess {
-										requestNotificationPermissions().onSuccess {
-											if (vpnIntent != null) {
-												return@launch vpnActivityResultState.launch(
-													vpnIntent,
-												)
-											}
-											viewModel.onConnect().onFailure {
-												navController.navigate(NavItem.Settings.Credential.route)
-											}
-										}
-									}.onFailure {
-										when (it) {
-											is NymVpnExceptions.InvalidCredentialException -> {
-												appViewModel.showSnackbarMessage(it.getMessage(context))
+									appUiState.credentialExpiryTime?.let {
+										if (it.isAfter(Instant.now())) {
+											requestNotificationPermissions().onSuccess {
+												if (vpnIntent != null) {
+													return@launch vpnActivityResultState.launch(
+														vpnIntent,
+													)
+												}
+												viewModel.onConnect().onFailure {
+													appViewModel.showSnackbarMessage(context.getString(R.string.exception_cred_invalid))
+													navController.navigate(NavItem.Settings.Credential.route)
+												}
 											}
 										}
-										navController.navigate(NavItem.Settings.Credential.route)
-									}
+									} ?: navController.navigate(NavItem.Settings.Credential.route)
 								}
 							},
 							content = {

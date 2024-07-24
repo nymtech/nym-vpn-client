@@ -1,2 +1,2 @@
 Yenilikler:
--  Kullanıcı arayüzü oluşturma
+- Kullanıcı arayüzü oluşturma

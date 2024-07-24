@@ -1,7 +1,7 @@
 import Foundation
 import TunnelStatus
 
-public enum StatusInfoState {
+public enum StatusInfoState: Equatable {
     case initialising
     case connecting
     case connectionTime
@@ -33,5 +33,9 @@ public enum StatusInfoState {
             // Empty string hides the view. To not mess up UX spacing - need 'space' to still show it.
             " "
         }
+    }
+
+    public var isConnecting: Bool {
+        self == .connecting
     }
 }

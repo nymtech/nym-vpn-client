@@ -3,7 +3,7 @@
 
 use clap::Parser;
 use nym_task::TaskManager;
-use nym_vpn_lib::nym_config::defaults::setup_env;
+use nym_vpn_lib::{nym_config::defaults::setup_env, SHUTDOWN_TIMER_SECS};
 use tokio::sync::broadcast;
 
 use crate::{
@@ -21,7 +21,7 @@ mod service;
 mod windows_service;
 
 fn run_inner(args: CliArgs) -> Result<(), Box<dyn std::error::Error>> {
-    let task_manager = TaskManager::new(10).named("nym_vpnd");
+    let task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpnd");
     let service_task_client = task_manager.subscribe_named("vpn_service");
 
     let state_changes_tx = broadcast::channel(10).0;

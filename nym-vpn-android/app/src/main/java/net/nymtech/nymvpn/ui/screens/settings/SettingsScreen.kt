@@ -10,10 +10,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.AppShortcut
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.ViewQuilt
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,6 +47,7 @@ import net.nymtech.nymvpn.util.durationFromNow
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
 import net.nymtech.vpn.model.VpnState
+import java.time.Instant
 
 @Composable
 fun SettingsScreen(
@@ -67,7 +70,7 @@ fun SettingsScreen(
 			.padding(top = 24.dp)
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
-		if (!appUiState.isNonExpiredCredentialImported) {
+		if (appUiState.credentialExpiryTime == null || appUiState.credentialExpiryTime.isBefore(Instant.now())) {
 			MainStyledButton(
 				onClick = { navController.navigate(NavItem.Settings.Credential.route) },
 				content = {
@@ -79,7 +82,7 @@ fun SettingsScreen(
 				color = MaterialTheme.colorScheme.primary,
 			)
 		} else {
-			appUiState.credentialExpiryTime?.let {
+			appUiState.credentialExpiryTime.let {
 				val credentialDuration = it.durationFromNow()
 				val days = credentialDuration.toDaysPart()
 				val hours = credentialDuration.toHoursPart()
@@ -95,7 +98,7 @@ fun SettingsScreen(
 							append(if (hours != 1) stringResource(id = R.string.hours) else stringResource(id = R.string.hour))
 						}
 						append(" ")
-						append(stringResource(id = R.string.left))
+						append(stringResource(id = R.string.remaining))
 					}
 				SurfaceSelectionGroupButton(
 					listOf(
@@ -159,7 +162,17 @@ fun SettingsScreen(
 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 						)
 					},
+
 				),
+				SelectionItem(
+					Icons.AutoMirrored.Outlined.ViewQuilt,
+					title = { Text(stringResource(R.string.appearance), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					onClick = { navController.navigate(NavItem.Settings.Appearance.route) },
+				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.two),
 					{
@@ -175,30 +188,11 @@ fun SettingsScreen(
 					},
 					title = {
 						Text(
-							stringResource(R.string.first_hop_selection),
+							stringResource(R.string.entry_location_selector),
 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 						)
 					},
-					description = {
-						Text(
-							stringResource(id = R.string.entry_location_description),
-							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-						)
-					},
 				),
-			),
-		)
-		SurfaceSelectionGroupButton(
-			listOf(
-				SelectionItem(
-					ImageVector.vectorResource(R.drawable.contrast),
-					title = { Text(stringResource(R.string.display_theme), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(NavItem.Settings.Display.route) },
-				),
-			),
-		)
-		SurfaceSelectionGroupButton(
-			listOf(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.logs),
 					title = { Text(stringResource(R.string.logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
