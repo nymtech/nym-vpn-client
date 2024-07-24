@@ -128,4 +128,13 @@
     <string name="two_hop_explanation">Відчуйте максимальну швидкість завдяки підключенню до 2-hop. Ідеально підходить для швидкого перегляду веб-сторінок, відео та обміну файлами.</string>
     <string name="five_hop_explanation">Насолоджуйтесь максимальним рівнем конфіденційності, маршрутизуючи свій трафік через 5-hop mixnet. Ідеально підходить для безпечної обробки платежів, електронних листів та повідомлень.</string>
     <string name="continue_reading">Продовжити читання</string>
+    <string name="faq_link" translatable="false"></string>
+    <string name="privacy_link" translatable="false"></string>
+    <string name="matrix_url" translatable="false"></string>
+    <string name="discord_url" translatable="false"></string>
+    <string name="faq_url" translatable="false"></string>
+    <string name="contact_url" translatable="false"></string>
+    <string name="support_email" translatable="false"></string>
+    <string name="github_issues_url" translatable="false"></string>
+    <string name="terms_link" translatable="false"></string>
 </resources>
