@@ -1,10 +1,22 @@
 import { invoke } from '@tauri-apps/api';
 import React, { useCallback, useEffect, useReducer } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CountryCacheDuration } from '../constants';
-import { MainDispatchContext, MainStateContext } from '../contexts';
+import {
+  MainDispatchContext,
+  MainStateContext,
+  useNotifications,
+} from '../contexts';
 import { sleep } from '../helpers';
 import { useThrottle } from '../hooks';
-import { BackendError, Cli, Country, NodeHop, isCountry } from '../types';
+import {
+  BackendError,
+  Cli,
+  Country,
+  NodeHop,
+  NodeLocation,
+  isCountry,
+} from '../types';
 import { initFirstBatch, initSecondBatch } from './init';
 import { initialState, reducer } from './main';
 import { useTauriEvents } from './useTauriEvents';
@@ -23,6 +35,9 @@ export function MainStateProvider({ children }: Props) {
   } = state;
 
   useTauriEvents(dispatch, state);
+  const { push } = useNotifications();
+
+  const { t } = useTranslation();
 
   // initialize app state
   useEffect(() => {
@@ -103,15 +118,13 @@ export function MainStateProvider({ children }: Props) {
   }, []);
 
   const checkSelectedCountry = useCallback(
-    async (hop: NodeHop) => {
-      const selected = hop === 'entry' ? entryNodeLocation : exitNodeLocation;
-      const countries = hop === 'entry' ? entryCountryList : exitCountryList;
+    async (hop: NodeHop, countries: Country[], selected: NodeLocation) => {
       if (
         countries.length > 0 &&
         isCountry(selected) &&
         !countries.some((c) => c.code === selected.code)
       ) {
-        console.warn(
+        console.info(
           `selected ${hop} country [${selected.name}] not in the list, picking a random one`,
         );
         const location =
@@ -125,22 +138,36 @@ export function MainStateProvider({ children }: Props) {
             type: 'set-node-location',
             payload: { hop, location },
           });
+          push({
+            text: t(
+              hop === 'entry'
+                ? 'location-not-available.entry'
+                : 'location-not-available.exit',
+              {
+                ns: 'nodeLocation',
+                location: location.name,
+              },
+            ),
+            position: 'top',
+            closeIcon: true,
+            autoHideDuration: 10000,
+          });
         } catch (e) {
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           console.warn(`failed to update the selected country: ${e}`);
         }
       }
     },
-    [entryNodeLocation, exitNodeLocation, entryCountryList, exitCountryList],
+    [push, t],
   );
 
   useEffect(() => {
     // if the current country is not in the list of available countries, pick a random one
     if (entryCountryList.length > 0) {
-      checkSelectedCountry('entry');
+      checkSelectedCountry('entry', entryCountryList, entryNodeLocation);
     }
     if (exitCountryList.length > 0) {
-      checkSelectedCountry('exit');
+      checkSelectedCountry('exit', exitCountryList, exitNodeLocation);
     }
   }, [
     checkSelectedCountry,

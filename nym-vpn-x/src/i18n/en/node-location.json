@@ -9,5 +9,9 @@
     "title": "Details on server locations",
     "description": "We infer server locations based on their IP addresses, but the actual locations may vary slightly.",
     "link": "Read more"
+  },
+  "location-not-available": {
+    "entry": "Selected entry location not available, switched to {{location}}",
+    "exit": "Selected exit location not available, switched to {{location}}"
   }
 }

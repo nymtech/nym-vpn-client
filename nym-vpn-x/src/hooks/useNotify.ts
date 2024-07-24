@@ -50,7 +50,7 @@ function useNotify() {
 
       const granted = await isPermissionGranted();
       if (!granted) {
-        console.warn('Desktop notifications permission not granted');
+        console.log('Desktop notifications permission not granted');
         return;
       }
 
