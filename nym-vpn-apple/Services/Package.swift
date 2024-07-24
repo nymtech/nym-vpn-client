@@ -108,6 +108,7 @@ let package = Package(
         .target(
             name: "NymLogger",
             dependencies: [
+                "Constants",
                 .product(name: "Logging", package: "swift-log")
             ],
             path: "Sources/Services/NymLogger"

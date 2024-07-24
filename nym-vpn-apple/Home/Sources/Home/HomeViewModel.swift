@@ -109,11 +109,9 @@ public extension HomeViewModel {
         }
     }
 
-    func navigateToAddCredentials() {
-        Task { @MainActor in
-            path.append(HomeLink.settings)
-            path.append(SettingsLink.addCredentials)
-        }
+    @MainActor func navigateToAddCredentials() {
+        path.append(HomeLink.settings)
+        path.append(SettingsLink.addCredentials)
     }
 }
 
@@ -148,7 +146,7 @@ public extension HomeViewModel {
 
             guard appSettings.isCredentialImported
             else {
-                navigateToAddCredentials()
+                await navigateToAddCredentials()
                 return
             }
 

@@ -2,12 +2,12 @@ import Combine
 import SwiftUI
 import AppSettings
 import Constants
-import NymLogger
+import Logging
 
 public final class CountriesManager: ObservableObject {
     private var appSettings: AppSettings
 
-    let logger = NymLogger(label: "CountriesManager").logger
+    let logger = Logger(label: "CountriesManager")
 
     var isLoading = false
     var entryLastHopStore = EntryLastHopStore()

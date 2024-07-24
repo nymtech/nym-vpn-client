@@ -59,10 +59,7 @@ private extension HomeView {
 
     @ViewBuilder
     func navbar() -> some View {
-        CustomNavBar(
-            title: viewModel.title,
-            rightButton: CustomNavBarButton(type: .settings, action: { viewModel.navigateToSettings() })
-        )
+        CustomNavBar(rightButton: CustomNavBarButton(type: .settings, action: { viewModel.navigateToSettings() }))
     }
 
     @ViewBuilder

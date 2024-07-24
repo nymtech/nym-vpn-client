@@ -1,8 +1,10 @@
 import SwiftUI
+import Logging
 import AppSettings
 import Home
 import Extensions
 import KeyboardManager
+import NymLogger
 import SentryManager
 import Theme
 
@@ -38,6 +40,9 @@ struct NymVPNApp: App {
 
 private extension NymVPNApp {
     func setup() {
+        LoggingSystem.bootstrap { label in
+            FileLogHandler(label: label)
+        }
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
     }

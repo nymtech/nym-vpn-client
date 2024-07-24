@@ -1,10 +1,12 @@
 import SwiftUI
+import Logging
 import AppSettings
 import AutoUpdater
 import AutoUpdates
 import Constants
 import Home
 import HelperManager
+import NymLogger
 import SentryManager
 import Theme
 
@@ -45,6 +47,9 @@ struct NymVPNDaemonApp: App {
 
 private extension NymVPNDaemonApp {
     func setup() {
+        LoggingSystem.bootstrap { label in
+            FileLogHandler(label: label)
+        }
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
         HelperManager.shared.setup(helperName: Constants.helperName.rawValue)

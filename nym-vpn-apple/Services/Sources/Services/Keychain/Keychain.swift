@@ -3,10 +3,10 @@
 import Foundation
 import Security
 import Constants
-import NymLogger
+import Logging
 
 public class Keychain {
-    private static var logger = NymLogger(label: "KeychainLogger").logger
+    private static var logger = Logger(label: "KeychainLogger")
 
     public static func openReference(called ref: Data) -> String? {
         var result: CFTypeRef?

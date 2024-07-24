@@ -1,4 +1,5 @@
 import NetworkExtension
+import Logging
 import NymLogger
 import MixnetLibrary
 import TunnelMixnet
@@ -12,12 +13,18 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             mixnetTunnelProvider: mixnetTunnelProvider
         )
     }()
+    private lazy var logger = Logger(label: "MixnetTunnel")
 
     override func startTunnel(options: [String: NSObject]?, completionHandler: @escaping (Error?) -> Void) {
+        LoggingSystem.bootstrap { label in
+            FileLogHandler(label: label)
+        }
+        logger.log(level: .info, "Start tunnel...")
         guard
             let tunnelProviderProtocol = self.protocolConfiguration as? NETunnelProviderProtocol,
             let mixnetConfig = tunnelProviderProtocol.asMixnetConfig()
         else {
+            logger.log(level: .info, "Start tunnel: invalid saved configuration")
             completionHandler(PacketTunnelProviderError.invalidSavedConfiguration)
             return
         }
@@ -33,18 +40,25 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
             self?.configure(with: config)
             self?.mixnetTunnelProvider.fileDescriptor = self?.mixnetAdapter.tunnelFileDescriptor
+            self?.logger.log(
+                level: .info,
+                "Start tunnel: \(String(describing: self?.mixnetAdapter.tunnelFileDescriptor))"
+            )
             semaphore.signal()
         }
         mixnetTunnelProvider.nymOnConfigure = callback
         do {
+            logger.log(level: .info, "Start tunnel: start")
             try mixnetAdapter.start(
                 with: mixnetConfig.asVpnConfig(mixnetTunnelProvider: mixnetAdapter.mixnetTunnelProvider)
             )
         } catch let error {
+            logger.log(level: .error, "Start tunnel: \(error)")
             completionHandler(error)
         }
         semaphore.wait()
 
+        logger.log(level: .info, "Start tunnel: connected")
         completionHandler(nil)
     }
 
