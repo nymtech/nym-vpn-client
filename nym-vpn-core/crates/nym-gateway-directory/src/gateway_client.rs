@@ -478,7 +478,11 @@ mod test {
                 .expect("harbour master url not parseable"),
         );
         let client = GatewayClient::new(config, user_agent()).unwrap();
-        let gateways = client.lookup_gateways_in_harbour_master().await.unwrap().unwrap();
+        let gateways = client
+            .lookup_gateways_in_harbour_master()
+            .await
+            .unwrap()
+            .unwrap();
         assert!(!gateways.is_empty());
     }
 }
