@@ -10,10 +10,10 @@ const ENV_LOG_FILE: &str = "LOG_FILE";
 const LOG_DIR: &str = "log";
 const LOG_FILE: &str = "app.log";
 
-fn rotate_log_file(cache_dir: PathBuf) -> Result<()> {
-    let log_file = cache_dir.join(LOG_FILE);
+fn rotate_log_file(log_dir: PathBuf) -> Result<()> {
+    let log_file = log_dir.join(LOG_FILE);
     if log_file.is_file() {
-        let old_file = cache_dir.join(format!("{}.old", LOG_FILE));
+        let old_file = log_dir.join(format!("{}.old", LOG_FILE));
         let data = fs::read(&log_file).inspect_err(|e| {
             eprintln!(
                 "failed to read log file during log rotation {}: {e}",
@@ -26,6 +26,7 @@ fn rotate_log_file(cache_dir: PathBuf) -> Result<()> {
                 old_file.display()
             )
         })?;
+        fs::remove_file(log_file)?;
     }
     Ok(())
 }
@@ -40,19 +41,19 @@ pub async fn setup_tracing() -> Result<Option<WorkerGuard>> {
 
     if envi::is_truthy(ENV_LOG_FILE) {
         let cache_dir = cache_dir().ok_or(anyhow!("Failed to retrieve cache directory path"))?;
-        let cache_dir = cache_dir.join(format!("{}/{}", APP_DIR, LOG_DIR));
-        check_dir(&cache_dir).await?;
-        rotate_log_file(cache_dir.clone()).ok();
+        let log_dir = cache_dir.join(format!("{}/{}", APP_DIR, LOG_DIR));
+        check_dir(&log_dir).await?;
+        rotate_log_file(log_dir.clone()).ok();
 
-        let appender = rolling::never(cache_dir, LOG_FILE);
-        let (writer, _guard) = tracing_appender::non_blocking(appender);
+        let appender = rolling::never(log_dir, LOG_FILE);
+        let (writer, guard) = tracing_appender::non_blocking(appender);
 
         tracing_subscriber::fmt()
             .with_env_filter(filter)
             .compact()
             .with_writer(writer)
             .init();
-        Ok(Some(_guard))
+        Ok(Some(guard))
     } else {
         tracing_subscriber::fmt()
             .with_env_filter(filter)
