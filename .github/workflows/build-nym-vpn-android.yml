@@ -7,19 +7,24 @@ on:
         required: false
         default: true
         type: boolean
+      debug:
+        description: "Debug build"
+        required: false
+        default: true
+        type: boolean
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
-        required: true
+        required: false
       ANDROID_SIGNING_KEY_PASSWORD:
-        required: true
+        required: false
       ANDROID_SIGNING_STORE_PASSWORD:
-        required: true
+        required: false
       ANDROID_SENTRY_DSN:
-        required: true
+        required: false
       ANDROID_SERVICE_ACCOUNT_JSON:
-        required: true
+        required: false
       ANDROID_KEYSTORE:
-        required: true
+        required: false
   workflow_call:
     inputs:
       nightly:
@@ -27,19 +32,24 @@ on:
         required: false
         default: true
         type: boolean
+      debug:
+        description: "Debug build"
+        required: false
+        default: false
+        type: boolean
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
-        required: true
+        required: false
       ANDROID_SIGNING_KEY_PASSWORD:
-        required: true
+        required: false
       ANDROID_SIGNING_STORE_PASSWORD:
-        required: true
+        required: false
       ANDROID_SENTRY_DSN:
-        required: true
+        required: false
       ANDROID_SERVICE_ACCOUNT_JSON:
-        required: true
+        required: false
       ANDROID_KEYSTORE:
-        required: true
+        required: false
 env:
   UPLOAD_DIR_ANDROID: android_artifacts
 
@@ -118,6 +128,7 @@ jobs:
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
       - name: Decode Keystore
+        if: ${{ inputs.debug == false }}
         id: decode_keystore
         uses: timheuer/base64-to-file@v1.2
         with:
@@ -127,24 +138,35 @@ jobs:
 
       # create keystore path for gradle to read
       - name: Create keystore path env var
+        if: ${{ inputs.debug == false }}
         run: |
           store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
           echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
 
       - name: Create service_account.json
+        if: ${{ inputs.debug == false }}
         id: createServiceAccount
         run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
       - name: Build Release APK
-        run: ./gradlew :app:assembleRelease --stacktrace
+        if: ${{ inputs.debug == false }}
+        run: ./gradlew :app:assembleFdroidRelease --stacktrace
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
-      - name: Get apk path
+      - name: Build Debug APK
+        if: ${{ inputs.debug }}
+        run: ./gradlew :app:assembleFdroidDebug --stacktrace
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+      - name: Get release apk path
+        if: ${{ inputs.debug == false }}
         id: apk-path
         run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/release/.*\.apk$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
 
-      - name: Upload apk
+      - name: Upload release apk
+        if: ${{ inputs.debug == false }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}

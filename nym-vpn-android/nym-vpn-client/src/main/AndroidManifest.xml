@@ -15,7 +15,7 @@
         android:hardwareAccelerated="true"
         android:largeHeap="true">
         <service
-            android:name="net.nymtech.vpn.NymVpnService"
+            android:name="net.nymtech.vpnclient.NymVpnService"
             android:exported="true"
             android:foregroundServiceType="systemExempted"
             android:permission="android.permission.BIND_VPN_SERVICE"

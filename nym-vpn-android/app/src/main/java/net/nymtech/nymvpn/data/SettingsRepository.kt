@@ -3,8 +3,8 @@ package net.nymtech.nymvpn.data
 import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.vpn.model.Country
-import net.nymtech.vpn.model.VpnMode
+import net.nymtech.vpnclient.model.Country
+import net.nymtech.vpnclient.model.VpnMode
 import java.time.Instant
 
 interface SettingsRepository {

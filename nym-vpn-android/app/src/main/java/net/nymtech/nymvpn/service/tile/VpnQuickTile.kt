@@ -12,9 +12,9 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.module.ServiceScope
 import net.nymtech.nymvpn.service.vpn.VpnManager
-import net.nymtech.vpn.VpnClient
-import net.nymtech.vpn.model.VpnMode
-import net.nymtech.vpn.model.VpnState
+import net.nymtech.vpnclient.VpnClient
+import net.nymtech.vpnclient.model.VpnMode
+import net.nymtech.vpnclient.model.VpnState
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider

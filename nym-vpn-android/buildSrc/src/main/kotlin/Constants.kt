@@ -13,7 +13,7 @@ object Constants {
     const val NAMESPACE = "net.nymtech"
 
     const val APP_NAME = "nymvpn"
-    const val VPN_LIB_NAME = "vpn_client"
+    const val VPN_LIB_NAME = "vpnclient"
 
     const val RELEASE = "release"
     const val TYPE = "type"

@@ -6,7 +6,7 @@ import android.content.res.Resources
 import android.os.Build
 import android.os.LocaleList
 import androidx.core.os.ConfigurationCompat
-import com.zaneschepke.localization_util.BuildConfig
+import net.nymtech.localizationutil.BuildConfig
 import java.util.Locale
 
 object LocaleUtil {

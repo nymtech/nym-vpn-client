@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.domain.Gateways
-import net.nymtech.vpn.model.Country
+import net.nymtech.vpnclient.model.Country
 import timber.log.Timber
 
 class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager) :
