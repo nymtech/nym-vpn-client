@@ -14,8 +14,8 @@ impl From<nym_vpn_api_client::Gateway> for Gateway {
     fn from(gateway: nym_vpn_api_client::Gateway) -> Self {
         Self {
             identity_key: gateway.identity_key,
-            location: Some(gateway.location.into()),
-            last_probe: gateway.last_probe.map(|location| location.into()),
+            location: Some(Location::from(gateway.location)),
+            last_probe: gateway.last_probe.map(Probe::from),
         }
     }
 }
@@ -47,7 +47,7 @@ impl From<nym_vpn_api_client::responses::Probe> for Probe {
     fn from(probe: nym_vpn_api_client::responses::Probe) -> Self {
         Self {
             last_updated_utc: probe.last_updated_utc,
-            outcome: probe.outcome.into(),
+            outcome: ProbeOutcome::from(probe.outcome),
         }
     }
 }
@@ -61,8 +61,8 @@ pub struct ProbeOutcome {
 impl From<nym_vpn_api_client::responses::ProbeOutcome> for ProbeOutcome {
     fn from(outcome: nym_vpn_api_client::responses::ProbeOutcome) -> Self {
         Self {
-            as_entry: outcome.as_entry.into(),
-            as_exit: outcome.as_exit.map(|exit| exit.into()),
+            as_entry: Entry::from(outcome.as_entry),
+            as_exit: outcome.as_exit.map(Exit::from),
         }
     }
 }
