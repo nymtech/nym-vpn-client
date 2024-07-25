@@ -3,9 +3,9 @@
 
 // This module primarily handles conversions to protobuf types
 
+pub mod connection_state;
 pub mod error;
 pub mod gateway;
+pub mod info_response;
 pub mod state_response;
 pub mod status_update;
-pub mod info_response;
-pub mod connection_state;
