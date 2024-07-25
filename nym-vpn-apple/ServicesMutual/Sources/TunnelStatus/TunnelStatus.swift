@@ -7,7 +7,6 @@ public enum TunnelStatus: Int, Equatable {
     case disconnecting
     case reasserting
     case restarting // Restarting tunnel (done after saving modifications to an active tunnel)
-    // case waiting    // Waiting for another tunnel to be brought down
 
     public init(from systemStatus: NEVPNStatus) {
         switch systemStatus {

@@ -132,6 +132,12 @@ message ConnectionStatusUpdate {
 
     // The end-to-end IPv6 connection appears to be operation correctly
     CONNECTION_OK_IPV6 = 11;
+
+    // Remaining bandwidth available
+    REMAINING_BANDWIDTH = 12;
+
+    // The user has run out of available bandwidth
+    NO_BANDWIDTH = 13;
   }
 
   StatusType kind = 1;
@@ -186,6 +192,7 @@ message ImportUserCredentialRequest {
 message ImportUserCredentialResponse {
   bool success = 1;
   ImportError error = 2;
+  google.protobuf.Timestamp expiry = 3;
 }
 
 message ImportError {

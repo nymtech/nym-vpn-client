@@ -34,7 +34,9 @@ final class AddCredentialsViewModel: ObservableObject {
     }
     @Published var error: Error = CredentialsManagerError.noError {
         didSet {
-            configureError()
+            Task {
+                await configureError()
+            }
         }
     }
     @Published var textFieldStrokeColor = NymColor.sysOutlineVariant
@@ -98,25 +100,21 @@ extension AddCredentialsViewModel {
 
 // MARK: - Private -
 extension AddCredentialsViewModel {
-    func configureError() {
-        Task { @MainActor in
-            let error = error as? CredentialsManagerError
+    @MainActor func configureError() {
+        let error = error as? CredentialsManagerError
 
-            textFieldStrokeColor = error == .noError ? NymColor.sysOutlineVariant : NymColor.sysError
-            credentialSubtitleColor = error == .noError ? NymColor.sysOnSurface : NymColor.sysError
-            bottomPadding = error != .noError ? 4 : 12
+        textFieldStrokeColor = error == .noError ? NymColor.sysOutlineVariant : NymColor.sysError
+        credentialSubtitleColor = error == .noError ? NymColor.sysOnSurface : NymColor.sysError
+        bottomPadding = error != .noError ? 4 : 12
 
-            errorMessageTitle = (error == .noError ? "" : error?.localizedTitle)
-            ?? (CredentialsManagerError.generalError("").localizedTitle ?? "Error".localizedString)
-        }
+        errorMessageTitle = (error == .noError ? "" : error?.localizedTitle)
+        ?? (CredentialsManagerError.generalError("").localizedTitle ?? "Error".localizedString)
     }
 
-    func credentialsDidAdd() {
-        Task { @MainActor in
-            appSettings.isCredentialImported = true
-            credentialText = ""
-            navigateHome()
-        }
+    @MainActor func credentialsDidAdd() {
+        appSettings.isCredentialImported = true
+        credentialText = ""
+        navigateHome()
     }
 
     @MainActor func scannerDidScanQRCode() {
