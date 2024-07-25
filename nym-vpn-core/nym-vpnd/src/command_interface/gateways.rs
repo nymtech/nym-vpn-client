@@ -117,3 +117,13 @@ impl From<nym_vpn_api_client::responses::Country> for Country {
         Self(country.0)
     }
 }
+
+impl From<nym_validator_client::models::DescribedGateway> for Gateway {
+    fn from(gateway: nym_validator_client::models::DescribedGateway) -> Self {
+        Self {
+            identity_key: gateway.bond.identity().clone(),
+            location: None,
+            last_probe: None,
+        }
+    }
+}
