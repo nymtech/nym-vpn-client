@@ -7,6 +7,8 @@ use nym_vpn_proto::{
 };
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
+use super::gateways;
+
 impl From<VpnServiceStatusResult> for StatusResponse {
     fn from(status: VpnServiceStatusResult) -> Self {
         let mut details = None;
@@ -86,60 +88,69 @@ impl From<VpnServiceStateChange> for ConnectionStateChange {
     }
 }
 
-pub(super) fn entry_gateway_from_vpn_api(
-    gateway: nym_vpn_api_client::Gateway,
-) -> nym_vpn_proto::EntryGateway {
-    let last_updated = gateway
-        .last_probe.clone()
-        .and_then(|probe| OffsetDateTime::parse(&probe.last_updated_utc, &Rfc3339).ok());
-    let last_updated_utc = last_updated.map(|timestamp| prost_types::Timestamp {
-        seconds: timestamp.unix_timestamp(),
-        nanos: timestamp.nanosecond() as i32,
-    });
-
-    let as_entry = gateway.last_probe.clone().map(|probe| {
-        nym_vpn_proto::AsEntry {
-            can_connect: probe.outcome.as_entry.can_connect,
-            can_route: probe.outcome.as_entry.can_route,
+impl From<gateways::Location> for nym_vpn_proto::Location {
+    fn from(location: gateways::Location) -> Self {
+        nym_vpn_proto::Location {
+            two_letter_iso_country_code: location.two_letter_iso_country_code,
         }
-    });
+    }
+}
 
-    let as_exit = gateway.last_probe.clone().and_then(|probe| {
-        probe.outcome.as_exit.map(|as_exit| {
-            nym_vpn_proto::AsExit {
-                can_connect: as_exit.can_connect,
-                can_route_ip_v4: as_exit.can_route_ip_v4,
-                can_route_ip_v6: as_exit.can_route_ip_v6,
-                can_route_ip_external_v4: as_exit.can_route_ip_external_v4,
-                can_route_ip_external_v6: as_exit.can_route_ip_external_v6,
-            }
-        })
-    });
+impl From<gateways::Entry> for nym_vpn_proto::AsEntry {
+    fn from(entry: gateways::Entry) -> Self {
+        nym_vpn_proto::AsEntry {
+            can_connect: entry.can_connect,
+            can_route: entry.can_route,
+        }
+    }
+}
 
-    let last_probe = gateway.last_probe.map(|p| {
+impl From<gateways::Exit> for nym_vpn_proto::AsExit {
+    fn from(exit: gateways::Exit) -> Self {
+        nym_vpn_proto::AsExit {
+            can_connect: exit.can_connect,
+            can_route_ip_v4: exit.can_route_ip_v4,
+            can_route_ip_v6: exit.can_route_ip_v6,
+            can_route_ip_external_v4: exit.can_route_ip_external_v4,
+            can_route_ip_external_v6: exit.can_route_ip_external_v6,
+        }
+    }
+}
+
+impl From<gateways::ProbeOutcome> for nym_vpn_proto::ProbeOutcome {
+    fn from(outcome: gateways::ProbeOutcome) -> Self {
+        let as_entry = Some(outcome.as_entry.into());
+        let as_exit = outcome.as_exit.map(|exit| exit.into());
+        nym_vpn_proto::ProbeOutcome { as_entry, as_exit }
+    }
+}
+
+impl From<gateways::Probe> for nym_vpn_proto::Probe {
+    fn from(probe: gateways::Probe) -> Self {
+        let last_updated = OffsetDateTime::parse(&probe.last_updated_utc, &Rfc3339).ok();
+        let last_updated_utc = last_updated.map(|timestamp| prost_types::Timestamp {
+            seconds: timestamp.unix_timestamp(),
+            nanos: timestamp.nanosecond() as i32,
+        });
+        let outcome = Some(probe.outcome.into());
         nym_vpn_proto::Probe {
             last_updated_utc,
-            outcome: Some(nym_vpn_proto::ProbeOutcome {
-                as_entry,
-                as_exit,
-            }),
+            outcome,
         }
-    });
+    }
+}
 
-    nym_vpn_proto::EntryGateway {
-        id: Some(nym_vpn_proto::Gateway {
+impl From<gateways::Gateway> for nym_vpn_proto::EntryGateway {
+    fn from(gateway: gateways::Gateway) -> Self {
+        let id = Some(nym_vpn_proto::Gateway {
             id: gateway.identity_key.to_string(),
-        }),
-        location: Some(nym_vpn_proto::Location {
-            two_letter_iso_country_code: gateway.location.two_letter_iso_country_code,
-        }),
-        // last_probe: Some(nym_vpn_proto::Probe {
-        //     last_updated_utc,
-        //     outcome: Some(nym_vpn_proto::ProbeOutcome {
-        //         as_entry,
-        //         as_exit,
-        //     }),
-        // }),
-        last_probe,
+        });
+        let location = gateway.location.map(|location| location.into());
+        let last_probe = gateway.last_probe.map(|probe| probe.into());
+        nym_vpn_proto::EntryGateway {
+            id,
+            location,
+            last_probe,
+        }
     }
 }

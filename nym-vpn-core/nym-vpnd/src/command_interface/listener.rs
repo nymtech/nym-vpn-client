@@ -27,7 +27,6 @@ use super::{
     helpers::{parse_entry_point, parse_exit_point},
     status_broadcaster::ConnectionStatusBroadcaster,
 };
-use crate::command_interface::proto_response::entry_gateway_from_vpn_api;
 use crate::service::{
     ConnectOptions, VpnServiceCommand, VpnServiceConnectResult, VpnServiceStateChange,
 };
@@ -286,7 +285,7 @@ impl NymVpnd for CommandInterface {
         let response = ListEntryGatewaysResponse {
             gateways: entry_gateways
                 .into_iter()
-                .map(entry_gateway_from_vpn_api)
+                .map(nym_vpn_proto::EntryGateway::from)
                 .collect(),
         };
 
