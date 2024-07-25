@@ -5,7 +5,7 @@ use anyhow::Result;
 use clap::Parser;
 use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, InfoRequest,
-    ListEntryGatewaysRequest, StatusRequest,
+    ListEntryGatewaysRequest, ListExitGatewaysRequest, StatusRequest,
 };
 use vpnd_client::ClientType;
 
@@ -40,6 +40,7 @@ async fn main() -> Result<()> {
         Command::ListenToStatus => listen_to_status(client_type).await?,
         Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
         Command::ListEntryGateways => list_entry_gateways(client_type).await?,
+        Command::ListExitGateways => list_exit_gateways(client_type).await?,
     }
     Ok(())
 }
@@ -159,6 +160,24 @@ async fn list_entry_gateways(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(ListEntryGatewaysRequest {});
     let response = client.list_entry_gateways(request).await?.into_inner();
+    println!("{:#?}", response);
+
+    // TODO: support a flag that enables brief output
+    if false {
+        for r in response.gateways {
+            let id = r.id.unwrap();
+            let last_updated_utc =
+                parse_offset_datetime(r.last_probe.unwrap().last_updated_utc.unwrap());
+            println!("id: {:?}, last_updated_utc: {:?}", id, last_updated_utc);
+        }
+    }
+    Ok(())
+}
+
+async fn list_exit_gateways(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(ListExitGatewaysRequest {});
+    let response = client.list_exit_gateways(request).await?.into_inner();
     println!("{:#?}", response);
 
     // TODO: support a flag that enables brief output
