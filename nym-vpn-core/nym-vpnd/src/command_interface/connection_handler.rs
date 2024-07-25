@@ -12,6 +12,8 @@ use crate::service::{
     VpnServiceDisconnectResult, VpnServiceInfoResult, VpnServiceStatusResult,
 };
 
+use super::gateways;
+
 pub(super) struct CommandInterfaceConnectionHandler {
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
 }
@@ -114,7 +116,7 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_entry_gateways(
         &self,
-    ) -> Result<Vec<nym_vpn_api_client::Gateway>, VpnApiClientError> {
+    ) -> Result<Vec<gateways::Gateway>, VpnApiClientError> {
         let user_agent = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!().into();
 
         let nym_network_details =
@@ -124,47 +126,52 @@ impl CommandInterfaceConnectionHandler {
         dbg!(&network_name);
 
         if network_name == "mainnet" {
-            nym_vpn_api_client::get_entry_gateways(user_agent).await
-        } else {
-            // TODO: do these at startup so we can validate
-            let api_url = nym_network_details
-                .endpoints
-                .first()
-                .expect("network environment endpoints not correctly configured")
-                .api_url
-                .clone()
-                .expect("network environment missing api_url")
-                .parse()
-                .expect("network environment api_url not parseable");
-
-            let nym_api_client =
-                nym_validator_client::NymApiClient::new_with_user_agent(api_url, user_agent);
-
-            // let config = nym_vpn_lib::gateway_directory::Config::new_from_env();
-            // let gw_client =
-            // nym_vpn_lib::gateway_directory::GatewayClient::new(config, user_agent).unwrap();
-            // let gateways = gw_client.lookup_described_gateways().await.unwrap();
-            let gateways = nym_api_client
-                .get_cached_described_gateways()
+            nym_vpn_api_client::get_entry_gateways(user_agent)
                 .await
-                .unwrap();
-            let g: Vec<_> = gateways
-                .into_iter()
-                .map(|gw| {
-                    let id = gw.bond.identity().clone();
-                    let location = nym_vpn_api_client::Location {
-                        two_letter_iso_country_code: "".to_string(),
-                        latitude: 0f64,
-                        longitude: 0f64,
-                    };
-                    nym_vpn_api_client::Gateway {
-                        identity_key: id,
-                        location,
-                        last_probe: None,
-                    }
+                .map(|gateways| {
+                    gateways
+                        .into_iter()
+                        .map(|gw| gateways::Gateway::from(gw))
+                        .collect()
                 })
-                .collect();
-            Ok(g)
+            } else {
+                todo!();
+            //     // TODO: do these at startup so we can validate
+            //     let api_url = nym_network_details
+            //         .endpoints
+            //         .first()
+            //         .expect("network environment endpoints not correctly configured")
+            //         .api_url()
+            //         .expect("network environment missing api_url");
+            //
+            //     let nym_api_client =
+            //         nym_validator_client::NymApiClient::new_with_user_agent(api_url, user_agent);
+            //
+            //     // let config = nym_vpn_lib::gateway_directory::Config::new_from_env();
+            //     // let gw_client =
+            //     // nym_vpn_lib::gateway_directory::GatewayClient::new(config, user_agent).unwrap();
+            //     // let gateways = gw_client.lookup_described_gateways().await.unwrap();
+            //     let gateways = nym_api_client
+            //         .get_cached_described_gateways()
+            //         .await
+            //         .unwrap();
+            //     let g: Vec<_> = gateways
+            //         .into_iter()
+            //         .map(|gw| {
+            //             let id = gw.bond.identity().clone();
+            //             let location = nym_vpn_api_client::Location {
+            //                 two_letter_iso_country_code: "".to_string(),
+            //                 latitude: 0f64,
+            //                 longitude: 0f64,
+            //             };
+            //             nym_vpn_api_client::Gateway {
+            //                 identity_key: id,
+            //                 location,
+            //                 last_probe: None,
+            //             }
+            //         })
+            //         .collect();
+            //     Ok(g)
         }
     }
 }

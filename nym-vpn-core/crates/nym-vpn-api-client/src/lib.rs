@@ -1,7 +1,7 @@
 mod client;
 mod error;
 mod helpers;
-mod responses;
+pub mod responses;
 mod routes;
 
 pub use client::{Client, ClientBuilder, VpnApiClientExt, VpnApiError};
