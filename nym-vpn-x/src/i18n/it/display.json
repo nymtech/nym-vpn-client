@@ -1,1 +1,8 @@
-{}
+{
+  "options": {
+    "system": "Automatico",
+    "light": "Tema chiaro",
+    "dark": "Tema scuro"
+  },
+  "system-desc": "Usa tema del dispositivo"
+}
