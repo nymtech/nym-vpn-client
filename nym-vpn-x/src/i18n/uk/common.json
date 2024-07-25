@@ -8,7 +8,7 @@
   "feedback": "Залишити відгук",
   "support": "Служба підтримки",
   "sentry": "Захист",
-  "first-hop-selection": "Вибір першої підключення",
+  "first-hop-selection": "Вибір першого підключення",
   "last-hop-selection": "Вибір останнього підключення",
   "vpn-modes": {
     "privacy": "Анонімний",
