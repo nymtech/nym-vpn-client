@@ -31,6 +31,9 @@ pub enum ListGatewayError {
 
     #[error("failed to get entry gateways: {error}")]
     FailedToGetEntryGatewaysFromNymVpnApi { error: VpnApiClientError },
+
+    #[error("failed to get exit gateways: {error}")]
+    FailedToGetExitGatewaysFromNymVpnApi { error: VpnApiClientError },
 }
 
 pub(super) struct CommandInterfaceConnectionHandler {
@@ -162,6 +165,23 @@ impl CommandInterfaceConnectionHandler {
                 .await
                 .map_err(|error| ListGatewayError::FailedToGetGatewaysFromNymApi { error })
                 .map(|g| g.into_iter().map(gateway::Gateway::from).collect())
+        }
+    }
+
+    pub(crate) async fn handle_list_exit_gateways(
+        &self,
+    ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
+        let user_agent = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!().into();
+        let nym_network_details =
+            nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env();
+
+        if nym_network_details.network_name == "mainnet" {
+            nym_vpn_api_client::get_exit_gateways(user_agent)
+                .await
+                .map(|gateways| gateways.into_iter().map(gateway::Gateway::from).collect())
+                .map_err(|error| ListGatewayError::FailedToGetExitGatewaysFromNymVpnApi { error })
+        } else {
+            todo!();
         }
     }
 }

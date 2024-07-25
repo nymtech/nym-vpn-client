@@ -269,6 +269,17 @@ message ListEntryGatewaysResponse {
   repeated EntryGateway gateways = 1;
 }
 
+message ExitGateway {
+  Gateway id = 1;
+  Location location = 2;
+  Probe last_probe = 3;
+}
+
+message ListExitGatewaysRequest {}
+message ListExitGatewaysResponse {
+  repeated ExitGateway gateways = 1;
+}
+
 service NymVpnd {
   rpc Info (InfoRequest) returns (InfoResponse) {}
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
@@ -279,5 +290,6 @@ service NymVpnd {
   rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
 
   rpc ListEntryGateways (ListEntryGatewaysRequest) returns (ListEntryGatewaysResponse) {}
+  rpc ListExitGateways (ListExitGatewaysRequest) returns (ListExitGatewaysResponse) {}
 }
 
