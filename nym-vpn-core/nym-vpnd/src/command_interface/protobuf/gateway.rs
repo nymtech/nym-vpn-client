@@ -35,8 +35,8 @@ impl From<gateway::Exit> for nym_vpn_proto::AsExit {
 
 impl From<gateway::ProbeOutcome> for nym_vpn_proto::ProbeOutcome {
     fn from(outcome: gateway::ProbeOutcome) -> Self {
-        let as_entry = Some(outcome.as_entry.into());
-        let as_exit = outcome.as_exit.map(|exit| exit.into());
+        let as_entry = Some(nym_vpn_proto::AsEntry::from(outcome.as_entry));
+        let as_exit = outcome.as_exit.map(nym_vpn_proto::AsExit::from);
         nym_vpn_proto::ProbeOutcome { as_entry, as_exit }
     }
 }
@@ -48,7 +48,7 @@ impl From<gateway::Probe> for nym_vpn_proto::Probe {
             seconds: timestamp.unix_timestamp(),
             nanos: timestamp.nanosecond() as i32,
         });
-        let outcome = Some(probe.outcome.into());
+        let outcome = Some(nym_vpn_proto::ProbeOutcome::from(probe.outcome));
         nym_vpn_proto::Probe {
             last_updated_utc,
             outcome,
@@ -61,8 +61,8 @@ impl From<gateway::Gateway> for nym_vpn_proto::EntryGateway {
         let id = Some(nym_vpn_proto::Gateway {
             id: gateway.identity_key.to_string(),
         });
-        let location = gateway.location.map(|location| location.into());
-        let last_probe = gateway.last_probe.map(|probe| probe.into());
+        let location = gateway.location.map(nym_vpn_proto::Location::from);
+        let last_probe = gateway.last_probe.map(nym_vpn_proto::Probe::from);
         nym_vpn_proto::EntryGateway {
             id,
             location,
