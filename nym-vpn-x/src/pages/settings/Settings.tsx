@@ -186,7 +186,7 @@ function Settings() {
         title={t('logs')}
         onClick={handleLogs}
         leadingIcon="sort"
-        trailingIcon="arrow_right"
+        trailingIcon="open_in_new"
       />
       <SettingsGroup
         settings={[

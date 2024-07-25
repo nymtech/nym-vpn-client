@@ -1,10 +1,10 @@
 use std::{fs, path::PathBuf};
 
-use anyhow::{anyhow, Result};
-use tracing_appender::{non_blocking::WorkerGuard, rolling};
-
 use crate::envi;
 use crate::fs::path::LOG_DIR_PATH;
+use anyhow::{anyhow, Result};
+use tracing_appender::{non_blocking::WorkerGuard, rolling};
+use tracing_subscriber::fmt::writer::MakeWriterExt;
 
 const ENV_LOG_FILE: &str = "LOG_FILE";
 const LOG_FILE: &str = "app.log";
@@ -31,7 +31,7 @@ fn rotate_log_file(log_dir: PathBuf) -> Result<()> {
     Ok(())
 }
 
-pub async fn setup_tracing() -> Result<Option<WorkerGuard>> {
+pub async fn setup_tracing(log_file: bool) -> Result<Option<WorkerGuard>> {
     let filter = tracing_subscriber::EnvFilter::builder()
         .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
         .from_env()
@@ -39,7 +39,7 @@ pub async fn setup_tracing() -> Result<Option<WorkerGuard>> {
         .add_directive("hyper::proto=info".parse().unwrap())
         .add_directive("netlink_proto=info".parse().unwrap());
 
-    if envi::is_truthy(ENV_LOG_FILE) {
+    if log_file || envi::is_truthy(ENV_LOG_FILE) {
         let log_dir = LOG_DIR_PATH
             .clone()
             .ok_or(anyhow!("Failed to retrieve log directory path"))?;
@@ -51,7 +51,8 @@ pub async fn setup_tracing() -> Result<Option<WorkerGuard>> {
         tracing_subscriber::fmt()
             .with_env_filter(filter)
             .compact()
-            .with_writer(writer)
+            .with_ansi(false)
+            .with_writer(std::io::stdout.and(writer))
             .init();
         Ok(Some(guard))
     } else {
