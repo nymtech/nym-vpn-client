@@ -12,7 +12,7 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-22.04-arc
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: nym-vpn-android
@@ -37,9 +37,6 @@ jobs:
 
       - name: Install NDK
         run: sdkmanager "ndk;26.3.11579264"
-
-      - name: Run clean
-        run: ./gradlew clean
 
       - name: Run ktlint
         run: ./gradlew ktlintCheck
