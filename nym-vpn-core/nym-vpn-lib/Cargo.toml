@@ -17,6 +17,7 @@ path = "uniffi-bindgen.rs"
 
 [dependencies]
 anyhow.workspace = true
+async-trait.workspace = true
 bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
@@ -95,13 +96,16 @@ rand = "0.8.5"
 oslog = "0.2.0"
 
 [target.'cfg(unix)'.dependencies]
-nix = { version = "0.28.0", features = ["user"] }
+nix = { workspace = true, features = ["user"] }
+
+[target.'cfg(target_os = "ios")'.dependencies]
+nix = { workspace = true, features = ["socket", "net"] }
 
 [target.'cfg(windows)'.dependencies]
 is_elevated = "0.1.2"
 
 [build-dependencies]
-uniffi = { version = "0.27.3", features = ["build"] }
+uniffi = { workspace = true, features = ["build"] }
 vergen = { workspace = true, default-features = false, features = [
     "build",
     "git",

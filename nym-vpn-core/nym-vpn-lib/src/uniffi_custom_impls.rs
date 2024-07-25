@@ -6,7 +6,7 @@ use crate::{
     vpn::{MixnetConnectionInfo, MixnetExitConnectionInfo, NymVpnStatusMessage},
     NodeIdentity, Recipient, UniffiCustomTypeConverter,
 };
-use ipnetwork::IpNetwork;
+use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage;
 use nym_connection_monitor::ConnectionMonitorStatus;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
@@ -24,6 +24,8 @@ uniffi::custom_type!(IpAddr, String);
 uniffi::custom_type!(PrivateKey, String);
 uniffi::custom_type!(PublicKey, String);
 uniffi::custom_type!(IpNetwork, String);
+uniffi::custom_type!(Ipv4Network, String);
+uniffi::custom_type!(Ipv6Network, String);
 uniffi::custom_type!(SocketAddr, String);
 uniffi::custom_type!(PresharedKey, String);
 uniffi::custom_type!(Url, String);
@@ -149,6 +151,30 @@ impl UniffiCustomTypeConverter for IpNetwork {
 
     fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
         Ok(IpNetwork::from_str(&val)?)
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.to_string()
+    }
+}
+
+impl UniffiCustomTypeConverter for Ipv4Network {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(Ipv4Network::from_str(&val)?)
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        obj.to_string()
+    }
+}
+
+impl UniffiCustomTypeConverter for Ipv6Network {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(Ipv6Network::from_str(&val)?)
     }
 
     fn from_custom(obj: Self) -> Self::Builtin {

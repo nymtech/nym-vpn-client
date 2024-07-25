@@ -18,7 +18,7 @@ use tracing::{error, info};
 use tun2::AsyncDevice;
 
 #[cfg(target_os = "ios")]
-use crate::platform::swift::OSTunProvider;
+use crate::mobile::ios::tun_provider::OSTunProvider;
 use crate::{
     error::Result,
     tunnel_setup::{AllTunnelsSetup, TunnelSetup},

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5886CDF52C6CB544001F9651 /* Constants in Frameworks */ = {isa = PBXBuildFile; productRef = 5886CDF42C6CB544001F9651 /* Constants */; };
+		582C5F8E2C7654A800B678AE /* ConfigurationManager in Frameworks */ = {isa = PBXBuildFile; productRef = 582C5F8D2C7654A800B678AE /* ConfigurationManager */; };
 		D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */ = {isa = PBXBuildFile; productRef = D91E36A82BF3AA7F00BDE84A /* HelperManager */; };
 		D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */; };
 		D924A8E62C33F3D400465E84 /* ExternalLinkManager in Frameworks */ = {isa = PBXBuildFile; productRef = D924A8E52C33F3D400465E84 /* ExternalLinkManager */; };
@@ -193,8 +193,8 @@
 				D9BB53552BAC4AE500917C97 /* Tunnels in Frameworks */,
 				D93214472B84EBEA00FFDC5E /* Logging in Frameworks */,
 				D954C0B92B51C1CA00C6BAAC /* NetworkExtension.framework in Frameworks */,
-				5886CDF52C6CB544001F9651 /* Constants in Frameworks */,
 				D9281C452B877B8800834B53 /* Keychain in Frameworks */,
+				582C5F8E2C7654A800B678AE /* ConfigurationManager in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -417,7 +417,7 @@
 				D9BB53542BAC4AE500917C97 /* Tunnels */,
 				D99820972BB6E8D9000C1FEE /* MixnetLibrary */,
 				D9309AF82BC81B7600C387F4 /* TunnelMixnet */,
-				5886CDF42C6CB544001F9651 /* Constants */,
+				582C5F8D2C7654A800B678AE /* ConfigurationManager */,
 			);
 			productName = NymMixnetTunnel;
 			productReference = D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */;
@@ -1198,9 +1198,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		5886CDF42C6CB544001F9651 /* Constants */ = {
+		582C5F8D2C7654A800B678AE /* ConfigurationManager */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = Constants;
+			productName = ConfigurationManager;
 		};
 		D91E36A82BF3AA7F00BDE84A /* HelperManager */ = {
 			isa = XCSwiftPackageProductDependency;

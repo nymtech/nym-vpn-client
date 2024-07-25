@@ -5,6 +5,8 @@
 use self::error::FFIError;
 use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
+#[cfg(target_os = "ios")]
+use crate::mobile::ios::tun_provider::OSTunProvider;
 use crate::platform::status_listener::VpnServiceStatusListener;
 use crate::uniffi_custom_impls::{
     BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location, NymVpnStatus,
@@ -24,8 +26,9 @@ use std::time::SystemTime;
 use talpid_core::mpsc::Sender;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
+use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use url::Url;
-
 #[cfg(target_os = "android")]
 pub mod android;
 pub(crate) mod error;
@@ -38,6 +41,31 @@ lazy_static! {
     static ref RUNNING: AtomicBool = AtomicBool::new(false);
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
     static ref LISTENER: std::sync::Mutex<Option<Arc<dyn TunnelStatusListener>>> =
+        std::sync::Mutex::new(None);
+}
+
+#[cfg(target_os = "ios")]
+use crate::mobile::two_hop_tunnel::TwoHopTunnel;
+
+#[cfg(target_os = "ios")]
+struct ShutdownHandle {
+    join_handle: JoinHandle<()>,
+    shutdown_token: CancellationToken,
+}
+
+#[cfg(target_os = "ios")]
+impl ShutdownHandle {
+    async fn cancel_and_wait(self) {
+        self.shutdown_token.cancel();
+        if let Err(e) = self.join_handle.await {
+            tracing::warn!("Failed to join on shutdown handle: {}", e);
+        }
+    }
+}
+
+#[cfg(target_os = "ios")]
+lazy_static! {
+    static ref TUNNEL_SHUTDOWN_HANDLE: std::sync::Mutex<Option<ShutdownHandle>> =
         std::sync::Mutex::new(None);
 }
 
@@ -147,7 +175,7 @@ pub struct VPNConfig {
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
     #[cfg(target_os = "ios")]
-    pub tun_provider: Arc<dyn crate::swift::OSTunProvider>,
+    pub tun_provider: Arc<dyn OSTunProvider>,
     pub credential_data_path: Option<PathBuf>,
     pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
 }
@@ -178,10 +206,13 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
+pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
     if RUNNING.fetch_or(true, Ordering::Relaxed) {
         return Err(FFIError::VpnAlreadyRunning);
     }
+
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
+    crate::platform::swift::init_logs();
 
     LISTENER
         .lock()
@@ -190,21 +221,115 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
 
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::InitializingClient));
 
-    debug!("Trying to run VPN");
-    let vpn = sync_run_vpn(config);
-    debug!("Got VPN");
-    if vpn.is_err() {
-        error!("Err creating VPN");
-        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-        RUNNING.store(false, Ordering::Relaxed);
+    #[cfg(target_os = "ios")]
+    {
+        RUNTIME.block_on(async move {
+            tracing::debug!("Starting VPN tunnel...");
+
+            let shutdown_token = CancellationToken::new();
+            let cloned_shutdown_token = shutdown_token.clone();
+            let join_handle = tokio::spawn(async move {
+                use crate::mobile::wg_config::{WgInterface, WgNodeConfig, WgPeer};
+
+                // todo: set this only when two hop tunnel is actually up.
+                uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
+
+                let entry_priv_key = nym_wg_go::PrivateKey::from_base64(
+                    "MMLgfpAzr5RsVoK6UQezipadSx/QhjDDBM86MqOTolA=",
+                )
+                .unwrap();
+
+                let entry_pub_key = nym_wg_go::PublicKey::from_base64(
+                    "TNrdH73p6h2EfeXxUiLOCOWHcjmjoslLxZptZpIPQXU=",
+                )
+                .unwrap();
+
+                let entry_node_config = WgNodeConfig {
+                    interface: WgInterface {
+                        listen_port: None,
+                        private_key: entry_priv_key,
+                        addresses: vec!["10.71.122.208/32"
+                            .parse()
+                            .expect("failed to parse iface addr")],
+                        dns: crate::DEFAULT_DNS_SERVERS.to_vec(),
+                        mtu: 1280,
+                    },
+                    peer: WgPeer {
+                        public_key: entry_pub_key,
+                        endpoint: "146.70.116.98:12912".parse().expect("entry peer endpoint"),
+                    },
+                };
+
+                let exit_priv_key = nym_wg_go::PrivateKey::from_base64(
+                    "2GJR/sWv5YuutftnnxVr3UI6DjSjAdnWjvMtPkBtKn4=",
+                )
+                .unwrap();
+
+                let exit_pub_key = nym_wg_go::PublicKey::from_base64(
+                    "GE2WP6hmwVggSvGVWLgq2L10T3WM2VspnUptK5F4B0U=",
+                )
+                .unwrap();
+
+                let exit_node_config = WgNodeConfig {
+                    interface: WgInterface {
+                        listen_port: None,
+                        private_key: exit_priv_key,
+                        addresses: vec!["10.64.93.204/32".parse().expect("exit iface addr")],
+                        dns: crate::DEFAULT_DNS_SERVERS.to_vec(),
+                        mtu: 1280,
+                    },
+                    peer: WgPeer {
+                        public_key: exit_pub_key,
+                        endpoint: "91.90.123.2:443".parse().expect("exit peer endpoint"),
+                    },
+                };
+
+                match TwoHopTunnel::start(
+                    entry_node_config, // entry config
+                    exit_node_config,  // exit config
+                    config.tun_provider,
+                    cloned_shutdown_token,
+                )
+                .await
+                {
+                    Ok(()) => {
+                        tracing::debug!("Tunnel has finished execution");
+                    }
+                    Err(e) => {
+                        tracing::error!("Tunnel exited with error: {}", e);
+                    }
+                }
+
+                uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+            });
+
+            *TUNNEL_SHUTDOWN_HANDLE.lock().unwrap() = Some(ShutdownHandle {
+                join_handle,
+                shutdown_token,
+            });
+        });
+
+        Ok(())
     }
-    let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
-    if ret.is_err() {
-        error!("Error running VPN");
-        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-        RUNNING.store(false, Ordering::Relaxed);
+
+    #[cfg(not(target_os = "ios"))]
+    {
+        debug!("Trying to run VPN");
+        let vpn = sync_run_vpn(config);
+        debug!("Got VPN");
+        if vpn.is_err() {
+            error!("Err creating VPN");
+            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+            RUNNING.store(false, Ordering::Relaxed);
+        }
+        let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
+        if ret.is_err() {
+            error!("Error running VPN");
+            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+            RUNNING.store(false, Ordering::Relaxed);
+        }
+        ret
     }
-    ret
 }
 
 #[allow(non_snake_case)]
@@ -282,7 +407,19 @@ pub fn stopVPN() -> Result<(), FFIError> {
     }
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Disconnecting));
     debug!("Stopping VPN");
-    RUNTIME.block_on(stop_vpn())
+
+    #[cfg(not(target_os = "ios"))]
+    RUNTIME.block_on(stop_vpn())?;
+
+    #[cfg(target_os = "ios")]
+    RUNTIME.block_on(async move {
+        let shutdown_handle = TUNNEL_SHUTDOWN_HANDLE.lock().unwrap().take();
+        if let Some(shutdown_handle) = shutdown_handle {
+            shutdown_handle.cancel_and_wait().await;
+        }
+    });
+
+    Ok(())
 }
 
 async fn stop_vpn() -> Result<(), FFIError> {

@@ -3,7 +3,8 @@
 
 use netdev::Interface;
 use std::fmt::{Display, Formatter};
-use std::net::{Ipv4Addr, Ipv6Addr};
+#[cfg(windows)]
+use std::net::Ipv4Addr;
 #[cfg(target_os = "android")]
 use std::os::fd::{AsRawFd, RawFd};
 #[cfg(target_os = "android")]
@@ -27,15 +28,6 @@ use crate::{
 };
 
 const DEFAULT_TUN_MTU: u16 = 1500;
-
-fn default_dns_servers() -> Vec<IpAddr> {
-    vec![
-        IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)),
-        IpAddr::V4(Ipv4Addr::new(1, 0, 0, 1)),
-        IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111)),
-        IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1001)),
-    ]
-}
 
 #[derive(Clone)]
 pub(crate) struct RoutingConfig {
@@ -178,7 +170,66 @@ pub(crate) fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
     vec![network]
 }
 
+#[cfg(target_os = "ios")]
 pub(crate) async fn setup_mixnet_routing(
+    route_manager: &mut RouteManager,
+    config: RoutingConfig,
+    #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
+        dyn crate::mobile::ios::tun_provider::OSTunProvider,
+    >,
+    dns_monitor: &mut DnsMonitor,
+    dns: Option<IpAddr>,
+) -> Result<tun2::AsyncDevice> {
+    let fd =
+        crate::mobile::ios::tun::get_tun_fd().ok_or(crate::mobile::Error::CannotLocateTunFd)?;
+    let mut tun_config = tun2::Configuration::default();
+    tun_config.raw_fd(fd);
+
+    let interface_addresses = config.tun_ips();
+    let tunnel_settings = crate::mobile::tunnel_settings::TunnelSettings {
+        interface_addresses: vec![
+            IpNetwork::new(IpAddr::V4(interface_addresses.ipv4), 32)
+                .expect("ipnetwork from v4/32 addr"),
+            IpNetwork::new(IpAddr::V6(interface_addresses.ipv6), 128)
+                .expect("ipnetwork from v6/128 addr"),
+        ],
+        dns_servers: dns
+            .map(|dns| vec![dns])
+            .unwrap_or(crate::DEFAULT_DNS_SERVERS.to_vec()),
+        remote_addresses: vec![config.entry_mixnet_gateway_ip()],
+        mtu: config.mtu(),
+    };
+
+    ios_tun_provider
+        .set_tunnel_network_settings(tunnel_settings.into_tunnel_network_settings())
+        .await?;
+
+    let dev = tun2::create_as_async(&tun_config)
+        .tap_err(|err| error!("Failed to attach to tun device: {}", err))?;
+    let device_name = dev.as_ref().tun_name().unwrap().to_string();
+    info!(
+        "Attached to tun device {device_name} with ip={device_ip:?}",
+        device_name = device_name,
+        device_ip = dev
+            .as_ref()
+            .address()
+            .map(|ip| ip.to_string())
+            .unwrap_or("None".to_string())
+    );
+    debug!("Attached to tun device {device_name}: ip={device_ip:?}, broadcast={device_broadcast:?}, netmask={device_netmask:?}, destination={device_destination:?}, mtu={device_mtu:?}",
+        device_name = device_name,
+        device_ip = dev.as_ref().address(),
+        device_broadcast = dev.as_ref().broadcast(),
+        device_netmask = dev.as_ref().netmask(),
+        device_destination = dev.as_ref().destination(),
+        device_mtu = dev.as_ref().mtu(),
+    );
+
+    Ok(dev)
+}
+
+#[cfg(not(target_os = "ios"))]
+pub async fn setup_mixnet_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
     #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
@@ -307,7 +358,9 @@ pub(crate) async fn setup_mixnet_routing(
     route_manager.add_routes(routes.collect()).await?;
 
     // Set the DNS server
-    let dns_servers = dns.map(|dns| vec![dns]).unwrap_or(default_dns_servers());
+    let dns_servers = dns
+        .map(|dns| vec![dns])
+        .unwrap_or(crate::DEFAULT_DNS_SERVERS.to_vec());
     tokio::task::block_in_place(move || dns_monitor.set(&device_name, &dns_servers))?;
 
     Ok(dev)

@@ -23,8 +23,9 @@ let package = Package(
         ),
         .binaryTarget(
             name: "NymVpnLib",
-            url: "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v0.1.16/nym-vpn-core-v0.1.16_ios_universal.zip",
-            checksum: "41a5ecb8b0ab7cc2e6130179863761d12bcc988eda6c269cb00bd01a43449741"
+            path: "Sources/MixnetLibrary/RustFramework.xcframework"
+            // url: "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v0.1.16/nym-vpn-core-v0.1.16_ios_universal.zip",
+            // checksum: "41a5ecb8b0ab7cc2e6130179863761d12bcc988eda6c269cb00bd01a43449741"
         ),
         .testTarget(
             name: "MixnetLibraryTests",

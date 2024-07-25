@@ -10,6 +10,8 @@ pub mod util;
 mod bandwidth_controller;
 mod error;
 mod mixnet;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+mod mobile;
 mod platform;
 mod routing;
 mod tunnel;
@@ -18,6 +20,8 @@ mod uniffi_custom_impls;
 mod vpn;
 mod wireguard_config;
 mod wireguard_setup;
+
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 // Re-export some our nym dependencies
 pub use nym_config;
@@ -47,3 +51,10 @@ pub use crate::{
         SpecificVpn,
     },
 };
+
+pub const DEFAULT_DNS_SERVERS: [IpAddr; 4] = [
+    IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)),
+    IpAddr::V4(Ipv4Addr::new(1, 0, 0, 1)),
+    IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111)),
+    IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1001)),
+];

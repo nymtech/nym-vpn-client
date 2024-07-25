@@ -10,7 +10,7 @@ use nym_gateway_directory::{EntryPoint, ExitPoint, NodeIdentity};
 use talpid_tunnel::tun_provider::TunProvider;
 
 #[cfg(target_os = "ios")]
-use crate::platform::swift::OSTunProvider;
+use crate::mobile::ios::tun_provider::OSTunProvider;
 
 use super::{
     base::{GenericNymVpnConfig, ShadowHandle, Vpn},
