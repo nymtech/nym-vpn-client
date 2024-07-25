@@ -47,7 +47,7 @@ impl From<nym_vpn_api_client::responses::Probe> for Probe {
     fn from(probe: nym_vpn_api_client::responses::Probe) -> Self {
         Self {
             last_updated_utc: probe.last_updated_utc,
-            outcome: Outcome::from(probe.outcome),
+            outcome: ProbeOutcome::from(probe.outcome),
         }
     }
 }
