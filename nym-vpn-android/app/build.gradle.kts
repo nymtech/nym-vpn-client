@@ -13,6 +13,7 @@ plugins {
 	alias(libs.plugins.kotlinxSerialization)
 	alias(libs.plugins.gross)
 	alias(libs.plugins.sentry)
+	alias(libs.plugins.grgit)
 }
 
 android {
@@ -42,6 +43,7 @@ android {
 			Constants.SENTRY_DSN,
 			"\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\"",
 		)
+		buildConfigField("String", "COMMIT_HASH", "\"${grgitService.service.get().grgit.head().id}\"")
 		buildConfigField("Boolean", "IS_SANDBOX", "false")
 		proguardFile("fdroid-rules.pro")
 	}
@@ -105,6 +107,7 @@ android {
 							"-${variant.flavorName}" +
 							"-${variant.buildType.name}" +
 							"-${variant.versionName}"
+					buildConfigField("String", "APP_NAME", "\"${fullName}\"")
 					variant.resValue("string", "fullVersionName", fullName)
 					val outputFileName =
 						"$fullName.apk"
