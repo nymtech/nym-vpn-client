@@ -161,7 +161,7 @@ async fn list_entry_gateways(client_type: ClientType) -> Result<()> {
     let response = client.list_entry_gateways(request).await?.into_inner();
     println!("{:#?}", response);
 
-    // TODO: support a flag that enabled brief output
+    // TODO: support a flag that enables brief output
     if false {
         for r in response.gateways {
             let id = r.id.unwrap();
