@@ -42,7 +42,7 @@ gradlePlugins-sentry = "4.10.0"
 appcompat = "1.7.0"
 material = "1.12.0"
 gradlePlugins-ktlint="12.1.1"
-gradlePlugins-grgit="4.1.1"
+gradlePlugins-grgit="5.2.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

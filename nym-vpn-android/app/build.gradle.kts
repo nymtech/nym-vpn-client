@@ -43,7 +43,7 @@ android {
 			Constants.SENTRY_DSN,
 			"\"${(System.getenv(Constants.SENTRY_DSN) ?: getLocalProperty("sentry.dsn")) ?: ""}\"",
 		)
-		buildConfigField("String", "COMMIT_HASH", "\"${(grgit.head().id)}\"")
+		buildConfigField("String", "COMMIT_HASH", "\"${grgit.head().id}\"")
 		buildConfigField("Boolean", "IS_SANDBOX", "false")
 		proguardFile("fdroid-rules.pro")
 	}

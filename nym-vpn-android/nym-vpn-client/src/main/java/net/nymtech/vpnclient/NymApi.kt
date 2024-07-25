@@ -5,7 +5,6 @@ import kotlinx.coroutines.withContext
 import net.nymtech.vpnclient.model.Country
 import net.nymtech.vpnclient.model.Environment
 import nym_vpn_lib.UserAgent
-import nym_vpn_lib.getGatewayCountries
 import nym_vpn_lib.getGatewayCountriesUserAgent
 
 class NymApi(

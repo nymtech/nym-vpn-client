@@ -48,7 +48,11 @@ object AppModule {
 	@Singleton
 	@Provides
 	fun provideNymApi(@IoDispatcher dispatcher: CoroutineDispatcher): NymApi {
-		return NymApi(NymVpn.environment, dispatcher, UserAgent(BuildConfig.APP_NAME, BuildConfig.VERSION_NAME, "android-sdk${Build.VERSION.SDK_INT}", BuildConfig.COMMIT_HASH ))
+		return NymApi(
+			NymVpn.environment,
+			dispatcher,
+			UserAgent(BuildConfig.APP_NAME, BuildConfig.VERSION_NAME, "android-sdk${Build.VERSION.SDK_INT}", BuildConfig.COMMIT_HASH),
+		)
 	}
 
 	@Singleton
