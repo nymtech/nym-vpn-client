@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_api_client::VpnApiClientError;
-use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
+use nym_vpn_lib::{
+    gateway_directory::{EntryPoint, ExitPoint},
+    nym_bin_common::bin_info_local_vergen,
+    nym_config::defaults,
+};
 use time::OffsetDateTime;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 use tracing::{debug, info, warn};
@@ -139,11 +143,10 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_list_entry_gateways(
         &self,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
-        let user_agent = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!().into();
-        let nym_network_details =
-            nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env();
+        let user_agent = bin_info_local_vergen!().into();
+        let nym_network_details = defaults::NymNetworkDetails::new_from_env();
 
-        if nym_network_details.network_name == "mainnet" {
+        if nym_network_details.network_name == defaults::mainnet::NETWORK_NAME {
             nym_vpn_api_client::get_entry_gateways(user_agent)
                 .await
                 .map(|gateways| gateways.into_iter().map(gateway::Gateway::from).collect())
@@ -163,11 +166,10 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_list_exit_gateways(
         &self,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
-        let user_agent = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!().into();
-        let nym_network_details =
-            nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env();
+        let user_agent = bin_info_local_vergen!().into();
+        let nym_network_details = defaults::NymNetworkDetails::new_from_env();
 
-        if nym_network_details.network_name == "mainnet" {
+        if nym_network_details.network_name == defaults::mainnet::NETWORK_NAME {
             nym_vpn_api_client::get_exit_gateways(user_agent)
                 .await
                 .map(|gateways| gateways.into_iter().map(gateway::Gateway::from).collect())
@@ -200,7 +202,7 @@ impl CommandInterfaceConnectionHandler {
 }
 
 fn api_url() -> Result<url::Url, ListGatewayError> {
-    nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env()
+    defaults::NymNetworkDetails::new_from_env()
         .endpoints
         .first()
         .ok_or(ListGatewayError::NetworkEndpointsNotConfigured)?
