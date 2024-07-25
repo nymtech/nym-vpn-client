@@ -76,8 +76,8 @@ impl From<gateway::Gateway> for nym_vpn_proto::ExitGateway {
         let id = Some(nym_vpn_proto::Gateway {
             id: gateway.identity_key.to_string(),
         });
-        let location = gateway.location.map(|location| location.into());
-        let last_probe = gateway.last_probe.map(|probe| probe.into());
+        let location = gateway.location.map(nym_vpn_proto::Location::from);
+        let last_probe = gateway.last_probe.map(nym_vpn_proto::Probe::from);
         nym_vpn_proto::ExitGateway {
             id,
             location,
