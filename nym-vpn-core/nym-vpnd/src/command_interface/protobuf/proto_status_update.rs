@@ -5,7 +5,7 @@ use nym_bandwidth_controller::BandwidthStatusMessage;
 use nym_vpn_lib::{connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage};
 use nym_vpn_proto::{connection_status_update::StatusType, ConnectionStatusUpdate};
 
-pub(super) fn status_update_from_status_message(
+pub(crate) fn status_update_from_status_message(
     status: &NymVpnStatusMessage,
 ) -> ConnectionStatusUpdate {
     match status {
@@ -27,7 +27,7 @@ pub(super) fn status_update_from_status_message(
     }
 }
 
-pub(super) fn status_update_from_monitor_status(
+pub(crate) fn status_update_from_monitor_status(
     status: &ConnectionMonitorStatus,
 ) -> ConnectionStatusUpdate {
     match status {
@@ -69,7 +69,7 @@ pub(super) fn status_update_from_monitor_status(
     }
 }
 
-pub(super) fn status_update_from_bandwidth_status_message(
+pub(crate) fn status_update_from_bandwidth_status_message(
     status: &BandwidthStatusMessage,
 ) -> ConnectionStatusUpdate {
     match status {

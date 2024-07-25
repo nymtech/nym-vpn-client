@@ -17,6 +17,7 @@ mod cli;
 mod command_interface;
 mod logging;
 mod service;
+mod types;
 #[cfg(windows)]
 mod windows_service;
 

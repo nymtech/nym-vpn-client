@@ -7,12 +7,14 @@ use time::OffsetDateTime;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 use tracing::{debug, info, warn};
 
-use crate::service::{
-    ConnectArgs, ConnectOptions, ImportCredentialError, VpnServiceCommand, VpnServiceConnectResult,
-    VpnServiceDisconnectResult, VpnServiceInfoResult, VpnServiceStatusResult,
+use crate::{
+    service::{
+        ConnectArgs, ConnectOptions, ImportCredentialError, VpnServiceCommand,
+        VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceInfoResult,
+        VpnServiceStatusResult,
+    },
+    types::gateways,
 };
-
-use super::gateways;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ListGatewayError {

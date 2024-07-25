@@ -4,12 +4,9 @@
 mod config;
 mod connection_handler;
 mod error;
-mod gateways;
 mod helpers;
 mod listener;
-mod proto_error;
-mod proto_response;
-mod proto_status_update;
+mod protobuf;
 mod socket_stream;
 mod start;
 mod status_broadcaster;

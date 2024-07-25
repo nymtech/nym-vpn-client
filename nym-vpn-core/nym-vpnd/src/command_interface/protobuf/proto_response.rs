@@ -1,13 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::service::{VpnServiceInfoResult, VpnServiceStateChange, VpnServiceStatusResult};
+use crate::{
+    service::{VpnServiceInfoResult, VpnServiceStateChange, VpnServiceStatusResult},
+    types::gateways,
+};
 use nym_vpn_proto::{
     ConnectionStateChange, ConnectionStatus, Error as ProtoError, InfoResponse, StatusResponse,
 };
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
-
-use super::gateways;
 
 impl From<VpnServiceStatusResult> for StatusResponse {
     fn from(status: VpnServiceStatusResult) -> Self {
