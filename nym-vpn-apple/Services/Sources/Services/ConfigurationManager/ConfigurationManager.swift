@@ -1,30 +1,20 @@
 import Foundation
 import Constants
 
-public enum ConfigurationManager {
-    public static func setEnvVariables(for environment: Env) throws {
-        do {
-            let envString = try ConfigurationManager.contentOfEnvFile(named: environment.rawValue)
-            try setEnvironmentVariables(envString: envString)
-        } catch {
-            print(error)
-        }
+public class ConfigurationManager {
+    public static func setEnvVariables() throws {
+        let envString = try ConfigurationManager.contentOfEnvFile(named: Constants.currentEnvironment.rawValue)
+        try setEnvironmentVariables(envString: envString)
     }
 }
 
 private extension ConfigurationManager {
     static func contentOfEnvFile(named: String) throws -> String {
-        guard let filePath = Bundle.main.path(forResource: named, ofType: "env")
-        else {
+        guard let filePath = Bundle.main.path(forResource: named, ofType: "env") else {
             throw GeneralNymError.noEnvFile
         }
-        do {
-            let fileContent = try String(contentsOfFile: filePath, encoding: .utf8)
-            print(fileContent)
-            return fileContent
-        } catch {
-            throw error
-        }
+
+        return try String(contentsOfFile: filePath, encoding: .utf8)
     }
 
     static func setEnvironmentVariables(envString: String) throws {

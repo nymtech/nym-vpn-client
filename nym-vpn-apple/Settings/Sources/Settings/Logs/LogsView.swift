@@ -104,7 +104,7 @@ private extension LogsView {
                 }
                 .disabled(viewModel.logs.isEmpty)
                 .simultaneousGesture(
-                    TapGesture().onEnded({ generateImpact() })
+                    TapGesture().onEnded { generateImpact() }
                 )
 #endif
 #if os(macOS)

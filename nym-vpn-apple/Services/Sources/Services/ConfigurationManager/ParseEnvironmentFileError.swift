@@ -16,10 +16,10 @@ public struct ParseEnvironmentFileError: LocalizedError {
 
     func errorDescription() -> String? {
         switch kind {
-            case .invalidValue:
-                return "Invalid value"
-            case .fileNotFound:
-                return "Env file not found"
+        case .invalidValue:
+            return "Invalid value"
+        case .fileNotFound:
+            return "Env file not found"
         }
     }
 }

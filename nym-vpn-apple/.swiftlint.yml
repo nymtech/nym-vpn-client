@@ -119,7 +119,7 @@ line_length:
   error: 240
 
 multiline_parameters:
-  allowsSingleLine: false
+  allows_single_line: true
 
 nesting:
   type_level: 3

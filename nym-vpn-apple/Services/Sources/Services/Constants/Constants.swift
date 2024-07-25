@@ -4,9 +4,6 @@ public enum Constants: String {
     case groupID = "group.net.nymtech.vpn"
     case helperName = "net.nymtech.vpn.helper"
 
-    case sandboxApiUrl = "https://canary-api.performance.nymte.ch/api"
-    case sandboxExplorerURL = "https://canary-explorer.performance.nymte.ch/api"
-
     case supportURL = "https://support.nymvpn.com/hc/en-us"
     case termsOfUseURL = "https://nymvpn.com/en/terms"
     case privacyPolicyURL = "https://nymvpn.com/en/privacy?type=apps"
@@ -17,7 +14,15 @@ public enum Constants: String {
 
     case logFileName = "Logs.log"
 
+    public static let currentEnvironment: Env = .canary
+
     public static func apiURL() -> URL? {
         getenv("NYM_API").flatMap { URL(string: String(cString: $0)) }
     }
+}
+
+public enum Env: String {
+    case canary
+    case mainnet
+    case sandbox
 }
