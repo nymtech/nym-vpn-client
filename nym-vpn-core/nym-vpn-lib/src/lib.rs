@@ -3,10 +3,15 @@
 
 uniffi::setup_scaffolding!();
 
+#[cfg(not(target_os = "ios"))]
 use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
 use crate::mixnet_connect::setup_mixnet_client;
+#[cfg(not(target_os = "ios"))]
 use crate::tunnel::setup_route_manager;
+#[cfg(target_os = "ios")]
+use crate::util::wait_for_interrupt;
+#[cfg(not(target_os = "ios"))]
 use crate::wg_gateway_client::WgGatewayClient;
 use error::GatewayDirectoryError;
 use futures::channel::{mpsc, oneshot};
@@ -19,13 +24,21 @@ use nym_gateway_directory::{
 };
 use nym_ip_packet_client::IprClient;
 use nym_task::TaskManager;
-use std::net::IpAddr;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+#[cfg(not(target_os = "ios"))]
+use std::sync::Mutex;
+#[cfg(not(target_os = "ios"))]
 use talpid_core::dns::DnsMonitor;
+#[cfg(not(target_os = "ios"))]
 use talpid_routing::RouteManager;
-use tunnel_setup::{init_firewall_dns, setup_tunnel, AllTunnelsSetup, TunnelSetup};
-use util::{wait_and_handle_interrupt, wait_for_interrupt_and_signal};
+#[cfg(not(target_os = "ios"))]
+use tunnel_setup::init_firewall_dns;
+use tunnel_setup::{setup_tunnel, AllTunnelsSetup, TunnelSetup};
+#[cfg(not(target_os = "ios"))]
+use util::wait_and_handle_interrupt;
+use util::wait_for_interrupt_and_signal;
 
 // Public re-export
 pub use nym_connection_monitor as connection_monitor;
@@ -41,14 +54,15 @@ pub use nym_task::{
     StatusReceiver,
 };
 
+#[cfg(target_os = "ios")]
+use crate::ios::OSTunProvider;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub use crate::platform::swift;
-#[cfg(target_os = "ios")]
-use crate::platform::swift::OSTunProvider;
 use crate::platform::uniffi_set_listener_status;
 use crate::uniffi_custom_impls::{ExitStatus, StatusEvent};
 pub use nym_bin_common;
 pub use nym_config;
+#[cfg(not(target_os = "ios"))]
 use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
@@ -61,6 +75,8 @@ mod uniffi_custom_impls;
 pub mod config;
 pub mod credentials;
 pub mod error;
+#[cfg(target_os = "ios")]
+mod ios;
 pub mod keys;
 pub mod mixnet_connect;
 pub mod mixnet_processor;
@@ -73,6 +89,14 @@ mod wireguard_setup;
 const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
 pub const SHUTDOWN_TIMER_SECS: u64 = 10;
 
+pub static DEFAULT_DNS_SERVERS: [IpAddr; 4] = [
+    IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)),
+    IpAddr::V4(Ipv4Addr::new(1, 0, 0, 1)),
+    IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111)),
+    IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1001)),
+];
+
+#[cfg(not(target_os = "ios"))]
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
     wg_gateway_client: &mut WgGatewayClient,
@@ -104,6 +128,7 @@ async fn init_wireguard_config(
     Ok((wireguard_config, gateway_host))
 }
 
+#[derive(Default)]
 struct ShadowHandle {
     _inner: Option<JoinHandle<Result<AsyncDevice>>>,
 }
@@ -191,6 +216,7 @@ pub struct NymVpn<T: Vpn> {
     /// VPN configuration, depending on the type used
     pub vpn_config: T,
 
+    #[cfg(not(target_os = "ios"))]
     tun_provider: Arc<Mutex<TunProvider>>,
 
     #[cfg(target_os = "ios")]
@@ -220,6 +246,7 @@ impl NymVpn<WireguardVpn> {
         #[cfg(target_os = "android")] android_context: talpid_types::android::AndroidContext,
         #[cfg(target_os = "ios")] ios_tun_provider: Arc<dyn OSTunProvider>,
     ) -> Self {
+        #[cfg(not(target_os = "ios"))]
         let tun_provider = Arc::new(Mutex::new(TunProvider::new(
             #[cfg(target_os = "android")]
             android_context,
@@ -251,10 +278,11 @@ impl NymVpn<WireguardVpn> {
                 user_agent: None,
             },
             vpn_config: WireguardVpn {},
+            #[cfg(not(target_os = "ios"))]
             tun_provider,
             #[cfg(target_os = "ios")]
             ios_tun_provider,
-            shadow_handle: ShadowHandle { _inner: None },
+            shadow_handle: ShadowHandle::default(),
         }
     }
 }
@@ -266,6 +294,7 @@ impl NymVpn<MixnetVpn> {
         #[cfg(target_os = "android")] android_context: talpid_types::android::AndroidContext,
         #[cfg(target_os = "ios")] ios_tun_provider: Arc<dyn OSTunProvider>,
     ) -> Self {
+        #[cfg(not(target_os = "ios"))]
         let tun_provider = Arc::new(Mutex::new(TunProvider::new(
             #[cfg(target_os = "android")]
             android_context,
@@ -297,10 +326,11 @@ impl NymVpn<MixnetVpn> {
                 user_agent: None,
             },
             vpn_config: MixnetVpn {},
+            #[cfg(not(target_os = "ios"))]
             tun_provider,
             #[cfg(target_os = "ios")]
             ios_tun_provider,
-            shadow_handle: ShadowHandle { _inner: None },
+            shadow_handle: ShadowHandle::default(),
         }
     }
 
@@ -308,12 +338,12 @@ impl NymVpn<MixnetVpn> {
     async fn setup_post_mixnet(
         &mut self,
         mixnet_client: SharedMixnetClient,
-        route_manager: &mut RouteManager,
+        #[cfg(not(target_os = "ios"))] route_manager: &mut RouteManager,
         exit_mix_addresses: &IpPacketRouterAddress,
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
-        dns_monitor: &mut DnsMonitor,
+        #[cfg(not(target_os = "ios"))] dns_monitor: &mut DnsMonitor,
     ) -> Result<MixnetExitConnectionInfo> {
         let exit_gateway = *exit_mix_addresses.gateway();
         info!("Connecting to exit gateway: {exit_gateway}");
@@ -349,11 +379,14 @@ impl NymVpn<MixnetVpn> {
             mixnet_client.gateway_ws_fd().await,
         );
         debug!("Routing config: {}", routing_config);
+        #[cfg(target_os = "ios")]
+        let mixnet_tun_dev =
+            routing::setup_mixnet_routing(routing_config, self.ios_tun_provider.clone()).await?;
+
+        #[cfg(not(target_os = "ios"))]
         let mixnet_tun_dev = routing::setup_mixnet_routing(
             route_manager,
             routing_config,
-            #[cfg(target_os = "ios")]
-            self.ios_tun_provider.clone(),
             dns_monitor,
             self.generic_config.dns,
         )
@@ -399,12 +432,12 @@ impl NymVpn<MixnetVpn> {
     async fn setup_tunnel_services(
         &mut self,
         mixnet_client: SharedMixnetClient,
-        route_manager: &mut RouteManager,
+        #[cfg(not(target_os = "ios"))] route_manager: &mut RouteManager,
         exit_mix_addresses: &IpPacketRouterAddress,
         task_manager: &TaskManager,
         gateway_client: &GatewayClient,
         default_lan_gateway_ip: routing::LanGatewayIp,
-        dns_monitor: &mut DnsMonitor,
+        #[cfg(not(target_os = "ios"))] dns_monitor: &mut DnsMonitor,
     ) -> Result<(MixnetConnectionInfo, MixnetExitConnectionInfo)> {
         // Now that we have a connection, collection some info about that and return
         let nym_address = mixnet_client.nym_address().await;
@@ -424,11 +457,13 @@ impl NymVpn<MixnetVpn> {
         match self
             .setup_post_mixnet(
                 mixnet_client.clone(),
+                #[cfg(not(target_os = "ios"))]
                 route_manager,
                 exit_mix_addresses,
                 task_manager,
                 gateway_client,
                 default_lan_gateway_ip,
+                #[cfg(not(target_os = "ios"))]
                 dns_monitor,
             )
             .await
@@ -500,7 +535,9 @@ impl SpecificVpn {
     pub async fn run(&mut self) -> Result<()> {
         let mut task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
         info!("Setting up route manager");
+        #[cfg(not(target_os = "ios"))]
         let mut route_manager = setup_route_manager().await?;
+        #[cfg(not(target_os = "ios"))]
         let (mut firewall, mut dns_monitor) = init_firewall_dns(
             #[cfg(target_os = "linux")]
             route_manager.handle()?,
@@ -509,13 +546,16 @@ impl SpecificVpn {
         let tunnels = match setup_tunnel(
             self,
             &mut task_manager,
+            #[cfg(not(target_os = "ios"))]
             &mut route_manager,
+            #[cfg(not(target_os = "ios"))]
             &mut dns_monitor,
         )
         .await
         {
             Ok(tunnels) => tunnels,
             Err(e) => {
+                #[cfg(not(target_os = "ios"))]
                 tokio::task::spawn_blocking(move || {
                     dns_monitor
                         .reset()
@@ -540,7 +580,16 @@ impl SpecificVpn {
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
             AllTunnelsSetup::Mix(_) => {
-                wait_and_handle_interrupt(&mut task_manager, route_manager, None).await;
+                #[cfg(not(target_os = "ios"))]
+                wait_and_handle_interrupt(
+                    &mut task_manager,
+                    #[cfg(not(target_os = "ios"))]
+                    route_manager,
+                    #[cfg(not(target_os = "ios"))]
+                    None,
+                )
+                .await;
+                #[cfg(not(target_os = "ios"))]
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
                         log::error!("Failed to reset dns monitor: {err}");
@@ -548,6 +597,7 @@ impl SpecificVpn {
                 })
                 .await??;
             }
+            #[cfg(not(target_os = "ios"))]
             AllTunnelsSetup::Wg { entry, exit } => {
                 wait_and_handle_interrupt(
                     &mut task_manager,
@@ -567,6 +617,10 @@ impl SpecificVpn {
                     Error::FirewallError(err.to_string())
                 })?;
             }
+            #[cfg(target_os = "ios")]
+            AllTunnelsSetup::WgIos(_two_hop_tunnel) => {
+                wait_for_interrupt(&mut task_manager).await;
+            }
         }
 
         Ok(())
@@ -582,8 +636,13 @@ impl SpecificVpn {
         vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let mut task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
+
+        #[cfg(not(target_os = "ios"))]
         info!("Setting up route manager");
+        #[cfg(not(target_os = "ios"))]
+        #[cfg(not(target_os = "ios"))]
         let mut route_manager = setup_route_manager().await?;
+        #[cfg(not(target_os = "ios"))]
         let (mut firewall, mut dns_monitor) = init_firewall_dns(
             #[cfg(target_os = "linux")]
             route_manager.handle()?,
@@ -592,13 +651,16 @@ impl SpecificVpn {
         let tunnels = match setup_tunnel(
             self,
             &mut task_manager,
+            #[cfg(not(target_os = "ios"))]
             &mut route_manager,
+            #[cfg(not(target_os = "ios"))]
             &mut dns_monitor,
         )
         .await
         {
             Ok(tunnels) => tunnels,
             Err(e) => {
+                #[cfg(not(target_os = "ios"))]
                 tokio::task::spawn_blocking(move || {
                     dns_monitor
                         .reset()
@@ -648,10 +710,13 @@ impl SpecificVpn {
                 let result = wait_for_interrupt_and_signal(
                     Some(task_manager),
                     vpn_ctrl_rx,
+                    #[cfg(not(target_os = "ios"))]
                     route_manager,
+                    #[cfg(not(target_os = "ios"))]
                     None,
                 )
                 .await;
+                #[cfg(not(target_os = "ios"))]
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
                         log::error!("Failed to reset dns monitor: {err}");
@@ -660,6 +725,7 @@ impl SpecificVpn {
                 .await??;
                 result
             }
+            #[cfg(not(target_os = "ios"))]
             AllTunnelsSetup::Wg { entry, exit } => {
                 let result = wait_for_interrupt_and_signal(
                     Some(task_manager),
@@ -681,6 +747,11 @@ impl SpecificVpn {
                     }
                 })?;
                 result
+            }
+            #[cfg(target_os = "ios")]
+            AllTunnelsSetup::WgIos(_) => {
+                wait_for_interrupt(&mut task_manager).await;
+                Ok(())
             }
         }
     }

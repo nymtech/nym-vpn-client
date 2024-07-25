@@ -1,13 +1,18 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(not(target_os = "ios"))]
 use futures::channel::{mpsc, oneshot};
+#[cfg(not(target_os = "ios"))]
 use nym_sdk::TaskClient;
+#[cfg(not(target_os = "ios"))]
 use std::sync::{Arc, Mutex};
+#[cfg(not(target_os = "ios"))]
 use talpid_routing::RouteManager;
+#[cfg(not(target_os = "ios"))]
 use talpid_tunnel::{tun_provider::TunProvider, TunnelEvent};
-use tracing::debug;
 
+#[cfg(not(target_os = "ios"))]
 use crate::{
     config::WireguardConfig,
     error::Result,
@@ -15,6 +20,7 @@ use crate::{
     tunnel_setup::WgTunnelSetup,
 };
 
+#[cfg(not(target_os = "ios"))]
 pub async fn create_wireguard_tunnel(
     route_manager: &RouteManager,
     shutdown: TaskClient,
@@ -24,7 +30,7 @@ pub async fn create_wireguard_tunnel(
     WgTunnelSetup,
     mpsc::UnboundedReceiver<(TunnelEvent, oneshot::Sender<()>)>,
 )> {
-    debug!("Creating wireguard tunnel");
+    tracing::debug!("Creating wireguard tunnel");
     let handle = route_manager.handle()?;
     let tunnel = Tunnel::new(wireguard_config, handle, tun_provider);
 

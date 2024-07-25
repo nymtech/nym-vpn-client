@@ -382,6 +382,19 @@ fileprivate class UniffiHandleMap<T> {
 // Public interface members begin here.
 
 
+fileprivate struct FfiConverterUInt8: FfiConverterPrimitive {
+    typealias FfiType = UInt8
+    typealias SwiftType = UInt8
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UInt8 {
+        return try lift(readInt(&buf))
+    }
+
+    public static func write(_ value: UInt8, into buf: inout [UInt8]) {
+        writeInt(&buf, lower(value))
+    }
+}
+
 fileprivate struct FfiConverterUInt16: FfiConverterPrimitive {
     typealias FfiType = UInt16
     typealias SwiftType = UInt16
@@ -391,19 +404,6 @@ fileprivate struct FfiConverterUInt16: FfiConverterPrimitive {
     }
 
     public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        writeInt(&buf, lower(value))
-    }
-}
-
-fileprivate struct FfiConverterInt32: FfiConverterPrimitive {
-    typealias FfiType = Int32
-    typealias SwiftType = Int32
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Int32 {
-        return try lift(readInt(&buf))
-    }
-
-    public static func write(_ value: Int32, into buf: inout [UInt8]) {
         writeInt(&buf, lower(value))
     }
 }
@@ -520,9 +520,7 @@ fileprivate struct FfiConverterTimestamp: FfiConverterRustBuffer {
 
 public protocol OsTunProvider : AnyObject {
     
-    func configureWg(config: WgConfig) throws 
-    
-    func configureNym(config: NymConfig) throws  -> Int32
+    func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings) async throws 
     
 }
 
@@ -567,19 +565,21 @@ open class OsTunProviderImpl:
     
 
     
-open func configureWg(config: WgConfig)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
-    uniffi_nym_vpn_lib_fn_method_ostunprovider_configure_wg(self.uniffiClonePointer(),
-        FfiConverterTypeWgConfig.lower(config),$0
-    )
-}
-}
-    
-open func configureNym(config: NymConfig)throws  -> Int32 {
-    return try  FfiConverterInt32.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
-    uniffi_nym_vpn_lib_fn_method_ostunprovider_configure_nym(self.uniffiClonePointer(),
-        FfiConverterTypeNymConfig.lower(config),$0
-    )
-})
+open func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings)async throws  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_nym_vpn_lib_fn_method_ostunprovider_set_tunnel_network_settings(
+                    self.uniffiClonePointer(),
+                    FfiConverterTypeTunnelNetworkSettings.lower(tunnelSettings)
+                )
+            },
+            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
+            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
+            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeFFIError.lift
+        )
 }
     
 
@@ -598,55 +598,46 @@ fileprivate struct UniffiCallbackInterfaceOSTunProvider {
     // Create the VTable using a series of closures.
     // Swift automatically converts these into C callback functions.
     static var vtable: UniffiVTableCallbackInterfaceOsTunProvider = UniffiVTableCallbackInterfaceOsTunProvider(
-        configureWg: { (
+        setTunnelNetworkSettings: { (
             uniffiHandle: UInt64,
-            config: RustBuffer,
-            uniffiOutReturn: UnsafeMutableRawPointer,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+            tunnelSettings: RustBuffer,
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteVoid,
+            uniffiCallbackData: UInt64,
+            uniffiOutReturn: UnsafeMutablePointer<UniffiForeignFuture>
         ) in
             let makeCall = {
-                () throws -> () in
+                () async throws -> () in
                 guard let uniffiObj = try? FfiConverterTypeOSTunProvider.handleMap.get(handle: uniffiHandle) else {
                     throw UniffiInternalError.unexpectedStaleHandle
                 }
-                return try uniffiObj.configureWg(
-                     config: try FfiConverterTypeWgConfig.lift(config)
+                return try await uniffiObj.setTunnelNetworkSettings(
+                     tunnelSettings: try FfiConverterTypeTunnelNetworkSettings.lift(tunnelSettings)
                 )
             }
 
-            
-            let writeReturn = { () }
-            uniffiTraitInterfaceCallWithError(
-                callStatus: uniffiCallStatus,
-                makeCall: makeCall,
-                writeReturn: writeReturn,
-                lowerError: FfiConverterTypeFFIError.lower
-            )
-        },
-        configureNym: { (
-            uniffiHandle: UInt64,
-            config: RustBuffer,
-            uniffiOutReturn: UnsafeMutablePointer<Int32>,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
-        ) in
-            let makeCall = {
-                () throws -> Int32 in
-                guard let uniffiObj = try? FfiConverterTypeOSTunProvider.handleMap.get(handle: uniffiHandle) else {
-                    throw UniffiInternalError.unexpectedStaleHandle
-                }
-                return try uniffiObj.configureNym(
-                     config: try FfiConverterTypeNymConfig.lift(config)
+            let uniffiHandleSuccess = { (returnValue: ()) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus()
+                    )
                 )
             }
-
-            
-            let writeReturn = { uniffiOutReturn.pointee = FfiConverterInt32.lower($0) }
-            uniffiTraitInterfaceCallWithError(
-                callStatus: uniffiCallStatus,
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            let uniffiForeignFuture = uniffiTraitInterfaceCallAsyncWithError(
                 makeCall: makeCall,
-                writeReturn: writeReturn,
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError,
                 lowerError: FfiConverterTypeFFIError.lower
             )
+            uniffiOutReturn.pointee = uniffiForeignFuture
         },
         uniffiFree: { (uniffiHandle: UInt64) -> () in
             let result = try? FfiConverterTypeOSTunProvider.handleMap.remove(handle: uniffiHandle)
@@ -987,6 +978,255 @@ public func FfiConverterTypeTunnelStatusListener_lift(_ pointer: UnsafeMutableRa
 
 public func FfiConverterTypeTunnelStatusListener_lower(_ value: TunnelStatusListener) -> UnsafeMutableRawPointer {
     return FfiConverterTypeTunnelStatusListener.lower(value)
+}
+
+
+public struct DnsSettings {
+    /**
+     * DNS IP addresses.
+     */
+    public var servers: [IpAddr]
+    /**
+     * DNS server search domains.
+     */
+    public var searchDomains: [String]?
+    /**
+     * Which domains to resolve using these DNS settings.
+     */
+    public var matchDomains: [String]?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(
+        /**
+         * DNS IP addresses.
+         */servers: [IpAddr], 
+        /**
+         * DNS server search domains.
+         */searchDomains: [String]?, 
+        /**
+         * Which domains to resolve using these DNS settings.
+         */matchDomains: [String]?) {
+        self.servers = servers
+        self.searchDomains = searchDomains
+        self.matchDomains = matchDomains
+    }
+}
+
+
+
+extension DnsSettings: Equatable, Hashable {
+    public static func ==(lhs: DnsSettings, rhs: DnsSettings) -> Bool {
+        if lhs.servers != rhs.servers {
+            return false
+        }
+        if lhs.searchDomains != rhs.searchDomains {
+            return false
+        }
+        if lhs.matchDomains != rhs.matchDomains {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(servers)
+        hasher.combine(searchDomains)
+        hasher.combine(matchDomains)
+    }
+}
+
+
+public struct FfiConverterTypeDnsSettings: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DnsSettings {
+        return
+            try DnsSettings(
+                servers: FfiConverterSequenceTypeIpAddr.read(from: &buf), 
+                searchDomains: FfiConverterOptionSequenceString.read(from: &buf), 
+                matchDomains: FfiConverterOptionSequenceString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: DnsSettings, into buf: inout [UInt8]) {
+        FfiConverterSequenceTypeIpAddr.write(value.servers, into: &buf)
+        FfiConverterOptionSequenceString.write(value.searchDomains, into: &buf)
+        FfiConverterOptionSequenceString.write(value.matchDomains, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeDnsSettings_lift(_ buf: RustBuffer) throws -> DnsSettings {
+    return try FfiConverterTypeDnsSettings.lift(buf)
+}
+
+public func FfiConverterTypeDnsSettings_lower(_ value: DnsSettings) -> RustBuffer {
+    return FfiConverterTypeDnsSettings.lower(value)
+}
+
+
+public struct Ipv4Settings {
+    /**
+     * IPv4 addresses that will be set on tunnel interface.
+     */
+    public var addresses: [Ipv4Network]
+    /**
+     * Traffic matching these routes will be routed over the tun interface.
+     */
+    public var includedRoutes: [Ipv4Route]?
+    /**
+     * Traffic matching these routes will be routed over the primary physical interface.
+     */
+    public var excludedRoutes: [Ipv4Route]?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(
+        /**
+         * IPv4 addresses that will be set on tunnel interface.
+         */addresses: [Ipv4Network], 
+        /**
+         * Traffic matching these routes will be routed over the tun interface.
+         */includedRoutes: [Ipv4Route]?, 
+        /**
+         * Traffic matching these routes will be routed over the primary physical interface.
+         */excludedRoutes: [Ipv4Route]?) {
+        self.addresses = addresses
+        self.includedRoutes = includedRoutes
+        self.excludedRoutes = excludedRoutes
+    }
+}
+
+
+
+extension Ipv4Settings: Equatable, Hashable {
+    public static func ==(lhs: Ipv4Settings, rhs: Ipv4Settings) -> Bool {
+        if lhs.addresses != rhs.addresses {
+            return false
+        }
+        if lhs.includedRoutes != rhs.includedRoutes {
+            return false
+        }
+        if lhs.excludedRoutes != rhs.excludedRoutes {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(addresses)
+        hasher.combine(includedRoutes)
+        hasher.combine(excludedRoutes)
+    }
+}
+
+
+public struct FfiConverterTypeIpv4Settings: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ipv4Settings {
+        return
+            try Ipv4Settings(
+                addresses: FfiConverterSequenceTypeIpv4Network.read(from: &buf), 
+                includedRoutes: FfiConverterOptionSequenceTypeIpv4Route.read(from: &buf), 
+                excludedRoutes: FfiConverterOptionSequenceTypeIpv4Route.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: Ipv4Settings, into buf: inout [UInt8]) {
+        FfiConverterSequenceTypeIpv4Network.write(value.addresses, into: &buf)
+        FfiConverterOptionSequenceTypeIpv4Route.write(value.includedRoutes, into: &buf)
+        FfiConverterOptionSequenceTypeIpv4Route.write(value.excludedRoutes, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeIpv4Settings_lift(_ buf: RustBuffer) throws -> Ipv4Settings {
+    return try FfiConverterTypeIpv4Settings.lift(buf)
+}
+
+public func FfiConverterTypeIpv4Settings_lower(_ value: Ipv4Settings) -> RustBuffer {
+    return FfiConverterTypeIpv4Settings.lower(value)
+}
+
+
+public struct Ipv6Settings {
+    /**
+     * IPv4 addresses that will be set on tunnel interface.
+     */
+    public var addresses: [Ipv6Network]
+    /**
+     * Traffic matching these routes will be routed over the tun interface.
+     */
+    public var includedRoutes: [Ipv6Route]?
+    /**
+     * Traffic matching these routes will be routed over the primary physical interface.
+     */
+    public var excludedRoutes: [Ipv6Route]?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(
+        /**
+         * IPv4 addresses that will be set on tunnel interface.
+         */addresses: [Ipv6Network], 
+        /**
+         * Traffic matching these routes will be routed over the tun interface.
+         */includedRoutes: [Ipv6Route]?, 
+        /**
+         * Traffic matching these routes will be routed over the primary physical interface.
+         */excludedRoutes: [Ipv6Route]?) {
+        self.addresses = addresses
+        self.includedRoutes = includedRoutes
+        self.excludedRoutes = excludedRoutes
+    }
+}
+
+
+
+extension Ipv6Settings: Equatable, Hashable {
+    public static func ==(lhs: Ipv6Settings, rhs: Ipv6Settings) -> Bool {
+        if lhs.addresses != rhs.addresses {
+            return false
+        }
+        if lhs.includedRoutes != rhs.includedRoutes {
+            return false
+        }
+        if lhs.excludedRoutes != rhs.excludedRoutes {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(addresses)
+        hasher.combine(includedRoutes)
+        hasher.combine(excludedRoutes)
+    }
+}
+
+
+public struct FfiConverterTypeIpv6Settings: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ipv6Settings {
+        return
+            try Ipv6Settings(
+                addresses: FfiConverterSequenceTypeIpv6Network.read(from: &buf), 
+                includedRoutes: FfiConverterOptionSequenceTypeIpv6Route.read(from: &buf), 
+                excludedRoutes: FfiConverterOptionSequenceTypeIpv6Route.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: Ipv6Settings, into buf: inout [UInt8]) {
+        FfiConverterSequenceTypeIpv6Network.write(value.addresses, into: &buf)
+        FfiConverterOptionSequenceTypeIpv6Route.write(value.includedRoutes, into: &buf)
+        FfiConverterOptionSequenceTypeIpv6Route.write(value.excludedRoutes, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeIpv6Settings_lift(_ buf: RustBuffer) throws -> Ipv6Settings {
+    return try FfiConverterTypeIpv6Settings.lift(buf)
+}
+
+public func FfiConverterTypeIpv6Settings_lower(_ value: Ipv6Settings) -> RustBuffer {
+    return FfiConverterTypeIpv6Settings.lower(value)
 }
 
 
@@ -1361,6 +1601,117 @@ public func FfiConverterTypeTunnelConfig_lift(_ buf: RustBuffer) throws -> Tunne
 
 public func FfiConverterTypeTunnelConfig_lower(_ value: TunnelConfig) -> RustBuffer {
     return FfiConverterTypeTunnelConfig.lower(value)
+}
+
+
+public struct TunnelNetworkSettings {
+    /**
+     * Tunnel remote address, which is mostly of decorative value.
+     */
+    public var tunnelRemoteAddress: String
+    /**
+     * IPv4 interface settings.
+     */
+    public var ipv4Settings: Ipv4Settings?
+    /**
+     * IPv6 interface settings.
+     */
+    public var ipv6Settings: Ipv6Settings?
+    /**
+     * DNS settings.
+     */
+    public var dnsSettings: DnsSettings?
+    /**
+     * Tunnel device MTU.
+     */
+    public var mtu: UInt16
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(
+        /**
+         * Tunnel remote address, which is mostly of decorative value.
+         */tunnelRemoteAddress: String, 
+        /**
+         * IPv4 interface settings.
+         */ipv4Settings: Ipv4Settings?, 
+        /**
+         * IPv6 interface settings.
+         */ipv6Settings: Ipv6Settings?, 
+        /**
+         * DNS settings.
+         */dnsSettings: DnsSettings?, 
+        /**
+         * Tunnel device MTU.
+         */mtu: UInt16) {
+        self.tunnelRemoteAddress = tunnelRemoteAddress
+        self.ipv4Settings = ipv4Settings
+        self.ipv6Settings = ipv6Settings
+        self.dnsSettings = dnsSettings
+        self.mtu = mtu
+    }
+}
+
+
+
+extension TunnelNetworkSettings: Equatable, Hashable {
+    public static func ==(lhs: TunnelNetworkSettings, rhs: TunnelNetworkSettings) -> Bool {
+        if lhs.tunnelRemoteAddress != rhs.tunnelRemoteAddress {
+            return false
+        }
+        if lhs.ipv4Settings != rhs.ipv4Settings {
+            return false
+        }
+        if lhs.ipv6Settings != rhs.ipv6Settings {
+            return false
+        }
+        if lhs.dnsSettings != rhs.dnsSettings {
+            return false
+        }
+        if lhs.mtu != rhs.mtu {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(tunnelRemoteAddress)
+        hasher.combine(ipv4Settings)
+        hasher.combine(ipv6Settings)
+        hasher.combine(dnsSettings)
+        hasher.combine(mtu)
+    }
+}
+
+
+public struct FfiConverterTypeTunnelNetworkSettings: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TunnelNetworkSettings {
+        return
+            try TunnelNetworkSettings(
+                tunnelRemoteAddress: FfiConverterString.read(from: &buf), 
+                ipv4Settings: FfiConverterOptionTypeIpv4Settings.read(from: &buf), 
+                ipv6Settings: FfiConverterOptionTypeIpv6Settings.read(from: &buf), 
+                dnsSettings: FfiConverterOptionTypeDnsSettings.read(from: &buf), 
+                mtu: FfiConverterUInt16.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: TunnelNetworkSettings, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.tunnelRemoteAddress, into: &buf)
+        FfiConverterOptionTypeIpv4Settings.write(value.ipv4Settings, into: &buf)
+        FfiConverterOptionTypeIpv6Settings.write(value.ipv6Settings, into: &buf)
+        FfiConverterOptionTypeDnsSettings.write(value.dnsSettings, into: &buf)
+        FfiConverterUInt16.write(value.mtu, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeTunnelNetworkSettings_lift(_ buf: RustBuffer) throws -> TunnelNetworkSettings {
+    return try FfiConverterTypeTunnelNetworkSettings.lift(buf)
+}
+
+public func FfiConverterTypeTunnelNetworkSettings_lower(_ value: TunnelNetworkSettings) -> RustBuffer {
+    return FfiConverterTypeTunnelNetworkSettings.lower(value)
 }
 
 
@@ -2051,6 +2402,138 @@ extension FfiError: Error { }
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
+public enum Ipv4Route {
+    
+    /**
+     * Default IPv4 route (0.0.0.0/0)
+     */
+    case `default`
+    /**
+     * Individual IPv4 route
+     */
+    case specific(destination: Ipv4Addr, subnetMask: Ipv4Addr, gateway: Ipv4Addr?
+    )
+}
+
+
+public struct FfiConverterTypeIpv4Route: FfiConverterRustBuffer {
+    typealias SwiftType = Ipv4Route
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ipv4Route {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .`default`
+        
+        case 2: return .specific(destination: try FfiConverterTypeIpv4Addr.read(from: &buf), subnetMask: try FfiConverterTypeIpv4Addr.read(from: &buf), gateway: try FfiConverterOptionTypeIpv4Addr.read(from: &buf)
+        )
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: Ipv4Route, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .`default`:
+            writeInt(&buf, Int32(1))
+        
+        
+        case let .specific(destination,subnetMask,gateway):
+            writeInt(&buf, Int32(2))
+            FfiConverterTypeIpv4Addr.write(destination, into: &buf)
+            FfiConverterTypeIpv4Addr.write(subnetMask, into: &buf)
+            FfiConverterOptionTypeIpv4Addr.write(gateway, into: &buf)
+            
+        }
+    }
+}
+
+
+public func FfiConverterTypeIpv4Route_lift(_ buf: RustBuffer) throws -> Ipv4Route {
+    return try FfiConverterTypeIpv4Route.lift(buf)
+}
+
+public func FfiConverterTypeIpv4Route_lower(_ value: Ipv4Route) -> RustBuffer {
+    return FfiConverterTypeIpv4Route.lower(value)
+}
+
+
+
+extension Ipv4Route: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum Ipv6Route {
+    
+    /**
+     * Default IPv6 route (::/0)
+     */
+    case `default`
+    /**
+     * Individual IPv6 route
+     */
+    case specific(destination: Ipv6Addr, prefixLength: UInt8, gateway: Ipv6Addr?
+    )
+}
+
+
+public struct FfiConverterTypeIpv6Route: FfiConverterRustBuffer {
+    typealias SwiftType = Ipv6Route
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ipv6Route {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .`default`
+        
+        case 2: return .specific(destination: try FfiConverterTypeIpv6Addr.read(from: &buf), prefixLength: try FfiConverterUInt8.read(from: &buf), gateway: try FfiConverterOptionTypeIpv6Addr.read(from: &buf)
+        )
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: Ipv6Route, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .`default`:
+            writeInt(&buf, Int32(1))
+        
+        
+        case let .specific(destination,prefixLength,gateway):
+            writeInt(&buf, Int32(2))
+            FfiConverterTypeIpv6Addr.write(destination, into: &buf)
+            FfiConverterUInt8.write(prefixLength, into: &buf)
+            FfiConverterOptionTypeIpv6Addr.write(gateway, into: &buf)
+            
+        }
+    }
+}
+
+
+public func FfiConverterTypeIpv6Route_lift(_ buf: RustBuffer) throws -> Ipv6Route {
+    return try FfiConverterTypeIpv6Route.lift(buf)
+}
+
+public func FfiConverterTypeIpv6Route_lower(_ value: Ipv6Route) -> RustBuffer {
+    return FfiConverterTypeIpv6Route.lower(value)
+}
+
+
+
+extension Ipv6Route: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
 public enum NymVpnStatus {
     
     case connectionInfo(mixnetConnectionInfo: MixConnectionInfo, mixnetExitConnectionInfo: MixExitConnectionInfo
@@ -2218,6 +2701,69 @@ fileprivate struct FfiConverterOptionTypeTunnelStatusListener: FfiConverterRustB
     }
 }
 
+fileprivate struct FfiConverterOptionTypeDnsSettings: FfiConverterRustBuffer {
+    typealias SwiftType = DnsSettings?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeDnsSettings.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeDnsSettings.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeIpv4Settings: FfiConverterRustBuffer {
+    typealias SwiftType = Ipv4Settings?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeIpv4Settings.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeIpv4Settings.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeIpv6Settings: FfiConverterRustBuffer {
+    typealias SwiftType = Ipv6Settings?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeIpv6Settings.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeIpv6Settings.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
 fileprivate struct FfiConverterOptionTypeUserAgent: FfiConverterRustBuffer {
     typealias SwiftType = UserAgent?
 
@@ -2239,6 +2785,69 @@ fileprivate struct FfiConverterOptionTypeUserAgent: FfiConverterRustBuffer {
     }
 }
 
+fileprivate struct FfiConverterOptionSequenceString: FfiConverterRustBuffer {
+    typealias SwiftType = [String]?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterSequenceString.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterSequenceString.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionSequenceTypeIpv4Route: FfiConverterRustBuffer {
+    typealias SwiftType = [Ipv4Route]?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterSequenceTypeIpv4Route.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterSequenceTypeIpv4Route.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionSequenceTypeIpv6Route: FfiConverterRustBuffer {
+    typealias SwiftType = [Ipv6Route]?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterSequenceTypeIpv6Route.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterSequenceTypeIpv6Route.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
 fileprivate struct FfiConverterOptionTypeIpAddr: FfiConverterRustBuffer {
     typealias SwiftType = IpAddr?
 
@@ -2255,6 +2864,27 @@ fileprivate struct FfiConverterOptionTypeIpAddr: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTypeIpAddr.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeIpv4Addr: FfiConverterRustBuffer {
+    typealias SwiftType = Ipv4Addr?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeIpv4Addr.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeIpv4Addr.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -2344,6 +2974,28 @@ fileprivate struct FfiConverterOptionTypeUrl: FfiConverterRustBuffer {
     }
 }
 
+fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
+    typealias SwiftType = [String]
+
+    public static func write(_ value: [String], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterString.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [String] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [String]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterString.read(from: &buf))
+        }
+        return seq
+    }
+}
+
 fileprivate struct FfiConverterSequenceTypeLocation: FfiConverterRustBuffer {
     typealias SwiftType = [Location]
 
@@ -2388,6 +3040,50 @@ fileprivate struct FfiConverterSequenceTypePeerConfig: FfiConverterRustBuffer {
     }
 }
 
+fileprivate struct FfiConverterSequenceTypeIpv4Route: FfiConverterRustBuffer {
+    typealias SwiftType = [Ipv4Route]
+
+    public static func write(_ value: [Ipv4Route], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeIpv4Route.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [Ipv4Route] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [Ipv4Route]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeIpv4Route.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeIpv6Route: FfiConverterRustBuffer {
+    typealias SwiftType = [Ipv6Route]
+
+    public static func write(_ value: [Ipv6Route], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeIpv6Route.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [Ipv6Route] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [Ipv6Route]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeIpv6Route.read(from: &buf))
+        }
+        return seq
+    }
+}
+
 fileprivate struct FfiConverterSequenceTypeIpAddr: FfiConverterRustBuffer {
     typealias SwiftType = [IpAddr]
 
@@ -2427,6 +3123,50 @@ fileprivate struct FfiConverterSequenceTypeIpNetwork: FfiConverterRustBuffer {
         seq.reserveCapacity(Int(len))
         for _ in 0 ..< len {
             seq.append(try FfiConverterTypeIpNetwork.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeIpv4Network: FfiConverterRustBuffer {
+    typealias SwiftType = [Ipv4Network]
+
+    public static func write(_ value: [Ipv4Network], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeIpv4Network.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [Ipv4Network] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [Ipv4Network]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeIpv4Network.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeIpv6Network: FfiConverterRustBuffer {
+    typealias SwiftType = [Ipv6Network]
+
+    public static func write(_ value: [Ipv6Network], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeIpv6Network.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [Ipv6Network] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [Ipv6Network]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeIpv6Network.read(from: &buf))
         }
         return seq
     }
@@ -2573,6 +3313,40 @@ public func FfiConverterTypeIpv4Addr_lower(_ value: Ipv4Addr) -> RustBuffer {
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
  */
+public typealias Ipv4Network = String
+public struct FfiConverterTypeIpv4Network: FfiConverter {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ipv4Network {
+        return try FfiConverterString.read(from: &buf)
+    }
+
+    public static func write(_ value: Ipv4Network, into buf: inout [UInt8]) {
+        return FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func lift(_ value: RustBuffer) throws -> Ipv4Network {
+        return try FfiConverterString.lift(value)
+    }
+
+    public static func lower(_ value: Ipv4Network) -> RustBuffer {
+        return FfiConverterString.lower(value)
+    }
+}
+
+
+public func FfiConverterTypeIpv4Network_lift(_ value: RustBuffer) throws -> Ipv4Network {
+    return try FfiConverterTypeIpv4Network.lift(value)
+}
+
+public func FfiConverterTypeIpv4Network_lower(_ value: Ipv4Network) -> RustBuffer {
+    return FfiConverterTypeIpv4Network.lower(value)
+}
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ */
 public typealias Ipv6Addr = String
 public struct FfiConverterTypeIpv6Addr: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ipv6Addr {
@@ -2599,6 +3373,40 @@ public func FfiConverterTypeIpv6Addr_lift(_ value: RustBuffer) throws -> Ipv6Add
 
 public func FfiConverterTypeIpv6Addr_lower(_ value: Ipv6Addr) -> RustBuffer {
     return FfiConverterTypeIpv6Addr.lower(value)
+}
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ */
+public typealias Ipv6Network = String
+public struct FfiConverterTypeIpv6Network: FfiConverter {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ipv6Network {
+        return try FfiConverterString.read(from: &buf)
+    }
+
+    public static func write(_ value: Ipv6Network, into buf: inout [UInt8]) {
+        return FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func lift(_ value: RustBuffer) throws -> Ipv6Network {
+        return try FfiConverterString.lift(value)
+    }
+
+    public static func lower(_ value: Ipv6Network) -> RustBuffer {
+        return FfiConverterString.lower(value)
+    }
+}
+
+
+public func FfiConverterTypeIpv6Network_lift(_ value: RustBuffer) throws -> Ipv6Network {
+    return try FfiConverterTypeIpv6Network.lift(value)
+}
+
+public func FfiConverterTypeIpv6Network_lower(_ value: Ipv6Network) -> RustBuffer {
+    return FfiConverterTypeIpv6Network.lower(value)
 }
 
 
@@ -2882,6 +3690,118 @@ public func FfiConverterTypeUrl_lower(_ value: Url) -> RustBuffer {
     return FfiConverterTypeUrl.lower(value)
 }
 
+private let UNIFFI_RUST_FUTURE_POLL_READY: Int8 = 0
+private let UNIFFI_RUST_FUTURE_POLL_MAYBE_READY: Int8 = 1
+
+fileprivate let uniffiContinuationHandleMap = UniffiHandleMap<UnsafeContinuation<Int8, Never>>()
+
+fileprivate func uniffiRustCallAsync<F, T>(
+    rustFutureFunc: () -> UInt64,
+    pollFunc: (UInt64, @escaping UniffiRustFutureContinuationCallback, UInt64) -> (),
+    completeFunc: (UInt64, UnsafeMutablePointer<RustCallStatus>) -> F,
+    freeFunc: (UInt64) -> (),
+    liftFunc: (F) throws -> T,
+    errorHandler: ((RustBuffer) throws -> Error)?
+) async throws -> T {
+    // Make sure to call uniffiEnsureInitialized() since future creation doesn't have a
+    // RustCallStatus param, so doesn't use makeRustCall()
+    uniffiEnsureInitialized()
+    let rustFuture = rustFutureFunc()
+    defer {
+        freeFunc(rustFuture)
+    }
+    var pollResult: Int8;
+    repeat {
+        pollResult = await withUnsafeContinuation {
+            pollFunc(
+                rustFuture,
+                uniffiFutureContinuationCallback,
+                uniffiContinuationHandleMap.insert(obj: $0)
+            )
+        }
+    } while pollResult != UNIFFI_RUST_FUTURE_POLL_READY
+
+    return try liftFunc(makeRustCall(
+        { completeFunc(rustFuture, $0) },
+        errorHandler: errorHandler
+    ))
+}
+
+// Callback handlers for an async calls.  These are invoked by Rust when the future is ready.  They
+// lift the return value or error and resume the suspended function.
+fileprivate func uniffiFutureContinuationCallback(handle: UInt64, pollResult: Int8) {
+    if let continuation = try? uniffiContinuationHandleMap.remove(handle: handle) {
+        continuation.resume(returning: pollResult)
+    } else {
+        print("uniffiFutureContinuationCallback invalid handle")
+    }
+}
+private func uniffiTraitInterfaceCallAsync<T>(
+    makeCall: @escaping () async throws -> T,
+    handleSuccess: @escaping (T) -> (),
+    handleError: @escaping (Int8, RustBuffer) -> ()
+) -> UniffiForeignFuture {
+    let task = Task {
+        do {
+            handleSuccess(try await makeCall())
+        } catch {
+            handleError(CALL_UNEXPECTED_ERROR, FfiConverterString.lower(String(describing: error)))
+        }
+    }
+    let handle = UNIFFI_FOREIGN_FUTURE_HANDLE_MAP.insert(obj: task)
+    return UniffiForeignFuture(handle: handle, free: uniffiForeignFutureFree)
+
+}
+
+private func uniffiTraitInterfaceCallAsyncWithError<T, E>(
+    makeCall: @escaping () async throws -> T,
+    handleSuccess: @escaping (T) -> (),
+    handleError: @escaping (Int8, RustBuffer) -> (),
+    lowerError: @escaping (E) -> RustBuffer
+) -> UniffiForeignFuture {
+    let task = Task {
+        do {
+            handleSuccess(try await makeCall())
+        } catch let error as E {
+            handleError(CALL_ERROR, lowerError(error))
+        } catch {
+            handleError(CALL_UNEXPECTED_ERROR, FfiConverterString.lower(String(describing: error)))
+        }
+    }
+    let handle = UNIFFI_FOREIGN_FUTURE_HANDLE_MAP.insert(obj: task)
+    return UniffiForeignFuture(handle: handle, free: uniffiForeignFutureFree)
+}
+
+// Borrow the callback handle map implementation to store foreign future handles
+// TODO: consolidate the handle-map code (https://github.com/mozilla/uniffi-rs/pull/1823)
+fileprivate var UNIFFI_FOREIGN_FUTURE_HANDLE_MAP = UniffiHandleMap<UniffiForeignFutureTask>()
+
+// Protocol for tasks that handle foreign futures.
+//
+// Defining a protocol allows all tasks to be stored in the same handle map.  This can't be done
+// with the task object itself, since has generic parameters.
+protocol UniffiForeignFutureTask {
+    func cancel()
+}
+
+extension Task: UniffiForeignFutureTask {}
+
+private func uniffiForeignFutureFree(handle: UInt64) {
+    do {
+        let task = try UNIFFI_FOREIGN_FUTURE_HANDLE_MAP.remove(handle: handle)
+        // Set the cancellation flag on the task.  If it's still running, the code can check the
+        // cancellation flag or call `Task.checkCancellation()`.  If the task has completed, this is
+        // a no-op.
+        task.cancel()
+    } catch {
+        print("uniffiForeignFutureFree: handle missing from handlemap")
+    }
+}
+
+// For testing
+public func uniffiForeignFutureHandleCountNymVpnLib() -> Int {
+    UNIFFI_FOREIGN_FUTURE_HANDLE_MAP.count
+}
 public func checkCredential(credential: String)throws  -> Date? {
     return try  FfiConverterOptionTimestamp.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_checkcredential(
@@ -2974,10 +3894,7 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_stopvpn() != 23819) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_configure_wg() != 61728) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_configure_nym() != 42844) {
+    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_tunnel_network_settings() != 49154) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_tun_status_change() != 55105) {

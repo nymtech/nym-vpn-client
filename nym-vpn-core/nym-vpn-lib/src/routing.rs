@@ -1,19 +1,22 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(not(target_os = "ios"))]
+use ipnetwork::IpNetwork;
+use netdev::interface::get_default_interface;
 use netdev::Interface;
+use nym_ip_packet_requests::IpPair;
+#[cfg(not(target_os = "ios"))]
+use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
-use std::net::{Ipv4Addr, Ipv6Addr};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 #[cfg(target_os = "android")]
 use std::os::fd::{AsRawFd, RawFd};
 #[cfg(target_os = "android")]
 use std::sync::{Arc, Mutex};
-use std::{collections::HashSet, net::IpAddr};
+#[cfg(not(target_os = "ios"))]
 use talpid_core::dns::DnsMonitor;
-
-use ipnetwork::IpNetwork;
-use netdev::interface::get_default_interface;
-use nym_ip_packet_requests::IpPair;
+#[cfg(not(target_os = "ios"))]
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 #[cfg(target_os = "android")]
 use talpid_tunnel::tun_provider::TunProvider;
@@ -26,15 +29,6 @@ use crate::error::Result;
 use crate::{MixnetVpn, NymVpn};
 
 const DEFAULT_TUN_MTU: u16 = 1500;
-
-fn default_dns_servers() -> Vec<IpAddr> {
-    vec![
-        IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)),
-        IpAddr::V4(Ipv4Addr::new(1, 0, 0, 1)),
-        IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111)),
-        IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1001)),
-    ]
-}
 
 #[derive(Clone)]
 pub struct RoutingConfig {
@@ -162,6 +156,7 @@ impl std::fmt::Display for LanGatewayIp {
 }
 
 #[cfg_attr(not(target_os = "windows"), allow(unused_variables))]
+#[cfg(not(target_os = "ios"))]
 fn get_tunnel_nodes(iface_name: &str) -> (Node, Node) {
     #[cfg(windows)]
     {
@@ -178,15 +173,18 @@ fn get_tunnel_nodes(iface_name: &str) -> (Node, Node) {
     }
 }
 
+#[cfg(not(target_os = "ios"))]
 pub(crate) fn catch_all_ipv4() -> IpNetwork {
     "0.0.0.0/0".parse().unwrap()
 }
 
+#[cfg(not(target_os = "ios"))]
 pub(crate) fn catch_all_ipv6() -> IpNetwork {
     "::/0".parse().unwrap()
 }
 
 /// Replace default (0-prefix) routes with more specific routes.
+#[cfg(not(target_os = "ios"))]
 pub(crate) fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
     #[cfg(not(target_os = "linux"))]
     if network.prefix() == 0 {
@@ -203,12 +201,58 @@ pub(crate) fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
     vec![network]
 }
 
+#[cfg(target_os = "ios")]
+pub async fn setup_mixnet_routing(
+    config: RoutingConfig,
+    ios_tun_provider: std::sync::Arc<dyn crate::ios::OSTunProvider>,
+) -> Result<tun2::AsyncDevice> {
+    let fd = crate::ios::tun::get_tun_fd().ok_or(crate::ios::Error::CannotLocateTunFd)?;
+    let mut tun_config = tun2::Configuration::default();
+    tun_config.raw_fd(fd);
+
+    let interface_addresses = config.tun_ips();
+    let tunnel_settings = crate::ios::tunnel_settings::create(
+        vec![
+            IpAddr::V4(interface_addresses.ipv4),
+            IpAddr::V6(interface_addresses.ipv6),
+        ],
+        config.entry_mixnet_gateway_ip(),
+        crate::DEFAULT_DNS_SERVERS.to_vec(),
+        config.mtu(),
+    );
+
+    ios_tun_provider
+        .set_tunnel_network_settings(tunnel_settings)
+        .await?;
+
+    let dev = tun2::create_as_async(&tun_config)
+        .tap_err(|err| error!("Failed to attach to tun device: {}", err))?;
+    let device_name = dev.as_ref().tun_name().unwrap().to_string();
+    info!(
+        "Attached to tun device {device_name} with ip={device_ip:?}",
+        device_name = device_name,
+        device_ip = dev
+            .as_ref()
+            .address()
+            .map(|ip| ip.to_string())
+            .unwrap_or("None".to_string())
+    );
+    debug!("Attached to tun device {device_name}: ip={device_ip:?}, broadcast={device_broadcast:?}, netmask={device_netmask:?}, destination={device_destination:?}, mtu={device_mtu:?}",
+        device_name = device_name,
+        device_ip = dev.as_ref().address(),
+        device_broadcast = dev.as_ref().broadcast(),
+        device_netmask = dev.as_ref().netmask(),
+        device_destination = dev.as_ref().destination(),
+        device_mtu = dev.as_ref().mtu(),
+    );
+
+    Ok(dev)
+}
+
+#[cfg(not(target_os = "ios"))]
 pub async fn setup_mixnet_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
-    #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
-        dyn crate::platform::swift::OSTunProvider,
-    >,
     dns_monitor: &mut DnsMonitor,
     dns: Option<IpAddr>,
 ) -> Result<tun2::AsyncDevice> {
@@ -231,13 +275,6 @@ pub async fn setup_mixnet_routing(
             }
             fd
         };
-        let mut mixnet_tun_config = mixnet_tun_config.clone();
-        mixnet_tun_config.raw_fd(fd);
-        mixnet_tun_config
-    };
-    #[cfg(target_os = "ios")]
-    let mixnet_tun_config = {
-        let fd = ios_tun_provider.configure_nym(config.clone().into())?;
         let mut mixnet_tun_config = mixnet_tun_config.clone();
         mixnet_tun_config.raw_fd(fd);
         mixnet_tun_config
@@ -330,7 +367,9 @@ pub async fn setup_mixnet_routing(
     route_manager.add_routes(routes.collect()).await?;
 
     // Set the DNS server
-    let dns_servers = dns.map(|dns| vec![dns]).unwrap_or(default_dns_servers());
+    let dns_servers = dns
+        .map(|dns| vec![dns])
+        .unwrap_or(crate::DEFAULT_DNS_SERVERS.to_vec());
     tokio::task::block_in_place(move || dns_monitor.set(&device_name, &dns_servers))?;
 
     Ok(dev)

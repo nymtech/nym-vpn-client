@@ -4,100 +4,277 @@ import NymLogger
 import MixnetLibrary
 import TunnelMixnet
 import Tunnels
+import Constants
+
+enum TunnelEvent {
+    case statusUpdate(TunStatus)
+    case runFailure(Error)
+}
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
-    private lazy var mixnetTunnelProvider = MixnetTunnelProvider()
-    private lazy var mixnetAdapter: MixnetAdapter = {
-        MixnetAdapter(
-            with: self,
-            mixnetTunnelProvider: mixnetTunnelProvider
-        )
-    }()
     private lazy var logger = Logger(label: "MixnetTunnel")
+
+    private let eventStream: AsyncStream<TunnelEvent>
+    private let eventContinuation: AsyncStream<TunnelEvent>.Continuation
 
     override init() {
         LoggingSystem.bootstrap { label in
-            FileLogHandler(label: label)
+            let fileLogHandler = FileLogHandler(label: label)
+            
+            #if DEBUG
+                let osLogHandler = OSLogHandler(subsystem: Bundle.main.bundleIdentifier!, category: label);
+                return MultiplexLogHandler([osLogHandler, fileLogHandler])
+            #else
+                return fileLogHandler
+            #endif
         }
+
+        let (eventStream, eventContinuation) = AsyncStream<TunnelEvent>.makeStream();
+        self.eventStream = eventStream
+        self.eventContinuation = eventContinuation
     }
 
     override func startTunnel(options: [String: NSObject]? = nil) async throws {
-        logger.log(level: .info, "Start tunnel...")
-        guard
-            let tunnelProviderProtocol = self.protocolConfiguration as? NETunnelProviderProtocol,
-            let mixnetConfig = tunnelProviderProtocol.asMixnetConfig()
-        else {
-            logger.log(level: .info, "Start tunnel: invalid saved configuration")
+        logger.info("Start tunnel...")
+
+        setup()
+
+        guard let tunnelProviderProtocol = protocolConfiguration as? NETunnelProviderProtocol,
+              let mixnetConfig = tunnelProviderProtocol.asMixnetConfig() else {
+            logger.error("Failed to obtain tunnel configuration")
             throw PacketTunnelProviderError.invalidSavedConfiguration
         }
 
-        let callback: () -> Void = { [weak self] in
-            guard let config = self?.mixnetTunnelProvider.nymConfig
-            else {
-                return
+        var vpnConfig = try mixnetConfig.asVpnConfig(tunProvider: self, tunStatusListener: self)
+        // todo: figure out WHAT always defaults this setting to .randomLowLatency
+        vpnConfig.entryGateway = .random
+
+        self.logger.debug("VpnConfig = \(vpnConfig)")
+
+        // Start tunnel on background queue to prevent blocking
+        let immutableVpnConfig = vpnConfig
+        DispatchQueue.global().async { [weak self] in
+            do {
+                self?.logger.info("Run tunnel...")
+                try runVpn(config: immutableVpnConfig)
+            } catch {
+                self?.eventContinuation.yield(.runFailure(error))
             }
-
-            self?.configure(with: config)
-            self?.mixnetTunnelProvider.fileDescriptor = self?.mixnetAdapter.tunnelFileDescriptor
-            self?.logger.log(
-                level: .info,
-                "Start tunnel: \(String(describing: self?.mixnetAdapter.tunnelFileDescriptor))"
-            )
         }
-        mixnetTunnelProvider.nymOnConfigure = callback
 
-        do {
-            self.logger.log(level: .info, "Start tunnel: start")
-            try mixnetAdapter.start(
-                with: mixnetConfig.asVpnConfig(mixnetTunnelProvider: mixnetAdapter.mixnetTunnelProvider)
-            )
-        } catch let error {
-            logger.log(level: .error, "Start tunnel: \(error)")
-            throw error
+        for await event in eventStream {
+            switch event {
+            case .statusUpdate(.up):
+                self.logger.debug("Tunnel is up.")
+                // Stop blocking startTunnel() to avoid being terminated due to system 60s timeout
+                return
+
+            case let .runFailure(error):
+                self.logger.debug("Failed to run the tunnel: \(error)")
+                throw error
+
+            case .statusUpdate(.establishingConnection):
+                self.logger.debug("Tunnel is establishing connection.")
+
+            case .statusUpdate(_):
+                break
+            }
         }
-        logger.log(level: .info, "Start tunnel: connected")
     }
 
     override func stopTunnel(with reason: NEProviderStopReason) async {
+        logger.info("Stop tunnel...")
+
         do {
-            try mixnetAdapter.stop()
-            logger.log(level: .error, "Stop tunnel reason: \(reason)")
+            try stopVpn()
         } catch let error {
-            logger.log(level: .error, "Stop tunnel reason: \(reason), error: \(error)")
+            logger.error("Failed to stop the tunnel: \(error)")
         }
     }
 }
 
-private extension PacketTunnelProvider {
-    func configure(with config: NymConfig) {
-        let networkSettings = MixnetTunnelSettingsGenerator(nymConfig: config).generateNetworkSettings()
-        do {
-            try setNetworkSettings(networkSettings)
-        } catch {
-            logger.log(level: .error, "Configure error: \(error)")
-        }
+extension PacketTunnelProvider
+{
+    func setup() {
+        setupEnvironmentVariables()
     }
 
-    func setNetworkSettings(_ networkSettings: NEPacketTunnelNetworkSettings) throws {
-        var systemError: Error?
-        let condition = NSCondition()
+    func setupEnvironmentVariables() {
+        setenv("CONFIGURED", "true", 1)
+        setenv("RUST_LOG", "debug", 1)
+        setenv("RUST_BACKTRACE", "1", 1)
+        setenv("NETWORK_NAME", "mainnet", 1)
+        setenv("BECH32_PREFIX", "n", 1)
+        setenv("MIX_DENOM", "unym", 1)
+        setenv("MIX_DENOM_DISPLAY", "nym", 1)
+        setenv("STAKE_DENOM", "unyx", 1)
+        setenv("STAKE_DENOM_DISPLAY", "nyx", 1)
+        setenv("DENOMS_EXPONENT", "6", 1)
 
-        condition.lock()
-        defer { condition.unlock() }
+        setenv("REWARDING_VALIDATOR_ADDRESS", "n10yyd98e2tuwu0f7ypz9dy3hhjw7v772q6287gy", 1)
+        setenv("MIXNET_CONTRACT_ADDRESS", "n17srjznxl9dvzdkpwpw24gg668wc73val88a6m5ajg6ankwvz9wtst0cznr", 1)
+        setenv("VESTING_CONTRACT_ADDRESS", "n1nc5tatafv6eyq7llkr2gv50ff9e22mnf70qgjlv737ktmt4eswrq73f2nw", 1)
 
-        setTunnelNetworkSettings(networkSettings) { error in
-            systemError = error
-            condition.signal()
-        }
+        setenv("STATISTICS_SERVICE_DOMAIN_ADDRESS", "https://mainnet-stats.nymte.ch:8090", 1)
+        setenv("NYXD", "https://rpc.nymtech.net", 1)
+        setenv("NYXD_WS", "wss://rpc.nymtech.net/websocket", 1)
+        setenv("NYM_API", Constants.apiUrl.rawValue, 1)
+        setenv("NYM_VPN_API", Constants.nymVpnApi.rawValue, 1)
+    }
 
-        let setTunnelNetworkSettingsTimeout: TimeInterval = 5 // seconds
+    func setupSandboxEnvironmentVariables() {
+        setenv("CONFIGURED", "true", 1)
+        setenv("RUST_LOG", "info", 1)
+        setenv("RUST_BACKTRACE", "1", 1)
+        setenv("NETWORK_NAME", "sandbox", 1)
+        setenv("BECH32_PREFIX", "n", 1)
+        setenv("MIX_DENOM", "unym", 1)
+        setenv("MIX_DENOM_DISPLAY", "nym", 1)
+        setenv("STAKE_DENOM", "unyx", 1)
+        setenv("STAKE_DENOM_DISPLAY", "nyx", 1)
+        setenv("DENOMS_EXPONENT", "6", 1)
 
-        if !condition.wait(until: Date().addingTimeInterval(setTunnelNetworkSettingsTimeout)) {
-            logger.log(level: .error, "setTunnelNetworkSettings timed out")
-        }
+        setenv("REWARDING_VALIDATOR_ADDRESS", "n1duuyj2th2y0z4u4f4wtljpdz9s3pxtu0xx6zdz", 1)
+        setenv("MIXNET_CONTRACT_ADDRESS", "n14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sjyvg3g", 1)
+        setenv("COCONUT_BANDWIDTH_CONTRACT_ADDRESS", "n1mf6ptkssddfmxvhdx0ech0k03ktp6kf9yk59renau2gvht3nq2gqt5tdrk", 1)
+        setenv("GROUP_CONTRACT_ADDRESS", "n1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sa07c47", 1)
+        setenv("MULTISIG_CONTRACT_ADDRESS", "n1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftqx5a364", 1)
+        setenv("COCONUT_DKG_CONTRACT_ADDRESS", "n1aakfpghcanxtc45gpqlx8j3rq0zcpyf49qmhm9mdjrfx036h4z5sy2vfh9", 1)
 
-        if let error = systemError {
+        setenv("EXPLORER_API", Constants.sandboxExplorerURL.rawValue, 1)
+        setenv("NYXD", "https://canary-validator.performance.nymte.ch", 1)
+        setenv("NYM_API", Constants.sandboxApiUrl.rawValue, 1)
+    }
+
+}
+
+extension PacketTunnelProvider: TunnelStatusListener {
+    func onBandwidthStatusChange(status: BandwidthStatus) {
+        // todo: implement
+    }
+    
+    func onConnectionStatusChange(status: ConnectionStatus) {
+        // todo: implement
+    }
+    
+    func onNymVpnStatusChange(status: NymVpnStatus) {
+        // todo: implement
+    }
+    
+    func onExitStatusChange(status: ExitStatus) {
+        // todo: implement
+    }
+    
+    func onTunStatusChange(status: TunStatus) {
+        eventContinuation.yield(.statusUpdate(status))
+    }
+}
+
+extension PacketTunnelProvider: OsTunProvider {
+    func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings) async throws {
+        do {
+            let networkSettings = tunnelSettings.asPacketTunnelNetworkSettings()
+
+            self.logger.debug("Set network settings: \(networkSettings)")
+
+            try await setTunnelNetworkSettings(networkSettings)
+        } catch {
+            self.logger.error("Failed to set tunnel network settings: \(error)")
+
             throw error
+        }
+    }
+}
+
+extension TunnelNetworkSettings {
+    func asPacketTunnelNetworkSettings() -> NEPacketTunnelNetworkSettings {
+        let networkSettings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: tunnelRemoteAddress)
+        networkSettings.ipv4Settings = ipv4Settings?.asNEIPv4Settings()
+        networkSettings.ipv6Settings = ipv6Settings?.asNEIPv6Settings()
+        networkSettings.mtu = NSNumber(value: mtu)
+        networkSettings.dnsSettings = dnsSettings?.asNEDNSSettings()
+
+        return networkSettings
+    }
+}
+
+extension DnsSettings {
+    func asNEDNSSettings() -> NEDNSSettings {
+        let dnsSettings = NEDNSSettings(servers: servers)
+        dnsSettings.searchDomains = searchDomains
+        dnsSettings.matchDomains = matchDomains
+        return dnsSettings
+    }
+}
+
+extension Ipv4Settings {
+    func asNEIPv4Settings() -> NEIPv4Settings {
+        var addresses = [String]()
+        var netmasks = [String]()
+
+        for address in self.addresses {
+            if let addrRange = IPAddressRange(from: address) {
+                if let ipv4Addr = addrRange.address as? IPv4Address {
+                    addresses.append("\(ipv4Addr)")
+                    netmasks.append("\(addrRange.subnetMask())")
+                }
+            }
+        }
+
+        let ipv4Settings = NEIPv4Settings(addresses: addresses, subnetMasks: netmasks)
+        ipv4Settings.includedRoutes = includedRoutes?.map { $0.asNEIPv4Route() }
+        ipv4Settings.excludedRoutes = excludedRoutes?.map { $0.asNEIPv4Route() }
+
+        return ipv4Settings
+    }
+}
+
+extension Ipv6Settings {
+    func asNEIPv6Settings() -> NEIPv6Settings {
+        var addresses = [String]()
+        var networkPrefixes = [NSNumber]()
+
+        for address in self.addresses {
+            if let addrRange = IPAddressRange(from: address) {
+                if let ipv6Addr = addrRange.address as? IPv6Address {
+                    addresses.append("\(ipv6Addr)")
+                    networkPrefixes.append(NSNumber(value: addrRange.networkPrefixLength))
+                }
+            }
+        }
+
+        let ipv6Settings = NEIPv6Settings(addresses: addresses, networkPrefixLengths: networkPrefixes)
+        ipv6Settings.includedRoutes = includedRoutes?.map { $0.asNEIPv6Route() }
+        ipv6Settings.excludedRoutes = excludedRoutes?.map { $0.asNEIPv6Route() }
+        return ipv6Settings
+    }
+}
+
+
+extension Ipv4Route {
+    func asNEIPv4Route() -> NEIPv4Route {
+        switch self {
+        case .default:
+            return NEIPv4Route.default()
+
+        case let .specific(destination, subnetMask, gateway):
+            let ipv4Route = NEIPv4Route(destinationAddress: destination, subnetMask: subnetMask)
+            ipv4Route.gatewayAddress = gateway
+            return ipv4Route
+        }
+    }
+}
+
+extension Ipv6Route {
+    func asNEIPv6Route() -> NEIPv6Route {
+        switch self {
+        case .default:
+            return NEIPv6Route.default()
+
+        case let .specific(destination, prefixLength, gateway):
+            let ipv6Route = NEIPv6Route(destinationAddress: destination, networkPrefixLength: NSNumber(value: prefixLength))
+            ipv6Route.gatewayAddress = gateway
+            return ipv6Route
         }
     }
 }

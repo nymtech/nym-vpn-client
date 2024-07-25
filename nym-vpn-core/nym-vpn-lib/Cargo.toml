@@ -17,6 +17,7 @@ path = "uniffi-bindgen.rs"
 
 [dependencies]
 anyhow.workspace = true
+async-trait.workspace = true
 bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
@@ -49,12 +50,12 @@ tun2 = { workspace = true, features = ["async"] }
 uniffi = { workspace = true, features = ["cli"] }
 url.workspace = true
 
-talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
-talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
-talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
-talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
-talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
-talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
+talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "37c040a98" }
+talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "37c040a98" }
+talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "37c040a98" }
+talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "37c040a98" }
+talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "37c040a98" }
+talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "37c040a98" }
 
 nym-authenticator-requests.workspace = true
 nym-bandwidth-controller.workspace = true
@@ -81,6 +82,7 @@ nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
 nym-ip-packet-client = { path = "../crates/nym-ip-packet-client" }
 nym-vpn-api-client = { path = "../crates/nym-vpn-api-client" }
 nym-vpn-store = { path = "../crates/nym-vpn-store" }
+nym-wg-go = { path = "../crates/nym-wg-go" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.14.1"
@@ -93,13 +95,17 @@ rand = "0.8.5"
 oslog = "0.2.0"
 
 [target.'cfg(unix)'.dependencies]
-nix = { version = "0.28.0", features = ["user"] }
+nix = { workspace = true, features = ["user"] }
+
+[target.'cfg(target_os = "ios")'.dependencies]
+nix = { workspace = true, features = ["socket", "net"] }
+libc = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]
 is_elevated = "0.1.2"
 
 [build-dependencies]
-uniffi = { version = "0.27.3", features = ["build"] }
+uniffi = { workspace = true, features = ["build"] }
 
 [features]
 metrics-server = ["nym-client-core/metrics-server"]

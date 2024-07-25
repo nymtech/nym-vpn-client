@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2017-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
  * Copyright (C) 2021 Mullvad VPN AB. All Rights Reserved.
+ * Copyright (C) 2024 Nym Technologies SA <contact@nymtech.net>. All Rights Reserved.
  */
 
 package main
@@ -12,11 +13,13 @@ import "C"
 import (
 	"bufio"
 	"bytes"
+	"net"
 	"runtime"
 	"strings"
 	"unsafe"
 
-	"github.com/mullvad/mullvadvpn-app/wireguard/libwg/tunnelcontainer"
+	"github.com/nymtech/nym-vpn-client/wireguard/libwg/container"
+	"golang.zx2c4.com/wireguard/device"
 )
 
 const (
@@ -24,10 +27,16 @@ const (
 	ERROR_INTERMITTENT_FAILURE = -2
 )
 
-var tunnels tunnelcontainer.Container
+type TunnelContext struct {
+	Device *device.Device
+	Uapi   net.Listener
+	Logger *device.Logger
+}
+
+var tunnels container.Container[TunnelContext]
 
 func init() {
-	tunnels = tunnelcontainer.New()
+	tunnels = container.New[TunnelContext]()
 }
 
 //export wgTurnOff

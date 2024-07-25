@@ -9,8 +9,11 @@ public class FileLogHandler: LogHandler {
         self.label = label
     }
 
-    public var metadata = Logger.Metadata()
-    public var logLevel = Logger.Level.info
+    public var metadata = Logging.Logger.Metadata()
+    public var logLevel = Logging.Logger.Level.info
+
+    private var fileHandle: FileHandle?
+    private var fileLock = NSLock()
 
     public static var logFileURL: URL? {
         let fileManager = FileManager.default
@@ -51,39 +54,53 @@ public class FileLogHandler: LogHandler {
             fullMetadata.merge(metadata) { $1 }
         }
 
-        let symbol: String
-        switch level {
+        var metadataOutput = fullMetadata.formatted()
+        if !metadataOutput.isEmpty {
+            metadataOutput = " " + metadataOutput
+        }
+
+        let logLine = "\(Date()) [\(label)] \(level.emoji) \(level)\(metadataOutput): \(message)\n"
+        let data = Data(logLine.utf8)
+
+        let fileHandle = fileLock.withLock { () -> FileHandle? in
+            if let fileHandle = self.fileHandle {
+                return fileHandle
+            } else if let logFileURL = FileLogHandler.logFileURL {
+                self.fileHandle = try? FileHandle(forWritingTo: logFileURL)
+                return self.fileHandle
+            } else {
+                return nil
+            }
+        }
+
+        try? fileHandle?.write(contentsOf: data)
+    }
+}
+
+extension Logging.Logger.Metadata {
+    func formatted() -> String {
+        map { key, value in "\(key)=\(value)" }
+            .joined(separator: " ")
+    }
+}
+
+extension Logging.Logger.Level {
+    var emoji: String {
+        switch self {
         case .trace:
-            symbol = "👀"
+            return "👀"
         case .debug:
-            symbol = "⌨️"
+            return "⌨️"
         case .info:
-            symbol = "ℹ"
+            return "ℹ"
         case .notice:
-            symbol = "📣"
+            return "📣"
         case .warning:
-            symbol = "⚠️"
+            return "⚠️"
         case .error:
-            symbol = "⛔️"
+            return "⛔️"
         case .critical:
-            symbol = "🔥"
-        }
-
-        let logLine = "\(Date()) [\(label)] \(symbol) \(level): \(message)\n"
-
-        guard let data = logLine.data(using: .utf8),
-              let logFileURL = FileLogHandler.logFileURL
-        else {
-            return
-        }
-
-        if FileManager.default.fileExists(atPath: logFileURL.path()) {
-            let fileHandle = try? FileHandle(forWritingTo: logFileURL)
-            _ = try? fileHandle?.seekToEnd()
-            try? fileHandle?.write(contentsOf: data)
-            try? fileHandle?.close()
-        } else {
-            try? data.write(to: logFileURL, options: .atomic)
+            return "🔥"
         }
     }
 }

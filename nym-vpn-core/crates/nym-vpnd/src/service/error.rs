@@ -265,8 +265,13 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::AuthenticationNotPossible(_)
             | nym_vpn_lib::error::Error::AuthenticatorAddressNotFound
             | nym_vpn_lib::error::Error::NotEnoughBandwidth
-            | nym_vpn_lib::error::Error::BadWireguardEvent => {
+            | nym_vpn_lib::error::Error::BadWireguardEvent
+            | nym_vpn_lib::error::Error::UniffiError(_) => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+            }
+            #[cfg(target_os = "ios")]
+            nym_vpn_lib::error::Error::ConfigureWgTunnel(_) => {
+                ConnectionFailedError::Unhandled(format!("failed to configure wg tunnel: {err:#?}"))
             }
             #[cfg(windows)]
             nym_vpn_lib::error::Error::AdminPrivilegesRequired { .. } => {

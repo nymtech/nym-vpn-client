@@ -1,30 +1,49 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(not(target_os = "ios"))]
 use std::net::IpAddr;
 use std::time::Duration;
 
+#[cfg(not(target_os = "ios"))]
 use crate::bandwidth_controller::BandwidthController;
 use crate::error::{Error, GatewayDirectoryError, Result};
+#[cfg(not(target_os = "ios"))]
+use crate::init_wireguard_config;
 use crate::mixnet_connect::SharedMixnetClient;
+use crate::platform;
+#[cfg(not(target_os = "ios"))]
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
 use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
+#[cfg(not(target_os = "ios"))]
 use crate::wg_gateway_client::WgGatewayClient;
+#[cfg(not(target_os = "ios"))]
 use crate::wireguard_setup::create_wireguard_tunnel;
-use crate::{init_wireguard_config, platform, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS};
 use crate::{routing, MixnetConnectionInfo, NymVpn};
 use crate::{MixnetExitConnectionInfo, MixnetVpn, SpecificVpn};
-use futures::channel::{mpsc, oneshot};
+use crate::{WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS};
+#[cfg(not(target_os = "ios"))]
+use futures::channel::mpsc;
+#[cfg(not(target_os = "ios"))]
+use futures::channel::oneshot;
+#[cfg(not(target_os = "ios"))]
 use futures::StreamExt;
+#[cfg(not(target_os = "ios"))]
 use ipnetwork::IpNetwork;
 use log::*;
+#[cfg(not(target_os = "ios"))]
 use nym_authenticator_client::AuthClient;
 use nym_bin_common::bin_info;
 use nym_gateway_directory::{AuthAddresses, GatewayClient, IpPacketRouterAddress};
 use nym_task::TaskManager;
+#[cfg(not(target_os = "ios"))]
 use talpid_core::dns::DnsMonitor;
+#[cfg(not(target_os = "ios"))]
 use talpid_core::firewall::Firewall;
+
+#[cfg(not(target_os = "ios"))]
 use talpid_routing::{Node, RequiredRoute, RouteManager};
+#[cfg(not(target_os = "ios"))]
 use talpid_tunnel::{TunnelEvent, TunnelMetadata};
 use tokio::time::timeout;
 
@@ -41,23 +60,29 @@ pub struct MixTunnelSetup {
 
 impl TunnelSpecifcSetup for MixTunnelSetup {}
 
+#[cfg(not(target_os = "ios"))]
 pub struct WgTunnelSetup {
     pub receiver: oneshot::Receiver<()>,
     pub handle: tokio::task::JoinHandle<()>,
     pub tunnel_close_tx: oneshot::Sender<()>,
 }
 
+#[cfg(not(target_os = "ios"))]
 impl TunnelSpecifcSetup for WgTunnelSetup {}
 
 #[allow(clippy::large_enum_variant)]
 pub enum AllTunnelsSetup {
     Mix(TunnelSetup<MixTunnelSetup>),
+    #[cfg(not(target_os = "ios"))]
     Wg {
         entry: TunnelSetup<WgTunnelSetup>,
         exit: TunnelSetup<WgTunnelSetup>,
     },
+    #[cfg(target_os = "ios")]
+    WgIos(crate::ios::TwoHopTunnel),
 }
 
+#[cfg(not(target_os = "ios"))]
 pub(crate) async fn init_firewall_dns(
     #[cfg(target_os = "linux")] route_manager_handle: talpid_routing::RouteManagerHandle,
 ) -> Result<(Firewall, DnsMonitor)> {
@@ -105,6 +130,7 @@ pub(crate) async fn init_firewall_dns(
     }
 }
 
+#[cfg(not(target_os = "ios"))]
 async fn wait_interface_up(
     mut event_rx: mpsc::UnboundedReceiver<(TunnelEvent, oneshot::Sender<()>)>,
 ) -> Result<TunnelMetadata> {
@@ -126,6 +152,28 @@ async fn wait_interface_up(
     }
 }
 
+#[cfg(target_os = "ios")]
+async fn setup_wg_tunnel(
+    nym_vpn: &mut NymVpn<WireguardVpn>,
+    mixnet_client: SharedMixnetClient,
+    task_manager: &mut TaskManager,
+    gateway_directory_client: GatewayClient,
+    auth_addresses: AuthAddresses,
+) -> Result<AllTunnelsSetup> {
+    tracing::debug!("setup_wg_tunnel");
+    let two_hop_tunnel = crate::ios::TwoHopTunnel::start(
+        nym_vpn,
+        mixnet_client,
+        task_manager,
+        gateway_directory_client,
+        auth_addresses,
+    )
+    .await?;
+
+    Ok(AllTunnelsSetup::WgIos(two_hop_tunnel))
+}
+
+#[cfg(not(target_os = "ios"))]
 async fn setup_wg_tunnel(
     nym_vpn: &mut NymVpn<WireguardVpn>,
     mixnet_client: SharedMixnetClient,
@@ -285,8 +333,8 @@ async fn setup_mix_tunnel(
     nym_vpn: &mut NymVpn<MixnetVpn>,
     mixnet_client: SharedMixnetClient,
     task_manager: &mut TaskManager,
-    route_manager: &mut RouteManager,
-    dns_monitor: &mut DnsMonitor,
+    #[cfg(not(target_os = "ios"))] route_manager: &mut RouteManager,
+    #[cfg(not(target_os = "ios"))] dns_monitor: &mut DnsMonitor,
     gateway_directory_client: GatewayClient,
     exit_mix_addresses: &IpPacketRouterAddress,
     default_lan_gateway_ip: routing::LanGatewayIp,
@@ -296,11 +344,13 @@ async fn setup_mix_tunnel(
     let connection_info = nym_vpn
         .setup_tunnel_services(
             mixnet_client,
+            #[cfg(not(target_os = "ios"))]
             route_manager,
             exit_mix_addresses,
             task_manager,
             &gateway_directory_client,
             default_lan_gateway_ip,
+            #[cfg(not(target_os = "ios"))]
             dns_monitor,
         )
         .await?;
@@ -316,8 +366,8 @@ async fn setup_mix_tunnel(
 pub async fn setup_tunnel(
     nym_vpn: &mut SpecificVpn,
     task_manager: &mut TaskManager,
-    route_manager: &mut RouteManager,
-    dns_monitor: &mut DnsMonitor,
+    #[cfg(not(target_os = "ios"))] route_manager: &mut RouteManager,
+    #[cfg(not(target_os = "ios"))] dns_monitor: &mut DnsMonitor,
 ) -> Result<AllTunnelsSetup> {
     // The user agent is set on HTTP REST API calls, and ideally should identify the type of
     // client. This means it needs to be set way higher in the call stack, but set a default for
@@ -376,9 +426,11 @@ pub async fn setup_tunnel(
                 vpn,
                 mixnet_client,
                 task_manager,
+                #[cfg(not(target_os = "ios"))]
                 route_manager,
                 gateway_directory_client,
                 auth_addresses,
+                #[cfg(not(target_os = "ios"))]
                 default_lan_gateway_ip,
             )
             .await
@@ -388,7 +440,9 @@ pub async fn setup_tunnel(
                 vpn,
                 mixnet_client,
                 task_manager,
+                #[cfg(not(target_os = "ios"))]
                 route_manager,
+                #[cfg(not(target_os = "ios"))]
                 dns_monitor,
                 gateway_directory_client,
                 &exit.ipr_address.unwrap(),

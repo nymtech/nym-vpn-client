@@ -1,17 +1,22 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{error::*, tunnel_setup::WgTunnelSetup, NymVpnCtrlMessage};
+#[cfg(not(target_os = "ios"))]
+use crate::tunnel_setup::WgTunnelSetup;
+use crate::{error::*, NymVpnCtrlMessage};
 use futures::{channel::mpsc, StreamExt};
 use log::*;
+#[cfg(not(target_os = "ios"))]
 use talpid_routing::RouteManager;
 
+#[cfg(not(target_os = "ios"))]
 pub(crate) async fn wait_and_handle_interrupt(
     task_manager: &mut nym_task::TaskManager,
-    route_manager: RouteManager,
-    wireguard_waiting: Option<[WgTunnelSetup; 2]>,
+    #[cfg(not(target_os = "ios"))] route_manager: RouteManager,
+    #[cfg(not(target_os = "ios"))] wireguard_waiting: Option<[WgTunnelSetup; 2]>,
 ) {
     wait_for_interrupt(task_manager).await;
+    #[cfg(not(target_os = "ios"))]
     handle_interrupt(route_manager, wireguard_waiting).await;
     log::info!("Waiting for tasks to finish... (Press ctrl-c to force)");
     task_manager.wait_for_shutdown().await;
@@ -31,8 +36,8 @@ pub(crate) async fn wait_for_interrupt(task_manager: &mut nym_task::TaskManager)
 pub(crate) async fn wait_for_interrupt_and_signal(
     mut task_manager: Option<nym_task::TaskManager>,
     mut vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
-    route_manager: RouteManager,
-    wireguard_waiting: Option<[WgTunnelSetup; 2]>,
+    #[cfg(not(target_os = "ios"))] route_manager: RouteManager,
+    #[cfg(not(target_os = "ios"))] wireguard_waiting: Option<[WgTunnelSetup; 2]>,
 ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     let task_manager_wait = async {
         if let Some(task_manager) = &mut task_manager {
@@ -68,6 +73,7 @@ pub(crate) async fn wait_for_interrupt_and_signal(
         info!("Sending shutdown signal");
         task_manager.signal_shutdown().ok();
 
+        #[cfg(not(target_os = "ios"))]
         handle_interrupt(route_manager, wireguard_waiting).await;
 
         info!("Waiting for tasks to finish... (Press ctrl-c to force)");
@@ -79,6 +85,7 @@ pub(crate) async fn wait_for_interrupt_and_signal(
 }
 
 #[cfg_attr(target_os = "windows", allow(unused_mut))]
+#[cfg(not(target_os = "ios"))]
 pub(crate) async fn handle_interrupt(
     route_manager: RouteManager,
     wireguard_waiting: Option<[WgTunnelSetup; 2]>,
