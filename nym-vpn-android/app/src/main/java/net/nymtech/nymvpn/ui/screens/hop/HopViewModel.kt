@@ -14,7 +14,7 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
 import net.nymtech.nymvpn.ui.GatewayLocation
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.vpnclient.model.Country
+import net.nymtech.vpn.model.Country
 import javax.inject.Inject
 
 @HiltViewModel

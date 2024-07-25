@@ -1,7 +1,7 @@
 package net.nymtech.nymvpn.service.gateway
 
-import net.nymtech.vpnclient.NymApi
-import net.nymtech.vpnclient.model.Country
+import net.nymtech.vpn.NymApi
+import net.nymtech.vpn.model.Country
 import javax.inject.Inject
 
 class GatewayLibService @Inject constructor(

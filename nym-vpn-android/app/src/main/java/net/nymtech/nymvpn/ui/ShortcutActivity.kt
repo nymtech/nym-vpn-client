@@ -11,7 +11,7 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.service.vpn.VpnManager
-import net.nymtech.vpnclient.util.Action
+import net.nymtech.vpn.util.Action
 import timber.log.Timber
 import javax.inject.Inject
 

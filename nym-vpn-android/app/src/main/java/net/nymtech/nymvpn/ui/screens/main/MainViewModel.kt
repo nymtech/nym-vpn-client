@@ -16,9 +16,9 @@ import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.NumberUtils
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpnclient.VpnClient
-import net.nymtech.vpnclient.model.ErrorState
-import net.nymtech.vpnclient.model.VpnMode
+import net.nymtech.vpn.VpnClient
+import net.nymtech.vpn.model.ErrorState
+import net.nymtech.vpn.model.VpnMode
 import javax.inject.Inject
 import javax.inject.Provider
 

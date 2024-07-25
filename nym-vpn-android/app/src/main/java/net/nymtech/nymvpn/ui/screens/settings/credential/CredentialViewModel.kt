@@ -6,7 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.vpnclient.VpnClient
+import net.nymtech.vpn.VpnClient
 import timber.log.Timber
 import java.time.Instant
 import javax.inject.Inject

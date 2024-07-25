@@ -74,7 +74,7 @@ import net.nymtech.nymvpn.util.NymVpnExceptions
 import net.nymtech.nymvpn.util.StringUtils
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
-import net.nymtech.vpnclient.model.VpnMode
+import net.nymtech.vpn.model.VpnMode
 import java.time.Instant
 
 @OptIn(ExperimentalPermissionsApi::class)

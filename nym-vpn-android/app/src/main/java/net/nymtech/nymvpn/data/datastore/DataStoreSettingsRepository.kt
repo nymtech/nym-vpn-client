@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.map
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.vpnclient.model.Country
-import net.nymtech.vpnclient.model.VpnMode
+import net.nymtech.vpn.model.Country
+import net.nymtech.vpn.model.VpnMode
 import timber.log.Timber
 import java.time.Instant
 
