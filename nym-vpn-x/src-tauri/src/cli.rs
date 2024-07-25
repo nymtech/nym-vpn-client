@@ -42,6 +42,10 @@ pub struct Cli {
     #[arg(short = 'D', long)]
     pub dns: Option<String>,
 
+    /// Enable writing app logs to a file
+    #[arg(short, long)]
+    pub log_file: bool,
+
     /// Open a console to see the log stream (Windows only)
     #[arg(short, long)]
     pub console: bool,

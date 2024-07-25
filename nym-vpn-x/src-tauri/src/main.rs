@@ -58,10 +58,10 @@ async fn main() -> Result<()> {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
     dotenvy::dotenv().ok();
-    let _guard = log::setup_tracing().await?;
-
     // parse the command line arguments
     let cli = Cli::parse();
+
+    let _guard = log::setup_tracing(cli.log_file).await?;
     trace!("cli args: {:#?}", cli);
 
     #[cfg(windows)]
