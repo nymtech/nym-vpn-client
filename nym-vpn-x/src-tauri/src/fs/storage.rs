@@ -27,7 +27,7 @@ where
         full_path.push(filename);
 
         // check if the directory exists, if not create it
-        check_dir(&dir_path).await?;
+        check_dir(&dir_path)?;
         // check if the file exists, if not create it
         check_file(&full_path).await?;
 

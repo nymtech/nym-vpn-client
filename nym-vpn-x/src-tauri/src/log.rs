@@ -1,19 +1,19 @@
 use std::{fs, path::PathBuf};
 
 use anyhow::{anyhow, Result};
-use tauri::api::path::cache_dir;
 use tracing_appender::{non_blocking::WorkerGuard, rolling};
 
-use crate::{envi, fs::util::check_dir, APP_DIR};
+use crate::envi;
+use crate::fs::path::LOG_DIR_PATH;
 
 const ENV_LOG_FILE: &str = "LOG_FILE";
-pub const LOG_DIR: &str = "log";
 const LOG_FILE: &str = "app.log";
+const LOG_FILE_OLD: &str = "app.old.log";
 
 fn rotate_log_file(log_dir: PathBuf) -> Result<()> {
     let log_file = log_dir.join(LOG_FILE);
     if log_file.is_file() {
-        let old_file = log_dir.join(format!("{}.old", LOG_FILE));
+        let old_file = log_dir.join(LOG_FILE_OLD);
         let data = fs::read(&log_file).inspect_err(|e| {
             eprintln!(
                 "failed to read log file during log rotation {}: {e}",
@@ -40,9 +40,9 @@ pub async fn setup_tracing() -> Result<Option<WorkerGuard>> {
         .add_directive("netlink_proto=info".parse().unwrap());
 
     if envi::is_truthy(ENV_LOG_FILE) {
-        let cache_dir = cache_dir().ok_or(anyhow!("Failed to retrieve cache directory path"))?;
-        let log_dir = cache_dir.join(format!("{}/{}", APP_DIR, LOG_DIR));
-        check_dir(&log_dir).await?;
+        let log_dir = LOG_DIR_PATH
+            .clone()
+            .ok_or(anyhow!("Failed to retrieve log directory path"))?;
         rotate_log_file(log_dir.clone()).ok();
 
         let appender = rolling::never(log_dir, LOG_FILE);

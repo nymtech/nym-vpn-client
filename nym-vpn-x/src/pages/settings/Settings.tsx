@@ -77,16 +77,16 @@ function Settings() {
   const handleLogs = async () => {
     let selected;
     try {
-      const log_dir = await invoke<string>('log_dir');
+      const logDir = await invoke<string>('log_dir');
       selected = await open({
         title: t('log-dialog-title'),
-        defaultPath: log_dir,
+        defaultPath: logDir,
         directory: false,
         multiple: false,
         filters: [
           {
             name: 'app',
-            extensions: ['log', 'log.old'],
+            extensions: ['log', 'old.log'],
           },
         ],
       });
