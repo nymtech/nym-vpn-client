@@ -1,6 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-pub mod proto_error;
-pub mod proto_response;
-pub mod proto_status_update;
+// This module primarily handles conversions to protobuf types
+
+pub mod error;
+pub mod gateway;
+pub mod state_response;
+pub mod status_update;
+pub mod info_response;
+pub mod connection_state;

@@ -7,7 +7,7 @@ use nym_vpn_lib::{connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessa
 use nym_vpn_proto::{connection_status_update::StatusType, ConnectionStatusUpdate};
 use tracing::debug;
 
-use super::protobuf::proto_status_update::{
+use super::protobuf::status_update::{
     status_update_from_bandwidth_status_message, status_update_from_monitor_status,
     status_update_from_status_message,
 };
