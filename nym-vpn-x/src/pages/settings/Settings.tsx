@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { invoke } from '@tauri-apps/api';
 import { open } from '@tauri-apps/api/dialog';
+import { writeText } from '@tauri-apps/api/clipboard';
 import { useThrottle } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
@@ -93,7 +94,17 @@ function Settings() {
     } catch (e) {
       console.error(e);
     }
-    console.log(selected);
+    if (selected) {
+      if (Array.isArray(selected) && selected[0]) {
+        await writeText(selected[0]);
+      } else if (typeof selected === 'string') {
+        await writeText(selected);
+      }
+      push({
+        text: t('log-path-copied'),
+        autoHideDuration: 4000,
+      });
+    }
   };
 
   return (

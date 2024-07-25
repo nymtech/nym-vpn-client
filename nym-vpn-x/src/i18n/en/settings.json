@@ -44,5 +44,6 @@
   "logs": "Logs",
   "quit": "Quit NymVPN",
   "add-credential-button": "Add credential to connect",
-  "log-dialog-title": "App logs"
+  "log-dialog-title": "App logs",
+  "log-path-copied": "Log path copied to clipboard"
 }
