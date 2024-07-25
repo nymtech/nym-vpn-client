@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.module
 
 import android.content.Context
+import android.os.Build
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -13,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import net.nymtech.logcatutil.LogCollect
 import net.nymtech.logcatutil.LogcatHelper
+import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
@@ -26,6 +28,7 @@ import net.nymtech.nymvpn.util.FileUtils
 import net.nymtech.vpnclient.NymApi
 import net.nymtech.vpnclient.NymVpnClient
 import net.nymtech.vpnclient.VpnClient
+import nym_vpn_lib.UserAgent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -45,7 +48,7 @@ object AppModule {
 	@Singleton
 	@Provides
 	fun provideNymApi(@IoDispatcher dispatcher: CoroutineDispatcher): NymApi {
-		return NymApi(NymVpn.environment, dispatcher)
+		return NymApi(NymVpn.environment, dispatcher, UserAgent(BuildConfig.APP_NAME, BuildConfig.VERSION_NAME, "android-sdk${Build.VERSION.SDK_INT}", BuildConfig.COMMIT_HASH ))
 	}
 
 	@Singleton

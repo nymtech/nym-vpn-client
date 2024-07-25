@@ -2,13 +2,14 @@ package net.nymtech.nymvpn.service.country
 
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.module.Android
+import net.nymtech.nymvpn.module.Native
 import net.nymtech.nymvpn.service.gateway.GatewayService
 import timber.log.Timber
 import javax.inject.Inject
 
 class CountryDataStoreCacheService @Inject constructor(
 	private val gatewayRepository: GatewayRepository,
-	@Android private val gatewayService: GatewayService,
+	@Native private val gatewayService: GatewayService,
 ) : CountryCacheService {
 	override suspend fun updateExitCountriesCache(): Result<Unit> {
 		return gatewayService.getExitCountries().onSuccess {
