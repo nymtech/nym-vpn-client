@@ -3,8 +3,8 @@ package net.nymtech.nymvpn.ui.screens.main
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpnclient.model.Country
-import net.nymtech.vpnclient.model.VpnMode
+import net.nymtech.vpn.model.Country
+import net.nymtech.vpn.model.VpnMode
 
 data class MainUiState(
 	val loading: Boolean = true,

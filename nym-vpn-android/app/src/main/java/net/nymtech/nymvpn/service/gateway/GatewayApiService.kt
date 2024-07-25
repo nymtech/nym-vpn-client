@@ -1,6 +1,6 @@
 package net.nymtech.nymvpn.service.gateway
 
-import net.nymtech.vpnclient.model.Country
+import net.nymtech.vpn.model.Country
 import javax.inject.Inject
 
 class GatewayApiService @Inject constructor(

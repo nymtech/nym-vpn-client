@@ -45,7 +45,7 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.durationFromNow
 import net.nymtech.nymvpn.util.scaledHeight
 import net.nymtech.nymvpn.util.scaledWidth
-import net.nymtech.vpnclient.model.VpnState
+import net.nymtech.vpn.model.VpnState
 import java.time.Instant
 
 @Composable

@@ -20,8 +20,8 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.Native
 import net.nymtech.nymvpn.service.gateway.GatewayService
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.vpnclient.VpnClient
-import net.nymtech.vpnclient.model.Country
+import net.nymtech.vpn.VpnClient
+import net.nymtech.vpn.model.Country
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider

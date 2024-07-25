@@ -21,7 +21,7 @@
 #-renamesourcefileattribute SourceFile
 # NymVPN lib
 # where it's better defined where the FFI/JNI boundaries are.
--keep class net.nymtech.vpnclient.** { *; }
+-keep class net.nymtech.vpn.** { *; }
 -keep class android.os.Parcelable { *; }
 -keep class java.lang.Boolean { *; }
 -keep class java.lang.Integer { *; }

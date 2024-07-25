@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.ui.text.buildAnnotatedString
 import net.nymtech.nymvpn.R
-import net.nymtech.vpnclient.model.Country
+import net.nymtech.vpn.model.Country
 import timber.log.Timber
 
 object StringUtils {

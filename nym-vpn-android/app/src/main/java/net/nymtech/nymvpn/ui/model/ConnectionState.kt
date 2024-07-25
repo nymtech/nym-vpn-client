@@ -2,7 +2,7 @@ package net.nymtech.nymvpn.ui.model
 
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpnclient.model.VpnState
+import net.nymtech.vpn.model.VpnState
 
 sealed class ConnectionState(val status: StringValue) {
 	abstract val stateMessage: StateMessage
