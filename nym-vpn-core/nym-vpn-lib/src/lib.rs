@@ -58,6 +58,7 @@ mod uniffi_custom_impls;
 pub mod config;
 pub mod credentials;
 pub mod error;
+mod ios;
 pub mod keys;
 pub mod mixnet_connect;
 pub mod mixnet_processor;

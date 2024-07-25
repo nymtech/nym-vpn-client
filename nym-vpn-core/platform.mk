@@ -1,6 +1,6 @@
 # Detect the OS and architecture
-OS := $(shell uname -s)
-ARCH := $(shell uname -m)
+OS ?= $(shell uname -s)
+ARCH ?= $(shell uname -m)
 
 $(info Detected OS: $(OS))
 $(info Detected Architecture: $(ARCH))
@@ -8,6 +8,7 @@ $(info Detected Architecture: $(ARCH))
 # Define architecture mappings for Linux
 LINUX_ARCH_MAP := x86_64=x86_64-unknown-linux-gnu aarch64=aarch64-unknown-linux-gnu
 DARWIN_ARCH_MAP := x86_64=x86_64-apple-darwin arm64=aarch64-apple-darwin
+IOS_ARCH_MAP := x86_64=x86_64-apple-ios arm64=aarch64-apple-ios
 
 # Function to adjust architecture based on OS
 define adjust_arch
@@ -18,9 +19,13 @@ endef
 ifeq ($(OS),Linux)
     ARCH := $(call adjust_arch,$(LINUX_ARCH_MAP))
     $(info Using arch triplet: $(ARCH))
-endif
-ifeq ($(OS),Darwin)
+else ifeq ($(OS),Darwin)
     ARCH := $(call adjust_arch,$(DARWIN_ARCH_MAP))
     $(info Using arch triplet: $(ARCH))
+else ifeq ($(OS),iOS)
+    ARCH := $(call adjust_arch,$(IOS_ARCH_MAP))
+    $(info Using arch triplet: $(ARCH))
+else
+    $(error Bad ARCH/OS specified)
 endif
 

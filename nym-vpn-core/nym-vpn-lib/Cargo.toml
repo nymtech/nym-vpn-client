@@ -81,6 +81,7 @@ nym-gateway-directory = { path = "../crates/nym-gateway-directory" }
 nym-ip-packet-client = { path = "../crates/nym-ip-packet-client" }
 nym-vpn-api-client = { path = "../crates/nym-vpn-api-client" }
 nym-vpn-store = { path = "../crates/nym-vpn-store" }
+nym-wg-go = { path = "../crates/nym-wg-go" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.14.1"
@@ -93,7 +94,10 @@ rand = "0.8.5"
 oslog = "0.2.0"
 
 [target.'cfg(unix)'.dependencies]
-nix = { version = "0.28.0", features = ["user"] }
+nix = { workspace = true, features = ["user"] }
+
+[target.'cfg(target_os = "ios")'.dependencies]
+nix = { workspace = true, features = ["socket", "net"] }
 
 [target.'cfg(windows)'.dependencies]
 is_elevated = "0.1.2"

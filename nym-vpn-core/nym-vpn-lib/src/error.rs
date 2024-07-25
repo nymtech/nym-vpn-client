@@ -214,6 +214,10 @@ pub enum Error {
 
     #[error("out of bandwidth")]
     OutOfBandwidth,
+
+    #[cfg(target_os = "ios")]
+    #[error("wg tunnel configuration failure")]
+    WgTunnelConfiguration(#[from] crate::ios::Error),
 }
 
 #[derive(thiserror::Error, Debug)]

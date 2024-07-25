@@ -1,10 +1,10 @@
-// +build darwin linux
-// +build !android
+//go:build (darwin || linux) && !android && !ios
 
 /* SPDX-License-Identifier: Apache-2.0
  *
  * Copyright (C) 2017-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
  * Copyright (C) 2021 Mullvad VPN AB. All Rights Reserved.
+ * Copyright (C) 2024 Nym Technologies SA <contact@nymtech.net>. All Rights Reserved.
  */
 
 package main
@@ -22,7 +22,6 @@ import (
 	"golang.zx2c4.com/wireguard/tun"
 
 	"github.com/mullvad/mullvadvpn-app/wireguard/libwg/logging"
-	"github.com/mullvad/mullvadvpn-app/wireguard/libwg/tunnelcontainer"
 )
 
 // Redefined here because otherwise the compiler doesn't realize it's a type alias for a type that's safe to export.
@@ -62,7 +61,7 @@ func wgTurnOn(mtu int, cSettings *C.char, fd int, logSink LogSink, logContext Lo
 
 	device.Up()
 
-	context := tunnelcontainer.Context{
+	context := TunnelContext{
 		Device: device,
 		Logger: logger,
 	}

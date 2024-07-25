@@ -15,6 +15,17 @@ function is_android_build {
     return 1
 }
 
+function is_ios_build {
+    for arg in "$@"
+    do
+        case "$arg" in
+            "--ios")
+                return 0
+        esac
+    done
+    return 1
+}
+
 function is_docker_build {
     for arg in "$@"
     do
@@ -138,6 +149,8 @@ function create_folder_and_build {
 }
 
 function build_macos_universal {
+    patch_darwin_goruntime
+    
     export CGO_ENABLED=1
 
     echo "🍎 Building for aarch64"
@@ -158,9 +171,60 @@ function build_macos_universal {
     popd
 }
 
+function build_ios {
+    patch_darwin_goruntime
+
+    export CGO_ENABLED=1
+
+    echo "🍎 Building for ios/aarch64"
+    pushd libwg
+    export GOARCH=arm64
+    export GOOS=ios
+    export SDKROOT=$(xcrun --show-sdk-path --sdk iphoneos)
+    export CC="$(xcrun -sdk $SDKROOT --find clang) -arch $GOARCH -isysroot $SDKROOT"
+    export CFLAGS="-isysroot $SDKROOT -arch $GOARCH -I$SDKROOT/usr/include"
+    export LD_LIBRARY_PATH="$SDKROOT/usr/lib"
+    export CGO_CFLAGS="-isysroot $SDKROOT -arch $GOARCH"
+    export CGO_LDFLAGS="-isysroot $SDKROOT -arch $GOARCH"
+    create_folder_and_build "aarch64-apple-ios"
+
+    echo "🍎 Building for ios-sim/x86_64"
+    export ARCH=x86_64
+    export GOOS=ios
+    export GOARCH=amd64
+    export SDKROOT=$(xcrun --show-sdk-path --sdk iphonesimulator)
+    export CC="$(xcrun -sdk $SDKROOT --find clang) -arch $ARCH -isysroot $SDKROOT"
+    export CFLAGS="-isysroot $SDKROOT -arch $ARCH -I$SDKROOT/usr/include"
+    export LD_LIBRARY_PATH="$SDKROOT/usr/lib"
+    export CGO_CFLAGS="-isysroot $SDKROOT -arch $ARCH"
+    export CGO_LDFLAGS="-isysroot $SDKROOT -arch $ARCH"
+    create_folder_and_build "x86_64-apple-ios"
+
+    echo "🍎 Creating universal framework"
+        mkdir -p "../../build/lib/universal-apple-ios/"
+        lipo -create -output "../../build/lib/universal-apple-ios/libwg.a"  "../../build/lib/x86_64-apple-ios/libwg.a" "../../build/lib/aarch64-apple-ios/libwg.a"
+        cp "../../build/lib/aarch64-apple-ios/libwg.h" "../../build/lib/universal-apple-ios/libwg.h"
+    popd
+}
+
+function patch_darwin_goruntime {
+    echo "Patching goruntime..."
+    BUILDDIR="$(pwd)/../../build"
+    REAL_GOROOT=$(go env GOROOT 2>/dev/null)
+    export GOROOT="$BUILDDIR/goroot"
+    mkdir -p "$GOROOT"
+	rsync -a --delete --exclude=pkg/obj/go-build "$REAL_GOROOT/" "$GOROOT/"
+	cat libwg/goruntime-boottime-over-monotonic-darwin.diff | patch -p1 -f -N -r- -d "$GOROOT"
+}
+
 function build_wireguard_go {
     if is_android_build $@; then
         build_android $@
+        return
+    fi
+
+    if is_ios_build $@; then
+        build_ios $@
         return
     fi
 
