@@ -2631,7 +2631,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.5.6",
+ "socket2 0.4.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -4120,7 +4120,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "nym-http-api-client",
- "reqwest 0.11.27",
+ "reqwest 0.12.4",
  "serde",
  "serde_json",
  "thiserror",
@@ -4692,7 +4692,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "nym-http-api-client",
- "reqwest 0.11.27",
+ "reqwest 0.12.4",
  "serde",
  "serde_json",
  "thiserror",
@@ -4852,7 +4852,7 @@ dependencies = [
  "parity-tokio-ipc",
  "prost 0.12.6",
  "prost-types 0.12.6",
- "reqwest 0.11.27",
+ "reqwest 0.12.4",
  "serde",
  "thiserror",
  "time",
@@ -5780,7 +5780,6 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "webpki-roots 0.25.4",
  "winreg 0.50.0",
 ]
 
