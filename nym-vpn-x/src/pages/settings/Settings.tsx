@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
+import { invoke } from '@tauri-apps/api';
+import { open } from '@tauri-apps/api/dialog';
+import { writeText } from '@tauri-apps/api/clipboard';
 import { useThrottle } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
@@ -70,6 +73,38 @@ function Settings() {
     showMonitoringAlert();
     dispatch({ type: 'set-monitoring', monitoring: isChecked });
     kvSet('Monitoring', isChecked);
+  };
+
+  const handleLogs = async () => {
+    let selected;
+    try {
+      const logDir = await invoke<string>('log_dir');
+      selected = await open({
+        title: t('log-dialog-title'),
+        defaultPath: logDir,
+        directory: false,
+        multiple: false,
+        filters: [
+          {
+            name: 'app',
+            extensions: ['log', 'old.log'],
+          },
+        ],
+      });
+    } catch (e) {
+      console.error(e);
+    }
+    if (selected) {
+      if (Array.isArray(selected) && selected[0]) {
+        await writeText(selected[0]);
+      } else if (typeof selected === 'string') {
+        await writeText(selected);
+      }
+      push({
+        text: t('log-path-copied'),
+        autoHideDuration: 4000,
+      });
+    }
   };
 
   return (
@@ -149,10 +184,9 @@ function Settings() {
       />
       <SettingsMenuCard
         title={t('logs')}
-        onClick={() => navigate(routes.logs)}
+        onClick={handleLogs}
         leadingIcon="sort"
         trailingIcon="arrow_right"
-        disabled
       />
       <SettingsGroup
         settings={[

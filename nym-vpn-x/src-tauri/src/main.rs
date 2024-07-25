@@ -2,8 +2,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::Duration;
-use std::{env, sync::Arc};
 
 use crate::cli::{db_command, Commands};
 use crate::window::AppWindow;
@@ -18,6 +18,8 @@ use anyhow::{anyhow, Result};
 use clap::Parser;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
+use commands::fs as cmd_fs;
+use commands::log as cmd_log;
 use commands::window as cmd_window;
 use commands::*;
 use nym_config::defaults;
@@ -31,12 +33,14 @@ mod cli;
 mod commands;
 mod country;
 mod db;
+mod envi;
 mod error;
 mod events;
 mod fs;
 mod gateway;
 mod grpc;
 mod http;
+mod log;
 mod states;
 mod system_tray;
 mod vpn_status;
@@ -49,26 +53,12 @@ const ENV_APP_NOSPLASH: &str = "APP_NOSPLASH";
 const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 const SYSTRAY_ID: &str = "main";
 
-pub fn setup_logging() {
-    let filter = tracing_subscriber::EnvFilter::builder()
-        .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
-        .from_env()
-        .unwrap()
-        .add_directive("hyper::proto=info".parse().unwrap())
-        .add_directive("netlink_proto=info".parse().unwrap());
-
-    tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .compact()
-        .init();
-}
-
 #[tokio::main]
 async fn main() -> Result<()> {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
     dotenvy::dotenv().ok();
-    setup_logging();
+    let _guard = log::setup_tracing().await?;
 
     // parse the command line arguments
     let cli = Cli::parse();
@@ -146,7 +136,7 @@ async fn main() -> Result<()> {
             app_win.restore_size(&db)?;
             app_win.restore_position(&db)?;
 
-            let env_nosplash = env::var(ENV_APP_NOSPLASH).map(|_| true).unwrap_or(false);
+            let env_nosplash = envi::is_truthy(ENV_APP_NOSPLASH);
             trace!("env APP_NOSPLASH: {}", env_nosplash);
 
             // if splash-screen is disabled, remove it and show
@@ -220,9 +210,10 @@ async fn main() -> Result<()> {
             node_location::get_countries,
             cmd_window::show_main_window,
             commands::cli::cli_args,
-            log::log_js,
+            cmd_log::log_js,
             credential::add_credential,
-            cmd_daemon::daemon_status
+            cmd_daemon::daemon_status,
+            cmd_fs::log_dir,
         ])
         // keep the app running in the background on window close request
         .on_window_event(|event| {

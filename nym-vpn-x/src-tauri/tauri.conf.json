@@ -6,23 +6,42 @@
     "distDir": "../dist",
     "withGlobalTauri": false
   },
-  "package": { "productName": "nymvpn-x" },
+  "package": {
+    "productName": "nymvpn-x"
+  },
   "tauri": {
     "updater": {
       "active": false,
       "dialog": true,
       "endpoints": ["https://nymvpn.net/api/updater/vpn"],
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU3RjI2N0FFRUEyRERGOEQKUldTTjN5M3FybWZ5VjhxOFRsLzQ2c1N0NW1PVVNxVEVVQkszYjZHc3RtcEFDOW1ZN2lIN1NGdk0K",
-      "windows": { "installMode": "passive" }
+      "windows": {
+        "installMode": "passive"
+      }
     },
     "allowlist": {
       "all": false,
-      "process": { "all": true },
-      "shell": { "all": false, "open": true },
-      "os": { "all": true },
-      "window": { "setSize": true },
+      "process": {
+        "all": true
+      },
+      "shell": {
+        "all": false,
+        "open": true
+      },
+      "os": {
+        "all": true
+      },
+      "window": {
+        "setSize": true
+      },
       "notification": {
         "all": true
+      },
+      "dialog": {
+        "open": true
+      },
+      "clipboard": {
+        "writeText": true
       }
     },
     "bundle": {
@@ -56,7 +75,9 @@
         }
       }
     },
-    "security": { "csp": null },
+    "security": {
+      "csp": null
+    },
     "windows": [
       {
         "fullscreen": false,

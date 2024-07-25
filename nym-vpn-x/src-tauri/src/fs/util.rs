@@ -5,18 +5,10 @@ use tracing::{debug, error};
 
 /// Check if a directory exists, if not create it including all
 /// parent components
-pub async fn check_dir(path: &PathBuf) -> Result<()> {
-    if !fs::try_exists(&path)
-        .await
-        .inspect_err(|e| error!("Failed to check if path exists `{}`: {e}", path.display()))
-        .context(format!(
-            "Failed to check if path exists `{}`",
-            path.display()
-        ))?
-    {
+pub fn check_dir(path: &PathBuf) -> Result<()> {
+    if !path.is_dir() {
         debug!("directory `{}` does not exist, creating it", path.display());
-        return fs::create_dir_all(&path)
-            .await
+        return std::fs::create_dir_all(path)
             .inspect_err(|e| error!("Failed to create directory `{}`: {e}", path.display()))
             .context(format!("Failed to create directory `{}`", path.display()));
     }
