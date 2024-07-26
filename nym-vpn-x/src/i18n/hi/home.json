@@ -1,1 +1,16 @@
-{}
+{
+  "connect": "कनेक्ट",
+  "status": {
+    "connected": "कनेक्शन सफल हुआ",
+    "disconnected": "डिस्कनेक्टेड",
+    "connecting": "कनेक्ट हो रहा है",
+    "disconnecting": "डिसकनेक्ट हो रहा है"
+  },
+  "privacy-mode": {
+    "title": "अनाम"
+  },
+  "fast-mode": {
+    "title": "तेज़",
+    "desc": "ब्राउज़िंग, स्ट्रीमिंग और साझाकरण के लिए"
+  }
+}
