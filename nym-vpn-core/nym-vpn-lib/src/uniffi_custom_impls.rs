@@ -281,10 +281,10 @@ impl From<ExitPoint> for GwExitPoint {
 #[derive(PartialEq)]
 #[allow(clippy::large_enum_variant)]
 pub enum StatusEvent {
-    TunStatusOuter(TunStatus),
-    BandwidthStatusOuter(BandwidthStatus),
-    ConnectionStatusOuter(ConnectionStatus),
-    NymVpnStatusOuter(NymVpnStatus),
+    Tun(TunStatus),
+    Bandwidth(BandwidthStatus),
+    Connection(ConnectionStatus),
+    NymVpn(NymVpnStatus),
 }
 
 #[derive(uniffi::Enum, Clone, PartialEq)]
@@ -330,8 +330,10 @@ pub enum BandwidthStatus {
 impl From<&BandwidthStatusMessage> for BandwidthStatus {
     fn from(value: &BandwidthStatusMessage) -> Self {
         match value {
-            BandwidthStatusMessage::RemainingBandwidth(mut bandwidth) => {
-                BandwidthStatus::RemainingBandwidth { bandwidth }
+            BandwidthStatusMessage::RemainingBandwidth(bandwidth) => {
+                BandwidthStatus::RemainingBandwidth {
+                    bandwidth: *bandwidth,
+                }
             }
             BandwidthStatusMessage::NoBandwidth => BandwidthStatus::NoBandwidth,
         }

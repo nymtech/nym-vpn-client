@@ -82,7 +82,8 @@ class NymVpnService : LifecycleVpnService() {
 	private fun startService() {
 		synchronized(this) {
 			lifecycleScope.launch(ioDispatcher) {
-				val logLevel = if (BuildConfig.DEBUG) "debug" else "info"
+				// debug is too spammy
+				val logLevel = "info"
 				initVPN(this@NymVpnService, logLevel)
 				NymBackend.connect()
 			}

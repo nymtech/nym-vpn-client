@@ -5,21 +5,17 @@
 use self::error::FFIError;
 use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
+use crate::platform::status_listener::VpnServiceStatusListener;
 use crate::uniffi_custom_impls::{
     BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, Location, NymVpnStatus, StatusEvent,
     TunStatus, UserAgent,
 };
 use crate::{
     spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
-    NymVpnHandle, NymVpnStatusMessage, SpecificVpn,
+    NymVpnHandle, SpecificVpn,
 };
-use futures::StreamExt;
 use lazy_static::lazy_static;
 use log::*;
-use nym_bandwidth_controller::BandwidthStatusMessage;
-use nym_connection_monitor::ConnectionMonitorStatus;
-use nym_task::manager::TaskStatus;
-use std::fmt::Debug;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -33,6 +29,7 @@ use url::Url;
 #[cfg(target_os = "android")]
 pub mod android;
 pub(crate) mod error;
+mod status_listener;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub mod swift;
 
@@ -56,16 +53,13 @@ async fn set_shutdown_handle(handle: Arc<Notify>) -> Result<(), FFIError> {
 
 pub(crate) fn set_listener_status(status: StatusEvent) {
     let mut guard = LISTENER.lock().unwrap();
-    match &mut *guard {
-        Some(listener) => match status {
-            StatusEvent::TunStatusOuter(status) => listener.on_tun_status_change(status),
-            StatusEvent::BandwidthStatusOuter(status) => {
-                listener.on_bandwidth_status_change(status)
-            }
-            StatusEvent::NymVpnStatusOuter(status) => { listener.on_nym_vpn_status_change(status) }
-            StatusEvent::ConnectionStatusOuter(status) => { listener.on_connection_status_change(status) }
-        },
-        _ => {}
+    if let Some(listener) = &mut *guard {
+        match status {
+            StatusEvent::Tun(status) => listener.on_tun_status_change(status),
+            StatusEvent::Bandwidth(status) => listener.on_bandwidth_status_change(status),
+            StatusEvent::NymVpn(status) => listener.on_nym_vpn_status_change(status),
+            StatusEvent::Connection(status) => listener.on_connection_status_change(status),
+        }
     }
 }
 
@@ -83,7 +77,7 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
     }
     *guard = None;
     debug!("VPN shutdown handle reset");
-    set_listener_status(StatusEvent::TunStatusOuter(TunStatus::Down));
+    set_listener_status(StatusEvent::Tun(TunStatus::Down));
     Ok(())
 }
 
@@ -100,38 +94,8 @@ async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle),
     debug!("new stop handle created");
     set_shutdown_handle(stop_handle.clone()).await?;
     debug!("shutdown handle set with new stop handle");
-    let mut handle = spawn_nym_vpn(vpn)?;
+    let handle = spawn_nym_vpn(vpn)?;
     debug!("spawned vpn handle");
-
-    let Some(status_update) = handle.vpn_status_rx.next().await else {
-        todo!()
-    };
-    if let Some(message) = status_update.downcast_ref::<TaskStatus>() {
-        match message {
-            TaskStatus::Ready => debug!("Started Nym VPN"),
-            TaskStatus::ReadyWithGateway(gateway) => {
-                debug!("Started Nym VPN: connected to {gateway}");
-                set_listener_status(StatusEvent::TunStatusOuter(TunStatus::Up));
-            }
-        }
-    }
-
-    if let Some(message) = status_update.downcast_ref::<BandwidthStatusMessage>() {
-        set_listener_status(StatusEvent::BandwidthStatusOuter(message.into()))
-    }
-
-    if let Some(message) = status_update
-        .downcast_ref::<ConnectionMonitorStatus>()
-        .cloned()
-    {
-        set_listener_status(StatusEvent::ConnectionStatusOuter(message.into()))
-    }
-
-    if let Some(message) = status_update.downcast_ref::<NymVpnStatusMessage>().cloned() {
-        set_listener_status(StatusEvent::NymVpnStatusOuter(message.into()))
-    }
-
-    debug!("result with handles");
     Ok((stop_handle, handle))
 }
 
@@ -139,11 +103,20 @@ async fn wait_for_shutdown(
     stop_handle: Arc<Notify>,
     handle: NymVpnHandle,
 ) -> crate::error::Result<()> {
+    let NymVpnHandle {
+        vpn_ctrl_tx,
+        vpn_status_rx,
+        vpn_exit_rx,
+    } = handle;
+
     RUNTIME.spawn(async move {
         stop_handle.notified().await;
-        handle.vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)
+        vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)
     });
-    match handle.vpn_exit_rx.await? {
+
+    VpnServiceStatusListener::new().start(vpn_status_rx).await;
+
+    match vpn_exit_rx.await? {
         NymVpnExitStatusMessage::Failed(error) => {
             debug!("received exit status message for vpn");
             RUNNING.store(false, Ordering::Relaxed);
@@ -209,20 +182,20 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
         .unwrap()
         .clone_from(&config.tun_status_listener);
 
-    set_listener_status(StatusEvent::TunStatusOuter(TunStatus::InitializingClient));
+    set_listener_status(StatusEvent::Tun(TunStatus::InitializingClient));
 
     debug!("Trying to run VPN");
     let vpn = sync_run_vpn(config);
     debug!("Got VPN");
     if vpn.is_err() {
         error!("Err creating VPN");
-        set_listener_status(StatusEvent::TunStatusOuter(TunStatus::Down));
+        set_listener_status(StatusEvent::Tun(TunStatus::Down));
         RUNNING.store(false, Ordering::Relaxed);
     }
     let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
     if ret.is_err() {
         error!("Error running VPN");
-        set_listener_status(StatusEvent::TunStatusOuter(TunStatus::Down));
+        set_listener_status(StatusEvent::Tun(TunStatus::Down));
         RUNNING.store(false, Ordering::Relaxed);
     }
     ret
@@ -297,7 +270,7 @@ pub fn stopVPN() -> Result<(), FFIError> {
     if !RUNNING.fetch_and(false, Ordering::Relaxed) {
         return Err(FFIError::VpnNotStarted);
     }
-    set_listener_status(StatusEvent::TunStatusOuter(TunStatus::Disconnecting));
+    set_listener_status(StatusEvent::Tun(TunStatus::Disconnecting));
     debug!("Stopping VPN");
     RUNTIME.block_on(stop_vpn())
 }
@@ -421,7 +394,7 @@ async fn get_low_latency_entry_country(
 }
 
 #[uniffi::export(with_foreign)]
-pub trait TunnelStatusListener: Send + Sync + Debug {
+pub trait TunnelStatusListener: Send + Sync {
     fn on_tun_status_change(&self, status: TunStatus);
     fn on_bandwidth_status_change(&self, status: BandwidthStatus);
     fn on_connection_status_change(&self, status: ConnectionStatus);

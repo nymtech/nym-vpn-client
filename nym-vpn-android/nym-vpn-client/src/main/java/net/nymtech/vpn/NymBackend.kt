@@ -12,7 +12,10 @@ import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.InvalidCredentialException
 import net.nymtech.vpn.util.ServiceManager
+import nym_vpn_lib.BandwidthStatus
+import nym_vpn_lib.ConnectionStatus
 import nym_vpn_lib.FfiException
+import nym_vpn_lib.NymVpnStatus
 import nym_vpn_lib.TunStatus
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
@@ -135,5 +138,17 @@ object NymBackend : Backend, TunnelStatusListener {
 		}
 		this.state = state
 		tunnel?.onStateChange(state)
+	}
+
+	override fun onBandwidthStatusChange(status: BandwidthStatus) {
+		Timber.d("Bandwidth status: $status")
+	}
+
+	override fun onConnectionStatusChange(status: ConnectionStatus) {
+		Timber.d("Connection status: $status")
+	}
+
+	override fun onNymVpnStatusChange(statusEvent: NymVpnStatus) {
+		Timber.d("VPN status: $statusEvent")
 	}
 }
