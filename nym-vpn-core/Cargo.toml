@@ -79,7 +79,7 @@ serde = "1.0.204"
 serde_json = "1.0.120"
 signature = "2.2.0"
 tap = "1.0.1"
-thiserror = "1.0.61"
+thiserror = "1.0.63"
 time = "0.3.36"
 tokio = { version = "1.38" }
 tokio-stream = "0.1.15"
