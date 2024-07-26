@@ -14,25 +14,25 @@ public final class TunnelsManager: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     init() {
-        loadTunnels()
-        observeTunnelStatuses()
+        Task {
+            try? await loadTunnels()
+            observeTunnelStatuses()
+        }
     }
 }
 
 // MARK: - Management -
 extension TunnelsManager {
-    public func loadTunnels(didLoadClosure: (() -> Void)? = nil) {
-        loadAllTunnelManagers { [weak self] result in
-            switch result {
-            case .success(let loadedTunnels):
-                self?.activeTunnel = loadedTunnels.first { $0.tunnel.isEnabled }
-                self?.tunnels = loadedTunnels
-                self?.isLoaded = .success(())
-            case .failure(let error):
-                self?.logger.log(level: .error, "Failed loading tunnel managers with \(error)")
-                self?.isLoaded = .failure(error)
-            }
-            didLoadClosure?()
+    public func loadTunnels() async throws {
+        do {
+            let loadedTunnels = try await loadAllTunnelManagers()
+            activeTunnel = loadedTunnels.first { $0.tunnel.isEnabled }
+            tunnels = loadedTunnels
+            isLoaded = .success(())
+        } catch {
+            logger.log(level: .error, "Failed loading tunnel managers with \(error)")
+            isLoaded = .failure(error)
+            throw error
         }
     }
 }
@@ -90,14 +90,9 @@ extension TunnelsManager {
 }
 
 private extension TunnelsManager {
-    func loadAllTunnelManagers(completionHandler: @escaping (Result<[Tunnel], TunnelsManagerError>) -> Void) {
-        NETunnelProviderManager.loadAllFromPreferences { managers, error in
-            if let error = error {
-                completionHandler(.failure(TunnelsManagerError.tunnelList(error: error)))
-                return
-            }
-
-            var tunnelManagers = managers ?? []
+    func loadAllTunnelManagers() async throws -> [Tunnel] {
+        do {
+            var tunnelManagers = try await NETunnelProviderManager.loadAllFromPreferences()
             var refs: Set<Data> = []
             var tunnelNames: Set<String> = []
             for (index, tunnelManager) in tunnelManagers.enumerated().reversed() {
@@ -105,22 +100,21 @@ private extension TunnelsManager {
                     tunnelNames.insert(tunnelName)
                 }
                 guard let proto = tunnelManager.protocolConfiguration as? NETunnelProviderProtocol else { continue }
-                #if os(iOS)
+#if os(iOS)
                 let passwordRef = proto.verifyConfigurationReference() ? proto.passwordReference : nil
-                #elseif os(macOS)
+#elseif os(macOS)
                 let passwordRef: Data?
                 if proto.providerConfiguration?["UID"] as? uid_t == getuid() {
                     passwordRef = proto.verifyConfigurationReference() ? proto.passwordReference : nil
                 } else {
                     passwordRef = proto.passwordReference // To handle multiple users in macOS, we skip verifying
                 }
-                #else
-                #error("Unimplemented")
-                #endif
+#else
+#error("Unimplemented")
+#endif
                 if let ref = passwordRef {
                     refs.insert(ref)
                 } else {
-                    // wg_log(.info, message: "Removing orphaned tunnel with non-verifying keychain entry: \(tunnelManager.localizedDescription ?? "<unknown>")")
                     tunnelManager.removeFromPreferences { _ in }
                     tunnelManagers.remove(at: index)
                 }
@@ -129,7 +123,9 @@ private extension TunnelsManager {
             let tunnels = tunnelManagers.map {
                 Tunnel(tunnel: $0)
             }
-            completionHandler(.success(tunnels))
+            return tunnels
+        } catch {
+            throw TunnelsManagerError.tunnelList(error: error)
         }
     }
 }
