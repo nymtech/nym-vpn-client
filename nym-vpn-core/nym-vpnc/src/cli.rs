@@ -27,6 +27,7 @@ pub(crate) enum Command {
     ListenToStatus,
     ListenToStateChanges,
     ListEntryGateways,
+    ListExitGateways,
 }
 
 #[derive(Args)]

@@ -16,6 +16,7 @@ use nym_vpn_proto::{
 };
 use nym_vpn_proto::{
     InfoRequest, InfoResponse, ListEntryGatewaysRequest, ListEntryGatewaysResponse,
+    ListExitGatewaysRequest, ListExitGatewaysResponse,
 };
 use prost_types::Timestamp;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
@@ -291,6 +292,35 @@ impl NymVpnd for CommandInterface {
 
         info!(
             "Returning list entry gateways response: {} entries",
+            response.gateways.len()
+        );
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn list_exit_gateways(
+        &self,
+        request: tonic::Request<ListExitGatewaysRequest>,
+    ) -> Result<tonic::Response<ListExitGatewaysResponse>, tonic::Status> {
+        info!("Got list exit gateways request: {:?}", request);
+
+        let exit_gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_list_exit_gateways()
+            .await
+            .map_err(|err| {
+                let msg = format!("Failed to list exit gateways: {:?}", err);
+                error!(msg);
+                tonic::Status::internal(msg)
+            })?;
+
+        let response = ListExitGatewaysResponse {
+            gateways: exit_gateways
+                .into_iter()
+                .map(nym_vpn_proto::ExitGateway::from)
+                .collect(),
+        };
+
+        info!(
+            "Returning list exit gateways response: {} entries",
             response.gateways.len()
         );
         Ok(tonic::Response::new(response))

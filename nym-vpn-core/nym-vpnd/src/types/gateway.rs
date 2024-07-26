@@ -114,7 +114,7 @@ impl From<String> for Country {
 
 impl From<nym_vpn_api_client::responses::Country> for Country {
     fn from(country: nym_vpn_api_client::responses::Country) -> Self {
-        Self(country.0)
+        Self(country.into_string())
     }
 }
 

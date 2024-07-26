@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_api_client::VpnApiClientError;
-use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
+use nym_vpn_lib::{
+    gateway_directory::{EntryPoint, ExitPoint},
+    nym_bin_common::bin_info_local_vergen,
+    nym_config::defaults,
+};
 use time::OffsetDateTime;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 use tracing::{debug, info, warn};
@@ -31,6 +35,9 @@ pub enum ListGatewayError {
 
     #[error("failed to get entry gateways: {error}")]
     FailedToGetEntryGatewaysFromNymVpnApi { error: VpnApiClientError },
+
+    #[error("failed to get exit gateways: {error}")]
+    FailedToGetExitGatewaysFromNymVpnApi { error: VpnApiClientError },
 }
 
 pub(super) struct CommandInterfaceConnectionHandler {
@@ -136,26 +143,17 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_list_entry_gateways(
         &self,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
-        let user_agent = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!().into();
-        let nym_network_details =
-            nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env();
+        let user_agent = bin_info_local_vergen!().into();
+        let nym_network_details = defaults::NymNetworkDetails::new_from_env();
 
-        if nym_network_details.network_name == "mainnet" {
+        if nym_network_details.network_name == defaults::mainnet::NETWORK_NAME {
             nym_vpn_api_client::get_entry_gateways(user_agent)
                 .await
                 .map(|gateways| gateways.into_iter().map(gateway::Gateway::from).collect())
                 .map_err(|error| ListGatewayError::FailedToGetEntryGatewaysFromNymVpnApi { error })
         } else {
-            // TODO: do this at startup instead so there are fewer error cases to handle
-            let api_url = nym_network_details
-                .endpoints
-                .first()
-                .ok_or(ListGatewayError::NetworkEndpointsNotConfigured)?
-                .api_url()
-                .ok_or(ListGatewayError::NetworkEnvironmentMissingApiUrl)?;
-
             let nym_api_client =
-                nym_validator_client::NymApiClient::new_with_user_agent(api_url, user_agent);
+                nym_validator_client::NymApiClient::new_with_user_agent(api_url()?, user_agent);
 
             nym_api_client
                 .get_cached_described_gateways()
@@ -164,4 +162,50 @@ impl CommandInterfaceConnectionHandler {
                 .map(|g| g.into_iter().map(gateway::Gateway::from).collect())
         }
     }
+
+    pub(crate) async fn handle_list_exit_gateways(
+        &self,
+    ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
+        let user_agent = bin_info_local_vergen!().into();
+        let nym_network_details = defaults::NymNetworkDetails::new_from_env();
+
+        if nym_network_details.network_name == defaults::mainnet::NETWORK_NAME {
+            nym_vpn_api_client::get_exit_gateways(user_agent)
+                .await
+                .map(|gateways| gateways.into_iter().map(gateway::Gateway::from).collect())
+                .map_err(|error| ListGatewayError::FailedToGetExitGatewaysFromNymVpnApi { error })
+        } else {
+            let nym_api_client =
+                nym_validator_client::NymApiClient::new_with_user_agent(api_url()?, user_agent);
+
+            let gateways = nym_api_client
+                .get_cached_described_gateways()
+                .await
+                .map_err(|error| ListGatewayError::FailedToGetGatewaysFromNymApi { error })?;
+
+            // We check the existence of ip_packet_router to determine if the gateway is an exit
+            // gateway. In the future we check the role field.
+            let is_exit_gateway = |g: &nym_validator_client::models::DescribedGateway| {
+                g.self_described
+                    .as_ref()
+                    .and_then(|d| d.ip_packet_router.as_ref())
+                    .is_some()
+            };
+
+            Ok(gateways
+                .into_iter()
+                .filter(is_exit_gateway)
+                .map(gateway::Gateway::from)
+                .collect())
+        }
+    }
+}
+
+fn api_url() -> Result<url::Url, ListGatewayError> {
+    defaults::NymNetworkDetails::new_from_env()
+        .endpoints
+        .first()
+        .ok_or(ListGatewayError::NetworkEndpointsNotConfigured)?
+        .api_url()
+        .ok_or(ListGatewayError::NetworkEnvironmentMissingApiUrl)
 }

@@ -4868,6 +4868,7 @@ dependencies = [
  "tracing",
  "tracing-appender",
  "tracing-subscriber",
+ "url",
  "vergen",
  "winapi",
  "windows-service 0.7.0",
