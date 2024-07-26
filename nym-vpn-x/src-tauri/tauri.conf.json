@@ -26,7 +26,7 @@
       },
       "shell": {
         "all": false,
-        "open": true
+        "open": "^((mailto:\\w+)|(https?://\\w+)|(/home(/.+)+/nymvpn-x)|(^C:\\\\Users\\\\.+\\\\AppData\\\\Local\\\\nymvpn-x)|(/Users/.+/Library/Caches/nymvpn-x)).+"
       },
       "os": {
         "all": true
