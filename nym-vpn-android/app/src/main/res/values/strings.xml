@@ -10,8 +10,8 @@
     <string name="five_hop_description">For payments, emails, messages</string>
     <string name="two_hop_mixnet">Fast</string>
     <string name="two_hop_description">Best for browsing, streaming, sharing</string>
-    <string name="first_hop">First hop</string>
-    <string name="last_hop">Last hop</string>
+    <string name="first_hop">Entry location</string>
+    <string name="last_hop">Exit location</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
     <string name="init_client">Initializing client…</string>
@@ -19,8 +19,8 @@
     <string name="connection_time">Connection time</string>
     <string name="select_mode">Select mode</string>
     <string name="connect_to">Connect to</string>
-    <string name="first_hop_selection">First hop selection</string>
-    <string name="last_hop_selection">Last hop selection</string>
+    <string name="first_hop_selection">Entry location</string>
+    <string name="last_hop_selection">Exit location</string>
     <string name="display_theme">Display theme</string>
     <string name="light_theme">Light theme</string>
     <string name="dark_theme">Dark theme</string>
