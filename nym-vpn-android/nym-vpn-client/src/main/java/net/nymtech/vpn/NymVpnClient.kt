@@ -241,11 +241,12 @@ object NymVpnClient {
 		}
 
 		override fun onBandwidthStatusChange(status: BandwidthStatus) {
-			when(status) {
+			when (status) {
 				BandwidthStatus.NoBandwidth -> Timber.d("Bandwidth status change: out of bandwidth")
-				is BandwidthStatus.RemainingBandwidth -> { Timber.d("Bandwidth status change: ${status.bandwidth} remaining") }
+				is BandwidthStatus.RemainingBandwidth -> {
+					Timber.d("Bandwidth status change: ${status.bandwidth} remaining")
+				}
 			}
-
 		}
 
 		override fun onConnectionStatusChange(status: ConnectionStatus) {
@@ -253,7 +254,7 @@ object NymVpnClient {
 		}
 
 		override fun onNymVpnStatusChange(statusEvent: NymVpnStatus) {
-			when(statusEvent) {
+			when (statusEvent) {
 				is NymVpnStatus.ConnectionInfo -> {
 					Timber.d("NymVpnStatus change: ${statusEvent.mixnetConnectionInfo}, ${statusEvent.mixnetExitConnectionInfo}")
 				}
