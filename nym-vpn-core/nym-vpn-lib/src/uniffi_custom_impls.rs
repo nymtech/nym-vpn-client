@@ -2,10 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::platform::error::FFIError;
-use crate::{NodeIdentity, Recipient, UniffiCustomTypeConverter};
+use crate::{
+    MixnetConnectionInfo, MixnetExitConnectionInfo, NodeIdentity, NymVpnStatusMessage, Recipient,
+    UniffiCustomTypeConverter,
+};
 use ipnetwork::IpNetwork;
+use nym_bandwidth_controller::BandwidthStatusMessage;
+use nym_connection_monitor::ConnectionMonitorStatus;
 use nym_explorer_client::Location as ExpLocation;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
+use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent as NymUserAgent;
 use nym_vpn_api_client::Country;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
@@ -100,6 +106,19 @@ impl UniffiCustomTypeConverter for IpAddr {
 
     fn from_custom(obj: Self) -> Self::Builtin {
         obj.to_string()
+    }
+}
+
+uniffi::custom_type!(IpPair, String);
+impl UniffiCustomTypeConverter for IpPair {
+    type Builtin = String;
+
+    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
+        Ok(serde_json::from_str(&val).map_err(|_| FFIError::InvalidValueUniffi)?)
+    }
+
+    fn from_custom(obj: Self) -> Self::Builtin {
+        serde_json::to_string(&obj).expect("Failed to serialize ip pair")
     }
 }
 
@@ -259,7 +278,16 @@ impl From<ExitPoint> for GwExitPoint {
     }
 }
 
-#[derive(uniffi::Enum, Clone)]
+#[derive(PartialEq)]
+#[allow(clippy::large_enum_variant)]
+pub enum StatusEvent {
+    TunStatusOuter(TunStatus),
+    BandwidthStatusOuter(BandwidthStatus),
+    ConnectionStatusOuter(ConnectionStatus),
+    NymVpnStatusOuter(NymVpnStatus),
+}
+
+#[derive(uniffi::Enum, Clone, PartialEq)]
 #[allow(clippy::large_enum_variant)]
 pub enum TunStatus {
     Up,
@@ -267,6 +295,77 @@ pub enum TunStatus {
     InitializingClient,
     EstablishingConnection,
     Disconnecting,
+}
+
+#[derive(uniffi::Enum, PartialEq)]
+#[allow(clippy::large_enum_variant)]
+pub enum NymVpnStatus {
+    ConnectionInfo {
+        mixnet_connection_info: MixnetConnectionInfo,
+        mixnet_exit_connection_info: MixnetExitConnectionInfo,
+    },
+}
+
+impl From<NymVpnStatusMessage> for NymVpnStatus {
+    fn from(value: NymVpnStatusMessage) -> Self {
+        match value {
+            NymVpnStatusMessage::MixnetConnectionInfo {
+                mixnet_connection_info,
+                mixnet_exit_connection_info,
+            } => NymVpnStatus::ConnectionInfo {
+                mixnet_connection_info,
+                mixnet_exit_connection_info,
+            },
+        }
+    }
+}
+
+#[derive(uniffi::Enum, Clone, PartialEq)]
+#[allow(clippy::large_enum_variant)]
+pub enum BandwidthStatus {
+    NoBandwidth,
+    RemainingBandwidth { bandwidth: i64 },
+}
+
+impl From<&BandwidthStatusMessage> for BandwidthStatus {
+    fn from(value: &BandwidthStatusMessage) -> Self {
+        match value {
+            BandwidthStatusMessage::RemainingBandwidth(mut bandwidth) => {
+                BandwidthStatus::RemainingBandwidth { bandwidth }
+            }
+            BandwidthStatusMessage::NoBandwidth => BandwidthStatus::NoBandwidth,
+        }
+    }
+}
+
+#[derive(uniffi::Enum, Clone, PartialEq)]
+#[allow(clippy::large_enum_variant)]
+pub enum ConnectionStatus {
+    EntryGatewayDown,
+    ExitGatewayDownIpv4,
+    ExitGatewayDownIpv6,
+    ExitGatewayRoutingErrorIpv4,
+    ExitGatewayRoutingErrorIpv6,
+    ConnectedIpv4,
+    ConnectedIpv6,
+}
+
+impl From<ConnectionMonitorStatus> for ConnectionStatus {
+    fn from(value: ConnectionMonitorStatus) -> Self {
+        match value {
+            ConnectionMonitorStatus::EntryGatewayDown => ConnectionStatus::EntryGatewayDown,
+            ConnectionMonitorStatus::ExitGatewayDownIpv4 => ConnectionStatus::ExitGatewayDownIpv4,
+            ConnectionMonitorStatus::ExitGatewayDownIpv6 => ConnectionStatus::ExitGatewayDownIpv6,
+            ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv4 => {
+                ConnectionStatus::ExitGatewayRoutingErrorIpv4
+            }
+            ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv6 => {
+                ConnectionStatus::ExitGatewayRoutingErrorIpv6
+            }
+            ConnectionMonitorStatus::ConnectedIpv4 => ConnectionStatus::ConnectedIpv4,
+            ConnectionMonitorStatus::ConnectedIpv6 => ConnectionStatus::ConnectedIpv6,
+        }
+    }
 }
 
 impl UniffiCustomTypeConverter for PathBuf {
