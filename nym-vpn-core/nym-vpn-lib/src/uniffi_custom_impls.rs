@@ -323,7 +323,9 @@ impl From<&BandwidthStatusMessage> for BandwidthStatus {
     fn from(value: &BandwidthStatusMessage) -> Self {
         match value {
             BandwidthStatusMessage::RemainingBandwidth(bandwidth) => {
-                BandwidthStatus::RemainingBandwidth { bandwidth: *bandwidth }
+                BandwidthStatus::RemainingBandwidth {
+                    bandwidth: *bandwidth,
+                }
             }
             BandwidthStatusMessage::NoBandwidth => BandwidthStatus::NoBandwidth,
         }

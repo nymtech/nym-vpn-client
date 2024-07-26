@@ -59,13 +59,9 @@ pub(crate) fn set_listener_status(status: StatusEvent) {
     if let Some(listener) = &mut *guard {
         match status {
             StatusEvent::Tun(status) => listener.on_tun_status_change(status),
-            StatusEvent::Bandwidth(status) => {
-                listener.on_bandwidth_status_change(status)
-            }
+            StatusEvent::Bandwidth(status) => listener.on_bandwidth_status_change(status),
             StatusEvent::NymVpn(status) => listener.on_nym_vpn_status_change(status),
-            StatusEvent::Connection(status) => {
-                listener.on_connection_status_change(status)
-            }
+            StatusEvent::Connection(status) => listener.on_connection_status_change(status),
         }
     }
 }
