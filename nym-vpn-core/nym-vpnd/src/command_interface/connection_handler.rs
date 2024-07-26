@@ -7,12 +7,14 @@ use time::OffsetDateTime;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 use tracing::{debug, info, warn};
 
-use crate::service::{
-    ConnectArgs, ConnectOptions, ImportCredentialError, VpnServiceCommand, VpnServiceConnectResult,
-    VpnServiceDisconnectResult, VpnServiceInfoResult, VpnServiceStatusResult,
+use crate::{
+    service::{
+        ConnectArgs, ConnectOptions, ImportCredentialError, VpnServiceCommand,
+        VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceInfoResult,
+        VpnServiceStatusResult,
+    },
+    types::gateway,
 };
-
-use super::gateways;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ListGatewayError {
@@ -133,7 +135,7 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_entry_gateways(
         &self,
-    ) -> Result<Vec<gateways::Gateway>, ListGatewayError> {
+    ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
         let user_agent = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!().into();
         let nym_network_details =
             nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env();
@@ -141,7 +143,7 @@ impl CommandInterfaceConnectionHandler {
         if nym_network_details.network_name == "mainnet" {
             nym_vpn_api_client::get_entry_gateways(user_agent)
                 .await
-                .map(|gateways| gateways.into_iter().map(gateways::Gateway::from).collect())
+                .map(|gateways| gateways.into_iter().map(gateway::Gateway::from).collect())
                 .map_err(|error| ListGatewayError::FailedToGetEntryGatewaysFromNymVpnApi { error })
         } else {
             // TODO: do this at startup instead so there are fewer error cases to handle
@@ -159,7 +161,7 @@ impl CommandInterfaceConnectionHandler {
                 .get_cached_described_gateways()
                 .await
                 .map_err(|error| ListGatewayError::FailedToGetGatewaysFromNymApi { error })
-                .map(|g| g.into_iter().map(gateways::Gateway::from).collect())
+                .map(|g| g.into_iter().map(gateway::Gateway::from).collect())
         }
     }
 }
