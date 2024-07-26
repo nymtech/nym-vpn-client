@@ -2,8 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { invoke } from '@tauri-apps/api';
-import { open } from '@tauri-apps/api/dialog';
-import { writeText } from '@tauri-apps/api/clipboard';
+import { open } from '@tauri-apps/api/shell';
 import { useThrottle } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
@@ -76,34 +75,13 @@ function Settings() {
   };
 
   const handleLogs = async () => {
-    let selected;
     try {
-      const logDir = await invoke<string>('log_dir');
-      selected = await open({
-        title: t('log-dialog-title'),
-        defaultPath: logDir,
-        directory: false,
-        multiple: false,
-        filters: [
-          {
-            name: 'app',
-            extensions: ['log', 'old.log'],
-          },
-        ],
-      });
+      const logDir = await invoke<string | undefined>('log_dir');
+      if (logDir) {
+        await open(logDir);
+      }
     } catch (e) {
       console.error(e);
-    }
-    if (selected) {
-      if (Array.isArray(selected) && selected[0]) {
-        await writeText(selected[0]);
-      } else if (typeof selected === 'string') {
-        await writeText(selected);
-      }
-      push({
-        text: t('log-path-copied'),
-        autoHideDuration: 4000,
-      });
     }
   };
 
@@ -183,7 +161,8 @@ function Settings() {
         ]}
       />
       <SettingsMenuCard
-        title={t('logs')}
+        title={t('logs.title')}
+        desc={t('logs.desc')}
         onClick={handleLogs}
         leadingIcon="sort"
         trailingIcon="open_in_new"

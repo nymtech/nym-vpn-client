@@ -39,11 +39,12 @@
     "licenses-js": "Licenses (JS)",
     "emptyData": "No license data available"
   },
+  "logs": {
+    "title": "Logs",
+    "desc": "Copy or delete logs"
+  },
   "faq": "FAQ",
   "display-theme": "Display theme",
-  "logs": "Logs",
   "quit": "Quit NymVPN",
-  "add-credential-button": "Add credential to connect",
-  "log-dialog-title": "App logs",
-  "log-path-copied": "Log path copied to clipboard"
+  "add-credential-button": "Add credential to connect"
 }
