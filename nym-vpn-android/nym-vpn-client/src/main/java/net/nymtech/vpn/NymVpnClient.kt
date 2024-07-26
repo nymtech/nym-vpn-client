@@ -21,8 +21,11 @@ import net.nymtech.vpn.model.VpnState
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.InvalidCredentialException
 import net.nymtech.vpn.util.ServiceManager
+import nym_vpn_lib.BandwidthStatus
+import nym_vpn_lib.ConnectionStatus
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
+import nym_vpn_lib.NymVpnStatus
 import nym_vpn_lib.TunStatus
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
@@ -235,6 +238,26 @@ object NymVpnClient {
 				}
 			}
 			setVpnState(vpnState)
+		}
+
+		override fun onBandwidthStatusChange(status: BandwidthStatus) {
+			when(status) {
+				BandwidthStatus.NoBandwidth -> Timber.d("Bandwidth status change: out of bandwidth")
+				is BandwidthStatus.RemainingBandwidth -> { Timber.d("Bandwidth status change: ${status.bandwidth} remaining") }
+			}
+
+		}
+
+		override fun onConnectionStatusChange(status: ConnectionStatus) {
+			Timber.d("Connection Status change: ${status.name}")
+		}
+
+		override fun onNymVpnStatusChange(statusEvent: NymVpnStatus) {
+			when(statusEvent) {
+				is NymVpnStatus.ConnectionInfo -> {
+					Timber.d("NymVpnStatus change: ${statusEvent.mixnetConnectionInfo}, ${statusEvent.mixnetExitConnectionInfo}")
+				}
+			}
 		}
 	}
 }
