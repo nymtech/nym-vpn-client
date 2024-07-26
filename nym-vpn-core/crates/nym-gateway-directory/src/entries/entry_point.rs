@@ -52,37 +52,8 @@ impl EntryPoint {
     pub fn is_location(&self) -> bool {
         matches!(self, EntryPoint::Location { .. })
     }
-}
 
-#[async_trait::async_trait]
-impl LookupGateway for EntryPoint {
-    async fn lookup_gateway_identity(
-        &self,
-        gateways: &[DescribedGatewayWithLocation],
-    ) -> Result<(NodeIdentity, Option<String>)> {
-        match &self {
-            EntryPoint::Gateway { identity } => verify_identity(gateways, identity),
-            EntryPoint::Location { location } => {
-                by_location(gateways, location).map_err(|err| match err {
-                    Error::NoMatchingGatewayForLocation {
-                        requested_location,
-                        available_countries,
-                    } => Error::NoMatchingEntryGatewayForLocation {
-                        requested_location,
-                        available_countries,
-                    },
-                    err => err,
-                })
-            }
-            EntryPoint::RandomLowLatency => by_random_low_latency(gateways).await,
-            EntryPoint::Random => {
-                log::info!("Selecting a random entry gateway");
-                by_random(gateways)
-            }
-        }
-    }
-
-    async fn lookup_gateway_identity2(&self, gateways: &GatewayList) -> Result<Gateway> {
+    pub fn lookup_gateway_identity2(&self, gateways: &GatewayList) -> Result<Gateway> {
         match &self {
             EntryPoint::Gateway { identity } => {
                 debug!("Selecting gateway by identity: {}", identity);
@@ -109,6 +80,35 @@ impl LookupGateway for EntryPoint {
                 gateways
                     .random_gateway()
                     .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
+            }
+        }
+    }
+}
+
+#[async_trait::async_trait]
+impl LookupGateway for EntryPoint {
+    async fn lookup_gateway_identity(
+        &self,
+        gateways: &[DescribedGatewayWithLocation],
+    ) -> Result<(NodeIdentity, Option<String>)> {
+        match &self {
+            EntryPoint::Gateway { identity } => verify_identity(gateways, identity),
+            EntryPoint::Location { location } => {
+                by_location(gateways, location).map_err(|err| match err {
+                    Error::NoMatchingGatewayForLocation {
+                        requested_location,
+                        available_countries,
+                    } => Error::NoMatchingEntryGatewayForLocation {
+                        requested_location,
+                        available_countries,
+                    },
+                    err => err,
+                })
+            }
+            EntryPoint::RandomLowLatency => by_random_low_latency(gateways).await,
+            EntryPoint::Random => {
+                log::info!("Selecting a random entry gateway");
+                by_random(gateways)
             }
         }
     }

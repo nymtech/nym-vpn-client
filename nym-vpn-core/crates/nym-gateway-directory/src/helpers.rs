@@ -1,10 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    entries::gateway::Gateway, error::Result, DescribedGatewayWithLocation, Error,
-    FORCE_TLS_FOR_GATEWAY_SELECTION,
-};
+use crate::{error::Result, DescribedGatewayWithLocation, Error, FORCE_TLS_FOR_GATEWAY_SELECTION};
 use hickory_resolver::{
     config::{ResolverConfig, ResolverOpts},
     TokioAsyncResolver,
@@ -87,18 +84,6 @@ where
         .into_iter()
         .filter_map(|gateway| gateway.two_letter_iso_country_code())
         .unique()
-        .collect()
-}
-
-pub(crate) fn list_all_country_iso_codes2<'a, I>(gateways: I) -> Vec<String>
-where
-    I: IntoIterator<Item = &'a Gateway>,
-{
-    gateways
-        .into_iter()
-        .filter_map(|gateway| gateway.two_letter_iso_country_code())
-        .unique()
-        .map(|code| code.to_string())
         .collect()
 }
 

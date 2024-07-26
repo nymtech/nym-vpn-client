@@ -330,33 +330,23 @@ pub async fn setup_tunnel(
         .unwrap();
     let entry_gateway2 = nym_vpn
         .entry_point()
-        .lookup_gateway_identity2(&entry_gateways2)
-        .await?;
+        .lookup_gateway_identity2(&entry_gateways2)?;
 
     let exit_gateways2 = gateway_directory_client
         .lookup_exit_gateways()
         .await
         .unwrap();
-    let exit_gateway2 = nym_vpn
-        .exit_point()
-        .lookup_gateway_identity2(&exit_gateways2)
-        .await?;
+    let exit_router_address2 = nym_vpn.exit_point().lookup_router_address2(
+        &exit_gateways2,
+        &exit_gateways,
+        Some(&entry_gateway_id),
+    )?;
 
     // JON ---
 
     info!("Using entry gateway: {entry_gateway_id}, location: {entry_location_str}");
     info!("Using exit gateway: {exit_gateway_id}, location: {exit_location:?}");
     info!("Using exit router address {exit_router_address}");
-
-    // Lookup gateways using nym-vpn-api-client
-    // let entry_gw = nym_vpn_api_client::get_entry_gateways(user_agent.clone())
-    //     .await
-    //     .unwrap();
-    // let exit_gw = nym_vpn_api_client::get_entry_gateways(user_agent)
-    //     .await
-    //     .unwrap();
-
-    // Select gateway based on location
 
     // Get the IP address of the local LAN gateway
     let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
