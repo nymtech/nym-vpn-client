@@ -62,8 +62,10 @@ pub(crate) fn set_listener_status(status: StatusEvent) {
             StatusEvent::BandwidthStatusOuter(status) => {
                 listener.on_bandwidth_status_change(status)
             }
-            StatusEvent::NymVpnStatusOuter(status) => { listener.on_nym_vpn_status_change(status) }
-            StatusEvent::ConnectionStatusOuter(status) => { listener.on_connection_status_change(status) }
+            StatusEvent::NymVpnStatusOuter(status) => listener.on_nym_vpn_status_change(status),
+            StatusEvent::ConnectionStatusOuter(status) => {
+                listener.on_connection_status_change(status)
+            }
         },
         _ => {}
     }
