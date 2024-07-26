@@ -331,7 +331,7 @@ pub async fn setup_tunnel(
     let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
     debug!("default_lan_gateway_ip: {default_lan_gateway_ip}");
 
-    set_listener_status(StatusEvent::TunStatusOuter(
+    set_listener_status(StatusEvent::Tun(
         TunStatus::EstablishingConnection,
     ));
 
