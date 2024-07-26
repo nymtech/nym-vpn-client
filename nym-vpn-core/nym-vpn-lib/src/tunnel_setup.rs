@@ -6,9 +6,9 @@ use std::time::Duration;
 use crate::bandwidth_controller::BandwidthController;
 use crate::error::{Error, Result};
 use crate::mixnet_connect::SharedMixnetClient;
-use crate::platform;
+use crate::platform::set_listener_status;
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
-use crate::uniffi_custom_impls::TunStatus;
+use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
 use crate::wg_gateway_client::WgGatewayClient;
 use crate::wireguard_setup::create_wireguard_tunnel;
 use crate::{init_wireguard_config, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS};
@@ -331,7 +331,9 @@ pub async fn setup_tunnel(
     let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
     debug!("default_lan_gateway_ip: {default_lan_gateway_ip}");
 
-    platform::set_listener_status(TunStatus::EstablishingConnection);
+    set_listener_status(StatusEvent::TunStatusOuter(
+        TunStatus::EstablishingConnection,
+    ));
 
     info!("Setting up mixnet client");
     info!("Connecting to mixnet gateway: {entry_gateway_id}");
