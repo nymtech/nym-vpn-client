@@ -316,6 +316,13 @@ pub async fn setup_tunnel(
         .map_err(|err| Error::FailedToLookupGatewayIdentity { source: err })?;
     let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
 
+    let (exit_router_address, exit_location) = nym_vpn
+        .exit_point()
+        .lookup_router_address(&exit_gateways, Some(&entry_gateway_id))
+        .map_err(|err| Error::FailedToLookupRouterAddress { source: err })?;
+
+    let exit_gateway_id = exit_router_address.gateway();
+
     // JON ---
     let entry_gateways2 = gateway_directory_client
         .lookup_entry_gateways()
@@ -336,13 +343,6 @@ pub async fn setup_tunnel(
         .await?;
 
     // JON ---
-
-    let (exit_router_address, exit_location) = nym_vpn
-        .exit_point()
-        .lookup_router_address(&exit_gateways, Some(&entry_gateway_id))
-        .map_err(|err| Error::FailedToLookupRouterAddress { source: err })?;
-
-    let exit_gateway_id = exit_router_address.gateway();
 
     info!("Using entry gateway: {entry_gateway_id}, location: {entry_location_str}");
     info!("Using exit gateway: {exit_gateway_id}, location: {exit_location:?}");
