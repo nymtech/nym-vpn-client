@@ -1,13 +1,16 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::str::FromStr;
+
 use crate::{
     error::{Error, Result},
     helpers::*,
+    IpPacketRouterAddress,
 };
 use chrono::{DateTime, Utc};
 use nym_explorer_client::Location;
-use nym_sdk::mixnet::NodeIdentity;
+use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use nym_validator_client::{client::IdentityKey, models::DescribedGateway};
 
 use super::gateway::{Gateway, GatewayList};
@@ -87,6 +90,16 @@ impl DescribedGatewayWithLocation {
 
     pub fn country_name(&self) -> Option<String> {
         self.location.as_ref().map(|l| l.country_name.clone())
+    }
+
+    pub fn ip_packet_router_address(&self) -> Option<IpPacketRouterAddress> {
+        self.gateway
+            .self_described
+            .as_ref()
+            .and_then(|d| d.ip_packet_router.as_ref())
+            .map(|ipr| ipr.address.clone())
+            .and_then(|address| Recipient::from_str(&address).ok())
+            .map(|address| IpPacketRouterAddress(address.clone()))
     }
 }
 
