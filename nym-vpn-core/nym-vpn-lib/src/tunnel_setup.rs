@@ -316,13 +316,26 @@ pub async fn setup_tunnel(
         .map_err(|err| Error::FailedToLookupGatewayIdentity { source: err })?;
     let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
 
-    let entry_gateways2 = nym_vpn_api_client::get_entry_gateways(user_agent.clone())
+    // JON ---
+    let entry_gateways2 = gateway_directory_client
+        .lookup_entry_gateways()
         .await
         .unwrap();
-    let (entry_gateway_id2, entry_location) = nym_vpn
+    let entry_gateway2 = nym_vpn
         .entry_point()
         .lookup_gateway_identity2(&entry_gateways2)
         .await?;
+
+    let exit_gateways2 = gateway_directory_client
+        .lookup_exit_gateways()
+        .await
+        .unwrap();
+    let exit_gateway2 = nym_vpn
+        .exit_point()
+        .lookup_gateway_identity2(&exit_gateways2)
+        .await?;
+
+    // JON ---
 
     let (exit_router_address, exit_location) = nym_vpn
         .exit_point()

@@ -4038,6 +4038,7 @@ dependencies = [
  "nym-sdk",
  "nym-topology",
  "nym-validator-client",
+ "nym-vpn-api-client",
  "rand 0.8.5",
  "serde",
  "thiserror",

@@ -16,6 +16,7 @@ nym-harbour-master-client = { path = "../nym-harbour-master-client" }
 nym-sdk.workspace = true
 nym-topology.workspace = true
 nym-validator-client.workspace = true
+nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 rand.workspace = true
 serde.workspace = true
 thiserror.workspace = true

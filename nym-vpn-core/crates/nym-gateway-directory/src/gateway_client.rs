@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
+    entries::gateway::{Gateway, GatewayList},
     error::Result,
     helpers::{
         filter_on_exit_gateways, filter_on_harbour_master_entry_data,
@@ -15,6 +16,7 @@ use nym_explorer_client::{ExplorerClient, Location, PrettyDetailedGatewayBond};
 use nym_harbour_master_client::{Gateway as HmGateway, HarbourMasterApiClientExt};
 use nym_sdk::UserAgent;
 use nym_validator_client::{models::DescribedGateway, NymApiClient};
+use nym_vpn_api_client::VpnApiClientExt;
 use std::{fmt, net::IpAddr, time::Duration};
 use tracing::{debug, info, warn};
 use url::Url;
@@ -173,11 +175,12 @@ pub struct GatewayClient {
     api_client: NymApiClient,
     explorer_client: Option<ExplorerClient>,
     harbour_master_client: Option<nym_harbour_master_client::Client>,
+    nym_vpn_api_client: nym_vpn_api_client::Client,
 }
 
 impl GatewayClient {
     pub fn new(config: Config, user_agent: UserAgent) -> Result<Self> {
-        let api_client = NymApiClient::new_with_user_agent(config.api_url, user_agent);
+        let api_client = NymApiClient::new_with_user_agent(config.api_url, user_agent.clone());
         let explorer_client = if let Some(url) = config.explorer_url {
             Some(ExplorerClient::new(url)?)
         } else {
@@ -192,10 +195,13 @@ impl GatewayClient {
             None
         };
 
+        let nym_vpn_api_client = nym_vpn_api_client::client_with_user_agent(user_agent).unwrap();
+
         Ok(GatewayClient {
             api_client,
             explorer_client,
             harbour_master_client,
+            nym_vpn_api_client,
         })
     }
 
@@ -225,8 +231,7 @@ impl GatewayClient {
     async fn lookup_gateways_in_harbour_master(&self) -> Option<Result<Vec<HmGateway>>> {
         if let Some(harbour_master_client) = &self.harbour_master_client {
             info!("Fetching gateway status from harbourmaster...");
-            let gateways = harbour_master_client
-                .get_gateways()
+            let gateways = HarbourMasterApiClientExt::get_gateways(harbour_master_client)
                 .await
                 .map_err(Error::HarbourMasterApiError);
             Some(gateways)
@@ -444,6 +449,18 @@ impl GatewayClient {
         let ip = try_resolve_hostname(&ip_or_hostname).await?;
         info!("Resolved {ip_or_hostname} to {ip}");
         Ok(ip)
+    }
+
+    pub async fn lookup_entry_gateways(&self) -> Result<GatewayList> {
+        let entry_gateways = self.nym_vpn_api_client.get_entry_gateways().await.unwrap();
+        let entry_gateways = entry_gateways.into_iter().map(Gateway::from).collect();
+        Ok(GatewayList::new(entry_gateways))
+    }
+
+    pub async fn lookup_exit_gateways(&self) -> Result<GatewayList> {
+        let entry_gateways = self.nym_vpn_api_client.get_exit_gateways().await.unwrap();
+        let entry_gateways = entry_gateways.into_iter().map(Gateway::from).collect();
+        Ok(GatewayList::new(entry_gateways))
     }
 }
 

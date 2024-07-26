@@ -10,6 +10,8 @@ use nym_explorer_client::Location;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_validator_client::{client::IdentityKey, models::DescribedGateway};
 
+use super::gateway::{Gateway, GatewayList};
+
 const BUILD_VERSION: &str = "1.1.34";
 const BUILD_TIME: &str = "2024-03-25T10:47:53.981548588Z";
 
@@ -103,6 +105,8 @@ pub trait LookupGateway {
         &self,
         gateways: &[DescribedGatewayWithLocation],
     ) -> Result<(NodeIdentity, Option<String>)>;
+
+    async fn lookup_gateway_identity2(&self, gateways: &GatewayList) -> Result<Gateway>;
 }
 
 pub fn verify_identity(

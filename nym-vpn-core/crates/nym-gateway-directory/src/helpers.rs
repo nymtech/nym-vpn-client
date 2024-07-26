@@ -1,7 +1,10 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{error::Result, DescribedGatewayWithLocation, Error, FORCE_TLS_FOR_GATEWAY_SELECTION};
+use crate::{
+    entries::gateway::Gateway, error::Result, DescribedGatewayWithLocation, Error,
+    FORCE_TLS_FOR_GATEWAY_SELECTION,
+};
 use hickory_resolver::{
     config::{ResolverConfig, ResolverOpts},
     TokioAsyncResolver,
@@ -10,6 +13,7 @@ use itertools::Itertools;
 use nym_client_core::init::helpers::choose_gateway_by_latency;
 use nym_harbour_master_client::Gateway as HmGateway;
 use nym_sdk::mixnet::NodeIdentity;
+use nym_validator_client::client::GatewayBond;
 use rand::seq::IteratorRandom;
 use std::net::IpAddr;
 use tracing::debug;
@@ -58,6 +62,23 @@ pub(crate) async fn select_random_low_latency_gateway_node(
     Ok((gateway, country))
 }
 
+#[allow(unused)]
+pub(crate) async fn select_random_low_latency_gateway_node2(
+    gateways: &[GatewayBond],
+) -> Result<NodeIdentity> {
+    let mut rng = rand::rngs::OsRng;
+    let must_use_tls = FORCE_TLS_FOR_GATEWAY_SELECTION;
+    let gateway_nodes: Vec<nym_topology::gateway::Node> = gateways
+        .iter()
+        .filter_map(|gateway| nym_topology::gateway::Node::try_from(gateway).ok())
+        .collect();
+    let gateway = choose_gateway_by_latency(&mut rng, &gateway_nodes, must_use_tls)
+        .await
+        .map(|gateway| *gateway.identity())
+        .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })?;
+    Ok(gateway)
+}
+
 pub(crate) fn list_all_country_iso_codes<'a, I>(gateways: I) -> Vec<String>
 where
     I: IntoIterator<Item = &'a DescribedGatewayWithLocation>,
@@ -66,6 +87,18 @@ where
         .into_iter()
         .filter_map(|gateway| gateway.two_letter_iso_country_code())
         .unique()
+        .collect()
+}
+
+pub(crate) fn list_all_country_iso_codes2<'a, I>(gateways: I) -> Vec<String>
+where
+    I: IntoIterator<Item = &'a Gateway>,
+{
+    gateways
+        .into_iter()
+        .filter_map(|gateway| gateway.two_letter_iso_country_code())
+        .unique()
+        .map(|code| code.to_string())
         .collect()
 }
 

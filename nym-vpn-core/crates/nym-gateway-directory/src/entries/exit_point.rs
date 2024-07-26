@@ -13,9 +13,11 @@ use crate::{
 };
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
+use tracing::debug;
 
-use super::described_gateway::{
-    by_identity, by_location, by_random, verify_identity, LookupGateway,
+use super::{
+    described_gateway::{by_identity, by_location, by_random, verify_identity, LookupGateway},
+    gateway::{Gateway, GatewayList},
 };
 
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
@@ -157,6 +159,42 @@ impl LookupGateway for ExitPoint {
             ExitPoint::Random => {
                 log::info!("Selecting a random exit gateway");
                 by_random(gateways)
+            }
+        }
+    }
+
+    async fn lookup_gateway_identity2(&self, gateways: &GatewayList) -> Result<Gateway> {
+        match &self {
+            ExitPoint::Address { address } => {
+                debug!("Selecting gateway by address: {}", address);
+                todo!();
+                gateways
+                    .gateway_with_identity(address.identity())
+                    .ok_or_else(|| Error::NoMatchingGateway)
+                    .cloned()
+            }
+            ExitPoint::Gateway { identity } => {
+                debug!("Selecting gateway by identity: {}", identity);
+                todo!();
+                gateways
+                    .gateway_with_identity(identity)
+                    .ok_or_else(|| Error::NoMatchingGateway)
+                    .cloned()
+            }
+            ExitPoint::Location { location } => {
+                debug!("Selecting gateway by location: {}", location);
+                todo!();
+                gateways
+                    .random_gateway_located_at(location.to_string())
+                    .ok_or_else(|| Error::NoMatchingGatewayForLocation {
+                        requested_location: location.clone(),
+                        available_countries: gateways.all_iso_codes(),
+                    })
+            }
+            ExitPoint::Random => {
+                todo!();
+                log::info!("Selecting a random exit gateway");
+                // gateways.random_gateway()
             }
         }
     }
