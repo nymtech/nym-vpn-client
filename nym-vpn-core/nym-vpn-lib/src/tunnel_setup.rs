@@ -279,9 +279,9 @@ pub async fn setup_tunnel(
     route_manager: &mut RouteManager,
     dns_monitor: &mut DnsMonitor,
 ) -> Result<AllTunnelsSetup> {
-    // The user agent is set on HTTP REST API calls, and ideally should idenfy the type of client.
-    // This means it needs to be set way higher in the call stack, but set a default for what we
-    // know here if we don't have anything.
+    // The user agent is set on HTTP REST API calls, and ideally should identify the type of
+    // client. This means it needs to be set way higher in the call stack, but set a default for
+    // what we know here if we don't have anything.
     let user_agent = nym_vpn.user_agent().unwrap_or_else(|| {
         warn!("No user agent provided, using default");
         bin_info!().into()
@@ -290,7 +290,7 @@ pub async fn setup_tunnel(
 
     // Create a gateway client that we use to interact with the entry gateway, in particular to
     // handle wireguard registration
-    let gateway_directory_client = GatewayClient::new(nym_vpn.gateway_config(), user_agent)
+    let gateway_directory_client = GatewayClient::new(nym_vpn.gateway_config(), user_agent.clone())
         .map_err(|err| Error::FailedtoSetupGatewayDirectoryClient {
             config: Box::new(nym_vpn.gateway_config()),
             source: err,
@@ -316,6 +316,14 @@ pub async fn setup_tunnel(
         .map_err(|err| Error::FailedToLookupGatewayIdentity { source: err })?;
     let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
 
+    let entry_gateways2 = nym_vpn_api_client::get_entry_gateways(user_agent.clone())
+        .await
+        .unwrap();
+    let (entry_gateway_id2, entry_location) = nym_vpn
+        .entry_point()
+        .lookup_gateway_identity2(&entry_gateways2)
+        .await?;
+
     let (exit_router_address, exit_location) = nym_vpn
         .exit_point()
         .lookup_router_address(&exit_gateways, Some(&entry_gateway_id))
@@ -326,6 +334,16 @@ pub async fn setup_tunnel(
     info!("Using entry gateway: {entry_gateway_id}, location: {entry_location_str}");
     info!("Using exit gateway: {exit_gateway_id}, location: {exit_location:?}");
     info!("Using exit router address {exit_router_address}");
+
+    // Lookup gateways using nym-vpn-api-client
+    // let entry_gw = nym_vpn_api_client::get_entry_gateways(user_agent.clone())
+    //     .await
+    //     .unwrap();
+    // let exit_gw = nym_vpn_api_client::get_entry_gateways(user_agent)
+    //     .await
+    //     .unwrap();
+
+    // Select gateway based on location
 
     // Get the IP address of the local LAN gateway
     let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
