@@ -199,7 +199,7 @@ impl GatewayClient {
         })
     }
 
-    async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {
+    pub async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {
         info!("Fetching gateways from nym-api...");
         self.api_client
             .get_cached_described_gateways()

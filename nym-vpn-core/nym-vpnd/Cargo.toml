@@ -39,8 +39,10 @@ tracing-appender = "0.2.3"
 # Nym monorepo
 nym-bandwidth-controller.workspace = true
 nym-task.workspace = true
+nym-validator-client.workspace = true
 
 # Local crates
+nym-vpn-api-client = { path = "../crates/nym-vpn-api-client" }
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 nym-vpn-proto = { path = "../crates/nym-vpn-proto" }
 nym-vpn-store = { path = "../crates/nym-vpn-store" }

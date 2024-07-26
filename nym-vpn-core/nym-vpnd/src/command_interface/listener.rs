@@ -14,7 +14,9 @@ use nym_vpn_proto::{
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
     ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
 };
-use nym_vpn_proto::{InfoRequest, InfoResponse};
+use nym_vpn_proto::{
+    InfoRequest, InfoResponse, ListEntryGatewaysRequest, ListEntryGatewaysResponse,
+};
 use prost_types::Timestamp;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use tracing::{error, info};
@@ -263,6 +265,35 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(
             Box::pin(stream) as Self::ListenToConnectionStateChangesStream
         ))
+    }
+
+    async fn list_entry_gateways(
+        &self,
+        request: tonic::Request<ListEntryGatewaysRequest>,
+    ) -> Result<tonic::Response<ListEntryGatewaysResponse>, tonic::Status> {
+        info!("Got list entry gateways request: {:?}", request);
+
+        let entry_gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_list_entry_gateways()
+            .await
+            .map_err(|err| {
+                let msg = format!("Failed to list entry gateways: {:?}", err);
+                error!(msg);
+                tonic::Status::internal(msg)
+            })?;
+
+        let response = ListEntryGatewaysResponse {
+            gateways: entry_gateways
+                .into_iter()
+                .map(nym_vpn_proto::EntryGateway::from)
+                .collect(),
+        };
+
+        info!(
+            "Returning list entry gateways response: {} entries",
+            response.gateways.len()
+        );
+        Ok(tonic::Response::new(response))
     }
 }
 

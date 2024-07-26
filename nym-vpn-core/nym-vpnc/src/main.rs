@@ -5,7 +5,7 @@ use anyhow::Result;
 use clap::Parser;
 use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, InfoRequest,
-    StatusRequest,
+    ListEntryGatewaysRequest, StatusRequest,
 };
 use vpnd_client::ClientType;
 
@@ -39,6 +39,7 @@ async fn main() -> Result<()> {
         }
         Command::ListenToStatus => listen_to_status(client_type).await?,
         Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
+        Command::ListEntryGateways => list_entry_gateways(client_type).await?,
     }
     Ok(())
 }
@@ -60,7 +61,7 @@ async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Re
 
     let mut client = vpnd_client::get_client(client_type).await?;
     let response = client.vpn_connect(request).await?.into_inner();
-    println!("{:?}", response);
+    println!("{:#?}", response);
     Ok(())
 }
 
@@ -68,7 +69,7 @@ async fn disconnect(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(DisconnectRequest {});
     let response = client.vpn_disconnect(request).await?.into_inner();
-    println!("{:?}", response);
+    println!("{:#?}", response);
     Ok(())
 }
 
@@ -76,7 +77,7 @@ async fn status(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(StatusRequest {});
     let response = client.vpn_status(request).await?.into_inner();
-    println!("{:?}", response);
+    println!("{:#?}", response);
 
     if let Some(Ok(utc_since)) = response
         .details
@@ -120,7 +121,7 @@ async fn import_credential(
     });
     let mut client = vpnd_client::get_client(client_type).await?;
     let response = client.import_user_credential(request).await?.into_inner();
-    println!("{:?}", response);
+    println!("{:#?}", response);
     Ok(())
 }
 
@@ -136,7 +137,7 @@ async fn listen_to_status(client_type: ClientType) -> Result<()> {
         .await?
         .into_inner();
     while let Some(response) = stream.message().await? {
-        println!("{:?}", response);
+        println!("{:#?}", response);
     }
     Ok(())
 }
@@ -149,7 +150,25 @@ async fn listen_to_state_changes(client_type: ClientType) -> Result<()> {
         .await?
         .into_inner();
     while let Some(response) = stream.message().await? {
-        println!("{:?}", response);
+        println!("{:#?}", response);
+    }
+    Ok(())
+}
+
+async fn list_entry_gateways(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(ListEntryGatewaysRequest {});
+    let response = client.list_entry_gateways(request).await?.into_inner();
+    println!("{:#?}", response);
+
+    // TODO: support a flag that enables brief output
+    if false {
+        for r in response.gateways {
+            let id = r.id.unwrap();
+            let last_updated_utc =
+                parse_offset_datetime(r.last_probe.unwrap().last_updated_utc.unwrap());
+            println!("id: {:?}, last_updated_utc: {:?}", id, last_updated_utc);
+        }
     }
     Ok(())
 }

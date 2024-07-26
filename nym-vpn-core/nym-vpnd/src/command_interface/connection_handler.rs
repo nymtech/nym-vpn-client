@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_vpn_api_client::VpnApiClientError;
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 use time::OffsetDateTime;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
@@ -10,6 +11,25 @@ use crate::service::{
     ConnectArgs, ConnectOptions, ImportCredentialError, VpnServiceCommand, VpnServiceConnectResult,
     VpnServiceDisconnectResult, VpnServiceInfoResult, VpnServiceStatusResult,
 };
+
+use super::gateways;
+
+#[derive(Debug, thiserror::Error)]
+pub enum ListGatewayError {
+    #[error("network endpoints not configured")]
+    NetworkEndpointsNotConfigured,
+
+    #[error("network environment missing api url")]
+    NetworkEnvironmentMissingApiUrl,
+
+    #[error("failed to get gateways from nym api")]
+    FailedToGetGatewaysFromNymApi {
+        error: nym_validator_client::ValidatorClientError,
+    },
+
+    #[error("failed to get entry gateways: {error}")]
+    FailedToGetEntryGatewaysFromNymVpnApi { error: VpnApiClientError },
+}
 
 pub(super) struct CommandInterfaceConnectionHandler {
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
@@ -109,5 +129,37 @@ impl CommandInterfaceConnectionHandler {
         let result = rx.await.unwrap();
         debug!("VPN import credential result: {:?}", result);
         result
+    }
+
+    pub(crate) async fn handle_list_entry_gateways(
+        &self,
+    ) -> Result<Vec<gateways::Gateway>, ListGatewayError> {
+        let user_agent = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!().into();
+        let nym_network_details =
+            nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env();
+
+        if nym_network_details.network_name == "mainnet" {
+            nym_vpn_api_client::get_entry_gateways(user_agent)
+                .await
+                .map(|gateways| gateways.into_iter().map(gateways::Gateway::from).collect())
+                .map_err(|error| ListGatewayError::FailedToGetEntryGatewaysFromNymVpnApi { error })
+        } else {
+            // TODO: do this at startup instead so there are fewer error cases to handle
+            let api_url = nym_network_details
+                .endpoints
+                .first()
+                .ok_or(ListGatewayError::NetworkEndpointsNotConfigured)?
+                .api_url()
+                .ok_or(ListGatewayError::NetworkEnvironmentMissingApiUrl)?;
+
+            let nym_api_client =
+                nym_validator_client::NymApiClient::new_with_user_agent(api_url, user_agent);
+
+            nym_api_client
+                .get_cached_described_gateways()
+                .await
+                .map_err(|error| ListGatewayError::FailedToGetGatewaysFromNymApi { error })
+                .map(|g| g.into_iter().map(gateways::Gateway::from).collect())
+        }
     }
 }
