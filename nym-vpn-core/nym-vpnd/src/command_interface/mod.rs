@@ -4,7 +4,6 @@
 mod config;
 mod connection_handler;
 mod error;
-mod gateways;
 mod helpers;
 mod listener;
 mod protobuf;
