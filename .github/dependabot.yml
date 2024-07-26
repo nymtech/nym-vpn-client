@@ -21,13 +21,13 @@ updates:
   - package-ecosystem: cargo
     directory: /nym-vpn-core
     schedule:
-      interval: daily
+      interval: weekly
     assignees:
       - "octol"
       - "neacsu"
   - package-ecosystem: npm
     directory: /nym-vpn-x
     schedule:
-      interval: daily
+      interval: weekly
     assignees:
       - "doums"
