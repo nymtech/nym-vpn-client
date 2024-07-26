@@ -94,7 +94,7 @@ tower-http = { version = "0.5.2", features = ["cors"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tun2 = { version = "2.0.5", features = ["async"] }
-uniffi = { version = "0.27.3", features = ["cli"] }
+uniffi = { version = "0.28.0", features = ["cli"] }
 url = "2.5"
 vergen = { version = "8.3.1", default-features = false }
 zeroize = "1.6.0"

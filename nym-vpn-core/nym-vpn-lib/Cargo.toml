@@ -96,7 +96,7 @@ is_elevated = "0.1.2"
 
 
 [build-dependencies]
-uniffi = { version = "0.27.3", features = ["build"] }
+uniffi = { version = "0.28.0", features = ["build"] }
 
 [features]
 metrics-server = ["nym-client-core/metrics-server"]
