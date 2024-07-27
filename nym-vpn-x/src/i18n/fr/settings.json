@@ -42,5 +42,8 @@
   },
   "notifications": {
     "title": "Notifications sur le bureau"
+  },
+  "logs": {
+    "title": "Journaux"
   }
 }
