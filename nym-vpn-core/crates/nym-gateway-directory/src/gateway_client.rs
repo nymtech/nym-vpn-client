@@ -479,7 +479,10 @@ impl GatewayClient {
 
 // Append the IPR and authenticator addresses to the gateways. This is a temporary hack until the
 // nymvpn.com endpoints are updated to also include these fields.
-fn append_ipr_and_authenticator_addresses(gateways: &mut [Gateway], described_gateways: Vec<DescribedGateway>) {
+fn append_ipr_and_authenticator_addresses(
+    gateways: &mut [Gateway],
+    described_gateways: Vec<DescribedGateway>,
+) {
     for gateway in gateways.iter_mut() {
         if let Some(described_gateway) = described_gateways
             .iter()
