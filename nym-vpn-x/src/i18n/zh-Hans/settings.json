@@ -36,7 +36,6 @@
     "discord": "加入Discord"
   },
   "display-theme": "显示模式",
-  "logs": "日志",
   "add-credential-button": "添加凭证以连接",
   "credential": {
     "title": "凭证"
