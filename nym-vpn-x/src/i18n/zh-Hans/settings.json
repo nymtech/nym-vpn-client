@@ -42,5 +42,8 @@
   },
   "notifications": {
     "title": "桌面通知"
+  },
+  "logs": {
+    "title": "日志"
   }
 }
