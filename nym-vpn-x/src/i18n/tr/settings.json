@@ -42,5 +42,8 @@
   },
   "notifications": {
     "title": "Bilgisayar masaüstü bildirimleri"
+  },
+  "logs": {
+    "title": "Günlükler"
   }
 }
