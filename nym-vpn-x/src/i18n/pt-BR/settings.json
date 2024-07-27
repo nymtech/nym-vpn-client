@@ -42,5 +42,8 @@
   "quit": "Sair da NymVPN",
   "notifications": {
     "title": "Notificações na área de trabalho"
+  },
+  "logs": {
+    "title": "Registros"
   }
 }
