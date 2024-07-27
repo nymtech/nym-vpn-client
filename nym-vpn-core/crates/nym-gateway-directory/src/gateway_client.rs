@@ -14,7 +14,8 @@ use crate::{
 use itertools::Itertools;
 use nym_explorer_client::{ExplorerClient, Location, PrettyDetailedGatewayBond};
 use nym_harbour_master_client::{Gateway as HmGateway, HarbourMasterApiClientExt};
-use nym_sdk::UserAgent;
+use nym_sdk::{mixnet::Recipient, UserAgent};
+use nym_topology::IntoGatewayNode;
 use nym_validator_client::{models::DescribedGateway, NymApiClient};
 use nym_vpn_api_client::VpnApiClientExt;
 use std::{fmt, net::IpAddr, time::Duration};
@@ -453,14 +454,50 @@ impl GatewayClient {
 
     pub async fn lookup_entry_gateways(&self) -> Result<GatewayList> {
         let entry_gateways = self.nym_vpn_api_client.get_entry_gateways().await.unwrap();
-        let entry_gateways = entry_gateways.into_iter().map(Gateway::from).collect();
+        let mut entry_gateways: Vec<_> = entry_gateways.into_iter().map(Gateway::from).collect();
+
+        // Lookup the IPR and authenticator addresses from the nym-api as a temporary hack until
+        // the nymvpn.com endpoints are updated to also include these fields.
+        let described_gateways = self.lookup_described_gateways().await?;
+        append_ipr_and_authenticator_addresses(&mut entry_gateways, described_gateways);
+
         Ok(GatewayList::new(entry_gateways))
     }
 
     pub async fn lookup_exit_gateways(&self) -> Result<GatewayList> {
-        let entry_gateways = self.nym_vpn_api_client.get_exit_gateways().await.unwrap();
-        let entry_gateways = entry_gateways.into_iter().map(Gateway::from).collect();
-        Ok(GatewayList::new(entry_gateways))
+        let exit_gateways = self.nym_vpn_api_client.get_exit_gateways().await.unwrap();
+        let mut exit_gateways: Vec<_> = exit_gateways.into_iter().map(Gateway::from).collect();
+
+        // Lookup the IPR and authenticator addresses from the nym-api as a temporary hack until
+        // the nymvpn.com endpoints are updated to also include these fields.
+        let described_gateways = self.lookup_described_gateways().await?;
+        append_ipr_and_authenticator_addresses(&mut exit_gateways, described_gateways);
+
+        Ok(GatewayList::new(exit_gateways))
+    }
+}
+
+// Append the IPR and authenticator addresses to the gateways. This is a temporary hack until the
+// nymvpn.com endpoints are updated to also include these fields.
+fn append_ipr_and_authenticator_addresses(gateways: &mut [Gateway], described_gateways: Vec<DescribedGateway>) {
+    for gateway in gateways.iter_mut() {
+        if let Some(described_gateway) = described_gateways
+            .iter()
+            .find(|dg| dg.identity() == gateway.identity().to_base58_string())
+        {
+            gateway.ipr_address = described_gateway
+                .self_described
+                .clone()
+                .and_then(|d| d.ip_packet_router)
+                .map(|ipr| ipr.address)
+                .and_then(|address| Recipient::try_from_base58_string(address).ok());
+            gateway.authenticator_address = described_gateway
+                .self_described
+                .clone()
+                .and_then(|d| d.authenticator)
+                .map(|auth| auth.address)
+                .and_then(|address| Recipient::try_from_base58_string(address).ok());
+        }
     }
 }
 

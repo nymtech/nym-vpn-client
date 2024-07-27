@@ -2,13 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use itertools::Itertools;
-use nym_sdk::mixnet::NodeIdentity;
+use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use rand::seq::IteratorRandom;
 
 #[derive(Clone, Debug)]
 pub struct Gateway {
     pub identity: NodeIdentity,
     pub location: Option<Location>,
+    pub ipr_address: Option<Recipient>,
+    pub authenticator_address: Option<Recipient>,
 }
 
 impl Gateway {
@@ -50,6 +52,8 @@ impl From<nym_vpn_api_client::Gateway> for Gateway {
         Gateway {
             identity: NodeIdentity::from_base58_string(&gateway.identity_key).unwrap(),
             location: Some(gateway.location.into()),
+            ipr_address: None,
+            authenticator_address: None,
         }
     }
 }
