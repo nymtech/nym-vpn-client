@@ -44,6 +44,7 @@
     "title": "Notifications sur le bureau"
   },
   "logs": {
-    "title": "Journaux"
+    "title": "Journaux",
+    "desc": "Copier ou supprimer les journaux"
   }
 }
