@@ -4,12 +4,12 @@
     "part2": "dans NymVPN (alpha)"
   },
   "tos": {
-    "part1": "En continuant, vous acceptez les's",
-    "part2": "et reconnaissez avoir pris connaissance de la's",
+    "part1": "En continuant, vous acceptez les conditions d'utilisation de NymVPN",
+    "part2": "et reconnaissez les conditions d'utilisation de NymVPN",
     "part3": "."
   },
   "continue-button": "Continuer",
-  "experimental": "Ce logiciel est expérimental. Ne vous reposez pas dessus pour protéger votre vie privée.",
+  "experimental": "Il s'agit d'un logiciel expérimental. Ne comptez pas sur lui pour assurer un anonymat fort (pour l'instant).",
   "description": {
     "part1": "Aidez-nous à améliorer l'application en phase alpha !",
     "part2": "Vos retours utilisateurs sont indispensables",
