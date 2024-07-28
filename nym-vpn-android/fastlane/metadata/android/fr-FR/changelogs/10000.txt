@@ -1,7 +1,7 @@
-What's new:
-- Improved API performance
-- Added basic application shortcuts
-- UI enhancements
-- Fixed credential expiry check
-- Fixed connection UI sync bug
-- Improved quick tile sync
+Nouveautés :
+- Amélioration des performances de l'API
+- Ajout de raccourcis d'application de base
+- Améliorations de l'interface utilisateur
+- Correction de la vérification de l'expiration des informations d'identification
+- Correction du bug de synchronisation de l'interface utilisateur de connexion
+- Amélioration de la synchronisation rapide des tuiles

@@ -1,2 +1,2 @@
-What's new:
-- Fix for API changes
+Nouveautés :
+- Correction pour les changements d'API

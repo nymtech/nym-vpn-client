@@ -1,3 +1,3 @@
-What's new:
-- Add credential check
-- Add encrypted storage for credential
+Nouveautés :
+- Ajout de la vérification des informations d'identification
+- Ajout d'un stockage chiffré pour les informations d'identification
