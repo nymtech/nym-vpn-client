@@ -1,4 +1,4 @@
-What's new:
-- Added support for Always-on VPN
-- Added support for Quick Settings tile
-- Fixed bug with auto-connect on boot
+Nouveautés :
+- Ajout de la prise en charge du VPN toujours actif
+- Ajout de la prise en charge de la mosaïque Paramètres rapides
+- Correction d'un bug avec la connexion automatique au démarrage
