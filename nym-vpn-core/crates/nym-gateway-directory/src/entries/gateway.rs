@@ -3,6 +3,7 @@
 
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
+use nym_topology::IntoGatewayNode;
 use rand::seq::IteratorRandom;
 
 use crate::{AuthAddress, IpPacketRouterAddress};
@@ -30,6 +31,10 @@ impl Gateway {
         self.two_letter_iso_country_code()
             .map_or(false, |gw_code| gw_code == code)
     }
+
+    pub fn has_ipr_address(&self) -> bool {
+        self.ipr_address.is_some()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -56,6 +61,27 @@ impl From<nym_vpn_api_client::Gateway> for Gateway {
             location: Some(gateway.location.into()),
             ipr_address: None,
             authenticator_address: None,
+        }
+    }
+}
+
+impl From<nym_validator_client::models::DescribedGateway> for Gateway {
+    fn from(gateway: nym_validator_client::models::DescribedGateway) -> Self {
+        let ipr_address = gateway
+            .self_described
+            .as_ref()
+            .and_then(|d| d.ip_packet_router.clone())
+            .and_then(|ipr| IpPacketRouterAddress::try_from_base58_string(&ipr.address).ok());
+        let authenticator_address = gateway
+            .self_described
+            .as_ref()
+            .and_then(|d| d.authenticator.clone())
+            .and_then(|a| AuthAddress::try_from_base58_string(&a.address).ok());
+        Gateway {
+            identity: NodeIdentity::from_base58_string(gateway.identity()).unwrap(),
+            location: None,
+            ipr_address,
+            authenticator_address,
         }
     }
 }

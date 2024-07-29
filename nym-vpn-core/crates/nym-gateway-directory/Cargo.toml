@@ -11,6 +11,7 @@ hickory-resolver.workspace = true
 itertools.workspace = true
 log.workspace = true
 nym-client-core.workspace = true
+nym-config.workspace = true
 nym-explorer-client.workspace = true
 nym-harbour-master-client = { path = "../nym-harbour-master-client" }
 nym-sdk.workspace = true

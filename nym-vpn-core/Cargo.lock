@@ -4033,6 +4033,7 @@ dependencies = [
  "itertools 0.13.0",
  "log",
  "nym-client-core",
+ "nym-config",
  "nym-explorer-client",
  "nym-harbour-master-client",
  "nym-sdk",

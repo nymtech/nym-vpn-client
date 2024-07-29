@@ -330,6 +330,7 @@ async fn get_gateway_countries(
         api_url,
         explorer_url: Some(explorer_url),
         harbour_master_url,
+        nym_vpn_api_url: None,
     };
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)
@@ -384,6 +385,7 @@ async fn get_low_latency_entry_country(
         api_url,
         explorer_url: Some(explorer_url),
         harbour_master_url,
+        nym_vpn_api_url: None,
     };
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)

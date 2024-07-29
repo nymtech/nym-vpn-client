@@ -9,7 +9,7 @@ use crate::{
     Client, ClientBuilder, VpnApiClientExt,
 };
 
-const NYM_VPN_API: &str = "https://nymvpn.com/api";
+pub const NYM_VPN_API: &str = "https://nymvpn.com/api";
 
 pub fn client_with_user_agent(user_agent: UserAgent) -> Result<Client> {
     ClientBuilder::new(NYM_VPN_API)?
