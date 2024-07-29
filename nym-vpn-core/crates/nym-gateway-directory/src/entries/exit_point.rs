@@ -13,9 +13,11 @@ use crate::{
 };
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
+use tracing::debug;
 
-use super::described_gateway::{
-    by_identity, by_location, by_random, verify_identity, LookupGateway,
+use super::{
+    described_gateway::by_identity,
+    gateway::{Gateway, GatewayList},
 };
 
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
@@ -52,6 +54,7 @@ impl ExitPoint {
         matches!(self, ExitPoint::Location { .. })
     }
 
+    // DEPRECATED: will be removed from nym-gateway-probe and then we can delete it
     pub fn lookup_router_address(
         &self,
         gateways: &[DescribedGatewayWithLocation],
@@ -118,45 +121,45 @@ impl ExitPoint {
             }
         }
     }
-}
 
-#[async_trait::async_trait]
-impl LookupGateway for ExitPoint {
-    async fn lookup_gateway_identity(
-        &self,
-        gateways: &[DescribedGatewayWithLocation],
-    ) -> Result<(NodeIdentity, Option<String>)> {
+    pub fn lookup_gateway(&self, gateways: &GatewayList) -> Result<Gateway> {
         match &self {
             ExitPoint::Address { address } => {
-                let described_gateway = by_identity(gateways, address.identity())?;
-                if let Some(node_identity) = described_gateway.node_identity() {
-                    Ok((
-                        node_identity,
-                        described_gateway
-                            .location()
-                            .map(|l| l.two_letter_iso_country_code),
-                    ))
-                } else {
-                    Err(Error::RecipientFormattingError)
-                }
-            }
+                debug!("Selecting gateway by address: {}", address);
+                // There is no validation done when a ip packet router is specified by address
+                // since it might be private and not available in any directory.
+                let ipr_address = IpPacketRouterAddress(*address);
+                let gateway_address = ipr_address.gateway();
 
-            ExitPoint::Gateway { identity } => verify_identity(gateways, identity),
+                // Now fetch the gateway that the IPR is connected to, and override it's IPR address
+                let mut gateway = gateways
+                    .gateway_with_identity(gateway_address)
+                    .ok_or(Error::NoMatchingGateway)
+                    .cloned()?;
+                gateway.ipr_address = Some(ipr_address);
+                Ok(gateway)
+            }
+            ExitPoint::Gateway { identity } => {
+                debug!("Selecting gateway by identity: {}", identity);
+                gateways
+                    .gateway_with_identity(identity)
+                    .ok_or_else(|| Error::NoMatchingGateway)
+                    .cloned()
+            }
             ExitPoint::Location { location } => {
-                by_location(gateways, location).map_err(|e| match e {
-                    Error::NoMatchingGatewayForLocation {
-                        requested_location,
-                        available_countries,
-                    } => Error::NoMatchingExitGatewayForLocation {
-                        requested_location,
-                        available_countries,
-                    },
-                    e => e,
-                })
+                debug!("Selecting gateway by location: {}", location);
+                gateways
+                    .random_gateway_located_at(location.to_string())
+                    .ok_or_else(|| Error::NoMatchingExitGatewayForLocation {
+                        requested_location: location.clone(),
+                        available_countries: gateways.all_iso_codes(),
+                    })
             }
             ExitPoint::Random => {
                 log::info!("Selecting a random exit gateway");
-                by_random(gateways)
+                gateways
+                    .random_gateway()
+                    .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
             }
         }
     }

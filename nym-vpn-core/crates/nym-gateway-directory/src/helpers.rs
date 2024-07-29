@@ -10,6 +10,7 @@ use itertools::Itertools;
 use nym_client_core::init::helpers::choose_gateway_by_latency;
 use nym_harbour_master_client::Gateway as HmGateway;
 use nym_sdk::mixnet::NodeIdentity;
+use nym_validator_client::client::GatewayBond;
 use rand::seq::IteratorRandom;
 use std::net::IpAddr;
 use tracing::debug;
@@ -56,6 +57,23 @@ pub(crate) async fn select_random_low_latency_gateway_node(
         .find(|g| g.identity_key() == &gateway.to_string())
         .and_then(|gateway| gateway.two_letter_iso_country_code());
     Ok((gateway, country))
+}
+
+#[allow(unused)]
+pub(crate) async fn select_random_low_latency_gateway_node2(
+    gateways: &[GatewayBond],
+) -> Result<NodeIdentity> {
+    let mut rng = rand::rngs::OsRng;
+    let must_use_tls = FORCE_TLS_FOR_GATEWAY_SELECTION;
+    let gateway_nodes: Vec<nym_topology::gateway::Node> = gateways
+        .iter()
+        .filter_map(|gateway| nym_topology::gateway::Node::try_from(gateway).ok())
+        .collect();
+    let gateway = choose_gateway_by_latency(&mut rng, &gateway_nodes, must_use_tls)
+        .await
+        .map(|gateway| *gateway.identity())
+        .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })?;
+    Ok(gateway)
 }
 
 pub(crate) fn list_all_country_iso_codes<'a, I>(gateways: I) -> Vec<String>

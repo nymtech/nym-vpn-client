@@ -6,9 +6,13 @@ use std::fmt::{Display, Formatter};
 use crate::{error::Result, DescribedGatewayWithLocation, Error};
 use nym_sdk::mixnet::NodeIdentity;
 use serde::{Deserialize, Serialize};
+use tracing::debug;
 
-use super::described_gateway::{
-    by_location, by_random, by_random_low_latency, verify_identity, LookupGateway,
+use super::{
+    described_gateway::{
+        by_location, by_random, by_random_low_latency, verify_identity, LookupGateway,
+    },
+    gateway::{Gateway, GatewayList},
 };
 
 // The entry point is always a gateway identity, or some other entry that can be resolved to a
@@ -48,8 +52,41 @@ impl EntryPoint {
     pub fn is_location(&self) -> bool {
         matches!(self, EntryPoint::Location { .. })
     }
+
+    pub fn lookup_gateway(&self, gateways: &GatewayList) -> Result<Gateway> {
+        match &self {
+            EntryPoint::Gateway { identity } => {
+                debug!("Selecting gateway by identity: {}", identity);
+                gateways
+                    .gateway_with_identity(identity)
+                    .ok_or_else(|| Error::NoMatchingGateway)
+                    .cloned()
+            }
+            EntryPoint::Location { location } => {
+                debug!("Selecting gateway by location: {}", location);
+                gateways
+                    .random_gateway_located_at(location.to_string())
+                    .ok_or_else(|| Error::NoMatchingGatewayForLocation {
+                        requested_location: location.clone(),
+                        available_countries: gateways.all_iso_codes(),
+                    })
+            }
+            EntryPoint::RandomLowLatency => {
+                debug!("Selecting a random low latency gateway");
+                todo!("Need to add client address to Gateway type");
+            }
+            EntryPoint::Random => {
+                debug!("Selecting a random gateway");
+                gateways
+                    .random_gateway()
+                    .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
+            }
+        }
+    }
 }
 
+// DEPRECATED: This is the old way of selecting a random gateway. It is now done in the
+// GatewayList. This will be deleted after we port nym-gateway-probe over
 #[async_trait::async_trait]
 impl LookupGateway for EntryPoint {
     async fn lookup_gateway_identity(

@@ -19,5 +19,6 @@ pub use crate::{
 };
 
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};
+pub use nym_validator_client::models::DescribedGateway;
 
 const FORCE_TLS_FOR_GATEWAY_SELECTION: bool = false;

@@ -4,6 +4,7 @@
 use crate::{
     error::{Error, Result},
     helpers::*,
+    IpPacketRouterAddress,
 };
 use chrono::{DateTime, Utc};
 use nym_explorer_client::Location;
@@ -13,6 +14,7 @@ use nym_validator_client::{client::IdentityKey, models::DescribedGateway};
 const BUILD_VERSION: &str = "1.1.34";
 const BUILD_TIME: &str = "2024-03-25T10:47:53.981548588Z";
 
+// DEPRECATED: will be deleted once we port nym-gateway-probe over
 #[derive(Clone, Debug)]
 pub struct DescribedGatewayWithLocation {
     pub gateway: DescribedGateway,
@@ -86,6 +88,15 @@ impl DescribedGatewayWithLocation {
     pub fn country_name(&self) -> Option<String> {
         self.location.as_ref().map(|l| l.country_name.clone())
     }
+
+    pub fn ip_packet_router_address(&self) -> Option<IpPacketRouterAddress> {
+        self.gateway
+            .self_described
+            .as_ref()
+            .and_then(|d| d.ip_packet_router.as_ref())
+            .map(|ipr| ipr.address.clone())
+            .and_then(|address| IpPacketRouterAddress::try_from_base58_string(&address).ok())
+    }
 }
 
 impl From<DescribedGateway> for DescribedGatewayWithLocation {
@@ -97,6 +108,8 @@ impl From<DescribedGateway> for DescribedGatewayWithLocation {
     }
 }
 
+// DEPRECATED: This is the old way of selecting a random gateway. It is now done in the
+// GatewayList. This will be deleted after we port nym-gateway-probe over
 #[async_trait::async_trait]
 pub trait LookupGateway {
     async fn lookup_gateway_identity(
