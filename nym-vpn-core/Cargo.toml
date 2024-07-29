@@ -81,7 +81,7 @@ signature = "2.2.0"
 tap = "1.0.1"
 thiserror = "1.0.63"
 time = "0.3.36"
-tokio = { version = "1.38" }
+tokio = { version = "1.39" }
 tokio-stream = "0.1.15"
 tokio-util = { version = "0.7.11", features = ["codec"] }
 toml = "0.8.16"
