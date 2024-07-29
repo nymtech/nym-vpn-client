@@ -517,7 +517,11 @@ impl GatewayClient {
             self.lookup_described_gateways()
                 .await?
                 .into_iter()
-                .map(Gateway::from)
+                .filter_map(|gw| {
+                    Gateway::try_from(gw)
+                        .inspect_err(|err| warn!("Failed to parse gateway: {err}"))
+                        .ok()
+                })
                 .collect()
         };
 
@@ -546,8 +550,11 @@ impl GatewayClient {
             self.lookup_described_gateways()
                 .await?
                 .into_iter()
-                .map(Gateway::from)
-                .filter(Gateway::has_ipr_address)
+                .filter_map(|gw| {
+                    Gateway::try_from(gw)
+                        .inspect_err(|err| warn!("Failed to parse gateway: {err}"))
+                        .ok()
+                })
                 .collect()
         };
 

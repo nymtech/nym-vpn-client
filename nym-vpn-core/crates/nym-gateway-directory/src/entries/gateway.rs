@@ -56,6 +56,7 @@ impl From<nym_vpn_api_client::Location> for Location {
 
 impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
     type Error = Error;
+
     fn try_from(gateway: nym_vpn_api_client::Gateway) -> Result<Self> {
         let identity = NodeIdentity::from_base58_string(&gateway.identity_key)
             .map_err(|_| Error::RecipientFormattingError)?;
@@ -68,8 +69,12 @@ impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
     }
 }
 
-impl From<nym_validator_client::models::DescribedGateway> for Gateway {
-    fn from(gateway: nym_validator_client::models::DescribedGateway) -> Self {
+impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
+    type Error = Error;
+
+    fn try_from(gateway: nym_validator_client::models::DescribedGateway) -> Result<Self> {
+        let identity = NodeIdentity::from_base58_string(&gateway.identity())
+            .map_err(|_| Error::RecipientFormattingError)?;
         let ipr_address = gateway
             .self_described
             .as_ref()
@@ -80,12 +85,12 @@ impl From<nym_validator_client::models::DescribedGateway> for Gateway {
             .as_ref()
             .and_then(|d| d.authenticator.clone())
             .and_then(|a| AuthAddress::try_from_base58_string(&a.address).ok());
-        Gateway {
-            identity: NodeIdentity::from_base58_string(gateway.identity()).unwrap(),
+        Ok(Gateway {
+            identity,
             location: None,
             ipr_address,
             authenticator_address,
-        }
+        })
     }
 }
 
