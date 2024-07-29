@@ -56,7 +56,8 @@
         "icons/icon.ico"
       ],
       "deb": {
-        "depends": ["nym-vpnd"]
+        "depends": ["nym-vpnd"],
+        "desktopTemplate": "./bundle/deb/main.desktop"
       },
       "macOS": {
         "frameworks": [],
@@ -67,7 +68,7 @@
       },
       "windows": {
         "nsis": {
-          "template": "./windows/installer.nsi",
+          "template": "./bundle/windows/installer.nsi",
           "installMode": "perMachine",
           "installerIcon": "icons/nsis_icon.ico",
           "headerImage": "icons/nsis_header.bmp",

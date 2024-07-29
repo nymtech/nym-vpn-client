@@ -1,0 +1,15 @@
+# source: https://github.com/tauri-apps/tauri/blob/dev/tooling/bundler/src/bundle/linux/templates/main.desktop
+
+[Desktop Entry]
+Categories={{categories}}
+{{#if comment}}
+Comment={{comment}}
+{{/if}}
+Exec=env LOG_FILE=1 RUST_LOG=info,nym_vpn_x=trace {{exec}}
+Icon={{icon}}
+Name={{name}}
+Terminal=false
+Type=Application
+{{#if mime_type}}
+MimeType={{mime_type}}
+{{/if}}
