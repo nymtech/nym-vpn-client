@@ -73,7 +73,7 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
     type Error = Error;
 
     fn try_from(gateway: nym_validator_client::models::DescribedGateway) -> Result<Self> {
-        let identity = NodeIdentity::from_base58_string(&gateway.identity())
+        let identity = NodeIdentity::from_base58_string(gateway.identity())
             .map_err(|_| Error::RecipientFormattingError)?;
         let ipr_address = gateway
             .self_described
