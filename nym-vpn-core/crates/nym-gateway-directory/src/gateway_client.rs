@@ -7,7 +7,6 @@ use crate::{
     helpers::{select_random_low_latency_described_gateway, try_resolve_hostname},
     AuthAddress, Error, IpPacketRouterAddress,
 };
-use nym_config::defaults;
 use nym_sdk::{mixnet::Recipient, UserAgent};
 use nym_topology::IntoGatewayNode;
 use nym_validator_client::{models::DescribedGateway, NymApiClient};
@@ -56,15 +55,13 @@ impl Config {
             .api_url()
             .expect("rust sdk mainnet default api_url not parseable");
 
-        let default_nym_vpn_api_url = Some(
-            nym_vpn_api_client::MAINNET_NYM_VPN_API_URL
-                .parse()
-                .expect("mainnet default nym-vpn-api url not parseable"),
-        );
+        let default_nym_vpn_api_url = mainnet_network_defaults
+            .nym_vpn_api_url()
+            .expect("rust sdk mainnet default nym-vpn-api url not parseable");
 
         Config {
             api_url: default_api_url,
-            nym_vpn_api_url: default_nym_vpn_api_url,
+            nym_vpn_api_url: Some(default_nym_vpn_api_url),
         }
     }
 
@@ -77,18 +74,8 @@ impl Config {
             .api_url()
             .expect("network environment api_url not parseable");
 
-        let nym_vpn_api_url = if network.network_name == defaults::mainnet::NETWORK_NAME {
-            Some(
-                nym_vpn_api_client::MAINNET_NYM_VPN_API_URL
-                    .parse()
-                    .expect("mainnet default nym-vpn-api url not parseable"),
-            )
-        } else {
-            std::env::var("NYM_VPN_API_URL").ok().map(|url| {
-                url.parse()
-                    .expect("NYM_VPN_API_URL env variable not a valid URL")
-            })
-        };
+        // The vpn api url is strictly not needed, so skip the expect here
+        let nym_vpn_api_url = network.nym_vpn_api_url();
 
         Config {
             api_url,
