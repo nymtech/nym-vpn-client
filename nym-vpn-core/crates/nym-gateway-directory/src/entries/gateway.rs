@@ -5,11 +5,13 @@ use itertools::Itertools;
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use rand::seq::IteratorRandom;
 
+use crate::IpPacketRouterAddress;
+
 #[derive(Clone, Debug)]
 pub struct Gateway {
     pub identity: NodeIdentity,
     pub location: Option<Location>,
-    pub ipr_address: Option<Recipient>,
+    pub ipr_address: Option<IpPacketRouterAddress>,
     pub authenticator_address: Option<Recipient>,
 }
 
@@ -106,5 +108,9 @@ impl GatewayList {
         self.gateways_located_at(code)
             .choose(&mut rand::thread_rng())
             .cloned()
+    }
+
+    pub fn remove_gateway(&mut self, entry_gateway: &Gateway) {
+        self.gateways.retain(|gateway| gateway.identity() != entry_gateway.identity());
     }
 }

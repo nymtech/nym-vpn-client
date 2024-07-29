@@ -18,7 +18,7 @@ use tracing::debug;
 
 use super::{
     described_gateway::{by_identity, by_location, by_random, verify_identity, LookupGateway},
-    gateway::GatewayList,
+    gateway::{Gateway, GatewayList},
 };
 
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
@@ -125,7 +125,6 @@ impl ExitPoint {
     pub fn lookup_router_address2(
         &self,
         gateways: &GatewayList,
-        legacy_gateways: &[DescribedGatewayWithLocation],
         entry_gateway: Option<&NodeIdentity>,
     ) -> Result<IpPacketRouterAddress> {
         match &self {
@@ -136,17 +135,10 @@ impl ExitPoint {
             }
             ExitPoint::Gateway { identity } => {
                 debug!("Selecting gateway by identity: {}", identity);
-                let exit_gateway = gateways
+                gateways
                     .gateway_with_identity(identity)
-                    .ok_or_else(|| Error::NoMatchingGateway)?;
-
-                // TODO: map to IPR address using legacy type until we have added the field to
-                // nymvpn.com
-                legacy_gateways
-                    .iter()
-                    .find(|gw| gw.gateway.identity() == exit_gateway.identity.to_base58_string())
                     .ok_or(Error::NoMatchingGateway)?
-                    .ip_packet_router_address()
+                    .ipr_address
                     .ok_or(Error::MissingIpPacketRouterAddress)
             }
             ExitPoint::Location { location } => {
@@ -165,36 +157,61 @@ impl ExitPoint {
                     });
                 }
 
-                let exit_gateway = GatewayList::new(exit_gateways)
+                GatewayList::new(exit_gateways)
                     .random_gateway_located_at(location.to_string())
                     .ok_or_else(|| Error::NoMatchingExitGatewayForLocation {
                         requested_location: location.clone(),
                         available_countries: gateways.all_iso_codes(),
-                    })?;
-
-                // TODO: map to IPR address using legacy type until we have added the field to
-                // nymvpn.com
-                legacy_gateways
-                    .iter()
-                    .find(|gw| gw.gateway.identity() == exit_gateway.identity.to_base58_string())
-                    .ok_or(Error::NoMatchingGateway)?
-                    .ip_packet_router_address()
+                    })?
+                    .ipr_address
                     .ok_or(Error::MissingIpPacketRouterAddress)
             }
             ExitPoint::Random => {
                 log::info!("Selecting a random exit gateway");
-                let exit_gateway = gateways
+                gateways
                     .random_gateway()
-                    .ok_or(Error::FailedToSelectGatewayRandomly)?;
-
-                // TODO: map to IPR address using legacy type until we have added the field to
-                // nymvpn.com
-                legacy_gateways
-                    .iter()
-                    .find(|gw| gw.gateway.identity() == exit_gateway.identity.to_base58_string())
-                    .ok_or(Error::NoMatchingGateway)?
-                    .ip_packet_router_address()
+                    .ok_or(Error::FailedToSelectGatewayRandomly)?
+                    .ipr_address
                     .ok_or(Error::MissingIpPacketRouterAddress)
+            }
+        }
+    }
+
+    pub fn lookup_gateway_identity2(&self, gateways: &GatewayList) -> Result<Gateway> {
+        match &self {
+            ExitPoint::Address { address } => {
+                debug!("Selecting gateway by address: {}", address);
+                // There is no validation done when a ip packet router is specified by address
+                // since it might be private and not available in any directory.
+                let ipr_address = IpPacketRouterAddress(*address);
+                let gateway_address = ipr_address.gateway();
+
+                gateways
+                    .gateway_with_identity(gateway_address)
+                    .ok_or(Error::NoMatchingGateway)
+                    .cloned()
+            }
+            ExitPoint::Gateway { identity } => {
+                debug!("Selecting gateway by identity: {}", identity);
+                gateways
+                    .gateway_with_identity(identity)
+                    .ok_or_else(|| Error::NoMatchingGateway)
+                    .cloned()
+            }
+            ExitPoint::Location { location } => {
+                debug!("Selecting gateway by location: {}", location);
+                gateways
+                    .random_gateway_located_at(location.to_string())
+                    .ok_or_else(|| Error::NoMatchingExitGatewayForLocation {
+                        requested_location: location.clone(),
+                        available_countries: gateways.all_iso_codes(),
+                    })
+            }
+            ExitPoint::Random => {
+                log::info!("Selecting a random exit gateway");
+                gateways
+                    .random_gateway()
+                    .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
             }
         }
     }
@@ -240,41 +257,6 @@ impl LookupGateway for ExitPoint {
             }
         }
     }
-
-    // async fn lookup_gateway_identity2(&self, gateways: &GatewayList) -> Result<Gateway> {
-    //     match &self {
-    //         ExitPoint::Address { address } => {
-    //             debug!("Selecting gateway by address: {}", address);
-    //             todo!();
-    //             // gateways
-    //             //     .gateway_with_identity(address.identity())
-    //             //     .ok_or_else(|| Error::NoMatchingGateway)
-    //             //     .cloned()
-    //         }
-    //         ExitPoint::Gateway { identity } => {
-    //             debug!("Selecting gateway by identity: {}", identity);
-    //             gateways
-    //                 .gateway_with_identity(identity)
-    //                 .ok_or_else(|| Error::NoMatchingGateway)
-    //                 .cloned()
-    //         }
-    //         ExitPoint::Location { location } => {
-    //             debug!("Selecting gateway by location: {}", location);
-    //             gateways
-    //                 .random_gateway_located_at(location.to_string())
-    //                 .ok_or_else(|| Error::NoMatchingGatewayForLocation {
-    //                     requested_location: location.clone(),
-    //                     available_countries: gateways.all_iso_codes(),
-    //                 })
-    //         }
-    //         ExitPoint::Random => {
-    //             log::info!("Selecting a random exit gateway");
-    //             gateways
-    //                 .random_gateway()
-    //                 .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
-    //         }
-    //     }
-    // }
 }
 
 pub fn extract_router_address(

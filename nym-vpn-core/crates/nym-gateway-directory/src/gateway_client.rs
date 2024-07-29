@@ -9,7 +9,7 @@ use crate::{
         filter_on_harbour_master_exit_data, select_random_low_latency_described_gateway,
         try_resolve_hostname,
     },
-    DescribedGatewayWithLocation, Error,
+    DescribedGatewayWithLocation, Error, IpPacketRouterAddress,
 };
 use itertools::Itertools;
 use nym_explorer_client::{ExplorerClient, Location, PrettyDetailedGatewayBond};
@@ -493,7 +493,7 @@ fn append_ipr_and_authenticator_addresses(
                 .clone()
                 .and_then(|d| d.ip_packet_router)
                 .map(|ipr| ipr.address)
-                .and_then(|address| Recipient::try_from_base58_string(address).ok());
+                .and_then(|address| IpPacketRouterAddress::try_from_base58_string(&address).ok());
             gateway.authenticator_address = described_gateway
                 .self_described
                 .clone()

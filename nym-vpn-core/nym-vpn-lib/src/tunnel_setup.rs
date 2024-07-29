@@ -330,17 +330,24 @@ pub async fn setup_tunnel(
         .entry_point()
         .lookup_gateway_identity2(&entry_gateways)?;
     let entry_gateway_id = *entry_gateway.identity();
+    let authenticator_address = entry_gateway.authenticator_address.unwrap();
 
-    let exit_gateways = gateway_directory_client
+    let mut exit_gateways = gateway_directory_client
         .lookup_exit_gateways()
         .await
         .unwrap();
-    let exit_router_address = nym_vpn.exit_point().lookup_router_address2(
-        &exit_gateways,
-        &exit_gateways_legacy,
-        Some(entry_gateway.identity()),
-    )?;
-    let exit_gateway_id = exit_router_address.gateway();
+    exit_gateways.remove_gateway(&entry_gateway);
+
+    // let exit_router_address = nym_vpn.exit_point().lookup_router_address2(
+    //     &exit_gateways,
+    //     Some(entry_gateway.identity()),
+    // )?;
+    let exit_gateway = nym_vpn
+        .exit_point()
+        .lookup_gateway_identity2(&exit_gateways)?;
+    // let exit_gateway_id = exit_router_address.gateway();
+    let exit_gateway_id = *exit_gateway.identity();
+    let exit_router_address = exit_gateway.ipr_address.unwrap();
 
     {
         let entry_location_str = entry_gateway
@@ -348,7 +355,7 @@ pub async fn setup_tunnel(
             .map(|l| l.two_letter_iso_country_code)
             .unwrap_or("unknown".to_string());
         let exit_location = exit_gateways
-            .gateway_with_identity(exit_gateway_id)
+            .gateway_with_identity(&exit_gateway_id)
             .and_then(|g| g.location.clone());
         info!("Using entry gateway: {entry_gateway_id}, location: {entry_location_str}");
         info!("Using exit gateway: {exit_gateway_id}, location: {exit_location:?}");
