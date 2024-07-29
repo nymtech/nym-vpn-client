@@ -293,6 +293,7 @@ pub async fn setup_tunnel(
             source: err,
         })?;
 
+    // Setup the gateway that we will use as the entry point
     let entry_gateways = gateway_directory_client
         .lookup_entry_gateways()
         .await
@@ -301,10 +302,12 @@ pub async fn setup_tunnel(
         .entry_point()
         .lookup_gateway_identity2(&entry_gateways)?;
 
+    // Setup the gateway that we will use as the exit point
     let mut exit_gateways = gateway_directory_client
         .lookup_exit_gateways()
         .await
         .unwrap();
+    // Exclude the entry gateway from the list of exit gateways for privacy reasons
     exit_gateways.remove_gateway(&entry_gateway);
     let exit_gateway = nym_vpn
         .exit_point()
