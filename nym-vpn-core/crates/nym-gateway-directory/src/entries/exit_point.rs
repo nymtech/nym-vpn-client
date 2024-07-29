@@ -131,10 +131,13 @@ impl ExitPoint {
                 let ipr_address = IpPacketRouterAddress(*address);
                 let gateway_address = ipr_address.gateway();
 
-                gateways
+                // Now fetch the gateway that the IPR is connected to, and override it's IPR address
+                let mut gateway = gateways
                     .gateway_with_identity(gateway_address)
                     .ok_or(Error::NoMatchingGateway)
-                    .cloned()
+                    .cloned()?;
+                gateway.ipr_address = Some(ipr_address);
+                Ok(gateway)
             }
             ExitPoint::Gateway { identity } => {
                 debug!("Selecting gateway by identity: {}", identity);
