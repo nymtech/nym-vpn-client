@@ -310,6 +310,8 @@ pub async fn setup_tunnel(
     let exit_gateway = nym_vpn.exit_point().lookup_gateway(&exit_gateways)?;
 
     {
+        info!("Found {} entry gateways", entry_gateways.len());
+        info!("Found {} exit gateways", exit_gateways.len());
         info!(
             "Using entry gateway: {}, location: {}",
             *entry_gateway.identity(),

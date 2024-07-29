@@ -140,4 +140,12 @@ impl GatewayList {
         self.gateways
             .retain(|gateway| gateway.identity() != entry_gateway.identity());
     }
+
+    pub fn len(&self) -> usize {
+        self.gateways.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.gateways.is_empty()
+    }
 }

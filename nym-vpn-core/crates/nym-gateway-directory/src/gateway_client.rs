@@ -497,6 +497,7 @@ impl GatewayClient {
 
     pub async fn lookup_entry_gateways(&self) -> Result<GatewayList> {
         let entry_gateways = if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching entry gateways from nym-vpn-api...");
             let entry_gateways = nym_vpn_api_client.get_entry_gateways().await.unwrap();
             let mut entry_gateways: Vec<_> =
                 entry_gateways.into_iter().map(Gateway::from).collect();
@@ -519,6 +520,7 @@ impl GatewayClient {
 
     pub async fn lookup_exit_gateways(&self) -> Result<GatewayList> {
         let exit_gateways = if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching exit gateways from nym-vpn-api...");
             let exit_gateways = nym_vpn_api_client.get_exit_gateways().await.unwrap();
             let mut exit_gateways: Vec<_> = exit_gateways.into_iter().map(Gateway::from).collect();
 
