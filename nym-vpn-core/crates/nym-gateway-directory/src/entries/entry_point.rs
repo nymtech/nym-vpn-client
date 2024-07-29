@@ -3,13 +3,17 @@
 
 use std::fmt::{Display, Formatter};
 
-use crate::{error::Result, DescribedGatewayWithLocation, Error};
+use crate::{
+    error::Result,
+    // DescribedGatewayWithLocation,
+    Error,
+};
 use nym_sdk::mixnet::NodeIdentity;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 use super::{
-    described_gateway::{by_location, by_random, verify_identity, LookupGateway},
+    // described_gateway::{by_location, by_random, verify_identity, LookupGateway},
     gateway::{Gateway, GatewayList},
 };
 

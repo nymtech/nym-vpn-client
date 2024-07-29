@@ -28,17 +28,17 @@ where
         .ok_or(Error::FailedToSelectGatewayRandomly)
 }
 
-pub(crate) fn select_random_gateway_node<'a, I>(
-    gateways: I,
-) -> Result<(NodeIdentity, Option<String>)>
-where
-    I: IntoIterator<Item = &'a DescribedGatewayWithLocation>,
-{
-    let random_gateway = select_random_described_gateway(gateways)?;
-    let id = NodeIdentity::from_base58_string(random_gateway.identity_key())
-        .map_err(|_| Error::NodeIdentityFormattingError)?;
-    Ok((id, random_gateway.two_letter_iso_country_code()))
-}
+// pub(crate) fn select_random_gateway_node<'a, I>(
+//     gateways: I,
+// ) -> Result<(NodeIdentity, Option<String>)>
+// where
+//     I: IntoIterator<Item = &'a DescribedGatewayWithLocation>,
+// {
+//     let random_gateway = select_random_described_gateway(gateways)?;
+//     let id = NodeIdentity::from_base58_string(random_gateway.identity_key())
+//         .map_err(|_| Error::NodeIdentityFormattingError)?;
+//     Ok((id, random_gateway.two_letter_iso_country_code()))
+// }
 
 // pub(crate) async fn select_random_low_latency_gateway_node(
 //     gateways: &[DescribedGatewayWithLocation],
@@ -97,7 +97,7 @@ pub(crate) async fn select_random_low_latency_described_gateway(
     let low_latency_gateway = select_random_low_latency_gateway_node(&gateway_nodes).await?;
     gateways
         .iter()
-        .find(|gateway| gateway.identity() == &low_latency_gateway.to_string())
+        .find(|gateway| gateway.identity() == low_latency_gateway.to_string())
         .ok_or(Error::NoMatchingGateway)
 }
 
