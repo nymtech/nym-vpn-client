@@ -553,6 +553,7 @@ impl GatewayClient {
                         .inspect_err(|err| warn!("Failed to parse gateway: {err}"))
                         .ok()
                 })
+                .filter(Gateway::has_ipr_address)
                 .collect()
         };
 
