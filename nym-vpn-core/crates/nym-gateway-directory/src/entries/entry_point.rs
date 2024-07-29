@@ -53,7 +53,7 @@ impl EntryPoint {
         matches!(self, EntryPoint::Location { .. })
     }
 
-    pub fn lookup_gateway_identity2(&self, gateways: &GatewayList) -> Result<Gateway> {
+    pub fn lookup_gateway(&self, gateways: &GatewayList) -> Result<Gateway> {
         match &self {
             EntryPoint::Gateway { identity } => {
                 debug!("Selecting gateway by identity: {}", identity);
@@ -85,6 +85,8 @@ impl EntryPoint {
     }
 }
 
+// DEPRECATED: This is the old way of selecting a random gateway. It is now done in the
+// GatewayList. This will be deleted after we port nym-gateway-probe over
 #[async_trait::async_trait]
 impl LookupGateway for EntryPoint {
     async fn lookup_gateway_identity(

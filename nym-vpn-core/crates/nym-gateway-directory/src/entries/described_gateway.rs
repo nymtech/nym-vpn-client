@@ -16,6 +16,7 @@ use nym_validator_client::{client::IdentityKey, models::DescribedGateway};
 const BUILD_VERSION: &str = "1.1.34";
 const BUILD_TIME: &str = "2024-03-25T10:47:53.981548588Z";
 
+// DEPRECATED: will be deleted once we port nym-gateway-probe over
 #[derive(Clone, Debug)]
 pub struct DescribedGatewayWithLocation {
     pub gateway: DescribedGateway,
@@ -110,6 +111,8 @@ impl From<DescribedGateway> for DescribedGatewayWithLocation {
     }
 }
 
+// DEPRECATED: This is the old way of selecting a random gateway. It is now done in the
+// GatewayList. This will be deleted after we port nym-gateway-probe over
 #[async_trait::async_trait]
 pub trait LookupGateway {
     async fn lookup_gateway_identity(
