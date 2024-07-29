@@ -154,7 +154,7 @@ public extension HomeViewModel {
 
             Task { @MainActor in
                 do {
-                    try connectionManager.connectDisconnect()
+                    try await connectionManager.connectDisconnect()
                 } catch let error {
                     statusInfoState = .error(message: error.localizedDescription)
                 }

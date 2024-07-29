@@ -33,7 +33,9 @@ public final class ConnectionManager: ObservableObject {
     @Published public var connectionType: ConnectionType {
         didSet {
             appSettings.connectionType = connectionType.rawValue
-            reconnectIfNeeded()
+            Task { @MainActor in
+                await reconnectIfNeeded()
+            }
         }
     }
     @Published public var isTunnelManagerLoaded: Result<Void, Error>?
@@ -53,16 +55,20 @@ public final class ConnectionManager: ObservableObject {
     }
     @Published public var entryGateway: EntryGateway {
         didSet {
-            guard entryGateway.isCountry else { return }
-            appSettings.entryCountryCode = entryGateway.countryCode ?? "CH"
-            reconnectIfNeeded()
+            Task { @MainActor in
+                guard entryGateway.isCountry else { return }
+                appSettings.entryCountryCode = entryGateway.countryCode ?? "CH"
+                await reconnectIfNeeded()
+            }
         }
     }
     @Published public var exitRouter: ExitRouter {
         didSet {
-            guard exitRouter.isCountry else { return }
-            appSettings.exitCountryCode = exitRouter.countryCode ?? "CH"
-            reconnectIfNeeded()
+            Task { @MainActor in
+                guard exitRouter.isCountry else { return }
+                appSettings.exitCountryCode = exitRouter.countryCode ?? "CH"
+                await reconnectIfNeeded()
+            }
         }
     }
 
@@ -123,7 +129,7 @@ public final class ConnectionManager: ObservableObject {
     /// true - when reconnecting automatically, after change of connection settings:  country(UK, DE) or type(5hop, 2hop...).
     /// false - when user manually taps "Connect".
     /// On reconnect, after disconnect, the connectDisconnect is called as a user tapped connect.
-    public func connectDisconnect(isAutoConnect: Bool = false) throws {
+    public func connectDisconnect(isAutoConnect: Bool = false) async throws {
         do {
             let config = try generateConfig()
             if isReconnecting {
@@ -136,7 +142,7 @@ public final class ConnectionManager: ObservableObject {
                     isDisconnecting = true
                     disconnectActiveTunnel()
                 } else {
-                    connectMixnet(with: config)
+                    try await connectMixnet(with: config)
                 }
             }
         } catch let error {
@@ -229,21 +235,14 @@ private extension ConnectionManager {
 // MARK: - Connection -
 #if os(iOS)
 private extension ConnectionManager {
-    func connectMixnet(with config: MixnetConfig) {
-        let updateTunnelClosure = { [weak self] in
-            self?.tunnelsManager.addUpdate(tunnelConfiguration: config) { [weak self] result in
-                switch result {
-                case .success(let tunnel):
-                    self?.activeTunnel = tunnel
-                    self?.tunnelsManager.connect(tunnel: tunnel)
-                case .failure(let error):
-                    // TODO: handle error
-                    print("Error: \(error)")
-                }
-            }
-        }
-        tunnelsManager.loadTunnels {
-            updateTunnelClosure()
+    func connectMixnet(with config: MixnetConfig) async throws {
+        do {
+            try await tunnelsManager.loadTunnels()
+            let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config)
+            activeTunnel = tunnel
+            tunnelsManager.connect(tunnel: tunnel)
+        } catch {
+            throw error
         }
     }
 
@@ -326,9 +325,9 @@ extension ConnectionManager {
 
 private extension ConnectionManager {
     // Reconnect after connection type, hop change
-    func reconnectIfNeeded() {
+    func reconnectIfNeeded() async {
         guard currentTunnelStatus == .connected else { return }
-        try? connectDisconnect(isAutoConnect: true)
+        try? await connectDisconnect(isAutoConnect: true)
     }
 
     func updateTunnelStatusIfReconnecting() {
@@ -339,7 +338,9 @@ private extension ConnectionManager {
         }
         isReconnecting = false
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            try? self?.connectDisconnect()
+            Task {
+                try? await self?.connectDisconnect()
+            }
         }
     }
 
