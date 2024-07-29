@@ -6,7 +6,7 @@ use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::IntoGatewayNode;
 use rand::seq::IteratorRandom;
 
-use crate::{AuthAddress, IpPacketRouterAddress};
+use crate::{error::Result, AuthAddress, Error, IpPacketRouterAddress};
 
 #[derive(Clone, Debug)]
 pub struct Gateway {
@@ -54,14 +54,17 @@ impl From<nym_vpn_api_client::Location> for Location {
     }
 }
 
-impl From<nym_vpn_api_client::Gateway> for Gateway {
-    fn from(gateway: nym_vpn_api_client::Gateway) -> Self {
-        Gateway {
-            identity: NodeIdentity::from_base58_string(&gateway.identity_key).unwrap(),
+impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
+    type Error = Error;
+    fn try_from(gateway: nym_vpn_api_client::Gateway) -> Result<Self> {
+        let identity = NodeIdentity::from_base58_string(&gateway.identity_key)
+            .map_err(|_| Error::RecipientFormattingError)?;
+        Ok(Gateway {
+            identity,
             location: Some(gateway.location.into()),
             ipr_address: None,
             authenticator_address: None,
-        }
+        })
     }
 }
 
