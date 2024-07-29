@@ -107,17 +107,17 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
 async fn lookup_gateways() -> anyhow::Result<GatewayList> {
     let gateway_config = GatewayDirectoryConfig::new_from_env();
     info!("nym-api: {}", gateway_config.api_url());
+    // info!(
+    //     "explorer-api: {}",
+    //     gateway_config
+    //         .explorer_url()
+    //         .map(|url| url.to_string())
+    //         .unwrap_or("unavailable".to_string())
+    // );
     info!(
-        "explorer-api: {}",
+        "nym-vpn-api: {}",
         gateway_config
-            .explorer_url()
-            .map(|url| url.to_string())
-            .unwrap_or("unavailable".to_string())
-    );
-    info!(
-        "harbour-master: {}",
-        gateway_config
-            .harbour_master_url()
+            .nym_vpn_api_url()
             .map(|url| url.to_string())
             .unwrap_or("unavailable".to_string())
     );

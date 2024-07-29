@@ -28,7 +28,7 @@ use std::{fmt, net::IpAddr, time::Duration};
 use tracing::{debug, info, warn};
 use url::Url;
 
-const MAINNET_HARBOUR_MASTER_URL: &str = "https://harbourmaster.nymtech.net";
+// const MAINNET_HARBOUR_MASTER_URL: &str = "https://harbourmaster.nymtech.net";
 // const HARBOUR_MASTER_CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Debug)]
@@ -40,8 +40,8 @@ pub struct GatewayQueryResult {
 #[derive(Clone, Debug)]
 pub struct Config {
     pub api_url: Url,
-    pub explorer_url: Option<Url>,
-    pub harbour_master_url: Option<Url>,
+    // pub explorer_url: Option<Url>,
+    // pub harbour_master_url: Option<Url>,
     pub nym_vpn_api_url: Option<Url>,
 }
 
@@ -62,10 +62,9 @@ impl fmt::Display for Config {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "api_url: {}, explorer_url: {}, harbour_master_url: {}",
+            "api_url: {}, nym_vpn_api_url: {}",
             self.api_url,
-            to_string(&self.explorer_url),
-            to_string(&self.harbour_master_url)
+            to_string(&self.nym_vpn_api_url),
         )
     }
 }
@@ -79,15 +78,15 @@ impl Config {
             .expect("rust sdk mainnet default incorrectly configured")
             .api_url()
             .expect("rust sdk mainnet default api_url not parseable");
-        let default_explorer_url = mainnet_network_defaults.explorer_api.clone().map(|url| {
-            url.parse()
-                .expect("rust sdk mainnet default explorer url not parseable")
-        });
-        let default_harbour_master_url = Some(
-            MAINNET_HARBOUR_MASTER_URL
-                .parse()
-                .expect("mainnet default harbour master url not parseable"),
-        );
+        // let default_explorer_url = mainnet_network_defaults.explorer_api.clone().map(|url| {
+        //     url.parse()
+        //         .expect("rust sdk mainnet default explorer url not parseable")
+        // });
+        // let default_harbour_master_url = Some(
+        //     MAINNET_HARBOUR_MASTER_URL
+        //         .parse()
+        //         .expect("mainnet default harbour master url not parseable"),
+        // );
 
         let default_nym_vpn_api_url = Some(
             nym_vpn_api_client::MAINNET_NYM_VPN_API_URL
@@ -97,8 +96,8 @@ impl Config {
 
         Config {
             api_url: default_api_url,
-            explorer_url: default_explorer_url,
-            harbour_master_url: default_harbour_master_url,
+            // explorer_url: default_explorer_url,
+            // harbour_master_url: default_harbour_master_url,
             nym_vpn_api_url: default_nym_vpn_api_url,
         }
     }
@@ -109,30 +108,27 @@ impl Config {
             .endpoints
             .first()
             .expect("network environment endpoints not correctly configured")
-            .api_url
-            .clone()
-            .expect("network environment missing api_url")
-            .parse()
+            .api_url()
             .expect("network environment api_url not parseable");
-        let explorer_url = network.explorer_api.clone().map(|url| {
-            url.parse()
-                .expect("network environment explorer url not parseable")
-        });
+        // let explorer_url = network.explorer_api.clone().map(|url| {
+        //     url.parse()
+        //         .expect("network environment explorer url not parseable")
+        // });
 
         // Since harbourmatser isn't part of the standard nym network details, we need to handle it
         // as a special case.
-        let harbour_master_url = if network.network_name == defaults::mainnet::NETWORK_NAME {
-            Some(
-                MAINNET_HARBOUR_MASTER_URL
-                    .parse()
-                    .expect("mainnet default harbour master url not parseable"),
-            )
-        } else {
-            std::env::var("HARBOUR_MASTER_URL").ok().map(|url| {
-                url.parse()
-                    .expect("HARBOUR_MASTER_URL env variable not a valid URL")
-            })
-        };
+        // let harbour_master_url = if network.network_name == defaults::mainnet::NETWORK_NAME {
+        //     Some(
+        //         MAINNET_HARBOUR_MASTER_URL
+        //             .parse()
+        //             .expect("mainnet default harbour master url not parseable"),
+        //     )
+        // } else {
+        //     std::env::var("HARBOUR_MASTER_URL").ok().map(|url| {
+        //         url.parse()
+        //             .expect("HARBOUR_MASTER_URL env variable not a valid URL")
+        //     })
+        // };
 
         let nym_vpn_api_url = if network.network_name == defaults::mainnet::NETWORK_NAME {
             Some(
@@ -149,8 +145,8 @@ impl Config {
 
         Config {
             api_url,
-            explorer_url,
-            harbour_master_url,
+            // explorer_url,
+            // harbour_master_url,
             nym_vpn_api_url,
         }
     }
@@ -159,14 +155,14 @@ impl Config {
     // for the explorer and harbour master as well.
     pub fn new_from_urls(
         api_url: Url,
-        explorer_url: Option<Url>,
-        harbour_master_url: Option<Url>,
+        // explorer_url: Option<Url>,
+        // harbour_master_url: Option<Url>,
         nym_vpn_api_url: Option<Url>,
     ) -> Self {
         Config {
             api_url,
-            explorer_url,
-            harbour_master_url,
+            // explorer_url,
+            // harbour_master_url,
             nym_vpn_api_url,
         }
     }
@@ -180,23 +176,23 @@ impl Config {
         self
     }
 
-    pub fn explorer_url(&self) -> Option<&Url> {
-        self.explorer_url.as_ref()
-    }
-
-    pub fn with_custom_explorer_url(mut self, explorer_url: Url) -> Self {
-        self.explorer_url = Some(explorer_url);
-        self
-    }
-
-    pub fn harbour_master_url(&self) -> Option<&Url> {
-        self.harbour_master_url.as_ref()
-    }
-
-    pub fn with_custom_harbour_master_url(mut self, harbour_master_url: Url) -> Self {
-        self.harbour_master_url = Some(harbour_master_url);
-        self
-    }
+    // pub fn explorer_url(&self) -> Option<&Url> {
+    //     self.explorer_url.as_ref()
+    // }
+    //
+    // pub fn with_custom_explorer_url(mut self, explorer_url: Url) -> Self {
+    //     self.explorer_url = Some(explorer_url);
+    //     self
+    // }
+    //
+    // pub fn harbour_master_url(&self) -> Option<&Url> {
+    //     self.harbour_master_url.as_ref()
+    // }
+    //
+    // pub fn with_custom_harbour_master_url(mut self, harbour_master_url: Url) -> Self {
+    //     self.harbour_master_url = Some(harbour_master_url);
+    //     self
+    // }
 
     pub fn nym_vpn_api_url(&self) -> Option<&Url> {
         self.nym_vpn_api_url.as_ref()
@@ -646,19 +642,10 @@ mod test {
     }
 
     #[tokio::test]
-    async fn lookup_gateways_in_harbour_master() {
-        let mut config = Config::new_mainnet();
-        config.harbour_master_url = Some(
-            "https://harbourmaster.nymtech.net"
-                .parse()
-                .expect("harbour master url not parseable"),
-        );
+    async fn lookup_gateways_in_nym_vpn_api() {
+        let config = Config::new_mainnet();
         let client = GatewayClient::new(config, user_agent()).unwrap();
-        let gateways = client
-            .lookup_gateways_in_harbour_master()
-            .await
-            .unwrap()
-            .unwrap();
+        let gateways = client.lookup_exit_gateways().await.unwrap();
         assert!(!gateways.is_empty());
     }
 }

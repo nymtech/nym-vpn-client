@@ -166,8 +166,8 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
     );
     debug!("Created new mixnet vpn");
     vpn.gateway_config.api_url = config.api_url;
-    vpn.gateway_config.explorer_url = Some(config.explorer_url);
-    vpn.gateway_config.harbour_master_url = None;
+    // vpn.gateway_config.explorer_url = Some(config.explorer_url);
+    // vpn.gateway_config.harbour_master_url = None;
     vpn.enable_two_hop = config.enable_two_hop;
     vpn.data_path.clone_from(&config.credential_data_path);
     Ok(vpn)
@@ -320,16 +320,16 @@ pub fn getGatewayCountriesUserAgent(
 
 async fn get_gateway_countries(
     api_url: Url,
-    explorer_url: Url,
-    harbour_master_url: Option<Url>,
+    _explorer_url: Url,
+    _harbour_master_url: Option<Url>,
     exit_only: bool,
     user_agent: Option<UserAgent>,
 ) -> Result<Vec<Location>, FFIError> {
     //TODO support other envs in the future
     let _config = nym_gateway_directory::Config {
         api_url,
-        explorer_url: Some(explorer_url),
-        harbour_master_url,
+        // explorer_url: Some(explorer_url),
+        // harbour_master_url,
         nym_vpn_api_url: None,
     };
     let user_agent = user_agent
@@ -377,14 +377,14 @@ pub fn getLowLatencyEntryCountryUserAgent(
 
 async fn get_low_latency_entry_country(
     api_url: Url,
-    explorer_url: Url,
-    harbour_master_url: Option<Url>,
+    _explorer_url: Url,
+    _harbour_master_url: Option<Url>,
     user_agent: Option<UserAgent>,
 ) -> Result<Location, FFIError> {
     let config = nym_gateway_directory::Config {
         api_url,
-        explorer_url: Some(explorer_url),
-        harbour_master_url,
+        // explorer_url: Some(explorer_url),
+        // harbour_master_url,
         nym_vpn_api_url: None,
     };
     let user_agent = user_agent
