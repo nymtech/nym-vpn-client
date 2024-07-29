@@ -178,6 +178,14 @@ impl From<ExpLocation> for Location {
     }
 }
 
+impl From<nym_gateway_directory::Location> for Location {
+    fn from(value: nym_gateway_directory::Location) -> Self {
+        Location {
+            two_letter_iso_country_code: value.two_letter_iso_country_code,
+        }
+    }
+}
+
 impl From<Country> for Location {
     fn from(value: Country) -> Self {
         Location {

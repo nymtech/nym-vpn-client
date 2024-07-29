@@ -10,7 +10,7 @@ use tracing::debug;
 
 use super::{
     described_gateway::{
-        by_location, by_random, by_random_low_latency, verify_identity, LookupGateway,
+        by_location, by_random, verify_identity, LookupGateway,
     },
     gateway::{Gateway, GatewayList},
 };
@@ -87,31 +87,31 @@ impl EntryPoint {
 
 // DEPRECATED: This is the old way of selecting a random gateway. It is now done in the
 // GatewayList. This will be deleted after we port nym-gateway-probe over
-#[async_trait::async_trait]
-impl LookupGateway for EntryPoint {
-    async fn lookup_gateway_identity(
-        &self,
-        gateways: &[DescribedGatewayWithLocation],
-    ) -> Result<(NodeIdentity, Option<String>)> {
-        match &self {
-            EntryPoint::Gateway { identity } => verify_identity(gateways, identity),
-            EntryPoint::Location { location } => {
-                by_location(gateways, location).map_err(|err| match err {
-                    Error::NoMatchingGatewayForLocation {
-                        requested_location,
-                        available_countries,
-                    } => Error::NoMatchingEntryGatewayForLocation {
-                        requested_location,
-                        available_countries,
-                    },
-                    err => err,
-                })
-            }
-            EntryPoint::RandomLowLatency => by_random_low_latency(gateways).await,
-            EntryPoint::Random => {
-                log::info!("Selecting a random entry gateway");
-                by_random(gateways)
-            }
-        }
-    }
-}
+// #[async_trait::async_trait]
+// impl LookupGateway for EntryPoint {
+//     async fn lookup_gateway_identity(
+//         &self,
+//         gateways: &[DescribedGatewayWithLocation],
+//     ) -> Result<(NodeIdentity, Option<String>)> {
+//         match &self {
+//             EntryPoint::Gateway { identity } => verify_identity(gateways, identity),
+//             EntryPoint::Location { location } => {
+//                 by_location(gateways, location).map_err(|err| match err {
+//                     Error::NoMatchingGatewayForLocation {
+//                         requested_location,
+//                         available_countries,
+//                     } => Error::NoMatchingEntryGatewayForLocation {
+//                         requested_location,
+//                         available_countries,
+//                     },
+//                     err => err,
+//                 })
+//             }
+//             EntryPoint::RandomLowLatency => by_random_low_latency(gateways).await,
+//             EntryPoint::Random => {
+//                 log::info!("Selecting a random entry gateway");
+//                 by_random(gateways)
+//             }
+//         }
+//     }
+// }

@@ -10,7 +10,8 @@ use itertools::Itertools;
 use nym_client_core::init::helpers::choose_gateway_by_latency;
 use nym_harbour_master_client::Gateway as HmGateway;
 use nym_sdk::mixnet::NodeIdentity;
-use nym_validator_client::client::GatewayBond;
+use nym_topology::IntoGatewayNode;
+use nym_validator_client::{client::GatewayBond, models::DescribedGateway};
 use rand::seq::IteratorRandom;
 use std::net::IpAddr;
 use tracing::debug;
@@ -39,28 +40,27 @@ where
     Ok((id, random_gateway.two_letter_iso_country_code()))
 }
 
-pub(crate) async fn select_random_low_latency_gateway_node(
-    gateways: &[DescribedGatewayWithLocation],
-) -> Result<(NodeIdentity, Option<String>)> {
-    let mut rng = rand::rngs::OsRng;
-    let must_use_tls = FORCE_TLS_FOR_GATEWAY_SELECTION;
-    let gateway_nodes: Vec<nym_topology::gateway::Node> = gateways
-        .iter()
-        .filter_map(|gateway| nym_topology::gateway::Node::try_from(&gateway.gateway).ok())
-        .collect();
-    let gateway = choose_gateway_by_latency(&mut rng, &gateway_nodes, must_use_tls)
-        .await
-        .map(|gateway| *gateway.identity())
-        .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })?;
-    let country = gateways
-        .iter()
-        .find(|g| g.identity_key() == &gateway.to_string())
-        .and_then(|gateway| gateway.two_letter_iso_country_code());
-    Ok((gateway, country))
-}
+// pub(crate) async fn select_random_low_latency_gateway_node(
+//     gateways: &[DescribedGatewayWithLocation],
+// ) -> Result<(NodeIdentity, Option<String>)> {
+//     let mut rng = rand::rngs::OsRng;
+//     let must_use_tls = FORCE_TLS_FOR_GATEWAY_SELECTION;
+//     let gateway_nodes: Vec<nym_topology::gateway::Node> = gateways
+//         .iter()
+//         .filter_map(|gateway| nym_topology::gateway::Node::try_from(&gateway.gateway).ok())
+//         .collect();
+//     let gateway = choose_gateway_by_latency(&mut rng, &gateway_nodes, must_use_tls)
+//         .await
+//         .map(|gateway| *gateway.identity())
+//         .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })?;
+//     let country = gateways
+//         .iter()
+//         .find(|g| g.identity_key() == &gateway.to_string())
+//         .and_then(|gateway| gateway.two_letter_iso_country_code());
+//     Ok((gateway, country))
+// }
 
-#[allow(unused)]
-pub(crate) async fn select_random_low_latency_gateway_node2(
+pub(crate) async fn select_random_low_latency_gateway_node(
     gateways: &[GatewayBond],
 ) -> Result<NodeIdentity> {
     let mut rng = rand::rngs::OsRng;
@@ -88,12 +88,16 @@ where
 }
 
 pub(crate) async fn select_random_low_latency_described_gateway(
-    gateways: &[DescribedGatewayWithLocation],
-) -> Result<&DescribedGatewayWithLocation> {
-    let (low_latency_gateway, _location) = select_random_low_latency_gateway_node(gateways).await?;
+    gateways: &[DescribedGateway],
+) -> Result<&DescribedGateway> {
+    let gateway_nodes = gateways
+        .iter()
+        .map(|gateway| gateway.bond.clone())
+        .collect::<Vec<_>>();
+    let low_latency_gateway = select_random_low_latency_gateway_node(&gateway_nodes).await?;
     gateways
         .iter()
-        .find(|gateway| gateway.identity_key() == &low_latency_gateway.to_string())
+        .find(|gateway| gateway.identity() == &low_latency_gateway.to_string())
         .ok_or(Error::NoMatchingGateway)
 }
 

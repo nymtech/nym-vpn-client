@@ -177,12 +177,12 @@ pub fn by_location_described(
     select_random_described_gateway(gateways_with_specified_location).cloned()
 }
 
-pub async fn by_random_low_latency(
-    gateways: &[DescribedGatewayWithLocation],
-) -> Result<(NodeIdentity, Option<String>)> {
-    log::info!("Selecting a random low latency entry gateway");
-    select_random_low_latency_gateway_node(gateways).await
-}
+// pub async fn by_random_low_latency(
+//     gateways: &[DescribedGatewayWithLocation],
+// ) -> Result<(NodeIdentity, Option<String>)> {
+//     log::info!("Selecting a random low latency entry gateway");
+//     select_random_low_latency_gateway_node(gateways).await
+// }
 
 pub fn by_random(
     gateways: &[DescribedGatewayWithLocation],

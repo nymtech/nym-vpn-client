@@ -12,7 +12,7 @@ pub use crate::{
         described_gateway::{DescribedGatewayWithLocation, LookupGateway},
         entry_point::EntryPoint,
         exit_point::{extract_router_address, ExitPoint},
-        gateway::{Gateway, GatewayList},
+        gateway::{Gateway, GatewayList, Location},
         ipr_addresses::IpPacketRouterAddress,
     },
     error::Error,

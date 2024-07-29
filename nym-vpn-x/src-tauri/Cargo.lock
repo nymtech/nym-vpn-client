@@ -4678,11 +4678,13 @@ dependencies = [
  "itertools 0.13.0",
  "log",
  "nym-client-core",
+ "nym-config",
  "nym-explorer-client",
  "nym-harbour-master-client",
  "nym-sdk",
  "nym-topology",
  "nym-validator-client",
+ "nym-vpn-api-client",
  "rand 0.8.5",
  "serde",
  "thiserror",
@@ -5262,6 +5264,19 @@ dependencies = [
  "nym-mixnet-contract-common",
  "serde",
  "thiserror",
+]
+
+[[package]]
+name = "nym-vpn-api-client"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "nym-http-api-client",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
 ]
 
 [[package]]

@@ -39,3 +39,12 @@ impl Default for Country {
         DEFAULT_ENTRY_COUNTRY.clone()
     }
 }
+
+impl Country {
+    pub fn try_new_from_code(code: &str) -> Option<Self> {
+        rust_iso3166::from_alpha2(code).map(|country| Country {
+            name: country.name.to_string(),
+            code: country.alpha2.to_string(),
+        })
+    }
+}

@@ -417,11 +417,26 @@ impl GatewayClient {
         }
     }
 
-    pub async fn lookup_low_latency_entry_gateway(&self) -> Result<DescribedGatewayWithLocation> {
+    // pub async fn lookup_low_latency_entry_gateway(&self) -> Result<DescribedGatewayWithLocation> {
+    //     debug!("Fetching low latency entry gateway...");
+    //     let described_gateways = self.lookup_described_entry_gateways_with_location().await?;
+    //     select_random_low_latency_described_gateway(&described_gateways)
+    //         .await
+    //         .cloned()
+    // }
+
+    // KEEP THIS
+    pub async fn lookup_low_latency_entry_gateway(&self) -> Result<Gateway> {
         debug!("Fetching low latency entry gateway...");
-        let described_gateways = self.lookup_described_entry_gateways_with_location().await?;
-        select_random_low_latency_described_gateway(&described_gateways)
+        let gateways = self.lookup_described_gateways().await?;
+        let low_latency_gateway: Gateway = select_random_low_latency_described_gateway(&gateways)
             .await
+            .cloned()?
+            .try_into()?;
+        let gateway_list = self.lookup_entry_gateways().await?;
+        gateway_list
+            .gateway_with_identity(low_latency_gateway.identity())
+            .ok_or(Error::NoMatchingGateway)
             .cloned()
     }
 
@@ -455,15 +470,15 @@ impl GatewayClient {
             .collect())
     }
 
-    pub async fn lookup_all_exit_countries(&self) -> Result<Vec<Location>> {
-        debug!("Fetching all exit country names from gateways...");
-        let described_gateways = self.lookup_described_exit_gateways_with_location().await?;
-        Ok(described_gateways
-            .into_iter()
-            .filter_map(|gateway| gateway.location)
-            .unique_by(|location| location.country_name.clone())
-            .collect())
-    }
+    // pub async fn lookup_all_exit_countries(&self) -> Result<Vec<Location>> {
+    //     debug!("Fetching all exit country names from gateways...");
+    //     let described_gateways = self.lookup_described_exit_gateways_with_location().await?;
+    //     Ok(described_gateways
+    //         .into_iter()
+    //         .filter_map(|gateway| gateway.location)
+    //         .unique_by(|location| location.country_name.clone())
+    //         .collect())
+    // }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
         let ip_or_hostname = self

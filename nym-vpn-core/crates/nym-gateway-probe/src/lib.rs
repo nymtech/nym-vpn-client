@@ -4,9 +4,8 @@ use nym_bin_common::bin_info;
 use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
-    Config as GatewayDirectoryConfig, DescribedGateway, DescribedGatewayWithLocation, EntryPoint,
-    ExitPoint, GatewayClient as GatewayDirectoryClient, GatewayList, IpPacketRouterAddress,
-    LookupGateway,
+    Config as GatewayDirectoryConfig, EntryPoint, GatewayClient as GatewayDirectoryClient,
+    GatewayList, IpPacketRouterAddress,
 };
 use nym_ip_packet_client::{IprClient, SharedMixnetClient};
 use nym_ip_packet_requests::{
@@ -135,14 +134,14 @@ async fn lookup_gateways() -> anyhow::Result<GatewayList> {
     //     .map(|gateways| gateways.into_iter().collect())
 }
 
-async fn extract_out_exit_gateways(
-    gateways: Vec<DescribedGatewayWithLocation>,
-) -> Vec<DescribedGatewayWithLocation> {
-    gateways
-        .into_iter()
-        .filter(|gateway| gateway.is_current_build())
-        .collect()
-}
+// async fn extract_out_exit_gateways(
+//     gateways: Vec<DescribedGatewayWithLocation>,
+// ) -> Vec<DescribedGatewayWithLocation> {
+//     gateways
+//         .into_iter()
+//         .filter(|gateway| gateway.is_current_build())
+//         .collect()
+// }
 
 fn mixnet_debug_config() -> nym_client_core::config::DebugConfig {
     let mut debug_config = nym_client_core::config::DebugConfig::default();

@@ -391,9 +391,9 @@ async fn get_low_latency_entry_country(
         .map(nym_sdk::UserAgent::from)
         .unwrap_or_else(|| nym_bin_common::bin_info!().into());
     let gateway_client = GatewayClient::new(config, user_agent)?;
-    let described = gateway_client.lookup_low_latency_entry_gateway().await?;
-    let country = described
-        .location()
+    let gateway = gateway_client.lookup_low_latency_entry_gateway().await?;
+    let country = gateway
+        .location
         .ok_or(crate::Error::CountryCodeNotFound)?
         .into();
 
