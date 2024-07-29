@@ -128,20 +128,6 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
     // Setup gateway directory configuration
     let gateway_config = GatewayConfig::new_from_env();
     info!("nym-api: {}", gateway_config.api_url());
-    // info!(
-    //     "explorer-api: {}",
-    //     gateway_config
-    //         .explorer_url()
-    //         .map(|url| url.to_string())
-    //         .unwrap_or("unavailable".to_string())
-    // );
-    // info!(
-    //     "harbour-master: {}",
-    //     gateway_config
-    //         .harbour_master_url()
-    //         .map(|url| url.to_string())
-    //         .unwrap_or("unavailable".to_string())
-    // );
     info!(
         "nym-vpn-api: {}",
         gateway_config
