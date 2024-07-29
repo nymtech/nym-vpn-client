@@ -8,15 +8,26 @@ mod helpers;
 
 pub use crate::{
     entries::{
-        auth_addresses::{extract_authenticator, AuthAddress, AuthAddresses},
-        described_gateway::DescribedGatewayWithLocation,
+        auth_addresses::{
+            // extract_authenticator,
+            AuthAddress,
+            AuthAddresses,
+        },
+        // described_gateway::DescribedGatewayWithLocation,
         entry_point::EntryPoint,
-        exit_point::{extract_router_address, ExitPoint},
+        exit_point::{
+            // extract_router_address,
+            ExitPoint,
+        },
         gateway::{Gateway, GatewayList, Location},
         ipr_addresses::IpPacketRouterAddress,
     },
     error::Error,
-    gateway_client::{Config, GatewayClient, GatewayQueryResult},
+    gateway_client::{
+        Config,
+        GatewayClient,
+        // GatewayQueryResult
+    },
 };
 
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient};

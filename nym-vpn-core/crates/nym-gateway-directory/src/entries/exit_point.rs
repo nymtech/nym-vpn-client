@@ -3,13 +3,13 @@
 
 use std::{
     fmt::{Display, Formatter},
-    str::FromStr,
+    // str::FromStr,
 };
 
 use crate::{
     // entries::described_gateway::{by_location_described, by_random_described},
     error::Result,
-    DescribedGatewayWithLocation,
+    // DescribedGatewayWithLocation,
     Error,
     IpPacketRouterAddress,
 };
@@ -167,24 +167,24 @@ impl ExitPoint {
     }
 }
 
-pub fn extract_router_address(
-    gateways: &[DescribedGatewayWithLocation],
-    identity_key: String,
-) -> Result<IpPacketRouterAddress> {
-    Ok(IpPacketRouterAddress(
-        Recipient::from_str(
-            &gateways
-                .iter()
-                .find(|gw| *gw.gateway.bond.identity() == identity_key)
-                .ok_or(Error::NoMatchingGateway)?
-                .gateway
-                .self_described
-                .clone()
-                .ok_or(Error::NoGatewayDescriptionAvailable(identity_key))?
-                .ip_packet_router
-                .ok_or(Error::MissingIpPacketRouterAddress)?
-                .address,
-        )
-        .map_err(|_| Error::RecipientFormattingError)?,
-    ))
-}
+// pub fn extract_router_address(
+//     gateways: &[DescribedGatewayWithLocation],
+//     identity_key: String,
+// ) -> Result<IpPacketRouterAddress> {
+//     Ok(IpPacketRouterAddress(
+//         Recipient::from_str(
+//             &gateways
+//                 .iter()
+//                 .find(|gw| *gw.gateway.bond.identity() == identity_key)
+//                 .ok_or(Error::NoMatchingGateway)?
+//                 .gateway
+//                 .self_described
+//                 .clone()
+//                 .ok_or(Error::NoGatewayDescriptionAvailable(identity_key))?
+//                 .ip_packet_router
+//                 .ok_or(Error::MissingIpPacketRouterAddress)?
+//                 .address,
+//         )
+//         .map_err(|_| Error::RecipientFormattingError)?,
+//     ))
+// }

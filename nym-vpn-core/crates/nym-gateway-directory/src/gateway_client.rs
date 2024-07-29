@@ -10,7 +10,10 @@ use crate::{
         select_random_low_latency_described_gateway,
         try_resolve_hostname,
     },
-    AuthAddress, DescribedGatewayWithLocation, Error, IpPacketRouterAddress,
+    AuthAddress,
+    // DescribedGatewayWithLocation,
+    Error,
+    IpPacketRouterAddress,
 };
 // use itertools::Itertools;
 use nym_config::defaults;
@@ -31,12 +34,12 @@ use url::Url;
 // const MAINNET_HARBOUR_MASTER_URL: &str = "https://harbourmaster.nymtech.net";
 // const HARBOUR_MASTER_CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
-#[derive(Debug)]
-pub struct GatewayQueryResult {
-    pub entry_gateways: Vec<DescribedGatewayWithLocation>,
-    pub exit_gateways: Vec<DescribedGatewayWithLocation>,
-}
-
+// #[derive(Debug)]
+// pub struct GatewayQueryResult {
+//     pub entry_gateways: Vec<DescribedGatewayWithLocation>,
+//     pub exit_gateways: Vec<DescribedGatewayWithLocation>,
+// }
+//
 #[derive(Clone, Debug)]
 pub struct Config {
     pub api_url: Url,
