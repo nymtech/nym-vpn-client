@@ -4,8 +4,8 @@ use nym_bin_common::bin_info;
 use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
-    Config as GatewayDirectoryConfig, DescribedGatewayWithLocation, EntryPoint, ExitPoint,
-    GatewayClient as GatewayDirectoryClient, IpPacketRouterAddress, LookupGateway,
+    Config as GatewayDirectoryConfig, DescribedGateway, DescribedGatewayWithLocation, EntryPoint,
+    ExitPoint, GatewayClient as GatewayDirectoryClient, IpPacketRouterAddress, LookupGateway,
 };
 use nym_ip_packet_client::{IprClient, SharedMixnetClient};
 use nym_ip_packet_requests::{
@@ -45,6 +45,8 @@ pub async fn fetch_gateways_with_ipr() -> anyhow::Result<Vec<DescribedGatewayWit
 pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     // Setup the entry gateways
     let gateways = lookup_gateways().await?;
+    let gateway_list = todo!();
+    let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
     let (entry_gateway_id, _) = entry_point.lookup_gateway_identity(&gateways).await?;
 
     // Setup the exit gateway to be the same as entry gateway.
@@ -100,7 +102,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     })
 }
 
-async fn lookup_gateways() -> anyhow::Result<Vec<DescribedGatewayWithLocation>> {
+async fn lookup_gateways() -> anyhow::Result<Vec<GatewayList>> {
     let gateway_config = GatewayDirectoryConfig::new_from_env();
     info!("nym-api: {}", gateway_config.api_url());
     info!(
@@ -120,9 +122,12 @@ async fn lookup_gateways() -> anyhow::Result<Vec<DescribedGatewayWithLocation>> 
 
     let user_agent = bin_info!().into();
     let gateway_client = GatewayDirectoryClient::new(gateway_config.clone(), user_agent)?;
-    Ok(gateway_client
-        .lookup_described_gateways_with_location()
-        .await?)
+    let gateways = gateway_client.lookup_described_gateways().await?;
+    // let gateways = gateways.into_iter().map(|gw| GatewayList::from(gw)
+    // Ok(gateway_client
+    //     .lookup_described_gateways()
+    //     .await?
+    //     .map(|gateways| gateways.into_iter().collect())
 }
 
 async fn extract_out_exit_gateways(
