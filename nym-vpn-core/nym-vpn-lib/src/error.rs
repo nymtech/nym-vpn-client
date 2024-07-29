@@ -232,6 +232,9 @@ pub enum Error {
 
     #[error("wiregurad authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
     AuthenticationNotPossible(String),
+
+    #[error("failed to find authenticator address")]
+    AuthenticatorAddressNotFound,
 }
 
 // Result type based on our error type

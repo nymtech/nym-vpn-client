@@ -2,17 +2,17 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use itertools::Itertools;
-use nym_sdk::mixnet::{NodeIdentity, Recipient};
+use nym_sdk::mixnet::NodeIdentity;
 use rand::seq::IteratorRandom;
 
-use crate::IpPacketRouterAddress;
+use crate::{AuthAddress, IpPacketRouterAddress};
 
 #[derive(Clone, Debug)]
 pub struct Gateway {
     pub identity: NodeIdentity,
     pub location: Option<Location>,
     pub ipr_address: Option<IpPacketRouterAddress>,
-    pub authenticator_address: Option<Recipient>,
+    pub authenticator_address: Option<AuthAddress>,
 }
 
 impl Gateway {
@@ -111,6 +111,7 @@ impl GatewayList {
     }
 
     pub fn remove_gateway(&mut self, entry_gateway: &Gateway) {
-        self.gateways.retain(|gateway| gateway.identity() != entry_gateway.identity());
+        self.gateways
+            .retain(|gateway| gateway.identity() != entry_gateway.identity());
     }
 }

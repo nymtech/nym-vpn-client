@@ -12,7 +12,6 @@ use crate::{
     DescribedGatewayWithLocation, Error, IpPacketRouterAddress,
 };
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
-use nym_topology::IntoGatewayNode;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 

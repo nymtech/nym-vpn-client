@@ -20,9 +20,7 @@ use ipnetwork::IpNetwork;
 use log::*;
 use nym_authenticator_client::AuthClient;
 use nym_bin_common::bin_info;
-use nym_gateway_directory::{
-    extract_authenticator, AuthAddresses, GatewayClient, GatewayQueryResult, IpPacketRouterAddress,
-};
+use nym_gateway_directory::{AuthAddresses, GatewayClient, IpPacketRouterAddress};
 use nym_task::TaskManager;
 use talpid_core::dns::DnsMonitor;
 use talpid_core::firewall::Firewall;
@@ -295,33 +293,6 @@ pub async fn setup_tunnel(
             source: err,
         })?;
 
-    let GatewayQueryResult {
-        entry_gateways: entry_gateways_legacy,
-        exit_gateways: exit_gateways_legacy,
-    } = gateway_directory_client
-        .lookup_described_entry_and_exit_gateways_with_location()
-        .await
-        .map_err(|err| Error::FailedToLookupGateways { source: err })?;
-
-    // This info would be useful at at least debug level, but it's just so much data that it
-    // would be overwhelming
-    log::trace!("Got entry gateways {:?}", entry_gateways_legacy);
-    log::trace!("Got exit gateways {:?}", exit_gateways_legacy);
-
-    //let (entry_gateway_id, entry_location) = nym_vpn
-    //    .entry_point()
-    //    .lookup_gateway_identity(&entry_gateways)
-    //    .await
-    //    .map_err(|err| Error::FailedToLookupGatewayIdentity { source: err })?;
-    //let entry_location_str = entry_location.as_deref().unwrap_or("unknown");
-
-    //let (exit_router_address, exit_location) = nym_vpn
-    //    .exit_point()
-    //    .lookup_router_address(&exit_gateways, Some(&entry_gateway_id))
-    //    .map_err(|err| Error::FailedToLookupRouterAddress { source: err })?;
-
-    //let exit_gateway_id = exit_router_address.gateway();
-
     let entry_gateways = gateway_directory_client
         .lookup_entry_gateways()
         .await
@@ -329,37 +300,35 @@ pub async fn setup_tunnel(
     let entry_gateway = nym_vpn
         .entry_point()
         .lookup_gateway_identity2(&entry_gateways)?;
-    let entry_gateway_id = *entry_gateway.identity();
-    let authenticator_address = entry_gateway.authenticator_address.unwrap();
 
     let mut exit_gateways = gateway_directory_client
         .lookup_exit_gateways()
         .await
         .unwrap();
     exit_gateways.remove_gateway(&entry_gateway);
-
-    // let exit_router_address = nym_vpn.exit_point().lookup_router_address2(
-    //     &exit_gateways,
-    //     Some(entry_gateway.identity()),
-    // )?;
     let exit_gateway = nym_vpn
         .exit_point()
         .lookup_gateway_identity2(&exit_gateways)?;
-    // let exit_gateway_id = exit_router_address.gateway();
-    let exit_gateway_id = *exit_gateway.identity();
-    let exit_router_address = exit_gateway.ipr_address.unwrap();
 
     {
-        let entry_location_str = entry_gateway
-            .location
-            .map(|l| l.two_letter_iso_country_code)
-            .unwrap_or("unknown".to_string());
-        let exit_location = exit_gateways
-            .gateway_with_identity(&exit_gateway_id)
-            .and_then(|g| g.location.clone());
-        info!("Using entry gateway: {entry_gateway_id}, location: {entry_location_str}");
-        info!("Using exit gateway: {exit_gateway_id}, location: {exit_location:?}");
-        info!("Using exit router address {exit_router_address}");
+        info!(
+            "Using entry gateway: {}, location: {}",
+            *entry_gateway.identity(),
+            entry_gateway
+                .two_letter_iso_country_code()
+                .map_or_else(|| "unknown".to_string(), |code| code.to_string())
+        );
+        info!(
+            "Using exit gateway: {}, location: {}",
+            *exit_gateway.identity(),
+            exit_gateway
+                .two_letter_iso_country_code()
+                .map_or_else(|| "unknown".to_string(), |code| code.to_string())
+        );
+        info!(
+            "Using exit router address {}",
+            exit_gateway.ipr_address.unwrap()
+        );
     }
 
     // Get the IP address of the local LAN gateway
@@ -369,11 +338,11 @@ pub async fn setup_tunnel(
     platform::set_listener_status(TunStatus::EstablishingConnection);
 
     info!("Setting up mixnet client");
-    info!("Connecting to mixnet gateway: {entry_gateway_id}");
+    info!("Connecting to mixnet gateway: {}", entry_gateway.identity());
     let mixnet_client = timeout(
         Duration::from_secs(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS),
         crate::setup_mixnet_client(
-            &entry_gateway_id,
+            entry_gateway.identity(),
             &nym_vpn.data_path(),
             task_manager.subscribe_named("mixnet_client_main"),
             false,
@@ -390,10 +359,12 @@ pub async fn setup_tunnel(
 
     let tunnels_setup = match nym_vpn {
         SpecificVpn::Wg(vpn) => {
-            let entry_authenticator_address =
-                extract_authenticator(&entry_gateways_legacy, entry_gateway_id.to_string())?;
-            let exit_authenticator_address =
-                extract_authenticator(&exit_gateways_legacy, exit_gateway_id.to_string())?;
+            let entry_authenticator_address = entry_gateway
+                .authenticator_address
+                .ok_or(Error::AuthenticatorAddressNotFound)?;
+            let exit_authenticator_address = exit_gateway
+                .authenticator_address
+                .ok_or(Error::AuthenticatorAddressNotFound)?;
             let auth_addresses =
                 AuthAddresses::new(entry_authenticator_address, exit_authenticator_address);
             setup_wg_tunnel(
@@ -414,7 +385,7 @@ pub async fn setup_tunnel(
                 route_manager,
                 dns_monitor,
                 gateway_directory_client,
-                &exit_router_address,
+                &exit_gateway.ipr_address.unwrap(),
                 default_lan_gateway_ip,
             )
             .await
