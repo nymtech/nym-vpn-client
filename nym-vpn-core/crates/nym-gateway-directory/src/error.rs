@@ -1,18 +1,20 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_client_core::error::ClientCoreError;
-
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("identity not formatted correctly")]
-    NodeIdentityFormattingError,
+    #[error("identity not formatted correctly: {identity}")]
+    NodeIdentityFormattingError {
+        identity: String,
+        // TODO: uncomment when switching to latest nym repo rev
+        //source: nym_sdk::mixnet::ed25519::Ed25519RecoveryError,
+    },
 
     #[error("recipient is not formatted correctly: {address}")]
-    RecipientFormattingError2 {
+    RecipientFormattingError {
         address: String,
-        // TODO: uncomment this once we use latest nym repo ref
-        //error: nym_sdk::mixnet::RecipientFormattingError,
+        // TODO: uncomment when switching to latest nym repo rev
+        //source: nym_sdk::mixnet::RecipientFormattingError,
     },
 
     #[error("{0}")]
@@ -77,7 +79,9 @@ pub enum Error {
     },
 
     #[error("failed to select gateway based on low latency: {source}")]
-    FailedToSelectGatewayBasedOnLowLatency { source: ClientCoreError },
+    FailedToSelectGatewayBasedOnLowLatency {
+        source: nym_client_core::error::ClientCoreError,
+    },
 
     #[error("failed to select gateway randomly")]
     FailedToSelectGatewayRandomly,

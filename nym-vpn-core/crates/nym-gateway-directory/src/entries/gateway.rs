@@ -59,12 +59,13 @@ impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
     type Error = Error;
 
     fn try_from(gateway: nym_vpn_api_client::Gateway) -> Result<Self> {
-        let address = gateway.identity_key;
-        let identity = NodeIdentity::from_base58_string(&address).map_err(|_| {
-            Error::RecipientFormattingError2 {
-                address: address.to_string(),
-            }
-        })?;
+        let identity =
+            NodeIdentity::from_base58_string(&gateway.identity_key).map_err(|_source| {
+                Error::NodeIdentityFormattingError {
+                    identity: gateway.identity_key,
+                    //source,
+                }
+            })?;
         Ok(Gateway {
             identity,
             location: Some(gateway.location.into()),
@@ -78,10 +79,10 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
     type Error = Error;
 
     fn try_from(gateway: nym_validator_client::models::DescribedGateway) -> Result<Self> {
-        let address = gateway.identity();
-        let identity = NodeIdentity::from_base58_string(address).map_err(|_| {
-            Error::RecipientFormattingError2 {
-                address: address.to_string(),
+        let identity = NodeIdentity::from_base58_string(gateway.identity()).map_err(|_source| {
+            Error::NodeIdentityFormattingError {
+                identity: gateway.identity().to_string(),
+                //source,
             }
         })?;
         let ipr_address = gateway

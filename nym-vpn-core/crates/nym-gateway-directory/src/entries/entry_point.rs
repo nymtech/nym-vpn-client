@@ -38,8 +38,12 @@ impl Display for EntryPoint {
 
 impl EntryPoint {
     pub fn from_base58_string(base58: &str) -> Result<Self> {
-        let identity = NodeIdentity::from_base58_string(base58)
-            .map_err(|_| Error::NodeIdentityFormattingError)?;
+        let identity = NodeIdentity::from_base58_string(base58).map_err(|_source| {
+            Error::NodeIdentityFormattingError {
+                identity: base58.to_string(),
+                //source,
+            }
+        })?;
         Ok(EntryPoint::Gateway { identity })
     }
 
