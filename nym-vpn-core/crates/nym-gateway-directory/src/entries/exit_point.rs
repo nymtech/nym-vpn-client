@@ -7,16 +7,18 @@ use std::{
 };
 
 use crate::{
-    entries::described_gateway::{by_location_described, by_random_described},
+    // entries::described_gateway::{by_location_described, by_random_described},
     error::Result,
-    DescribedGatewayWithLocation, Error, IpPacketRouterAddress,
+    DescribedGatewayWithLocation,
+    Error,
+    IpPacketRouterAddress,
 };
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
 use super::{
-    described_gateway::by_identity,
+    // described_gateway::by_identity,
     gateway::{Gateway, GatewayList},
 };
 
@@ -55,72 +57,72 @@ impl ExitPoint {
     }
 
     // DEPRECATED: will be removed from nym-gateway-probe and then we can delete it
-    pub fn lookup_router_address(
-        &self,
-        gateways: &[DescribedGatewayWithLocation],
-        entry_gateway: Option<&NodeIdentity>,
-    ) -> Result<(IpPacketRouterAddress, Option<String>)> {
-        match &self {
-            ExitPoint::Address { address } => {
-                // There is no validation done when a ip packet router is specified by address
-                // since it might be private and not available in any directory.
-                Ok((IpPacketRouterAddress(*address), None))
-            }
-            ExitPoint::Gateway { identity } => {
-                let gateway = by_identity(gateways, identity)?;
-                Ok((
-                    IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
-                    gateway.two_letter_iso_country_code(),
-                ))
-            }
-            ExitPoint::Location { location } => {
-                log::info!("Selecting a random exit gateway in location: {}", location);
-                let exit_gateways = gateways
-                    .iter()
-                    .filter(|g| g.has_ip_packet_router())
-                    .filter(|g| g.is_current_build())
-                    .cloned()
-                    .collect::<Vec<_>>();
-
-                // If there is only one exit gateway available and it is the entry gateway, we
-                // should not use it as the exit gateway.
-                if exit_gateways.len() == 1
-                    && exit_gateways[0].node_identity().as_ref() == entry_gateway
-                {
-                    return Err(Error::OnlyAvailableExitGatewayIsTheEntryGateway {
-                        requested_location: location.clone(),
-                        gateway: Box::new(exit_gateways[0].clone()),
-                    });
-                }
-
-                let exit_gateways = exit_gateways
-                    .into_iter()
-                    .filter(|g| g.node_identity().as_ref() != entry_gateway)
-                    .collect::<Vec<_>>();
-
-                let gateway = by_location_described(&exit_gateways, location)?;
-                Ok((
-                    IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
-                    gateway.two_letter_iso_country_code(),
-                ))
-            }
-            ExitPoint::Random => {
-                log::info!("Selecting a random exit gateway");
-                let exit_gateways = gateways
-                    .iter()
-                    .filter(|g| g.has_ip_packet_router())
-                    .filter(|g| g.is_current_build())
-                    .filter(|g| g.node_identity().as_ref() != entry_gateway)
-                    .cloned()
-                    .collect::<Vec<_>>();
-                let gateway = by_random_described(&exit_gateways)?;
-                Ok((
-                    IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
-                    gateway.two_letter_iso_country_code(),
-                ))
-            }
-        }
-    }
+    // pub fn lookup_router_address(
+    //     &self,
+    //     gateways: &[DescribedGatewayWithLocation],
+    //     entry_gateway: Option<&NodeIdentity>,
+    // ) -> Result<(IpPacketRouterAddress, Option<String>)> {
+    //     match &self {
+    //         ExitPoint::Address { address } => {
+    //             // There is no validation done when a ip packet router is specified by address
+    //             // since it might be private and not available in any directory.
+    //             Ok((IpPacketRouterAddress(*address), None))
+    //         }
+    //         ExitPoint::Gateway { identity } => {
+    //             let gateway = by_identity(gateways, identity)?;
+    //             Ok((
+    //                 IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
+    //                 gateway.two_letter_iso_country_code(),
+    //             ))
+    //         }
+    //         ExitPoint::Location { location } => {
+    //             log::info!("Selecting a random exit gateway in location: {}", location);
+    //             let exit_gateways = gateways
+    //                 .iter()
+    //                 .filter(|g| g.has_ip_packet_router())
+    //                 .filter(|g| g.is_current_build())
+    //                 .cloned()
+    //                 .collect::<Vec<_>>();
+    //
+    //             // If there is only one exit gateway available and it is the entry gateway, we
+    //             // should not use it as the exit gateway.
+    //             if exit_gateways.len() == 1
+    //                 && exit_gateways[0].node_identity().as_ref() == entry_gateway
+    //             {
+    //                 return Err(Error::OnlyAvailableExitGatewayIsTheEntryGateway {
+    //                     requested_location: location.clone(),
+    //                     gateway: Box::new(exit_gateways[0].clone()),
+    //                 });
+    //             }
+    //
+    //             let exit_gateways = exit_gateways
+    //                 .into_iter()
+    //                 .filter(|g| g.node_identity().as_ref() != entry_gateway)
+    //                 .collect::<Vec<_>>();
+    //
+    //             let gateway = by_location_described(&exit_gateways, location)?;
+    //             Ok((
+    //                 IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
+    //                 gateway.two_letter_iso_country_code(),
+    //             ))
+    //         }
+    //         ExitPoint::Random => {
+    //             log::info!("Selecting a random exit gateway");
+    //             let exit_gateways = gateways
+    //                 .iter()
+    //                 .filter(|g| g.has_ip_packet_router())
+    //                 .filter(|g| g.is_current_build())
+    //                 .filter(|g| g.node_identity().as_ref() != entry_gateway)
+    //                 .cloned()
+    //                 .collect::<Vec<_>>();
+    //             let gateway = by_random_described(&exit_gateways)?;
+    //             Ok((
+    //                 IpPacketRouterAddress::try_from_described_gateway(&gateway.gateway)?,
+    //                 gateway.two_letter_iso_country_code(),
+    //             ))
+    //         }
+    //     }
+    // }
 
     pub fn lookup_gateway(&self, gateways: &GatewayList) -> Result<Gateway> {
         match &self {

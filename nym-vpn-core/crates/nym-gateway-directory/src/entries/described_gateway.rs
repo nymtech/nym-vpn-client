@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    error::{Error, Result},
-    helpers::*,
+    // error::{Error, Result},
+    // helpers::*,
     IpPacketRouterAddress,
 };
 use chrono::{DateTime, Utc};
@@ -110,13 +110,13 @@ impl From<DescribedGateway> for DescribedGatewayWithLocation {
 
 // DEPRECATED: This is the old way of selecting a random gateway. It is now done in the
 // GatewayList. This will be deleted after we port nym-gateway-probe over
-#[async_trait::async_trait]
-pub trait LookupGateway {
-    async fn lookup_gateway_identity(
-        &self,
-        gateways: &[DescribedGatewayWithLocation],
-    ) -> Result<(NodeIdentity, Option<String>)>;
-}
+// #[async_trait::async_trait]
+// pub trait LookupGateway {
+//     async fn lookup_gateway_identity(
+//         &self,
+//         gateways: &[DescribedGatewayWithLocation],
+//     ) -> Result<(NodeIdentity, Option<String>)>;
+// }
 
 // pub fn verify_identity(
 //     gateways: &[DescribedGatewayWithLocation],
@@ -128,16 +128,16 @@ pub trait LookupGateway {
 //     Ok((*identity, None))
 // }
 //
-pub fn by_identity(
-    gateways: &[DescribedGatewayWithLocation],
-    identity: &NodeIdentity,
-) -> Result<DescribedGatewayWithLocation> {
-    gateways
-        .iter()
-        .find(|gateway| gateway.identity_key() == &identity.to_string())
-        .cloned()
-        .ok_or(Error::NoMatchingGateway)
-}
+// pub fn by_identity(
+//     gateways: &[DescribedGatewayWithLocation],
+//     identity: &NodeIdentity,
+// ) -> Result<DescribedGatewayWithLocation> {
+//     gateways
+//         .iter()
+//         .find(|gateway| gateway.identity_key() == &identity.to_string())
+//         .cloned()
+//         .ok_or(Error::NoMatchingGateway)
+// }
 
 // pub fn by_location(
 //     gateways: &[DescribedGatewayWithLocation],
@@ -158,24 +158,24 @@ pub fn by_identity(
 //     select_random_gateway_node(gateways_with_specified_location)
 // }
 
-pub fn by_location_described(
-    gateways: &[DescribedGatewayWithLocation],
-    location: &str,
-) -> Result<DescribedGatewayWithLocation> {
-    // Caution: if an explorer-api for a different network was specified, then
-    // none of the gateways will have an associated location. There is a check
-    // against this earlier in the call stack to guard against this scenario.
-    let gateways_with_specified_location = gateways
-        .iter()
-        .filter(|g| g.is_two_letter_iso_country_code(location));
-    if gateways_with_specified_location.clone().count() == 0 {
-        return Err(Error::NoMatchingGatewayForLocation {
-            requested_location: location.to_string(),
-            available_countries: list_all_country_iso_codes(gateways),
-        });
-    }
-    select_random_described_gateway(gateways_with_specified_location).cloned()
-}
+// pub fn by_location_described(
+//     gateways: &[DescribedGatewayWithLocation],
+//     location: &str,
+// ) -> Result<DescribedGatewayWithLocation> {
+//     // Caution: if an explorer-api for a different network was specified, then
+//     // none of the gateways will have an associated location. There is a check
+//     // against this earlier in the call stack to guard against this scenario.
+//     let gateways_with_specified_location = gateways
+//         .iter()
+//         .filter(|g| g.is_two_letter_iso_country_code(location));
+//     if gateways_with_specified_location.clone().count() == 0 {
+//         return Err(Error::NoMatchingGatewayForLocation {
+//             requested_location: location.to_string(),
+//             available_countries: list_all_country_iso_codes(gateways),
+//         });
+//     }
+//     select_random_described_gateway(gateways_with_specified_location).cloned()
+// }
 
 // pub async fn by_random_low_latency(
 //     gateways: &[DescribedGatewayWithLocation],
@@ -190,8 +190,8 @@ pub fn by_location_described(
 //     select_random_gateway_node(gateways)
 // }
 //
-pub fn by_random_described(
-    gateways: &[DescribedGatewayWithLocation],
-) -> Result<DescribedGatewayWithLocation> {
-    select_random_described_gateway(gateways).cloned()
-}
+// pub fn by_random_described(
+//     gateways: &[DescribedGatewayWithLocation],
+// ) -> Result<DescribedGatewayWithLocation> {
+//     select_random_described_gateway(gateways).cloned()
+// }

@@ -9,7 +9,7 @@ mod helpers;
 pub use crate::{
     entries::{
         auth_addresses::{extract_authenticator, AuthAddress, AuthAddresses},
-        described_gateway::{DescribedGatewayWithLocation, LookupGateway},
+        described_gateway::DescribedGatewayWithLocation,
         entry_point::EntryPoint,
         exit_point::{extract_router_address, ExitPoint},
         gateway::{Gateway, GatewayList, Location},
