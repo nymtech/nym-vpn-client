@@ -8,8 +8,12 @@ pub enum Error {
     #[error("identity not formatted correctly")]
     NodeIdentityFormattingError,
 
-    #[error("recipient is not formatted correctly")]
-    RecipientFormattingError,
+    #[error("recipient is not formatted correctly: {address}")]
+    RecipientFormattingError2 {
+        address: String,
+        // TODO: uncomment this once we use latest nym repo ref
+        //error: nym_sdk::mixnet::RecipientFormattingError,
+    },
 
     #[error("{0}")]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),

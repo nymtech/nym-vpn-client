@@ -13,7 +13,7 @@ use nym_topology::IntoGatewayNode;
 use nym_validator_client::{models::DescribedGateway, NymApiClient};
 use nym_vpn_api_client::VpnApiClientExt;
 use std::{fmt, net::IpAddr, time::Duration};
-use tracing::{debug, info, warn};
+use tracing::{debug, error, info, warn};
 use url::Url;
 
 #[derive(Clone, Debug)]
@@ -205,7 +205,7 @@ impl GatewayClient {
             .into_iter()
             .filter_map(|gw| {
                 Gateway::try_from(gw)
-                    .inspect_err(|err| warn!("Failed to parse gateway: {err}"))
+                    .inspect_err(|err| error!("Failed to parse gateway: {err}"))
                     .ok()
             })
             .collect();
@@ -213,14 +213,15 @@ impl GatewayClient {
     }
 
     pub async fn lookup_entry_gateways(&self) -> Result<GatewayList> {
-        let entry_gateways = if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching entry gateways from nym-vpn-api...");
-            let entry_gateways = nym_vpn_api_client.get_entry_gateways().await?;
-            let mut entry_gateways: Vec<_> = entry_gateways
+            let mut entry_gateways: Vec<_> = nym_vpn_api_client
+                .get_entry_gateways()
+                .await?
                 .into_iter()
                 .filter_map(|gw| {
                     Gateway::try_from(gw)
-                        .inspect_err(|err| warn!("Failed to parse gateway: {err}"))
+                        .inspect_err(|err| error!("Failed to parse gateway: {err}"))
                         .ok()
                 })
                 .collect();
@@ -229,31 +230,22 @@ impl GatewayClient {
             // the nymvpn.com endpoints are updated to also include these fields.
             let described_gateways = self.lookup_described_gateways().await?;
             append_ipr_and_authenticator_addresses(&mut entry_gateways, described_gateways);
-            entry_gateways
+            Ok(GatewayList::new(entry_gateways))
         } else {
-            self.lookup_described_gateways()
+            self.lookup_all_gateways_from_nym_api().await
+        }
+    }
+
+    pub async fn lookup_exit_gateways(&self) -> Result<GatewayList> {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching exit gateways from nym-vpn-api...");
+            let mut exit_gateways: Vec<_> = nym_vpn_api_client
+                .get_exit_gateways()
                 .await?
                 .into_iter()
                 .filter_map(|gw| {
                     Gateway::try_from(gw)
-                        .inspect_err(|err| warn!("Failed to parse gateway: {err}"))
-                        .ok()
-                })
-                .collect()
-        };
-
-        Ok(GatewayList::new(entry_gateways))
-    }
-
-    pub async fn lookup_exit_gateways(&self) -> Result<GatewayList> {
-        let exit_gateways = if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching exit gateways from nym-vpn-api...");
-            let exit_gateways = nym_vpn_api_client.get_exit_gateways().await?;
-            let mut exit_gateways: Vec<_> = exit_gateways
-                .into_iter()
-                .filter_map(|gw| {
-                    Gateway::try_from(gw)
-                        .inspect_err(|err| warn!("Failed to parse gateway: {err}"))
+                        .inspect_err(|err| error!("Failed to parse gateway: {err}"))
                         .ok()
                 })
                 .collect();
@@ -262,21 +254,12 @@ impl GatewayClient {
             // the nymvpn.com endpoints are updated to also include these fields.
             let described_gateways = self.lookup_described_gateways().await?;
             append_ipr_and_authenticator_addresses(&mut exit_gateways, described_gateways);
-            exit_gateways
+            Ok(GatewayList::new(exit_gateways))
         } else {
-            self.lookup_described_gateways()
-                .await?
-                .into_iter()
-                .filter_map(|gw| {
-                    Gateway::try_from(gw)
-                        .inspect_err(|err| warn!("Failed to parse gateway: {err}"))
-                        .ok()
-                })
-                .filter(Gateway::has_ipr_address)
-                .collect()
-        };
-
-        Ok(GatewayList::new(exit_gateways))
+            self.lookup_all_gateways_from_nym_api()
+                .await
+                .map(|gateways| gateways.into_exit_gateways())
+        }
     }
 }
 

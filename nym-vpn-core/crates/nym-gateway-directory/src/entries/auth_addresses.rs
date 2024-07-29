@@ -12,8 +12,11 @@ pub struct AuthAddress(pub Option<Recipient>);
 
 impl AuthAddress {
     pub(crate) fn try_from_base58_string(address: &str) -> Result<Self> {
-        let recipient = Recipient::try_from_base58_string(address)
-            .map_err(|_| Error::RecipientFormattingError)?;
+        let recipient = Recipient::try_from_base58_string(address).map_err(|_| {
+            Error::RecipientFormattingError2 {
+                address: address.to_string(),
+            }
+        })?;
         Ok(AuthAddress(Some(recipient)))
     }
 }
