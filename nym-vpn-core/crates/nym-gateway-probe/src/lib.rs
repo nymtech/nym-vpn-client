@@ -46,19 +46,6 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     let gateways = lookup_gateways().await?;
     let entry_gateway = entry_point.lookup_gateway(&gateways)?;
     let exit_router_address = entry_gateway.ipr_address;
-
-    // Setup the exit gateway to be the same as entry gateway.
-    // let exit_point = ExitPoint::Gateway {
-    //     identity: entry_gateway_id,
-    // };
-    // let exit_gateways = extract_out_exit_gateways(gateways.clone()).await;
-    // let exit_router_address = exit_point
-    //     .lookup_router_address(&exit_gateways, None)
-    //     .map(|(address, _)| address)
-    //     .ok();
-    //
-    // let exit_router_address = exit_point.lookup_router_address
-
     let entry_gateway_id = entry_gateway.identity();
 
     // Connect to the mixnet
@@ -107,13 +94,6 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
 async fn lookup_gateways() -> anyhow::Result<GatewayList> {
     let gateway_config = GatewayDirectoryConfig::new_from_env();
     info!("nym-api: {}", gateway_config.api_url());
-    // info!(
-    //     "explorer-api: {}",
-    //     gateway_config
-    //         .explorer_url()
-    //         .map(|url| url.to_string())
-    //         .unwrap_or("unavailable".to_string())
-    // );
     info!(
         "nym-vpn-api: {}",
         gateway_config
@@ -126,22 +106,7 @@ async fn lookup_gateways() -> anyhow::Result<GatewayList> {
     let gateway_client = GatewayDirectoryClient::new(gateway_config.clone(), user_agent)?;
     let gateways = gateway_client.lookup_all_gateways_from_nym_api().await?;
     Ok(gateways)
-
-    // let gateways = gateways.into_iter().map(|gw| GatewayList::from(gw)
-    // Ok(gateway_client
-    //     .lookup_described_gateways()
-    //     .await?
-    //     .map(|gateways| gateways.into_iter().collect())
 }
-
-// async fn extract_out_exit_gateways(
-//     gateways: Vec<DescribedGatewayWithLocation>,
-// ) -> Vec<DescribedGatewayWithLocation> {
-//     gateways
-//         .into_iter()
-//         .filter(|gateway| gateway.is_current_build())
-//         .collect()
-// }
 
 fn mixnet_debug_config() -> nym_client_core::config::DebugConfig {
     let mut debug_config = nym_client_core::config::DebugConfig::default();

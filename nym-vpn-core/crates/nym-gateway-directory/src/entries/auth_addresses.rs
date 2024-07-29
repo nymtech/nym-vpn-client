@@ -1,16 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    fmt::Display,
-    // str::FromStr
-};
+use std::fmt::Display;
 
-use crate::{
-    error::Result,
-    // DescribedGatewayWithLocation,
-    Error,
-};
+use crate::{error::Result, Error};
 use nym_sdk::mixnet::Recipient;
 
 // optional, until we remove the wireguard feature flag
@@ -57,22 +50,3 @@ impl Display for AuthAddresses {
         )
     }
 }
-
-// pub fn extract_authenticator(
-//     gateways: &[DescribedGatewayWithLocation],
-//     identity: String,
-// ) -> Result<AuthAddress> {
-//     let auth_addr = gateways
-//         .iter()
-//         .find(|gw| *gw.gateway.bond.identity() == identity)
-//         .ok_or(Error::RequestedGatewayIdNotFound(identity.clone()))?
-//         .gateway
-//         .self_described
-//         .clone()
-//         .ok_or(Error::NoGatewayDescriptionAvailable(identity))?
-//         .authenticator
-//         .map(|auth| Recipient::from_str(&auth.address))
-//         .transpose()
-//         .map_err(|_| Error::RecipientFormattingError)?;
-//     Ok(AuthAddress(auth_addr))
-// }
