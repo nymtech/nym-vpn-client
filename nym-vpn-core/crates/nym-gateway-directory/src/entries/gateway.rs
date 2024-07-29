@@ -156,4 +156,13 @@ impl GatewayList {
     pub fn is_empty(&self) -> bool {
         self.gateways.is_empty()
     }
+
+    pub fn into_exit_gateways(self) -> GatewayList {
+        let gw = self
+            .gateways
+            .into_iter()
+            .filter(Gateway::has_ipr_address)
+            .collect();
+        Self::new(gw)
+    }
 }
