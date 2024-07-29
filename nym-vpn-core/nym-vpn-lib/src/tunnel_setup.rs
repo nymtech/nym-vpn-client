@@ -294,17 +294,11 @@ pub async fn setup_tunnel(
         })?;
 
     // Setup the gateway that we will use as the entry point
-    let entry_gateways = gateway_directory_client
-        .lookup_entry_gateways()
-        .await
-        .unwrap();
+    let entry_gateways = gateway_directory_client.lookup_entry_gateways().await?;
     let entry_gateway = nym_vpn.entry_point().lookup_gateway(&entry_gateways)?;
 
     // Setup the gateway that we will use as the exit point
-    let mut exit_gateways = gateway_directory_client
-        .lookup_exit_gateways()
-        .await
-        .unwrap();
+    let mut exit_gateways = gateway_directory_client.lookup_exit_gateways().await?;
     // Exclude the entry gateway from the list of exit gateways for privacy reasons
     exit_gateways.remove_gateway(&entry_gateway);
     let exit_gateway = nym_vpn.exit_point().lookup_gateway(&exit_gateways)?;

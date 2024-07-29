@@ -25,6 +25,9 @@ pub enum Error {
     #[error(transparent)]
     HarbourMasterApiError(#[from] nym_harbour_master_client::HarbourMasterApiError),
 
+    #[error(transparent)]
+    NymVpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
+
     #[error("failed to fetch location data from explorer-api: {error}")]
     FailedFetchLocationData {
         error: nym_explorer_client::ExplorerApiError,
