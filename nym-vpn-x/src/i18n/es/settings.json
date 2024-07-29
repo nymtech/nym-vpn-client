@@ -29,7 +29,6 @@
     "licenses-js": "Licencia (JS)"
   },
   "display-theme": "Tema",
-  "logs": "Registros",
   "add-credential-button": "Agregar credencial para conectar",
   "credential": {
     "title": "Credencial"
@@ -43,5 +42,8 @@
   "quit": "Cerrar NymVPN",
   "notifications": {
     "title": "Notificaciones de escritorio"
+  },
+  "logs": {
+    "title": "Registros"
   }
 }
