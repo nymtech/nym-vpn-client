@@ -1,8 +1,6 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::str::FromStr;
-
 use crate::{
     error::{Error, Result},
     helpers::*,
@@ -10,7 +8,7 @@ use crate::{
 };
 use chrono::{DateTime, Utc};
 use nym_explorer_client::Location;
-use nym_sdk::mixnet::{NodeIdentity, Recipient};
+use nym_sdk::mixnet::NodeIdentity;
 use nym_validator_client::{client::IdentityKey, models::DescribedGateway};
 
 const BUILD_VERSION: &str = "1.1.34";
@@ -97,8 +95,7 @@ impl DescribedGatewayWithLocation {
             .as_ref()
             .and_then(|d| d.ip_packet_router.as_ref())
             .map(|ipr| ipr.address.clone())
-            .and_then(|address| Recipient::from_str(&address).ok())
-            .map(|address| IpPacketRouterAddress(address.clone()))
+            .and_then(|address| IpPacketRouterAddress::try_from_base58_string(&address).ok())
     }
 }
 

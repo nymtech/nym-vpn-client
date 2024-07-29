@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_client_core::error::ClientCoreError;
-use nym_sdk::mixnet::NodeIdentity;
 
 use crate::DescribedGatewayWithLocation;
 
@@ -85,12 +84,6 @@ pub enum Error {
     OnlyAvailableExitGatewayIsTheEntryGateway {
         requested_location: String,
         gateway: Box<DescribedGatewayWithLocation>,
-    },
-
-    #[error("the only available exit gateway is the entry gateway")]
-    OnlyAvailableExitGatewayIsTheEntryGateway2 {
-        requested_location: String,
-        gateway: NodeIdentity,
     },
 }
 
