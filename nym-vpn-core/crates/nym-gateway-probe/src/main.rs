@@ -2,8 +2,6 @@ use anyhow::anyhow;
 use clap::Parser;
 use nym_config::defaults::setup_env;
 use nym_gateway_directory::EntryPoint;
-use nym_gateway_directory::NodeIdentity;
-use rand::seq::IteratorRandom;
 use std::path::PathBuf;
 use tracing::*;
 
@@ -74,9 +72,9 @@ async fn fetch_random_gateway_with_ipr() -> anyhow::Result<EntryPoint> {
     // gateways without an IPR as well
     let gateways = nym_gateway_probe::fetch_gateways_with_ipr().await?;
     let gateway = gateways
-        .iter()
-        .choose(&mut rand::thread_rng())
+        .random_gateway()
         .ok_or(anyhow!("No gateways returned by nym-api"))?;
-    let identity = NodeIdentity::from_base58_string(gateway.identity_key())?;
-    Ok(EntryPoint::Gateway { identity })
+    Ok(EntryPoint::Gateway {
+        identity: *gateway.identity(),
+    })
 }

@@ -4,8 +4,8 @@ use nym_bin_common::bin_info;
 use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
-    Config as GatewayDirectoryConfig, DescribedGatewayWithLocation, EntryPoint, ExitPoint,
-    GatewayClient as GatewayDirectoryClient, IpPacketRouterAddress, LookupGateway,
+    Config as GatewayDirectoryConfig, EntryPoint, GatewayClient as GatewayDirectoryClient,
+    GatewayList, IpPacketRouterAddress,
 };
 use nym_ip_packet_client::{IprClient, SharedMixnetClient};
 use nym_ip_packet_requests::{
@@ -33,29 +33,20 @@ mod types;
 pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
 
-pub async fn fetch_gateways() -> anyhow::Result<Vec<DescribedGatewayWithLocation>> {
+pub async fn fetch_gateways() -> anyhow::Result<GatewayList> {
     lookup_gateways().await
 }
 
-pub async fn fetch_gateways_with_ipr() -> anyhow::Result<Vec<DescribedGatewayWithLocation>> {
-    let gateways = lookup_gateways().await?;
-    Ok(extract_out_exit_gateways(gateways).await)
+pub async fn fetch_gateways_with_ipr() -> anyhow::Result<GatewayList> {
+    Ok(lookup_gateways().await?.into_exit_gateways())
 }
 
 pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     // Setup the entry gateways
     let gateways = lookup_gateways().await?;
-    let (entry_gateway_id, _) = entry_point.lookup_gateway_identity(&gateways).await?;
-
-    // Setup the exit gateway to be the same as entry gateway.
-    let exit_point = ExitPoint::Gateway {
-        identity: entry_gateway_id,
-    };
-    let exit_gateways = extract_out_exit_gateways(gateways.clone()).await;
-    let exit_router_address = exit_point
-        .lookup_router_address(&exit_gateways, None)
-        .map(|(address, _)| address)
-        .ok();
+    let entry_gateway = entry_point.lookup_gateway(&gateways)?;
+    let exit_router_address = entry_gateway.ipr_address;
+    let entry_gateway_id = entry_gateway.identity();
 
     // Connect to the mixnet
     let mixnet_client = MixnetClientBuilder::new_ephemeral()
@@ -100,38 +91,21 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     })
 }
 
-async fn lookup_gateways() -> anyhow::Result<Vec<DescribedGatewayWithLocation>> {
+async fn lookup_gateways() -> anyhow::Result<GatewayList> {
     let gateway_config = GatewayDirectoryConfig::new_from_env();
     info!("nym-api: {}", gateway_config.api_url());
     info!(
-        "explorer-api: {}",
+        "nym-vpn-api: {}",
         gateway_config
-            .explorer_url()
-            .map(|url| url.to_string())
-            .unwrap_or("unavailable".to_string())
-    );
-    info!(
-        "harbour-master: {}",
-        gateway_config
-            .harbour_master_url()
+            .nym_vpn_api_url()
             .map(|url| url.to_string())
             .unwrap_or("unavailable".to_string())
     );
 
     let user_agent = bin_info!().into();
     let gateway_client = GatewayDirectoryClient::new(gateway_config.clone(), user_agent)?;
-    Ok(gateway_client
-        .lookup_described_gateways_with_location()
-        .await?)
-}
-
-async fn extract_out_exit_gateways(
-    gateways: Vec<DescribedGatewayWithLocation>,
-) -> Vec<DescribedGatewayWithLocation> {
-    gateways
-        .into_iter()
-        .filter(|gateway| gateway.is_current_build())
-        .collect()
+    let gateways = gateway_client.lookup_all_gateways_from_nym_api().await?;
+    Ok(gateways)
 }
 
 fn mixnet_debug_config() -> nym_client_core::config::DebugConfig {

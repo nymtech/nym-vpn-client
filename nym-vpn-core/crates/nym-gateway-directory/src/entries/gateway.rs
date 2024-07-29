@@ -5,6 +5,7 @@ use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::IntoGatewayNode;
 use rand::seq::IteratorRandom;
+use tracing::error;
 
 use crate::{error::Result, AuthAddress, Error, IpPacketRouterAddress};
 
@@ -58,8 +59,13 @@ impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
     type Error = Error;
 
     fn try_from(gateway: nym_vpn_api_client::Gateway) -> Result<Self> {
-        let identity = NodeIdentity::from_base58_string(&gateway.identity_key)
-            .map_err(|_| Error::RecipientFormattingError)?;
+        let identity =
+            NodeIdentity::from_base58_string(&gateway.identity_key).map_err(|_source| {
+                Error::NodeIdentityFormattingError {
+                    identity: gateway.identity_key,
+                    //source,
+                }
+            })?;
         Ok(Gateway {
             identity,
             location: Some(gateway.location.into()),
@@ -73,18 +79,30 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
     type Error = Error;
 
     fn try_from(gateway: nym_validator_client::models::DescribedGateway) -> Result<Self> {
-        let identity = NodeIdentity::from_base58_string(gateway.identity())
-            .map_err(|_| Error::RecipientFormattingError)?;
+        let identity = NodeIdentity::from_base58_string(gateway.identity()).map_err(|_source| {
+            Error::NodeIdentityFormattingError {
+                identity: gateway.identity().to_string(),
+                //source,
+            }
+        })?;
         let ipr_address = gateway
             .self_described
             .as_ref()
             .and_then(|d| d.ip_packet_router.clone())
-            .and_then(|ipr| IpPacketRouterAddress::try_from_base58_string(&ipr.address).ok());
+            .and_then(|ipr| {
+                IpPacketRouterAddress::try_from_base58_string(&ipr.address)
+                    .inspect_err(|err| error!("Failed to parse IPR address: {err}"))
+                    .ok()
+            });
         let authenticator_address = gateway
             .self_described
             .as_ref()
             .and_then(|d| d.authenticator.clone())
-            .and_then(|a| AuthAddress::try_from_base58_string(&a.address).ok());
+            .and_then(|a| {
+                AuthAddress::try_from_base58_string(&a.address)
+                    .inspect_err(|err| error!("Failed to parse authenticator address: {err}"))
+                    .ok()
+            });
         Ok(Gateway {
             identity,
             location: None,
@@ -155,5 +173,14 @@ impl GatewayList {
 
     pub fn is_empty(&self) -> bool {
         self.gateways.is_empty()
+    }
+
+    pub fn into_exit_gateways(self) -> GatewayList {
+        let gw = self
+            .gateways
+            .into_iter()
+            .filter(Gateway::has_ipr_address)
+            .collect();
+        Self::new(gw)
     }
 }

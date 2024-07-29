@@ -1,17 +1,21 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_client_core::error::ClientCoreError;
-
-use crate::DescribedGatewayWithLocation;
-
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("identity not formatted correctly")]
-    NodeIdentityFormattingError,
+    #[error("identity not formatted correctly: {identity}")]
+    NodeIdentityFormattingError {
+        identity: String,
+        // TODO: uncomment when switching to latest nym repo rev
+        //source: nym_sdk::mixnet::ed25519::Ed25519RecoveryError,
+    },
 
-    #[error("recipient is not formatted correctly")]
-    RecipientFormattingError,
+    #[error("recipient is not formatted correctly: {address}")]
+    RecipientFormattingError {
+        address: String,
+        // TODO: uncomment when switching to latest nym repo rev
+        //source: nym_sdk::mixnet::RecipientFormattingError,
+    },
 
     #[error("{0}")]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
@@ -75,19 +79,15 @@ pub enum Error {
     },
 
     #[error("failed to select gateway based on low latency: {source}")]
-    FailedToSelectGatewayBasedOnLowLatency { source: ClientCoreError },
+    FailedToSelectGatewayBasedOnLowLatency {
+        source: nym_client_core::error::ClientCoreError,
+    },
 
     #[error("failed to select gateway randomly")]
     FailedToSelectGatewayRandomly,
 
     #[error("gateway {0} doesn't have a description available")]
     NoGatewayDescriptionAvailable(String),
-
-    #[error("the only available exit gateway is the entry gateway")]
-    OnlyAvailableExitGatewayIsTheEntryGateway {
-        requested_location: String,
-        gateway: Box<DescribedGatewayWithLocation>,
-    },
 }
 
 // Result type based on our error type

@@ -33,11 +33,8 @@ pub async fn get_low_latency_entry_country() -> Result<Country> {
             error!("failed to query low latency gateway: {}", e);
         })?;
     let country = described
-        .location()
-        .map(|l| Country {
-            name: l.country_name.to_string(),
-            code: l.two_letter_iso_country_code.to_string(),
-        })
+        .location
+        .and_then(|location| Country::try_new_from_code(&location.two_letter_iso_country_code))
         .ok_or(anyhow!("no location found"))?;
 
     Ok(country)
@@ -75,10 +72,7 @@ pub async fn get_gateway_countries(node_type: NodeType) -> Result<Vec<Country>> 
         .0
         .iter()
         .filter_map(|code| {
-            let country = rust_iso3166::from_alpha2(code).map(|country| Country {
-                name: country.name.to_string(),
-                code: country.alpha2.to_string(),
-            });
+            let country = Country::try_new_from_code(code);
             if country.is_none() {
                 warn!("unknown country code: {}", code);
             }
