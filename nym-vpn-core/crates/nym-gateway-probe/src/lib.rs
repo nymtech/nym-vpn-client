@@ -45,9 +45,8 @@ pub async fn fetch_gateways_with_ipr() -> anyhow::Result<Vec<DescribedGatewayWit
 pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     // Setup the entry gateways
     let gateways = lookup_gateways().await?;
-    let gateway_list = todo!();
     let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
-    let (entry_gateway_id, _) = entry_point.lookup_gateway_identity(&gateways).await?;
+    // let (entry_gateway_id, _) = entry_point.lookup_gateway_identity(&gateways).await?;
 
     // Setup the exit gateway to be the same as entry gateway.
     let exit_point = ExitPoint::Gateway {
@@ -122,7 +121,9 @@ async fn lookup_gateways() -> anyhow::Result<Vec<GatewayList>> {
 
     let user_agent = bin_info!().into();
     let gateway_client = GatewayDirectoryClient::new(gateway_config.clone(), user_agent)?;
-    let gateways = gateway_client.lookup_described_gateways().await?;
+    let gateways = gateway_client.lookup_all_gateways_from_nym_api().await?;
+    Ok(gateways)
+
     // let gateways = gateways.into_iter().map(|gw| GatewayList::from(gw)
     // Ok(gateway_client
     //     .lookup_described_gateways()

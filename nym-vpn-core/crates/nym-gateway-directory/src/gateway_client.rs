@@ -494,7 +494,8 @@ impl GatewayClient {
     }
 
     pub async fn lookup_all_gateways_from_nym_api(&self) -> Result<GatewayList> {
-        self.lookup_described_gateways()
+        let gateways = self
+            .lookup_described_gateways()
             .await?
             .into_iter()
             .filter_map(|gw| {
@@ -502,7 +503,8 @@ impl GatewayClient {
                     .inspect_err(|err| warn!("Failed to parse gateway: {err}"))
                     .ok()
             })
-            .collect()
+            .collect();
+        Ok(GatewayList::new(gateways))
     }
 
     pub async fn lookup_entry_gateways(&self) -> Result<GatewayList> {
