@@ -15,26 +15,25 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     }()
     private lazy var logger = Logger(label: "MixnetTunnel")
 
-    override func startTunnel(options: [String: NSObject]?, completionHandler: @escaping (Error?) -> Void) {
+    override init() {
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label)
         }
+    }
+
+    override func startTunnel(options: [String: NSObject]? = nil) async throws {
         logger.log(level: .info, "Start tunnel...")
         guard
             let tunnelProviderProtocol = self.protocolConfiguration as? NETunnelProviderProtocol,
             let mixnetConfig = tunnelProviderProtocol.asMixnetConfig()
         else {
             logger.log(level: .info, "Start tunnel: invalid saved configuration")
-            completionHandler(PacketTunnelProviderError.invalidSavedConfiguration)
-            return
+            throw PacketTunnelProviderError.invalidSavedConfiguration
         }
-
-        let semaphore = DispatchSemaphore(value: 0)
 
         let callback: () -> Void = { [weak self] in
             guard let config = self?.mixnetTunnelProvider.nymConfig
             else {
-                semaphore.signal()
                 return
             }
 
@@ -44,48 +43,28 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 level: .info,
                 "Start tunnel: \(String(describing: self?.mixnetAdapter.tunnelFileDescriptor))"
             )
-            semaphore.signal()
         }
         mixnetTunnelProvider.nymOnConfigure = callback
+
         do {
-            logger.log(level: .info, "Start tunnel: start")
+            self.logger.log(level: .info, "Start tunnel: start")
             try mixnetAdapter.start(
                 with: mixnetConfig.asVpnConfig(mixnetTunnelProvider: mixnetAdapter.mixnetTunnelProvider)
             )
         } catch let error {
             logger.log(level: .error, "Start tunnel: \(error)")
-            completionHandler(error)
+            throw error
         }
-        semaphore.wait()
-
         logger.log(level: .info, "Start tunnel: connected")
-        completionHandler(nil)
     }
 
-    override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
+    override func stopTunnel(with reason: NEProviderStopReason) async {
         do {
             try mixnetAdapter.stop()
+            logger.log(level: .error, "Stop tunnel reason: \(reason)")
         } catch let error {
-            // TODO: handle error
-            print(error)
+            logger.log(level: .error, "Stop tunnel reason: \(reason), error: \(error)")
         }
-        completionHandler()
-    }
-
-    override func handleAppMessage(_ messageData: Data, completionHandler: ((Data?) -> Void)?) {
-        // Add code here to handle the message.
-        if let handler = completionHandler {
-            handler(messageData)
-        }
-    }
-
-    override func sleep(completionHandler: @escaping () -> Void) {
-        // Add code here to get ready to sleep.
-        completionHandler()
-    }
-
-    override func wake() {
-        // Add code here to wake up.
     }
 }
 
@@ -93,23 +72,16 @@ private extension PacketTunnelProvider {
     func configure(with config: NymConfig) {
         let networkSettings = MixnetTunnelSettingsGenerator(nymConfig: config).generateNetworkSettings()
         do {
-            try? setNetworkSettings(networkSettings)
+            try setNetworkSettings(networkSettings)
+        } catch {
+            logger.log(level: .error, "Configure error: \(error)")
         }
     }
 
-    /// Set network tunnel configuration.
-    /// This method ensures that the call to `setTunnelNetworkSettings` does not time out, as in
-    /// certain scenarios the completion handler given to it may not be invoked by the system.
-    ///
-    /// - Parameters:
-    ///   - networkSettings: an instance of type `NEPacketTunnelNetworkSettings`.
-    /// - Throws: an error of type `WireGuardAdapterError`.
-    /// - Returns: `PacketTunnelSettingsGenerator`.
-    private func setNetworkSettings(_ networkSettings: NEPacketTunnelNetworkSettings) throws {
+    func setNetworkSettings(_ networkSettings: NEPacketTunnelNetworkSettings) throws {
         var systemError: Error?
         let condition = NSCondition()
 
-        // Activate the condition
         condition.lock()
         defer { condition.unlock() }
 
@@ -118,17 +90,14 @@ private extension PacketTunnelProvider {
             condition.signal()
         }
 
-        // Packet tunnel's `setTunnelNetworkSettings` times out in certain
-        // scenarios & never calls the given callback.
         let setTunnelNetworkSettingsTimeout: TimeInterval = 5 // seconds
 
-        if condition.wait(until: Date().addingTimeInterval(setTunnelNetworkSettingsTimeout)) {
-            // TODO: handle error
-            if let systemError = systemError {
-                // throw WireGuardAdapterError.setNetworkSettings(systemError)
-            }
-        } else {
-            // self.logHandler(.error, "setTunnelNetworkSettings timed out after 5 seconds; proceeding anyway")
+        if !condition.wait(until: Date().addingTimeInterval(setTunnelNetworkSettingsTimeout)) {
+            logger.log(level: .error, "setTunnelNetworkSettings timed out")
+        }
+
+        if let error = systemError {
+            throw error
         }
     }
 }

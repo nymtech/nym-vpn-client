@@ -217,7 +217,9 @@ private extension AddCredentialsView {
             .background(NymColor.primaryOrange)
             .cornerRadius(8)
             .onTapGesture {
-                viewModel.isScannerDisplayed.toggle()
+                Task { @MainActor in
+                    viewModel.isScannerDisplayed.toggle()
+                }
             }
     }
 }

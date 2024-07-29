@@ -31,7 +31,7 @@ extension TunnelsManager {
             // This is an ugly hack to reactivate the tunnel that has been deactivated like that.
             if let activeTunnel = activeTunnel {
                 if activeTunnel.status == .connected || activeTunnel.status == .connecting {
-                    self.connect(tunnel: activeTunnel)
+                    try await connect(tunnel: activeTunnel)
                 }
                 if activeTunnel.status == .connected || activeTunnel.status == .connecting {
                     activeTunnel.status = .restarting

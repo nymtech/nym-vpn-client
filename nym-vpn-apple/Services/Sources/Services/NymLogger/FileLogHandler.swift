@@ -28,6 +28,11 @@ public class FileLogHandler: LogHandler {
         return logFileURL
     }
 
+    public static func deleteLogs() {
+        guard let logFileURL = FileLogHandler.logFileURL else { return }
+        try? FileManager.default.removeItem(at: logFileURL)
+    }
+
     public subscript(metadataKey key: String) -> Logging.Logger.Metadata.Value? {
         get { metadata[key] }
         set { metadata[key] = newValue }
@@ -74,9 +79,9 @@ public class FileLogHandler: LogHandler {
 
         if FileManager.default.fileExists(atPath: logFileURL.path()) {
             let fileHandle = try? FileHandle(forWritingTo: logFileURL)
-            fileHandle?.seekToEndOfFile()
-            fileHandle?.write(data)
-            fileHandle?.closeFile()
+            _ = try? fileHandle?.seekToEnd()
+            try? fileHandle?.write(contentsOf: data)
+            try? fileHandle?.close()
         } else {
             try? data.write(to: logFileURL, options: .atomic)
         }

@@ -749,6 +749,17 @@
         }
       }
     },
+    "logs.delete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        }
+      }
+    },
     "logs.noLogs" : {
       "extractionState" : "manual",
       "localizations" : {

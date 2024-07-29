@@ -3,6 +3,7 @@ import Theme
 import UIComponents
 
 public struct LogsView: View {
+    @State private var hapticTrigger = 0
     private let viewModel: LogsViewModel
 
     public init(viewModel: LogsViewModel) {
@@ -19,11 +20,7 @@ public struct LogsView: View {
                     .padding()
             }
 
-            GenericButton(title: viewModel.copyLocalizedString)
-                .padding(16)
-                .onTapGesture {
-                    viewModel.copyToPasteBoard()
-                }
+            buttonsSection()
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -41,5 +38,42 @@ private extension LogsView {
             title: viewModel.title,
             leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack() })
         )
+    }
+
+    @ViewBuilder
+    func copyButton() -> some View {
+        GenericButton(title: viewModel.copyLocalizedString)
+            .padding(16)
+            .onTapGesture {
+                viewModel.copyToPasteBoard()
+                hapticTrigger += 1
+            }
+    }
+
+    @ViewBuilder
+    func deleteButton() -> some View {
+        GenericButton(title: viewModel.deleteLocalizedString)
+            .padding(16)
+            .onTapGesture {
+                viewModel.deleteLogs()
+                hapticTrigger += 1
+            }
+    }
+
+    @ViewBuilder
+    func buttonsSection() -> some View {
+        if #available(iOS 17.0, *), #available(macOS 14.0, *) {
+            HStack {
+                copyButton()
+                    .sensoryFeedback(.success, trigger: hapticTrigger)
+                deleteButton()
+                    .sensoryFeedback(.success, trigger: hapticTrigger)
+            }
+        } else {
+            HStack {
+                copyButton()
+                deleteButton()
+            }
+        }
     }
 }
