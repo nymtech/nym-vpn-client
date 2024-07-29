@@ -100,9 +100,11 @@ async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle),
     let mut handle = spawn_nym_vpn(vpn)?;
     debug!("spawned vpn handle");
 
-    let Some(status_update) = handle.vpn_status_rx.next().await else {
-        todo!()
-    };
+    let status_update = handle
+        .vpn_status_rx
+        .next()
+        .await
+        .ok_or(crate::Error::NotStarted)?;
     if let Some(message) = status_update.downcast_ref::<TaskStatus>() {
         match message {
             TaskStatus::Ready => debug!("Started Nym VPN"),
