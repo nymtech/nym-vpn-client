@@ -142,6 +142,13 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
             .map(|url| url.to_string())
             .unwrap_or("unavailable".to_string())
     );
+    info!(
+        "nym-vpn-api: {}",
+        gateway_config
+            .nym_vpn_api_url()
+            .map(|url| url.to_string())
+            .unwrap_or("unavailable".to_string())
+    );
 
     let entry_point = parse_entry_point(&args)?;
     let exit_point = parse_exit_point(&args)?;
