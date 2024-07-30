@@ -49,6 +49,10 @@ message InfoResponse {
   string git_commit = 4;
 }
 
+message Threshold {
+  uint32 min_performance = 1;
+}
+
 message ConnectRequest {
   EntryNode entry = 1;
   ExitNode exit = 2;
@@ -58,6 +62,7 @@ message ConnectRequest {
   bool enable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
+  Threshold min_mixnode_performance = 9;
 }
 
 message ConnectResponse {
