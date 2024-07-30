@@ -15,6 +15,7 @@ pub struct Gateway {
     pub location: Option<Location>,
     pub ipr_address: Option<IpPacketRouterAddress>,
     pub authenticator_address: Option<AuthAddress>,
+    pub last_probe: Option<Probe>,
 }
 
 impl Gateway {
@@ -45,6 +46,33 @@ pub struct Location {
     pub longitude: f64,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct Probe {
+    pub last_updated_utc: String,
+    pub outcome: ProbeOutcome,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ProbeOutcome {
+    pub as_entry: Entry,
+    pub as_exit: Option<Exit>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Entry {
+    pub can_connect: bool,
+    pub can_route: bool,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Exit {
+    pub can_connect: bool,
+    pub can_route_ip_v4: bool,
+    pub can_route_ip_external_v4: bool,
+    pub can_route_ip_v6: bool,
+    pub can_route_ip_external_v6: bool,
+}
+
 impl From<nym_vpn_api_client::Location> for Location {
     fn from(location: nym_vpn_api_client::Location) -> Self {
         Location {
@@ -55,15 +83,54 @@ impl From<nym_vpn_api_client::Location> for Location {
     }
 }
 
+impl From<nym_vpn_api_client::responses::Probe> for Probe {
+    fn from(probe: nym_vpn_api_client::responses::Probe) -> Self {
+        Probe {
+            last_updated_utc: probe.last_updated_utc,
+            outcome: ProbeOutcome::from(probe.outcome),
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::responses::ProbeOutcome> for ProbeOutcome {
+    fn from(outcome: nym_vpn_api_client::responses::ProbeOutcome) -> Self {
+        ProbeOutcome {
+            as_entry: Entry::from(outcome.as_entry),
+            as_exit: outcome.as_exit.map(Exit::from),
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::responses::Entry> for Entry {
+    fn from(entry: nym_vpn_api_client::responses::Entry) -> Self {
+        Entry {
+            can_connect: entry.can_connect,
+            can_route: entry.can_route,
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::responses::Exit> for Exit {
+    fn from(exit: nym_vpn_api_client::responses::Exit) -> Self {
+        Exit {
+            can_connect: exit.can_connect,
+            can_route_ip_v4: exit.can_route_ip_v4,
+            can_route_ip_external_v4: exit.can_route_ip_external_v4,
+            can_route_ip_v6: exit.can_route_ip_v6,
+            can_route_ip_external_v6: exit.can_route_ip_external_v6,
+        }
+    }
+}
+
 impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
     type Error = Error;
 
     fn try_from(gateway: nym_vpn_api_client::Gateway) -> Result<Self> {
         let identity =
-            NodeIdentity::from_base58_string(&gateway.identity_key).map_err(|_source| {
+            NodeIdentity::from_base58_string(&gateway.identity_key).map_err(|source| {
                 Error::NodeIdentityFormattingError {
                     identity: gateway.identity_key,
-                    //source,
+                    source,
                 }
             })?;
         Ok(Gateway {
@@ -71,6 +138,7 @@ impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
             location: Some(gateway.location.into()),
             ipr_address: None,
             authenticator_address: None,
+            last_probe: gateway.last_probe.map(Probe::from),
         })
     }
 }
@@ -79,10 +147,10 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
     type Error = Error;
 
     fn try_from(gateway: nym_validator_client::models::DescribedGateway) -> Result<Self> {
-        let identity = NodeIdentity::from_base58_string(gateway.identity()).map_err(|_source| {
+        let identity = NodeIdentity::from_base58_string(gateway.identity()).map_err(|source| {
             Error::NodeIdentityFormattingError {
                 identity: gateway.identity().to_string(),
-                //source,
+                source,
             }
         })?;
         let ipr_address = gateway
@@ -108,6 +176,7 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
             location: None,
             ipr_address,
             authenticator_address,
+            last_probe: None,
         })
     }
 }
@@ -182,5 +251,18 @@ impl GatewayList {
             .filter(Gateway::has_ipr_address)
             .collect();
         Self::new(gw)
+    }
+
+    pub fn into_inner(self) -> Vec<Gateway> {
+        self.gateways
+    }
+}
+
+impl IntoIterator for GatewayList {
+    type Item = Gateway;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.gateways.into_iter()
     }
 }

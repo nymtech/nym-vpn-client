@@ -127,3 +127,23 @@ impl From<nym_validator_client::models::DescribedGateway> for Gateway {
         }
     }
 }
+
+impl From<nym_vpn_lib::gateway_directory::Location> for Location {
+    fn from(location: nym_vpn_lib::gateway_directory::Location) -> Self {
+        Self {
+            two_letter_iso_country_code: location.two_letter_iso_country_code,
+            latitude: location.latitude,
+            longitude: location.longitude,
+        }
+    }
+}
+
+impl From<nym_vpn_lib::gateway_directory::Gateway> for Gateway {
+    fn from(gateway: nym_vpn_lib::gateway_directory::Gateway) -> Self {
+        Self {
+            identity_key: gateway.identity.to_string(),
+            location: gateway.location.map(Location::from),
+            last_probe: None,
+        }
+    }
+}
