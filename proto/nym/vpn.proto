@@ -188,6 +188,12 @@ message Error {
 
     // Looking up gateways can fail in a number of ways.
     GATEWAY_DIRECTORY = 8;
+
+    // Failing to select the entry gateway
+    GATEWAY_DIRECTORY_ENTRY = 9;
+
+    // Failing to select the exit gateway
+    GATEWAY_DIRECTORY_EXIT = 10;
   }
 
   ErrorType kind = 1;

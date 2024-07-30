@@ -56,7 +56,9 @@ impl ExitPoint {
                 // Now fetch the gateway that the IPR is connected to, and override it's IPR address
                 let mut gateway = gateways
                     .gateway_with_identity(gateway_address)
-                    .ok_or(Error::NoMatchingGateway)
+                    .ok_or_else(|| Error::NoMatchingGateway {
+                        requested_identity: gateway_address.to_string(),
+                    })
                     .cloned()?;
                 gateway.ipr_address = Some(ipr_address);
                 Ok(gateway)
@@ -65,7 +67,7 @@ impl ExitPoint {
                 debug!("Selecting gateway by identity: {}", identity);
                 gateways
                     .gateway_with_identity(identity)
-                    .ok_or_else(|| Error::NoMatchingGateway)
+                    .ok_or_else(|| Error::NoMatchingGateway { requested_identity: identity.to_string() })
                     .cloned()
             }
             ExitPoint::Location { location } => {

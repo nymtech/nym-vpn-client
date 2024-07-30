@@ -100,6 +100,12 @@ pub enum ConnectionFailedError {
 
     #[error("failed to lookup router address: {reason}")]
     FailedToLookupRouterAddress { reason: String },
+
+    #[error("failed to select entry gateway: {reason}")]
+    FailedToSelectEntryGateway { reason: String },
+
+    #[error("failed to select exit gateway")]
+    FailedToSelectExitGateway { source: nym_vpn_lib::error::Error },
 }
 
 impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
@@ -136,6 +142,16 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             nym_vpn_lib::error::Error::FailedToLookupRouterAddress { source } => {
                 ConnectionFailedError::FailedToLookupRouterAddress {
                     reason: source.to_string(),
+                }
+            }
+            nym_vpn_lib::error::Error::FailedToSelectEntryGateway { source } => {
+                ConnectionFailedError::FailedToSelectEntryGateway {
+                    reason: source.to_string(),
+                }
+            }
+            nym_vpn_lib::error::Error::FailedToSelectExitGateway { source } => {
+                ConnectionFailedError::FailedToSelectExitGateway {
+                    source,
                 }
             }
             nym_vpn_lib::error::Error::IO(_)

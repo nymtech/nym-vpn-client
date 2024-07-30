@@ -120,6 +120,47 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.clone(),
                 },
             },
+            ConnectionFailedError::FailedToSelectEntryGateway { ref reason } => ProtoError {
+                kind: ErrorType::GatewayDirectoryEntry as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
+            ConnectionFailedError::FailedToSelectExitGateway { ref source } => {
+                let details = match source {
+                    nym_vpn_lib::error::Error::FailedToSelectExitGateway { source } => {
+                        match source {
+                            nym_vpn_lib::gateway_directory::Error::NoMatchingGatewayForLocation { requested_location, available_countries } => {
+                                hashmap! {
+                                    "requested_location".to_string() => requested_location.clone(),
+                                    "available_countries".to_string() => available_countries.join(", "),
+                                }
+                            },
+                            nym_vpn_lib::gateway_directory::Error::NoMatchingExitGatewayForLocation { requested_location, available_countries } => {
+                                hashmap! {
+                                    "requested_location".to_string() => requested_location.clone(),
+                                    "available_countries".to_string() => available_countries.join(", "),
+                                }
+                            },
+                            _ => hashmap! {
+                                "reason".to_string() => source.to_string(),
+                            }
+                        }
+                    }
+                    _ => hashmap! {
+                        "reason".to_string() => source.to_string(),
+                    }
+                };
+                ProtoError {
+                    kind: ErrorType::GatewayDirectoryExit as i32,
+                    message: err.to_string(),
+                    details,
+                    // details: hashmap! {
+                    //     "reason".to_string() => reason.clone(),
+                    // },
+                }
+            }
         }
     }
 }

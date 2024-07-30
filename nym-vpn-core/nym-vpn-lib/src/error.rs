@@ -213,6 +213,12 @@ pub enum Error {
         source: nym_gateway_directory::Error,
     },
 
+    #[error("failed to select entry gateway: {source}")]
+    FailedToSelectEntryGateway { source: nym_gateway_directory::Error },
+
+    #[error("failed to select exit gateway: {source}")]
+    FailedToSelectExitGateway { source: nym_gateway_directory::Error },
+
     #[error("failed to lookup router address: {source}")]
     FailedToLookupRouterAddress {
         source: nym_gateway_directory::Error,
