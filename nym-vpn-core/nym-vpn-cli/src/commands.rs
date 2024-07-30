@@ -94,6 +94,9 @@ pub(crate) struct RunArgs {
     /// Enable credentials mode.
     #[arg(long)]
     pub(crate) enable_credentials_mode: bool,
+
+    #[arg(long)]
+    pub(crate) min_mixnode_performance: Option<u8>,
 }
 
 #[derive(Args)]

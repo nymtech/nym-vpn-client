@@ -88,6 +88,7 @@ pub(crate) async fn setup_mixnet_client(
     enable_poisson_rate: bool,
     disable_background_cover_traffic: bool,
     enable_credentials_mode: bool,
+    min_mixnode_performance: Option<u8>,
 ) -> Result<SharedMixnetClient> {
     // Disable Poisson rate limiter by default
     let mut debug_config = nym_client_core::config::DebugConfig::default();
@@ -110,6 +111,15 @@ pub(crate) async fn setup_mixnet_client(
         "mixnet client two hop traffic: {}",
         true_to_enabled(enable_two_hop)
     );
+
+    if let Some(min_mixnode_performance) = min_mixnode_performance {
+        debug_config.topology.minimum_mixnode_performance = min_mixnode_performance;
+    }
+    info!(
+        "mixnet client minimum mixnode performance: {}",
+        debug_config.topology.minimum_mixnode_performance,
+    );
+
     // TODO: add support for two-hop mixnet traffic as a setting on the mixnet_client.
     // For now it's something we explicitly set on each set InputMessage.
 
