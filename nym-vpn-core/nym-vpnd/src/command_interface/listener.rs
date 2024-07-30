@@ -351,6 +351,9 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             enable_poisson_rate: request.enable_poisson_rate,
             disable_background_cover_traffic: request.disable_background_cover_traffic,
             enable_credentials_mode: request.enable_credentials_mode,
+            min_mixnode_performance: request
+                .min_mixnode_performance
+                .map(|t| t.min_performance.min(100) as u8),
         })
     }
 }

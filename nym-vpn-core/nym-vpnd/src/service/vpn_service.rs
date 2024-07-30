@@ -115,6 +115,7 @@ pub(crate) struct ConnectOptions {
     pub(crate) enable_poisson_rate: bool,
     pub(crate) disable_background_cover_traffic: bool,
     pub(crate) enable_credentials_mode: bool,
+    pub(crate) min_mixnode_performance: Option<u8>,
 }
 
 #[derive(Debug)]

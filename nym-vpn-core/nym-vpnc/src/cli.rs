@@ -64,6 +64,11 @@ pub(crate) struct ConnectArgs {
     /// Enable credentials mode.
     #[arg(long)]
     pub(crate) enable_credentials_mode: bool,
+
+    /// An integer between 0 and 100 representing the minimum mixnode performance required to
+    /// consider a mixnode for routing traffic.
+    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    pub(crate) min_mixnode_performance: Option<u8>,
 }
 
 #[derive(Args)]

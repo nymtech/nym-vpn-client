@@ -7,6 +7,7 @@ use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, InfoRequest,
     ListEntryGatewaysRequest, ListExitGatewaysRequest, StatusRequest,
 };
+use protobuf_conversion::into_threshold;
 use vpnd_client::ClientType;
 
 use crate::{
@@ -58,6 +59,7 @@ async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Re
         enable_poisson_rate: connect_args.enable_poisson_rate,
         disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
         enable_credentials_mode: connect_args.enable_credentials_mode,
+        min_mixnode_performance: connect_args.min_mixnode_performance.map(into_threshold),
     });
 
     let mut client = vpnd_client::get_client(client_type).await?;
