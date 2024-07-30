@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib::{
-    gateway_directory::{EntryPoint, ExitPoint},
+    gateway_directory::{EntryPoint, ExitPoint, GatewayClient},
     nym_bin_common::bin_info_local_vergen,
 };
 use time::OffsetDateTime;
@@ -139,13 +139,7 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_list_entry_gateways(
         &self,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
-        let user_agent = bin_info_local_vergen!().into();
-        let directory_config = nym_vpn_lib::gateway_directory::Config::new_from_env();
-        let directory_client =
-            nym_vpn_lib::gateway_directory::GatewayClient::new(directory_config, user_agent)
-                .map_err(|error| ListGatewayError::CreateGatewayDirectoryClient { error })?;
-
-        let gateways = directory_client
+        let gateways = directory_client()?
             .lookup_entry_gateways()
             .await
             .map_err(|error| ListGatewayError::GetEntryGateways { error })?;
@@ -156,17 +150,18 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_list_exit_gateways(
         &self,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
-        let user_agent = bin_info_local_vergen!().into();
-        let directory_config = nym_vpn_lib::gateway_directory::Config::new_from_env();
-        let directory_client =
-            nym_vpn_lib::gateway_directory::GatewayClient::new(directory_config, user_agent)
-                .map_err(|error| ListGatewayError::CreateGatewayDirectoryClient { error })?;
-
-        let gateways = directory_client
+        let gateways = directory_client()?
             .lookup_exit_gateways()
             .await
             .map_err(|error| ListGatewayError::GetExitGateways { error })?;
 
         Ok(gateways.into_iter().map(gateway::Gateway::from).collect())
     }
+}
+
+fn directory_client() -> Result<GatewayClient, ListGatewayError> {
+    let user_agent = bin_info_local_vergen!().into();
+    let directory_config = nym_vpn_lib::gateway_directory::Config::new_from_env();
+    GatewayClient::new(directory_config, user_agent)
+        .map_err(|error| ListGatewayError::CreateGatewayDirectoryClient { error })
 }
