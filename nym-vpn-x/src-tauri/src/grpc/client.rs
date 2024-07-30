@@ -292,6 +292,7 @@ impl GrpcClient {
             disable_background_cover_traffic: false,
             enable_credentials_mode: false,
             dns,
+            min_mixnode_performance: None,
         });
         let response = vpnd.vpn_connect(request).await.map_err(|e| {
             error!("grpc vpn_connect: {}", e);
