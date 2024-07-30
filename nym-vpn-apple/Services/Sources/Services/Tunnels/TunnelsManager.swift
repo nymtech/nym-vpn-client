@@ -39,13 +39,8 @@ extension TunnelsManager {
 
 // MARK: - Connection -
 extension TunnelsManager {
-    public func connect(tunnel: Tunnel) {
-        guard tunnels.contains(tunnel) else { return } // Ensure it's not deleted
-        guard tunnel.status == .disconnected
-        else {
-            // activationDelegate?.tunnelActivationAttemptFailed(tunnel: tunnel, error: .tunnelIsNotInactive)
-            return
-        }
+    public func connect(tunnel: Tunnel) async throws {
+        guard tunnels.contains(tunnel), tunnel.status == .disconnected  else { return } // Ensure it's not deleted
 
         //        if let alreadyWaitingTunnel = tunnels.first(where: { $0.status == .waiting }) {
         //            alreadyWaitingTunnel.status = .disconnected
@@ -74,7 +69,11 @@ extension TunnelsManager {
         #if targetEnvironment(simulator)
             tunnel.status = .connected
         #else
-            tunnel.connect()
+        do {
+            try await tunnel.connect()
+        } catch {
+            throw error
+        }
         #endif
     }
 
@@ -149,7 +148,9 @@ private extension TunnelsManager {
                 )
 
                 if tunnel.status == .restarting && session.status == .disconnected {
-                    tunnel.connect()
+                    Task {
+                        try? await tunnel.connect()
+                    }
                     return
                 }
                 tunnel.updateStatus()

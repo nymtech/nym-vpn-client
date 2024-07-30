@@ -240,7 +240,7 @@ private extension ConnectionManager {
             try await tunnelsManager.loadTunnels()
             let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config)
             activeTunnel = tunnel
-            tunnelsManager.connect(tunnel: tunnel)
+            try await tunnelsManager.connect(tunnel: tunnel)
         } catch {
             throw error
         }

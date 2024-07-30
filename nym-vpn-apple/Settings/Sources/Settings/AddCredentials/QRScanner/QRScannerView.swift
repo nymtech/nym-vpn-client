@@ -17,7 +17,6 @@ public struct QRScannerView: View {
                     dataToScanFor: [.barcode(symbologies: [.qr])]
                 )
             } else {
-                // TODO: handle no camera access given
                 noCameraAccess()
             }
             bottomView()

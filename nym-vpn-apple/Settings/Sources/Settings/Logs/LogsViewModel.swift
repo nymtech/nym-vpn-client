@@ -4,14 +4,15 @@ import Theme
 
 public final class LogsViewModel: ObservableObject {
 #if os(iOS)
-    private let pasteboard: UIPasteboard
+    let pasteboard: UIPasteboard
 #endif
 #if os(macOS)
-    private let pasteboard: NSPasteboard
+    let pasteboard: NSPasteboard
 #endif
 
     let title = "logs".localizedString
     let copyLocalizedString = "copy".localizedString
+    let deleteLocalizedString = "logs.delete".localizedString
 
     @Published var logs: String = ""
 
@@ -43,6 +44,11 @@ public final class LogsViewModel: ObservableObject {
 #if os(iOS)
         pasteboard.string = logs
 #endif
+    }
+
+    func deleteLogs() {
+        FileLogHandler.deleteLogs()
+        readLogs()
     }
 }
 
