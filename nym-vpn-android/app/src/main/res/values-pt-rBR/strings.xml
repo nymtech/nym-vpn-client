@@ -5,8 +5,8 @@
     <string name="disconnected">Desconectado</string>
     <string name="disconnecting">Desconectando</string>
     <string name="connecting">Conectando</string>
-    <string name="first_hop">Primeiro salto</string>
-    <string name="last_hop">Último salto</string>
+    <string name="first_hop">Local de entrada</string>
+    <string name="last_hop">Local de saída</string>
     <string name="connect">Conectar</string>
     <string name="disconnect">Desconectar</string>
     <string name="init_client">Iniciando cliente…</string>
@@ -33,7 +33,7 @@
     <string name="terms_of_use">Termos de uso</string>
     <string name="no_browser_detected">Nenhum navegador detectado</string>
     <string name="connection_time">tempo de conexão</string>
-    <string name="first_hop_selection">Seleção do primeiro salto</string>
+    <string name="first_hop_selection">Local de entrada</string>
     <string name="display_theme">Exibir tema</string>
     <string name="top_up_credential">Atualize sua credencial</string>
     <string name="dark_theme">Tema escuro</string>
@@ -97,7 +97,7 @@
     <string name="enable_shortcuts">Ativar atalhos do aplicativo</string>
     <string name="five_hop_mixnet">Anônimo</string>
     <string name="two_hop_mixnet">rápido</string>
-    <string name="last_hop_selection">Seleção do último salto</string>
+    <string name="last_hop_selection">Local de saída</string>
     <string name="privacy_policy">Declaração de privacidade</string>
     <string name="licenses">Licenças</string>
     <string name="open_github">Abrir um problema no GitHub</string>
