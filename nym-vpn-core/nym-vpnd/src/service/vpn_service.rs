@@ -433,6 +433,7 @@ impl NymVpnService {
             .mixnet_client_config
             .disable_background_cover_traffic = options.disable_background_cover_traffic;
         nym_vpn.mixnet_client_config.enable_credentials_mode = options.enable_credentials_mode;
+        nym_vpn.mixnet_client_config.min_mixnode_performance = options.min_mixnode_performance;
 
         let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn.into()).unwrap();
 
