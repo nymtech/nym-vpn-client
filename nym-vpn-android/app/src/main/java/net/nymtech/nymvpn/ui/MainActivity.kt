@@ -110,7 +110,6 @@ class MainActivity : ComponentActivity() {
 		setContent {
 			val appViewModel = hiltViewModel<AppViewModel>()
 			val uiState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
-			val showGatewayInfoModal = remember { mutableStateOf(false) }
 
 			val navController = rememberNavController()
 			val snackbarHostState = remember { SnackbarHostState() }
@@ -149,11 +148,11 @@ class MainActivity : ComponentActivity() {
 				}
 			}
 
-			fun onTrailingClick() {
+			fun onNavBarTrailingClick() {
 				when (navController.currentBackStackEntry?.destination?.route) {
 					NavItem.Main.route -> navController.navigate(NavItem.Settings.route)
-					NavItem.Location.Entry.route, NavItem.Location.Entry.route -> {
-						showGatewayInfoModal.value = true
+					NavItem.Location.Entry.route, NavItem.Location.Exit.route -> {
+						appViewModel.onToggleShowLocationTooltip()
 					}
 				}
 			}
@@ -180,7 +179,7 @@ class MainActivity : ComponentActivity() {
 						NavBar(
 							uiState,
 							navController,
-							{ onTrailingClick() },
+							{ onNavBarTrailingClick() },
 							Modifier
 								.onGloballyPositioned {
 									navHeight = with(density) {
@@ -217,14 +216,14 @@ class MainActivity : ComponentActivity() {
 							HopScreen(
 								navController = navController,
 								gatewayLocation = GatewayLocation.Entry,
-								showGatewayInfoModal,
+								appViewModel,
 							)
 						}
 						composable(NavItem.Location.Exit.route) {
 							HopScreen(
 								navController = navController,
 								gatewayLocation = GatewayLocation.Exit,
-								showGatewayInfoModal,
+								appViewModel,
 							)
 						}
 						composable(NavItem.Settings.Logs.route) { LogsScreen(appViewModel = appViewModel) }

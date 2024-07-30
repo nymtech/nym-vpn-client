@@ -10,4 +10,5 @@ data class AppUiState(
 	val vpnClientState: VpnClientState = VpnClientState(),
 	val settings: Settings = Settings(),
 	val credentialExpiryTime: Instant? = null,
+	val showLocationTooltip: Boolean = false,
 )

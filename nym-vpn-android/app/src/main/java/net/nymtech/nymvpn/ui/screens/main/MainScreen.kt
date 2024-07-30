@@ -123,7 +123,11 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 			style = CustomTypography.labelHuge,
 		)
 	}, text = {
-		ModeModalBody()
+		ModeModalBody(
+			onClick = {
+				appViewModel.openWebPage(context.getString(R.string.mode_support_link), context)
+			},
+		)
 	})
 
 	LaunchedEffect(uiState.firstHopCounty, uiState.lastHopCountry, uiState.networkMode, uiState.connectionState) {

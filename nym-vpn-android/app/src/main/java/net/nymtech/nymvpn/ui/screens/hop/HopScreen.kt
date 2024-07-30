@@ -20,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.GatewayLocation
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.Modal
@@ -57,9 +57,10 @@ import java.text.Collator
 fun HopScreen(
 	navController: NavController,
 	gatewayLocation: GatewayLocation,
-	showGatewayInfoModal: MutableState<Boolean>,
+	appViewModel: AppViewModel,
 	viewModel: HopViewModel = hiltViewModel(),
 ) {
+	val appUiState by appViewModel.uiState.collectAsStateWithLifecycle()
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 
@@ -76,14 +77,18 @@ fun HopScreen(
 		viewModel.updateCountryCache(gatewayLocation)
 	}
 
-	Modal(show = showGatewayInfoModal.value, onDismiss = { showGatewayInfoModal.value = false }, title = {
+	Modal(show = appUiState.showLocationTooltip, onDismiss = { appViewModel.onToggleShowLocationTooltip() }, title = {
 		Text(
 			text = stringResource(R.string.gateway_locations_title),
 			color = MaterialTheme.colorScheme.onSurface,
 			style = CustomTypography.labelHuge,
 		)
 	}, text = {
-		GatewayModalBody()
+		GatewayModalBody(
+			onClick = {
+				appViewModel.openWebPage(context.getString(R.string.location_support_link), context)
+			},
+		)
 	})
 
 	LazyColumn(
