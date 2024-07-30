@@ -11,10 +11,10 @@ pub struct IpPacketRouterAddress(pub Recipient);
 impl IpPacketRouterAddress {
     pub fn try_from_base58_string(ip_packet_router_nym_address: &str) -> Result<Self> {
         Ok(Self(
-            Recipient::try_from_base58_string(ip_packet_router_nym_address).map_err(|_source| {
+            Recipient::try_from_base58_string(ip_packet_router_nym_address).map_err(|source| {
                 Error::RecipientFormattingError {
                     address: ip_packet_router_nym_address.to_string(),
-                    //source,
+                    source,
                 }
             })?,
         ))
@@ -28,7 +28,7 @@ impl IpPacketRouterAddress {
             .map(|ipr| ipr.address)
             .ok_or(Error::MissingIpPacketRouterAddress)?;
         Ok(Self(Recipient::try_from_base58_string(&address).map_err(
-            |_source| Error::RecipientFormattingError { address },
+            |source| Error::RecipientFormattingError { address, source },
         )?))
     }
 
