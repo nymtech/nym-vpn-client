@@ -138,6 +138,9 @@ pub struct MixnetClientConfig {
 
     /// Enable the credentials mode between the client and the entry gateway.
     pub enable_credentials_mode: bool,
+
+    /// The minimum performance of mixnodes to use.
+    pub min_mixnode_performance: Option<u8>,
 }
 
 pub struct NymVpn<T: Vpn> {
@@ -223,6 +226,7 @@ impl NymVpn<WireguardVpn> {
                 enable_poisson_rate: false,
                 disable_background_cover_traffic: false,
                 enable_credentials_mode: false,
+                min_mixnode_performance: None,
             },
             data_path: None,
             gateway_config: nym_gateway_directory::Config::default(),
@@ -269,6 +273,7 @@ impl NymVpn<MixnetVpn> {
                 enable_poisson_rate: false,
                 disable_background_cover_traffic: false,
                 enable_credentials_mode: false,
+                min_mixnode_performance: None,
             },
             data_path: None,
             gateway_config: nym_gateway_directory::Config::default(),

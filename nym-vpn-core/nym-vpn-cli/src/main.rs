@@ -158,6 +158,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
             .mixnet_client_config
             .disable_background_cover_traffic = args.disable_background_cover_traffic;
         nym_vpn.mixnet_client_config.enable_credentials_mode = args.enable_credentials_mode;
+        nym_vpn.mixnet_client_config.min_mixnode_performance = args.min_mixnode_performance;
         nym_vpn.user_agent = Some(bin_info!().into());
         nym_vpn.into()
     } else {
@@ -174,6 +175,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
             .mixnet_client_config
             .disable_background_cover_traffic = args.disable_background_cover_traffic;
         nym_vpn.mixnet_client_config.enable_credentials_mode = args.enable_credentials_mode;
+        nym_vpn.mixnet_client_config.min_mixnode_performance = args.min_mixnode_performance;
         nym_vpn.user_agent = Some(bin_info!().into());
         nym_vpn.into()
     };
