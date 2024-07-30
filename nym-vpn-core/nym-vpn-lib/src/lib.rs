@@ -579,13 +579,35 @@ impl SpecificVpn {
             route_manager.handle()?,
         )
         .await?;
-        let tunnels = setup_tunnel(
+        let tunnels = match setup_tunnel(
             self,
             &mut task_manager,
             &mut route_manager,
             &mut dns_monitor,
         )
-        .await?;
+        .await
+        {
+            Ok(tunnels) => tunnels,
+            Err(e) => {
+                tokio::task::spawn_blocking(move || {
+                    dns_monitor
+                        .reset()
+                        .inspect_err(|err| {
+                            log::error!("Failed to reset dns monitor: {err}");
+                        })
+                        .ok();
+                    firewall
+                        .reset_policy()
+                        .inspect_err(|err| {
+                            error!("Failed to reset firewall policy: {err}");
+                        })
+                        .ok();
+                    drop(route_manager);
+                })
+                .await?;
+                return Err(Box::new(e));
+            }
+        };
 
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
