@@ -100,7 +100,9 @@ pub(crate) fn ipaddr_into_string(ip: std::net::IpAddr) -> nym_vpn_proto::Dns {
 }
 
 pub(crate) fn into_threshold(performance: u8) -> nym_vpn_proto::Threshold {
-    nym_vpn_proto::Threshold { min_performance: performance.into() }
+    nym_vpn_proto::Threshold {
+        min_performance: performance.into(),
+    }
 }
 
 pub(crate) fn parse_offset_datetime(
