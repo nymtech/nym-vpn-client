@@ -1,8 +1,8 @@
 {
   "connect": "Connecter",
   "disconnect": "Déconnecter",
-  "first-hop-selection": "Premier nœud",
-  "last-hop-selection": "Dernier nœud",
+  "first-hop-selection": "Point d'entrée",
+  "last-hop-selection": "Point de sortie",
   "settings": "Réglages",
   "logs": "Journaux",
   "feedback": "Retour d'expérience",
