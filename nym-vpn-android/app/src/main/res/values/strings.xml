@@ -141,4 +141,5 @@
 	<string name="gateway_locations_title">Details on server locations</string>
 	<string name="remaining">remaining</string>
 	<string name="entry_location_selector">Entry location selector</string>
+    <string translatable="false" name="location_support_link">https://support.nymvpn.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
 </resources>

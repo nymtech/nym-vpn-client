@@ -50,6 +50,7 @@ constructor(
 				vpnState,
 				settings,
 				credentialExpiryTime = settings.credentialExpiry,
+				showLocationTooltip = state.showLocationTooltip,
 			)
 		}.stateIn(
 			viewModelScope,
@@ -59,6 +60,14 @@ constructor(
 
 	fun setAnalyticsShown() = viewModelScope.launch {
 		settingsRepository.setAnalyticsShown(true)
+	}
+
+	fun onToggleShowLocationTooltip() {
+		_uiState.update {
+			it.copy(
+				showLocationTooltip = !it.showLocationTooltip,
+			)
+		}
 	}
 
 	fun onEntryLocationSelected(selected: Boolean) = viewModelScope.launch {
