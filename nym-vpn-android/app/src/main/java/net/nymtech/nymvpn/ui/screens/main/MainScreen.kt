@@ -125,8 +125,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 	}, text = {
 		ModeModalBody(
 			onClick = {
-				// TODO wait for new link
-				// appViewModel.openWebPage(context.getString(R.string.), context)
+				appViewModel.openWebPage(context.getString(R.string.mode_support_link), context)
 			},
 		)
 	})
