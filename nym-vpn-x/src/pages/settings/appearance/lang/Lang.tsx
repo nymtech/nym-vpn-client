@@ -1,10 +1,12 @@
 import { Button } from '@headlessui/react';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
+import { resources } from '../../../../i18n/config';
 import { kvSet } from '../../../../kvStore';
 import { PageAnim } from '../../../../ui';
 
-type Lang = { code: string; name: string };
+type LngTag = keyof typeof resources;
+type Lang = { code: LngTag; name: string };
 
 const languages: Lang[] = [
   { code: 'en', name: 'English' },
@@ -12,6 +14,10 @@ const languages: Lang[] = [
   { code: 'fr', name: 'Français' },
   { code: 'it', name: 'Italiano' },
   { code: 'pt-BR', name: 'Português brasileiro' },
+  { code: 'ru', name: 'Русский язык' },
+  { code: 'uk', name: 'Українська' },
+  { code: 'tr', name: 'Türkçe' },
+  { code: 'zh-Hans', name: '中文' },
 ];
 
 function Lang() {
