@@ -120,8 +120,6 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 		if (!notificationPermissionState.status.isGranted && !notificationPermissionState.status.shouldShowRationale
 		) {
 			notificationPermissionState.launchPermissionRequest()
-		} else if (!notificationPermissionState.status.isGranted && notificationPermissionState.status.shouldShowRationale) {
-			navController.navigate("${NavItem.Permission.route}/${NavItem.Permission.Path.NOTIFICATION}")
 		}
 		return Result.failure(NymVpnExceptions.PermissionsNotGrantedException())
 	}
@@ -136,6 +134,12 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 			} else {
 				onConnectWithPermission()
 			}
+		}
+	}
+
+	LaunchedEffect(notificationPermissionState?.status?.shouldShowRationale) {
+		if (notificationPermissionState?.status?.shouldShowRationale == true) {
+			navController.navigate("${NavItem.Permission.route}/${NavItem.Permission.Path.NOTIFICATION}")
 		}
 	}
 
