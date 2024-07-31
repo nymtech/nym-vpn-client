@@ -7,7 +7,7 @@
     <string name="connecting">Підключення</string>
     <string name="five_hop_mixnet">Анонімний</string>
     <string name="two_hop_mixnet">Швидкий</string>
-    <string name="first_hop">Перше підключення</string>
+    <string name="first_hop">Перша ланка</string>
     <string name="last_hop">Остання ланка</string>
     <string name="connect">Підключитись</string>
     <string name="disconnect">Від\'єднати</string>
