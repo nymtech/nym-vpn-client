@@ -92,7 +92,7 @@ export function mockTauriIPC() {
         case 'WelcomeScreenSeen':
           res = true;
           break;
-        case 'EntryLocationEnabled':
+        case 'UiShowEntrySelect':
           res = true;
           break;
         default:

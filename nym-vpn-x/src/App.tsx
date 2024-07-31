@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useTranslation } from 'react-i18next';
 import { DialogProvider, NotificationProvider } from './contexts';
+import { kvGet } from './kvStore';
 import router from './router';
 import { sleep } from './helpers';
 import { MainStateProvider } from './state';
@@ -45,6 +46,16 @@ function App() {
     };
     showSplashAnimation();
   }, []);
+
+  useEffect(() => {
+    const setLng = async () => {
+      const lng = await kvGet<string | undefined>('UiLanguage');
+      if (lng && i18n.language !== lng) {
+        await i18n.changeLanguage(lng);
+      }
+    };
+    setLng();
+  }, [i18n]);
 
   return (
     <NotificationProvider>

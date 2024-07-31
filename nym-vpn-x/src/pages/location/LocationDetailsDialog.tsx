@@ -20,7 +20,7 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
         />
         <DialogTitle
           as="h3"
-          className="text-lg text-baltic-sea dark:text-mercury-pinkish font-bold"
+          className="text-lg text-baltic-sea dark:text-mercury-pinkish font-bold text-center"
         >
           {t('location-details.title')}
         </DialogTitle>

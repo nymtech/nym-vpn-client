@@ -51,7 +51,7 @@ function Settings() {
   const handleEntrySelectorChange = () => {
     const isChecked = !entrySelector;
     dispatch({ type: 'set-entry-selector', entrySelector: isChecked });
-    kvSet('EntryLocationEnabled', isChecked);
+    kvSet('UiShowEntrySelect', isChecked);
   };
 
   const handleAutoConnectChanged = () => {

@@ -207,7 +207,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
 
   const getEntrySelectorRq: TauriReq<() => Promise<boolean | undefined>> = {
     name: 'getEntrySelector',
-    request: () => kvGet<boolean>('EntryLocationEnabled'),
+    request: () => kvGet<boolean>('UiShowEntrySelect'),
     onFulfilled: (enabled) => {
       dispatch({ type: 'set-entry-selector', entrySelector: enabled || false });
     },
