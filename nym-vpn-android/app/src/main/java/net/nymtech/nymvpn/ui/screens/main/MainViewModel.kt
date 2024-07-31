@@ -14,8 +14,8 @@ import net.nymtech.nymvpn.service.vpn.VpnManager
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.NumberUtils
 import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.model.ErrorState
 import net.nymtech.vpn.model.VpnMode
@@ -36,11 +36,7 @@ constructor(
 			vpnClient.get().stateFlow,
 		) { settings, clientState ->
 			val connectionTime =
-				clientState.statistics.connectionSeconds?.let {
-					NumberUtils.convertSecondsToTimeString(
-						it,
-					)
-				}
+				clientState.statistics.connectionSeconds?.convertSecondsToTimeString()
 			val connectionState = ConnectionState.from(clientState.vpnState)
 			val stateMessage =
 				clientState.errorState.let {

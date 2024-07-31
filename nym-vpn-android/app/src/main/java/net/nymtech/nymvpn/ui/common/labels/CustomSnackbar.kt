@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.theme.CustomColors
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun CustomSnackBar(message: String, paddingTop: Dp, isRtl: Boolean = true, containerColor: Color = CustomColors.snackBarBackgroundColor) {

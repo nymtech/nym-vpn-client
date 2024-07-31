@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
-import net.nymtech.nymvpn.ui.GatewayLocation
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.Country
 import javax.inject.Inject
@@ -36,11 +35,11 @@ constructor(
 			var countryList = emptySet<Country>()
 			var lowLatencyEntryCountry: Country? = null
 			when (_uiState.value.gatewayLocation) {
-				GatewayLocation.Entry -> {
+				GatewayLocation.ENTRY -> {
 					countryList = gateway.entryCountries
 					lowLatencyEntryCountry = gateway.lowLatencyEntryCountry
 				}
-				GatewayLocation.Exit -> {
+				GatewayLocation.EXIT -> {
 					countryList = gateway.exitCountries
 				}
 			}
@@ -76,16 +75,16 @@ constructor(
 
 	fun updateCountryCache(gatewayLocation: GatewayLocation) = viewModelScope.launch {
 		when (gatewayLocation) {
-			GatewayLocation.Entry -> countryCacheService.updateEntryCountriesCache()
-			GatewayLocation.Exit -> countryCacheService.updateExitCountriesCache()
+			GatewayLocation.ENTRY -> countryCacheService.updateEntryCountriesCache()
+			GatewayLocation.EXIT -> countryCacheService.updateExitCountriesCache()
 		}
 	}
 
 	private fun setSelectedCountry() = viewModelScope.launch {
 		val selectedCountry =
 			when (_uiState.value.gatewayLocation) {
-				GatewayLocation.Entry -> settingsRepository.getFirstHopCountry()
-				GatewayLocation.Exit -> settingsRepository.getLastHopCountry()
+				GatewayLocation.ENTRY -> settingsRepository.getFirstHopCountry()
+				GatewayLocation.EXIT -> settingsRepository.getLastHopCountry()
 			}.copy(isDefault = false)
 		_uiState.update {
 			it.copy(
@@ -96,8 +95,8 @@ constructor(
 
 	fun onSelected(country: Country) = viewModelScope.launch {
 		when (_uiState.value.gatewayLocation) {
-			GatewayLocation.Entry -> settingsRepository.setFirstHopCountry(country)
-			GatewayLocation.Exit -> settingsRepository.setLastHopCountry(country)
+			GatewayLocation.ENTRY -> settingsRepository.setFirstHopCountry(country)
+			GatewayLocation.EXIT -> settingsRepository.setLastHopCountry(country)
 		}
 	}
 }

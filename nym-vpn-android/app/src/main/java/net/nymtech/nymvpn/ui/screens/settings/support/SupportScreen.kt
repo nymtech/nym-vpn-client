@@ -17,14 +17,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
-import net.nymtech.nymvpn.util.scaledHeight
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun SupportScreen(appViewModel: AppViewModel) {
+fun SupportScreen() {
 	val context = LocalContext.current
 
 	Column(
@@ -42,7 +42,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 				SelectionItem(
 					leadingIcon = ImageVector.vectorResource(R.drawable.faq),
 					title = { Text(stringResource(R.string.check_faq), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { appViewModel.openWebPage(context.getString(R.string.faq_url), context) },
+					onClick = { context.openWebUrl(context.getString(R.string.faq_url)) },
 				),
 			),
 		)
@@ -51,7 +51,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 				SelectionItem(
 					leadingIcon = ImageVector.vectorResource(R.drawable.send),
 					title = { Text(stringResource(R.string.contact_support), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { appViewModel.openWebPage(context.getString(R.string.contact_url), context) },
+					onClick = { context.openWebUrl(context.getString(R.string.contact_url)) },
 				),
 			),
 		)
@@ -61,7 +61,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
 					title = { Text(stringResource(R.string.join_matrix), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.openWebPage(context.getString(R.string.matrix_url), context)
+						context.openWebUrl(context.getString(R.string.matrix_url))
 					},
 				),
 			),
@@ -72,7 +72,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					leadingIcon = ImageVector.vectorResource(R.drawable.discord),
 					title = { Text(stringResource(R.string.join_discord), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.openWebPage(context.getString(R.string.discord_url), context)
+						context.openWebUrl(context.getString(R.string.discord_url))
 					},
 				),
 			),

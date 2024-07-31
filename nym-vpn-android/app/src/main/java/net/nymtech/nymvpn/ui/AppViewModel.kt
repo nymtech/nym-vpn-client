@@ -1,10 +1,5 @@
 package net.nymtech.nymvpn.ui
 
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +9,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.Native
@@ -109,49 +103,6 @@ constructor(
 		}
 	}
 
-	fun openWebPage(url: String, context: Context) {
-		try {
-			val webpage: Uri = Uri.parse(url)
-			Intent(Intent.ACTION_VIEW, webpage).apply {
-				addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-			}.also {
-				context.startActivity(it)
-			}
-		} catch (e: ActivityNotFoundException) {
-			Timber.e(e)
-			showSnackbarMessage(context.getString(R.string.no_browser_detected))
-		}
-	}
-
-	fun launchEmail(context: Context) {
-		try {
-			val intent =
-				Intent(Intent.ACTION_SENDTO).apply {
-					type = Constants.EMAIL_MIME_TYPE
-					putExtra(
-						Intent.EXTRA_EMAIL,
-						arrayOf(context.getString(R.string.support_email)),
-					)
-					putExtra(
-						Intent.EXTRA_SUBJECT,
-						context.getString(R.string.email_subject),
-					)
-					addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-				}
-			context.startActivity(
-				Intent.createChooser(
-					intent,
-					context.getString(R.string.email_chooser),
-				).apply {
-					addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-				},
-			)
-		} catch (e: ActivityNotFoundException) {
-			Timber.w(e)
-			showSnackbarMessage(context.getString(R.string.no_email_detected))
-		}
-	}
-
 	fun showSnackbarMessage(message: String) {
 		_uiState.update {
 			it.copy(
@@ -168,13 +119,5 @@ constructor(
 				snackbarMessageConsumed = true,
 			)
 		}
-	}
-
-	fun showFeatureInProgressMessage(context: Context) {
-		Toast.makeText(
-			context,
-			context.getString(R.string.feature_in_progress),
-			Toast.LENGTH_LONG,
-		).show()
 	}
 }

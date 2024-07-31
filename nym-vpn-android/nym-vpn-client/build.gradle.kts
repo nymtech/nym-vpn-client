@@ -49,6 +49,11 @@ android {
 			}
 		}
 	}
+
+	packaging {
+		jniLibs.keepDebugSymbols.add("**/*.so")
+	}
+
 	compileOptions {
 		isCoreLibraryDesugaringEnabled = true
 		sourceCompatibility = Constants.JAVA_VERSION

@@ -45,8 +45,10 @@ import net.nymtech.nymvpn.module.MainImmediateDispatcher
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.screens.analytics.AnalyticsScreen
+import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
+import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.account.AccountScreen
@@ -117,8 +119,9 @@ class MainActivity : ComponentActivity() {
 			val density = LocalDensity.current
 
 			navController.addOnDestinationChangedListener { controller, destination, _ ->
-				if (destination.route == NavItem.Main.route &&
-					controller.previousBackStackEntry?.destination?.route == NavItem.Settings.Appearance.Language.route
+				Timber.d("Destination: $destination")
+				if (destination.route == Destination.Main.route &&
+					controller.previousBackStackEntry?.destination?.route == Destination.Language.route
 				) {
 					val locale = LocaleUtil.getLocaleFromPrefCode(localeStorage.getPreferredLocale())
 					val currentLocale = Locale.getDefault()
@@ -149,10 +152,11 @@ class MainActivity : ComponentActivity() {
 			}
 
 			fun onNavBarTrailingClick() {
-				when (navController.currentBackStackEntry?.destination?.route) {
-					NavItem.Main.route -> navController.navigate(NavItem.Settings.route)
-					NavItem.Location.Entry.route, NavItem.Location.Exit.route -> {
-						appViewModel.onToggleShowLocationTooltip()
+				navController.currentBackStackEntry?.destination?.route?.let {
+					when (Destination.valueOf(it)) {
+						Destination.Main -> navController.navigate(Destination.Settings.route)
+						Destination.EntryLocation, Destination.ExitLocation -> appViewModel.onToggleShowLocationTooltip()
+						else -> Unit
 					}
 				}
 			}
@@ -193,67 +197,74 @@ class MainActivity : ComponentActivity() {
 							CustomSnackBar(message = snackbarData.visuals.message, paddingTop = navHeight)
 						}
 					},
-				) {
+				) { padding ->
 					NavHost(
 						navController,
-						startDestination = if (isAnalyticsShown == true) NavItem.Main.route else NavItem.Analytics.route,
+						startDestination = if (isAnalyticsShown == true) Destination.Main.route else Destination.Analytics.route,
 						modifier =
 						Modifier
 							.fillMaxSize()
-							.padding(it),
+							.padding(padding),
 					) {
-						composable(NavItem.Main.route) { MainScreen(navController, appViewModel, uiState) }
-						composable(NavItem.Analytics.route) { AnalyticsScreen(navController, appViewModel, uiState) }
-						composable(NavItem.Permission.route) { PermissionScreen(navController) }
-						composable(NavItem.Settings.route) {
+						composable(
+							Destination.Main.route,
+						) {
+							val autoStart = it.arguments?.getString("autoStart")
+							MainScreen(navController, appViewModel, uiState, autoStart.toBoolean())
+						}
+						composable(Destination.Analytics.route) { AnalyticsScreen(navController, appViewModel, uiState) }
+						composable(Destination.Permission.route) { nav ->
+							val argument = nav.arguments?.getString("permission")
+							requireNotNull(argument) { "No permission passed" }
+							runCatching {
+								val permission = Permission.valueOf(argument)
+								PermissionScreen(navController, permission)
+							}
+						}
+						composable(Destination.Settings.route) {
 							SettingsScreen(
 								navController,
 								appViewModel = appViewModel,
 								uiState,
 							)
 						}
-						composable(NavItem.Location.Entry.route) {
+						composable(Destination.EntryLocation.route) {
 							HopScreen(
 								navController = navController,
-								gatewayLocation = GatewayLocation.Entry,
+								gatewayLocation = GatewayLocation.ENTRY,
 								appViewModel,
 							)
 						}
-						composable(NavItem.Location.Exit.route) {
+						composable(Destination.ExitLocation.route) {
 							HopScreen(
 								navController = navController,
-								gatewayLocation = GatewayLocation.Exit,
+								gatewayLocation = GatewayLocation.EXIT,
 								appViewModel,
 							)
 						}
-						composable(NavItem.Settings.Logs.route) { LogsScreen(appViewModel = appViewModel) }
-						composable(NavItem.Settings.Support.route) { SupportScreen(appViewModel) }
-						composable(NavItem.Settings.Feedback.route) { FeedbackScreen(appViewModel) }
-						composable(NavItem.Settings.Legal.route) {
-							LegalScreen(
-								appViewModel,
-								navController,
-							)
-						}
-						composable(NavItem.Settings.Credential.route) {
+						composable(Destination.Logs.route) { LogsScreen(appViewModel = appViewModel) }
+						composable(Destination.Support.route) { SupportScreen() }
+						composable(Destination.Feedback.route) { FeedbackScreen() }
+						composable(Destination.Legal.route) { LegalScreen(navController) }
+						composable(Destination.Credential.route) {
 							CredentialScreen(
 								navController,
 								appViewModel,
 							)
 						}
-						composable(NavItem.Settings.Account.route) { AccountScreen(appViewModel, uiState, navController) }
-						composable(NavItem.Settings.Legal.Licenses.route) {
+						composable(Destination.Account.route) { AccountScreen(appViewModel, uiState, navController) }
+						composable(Destination.Licenses.route) {
 							LicensesScreen(
 								appViewModel,
 							)
 						}
-						composable(NavItem.Settings.Appearance.route) {
+						composable(Destination.Appearance.route) {
 							AppearanceScreen(navController)
 						}
-						composable(NavItem.Settings.Appearance.Display.route) {
+						composable(Destination.Display.route) {
 							DisplayScreen()
 						}
-						composable(NavItem.Settings.Appearance.Language.route) {
+						composable(Destination.Language.route) {
 							LanguageScreen(navController, localeStorage)
 						}
 					}

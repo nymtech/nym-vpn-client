@@ -36,15 +36,17 @@ import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.NavItem
+import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
-import net.nymtech.nymvpn.util.durationFromNow
-import net.nymtech.nymvpn.util.scaledHeight
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.extensions.durationFromNow
+import net.nymtech.nymvpn.util.extensions.launchVpnSettings
+import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.model.VpnState
 import java.time.Instant
 
@@ -71,7 +73,7 @@ fun SettingsScreen(
 	) {
 		if (appUiState.credentialExpiryTime == null || appUiState.credentialExpiryTime.isBefore(Instant.now())) {
 			MainStyledButton(
-				onClick = { navController.navigate(NavItem.Settings.Credential.route) },
+				onClick = { navController.navigate(Destination.Credential.route) },
 				content = {
 					Text(
 						stringResource(id = R.string.add_cred_to_connect),
@@ -104,7 +106,7 @@ fun SettingsScreen(
 						SelectionItem(
 							Icons.Filled.AccountCircle,
 							onClick = {
-								navController.navigate(NavItem.Settings.Account.route)
+								navController.navigate(Destination.Account.route)
 							},
 							title = { Text(stringResource(R.string.credential), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 							description = { Text(accountDescription.text, style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline)) },
@@ -139,7 +141,7 @@ fun SettingsScreen(
 					Icons.Outlined.AdminPanelSettings,
 					title = { Text(stringResource(R.string.kill_switch), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						viewModel.onKillSwitchSelected(context)
+						context.launchVpnSettings()
 					},
 				),
 				SelectionItem(
@@ -166,7 +168,7 @@ fun SettingsScreen(
 				SelectionItem(
 					Icons.AutoMirrored.Outlined.ViewQuilt,
 					title = { Text(stringResource(R.string.appearance), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(NavItem.Settings.Appearance.route) },
+					onClick = { navController.navigate(Destination.Appearance.route) },
 				),
 			),
 		)
@@ -195,7 +197,7 @@ fun SettingsScreen(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.logs),
 					title = { Text(stringResource(R.string.logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(NavItem.Settings.Logs.route) },
+					onClick = { navController.navigate(Destination.Logs.route) },
 				),
 			),
 		)
@@ -216,12 +218,12 @@ fun SettingsScreen(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.feedback),
 					title = { Text(stringResource(R.string.feedback), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(NavItem.Settings.Feedback.route) },
+					onClick = { navController.navigate(Destination.Feedback.route) },
 				),
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.support),
 					title = { Text(stringResource(R.string.support), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(NavItem.Settings.Support.route) },
+					onClick = { navController.navigate(Destination.Support.route) },
 				),
 				SelectionItem(
 					Icons.Outlined.BugReport,
@@ -234,7 +236,7 @@ fun SettingsScreen(
 							style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
 						) {
 							errorReportingDescription.getStringAnnotations(tag = "sentry", it, it).firstOrNull()?.let { annotation ->
-								appViewModel.openWebPage(annotation.item, context)
+								context.openWebUrl(annotation.item)
 							}
 						}
 					},
@@ -281,7 +283,7 @@ fun SettingsScreen(
 			listOf(
 				SelectionItem(
 					title = { Text(stringResource(R.string.legal), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(NavItem.Settings.Legal.route) },
+					onClick = { navController.navigate(Destination.Legal.route) },
 				),
 			),
 		)

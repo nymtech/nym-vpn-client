@@ -6,7 +6,7 @@ import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.vpn.VpnManager
-import net.nymtech.nymvpn.util.goAsync
+import net.nymtech.nymvpn.util.extensions.goAsync
 import timber.log.Timber
 import javax.inject.Inject
 

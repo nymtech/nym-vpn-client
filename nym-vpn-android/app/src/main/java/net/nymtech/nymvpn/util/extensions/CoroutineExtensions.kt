@@ -1,11 +1,6 @@
-package net.nymtech.nymvpn.util
+package net.nymtech.nymvpn.util.extensions
 
 import android.content.BroadcastReceiver
-import android.content.Context
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
-import androidx.core.os.LocaleListCompat
-import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,61 +16,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.whileSelect
-import net.nymtech.nymvpn.NymVpn
 import timber.log.Timber
 import java.time.Duration
-import java.time.Instant
-import java.util.Locale
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.coroutineContext
-
-fun Dp.scaledHeight(): Dp {
-	return NymVpn.resizeHeight(this)
-}
-
-fun Dp.scaledWidth(): Dp {
-	return NymVpn.resizeWidth(this)
-}
-
-fun TextUnit.scaled(): TextUnit {
-	return NymVpn.resizeHeight(this)
-}
-
-fun BroadcastReceiver.goAsync(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> Unit) {
-	val pendingResult = goAsync()
-	@OptIn(DelicateCoroutinesApi::class) // Must run globally; there's no teardown callback.
-	GlobalScope.launch(context) {
-		try {
-			block()
-		} finally {
-			pendingResult.finish()
-		}
-	}
-}
-
-val Context.actionBarSize
-	get() = theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))
-		.let { attrs -> attrs.getDimension(0, 0F).toInt().also { attrs.recycle() } }
-
-suspend inline fun <T> Flow<T>.safeCollect(crossinline action: suspend (T) -> Unit) {
-	collect {
-		coroutineContext.ensureActive()
-		action(it)
-	}
-}
-
-fun NavController.navigateNoBack(route: String) {
-	navigate(route) {
-		popUpTo(0)
-	}
-}
-
-fun Instant.durationFromNow(): Duration {
-	return Duration.between(Instant.now(), this)
-}
 
 /**
  * Chunks based on a time or size threshold.
@@ -137,16 +84,21 @@ fun <T> CoroutineScope.asChannel(flow: Flow<T>): ReceiveChannel<T> = produce {
 	}
 }
 
-fun LocaleListCompat.toSet(): Set<Locale> {
-	val set = HashSet<Locale>()
-	var counter = 0
-	while (this[counter] != null) {
-		this[counter]?.let { set.add(it) }
-		counter++
+suspend inline fun <T> Flow<T>.safeCollect(crossinline action: suspend (T) -> Unit) {
+	collect {
+		coroutineContext.ensureActive()
+		action(it)
 	}
-	return set
 }
 
-fun String.capitalize(locale: Locale): String {
-	return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+fun BroadcastReceiver.goAsync(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> Unit) {
+	val pendingResult = goAsync()
+	@OptIn(DelicateCoroutinesApi::class) // Must run globally; there's no teardown callback.
+	GlobalScope.launch(context) {
+		try {
+			block()
+		} finally {
+			pendingResult.finish()
+		}
+	}
 }

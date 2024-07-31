@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import net.nymtech.nymvpn.util.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
 fun MainStyledButton(

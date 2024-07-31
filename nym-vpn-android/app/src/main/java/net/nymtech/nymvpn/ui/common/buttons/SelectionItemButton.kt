@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import net.nymtech.nymvpn.util.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
 fun SelectionItemButton(

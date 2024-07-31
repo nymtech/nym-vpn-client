@@ -37,7 +37,7 @@ import net.nymtech.logcatutil.model.LogMessage
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.labels.LogTypeLabel
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable

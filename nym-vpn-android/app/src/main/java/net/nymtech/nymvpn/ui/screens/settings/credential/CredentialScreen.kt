@@ -42,16 +42,16 @@ import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.NavItem
+import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.navigateNoBack
-import net.nymtech.nymvpn.util.scaledHeight
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.extensions.navigateAndForget
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, viewModel: CredentialViewModel = hiltViewModel()) {
@@ -73,7 +73,7 @@ fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, v
 		scope.launch {
 			viewModel.onImportCredential(credential).onSuccess { _ ->
 				appViewModel.showSnackbarMessage(context.getString(R.string.credential_successful))
-				navController.navigateNoBack(NavItem.Main.route)
+				navController.navigateAndForget(Destination.Main.route)
 			}.onFailure {
 				isImportError = true
 			}

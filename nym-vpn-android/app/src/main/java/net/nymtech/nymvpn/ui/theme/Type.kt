@@ -5,7 +5,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import net.nymtech.nymvpn.util.scaled
+import net.nymtech.nymvpn.util.extensions.scaled
 
 // Set of Material typography styles to start with
 val Typography =
