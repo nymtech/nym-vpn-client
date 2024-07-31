@@ -44,6 +44,7 @@
     "title": "Notificaciones de escritorio"
   },
   "logs": {
-    "title": "Registros"
+    "title": "Registros",
+    "desc": "Copiar o borrar logs"
   }
 }

@@ -2,12 +2,16 @@
   "selected": "Selecionado",
   "search-country": "Pesquisar locais",
   "input-label": "Pesquisar",
-  "loading": "Carregando..",
+  "loading": "Carregando...",
   "none-found": "Nenhum resultado encontrado. Por favor tente outra pesquisa",
   "list-loading": "A lista de locais está sendo carregada…",
   "location-details": {
     "title": "Detalhes sobre os locais dos servidores",
     "description": "Inferimos a localização dos servidores com base em seus endereços IP, mas a localização real pode variar um pouco.",
     "link": "Leia mais"
+  },
+  "location-not-available": {
+    "entry": "O local de entrada selecionado não está disponível, foi alterado para {{location}}",
+    "exit": "O local de saída selecionado não estava disponível, foi alterado para {{location}}"
   }
 }

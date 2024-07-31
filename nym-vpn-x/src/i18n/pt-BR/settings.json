@@ -44,6 +44,7 @@
     "title": "Notificações na área de trabalho"
   },
   "logs": {
-    "title": "Registros"
+    "title": "Registros",
+    "desc": "Copiar ou excluir registros"
   }
 }
