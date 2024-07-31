@@ -6,6 +6,11 @@
   "none-found": "Resultados no encontrados. Por favor intente otra búsqueda",
   "list-loading": "Cargando lista de ubicaciones…",
   "location-details": {
-    "link": "Leer más"
+    "link": "Leer más",
+    "title": "Datos sobre la ubicación de los servidores",
+    "description": "Inferimos la ubicación de los servidores basándonos en sus direcciones IP, pero las ubicaciones reales pueden variar ligeramente."
+  },
+  "location-not-available": {
+    "entry": "Ubicación de la entrada seleccionada no disponible, cambiada a {{location}}"
   }
 }
