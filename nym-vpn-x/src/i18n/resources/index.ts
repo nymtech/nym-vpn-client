@@ -3,3 +3,7 @@ export { es } from './es';
 export { fr } from './fr';
 export { it } from './it';
 export { ptBR } from './pt-BR';
+export { ru } from './ru';
+export { tr } from './tr';
+export { uk } from './uk';
+export { zhHans } from './zh-Hans';
