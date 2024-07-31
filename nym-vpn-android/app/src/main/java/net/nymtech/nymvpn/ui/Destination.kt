@@ -16,7 +16,9 @@ sealed class Destination(
 	val trailing: ImageVector? = null,
 ) {
 	data object Main :
-		Destination("/main?autoStart={autoStart}", StringValue.StringResource(R.string.app_name), null, settingsIcon)
+		Destination("/main?autoStart={autoStart}", StringValue.StringResource(R.string.app_name), null, settingsIcon) {
+		fun createRoute(autoStart: Boolean) = "/main?autoStart=$autoStart"
+	}
 
 	data object Analytics : Destination(
 		"/analytics",

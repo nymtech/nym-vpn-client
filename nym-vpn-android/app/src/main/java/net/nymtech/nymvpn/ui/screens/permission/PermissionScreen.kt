@@ -149,7 +149,7 @@ fun PermissionScreen(navController: NavController, permission: Permission) {
 				Column(verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom)) {
 					MainStyledButton(
 						onClick = {
-							navController.navigateAndForget("${Destination.Main.route}?autoStart=true")
+							navController.navigateAndForget(Destination.Main.createRoute(true))
 						},
 						content = { Text(stringResource(R.string.try_reconnecting), style = CustomTypography.labelHuge) },
 					)

@@ -29,11 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.zaneschepke.localizationutil.LocaleStorage
 import com.zaneschepke.localizationutil.LocaleUtil
 import dagger.hilt.android.AndroidEntryPoint
@@ -121,6 +119,7 @@ class MainActivity : ComponentActivity() {
 			val density = LocalDensity.current
 
 			navController.addOnDestinationChangedListener { controller, destination, _ ->
+				Timber.d("Destination: $destination")
 				if (destination.route == Destination.Main.route &&
 					controller.previousBackStackEntry?.destination?.route == Destination.Language.route
 				) {
@@ -209,23 +208,17 @@ class MainActivity : ComponentActivity() {
 					) {
 						composable(
 							Destination.Main.route,
-							arguments = listOf(
-								navArgument("autoStart") {
-									defaultValue = false
-									type = NavType.BoolType
-								},
-							),
 						) {
-							val autoStart = it.arguments!!.getBoolean("autoStart")
-							MainScreen(navController, appViewModel, uiState, autoStart)
+							val autoStart = it.arguments?.getString("autoStart")
+							MainScreen(navController, appViewModel, uiState, autoStart.toBoolean())
 						}
 						composable(Destination.Analytics.route) { AnalyticsScreen(navController, appViewModel, uiState) }
-						composable("${Destination.Permission.route}/{permission}") { nav ->
-							nav.arguments?.getString("permission")?.let {
-								runCatching {
-									val permission = Permission.valueOf(it)
-									PermissionScreen(navController, permission)
-								}.onFailure { Timber.e(it) }
+						composable(Destination.Permission.route) { nav ->
+							val argument = nav.arguments?.getString("permission")
+							requireNotNull(argument) { "No permission passed" }
+							runCatching {
+								val permission = Permission.valueOf(argument)
+								PermissionScreen(navController, permission)
 							}
 						}
 						composable(Destination.Settings.route) {
