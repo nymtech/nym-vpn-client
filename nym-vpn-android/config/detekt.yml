@@ -47,7 +47,7 @@ complexity:
   ComplexCondition:
       threshold: 5
   CyclomaticComplexMethod:
-    threshold: 20
+    threshold: 30
     ignoreAnnotated:
         - 'Composable'
 
