@@ -19,8 +19,8 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
-import net.nymtech.nymvpn.util.scaledHeight
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun AppearanceScreen(navController: NavController) {

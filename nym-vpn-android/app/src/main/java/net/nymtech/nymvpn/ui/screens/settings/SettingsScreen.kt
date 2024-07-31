@@ -42,9 +42,11 @@ import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
-import net.nymtech.nymvpn.util.durationFromNow
-import net.nymtech.nymvpn.util.scaledHeight
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.extensions.durationFromNow
+import net.nymtech.nymvpn.util.extensions.launchVpnSettings
+import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.model.VpnState
 import java.time.Instant
 
@@ -139,7 +141,7 @@ fun SettingsScreen(
 					Icons.Outlined.AdminPanelSettings,
 					title = { Text(stringResource(R.string.kill_switch), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						viewModel.onKillSwitchSelected(context)
+						context.launchVpnSettings()
 					},
 				),
 				SelectionItem(
@@ -234,7 +236,7 @@ fun SettingsScreen(
 							style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
 						) {
 							errorReportingDescription.getStringAnnotations(tag = "sentry", it, it).firstOrNull()?.let { annotation ->
-								appViewModel.openWebPage(annotation.item, context)
+								context.openWebUrl(annotation.item)
 							}
 						}
 					},

@@ -34,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,10 +69,11 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.NymVpnExceptions
-import net.nymtech.nymvpn.util.StringUtils
-import net.nymtech.nymvpn.util.scaledHeight
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.exceptions.NymVpnExceptions
+import net.nymtech.nymvpn.util.extensions.buildCountryNameString
+import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.model.VpnMode
 import java.time.Instant
 
@@ -91,16 +91,26 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 			null
 		}
 
-	var vpnIntent by rememberSaveable { mutableStateOf(VpnService.prepare(context)) }
 	var showDialog by remember { mutableStateOf(false) }
+
+	fun onConnectWithPermission() {
+		scope.launch {
+			viewModel.onConnect().onFailure {
+				appViewModel.showSnackbarMessage(context.getString(R.string.exception_cred_invalid))
+				navController.navigate(NavItem.Settings.Credential.route)
+			}
+		}
+	}
 
 	val vpnActivityResultState =
 		rememberLauncherForActivityResult(
 			ActivityResultContracts.StartActivityForResult(),
 			onResult = {
 				val accepted = (it.resultCode == RESULT_OK)
-				if (accepted) {
-					vpnIntent = null
+				if (!accepted) {
+					navController.navigate("${NavItem.Permission.route}/${NavItem.Permission.Path.VPN}")
+				} else {
+					onConnectWithPermission()
 				}
 			},
 		)
@@ -111,9 +121,22 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 		) {
 			notificationPermissionState.launchPermissionRequest()
 		} else if (!notificationPermissionState.status.isGranted && notificationPermissionState.status.shouldShowRationale) {
-			navController.navigate(NavItem.Permission.route)
+			navController.navigate("${NavItem.Permission.route}/${NavItem.Permission.Path.NOTIFICATION}")
 		}
 		return Result.failure(NymVpnExceptions.PermissionsNotGrantedException())
+	}
+
+	fun onConnect() {
+		requestNotificationPermissions().onSuccess {
+			val intent = VpnService.prepare(context)
+			if (intent != null) {
+				vpnActivityResultState.launch(
+					intent,
+				)
+			} else {
+				onConnectWithPermission()
+			}
+		}
 	}
 
 	Modal(show = showDialog, onDismiss = { showDialog = false }, title = {
@@ -125,7 +148,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 	}, text = {
 		ModeModalBody(
 			onClick = {
-				appViewModel.openWebPage(context.getString(R.string.mode_support_link), context)
+				context.openWebUrl(context.getString(R.string.mode_support_link))
 			},
 		)
 	})
@@ -167,8 +190,8 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 				)
 			}
 		}
-		val firstHopName = StringUtils.buildCountryNameString(uiState.firstHopCounty, context)
-		val lastHopName = StringUtils.buildCountryNameString(uiState.lastHopCountry, context)
+		val firstHopName = context.buildCountryNameString(uiState.firstHopCounty)
+		val lastHopName = context.buildCountryNameString(uiState.lastHopCountry)
 		val firstHopIcon = countryIcon(uiState.firstHopCounty)
 		val lastHopIcon = countryIcon(uiState.lastHopCountry)
 		Column(
@@ -304,21 +327,13 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
 								scope.launch {
-									appUiState.credentialExpiryTime?.let {
-										if (it.isAfter(Instant.now())) {
-											requestNotificationPermissions().onSuccess {
-												if (vpnIntent != null) {
-													return@launch vpnActivityResultState.launch(
-														vpnIntent,
-													)
-												}
-												viewModel.onConnect().onFailure {
-													appViewModel.showSnackbarMessage(context.getString(R.string.exception_cred_invalid))
-													navController.navigate(NavItem.Settings.Credential.route)
-												}
-											}
-										}
-									} ?: navController.navigate(NavItem.Settings.Credential.route)
+									if (appUiState.credentialExpiryTime != null &&
+										appUiState.credentialExpiryTime.isAfter(Instant.now())
+									) {
+										onConnect()
+									} else {
+										navController.navigate(NavItem.Settings.Credential.route)
+									}
 								}
 							},
 							content = {

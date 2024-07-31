@@ -16,15 +16,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.NavItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
-import net.nymtech.nymvpn.util.scaledHeight
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun LegalScreen(appViewModel: AppViewModel, navController: NavController) {
+fun LegalScreen(navController: NavController) {
 	val context = LocalContext.current
 
 	Column(
@@ -42,15 +42,14 @@ fun LegalScreen(appViewModel: AppViewModel, navController: NavController) {
 				SelectionItem(
 					title = { Text(stringResource(R.string.terms_of_use), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.openWebPage(context.getString(R.string.terms_link), context)
+						context.openWebUrl(context.getString(R.string.terms_link))
 					},
 				),
 				SelectionItem(
 					title = { Text(stringResource(R.string.privacy_policy), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.openWebPage(
+						context.openWebUrl(
 							context.getString(R.string.privacy_link),
-							context,
 						)
 					},
 				),

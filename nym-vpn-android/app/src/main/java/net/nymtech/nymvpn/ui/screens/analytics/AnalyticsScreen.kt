@@ -34,9 +34,10 @@ import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
-import net.nymtech.nymvpn.util.navigateNoBack
-import net.nymtech.nymvpn.util.scaledHeight
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.extensions.navigateAndForget
+import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, appUiState: AppUiState) {
@@ -126,7 +127,7 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 				style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center),
 			) {
 				analyticsMessage.getStringAnnotations(tag = "sentry", it, it).firstOrNull()?.let { annotation ->
-					appViewModel.openWebPage(annotation.item, context)
+					context.openWebUrl(annotation.item)
 				}
 			}
 		}
@@ -150,7 +151,7 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 								style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
 							) {
 								errorReportingDescription.getStringAnnotations(tag = "sentry", it, it).firstOrNull()?.let { annotation ->
-									appViewModel.openWebPage(annotation.item, context)
+									context.openWebUrl(annotation.item)
 								}
 							}
 						},
@@ -188,7 +189,7 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 			)
 			MainStyledButton(onClick = {
 				appViewModel.setAnalyticsShown()
-				navController.navigateNoBack(NavItem.Main.route)
+				navController.navigateAndForget(NavItem.Main.route)
 			}, content = {
 				Text(stringResource(id = R.string.cont), style = CustomTypography.labelHuge.copy(color = MaterialTheme.colorScheme.onPrimary))
 			})
@@ -201,10 +202,10 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 				modifier = Modifier.padding(bottom = 24.dp.scaledHeight()),
 			) {
 				termsMessage.getStringAnnotations(tag = "terms", it, it).firstOrNull()?.let { annotation ->
-					appViewModel.openWebPage(annotation.item, context)
+					context.openWebUrl(annotation.item)
 				}
 				termsMessage.getStringAnnotations(tag = "privacy", it, it).firstOrNull()?.let { annotation ->
-					appViewModel.openWebPage(annotation.item, context)
+					context.openWebUrl(annotation.item)
 				}
 			}
 		}

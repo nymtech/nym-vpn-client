@@ -17,14 +17,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
-import net.nymtech.nymvpn.util.scaledHeight
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun FeedbackScreen(appViewModel: AppViewModel) {
+fun FeedbackScreen() {
 	val context = LocalContext.current
 
 	Column(
@@ -43,9 +43,8 @@ fun FeedbackScreen(appViewModel: AppViewModel) {
 					leadingIcon = ImageVector.vectorResource(R.drawable.github),
 					title = { Text(stringResource(R.string.open_github), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.openWebPage(
+						context.openWebUrl(
 							context.getString(R.string.github_issues_url),
-							context,
 						)
 					},
 				),
@@ -57,7 +56,7 @@ fun FeedbackScreen(appViewModel: AppViewModel) {
 					leadingIcon = ImageVector.vectorResource(R.drawable.send),
 					title = { Text(stringResource(R.string.send_feedback), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.openWebPage(context.getString(R.string.contact_url), context)
+						context.openWebUrl(context.getString(R.string.contact_url))
 					},
 				),
 			),
@@ -68,7 +67,7 @@ fun FeedbackScreen(appViewModel: AppViewModel) {
 					leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
 					title = { Text(stringResource(R.string.join_matrix), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.openWebPage(context.getString(R.string.matrix_url), context)
+						context.openWebUrl(context.getString(R.string.matrix_url))
 					},
 				),
 			),
@@ -79,7 +78,7 @@ fun FeedbackScreen(appViewModel: AppViewModel) {
 					leadingIcon = ImageVector.vectorResource(R.drawable.discord),
 					title = { Text(stringResource(R.string.join_discord), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						appViewModel.openWebPage(context.getString(R.string.discord_url), context)
+						context.openWebUrl(context.getString(R.string.discord_url))
 					},
 				),
 			),

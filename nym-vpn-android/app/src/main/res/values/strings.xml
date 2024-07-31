@@ -143,4 +143,7 @@
 	<string name="entry_location_selector">Entry location selector</string>
     <string translatable="false" name="location_support_link">https://support.nymvpn.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
 	<string translatable="false" name="mode_support_link">https://support.nymvpn.com/hc/en-us/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode</string>
+	<string name="vpn_connection">VPN Connection</string>
+	<string name="vpn_permission_message">VPN connection permission was either explicity denied or is being denied because another application is using Always-on VPN. Please either request permission again or check that Always-on VPN is not enabled for another app.</string>
+	<string name="view_system_settings">View system settings</string>
 </resources>

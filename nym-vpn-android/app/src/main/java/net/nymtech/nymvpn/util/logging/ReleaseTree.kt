@@ -1,6 +1,7 @@
-package net.nymtech.nymvpn.util.log
+package net.nymtech.nymvpn.util.logging
 
 import io.sentry.Sentry
+import net.nymtech.nymvpn.util.exceptions.NymAndroidException
 import timber.log.Timber
 
 class ReleaseTree : Timber.DebugTree() {

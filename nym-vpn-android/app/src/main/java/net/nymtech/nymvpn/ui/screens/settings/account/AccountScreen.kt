@@ -42,9 +42,10 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.durationFromNow
-import net.nymtech.nymvpn.util.scaledHeight
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.extensions.durationFromNow
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.nymvpn.util.extensions.showToast
 
 @Composable
 fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState, navController: NavController, viewModel: AccountViewModel = hiltViewModel()) {
@@ -150,7 +151,7 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState, navControl
 				) {
 					GroupLabel(title = stringResource(R.string.devices))
 					IconButton(onClick = {
-						appViewModel.showFeatureInProgressMessage(context)
+						context.showToast(R.string.feature_in_progress)
 					}, modifier = Modifier.padding(start = 24.dp)) {
 						Icon(
 							Icons.Filled.Add,

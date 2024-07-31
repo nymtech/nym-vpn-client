@@ -58,7 +58,12 @@ sealed class NavItem(
 		Screen.PERMISSION.name,
 		StringValue.StringResource(R.string.permission_required),
 		backIcon,
-	)
+	) {
+		enum class Path {
+			VPN,
+			NOTIFICATION,
+		}
+	}
 
 	data object Settings :
 		NavItem(Screen.SETTINGS.name, StringValue.StringResource(R.string.settings), backIcon) {
@@ -137,25 +142,27 @@ sealed class NavItem(
 		val infoIcon = Icons.Outlined.Info
 
 		fun from(route: String?): NavItem {
-			return when (route) {
-				Main.route -> Main
-				Analytics.route -> Analytics
-				Permission.route -> Permission
-				Settings.route -> Settings
-				Location.Entry.route -> Location.Entry
-				Location.Exit.route -> Location.Exit
-				Settings.Appearance.Display.route -> Settings.Appearance.Display
-				Settings.Logs.route -> Settings.Logs
-				Settings.Support.route -> Settings.Support
-				Settings.Feedback.route -> Settings.Feedback
-				Settings.Legal.route -> Settings.Legal
-				Settings.Credential.route -> Settings.Credential
-				Settings.Account.route -> Settings.Account
-				Settings.Appearance.route -> Settings.Appearance
-				Settings.Appearance.Display.route -> Settings.Appearance.Display
-				Settings.Appearance.Language.route -> Settings.Appearance.Language
-				Settings.Legal.Licenses.route -> Settings.Legal.Licenses
-				else -> Main
+			return with(route) {
+				when {
+					equals(Main.route) -> Main
+					equals(Analytics.route) -> Analytics
+					this?.contains(Permission.route) == true -> Permission
+					equals(Settings.route) -> Settings
+					equals(Location.Entry.route) -> Location.Entry
+					equals(Location.Exit.route) -> Location.Exit
+					equals(Settings.Appearance.Display.route) -> Settings.Appearance.Display
+					equals(Settings.Logs.route) -> Settings.Logs
+					equals(Settings.Support.route) -> Settings.Support
+					equals(Settings.Feedback.route) -> Settings.Feedback
+					equals(Settings.Legal.route) -> Settings.Legal
+					equals(Settings.Credential.route) -> Settings.Credential
+					equals(Settings.Account.route) -> Settings.Account
+					equals(Settings.Appearance.route) -> Settings.Appearance
+					equals(Settings.Appearance.Display.route) -> Settings.Appearance.Display
+					equals(Settings.Appearance.Language.route) -> Settings.Appearance.Language
+					equals(Settings.Legal.Licenses.route) -> Settings.Legal.Licenses
+					else -> Main
+				}
 			}
 		}
 	}

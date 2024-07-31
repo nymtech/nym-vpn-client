@@ -13,7 +13,7 @@ import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.module.MainDispatcher
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
-import net.nymtech.nymvpn.util.chunked
+import net.nymtech.nymvpn.util.extensions.chunked
 import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject

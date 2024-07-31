@@ -13,9 +13,9 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.iconSize
-import net.nymtech.nymvpn.util.StringUtils
-import net.nymtech.nymvpn.util.scaledHeight
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.model.Country
 
 @Composable
@@ -26,8 +26,7 @@ fun countryIcon(country: Country): @Composable () -> Unit {
 			ImageVector.vectorResource(R.drawable.bolt)
 		} else {
 			ImageVector.vectorResource(
-				StringUtils.getFlagImageVectorByName(
-					context,
+				context.getFlagImageVectorByName(
 					country.isoCode.lowercase(),
 				),
 			)

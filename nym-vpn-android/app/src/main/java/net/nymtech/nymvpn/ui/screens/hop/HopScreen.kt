@@ -48,9 +48,10 @@ import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
-import net.nymtech.nymvpn.util.StringUtils
-import net.nymtech.nymvpn.util.scaledHeight
-import net.nymtech.nymvpn.util.scaledWidth
+import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
+import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scaledHeight
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 import java.text.Collator
 
 @Composable
@@ -86,7 +87,7 @@ fun HopScreen(
 	}, text = {
 		GatewayModalBody(
 			onClick = {
-				appViewModel.openWebPage(context.getString(R.string.location_support_link), context)
+				context.openWebUrl(context.getString(R.string.location_support_link))
 			},
 		)
 	})
@@ -202,8 +203,7 @@ fun HopScreen(
 			if (it.isLowLatency) return@items
 			val icon =
 				ImageVector.vectorResource(
-					StringUtils.getFlagImageVectorByName(
-						context,
+					context.getFlagImageVectorByName(
 						it.isoCode.lowercase(),
 					),
 				)

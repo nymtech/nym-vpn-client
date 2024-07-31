@@ -1,7 +1,8 @@
-package net.nymtech.nymvpn.util
+package net.nymtech.nymvpn.util.exceptions
 
 import android.content.Context
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.util.StringValue
 
 sealed class NymVpnExceptions : Exception() {
 	abstract fun getMessage(context: Context): String

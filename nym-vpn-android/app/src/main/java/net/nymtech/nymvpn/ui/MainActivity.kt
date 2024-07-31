@@ -204,7 +204,10 @@ class MainActivity : ComponentActivity() {
 					) {
 						composable(NavItem.Main.route) { MainScreen(navController, appViewModel, uiState) }
 						composable(NavItem.Analytics.route) { AnalyticsScreen(navController, appViewModel, uiState) }
-						composable(NavItem.Permission.route) { PermissionScreen(navController) }
+						composable("${NavItem.Permission.route}/{permission}") { nav ->
+							val permission = nav.arguments?.getString("permission")
+							if (!permission.isNullOrBlank()) PermissionScreen(navController, NavItem.Permission.Path.valueOf(permission))
+						}
 						composable(NavItem.Settings.route) {
 							SettingsScreen(
 								navController,
@@ -227,14 +230,9 @@ class MainActivity : ComponentActivity() {
 							)
 						}
 						composable(NavItem.Settings.Logs.route) { LogsScreen(appViewModel = appViewModel) }
-						composable(NavItem.Settings.Support.route) { SupportScreen(appViewModel) }
-						composable(NavItem.Settings.Feedback.route) { FeedbackScreen(appViewModel) }
-						composable(NavItem.Settings.Legal.route) {
-							LegalScreen(
-								appViewModel,
-								navController,
-							)
-						}
+						composable(NavItem.Settings.Support.route) { SupportScreen() }
+						composable(NavItem.Settings.Feedback.route) { FeedbackScreen() }
+						composable(NavItem.Settings.Legal.route) { LegalScreen(navController) }
 						composable(NavItem.Settings.Credential.route) {
 							CredentialScreen(
 								navController,

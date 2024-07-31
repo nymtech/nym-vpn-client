@@ -18,9 +18,9 @@ import net.nymtech.logcatutil.LogCollect
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.service.tile.VpnQuickTile
-import net.nymtech.nymvpn.util.actionBarSize
-import net.nymtech.nymvpn.util.log.DebugTree
-import net.nymtech.nymvpn.util.log.ReleaseTree
+import net.nymtech.nymvpn.util.extensions.actionBarSize
+import net.nymtech.nymvpn.util.logging.DebugTree
+import net.nymtech.nymvpn.util.logging.ReleaseTree
 import net.nymtech.vpn.model.Environment
 import timber.log.Timber
 import javax.inject.Inject
