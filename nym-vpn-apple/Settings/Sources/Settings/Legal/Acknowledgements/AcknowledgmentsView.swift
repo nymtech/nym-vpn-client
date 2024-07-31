@@ -11,7 +11,7 @@ struct AcknowledgmentsView: View {
         }
 
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             navbar()
             section()
             Spacer()
@@ -39,6 +39,9 @@ private extension AcknowledgmentsView {
     func section() -> some View {
         if let acknowledgements = viewModel.acknoledgementsList?.acknowledgements {
             ScrollView {
+                Spacer()
+                    .frame(height: 8)
+
                 ForEach(acknowledgements) { acknowledgement in
                     AcknowledgementsRow(
                         viewModel: AcknowledgementsRowViewModel(

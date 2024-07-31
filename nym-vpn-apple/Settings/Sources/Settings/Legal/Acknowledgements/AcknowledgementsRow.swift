@@ -23,8 +23,7 @@ public struct AcknowledgementsRow: View {
                             }
                         )
                     )
-            } 
-            else if viewModel.canOpenRepository() {
+            } else if viewModel.canOpenRepository() {
                 SettingsListItem(
                     viewModel: SettingsListItemViewModel(
                         accessory: .arrow,

@@ -10,9 +10,8 @@ public struct LicenseView: View {
     }
 
     public var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             navbar()
-                .padding(0)
 
             ScrollView {
                 Text(viewModel.acknowledgement.title)
