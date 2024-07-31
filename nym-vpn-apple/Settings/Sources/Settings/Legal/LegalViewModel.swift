@@ -3,6 +3,8 @@ import Constants
 import ExternalLinkManager
 import UIComponents
 
+import AcknowList
+
 struct LegalViewModel {
     private let externalLinkManager: ExternalLinkManager
     private let termsOfUseLink = Constants.termsOfUseURL.rawValue
@@ -31,6 +33,10 @@ struct LegalViewModel {
 extension LegalViewModel {
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
+    }
+
+    func navigateToLicences() {
+        path.append(SettingsLink.acknowledgments)
     }
 
     func openExternalURL(urlString: String?) {
@@ -70,11 +76,7 @@ private extension LegalViewModel {
             title: "legal.licences".localizedString,
             position: SettingsListItemPosition(isFirst: false, isLast: true),
             action: {
-                #if os(iOS)
-                openExternalURL(urlString: licencesLink)
-                #else
-                openExternalURL(urlString: nil)
-                #endif
+                navigateToLicences()
             }
         )
     }

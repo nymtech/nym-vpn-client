@@ -661,6 +661,17 @@
         }
       }
     },
+    "legal.licence" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Licence"
+          }
+        }
+      }
+    },
     "legal.licences" : {
       "extractionState" : "manual",
       "localizations" : {

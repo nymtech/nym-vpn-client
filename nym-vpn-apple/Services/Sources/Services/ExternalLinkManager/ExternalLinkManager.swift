@@ -17,6 +17,10 @@ public final class ExternalLinkManager {
         else {
             throw GeneralNymError.invalidUrl
         }
+        openExternalURL(url)
+    }
+
+    public func openExternalURL(_ url: URL) {
         UIApplication.shared.open(url)
     }
 #endif
@@ -27,6 +31,10 @@ public final class ExternalLinkManager {
         else {
             throw GeneralNymError.invalidUrl
         }
+        openExternalURL(url)
+    }
+
+    public func openExternalURL(_ url: URL) {
         NSWorkspace.shared.open(url)
     }
 #endif

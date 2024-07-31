@@ -20,7 +20,8 @@ let package = Package(
         .package(path: "../Services"),
         .package(path: "../ServicesIOS"),
         .package(path: "../UIComponents"),
-        .package(path: "../Theme")
+        .package(path: "../Theme"),
+        .package(url: "https://github.com/vtourraine/AcknowList", from: "3.2.0")
     ],
     targets: [
         .target(
@@ -36,7 +37,8 @@ let package = Package(
                 .product(name: "Modifiers", package: "Services"),
                 .product(name: "NymLogger", package: "Services"),
                 .product(name: "Theme", package: "Theme"),
-                .product(name: "UIComponents", package: "UIComponents")
+                .product(name: "UIComponents", package: "UIComponents"),
+                .product(name: "AcknowList", package: "AcknowList")
             ]
         ),
         .testTarget(

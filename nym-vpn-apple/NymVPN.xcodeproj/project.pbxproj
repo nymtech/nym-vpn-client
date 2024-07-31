@@ -62,6 +62,8 @@
 		D97065E12B8DD44A00C27A9B /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D97065E02B8DD44A00C27A9B /* TunnelStatus */; };
 		D974C03B2BBED2460011924A /* ConnectionManager in Frameworks */ = {isa = PBXBuildFile; productRef = D974C03A2BBED2460011924A /* ConnectionManager */; };
 		D9870CF32BE3A12800551A86 /* Home in Frameworks */ = {isa = PBXBuildFile; productRef = D9870CF22BE3A12800551A86 /* Home */; };
+		D98B32EE2C58E24E005A15A3 /* Package.resolved in Resources */ = {isa = PBXBuildFile; fileRef = D98B32ED2C58E24E005A15A3 /* Package.resolved */; };
+		D98B32F22C58F682005A15A3 /* Package.resolved in Resources */ = {isa = PBXBuildFile; fileRef = D98B32F12C58F682005A15A3 /* Package.resolved */; };
 		D990950F2BC6B3E100C98E3F /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D990950D2BC6B31900C98E3F /* SystemConfiguration.framework */; };
 		D99095152BC6B54200C98E3F /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D954C0A62B51C17200C6BAAC /* NetworkExtension.framework */; };
 		D99095182BC6B54200C98E3F /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99095172BC6B54200C98E3F /* PacketTunnelProvider.swift */; };
@@ -232,6 +234,8 @@
 		D955FA002B73CF6F005BA27D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D96B94DC2C2AB62D00E98B15 /* gatewaysEntryCountries.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = gatewaysEntryCountries.json; sourceTree = "<group>"; };
 		D96B94DD2C2AB62D00E98B15 /* gatewaysExitCountries.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = gatewaysExitCountries.json; sourceTree = "<group>"; };
+		D98B32ED2C58E24E005A15A3 /* Package.resolved */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Package.resolved; path = NymVPN.xcworkspace/xcshareddata/swiftpm/Package.resolved; sourceTree = SOURCE_ROOT; };
+		D98B32F12C58F682005A15A3 /* Package.resolved */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Package.resolved; path = NymVPN.xcworkspace/xcshareddata/swiftpm/Package.resolved; sourceTree = SOURCE_ROOT; };
 		D990950D2BC6B31900C98E3F /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk/System/Library/Frameworks/SystemConfiguration.framework; sourceTree = DEVELOPER_DIR; };
 		D99095142BC6B54200C98E3F /* NymMixnetTunnelmacOS.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NymMixnetTunnelmacOS.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D99095172BC6B54200C98E3F /* PacketTunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelProvider.swift; sourceTree = "<group>"; };
@@ -403,6 +407,7 @@
 		D90F19062BEED6A2008D2232 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				D98B32F12C58F682005A15A3 /* Package.resolved */,
 				D90F19042BEED69D008D2232 /* Info.plist */,
 				D9BEF2D62BEB63320036C566 /* Assets.xcassets */,
 				D9BEF2DB2BEB63320036C566 /* NymVPNDaemon.entitlements */,
@@ -452,6 +457,7 @@
 		D967402C2B56CA1A001F6891 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				D98B32ED2C58E24E005A15A3 /* Package.resolved */,
 				D96B94DC2C2AB62D00E98B15 /* gatewaysEntryCountries.json */,
 				D96B94DD2C2AB62D00E98B15 /* gatewaysExitCountries.json */,
 				D9F699E32B4C47DE005576A9 /* BridgingHeader.h */,
@@ -884,6 +890,7 @@
 				D932143F2B84D29200FFDC5E /* XCRemoteSwiftPackageReference "swift-log" */,
 				D9EACBCC2BBFFE420094CDDF /* XCRemoteSwiftPackageReference "SwiftyPing" */,
 				D9E9F19E2C3807A00056EB8C /* XCRemoteSwiftPackageReference "Sparkle" */,
+				D98B32E62C58E0A4005A15A3 /* XCRemoteSwiftPackageReference "AcknowList" */,
 			);
 			productRefGroup = D99A14772B357E9900F2728B /* Products */;
 			projectDirPath = "";
@@ -938,6 +945,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9538E2E2B7E3F28002FA8B5 /* LaunchScreen.storyboard in Resources */,
+				D98B32EE2C58E24E005A15A3 /* Package.resolved in Resources */,
 				D96B94E02C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
 				D96B94DE2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
 				D9264E262B3DA062004594A8 /* Assets.xcassets in Resources */,
@@ -949,6 +957,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9BEF2DA2BEB63320036C566 /* Preview Assets.xcassets in Resources */,
+				D98B32F22C58F682005A15A3 /* Package.resolved in Resources */,
 				D96B94E12C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
 				D96B94DF2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
 				D9BEF2D72BEB63320036C566 /* Assets.xcassets in Resources */,
@@ -985,7 +994,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# This script is responsable to upload debug symbols and source context for Sentry.\nif which sentry-cli >/dev/null; then\nexport SENTRY_ORG=nymtech\nexport SENTRY_PROJECT=nym-vpn-ios\nERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)\nif [ ! $? -eq 0 ]; then\necho \"warning: sentry-cli - $ERROR\"\nfi\nelse\necho \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\nfi\n";
+			shellScript = "# This script is responsable to upload debug symbols and source context for Sentry.\n# if which sentry-cli >/dev/null; then\n# export SENTRY_ORG=nymtech\n# export SENTRY_PROJECT=nym-vpn-ios\n# ERROR=$(sentry-cli debug-files upload --include-sources \"$DWARF_DSYM_FOLDER_PATH\" 2>&1 >/dev/null)\n# if [ ! $? -eq 0 ]; then\n# echo \"warning: sentry-cli - $ERROR\"\n# fi\n# else\n# echo \"warning: sentry-cli not installed, download from https://github.com/getsentry/sentry-cli/releases\"\n# fi\n";
 		};
 		D94127BD2C00AB2E009EDB7A /* Run Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1911,6 +1920,14 @@
 			requirement = {
 				kind = exactVersion;
 				version = "1.0.15-26";
+			};
+		};
+		D98B32E62C58E0A4005A15A3 /* XCRemoteSwiftPackageReference "AcknowList" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vtourraine/AcknowList";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.2.0;
 			};
 		};
 		D9E9F19E2C3807A00056EB8C /* XCRemoteSwiftPackageReference "Sparkle" */ = {

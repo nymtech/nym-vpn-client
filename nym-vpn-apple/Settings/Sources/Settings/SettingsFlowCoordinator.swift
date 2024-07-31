@@ -26,6 +26,10 @@ struct SettingsFlowCoordinator<Content: View>: View {
             AddCredentialsView(viewModel: AddCredentialsViewModel(path: $flowState.path))
         case .logs:
             LogsView(viewModel: LogsViewModel(path: $flowState.path))
+        case .acknowledgments:
+            AcknowledgmentsView(viewModel: AcknowledgeMentsViewModel(path: $flowState.path))
+        case let .licence(details: details):
+            LicenseView(viewModel: LicenseViewModel(path: $flowState.path, details: details))
         }
     }
 }
