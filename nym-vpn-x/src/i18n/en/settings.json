@@ -44,7 +44,7 @@
     "desc": "Copy or delete logs"
   },
   "faq": "FAQ",
-  "display-theme": "Display theme",
+  "display-theme": "Display mode",
   "quit": "Quit NymVPN",
   "add-credential-button": "Add credential to connect"
 }

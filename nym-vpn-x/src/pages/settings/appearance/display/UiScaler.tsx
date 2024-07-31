@@ -1,9 +1,9 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { DefaultRootFontSize } from '../../../constants';
-import { useMainDispatch, useMainState } from '../../../contexts';
-import { kvSet } from '../../../kvStore';
-import { StateDispatch } from '../../../types';
+import { DefaultRootFontSize } from '../../../../constants';
+import { useMainDispatch, useMainState } from '../../../../contexts';
+import { kvSet } from '../../../../kvStore';
+import { StateDispatch } from '../../../../types';
 
 function UiScaler() {
   const [slideValue, setSlideValue] = useState(DefaultRootFontSize);
