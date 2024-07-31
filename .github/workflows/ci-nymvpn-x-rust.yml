@@ -8,7 +8,7 @@ on:
       - "nym-vpn-x/src-tauri/**"
       - "nym-vpn-core/crates/nym-vpn-proto/**"
       - "nym-vpn-core/crates/nym-gateway-directory/**"
-      - "nym-vpn-core/nym-vpnd/**"
+      - "nym-vpn-core/crates/nym-vpnd/**"
 
 env:
   CARGO_TERM_COLOR: always

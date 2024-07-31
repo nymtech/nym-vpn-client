@@ -83,13 +83,13 @@ jobs:
         id: package-version-vpnc
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry nym-vpn-core/nym-vpnc
+          subcommand: package.version --entry nym-vpn-core/crates/nym-vpnc
 
       - name: Get package version vpnd
         id: package-version-vpnd
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry nym-vpn-core/nym-vpnd
+          subcommand: package.version --entry nym-vpn-core/crates/nym-vpnd
 
       - name: Get package version lib
         id: package-version-lib
