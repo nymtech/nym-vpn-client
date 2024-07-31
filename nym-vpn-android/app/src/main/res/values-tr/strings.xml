@@ -9,7 +9,7 @@
     <string name="connecting">Bağlanıyor</string>
     <string name="five_hop_mixnet">Anonim</string>
     <string name="disconnecting">Bağlantı koptu</string>
-    <string name="first_hop">İlk hop</string>
+    <string name="first_hop">Giriş lokasyonu</string>
     <string name="two_hop_mixnet">Hızlı</string>
     <string name="disconnected">Bağlantı kesildi</string>
     <string name="init_client">İstemci başlatılıyor…</string>
@@ -17,7 +17,7 @@
     <string name="connection_time">Bağlantı süresi</string>
     <string name="connect_to">-e bağlan</string>
     <string name="connect">Bağlan</string>
-    <string name="last_hop_selection">Son hop seçimi</string>
+    <string name="last_hop_selection">Çıkış lokasyonu</string>
     <string name="display_theme">Panel teması</string>
     <string name="light_theme">Açık tema</string>
     <string name="dark_theme">Koyu tema</string>
@@ -29,8 +29,8 @@
     <string name="auto_connect">Otomatik bağlan</string>
     <string name="auto_connect_description">Yeniden başlatıldığında otomatik bağlan</string>
     <string name="logs">Günlükler</string>
-    <string name="last_hop">Son hop</string>
-    <string name="first_hop_selection">İlk hop seçimi</string>
+    <string name="last_hop">Çıkış lokasyonu</string>
+    <string name="first_hop_selection">Giriş lokasyonu</string>
     <string name="support">Destek</string>
     <string name="sentry">Gözcü</string>
     <string name="via">aracılığıyla</string>
