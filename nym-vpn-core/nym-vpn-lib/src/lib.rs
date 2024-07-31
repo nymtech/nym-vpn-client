@@ -9,6 +9,7 @@ use crate::mixnet_connect::setup_mixnet_client;
 use crate::tunnel::setup_route_manager;
 use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::WgGatewayClient;
+use error::GatewayDirectoryError;
 use futures::channel::{mpsc, oneshot};
 use futures::SinkExt;
 use log::{debug, error, info};
@@ -77,14 +78,17 @@ async fn init_wireguard_config(
 ) -> Result<(WireguardConfig, IpAddr)> {
     // First we need to register with the gateway to setup keys and IP assignment
     info!("Registering with wireguard gateway");
+    let gateway_auth_recipient = wg_gateway_client
+        .auth_recipient()
+        .gateway()
+        .to_base58_string();
     let gateway_host = gateway_client
-        .lookup_gateway_ip(
-            &wg_gateway_client
-                .auth_recipient()
-                .gateway()
-                .to_base58_string(),
-        )
-        .await?;
+        .lookup_gateway_ip(&gateway_auth_recipient)
+        .await
+        .map_err(|source| GatewayDirectoryError::FailedToLookupGatewayIp {
+            gateway_id: gateway_auth_recipient,
+            source,
+        })?;
     let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
@@ -329,8 +333,13 @@ impl NymVpn<MixnetVpn> {
         let mixnet_client_address = mixnet_client.nym_address().await;
         let gateway_used = mixnet_client_address.gateway().to_base58_string();
         debug!("Entry gateway used for setting up routing table: {gateway_used}");
-        let entry_mixnet_gateway_ip: IpAddr =
-            gateway_client.lookup_gateway_ip(&gateway_used).await?;
+        let entry_mixnet_gateway_ip: IpAddr = gateway_client
+            .lookup_gateway_ip(&gateway_used)
+            .await
+            .map_err(|source| GatewayDirectoryError::FailedToLookupGatewayIp {
+                gateway_id: gateway_used,
+                source,
+            })?;
         debug!("Gateway ip resolves to: {entry_mixnet_gateway_ip}");
 
         info!("Setting up routing");

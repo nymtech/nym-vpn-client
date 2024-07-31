@@ -5,7 +5,7 @@ use std::net::IpAddr;
 use std::time::Duration;
 
 use crate::bandwidth_controller::BandwidthController;
-use crate::error::{Error, Result};
+use crate::error::{Error, GatewayDirectoryError, Result};
 use crate::mixnet_connect::SharedMixnetClient;
 use crate::platform;
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
@@ -323,13 +323,15 @@ pub async fn setup_tunnel(
     // Create a gateway client that we use to interact with the entry gateway, in particular to
     // handle wireguard registration
     let gateway_directory_client = GatewayClient::new(nym_vpn.gateway_config(), user_agent.clone())
-        .map_err(|err| Error::FailedtoSetupGatewayDirectoryClient {
-            config: Box::new(nym_vpn.gateway_config()),
-            source: err,
-        })?;
+        .map_err(
+            |err| GatewayDirectoryError::FailedtoSetupGatewayDirectoryClient {
+                config: Box::new(nym_vpn.gateway_config()),
+                source: err,
+            },
+        )?;
 
-    let FetchedGateways { entry, exit } =
-        fetch_gateways(&gateway_directory_client, nym_vpn).await?;
+    let SelectedGateways { entry, exit } =
+        select_gateways(&gateway_directory_client, nym_vpn).await?;
 
     // Get the IP address of the local LAN gateway
     let default_lan_gateway_ip = routing::LanGatewayIp::get_default_interface()?;
@@ -391,38 +393,38 @@ pub async fn setup_tunnel(
     Ok(tunnels_setup)
 }
 
-struct FetchedGateways {
+struct SelectedGateways {
     entry: nym_gateway_directory::Gateway,
     exit: nym_gateway_directory::Gateway,
 }
 
-async fn fetch_gateways(
+async fn select_gateways(
     gateway_directory_client: &GatewayClient,
     nym_vpn: &SpecificVpn,
-) -> Result<FetchedGateways> {
+) -> std::result::Result<SelectedGateways, GatewayDirectoryError> {
     // Setup the gateway that we will use as the entry point
     let entry_gateways = gateway_directory_client
         .lookup_entry_gateways()
         .await
-        .map_err(|source| Error::FailedToLookupGateways { source })?;
+        .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
 
     let entry_gateway = nym_vpn
         .entry_point()
         .lookup_gateway(&entry_gateways)
-        .map_err(|source| Error::FailedToSelectEntryGateway { source })?;
+        .map_err(|source| GatewayDirectoryError::FailedToSelectEntryGateway { source })?;
 
     // Setup the gateway that we will use as the exit point
     let mut exit_gateways = gateway_directory_client
         .lookup_exit_gateways()
         .await
-        .map_err(|source| Error::FailedToLookupGateways { source })?;
+        .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
 
     // Exclude the entry gateway from the list of exit gateways for privacy reasons
     exit_gateways.remove_gateway(&entry_gateway);
     let exit_gateway = nym_vpn
         .exit_point()
         .lookup_gateway(&exit_gateways)
-        .map_err(|source| Error::FailedToSelectExitGateway { source })?;
+        .map_err(|source| GatewayDirectoryError::FailedToSelectExitGateway { source })?;
 
     info!("Found {} entry gateways", entry_gateways.len());
     info!("Found {} exit gateways", exit_gateways.len());
@@ -445,7 +447,7 @@ async fn fetch_gateways(
         exit_gateway.ipr_address.unwrap()
     );
 
-    Ok(FetchedGateways {
+    Ok(SelectedGateways {
         entry: entry_gateway,
         exit: exit_gateway,
     })

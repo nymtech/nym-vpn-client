@@ -2,7 +2,8 @@ use std::path::PathBuf;
 
 use nym_vpn_lib::{
     credential_storage::error::StorageError,
-    credentials::ImportCredentialError as VpnLibImportCredentialError, id::NymIdError,
+    credentials::ImportCredentialError as VpnLibImportCredentialError,
+    error::GatewayDirectoryError, id::NymIdError,
 };
 use time::OffsetDateTime;
 use tracing::error;
@@ -104,9 +105,26 @@ pub enum ConnectionFailedError {
     #[error("failed to select entry gateway: {reason}")]
     FailedToSelectEntryGateway { reason: String },
 
-    #[error("failed to select exit gateway")]
-    FailedToSelectExitGateway { source: nym_vpn_lib::error::Error },
+    #[error("failed to select exit gateway: {reason}")]
+    FailedToSelectExitGateway { reason: String },
+
+    #[error("failed to select entry gateway location: {requested_location}")]
+    FailedToSelectEntryGatewayLocation {
+        requested_location: String,
+        available_countries: Vec<String>,
+    },
+
+    #[error("failed to select exit gateway location: {requested_location}")]
+    FailedToSelectExitGatewayLocation {
+        requested_location: String,
+        available_countries: Vec<String>,
+    },
+
+    #[error("failed to lookup gateway ip: {gateway_id}")]
+    FailedToLookupGatewayIp { gateway_id: String, reason: String },
 }
+
+use nym_vpn_lib::gateway_directory::Error as DirError;
 
 impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
     fn from(err: &nym_vpn_lib::error::Error) -> Self {
@@ -123,37 +141,65 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             nym_vpn_lib::error::Error::StartMixnetTimeout(timeout_sec) => {
                 ConnectionFailedError::StartMixnetTimeout(*timeout_sec)
             }
-            nym_vpn_lib::error::Error::FailedtoSetupGatewayDirectoryClient { config, source } => {
-                ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
-                    config: Box::new(*config.clone()),
-                    reason: source.to_string(),
+            nym_vpn_lib::error::Error::GatewayDirectoryError(e) => match e {
+                GatewayDirectoryError::FailedtoSetupGatewayDirectoryClient { config, source } => {
+                    ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
+                        config: Box::new(*config.clone()),
+                        reason: source.to_string(),
+                    }
                 }
-            }
-            nym_vpn_lib::error::Error::FailedToLookupGateways { source } => {
-                ConnectionFailedError::FailedToLookupGateways {
-                    reason: source.to_string(),
+                GatewayDirectoryError::FailedToLookupGateways { source } => {
+                    ConnectionFailedError::FailedToLookupGateways {
+                        reason: source.to_string(),
+                    }
                 }
-            }
-            nym_vpn_lib::error::Error::FailedToLookupGatewayIdentity { source } => {
-                ConnectionFailedError::FailedToLookupGatewayIdentity {
-                    reason: source.to_string(),
+                GatewayDirectoryError::FailedToLookupGatewayIdentity { source } => {
+                    ConnectionFailedError::FailedToLookupGatewayIdentity {
+                        reason: source.to_string(),
+                    }
                 }
-            }
-            nym_vpn_lib::error::Error::FailedToLookupRouterAddress { source } => {
-                ConnectionFailedError::FailedToLookupRouterAddress {
-                    reason: source.to_string(),
+                GatewayDirectoryError::FailedToSelectEntryGateway {
+                    source:
+                        DirError::NoMatchingEntryGatewayForLocation {
+                            requested_location,
+                            available_countries,
+                        },
+                } => ConnectionFailedError::FailedToSelectEntryGatewayLocation {
+                    requested_location: requested_location.clone(),
+                    available_countries: available_countries.clone(),
+                },
+                GatewayDirectoryError::FailedToSelectEntryGateway { source } => {
+                    ConnectionFailedError::FailedToSelectEntryGateway {
+                        reason: source.to_string(),
+                    }
                 }
-            }
-            nym_vpn_lib::error::Error::FailedToSelectEntryGateway { source } => {
-                ConnectionFailedError::FailedToSelectEntryGateway {
-                    reason: source.to_string(),
+                GatewayDirectoryError::FailedToSelectExitGateway {
+                    source:
+                        DirError::NoMatchingExitGatewayForLocation {
+                            requested_location,
+                            available_countries,
+                        },
+                } => ConnectionFailedError::FailedToSelectExitGatewayLocation {
+                    requested_location: requested_location.clone(),
+                    available_countries: available_countries.clone(),
+                },
+                GatewayDirectoryError::FailedToSelectExitGateway { source } => {
+                    ConnectionFailedError::FailedToSelectExitGateway {
+                        reason: source.to_string(),
+                    }
                 }
-            }
-            nym_vpn_lib::error::Error::FailedToSelectExitGateway { source } => {
-                ConnectionFailedError::FailedToSelectExitGateway {
-                    source,
+                GatewayDirectoryError::FailedToLookupRouterAddress { source } => {
+                    ConnectionFailedError::FailedToLookupRouterAddress {
+                        reason: source.to_string(),
+                    }
                 }
-            }
+                GatewayDirectoryError::FailedToLookupGatewayIp { gateway_id, source } => {
+                    ConnectionFailedError::FailedToLookupGatewayIp {
+                        gateway_id: gateway_id.clone(),
+                        reason: source.to_string(),
+                    }
+                }
+            },
             nym_vpn_lib::error::Error::IO(_)
             | nym_vpn_lib::error::Error::InvalidWireGuardKey
             | nym_vpn_lib::error::Error::AddrParseError(_)
@@ -171,8 +217,6 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::RecipientFormattingError
             | nym_vpn_lib::error::Error::ValidatorClientError(_)
             | nym_vpn_lib::error::Error::ExplorerApiError(_)
-            | nym_vpn_lib::error::Error::MissingExitPointInformation
-            | nym_vpn_lib::error::Error::MissingEntryPointInformation
             | nym_vpn_lib::error::Error::KeyRecoveryError(_)
             | nym_vpn_lib::error::Error::NymNodeApiClientError(_)
             | nym_vpn_lib::error::Error::RequestedGatewayByLocationWithoutLocationDataAvailable
@@ -196,7 +240,6 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::Ipv4PacketCreationFailure
             | nym_vpn_lib::error::Error::CountryCodeNotFound
             | nym_vpn_lib::error::Error::CountryExitGatewaysOutdated
-            | nym_vpn_lib::error::Error::GatewayDirectoryError(_)
             | nym_vpn_lib::error::Error::FailedToImportCredential { .. }
             | nym_vpn_lib::error::Error::FailedToDecodeBase58Credential { .. }
             | nym_vpn_lib::error::Error::ConfigPathNotSet

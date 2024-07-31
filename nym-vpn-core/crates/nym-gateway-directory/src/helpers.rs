@@ -40,7 +40,9 @@ pub(crate) async fn select_random_low_latency_described_gateway(
     gateways
         .iter()
         .find(|gateway| gateway.identity() == low_latency_gateway.to_string())
-        .ok_or_else(|| Error::NoMatchingGatewayAfterSelectingLowLatency { requested_identity: low_latency_gateway.to_string() })
+        .ok_or_else(|| Error::NoMatchingGatewayAfterSelectingLowLatency {
+            requested_identity: low_latency_gateway.to_string(),
+        })
 }
 
 pub(crate) async fn try_resolve_hostname(hostname: &str) -> Result<IpAddr> {

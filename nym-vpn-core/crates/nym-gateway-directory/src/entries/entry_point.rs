@@ -66,7 +66,7 @@ impl EntryPoint {
                 debug!("Selecting gateway by location: {}", location);
                 gateways
                     .random_gateway_located_at(location.to_string())
-                    .ok_or_else(|| Error::NoMatchingGatewayForLocation {
+                    .ok_or_else(|| Error::NoMatchingEntryGatewayForLocation {
                         requested_location: location.clone(),
                         available_countries: gateways.all_iso_codes(),
                     })

@@ -176,24 +176,40 @@ message Error {
     // connecting
     NO_VALID_CREDENTIALS = 2;
 
-    // AUTHENTICATION_FAILED = 3;
-    // NETWORK_ISSUE = 4;
-    // INVALID_CONFIGURATION = 5;
-
-    // Connection timeout. This could happen  in a number of contexts, and the
-    // provided details needs to be investigated to determine what went wrong
+    // Generic connection timeout. This could happen  in a number of contexts,
+    // and the provided details needs to be investigated to determine what went
+    // wrong
     TIMEOUT = 6;
 
-    // PERMISSION_DENIED = 7;
+    // Timeout starting the mixnet client
+    MIXNET_TIMEOUT = 7;
 
     // Looking up gateways can fail in a number of ways.
     GATEWAY_DIRECTORY = 8;
 
-    // Failing to select the entry gateway
-    GATEWAY_DIRECTORY_ENTRY = 9;
+    // Failing to lookup gateways
+    GATEWAY_DIRECTORY_LOOKUP_GATEWAYS = 9;
 
-    // Failing to select the exit gateway
-    GATEWAY_DIRECTORY_EXIT = 10;
+    // Failing to lookup gateway identity
+    GATEWAY_DIRECTORY_LOOKUP_GATEWAY_IDENTITY = 10;
+
+    // Failing to lookup the IPR address
+    GATEWAY_DIRECTORY_LOOKUP_ROUTER_ADDRESS = 11;
+
+    // Failing to lookup the gateway IP
+    GATEWAY_DIRECTORY_LOOKUP_IP = 12;
+
+    // Failing to lookup the entry gateway
+    GATEWAY_DIRECTORY_ENTRY = 13;
+
+    // Failing to lookup the entry gateway for a given location
+    GATEWAY_DIRECTORY_ENTRY_LOCATION = 14;
+
+    // Failing to lookup the exit gateway
+    GATEWAY_DIRECTORY_EXIT = 15;
+
+    // Failing to lookup the exit gateway for a given location
+    GATEWAY_DIRECTORY_EXIT_LOCATION = 16;
   }
 
   ErrorType kind = 1;
