@@ -10,10 +10,10 @@ members = [
     "crates/nym-vpn-api-client",
     "crates/nym-vpn-proto",
     "crates/nym-vpn-store",
+    "crates/nym-vpnc",
+    "crates/nym-vpnd",
     "nym-vpn-cli",
     "nym-vpn-lib",
-    "nym-vpnc",
-    "nym-vpnd",
 ]
 
 # For local development
@@ -47,7 +47,6 @@ edition = "2021"
 license = "GPL-3.0-only"
 
 [workspace.dependencies]
-
 
 anyhow = "1.0.86"
 async-trait = "0.1.81"
