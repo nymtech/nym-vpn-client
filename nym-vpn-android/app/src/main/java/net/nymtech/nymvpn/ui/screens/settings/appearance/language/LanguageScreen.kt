@@ -18,7 +18,7 @@ import androidx.navigation.NavController
 import com.zaneschepke.localizationutil.LocaleStorage
 import com.zaneschepke.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.NavItem
+import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
 import net.nymtech.nymvpn.ui.common.labels.SelectedLabel
 import net.nymtech.nymvpn.util.extensions.capitalize
@@ -54,7 +54,7 @@ fun LanguageScreen(navController: NavController, localeStorage: LocaleStorage) {
 		Timber.d("Setting preferred locale: $locale")
 		localeStorage.setPreferredLocale(locale)
 		LocaleUtil.applyLocalizedContext(context, locale)
-		navController.navigate(NavItem.Main.route)
+		navController.navigate(Destination.Main.route)
 	}
 
 	LazyColumn(

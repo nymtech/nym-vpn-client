@@ -200,6 +200,7 @@ object NymVpnClient {
 					)
 				}.onFailure {
 					// TODO better handle error messaging based on failure message
+					runCatching { stopVpn() }.onFailure { throwable -> Timber.e(throwable) }
 					Timber.e(it)
 					NotificationManager.notify(context, NotificationManager.createVpnFailedNotification(context))
 					setErrorState(ErrorState.GatewayLookupFailure)

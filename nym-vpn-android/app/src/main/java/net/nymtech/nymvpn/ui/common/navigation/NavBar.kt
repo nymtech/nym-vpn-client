@@ -24,15 +24,17 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.NavItem
+import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
+import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NavBar(appUiState: AppUiState, navController: NavController, onTrailingClick: () -> Unit, modifier: Modifier = Modifier) {
 	val navBackStackEntry by navController.currentBackStackEntryAsState()
-	val navItem = NavItem.from(navBackStackEntry?.destination?.route)
+	Timber.d("Route: ${navBackStackEntry?.destination?.route}")
+	val navItem = Destination.from(navBackStackEntry?.destination?.route)
 	val context = LocalContext.current
 	val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -45,7 +47,7 @@ fun NavBar(appUiState: AppUiState, navController: NavController, onTrailingClick
 		CenterAlignedTopAppBar(
 			modifier = modifier,
 			title = {
-				if (navItem.route == NavItem.Main.route) {
+				if (navItem.route == Destination.Main.route) {
 					val darkTheme =
 						when (appUiState.settings.theme) {
 							Theme.AUTOMATIC -> isSystemInDarkTheme()
@@ -89,7 +91,7 @@ fun NavBar(appUiState: AppUiState, navController: NavController, onTrailingClick
 					IconButton(
 						onClick = {
 							when {
-								it == NavItem.backIcon -> navController.popBackStack()
+								it == Destination.backIcon -> navController.popBackStack()
 							}
 						},
 					) {

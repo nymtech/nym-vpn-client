@@ -1,18 +1,16 @@
 package net.nymtech.nymvpn.ui.screens.permission
 
 import android.Manifest
-import android.app.Activity.RESULT_OK
-import android.net.VpnService
 import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material.icons.outlined.VpnLock
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,13 +19,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.NavItem
+import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.labels.PermissionLabel
@@ -39,7 +40,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun PermissionScreen(navController: NavController, permission: NavItem.Permission.Path) {
+fun PermissionScreen(navController: NavController, permission: Permission) {
 	val context = LocalContext.current
 
 	val notificationPermissionState =
@@ -49,24 +50,11 @@ fun PermissionScreen(navController: NavController, permission: NavItem.Permissio
 			null
 		}
 
-	val vpnActivityResultState =
-		rememberLauncherForActivityResult(
-			ActivityResultContracts.StartActivityForResult(),
-			onResult = {
-				val accepted = (it.resultCode == RESULT_OK)
-				if (!accepted) {
-					navController.navigate("${NavItem.Permission.route}/${NavItem.Permission.Path.VPN}")
-				} else {
-					navController.navigateAndForget(NavItem.Main.route)
-				}
-			},
-		)
-
 	LaunchedEffect(notificationPermissionState?.status) {
 		if (notificationPermissionState?.status?.isGranted == true &&
-			permission == NavItem.Permission.Path.NOTIFICATION
+			permission == Permission.NOTIFICATION
 		) {
-			navController.navigateAndForget(NavItem.Main.route)
+			navController.navigateAndForget(Destination.Main.route)
 		}
 	}
 
@@ -84,7 +72,7 @@ fun PermissionScreen(navController: NavController, permission: NavItem.Permissio
 				style = MaterialTheme.typography.bodyLarge,
 			)
 			when (permission) {
-				NavItem.Permission.Path.NOTIFICATION -> {
+				Permission.NOTIFICATION -> {
 					PermissionLabel(
 						SelectionItem(
 							leadingIcon = Icons.Outlined.Notifications,
@@ -100,7 +88,7 @@ fun PermissionScreen(navController: NavController, permission: NavItem.Permissio
 						),
 					)
 				}
-				NavItem.Permission.Path.VPN -> {
+				Permission.VPN -> {
 					PermissionLabel(
 						SelectionItem(
 							leadingIcon = Icons.Outlined.VpnKey,
@@ -115,11 +103,39 @@ fun PermissionScreen(navController: NavController, permission: NavItem.Permissio
 							trailing = null,
 						),
 					)
+					val alwaysOnDescription = buildAnnotatedString {
+						append(stringResource(R.string.always_on_message))
+						append(" ")
+						pushStringAnnotation(tag = "settings", annotation = stringResource(R.string.always_on_disbled))
+						withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+							append(stringResource(id = R.string.vpn_settings))
+						}
+						pop()
+						append(" ")
+						append(stringResource(R.string.try_again))
+						append(".")
+					}
+					PermissionLabel(
+						SelectionItem(
+							leadingIcon = Icons.Outlined.VpnLock,
+							title = { Text(stringResource(id = R.string.always_on_disbled), style = MaterialTheme.typography.bodyLarge) },
+							description = {
+								ClickableText(
+									text = alwaysOnDescription,
+									style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.outline),
+								) {
+									alwaysOnDescription.getStringAnnotations(tag = "settings", it, it).firstOrNull()?.let {
+										context.launchVpnSettings()
+									}
+								}
+							},
+						),
+					)
 				}
 			}
 		}
 		when (permission) {
-			NavItem.Permission.Path.NOTIFICATION -> {
+			Permission.NOTIFICATION -> {
 				Column(verticalArrangement = Arrangement.Bottom) {
 					MainStyledButton(
 						onClick = {
@@ -129,24 +145,13 @@ fun PermissionScreen(navController: NavController, permission: NavItem.Permissio
 					)
 				}
 			}
-			NavItem.Permission.Path.VPN -> {
+			Permission.VPN -> {
 				Column(verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom)) {
 					MainStyledButton(
 						onClick = {
-							val intent = VpnService.prepare(context)
-							if (intent != null) {
-								vpnActivityResultState.launch(
-									intent,
-								)
-							}
+							navController.navigateAndForget("${Destination.Main.route}?autoStart=true")
 						},
-						content = { Text(stringResource(R.string.allow_permissions), style = CustomTypography.labelHuge) },
-					)
-					MainStyledButton(
-						onClick = {
-							context.launchVpnSettings()
-						},
-						content = { Text(stringResource(R.string.view_system_settings), style = CustomTypography.labelHuge) },
+						content = { Text(stringResource(R.string.try_reconnecting), style = CustomTypography.labelHuge) },
 					)
 				}
 			}

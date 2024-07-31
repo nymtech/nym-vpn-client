@@ -35,7 +35,7 @@ import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.NavItem
+import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
@@ -123,7 +123,7 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState, navControl
 					Box(modifier = Modifier.width(100.dp.scaledWidth())) {
 						MainStyledButton(
 							onClick = {
-								navController.navigate(NavItem.Settings.Credential.route)
+								navController.navigate(Destination.Credential.route)
 							},
 							content = {
 								Text(

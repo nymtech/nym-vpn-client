@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.NavItem
+import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -38,7 +38,7 @@ fun AppearanceScreen(navController: NavController) {
 				SelectionItem(
 					Icons.Outlined.Translate,
 					title = { Text(stringResource(R.string.language), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(NavItem.Settings.Appearance.Language.route) },
+					onClick = { navController.navigate(Destination.Language.route) },
 				),
 			),
 		)
@@ -47,7 +47,7 @@ fun AppearanceScreen(navController: NavController) {
 				SelectionItem(
 					Icons.Outlined.Contrast,
 					title = { Text(stringResource(R.string.display_theme), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(NavItem.Settings.Appearance.Display.route) },
+					onClick = { navController.navigate(Destination.Display.route) },
 				),
 			),
 		)

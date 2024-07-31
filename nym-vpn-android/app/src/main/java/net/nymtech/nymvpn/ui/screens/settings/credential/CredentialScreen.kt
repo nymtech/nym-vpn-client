@@ -42,7 +42,7 @@ import com.journeyapps.barcodescanner.ScanOptions
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.NavItem
+import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
@@ -73,7 +73,7 @@ fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, v
 		scope.launch {
 			viewModel.onImportCredential(credential).onSuccess { _ ->
 				appViewModel.showSnackbarMessage(context.getString(R.string.credential_successful))
-				navController.navigateAndForget(NavItem.Main.route)
+				navController.navigateAndForget(Destination.Main.route)
 			}.onFailure {
 				isImportError = true
 			}

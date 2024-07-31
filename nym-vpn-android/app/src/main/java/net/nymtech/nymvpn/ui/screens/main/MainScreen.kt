@@ -54,7 +54,7 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.NavItem
+import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
@@ -65,12 +65,14 @@ import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
+import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.exceptions.NymVpnExceptions
 import net.nymtech.nymvpn.util.extensions.buildCountryNameString
+import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -79,7 +81,13 @@ import java.time.Instant
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiState: AppUiState, viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(
+	navController: NavController,
+	appViewModel: AppViewModel,
+	appUiState: AppUiState,
+	autoStart: Boolean,
+	viewModel: MainViewModel = hiltViewModel(),
+) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val scope = rememberCoroutineScope()
@@ -91,13 +99,14 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 			null
 		}
 
+	var didAutoStart by remember { mutableStateOf(false) }
 	var showDialog by remember { mutableStateOf(false) }
 
 	fun onConnectWithPermission() {
 		scope.launch {
 			viewModel.onConnect().onFailure {
 				appViewModel.showSnackbarMessage(context.getString(R.string.exception_cred_invalid))
-				navController.navigate(NavItem.Settings.Credential.route)
+				navController.navigate(Destination.Credential.route)
 			}
 		}
 	}
@@ -108,7 +117,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 			onResult = {
 				val accepted = (it.resultCode == RESULT_OK)
 				if (!accepted) {
-					navController.navigate("${NavItem.Permission.route}/${NavItem.Permission.Path.VPN}")
+					navController.navigate("${Destination.Permission.route}/${Permission.VPN}")
 				} else {
 					onConnectWithPermission()
 				}
@@ -137,9 +146,17 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 		}
 	}
 
+	if (autoStart && !didAutoStart) {
+		LaunchedEffect(Unit) {
+			didAutoStart = true
+			onConnect()
+			navController.navigateAndForget(Destination.Main.route)
+		}
+	}
+
 	LaunchedEffect(notificationPermissionState?.status?.shouldShowRationale) {
 		if (notificationPermissionState?.status?.shouldShowRationale == true) {
-			navController.navigate("${NavItem.Permission.route}/${NavItem.Permission.Path.NOTIFICATION}")
+			navController.navigate("${Destination.Permission.route}/${Permission.NOTIFICATION}")
 		}
 	}
 
@@ -286,7 +303,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 							) {
 								if (selectionEnabled) {
 									navController.navigate(
-										NavItem.Location.Entry.route,
+										Destination.EntryLocation.route,
 									)
 								} else {
 									appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
@@ -316,7 +333,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) rememberRipple() else null) {
 							if (selectionEnabled) {
 								navController.navigate(
-									NavItem.Location.Exit.route,
+									Destination.ExitLocation.route,
 								)
 							} else {
 								appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
@@ -336,7 +353,7 @@ fun MainScreen(navController: NavController, appViewModel: AppViewModel, appUiSt
 									) {
 										onConnect()
 									} else {
-										navController.navigate(NavItem.Settings.Credential.route)
+										navController.navigate(Destination.Credential.route)
 									}
 								}
 							},

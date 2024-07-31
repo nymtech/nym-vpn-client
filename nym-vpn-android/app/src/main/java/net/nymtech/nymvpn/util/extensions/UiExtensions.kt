@@ -8,14 +8,12 @@ import android.widget.Toast
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
-import androidx.core.os.LocaleListCompat
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.Country
 import timber.log.Timber
-import java.util.Locale
 
 fun Dp.scaledHeight(): Dp {
 	return NymVpn.resizeHeight(this)
@@ -92,14 +90,4 @@ fun NavController.navigateAndForget(route: String) {
 	navigate(route) {
 		popUpTo(0)
 	}
-}
-
-fun LocaleListCompat.toSet(): Set<Locale> {
-	val set = HashSet<Locale>()
-	var counter = 0
-	while (this[counter] != null) {
-		this[counter]?.let { set.add(it) }
-		counter++
-	}
-	return set
 }
