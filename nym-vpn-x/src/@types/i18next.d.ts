@@ -1,4 +1,4 @@
-import { defaultNS, resources } from './config';
+import { defaultNS, resources } from '../i18n/config.ts';
 
 // based on https://www.i18next.com/overview/typescript
 declare module 'i18next' {

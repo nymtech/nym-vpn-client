@@ -15,9 +15,10 @@ export type NodeLocationBackend = 'Fastest' | { Country: Country };
 export type DbKey =
   | 'Monitoring'
   | 'Autoconnect'
-  | 'EntryLocationEnabled'
+  | 'UiShowEntrySelect'
   | 'UiTheme'
   | 'UiRootFontSize'
+  | 'UiLanguage'
   | 'VpnMode'
   | 'EntryNodeLocation'
   | 'ExitNodeLocation'

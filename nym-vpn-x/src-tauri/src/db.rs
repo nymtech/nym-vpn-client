@@ -28,12 +28,14 @@ pub enum Key {
     Monitoring,
     #[strum(serialize = "autoconnect")]
     Autoconnect,
-    #[strum(serialize = "entry_location_enabled")]
-    EntryLocationEnabled,
+    #[strum(serialize = "ui_show_entry_select")]
+    UiShowEntrySelect,
     #[strum(serialize = "ui_theme")]
     UiTheme,
     #[strum(serialize = "ui_root_font_size")]
     UiRootFontSize,
+    #[strum(serialize = "ui_language")]
+    UiLanguage,
     #[strum(serialize = "vpn_mode")]
     VpnMode,
     #[strum(serialize = "entry_node_location")]

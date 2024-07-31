@@ -92,6 +92,9 @@ export function mockTauriIPC() {
         case 'WelcomeScreenSeen':
           res = true;
           break;
+        case 'UiShowEntrySelect':
+          res = true;
+          break;
         default:
           return null;
       }

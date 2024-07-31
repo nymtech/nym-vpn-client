@@ -82,15 +82,22 @@ export default function TopBar() {
           navigate(-1);
         },
       },
-      '/settings/display': {
-        title: t('display-theme'),
+      '/settings/appearance': {
+        title: t('appearance'),
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
-      '/settings/notifications': {
-        title: t('notifications'),
+      '/settings/appearance/lang': {
+        title: t('language'),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
+      '/settings/appearance/display': {
+        title: t('display-theme'),
         leftIcon: 'arrow_back',
         handleLeftNav: () => {
           navigate(-1);

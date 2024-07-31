@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMainDispatch, useMainState } from '../../../contexts';
-import { kvSet } from '../../../kvStore';
-import { useSystemTheme } from '../../../state';
-import { StateDispatch, ThemeMode } from '../../../types';
-import { PageAnim, RadioGroup, RadioGroupOption } from '../../../ui';
+import { useMainDispatch, useMainState } from '../../../../contexts';
+import { kvSet } from '../../../../kvStore';
+import { useSystemTheme } from '../../../../state';
+import { StateDispatch, ThemeMode } from '../../../../types';
+import { PageAnim, RadioGroup, RadioGroupOption } from '../../../../ui';
 import UiScaler from './UiScaler';
 
 function Display() {

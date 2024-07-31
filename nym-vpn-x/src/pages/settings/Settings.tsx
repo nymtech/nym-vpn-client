@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { invoke } from '@tauri-apps/api';
 import { open } from '@tauri-apps/api/shell';
-import { useThrottle } from '../../hooks';
+import { useDesktopNotifications, useThrottle } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import {
@@ -28,6 +28,7 @@ function Settings() {
     monitoring,
     daemonStatus,
     credentialExpiry,
+    desktopNotifications,
   } = useMainState();
 
   const [hasValidCredential, setHasValidCredential] = useState(false);
@@ -37,6 +38,7 @@ function Settings() {
   const { t } = useTranslation('settings');
   const { exit } = useExit();
   const { push } = useNotifications();
+  const toggleDNotifications = useDesktopNotifications();
 
   useEffect(() => {
     if (!credentialExpiry || dayjs().isAfter(credentialExpiry)) {
@@ -49,7 +51,7 @@ function Settings() {
   const handleEntrySelectorChange = () => {
     const isChecked = !entrySelector;
     dispatch({ type: 'set-entry-selector', entrySelector: isChecked });
-    kvSet('EntryLocationEnabled', isChecked);
+    kvSet('UiShowEntrySelect', isChecked);
   };
 
   const handleAutoConnectChanged = () => {
@@ -132,14 +134,26 @@ function Settings() {
               />
             ),
           },
+          {
+            title: t('logs.title'),
+            desc: t('logs.desc'),
+            leadingIcon: 'sort',
+            onClick: handleLogs,
+            trailing: (
+              <MsIcon
+                icon="open_in_new"
+                className="dark:text-mercury-pinkish"
+              />
+            ),
+          },
         ]}
       />
       <SettingsGroup
         settings={[
           {
-            title: t('display-theme'),
-            onClick: () => navigate(routes.display),
-            leadingIcon: 'contrast',
+            title: t('appearance', { ns: 'common' }),
+            leadingIcon: 'view_comfy',
+            onClick: () => navigate(routes.appearance),
             trailing: (
               <MsIcon
                 icon="arrow_right"
@@ -148,24 +162,17 @@ function Settings() {
             ),
           },
           {
-            title: t('notifications', { ns: 'common' }),
+            title: t('notifications.title'),
             leadingIcon: 'notifications',
-            onClick: () => navigate(routes.notifications),
+            onClick: toggleDNotifications,
             trailing: (
-              <MsIcon
-                icon="arrow_right"
-                className="dark:text-mercury-pinkish"
+              <Switch
+                checked={desktopNotifications}
+                onChange={toggleDNotifications}
               />
             ),
           },
         ]}
-      />
-      <SettingsMenuCard
-        title={t('logs.title')}
-        desc={t('logs.desc')}
-        onClick={handleLogs}
-        leadingIcon="sort"
-        trailingIcon="open_in_new"
       />
       <SettingsGroup
         settings={[
