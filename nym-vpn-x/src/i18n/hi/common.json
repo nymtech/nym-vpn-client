@@ -5,5 +5,7 @@
   },
   "connect": "कनेक्ट",
   "settings": "सेटिंग्स",
-  "tos": "उपयोग की शर्तें"
+  "tos": "उपयोग की शर्तें",
+  "first-hop-selection": "उद्भव स्थान",
+  "last-hop-selection": "आखरी स्थान"
 }
