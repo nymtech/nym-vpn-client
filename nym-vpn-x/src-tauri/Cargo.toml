@@ -17,7 +17,8 @@ tauri-build = { version = "1.5", features = [] }
 build-info-build = "0.0.37"
 
 [dependencies]
-tauri = { version = "1.7.1", features = [ "clipboard-write-text",
+tauri = { version = "1.7.1", features = [
+    "clipboard-write-text",
     "dialog-open",
     "notification-all",
     "system-tray",
@@ -59,6 +60,7 @@ nym-config = { git = "https://github.com/nymtech/nym", rev = "e5d68a5e" }
 nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto" }
 nym-gateway-directory = { path = "../../nym-vpn-core/crates/nym-gateway-directory/" }
 nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "e5d68a5e" }
+
 [target."cfg(windows)".dependencies]
 windows = { version = "0.57.0", features = [
     "Win32_System_Console",
