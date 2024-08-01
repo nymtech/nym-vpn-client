@@ -25,6 +25,13 @@ android {
 				"proguard-rules.pro",
 			)
 		}
+		create(Constants.PRERELEASE) {
+			initWith(buildTypes.getByName(Constants.RELEASE))
+		}
+
+		create(Constants.NIGHTLY) {
+			initWith(buildTypes.getByName(Constants.RELEASE))
+		}
 		flavorDimensions.add(Constants.TYPE)
 	}
 	compileOptions {
