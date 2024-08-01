@@ -1,15 +1,16 @@
 name: build-nym-vpn-android
 on:
   workflow_dispatch:
-    build_type:
-      type: choice
-      description: "Build type"
-      default: debug
-      options:
-        - debug
-        - prerelease
-        - nightly
-        - release
+    inputs:
+      build_type:
+        type: choice
+        description: "Build type"
+        default: debug
+        options:
+          - debug
+          - prerelease
+          - nightly
+          - release
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
         required: false
