@@ -109,9 +109,13 @@ async fn wait_interface_up(
 ) -> Result<TunnelMetadata> {
     loop {
         match event_rx.next().await {
-            Some((TunnelEvent::InterfaceUp(_, _), _)) => {
+            Some((TunnelEvent::InterfaceUp(metadata, _), _)) => {
                 debug!("Received interface up event");
-                continue;
+                if cfg!(target_os = "linux") {
+                    break Ok(metadata);
+                } else {
+                    continue;
+                }
             }
             Some((TunnelEvent::Up(metadata), _)) => {
                 debug!("Received up event");
