@@ -21,5 +21,6 @@
     "dark": "Modo oscuro",
     "light": "Modo claro"
   },
-  "notifications": "Notificaciones"
+  "notifications": "Notificaciones",
+  "language": "Idioma"
 }
