@@ -8,21 +8,17 @@ set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
 TAG_BASE_NAME="nym-vpn-core"
-PACKAGES=(nym-vpn-lib nym-vpn-cli nym-vpnd nym-vpnc)
 DIRNAME="nym-vpn-core"
+PACKAGE=nym-vpn-lib
 
 get_current_version() {
-    echo "$(cargo get package.version --entry="${PACKAGES[0]}")"
+    echo "$(cargo get workspace.package.version)"
 }
 
 run_cargo_set_version() {
     local next_version=$1
 
-    local package_flags=""
-    for PACKAGE in "${PACKAGES[@]}"; do
-        package_flags+=" -p $PACKAGE"
-    done
-
+    local package_flags="-p $PACKAGE"
     local command="cargo set-version $package_flags $next_version"
 
     # Run the command with --dry-run option first
