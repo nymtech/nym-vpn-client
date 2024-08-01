@@ -2,16 +2,16 @@ name: build-nym-vpn-android
 on:
   workflow_dispatch:
     inputs:
-      nightly:
-        description: "Android nightly version"
-        required: false
-        default: true
-        type: boolean
-      debug:
-        description: "Debug build"
-        required: false
-        default: true
-        type: boolean
+      build_type:
+        type: choice
+        description: "Build type"
+        required: true
+        default: debug
+        options:
+          - debug
+          - prerelease
+          - nightly
+          - release
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
         required: false
@@ -27,16 +27,11 @@ on:
         required: false
   workflow_call:
     inputs:
-      nightly:
-        description: "Android nightly version"
-        required: false
-        default: true
-        type: boolean
-      debug:
-        description: "Debug build"
-        required: false
-        default: false
-        type: boolean
+      build_type:
+        type: string
+        description: "Build type"
+        required: true
+        default: debug
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
         required: false
@@ -117,18 +112,10 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip
 
-      - name: Nightly versioning
-        if: ${{ inputs.nightly }}
-        run: |
-          versionCode=$(date '+%s')
-          sed -i -e 's/\(VERSION_CODE = \).\(.*\)/\VERSION_CODE = '"$versionCode"'/' buildSrc/src/main/kotlin/Constants.kt
-          versionName=$(grep "VERSION_NAME" buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '"')
-          sed -i -e 's/\(VERSION_NAME = \).\(.*\)/\VERSION_NAME = "'"$versionName"'-'"$versionCode"'"/' buildSrc/src/main/kotlin/Constants.kt
-
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
       - name: Decode Keystore
-        if: ${{ inputs.debug == false }}
+        if: ${{ inputs.build_type != 'debug' }}
         id: decode_keystore
         uses: timheuer/base64-to-file@v1.2
         with:
@@ -138,35 +125,45 @@ jobs:
 
       # create keystore path for gradle to read
       - name: Create keystore path env var
-        if: ${{ inputs.debug == false }}
+        if: ${{ inputs.build_type != 'debug' }}
         run: |
           store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
           echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
 
       - name: Create service_account.json
-        if: ${{ inputs.debug == false }}
+        if: ${{ inputs.build_type != 'debug' }}
         id: createServiceAccount
         run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
-      - name: Build Release APK
-        if: ${{ inputs.debug == false }}
-        run: ./gradlew :app:assembleFdroidRelease --stacktrace
+      - name: Build Fdroid Release APK
+        if: ${{ inputs.build_type == 'release' }}
+        run: ./gradlew :app:assembleFdroidRelease --info
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+      - name: Build Fdroid Prerelease APK
+        if: ${{ inputs.build_type == 'prerelease' }}
+        run: ./gradlew :app:assembleFdroidPrerelease --info
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+      - name: Build Fdroid Nightly APK
+        if: ${{ inputs.build_type == 'nightly' }}
+        run: ./gradlew :app:assembleFdroidNightly --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Debug APK
-        if: ${{ inputs.debug }}
+        if: ${{ inputs.build_type == 'debug' }}
         run: ./gradlew :app:assembleFdroidDebug --stacktrace
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Get release apk path
-        if: ${{ inputs.debug == false }}
         id: apk-path
-        run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/release/.*\.apk$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
+        run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/${{ inputs.build_type }}/.*\.apk$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
 
       - name: Upload release apk
-        if: ${{ inputs.debug == false }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}

@@ -7,6 +7,9 @@ object Constants {
     const val COMPILE_SDK = 34
     const val MIN_SDK = 24
 
+	const val NIGHTLY_CODE = 42
+	const val PRERELEASE_CODE = 99
+
     const val JVM_TARGET = "17"
     val JAVA_VERSION = JavaVersion.VERSION_17
 
@@ -16,6 +19,8 @@ object Constants {
     const val VPN_LIB_NAME = "vpn"
 
     const val RELEASE = "release"
+	const val PRERELEASE = "prerelease"
+	const val NIGHTLY = "nightly"
     const val TYPE = "type"
 	const val FLAVOR = "FLAVOR"
 

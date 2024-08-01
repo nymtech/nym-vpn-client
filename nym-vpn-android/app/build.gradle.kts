@@ -1,8 +1,3 @@
-import java.util.Properties
-
-var fdroidApkReleasePath = ""
-var generateChecksum = false
-
 plugins {
 	alias(libs.plugins.compose.compiler)
 	alias(libs.plugins.androidApplication)
@@ -28,8 +23,8 @@ android {
 		applicationId = "${Constants.NAMESPACE}.${Constants.APP_NAME}"
 		minSdk = Constants.MIN_SDK
 		targetSdk = Constants.TARGET_SDK
-		versionCode = Constants.VERSION_CODE
-		versionName = Constants.VERSION_NAME
+		versionCode = determineVersionCode()
+		versionName = determineVersionName()
 
 		// keep all language resources
 		resourceConfigurations.addAll(languageList())
@@ -50,43 +45,10 @@ android {
 
 	signingConfigs {
 		create(Constants.RELEASE) {
-			val properties =
-				Properties().apply {
-					// created local file for signing details
-					try {
-						load(file("signing.properties").reader())
-					} catch (_: Exception) {
-						load(file("signing_template.properties").reader())
-					}
-				}
-			// try to get secrets from env first for pipeline build, then properties file for local
-			// build
-			storeFile =
-				file(
-					System.getenv()
-						.getOrDefault(
-							Constants.KEY_STORE_PATH_VAR,
-							properties.getProperty(Constants.KEY_STORE_PATH_VAR),
-						),
-				)
-			storePassword =
-				System.getenv()
-					.getOrDefault(
-						Constants.STORE_PASS_VAR,
-						properties.getProperty(Constants.STORE_PASS_VAR),
-					)
-			keyAlias =
-				System.getenv()
-					.getOrDefault(
-						Constants.KEY_ALIAS_VAR,
-						properties.getProperty(Constants.KEY_ALIAS_VAR),
-					)
-			keyPassword =
-				System.getenv()
-					.getOrDefault(
-						Constants.KEY_PASS_VAR,
-						properties.getProperty(Constants.KEY_PASS_VAR),
-					)
+			storeFile = getStoreFile()
+			storePassword = getSigningProperty(Constants.STORE_PASS_VAR)
+			keyAlias = getSigningProperty(Constants.KEY_ALIAS_VAR)
+			keyPassword = getSigningProperty(Constants.KEY_PASS_VAR)
 		}
 	}
 
@@ -96,12 +58,6 @@ android {
 			variant.outputs
 				.map { it as com.android.build.gradle.internal.api.BaseVariantOutputImpl }
 				.forEach { output ->
-					if (variant.flavorName == Constants.FDROID &&
-						variant.buildType.name == Constants.RELEASE
-					) {
-						fdroidApkReleasePath = output.outputFile.path
-						generateChecksum = true
-					}
 					val fullName =
 						Constants.APP_NAME +
 							"-${variant.flavorName}" +
@@ -122,12 +78,20 @@ android {
 				getDefaultProguardFile("proguard-android-optimize.txt"),
 				"proguard-rules.pro",
 			)
-			signingConfig = signingConfigs.getByName(Constants.RELEASE)
+			signingConfig = signingConfigs.getByName("debug")
 		}
 		debug {
 			isMinifyEnabled = false
 			isShrinkResources = false
 			isDebuggable = true
+		}
+
+		create(Constants.PRERELEASE) {
+			initWith(buildTypes.getByName(Constants.RELEASE))
+		}
+
+		create(Constants.NIGHTLY) {
+			initWith(buildTypes.getByName(Constants.RELEASE))
 		}
 	}
 	flavorDimensions.add(Constants.TYPE)
@@ -269,4 +233,25 @@ dependencies {
 
 	// barcode scanning
 	implementation(libs.zxing.android.embedded)
+}
+
+fun determineVersionCode(): Int {
+	return with(getBuildTaskName().lowercase()) {
+		when {
+			contains(Constants.NIGHTLY) -> Constants.VERSION_CODE + Constants.NIGHTLY_CODE
+			contains(Constants.PRERELEASE) -> Constants.VERSION_CODE + Constants.PRERELEASE_CODE
+			else -> Constants.VERSION_CODE
+		}
+	}
+}
+
+fun determineVersionName(): String {
+	return with(getBuildTaskName().lowercase()) {
+		when {
+			contains(Constants.NIGHTLY) || contains(Constants.PRERELEASE) ->
+				Constants.VERSION_NAME +
+					"-${grgitService.service.get().grgit.head().abbreviatedId}"
+			else -> Constants.VERSION_NAME
+		}
+	}
 }
