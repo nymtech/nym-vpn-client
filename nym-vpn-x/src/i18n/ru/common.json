@@ -21,5 +21,6 @@
     "dark": "Тёмный режим",
     "light": "Светлый режим"
   },
-  "notifications": "Уведомления"
+  "notifications": "Уведомления",
+  "language": "Язык"
 }
