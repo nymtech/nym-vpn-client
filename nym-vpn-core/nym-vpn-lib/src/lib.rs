@@ -141,6 +141,9 @@ pub struct MixnetClientConfig {
 
     /// The minimum performance of mixnodes to use.
     pub min_mixnode_performance: Option<u8>,
+
+    /// The minimum performance of gateways to use.
+    pub min_gateway_performance: Option<u8>,
 }
 
 pub struct NymVpn<T: Vpn> {
@@ -227,6 +230,7 @@ impl NymVpn<WireguardVpn> {
                 disable_background_cover_traffic: false,
                 enable_credentials_mode: false,
                 min_mixnode_performance: None,
+                min_gateway_performance: None,
             },
             data_path: None,
             gateway_config: nym_gateway_directory::Config::default(),
@@ -274,6 +278,7 @@ impl NymVpn<MixnetVpn> {
                 disable_background_cover_traffic: false,
                 enable_credentials_mode: false,
                 min_mixnode_performance: None,
+                min_gateway_performance: None,
             },
             data_path: None,
             gateway_config: nym_gateway_directory::Config::default(),

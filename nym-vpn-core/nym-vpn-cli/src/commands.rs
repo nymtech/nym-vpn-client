@@ -95,8 +95,15 @@ pub(crate) struct RunArgs {
     #[arg(long)]
     pub(crate) enable_credentials_mode: bool,
 
+    /// Set the minimum performance level for mixnodes.
     #[arg(long)]
     pub(crate) min_mixnode_performance: Option<u8>,
+
+    // Set the minimum performance level for gateways.
+    // NOTE: hidden since it's not respected yet by the gateway directory client, and is only
+    // useful to testnet development.
+    #[arg(long, hide = true)]
+    pub(crate) min_gateway_performance: Option<u8>,
 }
 
 #[derive(Args)]

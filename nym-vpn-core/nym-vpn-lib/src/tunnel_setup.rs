@@ -353,6 +353,7 @@ pub async fn setup_tunnel(
                 .disable_background_cover_traffic,
             nym_vpn.mixnet_client_config().enable_credentials_mode,
             nym_vpn.mixnet_client_config().min_mixnode_performance,
+            nym_vpn.mixnet_client_config().min_gateway_performance,
         ),
     )
     .await
