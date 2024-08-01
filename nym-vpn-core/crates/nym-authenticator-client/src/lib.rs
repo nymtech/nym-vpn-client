@@ -144,6 +144,10 @@ impl AuthClient {
                     }
                     Some(msgs) => {
                         for msg in msgs {
+                            if !check_if_authenticator_message(&msg) {
+                                debug!("Received non-authenticator message while waiting for connect response");
+                                continue;
+                            }
                             // Confirm that the version is correct
                             check_auth_message_version(&msg)?;
 
@@ -164,6 +168,17 @@ impl AuthClient {
                 }
             }
         }
+    }
+}
+
+fn check_if_authenticator_message(message: &ReconstructedMessage) -> bool {
+    // TODO: switch version number so that they have their own reserved range, like 50-100 for the
+    // authenticator messages
+    if let Some(version) = message.message.first() {
+        // Temporary constant, see above TODO note
+        *version < 6
+    } else {
+        false
     }
 }
 

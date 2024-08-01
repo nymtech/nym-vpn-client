@@ -110,12 +110,15 @@ async fn wait_interface_up(
     loop {
         match event_rx.next().await {
             Some((TunnelEvent::InterfaceUp(_, _), _)) => {
+                debug!("Received interface up event");
                 continue;
             }
             Some((TunnelEvent::Up(metadata), _)) => {
+                debug!("Received up event");
                 break Ok(metadata);
             }
             Some((TunnelEvent::AuthFailed(_), _)) | Some((TunnelEvent::Down, _)) | None => {
+                debug!("Received unexpected event");
                 return Err(Error::BadWireguardEvent);
             }
         }
@@ -208,6 +211,7 @@ async fn setup_wg_tunnel(
     .await?;
     // Wait for entry gateway routes to be finished before moving to exit gateway routes, as the two might race if
     // started one after the other
+    debug!("Waiting for first interface up");
     let metadata = wait_interface_up(event_rx).await?;
     info!(
         "Created entry tun device {device_name} with ip={device_ip:?}",
@@ -221,6 +225,7 @@ async fn setup_wg_tunnel(
         exit_wireguard_config,
     )
     .await?;
+    debug!("Waiting for second interface up");
     let metadata = wait_interface_up(event_rx).await?;
     info!(
         "Created exit tun device {device_name} with ip={device_ip:?}",

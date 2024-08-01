@@ -3,6 +3,7 @@
 
 use futures::channel::{mpsc, oneshot};
 use nym_sdk::TaskClient;
+use tracing::debug;
 use std::sync::{Arc, Mutex};
 use talpid_routing::RouteManager;
 use talpid_tunnel::{tun_provider::TunProvider, TunnelEvent};
@@ -23,6 +24,7 @@ pub async fn create_wireguard_tunnel(
     WgTunnelSetup,
     mpsc::UnboundedReceiver<(TunnelEvent, oneshot::Sender<()>)>,
 )> {
+    debug!("Creating wireguard tunnel");
     let handle = route_manager.handle()?;
     let tunnel = Tunnel::new(wireguard_config, handle, tun_provider);
 
