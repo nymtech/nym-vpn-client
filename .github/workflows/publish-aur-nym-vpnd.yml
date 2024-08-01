@@ -42,7 +42,7 @@ jobs:
             pkgname: nym-vpnd-bin
     env:
       PKGNAME: ${{ matrix.pkgname }}
-      PKGBUILD: nym-vpn-core/nym-vpnd/.pkg/aur/${{ matrix.pkgbuild }}
+      PKGBUILD: nym-vpn-core/crates/nym-vpnd/.pkg/aur/${{ matrix.pkgbuild }}
       PKGREL: ${{ inputs.pkgrel }}
       RELEASE_TAG: ${{ inputs.release_tag }}
       REPOSITORY: ${{ github.repository }}
@@ -60,7 +60,7 @@ jobs:
         id: app-version
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry="tarball/nym-vpn-client-${{ env.RELEASE_TAG }}/nym-vpn-core/nym-vpnd"
+          subcommand: package.version --entry="tarball/nym-vpn-client-${{ env.RELEASE_TAG }}/nym-vpn-core/crates/nym-vpnd"
       - name: Download prebuilt binary
         if: matrix.pkgtype == 'bin'
         run: |
