@@ -3,10 +3,10 @@
 
 use futures::channel::{mpsc, oneshot};
 use nym_sdk::TaskClient;
-use tracing::debug;
 use std::sync::{Arc, Mutex};
 use talpid_routing::RouteManager;
 use talpid_tunnel::{tun_provider::TunProvider, TunnelEvent};
+use tracing::debug;
 
 use crate::{
     config::WireguardConfig,
