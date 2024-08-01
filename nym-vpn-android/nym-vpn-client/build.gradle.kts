@@ -33,6 +33,15 @@ android {
 			isShrinkResources = false
 			isMinifyEnabled = false
 		}
+
+		create(Constants.PRERELEASE) {
+			initWith(buildTypes.getByName(Constants.RELEASE))
+		}
+
+		create(Constants.NIGHTLY) {
+			initWith(buildTypes.getByName(Constants.RELEASE))
+		}
+
 		flavorDimensions.add(Constants.TYPE)
 		productFlavors {
 			create(Constants.FDROID) {

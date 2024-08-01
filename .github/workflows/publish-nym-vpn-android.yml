@@ -34,6 +34,7 @@ on:
         options:
           - none
           - prerelease
+          - nightly
           - release
         default: release
         required: true
@@ -51,8 +52,7 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
     with:
-      nightly: ${{ inputs.release_type == 'prerelease' || inputs.release_type == '' }}
-      debug: false
+      build_type: ${{ inputs.release_type == '' && 'nightly' || inputs.release_type }}
 
 
   publish-github:
@@ -95,8 +95,7 @@ jobs:
       - if: github.event_name == 'workflow_dispatch'
         run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
       - if: github.event_name == 'schedule'
-        run: |
-          echo "TAG_NAME=nightly-android" >> $GITHUB_ENV
+        run: echo "TAG_NAME=nightly-android" >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
@@ -105,6 +104,12 @@ jobs:
         run: |
           echo "RELEASE_NOTES=Nightly build of the latest development version of the android client." >> $GITHUB_ENV
           gh release delete nightly-android --yes || true
+
+      - name: On prerelease release notes
+        if: ${{ inputs.release_type == 'prerelease' }}
+        run: |
+          echo "RELEASE_NOTES=Testing version of the android app." >> $GITHUB_ENV
+          gh release delete ${{ github.event.inputs.tag_name }} --yes || true
 
       - name: Make download dir
         run: mkdir ${{ github.workspace }}/temp
@@ -134,7 +139,7 @@ jobs:
           name: ${{ env.TAG_NAME }}
           draft: false
           make_latest: ${{ inputs.release_type == 'release' }}
-          prerelease: ${{ inputs.release_type == 'prerelease' || inputs.release_type == '' }}
+          prerelease: ${{ inputs.release_type != 'release' }}
           files: |
             ${{ github.workspace }}/temp/*
 
@@ -154,7 +159,7 @@ jobs:
           tag_name: ${{ env.TAG_NAME }}
           name: ${{ env.TAG_NAME }}
           draft: false
-          prerelease: ${{ inputs.release_type == 'prerelease' || inputs.release_type == '' }}
+          prerelease: ${{ inputs.release_type != 'release' }}
           append_body: true
 
 
