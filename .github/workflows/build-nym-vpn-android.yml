@@ -137,15 +137,21 @@ jobs:
 
       - name: Build Fdroid Release APK
         if: ${{ inputs.build_type == 'release' }}
-        run: ./gradlew :app:assembleFdroidRelease -x test
+        run: ./gradlew :app:assembleFdroidRelease --info
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Fdroid Prerelease APK
         if: ${{ inputs.build_type == 'prerelease' }}
-        run: ./gradlew :app:assembleFdroidPrerelease -x test
+        run: ./gradlew :app:assembleFdroidPrerelease --info
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Fdroid Nightly APK
         if: ${{ inputs.build_type == 'nightly' }}
-        run: ./gradlew :app:assembleFdroidNightly -x test
+        run: ./gradlew :app:assembleFdroidNightly --info
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
       - name: Build Debug APK
         if: ${{ inputs.build_type == 'debug' }}
