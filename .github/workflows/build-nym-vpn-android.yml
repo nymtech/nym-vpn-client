@@ -5,6 +5,7 @@ on:
       build_type:
         type: choice
         description: "Build type"
+        required: true
         default: debug
         options:
           - debug
@@ -27,14 +28,10 @@ on:
   workflow_call:
     inputs:
       build_type:
-        type: choice
+        type: string
         description: "Build type"
+        required: true
         default: debug
-        options:
-          - debug
-          - prerelease
-          - nightly
-          - release
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
         required: false
