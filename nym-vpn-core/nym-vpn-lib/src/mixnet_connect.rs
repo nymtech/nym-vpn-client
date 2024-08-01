@@ -14,8 +14,11 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use tracing::{debug, info};
 
-use crate::credentials::check_imported_credential;
-use crate::error::{Error, Result};
+use crate::{
+    credentials::check_imported_credential,
+    error::{Error, Result},
+    MixnetClientConfig,
+};
 
 #[derive(Clone)]
 pub struct SharedMixnetClient(Arc<tokio::sync::Mutex<Option<MixnetClient>>>);
@@ -78,25 +81,22 @@ fn true_to_disabled(val: bool) -> &'static str {
     }
 }
 
-#[allow(clippy::too_many_arguments)]
-pub(crate) async fn setup_mixnet_client(
-    mixnet_entry_gateway: &NodeIdentity,
-    mixnet_client_key_storage_path: &Option<PathBuf>,
-    mut task_client: nym_task::TaskClient,
-    enable_wireguard: bool,
-    enable_two_hop: bool,
-    enable_poisson_rate: bool,
-    disable_background_cover_traffic: bool,
-    enable_credentials_mode: bool,
-    min_mixnode_performance: Option<u8>,
-    min_gateway_performance: Option<u8>,
-) -> Result<SharedMixnetClient> {
-    // Disable Poisson rate limiter by default
-    let mut debug_config = nym_client_core::config::DebugConfig::default();
+fn apply_mixnet_client_config(
+    mixnet_client_config: &MixnetClientConfig,
+    debug_config: &mut nym_client_core::config::DebugConfig,
+) {
+    let MixnetClientConfig {
+        enable_poisson_rate,
+        disable_background_cover_traffic,
+        enable_credentials_mode: _enable_credentials_mode,
+        min_mixnode_performance,
+        min_gateway_performance,
+    } = mixnet_client_config;
 
+    // Disable Poisson rate limiter by default
     info!(
         "mixnet client poisson rate limiting: {}",
-        true_to_enabled(enable_poisson_rate)
+        true_to_enabled(*enable_poisson_rate)
     );
     debug_config
         .traffic
@@ -104,36 +104,54 @@ pub(crate) async fn setup_mixnet_client(
 
     info!(
         "mixnet client background loop cover traffic stream: {}",
-        true_to_disabled(disable_background_cover_traffic)
+        true_to_disabled(*disable_background_cover_traffic)
     );
-    debug_config.cover_traffic.disable_loop_cover_traffic_stream = disable_background_cover_traffic;
-
-    info!(
-        "mixnet client two hop traffic: {}",
-        true_to_enabled(enable_two_hop)
-    );
+    debug_config.cover_traffic.disable_loop_cover_traffic_stream =
+        *disable_background_cover_traffic;
 
     if let Some(min_mixnode_performance) = min_mixnode_performance {
-        debug_config.topology.minimum_mixnode_performance = min_mixnode_performance;
+        debug_config.topology.minimum_mixnode_performance = *min_mixnode_performance;
     }
     info!(
         "mixnet client minimum mixnode performance: {}",
         debug_config.topology.minimum_mixnode_performance,
     );
+
     if let Some(min_gateway_performance) = min_gateway_performance {
-        debug_config.topology.minimum_gateway_performance = min_gateway_performance;
+        debug_config.topology.minimum_gateway_performance = *min_gateway_performance;
     }
     info!(
         "mixnet client minimum gateway performance: {}",
         debug_config.topology.minimum_gateway_performance,
     );
+}
+
+pub(crate) async fn setup_mixnet_client(
+    mixnet_entry_gateway: &NodeIdentity,
+    mixnet_client_key_storage_path: &Option<PathBuf>,
+    mut task_client: nym_task::TaskClient,
+    enable_wireguard: bool,
+    enable_two_hop: bool,
+    mixnet_client_config: MixnetClientConfig,
+) -> Result<SharedMixnetClient> {
+    let mut debug_config = nym_client_core::config::DebugConfig::default();
+    apply_mixnet_client_config(&mixnet_client_config, &mut debug_config);
 
     // TODO: add support for two-hop mixnet traffic as a setting on the mixnet_client.
     // For now it's something we explicitly set on each set InputMessage.
+    // We print it here together with the others.
+    info!(
+        "mixnet client two hop traffic: {}",
+        true_to_enabled(enable_two_hop)
+    );
+
+    debug!(
+        "mixnet client has wireguard_mode: {}",
+        true_to_enabled(enable_wireguard)
+    );
 
     let user_agent = nym_bin_common::bin_info_owned!().into();
 
-    debug!("mixnet client has wireguard_mode={enable_wireguard}");
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
         debug!("Using custom key storage path: {:?}", path);
 
@@ -158,7 +176,7 @@ pub(crate) async fn setup_mixnet_client(
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(debug_config)
             .custom_shutdown(task_client)
-            .credentials_mode(enable_credentials_mode)
+            .credentials_mode(mixnet_client_config.enable_credentials_mode)
             .build()?
             .connect_to_mixnet()
             .await?
@@ -171,7 +189,7 @@ pub(crate) async fn setup_mixnet_client(
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(debug_config)
             .custom_shutdown(task_client)
-            .credentials_mode(enable_credentials_mode)
+            .credentials_mode(mixnet_client_config.enable_credentials_mode)
             .build()?
             .connect_to_mixnet()
             .await?
