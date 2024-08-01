@@ -15,8 +15,8 @@ source "$(dirname "$0")/common.sh"
 TAG_BASE_NAME=nym-vpn-core
 DIRNAME=nym-vpn-core
 
-# We want to set the workspace version, but I didn't manage cargo set-version
-# to do this explicitly, but instead do it implicitly by specifying the lib
+# We want to set the workspace version, but I didn't manage to get cargo
+# set-version to do this explicitly, only implicitly by specifying the lib
 # crate. This seems to trigger a version bump at the workspace level, affecting
 # all relevant crates.
 PACKAGE=nym-vpn-lib
