@@ -73,40 +73,11 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
-      - name: Get package version cli
-        id: package-version-cli
+      - name: Get nym-vpn-core workspace version
+        id: workspace-version
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry nym-vpn-core/nym-vpn-cli
-
-      - name: Get package version vpnc
-        id: package-version-vpnc
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: package.version --entry nym-vpn-core/crates/nym-vpnc
-
-      - name: Get package version vpnd
-        id: package-version-vpnd
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: package.version --entry nym-vpn-core/crates/nym-vpnd
-
-      - name: Get package version lib
-        id: package-version-lib
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: package.version --entry nym-vpn-core/nym-vpn-lib
-
-      - name: Check tag name consistency
-        if: github.event_name == 'push'
-        shell: bash
-        run: |
-          if [[ "${{ steps.package-version-cli.outputs.metadata }}" == "${{ steps.package-version-vpnc.outputs.metadata }}" && "${{ steps.package-version-cli.outputs.metadata }}" == "${{ steps.package-version-vpnd.outputs.metadata }}" && "${{ steps.package-version-cli.outputs.metadata }}" == "${{ steps.package-version-lib.outputs.metadata }}" ]]; then
-            if [[ nym-vpn-core-v${{ steps.package-version-cli.outputs.metadata }}  != ${{ github.ref_name }} ]]; then
-            exit 1
-            fi
-            else exit 1
-          fi
+          subcommand: workspace.package.version --entry nym-vpn-core
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -121,11 +92,11 @@ jobs:
 
       - name: Generate checksums and create tar.gz archive per platform
         run: |
-          ARCHIVE_LINUX=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_linux_x86_64
-          ARCHIVE_MAC=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_macos_universal
-          ARCHIVE_ANDROID=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_android_aarch64
-          ARCHIVE_IOS=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_ios_universal
-          ARCHIVE_WINDOWS=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }}_windows_x86_64
+          ARCHIVE_LINUX=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}_linux_x86_64
+          ARCHIVE_MAC=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}_macos_universal
+          ARCHIVE_ANDROID=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}_android_aarch64
+          ARCHIVE_IOS=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}_ios_universal
+          ARCHIVE_WINDOWS=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}_windows_x86_64
           echo "ARCHIVE_LINUX=${ARCHIVE_LINUX}" >> $GITHUB_ENV
           echo "ARCHIVE_MAC=${ARCHIVE_MAC}" >> $GITHUB_ENV
           echo "ARCHIVE_ANDROID=${ARCHIVE_ANDROID}" >> $GITHUB_ENV
@@ -171,7 +142,7 @@ jobs:
       - name: Setting subject, prerelease and notes files
         if: ${{ contains(env.TAG_NAME, 'nightly') }}
         run: |
-          (echo "SUBJECT=nym-vpn-core-v${{ steps.package-version-lib.outputs.metadata }} nightly prerelease build";
+          (echo "SUBJECT=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }} nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
            echo 'NOTES_FILE=release-notes/release-notes-core-nightly.md') >> $GITHUB_ENV
           gh release delete nightly --yes || true
