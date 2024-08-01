@@ -114,9 +114,12 @@ pub fn start_tunnel(
 pub async fn setup_route_manager() -> crate::error::Result<RouteManager> {
     #[cfg(target_os = "linux")]
     let route_manager = {
-        let fwmark = 0;
-        let table_id = 0;
-        RouteManager::new(HashSet::new(), fwmark, table_id).await?
+        RouteManager::new(
+            HashSet::new(),
+            crate::config::TUNNEL_FWMARK,
+            crate::config::TUNNEL_TABLE_ID,
+        )
+        .await?
     };
 
     #[cfg(not(target_os = "linux"))]
