@@ -39,6 +39,7 @@ members = [
 # nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
 
 [workspace.package]
+version = "0.1.12-dev"
 authors = ["Nym Technologies SA"]
 repository = "https://github.com/nymtech/nym-vpn-client"
 homepage = "https://nymtech.net"
