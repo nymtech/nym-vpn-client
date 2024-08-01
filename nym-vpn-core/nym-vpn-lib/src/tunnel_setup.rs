@@ -347,12 +347,7 @@ pub async fn setup_tunnel(
             task_manager.subscribe_named("mixnet_client_main"),
             false,
             nym_vpn.enable_two_hop(),
-            nym_vpn.mixnet_client_config().enable_poisson_rate,
-            nym_vpn
-                .mixnet_client_config()
-                .disable_background_cover_traffic,
-            nym_vpn.mixnet_client_config().enable_credentials_mode,
-            nym_vpn.mixnet_client_config().min_mixnode_performance,
+            nym_vpn.mixnet_client_config(),
         ),
     )
     .await
