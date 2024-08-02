@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.service.tile
+package net.nymtech.nymvpn.service.android.tile
 
 import android.os.Build
 import android.service.quicksettings.Tile

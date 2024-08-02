@@ -10,7 +10,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,7 +18,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
@@ -31,9 +29,9 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 @Composable
 fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hiltViewModel()) {
 	val context = LocalContext.current
-	val licenses by viewModel.licenses.collectAsStateWithLifecycle()
+	val licenses = viewModel.licenses
 
-	val licenseComparator = compareBy<Artifact> { it.name }
+	val licenseComparator = compareBy<Artifact> { it.name?.lowercase() }
 
 	val sortedLicenses =
 		remember(licenses, licenseComparator) {
@@ -42,6 +40,13 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 
 	LaunchedEffect(Unit) {
 		viewModel.loadLicensesFromAssets()
+	}
+
+	fun buildLicenseText(artifact: Artifact): String {
+		val spdxName = artifact.spdxLicenses?.map { it.name }
+		val unknownNames = artifact.unknownLicenses?.map { it.name }
+		val allNames = spdxName.orEmpty() + unknownNames.orEmpty()
+		return allNames.distinct().joinToString()
 	}
 
 	LazyColumn(
@@ -55,14 +60,14 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 		item {
 			Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())) {}
 		}
-		items(sortedLicenses) { it ->
+		items(sortedLicenses) { artifact ->
 			SurfaceSelectionGroupButton(
 				items =
 				listOf(
 					SelectionItem(
 						title = {
 							Text(
-								it.name
+								artifact.name
 									?: stringResource(id = R.string.unknown),
 								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 								maxLines = 1,
@@ -71,18 +76,13 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 						},
 						description = {
 							Text(
-								it.spdxLicenses?.joinToString(postfix = " ") { it.name } +
-									if (it.unknownLicenses != null) {
-										it.unknownLicenses.joinToString { it.name }
-									} else {
-										""
-									},
+								text = buildLicenseText(artifact),
 								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 							)
 						},
 						onClick = {
-							if (it.scm != null) {
-								context.openWebUrl(it.scm.url)
+							if (artifact.scm != null) {
+								context.openWebUrl(artifact.scm.url)
 							} else {
 								appViewModel.showSnackbarMessage(
 									context.getString(R.string.no_scm_found),

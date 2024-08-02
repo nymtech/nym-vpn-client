@@ -26,4 +26,6 @@ object Constants {
 	const val FREE_PASS_CRED_DURATION = 30f
 
 	const val NATIVE_STORAGE_PATH = "/data/data/net.nymtech.nymvpn/files/"
+	const val KOTLIN_LICENSES_ASSET_FILE_NAME = "artifacts.json"
+	const val RUST_LICENSES_ASSET_FILE_NAME = "licenses_rust.json"
 }

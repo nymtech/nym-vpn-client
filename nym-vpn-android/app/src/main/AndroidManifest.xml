@@ -73,7 +73,7 @@
 			android:theme="@android:style/Theme.NoDisplay" />
 
 		<service
-			android:name=".service.tile.VpnQuickTile"
+			android:name=".service.android.tile.VpnQuickTile"
 			android:exported="true"
 			android:icon="@drawable/ic_stat_name"
 			android:label="@string/app_name"
@@ -111,7 +111,7 @@
 			</intent-filter>
 		</receiver>
 		<service
-			android:name=".service.AlwaysOnVpnService"
+			android:name=".service.android.AlwaysOnVpnService"
 			android:enabled="true"
 			android:exported="false"
 			android:foregroundServiceType="systemExempted"
