@@ -45,7 +45,7 @@ fun PermissionLabel(selectionItem: SelectionItem) {
 				modifier = Modifier.fillMaxWidth(),
 			) {
 				Row(
-					verticalAlignment = Alignment.CenterVertically,
+					verticalAlignment = Alignment.Top,
 					horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth()),
 					modifier = Modifier.padding(start = 16.dp.scaledWidth()),
 				) {
