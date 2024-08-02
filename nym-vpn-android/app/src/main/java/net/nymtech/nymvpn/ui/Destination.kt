@@ -6,6 +6,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.util.StringValue
 import kotlin.reflect.full.isSubclassOf
 
@@ -30,7 +31,9 @@ sealed class Destination(
 		"permission/{permission}",
 		StringValue.StringResource(R.string.permission_required),
 		backIcon,
-	)
+	) {
+		fun createRoute(permission: net.nymtech.nymvpn.ui.screens.permission.Permission) = "permission/${permission.name}"
+	}
 
 	data object Settings :
 		Destination("/settings", StringValue.StringResource(R.string.settings), backIcon)

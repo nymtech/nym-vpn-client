@@ -117,7 +117,7 @@ fun MainScreen(
 			onResult = {
 				val accepted = (it.resultCode == RESULT_OK)
 				if (!accepted) {
-					navController.navigate("${Destination.Permission.route}/${Permission.VPN}")
+					navController.navigate(Destination.Permission.createRoute(Permission.VPN))
 				} else {
 					onConnectWithPermission()
 				}
@@ -156,7 +156,7 @@ fun MainScreen(
 
 	LaunchedEffect(notificationPermissionState?.status?.shouldShowRationale) {
 		if (notificationPermissionState?.status?.shouldShowRationale == true) {
-			navController.navigate("${Destination.Permission.route}/${Permission.NOTIFICATION}")
+			navController.navigate(Destination.Permission.createRoute(Permission.NOTIFICATION))
 		}
 	}
 
