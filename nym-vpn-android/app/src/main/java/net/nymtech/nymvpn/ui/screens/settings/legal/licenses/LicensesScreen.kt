@@ -25,7 +25,6 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import timber.log.Timber
 
 @Composable
 fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hiltViewModel()) {
@@ -43,7 +42,7 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 		viewModel.loadLicensesFromAssets()
 	}
 
-	fun licenseText(artifact: Artifact): String {
+	fun buildLicenseText(artifact: Artifact): String {
 		val spdxName = artifact.spdxLicenses?.map { it.name }
 		val unknownNames = artifact.unknownLicenses?.map { it.name }
 		val allNames = spdxName.orEmpty() + unknownNames.orEmpty()
@@ -62,8 +61,6 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 			Row(modifier = Modifier.padding(bottom = 24.dp.scaledHeight())) {}
 		}
 		items(sortedLicenses) { artifact ->
-			val licenseText = licenseText(artifact)
-			Timber.d(licenseText)
 			SurfaceSelectionGroupButton(
 				items =
 				listOf(
@@ -79,7 +76,7 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 						},
 						description = {
 							Text(
-								text = licenseText,
+								text = buildLicenseText(artifact),
 								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 							)
 						},

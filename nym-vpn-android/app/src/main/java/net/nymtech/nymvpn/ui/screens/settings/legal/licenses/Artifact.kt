@@ -34,7 +34,7 @@ data class Artifact(
 			return Artifact(
 				version = license.version,
 				name = "${license.name} (Rust)",
-				unknownLicenses = listOf(UnknownLicenses(license.license, "")),
+				unknownLicenses = license.license?.let { listOf(UnknownLicenses(it, "")) },
 				scm = license.repository?.let { Scm(it) },
 			)
 		}

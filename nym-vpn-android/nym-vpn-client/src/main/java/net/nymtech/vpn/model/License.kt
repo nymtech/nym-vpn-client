@@ -1,7 +1,9 @@
 package net.nymtech.vpn.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import timber.log.Timber
 
 @Serializable
 data class License(
@@ -9,8 +11,8 @@ data class License(
 	val version: String,
 	val authors: String?,
 	val repository: String?,
-	val license: String,
-	val license_file: String?,
+	val license: String?,
+	@SerialName("license_file") val licenseFile: String?,
 	val description: String?,
 ) {
 	companion object {
@@ -18,6 +20,8 @@ data class License(
 			return kotlin.runCatching {
 				Json.decodeFromString<List<License>>(text)
 					.distinctBy { it.name }
+			}.onFailure {
+				Timber.e(it)
 			}
 		}
 	}
