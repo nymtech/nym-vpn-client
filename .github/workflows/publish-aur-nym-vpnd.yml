@@ -74,7 +74,7 @@ jobs:
           #   the sources array declared in PKGBUILD
           SOURCES: |
             ${{ matrix.pkgtype == 'bfs' && env.TARBALL || env.LINUX_BIN }}
-            nym-vpn-core/nym-vpnd/.pkg/aur/nym-vpnd.service
+            nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service
         run: ./.pkg/aur_update.sh
       - name: Rename PKGBUILD (bin)
         if: matrix.pkgtype == 'bin'
@@ -95,4 +95,4 @@ jobs:
           ssh_private_key: ${{ secrets.AUR_SSH_KEY }}
           commit_message: ${{ inputs.commit_msg || inputs.release_tag }}
           assets: |
-            nym-vpn-core/nym-vpnd/.pkg/aur/nym-vpnd.service
+            nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service
