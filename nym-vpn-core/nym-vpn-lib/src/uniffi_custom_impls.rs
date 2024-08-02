@@ -194,7 +194,6 @@ impl From<Country> for Location {
     }
 }
 
-// TODO: generate uniffi
 #[derive(uniffi::Record)]
 pub struct UserAgent {
     // The name of the application

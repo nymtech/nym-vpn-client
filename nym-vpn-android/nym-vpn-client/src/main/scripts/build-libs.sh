@@ -37,3 +37,5 @@ mv $PWD/../../android/app/build/extraJni/arm64-v8a/libwg.so $PWD/src/main/jniLib
 #mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/armeabi-v7a/libwg.so $PWD/src/main/jniLibs/armeabi-v7a/
 #mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/x86/libwg.so $PWD/src/main/jniLibs/x86/
 #mv $PWD/src/tools/nym-vpn-client/android/app/build/extraJni/x86_64/libwg.so $PWD/src/main/jniLibs/x86_64/
+
+mv $PWD/../../nym-vpn-core/nym-vpn-lib/generated/licenses_rust.json $PWD/src/main/assets

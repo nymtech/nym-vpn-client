@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 import net.nymtech.logcatutil.LogCollect
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.module.IoDispatcher
-import net.nymtech.nymvpn.service.tile.VpnQuickTile
+import net.nymtech.nymvpn.service.android.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.extensions.actionBarSize
 import net.nymtech.nymvpn.util.logging.DebugTree
 import net.nymtech.nymvpn.util.logging.ReleaseTree
