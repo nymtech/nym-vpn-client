@@ -21,5 +21,6 @@
   "first-hop-selection": "Local de entrada",
   "last-hop-selection": "Local de saída",
   "display-theme": "Exibir",
-  "notifications": "Notificações"
+  "notifications": "Notificações",
+  "language": "Idioma"
 }
