@@ -46,9 +46,9 @@ jobs:
         with:
           ndk-version: r25c
 
-      - name: Add cargo-ndk, add target
+      - name: Install cargo deps
         run: |
-          cargo install cargo-ndk
+          cargo install cargo-ndk cargo-license
 
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4

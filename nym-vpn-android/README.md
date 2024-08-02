@@ -20,10 +20,10 @@ rustup target add \
             i686-linux-android
 ```
 
-### Install cargo-ndk
+### Install cargo dependencies
 
 ```
-cargo install cargo-ndk
+cargo install cargo-ndk cargo-license
 ```
 
 ### Install Go

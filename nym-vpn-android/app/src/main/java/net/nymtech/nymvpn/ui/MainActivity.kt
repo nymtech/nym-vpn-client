@@ -53,9 +53,9 @@ import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.account.AccountScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
-import net.nymtech.nymvpn.ui.screens.settings.credential.CredentialScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.language.LanguageScreen
+import net.nymtech.nymvpn.ui.screens.settings.credential.CredentialScreen
 import net.nymtech.nymvpn.ui.screens.settings.feedback.FeedbackScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen

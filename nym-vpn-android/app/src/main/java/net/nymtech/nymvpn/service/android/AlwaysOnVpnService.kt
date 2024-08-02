@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.service
+package net.nymtech.nymvpn.service.android
 
 import android.content.Intent
 import android.os.IBinder

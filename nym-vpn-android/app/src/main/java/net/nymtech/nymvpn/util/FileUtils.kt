@@ -24,11 +24,13 @@ class FileUtils(
 		}
 	}
 
-	suspend fun readTextFromFileName(fileName: String): String {
-		return withContext(ioDispatcher) {
-			context.assets.open(fileName).use { stream ->
-				stream.bufferedReader(Charsets.UTF_8).use {
-					it.readText()
+	suspend fun readTextFromAssetsFile(fileName: String): Result<String> {
+		return kotlin.runCatching {
+			withContext(ioDispatcher) {
+				context.assets.open(fileName).use { stream ->
+					stream.bufferedReader(Charsets.UTF_8).use {
+						it.readText()
+					}
 				}
 			}
 		}

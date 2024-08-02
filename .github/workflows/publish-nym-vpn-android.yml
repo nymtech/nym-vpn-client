@@ -238,9 +238,9 @@ jobs:
             x86_64-linux-android \
             i686-linux-android
 
-      - name: Add cargo-ndk
+      - name: Add cargo dependencies
         run: |
-          cargo install cargo-ndk
+          cargo install cargo-ndk cargo-license
 
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration
