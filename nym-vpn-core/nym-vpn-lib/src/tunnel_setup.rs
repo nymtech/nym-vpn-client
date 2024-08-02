@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::IpAddr;
 use std::time::Duration;
 
 use crate::bandwidth_controller::BandwidthController;
@@ -24,7 +25,7 @@ use nym_gateway_directory::{AuthAddresses, GatewayClient, IpPacketRouterAddress}
 use nym_task::TaskManager;
 use talpid_core::dns::DnsMonitor;
 use talpid_core::firewall::Firewall;
-use talpid_routing::RouteManager;
+use talpid_routing::{Node, RequiredRoute, RouteManager};
 use talpid_tunnel::{TunnelEvent, TunnelMetadata};
 use tokio::time::timeout;
 
@@ -129,9 +130,10 @@ async fn setup_wg_tunnel(
     nym_vpn: &mut NymVpn<WireguardVpn>,
     mixnet_client: SharedMixnetClient,
     task_manager: &mut TaskManager,
-    route_manager: &RouteManager,
+    route_manager: &mut RouteManager,
     gateway_directory_client: GatewayClient,
     auth_addresses: AuthAddresses,
+    default_lan_gateway_ip: routing::LanGatewayIp,
 ) -> Result<AllTunnelsSetup> {
     // MTU is computed as (MTU of wire interface) - ((IP header size) + (UDP header size) + (WireGuard metadata size))
     // The IP header size is 20 for IPv4 and 40 for IPv6
@@ -162,13 +164,13 @@ async fn setup_wg_tunnel(
     let mut wg_exit_gateway_client =
         WgGatewayClient::new_exit(&nym_vpn.data_path, auth_client.clone(), exit_auth_recipient);
 
-    let mut entry_wireguard_config = init_wireguard_config(
+    let (mut entry_wireguard_config, entry_gateway_ip) = init_wireguard_config(
         &gateway_directory_client,
         &mut wg_entry_gateway_client,
         entry_mtu,
     )
     .await?;
-    let mut exit_wireguard_config = init_wireguard_config(
+    let (mut exit_wireguard_config, _) = init_wireguard_config(
         &gateway_directory_client,
         &mut wg_exit_gateway_client,
         exit_mtu,
@@ -201,6 +203,24 @@ async fn setup_wg_tunnel(
     }
     info!("Entry wireguard config: \n{entry_wireguard_config}");
     info!("Exit wireguard config: \n{exit_wireguard_config}");
+
+    let default_node = if let Some(addr) = default_lan_gateway_ip.0.gateway.and_then(|g| {
+        g.ipv4
+            .first()
+            .map(|a| IpAddr::from(*a))
+            .or(g.ipv6.first().map(|a| IpAddr::from(*a)))
+    }) {
+        Node::new(addr, default_lan_gateway_ip.0.name)
+    } else {
+        Node::device(default_lan_gateway_ip.0.name)
+    };
+    let routes = replace_default_prefixes(entry_gateway_ip.into())
+        .into_iter()
+        .map(move |ip| RequiredRoute::new(ip, default_node.clone()));
+    #[cfg(target_os = "linux")]
+    let routes = routes.map(|route| route.use_main_table(false));
+    route_manager.add_routes(routes.collect()).await?;
+
     std::env::set_var("TALPID_FORCE_USERSPACE_WIREGUARD", "1");
     let (wireguard_waiting_entry, event_rx) = create_wireguard_tunnel(
         route_manager,
@@ -209,6 +229,7 @@ async fn setup_wg_tunnel(
         entry_wireguard_config,
     )
     .await?;
+
     // Wait for entry gateway routes to be finished before moving to exit gateway routes, as the two might race if
     // started one after the other
     debug!("Waiting for first interface up");
@@ -218,6 +239,7 @@ async fn setup_wg_tunnel(
         device_name = metadata.interface,
         device_ip = metadata.ips
     );
+
     let (wireguard_waiting_exit, event_rx) = create_wireguard_tunnel(
         route_manager,
         task_manager.subscribe_named("exit_wg_tunnel"),
@@ -370,6 +392,7 @@ pub async fn setup_tunnel(
                 route_manager,
                 gateway_directory_client,
                 auth_addresses,
+                default_lan_gateway_ip,
             )
             .await
         }

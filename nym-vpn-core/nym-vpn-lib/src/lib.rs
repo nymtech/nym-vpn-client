@@ -73,7 +73,7 @@ async fn init_wireguard_config(
     gateway_client: &GatewayClient,
     wg_gateway_client: &mut WgGatewayClient,
     mtu: u16,
-) -> Result<WireguardConfig> {
+) -> Result<(WireguardConfig, IpAddr)> {
     // First we need to register with the gateway to setup keys and IP assignment
     info!("Registering with wireguard gateway");
     let gateway_host = gateway_client
@@ -89,7 +89,7 @@ async fn init_wireguard_config(
 
     let wireguard_config =
         WireguardConfig::init(wg_gateway_client.keypair(), &wg_gateway_data, mtu)?;
-    Ok(wireguard_config)
+    Ok((wireguard_config, gateway_host))
 }
 
 struct ShadowHandle {
