@@ -13,8 +13,6 @@ use talpid_types::net::GenericTunnelOptions;
 
 #[cfg(target_os = "linux")]
 pub const TUNNEL_FWMARK: u32 = 0x6d6f6c65;
-#[cfg(target_os = "linux")]
-pub const TUNNEL_TABLE_ID: u32 = 0x6d6f6c65;
 
 #[derive(Clone)]
 pub struct WireguardConfig(pub talpid_wireguard::config::Config);

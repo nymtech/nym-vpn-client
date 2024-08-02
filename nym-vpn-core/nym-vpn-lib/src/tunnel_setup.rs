@@ -77,10 +77,10 @@ pub(crate) async fn init_firewall_dns(
 
     #[cfg(target_os = "linux")]
     {
+        let fwmark = 0; // ?
         debug!("Starting firewall");
         let firewall = tokio::task::spawn_blocking(move || {
-            Firewall::new(crate::config::TUNNEL_FWMARK)
-                .map_err(|err| crate::error::Error::FirewallError(err.to_string()))
+            Firewall::new(fwmark).map_err(|err| crate::error::Error::FirewallError(err.to_string()))
         })
         .await??;
         debug!("Starting dns monitor");
