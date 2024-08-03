@@ -13,4 +13,7 @@
     <string name="first_hop">उद्भव स्थान</string>
     <string name="last_hop">आखरी स्थान</string>
     <string name="connect">कनेक्ट</string>
+    <string name="last_hop_selection">आखरी स्थान</string>
+    <string name="first_hop_selection">उद्भव स्थान</string>
+    <string name="terms_of_use">उपयोग की शर्तें</string>
 </resources>
