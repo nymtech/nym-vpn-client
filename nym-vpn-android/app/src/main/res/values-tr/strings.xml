@@ -60,7 +60,7 @@
     <string name="credential_successful">Anahtar başarıyla eklendi</string>
     <string name="no_browser_detected">Tarayıcı bulunamadı</string>
     <string name="no_email_detected">E-posta uygulaması bulunamadı</string>
-    <string name="unknown">Tanımlanamayan</string>
+    <string name="unknown">Bilinmeyen</string>
     <string name="no_scm_found">Kaynak kodu URL\'si bulunamadı</string>
     <string name="two_hop">2-hop</string>
     <string name="five_hop">5-hop</string>
