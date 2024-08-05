@@ -138,12 +138,51 @@ impl From<nym_vpn_lib::gateway_directory::Location> for Location {
     }
 }
 
+impl From<nym_vpn_lib::gateway_directory::Entry> for Entry {
+    fn from(entry: nym_vpn_lib::gateway_directory::Entry) -> Self {
+        Self {
+            can_connect: entry.can_connect,
+            can_route: entry.can_route,
+        }
+    }
+}
+
+impl From<nym_vpn_lib::gateway_directory::Exit> for Exit {
+    fn from(exit: nym_vpn_lib::gateway_directory::Exit) -> Self {
+        Self {
+            can_connect: exit.can_connect,
+            can_route_ip_v4: exit.can_route_ip_v4,
+            can_route_ip_external_v4: exit.can_route_ip_external_v4,
+            can_route_ip_v6: exit.can_route_ip_v6,
+            can_route_ip_external_v6: exit.can_route_ip_external_v6,
+        }
+    }
+}
+
+impl From<nym_vpn_lib::gateway_directory::ProbeOutcome> for ProbeOutcome {
+    fn from(outcome: nym_vpn_lib::gateway_directory::ProbeOutcome) -> Self {
+        Self {
+            as_entry: Entry::from(outcome.as_entry),
+            as_exit: outcome.as_exit.map(Exit::from),
+        }
+    }
+}
+
+impl From<nym_vpn_lib::gateway_directory::Probe> for Probe {
+    fn from(probe: nym_vpn_lib::gateway_directory::Probe) -> Self {
+        Self {
+            last_updated_utc: probe.last_updated_utc,
+            outcome: ProbeOutcome::from(probe.outcome),
+        }
+    }
+}
+
 impl From<nym_vpn_lib::gateway_directory::Gateway> for Gateway {
     fn from(gateway: nym_vpn_lib::gateway_directory::Gateway) -> Self {
         Self {
             identity_key: gateway.identity.to_string(),
             location: gateway.location.map(Location::from),
-            last_probe: None,
+            last_probe: gateway.last_probe.map(Probe::from),
         }
     }
 }

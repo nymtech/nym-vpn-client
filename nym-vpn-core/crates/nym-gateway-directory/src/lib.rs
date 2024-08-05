@@ -11,7 +11,7 @@ pub use crate::{
         auth_addresses::{AuthAddress, AuthAddresses},
         entry_point::EntryPoint,
         exit_point::ExitPoint,
-        gateway::{Gateway, GatewayList, Location},
+        gateway::{Entry, Exit, Gateway, GatewayList, Location, Probe, ProbeOutcome},
         ipr_addresses::IpPacketRouterAddress,
     },
     error::Error,
