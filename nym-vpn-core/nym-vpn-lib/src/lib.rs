@@ -72,6 +72,7 @@ pub const SHUTDOWN_TIMER_SECS: u64 = 10;
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
     wg_gateway_client: &mut WgGatewayClient,
+    wg_gateway: Option<IpAddr>,
     mtu: u16,
 ) -> Result<(WireguardConfig, IpAddr)> {
     // First we need to register with the gateway to setup keys and IP assignment
@@ -87,8 +88,12 @@ async fn init_wireguard_config(
     let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
-    let wireguard_config =
-        WireguardConfig::init(wg_gateway_client.keypair(), &wg_gateway_data, mtu)?;
+    let wireguard_config = WireguardConfig::init(
+        wg_gateway_client.keypair(),
+        &wg_gateway_data,
+        wg_gateway,
+        mtu,
+    )?;
     Ok((wireguard_config, gateway_host))
 }
 

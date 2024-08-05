@@ -164,16 +164,23 @@ async fn setup_wg_tunnel(
     let mut wg_exit_gateway_client =
         WgGatewayClient::new_exit(&nym_vpn.data_path, auth_client.clone(), exit_auth_recipient);
 
-    let (mut entry_wireguard_config, entry_gateway_ip) = init_wireguard_config(
-        &gateway_directory_client,
-        &mut wg_entry_gateway_client,
-        entry_mtu,
-    )
-    .await?;
     let (mut exit_wireguard_config, _) = init_wireguard_config(
         &gateway_directory_client,
         &mut wg_exit_gateway_client,
+        None,
         exit_mtu,
+    )
+    .await?;
+    let wg_gateway = exit_wireguard_config
+        .0
+        .peers
+        .get(0)
+        .map(|config| config.endpoint.ip());
+    let (mut entry_wireguard_config, entry_gateway_ip) = init_wireguard_config(
+        &gateway_directory_client,
+        &mut wg_entry_gateway_client,
+        wg_gateway,
+        entry_mtu,
     )
     .await?;
     tokio::spawn(
