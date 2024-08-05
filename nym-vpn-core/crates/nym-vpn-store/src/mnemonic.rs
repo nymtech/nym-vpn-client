@@ -18,6 +18,9 @@ pub fn store_mnemonic<P: AsRef<Path> + Clone>(storage_path: P, mnemonic_phrase: 
     writeln!(file, "Mnemonic: {}", mnemonic_phrase).unwrap();
     writeln!(file, "Derivation Path: {}", COSMOS_DERIVATION_PATH).unwrap();
     // writeln!(file, "Signing Key (Hex): {}", signing_key_hex).unwrap();
+
+    let prefix = "n";
+    let wallet = nym_validator_client::DirectSecp256k1HdWallet::builder(prefix).build(mnemonic);
 }
 
 #[cfg(test)]
