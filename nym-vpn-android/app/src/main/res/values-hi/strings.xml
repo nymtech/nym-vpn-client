@@ -16,9 +16,6 @@
     <string name="last_hop_selection">आखरी स्थान</string>
     <string name="first_hop_selection">उद्भव स्थान</string>
     <string name="terms_of_use">उपयोग की शर्तें</string>
-<<<<<<< HEAD
-</resources>
-=======
     <string name="error_reporting">अनाम त्रुटि रिपोर्ट साझा करें</string>
     <string name="open_github">GitHub मुद्दा खोलें</string>
     <string name="top_up">टॉप अप</string>
@@ -132,4 +129,3 @@
     <string name="mode_selection">मोड चयन</string>
     <string name="continue_reading">पढ़ना जारी रखें</string>
 </resources>
->>>>>>> 0ec69d2b (Translated using Weblate (Hindi))
