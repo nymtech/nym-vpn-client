@@ -42,7 +42,7 @@ pub fn start_tunnel(
     tunnel: &Tunnel,
     mut shutdown: TaskClient,
     finished_shutdown_tx: Sender<()>,
-) -> Result<(JoinHandle<()>, EventReceiver), crate::error::Error> {
+) -> Result<(JoinHandle<()>, EventReceiver, Sender<()>), crate::error::Error> {
     debug!("Starting tunnel");
     let route_manager = tunnel.route_manager_handle.clone();
     // We only start the tunnel when we have wireguard enabled, and then we have the config
@@ -51,11 +51,6 @@ pub fn start_tunnel(
     let tun_provider = Arc::clone(&tunnel.tun_provider);
     let (event_tx, event_rx) = mpsc::unbounded();
     let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel::<()>();
-    let mut shutdown_forwarder = shutdown.clone();
-    tokio::spawn(async move {
-        shutdown_forwarder.recv().await;
-        tunnel_close_tx.send(()).unwrap();
-    });
     let handle = tokio::task::spawn_blocking(move || {
         let on_tunnel_event =
             move |event| -> std::pin::Pin<Box<dyn std::future::Future<Output = ()> + Send>> {
@@ -106,9 +101,10 @@ pub fn start_tunnel(
             }
             debug!("Sent shutdown message");
         }
+        shutdown.disarm();
     });
 
-    Ok((handle, event_rx))
+    Ok((handle, event_rx, tunnel_close_tx))
 }
 
 pub async fn setup_route_manager() -> crate::error::Result<RouteManager> {

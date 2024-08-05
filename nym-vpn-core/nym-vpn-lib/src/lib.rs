@@ -72,8 +72,9 @@ pub const SHUTDOWN_TIMER_SECS: u64 = 10;
 async fn init_wireguard_config(
     gateway_client: &GatewayClient,
     wg_gateway_client: &mut WgGatewayClient,
+    wg_gateway: Option<IpAddr>,
     mtu: u16,
-) -> Result<WireguardConfig> {
+) -> Result<(WireguardConfig, IpAddr)> {
     // First we need to register with the gateway to setup keys and IP assignment
     info!("Registering with wireguard gateway");
     let gateway_host = gateway_client
@@ -87,9 +88,13 @@ async fn init_wireguard_config(
     let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
-    let wireguard_config =
-        WireguardConfig::init(wg_gateway_client.keypair(), &wg_gateway_data, mtu)?;
-    Ok(wireguard_config)
+    let wireguard_config = WireguardConfig::init(
+        wg_gateway_client.keypair(),
+        &wg_gateway_data,
+        wg_gateway,
+        mtu,
+    )?;
+    Ok((wireguard_config, gateway_host))
 }
 
 struct ShadowHandle {
@@ -554,9 +559,12 @@ impl SpecificVpn {
                 )
                 .await;
 
-                dns_monitor.reset().inspect_err(|err| {
-                    error!("Failed to reset dns monitor: {err}");
-                })?;
+                tokio::task::spawn_blocking(move || {
+                    dns_monitor.reset().inspect_err(|err| {
+                        log::error!("Failed to reset dns monitor: {err}");
+                    })
+                })
+                .await??;
                 firewall.reset_policy().map_err(|err| {
                     error!("Failed to reset firewall policy: {err}");
                     Error::FirewallError(err.to_string())
@@ -657,12 +665,12 @@ impl SpecificVpn {
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
                 .await;
-                dns_monitor.reset().map_err(|err| {
-                    error!("Failed to reset dns monitor: {err}");
-                    NymVpnExitError::FailedToResetDnsMonitor {
-                        reason: err.to_string(),
-                    }
-                })?;
+                tokio::task::spawn_blocking(move || {
+                    dns_monitor.reset().inspect_err(|err| {
+                        log::error!("Failed to reset dns monitor: {err}");
+                    })
+                })
+                .await??;
                 firewall.reset_policy().map_err(|err| {
                     error!("Failed to reset firewall policy: {err}");
                     NymVpnExitError::FailedToResetFirewallPolicy {

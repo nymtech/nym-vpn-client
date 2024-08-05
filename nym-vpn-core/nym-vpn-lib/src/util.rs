@@ -5,8 +5,6 @@ use crate::{error::*, tunnel_setup::WgTunnelSetup, NymVpnCtrlMessage};
 use futures::{channel::mpsc, StreamExt};
 use log::*;
 use talpid_routing::RouteManager;
-#[cfg(target_os = "linux")]
-use talpid_types::ErrorExt;
 
 pub(crate) async fn wait_for_interrupt(mut task_manager: nym_task::TaskManager) {
     if let Err(e) = task_manager.catch_interrupt().await {
@@ -62,50 +60,31 @@ pub(crate) async fn wait_for_interrupt_and_signal(
 
 #[cfg_attr(target_os = "windows", allow(unused_mut))]
 pub(crate) async fn handle_interrupt(
-    mut route_manager: RouteManager,
+    route_manager: RouteManager,
     wireguard_waiting: Option<[WgTunnelSetup; 2]>,
 ) {
-    let (finished_shutdown_rx, tunnel_handle) = match wireguard_waiting {
-        Some([entry_setup, exit_setup]) => (
-            Some([entry_setup.receiver, exit_setup.receiver]),
-            Some([entry_setup.handle, exit_setup.handle]),
-        ),
-        None => (None, None),
-    };
-
-    let sig_handle = tokio::task::spawn_blocking(move || -> RouteManager {
-        debug!("Received interrupt signal");
-        route_manager.clear_routes().ok();
-        #[cfg(target_os = "linux")]
-        if let Err(error) =
-            tokio::runtime::Handle::current().block_on(route_manager.clear_routing_rules())
-        {
-            error!(
-                "{}",
-                error.display_chain_with_msg("Failed to clear routing rules")
-            );
-        }
-        route_manager
-    });
-
-    if let Some([h1, h2]) = tunnel_handle {
-        let ret1 = h1.await;
-        let ret2 = h2.await;
-        if ret1.is_err() || ret2.is_err() {
-            error!("Error on tunnel handle");
-        }
-    }
-    let route_manager = sig_handle.await.ok();
-    if let Some([rx1, rx2]) = finished_shutdown_rx {
-        let ret1 = rx1.await;
-        let ret2 = rx2.await;
-        if ret1.is_err() || ret2.is_err() {
-            error!("Error on signal handle");
-        }
-    }
     tokio::task::spawn_blocking(|| drop(route_manager))
         .await
         .ok();
+    let Some(wireguard_waiting) = wireguard_waiting else {
+        return;
+    };
+    let [entry, exit] = wireguard_waiting;
+
+    entry.tunnel_close_tx.send(()).ok();
+    exit.tunnel_close_tx.send(()).ok();
+
+    let ret1 = entry.handle.await;
+    let ret2 = exit.handle.await;
+    if ret1.is_err() || ret2.is_err() {
+        error!("Error on tunnel handle");
+    }
+
+    let ret1 = entry.receiver.await;
+    let ret2 = exit.receiver.await;
+    if ret1.is_err() || ret2.is_err() {
+        error!("Error on signal handle");
+    }
 }
 
 #[cfg(unix)]

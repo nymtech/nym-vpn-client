@@ -4,7 +4,7 @@
 use crate::error::*;
 use crate::wg_gateway_client::GatewayData;
 use nym_crypto::asymmetric::x25519::KeyPair;
-use std::net::Ipv4Addr;
+use std::net::{IpAddr, Ipv4Addr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::{
     ConnectionConfig, PeerConfig, PrivateKey, TunnelConfig, TunnelOptions,
@@ -35,7 +35,12 @@ impl WireguardConfig {
         )?))
     }
 
-    pub fn init(keypair: &KeyPair, gateway_data: &GatewayData, mtu: u16) -> Result<Self> {
+    pub fn init(
+        keypair: &KeyPair,
+        gateway_data: &GatewayData,
+        wg_gateway: Option<IpAddr>,
+        mtu: u16,
+    ) -> Result<Self> {
         let tunnel = TunnelConfig {
             private_key: PrivateKey::from(keypair.private_key().to_bytes()),
             addresses: vec![gateway_data.private_ip],
@@ -46,12 +51,18 @@ impl WireguardConfig {
             endpoint: gateway_data.endpoint,
             psk: None,
         }];
+        let default_ipv4_gateway = Ipv4Addr::from_str(&gateway_data.private_ip.to_string())?;
+        let (ipv4_gateway, ipv6_gateway) = match wg_gateway {
+            Some(IpAddr::V4(ipv4_gateway)) => (ipv4_gateway, None),
+            Some(IpAddr::V6(ipv6_gateway)) => (default_ipv4_gateway, Some(ipv6_gateway)),
+            None => (default_ipv4_gateway, None),
+        };
         let connection_config = ConnectionConfig {
             tunnel: tunnel.clone(),
             peer: peers[0].clone(),
             exit_peer: None,
-            ipv4_gateway: Ipv4Addr::from_str(&gateway_data.private_ip.to_string())?,
-            ipv6_gateway: None,
+            ipv4_gateway,
+            ipv6_gateway,
             #[cfg(target_os = "linux")]
             fwmark: Some(TUNNEL_FWMARK),
         };
