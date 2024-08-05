@@ -40,6 +40,7 @@
     <string name="is_selected">Selezionato</string>
     <string name="fastest">Più veloce</string>
     <string name="auto_connect">Auto-connect</string>
+    <string name="entry_location_description">Seleziona manualmente il primo hop</string>
     <string name="logs">Logs</string>
     <string name="feedback">Feedsback</string>
     <string name="support">Supporto</string>
@@ -64,6 +65,7 @@
     <string name="credential_failed_message">Credenziali invalide</string>
     <string name="unknown_error">Si è verificato un errore sconosciuto</string>
     <string name="credential">Credenziali</string>
+    <string name="left">rimasti</string>
     <string name="top_up_credential">Ricarica le credenziali</string>
     <string name="top_up">Ricarica</string>
     <string name="devices">Dispositivi</string>
