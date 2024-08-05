@@ -63,13 +63,6 @@ function NodeLocation({ node }: { node: NodeHop }) {
     } else {
       fetchExitCountries();
     }
-    if (FastestFeatureEnabled) {
-      invoke<Country>('get_fastest_node_location')
-        .then((country) => {
-          dispatch({ type: 'set-fastest-node-location', country });
-        })
-        .catch((e: unknown) => console.error(e));
-    }
   }, [node, dispatch, fetchEntryCountries, fetchExitCountries]);
 
   // update the UI country list whenever the country list or
@@ -79,10 +72,6 @@ function NodeLocation({ node }: { node: NodeHop }) {
     const list = [
       ...countryList.map((country) => ({ country, isFastest: false })),
     ];
-    if (FastestFeatureEnabled) {
-      // put fastest country at the first position
-      list.unshift({ country: fastestNodeLocation, isFastest: true });
-    }
     setUiCountryList(list);
     setFilteredCountries(list);
     setSearch('');

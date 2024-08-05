@@ -4,7 +4,7 @@ use once_cell::sync::Lazy;
 use reqwest::Client;
 use tracing::error;
 
-pub static HTTP_CLIENT: Lazy<Client> = Lazy::new(|| {
+pub static _HTTP_CLIENT: Lazy<Client> = Lazy::new(|| {
     Client::builder()
         .timeout(Duration::from_secs(5))
         .build()
