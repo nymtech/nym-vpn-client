@@ -62,7 +62,7 @@
     <string name="no_email_detected">E-posta uygulaması bulunamadı</string>
     <string name="unknown">Bilinmeyen</string>
     <string name="no_scm_found">Kaynak kodu URL\'si bulunamadı</string>
-	<string name="five_hop">5-hop</string>
+    <string name="five_hop">5-hop</string>
     <string name="mode">Mod</string>
     <string name="okay">Tamam</string>
     <string name="feature_in_progress">Bu özellik hala geliştirilmektedir.</string>
@@ -125,4 +125,8 @@
     <string name="five_hop_explanation">Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek maksimum düzeyde gizliliğin tadını çıkarın. Ödemeleri, e-postaları ve mesajları güvenli bir şekilde yönetmek için mükemmeldir.</string>
     <string name="continue_reading">Okumaya devam edin</string>
     <string name="two_hop_explanation">Maksimum hızı 2 sunucu bağlantısıyla deneyimleyin. Hızlı tarama, yayın akışı ve dosya paylaşımı için mükemmeldir.</string>
+    <string name="entry_location">İlk hop</string>
+    <string name="exit_location">Son hop</string>
+    <string name="language">Dil</string>
+    <string name="entry_location_selector">Entry konumu seçici</string>
 </resources>
