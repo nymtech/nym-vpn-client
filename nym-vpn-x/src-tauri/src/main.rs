@@ -16,12 +16,12 @@ use crate::{
 
 use anyhow::{anyhow, Result};
 use clap::Parser;
+use commands::country as cmd_country;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
 use commands::fs as cmd_fs;
 use commands::log as cmd_log;
 use commands::window as cmd_window;
-use commands::country as cmd_country;
 use commands::*;
 use nym_config::defaults;
 use states::app::AppState;
