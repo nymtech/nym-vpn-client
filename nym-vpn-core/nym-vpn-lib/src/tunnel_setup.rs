@@ -175,7 +175,7 @@ async fn setup_wg_tunnel(
     let wg_gateway = exit_wireguard_config
         .0
         .peers
-        .get(0)
+        .first()
         .map(|config| config.endpoint.ip());
     let (mut entry_wireguard_config, entry_gateway_ip) = init_wireguard_config(
         &gateway_directory_client,
