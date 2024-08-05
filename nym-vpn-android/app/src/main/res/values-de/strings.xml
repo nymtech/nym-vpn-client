@@ -1,2 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="settings">Einstellungen</string>
+    <string name="connected">Verbunden</string>
+    <string name="disconnected">Getrennt</string>
+    <string name="disconnecting">Trennen</string>
+    <string name="connecting">Verbinden</string>
+    <string name="five_hop_mixnet">Anonym</string>
+    <string name="two_hop_mixnet">Schnell</string>
+    <string name="two_hop_description">Ideal für browsen, streamen, file-sharing</string>
+    <string name="app_name">NymVPN</string>
+    <string name="five_hop_description">Ideal für Zahlungen, E-Mails, Chats</string>
+</resources>
