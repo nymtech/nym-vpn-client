@@ -559,9 +559,12 @@ impl SpecificVpn {
                 )
                 .await;
 
-                dns_monitor.reset().inspect_err(|err| {
-                    error!("Failed to reset dns monitor: {err}");
-                })?;
+                tokio::task::spawn_blocking(move || {
+                    dns_monitor.reset().inspect_err(|err| {
+                        log::error!("Failed to reset dns monitor: {err}");
+                    })
+                })
+                .await??;
                 firewall.reset_policy().map_err(|err| {
                     error!("Failed to reset firewall policy: {err}");
                     Error::FirewallError(err.to_string())
@@ -662,12 +665,12 @@ impl SpecificVpn {
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
                 .await;
-                dns_monitor.reset().map_err(|err| {
-                    error!("Failed to reset dns monitor: {err}");
-                    NymVpnExitError::FailedToResetDnsMonitor {
-                        reason: err.to_string(),
-                    }
-                })?;
+                tokio::task::spawn_blocking(move || {
+                    dns_monitor.reset().inspect_err(|err| {
+                        log::error!("Failed to reset dns monitor: {err}");
+                    })
+                })
+                .await??;
                 firewall.reset_policy().map_err(|err| {
                     error!("Failed to reset firewall policy: {err}");
                     NymVpnExitError::FailedToResetFirewallPolicy {
