@@ -15,10 +15,6 @@ pub static DEFAULT_ENTRY_COUNTRY: Lazy<Country> = Lazy::new(|| Country {
     code: String::from("CH"),
     name: String::from("Switzerland"),
 });
-pub static DEFAULT_EXIT_COUNTRY: Lazy<Country> = Lazy::new(|| Country {
-    code: String::from("FR"),
-    name: String::from("France"),
-});
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq)]
 #[ts(export)]

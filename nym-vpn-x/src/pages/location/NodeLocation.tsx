@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { invoke } from '@tauri-apps/api';
 import { useDialog, useMainDispatch, useMainState } from '../../contexts';
+import { kvSet } from '../../kvStore';
 import {
   AppError,
   Country,
@@ -108,10 +108,10 @@ function NodeLocation({ node }: { node: NodeHop }) {
     const location = country.isFastest ? 'Fastest' : country.country;
 
     try {
-      await invoke<void>('set_node_location', {
-        nodeType: node === 'entry' ? 'Entry' : 'Exit',
-        location: isCountry(location) ? { Country: location } : 'Fastest',
-      });
+      await kvSet<TNodeLocation>(
+        node === 'entry' ? 'EntryNodeLocation' : 'ExitNodeLocation',
+        isCountry(location) ? location : 'Fastest',
+      );
       dispatch({
         type: 'set-node-location',
         payload: { hop: node, location },

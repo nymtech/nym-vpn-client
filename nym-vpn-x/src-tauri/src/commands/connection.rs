@@ -38,6 +38,8 @@ pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
     grpc: State<'_, Arc<GrpcClient>>,
+    entry: NodeLocation,
+    exit: NodeLocation,
 ) -> Result<ConnectionState, BackendError> {
     debug!("connect");
     {
@@ -58,8 +60,6 @@ pub async fn connect(
     app.emit_connection_progress(ConnectProgressMsg::Initializing);
 
     let app_state = state.lock().await;
-    let entry_location = app_state.entry_node_location.clone();
-    let exit_location = app_state.exit_node_location.clone();
     let vpn_mode = app_state.vpn_mode.clone();
     let dns = app_state
         .dns_server
@@ -68,7 +68,7 @@ pub async fn connect(
     // release the lock
     drop(app_state);
 
-    let entry_node = match entry_location {
+    let entry_node = match entry {
         NodeLocation::Country(country) => {
             debug!("entry node location set, using: {}", country);
             EntryNode {
@@ -90,7 +90,7 @@ pub async fn connect(
         }
     };
 
-    let exit_node = match exit_location {
+    let exit_node = match exit {
         NodeLocation::Country(country) => {
             debug!("exit node location set, using: {}", country);
             ExitNode {
