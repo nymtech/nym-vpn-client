@@ -358,23 +358,7 @@ impl GrpcClient {
             .gateways
             .iter()
             .filter_map(|gateway| {
-                // TODO comment this for now has daemon is not returning any probe data
-                // let check = gateway
-                //     .last_probe
-                //     .as_ref()
-                //     .and_then(|probe| probe.outcome.as_ref())
-                //     .and_then(|probe| probe.as_entry.as_ref())
-                //     .map(|v| {
-                //         if v.can_connect && v.can_route {
-                //             return true;
-                //         }
-                //         false
-                //     })
-                //     .unwrap_or(false);
-                // if !check {
-                //     return None;
-                // }
-
+                // TODO add probe data check once daemon returns some data
                 Country::try_from(gateway).ok()
             })
             .dedup()
