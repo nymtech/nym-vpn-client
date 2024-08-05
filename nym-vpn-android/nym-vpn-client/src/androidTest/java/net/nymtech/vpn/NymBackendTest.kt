@@ -5,7 +5,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class NymVpnClientTest {
+class NymBackendTest {
 	@Test
 	fun useAppContext() {
 		// TODO write tests

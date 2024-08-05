@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.map
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.vpn.Tunnel
 import net.nymtech.vpn.model.Country
-import net.nymtech.vpn.model.VpnMode
 import timber.log.Timber
 import java.time.Instant
 
@@ -20,7 +20,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val firstHopCountry = stringPreferencesKey("FIRST_HOP_COUNTRY")
 	private val lastHopCountry = stringPreferencesKey("LAST_HOP_COUNTRY")
 	private val theme = stringPreferencesKey("THEME")
-	private val vpnMode = stringPreferencesKey("VPN_MODE")
+	private val vpnMode = stringPreferencesKey("TUNNEL_MODE")
 	private val firstHopSelection = booleanPreferencesKey("FIRST_HOP_SELECTION")
 	private val errorReporting = booleanPreferencesKey("ERROR_REPORTING")
 	private val analytics = booleanPreferencesKey("ANALYTICS")
@@ -51,15 +51,15 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(this@DataStoreSettingsRepository.theme, theme.name)
 	}
 
-	override suspend fun getVpnMode(): VpnMode {
+	override suspend fun getVpnMode(): Tunnel.Mode {
 		return dataStoreManager.getFromStore(vpnMode)?.let {
 			try {
-				VpnMode.valueOf(it)
+				Tunnel.Mode.valueOf(it)
 			} catch (e: IllegalArgumentException) {
 				Timber.e(e)
-				VpnMode.default()
+				Tunnel.Mode.TWO_HOP_MIXNET
 			}
-		} ?: VpnMode.default()
+		} ?: Tunnel.Mode.TWO_HOP_MIXNET
 	}
 
 	override suspend fun getFirstHopCountry(): Country {
@@ -71,7 +71,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(firstHopCountry, country.toString())
 	}
 
-	override suspend fun setVpnMode(mode: VpnMode) {
+	override suspend fun setVpnMode(mode: Tunnel.Mode) {
 		dataStoreManager.saveToDataStore(vpnMode, mode.name)
 	}
 
@@ -154,8 +154,8 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						pref[theme]?.let { Theme.valueOf(it) }
 							?: Theme.default(),
 						vpnMode =
-						pref[vpnMode]?.let { VpnMode.valueOf(it) }
-							?: VpnMode.default(),
+						pref[vpnMode]?.let { Tunnel.Mode.valueOf(it) }
+							?: Tunnel.Mode.TWO_HOP_MIXNET,
 						autoStartEnabled =
 						pref[autoStart]
 							?: Settings.AUTO_START_DEFAULT,

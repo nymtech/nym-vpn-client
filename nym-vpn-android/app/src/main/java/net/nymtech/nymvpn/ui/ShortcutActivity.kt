@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.module.IoDispatcher
-import net.nymtech.nymvpn.service.vpn.VpnManager
+import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.vpn.util.Action
 import timber.log.Timber
 import javax.inject.Inject
@@ -19,7 +19,7 @@ import javax.inject.Inject
 class ShortcutActivity : ComponentActivity() {
 
 	@Inject
-	lateinit var vpnManager: VpnManager
+	lateinit var tunnelManager: TunnelManager
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
@@ -41,12 +41,12 @@ class ShortcutActivity : ComponentActivity() {
 			if (enabled) {
 				when (intent.action) {
 					Action.START.name -> {
-						vpnManager.startVpn(true).onFailure {
+						tunnelManager.startVpn(this@ShortcutActivity).onFailure {
 							Timber.w(it)
 						}
 					}
 					Action.STOP.name -> {
-						vpnManager.stopVpn(true)
+						tunnelManager.stopVpn(this@ShortcutActivity)
 					}
 				}
 			} else {

@@ -5,8 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.util.Constants
-import net.nymtech.vpn.VpnClient
+import net.nymtech.vpn.Backend
 import timber.log.Timber
 import java.time.Instant
 import javax.inject.Inject
@@ -16,14 +15,16 @@ import javax.inject.Provider
 class CredentialViewModel
 @Inject
 constructor(
-	private val vpnClient: Provider<VpnClient>,
+	private val backend: Provider<Backend>,
 	private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
 	suspend fun onImportCredential(credential: String): Result<Instant?> {
 		val trimmedCred = credential.trim()
 		return withContext(viewModelScope.coroutineContext) {
-			vpnClient.get().importCredential(trimmedCred, Constants.NATIVE_STORAGE_PATH).onSuccess {
+			runCatching {
+				backend.get().importCredential(trimmedCred)
+			}.onSuccess {
 				Timber.d("Imported credential successfully")
 				it?.let {
 					settingsRepository.saveCredentialExpiry(it)

@@ -3,8 +3,8 @@ package net.nymtech.nymvpn.data
 import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.vpn.Tunnel
 import net.nymtech.vpn.model.Country
-import net.nymtech.vpn.model.VpnMode
 import java.time.Instant
 
 interface SettingsRepository {
@@ -23,9 +23,9 @@ interface SettingsRepository {
 
 	suspend fun setTheme(theme: Theme)
 
-	suspend fun getVpnMode(): VpnMode
+	suspend fun getVpnMode(): Tunnel.Mode
 
-	suspend fun setVpnMode(mode: VpnMode)
+	suspend fun setVpnMode(mode: Tunnel.Mode)
 
 	suspend fun isAutoStartEnabled(): Boolean
 

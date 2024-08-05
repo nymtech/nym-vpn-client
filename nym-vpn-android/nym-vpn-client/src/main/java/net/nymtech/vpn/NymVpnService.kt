@@ -2,35 +2,33 @@ package net.nymtech.vpn
 
 import android.content.Intent
 import android.content.res.Resources
-import android.net.VpnService
 import android.os.Build
 import androidx.annotation.CallSuper
+import androidx.lifecycle.lifecycleScope
 import com.zaneschepke.localizationutil.LocaleStorage
 import com.zaneschepke.localizationutil.LocaleUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
 import net.nymtech.vpn.tun_provider.TunConfig
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
+import net.nymtech.vpn.util.LifecycleVpnService
+import nym_vpn_lib.stopVpn
 import timber.log.Timber
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
 
-class NymVpnService : VpnService() {
+class NymVpnService : LifecycleVpnService() {
+
+	private val ioDispatcher = Dispatchers.IO
+
 	companion object {
 		init {
 			System.loadLibrary(Constants.NYM_VPN_LIB)
 			Timber.i("Loaded native library in service")
 		}
 	}
-
-	@OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
-	private val vpnThread = newSingleThreadContext("VpnThread")
 
 	private var activeTunStatus: CreateTunResult? = null
 
@@ -70,11 +68,12 @@ class NymVpnService : VpnService() {
 				if (prepare(this) == null) {
 					startService()
 				} else {
-					stopSelf()
+					stopService()
 				}
 			}
 			Action.STOP.name, Action.STOP_FOREGROUND.name -> {
-				stopSelf()
+				Timber.d("Stopping VPN service")
+				stopService()
 			}
 		}
 		return super.onStartCommand(intent, flags, startId)
@@ -82,12 +81,20 @@ class NymVpnService : VpnService() {
 
 	private fun startService() {
 		synchronized(this) {
-			CoroutineScope(vpnThread).launch {
-				val logLevel = if (BuildConfig.DEBUG) "info" else "info"
+			lifecycleScope.launch(ioDispatcher) {
+				val logLevel = if (BuildConfig.DEBUG) "debug" else "info"
 				initVPN(this@NymVpnService, logLevel)
-				NymVpnClient.NymVpn.connect(this@NymVpnService)
+				NymBackend.connect()
 			}
 		}
+	}
+
+	private fun stopService() {
+		stopForeground(STOP_FOREGROUND_REMOVE)
+		lifecycleScope.launch(ioDispatcher) {
+			stopVpn()
+		}
+		stopSelf()
 	}
 
 	override fun getResources(): Resources {
@@ -100,7 +107,12 @@ class NymVpnService : VpnService() {
 	}
 
 	override fun onCreate() {
+		super.onCreate()
 		connectivityListener.register(this)
+		startForeground()
+	}
+
+	private fun startForeground() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			NotificationManager.createNotificationChannel(this@NymVpnService)
 		}
@@ -109,9 +121,8 @@ class NymVpnService : VpnService() {
 	}
 
 	override fun onDestroy() {
+		super.onDestroy()
 		connectivityListener.unregister()
-		stopForeground(STOP_FOREGROUND_REMOVE)
-		vpnThread.cancel()
 		Timber.i("VpnService destroyed")
 	}
 

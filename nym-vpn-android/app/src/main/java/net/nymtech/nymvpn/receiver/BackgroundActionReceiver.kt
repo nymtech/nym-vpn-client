@@ -6,34 +6,38 @@ import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class BootReceiver : BroadcastReceiver() {
-
-	@Inject
-	lateinit var settingsRepository: SettingsRepository
-
-	@Inject
-	lateinit var tunnelManager: TunnelManager
+class BackgroundActionReceiver : BroadcastReceiver() {
 
 	@Inject
 	@ApplicationScope
 	lateinit var applicationScope: CoroutineScope
 
+	@Inject
+	lateinit var tunnelManager: TunnelManager
+
 	override fun onReceive(context: Context, intent: Intent) {
-		if (Intent.ACTION_BOOT_COMPLETED != intent.action) return
-		applicationScope.launch {
-			if (settingsRepository.isAutoStartEnabled()) {
-				tunnelManager.startVpn(context).onFailure {
-					// TODO handle failures
-					Timber.w(it)
+		val action = intent.action ?: return
+		when (action) {
+			ACTION_CONNECT -> {
+				applicationScope.launch {
+					tunnelManager.startVpn(context)
+				}
+			}
+			ACTION_DISCONNECT -> {
+				applicationScope.launch {
+					tunnelManager.stopVpn(context)
 				}
 			}
 		}
+	}
+
+	companion object {
+		const val ACTION_CONNECT = "ACTION_CONNECT"
+		const val ACTION_DISCONNECT = "ACTION_DISCONNECT"
 	}
 }

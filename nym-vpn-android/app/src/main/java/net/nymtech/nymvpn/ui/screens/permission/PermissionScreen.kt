@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -74,15 +73,17 @@ fun PermissionScreen(navController: NavController, permission: Permission) {
 		verticalArrangement = Arrangement.SpaceBetween,
 	) {
 		Column(verticalArrangement = Arrangement.spacedBy(32.dp.scaledHeight())) {
-			Row(horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth())){
-				Box(modifier = Modifier
-					.width(2.dp)
-					.height(60.dp)
-					.background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(size = 4.dp)))
+			Row(horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth())) {
+				Box(
+					modifier = Modifier
+						.width(2.dp)
+						.height(60.dp)
+						.background(color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(size = 4.dp)),
+				)
 				Text(
 					stringResource(id = R.string.permission_message),
 					style = MaterialTheme.typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onSurfaceVariant
+					color = MaterialTheme.colorScheme.onSurfaceVariant,
 				)
 			}
 

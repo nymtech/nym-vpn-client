@@ -2,7 +2,7 @@ package net.nymtech.nymvpn.ui.model
 
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpn.model.VpnState
+import net.nymtech.vpn.Tunnel
 
 sealed class ConnectionState(val status: StringValue) {
 	abstract val stateMessage: StateMessage
@@ -30,11 +30,11 @@ sealed class ConnectionState(val status: StringValue) {
 	}
 
 	companion object {
-		fun from(vpnState: VpnState): ConnectionState {
-			return when (vpnState) {
-				VpnState.Down -> Disconnected
-				VpnState.Up -> Connected
-				VpnState.Connecting.InitializingClient ->
+		fun from(tunnelState: Tunnel.State): ConnectionState {
+			return when (tunnelState) {
+				Tunnel.State.Down -> Disconnected
+				Tunnel.State.Up -> Connected
+				Tunnel.State.Connecting.InitializingClient ->
 					Connecting(
 						StateMessage.Info(
 							StringValue.StringResource(
@@ -43,14 +43,14 @@ sealed class ConnectionState(val status: StringValue) {
 						),
 					)
 
-				VpnState.Connecting.EstablishingConnection ->
+				Tunnel.State.Connecting.EstablishingConnection ->
 					Connecting(
 						StateMessage.Info(
 							StringValue.StringResource(R.string.establishing_connection),
 						),
 					)
 
-				VpnState.Disconnecting -> Disconnecting
+				Tunnel.State.Disconnecting -> Disconnecting
 			}
 		}
 	}

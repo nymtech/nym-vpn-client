@@ -26,8 +26,8 @@ import net.nymtech.nymvpn.service.gateway.GatewayService
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
 import net.nymtech.vpn.NymApi
-import net.nymtech.vpn.NymVpnClient
-import net.nymtech.vpn.VpnClient
+import net.nymtech.vpn.Backend
+import net.nymtech.vpn.NymBackend
 import nym_vpn_lib.UserAgent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -111,8 +111,8 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideVpnClient(): VpnClient {
-		return NymVpnClient.init(environment = NymVpn.environment)
+	fun provideVpnClient(): Backend {
+		return NymBackend
 	}
 
 	@Singleton

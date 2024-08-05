@@ -84,6 +84,7 @@ android {
 dependencies {
 
 	implementation(project(":localization-util"))
+	implementation(libs.androidx.lifecycle.service)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 
 	implementation(libs.androidx.core.ktx)

@@ -27,13 +27,11 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
-import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NavBar(appUiState: AppUiState, navController: NavController, onTrailingClick: () -> Unit, modifier: Modifier = Modifier) {
 	val navBackStackEntry by navController.currentBackStackEntryAsState()
-	Timber.d("Route: ${navBackStackEntry?.destination?.route}")
 	val navItem = Destination.from(navBackStackEntry?.destination?.route)
 	val context = LocalContext.current
 	val keyboardController = LocalSoftwareKeyboardController.current
