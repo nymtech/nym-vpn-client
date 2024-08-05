@@ -12,4 +12,5 @@ pub use persistence::{
 mod device_keys;
 mod helpers;
 mod key_store;
+mod mnemonic;
 mod persistence;
