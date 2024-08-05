@@ -1,15 +1,15 @@
-use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::Arc;
 use tauri::State;
-use tracing::{debug, error, instrument};
+use tracing::{debug, instrument};
 use ts_rs::TS;
 
+use crate::grpc::client::GrpcClient;
 use crate::{
     country::Country,
     db::{Db, Key},
     error::{BackendError, ErrorKey},
-    gateway::{get_gateway_countries, get_low_latency_entry_country},
     states::{app::NodeLocation, SharedAppState},
 };
 
@@ -54,16 +54,6 @@ pub async fn set_node_location(
     Ok(())
 }
 
-#[instrument]
-#[tauri::command]
-pub async fn get_fastest_node_location() -> Result<Country, BackendError> {
-    debug!("get_fastest_node_location");
-    get_low_latency_entry_country().await.map_err(|e| {
-        error!("failed to get fastest node location: {}", e);
-        BackendError::new_internal("failed to get fastest node location", None)
-    })
-}
-
 #[instrument(skip(app_state))]
 #[tauri::command]
 pub async fn get_node_location(
@@ -77,19 +67,22 @@ pub async fn get_node_location(
     })
 }
 
-#[instrument]
+#[instrument(skip(grpc))]
 #[tauri::command]
-pub async fn get_countries(node_type: NodeType) -> Result<Vec<Country>, BackendError> {
+pub async fn get_countries(
+    node_type: NodeType,
+    grpc: State<'_, Arc<GrpcClient>>,
+) -> Result<Vec<Country>, BackendError> {
     debug!("get_countries");
     match node_type {
-        NodeType::Entry => get_gateway_countries(NodeType::Entry).await.map_err(|e| {
+        NodeType::Entry => grpc.entry_countries().await.map_err(|e| {
             BackendError::new_with_data(
                 "failed to fetch entry countries",
                 ErrorKey::GetEntryCountriesRequest,
                 HashMap::from([("details", e.to_string())]),
             )
         }),
-        NodeType::Exit => get_gateway_countries(NodeType::Exit).await.map_err(|e| {
+        NodeType::Exit => grpc.exit_countries().await.map_err(|e| {
             BackendError::new_with_data(
                 "failed to fetch exit countries",
                 ErrorKey::GetExitCountriesRequest,
