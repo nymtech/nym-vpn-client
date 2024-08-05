@@ -1,5 +1,5 @@
-What's new:
-- UI improvements
-- Caching improvements
-- Added harbour master integration
-- Improved quick tile state sync
+Nouveautés :
+- Améliorations de l'interface utilisateur
+- Améliorations de la mise en cache
+- Ajout de l'intégration du capitaine du port
+- Amélioration de la synchronisation rapide de l'état des tuiles

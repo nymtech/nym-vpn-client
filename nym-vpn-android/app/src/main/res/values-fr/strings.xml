@@ -18,6 +18,7 @@
     <string name="establishing_connection">Connexion en cours</string>
     <string name="connection_time">Temps de connexion</string>
     <string name="connect_to">Se connecter à</string>
+    <string name="first_hop_selection">Nœud d\'entrée</string>
     <string name="last_hop_selection">Nœud de sortie</string>
     <string name="display_theme">Apparence d\'affichage</string>
     <string name="light_theme">Apparence claire</string>
@@ -30,6 +31,7 @@
     <string name="fastest">Le plus rapide</string>
     <string name="auto_connect">Auto-connexion</string>
     <string name="auto_connect_description">Auto-connexion au redémarrage</string>
+    <string name="entry_location_description">Sélectionnez manuellement votre nœud d\'entrée</string>
     <string name="logs">Journaux</string>
     <string name="feedback">Retour d\'expérience</string>
     <string name="support">Support</string>
