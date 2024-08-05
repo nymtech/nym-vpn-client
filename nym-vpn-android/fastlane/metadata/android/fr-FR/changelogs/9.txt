@@ -1,4 +1,4 @@
-What's new:
-- Fixes navigation animation bug
-- Fixes credential screen bugs
-- Fixes country list API and search
+Nouveautés :
+- Correction d'un bug d'animation de navigation
+- Correction d'un bug de l'écran d'identification
+- Correction de l'API de liste de pays et de la recherche

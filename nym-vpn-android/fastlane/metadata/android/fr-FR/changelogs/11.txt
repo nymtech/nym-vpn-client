@@ -1,2 +1,2 @@
-What's new:
-- Bump api version
+Nouveautés :
+- Amélioration de la version de l'api
