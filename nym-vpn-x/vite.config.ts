@@ -29,6 +29,7 @@ export default defineConfig(async () => ({
           // to reduce main chunk size
           'framer-motion': ['framer-motion'],
           'mui-base': ['@mui/base'],
+          sentry: ['@sentry/react'],
         },
       },
     },
