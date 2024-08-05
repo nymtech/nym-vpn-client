@@ -68,12 +68,14 @@ extension QRScannerViewModel {
 
     func askForCameraPermission() {
         AVCaptureDevice.requestAccess(for: .video, completionHandler: { [weak self] granted in
-            if !granted {
-                self?.isScanning = false
-                self?.isAuthorized = false
-            } else {
-                self?.isScanning = true
-                self?.isAuthorized = true
+            DispatchQueue.main.async {
+                if !granted {
+                    self?.isScanning = false
+                    self?.isAuthorized = false
+                } else {
+                    self?.isScanning = true
+                    self?.isAuthorized = true
+                }
             }
         })
     }

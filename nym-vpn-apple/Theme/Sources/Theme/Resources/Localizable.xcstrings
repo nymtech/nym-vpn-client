@@ -67,6 +67,61 @@
         }
       }
     },
+    "addCredentials.Credential" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Credential"
+          }
+        }
+      }
+    },
+    "addCredentials.Credential.addNewCredential" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add new credential"
+          }
+        }
+      }
+    },
+    "addCredentials.credential.daysLeft" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "days left"
+          }
+        }
+      }
+    },
+    "addCredentials.credential.outOf" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "out of"
+          }
+        }
+      }
+    },
+    "addCredentials.Credential.soonToExpire" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soon to expire?"
+          }
+        }
+      }
+    },
     "addCredentials.error.cannotCreateDB" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -74,6 +129,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cannot create credentials database"
+          }
+        }
+      }
+    },
+    "addCredentials.error.noExpiryDate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Credential has no expiry date"
           }
         }
       }

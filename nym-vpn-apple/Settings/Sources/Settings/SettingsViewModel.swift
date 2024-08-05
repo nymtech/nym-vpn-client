@@ -1,16 +1,14 @@
 import SwiftUI
 import AppSettings
 import AppVersionProvider
+import CredentialsManager
 import UIComponents
 
 public class SettingsViewModel: SettingsFlowState {
-    private var appSettings: AppSettings
+    private let appSettings: AppSettings
+    private let credentialsManager: CredentialsManager
 
     let settingsTitle = "settings".localizedString
-
-    var shouldShowAddCredentials: Bool {
-        !appSettings.isCredentialImported
-    }
 
     var sections: [SettingsSection] {
         [
@@ -22,8 +20,17 @@ public class SettingsViewModel: SettingsFlowState {
         ]
     }
 
-    public init(path: Binding<NavigationPath>, appSettings: AppSettings = AppSettings.shared) {
+    var isValidCredentialImported: Bool {
+        credentialsManager.isValidCredentialImported
+    }
+
+    public init(
+        path: Binding<NavigationPath>,
+        appSettings: AppSettings = AppSettings.shared,
+        credentialsManager: CredentialsManager = CredentialsManager.shared
+    ) {
         self.appSettings = appSettings
+        self.credentialsManager = credentialsManager
         super.init(path: path)
     }
 
@@ -35,7 +42,7 @@ public class SettingsViewModel: SettingsFlowState {
         AppVersionProvider.appVersion()
     }
 
-    func navigateToAddCredentials() {
+    func navigateToAddCredentialsOrCredential() {
         path.append(SettingsLink.addCredentials)
     }
 }

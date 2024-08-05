@@ -3,6 +3,7 @@ import SwiftUI
 import AppSettings
 import ConnectionManager
 import CountriesManager
+import CredentialsManager
 import ExternalLinkManager
 import Settings
 import TunnelMixnet
@@ -30,6 +31,7 @@ public class HomeViewModel: HomeFlowState {
     let appSettings: AppSettings
     let connectionManager: ConnectionManager
     let countriesManager: CountriesManager
+    let credentialsManager: CredentialsManager
     let externalLinkManager: ExternalLinkManager
 
 #if os(macOS)
@@ -54,12 +56,14 @@ public class HomeViewModel: HomeFlowState {
         appSettings: AppSettings = AppSettings.shared,
         connectionManager: ConnectionManager = ConnectionManager.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
+        credentialsManager: CredentialsManager = CredentialsManager.shared,
         externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
     ) {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
         self.externalLinkManager = externalLinkManager
+        self.credentialsManager = credentialsManager
 
         super.init()
 
@@ -71,6 +75,7 @@ public class HomeViewModel: HomeFlowState {
         appSettings: AppSettings = AppSettings.shared,
         connectionManager: ConnectionManager = ConnectionManager.shared,
         countriesManager: CountriesManager = CountriesManager.shared,
+        credentialsManager: CredentialsManager = CredentialsManager.shared,
         grpcManager: GRPCManager = GRPCManager.shared,
         helperManager: HelperManager = HelperManager.shared,
         externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
@@ -78,6 +83,7 @@ public class HomeViewModel: HomeFlowState {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
+        self.credentialsManager = credentialsManager
         self.grpcManager = grpcManager
         self.helperManager = helperManager
         self.externalLinkManager = externalLinkManager
@@ -144,7 +150,7 @@ public extension HomeViewModel {
             guard await isHelperInstalled() else { return }
 #endif
 
-            guard appSettings.isCredentialImported
+            guard credentialsManager.isValidCredentialImported
             else {
                 await navigateToAddCredentials()
                 return

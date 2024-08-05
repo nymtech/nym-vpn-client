@@ -21,6 +21,20 @@ public final class CredentialsManager {
 
     public static let shared = CredentialsManager()
 
+    public var isValidCredentialImported: Bool {
+        guard let expiryDate = appSettings.credentialExpiryDate, appSettings.isCredentialImported else { return false }
+        let isValid = Date() < expiryDate
+        return appSettings.isCredentialImported && isValid
+    }
+
+    public var expiryDate: Date? {
+        appSettings.credentialExpiryDate
+    }
+
+    public var startDate: Date? {
+        appSettings.credentialStartDate
+    }
+
     private init() {
         setup()
     }
@@ -34,11 +48,18 @@ public final class CredentialsManager {
             if !FileManager.default.fileExists(atPath: dataFolderURL.path()) {
                 try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
             }
-            try importCredential(credential: trimmedCredential, path: dataFolderURL.path())
+            let expiryDate = try importCredential(credential: trimmedCredential, path: dataFolderURL.path())
+            guard let expiryDate
+            else {
+                throw CredentialsManagerError.noExpiryDate
+            }
 #endif
 #if os(macOS)
-            try grpcManager.importCredential(credential: trimmedCredential)
+            let expiryDate = try grpcManager.importCredential(credential: trimmedCredential)
 #endif
+            appSettings.isCredentialImported = true
+            appSettings.credentialExpiryDate = expiryDate
+            appSettings.credentialStartDate = Date()
         } catch let error {
             throw error
         }

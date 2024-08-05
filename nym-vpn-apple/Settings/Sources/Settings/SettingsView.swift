@@ -22,7 +22,7 @@ private extension SettingsView {
         VStack {
             navbar()
             ScrollView {
-                addCredentialsButton()
+                credentialOrAddCredentialView()
 
                 Spacer()
                     .frame(height: 24)
@@ -49,15 +49,27 @@ private extension SettingsView {
     }
 
     @ViewBuilder
-    func addCredentialsButton() -> some View {
-        if viewModel.shouldShowAddCredentials {
-            GenericButton(title: "settings.addCredential".localizedString)
-                .frame(height: 64)
-                .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
-                .onTapGesture {
-                    viewModel.navigateToAddCredentials()
-                }
+    func credentialOrAddCredentialView() -> some View {
+        if viewModel.isValidCredentialImported {
+            credentialView()
+        } else {
+            addCredentialsButton()
         }
+    }
+
+    @ViewBuilder
+    func addCredentialsButton() -> some View {
+        GenericButton(title: "settings.addCredential".localizedString)
+            .frame(height: 64)
+            .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
+            .onTapGesture {
+                viewModel.navigateToAddCredentialsOrCredential()
+            }
+    }
+
+    @ViewBuilder
+    func credentialView() -> some View {
+        CredentialView(viewModel: CredentialViewModel(path: $viewModel.path))
     }
 
     @ViewBuilder

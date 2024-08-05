@@ -28,7 +28,7 @@ private extension HomeFlowCoordinator {
         case .exitHop:
             exitHop()
         case .settings:
-            SettingsView(viewModel: SettingsViewModel(path: $state.path, appSettings: AppSettings.shared))
+            SettingsView(viewModel: SettingsViewModel(path: $state.path))
         }
     }
 }

@@ -112,7 +112,6 @@ extension AddCredentialsViewModel {
     }
 
     @MainActor func credentialsDidAdd() {
-        appSettings.isCredentialImported = true
         credentialText = ""
         navigateHome()
     }
