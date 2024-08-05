@@ -45,17 +45,21 @@ pub struct Exit {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Country(String);
+pub struct Country {
+    iso_code: String,
+}
 
-impl From<String> for Country {
-    fn from(s: String) -> Self {
-        Self(s)
+impl Country {
+    pub fn iso_code(&self) -> &str {
+        &self.iso_code
     }
 }
 
-impl From<nym_vpn_api_client::responses::Country> for Country {
-    fn from(country: nym_vpn_api_client::responses::Country) -> Self {
-        Self(country.into_string())
+impl From<nym_vpn_lib::gateway_directory::Country> for Country {
+    fn from(country: nym_vpn_lib::gateway_directory::Country) -> Self {
+        Self {
+            iso_code: country.iso_code().to_string(),
+        }
     }
 }
 

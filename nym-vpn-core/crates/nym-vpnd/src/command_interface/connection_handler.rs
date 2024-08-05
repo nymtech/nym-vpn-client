@@ -157,6 +157,28 @@ impl CommandInterfaceConnectionHandler {
 
         Ok(gateways.into_iter().map(gateway::Gateway::from).collect())
     }
+
+    pub(crate) async fn handle_list_entry_countries(
+        &self,
+    ) -> Result<Vec<gateway::Country>, ListGatewayError> {
+        let gateways = directory_client()?
+            .lookup_entry_countries()
+            .await
+            .map_err(|error| ListGatewayError::GetEntryGateways { error })?;
+
+        Ok(gateways.into_iter().map(gateway::Country::from).collect())
+    }
+
+    pub(crate) async fn handle_list_exit_countries(
+        &self,
+    ) -> Result<Vec<gateway::Country>, ListGatewayError> {
+        let gateways = directory_client()?
+            .lookup_exit_countries()
+            .await
+            .map_err(|error| ListGatewayError::GetExitGateways { error })?;
+
+        Ok(gateways.into_iter().map(gateway::Country::from).collect())
+    }
 }
 
 fn directory_client() -> Result<GatewayClient, ListGatewayError> {

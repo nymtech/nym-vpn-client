@@ -28,6 +28,8 @@ pub(crate) enum Command {
     ListenToStateChanges,
     ListEntryGateways,
     ListExitGateways,
+    ListEntryCountries,
+    ListExitCountries,
 }
 
 #[derive(Args)]

@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    entries::gateway::{Gateway, GatewayList},
+    entries::{
+        country::Country,
+        gateway::{Gateway, GatewayList},
+    },
     error::Result,
     helpers::{select_random_low_latency_described_gateway, try_resolve_hostname},
     AuthAddress, Error, IpPacketRouterAddress,
@@ -248,6 +251,34 @@ impl GatewayClient {
             self.lookup_all_gateways_from_nym_api()
                 .await
                 .map(|gateways| gateways.into_exit_gateways())
+        }
+    }
+
+    pub async fn lookup_entry_countries(&self) -> Result<Vec<Country>> {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching entry countries from nym-vpn-api...");
+            Ok(nym_vpn_api_client
+                .get_entry_countries()
+                .await?
+                .into_iter()
+                .map(Country::from)
+                .collect())
+        } else {
+            todo!();
+        }
+    }
+
+    pub async fn lookup_exit_countries(&self) -> Result<Vec<Country>> {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching exit countries from nym-vpn-api...");
+            Ok(nym_vpn_api_client
+                .get_exit_countries()
+                .await?
+                .into_iter()
+                .map(Country::from)
+                .collect())
+        } else {
+            todo!();
         }
     }
 }

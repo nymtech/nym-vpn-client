@@ -313,6 +313,16 @@ message ListExitGatewaysResponse {
   repeated ExitGateway gateways = 1;
 }
 
+message ListEntryCountriesRequest {}
+message ListEntryCountriesResponse {
+  repeated Location countries = 1;
+}
+
+message ListExitCountriesRequest {}
+message ListExitCountriesResponse {
+  repeated Location countries = 1;
+}
+
 service NymVpnd {
   rpc Info (InfoRequest) returns (InfoResponse) {}
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
@@ -324,5 +334,7 @@ service NymVpnd {
 
   rpc ListEntryGateways (ListEntryGatewaysRequest) returns (ListEntryGatewaysResponse) {}
   rpc ListExitGateways (ListExitGatewaysRequest) returns (ListExitGatewaysResponse) {}
+  rpc ListEntryCountries (ListEntryCountriesRequest) returns (ListEntryCountriesResponse) {}
+  rpc ListExitCountries (ListExitCountriesRequest) returns (ListExitCountriesResponse) {}
 }
 
