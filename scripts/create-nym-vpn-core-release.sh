@@ -13,15 +13,17 @@ set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
 TAG_BASE_NAME=nym-vpn-core
-PACKAGES=(nym-vpn-lib nym-vpn-cli nym-vpnd nym-vpnc)
 DIRNAME=nym-vpn-core
+
+# We want to set the workspace version, but I didn't manage to get cargo
+# set-version to do this explicitly, only implicitly by specifying the lib
+# crate. This seems to trigger a version bump at the workspace level, affecting
+# all relevant crates.
+PACKAGE=nym-vpn-lib
 
 cargo_version_bump() {
     cd $DIRNAME
-    local package_flags=""
-    for PACKAGE in "${PACKAGES[@]}"; do
-        package_flags+=" -p $PACKAGE"
-    done
+    local package_flags="-p $PACKAGE"
     local command="cargo set-version $package_flags --bump patch"
     echo "Running in dry-run mode: $command --dry-run"
     $command --dry-run
@@ -29,23 +31,9 @@ cargo_version_bump() {
     cd ..
 }
 
-assert_same_versions() {
-    cd $DIRNAME
-    local first_version=$(cargo get package.version --entry="${PACKAGES[0]}")
-    for PACKAGE in "${PACKAGES[@]}"; do
-        local version=$(cargo get package.version --entry="$PACKAGE")
-        if [[ "$version" != "$first_version" ]]; then
-            echo "Error: Version mismatch detected. $PACKAGE has version $version, but expected $first_version."
-            exit 1
-        fi
-    done
-    echo "All packages have the same version: $first_version"
-    cd ..
-}
-
 tag_release() {
     cd $DIRNAME
-    local version=$(cargo get package.version --entry="${PACKAGES[0]}")
+    local version=$(cargo get workspace.package.version)
     local tag_name="$TAG_BASE_NAME-v$version"
     echo "New version: $version, prepared tag: $tag_name"
     ask_and_tag_release "$tag_name" "$version" "$TAG_BASE_NAME"
@@ -55,7 +43,6 @@ main() {
     check_unstaged_changes
     confirm_root_directory
     cargo_version_bump
-    assert_same_versions
     tag_release
 }
 

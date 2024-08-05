@@ -4051,7 +4051,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-probe"
-version = "0.1.0"
+version = "0.1.12-dev"
 dependencies = [
  "anyhow",
  "bincode",
