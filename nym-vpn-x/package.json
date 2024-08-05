@@ -57,7 +57,7 @@
     "@types/react-router-dom": "^5.3.3",
     "@types/react-window": "^1.8.8",
     "@vitejs/plugin-react-swc": "^3.3.2",
-    "autoprefixer": "^10.4.16",
+    "autoprefixer": "^10.4.20",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-jsx-a11y": "^6.9.0",
