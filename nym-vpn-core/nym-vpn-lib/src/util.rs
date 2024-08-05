@@ -63,31 +63,28 @@ pub(crate) async fn handle_interrupt(
     route_manager: RouteManager,
     wireguard_waiting: Option<[WgTunnelSetup; 2]>,
 ) {
-    let (finished_shutdown_rx, tunnel_handle) = match wireguard_waiting {
-        Some([entry_setup, exit_setup]) => (
-            Some([entry_setup.receiver, exit_setup.receiver]),
-            Some([entry_setup.handle, exit_setup.handle]),
-        ),
-        None => (None, None),
-    };
-
-    if let Some([h1, h2]) = tunnel_handle {
-        let ret1 = h1.await;
-        let ret2 = h2.await;
-        if ret1.is_err() || ret2.is_err() {
-            error!("Error on tunnel handle");
-        }
-    }
-    if let Some([rx1, rx2]) = finished_shutdown_rx {
-        let ret1 = rx1.await;
-        let ret2 = rx2.await;
-        if ret1.is_err() || ret2.is_err() {
-            error!("Error on signal handle");
-        }
-    }
     tokio::task::spawn_blocking(|| drop(route_manager))
         .await
         .ok();
+    let Some(wireguard_waiting) = wireguard_waiting else {
+        return;
+    };
+    let [entry, exit] = wireguard_waiting;
+
+    entry.tunnel_close_tx.send(()).ok();
+    exit.tunnel_close_tx.send(()).ok();
+
+    let ret1 = entry.handle.await;
+    let ret2 = exit.handle.await;
+    if ret1.is_err() || ret2.is_err() {
+        error!("Error on tunnel handle");
+    }
+
+    let ret1 = entry.receiver.await;
+    let ret2 = exit.receiver.await;
+    if ret1.is_err() || ret2.is_err() {
+        error!("Error on signal handle");
+    }
 }
 
 #[cfg(unix)]

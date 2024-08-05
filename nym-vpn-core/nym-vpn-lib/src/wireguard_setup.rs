@@ -29,11 +29,13 @@ pub async fn create_wireguard_tunnel(
     let tunnel = Tunnel::new(wireguard_config, handle, tun_provider);
 
     let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
-    let (tunnel_handle, event_rx) = start_tunnel(&tunnel, shutdown, finished_shutdown_tx)?;
+    let (tunnel_handle, event_rx, tunnel_close_tx) =
+        start_tunnel(&tunnel, shutdown, finished_shutdown_tx)?;
 
     let wireguard_waiting = WgTunnelSetup {
         receiver: finished_shutdown_rx,
         handle: tunnel_handle,
+        tunnel_close_tx,
     };
 
     Ok((wireguard_waiting, event_rx))
