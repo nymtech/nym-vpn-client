@@ -4,9 +4,21 @@ import { useTranslation } from 'react-i18next';
 import { LngTag } from '../i18n';
 import { kvSet } from '../kvStore';
 
+/**
+ * Hook to set the i18n language
+ *
+ * @returns The `set` function
+ */
 function useLang() {
   const { i18n } = useTranslation();
 
+  /**
+   * Sets the i18n language.
+   * Also updates dayjs locale accordingly and saves
+   * the language to the KV store
+   *
+   * @param lng - The language tag to set
+   */
   const set = useCallback(
     async (lng: LngTag, updateDb = true) => {
       if (i18n.language === lng) {
