@@ -1,0 +1,5 @@
+Novedades:
+- Selector de idioma en la aplicación
+- Más idiomas
+- Sincronización de estado mejorada
+- Varias mejoras y correcciones de errores
