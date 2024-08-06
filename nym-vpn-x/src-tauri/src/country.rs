@@ -16,7 +16,7 @@ pub static DEFAULT_ENTRY_COUNTRY: Lazy<Country> = Lazy::new(|| Country {
     name: String::from("Switzerland"),
 });
 
-#[derive(Serialize, Deserialize, Debug, Clone, TS, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, TS, Eq, PartialEq, Hash)]
 #[ts(export)]
 pub struct Country {
     pub name: String,

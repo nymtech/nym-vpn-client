@@ -353,7 +353,7 @@ impl GrpcClient {
         })?;
         debug!("gateways count: {}", response.get_ref().gateways.len());
 
-        let countries = response
+        let countries: Vec<Country> = response
             .get_ref()
             .gateways
             .iter()
@@ -361,9 +361,10 @@ impl GrpcClient {
                 // TODO add probe data check once daemon returns some data
                 Country::try_from(gateway).ok()
             })
-            .dedup()
+            .unique()
             .sorted_by(|a, b| a.name.cmp(&b.name))
             .collect();
+        debug!("countries count: {}", countries.len());
 
         Ok(countries)
     }
@@ -381,7 +382,7 @@ impl GrpcClient {
         })?;
         debug!("gateways count: {}", response.get_ref().gateways.len());
 
-        let countries = response
+        let countries: Vec<Country> = response
             .get_ref()
             .gateways
             .iter()
@@ -389,9 +390,10 @@ impl GrpcClient {
                 // TODO add probe data check
                 Country::try_from(gateway).ok()
             })
-            .dedup()
+            .unique()
             .sorted_by(|a, b| a.name.cmp(&b.name))
             .collect();
+        debug!("countries count: {}", countries.len());
 
         Ok(countries)
     }
