@@ -85,12 +85,16 @@ impl AuthClient {
         message: ClientMessage,
         authenticator_address: Recipient,
     ) -> Result<AuthenticatorResponse> {
+        // Connecting is basically synchronous from the perspective of the mixnet client, so it's safe
+        // to just grab ahold of the mutex and keep it until we get the response.
+        let mut mixnet_client_handle = self.mixnet_client.lock().await;
         let request_id = self
             .send_connect_request(message, authenticator_address)
             .await?;
 
         debug!("Waiting for reply...");
-        self.listen_for_connect_response(request_id).await
+        self.listen_for_connect_response(request_id, mixnet_client_handle.as_mut().unwrap())
+            .await
     }
 
     async fn send_connect_request(
@@ -123,12 +127,11 @@ impl AuthClient {
         Ok(request_id)
     }
 
-    async fn listen_for_connect_response(&self, request_id: u64) -> Result<AuthenticatorResponse> {
-        // Connecting is basically synchronous from the perspective of the mixnet client, so it's safe
-        // to just grab ahold of the mutex and keep it until we get the response.
-        let mut mixnet_client_handle = self.mixnet_client.lock().await;
-        let mixnet_client = mixnet_client_handle.as_mut().unwrap();
-
+    async fn listen_for_connect_response(
+        &self,
+        request_id: u64,
+        mixnet_client: &mut MixnetClient,
+    ) -> Result<AuthenticatorResponse> {
         let timeout = tokio::time::sleep(Duration::from_secs(10));
         tokio::pin!(timeout);
 
