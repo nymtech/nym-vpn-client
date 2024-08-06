@@ -225,7 +225,7 @@ impl WgGatewayClient {
                 }
                 _ = timeout_check_interval.next() => {
                     if let Err(e) = self.query_bandwidth().await {
-                        error!("Error querying remaining bandwidth {:?}", e);
+                        warn!("Error querying remaining bandwidth {:?}", e);
                     }
                 }
             }
