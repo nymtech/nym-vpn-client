@@ -251,6 +251,9 @@ pub enum GatewayDirectoryError {
         gateway_id: String,
         source: nym_gateway_directory::Error,
     },
+
+    #[error("unable to use same entry and exit gateway for location: {requested_location}")]
+    SameEntryAndExitGatewayFromCountry { requested_location: String },
 }
 
 // Result type based on our error type

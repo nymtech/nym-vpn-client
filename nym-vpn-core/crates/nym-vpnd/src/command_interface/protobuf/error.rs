@@ -167,6 +167,15 @@ impl From<ConnectionFailedError> for ProtoError {
                     "available_countries".to_string() => available_countries.join(", "),
                 },
             },
+            ConnectionFailedError::SameEntryAndExitGatewayFromCountry {
+                ref requested_location,
+            } => ProtoError {
+                kind: ErrorType::GatewayDirectorySameEntryAndExitGw as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "requested_location".to_string() => requested_location.clone(),
+                },
+            },
         }
     }
 }

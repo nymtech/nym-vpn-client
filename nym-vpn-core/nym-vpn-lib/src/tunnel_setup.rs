@@ -406,29 +406,45 @@ async fn select_gateways(
     gateway_directory_client: &GatewayClient,
     nym_vpn: &SpecificVpn,
 ) -> std::result::Result<SelectedGateways, GatewayDirectoryError> {
-    // Setup the gateway that we will use as the entry point
-    let entry_gateways = gateway_directory_client
-        .lookup_entry_gateways()
-        .await
-        .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
-
-    let entry_gateway = nym_vpn
-        .entry_point()
-        .lookup_gateway(&entry_gateways)
-        .map_err(|source| GatewayDirectoryError::FailedToSelectEntryGateway { source })?;
+    // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
+    // the exit gateway and then filter out the exit gateway from the set of entry gateways.
 
     // Setup the gateway that we will use as the exit point
-    let mut exit_gateways = gateway_directory_client
+    let exit_gateways = gateway_directory_client
         .lookup_exit_gateways()
         .await
         .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
 
-    // Exclude the entry gateway from the list of exit gateways for privacy reasons
-    exit_gateways.remove_gateway(&entry_gateway);
     let exit_gateway = nym_vpn
         .exit_point()
         .lookup_gateway(&exit_gateways)
         .map_err(|source| GatewayDirectoryError::FailedToSelectExitGateway { source })?;
+
+    // Setup the gateway that we will use as the entry point
+    let mut entry_gateways = gateway_directory_client
+        .lookup_entry_gateways()
+        .await
+        .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+
+    // Exclude the exit gateway from the list of entry gateways for privacy reasons
+    entry_gateways.remove_gateway(&exit_gateway);
+
+    let entry_gateway = nym_vpn
+        .entry_point()
+        .lookup_gateway(&entry_gateways)
+        .map_err(|source| match source {
+            nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation {
+                requested_location,
+                available_countries: _,
+            } if Some(requested_location.as_str())
+                == exit_gateway.two_letter_iso_country_code() =>
+            {
+                GatewayDirectoryError::SameEntryAndExitGatewayFromCountry {
+                    requested_location: requested_location.to_string(),
+                }
+            }
+            _ => GatewayDirectoryError::FailedToSelectEntryGateway { source },
+        })?;
 
     info!("Found {} entry gateways", entry_gateways.len());
     info!("Found {} exit gateways", exit_gateways.len());
