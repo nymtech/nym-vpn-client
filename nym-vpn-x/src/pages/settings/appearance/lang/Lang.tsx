@@ -1,35 +1,13 @@
 import { Button } from '@headlessui/react';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
-import { resources } from '../../../../i18n/config';
-import { kvSet } from '../../../../kvStore';
+import { useLang } from '../../../../hooks';
+import { languages } from '../../../../i18n';
 import { PageAnim } from '../../../../ui';
-
-type LngTag = keyof typeof resources;
-type Lang = { code: LngTag; name: string };
-
-const languages: Lang[] = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Español' },
-  { code: 'fr', name: 'Français' },
-  { code: 'it', name: 'Italiano' },
-  { code: 'pt-BR', name: 'Português brasileiro' },
-  { code: 'ru', name: 'Русский язык' },
-  { code: 'uk', name: 'Українська' },
-  { code: 'tr', name: 'Türkçe' },
-  { code: 'zh-Hans', name: '中文' },
-];
 
 function Lang() {
   const { t, i18n } = useTranslation();
-
-  const onSelect = (lang: Lang) => {
-    if (i18n.language === lang.code) {
-      return;
-    }
-    i18n.changeLanguage(lang.code);
-    kvSet('UiLanguage', lang.code);
-  };
+  const { set } = useLang();
 
   return (
     <PageAnim className="h-full flex flex-col py-6 gap-6">
@@ -44,7 +22,7 @@ function Lang() {
                 'dark:hover:bg-laughing-jack dark:hover:bg-opacity-10',
                 'rounded-lg px-3 py-1 transition duration-75 cursor-default',
               ])}
-              onClick={() => onSelect(lang)}
+              onClick={() => set(lang.code)}
             >
               <div className="flex flex-row items-center m-1 gap-3 p-1 overflow-hidden">
                 {lang.name}
