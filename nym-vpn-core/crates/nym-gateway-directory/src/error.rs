@@ -58,11 +58,6 @@ pub enum Error {
     #[error("no matching gateway found: {requested_identity}")]
     NoMatchingGateway { requested_identity: String },
 
-    // #[error("no gateway available for location {requested_location}, available countries: {available_countries:?}")]
-    // NoMatchingGatewayForLocation {
-    //     requested_location: String,
-    //     available_countries: Vec<String>,
-    // },
     #[error("no entry gateway available for location {requested_location}, available countries: {available_countries:?}")]
     NoMatchingEntryGatewayForLocation {
         requested_location: String,

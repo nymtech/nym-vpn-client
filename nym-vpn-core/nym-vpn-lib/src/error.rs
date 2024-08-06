@@ -63,11 +63,6 @@ pub enum Error {
     #[error(transparent)]
     ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
 
-    // #[error("missing Gateway exit information")]
-    // MissingExitPointInformation,
-    //
-    // #[error("missing Gateway entry information")]
-    // MissingEntryPointInformation,
     #[error("{0}")]
     KeyRecoveryError(#[from] nym_crypto::asymmetric::encryption::KeyRecoveryError),
 
