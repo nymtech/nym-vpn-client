@@ -176,12 +176,16 @@ impl WgGatewayClient {
             .send(query_message, self.auth_recipient)
             .await?;
 
-        let AuthenticatorResponseData::RemainingBandwidth(RemainingBandwidthResponse {
-            reply: Some(remaining_bandwidth_data),
-            ..
-        }) = response.data
-        else {
-            return Err(crate::error::Error::InvalidGatewayAuthResponse);
+        let remaining_bandwidth_data = match response.data {
+            AuthenticatorResponseData::RemainingBandwidth(RemainingBandwidthResponse {
+                reply: Some(remaining_bandwidth_data),
+                ..
+            }) => remaining_bandwidth_data,
+            AuthenticatorResponseData::RemainingBandwidth(RemainingBandwidthResponse {
+                reply: None,
+                ..
+            }) => return Ok(false),
+            _ => return Err(crate::error::Error::InvalidGatewayAuthResponse),
         };
 
         if remaining_bandwidth_data.suspended {
