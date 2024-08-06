@@ -211,6 +211,9 @@ pub enum Error {
 
     #[error("not enough bandwidth")]
     NotEnoughBandwidth,
+
+    #[error("out of bandwidth")]
+    OutOfBandwidth,
 }
 
 #[derive(thiserror::Error, Debug)]
