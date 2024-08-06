@@ -57,14 +57,16 @@ impl EntryPoint {
                 debug!("Selecting gateway by identity: {}", identity);
                 gateways
                     .gateway_with_identity(identity)
-                    .ok_or_else(|| Error::NoMatchingGateway)
+                    .ok_or_else(|| Error::NoMatchingGateway {
+                        requested_identity: identity.to_string(),
+                    })
                     .cloned()
             }
             EntryPoint::Location { location } => {
                 debug!("Selecting gateway by location: {}", location);
                 gateways
                     .random_gateway_located_at(location.to_string())
-                    .ok_or_else(|| Error::NoMatchingGatewayForLocation {
+                    .ok_or_else(|| Error::NoMatchingEntryGatewayForLocation {
                         requested_location: location.clone(),
                         available_countries: gateways.all_iso_codes(),
                     })

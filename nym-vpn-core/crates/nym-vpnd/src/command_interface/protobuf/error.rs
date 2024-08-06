@@ -84,7 +84,7 @@ impl From<ConnectionFailedError> for ProtoError {
                 .collect(),
             },
             ConnectionFailedError::StartMixnetTimeout(timeout) => ProtoError {
-                kind: ErrorType::Timeout as i32,
+                kind: ErrorType::MixnetTimeout as i32,
                 message: timeout.to_string(),
                 details: Default::default(),
             },
@@ -100,24 +100,71 @@ impl From<ConnectionFailedError> for ProtoError {
                 },
             },
             ConnectionFailedError::FailedToLookupGateways { ref reason } => ProtoError {
-                kind: ErrorType::GatewayDirectory as i32,
+                kind: ErrorType::GatewayDirectoryLookupGateways as i32,
                 message: err.to_string(),
                 details: hashmap! {
                     "reason".to_string() => reason.clone(),
                 },
             },
             ConnectionFailedError::FailedToLookupGatewayIdentity { ref reason } => ProtoError {
-                kind: ErrorType::GatewayDirectory as i32,
+                kind: ErrorType::GatewayDirectoryLookupGatewayIdentity as i32,
                 message: err.to_string(),
                 details: hashmap! {
                     "reason".to_string() => reason.clone(),
                 },
             },
             ConnectionFailedError::FailedToLookupRouterAddress { ref reason } => ProtoError {
-                kind: ErrorType::GatewayDirectory as i32,
+                kind: ErrorType::GatewayDirectoryLookupRouterAddress as i32,
                 message: err.to_string(),
                 details: hashmap! {
                     "reason".to_string() => reason.clone(),
+                },
+            },
+            ConnectionFailedError::FailedToLookupGatewayIp {
+                ref gateway_id,
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::GatewayDirectoryLookupIp as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.clone(),
+                    "reason".to_string() => reason.clone(),
+                },
+            },
+            ConnectionFailedError::FailedToSelectEntryGateway { ref reason } => ProtoError {
+                kind: ErrorType::GatewayDirectoryEntry as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
+            ConnectionFailedError::FailedToSelectExitGateway { ref reason } => ProtoError {
+                kind: ErrorType::GatewayDirectoryExit as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.clone(),
+                },
+            },
+            ConnectionFailedError::FailedToSelectEntryGatewayLocation {
+                ref requested_location,
+                ref available_countries,
+            } => ProtoError {
+                kind: ErrorType::GatewayDirectoryEntryLocation as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "requested_location".to_string() => requested_location.clone(),
+                    "available_countries".to_string() => available_countries.join(", "),
+                },
+            },
+            ConnectionFailedError::FailedToSelectExitGatewayLocation {
+                ref requested_location,
+                ref available_countries,
+            } => ProtoError {
+                kind: ErrorType::GatewayDirectoryExitLocation as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "requested_location".to_string() => requested_location.clone(),
+                    "available_countries".to_string() => available_countries.join(", "),
                 },
             },
         }

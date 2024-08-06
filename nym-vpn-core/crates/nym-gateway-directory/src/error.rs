@@ -55,14 +55,8 @@ pub enum Error {
     #[error("missing ip packet router address for gateway")]
     MissingIpPacketRouterAddress,
 
-    #[error("no matching gateway found")]
-    NoMatchingGateway,
-
-    #[error("no gateway available for location {requested_location}, available countries: {available_countries:?}")]
-    NoMatchingGatewayForLocation {
-        requested_location: String,
-        available_countries: Vec<String>,
-    },
+    #[error("no matching gateway found: {requested_identity}")]
+    NoMatchingGateway { requested_identity: String },
 
     #[error("no entry gateway available for location {requested_location}, available countries: {available_countries:?}")]
     NoMatchingEntryGatewayForLocation {
@@ -80,6 +74,9 @@ pub enum Error {
     FailedToSelectGatewayBasedOnLowLatency {
         source: nym_client_core::error::ClientCoreError,
     },
+
+    #[error("no matching gateway found after selecting low latency: {requested_identity}")]
+    NoMatchingGatewayAfterSelectingLowLatency { requested_identity: String },
 
     #[error("failed to select gateway randomly")]
     FailedToSelectGatewayRandomly,

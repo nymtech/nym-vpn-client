@@ -57,17 +57,11 @@ pub enum Error {
     #[error("recipient is not formatted correctly")]
     RecipientFormattingError,
 
-    #[error("{0}")]
+    #[error(transparent)]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 
     #[error(transparent)]
     ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
-
-    #[error("missing Gateway exit information")]
-    MissingExitPointInformation,
-
-    #[error("missing Gateway entry information")]
-    MissingEntryPointInformation,
 
     #[error("{0}")]
     KeyRecoveryError(#[from] nym_crypto::asymmetric::encryption::KeyRecoveryError),
@@ -152,8 +146,8 @@ pub enum Error {
     #[error("failed to find an exit gateway for country that is running a working version")]
     CountryExitGatewaysOutdated,
 
-    #[error("{0}")]
-    GatewayDirectoryError(#[from] nym_gateway_directory::Error),
+    #[error(transparent)]
+    GatewayDirectoryError(#[from] GatewayDirectoryError),
 
     #[error("failed to import credential to: {location}: {source}")]
     FailedToImportCredential {
@@ -197,27 +191,6 @@ pub enum Error {
     #[error(transparent)]
     IpPacketRouterClientError(#[from] nym_ip_packet_client::Error),
 
-    #[error("failed to setup gateway directory client: {source}")]
-    FailedtoSetupGatewayDirectoryClient {
-        config: Box<nym_gateway_directory::Config>,
-        source: nym_gateway_directory::Error,
-    },
-
-    #[error("failed to lookup gateways: {source}")]
-    FailedToLookupGateways {
-        source: nym_gateway_directory::Error,
-    },
-
-    #[error("failed to lookup gateway identity: {source}")]
-    FailedToLookupGatewayIdentity {
-        source: nym_gateway_directory::Error,
-    },
-
-    #[error("failed to lookup router address: {source}")]
-    FailedToLookupRouterAddress {
-        source: nym_gateway_directory::Error,
-    },
-
     #[error("failed to register wireguard key")]
     FailedWireguardRegistration,
 
@@ -238,6 +211,46 @@ pub enum Error {
 
     #[error("not enough bandwidth")]
     NotEnoughBandwidth,
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum GatewayDirectoryError {
+    #[error("failed to setup gateway directory client: {source}")]
+    FailedtoSetupGatewayDirectoryClient {
+        config: Box<nym_gateway_directory::Config>,
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to lookup gateways: {source}")]
+    FailedToLookupGateways {
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to lookup gateway identity: {source}")]
+    FailedToLookupGatewayIdentity {
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to select entry gateway: {source}")]
+    FailedToSelectEntryGateway {
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to select exit gateway: {source}")]
+    FailedToSelectExitGateway {
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to lookup router address: {source}")]
+    FailedToLookupRouterAddress {
+        source: nym_gateway_directory::Error,
+    },
+
+    #[error("failed to lookup gateway ip: {gateway_id}: {source}")]
+    FailedToLookupGatewayIp {
+        gateway_id: String,
+        source: nym_gateway_directory::Error,
+    },
 }
 
 // Result type based on our error type

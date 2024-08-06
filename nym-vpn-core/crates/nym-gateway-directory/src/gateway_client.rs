@@ -153,7 +153,9 @@ impl GatewayClient {
         let gateway_list = self.lookup_entry_gateways().await?;
         gateway_list
             .gateway_with_identity(low_latency_gateway.identity())
-            .ok_or(Error::NoMatchingGateway)
+            .ok_or_else(|| Error::NoMatchingGateway {
+                requested_identity: low_latency_gateway.identity().to_string(),
+            })
             .cloned()
     }
 
