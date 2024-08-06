@@ -40,6 +40,19 @@ message Dns {
   string ip = 1;
 }
 
+message InfoRequest {}
+
+message InfoResponse {
+  string version = 1;
+  google.protobuf.Timestamp build_timestamp = 2;
+  string triple = 3;
+  string git_commit = 4;
+}
+
+message Threshold {
+  uint32 min_performance = 1;
+}
+
 message ConnectRequest {
   EntryNode entry = 1;
   ExitNode exit = 2;
@@ -49,6 +62,7 @@ message ConnectRequest {
   bool enable_poisson_rate = 6;
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
+  Threshold min_mixnode_performance = 9;
 }
 
 message ConnectResponse {
@@ -109,7 +123,7 @@ message ConnectionStatusUpdate {
     // NOTE: currently not implemented by vpnd
     EXIT_ROUTER_CONNECTION_ESTABLISHED = 3;
 
-    // End-to-end tunnel establised and operational
+    // End-to-end tunnel established and operational
     TUNNEL_END_TO_END_CONNECTION_ESTABLISHED = 4;
 
     // Entry gateway not routing our mixnet messages
@@ -226,12 +240,61 @@ message ImportError {
   map<string, string> details = 3;
 }
 
+message AsEntry {
+  bool can_connect = 1;
+  bool can_route = 2;
+}
+
+message AsExit {
+  bool can_connect = 1;
+  bool can_route_ip_v4 = 2;
+  bool can_route_ip_v6 = 3;
+  bool can_route_ip_external_v4 = 4;
+  bool can_route_ip_external_v6 = 5;
+}
+
+message ProbeOutcome {
+  AsEntry as_entry = 1;
+  AsExit as_exit = 2;
+}
+
+message Probe {
+  google.protobuf.Timestamp last_updated_utc = 1;
+  ProbeOutcome outcome = 2;
+}
+
+message EntryGateway {
+  Gateway id = 1;
+  Location location = 2;
+  Probe last_probe = 3;
+}
+
+message ListEntryGatewaysRequest {}
+message ListEntryGatewaysResponse {
+  repeated EntryGateway gateways = 1;
+}
+
+message ExitGateway {
+  Gateway id = 1;
+  Location location = 2;
+  Probe last_probe = 3;
+}
+
+message ListExitGatewaysRequest {}
+message ListExitGatewaysResponse {
+  repeated ExitGateway gateways = 1;
+}
+
 service NymVpnd {
+  rpc Info (InfoRequest) returns (InfoResponse) {}
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
   rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
   rpc VpnStatus (StatusRequest) returns (StatusResponse) {}
   rpc ImportUserCredential (ImportUserCredentialRequest) returns (ImportUserCredentialResponse) {}
   rpc ListenToConnectionStateChanges (Empty) returns (stream ConnectionStateChange) {}
   rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
+
+  rpc ListEntryGateways (ListEntryGatewaysRequest) returns (ListEntryGatewaysResponse) {}
+  rpc ListExitGateways (ListExitGatewaysRequest) returns (ListExitGatewaysResponse) {}
 }
 

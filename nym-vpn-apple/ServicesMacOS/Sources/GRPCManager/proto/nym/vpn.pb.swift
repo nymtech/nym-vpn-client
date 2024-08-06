@@ -297,6 +297,55 @@ struct Nym_Vpn_Dns {
   init() {}
 }
 
+struct Nym_Vpn_InfoRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Nym_Vpn_InfoResponse {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var version: String = String()
+
+  var buildTimestamp: SwiftProtobuf.Google_Protobuf_Timestamp {
+    get {return _buildTimestamp ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
+    set {_buildTimestamp = newValue}
+  }
+  /// Returns true if `buildTimestamp` has been explicitly set.
+  var hasBuildTimestamp: Bool {return self._buildTimestamp != nil}
+  /// Clears the value of `buildTimestamp`. Subsequent reads from it will return its default value.
+  mutating func clearBuildTimestamp() {self._buildTimestamp = nil}
+
+  var triple: String = String()
+
+  var gitCommit: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _buildTimestamp: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
+}
+
+struct Nym_Vpn_Threshold {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var minPerformance: UInt32 = 0
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
 struct Nym_Vpn_ConnectRequest {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -339,6 +388,15 @@ struct Nym_Vpn_ConnectRequest {
 
   var enableCredentialsMode: Bool = false
 
+  var minMixnodePerformance: Nym_Vpn_Threshold {
+    get {return _minMixnodePerformance ?? Nym_Vpn_Threshold()}
+    set {_minMixnodePerformance = newValue}
+  }
+  /// Returns true if `minMixnodePerformance` has been explicitly set.
+  var hasMinMixnodePerformance: Bool {return self._minMixnodePerformance != nil}
+  /// Clears the value of `minMixnodePerformance`. Subsequent reads from it will return its default value.
+  mutating func clearMinMixnodePerformance() {self._minMixnodePerformance = nil}
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -346,6 +404,7 @@ struct Nym_Vpn_ConnectRequest {
   fileprivate var _entry: Nym_Vpn_EntryNode? = nil
   fileprivate var _exit: Nym_Vpn_ExitNode? = nil
   fileprivate var _dns: Nym_Vpn_Dns? = nil
+  fileprivate var _minMixnodePerformance: Nym_Vpn_Threshold? = nil
 }
 
 struct Nym_Vpn_ConnectResponse {
@@ -543,7 +602,7 @@ struct Nym_Vpn_ConnectionStatusUpdate {
     /// NOTE: currently not implemented by vpnd
     case exitRouterConnectionEstablished // = 3
 
-    /// End-to-end tunnel establised and operational
+    /// End-to-end tunnel established and operational
     case tunnelEndToEndConnectionEstablished // = 4
 
     /// Entry gateway not routing our mixnet messages
@@ -860,6 +919,228 @@ extension Nym_Vpn_ImportError.ImportErrorType: CaseIterable {
 
 #endif  // swift(>=4.2)
 
+struct Nym_Vpn_AsEntry {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var canConnect: Bool = false
+
+  var canRoute: Bool = false
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Nym_Vpn_AsExit {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var canConnect: Bool = false
+
+  var canRouteIpV4: Bool = false
+
+  var canRouteIpV6: Bool = false
+
+  var canRouteIpExternalV4: Bool = false
+
+  var canRouteIpExternalV6: Bool = false
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Nym_Vpn_ProbeOutcome {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var asEntry: Nym_Vpn_AsEntry {
+    get {return _asEntry ?? Nym_Vpn_AsEntry()}
+    set {_asEntry = newValue}
+  }
+  /// Returns true if `asEntry` has been explicitly set.
+  var hasAsEntry: Bool {return self._asEntry != nil}
+  /// Clears the value of `asEntry`. Subsequent reads from it will return its default value.
+  mutating func clearAsEntry() {self._asEntry = nil}
+
+  var asExit: Nym_Vpn_AsExit {
+    get {return _asExit ?? Nym_Vpn_AsExit()}
+    set {_asExit = newValue}
+  }
+  /// Returns true if `asExit` has been explicitly set.
+  var hasAsExit: Bool {return self._asExit != nil}
+  /// Clears the value of `asExit`. Subsequent reads from it will return its default value.
+  mutating func clearAsExit() {self._asExit = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _asEntry: Nym_Vpn_AsEntry? = nil
+  fileprivate var _asExit: Nym_Vpn_AsExit? = nil
+}
+
+struct Nym_Vpn_Probe {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var lastUpdatedUtc: SwiftProtobuf.Google_Protobuf_Timestamp {
+    get {return _lastUpdatedUtc ?? SwiftProtobuf.Google_Protobuf_Timestamp()}
+    set {_lastUpdatedUtc = newValue}
+  }
+  /// Returns true if `lastUpdatedUtc` has been explicitly set.
+  var hasLastUpdatedUtc: Bool {return self._lastUpdatedUtc != nil}
+  /// Clears the value of `lastUpdatedUtc`. Subsequent reads from it will return its default value.
+  mutating func clearLastUpdatedUtc() {self._lastUpdatedUtc = nil}
+
+  var outcome: Nym_Vpn_ProbeOutcome {
+    get {return _outcome ?? Nym_Vpn_ProbeOutcome()}
+    set {_outcome = newValue}
+  }
+  /// Returns true if `outcome` has been explicitly set.
+  var hasOutcome: Bool {return self._outcome != nil}
+  /// Clears the value of `outcome`. Subsequent reads from it will return its default value.
+  mutating func clearOutcome() {self._outcome = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _lastUpdatedUtc: SwiftProtobuf.Google_Protobuf_Timestamp? = nil
+  fileprivate var _outcome: Nym_Vpn_ProbeOutcome? = nil
+}
+
+struct Nym_Vpn_EntryGateway {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var id: Nym_Vpn_Gateway {
+    get {return _id ?? Nym_Vpn_Gateway()}
+    set {_id = newValue}
+  }
+  /// Returns true if `id` has been explicitly set.
+  var hasID: Bool {return self._id != nil}
+  /// Clears the value of `id`. Subsequent reads from it will return its default value.
+  mutating func clearID() {self._id = nil}
+
+  var location: Nym_Vpn_Location {
+    get {return _location ?? Nym_Vpn_Location()}
+    set {_location = newValue}
+  }
+  /// Returns true if `location` has been explicitly set.
+  var hasLocation: Bool {return self._location != nil}
+  /// Clears the value of `location`. Subsequent reads from it will return its default value.
+  mutating func clearLocation() {self._location = nil}
+
+  var lastProbe: Nym_Vpn_Probe {
+    get {return _lastProbe ?? Nym_Vpn_Probe()}
+    set {_lastProbe = newValue}
+  }
+  /// Returns true if `lastProbe` has been explicitly set.
+  var hasLastProbe: Bool {return self._lastProbe != nil}
+  /// Clears the value of `lastProbe`. Subsequent reads from it will return its default value.
+  mutating func clearLastProbe() {self._lastProbe = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _id: Nym_Vpn_Gateway? = nil
+  fileprivate var _location: Nym_Vpn_Location? = nil
+  fileprivate var _lastProbe: Nym_Vpn_Probe? = nil
+}
+
+struct Nym_Vpn_ListEntryGatewaysRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Nym_Vpn_ListEntryGatewaysResponse {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var gateways: [Nym_Vpn_EntryGateway] = []
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Nym_Vpn_ExitGateway {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var id: Nym_Vpn_Gateway {
+    get {return _id ?? Nym_Vpn_Gateway()}
+    set {_id = newValue}
+  }
+  /// Returns true if `id` has been explicitly set.
+  var hasID: Bool {return self._id != nil}
+  /// Clears the value of `id`. Subsequent reads from it will return its default value.
+  mutating func clearID() {self._id = nil}
+
+  var location: Nym_Vpn_Location {
+    get {return _location ?? Nym_Vpn_Location()}
+    set {_location = newValue}
+  }
+  /// Returns true if `location` has been explicitly set.
+  var hasLocation: Bool {return self._location != nil}
+  /// Clears the value of `location`. Subsequent reads from it will return its default value.
+  mutating func clearLocation() {self._location = nil}
+
+  var lastProbe: Nym_Vpn_Probe {
+    get {return _lastProbe ?? Nym_Vpn_Probe()}
+    set {_lastProbe = newValue}
+  }
+  /// Returns true if `lastProbe` has been explicitly set.
+  var hasLastProbe: Bool {return self._lastProbe != nil}
+  /// Clears the value of `lastProbe`. Subsequent reads from it will return its default value.
+  mutating func clearLastProbe() {self._lastProbe = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _id: Nym_Vpn_Gateway? = nil
+  fileprivate var _location: Nym_Vpn_Location? = nil
+  fileprivate var _lastProbe: Nym_Vpn_Probe? = nil
+}
+
+struct Nym_Vpn_ListExitGatewaysRequest {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Nym_Vpn_ListExitGatewaysResponse {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var gateways: [Nym_Vpn_ExitGateway] = []
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
 #if swift(>=5.5) && canImport(_Concurrency)
 extension Nym_Vpn_ConnectionStatus: @unchecked Sendable {}
 extension Nym_Vpn_Empty: @unchecked Sendable {}
@@ -871,6 +1152,9 @@ extension Nym_Vpn_EntryNode.OneOf_EntryNodeEnum: @unchecked Sendable {}
 extension Nym_Vpn_ExitNode: @unchecked Sendable {}
 extension Nym_Vpn_ExitNode.OneOf_ExitNodeEnum: @unchecked Sendable {}
 extension Nym_Vpn_Dns: @unchecked Sendable {}
+extension Nym_Vpn_InfoRequest: @unchecked Sendable {}
+extension Nym_Vpn_InfoResponse: @unchecked Sendable {}
+extension Nym_Vpn_Threshold: @unchecked Sendable {}
 extension Nym_Vpn_ConnectRequest: @unchecked Sendable {}
 extension Nym_Vpn_ConnectResponse: @unchecked Sendable {}
 extension Nym_Vpn_DisconnectRequest: @unchecked Sendable {}
@@ -887,6 +1171,16 @@ extension Nym_Vpn_ImportUserCredentialRequest: @unchecked Sendable {}
 extension Nym_Vpn_ImportUserCredentialResponse: @unchecked Sendable {}
 extension Nym_Vpn_ImportError: @unchecked Sendable {}
 extension Nym_Vpn_ImportError.ImportErrorType: @unchecked Sendable {}
+extension Nym_Vpn_AsEntry: @unchecked Sendable {}
+extension Nym_Vpn_AsExit: @unchecked Sendable {}
+extension Nym_Vpn_ProbeOutcome: @unchecked Sendable {}
+extension Nym_Vpn_Probe: @unchecked Sendable {}
+extension Nym_Vpn_EntryGateway: @unchecked Sendable {}
+extension Nym_Vpn_ListEntryGatewaysRequest: @unchecked Sendable {}
+extension Nym_Vpn_ListEntryGatewaysResponse: @unchecked Sendable {}
+extension Nym_Vpn_ExitGateway: @unchecked Sendable {}
+extension Nym_Vpn_ListExitGatewaysRequest: @unchecked Sendable {}
+extension Nym_Vpn_ListExitGatewaysResponse: @unchecked Sendable {}
 #endif  // swift(>=5.5) && canImport(_Concurrency)
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -1264,6 +1558,111 @@ extension Nym_Vpn_Dns: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementati
   }
 }
 
+extension Nym_Vpn_InfoRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".InfoRequest"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let _ = try decoder.nextFieldNumber() {
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_InfoRequest, rhs: Nym_Vpn_InfoRequest) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_InfoResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".InfoResponse"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "version"),
+    2: .standard(proto: "build_timestamp"),
+    3: .same(proto: "triple"),
+    4: .standard(proto: "git_commit"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.version) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._buildTimestamp) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.triple) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.gitCommit) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.version.isEmpty {
+      try visitor.visitSingularStringField(value: self.version, fieldNumber: 1)
+    }
+    try { if let v = self._buildTimestamp {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    if !self.triple.isEmpty {
+      try visitor.visitSingularStringField(value: self.triple, fieldNumber: 3)
+    }
+    if !self.gitCommit.isEmpty {
+      try visitor.visitSingularStringField(value: self.gitCommit, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_InfoResponse, rhs: Nym_Vpn_InfoResponse) -> Bool {
+    if lhs.version != rhs.version {return false}
+    if lhs._buildTimestamp != rhs._buildTimestamp {return false}
+    if lhs.triple != rhs.triple {return false}
+    if lhs.gitCommit != rhs.gitCommit {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_Threshold: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".Threshold"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "min_performance"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.minPerformance) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.minPerformance != 0 {
+      try visitor.visitSingularUInt32Field(value: self.minPerformance, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_Threshold, rhs: Nym_Vpn_Threshold) -> Bool {
+    if lhs.minPerformance != rhs.minPerformance {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Nym_Vpn_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ConnectRequest"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -1275,6 +1674,7 @@ extension Nym_Vpn_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     6: .standard(proto: "enable_poisson_rate"),
     7: .standard(proto: "disable_background_cover_traffic"),
     8: .standard(proto: "enable_credentials_mode"),
+    9: .standard(proto: "min_mixnode_performance"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1291,6 +1691,7 @@ extension Nym_Vpn_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       case 6: try { try decoder.decodeSingularBoolField(value: &self.enablePoissonRate) }()
       case 7: try { try decoder.decodeSingularBoolField(value: &self.disableBackgroundCoverTraffic) }()
       case 8: try { try decoder.decodeSingularBoolField(value: &self.enableCredentialsMode) }()
+      case 9: try { try decoder.decodeSingularMessageField(value: &self._minMixnodePerformance) }()
       default: break
       }
     }
@@ -1325,6 +1726,9 @@ extension Nym_Vpn_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     if self.enableCredentialsMode != false {
       try visitor.visitSingularBoolField(value: self.enableCredentialsMode, fieldNumber: 8)
     }
+    try { if let v = self._minMixnodePerformance {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -1337,6 +1741,7 @@ extension Nym_Vpn_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     if lhs.enablePoissonRate != rhs.enablePoissonRate {return false}
     if lhs.disableBackgroundCoverTraffic != rhs.disableBackgroundCoverTraffic {return false}
     if lhs.enableCredentialsMode != rhs.enableCredentialsMode {return false}
+    if lhs._minMixnodePerformance != rhs._minMixnodePerformance {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1856,5 +2261,381 @@ extension Nym_Vpn_ImportError.ImportErrorType: SwiftProtobuf._ProtoNameProviding
     4: .same(proto: "DESERIALIZATION_FAILURE"),
     5: .same(proto: "CREDENTIAL_EXPIRED"),
   ]
+}
+
+extension Nym_Vpn_AsEntry: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".AsEntry"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "can_connect"),
+    2: .standard(proto: "can_route"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.canConnect) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.canRoute) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.canConnect != false {
+      try visitor.visitSingularBoolField(value: self.canConnect, fieldNumber: 1)
+    }
+    if self.canRoute != false {
+      try visitor.visitSingularBoolField(value: self.canRoute, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_AsEntry, rhs: Nym_Vpn_AsEntry) -> Bool {
+    if lhs.canConnect != rhs.canConnect {return false}
+    if lhs.canRoute != rhs.canRoute {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_AsExit: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".AsExit"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "can_connect"),
+    2: .standard(proto: "can_route_ip_v4"),
+    3: .standard(proto: "can_route_ip_v6"),
+    4: .standard(proto: "can_route_ip_external_v4"),
+    5: .standard(proto: "can_route_ip_external_v6"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.canConnect) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.canRouteIpV4) }()
+      case 3: try { try decoder.decodeSingularBoolField(value: &self.canRouteIpV6) }()
+      case 4: try { try decoder.decodeSingularBoolField(value: &self.canRouteIpExternalV4) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self.canRouteIpExternalV6) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.canConnect != false {
+      try visitor.visitSingularBoolField(value: self.canConnect, fieldNumber: 1)
+    }
+    if self.canRouteIpV4 != false {
+      try visitor.visitSingularBoolField(value: self.canRouteIpV4, fieldNumber: 2)
+    }
+    if self.canRouteIpV6 != false {
+      try visitor.visitSingularBoolField(value: self.canRouteIpV6, fieldNumber: 3)
+    }
+    if self.canRouteIpExternalV4 != false {
+      try visitor.visitSingularBoolField(value: self.canRouteIpExternalV4, fieldNumber: 4)
+    }
+    if self.canRouteIpExternalV6 != false {
+      try visitor.visitSingularBoolField(value: self.canRouteIpExternalV6, fieldNumber: 5)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_AsExit, rhs: Nym_Vpn_AsExit) -> Bool {
+    if lhs.canConnect != rhs.canConnect {return false}
+    if lhs.canRouteIpV4 != rhs.canRouteIpV4 {return false}
+    if lhs.canRouteIpV6 != rhs.canRouteIpV6 {return false}
+    if lhs.canRouteIpExternalV4 != rhs.canRouteIpExternalV4 {return false}
+    if lhs.canRouteIpExternalV6 != rhs.canRouteIpExternalV6 {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_ProbeOutcome: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ProbeOutcome"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "as_entry"),
+    2: .standard(proto: "as_exit"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._asEntry) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._asExit) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._asEntry {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._asExit {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_ProbeOutcome, rhs: Nym_Vpn_ProbeOutcome) -> Bool {
+    if lhs._asEntry != rhs._asEntry {return false}
+    if lhs._asExit != rhs._asExit {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_Probe: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".Probe"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "last_updated_utc"),
+    2: .same(proto: "outcome"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._lastUpdatedUtc) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._outcome) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._lastUpdatedUtc {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._outcome {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_Probe, rhs: Nym_Vpn_Probe) -> Bool {
+    if lhs._lastUpdatedUtc != rhs._lastUpdatedUtc {return false}
+    if lhs._outcome != rhs._outcome {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_EntryGateway: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".EntryGateway"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .same(proto: "location"),
+    3: .standard(proto: "last_probe"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._id) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._location) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._lastProbe) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._id {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._location {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._lastProbe {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_EntryGateway, rhs: Nym_Vpn_EntryGateway) -> Bool {
+    if lhs._id != rhs._id {return false}
+    if lhs._location != rhs._location {return false}
+    if lhs._lastProbe != rhs._lastProbe {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_ListEntryGatewaysRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ListEntryGatewaysRequest"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let _ = try decoder.nextFieldNumber() {
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_ListEntryGatewaysRequest, rhs: Nym_Vpn_ListEntryGatewaysRequest) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_ListEntryGatewaysResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ListEntryGatewaysResponse"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "gateways"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.gateways) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.gateways.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.gateways, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_ListEntryGatewaysResponse, rhs: Nym_Vpn_ListEntryGatewaysResponse) -> Bool {
+    if lhs.gateways != rhs.gateways {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_ExitGateway: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ExitGateway"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "id"),
+    2: .same(proto: "location"),
+    3: .standard(proto: "last_probe"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._id) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._location) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._lastProbe) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._id {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._location {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._lastProbe {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_ExitGateway, rhs: Nym_Vpn_ExitGateway) -> Bool {
+    if lhs._id != rhs._id {return false}
+    if lhs._location != rhs._location {return false}
+    if lhs._lastProbe != rhs._lastProbe {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_ListExitGatewaysRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ListExitGatewaysRequest"
+  static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let _ = try decoder.nextFieldNumber() {
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_ListExitGatewaysRequest, rhs: Nym_Vpn_ListExitGatewaysRequest) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_ListExitGatewaysResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".ListExitGatewaysResponse"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "gateways"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.gateways) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.gateways.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.gateways, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_ListExitGatewaysResponse, rhs: Nym_Vpn_ListExitGatewaysResponse) -> Bool {
+    if lhs.gateways != rhs.gateways {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
 }
 // swiftlint:enable all

@@ -56,7 +56,7 @@ public final class GRPCManager: ObservableObject {
         _ = try? call.status.wait()
     }
 
-    public func importCredential(credential: String) throws {
+    public func importCredential(credential: String) throws -> Date? {
         var request = Nym_Vpn_ImportUserCredentialRequest()
 
         guard let base58Array = Base58.base58Decode(credential)
@@ -68,23 +68,28 @@ public final class GRPCManager: ObservableObject {
         let call = client.importUserCredential(request)
 
         var isCredentialImported = false
+        var errorMessage: String?
+        var expiryDate: Date?
 
         call.response.whenComplete { result in
             switch result {
             case .success(let response):
-                print("response from daemon: \(response.success)")
                 isCredentialImported = response.success
+                errorMessage = response.error.message
+                expiryDate = Date(timeIntervalSince1970: TimeInterval(response.expiry.seconds))
             case .failure(let error):
                 isCredentialImported = false
-                print("Something went wrong: \(error)")
+                errorMessage = error.localizedDescription
             }
         }
 
         do {
             _ = try call.status.wait()
             if !isCredentialImported {
+                logger.log(level: .error, "Failed to import credential with \(String(describing: errorMessage))")
                 throw GRPCError.invalidCredential
             }
+            return expiryDate
         }
     }
 
@@ -124,19 +129,19 @@ public final class GRPCManager: ObservableObject {
 
         let call = client.vpnConnect(request)
 
-        call.response.whenComplete { result in
+        call.response.whenComplete { [weak self] result in
             switch result {
-            case .success(let response):
-                print("Connected to VPN: \(response.success)")
+            case .success:
+                self?.logger.log(level: .info, "Connected to VPN")
             case .failure(let error):
-                print("Failed to connect to VPN: \(error)")
+                self?.logger.log(level: .info, "Failed to connect to VPN: \(error)")
             }
         }
 
         do {
             _ = try call.status.wait()
         } catch {
-            print("Error waiting for call status: \(error)")
+            logger.log(level: .info, "Failed to connect to VPN: \(error)")
         }
     }
 

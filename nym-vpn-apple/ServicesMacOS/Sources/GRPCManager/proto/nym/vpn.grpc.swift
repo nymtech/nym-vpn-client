@@ -17,6 +17,11 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
   var serviceName: String { get }
   var interceptors: Nym_Vpn_NymVpndClientInterceptorFactoryProtocol? { get }
 
+  func info(
+    _ request: Nym_Vpn_InfoRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_InfoRequest, Nym_Vpn_InfoResponse>
+
   func vpnConnect(
     _ request: Nym_Vpn_ConnectRequest,
     callOptions: CallOptions?
@@ -48,11 +53,39 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     callOptions: CallOptions?,
     handler: @escaping (Nym_Vpn_ConnectionStatusUpdate) -> Void
   ) -> ServerStreamingCall<Nym_Vpn_Empty, Nym_Vpn_ConnectionStatusUpdate>
+
+  func listEntryGateways(
+    _ request: Nym_Vpn_ListEntryGatewaysRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_ListEntryGatewaysRequest, Nym_Vpn_ListEntryGatewaysResponse>
+
+  func listExitGateways(
+    _ request: Nym_Vpn_ListExitGatewaysRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_ListExitGatewaysRequest, Nym_Vpn_ListExitGatewaysResponse>
 }
 
 extension Nym_Vpn_NymVpndClientProtocol {
   internal var serviceName: String {
     return "nym.vpn.NymVpnd"
+  }
+
+  /// Unary call to Info
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to Info.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func info(
+    _ request: Nym_Vpn_InfoRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_InfoRequest, Nym_Vpn_InfoResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.info.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeInfoInterceptors() ?? []
+    )
   }
 
   /// Unary call to VpnConnect
@@ -168,6 +201,42 @@ extension Nym_Vpn_NymVpndClientProtocol {
       handler: handler
     )
   }
+
+  /// Unary call to ListEntryGateways
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to ListEntryGateways.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func listEntryGateways(
+    _ request: Nym_Vpn_ListEntryGatewaysRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_ListEntryGatewaysRequest, Nym_Vpn_ListEntryGatewaysResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listEntryGateways.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListEntryGatewaysInterceptors() ?? []
+    )
+  }
+
+  /// Unary call to ListExitGateways
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to ListExitGateways.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func listExitGateways(
+    _ request: Nym_Vpn_ListExitGatewaysRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_ListExitGatewaysRequest, Nym_Vpn_ListExitGatewaysResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listExitGateways.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListExitGatewaysInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -232,6 +301,11 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
   var interceptors: Nym_Vpn_NymVpndClientInterceptorFactoryProtocol? { get }
 
+  func makeInfoCall(
+    _ request: Nym_Vpn_InfoRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_InfoRequest, Nym_Vpn_InfoResponse>
+
   func makeVpnConnectCall(
     _ request: Nym_Vpn_ConnectRequest,
     callOptions: CallOptions?
@@ -261,6 +335,16 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     _ request: Nym_Vpn_Empty,
     callOptions: CallOptions?
   ) -> GRPCAsyncServerStreamingCall<Nym_Vpn_Empty, Nym_Vpn_ConnectionStatusUpdate>
+
+  func makeListEntryGatewaysCall(
+    _ request: Nym_Vpn_ListEntryGatewaysRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ListEntryGatewaysRequest, Nym_Vpn_ListEntryGatewaysResponse>
+
+  func makeListExitGatewaysCall(
+    _ request: Nym_Vpn_ListExitGatewaysRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ListExitGatewaysRequest, Nym_Vpn_ListExitGatewaysResponse>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -271,6 +355,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
 
   internal var interceptors: Nym_Vpn_NymVpndClientInterceptorFactoryProtocol? {
     return nil
+  }
+
+  internal func makeInfoCall(
+    _ request: Nym_Vpn_InfoRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_InfoRequest, Nym_Vpn_InfoResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.info.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeInfoInterceptors() ?? []
+    )
   }
 
   internal func makeVpnConnectCall(
@@ -344,10 +440,46 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       interceptors: self.interceptors?.makeListenToConnectionStatusInterceptors() ?? []
     )
   }
+
+  internal func makeListEntryGatewaysCall(
+    _ request: Nym_Vpn_ListEntryGatewaysRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ListEntryGatewaysRequest, Nym_Vpn_ListEntryGatewaysResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listEntryGateways.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListEntryGatewaysInterceptors() ?? []
+    )
+  }
+
+  internal func makeListExitGatewaysCall(
+    _ request: Nym_Vpn_ListExitGatewaysRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_ListExitGatewaysRequest, Nym_Vpn_ListExitGatewaysResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listExitGateways.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListExitGatewaysInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension Nym_Vpn_NymVpndAsyncClientProtocol {
+  internal func info(
+    _ request: Nym_Vpn_InfoRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_InfoResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.info.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeInfoInterceptors() ?? []
+    )
+  }
+
   internal func vpnConnect(
     _ request: Nym_Vpn_ConnectRequest,
     callOptions: CallOptions? = nil
@@ -419,6 +551,30 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       interceptors: self.interceptors?.makeListenToConnectionStatusInterceptors() ?? []
     )
   }
+
+  internal func listEntryGateways(
+    _ request: Nym_Vpn_ListEntryGatewaysRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_ListEntryGatewaysResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listEntryGateways.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListEntryGatewaysInterceptors() ?? []
+    )
+  }
+
+  internal func listExitGateways(
+    _ request: Nym_Vpn_ListExitGatewaysRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_ListExitGatewaysResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.listExitGateways.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeListExitGatewaysInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -440,6 +596,9 @@ internal struct Nym_Vpn_NymVpndAsyncClient: Nym_Vpn_NymVpndAsyncClientProtocol {
 
 internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
 
+  /// - Returns: Interceptors to use when invoking 'info'.
+  func makeInfoInterceptors() -> [ClientInterceptor<Nym_Vpn_InfoRequest, Nym_Vpn_InfoResponse>]
+
   /// - Returns: Interceptors to use when invoking 'vpnConnect'.
   func makeVpnConnectInterceptors() -> [ClientInterceptor<Nym_Vpn_ConnectRequest, Nym_Vpn_ConnectResponse>]
 
@@ -457,6 +616,12 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'listenToConnectionStatus'.
   func makeListenToConnectionStatusInterceptors() -> [ClientInterceptor<Nym_Vpn_Empty, Nym_Vpn_ConnectionStatusUpdate>]
+
+  /// - Returns: Interceptors to use when invoking 'listEntryGateways'.
+  func makeListEntryGatewaysInterceptors() -> [ClientInterceptor<Nym_Vpn_ListEntryGatewaysRequest, Nym_Vpn_ListEntryGatewaysResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'listExitGateways'.
+  func makeListExitGatewaysInterceptors() -> [ClientInterceptor<Nym_Vpn_ListExitGatewaysRequest, Nym_Vpn_ListExitGatewaysResponse>]
 }
 
 internal enum Nym_Vpn_NymVpndClientMetadata {
@@ -464,16 +629,25 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
     name: "NymVpnd",
     fullName: "nym.vpn.NymVpnd",
     methods: [
+      Nym_Vpn_NymVpndClientMetadata.Methods.info,
       Nym_Vpn_NymVpndClientMetadata.Methods.vpnConnect,
       Nym_Vpn_NymVpndClientMetadata.Methods.vpnDisconnect,
       Nym_Vpn_NymVpndClientMetadata.Methods.vpnStatus,
       Nym_Vpn_NymVpndClientMetadata.Methods.importUserCredential,
       Nym_Vpn_NymVpndClientMetadata.Methods.listenToConnectionStateChanges,
       Nym_Vpn_NymVpndClientMetadata.Methods.listenToConnectionStatus,
+      Nym_Vpn_NymVpndClientMetadata.Methods.listEntryGateways,
+      Nym_Vpn_NymVpndClientMetadata.Methods.listExitGateways,
     ]
   )
 
   internal enum Methods {
+    internal static let info = GRPCMethodDescriptor(
+      name: "Info",
+      path: "/nym.vpn.NymVpnd/Info",
+      type: GRPCCallType.unary
+    )
+
     internal static let vpnConnect = GRPCMethodDescriptor(
       name: "VpnConnect",
       path: "/nym.vpn.NymVpnd/VpnConnect",
@@ -509,12 +683,26 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       path: "/nym.vpn.NymVpnd/ListenToConnectionStatus",
       type: GRPCCallType.serverStreaming
     )
+
+    internal static let listEntryGateways = GRPCMethodDescriptor(
+      name: "ListEntryGateways",
+      path: "/nym.vpn.NymVpnd/ListEntryGateways",
+      type: GRPCCallType.unary
+    )
+
+    internal static let listExitGateways = GRPCMethodDescriptor(
+      name: "ListExitGateways",
+      path: "/nym.vpn.NymVpnd/ListExitGateways",
+      type: GRPCCallType.unary
+    )
   }
 }
 
 /// To build a server, implement a class that conforms to this protocol.
 internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   var interceptors: Nym_Vpn_NymVpndServerInterceptorFactoryProtocol? { get }
+
+  func info(request: Nym_Vpn_InfoRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_InfoResponse>
 
   func vpnConnect(request: Nym_Vpn_ConnectRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ConnectResponse>
 
@@ -527,6 +715,10 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   func listenToConnectionStateChanges(request: Nym_Vpn_Empty, context: StreamingResponseCallContext<Nym_Vpn_ConnectionStateChange>) -> EventLoopFuture<GRPCStatus>
 
   func listenToConnectionStatus(request: Nym_Vpn_Empty, context: StreamingResponseCallContext<Nym_Vpn_ConnectionStatusUpdate>) -> EventLoopFuture<GRPCStatus>
+
+  func listEntryGateways(request: Nym_Vpn_ListEntryGatewaysRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListEntryGatewaysResponse>
+
+  func listExitGateways(request: Nym_Vpn_ListExitGatewaysRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListExitGatewaysResponse>
 }
 
 extension Nym_Vpn_NymVpndProvider {
@@ -541,6 +733,15 @@ extension Nym_Vpn_NymVpndProvider {
     context: CallHandlerContext
   ) -> GRPCServerHandlerProtocol? {
     switch name {
+    case "Info":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_InfoRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_InfoResponse>(),
+        interceptors: self.interceptors?.makeInfoInterceptors() ?? [],
+        userFunction: self.info(request:context:)
+      )
+
     case "VpnConnect":
       return UnaryServerHandler(
         context: context,
@@ -595,6 +796,24 @@ extension Nym_Vpn_NymVpndProvider {
         userFunction: self.listenToConnectionStatus(request:context:)
       )
 
+    case "ListEntryGateways":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ListEntryGatewaysRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ListEntryGatewaysResponse>(),
+        interceptors: self.interceptors?.makeListEntryGatewaysInterceptors() ?? [],
+        userFunction: self.listEntryGateways(request:context:)
+      )
+
+    case "ListExitGateways":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ListExitGatewaysRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ListExitGatewaysResponse>(),
+        interceptors: self.interceptors?.makeListExitGatewaysInterceptors() ?? [],
+        userFunction: self.listExitGateways(request:context:)
+      )
+
     default:
       return nil
     }
@@ -606,6 +825,11 @@ extension Nym_Vpn_NymVpndProvider {
 internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
   static var serviceDescriptor: GRPCServiceDescriptor { get }
   var interceptors: Nym_Vpn_NymVpndServerInterceptorFactoryProtocol? { get }
+
+  func info(
+    request: Nym_Vpn_InfoRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_InfoResponse
 
   func vpnConnect(
     request: Nym_Vpn_ConnectRequest,
@@ -638,6 +862,16 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     responseStream: GRPCAsyncResponseStreamWriter<Nym_Vpn_ConnectionStatusUpdate>,
     context: GRPCAsyncServerCallContext
   ) async throws
+
+  func listEntryGateways(
+    request: Nym_Vpn_ListEntryGatewaysRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_ListEntryGatewaysResponse
+
+  func listExitGateways(
+    request: Nym_Vpn_ListExitGatewaysRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_ListExitGatewaysResponse
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -659,6 +893,15 @@ extension Nym_Vpn_NymVpndAsyncProvider {
     context: CallHandlerContext
   ) -> GRPCServerHandlerProtocol? {
     switch name {
+    case "Info":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_InfoRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_InfoResponse>(),
+        interceptors: self.interceptors?.makeInfoInterceptors() ?? [],
+        wrapping: { try await self.info(request: $0, context: $1) }
+      )
+
     case "VpnConnect":
       return GRPCAsyncServerHandler(
         context: context,
@@ -713,6 +956,24 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         wrapping: { try await self.listenToConnectionStatus(request: $0, responseStream: $1, context: $2) }
       )
 
+    case "ListEntryGateways":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ListEntryGatewaysRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ListEntryGatewaysResponse>(),
+        interceptors: self.interceptors?.makeListEntryGatewaysInterceptors() ?? [],
+        wrapping: { try await self.listEntryGateways(request: $0, context: $1) }
+      )
+
+    case "ListExitGateways":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_ListExitGatewaysRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_ListExitGatewaysResponse>(),
+        interceptors: self.interceptors?.makeListExitGatewaysInterceptors() ?? [],
+        wrapping: { try await self.listExitGateways(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -720,6 +981,10 @@ extension Nym_Vpn_NymVpndAsyncProvider {
 }
 
 internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
+
+  /// - Returns: Interceptors to use when handling 'info'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeInfoInterceptors() -> [ServerInterceptor<Nym_Vpn_InfoRequest, Nym_Vpn_InfoResponse>]
 
   /// - Returns: Interceptors to use when handling 'vpnConnect'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -744,6 +1009,14 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'listenToConnectionStatus'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeListenToConnectionStatusInterceptors() -> [ServerInterceptor<Nym_Vpn_Empty, Nym_Vpn_ConnectionStatusUpdate>]
+
+  /// - Returns: Interceptors to use when handling 'listEntryGateways'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeListEntryGatewaysInterceptors() -> [ServerInterceptor<Nym_Vpn_ListEntryGatewaysRequest, Nym_Vpn_ListEntryGatewaysResponse>]
+
+  /// - Returns: Interceptors to use when handling 'listExitGateways'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeListExitGatewaysInterceptors() -> [ServerInterceptor<Nym_Vpn_ListExitGatewaysRequest, Nym_Vpn_ListExitGatewaysResponse>]
 }
 
 internal enum Nym_Vpn_NymVpndServerMetadata {
@@ -751,16 +1024,25 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     name: "NymVpnd",
     fullName: "nym.vpn.NymVpnd",
     methods: [
+      Nym_Vpn_NymVpndServerMetadata.Methods.info,
       Nym_Vpn_NymVpndServerMetadata.Methods.vpnConnect,
       Nym_Vpn_NymVpndServerMetadata.Methods.vpnDisconnect,
       Nym_Vpn_NymVpndServerMetadata.Methods.vpnStatus,
       Nym_Vpn_NymVpndServerMetadata.Methods.importUserCredential,
       Nym_Vpn_NymVpndServerMetadata.Methods.listenToConnectionStateChanges,
       Nym_Vpn_NymVpndServerMetadata.Methods.listenToConnectionStatus,
+      Nym_Vpn_NymVpndServerMetadata.Methods.listEntryGateways,
+      Nym_Vpn_NymVpndServerMetadata.Methods.listExitGateways,
     ]
   )
 
   internal enum Methods {
+    internal static let info = GRPCMethodDescriptor(
+      name: "Info",
+      path: "/nym.vpn.NymVpnd/Info",
+      type: GRPCCallType.unary
+    )
+
     internal static let vpnConnect = GRPCMethodDescriptor(
       name: "VpnConnect",
       path: "/nym.vpn.NymVpnd/VpnConnect",
@@ -795,6 +1077,18 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       name: "ListenToConnectionStatus",
       path: "/nym.vpn.NymVpnd/ListenToConnectionStatus",
       type: GRPCCallType.serverStreaming
+    )
+
+    internal static let listEntryGateways = GRPCMethodDescriptor(
+      name: "ListEntryGateways",
+      path: "/nym.vpn.NymVpnd/ListEntryGateways",
+      type: GRPCCallType.unary
+    )
+
+    internal static let listExitGateways = GRPCMethodDescriptor(
+      name: "ListExitGateways",
+      path: "/nym.vpn.NymVpnd/ListExitGateways",
+      type: GRPCCallType.unary
     )
   }
 }

@@ -68,7 +68,8 @@ extension MixnetConfig {
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
             tunProvider: mixnetTunnelProvider,
-            credentialDataPath: credentialsDataPath
+            credentialDataPath: credentialsDataPath, 
+            tunStatusListener: nil
         )
     }
 }
