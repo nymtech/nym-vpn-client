@@ -426,7 +426,13 @@ impl NymVpnService {
         nym_vpn.enable_two_hop = options.enable_two_hop;
         // TODO: add user agent to options struct so we can pass it from the connected client if we
         // want to
-        nym_vpn.user_agent = Some(bin_info!().into());
+        // nym_vpn.user_agent = Some(bin_info!().into());
+        nym_vpn.user_agent = Some(nym_vpn_lib::UserAgent {
+            application: "PLACEHOLDER".to_string(),
+            version: "PLACEHOLDER".to_string(),
+            platform: "PLACEHOLDER".to_string(),
+            git_commit: "PLACEHOLDER".to_string(),
+        });
         nym_vpn.mixnet_client_config.enable_poisson_rate = options.enable_poisson_rate;
         nym_vpn
             .mixnet_client_config
@@ -493,13 +499,19 @@ impl NymVpnService {
     }
 
     async fn handle_info(&self) -> VpnServiceInfoResult {
-        let bin_info = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!();
+        // let bin_info = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!();
         VpnServiceInfoResult {
-            version: bin_info.build_version.to_string(),
-            build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339).ok(),
-            triple: bin_info.cargo_triple.to_string(),
-            git_commit: bin_info.commit_sha.to_string(),
+            version: "PLACEHOLDER".to_string(),
+            build_timestamp: time::OffsetDateTime::now_utc().into(),
+            triple: "PLACEHOLDER".to_string(),
+            git_commit: "PLACEHOLDER".to_string(),
         }
+        // VpnServiceInfoResult {
+        //     version: bin_info.build_version.to_string(),
+        //     build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339).ok(),
+        //     triple: bin_info.cargo_triple.to_string(),
+        //     git_commit: bin_info.commit_sha.to_string(),
+        // }
     }
 
     async fn handle_import_credential(
