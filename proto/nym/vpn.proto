@@ -210,6 +210,9 @@ message Error {
 
     // Failing to lookup the exit gateway for a given location
     GATEWAY_DIRECTORY_EXIT_LOCATION = 16;
+
+    // Invalid configuration attempted, with the same entry and exit gateway
+    GATEWAY_DIRECTORY_SAME_ENTRY_AND_EXIT_GW = 17;
   }
 
   ErrorType kind = 1;

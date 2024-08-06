@@ -122,6 +122,9 @@ pub enum ConnectionFailedError {
 
     #[error("failed to lookup gateway ip: {gateway_id}")]
     FailedToLookupGatewayIp { gateway_id: String, reason: String },
+
+    #[error("unable to use same entry and exit gateway for location: {requested_location}")]
+    SameEntryAndExitGatewayFromCountry { requested_location: String },
 }
 
 use nym_vpn_lib::gateway_directory::Error as DirError;
@@ -199,6 +202,11 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
                         reason: source.to_string(),
                     }
                 }
+                GatewayDirectoryError::SameEntryAndExitGatewayFromCountry {
+                    requested_location,
+                } => ConnectionFailedError::SameEntryAndExitGatewayFromCountry {
+                    requested_location: requested_location.clone(),
+                },
             },
             nym_vpn_lib::error::Error::IO(_)
             | nym_vpn_lib::error::Error::InvalidWireGuardKey

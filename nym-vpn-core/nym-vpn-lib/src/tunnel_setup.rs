@@ -428,7 +428,31 @@ async fn select_gateways(
     let exit_gateway = nym_vpn
         .exit_point()
         .lookup_gateway(&exit_gateways)
-        .map_err(|source| GatewayDirectoryError::FailedToSelectExitGateway { source })?;
+        .map_err(|source| GatewayDirectoryError::FailedToSelectExitGateway { source });
+
+    let exit_gateway = match exit_gateway {
+        Ok(exit_gateway) => exit_gateway,
+        Err(error) => {
+            // If exit point was a country, and we just removed the only exit gateway in that
+            // country as it's used as entry point
+            match error {
+                GatewayDirectoryError::FailedToSelectExitGateway { ref source } => match source {
+                    nym_gateway_directory::Error::NoMatchingExitGatewayForLocation {
+                        requested_location,
+                        available_countries: _,
+                    } if Some(requested_location.as_str())
+                        == entry_gateway.two_letter_iso_country_code() =>
+                    {
+                        return Err(GatewayDirectoryError::SameEntryAndExitGatewayFromCountry {
+                            requested_location: requested_location.to_string(),
+                        });
+                    }
+                    _ => return Err(error),
+                },
+                _ => return Err(error),
+            }
+        }
+    };
 
     info!("Found {} entry gateways", entry_gateways.len());
     info!("Found {} exit gateways", exit_gateways.len());
