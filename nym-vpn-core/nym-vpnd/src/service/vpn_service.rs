@@ -426,13 +426,13 @@ impl NymVpnService {
         nym_vpn.enable_two_hop = options.enable_two_hop;
         // TODO: add user agent to options struct so we can pass it from the connected client if we
         // want to
-        // nym_vpn.user_agent = Some(bin_info!().into());
-        nym_vpn.user_agent = Some(nym_vpn_lib::UserAgent {
-            application: "PLACEHOLDER".to_string(),
-            version: "PLACEHOLDER".to_string(),
-            platform: "PLACEHOLDER".to_string(),
-            git_commit: "PLACEHOLDER".to_string(),
-        });
+        nym_vpn.user_agent = Some(bin_info!().into());
+        // nym_vpn.user_agent = Some(nym_vpn_lib::UserAgent {
+        //     application: "PLACEHOLDER".to_string(),
+        //     version: "PLACEHOLDER".to_string(),
+        //     platform: "PLACEHOLDER".to_string(),
+        //     git_commit: "PLACEHOLDER".to_string(),
+        // });
         nym_vpn.mixnet_client_config.enable_poisson_rate = options.enable_poisson_rate;
         nym_vpn
             .mixnet_client_config
