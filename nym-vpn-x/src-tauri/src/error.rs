@@ -137,6 +137,8 @@ pub enum ErrorKey {
     /// Forwarded from proto
     ConnectionNoValidCredential,
     /// Forwarded from proto
+    ConnectionSameEntryAndExitGw,
+    /// Forwarded from proto
     CredentialInvalid,
     /// Forwarded from proto
     CredentialVpnRunning,
@@ -159,6 +161,9 @@ impl From<DaemonError> for ErrorKey {
             DaemonError::NoValidCredentials => ErrorKey::ConnectionNoValidCredential,
             DaemonError::Timeout => ErrorKey::ConnectionTimeout,
             DaemonError::GatewayDirectory => ErrorKey::ConnectionGatewayLookup,
+            DaemonError::GatewayDirectorySameEntryAndExitGw => {
+                ErrorKey::ConnectionSameEntryAndExitGw
+            }
             _ => ErrorKey::UnknownError,
         }
     }

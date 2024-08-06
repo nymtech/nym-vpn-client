@@ -496,7 +496,7 @@ impl From<(&AppConfig, &Cli)> for Transport {
     }
 }
 
-fn location_to_country(location: &Option<Location>) -> Result<Country> {
+pub fn proto_location_to_country(location: &Option<Location>) -> Result<Country> {
     if let Some(location) = location {
         Country::try_new_from_code(&location.two_letter_iso_country_code).ok_or_else(|| {
             warn!(
@@ -517,7 +517,7 @@ impl TryFrom<&EntryGateway> for Country {
     type Error = anyhow::Error;
 
     fn try_from(gateway: &EntryGateway) -> Result<Country, Self::Error> {
-        location_to_country(&gateway.location)
+        proto_location_to_country(&gateway.location)
     }
 }
 
@@ -525,6 +525,6 @@ impl TryFrom<&ExitGateway> for Country {
     type Error = anyhow::Error;
 
     fn try_from(gateway: &ExitGateway) -> Result<Country, Self::Error> {
-        location_to_country(&gateway.location)
+        proto_location_to_country(&gateway.location)
     }
 }

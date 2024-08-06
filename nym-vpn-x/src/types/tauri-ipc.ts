@@ -32,6 +32,7 @@ export type BkdErrorKey =
   | 'ConnectionTimeout'
   | 'ConnectionGatewayLookup'
   | 'ConnectionNoValidCredential'
+  | 'ConnectionSameEntryAndExitGw'
   | 'CredentialInvalid'
   | 'CredentialVpnRunning'
   | 'CredentialAlreadyImported'

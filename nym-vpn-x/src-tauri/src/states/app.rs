@@ -75,6 +75,7 @@ impl TryFrom<(&Db, &AppConfig, &Cli)> for AppState {
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, TS)]
+#[serde(untagged)]
 #[ts(export)]
 pub enum NodeLocation {
     #[default]

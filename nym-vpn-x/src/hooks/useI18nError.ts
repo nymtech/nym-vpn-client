@@ -25,6 +25,8 @@ function useI18nError() {
           return t('connection.gateway-lookup');
         case 'ConnectionNoValidCredential':
           return t('connection.no-valid-credential');
+        case 'ConnectionSameEntryAndExitGw':
+          return t('connection.bad-country-combination');
         case 'CredentialInvalid':
           return t('credential.invalid');
         case 'CredentialVpnRunning':
