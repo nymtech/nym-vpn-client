@@ -235,6 +235,9 @@ pub enum Error {
 
     #[error("failed to find authenticator address")]
     AuthenticatorAddressNotFound,
+
+    #[error("not enough bandwidth")]
+    NotEnoughBandwidth,
 }
 
 // Result type based on our error type

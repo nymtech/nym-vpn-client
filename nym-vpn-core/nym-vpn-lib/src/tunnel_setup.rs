@@ -184,6 +184,10 @@ async fn setup_wg_tunnel(
         entry_mtu,
     )
     .await?;
+
+    if wg_entry_gateway_client.suspended().await? || wg_exit_gateway_client.suspended().await? {
+        return Err(Error::NotEnoughBandwidth);
+    }
     tokio::spawn(
         wg_entry_gateway_client.run(task_manager.subscribe_named("bandwidth_entry_client")),
     );

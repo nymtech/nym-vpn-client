@@ -167,7 +167,7 @@ impl WgGatewayClient {
         Ok(gateway_data)
     }
 
-    async fn query_bandwidth(&mut self) -> Result<()> {
+    async fn query_bandwidth(&mut self) -> Result<bool> {
         let query_message = ClientMessage::Query(PeerPublicKey::new(
             self.keypair.public_key().to_bytes().into(),
         ));
@@ -205,7 +205,11 @@ impl WgGatewayClient {
             }
         }
 
-        Ok(())
+        Ok(remaining_bandwidth_data.suspended)
+    }
+
+    pub async fn suspended(&mut self) -> Result<bool> {
+        self.query_bandwidth().await
     }
 
     pub async fn run(mut self, mut shutdown: TaskClient) {
@@ -221,7 +225,7 @@ impl WgGatewayClient {
                 }
                 _ = timeout_check_interval.next() => {
                     if let Err(e) = self.query_bandwidth().await {
-                        error!("Error querying remaining bandwidth {:?}", e);
+                        warn!("Error querying remaining bandwidth {:?}", e);
                     }
                 }
             }
