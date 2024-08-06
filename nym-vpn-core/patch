@@ -1,0 +1,12 @@
+diff --git a/nym-vpn-core/nym-vpn-lib/src/mixnet_connect.rs b/nym-vpn-core/nym-vpn-lib/src/mixnet_connect.rs
+index 19178f17..6b430557 100644
+--- a/nym-vpn-core/nym-vpn-lib/src/mixnet_connect.rs
++++ b/nym-vpn-core/nym-vpn-lib/src/mixnet_connect.rs
+@@ -119,6 +119,7 @@ pub(crate) async fn setup_mixnet_client(
+         "mixnet client minimum mixnode performance: {}",
+         debug_config.topology.minimum_mixnode_performance,
+     );
++    debug_config.topology.minimum_gateway_performance = 0;
+ 
+     // TODO: add support for two-hop mixnet traffic as a setting on the mixnet_client.
+     // For now it's something we explicitly set on each set InputMessage.

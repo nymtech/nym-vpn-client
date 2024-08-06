@@ -87,6 +87,8 @@ impl AuthClient {
     ) -> Result<AuthenticatorResponse> {
         // Connecting is basically synchronous from the perspective of the mixnet client, so it's safe
         // to just grab ahold of the mutex and keep it until we get the response.
+        // This needs to sit here, before sending the request and dropped after getting the response,
+        // so that it doesn't interfere with message to the other gateway (entry/exit).
         let mut mixnet_client_handle = self.mixnet_client.lock().await;
         let request_id = self
             .send_connect_request(message, authenticator_address)
