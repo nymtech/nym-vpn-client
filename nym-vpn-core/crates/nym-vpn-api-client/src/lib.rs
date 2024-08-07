@@ -1,6 +1,8 @@
 mod client;
 mod error;
+mod headers;
 mod helpers;
+mod jwt;
 pub mod responses;
 mod routes;
 
