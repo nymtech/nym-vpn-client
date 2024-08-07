@@ -212,7 +212,7 @@ impl MixnetListener {
         loop {
             tokio::select! {
                 _ = self.task_client.recv_with_delay() => {
-                    trace!("Mixnet listener: Received shutdown");
+                    warn!("Mixnet listener: Received shutdown");
                     break;
                 }
                 Some(reconstructed_message) = mixnet_client.next() => {
