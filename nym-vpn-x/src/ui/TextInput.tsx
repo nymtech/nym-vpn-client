@@ -17,7 +17,6 @@ type TextInputProps = {
   readonly?: boolean;
 };
 
-/* eslint-disable jsx-a11y/no-autofocus */
 function TextInput({
   value,
   onChange,
