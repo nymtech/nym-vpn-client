@@ -150,7 +150,7 @@ async fn do_ping(
         exit_router_address.gateway().to_base58_string()
     );
     let mut ipr_client = IprClient::new(shared_mixnet_client.clone()).await;
-    let Ok(our_ips) = ipr_client.connect(exit_router_address.0, None, false).await else {
+    let Ok(our_ips) = ipr_client.connect(exit_router_address.0, None).await else {
         return Ok(ProbeOutcome {
             as_entry: Entry::success(),
             as_exit: Some(Exit::fail_to_connect()),

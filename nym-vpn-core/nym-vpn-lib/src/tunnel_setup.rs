@@ -355,7 +355,6 @@ pub async fn setup_tunnel(
             &nym_vpn.data_path(),
             task_manager.subscribe_named("mixnet_client_main"),
             false,
-            nym_vpn.enable_two_hop(),
             nym_vpn.mixnet_client_config(),
         ),
     )

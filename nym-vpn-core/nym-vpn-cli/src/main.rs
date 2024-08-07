@@ -157,7 +157,6 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         gateway_config,
         entry_point: entry_point.clone(),
         exit_point: exit_point.clone(),
-        enable_two_hop: args.enable_two_hop,
         nym_ips,
         nym_mtu: args.nym_mtu,
         dns: args.dns,
