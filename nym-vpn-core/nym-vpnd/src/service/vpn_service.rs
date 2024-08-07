@@ -426,8 +426,8 @@ impl NymVpnService {
         nym_vpn.enable_two_hop = options.enable_two_hop;
         // TODO: add user agent to options struct so we can pass it from the connected client if we
         // want to
-        // nym_vpn.user_agent = Some(bin_info!().into());
-        nym_vpn.user_agent = Some(nym_vpn_lib::nym_bin_common::bin_info_local_vergen!().into());
+        nym_vpn.user_agent = Some(bin_info!().into());
+        // nym_vpn.user_agent = Some(nym_vpn_lib::nym_bin_common::bin_info_local_vergen!().into());
         // nym_vpn.user_agent = Some(nym_vpn_lib::UserAgent {
         //     application: "PLACEHOLDER".to_string(),
         //     version: "PLACEHOLDER".to_string(),
