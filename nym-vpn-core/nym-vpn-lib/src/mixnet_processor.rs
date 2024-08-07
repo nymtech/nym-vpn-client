@@ -361,7 +361,7 @@ impl MixnetListener {
             }
         }
 
-        info!("Mixnet listener: Exiting");
+        debug!("Mixnet listener: Exiting");
         self.tun_device_sink
     }
 
