@@ -1,6 +1,7 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
-import { Button, Dialog, MsIcon } from '../../ui';
+import { LocationDetailsArticle } from '../../constants.ts';
+import { Button, Dialog, Link, MsIcon } from '../../ui';
 import { capFirst } from '../../helpers';
 
 export type Props = {
@@ -29,6 +30,12 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
       <p className="text-center text-cement-feet dark:text-laughing-jack md:text-nowrap max-w-80">
         {t('location-details.description')}
       </p>
+
+      <Link
+        text={t('location-details.link')}
+        url={LocationDetailsArticle}
+        icon
+      />
 
       <Button onClick={onClose} className="mt-2">
         <span className="text-base text-white dark:text-baltic-sea">

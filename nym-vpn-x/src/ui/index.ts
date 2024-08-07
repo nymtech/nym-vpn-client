@@ -15,6 +15,7 @@ export { default as PageAnim } from './PageAnim';
 export { default as RouteLoading } from './RouteLoading';
 export { default as FlagIcon } from './FlagIcon';
 export { default as Notifications } from './Notifications';
+export { default as Link } from './Link';
 export * from './Button';
 export * from './Dialog';
 export * from './FlagIcon';
