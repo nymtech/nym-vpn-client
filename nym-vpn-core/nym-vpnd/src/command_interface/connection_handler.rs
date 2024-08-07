@@ -134,13 +134,13 @@ impl CommandInterfaceConnectionHandler {
     pub(crate) async fn handle_list_entry_gateways(
         &self,
     ) -> Result<Vec<gateways::Gateway>, ListGatewayError> {
-        // let user_agent = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!().into();
-        let user_agent = nym_vpn_lib::UserAgent {
-            application: "PLACEHOLDER".to_string(),
-            version: "PLACEHOLDER".to_string(),
-            platform: "PLACEHOLDER".to_string(),
-            git_commit: "PLACEHOLDER".to_string(),
-        };
+        let user_agent = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!().into();
+        // let user_agent = nym_vpn_lib::UserAgent {
+        //     application: "PLACEHOLDER".to_string(),
+        //     version: "PLACEHOLDER".to_string(),
+        //     platform: "PLACEHOLDER".to_string(),
+        //     git_commit: "PLACEHOLDER".to_string(),
+        // };
         let nym_network_details =
             nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env();
 
