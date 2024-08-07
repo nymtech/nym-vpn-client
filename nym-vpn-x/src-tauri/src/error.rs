@@ -153,6 +153,8 @@ pub enum ErrorKey {
     /// HTTP request failure when fetching countries from the Gateway API
     GetEntryCountriesRequest,
     GetExitCountriesRequest,
+    /// The bandwidth allocation was depleted
+    OutOfBandwidth,
 }
 
 impl From<DaemonError> for ErrorKey {
@@ -164,6 +166,7 @@ impl From<DaemonError> for ErrorKey {
             DaemonError::GatewayDirectorySameEntryAndExitGw => {
                 ErrorKey::ConnectionSameEntryAndExitGw
             }
+            DaemonError::OutOfBandwidth => ErrorKey::OutOfBandwidth,
             _ => ErrorKey::UnknownError,
         }
     }
