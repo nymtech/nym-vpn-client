@@ -37,8 +37,7 @@ pub async fn send_ping_v4(
         MultiIpPacketCodec::bundle_one_packet(ipv4_packet.packet().to_vec().into());
 
     // Wrap into a mixnet input message addressed to the IPR
-    let two_hop = true;
-    let mixnet_message = create_input_message(exit_router_address.0, bundled_packet, two_hop)?;
+    let mixnet_message = create_input_message(exit_router_address.0, bundled_packet)?;
 
     shared_mixnet_client.send(mixnet_message).await?;
     Ok(())
@@ -65,32 +64,25 @@ pub async fn send_ping_v6(
         MultiIpPacketCodec::bundle_one_packet(ipv6_packet.packet().to_vec().into());
 
     // Wrap into a mixnet input message addressed to the IPR
-    let two_hop = true;
-    let mixnet_message = create_input_message(exit_router_address.0, bundled_packet, two_hop)?;
+    let mixnet_message = create_input_message(exit_router_address.0, bundled_packet)?;
 
     // Send across the mixnet
     shared_mixnet_client.send(mixnet_message).await?;
     Ok(())
 }
 
-fn create_input_message(
-    recipient: Recipient,
-    bundled_packets: Bytes,
-    enable_two_hop: bool,
-) -> Result<InputMessage> {
+fn create_input_message(recipient: Recipient, bundled_packets: Bytes) -> Result<InputMessage> {
     let packet =
         nym_ip_packet_requests::request::IpPacketRequest::new_data_request(bundled_packets)
             .to_bytes()?;
 
     let lane = TransmissionLane::General;
     let packet_type = None;
-    let hops = enable_two_hop.then_some(0);
-    Ok(InputMessage::new_regular_with_custom_hops(
+    Ok(InputMessage::new_regular(
         recipient,
         packet,
         lane,
         packet_type,
-        hops,
     ))
 }
 

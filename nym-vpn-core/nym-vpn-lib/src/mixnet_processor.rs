@@ -45,15 +45,11 @@ impl Config {
 
 pub struct MessageCreator {
     recipient: Recipient,
-    enable_two_hop: bool,
 }
 
 impl MessageCreator {
-    pub fn new(recipient: Recipient, enable_two_hop: bool) -> Self {
-        Self {
-            recipient,
-            enable_two_hop,
-        }
+    pub fn new(recipient: Recipient) -> Self {
+        Self { recipient }
     }
 
     pub fn create_input_message(&self, bundled_packets: Bytes) -> Result<InputMessage> {
@@ -61,14 +57,7 @@ impl MessageCreator {
 
         let lane = TransmissionLane::General;
         let packet_type = None;
-        let hops = self.enable_two_hop.then_some(0);
-        let input_message = InputMessage::new_regular_with_custom_hops(
-            self.recipient,
-            packet,
-            lane,
-            packet_type,
-            hops,
-        );
+        let input_message = InputMessage::new_regular(self.recipient, packet, lane, packet_type);
         Ok(input_message)
     }
 }
@@ -80,8 +69,6 @@ pub struct MixnetProcessor {
     ip_packet_router_address: Recipient,
     our_ips: nym_ip_packet_requests::IpPair,
     icmp_beacon_identifier: u16,
-    // TODO: handle this as part of setting up the mixnet client
-    enable_two_hop: bool,
 }
 
 impl MixnetProcessor {
@@ -91,7 +78,6 @@ impl MixnetProcessor {
         connection_monitor: &ConnectionMonitorTask,
         ip_packet_router_address: Recipient,
         our_ips: nym_ip_packet_requests::IpPair,
-        enable_two_hop: bool,
     ) -> Self {
         MixnetProcessor {
             device,
@@ -100,7 +86,6 @@ impl MixnetProcessor {
             ip_packet_router_address,
             our_ips,
             icmp_beacon_identifier: connection_monitor.icmp_beacon_identifier(),
-            enable_two_hop,
         }
     }
 
@@ -130,7 +115,7 @@ impl MixnetProcessor {
         let mut multi_ip_packet_decoder =
             MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
 
-        let message_creator = MessageCreator::new(recipient, self.enable_two_hop);
+        let message_creator = MessageCreator::new(recipient);
 
         info!("Mixnet processor is running");
         while !shutdown.is_shutdown() {
@@ -296,7 +281,6 @@ pub(crate) async fn start_processor(
     dev: AsyncDevice,
     mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,
-    enable_two_hop: bool,
     our_ips: nym_ip_packet_requests::IpPair,
     connection_monitor: &ConnectionMonitorTask,
 ) -> JoinHandle<Result<AsyncDevice>> {
@@ -307,7 +291,6 @@ pub(crate) async fn start_processor(
         connection_monitor,
         config.ip_packet_router_address,
         our_ips,
-        enable_two_hop,
     );
     let shutdown_listener = task_manager.subscribe();
     tokio::spawn(async move {

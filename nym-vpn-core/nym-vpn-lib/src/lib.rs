@@ -164,10 +164,6 @@ pub struct GenericNymVpnConfig {
     /// Mixnet recipient address.
     pub exit_point: ExitPoint,
 
-    /// Enable two-hop mixnet traffic. This means that traffic jumps directly from entry gateway to
-    /// exit gateway.
-    pub enable_two_hop: bool,
-
     /// The IP addresses of the TUN device.
     pub nym_ips: Option<IpPair>,
 
@@ -249,7 +245,6 @@ impl NymVpn<WireguardVpn> {
                 nym_mtu: None,
                 dns: None,
                 disable_routing: false,
-                enable_two_hop: false,
                 user_agent: None,
             },
             vpn_config: WireguardVpn {},
@@ -296,7 +291,6 @@ impl NymVpn<MixnetVpn> {
                 nym_mtu: None,
                 dns: None,
                 disable_routing: false,
-                enable_two_hop: false,
                 user_agent: None,
             },
             vpn_config: MixnetVpn {},
@@ -324,11 +318,7 @@ impl NymVpn<MixnetVpn> {
         // spawn a separate task that handles IPR request/responses.
         let mut ipr_client = IprClient::new_from_inner(mixnet_client.inner()).await;
         let our_ips = ipr_client
-            .connect(
-                exit_mix_addresses.0,
-                self.generic_config.nym_ips,
-                self.generic_config.enable_two_hop,
-            )
+            .connect(exit_mix_addresses.0, self.generic_config.nym_ips)
             .await?;
         info!("Successfully connected to exit gateway");
         info!("Using mixnet VPN IP addresses: {our_ips}");
@@ -381,7 +371,6 @@ impl NymVpn<MixnetVpn> {
             mixnet_tun_dev,
             mixnet_client,
             task_manager,
-            self.generic_config.enable_two_hop,
             our_ips,
             &connection_monitor,
         )
@@ -492,13 +481,6 @@ impl SpecificVpn {
         match self {
             SpecificVpn::Wg(vpn) => vpn.generic_config.exit_point.clone(),
             SpecificVpn::Mix(vpn) => vpn.generic_config.exit_point.clone(),
-        }
-    }
-
-    pub fn enable_two_hop(&self) -> bool {
-        match self {
-            SpecificVpn::Wg(vpn) => vpn.generic_config.enable_two_hop,
-            SpecificVpn::Mix(vpn) => vpn.generic_config.enable_two_hop,
         }
     }
 

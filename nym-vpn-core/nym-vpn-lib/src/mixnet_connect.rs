@@ -131,19 +131,10 @@ pub(crate) async fn setup_mixnet_client(
     mixnet_client_key_storage_path: &Option<PathBuf>,
     mut task_client: nym_task::TaskClient,
     enable_wireguard: bool,
-    enable_two_hop: bool,
     mixnet_client_config: MixnetClientConfig,
 ) -> Result<SharedMixnetClient> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     apply_mixnet_client_config(&mixnet_client_config, &mut debug_config);
-
-    // TODO: add support for two-hop mixnet traffic as a setting on the mixnet_client.
-    // For now it's something we explicitly set on each set InputMessage.
-    // We print it here together with the others.
-    info!(
-        "mixnet client two hop traffic: {}",
-        true_to_enabled(enable_two_hop)
-    );
 
     debug!(
         "mixnet client has wireguard_mode: {}",

@@ -95,7 +95,6 @@ impl IprClient {
         &mut self,
         ip_packet_router_address: Recipient,
         ips: Option<IpPair>,
-        enable_two_hop: bool,
     ) -> Result<IpPair> {
         if self.connected != ConnectionState::Disconnected {
             return Err(Error::AlreadyConnected);
@@ -103,10 +102,7 @@ impl IprClient {
 
         debug!("Sending connect request");
         self.connected = ConnectionState::Connecting;
-        match self
-            .connect_inner(ip_packet_router_address, ips, enable_two_hop)
-            .await
-        {
+        match self.connect_inner(ip_packet_router_address, ips).await {
             Ok(ips) => {
                 debug!("Successfully connected to the ip-packet-router");
                 self.connected = ConnectionState::Connected;
@@ -124,10 +120,9 @@ impl IprClient {
         &mut self,
         ip_packet_router_address: Recipient,
         ips: Option<IpPair>,
-        enable_two_hop: bool,
     ) -> Result<IpPair> {
         let request_id = self
-            .send_connect_request(ip_packet_router_address, ips, enable_two_hop)
+            .send_connect_request(ip_packet_router_address, ips)
             .await?;
 
         debug!("Waiting for reply...");
@@ -138,25 +133,22 @@ impl IprClient {
         &self,
         ip_packet_router_address: Recipient,
         ips: Option<IpPair>,
-        enable_two_hop: bool,
     ) -> Result<u64> {
-        let hops = enable_two_hop.then_some(0);
         let (request, request_id) = if let Some(ips) = ips {
             debug!("Sending static connect request with ips: {ips}");
-            IpPacketRequest::new_static_connect_request(ips, self.nym_address, hops, None, None)
+            IpPacketRequest::new_static_connect_request(ips, self.nym_address, None, None, None)
         } else {
             debug!("Sending dynamic connect request");
-            IpPacketRequest::new_dynamic_connect_request(self.nym_address, hops, None, None)
+            IpPacketRequest::new_dynamic_connect_request(self.nym_address, None, None, None)
         };
         debug!("Sent connect request with version v{}", request.version);
 
         self.mixnet_sender
-            .send(nym_sdk::mixnet::InputMessage::new_regular_with_custom_hops(
+            .send(nym_sdk::mixnet::InputMessage::new_regular(
                 ip_packet_router_address,
                 request.to_bytes().unwrap(),
                 TransmissionLane::General,
                 None,
-                hops,
             ))
             .await?;
 

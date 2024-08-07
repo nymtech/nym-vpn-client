@@ -80,8 +80,7 @@ impl IcmpConnectionBeacon {
             MultiIpPacketCodec::bundle_one_packet(ipv4_packet.packet().to_vec().into());
 
         // Wrap into a mixnet input message addressed to the IPR
-        let two_hop = true;
-        let mixnet_message = create_input_message(self.ipr_address, bundled_packet, two_hop)?;
+        let mixnet_message = create_input_message(self.ipr_address, bundled_packet)?;
 
         // Send across the mixnet
         self.mixnet_client_sender
@@ -107,8 +106,7 @@ impl IcmpConnectionBeacon {
             MultiIpPacketCodec::bundle_one_packet(ipv6_packet.packet().to_vec().into());
 
         // Wrap into a mixnet input message addressed to the IPR
-        let two_hop = true;
-        let mixnet_message = create_input_message(self.ipr_address, bundled_packet, two_hop)?;
+        let mixnet_message = create_input_message(self.ipr_address, bundled_packet)?;
 
         // Send across the mixnet
         self.mixnet_client_sender
@@ -165,22 +163,16 @@ impl IcmpConnectionBeacon {
     }
 }
 
-fn create_input_message(
-    recipient: Recipient,
-    bundled_packets: Bytes,
-    enable_two_hop: bool,
-) -> Result<InputMessage> {
+fn create_input_message(recipient: Recipient, bundled_packets: Bytes) -> Result<InputMessage> {
     let packet = IpPacketRequest::new_data_request(bundled_packets).to_bytes()?;
 
     let lane = TransmissionLane::General;
     let packet_type = None;
-    let hops = enable_two_hop.then_some(0);
-    Ok(InputMessage::new_regular_with_custom_hops(
+    Ok(InputMessage::new_regular(
         recipient,
         packet,
         lane,
         packet_type,
-        hops,
     ))
 }
 

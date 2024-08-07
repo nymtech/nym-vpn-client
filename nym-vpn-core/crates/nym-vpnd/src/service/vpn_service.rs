@@ -430,7 +430,6 @@ impl NymVpnService {
             gateway_config: gateway_directory::Config::new_from_env(),
             entry_point: config.entry_point.clone(),
             exit_point: config.exit_point.clone(),
-            enable_two_hop: options.enable_two_hop,
             nym_ips: None,
             nym_mtu: None,
             dns: options.dns,

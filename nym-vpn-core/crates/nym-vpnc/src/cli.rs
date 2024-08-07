@@ -48,8 +48,8 @@ pub(crate) struct ConnectArgs {
     #[arg(long)]
     pub(crate) disable_routing: bool,
 
-    /// Enable two-hop mixnet traffic. This means that traffic jumps directly from entry gateway to
-    /// exit gateway.
+    /// Enable two-hop wireguard traffic. This means that traffic jumps directly from entry gateway to
+    /// exit gateway using Wireguard protocol.
     #[arg(long)]
     pub(crate) enable_two_hop: bool,
 
