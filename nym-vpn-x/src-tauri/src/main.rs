@@ -16,6 +16,7 @@ use crate::{
 
 use anyhow::{anyhow, Result};
 use clap::Parser;
+use commands::country as cmd_country;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
 use commands::fs as cmd_fs;
@@ -37,9 +38,7 @@ mod envi;
 mod error;
 mod events;
 mod fs;
-mod gateway;
 mod grpc;
-mod http;
 mod log;
 mod states;
 mod system_tray;
@@ -204,10 +203,7 @@ async fn main() -> Result<()> {
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_flush,
-            node_location::get_node_location,
-            node_location::set_node_location,
-            node_location::get_fastest_node_location,
-            node_location::get_countries,
+            cmd_country::get_countries,
             cmd_window::show_main_window,
             commands::cli::cli_args,
             cmd_log::log_js,

@@ -8,7 +8,8 @@
   "connection": {
     "timeout": "Connection timeout",
     "gateway-lookup": "Failed to lookup gateway",
-    "no-valid-credential": "No valid credential, please add a credential first"
+    "no-valid-credential": "No valid credential, please add a credential first",
+    "bad-country-combination": "Unsupported country combination, please change the entry or exit country"
   },
   "credential": {
     "invalid": "Invalid credential",

@@ -1,5 +1,3 @@
-import { Country } from './common';
-
 export type BackendError = {
   message: string;
   key: BkdErrorKey;
@@ -9,8 +7,6 @@ export type BackendError = {
 export type Cli = {
   nosplash: boolean;
 };
-
-export type NodeLocationBackend = 'Fastest' | { Country: Country };
 
 export type DbKey =
   | 'Monitoring'
@@ -36,6 +32,7 @@ export type BkdErrorKey =
   | 'ConnectionTimeout'
   | 'ConnectionGatewayLookup'
   | 'ConnectionNoValidCredential'
+  | 'ConnectionSameEntryAndExitGw'
   | 'CredentialInvalid'
   | 'CredentialVpnRunning'
   | 'CredentialAlreadyImported'

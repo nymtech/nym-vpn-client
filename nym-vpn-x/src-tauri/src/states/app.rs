@@ -6,7 +6,7 @@ use ts_rs::TS;
 
 use crate::{
     cli::Cli,
-    country::{Country, DEFAULT_ENTRY_COUNTRY, DEFAULT_EXIT_COUNTRY},
+    country::Country,
     db::{Db, Key},
     fs::config::AppConfig,
     grpc::client::VpndStatus,
@@ -53,8 +53,6 @@ pub struct AppState {
     pub vpnd_status: VpndStatus,
     pub state: ConnectionState,
     pub vpn_mode: VpnMode,
-    pub entry_node_location: NodeLocation,
-    pub exit_node_location: NodeLocation,
     pub connection_start_time: Option<OffsetDateTime>,
     pub dns_server: Option<String>,
 }
@@ -64,17 +62,11 @@ impl TryFrom<(&Db, &AppConfig, &Cli)> for AppState {
 
     fn try_from(store: (&Db, &AppConfig, &Cli)) -> Result<Self, Self::Error> {
         // retrieve the saved app data from the embedded db
-        let entry_node_location = store.0.get_typed::<NodeLocation>(Key::EntryNodeLocation)?;
-        let exit_node_location = store.0.get_typed::<NodeLocation>(Key::ExitNodeLocation)?;
         let vpn_mode = store.0.get_typed::<VpnMode>(Key::VpnMode)?;
         let dns_server: Option<String> = store.2.dns.clone().or(store.1.dns_server.clone());
 
         // restore any state from the saved app data (previous user session)
         Ok(AppState {
-            entry_node_location: entry_node_location
-                .unwrap_or(NodeLocation::Country(DEFAULT_ENTRY_COUNTRY.clone())),
-            exit_node_location: exit_node_location
-                .unwrap_or(NodeLocation::Country(DEFAULT_EXIT_COUNTRY.clone())),
             vpn_mode: vpn_mode.unwrap_or_default(),
             dns_server,
             ..Default::default()
@@ -83,6 +75,7 @@ impl TryFrom<(&Db, &AppConfig, &Cli)> for AppState {
 }
 
 #[derive(Default, Serialize, Deserialize, Debug, Clone, TS)]
+#[serde(untagged)]
 #[ts(export)]
 pub enum NodeLocation {
     #[default]

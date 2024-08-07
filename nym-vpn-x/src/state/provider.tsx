@@ -9,6 +9,7 @@ import {
 } from '../contexts';
 import { sleep } from '../helpers';
 import { useThrottle } from '../hooks';
+import { kvSet } from '../kvStore';
 import {
   BackendError,
   Cli,
@@ -130,10 +131,10 @@ export function MainStateProvider({ children }: Props) {
         const location =
           countries[Math.floor(Math.random() * countries.length)];
         try {
-          await invoke<void>('set_node_location', {
-            nodeType: hop === 'entry' ? 'Entry' : 'Exit',
-            location: isCountry(location) ? { Country: location } : 'Fastest',
-          });
+          await kvSet<NodeLocation>(
+            hop === 'entry' ? 'EntryNodeLocation' : 'ExitNodeLocation',
+            isCountry(location) ? location : 'Fastest',
+          );
           dispatch({
             type: 'set-node-location',
             payload: { hop, location },

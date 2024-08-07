@@ -11,7 +11,7 @@ import {
   ConnectionState,
   Country,
   DaemonStatus,
-  NodeLocationBackend,
+  NodeLocation,
   OsType,
   StateDispatch,
   ThemeMode,
@@ -44,18 +44,6 @@ const getEntryCountries = async () => {
 };
 const getExitCountries = async () => {
   return await invoke<Country[]>('get_countries', {
-    nodeType: 'Exit',
-  });
-};
-
-// init node locations
-const getEntryNodeLocation = async () => {
-  return await invoke<NodeLocationBackend>('get_node_location', {
-    nodeType: 'Entry',
-  });
-};
-const getExitNodeLocation = async () => {
-  return await invoke<NodeLocationBackend>('get_node_location', {
     nodeType: 'Exit',
   });
 };
@@ -106,17 +94,36 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     },
   };
 
-  const getEntryLocationRq: TauriReq<typeof getEntryNodeLocation> = {
-    name: 'get_node_location',
-    request: () => getEntryNodeLocation(),
+  const getEntryLocationRq: TauriReq<() => Promise<NodeLocation | undefined>> =
+    {
+      name: 'getEntryLocation',
+      request: () => kvGet<NodeLocation>('EntryNodeLocation'),
+      onFulfilled: (location) => {
+        if (location) {
+          dispatch({
+            type: 'set-node-location',
+            payload: {
+              hop: 'entry',
+              location: location === 'Fastest' ? 'Fastest' : location,
+            },
+          });
+        }
+      },
+    };
+
+  const getExitLocationRq: TauriReq<() => Promise<NodeLocation | undefined>> = {
+    name: 'getExitLocation',
+    request: () => kvGet<NodeLocation>('ExitNodeLocation'),
     onFulfilled: (location) => {
-      dispatch({
-        type: 'set-node-location',
-        payload: {
-          hop: 'entry',
-          location: location === 'Fastest' ? 'Fastest' : location.Country,
-        },
-      });
+      if (location) {
+        dispatch({
+          type: 'set-node-location',
+          payload: {
+            hop: 'exit',
+            location: location === 'Fastest' ? 'Fastest' : location,
+          },
+        });
+      }
     },
   };
 
@@ -127,20 +134,6 @@ export async function initFirstBatch(dispatch: StateDispatch) {
       dispatch({
         type: 'set-credential-expiry',
         expiry: expiry ? dayjs(expiry) : null,
-      });
-    },
-  };
-
-  const getExitLocationRq: TauriReq<typeof getExitNodeLocation> = {
-    name: 'get_node_location',
-    request: () => getExitNodeLocation(),
-    onFulfilled: (location) => {
-      dispatch({
-        type: 'set-node-location',
-        payload: {
-          hop: 'exit',
-          location: location === 'Fastest' ? 'Fastest' : location.Country,
-        },
       });
     },
   };

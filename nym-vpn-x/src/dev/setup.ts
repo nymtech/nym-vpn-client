@@ -1,6 +1,6 @@
 import { mockIPC, mockWindows } from '@tauri-apps/api/mocks';
 import { emit } from '@tauri-apps/api/event';
-import { Cli, ConnectionState, DbKey, NodeLocationBackend } from '../types';
+import { Cli, ConnectionState, DbKey } from '../types';
 import { ConnectionEvent } from '../constants';
 import { Country } from '../types';
 
@@ -56,27 +56,6 @@ export function mockTauriIPC() {
             code: 'UN',
           },
         ]),
-      );
-    }
-
-    if (cmd === 'get_node_location') {
-      return new Promise<NodeLocationBackend>((resolve) =>
-        // resolve('Fastest')
-        resolve({
-          Country: {
-            name: 'France',
-            code: 'FR',
-          },
-        }),
-      );
-    }
-
-    if (cmd === 'get_fastest_node_location') {
-      return new Promise<Country>((resolve) =>
-        resolve({
-          name: 'France',
-          code: 'FR',
-        }),
       );
     }
 

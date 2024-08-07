@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { invoke } from '@tauri-apps/api';
 import { useDialog, useMainDispatch, useMainState } from '../../contexts';
+import { kvSet } from '../../kvStore';
 import {
   AppError,
   Country,
@@ -63,13 +63,6 @@ function NodeLocation({ node }: { node: NodeHop }) {
     } else {
       fetchExitCountries();
     }
-    if (FastestFeatureEnabled) {
-      invoke<Country>('get_fastest_node_location')
-        .then((country) => {
-          dispatch({ type: 'set-fastest-node-location', country });
-        })
-        .catch((e: unknown) => console.error(e));
-    }
   }, [node, dispatch, fetchEntryCountries, fetchExitCountries]);
 
   // update the UI country list whenever the country list or
@@ -79,10 +72,6 @@ function NodeLocation({ node }: { node: NodeHop }) {
     const list = [
       ...countryList.map((country) => ({ country, isFastest: false })),
     ];
-    if (FastestFeatureEnabled) {
-      // put fastest country at the first position
-      list.unshift({ country: fastestNodeLocation, isFastest: true });
-    }
     setUiCountryList(list);
     setFilteredCountries(list);
     setSearch('');
@@ -119,10 +108,10 @@ function NodeLocation({ node }: { node: NodeHop }) {
     const location = country.isFastest ? 'Fastest' : country.country;
 
     try {
-      await invoke<void>('set_node_location', {
-        nodeType: node === 'entry' ? 'Entry' : 'Exit',
-        location: isCountry(location) ? { Country: location } : 'Fastest',
-      });
+      await kvSet<TNodeLocation>(
+        node === 'entry' ? 'EntryNodeLocation' : 'ExitNodeLocation',
+        isCountry(location) ? location : 'Fastest',
+      );
       dispatch({
         type: 'set-node-location',
         payload: { hop: node, location },

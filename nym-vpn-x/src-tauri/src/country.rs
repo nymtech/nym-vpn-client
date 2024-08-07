@@ -1,7 +1,6 @@
-use std::fmt;
-
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use ts_rs::TS;
 
 pub static FASTEST_NODE_LOCATION: Lazy<Country> = Lazy::new(|| Country {
@@ -16,12 +15,8 @@ pub static DEFAULT_ENTRY_COUNTRY: Lazy<Country> = Lazy::new(|| Country {
     code: String::from("CH"),
     name: String::from("Switzerland"),
 });
-pub static DEFAULT_EXIT_COUNTRY: Lazy<Country> = Lazy::new(|| Country {
-    code: String::from("FR"),
-    name: String::from("France"),
-});
 
-#[derive(Serialize, Deserialize, Debug, Clone, TS)]
+#[derive(Serialize, Deserialize, Debug, Clone, TS, Eq, PartialEq, Hash)]
 #[ts(export)]
 pub struct Country {
     pub name: String,

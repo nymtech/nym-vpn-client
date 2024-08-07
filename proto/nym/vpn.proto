@@ -168,7 +168,7 @@ message Error {
     ERROR_TYPE_UNSPECIFIED = 0;
 
     // An error that was not explicitly handled by the vpn service. This should
-    // not happend but it will while we interate on mapping out all possible
+    // not happen but it will while we iterate on mapping out all possible
     // error that can happen
     UNHANDLED = 1;
 

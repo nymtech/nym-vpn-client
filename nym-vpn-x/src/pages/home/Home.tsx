@@ -41,7 +41,7 @@ function Home() {
         });
     } else if (state === 'Disconnected') {
       dispatch({ type: 'connect' });
-      invoke('connect')
+      invoke('connect', { entry: entryNodeLocation, exit: exitNodeLocation })
         .then((result) => {
           console.log('connect result');
           console.log(result);
