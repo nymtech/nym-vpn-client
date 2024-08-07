@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { NymDarkOutlineIcon, NymIcon } from '../assets';
+import { PrivacyPolicyUrl, SentryHomePage, ToSUrl } from '../constants';
 import { useMainDispatch, useMainState } from '../contexts';
 import { kvSet } from '../kvStore';
 import { routes } from '../router';
 import { StateDispatch } from '../types';
-import { Button, PageAnim, Switch } from '../ui';
+import { Button, Link, PageAnim, Switch } from '../ui';
 import SettingsGroup from './settings/SettingsGroup';
 
 function Welcome() {
@@ -45,7 +46,11 @@ function Welcome() {
           {`${t('description.part1')} `}
           <span className="underline">{t('description.part2')}</span>
           {` ${t('description.part3')} (${t('via', { ns: 'glossary' })} `}
-          <span className="text-melon">{t('sentry', { ns: 'common' })}</span>
+          <Link
+            text={t('sentry', { ns: 'common' })}
+            url={SentryHomePage}
+            className=""
+          />
           {`) ${t('description.part4')}`}
         </h2>
         <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-80">
@@ -82,10 +87,20 @@ function Welcome() {
           {t('continue-button')}
         </Button>
         <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-80">
-          {t('tos.part1')}
-          <span className="text-black dark:text-white">{` ${t('tos', { ns: 'common' })} `}</span>
-          {t('tos.part2')}
-          <span className="text-black dark:text-white">{` ${t('privacy-statement', { ns: 'common' })}`}</span>
+          {`${t('tos.part1')} `}
+          <Link
+            text={t('tos', { ns: 'common' })}
+            url={ToSUrl}
+            className="text-black dark:text-white"
+            textClassName="underline-offset-2"
+          />
+          {` ${t('tos.part2')} `}
+          <Link
+            text={t('privacy-statement', { ns: 'common' })}
+            url={PrivacyPolicyUrl}
+            className="text-black dark:text-white"
+            textClassName="underline-offset-2"
+          />
           {t('tos.part3')}
         </p>
       </div>

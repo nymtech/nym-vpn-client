@@ -121,7 +121,6 @@ function NetworkModeSelect() {
         isOpen={isDialogModesOpen}
         onClose={() => setIsDialogModesOpen(false)}
       />
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions */}
       <div className="select-none" onClick={handleDisabledState}>
         <RadioGroup
           defaultValue={state.vpnMode}

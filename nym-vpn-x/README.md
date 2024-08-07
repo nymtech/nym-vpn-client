@@ -66,18 +66,7 @@ RUST_LOG=info,nym_vpn_x=trace cargo tauri dev
 In a PowerShell terminal run
 
 ```powershell
-$env:RUST_LOG='debug,nymvpn_x=trace'; cargo tauri dev; $env:RUST_LOG=$null
-```
-
-#### Disabling the splash-screen
-
-While developing, you might want to disable the splash-screen
-to speedup app loading time.
-Either set the `APP_NOSPLASH` env variable to `true` or pass the
-`--nosplash` flag to the app
-
-```shell
-npm run dev:app -- -- -- --nosplash
+$env:RUST_LOG='debug,nym_vpn_x=trace'; cargo tauri dev; $env:RUST_LOG=$null
 ```
 
 ## Dev in the browser
@@ -101,6 +90,10 @@ mock definition into `src/dev/tauri-cmd-mocks/` and update
 ## CLI
 
 We are using [clap](https://docs.rs/clap/latest/clap/) to handle CLI for the app.
+
+```shell
+nymvpn-x --help
+```
 
 In dev mode, you can pass CLI arguments and flags with the `--` separator
 
@@ -153,4 +146,4 @@ For example on Linux the full path would be
 You can find the supported properties in the
 [config schema](https://github.com/nymtech/nym-vpn-client/blob/main/nym-vpn-x/src-tauri/src/fs/config.rs)
 
-**NOTE** All properties are optional
+**NOTE** The config file and all properties are optional

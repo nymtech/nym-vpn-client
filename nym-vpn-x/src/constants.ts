@@ -24,5 +24,8 @@ export const ContactSupportUrl =
   'https://support.nymvpn.com/hc/en-us/requests/new';
 export const ToSUrl = 'https://nymvpn.com/en/terms';
 export const PrivacyPolicyUrl = 'https://nymvpn.com/en/privacy?type=apps';
+export const LocationDetailsArticle =
+  'https://support.nymvpn.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN';
+export const SentryHomePage = 'https://sentry.io/';
 export const CountryCacheDuration = 120000; // 2 minutes
 export const HomeThrottleDelay = 6000;

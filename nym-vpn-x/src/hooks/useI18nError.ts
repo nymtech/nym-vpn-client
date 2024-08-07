@@ -47,7 +47,6 @@ function useI18nError() {
           return t('unknown');
 
         default:
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           console.warn(`Unknown error key: ${key}`);
           return t('unknown');
       }

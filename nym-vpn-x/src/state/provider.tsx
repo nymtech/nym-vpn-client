@@ -154,7 +154,6 @@ export function MainStateProvider({ children }: Props) {
             autoHideDuration: 10000,
           });
         } catch (e) {
-          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           console.warn(`failed to update the selected country: ${e}`);
         }
       }

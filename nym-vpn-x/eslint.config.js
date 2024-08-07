@@ -5,14 +5,18 @@ import pluginReactConfig from 'eslint-plugin-react/configs/recommended.js';
 import { fixupConfigRules, fixupPluginRules } from '@eslint/compat';
 import prettierConfig from 'eslint-config-prettier';
 import hooksPlugin from 'eslint-plugin-react-hooks';
-import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 // TODO add these plugins once support for ESLint 9 is added
 // - react-plugin-import https://github.com/import-js/eslint-plugin-import/pull/3018
 // - eslint-plugin-deprecation https://github.com/gund/eslint-plugin-deprecation/pull/79
+// - eslint-plugin-jsx-a11y https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/issues/978
+// also eslint-plugin-react-hooks has been tagged -> https://github.com/facebook/react/pull/28773
 
 export default [
-  { files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'] },
+  {
+    files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'],
+    ignores: ['*.config.js', '*.config.ts'],
+  },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
@@ -47,7 +51,7 @@ export default [
       },
     },
   },
-  jsxA11y.flatConfigs.recommended,
+  // jsxA11y.flatConfigs.recommended,
   {
     rules: {
       ...hooksPlugin.configs.recommended.rules,
