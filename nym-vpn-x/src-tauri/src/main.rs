@@ -39,7 +39,6 @@ mod error;
 mod events;
 mod fs;
 mod grpc;
-mod http;
 mod log;
 mod states;
 mod system_tray;
