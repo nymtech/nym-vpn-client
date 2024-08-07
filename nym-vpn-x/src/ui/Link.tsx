@@ -8,15 +8,17 @@ type LinkProps = {
   url: string;
   icon?: boolean | string;
   className?: string;
+  textClassName?: string;
 };
 
-function Link({ text, url, icon, className }: LinkProps) {
+function Link({ text, url, icon, className, textClassName }: LinkProps) {
   return (
     <Button
       as="a"
       className={clsx([
         'focus:outline-none select-none cursor-default',
         'flex flex-row items-center gap-1 text-melon',
+        className && className,
       ])}
       onClick={() => open(url)}
     >
@@ -26,7 +28,7 @@ function Link({ text, url, icon, className }: LinkProps) {
             className={clsx([
               hover ? 'underline' : '',
               'decoration-2 underline-offset-4',
-              className && className,
+              textClassName && textClassName,
             ])}
           >
             {text}
