@@ -114,7 +114,7 @@ impl MixnetProcessor {
         debug!("Starting mixnet listener");
         let mixnet_listener = MixnetListener {
             mixnet_client: self.mixnet_client.clone(),
-            task_client: shutdown.clone(),
+            task_client: shutdown.fork("mixnet_listener"),
             tun_device_sink,
             icmp_beacon_identifier: self.icmp_beacon_identifier,
             our_ips: self.our_ips,
@@ -123,10 +123,10 @@ impl MixnetProcessor {
         let tun_device_sink = mixnet_listener.start();
 
         info!("Mixnet processor is running");
-        loop {
+        while !shutdown.is_shutdown() {
             tokio::select! {
                 _ = shutdown.recv_with_delay() => {
-                    info!("MixnetProcessor: Received shutdown");
+                    trace!("MixnetProcessor: Received shutdown");
                     break;
                 }
                 // To make sure we don't wait too long before filling up the buffer, which destroys
@@ -209,10 +209,11 @@ impl MixnetListener {
         let mut multi_ip_packet_decoder =
             MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
 
-        loop {
+        while !self.task_client.is_shutdown() {
             tokio::select! {
+                // _ = self.task_client.recv_with_delay() => {
                 _ = self.task_client.recv_with_delay() => {
-                    warn!("Mixnet listener: Received shutdown");
+                    trace!("Mixnet listener: Received shutdown");
                     break;
                 }
                 Some(reconstructed_message) = mixnet_client.next() => {
