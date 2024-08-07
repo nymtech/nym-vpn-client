@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { NymDarkOutlineIcon, NymIcon } from '../assets';
-import { PrivacyPolicyUrl, SentryHomePage, ToSUrl } from '../constants.ts';
+import { PrivacyPolicyUrl, SentryHomePage, ToSUrl } from '../constants';
 import { useMainDispatch, useMainState } from '../contexts';
 import { kvSet } from '../kvStore';
 import { routes } from '../router';
