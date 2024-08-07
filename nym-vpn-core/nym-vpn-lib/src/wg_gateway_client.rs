@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::error::Result;
+use crate::error::*;
 use nym_authenticator_client::AuthClient;
 use nym_authenticator_requests::v1::response::{
     AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
@@ -16,7 +16,7 @@ use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
 use nym_pemstore::KeyPairPath;
 use nym_sdk::TaskClient;
 use nym_wireguard_types::registration::RegistrationData;
-use nym_wireguard_types::GatewayClient;
+use nym_wireguard_types::{GatewayClient, DEFAULT_PEER_TIMEOUT_CHECK};
 use rand::rngs::OsRng;
 use rand::{CryptoRng, RngCore};
 use std::net::{IpAddr, SocketAddr};
@@ -24,6 +24,7 @@ use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Duration;
 use talpid_types::net::wireguard::PublicKey;
+use tokio_stream::wrappers::IntervalStream;
 use tokio_stream::StreamExt;
 use tracing::*;
 
@@ -31,7 +32,8 @@ const DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME: &str = "private_entry_wiregu
 const DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME: &str = "public_entry_wireguard.pem";
 const DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME: &str = "private_exit_wireguard.pem";
 const DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME: &str = "public_exit_wireguard.pem";
-const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(60); // 1 minute
+const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(10); // 10 seconds
+const ASSUMED_BANDWIDTH_DEPLETION_RATE: u64 = 10 * 1024 * 1024; // 10 MB/s
 
 #[derive(Clone, Debug)]
 pub struct GatewayData {
@@ -147,12 +149,12 @@ impl WgGatewayClient {
                 let AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) =
                     response.data
                 else {
-                    return Err(crate::error::Error::InvalidGatewayAuthResponse);
+                    return Err(Error::InvalidGatewayAuthResponse);
                 };
                 reply
             }
             AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) => reply,
-            _ => return Err(crate::error::Error::InvalidGatewayAuthResponse),
+            _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
         let gateway_data = GatewayData {
@@ -167,7 +169,7 @@ impl WgGatewayClient {
         Ok(gateway_data)
     }
 
-    async fn query_bandwidth(&mut self) -> Result<bool> {
+    async fn query_bandwidth(&mut self) -> Result<Option<u64>> {
         let query_message = ClientMessage::Query(PeerPublicKey::new(
             self.keypair.public_key().to_bytes().into(),
         ));
@@ -184,12 +186,13 @@ impl WgGatewayClient {
             AuthenticatorResponseData::RemainingBandwidth(RemainingBandwidthResponse {
                 reply: None,
                 ..
-            }) => return Ok(false),
-            _ => return Err(crate::error::Error::InvalidGatewayAuthResponse),
+            }) => return Ok(Some(0)),
+            _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
         if remaining_bandwidth_data.suspended {
             warn!("Wireguard access to gateway {} is suspended until tomorrow, UTC time. The client will shutdown", self.auth_recipient.gateway());
+            Ok(None)
         } else {
             let remaining_pretty = if remaining_bandwidth_data.available_bandwidth > 1024 * 1024 {
                 format!(
@@ -207,19 +210,17 @@ impl WgGatewayClient {
             if remaining_bandwidth_data.available_bandwidth < 1024 * 1024 {
                 warn!("Remaining bandwidth is under 1 MB. The wireguard mode will get suspended after that until tomorrow, UTC time. The client might shutdown with timeout soon");
             }
+            Ok(Some(remaining_bandwidth_data.available_bandwidth))
         }
-
-        Ok(remaining_bandwidth_data.suspended)
     }
 
     pub async fn suspended(&mut self) -> Result<bool> {
-        self.query_bandwidth().await
+        Ok(self.query_bandwidth().await?.is_none())
     }
 
     pub async fn run(mut self, mut shutdown: TaskClient) {
-        let mut timeout_check_interval = tokio_stream::wrappers::IntervalStream::new(
-            tokio::time::interval(DEFAULT_BANDWIDTH_CHECK),
-        );
+        let mut timeout_check_interval =
+            IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
         // Skip the first, immediate tick
         timeout_check_interval.next().await;
         while !shutdown.is_shutdown() {
@@ -228,12 +229,44 @@ impl WgGatewayClient {
                     trace!("WgGatewayClient: Received shutdown");
                 }
                 _ = timeout_check_interval.next() => {
-                    if let Err(e) = self.query_bandwidth().await {
-                        warn!("Error querying remaining bandwidth {:?}", e);
+                    match self.query_bandwidth().await {
+                        Err(e) => warn!("Error querying remaining bandwidth {:?}", e),
+                        Ok(Some(remaining_bandwidth)) => {
+                            match update_dynamic_check_interval(remaining_bandwidth) {
+                                Some(new_interval) => {
+                                    timeout_check_interval = new_interval;
+                                    // skip the next beat, which takes place immediately
+                                    timeout_check_interval.next().await;
+                                }
+                                None => {
+                                    shutdown.send_we_stopped(Box::new(Error::OutOfBandwidth));
+                                }
+                            }
+                        },
+                        Ok(None) => {},
                     }
                 }
             }
         }
+    }
+}
+
+fn update_dynamic_check_interval(remaining_bandwidth: u64) -> Option<IntervalStream> {
+    let estimated_depletion_secs = remaining_bandwidth / ASSUMED_BANDWIDTH_DEPLETION_RATE;
+    // try and have 10 logs before depletion...
+    let next_timeout_secs = estimated_depletion_secs / 10;
+    if next_timeout_secs == 0 {
+        return None;
+    }
+    // ... but not faster then the gateway bandwidth refresh
+    if next_timeout_secs > DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
+        Some(IntervalStream::new(tokio::time::interval(
+            Duration::from_secs(next_timeout_secs),
+        )))
+    } else {
+        Some(IntervalStream::new(tokio::time::interval(
+            DEFAULT_PEER_TIMEOUT_CHECK,
+        )))
     }
 }
 

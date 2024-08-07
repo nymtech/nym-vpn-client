@@ -261,6 +261,7 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::AuthenticationNotPossible(_)
             | nym_vpn_lib::error::Error::AuthenticatorAddressNotFound
             | nym_vpn_lib::error::Error::NotEnoughBandwidth
+            | nym_vpn_lib::error::Error::OutOfBandwidth
             | nym_vpn_lib::error::Error::BadWireguardEvent => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
             }
