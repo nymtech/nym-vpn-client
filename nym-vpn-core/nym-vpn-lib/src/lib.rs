@@ -20,7 +20,7 @@ use nym_gateway_directory::{
 };
 use nym_ip_packet_client::IprClient;
 use nym_task::TaskManager;
-use std::net::{IpAddr, Ipv4Addr};
+use std::net::IpAddr;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use talpid_core::dns::DnsMonitor;
@@ -107,13 +107,7 @@ struct ShadowHandle {
 
 pub struct MixnetVpn {}
 
-pub struct WireguardVpn {
-    /// The IP address of the entry wireguard interface.
-    pub entry_wg_ip: Option<Ipv4Addr>,
-
-    /// The IP address of the exit wireguard interface.
-    pub exit_wg_ip: Option<Ipv4Addr>,
-}
+pub struct WireguardVpn {}
 
 pub trait Vpn {}
 
@@ -251,10 +245,7 @@ impl NymVpn<WireguardVpn> {
             disable_routing: false,
             enable_two_hop: false,
             user_agent: None,
-            vpn_config: WireguardVpn {
-                entry_wg_ip: None,
-                exit_wg_ip: None,
-            },
+            vpn_config: WireguardVpn {},
             tun_provider,
             #[cfg(target_os = "ios")]
             ios_tun_provider,
