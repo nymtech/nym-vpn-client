@@ -10,8 +10,8 @@ use std::{path::PathBuf, sync::OnceLock};
 // Helper for passing LONG_VERSION to clap
 fn pretty_build_info_static() -> &'static str {
     static PRETTY_BUILD_INFORMATION: OnceLock<String> = OnceLock::new();
-    // PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info_local_vergen!().pretty_print())
-    PRETTY_BUILD_INFORMATION.get_or_init(|| "PLACEHOLDER".to_string())
+    PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info_local_vergen!().pretty_print())
+    // PRETTY_BUILD_INFORMATION.get_or_init(|| "PLACEHOLDER".to_string())
 }
 
 #[derive(Parser, Clone, Debug)]
