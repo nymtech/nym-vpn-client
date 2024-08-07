@@ -83,7 +83,7 @@ impl MixnetProcessor {
         }
     }
 
-    pub async fn run(self, mut shutdown: TaskClient) -> Result<AsyncDevice> {
+    pub async fn run(self, mut task_client: TaskClient) -> Result<AsyncDevice> {
         info!(
             "Opened mixnet processor on tun device {}",
             self.device.as_ref().tun_name().unwrap(),
@@ -110,20 +110,21 @@ impl MixnetProcessor {
         // is another subscription from the TaskManager to be able to listen to the shutdown event
         // in both tasks independently.
         debug!("Starting mixnet listener");
-        let mixnet_listener = MixnetListener {
-            mixnet_client: self.mixnet_client.clone(),
-            task_client: shutdown.fork("mixnet_listener"),
+        let mixnet_listener = MixnetListener::new(
+            self.mixnet_client,
+            task_client.fork("mixnet_listener"),
             tun_device_sink,
-            icmp_beacon_identifier: self.icmp_beacon_identifier,
-            our_ips: self.our_ips,
-            connection_event_tx: self.connection_event_tx.clone(),
-        };
-        let tun_device_sink = mixnet_listener.start();
+            self.icmp_beacon_identifier,
+            self.our_ips,
+            self.connection_event_tx.clone(),
+        )
+        .await;
+        let mixnet_listener_handle = mixnet_listener.start();
 
         info!("Mixnet processor is running");
-        while !shutdown.is_shutdown() {
+        while !task_client.is_shutdown() {
             tokio::select! {
-                _ = shutdown.recv_with_delay() => {
+                _ = task_client.recv_with_delay() => {
                     trace!("MixnetProcessor: Received shutdown");
                     break;
                 }
@@ -135,7 +136,7 @@ impl MixnetProcessor {
                     match message_creator.create_input_message(bundled_packets) {
                         Ok(input_message) => {
                             let ret = sender.send(input_message).await;
-                            if ret.is_err() && !shutdown.is_shutdown_poll() {
+                            if ret.is_err() && !task_client.is_shutdown_poll() {
                                 error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
                             }
                         }
@@ -152,7 +153,7 @@ impl MixnetProcessor {
                         match message_creator.create_input_message(input_message) {
                             Ok(input_message) => {
                                 let ret = sender.send(input_message).await;
-                                if ret.is_err() && !shutdown.is_shutdown_poll() {
+                                if ret.is_err() && !task_client.is_shutdown_poll() {
                                     error!("Could not forward IP packet to the mixnet. The packet(s) will be dropped.");
                                 }
                             }
@@ -164,14 +165,13 @@ impl MixnetProcessor {
                 }
                 else => {
                     error!("Mixnet processor: tun device stream ended");
-                    // Consider breaking here
-                    //break;
+                    break;
                 }
             }
         }
 
-        warn!("Waiting for mixnet listener to finish");
-        let tun_device_sink = tun_device_sink.await.unwrap();
+        info!("Waiting for mixnet listener to finish");
+        let tun_device_sink = mixnet_listener_handle.await.unwrap();
 
         debug!("MixnetProcessor: Exiting");
         Ok(tun_device_sink
@@ -181,23 +181,87 @@ impl MixnetProcessor {
     }
 }
 
+// The mixnet listener is responsible for listening for incoming mixnet messages from the mixnet
+// client, and if they contain IP packets, forward them to the tun device.
 struct MixnetListener {
+    // Mixnet client for receiving messages
     mixnet_client: SharedMixnetClient,
+
+    // Task client for receiving shutdown signals
     task_client: TaskClient,
+
+    // Sink for sending packets to the tun device
     tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>>,
+
+    // Identifier for ICMP beacon
     icmp_beacon_identifier: u16,
+
+    // Our IP addresses
     our_ips: IpPair,
+
+    // Connection event sender
     connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
+
+    // Our mixnet address
+    our_address: Recipient,
 }
 
 impl MixnetListener {
+    async fn new(
+        mixnet_client: SharedMixnetClient,
+        task_client: TaskClient,
+        tun_device_sink: SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>>,
+        icmp_beacon_identifier: u16,
+        our_ips: IpPair,
+        connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
+    ) -> Self {
+        let our_address = mixnet_client.nym_address().await;
+
+        Self {
+            mixnet_client,
+            task_client,
+            tun_device_sink,
+            icmp_beacon_identifier,
+            our_ips,
+            connection_event_tx,
+            our_address,
+        }
+    }
+
+    fn send_connection_event(&self, event: ConnectionStatusEvent) {
+        let res = self.connection_event_tx.unbounded_send(event);
+        if res.is_err() && !self.task_client.is_shutdown() {
+            error!("Failed to send connection event to connection monitor");
+        }
+    }
+
+    fn check_for_mix_self_ping(&self, request: &IpPacketRequest) {
+        match request.data {
+            IpPacketRequestData::Ping(ref ping_request)
+                if ping_request.reply_to == self.our_address =>
+            {
+                self.send_connection_event(ConnectionStatusEvent::MixnetSelfPing);
+            }
+            ref request => {
+                debug!("Received unexpected request: {request:?}");
+            }
+        }
+    }
+
+    fn check_for_icmp_beacon_reply(&self, packet: &Bytes) {
+        if let Some(connection_event) =
+            check_for_icmp_beacon_reply(packet, self.icmp_beacon_identifier, self.our_ips)
+        {
+            self.send_connection_event(connection_event);
+        }
+    }
+
     async fn handle_reconstructed_message(
         &self,
-        reconstructed_message: ReconstructedMessage,
+        message: ReconstructedMessage,
         multi_ip_packet_decoder: &mut MultiIpPacketCodec,
-        our_address: &Recipient,
-    ) -> Result<Option<Response>> {
-        match IpPacketResponse::from_reconstructed_message(&reconstructed_message) {
+    ) -> Result<Option<MixnetMessageOutcome>> {
+        match IpPacketResponse::from_reconstructed_message(&message) {
             Ok(response) => match response.data {
                 IpPacketResponseData::StaticConnect(_) => {
                     info!("Received static connect response when already connected - ignoring");
@@ -218,23 +282,14 @@ impl MixnetListener {
                     let mut bytes = BytesMut::from(&*data_response.ip_packet);
                     let mut responses = vec![];
                     while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
-                        // Check if the packet is an ICMP ping reply to our beacon
-                        if let Some(connection_event) = check_for_icmp_beacon_reply(
-                            &packet,
-                            self.icmp_beacon_identifier,
-                            self.our_ips,
-                        ) {
-                            let res = self.connection_event_tx.unbounded_send(connection_event);
-                            if res.is_err() && !self.task_client.is_shutdown() {
-                                error!("Failed to send connection event to connection monitor");
-                            }
-                        }
+                        self.check_for_icmp_beacon_reply(&packet);
 
-                        // Consider not including packets that are ICMP ping replies
-                        // to our beacon in the responses
+                        // Consider not including packets that are ICMP ping replies to our beacon
+                        // in the responses. We are defensive here just in case we incorrectly
+                        // label real packets as ping replies to our beacon.
                         responses.push(packet);
                     }
-                    return Ok(Some(Response::IpPackets(responses)));
+                    return Ok(Some(MixnetMessageOutcome::IpPackets(responses)));
                 }
                 IpPacketResponseData::Pong(_) => {
                     info!("Received pong response, ignoring for now");
@@ -254,24 +309,8 @@ impl MixnetListener {
             Err(err) => {
                 // The exception to when we are not expecting a response, is when we
                 // are sending a ping to ourselves.
-                if let Ok(request) =
-                    IpPacketRequest::from_reconstructed_message(&reconstructed_message)
-                {
-                    match request.data {
-                        IpPacketRequestData::Ping(ref ping_request)
-                            if &ping_request.reply_to == our_address =>
-                        {
-                            let res = self
-                                .connection_event_tx
-                                .unbounded_send(ConnectionStatusEvent::MixnetSelfPing);
-                            if res.is_err() && !self.task_client.is_shutdown() {
-                                error!("Failed to send connection event to connection monitor");
-                            }
-                        }
-                        ref request => {
-                            info!("Received unexpected request: {request:?}");
-                        }
-                    }
+                if let Ok(request) = IpPacketRequest::from_reconstructed_message(&message) {
+                    self.check_for_mix_self_ping(&request);
                 } else {
                     warn!("Failed to deserialize reconstructed message: {err}");
                 }
@@ -281,14 +320,11 @@ impl MixnetListener {
     }
 
     async fn run(mut self) -> SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>> {
-        let our_address = self.mixnet_client.nym_address().await;
-
-        // We are the only one listening when this is active
+        // We are the only one listening for mixnet messages when this is active
         let mut mixnet_client_binding = self.mixnet_client.lock().await;
         let mixnet_client = mixnet_client_binding.as_mut().unwrap();
 
-        let mut multi_ip_packet_decoder =
-            MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
+        let mut decoder = MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
 
         while !self.task_client.is_shutdown() {
             tokio::select! {
@@ -297,15 +333,15 @@ impl MixnetListener {
                     break;
                 }
                 Some(reconstructed_message) = mixnet_client.next() => {
-                    // Check version of request
+                    // We're just going to assume that all incoming messags are IPR messages
                     if let Some(version) = reconstructed_message.message.first() {
                         if *version != nym_ip_packet_requests::CURRENT_VERSION {
                             error!("Received packet with invalid version: v{version}, is your client up to date?");
                             continue;
                         }
                     }
-                    match self.handle_reconstructed_message(reconstructed_message, &mut multi_ip_packet_decoder, &our_address).await {
-                        Ok(Some(Response::IpPackets(packets))) => {
+                    match self.handle_reconstructed_message(reconstructed_message, &mut decoder).await {
+                        Ok(Some(MixnetMessageOutcome::IpPackets(packets))) => {
                             for packet in packets {
                                 if let Err(err) = self.tun_device_sink.send(packet.into()).await {
                                     error!("Failed to send packet to tun device: {err}");
@@ -320,8 +356,7 @@ impl MixnetListener {
                 }
                 else => {
                     error!("Mixnet listener: mixnet stream ended");
-                    // Consider breaking here
-                    //break;
+                    break;
                 }
             }
         }
@@ -335,11 +370,11 @@ impl MixnetListener {
     }
 }
 
-enum Response {
+enum MixnetMessageOutcome {
     IpPackets(Vec<Bytes>),
 }
 
-pub fn check_for_icmp_beacon_reply(
+fn check_for_icmp_beacon_reply(
     packet: &Bytes,
     icmp_beacon_identifier: u16,
     our_ips: IpPair,
