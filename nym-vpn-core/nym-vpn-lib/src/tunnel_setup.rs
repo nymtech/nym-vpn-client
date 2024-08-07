@@ -158,12 +158,15 @@ async fn setup_wg_tunnel(
     let auth_client = AuthClient::new_from_inner(mixnet_client.inner()).await;
     log::info!("Created wg gateway clients");
     let mut wg_entry_gateway_client = WgGatewayClient::new_entry(
-        &nym_vpn.data_path,
+        &nym_vpn.generic_config.data_path,
         auth_client.clone(),
         entry_auth_recipient,
     );
-    let mut wg_exit_gateway_client =
-        WgGatewayClient::new_exit(&nym_vpn.data_path, auth_client.clone(), exit_auth_recipient);
+    let mut wg_exit_gateway_client = WgGatewayClient::new_exit(
+        &nym_vpn.generic_config.data_path,
+        auth_client.clone(),
+        exit_auth_recipient,
+    );
 
     let (mut exit_wireguard_config, _) = init_wireguard_config(
         &gateway_directory_client,
@@ -203,7 +206,7 @@ async fn setup_wg_tunnel(
         );
     });
     // If routing is disabled, we don't append the catch all routing rules
-    if !nym_vpn.disable_routing {
+    if !nym_vpn.generic_config.disable_routing {
         exit_wireguard_config.0.peers.iter_mut().for_each(|peer| {
             peer.allowed_ips
                 .append(&mut replace_default_prefixes(catch_all_ipv4()));

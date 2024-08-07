@@ -149,7 +149,7 @@ pub struct MixnetClientConfig {
     pub min_gateway_performance: Option<u8>,
 }
 
-pub struct NymVpn<T: Vpn> {
+pub struct GenericNymVpnConfig {
     pub mixnet_client_config: MixnetClientConfig,
 
     /// Path to the data directory, where keys reside.
@@ -168,9 +168,6 @@ pub struct NymVpn<T: Vpn> {
     /// exit gateway.
     pub enable_two_hop: bool,
 
-    /// VPN configuration, depending on the type used
-    pub vpn_config: T,
-
     /// The IP addresses of the TUN device.
     pub nym_ips: Option<IpPair>,
 
@@ -186,6 +183,14 @@ pub struct NymVpn<T: Vpn> {
     /// The user agent to use for HTTP requests. This includes client name, version, platform and
     /// git commit hash.
     pub user_agent: Option<UserAgent>,
+}
+
+pub struct NymVpn<T: Vpn> {
+    /// VPN configuration, independent of the type used
+    pub generic_config: GenericNymVpnConfig,
+
+    /// VPN configuration, depending on the type used
+    pub vpn_config: T,
 
     tun_provider: Arc<Mutex<TunProvider>>,
 
@@ -228,23 +233,25 @@ impl NymVpn<WireguardVpn> {
         )));
 
         Self {
-            mixnet_client_config: MixnetClientConfig {
-                enable_poisson_rate: false,
-                disable_background_cover_traffic: false,
-                enable_credentials_mode: false,
-                min_mixnode_performance: None,
-                min_gateway_performance: None,
+            generic_config: GenericNymVpnConfig {
+                mixnet_client_config: MixnetClientConfig {
+                    enable_poisson_rate: false,
+                    disable_background_cover_traffic: false,
+                    enable_credentials_mode: false,
+                    min_mixnode_performance: None,
+                    min_gateway_performance: None,
+                },
+                data_path: None,
+                gateway_config: nym_gateway_directory::Config::default(),
+                entry_point,
+                exit_point,
+                nym_ips: None,
+                nym_mtu: None,
+                dns: None,
+                disable_routing: false,
+                enable_two_hop: false,
+                user_agent: None,
             },
-            data_path: None,
-            gateway_config: nym_gateway_directory::Config::default(),
-            entry_point,
-            exit_point,
-            nym_ips: None,
-            nym_mtu: None,
-            dns: None,
-            disable_routing: false,
-            enable_two_hop: false,
-            user_agent: None,
             vpn_config: WireguardVpn {},
             tun_provider,
             #[cfg(target_os = "ios")]
@@ -273,23 +280,25 @@ impl NymVpn<MixnetVpn> {
         )));
 
         Self {
-            mixnet_client_config: MixnetClientConfig {
-                enable_poisson_rate: false,
-                disable_background_cover_traffic: false,
-                enable_credentials_mode: false,
-                min_mixnode_performance: None,
-                min_gateway_performance: None,
+            generic_config: GenericNymVpnConfig {
+                mixnet_client_config: MixnetClientConfig {
+                    enable_poisson_rate: false,
+                    disable_background_cover_traffic: false,
+                    enable_credentials_mode: false,
+                    min_mixnode_performance: None,
+                    min_gateway_performance: None,
+                },
+                data_path: None,
+                gateway_config: nym_gateway_directory::Config::default(),
+                entry_point,
+                exit_point,
+                nym_ips: None,
+                nym_mtu: None,
+                dns: None,
+                disable_routing: false,
+                enable_two_hop: false,
+                user_agent: None,
             },
-            data_path: None,
-            gateway_config: nym_gateway_directory::Config::default(),
-            entry_point,
-            exit_point,
-            nym_ips: None,
-            nym_mtu: None,
-            dns: None,
-            disable_routing: false,
-            enable_two_hop: false,
-            user_agent: None,
             vpn_config: MixnetVpn {},
             tun_provider,
             #[cfg(target_os = "ios")]
@@ -315,7 +324,11 @@ impl NymVpn<MixnetVpn> {
         // spawn a separate task that handles IPR request/responses.
         let mut ipr_client = IprClient::new_from_inner(mixnet_client.inner()).await;
         let our_ips = ipr_client
-            .connect(exit_mix_addresses.0, self.nym_ips, self.enable_two_hop)
+            .connect(
+                exit_mix_addresses.0,
+                self.generic_config.nym_ips,
+                self.generic_config.enable_two_hop,
+            )
             .await?;
         info!("Successfully connected to exit gateway");
         info!("Using mixnet VPN IP addresses: {our_ips}");
@@ -349,7 +362,7 @@ impl NymVpn<MixnetVpn> {
             #[cfg(target_os = "ios")]
             self.ios_tun_provider.clone(),
             dns_monitor,
-            self.dns,
+            self.generic_config.dns,
         )
         .await?;
 
@@ -368,7 +381,7 @@ impl NymVpn<MixnetVpn> {
             mixnet_tun_dev,
             mixnet_client,
             task_manager,
-            self.enable_two_hop,
+            self.generic_config.enable_two_hop,
             our_ips,
             &connection_monitor,
         )
@@ -449,50 +462,50 @@ impl<T: Vpn> NymVpn<T> {
 impl SpecificVpn {
     pub fn mixnet_client_config(&self) -> MixnetClientConfig {
         match self {
-            SpecificVpn::Wg(vpn) => vpn.mixnet_client_config.clone(),
-            SpecificVpn::Mix(vpn) => vpn.mixnet_client_config.clone(),
+            SpecificVpn::Wg(vpn) => vpn.generic_config.mixnet_client_config.clone(),
+            SpecificVpn::Mix(vpn) => vpn.generic_config.mixnet_client_config.clone(),
         }
     }
 
     pub fn data_path(&self) -> Option<PathBuf> {
         match self {
-            SpecificVpn::Wg(vpn) => vpn.data_path.clone(),
-            SpecificVpn::Mix(vpn) => vpn.data_path.clone(),
+            SpecificVpn::Wg(vpn) => vpn.generic_config.data_path.clone(),
+            SpecificVpn::Mix(vpn) => vpn.generic_config.data_path.clone(),
         }
     }
 
     pub fn gateway_config(&self) -> GatewayDirectoryConfig {
         match self {
-            SpecificVpn::Wg(vpn) => vpn.gateway_config.clone(),
-            SpecificVpn::Mix(vpn) => vpn.gateway_config.clone(),
+            SpecificVpn::Wg(vpn) => vpn.generic_config.gateway_config.clone(),
+            SpecificVpn::Mix(vpn) => vpn.generic_config.gateway_config.clone(),
         }
     }
 
     pub fn entry_point(&self) -> EntryPoint {
         match self {
-            SpecificVpn::Wg(vpn) => vpn.entry_point.clone(),
-            SpecificVpn::Mix(vpn) => vpn.entry_point.clone(),
+            SpecificVpn::Wg(vpn) => vpn.generic_config.entry_point.clone(),
+            SpecificVpn::Mix(vpn) => vpn.generic_config.entry_point.clone(),
         }
     }
 
     pub fn exit_point(&self) -> ExitPoint {
         match self {
-            SpecificVpn::Wg(vpn) => vpn.exit_point.clone(),
-            SpecificVpn::Mix(vpn) => vpn.exit_point.clone(),
+            SpecificVpn::Wg(vpn) => vpn.generic_config.exit_point.clone(),
+            SpecificVpn::Mix(vpn) => vpn.generic_config.exit_point.clone(),
         }
     }
 
     pub fn enable_two_hop(&self) -> bool {
         match self {
-            SpecificVpn::Wg(vpn) => vpn.enable_two_hop,
-            SpecificVpn::Mix(vpn) => vpn.enable_two_hop,
+            SpecificVpn::Wg(vpn) => vpn.generic_config.enable_two_hop,
+            SpecificVpn::Mix(vpn) => vpn.generic_config.enable_two_hop,
         }
     }
 
     pub fn user_agent(&self) -> Option<UserAgent> {
         match self {
-            SpecificVpn::Wg(vpn) => vpn.user_agent.clone(),
-            SpecificVpn::Mix(vpn) => vpn.user_agent.clone(),
+            SpecificVpn::Wg(vpn) => vpn.generic_config.user_agent.clone(),
+            SpecificVpn::Mix(vpn) => vpn.generic_config.user_agent.clone(),
         }
     }
 

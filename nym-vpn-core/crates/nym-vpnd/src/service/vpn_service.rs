@@ -11,7 +11,7 @@ use futures::SinkExt;
 use nym_vpn_lib::credentials::import_credential;
 use nym_vpn_lib::gateway_directory::{self, EntryPoint, ExitPoint};
 use nym_vpn_lib::nym_bin_common::bin_info;
-use nym_vpn_lib::{NodeIdentity, Recipient};
+use nym_vpn_lib::{GenericNymVpnConfig, MixnetClientConfig, NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
 use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
@@ -116,6 +116,7 @@ pub(crate) struct ConnectOptions {
     pub(crate) disable_background_cover_traffic: bool,
     pub(crate) enable_credentials_mode: bool,
     pub(crate) min_mixnode_performance: Option<u8>,
+    pub(crate) wireguard_mode: bool,
 }
 
 #[derive(Debug)]
@@ -418,24 +419,39 @@ impl NymVpnService {
             }
         }
 
-        let mut nym_vpn =
-            nym_vpn_lib::NymVpn::new_mixnet_vpn(config.entry_point, config.exit_point);
-        nym_vpn.gateway_config = gateway_directory::Config::new_from_env();
-        nym_vpn.data_path = Some(self.data_dir.clone());
-        nym_vpn.dns = options.dns;
-        nym_vpn.disable_routing = options.disable_routing;
-        nym_vpn.enable_two_hop = options.enable_two_hop;
-        // TODO: add user agent to options struct so we can pass it from the connected client if we
-        // want to
-        nym_vpn.user_agent = Some(bin_info!().into());
-        nym_vpn.mixnet_client_config.enable_poisson_rate = options.enable_poisson_rate;
-        nym_vpn
-            .mixnet_client_config
-            .disable_background_cover_traffic = options.disable_background_cover_traffic;
-        nym_vpn.mixnet_client_config.enable_credentials_mode = options.enable_credentials_mode;
-        nym_vpn.mixnet_client_config.min_mixnode_performance = options.min_mixnode_performance;
+        let generic_config = GenericNymVpnConfig {
+            mixnet_client_config: MixnetClientConfig {
+                enable_poisson_rate: options.enable_poisson_rate,
+                disable_background_cover_traffic: options.disable_background_cover_traffic,
+                enable_credentials_mode: options.enable_credentials_mode,
+                min_mixnode_performance: options.min_mixnode_performance,
+                min_gateway_performance: None,
+            },
+            data_path: Some(self.data_dir.clone()),
+            gateway_config: gateway_directory::Config::new_from_env(),
+            entry_point: config.entry_point.clone(),
+            exit_point: config.exit_point.clone(),
+            enable_two_hop: options.enable_two_hop,
+            nym_ips: None,
+            nym_mtu: None,
+            dns: options.dns,
+            disable_routing: options.disable_routing,
+            user_agent: Some(bin_info!().into()),
+        };
 
-        let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn.into()).unwrap();
+        let nym_vpn = if options.wireguard_mode {
+            let mut nym_vpn =
+                nym_vpn_lib::NymVpn::new_wireguard_vpn(config.entry_point, config.exit_point);
+            nym_vpn.generic_config = generic_config;
+            nym_vpn.into()
+        } else {
+            let mut nym_vpn =
+                nym_vpn_lib::NymVpn::new_mixnet_vpn(config.entry_point, config.exit_point);
+            nym_vpn.generic_config = generic_config;
+            nym_vpn.into()
+        };
+
+        let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn).unwrap();
 
         let nym_vpn_lib::NymVpnHandle {
             vpn_ctrl_tx,

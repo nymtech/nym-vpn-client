@@ -165,9 +165,11 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
         config.tun_provider,
     );
     debug!("Created new mixnet vpn");
-    vpn.gateway_config.api_url = config.api_url;
-    vpn.enable_two_hop = config.enable_two_hop;
-    vpn.data_path.clone_from(&config.credential_data_path);
+    vpn.generic_config.gateway_config.api_url = config.api_url;
+    vpn.generic_config.enable_two_hop = config.enable_two_hop;
+    vpn.generic_config
+        .data_path
+        .clone_from(&config.credential_data_path);
     Ok(vpn)
 }
 

@@ -77,7 +77,7 @@ impl RoutingConfig {
     ) -> Self {
         debug!("TUN device IPs: {}", tun_ips);
         let mut mixnet_tun_config = tun2::Configuration::default();
-        let mtu = vpn.nym_mtu.unwrap_or(DEFAULT_TUN_MTU);
+        let mtu = vpn.generic_config.nym_mtu.unwrap_or(DEFAULT_TUN_MTU);
         // only IPv4 is supported by tun2 for now
         mixnet_tun_config.address(tun_ips.ipv4);
         mixnet_tun_config.mtu(mtu);
@@ -94,7 +94,7 @@ impl RoutingConfig {
             mtu,
             entry_mixnet_gateway_ip,
             lan_gateway_ip,
-            disable_routing: vpn.disable_routing,
+            disable_routing: vpn.generic_config.disable_routing,
             #[cfg(target_os = "android")]
             gateway_ws_fd,
             #[cfg(target_os = "android")]

@@ -60,6 +60,7 @@ async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Re
         disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
         enable_credentials_mode: connect_args.enable_credentials_mode,
         min_mixnode_performance: connect_args.min_mixnode_performance.map(into_threshold),
+        wireguard_mode: connect_args.wireguard_mode,
     });
 
     let mut client = vpnd_client::get_client(client_type).await?;

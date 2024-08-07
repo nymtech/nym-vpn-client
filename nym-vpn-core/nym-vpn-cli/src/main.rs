@@ -9,7 +9,9 @@ use std::path::PathBuf;
 use commands::{CliArgs, ImportCredentialTypeEnum};
 use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
 use nym_vpn_lib::nym_bin_common::bin_info;
-use nym_vpn_lib::{error::*, IpPair, NodeIdentity, SpecificVpn};
+use nym_vpn_lib::{
+    error::*, GenericNymVpnConfig, IpPair, MixnetClientConfig, NodeIdentity, SpecificVpn,
+};
 use nym_vpn_lib::{NymVpn, Recipient};
 use time::OffsetDateTime;
 
@@ -143,40 +145,33 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
     } else {
         None
     };
+    let generic_config = GenericNymVpnConfig {
+        mixnet_client_config: MixnetClientConfig {
+            enable_poisson_rate: args.enable_poisson_rate,
+            disable_background_cover_traffic: args.disable_background_cover_traffic,
+            enable_credentials_mode: args.enable_credentials_mode,
+            min_mixnode_performance: args.min_mixnode_performance,
+            min_gateway_performance: None,
+        },
+        data_path,
+        gateway_config,
+        entry_point: entry_point.clone(),
+        exit_point: exit_point.clone(),
+        enable_two_hop: args.enable_two_hop,
+        nym_ips,
+        nym_mtu: args.nym_mtu,
+        dns: args.dns,
+        disable_routing: args.disable_routing,
+        user_agent: Some(bin_info!().into()),
+    };
 
     let mut nym_vpn: SpecificVpn = if args.wireguard_mode {
         let mut nym_vpn = NymVpn::new_wireguard_vpn(entry_point, exit_point);
-        nym_vpn.gateway_config = gateway_config;
-        nym_vpn.nym_ips = nym_ips;
-        nym_vpn.nym_mtu = args.nym_mtu;
-        nym_vpn.dns = args.dns;
-        nym_vpn.disable_routing = args.disable_routing;
-        nym_vpn.enable_two_hop = args.enable_two_hop;
-        nym_vpn.data_path = data_path;
-        nym_vpn.mixnet_client_config.enable_poisson_rate = args.enable_poisson_rate;
-        nym_vpn
-            .mixnet_client_config
-            .disable_background_cover_traffic = args.disable_background_cover_traffic;
-        nym_vpn.mixnet_client_config.enable_credentials_mode = args.enable_credentials_mode;
-        nym_vpn.mixnet_client_config.min_mixnode_performance = args.min_mixnode_performance;
-        nym_vpn.user_agent = Some(bin_info!().into());
+        nym_vpn.generic_config = generic_config;
         nym_vpn.into()
     } else {
         let mut nym_vpn = NymVpn::new_mixnet_vpn(entry_point, exit_point);
-        nym_vpn.gateway_config = gateway_config;
-        nym_vpn.nym_ips = nym_ips;
-        nym_vpn.nym_mtu = args.nym_mtu;
-        nym_vpn.dns = args.dns;
-        nym_vpn.disable_routing = args.disable_routing;
-        nym_vpn.enable_two_hop = args.enable_two_hop;
-        nym_vpn.data_path = data_path;
-        nym_vpn.mixnet_client_config.enable_poisson_rate = args.enable_poisson_rate;
-        nym_vpn
-            .mixnet_client_config
-            .disable_background_cover_traffic = args.disable_background_cover_traffic;
-        nym_vpn.mixnet_client_config.enable_credentials_mode = args.enable_credentials_mode;
-        nym_vpn.mixnet_client_config.min_mixnode_performance = args.min_mixnode_performance;
-        nym_vpn.user_agent = Some(bin_info!().into());
+        nym_vpn.generic_config = generic_config;
         nym_vpn.into()
     };
 
