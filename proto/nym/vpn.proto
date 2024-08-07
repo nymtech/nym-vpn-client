@@ -213,6 +213,9 @@ message Error {
 
     // Invalid configuration attempted, with the same entry and exit gateway
     GATEWAY_DIRECTORY_SAME_ENTRY_AND_EXIT_GW = 17;
+
+    // Client ran out of allocated bandwidth
+    OUT_OF_BANDWIDTH = 18;
   }
 
   ErrorType kind = 1;

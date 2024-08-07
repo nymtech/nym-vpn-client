@@ -176,6 +176,11 @@ impl From<ConnectionFailedError> for ProtoError {
                     "requested_location".to_string() => requested_location.clone(),
                 },
             },
+            ConnectionFailedError::OutOfBandwidth => ProtoError {
+                kind: ErrorType::OutOfBandwidth as i32,
+                message: err.to_string(),
+                details: hashmap! {},
+            },
         }
     }
 }
