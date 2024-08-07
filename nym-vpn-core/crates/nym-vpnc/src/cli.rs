@@ -69,10 +69,6 @@ pub(crate) struct ConnectArgs {
     /// consider a mixnode for routing traffic.
     #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
     pub(crate) min_mixnode_performance: Option<u8>,
-
-    /// Use wireguard mode.
-    #[arg(long)]
-    pub(crate) wireguard_mode: bool,
 }
 
 #[derive(Args)]

@@ -354,7 +354,6 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             min_mixnode_performance: request
                 .min_mixnode_performance
                 .map(|t| t.min_performance.min(100) as u8),
-            wireguard_mode: request.wireguard_mode,
         })
     }
 }

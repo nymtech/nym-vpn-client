@@ -116,7 +116,6 @@ pub(crate) struct ConnectOptions {
     pub(crate) disable_background_cover_traffic: bool,
     pub(crate) enable_credentials_mode: bool,
     pub(crate) min_mixnode_performance: Option<u8>,
-    pub(crate) wireguard_mode: bool,
 }
 
 #[derive(Debug)]
@@ -439,7 +438,7 @@ impl NymVpnService {
             user_agent: Some(bin_info!().into()),
         };
 
-        let nym_vpn = if options.wireguard_mode {
+        let nym_vpn = if options.enable_two_hop {
             let mut nym_vpn =
                 nym_vpn_lib::NymVpn::new_wireguard_vpn(config.entry_point, config.exit_point);
             nym_vpn.generic_config = generic_config;

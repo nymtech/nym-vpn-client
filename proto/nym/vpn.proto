@@ -63,7 +63,6 @@ message ConnectRequest {
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
   Threshold min_mixnode_performance = 9;
-  bool wireguard_mode = 10;
 }
 
 message ConnectResponse {
