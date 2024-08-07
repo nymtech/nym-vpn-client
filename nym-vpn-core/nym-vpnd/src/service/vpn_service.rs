@@ -500,19 +500,19 @@ impl NymVpnService {
     }
 
     async fn handle_info(&self) -> VpnServiceInfoResult {
-        // let bin_info = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!();
-        VpnServiceInfoResult {
-            version: "PLACEHOLDER".to_string(),
-            build_timestamp: time::OffsetDateTime::now_utc().into(),
-            triple: "PLACEHOLDER".to_string(),
-            git_commit: "PLACEHOLDER".to_string(),
-        }
+        let bin_info = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!();
         // VpnServiceInfoResult {
-        //     version: bin_info.build_version.to_string(),
-        //     build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339).ok(),
-        //     triple: bin_info.cargo_triple.to_string(),
-        //     git_commit: bin_info.commit_sha.to_string(),
+        //     version: "PLACEHOLDER".to_string(),
+        //     build_timestamp: time::OffsetDateTime::now_utc().into(),
+        //     triple: "PLACEHOLDER".to_string(),
+        //     git_commit: "PLACEHOLDER".to_string(),
         // }
+        VpnServiceInfoResult {
+            version: bin_info.build_version.to_string(),
+            build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339).ok(),
+            triple: bin_info.cargo_triple.to_string(),
+            git_commit: bin_info.commit_sha.to_string(),
+        }
     }
 
     async fn handle_import_credential(
