@@ -1,9 +1,9 @@
 use nym_crypto::asymmetric::ed25519::KeyPair;
+use nym_validator_client::signing::signer::OfflineSigner;
+use nym_validator_client::DirectSecp256k1HdWallet;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sha2::{Sha256, Digest};
-use nym_validator_client::DirectSecp256k1HdWallet;
-use nym_validator_client::signing::signer::OfflineSigner;
+use sha2::{Digest, Sha256};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub(crate) struct JwtHeader {
@@ -35,6 +35,7 @@ pub(crate) struct JwtPayload {
     sub: String,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub(crate) struct Jwt {
     header: JwtHeader,
@@ -119,6 +120,7 @@ impl Jwt {
         }
     }
 
+    #[allow(dead_code)]
     pub fn jwt(&self) -> String {
         self.jwt.clone()
     }
@@ -127,8 +129,8 @@ impl Jwt {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use nym_validator_client::DirectSecp256k1HdWallet;
     use nym_crypto::asymmetric::ed25519::KeyPair;
+    use nym_validator_client::DirectSecp256k1HdWallet;
 
     fn get_secp256k1_keypair() -> DirectSecp256k1HdWallet {
         let mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
@@ -140,7 +142,10 @@ mod tests {
     fn secp256k1_jwt_matches_javascript() {
         let now = 1722535718u128;
         let jwt_expected_from_js_snapshot = "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjMwLCJpYXQiOjE3MjI1MzU3MTgsInB1YmtleSI6IndneFpTM25CbWJBd2Nud0FpTnlDTjE5dWNTZHo5cVdkUXlidDJyYWtQVUhyIiwic3ViIjoibjE4Y2phemx4dTd0ODZzODV3YWwzbTdobms4ZXE3cGNmYWtoZHE1MyJ9.qxwY96D-vzMxHWZ840_l6YVDeuZeEkYqz2FaPS8ROztEqipXWCYUi8M1YTH1ZUuNyjgDAMS3NAM3hYvY09ODWQ";
-        let jwt_expected_from_js_snapshot_components: Vec<&str> = jwt_expected_from_js_snapshot.split(".").into_iter().collect();
+        let jwt_expected_from_js_snapshot_components: Vec<&str> = jwt_expected_from_js_snapshot
+            .split(".")
+            .into_iter()
+            .collect();
 
         let wallet = get_secp256k1_keypair();
         let jwt = Jwt::new_secp256k1_with_now(&wallet, now);
@@ -150,20 +155,32 @@ mod tests {
 
         if jwt_str != jwt_expected_from_js_snapshot {
             println!("== secp256k1 / ED256K1 ==");
-            println!("jwt_expected_from_js_snapshot = {}", jwt_expected_from_js_snapshot);
+            println!(
+                "jwt_expected_from_js_snapshot = {}",
+                jwt_expected_from_js_snapshot
+            );
             println!("jwt_str                       = {}", jwt_str);
         }
 
-        assert_eq!(jwt_expected_from_js_snapshot_components[0], jwt_components[0]); // header
-        assert_eq!(jwt_expected_from_js_snapshot_components[1], jwt_components[1]); // payload
-        assert_eq!(jwt_expected_from_js_snapshot_components[2], jwt_components[2]); // signature
+        assert_eq!(
+            jwt_expected_from_js_snapshot_components[0],
+            jwt_components[0]
+        ); // header
+        assert_eq!(
+            jwt_expected_from_js_snapshot_components[1],
+            jwt_components[1]
+        ); // payload
+        assert_eq!(
+            jwt_expected_from_js_snapshot_components[2],
+            jwt_components[2]
+        ); // signature
 
         assert_eq!(jwt_expected_from_js_snapshot, jwt_str); // whole JWT strings
     }
 
     fn get_ed25519_keypair() -> KeyPair {
         // let mnemonic = "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece";
-        let private_key_base58 =  "9JqXnPvTrWkq1Yq66d8GbXrcz5eryAhPZvZ46cEsBPUY";
+        let private_key_base58 = "9JqXnPvTrWkq1Yq66d8GbXrcz5eryAhPZvZ46cEsBPUY";
         let public_key_base58 = "4SPdxfBYsuARBw6REQQa5vFiKcvmYiet9sSWqb751i3Z";
 
         let private_key = bs58::decode(private_key_base58).into_vec().unwrap();
@@ -176,7 +193,10 @@ mod tests {
     fn ed25519_ecdsa_jwt_matches_javascript() {
         let now = 1722535718u128;
         let jwt_expected_from_js_snapshot = "eyJhbGciOiJFQ0RTQSIsInR5cCI6IkpXVCJ9.eyJleHAiOjMwLCJpYXQiOjE3MjI1MzU3MTgsInN1YiI6IjRTUGR4ZkJZc3VBUkJ3NlJFUVFhNXZGaUtjdm1ZaWV0OXNTV3FiNzUxaTNaIn0.wSd8y1QdqOVYLf2uTMlnymmiIPQwpxXWd2QvPZ-XqV8O1PNiurQO5JPU65SnaOfggJVA5pnAgZLbj9ciOJKIDg";
-        let jwt_expected_from_js_snapshot_components: Vec<&str> = jwt_expected_from_js_snapshot.split(".").into_iter().collect();
+        let jwt_expected_from_js_snapshot_components: Vec<&str> = jwt_expected_from_js_snapshot
+            .split(".")
+            .into_iter()
+            .collect();
 
         let key_pair = get_ed25519_keypair();
 
@@ -187,13 +207,25 @@ mod tests {
 
         if jwt_str != jwt_expected_from_js_snapshot {
             println!("== ed25519 / ECDSA ==");
-            println!("jwt_expected_from_js_snapshot = {}", jwt_expected_from_js_snapshot);
+            println!(
+                "jwt_expected_from_js_snapshot = {}",
+                jwt_expected_from_js_snapshot
+            );
             println!("jwt_str                       = {}", jwt_str);
         }
 
-        assert_eq!(jwt_expected_from_js_snapshot_components[0], jwt_components[0]); // header
-        assert_eq!(jwt_expected_from_js_snapshot_components[1], jwt_components[1]); // payload
-        assert_eq!(jwt_expected_from_js_snapshot_components[2], jwt_components[2]); // signature
+        assert_eq!(
+            jwt_expected_from_js_snapshot_components[0],
+            jwt_components[0]
+        ); // header
+        assert_eq!(
+            jwt_expected_from_js_snapshot_components[1],
+            jwt_components[1]
+        ); // payload
+        assert_eq!(
+            jwt_expected_from_js_snapshot_components[2],
+            jwt_components[2]
+        ); // signature
 
         assert_eq!(jwt_expected_from_js_snapshot, jwt_str); // whole JWT strings
     }
