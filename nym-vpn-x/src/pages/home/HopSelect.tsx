@@ -19,7 +19,7 @@ export default function HopSelect({
   onClick,
   disabled,
 }: HopSelectProps) {
-  const { fastestNodeLocation, state } = useMainState();
+  const { fastestNodeLocation, state, daemonStatus } = useMainState();
   const { t } = useTranslation('home');
   const { push } = useNotifications();
 
@@ -37,13 +37,16 @@ export default function HopSelect({
           text = t('snackbar-disabled-message.disconnecting');
           break;
       }
+      if (daemonStatus === 'NotOk') {
+        text = t('snackbar-disabled-message.daemon-not-connected');
+      }
       push({
         text,
         position: 'top',
       });
     },
     HomeThrottleDelay,
-    [state],
+    [state, daemonStatus],
   );
 
   const handleClick = () => {

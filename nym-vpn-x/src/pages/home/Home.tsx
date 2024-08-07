@@ -116,14 +116,16 @@ function Home() {
                   nodeLocation={entryNodeLocation}
                   onClick={() => navigate(routes.entryNodeLocation)}
                   nodeHop="entry"
-                  disabled={state !== 'Disconnected'}
+                  disabled={
+                    daemonStatus === 'NotOk' || state !== 'Disconnected'
+                  }
                 />
               )}
               <HopSelect
                 nodeLocation={exitNodeLocation}
                 onClick={() => navigate(routes.exitNodeLocation)}
                 nodeHop="exit"
-                disabled={state !== 'Disconnected'}
+                disabled={daemonStatus === 'NotOk' || state !== 'Disconnected'}
               />
             </div>
           </div>

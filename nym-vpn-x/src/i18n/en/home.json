@@ -29,7 +29,8 @@
   "snackbar-disabled-message": {
     "connected": "Disabled while connected to VPN",
     "connecting": "Disabled while connecting to VPN",
-    "disconnecting": "Disabled while disconnecting from VPN"
+    "disconnecting": "Disabled while disconnecting from VPN",
+    "daemon-not-connected": "Disabled while not connected to VPN daemon"
   },
   "modes-dialog": {
     "title": "Mode selection",

@@ -17,7 +17,7 @@ function Link({ text, url, icon, className, textClassName }: LinkProps) {
       as="a"
       className={clsx([
         'focus:outline-none select-none cursor-default',
-        'flex flex-row items-center gap-1 text-melon',
+        'inline-flex flex-row items-center gap-1 text-melon',
         className && className,
       ])}
       onClick={() => open(url)}
