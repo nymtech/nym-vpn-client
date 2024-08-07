@@ -1,10 +1,10 @@
 mod client;
 mod error;
+mod headers;
 mod helpers;
+mod jwt;
 pub mod responses;
 mod routes;
-mod jwt;
-mod headers;
 
 pub use client::{Client, ClientBuilder, VpnApiClientExt, VpnApiError};
 pub use error::VpnApiClientError;
