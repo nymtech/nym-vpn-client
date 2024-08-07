@@ -96,32 +96,38 @@ impl MixnetProcessor {
         );
 
         debug!("Splitting tun device into sink and stream");
-        let (mut tun_device_sink, mut tun_device_stream) = self.device.into_framed().split();
+        let (tun_device_sink, mut tun_device_stream) = self.device.into_framed().split();
 
         // We are the exclusive owner of the mixnet client, so we can unwrap it here
         debug!("Acquiring mixnet client");
-        let mut mixnet_handle = timeout(Duration::from_secs(2), self.mixnet_client.lock())
-            .await
-            .map_err(|_| Error::MixnetClientDeadlock)?;
-        let mixnet_client = mixnet_handle.as_mut().unwrap();
-        let our_address = *mixnet_client.nym_address();
+        // let our_address = self.mixnet_client.nym_address().await;
 
         debug!("Split mixnet sender");
-        let sender = mixnet_client.split_sender();
+        let sender = self.mixnet_client.split_sender().await;
         let recipient = self.ip_packet_router_address;
 
         let mut multi_ip_packet_encoder =
             MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
-        let mut multi_ip_packet_decoder =
-            MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
 
         let message_creator = MessageCreator::new(recipient);
 
+        debug!("Starting mixnet listener");
+        let mixnet_listener = MixnetListener {
+            mixnet_client: self.mixnet_client.clone(),
+            task_client: shutdown.clone(),
+            tun_device_sink,
+            icmp_beacon_identifier: self.icmp_beacon_identifier,
+            our_ips: self.our_ips,
+            connection_event_tx: self.connection_event_tx.clone(),
+        };
+        let tun_device_sink = mixnet_listener.start();
+
         info!("Mixnet processor is running");
-        while !shutdown.is_shutdown() {
+        loop {
             tokio::select! {
                 _ = shutdown.recv_with_delay() => {
-                    trace!("MixnetProcessor: Received shutdown");
+                    info!("MixnetProcessor: Received shutdown");
+                    break;
                 }
                 // To make sure we don't wait too long before filling up the buffer, which destroys
                 // latency, cap the time waiting for the buffer to fill
@@ -157,6 +163,57 @@ impl MixnetProcessor {
                             }
                         }
                     }
+                }
+                else => {
+                    warn!("Mixnet processor: Tun device stream ended?");
+                    // break;
+                }
+            }
+        }
+
+        warn!("Waiting for mixnet listener to finish");
+        let tun_device_sink = tun_device_sink.await.unwrap();
+
+        debug!("MixnetProcessor: Exiting");
+        Ok(tun_device_sink
+            .reunite(tun_device_stream)
+            .expect("reunite should work because of same device split")
+            .into_inner())
+    }
+}
+
+struct MixnetListener {
+    mixnet_client: SharedMixnetClient,
+    task_client: TaskClient,
+    tun_device_sink: futures::prelude::stream::SplitSink<
+        tokio_util::codec::Framed<AsyncDevice, tun2::TunPacketCodec>,
+        Vec<u8>,
+    >,
+    icmp_beacon_identifier: u16,
+    our_ips: IpPair,
+    connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
+}
+
+impl MixnetListener {
+    async fn run(
+        mut self,
+    ) -> futures::prelude::stream::SplitSink<
+        tokio_util::codec::Framed<AsyncDevice, tun2::TunPacketCodec>,
+        Vec<u8>,
+    > {
+        // We are the only one listening when this is active
+        let our_address = self.mixnet_client.nym_address().await;
+        let mut mixnet_client_binding = self.mixnet_client.lock().await;
+        let mixnet_client = mixnet_client_binding.as_mut().unwrap();
+
+        let mut multi_ip_packet_decoder =
+            MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
+
+        loop {
+            tokio::select! {
+                _ = self.task_client.recv_with_delay() => {
+                    trace!("Mixnet listener: Received shutdown");
+                    break;
                 }
                 Some(reconstructed_message) = mixnet_client.next() => {
                     // Check version of request
@@ -195,7 +252,7 @@ impl MixnetProcessor {
                                     ) {
                                         self.connection_event_tx.unbounded_send(connection_event).unwrap();
                                     }
-                                    tun_device_sink.send(packet.into()).await?;
+                                    self.tun_device_sink.send(packet.into()).await.expect("WIP");
                                 }
                             }
                             IpPacketResponseData::Pong(_) => {
@@ -233,13 +290,26 @@ impl MixnetProcessor {
                         }
                     }
                 }
+                else => {
+                    warn!("Mixnet listener: Mixnet client stream ended?");
+                    // break;
+                }
             }
         }
-        debug!("MixnetProcessor: Exiting");
-        Ok(tun_device_sink
-            .reunite(tun_device_stream)
-            .expect("reunite should work because of same device split")
-            .into_inner())
+
+        info!("Mixnet listener: Exiting");
+        self.tun_device_sink
+    }
+
+    fn start(
+        self,
+    ) -> JoinHandle<
+        futures::prelude::stream::SplitSink<
+            tokio_util::codec::Framed<AsyncDevice, tun2::TunPacketCodec>,
+            Vec<u8>,
+        >,
+    > {
+        tokio::spawn(async move { self.run().await })
     }
 }
 
