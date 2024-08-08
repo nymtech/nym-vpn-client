@@ -57,7 +57,7 @@ fn run_inner(args: CliArgs) -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(unix)]
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args = CliArgs::parse();
-    setup_logging(!args.command.is_any());
+    setup_logging(args.command.run_as_service);
     setup_env(args.config_env_file.as_ref());
 
     run_inner(args)

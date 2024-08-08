@@ -44,10 +44,10 @@ pub(crate) struct Command {
     #[arg(long)]
     pub(crate) uninstall: bool,
 
+    #[cfg(windows)]
     #[arg(long)]
     pub(crate) start: bool,
 
-    #[cfg(windows)]
     #[arg(long)]
     pub(crate) run_as_service: bool,
 }
@@ -56,11 +56,6 @@ impl Command {
     #[cfg(windows)]
     pub(crate) fn is_any(&self) -> bool {
         self.install || self.uninstall || self.start || self.run_as_service
-    }
-
-    #[cfg(not(windows))]
-    pub(crate) fn is_any(&self) -> bool {
-        self.start
     }
 }
 
