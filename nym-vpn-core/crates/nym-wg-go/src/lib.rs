@@ -93,7 +93,7 @@ impl From<[u8; 32]> for PrivateKey {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PublicKey(x25519_dalek::PublicKey);
 
 impl PublicKey {

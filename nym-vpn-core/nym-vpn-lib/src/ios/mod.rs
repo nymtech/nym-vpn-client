@@ -1,6 +1,10 @@
 //! WireGuard tunnel creation and management on Android and iOS
 //! todo: the location of this module will be changed.
 
+mod dns64;
+mod gateway;
+mod tun;
+
 use std::net::{IpAddr, SocketAddr};
 use std::net::{Ipv4Addr, Ipv6Addr};
 
@@ -15,9 +19,6 @@ use nym_authenticator_client::AuthClient;
 use nym_gateway_directory::{AuthAddresses, GatewayClient};
 use nym_task::TaskManager;
 use nym_wg_go::{netstack, wireguard_go, PeerConfig, PrivateKey, PublicKey};
-
-mod gateway;
-mod tun;
 
 /// Entry tunnel MTU.
 const ENTRY_MTU: u16 = 1280;
@@ -51,6 +52,14 @@ pub struct TwoHopTunnel {
 
     /// UDP connection over the entry tunnel, towards exit node.
     exit_connection: netstack::TunnelConnection,
+
+    /// Entry peer configuration.
+    /// todo: use it later to update peers on network change
+    entry_peer: WgPeer,
+
+    /// Exit peer configuration.
+    /// todo: use it later to update peers on network change
+    exit_peer: WgPeer,
 }
 
 impl TwoHopTunnel {
@@ -114,7 +123,7 @@ impl TwoHopTunnel {
         entry_node_config: WgNodeConfig,
         exit_node_config: WgNodeConfig,
     ) -> Result<Self> {
-        // local endpoint that will forward exit traffic over entry tunnel
+        // Local endpoint that will forward exit traffic over entry tunnel
         let udp_forwarder_endpoint = SocketAddr::new(
             if exit_node_config.peer.endpoint.is_ipv4() {
                 IpAddr::V4(Ipv4Addr::LOCALHOST)
@@ -125,14 +134,24 @@ impl TwoHopTunnel {
         );
         let exit_endpoint = exit_node_config.peer.endpoint;
 
-        let entry_wg_config = entry_node_config.into_wg_entry_config();
-        let exit_wg_config = exit_node_config.into_wg_exit_config(udp_forwarder_endpoint);
+        // Save original peer endpoints so that we can re-resolve them with DNS64 when device switches networks.
+        let orig_entry_peer = entry_node_config.peer.clone();
+        let orig_exit_peer = exit_node_config.peer.clone();
+
+        // Transform wg config structs into what nym-wg-go expects.
+        let mut entry_wg_config = entry_node_config.into_wg_entry_config();
+        let mut exit_wg_config = exit_node_config.into_wg_exit_config(udp_forwarder_endpoint);
 
         tracing::info!("Entry wireguard config: \n{}", entry_wg_config);
         tracing::info!("Exit wireguard config: \n{}", exit_wg_config);
         tracing::info!("UDP forwarder listener: \n{}", udp_forwarder_endpoint);
         tracing::info!("UDP forwarder exit endpoint: \n{}", exit_endpoint);
 
+        // Resolve peer IP addresses with DNS64.
+        dns64::resolve_peers(&mut entry_wg_config.peers)?;
+        dns64::resolve_peers(&mut exit_wg_config.peers)?;
+
+        // Obtain tunnel file descriptor and interface name.
         let tun_fd = tun::get_tun_fd().ok_or(Error::CannotLocateTunFd)?;
         tracing::debug!("Found tunnel fd: {}", tun_fd);
 
@@ -155,6 +174,8 @@ impl TwoHopTunnel {
             entry: entry_tunnel,
             exit: exit_tunnel,
             exit_connection: exit_connection,
+            entry_peer: orig_entry_peer,
+            exit_peer: orig_exit_peer,
         })
     }
 }
@@ -169,6 +190,15 @@ pub enum Error {
 
     #[error("Tunnel failure")]
     Tunnel(nym_wg_go::Error),
+
+    #[error("DNS lookup error")]
+    DnsLookup(dns_lookup::LookupError),
+
+    #[error("Failed to parse addrinfo")]
+    ParseAddrInfo(std::io::Error),
+
+    #[error("DNS lookup has seemingly succeeded without any results")]
+    EmptyDnsLookupResult,
 }
 
 struct WgNodeConfig {
@@ -187,6 +217,7 @@ struct WgInterface {
     address: IpAddr,
 }
 
+#[derive(Debug, Clone)]
 struct WgPeer {
     /// Gateway public key.
     public_key: PublicKey,
