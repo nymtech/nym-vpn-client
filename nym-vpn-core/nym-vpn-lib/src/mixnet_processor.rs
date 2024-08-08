@@ -83,7 +83,11 @@ impl MixnetProcessor {
         }
     }
 
-    pub async fn run(self, mut task_client: TaskClient) -> Result<AsyncDevice> {
+    pub async fn run(
+        self,
+        mut task_client_mix_processor: TaskClient,
+        task_client_mix_listener: TaskClient,
+    ) -> Result<AsyncDevice> {
         info!(
             "Opened mixnet processor on tun device {}",
             self.device.as_ref().tun_name().unwrap(),
@@ -112,7 +116,7 @@ impl MixnetProcessor {
         debug!("Starting mixnet listener");
         let mixnet_listener = MixnetListener::new(
             self.mixnet_client,
-            task_client.fork("mixnet_listener"),
+            task_client_mix_listener,
             tun_device_sink,
             self.icmp_beacon_identifier,
             self.our_ips,
@@ -122,9 +126,9 @@ impl MixnetProcessor {
         let mixnet_listener_handle = mixnet_listener.start();
 
         info!("Mixnet processor is running");
-        while !task_client.is_shutdown() {
+        while !task_client_mix_processor.is_shutdown() {
             tokio::select! {
-                _ = task_client.recv_with_delay() => {
+                _ = task_client_mix_processor.recv_with_delay() => {
                     trace!("MixnetProcessor: Received shutdown");
                     break;
                 }
@@ -136,7 +140,7 @@ impl MixnetProcessor {
                     match message_creator.create_input_message(bundled_packets) {
                         Ok(input_message) => {
                             let ret = sender.send(input_message).await;
-                            if ret.is_err() && !task_client.is_shutdown_poll() {
+                            if ret.is_err() && !task_client_mix_processor.is_shutdown_poll() {
                                 error!("Could not forward IP packet to the mixnet. The packet will be dropped.");
                             }
                         }
@@ -153,7 +157,7 @@ impl MixnetProcessor {
                         match message_creator.create_input_message(input_message) {
                             Ok(input_message) => {
                                 let ret = sender.send(input_message).await;
-                                if ret.is_err() && !task_client.is_shutdown_poll() {
+                                if ret.is_err() && !task_client_mix_processor.is_shutdown_poll() {
                                     error!("Could not forward IP packet to the mixnet. The packet(s) will be dropped.");
                                 }
                             }
@@ -406,7 +410,6 @@ fn check_for_icmp_beacon_reply(
     None
 }
 
-#[allow(clippy::too_many_arguments)]
 pub(crate) async fn start_processor(
     config: Config,
     dev: AsyncDevice,
@@ -423,9 +426,16 @@ pub(crate) async fn start_processor(
         config.ip_packet_router_address,
         our_ips,
     );
-    let shutdown_listener = task_manager.subscribe();
+
+    // This is an unfortunate limitation of the TaskManager/TaskClient. Would be better if we could
+    // have child clients like with tokio::CancellationToken, that can be crated from the parent
+    let task_client_mix_processor = task_manager.subscribe_named("mixnet_processor");
+    let task_client_mix_listener = task_manager.subscribe_named("mixnet_listener");
+
     tokio::spawn(async move {
-        let ret = processor.run(shutdown_listener).await;
+        let ret = processor
+            .run(task_client_mix_processor, task_client_mix_listener)
+            .await;
         if let Err(err) = ret {
             error!("Mixnet processor error: {err}");
             Err(err)
