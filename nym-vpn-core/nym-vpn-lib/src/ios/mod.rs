@@ -77,13 +77,16 @@ impl TwoHopTunnel {
         tracing::info!("Created wg gateway clients");
 
         let mut wg_entry_gateway_client = WgGatewayClient::new_entry(
-            &nym_vpn.data_path,
+            &nym_vpn.generic_config.data_path,
             auth_client.clone(),
             entry_auth_recipient,
         );
 
-        let mut wg_exit_gateway_client =
-            WgGatewayClient::new_exit(&nym_vpn.data_path, auth_client.clone(), exit_auth_recipient);
+        let mut wg_exit_gateway_client = WgGatewayClient::new_exit(
+            &nym_vpn.generic_config.data_path,
+            auth_client.clone(),
+            exit_auth_recipient,
+        );
 
         let entry_gateway_data = gateway::register_client_pubkey(
             &gateway_directory_client,
