@@ -286,11 +286,6 @@ impl MixnetListener {
                     let mut bytes = BytesMut::from(&*data_response.ip_packet);
                     let mut responses = vec![];
                     while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
-                        self.check_for_icmp_beacon_reply(&packet);
-
-                        // Consider not including packets that are ICMP ping replies to our beacon
-                        // in the responses. We are defensive here just in case we incorrectly
-                        // label real packets as ping replies to our beacon.
                         responses.push(packet);
                     }
                     return Ok(Some(MixnetMessageOutcome::IpPackets(responses)));
@@ -347,6 +342,11 @@ impl MixnetListener {
                     match self.handle_reconstructed_message(reconstructed_message, &mut decoder).await {
                         Ok(Some(MixnetMessageOutcome::IpPackets(packets))) => {
                             for packet in packets {
+                                self.check_for_icmp_beacon_reply(&packet);
+
+                                // Consider not including packets that are ICMP ping replies to our beacon
+                                // in the responses. We are defensive here just in case we incorrectly
+                                // label real packets as ping replies to our beacon.
                                 if let Err(err) = self.tun_device_sink.send(packet.into()).await {
                                     error!("Failed to send packet to tun device: {err}");
                                 }
