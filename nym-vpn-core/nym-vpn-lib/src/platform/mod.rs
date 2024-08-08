@@ -1,6 +1,6 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
-#![cfg_attr(not(target_os = "macos"), allow(dead_code))]
+#![cfg(not(target_os = "macos"))]
 
 use self::error::FFIError;
 use crate::credentials::{check_credential_base58, import_credential_base58};
@@ -148,27 +148,49 @@ pub struct VPNConfig {
     pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
 }
 
-fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
+fn sync_run_vpn(config: VPNConfig) -> Result<SpecificVpn, FFIError> {
     #[cfg(any(target_os = "ios", target_os = "macos"))]
     crate::platform::swift::init_logs();
 
     #[cfg(target_os = "android")]
     let context = crate::platform::android::get_context().ok_or(FFIError::NoContext)?;
+    #[cfg(target_os = "android")]
     debug!("got android context to create new vpn");
 
-    let mut vpn = NymVpn::new_mixnet_vpn(
-        config.entry_gateway.into(),
-        config.exit_router.into(),
-        #[cfg(target_os = "android")]
-        context,
-        #[cfg(target_os = "ios")]
-        config.tun_provider,
-    );
-    debug!("Created new mixnet vpn");
-    vpn.generic_config.gateway_config.api_url = config.api_url;
-    vpn.generic_config
-        .data_path
-        .clone_from(&config.credential_data_path);
+    let mut vpn: SpecificVpn = if config.enable_two_hop {
+        debug!("Created new wireguard vpn");
+        let mut vpn = NymVpn::new_wireguard_vpn(
+            config.entry_gateway.into(),
+            config.exit_router.into(),
+            #[cfg(target_os = "android")]
+            context,
+            #[cfg(target_os = "ios")]
+            config.tun_provider,
+        );
+        vpn.generic_config.gateway_config.api_url = config.api_url;
+        vpn.generic_config
+            .data_path
+            .clone_from(&config.credential_data_path);
+
+        vpn.into()
+    } else {
+        debug!("Created new mixnet vpn");
+        let mut vpn = NymVpn::new_mixnet_vpn(
+            config.entry_gateway.into(),
+            config.exit_router.into(),
+            #[cfg(target_os = "android")]
+            context,
+            #[cfg(target_os = "ios")]
+            config.tun_provider,
+        );
+        vpn.generic_config.gateway_config.api_url = config.api_url;
+        vpn.generic_config
+            .data_path
+            .clone_from(&config.credential_data_path);
+
+        vpn.into()
+    };
+
     Ok(vpn)
 }
 
