@@ -12,29 +12,54 @@ struct StoredMnemonic {
 }
 
 trait MnemonicStorage {
-    async fn store_mnemonic(&self, mnemonic: bip39::Mnemonic);
-    async fn read_mnemonic(&self) -> bip39::Mnemonic;
+    type StorageError: std::error::Error;
+
+    async fn store_mnemonic(&self, mnemonic: bip39::Mnemonic) -> Result<(), Self::StorageError>;
+    async fn load_mnemonic(&self) -> Result<bip39::Mnemonic, Self::StorageError>;
 }
 
 struct InMemoryMnemonicStorage {
     mnemonic: Mutex<Option<StoredMnemonic>>,
 }
 
+#[derive(Debug, thiserror::Error)]
+enum InMemoryMnemonicStorageError {
+    #[error("No mnemonic stored")]
+    NoMnemonicStored,
+}
+
 impl MnemonicStorage for InMemoryMnemonicStorage {
-    async fn store_mnemonic(&self, mnemonic: bip39::Mnemonic) {
+    type StorageError = InMemoryMnemonicStorageError;
+
+    async fn store_mnemonic(
+        &self,
+        mnemonic: bip39::Mnemonic,
+    ) -> Result<(), InMemoryMnemonicStorageError> {
         let stored_mnemonic = StoredMnemonic { mnemonic };
         self.mnemonic.lock().await.replace(stored_mnemonic);
+        Ok(())
     }
 
-    async fn read_mnemonic(&self) -> bip39::Mnemonic {
-        self.mnemonic
+    async fn load_mnemonic(&self) -> Result<bip39::Mnemonic, InMemoryMnemonicStorageError> {
+        Ok(self
+            .mnemonic
             .lock()
             .await
             .as_ref()
             .unwrap()
             .mnemonic
-            .clone()
+            .clone())
     }
+}
+
+#[derive(Debug, thiserror::Error)]
+enum OnDiskMnemonicStorageError {
+    #[error("No mnemonic stored")]
+    NoMnemonicStored,
+    // #[error("Failed to read mnemonic from file")]
+    // ReadError(#[from] std::io::Error),
+    // #[error("Failed to write mnemonic to file")]
+    // WriteError(#[from] std::io::Error),
 }
 
 struct OnDiskMnemonicStorage {
@@ -42,25 +67,29 @@ struct OnDiskMnemonicStorage {
 }
 
 impl OnDiskMnemonicStorage {
-    fn new<P: AsRef<Path>>(path: P) -> Self {
-        Self {
-            path: path.try_into().unwrap(),
-        }
+    fn new(path: PathBuf) -> Self {
+        Self { path }
     }
 }
 
 impl MnemonicStorage for OnDiskMnemonicStorage {
-    async fn store_mnemonic(&self, mnemonic: bip39::Mnemonic) {
+    type StorageError = OnDiskMnemonicStorageError;
+
+    async fn store_mnemonic(
+        &self,
+        mnemonic: bip39::Mnemonic,
+    ) -> Result<(), OnDiskMnemonicStorageError> {
         let stored_mnemonic = StoredMnemonic { mnemonic };
 
         let file = File::create(&self.path).unwrap();
         serde_json::to_writer(file, &stored_mnemonic).unwrap();
+        Ok(())
     }
 
-    async fn read_mnemonic(&self) -> bip39::Mnemonic {
+    async fn load_mnemonic(&self) -> Result<bip39::Mnemonic, OnDiskMnemonicStorageError> {
         let file = File::open(&self.path).unwrap();
         let stored_mnemonic: StoredMnemonic = serde_json::from_reader(file).unwrap();
-        stored_mnemonic.mnemonic
+        Ok(stored_mnemonic.mnemonic.clone())
     }
 }
 
@@ -73,7 +102,7 @@ pub fn store_mnemonic<P: AsRef<Path> + Clone>(storage_path: P, mnemonic_phrase: 
         nym_validator_client::DirectSecp256k1HdWallet::from_mnemonic(prefix, mnemonic.clone());
 
     let stored_mnemonic = StoredMnemonic { mnemonic };
-    let storage = OnDiskMnemonicStorage::new(&storage_path);
+    let storage = OnDiskMnemonicStorage::new(storage_path.as_ref().to_path_buf());
 }
 
 #[cfg(test)]
