@@ -1,0 +1,227 @@
+name: build-nym-vpn-x-windows
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      WINDOWS_SIGNING_PFX_BASE64:
+        required: true
+      WINDOWS_SIGNING_PFX_PASSWORD:
+        required: true
+      TAURI_PRIVATE_KEY:
+        required: true
+      TAURI_KEY_PASSWORD:
+        required: true
+      DESKTOP_JS_SENTRY_DSN:
+        required: true
+    outputs:
+      UPLOAD_DIR_WINDOWS:
+        value: ${{ jobs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_TARGET: release
+  LIBS_PATH: '${{ github.workspace }}/lib'
+  # WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
+  # MULLVAD_LIB_NAME: winfw
+  UPLOAD_DIR_WINDOWS: windows_artifacts
+  TAURI_SRC: '${{ github.workspace }}/nym-vpn-x/src-tauri/'
+
+jobs:
+  # build-wireguard-go-windows:
+  #   uses: ./.github/workflows/build-wireguard-go-windows.yml
+  #
+  # build-mullvad-windows:
+  #   uses: ./.github/workflows/build-mullvad-windows.yml
+
+  build-windows:
+    # needs: [build-wireguard-go-windows,build-mullvad-windows]
+    runs-on: custom-windows-11
+    env:
+      CPP_BUILD_MODES: ${{ needs.build-mullvad-windows.outputs.CPP_BUILD_MODES }}
+    outputs:
+      UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
+
+    steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild.exe
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Install cargo-about
+        run: cargo install --locked cargo-about
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-x/src-tauri
+
+      # - name: Download wireguard-go-windows artifacts
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ${{ env.WG_GO_LIB_NAME }}
+      #     path: ${{ env.LIBS_PATH }}/
+      #
+      # - name: Download mullvad lib artifact (winfw.lib)
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ${{ env.MULLVAD_LIB_NAME }}.lib
+      #     path: ${{ env.TAURI_SRC }}/
+      #
+      # - name: Download mullvad lib artifact (winfw.lib)
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: ${{ env.MULLVAD_LIB_NAME }}.dll
+      #     path: ${{ env.TAURI_SRC }}/
+      #
+      # - name: Download/Unzip/Move wintun.zip, winpcap.zip also move wireguard lib for windows
+      #   shell: bash
+      #   run: |
+      #     curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
+      #     curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
+      #     unzip ${GITHUB_WORKSPACE}/wintun.zip
+      #     unzip ${GITHUB_WORKSPACE}/winpcap.zip
+      #     mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll '${{ env.TAURI_SRC }}'
+      #     mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib '${{ env.TAURI_SRC }}'
+      #     mv '${{ env.LIBS_PATH }}/libwg.dll' '${{ env.TAURI_SRC }}'
+      #     mv '${{ env.LIBS_PATH }}/libwg.lib' '${{ env.TAURI_SRC }}'
+
+      - name: Get nym-vpn-core release info
+        id: get_release
+        run: |
+          $releases = Invoke-RestMethod -Uri https://api.github.com/repos/nymtech/nym-vpn-client/releases
+          $release = $releases | Where-Object { $_.tag_name -match '^nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+$' } | Sort-Object { [version]($_.tag_name -replace 'nym-vpn-core-v', '0.') } | Select-Object -Last 1
+          $asset = $release.assets | Where-Object { $_.name -match 'windows_x86_64.zip$' }
+          Write-Output "Release Tag: $($release.tag_name)"
+          Write-Output "Asset URL: $($asset.browser_download_url)"
+          echo "::set-output name=release_tag::$($release.tag_name)"
+          echo "::set-output name=asset_url::$($asset.browser_download_url)"
+
+      - name: Download nym-vpn-core artifact
+        run: |
+          $url = '${{ steps.get_release.outputs.asset_url }}'
+          $output = 'nym-vpn-core.zip'
+          Invoke-WebRequest -Uri $url -OutFile $output
+
+      - name: Unzip nym-vpn-core artifact
+        run: |
+          $output = 'nym-vpn-core.zip'
+          $destination = 'nym-vpn-core-bin'
+          Expand-Archive -Path $output -DestinationPath $destination -Force
+
+      - name: List files
+        run: |
+          $destination = 'nym-vpn-core-bin'
+          Get-ChildItem -Path $destination -Recurse
+
+      - name: Copy files
+        run: |
+          $destination = 'nym-vpn-core-bin'
+          $subdirectory = Get-ChildItem -Path $destination | Where-Object { $_.PSIsContainer } | Select-Object -First 1
+          $sourcePath = Join-Path -Path $destination -ChildPath $subdirectory.Name
+          $targetPath = 'nym-vpn-x/src-tauri'
+          Copy-Item -Path (Join-Path -Path $sourcePath -ChildPath '*') -Destination $targetPath -Recurse -Force
+
+      # - name: Generate licenses file (Js & Rust) and install JS dependencies
+      #   working-directory: nym-vpn-desktop
+      #   shell: bash
+      #   run: |
+      #     npm i license-checker-rseidelsohn
+      #     rm public/licenses-js.json || true
+      #     npm run gen:licenses:js
+      #     rm public/licenses-rust.json || true
+      #     npm run gen:licenses:rust
+      #     npm ci
+
+      - name: Install JS dependencies
+        working-directory: nym-vpn-x
+        shell: bash
+        run: npm ci
+
+      - name: Generate licenses file (Js)
+        working-directory: nym-vpn-x
+        shell: bash
+        run: |
+          rm public/licenses-js.json || true
+          npm run gen:licenses:js
+
+      - name: Generate licenses file (Rust)
+        working-directory: nym-vpn-x
+        shell: bash
+        run: |
+          rm public/licenses-rust.json || true
+          npm run gen:licenses:rust
+
+      - name: Import signing certificate
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+        run: |
+          New-Item -ItemType directory -Path certificate
+          Set-Content -Path certificate/tempCert.txt -Value $env:WINDOWS_CERTIFICATE
+          certutil -decode certificate/tempCert.txt certificate/certificate.pfx
+          Remove-Item -path certificate -include tempCert.txt
+          Import-PfxCertificate -FilePath certificate/certificate.pfx -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -Force -AsPlainText)
+
+      - name: Build tauri desktop client
+        working-directory: nym-vpn-x/src-tauri
+        shell: bash
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+          APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
+          RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-${{ env.CPP_BUILD_MODES }}"
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_SIGNING_PFX_BASE64 }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
+        run: |
+          # sed -i 's/"bundle": {/"bundle": {"resources": ["wintun.dll", "vcruntime140.dll", "libwg.dll", "winfw.dll"],/g' '${{ env.TAURI_SRC }}/tauri.conf.json'
+          npm run tauri build -- ${{ env.CARGO_TARGET }}
+          ls -la target/release/ || true
+          ls -la target/release/bundle || true
+          ls -la target/release/bundle/* || true
+
+      - name: Move things around to prepare for upload
+        shell: bash
+        env:
+          WINDOWS_BUILT_NAME: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nymvpn-x_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
+          WINDOWS_UPDATER_NAME: updater_windows_x86_64.nsis.zip
+          BINARY: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/nymvpn-x_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
+        run: |
+          echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
+          rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
+          mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}'     ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}
+          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}.sig' ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}.sig
+          cp -vpr '${{ env.BINARY }}' ${{ env.UPLOAD_DIR_WINDOWS }}/
+
+      - name: Upload artifact windows
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_WINDOWS }}
+          path: ${{ env.UPLOAD_DIR_WINDOWS }}
+          retention-days: 1
