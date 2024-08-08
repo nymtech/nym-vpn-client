@@ -48,8 +48,13 @@ pub(crate) struct Command {
     #[arg(long)]
     pub(crate) start: bool,
 
+    #[cfg(windows)]
     #[arg(long)]
     pub(crate) run_as_service: bool,
+
+    #[cfg(unix)]
+    #[arg(long)]
+    pub(crate) run_as_cli: bool,
 }
 
 impl Command {
