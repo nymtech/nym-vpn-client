@@ -5,7 +5,13 @@ use tracing_appender::non_blocking::WorkerGuard;
 
 use crate::service;
 
-pub fn setup_logging() {
+pub fn setup_logging(_as_service: bool) {
+    #[cfg(target_os = "macos")]
+    if _as_service {
+        nym_vpn_lib::swift::init_logs();
+        return;
+    }
+
     let filter = tracing_subscriber::EnvFilter::builder()
         .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
         .from_env()

@@ -13,7 +13,7 @@ use talpid_types::net::wireguard::{
     PeerConfig as WgPeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig as WgTunnelConfig,
 };
 
-pub(crate) fn init_logs() {
+pub fn init_logs() {
     OsLogger::new("net.nymtech.vpn.agent")
         .level_filter(LevelFilter::Debug)
         .category_level_filter("hyper", log::LevelFilter::Warn)

@@ -56,8 +56,8 @@ fn run_inner(args: CliArgs) -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(unix)]
 fn run() -> Result<(), Box<dyn std::error::Error>> {
-    setup_logging();
     let args = CliArgs::parse();
+    setup_logging(args.command.run_as_service);
     setup_env(args.config_env_file.as_ref());
 
     run_inner(args)
@@ -71,7 +71,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     if args.command.is_any() {
         Ok(windows_service::start(args)?)
     } else {
-        setup_logging();
+        setup_logging(false);
         run_inner(args)
     }
 }
