@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use rand::SeedableRng;
 
-use crate::{traits::KeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeys, OnDiskKeysError};
+use crate::{key_store::KeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeys, OnDiskKeysError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum KeyStoreError {
