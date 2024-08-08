@@ -27,7 +27,7 @@ on:
       tag_name:
         description: "Tag name for release"
         required: false
-        default: nightly-android
+        default: nym-vpn-android-nightly
       release_type:
         type: choice
         description: "GitHub release type"
@@ -95,7 +95,7 @@ jobs:
       - if: github.event_name == 'workflow_dispatch'
         run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
       - if: github.event_name == 'schedule'
-        run: echo "TAG_NAME=nightly-android" >> $GITHUB_ENV
+        run: echo "TAG_NAME=nym-vpn-android-nightly" >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
@@ -103,7 +103,7 @@ jobs:
         if: ${{ contains(env.TAG_NAME, 'nightly') }}
         run: |
           echo "RELEASE_NOTES=Nightly build of the latest development version of the android client." >> $GITHUB_ENV
-          gh release delete nightly-android --yes || true
+          gh release delete nym-vpn-android-nightly --yes || true
 
       - name: On prerelease release notes
         if: ${{ inputs.release_type == 'prerelease' }}
