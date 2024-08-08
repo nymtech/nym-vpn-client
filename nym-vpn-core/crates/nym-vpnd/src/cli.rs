@@ -58,6 +58,7 @@ impl Command {
         self.install || self.uninstall || self.start || self.run_as_service
     }
 
+    #[cfg(not(windows))]
     pub(crate) fn is_any(&self) -> bool {
         self.start
     }
