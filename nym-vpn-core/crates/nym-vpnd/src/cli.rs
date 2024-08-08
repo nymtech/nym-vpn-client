@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(windows)]
+#[cfg(any(windows, target_os = "macos"))]
 use clap::Args;
 use clap::Parser;
 use nym_vpn_lib::nym_bin_common::bin_info_local_vergen;
@@ -30,32 +30,37 @@ pub(crate) struct CliArgs {
     #[arg(long)]
     pub(crate) disable_service: bool,
 
-    #[cfg(windows)]
     #[command(flatten)]
     pub(crate) command: Command,
 }
 
-#[cfg(windows)]
 #[derive(Args, Debug, Clone)]
 #[group(multiple = false)]
 pub(crate) struct Command {
+    #[cfg(windows)]
     #[arg(long)]
     pub(crate) install: bool,
 
+    #[cfg(windows)]
     #[arg(long)]
     pub(crate) uninstall: bool,
 
     #[arg(long)]
     pub(crate) start: bool,
 
+    #[cfg(windows)]
     #[arg(long)]
     pub(crate) run_as_service: bool,
 }
 
-#[cfg(windows)]
 impl Command {
+    #[cfg(windows)]
     pub(crate) fn is_any(&self) -> bool {
         self.install || self.uninstall || self.start || self.run_as_service
+    }
+
+    pub(crate) fn is_any(&self) -> bool {
+        self.start
     }
 }
 

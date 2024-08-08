@@ -5,24 +5,24 @@ use tracing_appender::non_blocking::WorkerGuard;
 
 use crate::service;
 
-pub fn setup_logging() {
+pub fn setup_logging(_as_service: bool) {
     #[cfg(any(target_os = "ios", target_os = "macos"))]
-    nym_vpn_lib::swift::init_logs();
-
-    #[cfg(all(not(target_os = "ios"), not(target_os = "macos")))]
-    {
-        let filter = tracing_subscriber::EnvFilter::builder()
-            .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
-            .from_env()
-            .unwrap()
-            .add_directive("hyper::proto=info".parse().unwrap())
-            .add_directive("netlink_proto=info".parse().unwrap());
-
-        tracing_subscriber::fmt()
-            .with_env_filter(filter)
-            .compact()
-            .init();
+    if _as_service {
+        nym_vpn_lib::swift::init_logs();
+        return;
     }
+
+    let filter = tracing_subscriber::EnvFilter::builder()
+        .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
+        .from_env()
+        .unwrap()
+        .add_directive("hyper::proto=info".parse().unwrap())
+        .add_directive("netlink_proto=info".parse().unwrap());
+
+    tracing_subscriber::fmt()
+        .with_env_filter(filter)
+        .compact()
+        .init();
 }
 
 #[allow(unused)]
