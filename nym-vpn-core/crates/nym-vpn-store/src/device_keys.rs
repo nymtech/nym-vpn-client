@@ -7,7 +7,7 @@ use nym_crypto::asymmetric::ed25519;
 use rand::{CryptoRng, RngCore};
 use zeroize::ZeroizeOnDrop;
 
-use super::key_store::KeyStore;
+use super::traits::KeyStore;
 
 #[derive(Clone)]
 pub struct DeviceKeys {
