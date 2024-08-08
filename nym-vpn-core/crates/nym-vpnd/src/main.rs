@@ -54,10 +54,23 @@ fn run_inner(args: CliArgs) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-#[cfg(unix)]
+#[cfg(target_os = "macos")]
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args = CliArgs::parse();
-    setup_logging(!args.command.run_as_cli);
+    if args.command.run_as_cli {
+        setup_logging();
+    } else {
+        nym_vpn_lib::swift::init_logs();
+    }
+    setup_env(args.config_env_file.as_ref());
+
+    run_inner(args)
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+fn run() -> Result<(), Box<dyn std::error::Error>> {
+    let args = CliArgs::parse();
+    setup_logging();
     setup_env(args.config_env_file.as_ref());
 
     run_inner(args)
@@ -71,7 +84,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     if args.command.is_any() {
         Ok(windows_service::start(args)?)
     } else {
-        setup_logging(false);
+        setup_logging();
         run_inner(args)
     }
 }

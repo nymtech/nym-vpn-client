@@ -52,7 +52,7 @@ pub(crate) struct Command {
     #[arg(long)]
     pub(crate) run_as_service: bool,
 
-    #[cfg(unix)]
+    #[cfg(target_os = "macos")]
     #[arg(long)]
     pub(crate) run_as_cli: bool,
 }
