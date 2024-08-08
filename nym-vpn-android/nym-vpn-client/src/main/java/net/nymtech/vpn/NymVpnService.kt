@@ -83,7 +83,7 @@ class NymVpnService : VpnService() {
 	private fun startService() {
 		synchronized(this) {
 			CoroutineScope(vpnThread).launch {
-				val logLevel = if (BuildConfig.DEBUG) "info" else "info"
+				val logLevel = if (BuildConfig.DEBUG) "debug" else "info"
 				initVPN(this@NymVpnService, logLevel)
 				NymVpnClient.NymVpn.connect(this@NymVpnService)
 			}

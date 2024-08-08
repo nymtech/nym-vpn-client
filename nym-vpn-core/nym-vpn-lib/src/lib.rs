@@ -197,13 +197,13 @@ pub struct NymVpn<T: Vpn> {
     shadow_handle: ShadowHandle,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
 pub struct MixnetConnectionInfo {
     pub nym_address: Recipient,
     pub entry_gateway: NodeIdentity,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
 pub struct MixnetExitConnectionInfo {
     pub exit_gateway: NodeIdentity,
     pub exit_ipr: Recipient,
@@ -678,7 +678,7 @@ impl SpecificVpn {
     }
 }
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Clone, Debug)]
 pub enum NymVpnStatusMessage {
     #[error("mixnet connection info")]
     MixnetConnectionInfo {
