@@ -4060,7 +4060,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-probe"
-version = "0.1.13-dev"
+version = "0.1.13"
 dependencies = [
  "anyhow",
  "bincode",
@@ -4720,7 +4720,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-cli"
-version = "0.1.13-dev"
+version = "0.1.13"
 dependencies = [
  "anyhow",
  "bs58 0.5.1",
@@ -4738,7 +4738,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib"
-version = "0.1.13-dev"
+version = "0.1.13"
 dependencies = [
  "android_logger",
  "anyhow",
@@ -4832,7 +4832,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnc"
-version = "0.1.13-dev"
+version = "0.1.13"
 dependencies = [
  "anyhow",
  "bs58 0.5.1",
@@ -4851,7 +4851,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd"
-version = "0.1.13-dev"
+version = "0.1.13"
 dependencies = [
  "anyhow",
  "axum 0.7.5",
