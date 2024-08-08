@@ -14,3 +14,5 @@ mod helpers;
 mod key_store;
 mod mnemonic;
 mod persistence;
+
+pub trait VpnStorage: mnemonic::MnemonicStorage + key_store::KeyStore {}

@@ -7,12 +7,23 @@ use super::{MnemonicStorage, StoredMnemonic};
 
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskMnemonicStorageError {
-    #[error("No mnemonic stored")]
+    #[error("no mnemonic stored")]
     NoMnemonicStored,
-    // #[error("Failed to read mnemonic from file")]
-    // ReadError(#[from] std::io::Error),
-    // #[error("Failed to write mnemonic to file")]
-    // WriteError(#[from] std::io::Error),
+
+    #[error("failed to create file")]
+    FileCreateError {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error("failed to open file")]
+    FileOpenError(std::io::Error),
+
+    #[error("failed to read mnemonic from file")]
+    ReadError(serde_json::Error),
+
+    #[error("failed to write mnemonic to file")]
+    WriteError(serde_json::Error),
 }
 
 pub struct OnDiskMnemonicStorage {
@@ -20,6 +31,7 @@ pub struct OnDiskMnemonicStorage {
 }
 
 impl OnDiskMnemonicStorage {
+    #[allow(unused)]
     pub fn new(path: PathBuf) -> Self {
         Self { path }
     }
@@ -33,15 +45,73 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
         mnemonic: bip39::Mnemonic,
     ) -> Result<(), OnDiskMnemonicStorageError> {
         let stored_mnemonic = StoredMnemonic { mnemonic };
-
-        let file = File::create(&self.path).unwrap();
-        serde_json::to_writer(file, &stored_mnemonic).unwrap();
-        Ok(())
+        let file = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&self.path)
+            .map_err(|err| OnDiskMnemonicStorageError::FileCreateError {
+                path: self.path.clone(),
+                source: err,
+            })?;
+        serde_json::to_writer(file, &stored_mnemonic)
+            .map_err(OnDiskMnemonicStorageError::WriteError)
     }
 
     async fn load_mnemonic(&self) -> Result<bip39::Mnemonic, OnDiskMnemonicStorageError> {
-        let file = File::open(&self.path).unwrap();
-        let stored_mnemonic: StoredMnemonic = serde_json::from_reader(file).unwrap();
-        Ok(stored_mnemonic.mnemonic.clone())
+        let file = File::open(&self.path).map_err(OnDiskMnemonicStorageError::FileOpenError)?;
+        serde_json::from_reader(file)
+            .map_err(OnDiskMnemonicStorageError::ReadError)
+            .map(|s: StoredMnemonic| s.mnemonic.clone())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_store_mnemonic() {
+        let mnemonic = bip39::Mnemonic::generate_in(bip39::Language::English, 12).unwrap();
+        let path = tempfile::tempdir().unwrap().path().join("test.txt");
+        let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
+        mnemonic_storage
+            .store_mnemonic(mnemonic.clone())
+            .await
+            .unwrap();
+
+        let stored_mnemonic = mnemonic_storage.load_mnemonic().await.unwrap();
+        assert_eq!(mnemonic, stored_mnemonic);
+    }
+
+    #[tokio::test]
+    async fn test_store_twice_fails() {
+        let mnemonic = bip39::Mnemonic::generate_in(bip39::Language::English, 12).unwrap();
+        let path = tempfile::tempdir().unwrap().path().join("test.txt");
+        let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
+        mnemonic_storage
+            .store_mnemonic(mnemonic.clone())
+            .await
+            .unwrap();
+
+        let result = mnemonic_storage.store_mnemonic(mnemonic).await;
+        assert!(matches!(result, Err(OnDiskMnemonicStorageError::FileCreateError { .. })));
+    }
+
+    #[tokio::test]
+    async fn test_load_fails_if_file_does_not_exist() {
+        let path = tempfile::tempdir().unwrap().path().join("test.txt");
+        let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
+        let result = mnemonic_storage.load_mnemonic().await;
+        dbg!(&result);
+        assert!(matches!(result, Err(OnDiskMnemonicStorageError::FileOpenError(_))));
+    }
+
+    #[tokio::test]
+    async fn test_load_fails_if_no_mnemonic_stored() {
+        let path = tempfile::tempdir().unwrap().path().join("test.txt");
+        let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
+        let _ = File::create(&path).unwrap();
+        let result = mnemonic_storage.load_mnemonic().await;
+        assert!(matches!(result, Err(OnDiskMnemonicStorageError::NoMnemonicStored)));
     }
 }
