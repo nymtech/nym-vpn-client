@@ -43,7 +43,7 @@
     <string name="is_selected">已选择</string>
     <string name="fastest">最快</string>
     <string name="auto_connect">自动连接</string>
-	<string name="logs">日志</string>
+    <string name="logs">日志</string>
     <string name="feedback">反馈</string>
     <string name="support">支持</string>
     <string name="error_reporting">共享匿名错误报告</string>
@@ -80,7 +80,7 @@
     <string name="no_email_detected">未检测到电子邮件应用程序</string>
     <string name="unknown">未知</string>
     <string name="no_scm_found">未找到源代码网址</string>
-	<string name="five_hop">5跳</string>
+    <string name="five_hop">5跳</string>
     <string name="mode">模式</string>
     <string name="okay">好的</string>
     <string name="feature_in_progress">该功能仍在开发中。</string>
@@ -125,4 +125,8 @@
     <string name="five_hop_explanation">通过 mixnet 通过 5 个服务器路由连接，享受最高级别的隐私保护。是安全处理付款、电子邮件和信息的完美选择。</string>
     <string name="continue_reading">继续阅读</string>
     <string name="two_hop_explanation">通过双服务器连接，体验最快速度。 是快速浏览、流媒体和文件共享的完美选择。</string>
+    <string name="entry_location_selector">输入位置选择器</string>
+    <string name="entry_location">第一跳选择</string>
+    <string name="exit_location">最后一跳选择</string>
+    <string name="language">语言</string>
 </resources>
