@@ -1,7 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(any(windows, target_os = "macos"))]
 use clap::Args;
 use clap::Parser;
 use nym_vpn_lib::nym_bin_common::bin_info_local_vergen;
