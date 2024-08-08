@@ -6,295 +6,323 @@ message Empty {}
 
 // Represents the identity of a gateway
 message Gateway {
-  string id = 1;
+    string id = 1;
 }
 
 // Represents a nym-address of the form id.enc@gateway
 message Address {
-  string nym_address = 1;
+    string nym_address = 1;
 }
 
 message Location {
-  string two_letter_iso_country_code = 1;
+    string two_letter_iso_country_code = 1;
 }
 
 message EntryNode {
-  oneof entry_node_enum {
-    Gateway gateway = 1;
-    Location location = 2;
-    Empty random_low_latency = 3;
-    Empty random = 4;
-  }
+    oneof entry_node_enum {
+        Gateway gateway = 1;
+        Location location = 2;
+        Empty random_low_latency = 3;
+        Empty random = 4;
+    }
 }
 
 message ExitNode {
-  oneof exit_node_enum {
-    Address address = 1;
-    Gateway gateway = 2;
-    Location location = 3;
-    Empty random = 4;
-  }
+    oneof exit_node_enum {
+        Address address = 1;
+        Gateway gateway = 2;
+        Location location = 3;
+        Empty random = 4;
+    }
 }
 
 message Dns {
-  string ip = 1;
+    string ip = 1;
 }
 
 message InfoRequest {}
 
 message InfoResponse {
-  string version = 1;
-  google.protobuf.Timestamp build_timestamp = 2;
-  string triple = 3;
-  string git_commit = 4;
+    string version = 1;
+    google.protobuf.Timestamp build_timestamp = 2;
+    string triple = 3;
+    string git_commit = 4;
 }
 
 message Threshold {
-  uint32 min_performance = 1;
+    uint32 min_performance = 1;
 }
 
 message ConnectRequest {
-  EntryNode entry = 1;
-  ExitNode exit = 2;
-  Dns dns = 3;
-  bool disable_routing = 4;
-  bool enable_two_hop = 5;
-  bool enable_poisson_rate = 6;
-  bool disable_background_cover_traffic = 7;
-  bool enable_credentials_mode = 8;
-  Threshold min_mixnode_performance = 9;
+    EntryNode entry = 1;
+    ExitNode exit = 2;
+    Dns dns = 3;
+    bool disable_routing = 4;
+    bool enable_two_hop = 5;
+    bool enable_poisson_rate = 6;
+    bool disable_background_cover_traffic = 7;
+    bool enable_credentials_mode = 8;
+    Threshold min_mixnode_performance = 9;
 }
 
 message ConnectResponse {
-  bool success = 1;
+    bool success = 1;
 }
 
 message DisconnectRequest {}
 message DisconnectResponse {
-  bool success = 1;
+    bool success = 1;
 }
 
 enum ConnectionStatus {
-  STATUS_UNSPECIFIED = 0;
-  UNKNOWN = 1;
-  NOT_CONNECTED = 2;
-  CONNECTING = 3;
-  CONNECTED = 4;
-  DISCONNECTING = 5;
-  CONNECTION_FAILED = 6;
+    STATUS_UNSPECIFIED = 0;
+    UNKNOWN = 1;
+    NOT_CONNECTED = 2;
+    CONNECTING = 3;
+    CONNECTED = 4;
+    DISCONNECTING = 5;
+    CONNECTION_FAILED = 6;
 }
 
 import "google/protobuf/timestamp.proto";
 
 message ConnectionDetails {
-  Address nym_address = 1;
-  Gateway entry_gateway = 2;
-  Gateway exit_gateway = 3;
-  Address exit_ipr = 4;
-  string ipv4 = 5;
-  string ipv6 = 6;
-  google.protobuf.Timestamp since = 7;
+    Address nym_address = 1;
+    Gateway entry_gateway = 2;
+    Gateway exit_gateway = 3;
+    Address exit_ipr = 4;
+    string ipv4 = 5;
+    string ipv6 = 6;
+    google.protobuf.Timestamp since = 7;
 }
 
 message StatusRequest {}
 message StatusResponse {
-  ConnectionStatus status = 1;
-  ConnectionDetails details = 2;
-  Error error = 3;
+    ConnectionStatus status = 1;
+    ConnectionDetails details = 2;
+    Error error = 3;
 }
 
 message ConnectionStateChange {
-  ConnectionStatus status = 1;
-  Error error = 2;
+    ConnectionStatus status = 1;
+    Error error = 2;
 }
 
 message ConnectionStatusUpdate {
-  enum StatusType {
-    STATUS_TYPE_UNSPECIFIED = 0;
+    enum StatusType {
+        STATUS_TYPE_UNSPECIFIED = 0;
 
-    // Status message that is not mapped to a specific type
-    UNKNOWN = 1;
+        // Status message that is not mapped to a specific type
+        UNKNOWN = 1;
 
-    // Connection to entry gateway established
-    // NOTE: currently not implemented by vpnd
-    ENTRY_GATEWAY_CONNECTION_ESTABLISHED = 2;
+        // Connection to entry gateway established
+        // NOTE: currently not implemented by vpnd
+        ENTRY_GATEWAY_CONNECTION_ESTABLISHED = 2;
 
-    // Connection to exit router established
-    // NOTE: currently not implemented by vpnd
-    EXIT_ROUTER_CONNECTION_ESTABLISHED = 3;
+        // Connection to exit router established
+        // NOTE: currently not implemented by vpnd
+        EXIT_ROUTER_CONNECTION_ESTABLISHED = 3;
 
-    // End-to-end tunnel established and operational
-    TUNNEL_END_TO_END_CONNECTION_ESTABLISHED = 4;
+        // End-to-end tunnel established and operational
+        TUNNEL_END_TO_END_CONNECTION_ESTABLISHED = 4;
 
-    // Entry gateway not routing our mixnet messages
-    ENTRY_GATEWAY_NOT_ROUTING_MIXNET_MESSAGES = 5;
+        // Entry gateway not routing our mixnet messages
+        ENTRY_GATEWAY_NOT_ROUTING_MIXNET_MESSAGES = 5;
 
-    // The exit router is not responding to IPv4 traffic
-    EXIT_ROUTER_NOT_RESPONDING_TO_IPV4_PING = 6;
+        // The exit router is not responding to IPv4 traffic
+        EXIT_ROUTER_NOT_RESPONDING_TO_IPV4_PING = 6;
 
-    // The exit router is not responding to IPv6 traffic
-    EXIT_ROUTER_NOT_RESPONDING_TO_IPV6_PING = 7;
+        // The exit router is not responding to IPv6 traffic
+        EXIT_ROUTER_NOT_RESPONDING_TO_IPV6_PING = 7;
 
-    // The ip packet router connected to on the exit side is not routing IPv4 traffic
-    EXIT_ROUTER_NOT_ROUTING_IPV4_TRAFFIC = 8;
+        // The ip packet router connected to on the exit side is not routing IPv4 traffic
+        EXIT_ROUTER_NOT_ROUTING_IPV4_TRAFFIC = 8;
 
-    // The ip packet router connected to on the exit side is not routing IPv6 traffic
-    EXIT_ROUTER_NOT_ROUTING_IPV6_TRAFFIC = 9;
+        // The ip packet router connected to on the exit side is not routing IPv6 traffic
+        EXIT_ROUTER_NOT_ROUTING_IPV6_TRAFFIC = 9;
 
-    // The end-to-end IPv4 connection appears to be operation correctly
-    CONNECTION_OK_IPV4 = 10;
+        // The end-to-end IPv4 connection appears to be operation correctly
+        CONNECTION_OK_IPV4 = 10;
 
-    // The end-to-end IPv6 connection appears to be operation correctly
-    CONNECTION_OK_IPV6 = 11;
+        // The end-to-end IPv6 connection appears to be operation correctly
+        CONNECTION_OK_IPV6 = 11;
 
-    // Remaining bandwidth available
-    REMAINING_BANDWIDTH = 12;
+        // Remaining bandwidth available
+        REMAINING_BANDWIDTH = 12;
 
-    // The user has run out of available bandwidth
-    NO_BANDWIDTH = 13;
-  }
+        // The user has run out of available bandwidth
+        NO_BANDWIDTH = 13;
+    }
 
-  StatusType kind = 1;
+    StatusType kind = 1;
 
-  // Detailed message for logging and debugging
-  string message = 2;
+    // Detailed message for logging and debugging
+    string message = 2;
 
-  // Optional additional details
-  map<string, string> details = 3;
+    // Optional additional details
+    map<string, string> details = 3;
 }
 
 message Error {
-  enum ErrorType {
-    ERROR_TYPE_UNSPECIFIED = 0;
+    enum ErrorType {
+        ERROR_TYPE_UNSPECIFIED = 0;
 
-    // An error that was not explicitly handled by the vpn service. This should
-    // not happend but it will while we interate on mapping out all possible
-    // error that can happen
-    UNHANDLED = 1;
+        // An error that was not explicitly handled by the vpn service. This should
+        // not happen but it will while we iterate on mapping out all possible
+        // error that can happen
+        UNHANDLED = 1;
 
-    // If the credential storage does not contain any valid credentials when
-    // connecting
-    NO_VALID_CREDENTIALS = 2;
+        // If the credential storage does not contain any valid credentials when
+        // connecting
+        NO_VALID_CREDENTIALS = 2;
 
-    // AUTHENTICATION_FAILED = 3;
-    // NETWORK_ISSUE = 4;
-    // INVALID_CONFIGURATION = 5;
+        // Generic connection timeout. This could happen  in a number of contexts,
+        // and the provided details needs to be investigated to determine what went
+        // wrong
+        TIMEOUT = 6;
 
-    // Connection timeout. This could happen  in a number of contexts, and the
-    // provided details needs to be investigated to determine what went wrong
-    TIMEOUT = 6;
+        // Timeout starting the mixnet client
+        MIXNET_TIMEOUT = 7;
 
-    // PERMISSION_DENIED = 7;
+        // Looking up gateways can fail in a number of ways.
+        GATEWAY_DIRECTORY = 8;
 
-    // Looking up gateways can fail in a number of ways.
-    GATEWAY_DIRECTORY = 8;
-  }
+        // Failing to lookup gateways
+        GATEWAY_DIRECTORY_LOOKUP_GATEWAYS = 9;
 
-  ErrorType kind = 1;
+        // Failing to lookup gateway identity
+        GATEWAY_DIRECTORY_LOOKUP_GATEWAY_IDENTITY = 10;
 
-  // Detailed error message for logging and debuggning
-  string message = 2;
+        // Failing to lookup the IPR address
+        GATEWAY_DIRECTORY_LOOKUP_ROUTER_ADDRESS = 11;
 
-  // Optional additional details
-  map<string, string> details = 3;
+        // Failing to lookup the gateway IP
+        GATEWAY_DIRECTORY_LOOKUP_IP = 12;
+
+        // Failing to lookup the entry gateway
+        GATEWAY_DIRECTORY_ENTRY = 13;
+
+        // Failing to lookup the entry gateway for a given location
+        GATEWAY_DIRECTORY_ENTRY_LOCATION = 14;
+
+        // Failing to lookup the exit gateway
+        GATEWAY_DIRECTORY_EXIT = 15;
+
+        // Failing to lookup the exit gateway for a given location
+        GATEWAY_DIRECTORY_EXIT_LOCATION = 16;
+
+        // Invalid configuration attempted, with the same entry and exit gateway
+        GATEWAY_DIRECTORY_SAME_ENTRY_AND_EXIT_GW = 17;
+
+        // Client ran out of allocated bandwidth
+        OUT_OF_BANDWIDTH = 18;
+    }
+
+    ErrorType kind = 1;
+
+    // Detailed error message for logging and debuggning
+    string message = 2;
+
+    // Optional additional details
+    map<string, string> details = 3;
 }
 
 message ImportUserCredentialRequest {
-  bytes credential = 1;
+    bytes credential = 1;
 }
 
 message ImportUserCredentialResponse {
-  bool success = 1;
-  ImportError error = 2;
-  google.protobuf.Timestamp expiry = 3;
+    bool success = 1;
+    ImportError error = 2;
+    google.protobuf.Timestamp expiry = 3;
 }
 
 message ImportError {
-  enum ImportErrorType {
-    IMPORT_ERROR_TYPE_UNSPECIFIED = 0;
+    enum ImportErrorType {
+        IMPORT_ERROR_TYPE_UNSPECIFIED = 0;
 
-    // Credential import is not supported while the vpn is already connected
-    VPN_RUNNING = 1;
+        // Credential import is not supported while the vpn is already connected
+        VPN_RUNNING = 1;
 
-    // Importing the same credential twice will return an error
-    CREDENTIAL_ALREADY_IMPORTED = 2;
+        // Importing the same credential twice will return an error
+        CREDENTIAL_ALREADY_IMPORTED = 2;
 
-    // If the credential storage fails in some way. It's very likely due to a
-    // permission error.
-    STORAGE_ERROR = 3;
+        // If the credential storage fails in some way. It's very likely due to a
+        // permission error.
+        STORAGE_ERROR = 3;
 
-    // If the provided credential fails to deserialize. This is probably due to
-    // incorrect credential, but it could also be due to other internal reasons
-    DESERIALIZATION_FAILURE = 4;
+        // If the provided credential fails to deserialize. This is probably due to
+        // incorrect credential, but it could also be due to other internal reasons
+        DESERIALIZATION_FAILURE = 4;
 
-    // Credentials have a date when they expire
-    CREDENTIAL_EXPIRED = 5;
-  }
+        // Credentials have a date when they expire
+        CREDENTIAL_EXPIRED = 5;
+    }
 
-  ImportErrorType kind = 1;
+    ImportErrorType kind = 1;
 
-  // Detailed error message for logging and debugging
-  string message = 2;
+    // Detailed error message for logging and debugging
+    string message = 2;
 
-  // Optional additional details
-  map<string, string> details = 3;
+    // Optional additional details
+    map<string, string> details = 3;
 }
 
 message AsEntry {
-  bool can_connect = 1;
-  bool can_route = 2;
+    bool can_connect = 1;
+    bool can_route = 2;
 }
 
 message AsExit {
-  bool can_connect = 1;
-  bool can_route_ip_v4 = 2;
-  bool can_route_ip_v6 = 3;
-  bool can_route_ip_external_v4 = 4;
-  bool can_route_ip_external_v6 = 5;
+    bool can_connect = 1;
+    bool can_route_ip_v4 = 2;
+    bool can_route_ip_v6 = 3;
+    bool can_route_ip_external_v4 = 4;
+    bool can_route_ip_external_v6 = 5;
 }
 
 message ProbeOutcome {
-  AsEntry as_entry = 1;
-  AsExit as_exit = 2;
+    AsEntry as_entry = 1;
+    AsExit as_exit = 2;
 }
 
 message Probe {
-  google.protobuf.Timestamp last_updated_utc = 1;
-  ProbeOutcome outcome = 2;
+    google.protobuf.Timestamp last_updated_utc = 1;
+    ProbeOutcome outcome = 2;
 }
 
 message EntryGateway {
-  Gateway id = 1;
-  Location location = 2;
-  Probe last_probe = 3;
+    Gateway id = 1;
+    Location location = 2;
+    Probe last_probe = 3;
 }
 
 message ListEntryGatewaysRequest {}
 message ListEntryGatewaysResponse {
-  repeated EntryGateway gateways = 1;
+    repeated EntryGateway gateways = 1;
 }
 
 message ExitGateway {
-  Gateway id = 1;
-  Location location = 2;
-  Probe last_probe = 3;
+    Gateway id = 1;
+    Location location = 2;
+    Probe last_probe = 3;
 }
 
 message ListExitGatewaysRequest {}
 message ListExitGatewaysResponse {
-  repeated ExitGateway gateways = 1;
+    repeated ExitGateway gateways = 1;
 }
 
 service NymVpnd {
-  rpc Info (InfoRequest) returns (InfoResponse) {}
-  rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
-  rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
-  rpc VpnStatus (StatusRequest) returns (StatusResponse) {}
-  rpc ImportUserCredential (ImportUserCredentialRequest) returns (ImportUserCredentialResponse) {}
-  rpc ListenToConnectionStateChanges (Empty) returns (stream ConnectionStateChange) {}
-  rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
+    rpc Info (InfoRequest) returns (InfoResponse) {}
+    rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
+    rpc VpnDisconnect (DisconnectRequest) returns (DisconnectResponse) {}
+    rpc VpnStatus (StatusRequest) returns (StatusResponse) {}
+    rpc ImportUserCredential (ImportUserCredentialRequest) returns (ImportUserCredentialResponse) {}
+    rpc ListenToConnectionStateChanges (Empty) returns (stream ConnectionStateChange) {}
+    rpc ListenToConnectionStatus (Empty) returns (stream ConnectionStatusUpdate) {}
 
-  rpc ListEntryGateways (ListEntryGatewaysRequest) returns (ListEntryGatewaysResponse) {}
-  rpc ListExitGateways (ListExitGatewaysRequest) returns (ListExitGatewaysResponse) {}
+    rpc ListEntryGateways (ListEntryGatewaysRequest) returns (ListEntryGatewaysResponse) {}
+    rpc ListExitGateways (ListExitGatewaysRequest) returns (ListExitGatewaysResponse) {}
 }
 
