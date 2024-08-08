@@ -1,5 +1,4 @@
 import NetworkExtension
-import WireGuardKit
 import Keychain
 
 extension NETunnelProviderProtocol {

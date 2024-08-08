@@ -1,5 +1,4 @@
 import NetworkExtension
-import WireGuardKit
 
 extension NETunnelProviderManager {
     private static var cachedConfigKey: UInt8 = 0

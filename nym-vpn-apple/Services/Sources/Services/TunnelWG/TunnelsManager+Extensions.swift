@@ -1,6 +1,5 @@
 import NetworkExtension
 import Tunnels
-import WireGuardKit
 
 extension TunnelsManager {
     public func add(

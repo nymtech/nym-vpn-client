@@ -149,7 +149,6 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log"),
                 "NymLogger",
                 "Tunnels",
-                .product(name: "WireGuardKit", package: "wireguard-apple")
             ],
             path: "Sources/Services/TunnelWG"
         )
