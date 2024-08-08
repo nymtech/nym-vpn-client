@@ -343,7 +343,10 @@ fn append_ipr_and_authenticator_addresses(
                 .and_then(|d| d.authenticator)
                 .map(|auth| auth.address)
                 .and_then(|address| Recipient::try_from_base58_string(address).ok())
-                .map(|r| AuthAddress(Some(r)))
+                .map(|r| AuthAddress(Some(r)));
+            let gateway_node = nym_topology::gateway::Node::try_from(described_gateway).unwrap();
+            let address = gateway_node.clients_address();
+            gateway.address = Some(address);
         }
     }
 }

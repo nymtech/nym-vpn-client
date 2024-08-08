@@ -16,6 +16,7 @@ pub struct Gateway {
     pub ipr_address: Option<IpPacketRouterAddress>,
     pub authenticator_address: Option<AuthAddress>,
     pub last_probe: Option<Probe>,
+    pub address: Option<String>,
 }
 
 impl Gateway {
@@ -139,6 +140,7 @@ impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
             ipr_address: None,
             authenticator_address: None,
             last_probe: gateway.last_probe.map(Probe::from),
+            address: None,
         })
     }
 }
@@ -179,12 +181,16 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
                     .inspect_err(|err| error!("Failed to parse authenticator address: {err}"))
                     .ok()
             });
+        let address = nym_topology::gateway::Node::try_from(gateway)
+            .ok()
+            .map(|n| n.clients_address());
         Ok(Gateway {
             identity,
             location,
             ipr_address,
             authenticator_address,
             last_probe: None,
+            address,
         })
     }
 }
@@ -277,6 +283,93 @@ impl GatewayList {
     pub fn into_inner(self) -> Vec<Gateway> {
         self.gateways
     }
+
+    pub(crate) async fn random_low_latency_gateway(&self) -> Result<Gateway> {
+        const CONCURRENT_GATEWAYS_MEASURED: usize = 20;
+        let gateways_with_latency = Arc::new(tokio::sync::Mutex::new(Vec::new()));
+        futures::stream::iter(self.gateways)
+            .for_each_concurrent(CONCURRENT_GATEWAYS_MEASURED, |gateway| async {
+                let id = gateway.identity
+                trace!("measuring latency to {id}...");
+                match measure_latency(gateway).await {
+                    Ok(with_latency) => {
+                        debug!("{id}: {:?}", with_latency.latency);
+                        gateways_with_latency.lock().await.push(with_latency);
+                    }
+                    Err(err) => {
+                        warn!("failed to measure {id}: {err}");
+                    }
+                };
+            })
+            .await;
+
+        let gateways_with_latency = gateways_with_latency.lock().await;
+        let chosen = gateways_with_latency
+            .choose_weighted(rng, |item| 1. / item.latency.as_secs_f32())
+            .expect("invalid selection weight!");
+
+        info!(
+            "chose gateway {} with average latency of {:?}",
+            chosen.gateway.identity_key, chosen.latency
+        );
+    }
+}
+
+async fn measure_latency(gateway: &gateway::Node) -> Result<GatewayWithLatency, ClientCoreError> {
+    let addr = gateway.clients_address();
+    trace!(
+        "establishing connection to {} ({addr})...",
+        gateway.identity_key,
+    );
+    let mut stream = connect(&addr).await?;
+
+    let mut results = Vec::new();
+    for _ in 0..MEASUREMENTS {
+        let measurement_future = async {
+            let ping_content = vec![1, 2, 3];
+            let start = Instant::now();
+            stream.send(Message::Ping(ping_content.clone())).await?;
+
+            match stream.next().await {
+                Some(Ok(Message::Pong(content))) => {
+                    if content == ping_content {
+                        let elapsed = Instant::now().duration_since(start);
+                        trace!("current ping time: {elapsed:?}");
+                        results.push(elapsed);
+                    } else {
+                        warn!("received a pong message with different content? wtf.")
+                    }
+                }
+                Some(Ok(_)) => warn!("received a message that's not a pong!"),
+                Some(Err(err)) => return Err(err.into()),
+                None => return Err(ClientCoreError::GatewayConnectionAbruptlyClosed),
+            }
+
+            Ok::<(), ClientCoreError>(())
+        };
+
+        let timeout = sleep(PING_TIMEOUT);
+        tokio::pin!(timeout);
+
+        tokio::select! {
+            _ = &mut timeout => {
+                warn!("timed out while trying to perform measurement...")
+            }
+            res = measurement_future => res?,
+        }
+    }
+
+    let count = results.len() as u64;
+    if count == 0 {
+        return Err(ClientCoreError::NoGatewayMeasurements {
+            identity: gateway.identity_key.to_base58_string(),
+        });
+    }
+
+    let sum: Duration = results.into_iter().sum();
+    let avg = Duration::from_nanos(sum.as_nanos() as u64 / count);
+
+    Ok(GatewayWithLatency::new(gateway, avg))
 }
 
 impl IntoIterator for GatewayList {

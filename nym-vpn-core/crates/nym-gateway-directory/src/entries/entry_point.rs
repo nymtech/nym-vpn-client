@@ -73,7 +73,8 @@ impl EntryPoint {
             }
             EntryPoint::RandomLowLatency => {
                 debug!("Selecting a random low latency gateway");
-                todo!("Need to add client address to Gateway type");
+                gateways
+                    .random_low_latency_gateway()
             }
             EntryPoint::Random => {
                 debug!("Selecting a random gateway");
