@@ -235,6 +235,29 @@ private extension GRPCManager {
             GeneralNymError.library(message: "error.gatewayDirectory".localizedString)
         case .UNRECOGNIZED(let code):
             GeneralNymError.library(message: "error.unrecognized".localizedString + " \(code)")
+        case .mixnetTimeout:
+            // TODO: localize errors
+            GeneralNymError.library(message: error.message)
+        case .gatewayDirectoryLookupGateways:
+            GeneralNymError.library(message: error.message)
+        case .gatewayDirectoryLookupGatewayIdentity:
+            GeneralNymError.library(message: error.message)
+        case .gatewayDirectoryLookupRouterAddress:
+            GeneralNymError.library(message: error.message)
+        case .gatewayDirectoryLookupIp:
+            GeneralNymError.library(message: error.message)
+        case .gatewayDirectoryEntry:
+            GeneralNymError.library(message: error.message)
+        case .gatewayDirectoryEntryLocation:
+            GeneralNymError.library(message: error.message)
+        case .gatewayDirectoryExit:
+            GeneralNymError.library(message: error.message)
+        case .gatewayDirectoryExitLocation:
+            GeneralNymError.library(message: error.message)
+        case .gatewayDirectorySameEntryAndExitGw:
+            GeneralNymError.library(message: error.message)
+        case .outOfBandwidth:
+            GeneralNymError.library(message: error.message)
         }
     }
 }
