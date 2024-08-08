@@ -27,3 +27,4 @@ serde = { workspace = true, features = ["derive"] }
 [dev-dependencies]
 tokio = { workspace = true, features = ["sync", "macros", "rt-multi-thread"] }
 bip39 = { version = "2.0", features = ["rand"] }
+tempfile = "3.12"
