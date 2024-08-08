@@ -6,17 +6,23 @@ use tracing_appender::non_blocking::WorkerGuard;
 use crate::service;
 
 pub fn setup_logging() {
-    let filter = tracing_subscriber::EnvFilter::builder()
-        .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
-        .from_env()
-        .unwrap()
-        .add_directive("hyper::proto=info".parse().unwrap())
-        .add_directive("netlink_proto=info".parse().unwrap());
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
+    nym_vpn_lib::swift::init_logs();
 
-    tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .compact()
-        .init();
+    #[cfg(all(not(target_os = "ios"), not(target_os = "macos")))]
+    {
+        let filter = tracing_subscriber::EnvFilter::builder()
+            .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
+            .from_env()
+            .unwrap()
+            .add_directive("hyper::proto=info".parse().unwrap())
+            .add_directive("netlink_proto=info".parse().unwrap());
+
+        tracing_subscriber::fmt()
+            .with_env_filter(filter)
+            .compact()
+            .init();
+    }
 }
 
 #[allow(unused)]

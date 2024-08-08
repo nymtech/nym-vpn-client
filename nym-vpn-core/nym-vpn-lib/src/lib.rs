@@ -42,6 +42,8 @@ pub use nym_task::{
     StatusReceiver,
 };
 
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+pub use crate::platform::swift;
 #[cfg(target_os = "ios")]
 use crate::platform::swift::OSTunProvider;
 pub use nym_bin_common;
