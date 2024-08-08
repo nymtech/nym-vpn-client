@@ -35,7 +35,7 @@ pub(crate) struct JwtPayload {
     sub: String,
 }
 
-#[allow(dead_code)]
+#[allow(unused)]
 #[derive(Debug, Clone)]
 pub(crate) struct Jwt {
     header: JwtHeader,
@@ -44,11 +44,13 @@ pub(crate) struct Jwt {
     jwt: String,
 }
 
+#[allow(unused)]
 impl Jwt {
     pub fn new_secp256k1(wallet: &DirectSecp256k1HdWallet) -> Jwt {
         let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_millis();
         Jwt::new_secp256k1_with_now(wallet, timestamp)
     }
+
     pub fn new_secp256k1_with_now(wallet: &DirectSecp256k1HdWallet, now: u128) -> Jwt {
         let account = wallet.get_accounts().unwrap(); // TODO: result
         let address = account[0].address();
@@ -88,6 +90,7 @@ impl Jwt {
         let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_millis();
         Jwt::new_ecdsa_with_now(key_pair, timestamp)
     }
+
     pub fn new_ecdsa_with_now(key_pair: &KeyPair, now: u128) -> Jwt {
         let header = JwtHeader {
             typ: "JWT".to_string(),
@@ -120,9 +123,8 @@ impl Jwt {
         }
     }
 
-    #[allow(dead_code)]
-    pub fn jwt(&self) -> String {
-        self.jwt.clone()
+    pub fn jwt(&self) -> &str {
+        &self.jwt
     }
 }
 
@@ -143,13 +145,13 @@ mod tests {
         let now = 1722535718u128;
         let jwt_expected_from_js_snapshot = "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjMwLCJpYXQiOjE3MjI1MzU3MTgsInB1YmtleSI6IndneFpTM25CbWJBd2Nud0FpTnlDTjE5dWNTZHo5cVdkUXlidDJyYWtQVUhyIiwic3ViIjoibjE4Y2phemx4dTd0ODZzODV3YWwzbTdobms4ZXE3cGNmYWtoZHE1MyJ9.qxwY96D-vzMxHWZ840_l6YVDeuZeEkYqz2FaPS8ROztEqipXWCYUi8M1YTH1ZUuNyjgDAMS3NAM3hYvY09ODWQ";
         let jwt_expected_from_js_snapshot_components: Vec<&str> =
-            jwt_expected_from_js_snapshot.split(".").collect();
+            jwt_expected_from_js_snapshot.split('.').collect();
 
         let wallet = get_secp256k1_keypair();
         let jwt = Jwt::new_secp256k1_with_now(&wallet, now);
 
         let jwt_str = jwt.jwt();
-        let jwt_components: Vec<&str> = jwt_str.split(".").collect();
+        let jwt_components: Vec<&str> = jwt_str.split('.').collect();
 
         if jwt_str != jwt_expected_from_js_snapshot {
             println!("== secp256k1 / ED256K1 ==");
@@ -192,14 +194,14 @@ mod tests {
         let now = 1722535718u128;
         let jwt_expected_from_js_snapshot = "eyJhbGciOiJFQ0RTQSIsInR5cCI6IkpXVCJ9.eyJleHAiOjMwLCJpYXQiOjE3MjI1MzU3MTgsInN1YiI6IjRTUGR4ZkJZc3VBUkJ3NlJFUVFhNXZGaUtjdm1ZaWV0OXNTV3FiNzUxaTNaIn0.wSd8y1QdqOVYLf2uTMlnymmiIPQwpxXWd2QvPZ-XqV8O1PNiurQO5JPU65SnaOfggJVA5pnAgZLbj9ciOJKIDg";
         let jwt_expected_from_js_snapshot_components: Vec<&str> =
-            jwt_expected_from_js_snapshot.split(".").collect();
+            jwt_expected_from_js_snapshot.split('.').collect();
 
         let key_pair = get_ed25519_keypair();
 
         let jwt = Jwt::new_ecdsa_with_now(&key_pair, now);
 
         let jwt_str = jwt.jwt();
-        let jwt_components: Vec<&str> = jwt_str.split(".").collect();
+        let jwt_components: Vec<&str> = jwt_str.split('.').collect();
 
         if jwt_str != jwt_expected_from_js_snapshot {
             println!("== ed25519 / ECDSA ==");
