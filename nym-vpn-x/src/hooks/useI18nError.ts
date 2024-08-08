@@ -39,6 +39,8 @@ function useI18nError() {
           return t('credential.deserialize');
         case 'CredentialExpired':
           return t('credential.expired');
+        case 'OutOfBandwidth':
+          return t('out-of-bandwidth');
         case 'GetEntryCountriesRequest':
           return t('countries-request.entry');
         case 'GetExitCountriesRequest':

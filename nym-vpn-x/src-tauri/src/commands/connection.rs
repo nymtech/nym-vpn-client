@@ -14,22 +14,35 @@ use crate::{
 use nym_vpn_proto::entry_node::EntryNodeEnum;
 use nym_vpn_proto::exit_node::ExitNodeEnum;
 use nym_vpn_proto::{EntryNode, ExitNode, Location};
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tauri::State;
 use tracing::{debug, error, info, instrument, trace};
+use ts_rs::TS;
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ConnectionStateResponse {
+    state: ConnectionState,
+    error: Option<BackendError>,
+}
 
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn get_connection_state(
     state: State<'_, SharedAppState>,
     grpc: State<'_, Arc<GrpcClient>>,
-) -> Result<ConnectionState, BackendError> {
+) -> Result<ConnectionStateResponse, BackendError> {
     debug!("get_connection_state");
-    let status = ConnectionState::from(grpc.vpn_status().await?.status());
+    let res = grpc.vpn_status().await?;
+    let status = ConnectionState::from(res.status());
     let mut app_state = state.lock().await;
     app_state.state = status.clone();
 
-    Ok(status)
+    Ok(ConnectionStateResponse {
+        state: status,
+        error: res.error.map(BackendError::from),
+    })
 }
 
 #[instrument(skip_all)]

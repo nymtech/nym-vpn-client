@@ -8,7 +8,7 @@ import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
 import {
   CodeDependency,
-  ConnectionState,
+  ConnectionStateResponse,
   Country,
   DaemonStatus,
   NodeLocation,
@@ -24,7 +24,7 @@ import fireRequests, { TauriReq } from './helper';
 
 // initialize connection state
 const getInitialConnectionState = async () => {
-  return await invoke<ConnectionState>('get_connection_state');
+  return await invoke<ConnectionStateResponse>('get_connection_state');
 };
 
 const getDaemonStatus = async () => {
@@ -73,8 +73,11 @@ export async function initFirstBatch(dispatch: StateDispatch) {
   const initStateRq: TauriReq<typeof getInitialConnectionState> = {
     name: 'get_connection_state',
     request: () => getInitialConnectionState(),
-    onFulfilled: (value) => {
-      dispatch({ type: 'change-connection-state', state: value });
+    onFulfilled: ({ state, error }) => {
+      dispatch({ type: 'change-connection-state', state });
+      if (error) {
+        dispatch({ type: 'set-error', error });
+      }
     },
   };
 

@@ -150,11 +150,11 @@ pub enum ErrorKey {
     CredentialDeserializationFailure,
     /// Forwarded from proto
     CredentialExpired,
+    /// Forwarded from proto
+    OutOfBandwidth,
     /// HTTP request failure when fetching countries from the Gateway API
     GetEntryCountriesRequest,
     GetExitCountriesRequest,
-    /// The bandwidth allocation was depleted
-    OutOfBandwidth,
 }
 
 impl From<DaemonError> for ErrorKey {

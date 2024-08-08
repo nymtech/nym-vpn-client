@@ -22,5 +22,6 @@
   "countries-request": {
     "entry": "Failed to fetch the available entry node countries",
     "exit": "Failed to fetch the available exit node countries"
-  }
+  },
+  "out-of-bandwidth": "Out of allocated bandwidth"
 }
