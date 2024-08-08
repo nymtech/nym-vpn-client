@@ -149,6 +149,7 @@ impl TwoHopTunnel {
 
         // Resolve peer IP addresses with DNS64.
         dns64::resolve_peers(&mut entry_wg_config.peers)?;
+        // todo: we probably don't have to do that for netstack connections!
         dns64::resolve_peers(&mut exit_wg_config.peers)?;
 
         // Obtain tunnel file descriptor and interface name.
