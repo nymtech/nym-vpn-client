@@ -50,6 +50,7 @@ impl Jwt {
         let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_millis();
         Jwt::new_secp256k1_with_now(wallet, timestamp)
     }
+
     pub fn new_secp256k1_with_now(wallet: &DirectSecp256k1HdWallet, now: u128) -> Jwt {
         let account = wallet.get_accounts().unwrap(); // TODO: result
         let address = account[0].address();
@@ -89,6 +90,7 @@ impl Jwt {
         let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_millis();
         Jwt::new_ecdsa_with_now(key_pair, timestamp)
     }
+
     pub fn new_ecdsa_with_now(key_pair: &KeyPair, now: u128) -> Jwt {
         let header = JwtHeader {
             typ: "JWT".to_string(),
@@ -121,8 +123,8 @@ impl Jwt {
         }
     }
 
-    pub fn jwt(&self) -> String {
-        self.jwt.clone()
+    pub fn jwt(&self) -> &str {
+        &self.jwt
     }
 }
 

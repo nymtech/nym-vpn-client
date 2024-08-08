@@ -96,10 +96,6 @@ impl MixnetProcessor {
         debug!("Splitting tun device into sink and stream");
         let (tun_device_sink, mut tun_device_stream) = self.device.into_framed().split();
 
-        // We are the exclusive owner of the mixnet client, so we can unwrap it here
-        debug!("Acquiring mixnet client");
-        // let our_address = self.mixnet_client.nym_address().await;
-
         debug!("Split mixnet sender");
         let sender = self.mixnet_client.split_sender().await;
         let recipient = self.ip_packet_router_address;
@@ -370,7 +366,7 @@ impl MixnetListener {
     }
 
     fn start(self) -> JoinHandle<SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>>> {
-        tokio::spawn(async move { self.run().await })
+        tokio::spawn(self.run())
     }
 }
 
