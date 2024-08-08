@@ -192,14 +192,20 @@ pub enum Error {
     #[error("Tunnel failure")]
     Tunnel(nym_wg_go::Error),
 
-    #[error("DNS lookup error")]
-    DnsLookup(dns_lookup::LookupError),
+    #[error("Failed to resolve {} (error code: {})", addr, code)]
+    DnsLookup { code: i32, addr: SocketAddr },
 
     #[error("Failed to parse addrinfo")]
     ParseAddrInfo(std::io::Error),
 
     #[error("DNS lookup has seemingly succeeded without any results")]
     EmptyDnsLookupResult,
+
+    #[error("Failed to convert port to C-string")]
+    ConvertPortToCstr,
+
+    #[error("Failed to convert ip to C-string")]
+    ConvertIpToCstr,
 }
 
 struct WgNodeConfig {

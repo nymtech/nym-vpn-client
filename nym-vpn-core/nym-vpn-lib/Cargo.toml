@@ -99,7 +99,6 @@ nix = { workspace = true, features = ["user"] }
 [target.'cfg(target_os = "ios")'.dependencies]
 nix = { workspace = true, features = ["socket", "net"] }
 libc = { workspace = true }
-dns-lookup = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]
 is_elevated = "0.1.2"

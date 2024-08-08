@@ -1,5 +1,9 @@
+use nix::sys::socket::{SockaddrIn, SockaddrIn6, SockaddrLike};
 use nym_wg_go::PeerConfig;
-use std::net::SocketAddr;
+use std::{
+    ffi::CString,
+    net::{SocketAddr, SocketAddrV4, SocketAddrV6},
+};
 
 use super::{Error, Result};
 
@@ -21,22 +25,53 @@ pub fn resolve_peers(peers: &mut [PeerConfig]) -> Result<()> {
 /// Returns new socket address resolved with DNS64.
 /// This should produce an IPv4-mapped IPv6 address usable in IPv6 only networks when connecting to IPv4-only host.
 fn resolve_addr(socket_addr: SocketAddr) -> Result<SocketAddr> {
-    let hints = dns_lookup::AddrInfoHints {
-        flags: 0,                 // set to zero to resolve using DNS64
-        address: libc::AF_UNSPEC, // corresponds to ai_family
-        socktype: libc::SOCK_DGRAM,
-        protocol: libc::IPPROTO_UDP,
+    let mut hints: libc::addrinfo = unsafe { std::mem::zeroed() };
+    hints.ai_flags = 0; // Set to zero to resolve using DNS64
+    hints.ai_family = libc::AF_UNSPEC;
+    hints.ai_socktype = libc::SOCK_DGRAM;
+    hints.ai_protocol = libc::IPPROTO_UDP;
+
+    let node = CString::new(socket_addr.ip().to_string()).map_err(|_| Error::ConvertIpToCstr)?;
+    let service =
+        CString::new(socket_addr.port().to_string()).map_err(|_| Error::ConvertPortToCstr)?;
+
+    let mut res = std::ptr::null_mut();
+
+    let err_code = unsafe { libc::getaddrinfo(node.as_ptr(), service.as_ptr(), &hints, &mut res) };
+    if err_code != 0 {
+        return Err(Error::DnsLookup {
+            code: err_code,
+            addr: socket_addr,
+        })?;
+    }
+
+    let addr_info = unsafe { *res };
+
+    let resolved_ip_addr = match addr_info.ai_family {
+        libc::AF_INET => {
+            unsafe { SockaddrIn::from_raw(addr_info.ai_addr, Some(addr_info.ai_addrlen)) }
+                .map(|x| SocketAddr::V4(SocketAddrV4::new(x.ip(), x.port())))
+        }
+        libc::AF_INET6 => {
+            unsafe { SockaddrIn6::from_raw(addr_info.ai_addr, Some(addr_info.ai_addrlen)) }.map(
+                |x| {
+                    SocketAddr::V6(SocketAddrV6::new(
+                        x.ip(),
+                        x.port(),
+                        x.flowinfo(),
+                        x.scope_id(),
+                    ))
+                },
+            )
+        }
+        _ => None,
     };
 
-    let ip_str = socket_addr.ip().to_string();
-    let port = socket_addr.port().to_string();
-    let mut addrinfo_iter = dns_lookup::getaddrinfo(Some(&ip_str), Some(&port), Some(hints))
-        .map_err(Error::DnsLookup)?;
+    unsafe { libc::freeaddrinfo(res) };
 
-    let first_addr_info = addrinfo_iter
-        .next()
-        .ok_or(Error::EmptyDnsLookupResult)?
-        .map_err(Error::ParseAddrInfo)?;
-
-    Ok(first_addr_info.sockaddr)
+    if let Some(resolved_ip_addr) = resolved_ip_addr {
+        Ok(resolved_ip_addr)
+    } else {
+        Err(Error::EmptyDnsLookupResult)?
+    }
 }
