@@ -7,7 +7,7 @@ on:
       tag_name:
         description: "Tag name for release"
         required: false
-        default: nightly-vpn-x
+        default: nym-vpn-x-nightly
       publish:
         type: boolean
         description: Publish Release
@@ -84,8 +84,9 @@ jobs:
             exit 1
           fi
 
+      # Defensive check so we don't trample on the core nightly tag
       - name: Check name consistency
-        if: inputs.tag_name == 'nightly'
+        if: inputs.tag_name == 'nym-vpn-core-nightly'
         run: exit 1
 
       - name: Set env
@@ -401,7 +402,7 @@ jobs:
       - if: github.event_name == 'workflow_dispatch'
         run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
       - if: github.event_name == 'schedule'
-        run: echo 'TAG_NAME=nightly-x' >> $GITHUB_ENV
+        run: echo 'TAG_NAME=nym-vpn-x-nightly' >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
@@ -422,16 +423,16 @@ jobs:
           cat build-info/build-info.txt >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-      - if: env.TAG_NAME == 'nightly-x'
+      - if: env.TAG_NAME == 'nym-vpn-x-nightly'
         run: |
           (echo "SUBJECT=nym-vpn-x-v$BUILD_VERSION nightly prerelease build";
            echo 'PRERELEASE=--prerelease';
            echo 'NOTES_FILE=release-notes-vpnx-nightly.md') >> $GITHUB_ENV
-          gh release delete nightly-x --yes || true
-          git push origin :nightly-x || true
+          gh release delete nym-vpn-x-nightly --yes || true
+          git push origin :nym-vpn-x-nightly || true
       # Once we consider these actually release builds, remove --prerelease
       # from PRERELEASE here
-      - if: env.TAG_NAME != 'nightly-x'
+      - if: env.TAG_NAME != 'nym-vpn-x-nightly'
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE='
