@@ -3,7 +3,7 @@
 
 pub use device_keys::DeviceKeys;
 pub use helpers::*;
-pub use key_store::KeyStore;
+pub use traits::KeyStore;
 pub use persistence::{
     ephemeral::InMemEphemeralKeys,
     on_disk::{DeviceKeysPaths, OnDiskKeys, OnDiskKeysError},
@@ -11,6 +11,6 @@ pub use persistence::{
 
 mod device_keys;
 mod helpers;
-mod key_store;
+mod traits;
 mod mnemonic;
 mod persistence;
