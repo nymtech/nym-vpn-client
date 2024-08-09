@@ -1,31 +1,38 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-use std::path::PathBuf;
-use std::sync::Arc;
+use std::{
+    fmt,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    path::PathBuf,
+    sync::Arc,
+};
 
-use futures::channel::{mpsc::UnboundedSender, oneshot::Receiver as OneshotReceiver};
-use futures::SinkExt;
-use nym_vpn_lib::credentials::import_credential;
-use nym_vpn_lib::gateway_directory::{self, EntryPoint, ExitPoint};
-use nym_vpn_lib::nym_bin_common::bin_info;
-use nym_vpn_lib::{GenericNymVpnConfig, MixnetClientConfig, NodeIdentity, Recipient};
+use futures::{
+    channel::{mpsc::UnboundedSender, oneshot::Receiver as OneshotReceiver},
+    SinkExt,
+};
+use nym_vpn_lib::{
+    credentials::import_credential,
+    gateway_directory::{self, EntryPoint, ExitPoint},
+    nym_bin_common::bin_info,
+    GenericNymVpnConfig, MixnetClientConfig, NodeIdentity, Recipient,
+};
+use nym_vpn_store::keys::KeyStore as _;
 use serde::{Deserialize, Serialize};
-use time::format_description::well_known::Rfc3339;
-use time::OffsetDateTime;
-use tokio::sync::mpsc::UnboundedReceiver;
-use tokio::sync::{broadcast, oneshot};
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+use tokio::sync::{broadcast, mpsc::UnboundedReceiver, oneshot};
 use tracing::{debug, error, info};
 
-use super::config::{
-    self, create_config_file, create_data_dir, read_config_file, write_config_file,
-    ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
+use super::{
+    config::{
+        self, create_config_file, create_data_dir, read_config_file, write_config_file,
+        ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
+    },
+    error::{ConnectionFailedError, ImportCredentialError},
+    exit_listener::VpnServiceExitListener,
+    status_listener::VpnServiceStatusListener,
 };
-use super::error::{ConnectionFailedError, ImportCredentialError};
-use super::exit_listener::VpnServiceExitListener;
-use super::status_listener::VpnServiceStatusListener;
 
 // The current state of the VPN service
 #[derive(Debug, Clone)]
@@ -358,26 +365,10 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             return Err(err);
         }
 
+        // Generate the device keys if we don't already have them
         if let Err(err) = self.storage.init_keys(None).await {
             self.shared_vpn_state.set(VpnState::NotConnected);
             return Err(ConfigSetupError::FailedToInitKeys { source: err });
-        }
-
-        // Create keys if needed
-        use nym_vpn_store::keys::KeyStore as _;
-        if let Err(err) = self.storage.load_keys().await {
-            match err {
-                nym_vpn_store::keys::persistence::OnDiskKeysError::UnableToLoadKeys {
-                    paths,
-                    name,
-                    error,
-                } => todo!(),
-                nym_vpn_store::keys::persistence::OnDiskKeysError::UnableToStoreKeys {
-                    paths,
-                    name,
-                    error,
-                } => todo!(),
-            }
         }
 
         Ok(())

@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod device_keys;
-mod helpers;
+mod error;
 mod key_store;
 pub mod persistence;
-mod error;
 
 pub use device_keys::DeviceKeys;
-pub use key_store::KeyStore;
 pub use error::KeyStoreError;
+pub use key_store::KeyStore;
