@@ -10,6 +10,9 @@ pub enum OnDiskMnemonicStorageError {
     #[error("no mnemonic stored")]
     NoMnemonicStored,
 
+    #[error("mnemonic already stored")]
+    MnemonicAlreadyStored { path: PathBuf },
+
     #[error("failed to create file")]
     FileCreateError {
         path: PathBuf,
@@ -43,7 +46,22 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
         &self,
         mnemonic: bip39::Mnemonic,
     ) -> Result<(), OnDiskMnemonicStorageError> {
-        let stored_mnemonic = StoredMnemonic { mnemonic };
+        let name = "default".to_string();
+        let nonce = 0;
+        let stored_mnemonic = StoredMnemonic {
+            name,
+            mnemonic,
+            nonce,
+        };
+
+        // Error if the file already exists
+        if self.path.exists() {
+            return Err(OnDiskMnemonicStorageError::MnemonicAlreadyStored {
+                path: self.path.clone(),
+            });
+        }
+
+        // Another layer of defense, only create the file if it doesn't already exist
         let file = std::fs::OpenOptions::new()
             .write(true)
             .create_new(true)

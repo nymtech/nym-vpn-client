@@ -34,7 +34,13 @@ impl MnemonicStorage for InMemoryMnemonicStorage {
         &self,
         mnemonic: bip39::Mnemonic,
     ) -> Result<(), InMemoryMnemonicStorageError> {
-        let stored_mnemonic = StoredMnemonic { mnemonic };
+        let name = "default".to_string();
+        let nonce = 0;
+        let stored_mnemonic = StoredMnemonic {
+            name,
+            mnemonic,
+            nonce,
+        };
         let mut handle = self.mnemonic.lock().await;
 
         // Store the mnemonic if it's currently None
