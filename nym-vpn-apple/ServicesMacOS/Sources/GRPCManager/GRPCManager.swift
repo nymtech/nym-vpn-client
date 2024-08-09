@@ -114,6 +114,7 @@ public final class GRPCManager: ObservableObject {
         if let exitRouterCountryCode {
             var location = Nym_Vpn_Location()
             location.twoLetterIsoCountryCode = exitRouterCountryCode
+            exitNode.location = location
         } else {
             exitNode.random = Nym_Vpn_Empty()
         }
