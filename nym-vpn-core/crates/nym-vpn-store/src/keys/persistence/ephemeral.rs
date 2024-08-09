@@ -3,7 +3,7 @@
 
 use tokio::sync::Mutex;
 
-use crate::{DeviceKeys, KeyStore};
+use crate::keys::{DeviceKeys, KeyStore};
 
 #[derive(Default)]
 pub struct InMemEphemeralKeys {

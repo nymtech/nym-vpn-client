@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use nym_crypto::asymmetric::ed25519;
 use nym_pemstore::{traits::PemStorableKeyPair, KeyPairPath};
 
-use crate::{DeviceKeys, KeyStore};
+use crate::keys::{DeviceKeys, KeyStore};
 
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskKeysError {

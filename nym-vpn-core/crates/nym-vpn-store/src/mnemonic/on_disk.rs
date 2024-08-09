@@ -31,7 +31,6 @@ pub struct OnDiskMnemonicStorage {
 }
 
 impl OnDiskMnemonicStorage {
-    #[allow(unused)]
     pub fn new(path: PathBuf) -> Self {
         Self { path }
     }

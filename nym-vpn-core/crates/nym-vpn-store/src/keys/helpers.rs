@@ -1,33 +1,13 @@
-use std::path::{Path, PathBuf};
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
 
-use rand::SeedableRng;
+// use std::path::{Path, PathBuf};
+//
+// use rand::SeedableRng;
+//
+// use crate::{key_store::KeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeys, OnDiskKeysError};
 
-use crate::{key_store::KeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeys, OnDiskKeysError};
 
-// #[derive(Debug, thiserror::Error)]
-// pub enum KeyStoreError {
-//     #[error("failed to load device keys")]
-//     Load {
-//         path: PathBuf,
-//         error: OnDiskKeysError,
-//     },
-//
-//     #[error("failed to create device keys")]
-//     Create {
-//         path: PathBuf,
-//         error: OnDiskKeysError,
-//     },
-//
-//     #[error("failed to store device keys")]
-//     Store {
-//         path: PathBuf,
-//         error: OnDiskKeysError,
-//     },
-//
-//     #[error("invalid key pair, one is missing: {path}")]
-//     InvalidKeyPair { path: PathBuf },
-// }
-//
 // pub fn keypair_exists<P: AsRef<Path>>(path: P) -> bool {
 //     let device_key_paths = DeviceKeysPaths::new(path);
 //     device_key_paths.private_device_key().exists()
