@@ -22,5 +22,14 @@ pub trait MnemonicStorage {
 
 #[derive(Serialize, Deserialize, Zeroize, ZeroizeOnDrop)]
 struct StoredMnemonic {
+    // Identifier of the mnemonic.
+    name: String,
+
+    // The mnemonic itself.
     mnemonic: Mnemonic,
+
+    // Nonce used to confirm the mnemonic
+    nonce: Nonce,
 }
+
+type Nonce = u32;
