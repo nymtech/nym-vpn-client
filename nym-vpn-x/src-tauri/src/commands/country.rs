@@ -28,14 +28,14 @@ pub async fn get_countries(
         NodeType::Entry => grpc.entry_countries().await.map_err(|e| {
             BackendError::new_with_data(
                 "failed to fetch entry countries",
-                ErrorKey::GetEntryCountriesRequest,
+                ErrorKey::GetEntryCountriesQuery,
                 HashMap::from([("details", e.to_string())]),
             )
         }),
         NodeType::Exit => grpc.exit_countries().await.map_err(|e| {
             BackendError::new_with_data(
                 "failed to fetch exit countries",
-                ErrorKey::GetExitCountriesRequest,
+                ErrorKey::GetExitCountriesQuery,
                 HashMap::from([("details", e.to_string())]),
             )
         }),

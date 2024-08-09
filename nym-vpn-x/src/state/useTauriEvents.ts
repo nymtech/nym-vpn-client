@@ -15,10 +15,16 @@ import {
   DaemonStatus,
   ProgressEventPayload,
   StateDispatch,
+  StatusUpdatePayload,
   WindowPosition,
   WindowSize,
 } from '../types';
-import { ConnectionEvent, DaemonEvent, ProgressEvent } from '../constants';
+import {
+  ConnectionEvent,
+  DaemonEvent,
+  ProgressEvent,
+  StatusUpdateEvent,
+} from '../constants';
 import logu from '../log';
 
 function handleError(dispatch: StateDispatch, error?: BackendError | null) {
@@ -76,6 +82,19 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
           dispatch({ type: 'change-connection-state', state: 'Unknown' });
           handleError(dispatch, event.payload.error);
           break;
+      }
+    });
+  }, [dispatch]);
+
+  const registerStatusUpdateListener = useCallback(() => {
+    return listen<StatusUpdatePayload>(StatusUpdateEvent, (event) => {
+      const { payload } = event;
+      console.log(`received event [${event.event}]`, payload);
+      if (payload.error) {
+        dispatch({
+          type: 'set-error',
+          error: payload.error,
+        });
       }
     });
   }, [dispatch]);
@@ -172,6 +191,7 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
   useEffect(() => {
     const unlistenDaemon = registerDaemonListener();
     const unlistenState = registerStateListener();
+    const unlistenStatusUpdate = registerStatusUpdateListener();
     const unlistenProgress = registerProgressListener();
     const unlistenThemeChanges = registerThemeChangedListener();
     const unlistenWindowResized = registerWindowResizedListener();
@@ -180,6 +200,7 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
     return () => {
       unlistenDaemon.then((f) => f());
       unlistenState.then((f) => f());
+      unlistenStatusUpdate.then((f) => f());
       unlistenProgress.then((f) => f());
       unlistenThemeChanges.then((f) => f());
       unlistenWindowResized.then((f) => f());
@@ -188,6 +209,7 @@ export function useTauriEvents(dispatch: StateDispatch, state: AppState) {
   }, [
     registerDaemonListener,
     registerStateListener,
+    registerStatusUpdateListener,
     registerProgressListener,
     registerThemeChangedListener,
     registerWindowResizedListener,
