@@ -1,6 +1,6 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
-#![cfg(not(target_os = "macos"))]
+#![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
 use self::error::FFIError;
 use crate::credentials::{check_credential_base58, import_credential_base58};
