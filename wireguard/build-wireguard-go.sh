@@ -188,6 +188,17 @@ function build_ios {
     export CGO_LDFLAGS="-isysroot $SDKROOT -arch $GOARCH"
     create_folder_and_build "aarch64-apple-ios"
 
+    echo "🍎 Building for ios-sim/aarch64"
+    export GOARCH=arm64
+    export GOOS=ios
+    export SDKROOT=$(xcrun --show-sdk-path --sdk iphonesimulator)
+    export CC="$(xcrun -sdk $SDKROOT --find clang) -arch $GOARCH -isysroot $SDKROOT"
+    export CFLAGS="-isysroot $SDKROOT -arch $GOARCH -I$SDKROOT/usr/include"
+    export LD_LIBRARY_PATH="$SDKROOT/usr/lib"
+    export CGO_CFLAGS="-isysroot $SDKROOT -arch $GOARCH"
+    export CGO_LDFLAGS="-isysroot $SDKROOT -arch $GOARCH"
+    create_folder_and_build "aarch64-apple-ios-sim"
+
     echo "🍎 Building for ios-sim/x86_64"
     export ARCH=x86_64
     export GOOS=ios
@@ -199,17 +210,12 @@ function build_ios {
     export CGO_CFLAGS="-isysroot $SDKROOT -arch $ARCH"
     export CGO_LDFLAGS="-isysroot $SDKROOT -arch $ARCH"
     create_folder_and_build "x86_64-apple-ios"
-
-    echo "🍎 Creating universal framework"
-        mkdir -p "../../build/lib/universal-apple-ios/"
-        lipo -create -output "../../build/lib/universal-apple-ios/libwg.a"  "../../build/lib/x86_64-apple-ios/libwg.a" "../../build/lib/aarch64-apple-ios/libwg.a"
-        cp "../../build/lib/aarch64-apple-ios/libwg.h" "../../build/lib/universal-apple-ios/libwg.h"
-    popd
+    unset ARCH
 }
 
 function patch_darwin_goruntime {
     echo "Patching goruntime..."
-    BUILDDIR="$(pwd)/../../build"
+    BUILDDIR="$(pwd)/../build"
     REAL_GOROOT=$(go env GOROOT 2>/dev/null)
     export GOROOT="$BUILDDIR/goroot"
     mkdir -p "$GOROOT"

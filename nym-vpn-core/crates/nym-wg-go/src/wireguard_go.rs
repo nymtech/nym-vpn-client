@@ -100,7 +100,7 @@ impl Tunnel {
     /// Re-attach itself to the tun interface.
     ///
     /// Typically used on default route change.
-    #[cfg(any(target_os = "macos", target_os = "ios"))]
+    #[cfg(target_os = "ios")]
     pub fn bump_sockets(&mut self) {
         unsafe { wgBumpSockets(self.handle) }
     }

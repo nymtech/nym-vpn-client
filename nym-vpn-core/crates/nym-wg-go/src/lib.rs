@@ -5,8 +5,9 @@ use zeroize::{Zeroize, ZeroizeOnDrop};
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub mod netstack;
-pub mod uapi;
+#[cfg(any(target_os = "android", target_os = "ios"))]
 pub mod wireguard_go;
+pub mod uapi;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
