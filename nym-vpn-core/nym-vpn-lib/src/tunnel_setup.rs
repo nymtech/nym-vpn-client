@@ -411,22 +411,30 @@ async fn select_gateways(
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.
 
-    // Setup the gateway that we will use as the exit point
-    let exit_gateways = gateway_directory_client
-        .lookup_exit_gateways()
-        .await
-        .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+    let (mut entry_gateways, exit_gateways) = if let SpecificVpn::Mix(_) = nym_vpn {
+        // Setup the gateway that we will use as the exit point
+        let exit_gateways = gateway_directory_client
+            .lookup_exit_gateways()
+            .await
+            .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+        // Setup the gateway that we will use as the entry point
+        let entry_gateways = gateway_directory_client
+            .lookup_entry_gateways()
+            .await
+            .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+        (entry_gateways, exit_gateways)
+    } else {
+        let all_gateways = gateway_directory_client
+            .lookup_all_gateways_from_nym_api()
+            .await
+            .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+        (all_gateways.clone(), all_gateways)
+    };
 
     let exit_gateway = nym_vpn
         .exit_point()
         .lookup_gateway(&exit_gateways)
         .map_err(|source| GatewayDirectoryError::FailedToSelectExitGateway { source })?;
-
-    // Setup the gateway that we will use as the entry point
-    let mut entry_gateways = gateway_directory_client
-        .lookup_entry_gateways()
-        .await
-        .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
 
     // Exclude the exit gateway from the list of entry gateways for privacy reasons
     entry_gateways.remove_gateway(&exit_gateway);
