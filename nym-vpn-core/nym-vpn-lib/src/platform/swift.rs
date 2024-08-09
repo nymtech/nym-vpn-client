@@ -104,8 +104,86 @@ impl From<RoutingConfig> for NymConfig {
     }
 }
 
+#[cfg(target_os = "ios")]
+#[derive(uniffi::Record)]
+pub struct Ipv4AddrRange {
+    pub address: Ipv4Addr,
+    pub netmask: Ipv4Addr,
+}
+
+#[cfg(target_os = "ios")]
+#[derive(uniffi::Record)]
+pub struct Ipv6AddrRange {
+    pub address: Ipv6Addr,
+    pub prefix_length: u16,
+}
+
+#[cfg(target_os = "ios")]
+#[derive(uniffi::Record)]
+pub struct Ipv4Route {
+    pub destination: Ipv4Addr,
+    pub subnet_mask: Ipv4Addr,
+    pub gateway: Option<Ipv4Addr>,
+}
+
+#[cfg(target_os = "ios")]
+#[derive(uniffi::Record)]
+pub struct Ipv6Route {
+    pub destination: Ipv6Addr,
+    pub network_prefix_length: u16, // clamp to /120
+    pub gateway: Option<Ipv6Addr>,
+}
+
+#[cfg(target_os = "ios")]
+#[derive(uniffi::Record)]
+pub struct Ipv4Settings {
+    /// IPv4 addresses that will be set on tunnel interface.
+    pub addresses: Vec<Ipv4AddrRange>,
+
+    /// Traffic matching these routes will be routed over the tun interface.
+    pub included_routes: Vec<Ipv4Route>,
+
+    /// Traffic matching these routes will be routed over the primary physical interface.
+    pub excluded_routes: Vec<Ipv4Route>,
+}
+
+#[cfg(target_os = "ios")]
+#[derive(uniffi::Record)]
+pub struct Ipv6Settings {
+    /// IPv4 addresses that will be set on tunnel interface.
+    pub addresses: Vec<Ipv6AddrRange>,
+
+    /// Traffic matching these routes will be routed over the tun interface.
+    pub included_routes: Vec<Ipv6Route>,
+
+    /// Traffic matching these routes will be routed over the primary physical interface.
+    pub excluded_routes: Vec<Ipv6Route>,
+}
+
+#[cfg(target_os = "ios")]
+#[derive(uniffi::Record)]
+pub struct TunnelNetworkSettings {
+    /// Tunnel remote address, which is mostly of decorative value.
+    pub tunnel_remote_addr: String,
+
+    /// IPv4 interface settings.
+    pub ipv4_settings: Ipv4Settings,
+
+    /// IPv6 interface settings.
+    pub ipv6_settings: Ipv6Settings,
+
+    /// Tunnel device MTU.
+    pub mtu: u16,
+}
+
 #[uniffi::export(with_foreign)]
 pub trait OSTunProvider: Send + Sync + Debug {
     fn configure_wg(&self, config: WgConfig) -> Result<(), FFIError>;
     fn configure_nym(&self, config: NymConfig) -> Result<RawFd, FFIError>;
+
+    #[cfg(target_os = "ios")]
+    fn set_tunnel_network_settings(
+        &self,
+        tunnel_settings: TunnelNetworkSettings,
+    ) -> Result<(), FFIError>;
 }
