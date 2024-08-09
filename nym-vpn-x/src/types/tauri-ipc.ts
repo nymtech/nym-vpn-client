@@ -1,3 +1,5 @@
+import { ConnectionState } from './app-state.ts';
+
 export type BackendError = {
   message: string;
   key: BkdErrorKey;
@@ -39,5 +41,11 @@ export type BkdErrorKey =
   | 'CredentialStorageError'
   | 'CredentialDeserializationFailure'
   | 'CredentialExpired'
+  | 'OutOfBandwidth'
   | 'GetEntryCountriesRequest'
   | 'GetExitCountriesRequest';
+
+export type ConnectionStateResponse = {
+  state: ConnectionState;
+  error?: BackendError | null;
+};

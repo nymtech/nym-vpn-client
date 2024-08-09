@@ -29,7 +29,7 @@ export function mockTauriIPC() {
       );
     }
     if (cmd === 'get_connection_state') {
-      return 'Disconnected';
+      return { state: 'Disconnected' };
     }
 
     if (cmd === 'get_countries') {
