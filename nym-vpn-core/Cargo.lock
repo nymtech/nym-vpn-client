@@ -4893,7 +4893,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-go"
-version = "0.1.0"
+version = "0.1.13-dev"
 dependencies = [
  "base64 0.22.1",
  "hex",
