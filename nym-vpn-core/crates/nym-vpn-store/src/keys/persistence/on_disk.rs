@@ -5,8 +5,9 @@ use std::path::{Path, PathBuf};
 
 use nym_crypto::asymmetric::ed25519;
 use nym_pemstore::{traits::PemStorableKeyPair, KeyPairPath};
+use rand::SeedableRng as _;
 
-use crate::{DeviceKeys, KeyStore};
+use crate::keys::{DeviceKeys, KeyStore};
 
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskKeysError {
@@ -41,6 +42,10 @@ impl DeviceKeysPaths {
             private_device_key_file: base_dir.join("private_device.pem"),
             public_device_key_file: base_dir.join("public_device.pem"),
         }
+    }
+
+    pub fn exists(&self) -> bool {
+        self.private_device_key_file.exists()
     }
 
     pub fn device_key_pair_path(&self) -> nym_pemstore::KeyPairPath {
@@ -105,6 +110,22 @@ impl OnDiskKeys {
         let device_paths = self.paths.device_key_pair_path();
         self.store_keypair(keys.device_keypair().as_ref(), device_paths, "device")
     }
+
+    // If there are no keys, generate them, otherwise do nothing
+    fn init_keys(&self, seed: Option<[u8; 32]>) -> Result<(), OnDiskKeysError> {
+        if self.paths.exists() {
+            return Ok(());
+        }
+
+        let device_keys = if let Some(seed) = seed {
+            let mut rng = rand_chacha::ChaCha20Rng::from_seed(seed);
+            DeviceKeys::generate_new(&mut rng)
+        } else {
+            let mut rng = rand::rngs::OsRng;
+            DeviceKeys::generate_new(&mut rng)
+        };
+        self.store_keys(&device_keys)
+    }
 }
 
 impl KeyStore for OnDiskKeys {
@@ -116,5 +137,9 @@ impl KeyStore for OnDiskKeys {
 
     async fn store_keys(&self, keys: &DeviceKeys) -> Result<(), Self::StorageError> {
         self.store_keys(keys)
+    }
+
+    async fn init_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError> {
+        self.init_keys(seed)
     }
 }
