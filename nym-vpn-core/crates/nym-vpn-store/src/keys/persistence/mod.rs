@@ -4,4 +4,4 @@
 mod ephemeral;
 mod on_disk;
 
-pub use on_disk::{OnDiskKeys, OnDiskKeysError, DeviceKeysPaths};
+pub use on_disk::{DeviceKeysPaths, OnDiskKeys, OnDiskKeysError};

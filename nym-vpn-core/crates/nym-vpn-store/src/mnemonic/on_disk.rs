@@ -93,7 +93,10 @@ mod tests {
             .unwrap();
 
         let result = mnemonic_storage.store_mnemonic(mnemonic).await;
-        assert!(matches!(result, Err(OnDiskMnemonicStorageError::FileCreateError { .. })));
+        assert!(matches!(
+            result,
+            Err(OnDiskMnemonicStorageError::FileCreateError { .. })
+        ));
     }
 
     #[tokio::test]
@@ -102,7 +105,10 @@ mod tests {
         let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
         let result = mnemonic_storage.load_mnemonic().await;
         dbg!(&result);
-        assert!(matches!(result, Err(OnDiskMnemonicStorageError::FileOpenError(_))));
+        assert!(matches!(
+            result,
+            Err(OnDiskMnemonicStorageError::FileOpenError(_))
+        ));
     }
 
     #[tokio::test]
@@ -111,6 +117,9 @@ mod tests {
         let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
         let _ = File::create(&path).unwrap();
         let result = mnemonic_storage.load_mnemonic().await;
-        assert!(matches!(result, Err(OnDiskMnemonicStorageError::NoMnemonicStored)));
+        assert!(matches!(
+            result,
+            Err(OnDiskMnemonicStorageError::NoMnemonicStored)
+        ));
     }
 }
