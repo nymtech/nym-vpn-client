@@ -20,8 +20,8 @@ use tokio::sync::{broadcast, oneshot};
 use tracing::{debug, error, info};
 
 use super::config::{
-    self, create_config_file, create_data_dir, create_device_keys, read_config_file,
-    write_config_file, ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
+    self, create_config_file, create_data_dir, read_config_file, write_config_file,
+    ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
 };
 use super::error::{ConnectionFailedError, ImportCredentialError};
 use super::exit_listener::VpnServiceExitListener;
@@ -307,7 +307,10 @@ impl SharedVpnState {
     }
 }
 
-pub(crate) struct NymVpnService {
+pub(crate) struct NymVpnService<S>
+where
+    S: nym_vpn_store::VpnStorage,
+{
     shared_vpn_state: SharedVpnState,
 
     // Listen for commands from the command interface, like the grpc listener that listens user
@@ -320,9 +323,12 @@ pub(crate) struct NymVpnService {
     config_file: PathBuf,
 
     data_dir: PathBuf,
+
+    // Storage backend
+    storage: S,
 }
 
-impl NymVpnService {
+impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub(crate) fn new(
         vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>,
         vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
@@ -334,15 +340,60 @@ impl NymVpnService {
         let data_dir = std::env::var("NYM_VPND_DATA_DIR")
             .map(PathBuf::from)
             .unwrap_or_else(|_| config::default_data_dir());
+        let storage = nym_vpn_lib::storage::VpnClientOnDiskStorage::new(data_dir.clone());
         Self {
             shared_vpn_state: SharedVpnState::new(vpn_state_changes_tx),
             vpn_command_rx,
             vpn_ctrl_sender: None,
             config_file,
             data_dir,
+            storage,
         }
     }
 
+    pub(crate) async fn init_storage(&self) -> Result<(), ConfigSetupError> {
+        // Make sure the data dir exists
+        if let Err(err) = create_data_dir(&self.data_dir) {
+            self.shared_vpn_state.set(VpnState::NotConnected);
+            return Err(err);
+        }
+
+        if let Err(err) = self.storage.init_keys(None).await {
+            self.shared_vpn_state.set(VpnState::NotConnected);
+            return Err(ConfigSetupError::FailedToInitKeys { source: err });
+        }
+
+        // Create keys if needed
+        use nym_vpn_store::keys::KeyStore as _;
+        if let Err(err) = self.storage.load_keys().await {
+            match err {
+                nym_vpn_store::keys::persistence::OnDiskKeysError::UnableToLoadKeys {
+                    paths,
+                    name,
+                    error,
+                } => todo!(),
+                nym_vpn_store::keys::persistence::OnDiskKeysError::UnableToStoreKeys {
+                    paths,
+                    name,
+                    error,
+                } => todo!(),
+            }
+        }
+
+        Ok(())
+    }
+}
+
+// #[derive(Debug, thiserror::Error)]
+// pub(crate) enum InitStorageError {
+//     #[error("failed to create data directory: {path}")]
+//     FailedToCreateDataDir { path: PathBuf, source: ConfigSetupError },
+// }
+
+impl<S> NymVpnService<S>
+where
+    S: nym_vpn_store::VpnStorage,
+{
     fn try_setup_config(
         &self,
         entry: Option<gateway_directory::EntryPoint>,
@@ -395,28 +446,28 @@ impl NymVpnService {
         info!("Using config: {}", config);
 
         // Make sure the data dir exists
-        match create_data_dir(&self.data_dir) {
-            Ok(()) => {}
-            Err(err) => {
-                self.shared_vpn_state.set(VpnState::NotConnected);
-                return VpnServiceConnectResult::Fail(format!(
-                    "Failed to create data directory {:?}: {}",
-                    self.data_dir, err
-                ));
-            }
-        }
+        // match create_data_dir(&self.data_dir) {
+        //     Ok(()) => {}
+        //     Err(err) => {
+        //         self.shared_vpn_state.set(VpnState::NotConnected);
+        //         return VpnServiceConnectResult::Fail(format!(
+        //             "Failed to create data directory {:?}: {}",
+        //             self.data_dir, err
+        //         ));
+        //     }
+        // }
 
         // Device specific keys
-        match create_device_keys(&self.data_dir).await {
-            Ok(()) => {}
-            Err(err) => {
-                self.shared_vpn_state.set(VpnState::NotConnected);
-                return VpnServiceConnectResult::Fail(format!(
-                    "Failed to create device keys in {:?}: {}",
-                    self.data_dir, err
-                ));
-            }
-        }
+        // match self.create_device_keys().await {
+        //     Ok(()) => {}
+        //     Err(err) => {
+        //         self.shared_vpn_state.set(VpnState::NotConnected);
+        //         return VpnServiceConnectResult::Fail(format!(
+        //             "Failed to create device keys in {:?}: {}",
+        //             self.data_dir, err
+        //         ));
+        //     }
+        // }
 
         let generic_config = GenericNymVpnConfig {
             mixnet_client_config: MixnetClientConfig {
@@ -484,6 +535,28 @@ impl NymVpnService {
             .map(|s| !s.is_closed())
             .unwrap_or(false)
     }
+
+    // async fn create_device_keys(&self) -> Result<(), nym_vpn_store::keys::KeyStoreError> {
+    //     match self.storage.load_keys().await {
+    //         Ok(_) => {}
+    //         Err(err) => {
+    //             // match err {
+    //             //     () => (),
+    //             // }
+    //             todo!();
+    //             // return Err(err);
+    //         }
+    //     }
+    //     Ok(())
+    //     // // Check if the device keys already exists, if not then create them
+    //     // if !nym_vpn_store::keys::keypair_exists(data_dir) {
+    //     //     nym_vpn_store::keys::create_device_keys(data_dir).await?;
+    //     // }
+    //     //
+    //     // // Check that we can successfully load them.
+    //     // // We don't actually need to use them at this point, so discard the return value.
+    //     // nym_vpn_store::load_device_keys(data_dir).await.map(|_| ())
+    // }
 
     async fn handle_disconnect(&mut self) -> VpnServiceDisconnectResult {
         // To handle the mutable borrow we set the state separate from the sending the stop message

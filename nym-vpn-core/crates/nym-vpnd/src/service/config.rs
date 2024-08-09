@@ -1,10 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    fmt, fs,
-    path::{Path, PathBuf},
-};
+use std::{fmt, fs, os::unix::fs::PermissionsExt as _, path::PathBuf};
 
 use nym_vpn_lib::gateway_directory;
 use tracing::info;
@@ -71,6 +68,14 @@ pub(super) enum ConfigSetupError {
     WriteFile {
         file: PathBuf,
         error: std::io::Error,
+    },
+
+    #[error("failed to set permissions for directory {dir}: {error}")]
+    SetPermissions { dir: PathBuf, error: std::io::Error },
+
+    #[error("failed to init keys")]
+    FailedToInitKeys {
+        source: nym_vpn_store::keys::persistence::OnDiskKeysError,
     },
 }
 
@@ -157,19 +162,20 @@ pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError
         error,
     })?;
     info!("Making sure data dir exists at {:?}", data_dir);
-    Ok(())
-}
 
-pub(super) async fn create_device_keys(
-    data_dir: &Path,
-) -> Result<(), nym_vpn_store::keys::KeyStoreError> {
-    todo!();
-    // // Check if the device keys already exists, if not then create them
-    // if !nym_vpn_store::keys::keypair_exists(data_dir) {
-    //     nym_vpn_store::keys::create_device_keys(data_dir).await?;
-    // }
-    //
-    // // Check that we can successfully load them.
-    // // We don't actually need to use them at this point, so discard the return value.
-    // nym_vpn_store::load_device_keys(data_dir).await.map(|_| ())
+    #[cfg(unix)]
+    {
+        // Set directory permissions to 700 (rwx------)
+        let permissions = fs::Permissions::from_mode(0o700);
+        fs::set_permissions(data_dir, permissions).map_err(|error| {
+            ConfigSetupError::SetPermissions {
+                dir: data_dir.clone(),
+                error,
+            }
+        })?;
+    }
+
+    // TODO: same for windows?
+
+    Ok(())
 }

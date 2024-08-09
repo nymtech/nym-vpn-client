@@ -25,16 +25,44 @@ pub enum KeyStoreError {
     },
 }
 
-pub async fn load_device_keys<P: AsRef<Path> + Clone>(
-    path: P,
-) -> Result<DeviceKeys, KeyStoreError> {
-    let vpn_storage = VpnClientOnDiskStorage::new(path.clone());
+// Set of helpers to load, create and store device keys
 
-    vpn_storage
-        .load_keys()
-        .await
-        .map_err(|error| KeyStoreError::Load {
-            path: path.as_ref().to_path_buf(),
-            error,
-        })
-}
+// #[allow(unused)]
+// pub async fn load_device_keys<P: AsRef<Path> + Clone>(
+//     path: P,
+// ) -> Result<DeviceKeys, KeyStoreError> {
+//     VpnClientOnDiskStorage::new(path.clone())
+//         .load_keys()
+//         .await
+//         .map_err(|error| KeyStoreError::Load {
+//             path: path.as_ref().to_path_buf(),
+//             error,
+//         })
+// }
+//
+// #[allow(unused)]
+// pub async fn create_device_keys<P: AsRef<Path> + Clone>(path: P) -> Result<(), KeyStoreError> {
+//     let vpn_storage = VpnClientOnDiskStorage::new(path.clone());
+//     let mut rng = rand::rngs::OsRng;
+//     DeviceKeys::generate_new(&mut rng)
+//         .persist_keys(&vpn_storage)
+//         .await
+//         .map_err(|error| KeyStoreError::Create {
+//             path: path.as_ref().to_path_buf(),
+//             error,
+//         })
+// }
+//
+// #[allow(unused)]
+// pub async fn store_device_keys<P: AsRef<Path> + Clone>(
+//     path: P,
+//     keys: &DeviceKeys,
+// ) -> Result<(), KeyStoreError> {
+//     let vpn_storage = VpnClientOnDiskStorage::new(path.clone());
+//     keys.persist_keys(&vpn_storage)
+//         .await
+//         .map_err(|error| KeyStoreError::Store {
+//             path: path.as_ref().to_path_buf(),
+//             error,
+//         })
+// }
