@@ -1,0 +1,159 @@
+name: publish-nym-vpn-x
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag name for release"
+        required: false
+        default: nym-vpn-x-nightly
+      publish:
+        type: boolean
+        description: Publish Release
+        required: true
+        default: false
+  # push:
+  #   tags:
+  #     - nym-vpn-x-v[0-9]+.[0-9]+.[0-9]+*
+
+jobs:
+  build-nym-vpn-x-linux:
+    uses: ./.github/workflows/build-nym-vpn-x-linux.yml
+    secrets: inherit
+  build-nym-vpn-x-windows:
+    uses: ./.github/workflows/build-nym-vpn-x-windows.yml
+    secrets: inherit
+
+  generate-build-info-nym-vpn-x:
+    uses: ./.github/workflows/generate-build-info-nym-vpn-x.yml
+    needs: build-nym-vpn-x-linux
+    with:
+      build-profile: release
+      rust-version: ${{ needs.build-nym-vpn-x-linux.outputs.RUST_VERSION }}
+
+  publish:
+    needs:
+      - build-nym-vpn-x-linux
+      - build-nym-vpn-x-windows
+      - generate-build-info-nym-vpn-x
+    runs-on: ubuntu-22.04-arc
+    outputs:
+      tag: ${{ steps.set_tag.outputs.tag }}
+    env:
+      # GH needed for gh cli
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PKG_VERSION: ${{ needs.build-nym-vpn-x-linux.outputs.PKG_VERSION }}
+      UPLOAD_DIR_LINUX: ${{ needs.build-nym-vpn-x-linux.outputs.UPLOAD_DIR_LINUX }}
+      UPLOAD_DIR_WINDOWS: ${{ needs.build-nym-vpn-x-windows.outputs.UPLOAD_DIR_WINDOWS }}
+    permissions: write-all
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # Adding envsubst, gh cli
+      - name: Install system dependencies
+        run: |
+          sudo apt update && sudo apt install -y gettext-base gh
+
+      - name: Install rust toolchain
+        uses: brndnmtthws/rust-action-rustup@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-x/src-tauri
+
+      - name: Check tag name consistency
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          if [[ nym-vpn-x-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
+            exit 1
+          fi
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      # Setup TAG_NAME, which is used as a general "name"
+      - if: github.event_name == 'workflow_dispatch'
+        run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+      - if: github.event_name == 'schedule'
+        run: echo "TAG_NAME=nym-vpn-x-nightly" >> $GITHUB_ENV
+      - if: github.event_name == 'push'
+        run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+
+      - name: Set tag
+        id: set_tag
+        run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
+
+      - name: Setting subject, prerelease and notes files
+        if: ${{ contains(env.TAG_NAME, 'nym-vpn-x-nightly') }}
+        run: |
+          (echo "SUBJECT=nym-vpn-x-v${{ steps.package-version.outputs.metadata }} nightly prerelease build";
+           echo 'PRERELEASE=--prerelease';
+           echo 'NOTES_FILE=release-notes/release-notes-vpnx-nightly.md') >> $GITHUB_ENV
+          gh release delete nym-vpn-x-nightly --yes || true
+          git push origin :nym-vpn-x-nightly || true
+
+      - name: Removing --prerelease if needed
+        if: ${{ !contains(env.TAG_NAME, 'nym-vpn-x-nightly') }}
+        run: |
+          (echo "SUBJECT=$TAG_NAME"
+           echo 'PRERELEASE='
+           echo 'NOTES_FILE=release-notes/release-notes-vpnx.md') >> $GITHUB_ENV
+
+      - name: Generate checksums
+        run: |
+          for f in ${{ env.UPLOAD_DIR_LINUX}}/*; do sha256sum ${f} > ${f}.sha256sum; done
+          for f in ${{ env.UPLOAD_DIR_WINDOWS}}/*; do sha256sum ${f} > ${f}.sha256sum; done
+          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
+          cat ${{ env.UPLOAD_DIR_LINUX}}/*.sha256sum >> $GITHUB_ENV
+          cat ${{ env.UPLOAD_DIR_WINDOWS}}/*.sha256sum >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      # - name: AppImage installer bump version
+      #   env:
+      #     appimg_installer: nym-vpn-x/scripts/appimage.sh
+      #   run: |
+      #     echo "tag: $TAG_NAME"
+      #     echo "version: $PKG_VERSION"
+      #     sed -i "s/^tag=.*$/tag=$TAG_NAME/" $appimg_installer
+      #     sed -i "s/^version=.*$/version=$PKG_VERSION/" $appimg_installer
+      #     mkdir installer
+      #     cp -v $appimg_installer installer
+
+      - name: Build info
+        run: |
+          echo 'BUILD_INFO<<EOF' >> $GITHUB_ENV
+          cat build-info/build-info.txt >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+
+      - name: Publish release
+        run: |
+          echo "build info"
+          echo "$BUILD_INFO"
+          echo "checksums"
+          echo "$SHA256_CHECKSUMS"
+          echo "Creating release notes"
+          envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
+          echo "Creating release nodes: output"
+          cat $RUNNER_TEMP/release-notes.md
+          echo "Creating release"
+          gh release create $TAG_NAME ${{ env.PRERELEASE }} \
+            --notes-file "$RUNNER_TEMP/release-notes.md" \
+            --title "$SUBJECT" \
+            --target $GITHUB_SHA \
+            ${{ env.UPLOAD_DIR_LINUX}}/* \
+            ${{ env.UPLOAD_DIR_MAC}}/* \
+            installer/*
+
+  gen-hashes:
+    uses: ./.github/workflows/gen-hashes-json.yml
+    needs: publish
+    with:
+      release_tag: ${{ needs.publish.outputs.tag }}
+    secrets: inherit
