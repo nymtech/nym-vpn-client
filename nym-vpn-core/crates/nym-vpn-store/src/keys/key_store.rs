@@ -3,7 +3,7 @@
 
 use std::error::Error;
 
-use crate::DeviceKeys;
+use super::DeviceKeys;
 
 pub trait KeyStore {
     type StorageError: Error;

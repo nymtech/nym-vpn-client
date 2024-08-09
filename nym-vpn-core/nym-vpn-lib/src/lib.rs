@@ -65,6 +65,7 @@ pub mod keys;
 pub mod mixnet_connect;
 pub mod mixnet_processor;
 pub mod routing;
+pub mod storage;
 pub mod tunnel;
 pub mod util;
 pub mod wg_gateway_client;
