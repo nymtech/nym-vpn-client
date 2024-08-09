@@ -23,8 +23,7 @@ pub struct VpnClientOnDiskStorage {
 impl VpnClientOnDiskStorage {
     pub fn new<P: AsRef<Path>>(base_data_directory: P) -> Self {
         let device_key_paths = DeviceKeysPaths::new(&base_data_directory);
-        let key_store =
-            nym_vpn_store::keys::persistence::OnDiskKeys::new(device_key_paths);
+        let key_store = nym_vpn_store::keys::persistence::OnDiskKeys::new(device_key_paths);
 
         let mnemonic_storage_path = base_data_directory.as_ref().join(MNEMONIC_FILE_NAME);
         let mnemonic_storage =
@@ -48,6 +47,10 @@ impl KeyStore for VpnClientOnDiskStorage {
 
     async fn store_keys(&self, keys: &DeviceKeys) -> Result<(), Self::StorageError> {
         self.key_store.store_keys(keys).await
+    }
+
+    async fn init_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError> {
+        self.key_store.init_keys(seed).await
     }
 }
 
