@@ -3,6 +3,7 @@ use std::{
     fmt::{self, Display},
 };
 
+use nym_vpn_proto::connection_status_update::StatusType;
 use nym_vpn_proto::import_error::ImportErrorType;
 use nym_vpn_proto::{error::ErrorType as DaemonError, ImportError};
 use serde::{Deserialize, Serialize};
@@ -152,9 +153,17 @@ pub enum ErrorKey {
     CredentialExpired,
     /// Forwarded from proto
     OutOfBandwidth,
-    /// HTTP request failure when fetching countries from the Gateway API
-    GetEntryCountriesRequest,
-    GetExitCountriesRequest,
+    /// Forwarded from proto `connection_status_update::StatusType`
+    EntryGatewayNotRouting,
+    /// Forwarded from proto `connection_status_update::StatusType`
+    ExitRouterPingIpv4,
+    /// Forwarded from proto `connection_status_update::StatusType`
+    ExitRouterNotRoutingIpv4,
+    /// Forwarded from proto `connection_status_update::StatusType`
+    UserNoBandwidth,
+    /// Failure when querying countries from gRPC
+    GetEntryCountriesQuery,
+    GetExitCountriesQuery,
 }
 
 impl From<DaemonError> for ErrorKey {
@@ -216,6 +225,18 @@ impl From<ImportError> for BackendError {
                 ErrorKey::CredentialExpired,
                 data,
             ),
+        }
+    }
+}
+
+impl From<StatusType> for ErrorKey {
+    fn from(value: StatusType) -> Self {
+        match value {
+            StatusType::EntryGatewayNotRoutingMixnetMessages => ErrorKey::EntryGatewayNotRouting,
+            StatusType::ExitRouterNotRespondingToIpv4Ping => ErrorKey::ExitRouterPingIpv4,
+            StatusType::ExitRouterNotRoutingIpv4Traffic => ErrorKey::ExitRouterNotRoutingIpv4,
+            StatusType::NoBandwidth => ErrorKey::UserNoBandwidth,
+            _ => ErrorKey::UnknownError,
         }
     }
 }

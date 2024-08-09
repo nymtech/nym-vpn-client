@@ -41,9 +41,17 @@ function useI18nError() {
           return t('credential.expired');
         case 'OutOfBandwidth':
           return t('out-of-bandwidth');
-        case 'GetEntryCountriesRequest':
+        case 'EntryGatewayNotRouting':
+          return t('entry-node-routing');
+        case 'ExitRouterPingIpv4':
+          return t('exit-node.ping', { protocol: 'IPv4' });
+        case 'ExitRouterNotRoutingIpv4':
+          return t('exit-node.routing', { protocol: 'IPv4' });
+        case 'UserNoBandwidth':
+          return t('out-of-bandwidth');
+        case 'GetEntryCountriesQuery':
           return t('countries-request.entry');
-        case 'GetExitCountriesRequest':
+        case 'GetExitCountriesQuery':
           return t('countries-request.exit');
         case 'UnknownError':
           return t('unknown');

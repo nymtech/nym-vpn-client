@@ -42,8 +42,12 @@ export type BkdErrorKey =
   | 'CredentialDeserializationFailure'
   | 'CredentialExpired'
   | 'OutOfBandwidth'
-  | 'GetEntryCountriesRequest'
-  | 'GetExitCountriesRequest';
+  | 'EntryGatewayNotRouting'
+  | 'ExitRouterPingIpv4'
+  | 'ExitRouterNotRoutingIpv4'
+  | 'UserNoBandwidth'
+  | 'GetEntryCountriesQuery'
+  | 'GetExitCountriesQuery';
 
 export type ConnectionStateResponse = {
   state: ConnectionState;
