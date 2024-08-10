@@ -1,0 +1,5 @@
+Yenilikler:
+- Uygulama içi dil seçici
+- Daha fazla dil seçeneği
+- Geliştirilmiş durum senkronizasyonu
+- Çeşitli hata düzeltmeleri ve iyileştirmeler
