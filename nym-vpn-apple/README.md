@@ -37,6 +37,12 @@ GRPC client update:
 7. Update files from `nym-vpn-client-nym-vpn-core-vx.x.x/proto/nym` to `nym-vpn-client/nym-vpn-apple/ServicesMacOS/Sources/GRPCManager/proto/nym`
 8. Disable swiftlint `// swiftlint:disable all` for `.proto`, `.grpc` , `.pb` files.
 
+Debug daemon with extra logs:
+
+Remove installed daemon from `/Library/LaunchDaemons` and `/Library/PrivilegedHelperTools`. Kill the process in `Activity monitor`. Comment out `isHelperInstalled()` call. 
+Run daemon with logs: 
+`sudo RUST_LOG=debug ./net.nymtech.vpn.helper` 
+
 Sparkle auto updater instructions
 
 CI job artefacts:
