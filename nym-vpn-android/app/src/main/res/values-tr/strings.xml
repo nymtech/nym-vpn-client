@@ -60,7 +60,7 @@
     <string name="credential_successful">Anahtar başarıyla eklendi</string>
     <string name="no_browser_detected">Tarayıcı bulunamadı</string>
     <string name="no_email_detected">E-posta uygulaması bulunamadı</string>
-    <string name="unknown">Bilinmeyen</string>
+    <string name="unknown">Tanımlanamayan</string>
     <string name="no_scm_found">Kaynak kodu URL\'si bulunamadı</string>
     <string name="five_hop">5-hop</string>
     <string name="mode">Mod</string>
@@ -71,7 +71,7 @@
     <string name="anonymous_analytics">Anonim analizler</string>
     <string name="anonymous_analytics_description">NymVPN\'i geliştirmemize yardımcı olun</string>
     <string name="cont">Devam et</string>
-    <string name="welcome">Hoş geldiniz</string>
+    <string name="welcome">Hoş geldin</string>
     <string name="to_alpha">NymVPN alpha sürümüne</string>
     <string name="thanks_for_support">Destekleriniz için teşekkür ederiz!</string>
     <string name="opt_in_message_first">Anonim hata izleme için katıl</string>
@@ -105,7 +105,7 @@
     <string name="fastest">En hızlı</string>
     <string name="error_reporting">Hata raporlarını anonim olarak paylaş</string>
     <string name="feedback">Geri bildirim</string>
-    <string name="licenses">Lisanslar</string>
+    <string name="licenses">Sertifikalar</string>
     <string name="join_matrix">Matrix\'te bize katılın</string>
     <string name="permission_message">Cihazınızda uygulamanın doğru çalışmasını sağlamak için lütfen aşağıdaki izinleri kabul edin. Bu izinler, uygulamanın işlevini yerine getirebilmesi için gereklidir.</string>
     <string name="error_bad_peer_cert">"Seçilen gateway\'in kötü bir peer sertifikası var. Lütfen başka bir gateway\'e yeniden bağlanmayı deneyin "</string>
@@ -124,9 +124,22 @@
     <string name="mode_selection">Mod seçimi</string>
     <string name="five_hop_explanation">Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek maksimum düzeyde gizliliğin tadını çıkarın. Ödemeleri, e-postaları ve mesajları güvenli bir şekilde yönetmek için mükemmeldir.</string>
     <string name="continue_reading">Okumaya devam edin</string>
-    <string name="two_hop_explanation">Maksimum hızı 2 sunucu bağlantısıyla deneyimleyin. Hızlı tarama, yayın akışı ve dosya paylaşımı için mükemmeldir.</string>
-    <string name="entry_location">İlk hop</string>
-    <string name="exit_location">Son hop</string>
+    <string name="two_hop_explanation">Maksimum hızı 2-sunucu bağlantısıyla deneyimleyin. Hızlı tarama, yayın akışı ve dosya paylaşımı için mükemmeldir.</string>
+    <string name="entry_location">Giriş konumu</string>
+    <string name="exit_location">Çıkış konumu</string>
     <string name="language">Dil</string>
     <string name="entry_location_selector">Entry konumu seçici</string>
+    <string name="two_hop">2-hop</string>
+    <string name="always_on_message">Çalışmıyor mu? Diğer uygulamalar için Her zaman açık VPN\'in devre dışı olduğundan emin olun</string>
+    <string name="always_on_disbled">Her zaman açık VPN devre dışı</string>
+    <string name="appearance">Görünüm</string>
+    <string name="gateway_modal_description">Sunucu konumlarını IP adreslerine dayanarak tahmin ediyoruz, ancak gerçek konumlar biraz farklı olabilir.</string>
+    <string name="gateway_locations_title">Sunucu konumları hakkında detaylar</string>
+    <string name="remaining">kalan</string>
+    <string name="vpn_connection">VPN Bağlantısı</string>
+    <string name="vpn_permission_message">VPN bağlantı talebini yeniden bağlanmayı deneyerek onaylayın.</string>
+    <string name="view_system_settings">Sistem ayarlarını görüntüle</string>
+    <string name="try_reconnecting">Yeniden bağlanmayı deneyin</string>
+    <string name="vpn_settings">VPN ayarları</string>
+    <string name="try_again">ve tekrar deneyin</string>
 </resources>
