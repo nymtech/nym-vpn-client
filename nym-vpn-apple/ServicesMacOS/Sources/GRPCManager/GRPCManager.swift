@@ -1,4 +1,5 @@
 import Foundation
+import NymLogger
 import SwiftUI
 import Base58Swift
 import GRPC
@@ -30,7 +31,7 @@ public final class GRPCManager: ObservableObject {
                         eventLoopGroup: group
                     )
         )
-        client = Nym_Vpn_NymVpndNIOClient(channel: channel)
+        client = Nym_Vpn_NymVpndNIOClient(channel: channel, defaultCallOptions: CallOptions(logger: logger))
         setup()
     }
 
@@ -107,7 +108,9 @@ public final class GRPCManager: ObservableObject {
             location.twoLetterIsoCountryCode = entryGatewayCountryCode
             entryNode.location = location
         } else {
-            entryNode.randomLowLatency = Nym_Vpn_Empty()
+            // TODO: use it when functionality becomes available
+//            entryNode.randomLowLatency = Nym_Vpn_Empty()
+            entryNode.random = Nym_Vpn_Empty()
         }
 
         var exitNode = Nym_Vpn_ExitNode()
@@ -128,7 +131,7 @@ public final class GRPCManager: ObservableObject {
         request.disableBackgroundCoverTraffic = false
         request.enableCredentialsMode = false
 
-        let call = client.vpnConnect(request)
+        let call = client.vpnConnect(request, callOptions: CallOptions(logger: logger))
 
         call.response.whenComplete { [weak self] result in
             switch result {
