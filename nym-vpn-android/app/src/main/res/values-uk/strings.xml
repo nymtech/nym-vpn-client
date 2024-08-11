@@ -130,4 +130,6 @@
     <string name="language">Мова</string>
     <string name="gateway_modal_description">Ми визначаємо місцезнаходження серверів на основі їхніх IP-адрес, але фактичне місцезнаходження може дещо відрізнятися.</string>
     <string name="entry_location_selector">Вибір країни входу</string>
+    <string name="two_hop">2-ланки</string>
+    <string name="appearance">Зовнішній вигляд</string>
 </resources>
