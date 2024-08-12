@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { NodeHop, NodeLocation, isCountry } from '../../types';
-import { useMainState, useNotifications } from '../../contexts';
+import { useInAppNotify, useMainState } from '../../contexts';
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
 import { useThrottle } from '../../hooks';
 import { HomeThrottleDelay } from '../../constants';
@@ -21,7 +21,7 @@ export default function HopSelect({
 }: HopSelectProps) {
   const { fastestNodeLocation, state, daemonStatus } = useMainState();
   const { t } = useTranslation('home');
-  const { push } = useNotifications();
+  const { push } = useInAppNotify();
 
   const showSnackbar = useThrottle(
     () => {

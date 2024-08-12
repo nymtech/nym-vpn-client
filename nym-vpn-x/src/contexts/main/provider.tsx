@@ -1,15 +1,15 @@
 import { invoke } from '@tauri-apps/api';
 import React, { useCallback, useEffect, useReducer } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CountryCacheDuration } from '../constants';
+import { CountryCacheDuration } from '../../constants';
 import {
   MainDispatchContext,
   MainStateContext,
-  useNotifications,
-} from '../contexts';
-import { sleep } from '../helpers';
-import { useThrottle } from '../hooks';
-import { kvSet } from '../kvStore';
+  useInAppNotify,
+} from '../index';
+import { sleep } from '../../helpers';
+import { useThrottle } from '../../hooks';
+import { kvSet } from '../../kvStore';
 import {
   BackendError,
   Cli,
@@ -17,16 +17,18 @@ import {
   NodeHop,
   NodeLocation,
   isCountry,
-} from '../types';
-import { initFirstBatch, initSecondBatch } from './init';
-import { initialState, reducer } from './main';
-import { useTauriEvents } from './useTauriEvents';
+} from '../../types';
+import { initFirstBatch, initSecondBatch } from '../../state/init';
+import { initialState, reducer } from '../../state';
+import { useTauriEvents } from '../../state/useTauriEvents';
+
+let initialized = false;
 
 type Props = {
   children?: React.ReactNode;
 };
 
-export function MainStateProvider({ children }: Props) {
+function MainStateProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const {
     entryCountryList,
@@ -36,12 +38,17 @@ export function MainStateProvider({ children }: Props) {
   } = state;
 
   useTauriEvents(dispatch, state);
-  const { push } = useNotifications();
+  const { push } = useInAppNotify();
 
   const { t } = useTranslation();
 
   // initialize app state
   useEffect(() => {
+    if (initialized) {
+      return;
+    }
+    initialized = true;
+
     // this first batch is needed to ensure the app is fully
     // initialized and ready, once done splash screen is removed
     // and the UI is shown
@@ -187,3 +194,5 @@ export function MainStateProvider({ children }: Props) {
     </MainStateContext.Provider>
   );
 }
+
+export default MainStateProvider;

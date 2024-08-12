@@ -4,16 +4,18 @@ import { RouterProvider } from 'react-router-dom';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useTranslation } from 'react-i18next';
-import { DialogProvider, NotificationProvider } from './contexts';
+import { DialogProvider, InAppNotificationProvider } from './contexts';
 import { useLang } from './hooks';
 import { LngTag } from './i18n';
 import { kvGet } from './kvStore';
 import router from './router';
 import { sleep } from './helpers';
-import { MainStateProvider } from './state';
+import { MainStateProvider } from './contexts';
 import './i18n/config';
 import { Cli } from './types';
 import { RouteLoading, ThemeSetter } from './ui';
+
+let initialized = false;
 
 function App() {
   const { i18n } = useTranslation();
@@ -23,6 +25,11 @@ function App() {
   const { set } = useLang();
 
   useEffect(() => {
+    if (initialized) {
+      return;
+    }
+    initialized = true;
+
     const showSplashAnimation = async () => {
       const args = await invoke<Cli>(`cli_args`);
       // if NOSPLASH is set, skip the splash-screen animation
@@ -62,7 +69,7 @@ function App() {
   }, [i18n, set]);
 
   return (
-    <NotificationProvider>
+    <InAppNotificationProvider>
       <MainStateProvider>
         <ThemeSetter>
           <DialogProvider>
@@ -72,7 +79,7 @@ function App() {
           </DialogProvider>
         </ThemeSetter>
       </MainStateProvider>
-    </NotificationProvider>
+    </InAppNotificationProvider>
   );
 }
 

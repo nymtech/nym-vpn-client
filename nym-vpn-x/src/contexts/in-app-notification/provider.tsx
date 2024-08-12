@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Notification } from './type';
-import { NotificationContext } from './context';
+import { InAppNotificationContext } from './context';
 
 type Timeout = ReturnType<typeof setTimeout>;
 
@@ -12,7 +12,7 @@ export type NotificationProviderProps = {
 // snackbar animation (defined in Snackbar.tsx)
 const transitionDuration = 300; // ms
 
-function NotificationProvider({ children }: NotificationProviderProps) {
+function InAppNotificationProvider({ children }: NotificationProviderProps) {
   const [stack, setStack] = useState<Notification[]>([]);
   const [current, setCurrent] = useState<Notification | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -83,7 +83,7 @@ function NotificationProvider({ children }: NotificationProviderProps) {
   };
 
   return (
-    <NotificationContext.Provider
+    <InAppNotificationContext.Provider
       value={{
         stack,
         current,
@@ -93,8 +93,8 @@ function NotificationProvider({ children }: NotificationProviderProps) {
       }}
     >
       {children}
-    </NotificationContext.Provider>
+    </InAppNotificationContext.Provider>
   );
 }
 
-export default NotificationProvider;
+export default InAppNotificationProvider;

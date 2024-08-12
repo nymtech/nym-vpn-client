@@ -6,11 +6,7 @@ import { open } from '@tauri-apps/api/shell';
 import { useDesktopNotifications, useThrottle } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
-import {
-  useMainDispatch,
-  useMainState,
-  useNotifications,
-} from '../../contexts';
+import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
 import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
@@ -37,7 +33,7 @@ function Settings() {
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
   const { exit } = useExit();
-  const { push } = useNotifications();
+  const { push } = useInAppNotify();
   const toggleDNotifications = useDesktopNotifications();
 
   useEffect(() => {

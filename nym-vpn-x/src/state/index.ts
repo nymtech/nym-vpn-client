@@ -1,4 +1,3 @@
-export * from './main';
-export * from './provider';
+export * from './reducer';
 export * from './useSystemTheme';
 export * from './useExit';

@@ -1,8 +1,8 @@
-import { useNotifications } from '../contexts';
+import { useInAppNotify } from '../contexts';
 import Snackbar from './Snackbar';
 
 function Notifications() {
-  const { current, next } = useNotifications();
+  const { current, next } = useInAppNotify();
 
   const onClose = () => {
     next();

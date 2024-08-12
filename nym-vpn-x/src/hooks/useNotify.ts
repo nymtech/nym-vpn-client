@@ -1,11 +1,30 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   isPermissionGranted,
   sendNotification,
 } from '@tauri-apps/api/notification';
 import { appWindow } from '@tauri-apps/api/window';
-import { useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { AppName } from '../constants';
 import { useMainState } from '../contexts';
+
+const AntiSpamTimeout = 60000; // 1min
+
+/**
+ * Desktop notification options
+ */
+export type NotifyOptions = {
+  // By default, the notification is not sent if the app is focused and visible
+  // or if a notification has already been sent just before with the same text
+  // Set this to `true` to send the notification anyway
+  force?: boolean;
+  // The pathname of a location, if the notification should
+  // trigger when the user is **not** on a specific screen.
+  // Ignored if `force` is `true`
+  locationPath?: string;
+  // If `true` the check for consecutive identical notifications will not be done
+  noSpamCheck?: boolean;
+};
 
 /**
  * Hook to send desktop notifications
@@ -13,26 +32,32 @@ import { useMainState } from '../contexts';
  * @returns The `notify` function
  */
 function useNotify() {
-  const { desktopNotifications } = useMainState();
+  const { desktopNotifications, os } = useMainState();
   const location = useLocation();
+
+  const [lastNotification, setLastNotification] = useState<string | null>(null);
+  const id = useRef<number>(0);
+
+  useEffect(() => {
+    if (lastNotification) {
+      clearTimeout(id.current);
+      id.current = setTimeout(() => {
+        setLastNotification(null);
+      }, AntiSpamTimeout);
+    }
+  }, [lastNotification]);
 
   /**
    * Sends desktop notifications. Also checks if the permission is granted
    * and desktop notifications are enabled.
    *
    * @param body - The text to display in the notification
-   * @param title - The title of the notification (optional)
-   * @param force - Whether to send the notification even if the app is focused and visible
-   * @param locationPath - The pathname of a location, if the notification should
-   *   only be sent when the user is **not** on a specific screen
+   * @param opts - Notification options
    */
   const notify = useCallback(
-    async (
-      body: string,
-      title: string | null,
-      force = false,
-      locationPath?: string,
-    ) => {
+    async (body: string, opts: NotifyOptions = {}) => {
+      const { force = false, locationPath, noSpamCheck } = opts;
+
       if (!desktopNotifications) {
         return;
       }
@@ -46,6 +71,9 @@ function useNotify() {
         if (windowFocused && windowVisible && onRightScreen) {
           return;
         }
+        if (!noSpamCheck && body === lastNotification) {
+          return;
+        }
       }
 
       const granted = await isPermissionGranted();
@@ -54,13 +82,14 @@ function useNotify() {
         return;
       }
 
-      if (title) {
-        sendNotification({ title, body });
+      if (os === 'linux') {
+        sendNotification({ title: AppName, body });
       } else {
         sendNotification(body);
       }
+      setLastNotification(body);
     },
-    [desktopNotifications, location],
+    [os, desktopNotifications, location, lastNotification],
   );
 
   return { notify };
