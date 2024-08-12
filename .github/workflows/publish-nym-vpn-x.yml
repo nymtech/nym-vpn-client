@@ -1,5 +1,7 @@
 name: publish-nym-vpn-x
 on:
+  # schedule:
+  #   - cron: "4 4 * * *"
   workflow_dispatch:
     inputs:
       tag_name:
@@ -143,7 +145,7 @@ jobs:
             --title "$SUBJECT" \
             --target $GITHUB_SHA \
             ${{ env.UPLOAD_DIR_UBUNTU_22}} \
-            ${{ env.UPLOAD_DIR_MAC}}/*
+            ${{ env.UPLOAD_DIR_WIN}}/*
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
