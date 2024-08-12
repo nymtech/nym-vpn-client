@@ -90,6 +90,9 @@ impl AuthClient {
         // This needs to sit here, before sending the request and dropped after getting the response,
         // so that it doesn't interfere with message to the other gateway (entry/exit).
         let mut mixnet_client_handle = self.mixnet_client.lock().await;
+        if mixnet_client_handle.is_none() {
+            return Err(Error::ShuttingDown);
+        }
         let request_id = self
             .send_connect_request(message, authenticator_address)
             .await?;
