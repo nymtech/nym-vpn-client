@@ -3,7 +3,7 @@
 
 use crate::Location;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Country {
     iso_code: String,
 }

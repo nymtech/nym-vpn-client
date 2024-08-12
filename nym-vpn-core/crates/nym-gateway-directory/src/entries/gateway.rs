@@ -7,7 +7,7 @@ use nym_topology::IntoGatewayNode;
 use rand::seq::IteratorRandom;
 use tracing::error;
 
-use crate::{error::Result, AuthAddress, Error, IpPacketRouterAddress};
+use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
 
 #[derive(Clone, Debug)]
 pub struct Gateway {
@@ -191,16 +191,25 @@ impl GatewayList {
         GatewayList { gateways }
     }
 
-    pub fn all_locations(&self) -> impl Iterator<Item = &Location> {
+    // Returns a list of all locations of the gateways, including duplicates
+    fn all_locations(&self) -> impl Iterator<Item = &Location> {
         self.gateways
             .iter()
             .filter_map(|gateway| gateway.location.as_ref())
     }
 
-    pub fn all_iso_codes(&self) -> Vec<String> {
+    pub fn all_countries(&self) -> Vec<Country> {
         self.all_locations()
-            .map(|code| code.two_letter_iso_country_code.clone())
+            .cloned()
+            .map(Country::from)
             .unique()
+            .collect()
+    }
+
+    pub fn all_iso_codes(&self) -> Vec<String> {
+        self.all_countries()
+            .into_iter()
+            .map(|country| country.iso_code().to_string())
             .collect()
     }
 
@@ -251,6 +260,10 @@ impl GatewayList {
             .filter(Gateway::has_ipr_address)
             .collect();
         Self::new(gw)
+    }
+
+    pub fn into_countries(self) -> Vec<Country> {
+        self.all_countries()
     }
 
     pub fn into_inner(self) -> Vec<Gateway> {
