@@ -286,14 +286,16 @@ async fn stop_vpn() -> Result<(), FFIError> {
 #[uniffi::export]
 pub fn getGatewayCountries(
     api_url: Url,
-    explorer_url: Url,
-    harbour_master_url: Option<Url>,
+    _explorer_url: Url,
+    _harbour_master_url: Option<Url>,
     exit_only: bool,
 ) -> Result<Vec<Location>, FFIError> {
+    // TODO: pass this as parameter above. This requires regenerating uniffi, and
+    // updating clients consuming this API.
+    let nym_vpn_api_url = Some("https://nymvpn.com/api".parse().unwrap());
     RUNTIME.block_on(get_gateway_countries(
         api_url,
-        explorer_url,
-        harbour_master_url,
+        nym_vpn_api_url,
         exit_only,
         None,
     ))
@@ -303,15 +305,17 @@ pub fn getGatewayCountries(
 #[uniffi::export]
 pub fn getGatewayCountriesUserAgent(
     api_url: Url,
-    explorer_url: Url,
-    harbour_master_url: Option<Url>,
+    _explorer_url: Url,
+    _harbour_master_url: Option<Url>,
     exit_only: bool,
     user_agent: UserAgent,
 ) -> Result<Vec<Location>, FFIError> {
+    // TODO: pass this as parameter above. This requires regenerating uniffi, and
+    // updating clients consuming this API.
+    let nym_vpn_api_url = Some("https://nymvpn.com/api".parse().unwrap());
     RUNTIME.block_on(get_gateway_countries(
         api_url,
-        explorer_url,
-        harbour_master_url,
+        nym_vpn_api_url,
         exit_only,
         Some(user_agent),
     ))
@@ -330,20 +334,13 @@ async fn get_gateway_countries(
         api_url,
         nym_vpn_api_url,
     };
-    let directory_client = GatewayClient::new(directory_config, user_agent).map_err(|err| {
-        FFIError::GatewayDirectoryError {
-            inner: err.to_string(),
-        }
-    })?;
-
+    let directory_client = GatewayClient::new(directory_config, user_agent)?;
     let locations = if !exit_only {
-        // nym_vpn_api_client::get_countries(user_agent).await
-        directory_client.lookup_entry_gateways().await
+        directory_client.lookup_entry_countries().await
     } else {
-        // nym_vpn_api_client::get_exit_countries(user_agent).await
-        directory_client.lookup_exit_gateways().await
+        directory_client.lookup_exit_countries().await
     }?;
-    Ok(locations.into_iter().map(Into::into).collect())
+    Ok(locations.into_iter().map(Location::from).collect())
 }
 
 #[allow(non_snake_case)]
