@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    entries::gateway::{Gateway, GatewayList},
+    entries::{
+        country::Country,
+        gateway::{Gateway, GatewayList},
+    },
     error::Result,
     helpers::{select_random_low_latency_described_gateway, try_resolve_hostname},
     AuthAddress, Error, IpPacketRouterAddress,
@@ -201,6 +204,17 @@ impl GatewayClient {
         Ok(GatewayList::new(gateways))
     }
 
+    // This is currently the same as the set of all gateways, but it doesn't have to be.
+    pub async fn lookup_entry_gateways_from_nym_api(&self) -> Result<GatewayList> {
+        self.lookup_all_gateways_from_nym_api().await
+    }
+
+    pub async fn lookup_exit_gateways_from_nym_api(&self) -> Result<GatewayList> {
+        self.lookup_all_gateways_from_nym_api()
+            .await
+            .map(|gateways| gateways.into_exit_gateways())
+    }
+
     pub async fn lookup_entry_gateways(&self) -> Result<GatewayList> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching entry gateways from nym-vpn-api...");
@@ -221,7 +235,7 @@ impl GatewayClient {
             append_ipr_and_authenticator_addresses(&mut entry_gateways, described_gateways);
             Ok(GatewayList::new(entry_gateways))
         } else {
-            self.lookup_all_gateways_from_nym_api().await
+            self.lookup_entry_gateways_from_nym_api().await
         }
     }
 
@@ -245,9 +259,39 @@ impl GatewayClient {
             append_ipr_and_authenticator_addresses(&mut exit_gateways, described_gateways);
             Ok(GatewayList::new(exit_gateways))
         } else {
-            self.lookup_all_gateways_from_nym_api()
+            self.lookup_exit_gateways_from_nym_api().await
+        }
+    }
+
+    pub async fn lookup_entry_countries(&self) -> Result<Vec<Country>> {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching entry countries from nym-vpn-api...");
+            Ok(nym_vpn_api_client
+                .get_entry_countries()
+                .await?
+                .into_iter()
+                .map(Country::from)
+                .collect())
+        } else {
+            self.lookup_entry_gateways_from_nym_api()
                 .await
-                .map(|gateways| gateways.into_exit_gateways())
+                .map(GatewayList::into_countries)
+        }
+    }
+
+    pub async fn lookup_exit_countries(&self) -> Result<Vec<Country>> {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching exit countries from nym-vpn-api...");
+            Ok(nym_vpn_api_client
+                .get_exit_countries()
+                .await?
+                .into_iter()
+                .map(Country::from)
+                .collect())
+        } else {
+            self.lookup_exit_gateways_from_nym_api()
+                .await
+                .map(GatewayList::into_countries)
         }
     }
 }

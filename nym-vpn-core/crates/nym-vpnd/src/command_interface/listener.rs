@@ -15,8 +15,9 @@ use nym_vpn_proto::{
     ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
 };
 use nym_vpn_proto::{
-    InfoRequest, InfoResponse, ListEntryGatewaysRequest, ListEntryGatewaysResponse,
-    ListExitGatewaysRequest, ListExitGatewaysResponse,
+    InfoRequest, InfoResponse, ListEntryCountriesRequest, ListEntryCountriesResponse,
+    ListEntryGatewaysRequest, ListEntryGatewaysResponse, ListExitCountriesRequest,
+    ListExitCountriesResponse, ListExitGatewaysRequest, ListExitGatewaysResponse,
 };
 use prost_types::Timestamp;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
@@ -322,6 +323,64 @@ impl NymVpnd for CommandInterface {
         info!(
             "Returning list exit gateways response: {} entries",
             response.gateways.len()
+        );
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn list_entry_countries(
+        &self,
+        request: tonic::Request<ListEntryCountriesRequest>,
+    ) -> Result<tonic::Response<ListEntryCountriesResponse>, tonic::Status> {
+        info!("Got list entry countries request: {request:?}");
+
+        let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_list_entry_countries()
+            .await
+            .map_err(|err| {
+                let msg = format!("Failed to list entry countries: {:?}", err);
+                error!(msg);
+                tonic::Status::internal(msg)
+            })?;
+
+        let response = nym_vpn_proto::ListEntryCountriesResponse {
+            countries: countries
+                .into_iter()
+                .map(nym_vpn_proto::Location::from)
+                .collect(),
+        };
+
+        info!(
+            "Returning list entry countries response: {} countries",
+            response.countries.len()
+        );
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn list_exit_countries(
+        &self,
+        request: tonic::Request<ListExitCountriesRequest>,
+    ) -> Result<tonic::Response<ListExitCountriesResponse>, tonic::Status> {
+        info!("Got list exit countries request: {request:?}");
+
+        let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_list_exit_countries()
+            .await
+            .map_err(|err| {
+                let msg = format!("Failed to list exit countries: {:?}", err);
+                error!(msg);
+                tonic::Status::internal(msg)
+            })?;
+
+        let response = ListExitCountriesResponse {
+            countries: countries
+                .into_iter()
+                .map(nym_vpn_proto::Location::from)
+                .collect(),
+        };
+
+        info!(
+            "Returning list exit countries response: {} countries",
+            response.countries.len()
         );
         Ok(tonic::Response::new(response))
     }

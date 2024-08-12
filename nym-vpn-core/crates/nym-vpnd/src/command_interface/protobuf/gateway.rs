@@ -85,3 +85,11 @@ impl From<gateway::Gateway> for nym_vpn_proto::ExitGateway {
         }
     }
 }
+
+impl From<gateway::Country> for nym_vpn_proto::Location {
+    fn from(country: gateway::Country) -> Self {
+        nym_vpn_proto::Location {
+            two_letter_iso_country_code: country.iso_code().to_string(),
+        }
+    }
+}

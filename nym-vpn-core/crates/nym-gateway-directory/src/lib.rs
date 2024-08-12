@@ -9,6 +9,7 @@ mod helpers;
 pub use crate::{
     entries::{
         auth_addresses::{AuthAddress, AuthAddresses},
+        country::Country,
         entry_point::EntryPoint,
         exit_point::ExitPoint,
         gateway::{Entry, Exit, Gateway, GatewayList, Location, Probe, ProbeOutcome},

@@ -83,6 +83,11 @@ pub enum Error {
 
     #[error("gateway {0} doesn't have a description available")]
     NoGatewayDescriptionAvailable(String),
+
+    #[error("failed to lookup entry countries: {source}")]
+    FailedToLookupEntryCountries {
+        source: nym_vpn_api_client::VpnApiError,
+    },
 }
 
 // Result type based on our error type

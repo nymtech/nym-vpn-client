@@ -5,7 +5,8 @@ use anyhow::Result;
 use clap::Parser;
 use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, InfoRequest,
-    ListEntryGatewaysRequest, ListExitGatewaysRequest, StatusRequest,
+    ListEntryCountriesRequest, ListEntryGatewaysRequest, ListExitCountriesRequest,
+    ListExitGatewaysRequest, StatusRequest,
 };
 use protobuf_conversion::into_threshold;
 use vpnd_client::ClientType;
@@ -42,6 +43,8 @@ async fn main() -> Result<()> {
         Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
         Command::ListEntryGateways => list_entry_gateways(client_type).await?,
         Command::ListExitGateways => list_exit_gateways(client_type).await?,
+        Command::ListEntryCountries => list_entry_countries(client_type).await?,
+        Command::ListExitCountries => list_exit_countries(client_type).await?,
     }
     Ok(())
 }
@@ -191,5 +194,21 @@ async fn list_exit_gateways(client_type: ClientType) -> Result<()> {
             println!("id: {:?}, last_updated_utc: {:?}", id, last_updated_utc);
         }
     }
+    Ok(())
+}
+
+async fn list_entry_countries(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(ListEntryCountriesRequest {});
+    let response = client.list_entry_countries(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
+}
+
+async fn list_exit_countries(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(ListExitCountriesRequest {});
+    let response = client.list_exit_countries(request).await?.into_inner();
+    println!("{:#?}", response);
     Ok(())
 }
