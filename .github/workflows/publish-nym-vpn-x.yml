@@ -144,7 +144,7 @@ jobs:
             --notes-file "$RUNNER_TEMP/release-notes.md" \
             --title "$SUBJECT" \
             --target $GITHUB_SHA \
-            ${{ env.UPLOAD_DIR_UBUNTU_22}} \
+            ${{ env.UPLOAD_DIR_UBUNTU_22}}/* \
             ${{ env.UPLOAD_DIR_WINDOWS}}/*
 
   gen-hashes:
