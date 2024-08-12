@@ -7,7 +7,7 @@ use crate::{
         gateway::{Gateway, GatewayList},
     },
     error::Result,
-    helpers::{select_random_low_latency_described_gateway, try_resolve_hostname},
+    helpers::try_resolve_hostname,
     AuthAddress, Error, IpPacketRouterAddress,
 };
 use nym_sdk::{mixnet::Recipient, UserAgent};
@@ -148,18 +148,8 @@ impl GatewayClient {
 
     pub async fn lookup_low_latency_entry_gateway(&self) -> Result<Gateway> {
         debug!("Fetching low latency entry gateway...");
-        let gateways = self.lookup_described_gateways().await?;
-        let low_latency_gateway: Gateway = select_random_low_latency_described_gateway(&gateways)
-            .await
-            .cloned()?
-            .try_into()?;
-        let gateway_list = self.lookup_entry_gateways().await?;
-        gateway_list
-            .gateway_with_identity(low_latency_gateway.identity())
-            .ok_or_else(|| Error::NoMatchingGateway {
-                requested_identity: low_latency_gateway.identity().to_string(),
-            })
-            .cloned()
+        let gateways = self.lookup_entry_gateways().await?;
+        gateways.random_low_latency_gateway().await
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
