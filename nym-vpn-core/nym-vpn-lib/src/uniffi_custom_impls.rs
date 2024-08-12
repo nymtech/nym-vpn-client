@@ -4,10 +4,8 @@
 use crate::platform::error::FFIError;
 use crate::{NodeIdentity, Recipient, UniffiCustomTypeConverter};
 use ipnetwork::IpNetwork;
-use nym_explorer_client::Location as ExpLocation;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use nym_sdk::UserAgent as NymUserAgent;
-// use nym_vpn_api_client::Country;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -171,13 +169,13 @@ pub struct Location {
 }
 
 // DEPRECATED
-impl From<ExpLocation> for Location {
-    fn from(value: ExpLocation) -> Self {
-        Location {
-            two_letter_iso_country_code: value.two_letter_iso_country_code,
-        }
-    }
-}
+// impl From<nym_explorer_client::Location> for Location {
+//     fn from(value: nym_explorer_client::Location) -> Self {
+//         Location {
+//             two_letter_iso_country_code: value.two_letter_iso_country_code,
+//         }
+//     }
+// }
 
 impl From<nym_gateway_directory::Location> for Location {
     fn from(value: nym_gateway_directory::Location) -> Self {
@@ -196,7 +194,7 @@ impl From<nym_gateway_directory::Country> for Location {
 }
 
 // DEPRECATED
-// impl From<Country> for Location {
+// impl From<nym_vpn_api_client::Country> for Location {
 //     fn from(value: Country) -> Self {
 //         Location {
 //             two_letter_iso_country_code: value.iso_code().to_string(),
