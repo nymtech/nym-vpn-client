@@ -13,7 +13,7 @@ use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 use tracing::{debug, info, trace, warn};
 use tungstenite::Message;
 
-use crate::{error::Result, Error, Gateway};
+use crate::Gateway;
 
 // This latency check is basically lifted from nym-client-core, but modified to work with
 // the types we use and removing the stuff we don't use. Obviously this is ripe for
@@ -26,19 +26,39 @@ const MEASUREMENTS: usize = 3;
 const CONN_TIMEOUT: Duration = Duration::from_millis(1500);
 const PING_TIMEOUT: Duration = Duration::from_millis(1000);
 
-async fn connect(endpoint: &str) -> Result<WsConn> {
+#[derive(thiserror::Error, Debug)]
+pub enum LatencyMeasurementError {
+    #[error("Gateway is missing address: {identity}")]
+    MissingAddress {
+        identity: Box<nym_sdk::mixnet::NodeIdentity>,
+    },
+
+    #[error("failed to connect to gateway: {0}")]
+    GatewayConnectionError(#[from] tungstenite::Error),
+
+    #[error("timeout trying to connect to gateway")]
+    GatewayConnectionTimeout,
+
+    #[error("gateway connection abruptly closed")]
+    GatewayConnectionAbruptlyClosed,
+
+    #[error("no gateway measurements for {identity} performed")]
+    NoGatewayMeasurements { identity: String },
+}
+
+async fn connect(endpoint: &str) -> Result<WsConn, LatencyMeasurementError> {
     match tokio::time::timeout(CONN_TIMEOUT, connect_async(endpoint)).await {
-        Err(_elapsed) => Err(Error::GatewayConnectionTimeout),
-        Ok(Err(conn_failure)) => Err(Error::GatewayConnectionError(conn_failure)),
+        Err(_elapsed) => Err(LatencyMeasurementError::GatewayConnectionTimeout),
+        Ok(Err(conn_failure)) => Err(conn_failure.into()),
         Ok(Ok((stream, _))) => Ok(stream),
     }
 }
 
-async fn measure_latency(gateway: &Gateway) -> Result<GatewayWithLatency> {
+async fn measure_latency(gateway: &Gateway) -> Result<GatewayWithLatency, LatencyMeasurementError> {
     let addr = gateway
         .address
         .as_ref()
-        .ok_or_else(|| Error::MissingAddress {
+        .ok_or_else(|| LatencyMeasurementError::MissingAddress {
             identity: Box::new(*gateway.identity()),
         })?;
 
@@ -67,10 +87,10 @@ async fn measure_latency(gateway: &Gateway) -> Result<GatewayWithLatency> {
                 }
                 Some(Ok(_)) => warn!("received a message that's not a pong!"),
                 Some(Err(err)) => return Err(err.into()),
-                None => return Err(Error::GatewayConnectionAbruptlyClosed),
+                None => return Err(LatencyMeasurementError::GatewayConnectionAbruptlyClosed),
             }
 
-            Ok::<(), crate::Error>(())
+            Ok::<(), LatencyMeasurementError>(())
         };
 
         let timeout = tokio::time::sleep(PING_TIMEOUT);
@@ -86,7 +106,7 @@ async fn measure_latency(gateway: &Gateway) -> Result<GatewayWithLatency> {
 
     let count = results.len() as u64;
     if count == 0 {
-        return Err(Error::NoGatewayMeasurements {
+        return Err(LatencyMeasurementError::NoGatewayMeasurements {
             identity: gateway.identity().to_base58_string(),
         });
     }
@@ -100,7 +120,7 @@ async fn measure_latency(gateway: &Gateway) -> Result<GatewayWithLatency> {
 pub(crate) async fn choose_gateway_by_latency<R: Rng>(
     rng: &mut R,
     gateways: &[Gateway],
-) -> Result<Gateway> {
+) -> Result<Gateway, LatencyMeasurementError> {
     let gateways_with_latency = Arc::new(tokio::sync::Mutex::new(Vec::new()));
     futures::stream::iter(gateways)
         .for_each_concurrent(CONCURRENT_GATEWAYS_MEASURED, |gateway| async {
