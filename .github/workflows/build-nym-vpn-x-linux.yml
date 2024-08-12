@@ -109,9 +109,9 @@ jobs:
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
           echo "Move AppImage"
           cp -vpr ${{ env.SRC_APPIMAGE }} ${{ env.UPLOAD_DIR_LINUX }}
-          echo "Move updater bundle and signature"
-          cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz     ${{ env.UPLOAD_DIR_LINUX }}/${{ env.UPDATER_BUNDLE_NAME }}
-          cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz.sig ${{ env.UPLOAD_DIR_LINUX }}/${{ env.UPDATER_BUNDLE_NAME }}.sig
+          #echo "Move updater bundle and signature"
+          #cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz     ${{ env.UPLOAD_DIR_LINUX }}/${{ env.UPDATER_BUNDLE_NAME }}
+          #cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz.sig ${{ env.UPLOAD_DIR_LINUX }}/${{ env.UPDATER_BUNDLE_NAME }}.sig
           echo "Move debian pkg"
           cp -vpr ${{ env.SRC_DEB }} ${{ env.UPLOAD_DIR_LINUX }}
 

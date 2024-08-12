@@ -218,9 +218,9 @@ jobs:
           echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
           mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
-          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}'     ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}
-          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}.sig' ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}.sig
           cp -vpr '${{ env.BINARY }}' ${{ env.UPLOAD_DIR_WINDOWS }}/
+          #cp -vpr '${{ env.WINDOWS_BUILT_NAME }}'     ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}
+          #cp -vpr '${{ env.WINDOWS_BUILT_NAME }}.sig' ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}.sig
 
       - name: Upload artifact windows
         uses: actions/upload-artifact@v4
