@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::Location;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Country {
     iso_code: String,
@@ -16,6 +18,14 @@ impl From<nym_vpn_api_client::Country> for Country {
     fn from(country: nym_vpn_api_client::Country) -> Self {
         Self {
             iso_code: country.iso_code().to_string(),
+        }
+    }
+}
+
+impl From<Location> for Country {
+    fn from(location: Location) -> Self {
+        Self {
+            iso_code: location.two_letter_iso_country_code,
         }
     }
 }

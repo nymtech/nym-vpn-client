@@ -264,7 +264,15 @@ impl GatewayClient {
                 .map(Country::from)
                 .collect())
         } else {
-            todo!();
+            self.lookup_all_gateways_from_nym_api()
+                .await
+                .map(|gateways| {
+                    gateways
+                        .all_locations()
+                        .cloned()
+                        .map(Country::from)
+                        .collect()
+                })
         }
     }
 
@@ -278,7 +286,16 @@ impl GatewayClient {
                 .map(Country::from)
                 .collect())
         } else {
-            todo!();
+            self.lookup_all_gateways_from_nym_api()
+                .await
+                .map(|gateways| {
+                    gateways
+                        .into_exit_gateways()
+                        .all_locations()
+                        .cloned()
+                        .map(Country::from)
+                        .collect()
+                })
         }
     }
 }
