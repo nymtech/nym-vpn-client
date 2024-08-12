@@ -27,7 +27,7 @@ struct SettingsFlowCoordinator<Content: View>: View {
         case .logs:
             LogsView(viewModel: LogsViewModel(path: $flowState.path))
         case .acknowledgments:
-            AcknowledgmentsView(viewModel: AcknowledgeMentsViewModel(path: $flowState.path))
+            AcknowledgmentsView(viewModel: AcknowledgeMentsViewModel(navigationPath: $flowState.path))
         case let .licence(details: details):
             LicenseView(viewModel: LicenseViewModel(path: $flowState.path, details: details))
         }

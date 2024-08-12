@@ -8,7 +8,7 @@ public final class AcknowledgementsRowViewModel {
 
     var acknowledgement: Acknow
 
-    @Binding var path: NavigationPath
+    @Binding var navigationPath: NavigationPath
 
     var textExistsAndCanFetchLicence: Bool {
         acknowledgement.text != nil || canFetchLicenseFromGitHubAndIsGitHubRepository()
@@ -16,16 +16,16 @@ public final class AcknowledgementsRowViewModel {
 
     public init(
         acknowledgement: Acknow,
-        path: Binding<NavigationPath>,
+        navigationPath: Binding<NavigationPath>,
         externalLinkManager: ExternalLinkManager = ExternalLinkManager.shared
     ) {
-        _path = path
+        _navigationPath = navigationPath
         self.acknowledgement = acknowledgement
         self.externalLinkManager = externalLinkManager
     }
 
     func navigateToLicence() {
-        path.append(
+        navigationPath.append(
             SettingsLink.licence(
                 details: LicenceDetails(
                     title: acknowledgement.title,

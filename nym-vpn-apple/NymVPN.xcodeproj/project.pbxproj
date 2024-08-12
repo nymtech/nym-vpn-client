@@ -100,6 +100,8 @@
 		D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = D9E9F19F2C3807A00056EB8C /* Sparkle */; };
 		D9EACBD62BC016D60094CDDF /* NymVPNUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EACBD52BC016D60094CDDF /* NymVPNUITests.swift */; };
 		D9EACBDF2BC01D790094CDDF /* SwiftyPing in Frameworks */ = {isa = PBXBuildFile; productRef = D9EACBDE2BC01D790094CDDF /* SwiftyPing */; };
+		D9F236232C64E64E00CCC433 /* LibLicences.json in Sources */ = {isa = PBXBuildFile; fileRef = D9F236222C64E64E00CCC433 /* LibLicences.json */; };
+		D9F236252C650A9200CCC433 /* LibLicences.json in Resources */ = {isa = PBXBuildFile; fileRef = D9F236242C650A9200CCC433 /* LibLicences.json */; };
 		D9F699E02B4C1862005576A9 /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = D9F699DF2B4C1862005576A9 /* Settings */; };
 		D9FB33DA2BECC163009C3419 /* Extensions in Frameworks */ = {isa = PBXBuildFile; productRef = D9FB33D92BECC163009C3419 /* Extensions */; };
 		D9FB33DC2BECD473009C3419 /* SentryManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9FB33DB2BECD473009C3419 /* SentryManager */; };
@@ -263,6 +265,8 @@
 		D9E9F1A12C3D51650056EB8C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		D9EACBD32BC016D60094CDDF /* NymVPNUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NymVPNUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9EACBD52BC016D60094CDDF /* NymVPNUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NymVPNUITests.swift; sourceTree = "<group>"; };
+		D9F236222C64E64E00CCC433 /* LibLicences.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LibLicences.json; sourceTree = "<group>"; };
+		D9F236242C650A9200CCC433 /* LibLicences.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = LibLicences.json; sourceTree = "<group>"; };
 		D9F699E32B4C47DE005576A9 /* BridgingHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BridgingHeader.h; sourceTree = "<group>"; };
 		D9FB33DF2BECF09D009C3419 /* net.nymtech.vpn.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = net.nymtech.vpn.helper.plist; sourceTree = "<group>"; };
 		D9FB33E72BECFD1F009C3419 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk/System/Library/Frameworks/ServiceManagement.framework; sourceTree = DEVELOPER_DIR; };
@@ -407,6 +411,7 @@
 		D90F19062BEED6A2008D2232 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				D9F236242C650A9200CCC433 /* LibLicences.json */,
 				D98B32F12C58F682005A15A3 /* Package.resolved */,
 				D90F19042BEED69D008D2232 /* Info.plist */,
 				D9BEF2D62BEB63320036C566 /* Assets.xcassets */,
@@ -462,6 +467,7 @@
 				D96B94DD2C2AB62D00E98B15 /* gatewaysExitCountries.json */,
 				D9F699E32B4C47DE005576A9 /* BridgingHeader.h */,
 				D955FA002B73CF6F005BA27D /* Info.plist */,
+				D9F236222C64E64E00CCC433 /* LibLicences.json */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -961,6 +967,7 @@
 				D96B94E12C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
 				D96B94DF2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
 				D9BEF2D72BEB63320036C566 /* Assets.xcassets in Resources */,
+				D9F236252C650A9200CCC433 /* LibLicences.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1073,6 +1080,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D99A147A2B357E9900F2728B /* NymVPNApp.swift in Sources */,
+				D9F236232C64E64E00CCC433 /* LibLicences.json in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
