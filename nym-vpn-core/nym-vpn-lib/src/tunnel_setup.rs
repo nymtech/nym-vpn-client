@@ -443,6 +443,7 @@ async fn select_gateways(
     let entry_gateway = nym_vpn
         .entry_point()
         .lookup_gateway(&entry_gateways)
+        .await
         .map_err(|source| match source {
             nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation {
                 requested_location,

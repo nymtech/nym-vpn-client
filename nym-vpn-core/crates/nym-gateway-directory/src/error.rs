@@ -88,6 +88,26 @@ pub enum Error {
     FailedToLookupEntryCountries {
         source: nym_vpn_api_client::VpnApiError,
     },
+
+    #[error("failed measure latency: {0}")]
+    LatencyMeasurementError(#[from] tungstenite::Error),
+
+    #[error("Gateway is missing address: {identity}")]
+    MissingAddress {
+        identity: Box<nym_sdk::mixnet::NodeIdentity>,
+    },
+
+    #[error("failed to connect to gateway: {0}")]
+    GatewayConnectionError(tungstenite::Error),
+
+    #[error("timeout trying to connect to gateway")]
+    GatewayConnectionTimeout,
+
+    #[error("gateway connection abruptly closed")]
+    GatewayConnectionAbruptlyClosed,
+
+    #[error("no gateway measurements for {identity} performed")]
+    NoGatewayMeasurements { identity: String },
 }
 
 // Result type based on our error type
