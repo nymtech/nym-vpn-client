@@ -19,6 +19,9 @@ pub enum Error {
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 
     #[error(transparent)]
+    NymHttpApiError(#[from] nym_vpn_api_client::VpnApiError),
+
+    #[error(transparent)]
     NymVpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
 
     #[error("failed to fetch location data from explorer-api: {error}")]
