@@ -282,17 +282,13 @@ async fn stop_vpn() -> Result<(), FFIError> {
     stop_and_reset_shutdown_handle().await
 }
 
-#[allow(non_snake_case, unused)]
+#[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getGatewayCountries(
     api_url: Url,
-    explorer_url: Url,
-    harbour_master_url: Option<Url>,
+    nym_vpn_api_url: Option<Url>,
     exit_only: bool,
 ) -> Result<Vec<Location>, FFIError> {
-    // TODO: pass this as parameter above. This requires regenerating uniffi, and
-    // updating clients consuming this API.
-    let nym_vpn_api_url = Some("https://nymvpn.com/api".parse().unwrap());
     RUNTIME.block_on(get_gateway_countries(
         api_url,
         nym_vpn_api_url,
@@ -301,18 +297,14 @@ pub fn getGatewayCountries(
     ))
 }
 
-#[allow(non_snake_case, unused)]
+#[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getGatewayCountriesUserAgent(
     api_url: Url,
-    explorer_url: Url,
-    harbour_master_url: Option<Url>,
+    nym_vpn_api_url: Option<Url>,
     exit_only: bool,
     user_agent: UserAgent,
 ) -> Result<Vec<Location>, FFIError> {
-    // TODO: pass this as parameter above. This requires regenerating uniffi, and
-    // updating clients consuming this API.
-    let nym_vpn_api_url = Some("https://nymvpn.com/api".parse().unwrap());
     RUNTIME.block_on(get_gateway_countries(
         api_url,
         nym_vpn_api_url,
