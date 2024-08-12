@@ -4344,8 +4344,6 @@ dependencies = [
  "itertools 0.13.0",
  "nym-client-core",
  "nym-config 0.1.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
- "nym-explorer-client",
- "nym-harbour-master-client",
  "nym-sdk",
  "nym-topology",
  "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",

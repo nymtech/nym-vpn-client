@@ -24,11 +24,6 @@ pub enum Error {
     #[error(transparent)]
     NymVpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
 
-    #[error("failed to fetch location data from explorer-api: {error}")]
-    FailedFetchLocationData {
-        error: nym_explorer_client::ExplorerApiError,
-    },
-
     #[error("failed to resolve gateway hostname: {hostname}: {source}")]
     FailedToDnsResolveGateway {
         hostname: String,
