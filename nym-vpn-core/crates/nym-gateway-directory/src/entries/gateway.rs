@@ -4,7 +4,7 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use futures::StreamExt as _;
+use futures::{SinkExt as _, StreamExt as _};
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::IntoGatewayNode;
@@ -17,13 +17,13 @@ use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
 
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
+use tungstenite::Message;
 type WsConn = WebSocketStream<MaybeTlsStream<TcpStream>>;
 
 const CONCURRENT_GATEWAYS_MEASURED: usize = 20;
 const MEASUREMENTS: usize = 3;
 const CONN_TIMEOUT: Duration = Duration::from_millis(1500);
 const PING_TIMEOUT: Duration = Duration::from_millis(1000);
-
 
 #[derive(Clone, Debug)]
 pub struct Gateway {
@@ -303,33 +303,71 @@ impl GatewayList {
     pub(crate) async fn random_low_latency_gateway(&self) -> Result<Gateway> {
         let mut rng = rand::rngs::OsRng;
 
-        let gateways_with_latency = Arc::new(tokio::sync::Mutex::new(Vec::new()));
-        futures::stream::iter(self.gateways)
-            .for_each_concurrent(CONCURRENT_GATEWAYS_MEASURED, |gateway| async {
-                let id = gateway.identity;
-                trace!("measuring latency to {id}...");
-                match measure_latency(&gateway).await {
-                    Ok(with_latency) => {
-                        debug!("{id}: {:?}", with_latency.latency);
-                        gateways_with_latency.lock().await.push(with_latency);
-                    }
-                    Err(err) => {
-                        warn!("failed to measure {id}: {err}");
-                    }
-                };
-            })
-            .await;
+        let gg: &[Gateway] = &self.gateways;
+        random_low_latency_gateway2(gg).await
 
-        let gateways_with_latency = gateways_with_latency.lock().await;
-        let chosen = gateways_with_latency
-            .choose_weighted(&mut rng, |item| 1. / item.latency.as_secs_f32())
-            .expect("invalid selection weight!");
-
-        info!(
-            "chose gateway {} with average latency of {:?}",
-            chosen.gateway.identity_key, chosen.latency
-        );
+        // let gateways_with_latency = Arc::new(tokio::sync::Mutex::new(Vec::new()));
+        // futures::stream::iter(gg)
+        //     .for_each_concurrent(CONCURRENT_GATEWAYS_MEASURED, |gateway| async {
+        //         let id = gateway.identity.clone();
+        //         trace!("measuring latency to {id}...");
+        //         match measure_latency(&gateway).await {
+        //             Ok(with_latency) => {
+        //                 debug!("{id}: {:?}", with_latency.latency);
+        //                 gateways_with_latency.lock().await.push(with_latency);
+        //             }
+        //             Err(err) => {
+        //                 warn!("failed to measure {id}: {err}");
+        //             }
+        //         };
+        //     })
+        //     .await;
+        //
+        // let gateways_with_latency = gateways_with_latency.lock().await;
+        // let chosen = gateways_with_latency
+        //     .choose_weighted(&mut rng, |item| 1. / item.latency.as_secs_f32())
+        //     .expect("invalid selection weight!");
+        //
+        // info!(
+        //     "chose gateway {} with average latency of {:?}",
+        //     chosen.gateway.identity, chosen.latency
+        // );
+        //
+        // Ok(chosen.gateway.clone())
     }
+}
+
+pub(crate) async fn random_low_latency_gateway2(gateways: &[Gateway]) -> Result<Gateway> {
+    let mut rng = rand::rngs::OsRng;
+
+    let gateways_with_latency = Arc::new(tokio::sync::Mutex::new(Vec::new()));
+    futures::stream::iter(gateways)
+        .for_each_concurrent(CONCURRENT_GATEWAYS_MEASURED, |gateway| async {
+            // let id = gateway.identity.clone();
+            // trace!("measuring latency to {id}...");
+            match measure_latency(gateway).await {
+                Ok(with_latency) => {
+                    // debug!("{id}: {:?}", with_latency.latency);
+                    gateways_with_latency.lock().await.push(with_latency);
+                }
+                Err(err) => {
+                    // warn!("failed to measure {id}: {err}");
+                }
+            };
+        })
+        .await;
+
+    let gateways_with_latency = gateways_with_latency.lock().await;
+    let chosen = gateways_with_latency
+        .choose_weighted(&mut rng, |item| 1. / item.latency.as_secs_f32())
+        .expect("invalid selection weight!");
+
+    info!(
+        "chose gateway {} with average latency of {:?}",
+        chosen.gateway.identity, chosen.latency
+    );
+
+    Ok(chosen.gateway.clone())
 }
 
 async fn connect(endpoint: &str) -> Result<WsConn> {
@@ -342,15 +380,23 @@ async fn connect(endpoint: &str) -> Result<WsConn> {
     }
 }
 
-struct GatewayWithLatency {
-    identity: String,
-    address: String,
+struct GatewayWithLatency<'a> {
+    gateway: &'a Gateway,
     latency: Duration,
+}
+
+impl<'a> GatewayWithLatency<'a> {
+    fn new(gateway: &'a Gateway, latency: Duration) -> Self {
+        GatewayWithLatency { gateway, latency }
+    }
 }
 
 async fn measure_latency(gateway: &Gateway) -> Result<GatewayWithLatency> {
     let addr = gateway.address.unwrap();
-    trace!("establishing connection to {} ({addr})...", gateway.identity);
+    trace!(
+        "establishing connection to {} ({addr})...",
+        gateway.identity
+    );
     let mut stream = connect(&addr).await?;
 
     let mut results = Vec::new();
@@ -376,8 +422,8 @@ async fn measure_latency(gateway: &Gateway) -> Result<GatewayWithLatency> {
                 None => todo!(),
             }
 
-            // Ok::<(), ClientCoreError>(())
-            Ok(())
+            Ok::<(), crate::Error>(())
+            // Ok(())
         };
 
         let timeout = tokio::time::sleep(PING_TIMEOUT);
