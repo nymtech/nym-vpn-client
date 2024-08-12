@@ -14,6 +14,7 @@ use nym_sdk::mixnet::{InputMessage, Recipient};
 use nym_task::connections::TransmissionLane;
 use pnet_packet::Packet;
 use std::net::{Ipv4Addr, Ipv6Addr};
+use tracing::debug;
 
 use crate::Result;
 
@@ -93,11 +94,11 @@ pub fn check_for_icmp_beacon_reply(
 ) -> Option<ConnectionStatusEvent> {
     match is_icmp_beacon_reply(packet, icmp_beacon_identifier, our_ips.ipv4) {
         Some(IcmpBeaconReply::TunDeviceReply) => {
-            log::debug!("Received ping response from ipr tun device");
+            debug!("Received ping response from ipr tun device");
             return Some(ConnectionStatusEvent::Icmpv4IprTunDevicePingReply);
         }
         Some(IcmpBeaconReply::ExternalPingReply(_source)) => {
-            log::debug!("Received ping response from an external ip through the ipr");
+            debug!("Received ping response from an external ip through the ipr");
             return Some(ConnectionStatusEvent::Icmpv4IprExternalPingReply);
         }
         None => {}
@@ -105,11 +106,11 @@ pub fn check_for_icmp_beacon_reply(
 
     match is_icmp_v6_beacon_reply(packet, icmp_beacon_identifier, our_ips.ipv6) {
         Some(Icmpv6BeaconReply::TunDeviceReply) => {
-            log::debug!("Received ping v6 response from ipr tun device");
+            debug!("Received ping v6 response from ipr tun device");
             return Some(ConnectionStatusEvent::Icmpv6IprTunDevicePingReply);
         }
         Some(Icmpv6BeaconReply::ExternalPingReply(_source)) => {
-            log::debug!("Received ping v6 response from an external ip through the ipr");
+            debug!("Received ping v6 response from an external ip through the ipr");
             return Some(ConnectionStatusEvent::Icmpv6IprExternalPingReply);
         }
         None => {}

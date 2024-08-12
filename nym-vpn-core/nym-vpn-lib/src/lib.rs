@@ -12,7 +12,6 @@ use crate::wg_gateway_client::WgGatewayClient;
 use error::GatewayDirectoryError;
 use futures::channel::{mpsc, oneshot};
 use futures::SinkExt;
-use log::{debug, error, info};
 use mixnet_connect::SharedMixnetClient;
 use nym_connection_monitor::ConnectionMonitorTask;
 use nym_gateway_directory::{
@@ -25,6 +24,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
+use tracing::{debug, error, info};
 use tunnel_setup::{init_firewall_dns, setup_tunnel, AllTunnelsSetup, TunnelSetup};
 use util::wait_for_interrupt_and_signal;
 
@@ -519,7 +519,7 @@ impl SpecificVpn {
                     dns_monitor
                         .reset()
                         .inspect_err(|err| {
-                            log::error!("Failed to reset dns monitor: {err}");
+                            error!("Failed to reset dns monitor: {err}");
                         })
                         .ok();
                     firewall
@@ -543,7 +543,7 @@ impl SpecificVpn {
                 handle_interrupt(route_manager, None).await;
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
-                        log::error!("Failed to reset dns monitor: {err}");
+                        error!("Failed to reset dns monitor: {err}");
                     })
                 })
                 .await??;
@@ -558,7 +558,7 @@ impl SpecificVpn {
 
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
-                        log::error!("Failed to reset dns monitor: {err}");
+                        error!("Failed to reset dns monitor: {err}");
                     })
                 })
                 .await??;
@@ -603,7 +603,7 @@ impl SpecificVpn {
                     dns_monitor
                         .reset()
                         .inspect_err(|err| {
-                            log::error!("Failed to reset dns monitor: {err}");
+                            error!("Failed to reset dns monitor: {err}");
                         })
                         .ok();
                     firewall
@@ -649,7 +649,7 @@ impl SpecificVpn {
                 handle_interrupt(route_manager, None).await;
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
-                        log::error!("Failed to reset dns monitor: {err}");
+                        error!("Failed to reset dns monitor: {err}");
                     })
                 })
                 .await??;
@@ -664,7 +664,7 @@ impl SpecificVpn {
                 .await;
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
-                        log::error!("Failed to reset dns monitor: {err}");
+                        error!("Failed to reset dns monitor: {err}");
                     })
                 })
                 .await??;
@@ -810,7 +810,7 @@ async fn run_nym_vpn(
 ) {
     match nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await {
         Ok(()) => {
-            log::info!("Nym VPN has shut down");
+            info!("Nym VPN has shut down");
             vpn_exit_tx
                 .send(NymVpnExitStatusMessage::Stopped)
                 .expect("Failed to send exit status");

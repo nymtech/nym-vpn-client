@@ -12,7 +12,6 @@ use crate::{
 };
 use futures::StreamExt;
 use lazy_static::lazy_static;
-use log::*;
 use nym_task::manager::TaskStatus;
 use std::fmt::Debug;
 use std::path::PathBuf;
@@ -23,6 +22,7 @@ use std::time::SystemTime;
 use talpid_core::mpsc::Sender;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
+use tracing::{debug, error, warn};
 use url::Url;
 
 #[cfg(target_os = "android")]
@@ -123,7 +123,7 @@ async fn wait_for_shutdown(
             debug!("received exit status message for vpn");
             RUNNING.store(false, Ordering::Relaxed);
             debug!("running set to false");
-            error!(
+            tracing::error!(
                 "Stopped Nym VPN with error: {:?}",
                 error
                     .downcast_ref::<NymVpnExitError>()

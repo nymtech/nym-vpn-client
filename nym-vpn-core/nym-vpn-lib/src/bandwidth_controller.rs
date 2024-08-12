@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_sdk::TaskClient;
+use tracing::trace;
 
 use crate::mixnet_connect::SharedMixnetClient;
 
@@ -22,7 +23,7 @@ impl BandwidthController {
         while !self.shutdown.is_shutdown() {
             tokio::select! {
                 _ = self.shutdown.recv() => {
-                    log::trace!("BandwidthController: Received shutdown");
+                    trace!("BandwidthController: Received shutdown");
                     self.shared_mixnet_client.clone().disconnect().await;
                 }
             }

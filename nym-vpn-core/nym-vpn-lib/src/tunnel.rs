@@ -3,7 +3,6 @@
 
 use futures::channel::oneshot::Sender;
 use futures::channel::{mpsc, oneshot};
-use log::*;
 use nym_sdk::TaskClient;
 use std::collections::HashSet;
 use std::path::Path;
@@ -13,6 +12,7 @@ use talpid_tunnel::tun_provider::TunProvider;
 use talpid_tunnel::{TunnelArgs, TunnelEvent};
 use talpid_wireguard::{config::Config, WireguardMonitor};
 use tokio::task::JoinHandle;
+use tracing::{debug, error};
 
 use crate::config::WireguardConfig;
 

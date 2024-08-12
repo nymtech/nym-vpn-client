@@ -18,7 +18,6 @@ use crate::{MixnetExitConnectionInfo, MixnetVpn, SpecificVpn};
 use futures::channel::{mpsc, oneshot};
 use futures::StreamExt;
 use ipnetwork::IpNetwork;
-use log::*;
 use nym_authenticator_client::AuthClient;
 use nym_bin_common::bin_info;
 use nym_gateway_directory::{AuthAddresses, GatewayClient, IpPacketRouterAddress};
@@ -28,6 +27,7 @@ use talpid_core::firewall::Firewall;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 use talpid_tunnel::{TunnelEvent, TunnelMetadata};
 use tokio::time::timeout;
+use tracing::{debug, info, warn};
 
 pub struct TunnelSetup<T: TunnelSpecifcSetup> {
     pub specific_setup: T,
@@ -156,7 +156,7 @@ async fn setup_wg_tunnel(
         return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
     };
     let auth_client = AuthClient::new_from_inner(mixnet_client.inner()).await;
-    log::info!("Created wg gateway clients");
+    info!("Created wg gateway clients");
     let mut wg_entry_gateway_client = WgGatewayClient::new_entry(
         &nym_vpn.generic_config.data_path,
         auth_client.clone(),

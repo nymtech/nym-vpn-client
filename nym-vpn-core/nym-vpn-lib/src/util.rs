@@ -3,8 +3,8 @@
 
 use crate::{error::*, tunnel_setup::WgTunnelSetup, NymVpnCtrlMessage};
 use futures::{channel::mpsc, StreamExt};
-use log::*;
 use talpid_routing::RouteManager;
+use tracing::{debug, error, info};
 
 pub(crate) async fn wait_for_interrupt(mut task_manager: nym_task::TaskManager) {
     if let Err(e) = task_manager.catch_interrupt().await {
@@ -26,23 +26,23 @@ pub(crate) async fn wait_for_interrupt_and_signal(
     let res = tokio::select! {
         biased;
         message = vpn_ctrl_rx.next() => {
-            log::debug!("Received message: {:?}", message);
+            debug!("Received message: {:?}", message);
             match message {
                 Some(NymVpnCtrlMessage::Stop) => {
-                    log::info!("Received stop message");
+                    info!("Received stop message");
                 }
                 None => {
-                    log::info!("Channel closed, stopping");
+                    info!("Channel closed, stopping");
                 }
             }
             Ok(())
         }
         Some(msg) = task_manager_wait => {
-            log::info!("Task error: {:?}", msg);
+            info!("Task error: {:?}", msg);
             Err(msg)
         }
         _ = tokio::signal::ctrl_c() => {
-            log::info!("Received SIGINT");
+            info!("Received SIGINT");
             Ok(())
         },
     };

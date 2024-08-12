@@ -6,7 +6,7 @@ use std::fmt::{Display, Formatter};
 use crate::{error::Result, Error, IpPacketRouterAddress};
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
-use tracing::debug;
+use tracing::{debug, info};
 
 use super::gateway::{Gateway, GatewayList};
 
@@ -82,7 +82,7 @@ impl ExitPoint {
                     })
             }
             ExitPoint::Random => {
-                log::info!("Selecting a random exit gateway");
+                info!("Selecting a random exit gateway");
                 gateways
                     .random_gateway()
                     .ok_or_else(|| Error::FailedToSelectGatewayRandomly)

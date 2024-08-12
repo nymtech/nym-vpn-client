@@ -25,7 +25,6 @@ hickory-resolver.workspace = true
 ipnetwork.workspace = true
 itertools.workspace = true
 lazy_static.workspace = true
-log.workspace = true
 netdev.workspace = true
 pnet_packet.workspace = true
 rand.workspace = true

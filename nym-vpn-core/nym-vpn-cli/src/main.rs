@@ -14,10 +14,10 @@ use nym_vpn_lib::{
 };
 use nym_vpn_lib::{NymVpn, Recipient};
 use time::OffsetDateTime;
+use tracing::{debug, error, info};
 
 use crate::commands::Commands;
 use clap::Parser;
-use log::*;
 use nym_vpn_lib::nym_config::defaults::{setup_env, var_names};
 
 const CONFIG_DIRECTORY_NAME: &str = "nym-vpn-cli";
