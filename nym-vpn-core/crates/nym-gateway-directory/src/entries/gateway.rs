@@ -290,7 +290,7 @@ impl GatewayList {
         let mut rng = rand::rngs::OsRng;
         latency_measurement::choose_gateway_by_latency(&mut rng, &self.gateways)
             .await
-            .map_err(|err| Error::LatencyMeasurementError { source: err })
+            .map_err(Error::from)
     }
 }
 

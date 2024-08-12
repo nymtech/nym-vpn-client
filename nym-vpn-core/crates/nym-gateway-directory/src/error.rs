@@ -89,8 +89,9 @@ pub enum Error {
         source: nym_vpn_api_client::VpnApiError,
     },
 
-    #[error("failed measure latency: {source}")]
+    #[error("failed to select a low latency entry gateway: {source}")]
     LatencyMeasurementError {
+        #[from]
         source: crate::latency_measurement::LatencyMeasurementError,
     },
 }
