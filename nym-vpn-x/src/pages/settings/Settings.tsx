@@ -101,6 +101,7 @@ function Settings() {
           title={t('credential.title')}
           desc={`${capFirst(dayjs().to(credentialExpiry, true))} ${t('left', { ns: 'glossary' })}`}
           leadingIcon="account_circle"
+          noHoverEffect
         />
       )}
       <SettingsGroup

@@ -13,6 +13,7 @@ export type SettingsMenuCardProps = {
   disabled?: boolean;
   className?: string;
   style?: CSSProperties;
+  noHoverEffect?: boolean;
 };
 
 function SettingsMenuCard({
@@ -26,6 +27,7 @@ function SettingsMenuCard({
   disabled,
   className,
   style,
+  noHoverEffect,
 }: SettingsMenuCardProps) {
   return (
     <div
@@ -33,7 +35,7 @@ function SettingsMenuCard({
         'flex flex-row justify-between items-center gap-4 select-none',
         'bg-white dark:bg-baltic-sea-jaguar px-5 rounded-lg min-h-16',
         desc ? 'py-2' : 'py-4',
-        'hover:bg-platinum dark:hover:bg-onyx',
+        !noHoverEffect && 'hover:bg-platinum dark:hover:bg-onyx',
         'transition cursor-default',
         disabled && 'opacity-50 pointer-events-none',
         className,
