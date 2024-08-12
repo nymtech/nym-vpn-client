@@ -331,7 +331,7 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<ListEntryCountriesRequest>,
     ) -> Result<tonic::Response<ListEntryCountriesResponse>, tonic::Status> {
-        info!("Got list entry countries request: {:?}", request);
+        info!("Got list entry countries request: {request:?}");
 
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_list_entry_countries()
@@ -358,9 +358,9 @@ impl NymVpnd for CommandInterface {
 
     async fn list_exit_countries(
         &self,
-        _request: tonic::Request<ListExitCountriesRequest>,
+        request: tonic::Request<ListExitCountriesRequest>,
     ) -> Result<tonic::Response<ListExitCountriesResponse>, tonic::Status> {
-        info!("Got list exit countries request");
+        info!("Got list exit countries request: {request:?}");
 
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_list_exit_countries()
