@@ -104,16 +104,21 @@ jobs:
       - name: Move things around to prepare for upload
         env:
           SRC_APPIMAGE: nym-vpn-x/src-tauri/target/release/bundle/appimage/nymvpn-x_${{ steps.package-version.outputs.metadata }}_amd64.AppImage
+          DST_APPIMAGE: nymvpn-x_${{ steps.package-version.outputs.metadata }}.AppImage
           SRC_DEB: nym-vpn-x/src-tauri/target/release/bundle/deb/nymvpn-x_${{ steps.package-version.outputs.metadata }}_amd64.deb
+          SRC_BIN: nym-vpn-x/src-tauri/target/release/nymvpn-x
+          DST_BIN: nymvpn-x_${{ steps.package-version.outputs.metadata }}_linux_x64
         run: |
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
-          echo "Move AppImage"
-          cp -vpr ${{ env.SRC_APPIMAGE }} ${{ env.UPLOAD_DIR_LINUX }}
-          #echo "Move updater bundle and signature"
+          echo "Copy AppImage"
+          cp -vpr ${{ env.SRC_APPIMAGE }} ${{ env.UPLOAD_DIR_LINUX }}/${{ env.DST_APPIMAGE }}
+          #echo "Copy updater bundle and signature"
           #cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz     ${{ env.UPLOAD_DIR_LINUX }}/${{ env.UPDATER_BUNDLE_NAME }}
           #cp -vpr ${{ env.SRC_APPIMAGE }}.tar.gz.sig ${{ env.UPLOAD_DIR_LINUX }}/${{ env.UPDATER_BUNDLE_NAME }}.sig
-          echo "Move debian pkg"
+          echo "Copy debian pkg"
           cp -vpr ${{ env.SRC_DEB }} ${{ env.UPLOAD_DIR_LINUX }}
+          echo "Copy plain binary"
+          cp -vpr ${{ env.SRC_BIN }} ${{ env.UPLOAD_DIR_LINUX }}/${{ env.DST_BIN }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

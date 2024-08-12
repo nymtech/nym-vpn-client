@@ -8,16 +8,13 @@ Release build.
 
 ### Linux
 
-- `deb` package suitable for Debian and Ubuntu
+- `deb` package suitable for Debian/Ubuntu/PopOS/etc
 - AppImage bundle that should be compatible with most Linux distributions
-
-### Mac
-
-- Universal binary for both Intel and ARM architectures
+- Prebuilt binary (x86_64)
 
 ### Windows
 
-_coming soon_
+- NSIS installer that installs both the client app and the daemon
 
 ## SHA256 Checksums
 
