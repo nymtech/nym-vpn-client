@@ -229,12 +229,14 @@ async fn setup_wg_tunnel(
     } else {
         Node::device(default_lan_gateway_ip.0.name)
     };
-    let routes = replace_default_prefixes(entry_gateway_ip.into())
+    let _routes = replace_default_prefixes(entry_gateway_ip.into())
         .into_iter()
         .map(move |ip| RequiredRoute::new(ip, default_node.clone()));
     #[cfg(target_os = "linux")]
-    let routes = routes.map(|route| route.use_main_table(false));
-    route_manager.add_routes(routes.collect()).await?;
+    {
+        let _routes = _routes.map(|route| route.use_main_table(false));
+        route_manager.add_routes(_routes.collect()).await?;
+    }
 
     std::env::set_var("TALPID_FORCE_USERSPACE_WIREGUARD", "1");
     let (wireguard_waiting_entry, event_rx) = create_wireguard_tunnel(
