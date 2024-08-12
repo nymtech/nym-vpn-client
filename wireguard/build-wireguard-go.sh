@@ -139,6 +139,7 @@ function create_folder_and_build {
 
 function build_macos_universal {
     export CGO_ENABLED=1
+    export MACOSX_DEPLOYMENT_TARGET=10.13
 
     echo "🍎 Building for aarch64"
     pushd libwg
