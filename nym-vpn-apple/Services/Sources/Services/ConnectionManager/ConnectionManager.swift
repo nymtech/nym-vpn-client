@@ -162,7 +162,7 @@ public final class ConnectionManager: ObservableObject {
         }
     }
 
-    public func connectDisconnect(isAutoConnect: Bool = false) throws {
+    public func connectDisconnect(isAutoConnect: Bool = false) async throws {
         let config = generateConfig()
         if isReconnecting {
             // Reconnecting after change of country, 5hop...
