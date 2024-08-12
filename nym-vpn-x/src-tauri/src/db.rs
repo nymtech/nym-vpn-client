@@ -11,7 +11,7 @@ use std::{
 use strum::{AsRefStr, EnumString};
 use tauri::api::path::data_dir;
 use thiserror::Error;
-use tracing::{error, info, instrument, warn};
+use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
 
 use crate::APP_DIR;
@@ -148,7 +148,7 @@ impl Db {
                 DbError::Deserialize(e)
             });
 
-        info!("get key [{key}] with value {res:?}");
+        debug!("get key [{key}] with value {res:?}");
         self.discard_deserialize(key, res)
     }
 
@@ -164,7 +164,7 @@ impl Db {
                 DbError::Deserialize(e)
             });
 
-        info!("get key [{key}] with value {res:?}");
+        debug!("get key [{key}] with value {res:?}");
         self.discard_deserialize(key, res)
     }
 
@@ -194,10 +194,10 @@ impl Db {
             let _ = db.flush_async().await.inspect_err(|e| {
                 error!("failed to flush: {e}");
             });
-            info!("flushed db");
+            debug!("flushed db");
         });
 
-        info!("inserted key [{key}] with value {value:?}");
+        debug!("inserted key [{key}] with value {value:?}");
         self.discard_deserialize(key, res)
     }
 
@@ -229,10 +229,10 @@ impl Db {
             let _ = db.flush_async().await.inspect_err(|e| {
                 error!("failed to flush: {e}");
             });
-            info!("flushed db");
+            debug!("flushed db");
         });
 
-        info!("removed key [{key}]");
+        debug!("removed key [{key}]");
         self.discard_deserialize(key, res)
     }
 

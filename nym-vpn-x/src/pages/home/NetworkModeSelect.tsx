@@ -3,11 +3,7 @@ import { invoke } from '@tauri-apps/api';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@headlessui/react';
-import {
-  useMainDispatch,
-  useMainState,
-  useNotifications,
-} from '../../contexts';
+import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { StateDispatch, VpnMode } from '../../types';
 import { RadioGroup, RadioGroupOption } from '../../ui';
 import { useThrottle } from '../../hooks';
@@ -20,7 +16,7 @@ function NetworkModeSelect() {
   const dispatch = useMainDispatch() as StateDispatch;
   const [isDialogModesOpen, setIsDialogModesOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { push } = useNotifications();
+  const { push } = useInAppNotify();
 
   const { t } = useTranslation('home');
 

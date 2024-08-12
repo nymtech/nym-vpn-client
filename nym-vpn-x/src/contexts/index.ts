@@ -1,3 +1,3 @@
 export * from './main';
-export * from './notification';
+export * from './in-app-notification';
 export * from './dialog';

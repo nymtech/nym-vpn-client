@@ -15,8 +15,8 @@ const initialState: NotificationState = {
   },
 };
 
-export const NotificationContext =
+export const InAppNotificationContext =
   createContext<NotificationState>(initialState);
-export const useNotifications = () => {
-  return useContext(NotificationContext);
+export const useInAppNotify = () => {
+  return useContext(InAppNotificationContext);
 };

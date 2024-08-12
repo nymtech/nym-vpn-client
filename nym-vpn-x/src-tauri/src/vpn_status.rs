@@ -41,7 +41,7 @@ pub async fn update(
         ConnectionState::Connected => {
             info!("vpn status → [Connected]");
             let t = connection_time.unwrap_or_else(|| {
-                info!("established connection time was not given, using current utc time");
+                debug!("established connection time was not given, using current utc time");
                 OffsetDateTime::now_utc()
             });
             let mut app_state = state.lock().await;

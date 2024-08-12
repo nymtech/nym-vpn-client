@@ -6,11 +6,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { NymDarkOutlineIcon, NymIcon } from '../../assets';
-import {
-  useMainDispatch,
-  useMainState,
-  useNotifications,
-} from '../../contexts';
+import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import { BackendError, StateDispatch } from '../../types';
@@ -22,7 +18,7 @@ function AddCredential() {
   const [credential, setCredential] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const { push } = useNotifications();
+  const { push } = useInAppNotify();
   const navigate = useNavigate();
   const { t } = useTranslation('addCredential');
   const { tE } = useI18nError();

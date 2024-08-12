@@ -1,6 +1,10 @@
-import { SnackbarProps } from '../../ui';
-
-export type Notification = Omit<SnackbarProps, 'open' | 'onClose'> & {
+export type Notification = {
+  text: string;
+  // Number of ms to wait before automatically close the snackbar
+  autoHideDuration?: number;
+  closeIcon?: boolean;
+  clickAway?: boolean;
+  position?: 'top' | 'bottom';
   onClose?: () => void;
 };
 

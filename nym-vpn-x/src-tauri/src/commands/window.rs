@@ -1,5 +1,5 @@
 use tauri::Manager;
-use tracing::{debug, error, info, instrument};
+use tracing::{debug, error, instrument};
 
 use crate::{error::BackendError, MAIN_WINDOW_LABEL};
 
@@ -23,7 +23,7 @@ pub fn show_main_window(window: tauri::Window) -> Result<(), BackendError> {
         return Ok(());
     }
 
-    info!("showing `main` window");
+    debug!("showing `main` window");
     main_window.show().map_err(|e| {
         error!("Failed to show `main` window: {}", e);
         BackendError::new_internal("Failed to show app window", None)
