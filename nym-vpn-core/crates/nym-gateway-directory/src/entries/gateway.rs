@@ -1,13 +1,29 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+use std::time::{Duration, Instant};
+
+use futures::StreamExt as _;
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::IntoGatewayNode;
 use rand::seq::IteratorRandom;
-use tracing::error;
+use rand::{seq::SliceRandom, Rng};
+use tokio::net::TcpStream;
+use tracing::{debug, error, info, trace, warn};
 
 use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
+
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
+type WsConn = WebSocketStream<MaybeTlsStream<TcpStream>>;
+
+const CONCURRENT_GATEWAYS_MEASURED: usize = 20;
+const MEASUREMENTS: usize = 3;
+const CONN_TIMEOUT: Duration = Duration::from_millis(1500);
+const PING_TIMEOUT: Duration = Duration::from_millis(1000);
+
 
 #[derive(Clone, Debug)]
 pub struct Gateway {
@@ -285,13 +301,14 @@ impl GatewayList {
     }
 
     pub(crate) async fn random_low_latency_gateway(&self) -> Result<Gateway> {
-        const CONCURRENT_GATEWAYS_MEASURED: usize = 20;
+        let mut rng = rand::rngs::OsRng;
+
         let gateways_with_latency = Arc::new(tokio::sync::Mutex::new(Vec::new()));
         futures::stream::iter(self.gateways)
             .for_each_concurrent(CONCURRENT_GATEWAYS_MEASURED, |gateway| async {
-                let id = gateway.identity
+                let id = gateway.identity;
                 trace!("measuring latency to {id}...");
-                match measure_latency(gateway).await {
+                match measure_latency(&gateway).await {
                     Ok(with_latency) => {
                         debug!("{id}: {:?}", with_latency.latency);
                         gateways_with_latency.lock().await.push(with_latency);
@@ -305,7 +322,7 @@ impl GatewayList {
 
         let gateways_with_latency = gateways_with_latency.lock().await;
         let chosen = gateways_with_latency
-            .choose_weighted(rng, |item| 1. / item.latency.as_secs_f32())
+            .choose_weighted(&mut rng, |item| 1. / item.latency.as_secs_f32())
             .expect("invalid selection weight!");
 
         info!(
@@ -315,12 +332,25 @@ impl GatewayList {
     }
 }
 
-async fn measure_latency(gateway: &gateway::Node) -> Result<GatewayWithLatency, ClientCoreError> {
-    let addr = gateway.clients_address();
-    trace!(
-        "establishing connection to {} ({addr})...",
-        gateway.identity_key,
-    );
+async fn connect(endpoint: &str) -> Result<WsConn> {
+    match tokio::time::timeout(CONN_TIMEOUT, connect_async(endpoint)).await {
+        // Err(_elapsed) => Err(ClientCoreError::GatewayConnectionTimeout),
+        Err(_elapsed) => todo!(),
+        // Ok(Err(conn_failure)) => Err(conn_failure.into()),
+        Ok(Err(conn_failure)) => todo!(),
+        Ok(Ok((stream, _))) => Ok(stream),
+    }
+}
+
+struct GatewayWithLatency {
+    identity: String,
+    address: String,
+    latency: Duration,
+}
+
+async fn measure_latency(gateway: &Gateway) -> Result<GatewayWithLatency> {
+    let addr = gateway.address.unwrap();
+    trace!("establishing connection to {} ({addr})...", gateway.identity);
     let mut stream = connect(&addr).await?;
 
     let mut results = Vec::new();
@@ -342,13 +372,15 @@ async fn measure_latency(gateway: &gateway::Node) -> Result<GatewayWithLatency, 
                 }
                 Some(Ok(_)) => warn!("received a message that's not a pong!"),
                 Some(Err(err)) => return Err(err.into()),
-                None => return Err(ClientCoreError::GatewayConnectionAbruptlyClosed),
+                // None => return Err(ClientCoreError::GatewayConnectionAbruptlyClosed),
+                None => todo!(),
             }
 
-            Ok::<(), ClientCoreError>(())
+            // Ok::<(), ClientCoreError>(())
+            Ok(())
         };
 
-        let timeout = sleep(PING_TIMEOUT);
+        let timeout = tokio::time::sleep(PING_TIMEOUT);
         tokio::pin!(timeout);
 
         tokio::select! {
@@ -361,9 +393,10 @@ async fn measure_latency(gateway: &gateway::Node) -> Result<GatewayWithLatency, 
 
     let count = results.len() as u64;
     if count == 0 {
-        return Err(ClientCoreError::NoGatewayMeasurements {
-            identity: gateway.identity_key.to_base58_string(),
-        });
+        todo!();
+        // return Err(ClientCoreError::NoGatewayMeasurements {
+        //     identity: gateway.identity_key.to_base58_string(),
+        // });
     }
 
     let sum: Duration = results.into_iter().sum();
