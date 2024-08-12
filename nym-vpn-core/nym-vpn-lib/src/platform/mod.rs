@@ -282,12 +282,12 @@ async fn stop_vpn() -> Result<(), FFIError> {
     stop_and_reset_shutdown_handle().await
 }
 
-#[allow(non_snake_case)]
+#[allow(non_snake_case, unused)]
 #[uniffi::export]
 pub fn getGatewayCountries(
     api_url: Url,
-    _explorer_url: Url,
-    _harbour_master_url: Option<Url>,
+    explorer_url: Url,
+    harbour_master_url: Option<Url>,
     exit_only: bool,
 ) -> Result<Vec<Location>, FFIError> {
     // TODO: pass this as parameter above. This requires regenerating uniffi, and
@@ -301,12 +301,12 @@ pub fn getGatewayCountries(
     ))
 }
 
-#[allow(non_snake_case)]
+#[allow(non_snake_case, unused)]
 #[uniffi::export]
 pub fn getGatewayCountriesUserAgent(
     api_url: Url,
-    _explorer_url: Url,
-    _harbour_master_url: Option<Url>,
+    explorer_url: Url,
+    harbour_master_url: Option<Url>,
     exit_only: bool,
     user_agent: UserAgent,
 ) -> Result<Vec<Location>, FFIError> {
