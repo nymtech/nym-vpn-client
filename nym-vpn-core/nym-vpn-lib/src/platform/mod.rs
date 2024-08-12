@@ -319,24 +319,29 @@ pub fn getGatewayCountriesUserAgent(
 
 async fn get_gateway_countries(
     api_url: Url,
-    _explorer_url: Url,
-    _harbour_master_url: Option<Url>,
+    nym_vpn_api_url: Option<Url>,
     exit_only: bool,
     user_agent: Option<UserAgent>,
 ) -> Result<Vec<Location>, FFIError> {
-    //TODO support other envs in the future
-    let _config = nym_gateway_directory::Config {
-        api_url,
-        nym_vpn_api_url: None,
-    };
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)
         .unwrap_or_else(|| nym_bin_common::bin_info!().into());
+    let directory_config = nym_gateway_directory::Config {
+        api_url,
+        nym_vpn_api_url,
+    };
+    let directory_client = GatewayClient::new(directory_config, user_agent).map_err(|err| {
+        FFIError::GatewayDirectoryError {
+            inner: err.to_string(),
+        }
+    })?;
 
     let locations = if !exit_only {
-        nym_vpn_api_client::get_countries(user_agent).await
+        // nym_vpn_api_client::get_countries(user_agent).await
+        directory_client.lookup_entry_gateways().await
     } else {
-        nym_vpn_api_client::get_exit_countries(user_agent).await
+        // nym_vpn_api_client::get_exit_countries(user_agent).await
+        directory_client.lookup_exit_gateways().await
     }?;
     Ok(locations.into_iter().map(Into::into).collect())
 }
