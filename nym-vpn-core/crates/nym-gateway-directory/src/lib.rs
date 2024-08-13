@@ -5,7 +5,6 @@ mod entries;
 mod error;
 mod gateway_client;
 mod helpers;
-mod latency_measurement;
 
 pub use crate::{
     entries::{

@@ -337,6 +337,7 @@ fn append_ipr_and_authenticator_addresses(
             let gateway_node = nym_topology::gateway::Node::try_from(described_gateway).unwrap();
             let address = gateway_node.clients_address();
             gateway.address = Some(address);
+            gateway.is_wss = gateway_node.clients_wss_port.is_some();
         }
     }
 }

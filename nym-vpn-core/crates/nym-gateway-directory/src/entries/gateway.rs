@@ -7,9 +7,7 @@ use nym_topology::IntoGatewayNode;
 use rand::seq::IteratorRandom;
 use tracing::error;
 
-use crate::{
-    error::Result, latency_measurement, AuthAddress, Country, Error, IpPacketRouterAddress,
-};
+use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
 
 #[derive(Clone, Debug)]
 pub struct Gateway {
@@ -19,6 +17,7 @@ pub struct Gateway {
     pub authenticator_address: Option<AuthAddress>,
     pub last_probe: Option<Probe>,
     pub address: Option<String>,
+    pub is_wss: bool,
 }
 
 impl Gateway {
@@ -143,6 +142,7 @@ impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
             authenticator_address: None,
             last_probe: gateway.last_probe.map(Probe::from),
             address: None,
+            is_wss: false,
         })
     }
 }
@@ -183,9 +183,9 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
                     .inspect_err(|err| error!("Failed to parse authenticator address: {err}"))
                     .ok()
             });
-        let address = nym_topology::gateway::Node::try_from(gateway)
-            .ok()
-            .map(|n| n.clients_address());
+        let g = nym_topology::gateway::Node::try_from(gateway).ok();
+        let address = g.clone().map(|n| n.clients_address());
+        let is_wss = g.map(|n| n.clients_wss_port.is_some()).unwrap_or(false);
         Ok(Gateway {
             identity,
             location,
@@ -193,6 +193,7 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
             authenticator_address,
             last_probe: None,
             address,
+            is_wss,
         })
     }
 }
@@ -288,9 +289,9 @@ impl GatewayList {
 
     pub(crate) async fn random_low_latency_gateway(&self) -> Result<Gateway> {
         let mut rng = rand::rngs::OsRng;
-        latency_measurement::choose_gateway_by_latency(&mut rng, &self.gateways)
+        nym_client_core::init::helpers::choose_gateway_by_latency(&mut rng, &self.gateways, false)
             .await
-            .map_err(Error::from)
+            .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })
     }
 }
 
@@ -300,5 +301,19 @@ impl IntoIterator for GatewayList {
 
     fn into_iter(self) -> Self::IntoIter {
         self.gateways.into_iter()
+    }
+}
+
+impl nym_client_core::init::helpers::GatewayWithAddress for Gateway {
+    fn identity(&self) -> &nym_sdk::mixnet::NodeIdentity {
+        self.identity()
+    }
+
+    fn clients_address(&self) -> String {
+        self.address.as_ref().unwrap().to_string()
+    }
+
+    fn is_wss(&self) -> bool {
+        self.is_wss
     }
 }
