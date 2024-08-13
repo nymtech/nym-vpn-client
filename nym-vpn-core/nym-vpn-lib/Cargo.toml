@@ -65,7 +65,8 @@ nym-credential-storage.workspace = true
 nym-credentials.workspace = true
 nym-crypto.workspace = true
 nym-explorer-client.workspace = true
-nym-id.workspace = true
+# nym-id.workspace = true
+nym-id = { path = "../crates/nym-id" }
 nym-ip-packet-requests.workspace = true
 nym-node-requests.workspace = true
 nym-pemstore.workspace = true

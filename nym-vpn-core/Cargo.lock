@@ -3578,7 +3578,7 @@ dependencies = [
  "cosmwasm-std",
  "ecdsa 0.16.9",
  "getset",
- "nym-credentials-interface",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-crypto",
  "nym-mixnet-contract-common",
  "nym-node-requests",
@@ -3617,14 +3617,32 @@ dependencies = [
 [[package]]
 name = "nym-bandwidth-controller"
 version = "0.1.0"
+dependencies = [
+ "bip39",
+ "log",
+ "nym-coconut 0.5.0",
+ "nym-credential-storage 0.1.0",
+ "nym-credentials 0.1.0",
+ "nym-credentials-interface 0.1.0",
+ "nym-crypto",
+ "nym-validator-client",
+ "rand 0.8.5",
+ "thiserror",
+ "url",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-bandwidth-controller"
+version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=3f922cc0#3f922cc0aee9ce82472aadada2e7445ef7f03ca0"
 dependencies = [
  "bip39",
  "log",
- "nym-coconut",
- "nym-credential-storage",
- "nym-credentials",
- "nym-credentials-interface",
+ "nym-coconut 0.5.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-crypto",
  "nym-network-defaults",
  "nym-validator-client",
@@ -3664,18 +3682,18 @@ dependencies = [
  "hyper 1.2.0",
  "hyper-util",
  "log",
- "nym-bandwidth-controller",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-client-core-config-types",
  "nym-client-core-gateways-storage",
  "nym-client-core-surb-storage",
  "nym-config",
  "nym-country-group",
- "nym-credential-storage",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-crypto",
  "nym-explorer-client",
  "nym-gateway-client",
  "nym-gateway-requests",
- "nym-id",
+ "nym-id 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-metrics",
  "nym-network-defaults",
  "nym-nonexhaustive-delayqueue",
@@ -3754,6 +3772,27 @@ dependencies = [
  "thiserror",
  "time",
  "tokio",
+]
+
+[[package]]
+name = "nym-coconut"
+version = "0.5.0"
+dependencies = [
+ "bls12_381",
+ "bs58 0.5.1",
+ "digest 0.9.0",
+ "ff",
+ "getrandom 0.2.12",
+ "group",
+ "itertools 0.13.0",
+ "nym-pemstore",
+ "rand 0.8.5",
+ "rand_chacha 0.3.1",
+ "serde",
+ "serde_derive",
+ "sha2 0.9.9",
+ "thiserror",
+ "zeroize",
 ]
 
 [[package]]
@@ -3858,6 +3897,18 @@ dependencies = [
 [[package]]
 name = "nym-credential-storage"
 version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "log",
+ "sqlx",
+ "thiserror",
+ "tokio",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-credential-storage"
+version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=3f922cc0#3f922cc0aee9ce82472aadada2e7445ef7f03ca0"
 dependencies = [
  "async-trait",
@@ -3874,15 +3925,33 @@ version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=3f922cc0#3f922cc0aee9ce82472aadada2e7445ef7f03ca0"
 dependencies = [
  "log",
- "nym-bandwidth-controller",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-client-core",
- "nym-coconut",
+ "nym-coconut 0.5.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-config",
- "nym-credential-storage",
- "nym-credentials",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-validator-client",
  "thiserror",
  "tokio",
+]
+
+[[package]]
+name = "nym-credentials"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "bls12_381",
+ "log",
+ "nym-api-requests",
+ "nym-credentials-interface 0.1.0",
+ "nym-crypto",
+ "nym-validator-client",
+ "rand 0.8.5",
+ "serde",
+ "thiserror",
+ "time",
+ "zeroize",
 ]
 
 [[package]]
@@ -3895,7 +3964,7 @@ dependencies = [
  "cosmrs",
  "log",
  "nym-api-requests",
- "nym-credentials-interface",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-crypto",
  "nym-validator-client",
  "serde",
@@ -3907,10 +3976,20 @@ dependencies = [
 [[package]]
 name = "nym-credentials-interface"
 version = "0.1.0"
+dependencies = [
+ "bls12_381",
+ "nym-coconut 0.5.0",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
+name = "nym-credentials-interface"
+version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=3f922cc0#3f922cc0aee9ce82472aadada2e7445ef7f03ca0"
 dependencies = [
  "bls12_381",
- "nym-coconut",
+ "nym-coconut 0.5.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "serde",
  "thiserror",
 ]
@@ -4007,9 +4086,9 @@ dependencies = [
  "getrandom 0.2.12",
  "gloo-utils",
  "log",
- "nym-bandwidth-controller",
- "nym-credential-storage",
- "nym-credentials",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-crypto",
  "nym-gateway-requests",
  "nym-network-defaults",
@@ -4099,8 +4178,8 @@ dependencies = [
  "futures",
  "generic-array 0.14.7",
  "log",
- "nym-credentials",
- "nym-credentials-interface",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
+ "nym-credentials-interface 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-crypto",
  "nym-pemstore",
  "nym-sphinx",
@@ -4159,10 +4238,22 @@ dependencies = [
 [[package]]
 name = "nym-id"
 version = "0.1.0"
+dependencies = [
+ "nym-credential-storage 0.1.0",
+ "nym-credentials 0.1.0",
+ "thiserror",
+ "time",
+ "tracing",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-id"
+version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=3f922cc0#3f922cc0aee9ce82472aadada2e7445ef7f03ca0"
 dependencies = [
- "nym-credential-storage",
- "nym-credentials",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "thiserror",
  "time",
  "tracing",
@@ -4344,11 +4435,11 @@ dependencies = [
  "http 1.1.0",
  "httpcodec",
  "log",
- "nym-bandwidth-controller",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-client-core",
- "nym-credential-storage",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-credential-utils",
- "nym-credentials",
+ "nym-credentials 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-crypto",
  "nym-gateway-requests",
  "nym-network-defaults",
@@ -4390,11 +4481,11 @@ dependencies = [
  "dirs 4.0.0",
  "futures",
  "log",
- "nym-bandwidth-controller",
+ "nym-bandwidth-controller 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-client-core",
  "nym-config",
  "nym-contracts-common",
- "nym-credential-storage",
+ "nym-credential-storage 0.1.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-mixnet-contract-common",
  "nym-network-defaults",
  "nym-service-providers-common",
@@ -4661,7 +4752,7 @@ dependencies = [
  "itertools 0.12.1",
  "log",
  "nym-api-requests",
- "nym-coconut",
+ "nym-coconut 0.5.0 (git+https://github.com/nymtech/nym?rev=3f922cc0)",
  "nym-coconut-bandwidth-contract-common",
  "nym-coconut-dkg-common",
  "nym-config",
@@ -4759,17 +4850,17 @@ dependencies = [
  "nix 0.28.0",
  "nym-authenticator-client",
  "nym-authenticator-requests",
- "nym-bandwidth-controller",
+ "nym-bandwidth-controller 0.1.0",
  "nym-bin-common",
  "nym-client-core",
  "nym-config",
  "nym-connection-monitor",
- "nym-credential-storage",
- "nym-credentials",
+ "nym-credential-storage 0.1.0",
+ "nym-credentials 0.1.0",
  "nym-crypto",
  "nym-explorer-client",
  "nym-gateway-directory",
- "nym-id",
+ "nym-id 0.1.0",
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
  "nym-node-requests",
@@ -4862,7 +4953,7 @@ dependencies = [
  "futures",
  "http 0.2.12",
  "maplit",
- "nym-bandwidth-controller",
+ "nym-bandwidth-controller 0.1.0",
  "nym-task",
  "nym-validator-client",
  "nym-vpn-api-client",
