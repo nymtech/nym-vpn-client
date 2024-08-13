@@ -168,15 +168,6 @@ pub struct Location {
     pub two_letter_iso_country_code: String,
 }
 
-// DEPRECATED
-// impl From<nym_explorer_client::Location> for Location {
-//     fn from(value: nym_explorer_client::Location) -> Self {
-//         Location {
-//             two_letter_iso_country_code: value.two_letter_iso_country_code,
-//         }
-//     }
-// }
-
 impl From<nym_gateway_directory::Location> for Location {
     fn from(value: nym_gateway_directory::Location) -> Self {
         Location {
@@ -192,15 +183,6 @@ impl From<nym_gateway_directory::Country> for Location {
         }
     }
 }
-
-// DEPRECATED
-// impl From<nym_vpn_api_client::Country> for Location {
-//     fn from(value: Country) -> Self {
-//         Location {
-//             two_letter_iso_country_code: value.iso_code().to_string(),
-//         }
-//     }
-// }
 
 #[derive(uniffi::Record)]
 pub struct UserAgent {

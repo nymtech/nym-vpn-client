@@ -288,28 +288,13 @@ pub fn getGatewayCountries(
     api_url: Url,
     nym_vpn_api_url: Option<Url>,
     exit_only: bool,
+    user_agent: Option<UserAgent>,
 ) -> Result<Vec<Location>, FFIError> {
     RUNTIME.block_on(get_gateway_countries(
         api_url,
         nym_vpn_api_url,
         exit_only,
-        None,
-    ))
-}
-
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn getGatewayCountriesUserAgent(
-    api_url: Url,
-    nym_vpn_api_url: Option<Url>,
-    exit_only: bool,
-    user_agent: UserAgent,
-) -> Result<Vec<Location>, FFIError> {
-    RUNTIME.block_on(get_gateway_countries(
-        api_url,
-        nym_vpn_api_url,
-        exit_only,
-        Some(user_agent),
+        user_agent,
     ))
 }
 
