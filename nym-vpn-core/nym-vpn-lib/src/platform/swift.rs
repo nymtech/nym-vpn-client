@@ -2,16 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use super::*;
-use crate::routing::RoutingConfig;
 use error::FFIError;
 use ipnetwork::IpNetwork;
 use oslog::OsLogger;
-use std::fmt::Debug;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-use std::os::fd::RawFd;
+use std::{
+    fmt::Debug,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    os::fd::RawFd,
+};
 use talpid_types::net::wireguard::{
     PeerConfig as WgPeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig as WgTunnelConfig,
 };
+use tracing_subscriber::filter::LevelFilter;
+
+use crate::routing::RoutingConfig;
 
 pub fn init_logs() {
     OsLogger::new("net.nymtech.vpn.agent")
