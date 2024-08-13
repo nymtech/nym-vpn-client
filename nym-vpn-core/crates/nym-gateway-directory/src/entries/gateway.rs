@@ -16,8 +16,9 @@ pub struct Gateway {
     pub ipr_address: Option<IpPacketRouterAddress>,
     pub authenticator_address: Option<AuthAddress>,
     pub last_probe: Option<Probe>,
-    pub address: Option<String>,
-    pub is_wss: bool,
+    pub host: Option<nym_topology::NetworkAddress>,
+    pub clients_ws_port: Option<u16>,
+    pub clients_wss_port: Option<u16>,
 }
 
 impl Gateway {
@@ -38,6 +39,20 @@ impl Gateway {
 
     pub fn has_ipr_address(&self) -> bool {
         self.ipr_address.is_some()
+    }
+
+    pub fn clients_address_no_tls(&self) -> Option<String> {
+        match (&self.host, &self.clients_ws_port) {
+            (Some(host), Some(port)) => Some(format!("ws://{}:{}", host, port)),
+            _ => None,
+        }
+    }
+
+    pub fn clients_address_tls(&self) -> Option<String> {
+        match (&self.host, &self.clients_wss_port) {
+            (Some(host), Some(port)) => Some(format!("wss://{}:{}", host, port)),
+            _ => None,
+        }
     }
 }
 
@@ -141,8 +156,9 @@ impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
             ipr_address: None,
             authenticator_address: None,
             last_probe: gateway.last_probe.map(Probe::from),
-            address: None,
-            is_wss: false,
+            host: None,
+            clients_ws_port: None,
+            clients_wss_port: None,
         })
     }
 }
@@ -183,17 +199,19 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
                     .inspect_err(|err| error!("Failed to parse authenticator address: {err}"))
                     .ok()
             });
-        let g = nym_topology::gateway::Node::try_from(gateway).ok();
-        let address = g.clone().map(|n| n.clients_address());
-        let is_wss = g.map(|n| n.clients_wss_port.is_some()).unwrap_or(false);
+        let gateway = nym_topology::gateway::Node::try_from(gateway).ok();
+        let host = gateway.clone().map(|g| g.host);
+        let clients_ws_port = gateway.clone().map(|g| g.clients_ws_port);
+        let clients_wss_port = gateway.clone().and_then(|g| g.clients_wss_port);
         Ok(Gateway {
             identity,
             location,
             ipr_address,
             authenticator_address,
             last_probe: None,
-            address,
-            is_wss,
+            host,
+            clients_ws_port,
+            clients_wss_port,
         })
     }
 }
@@ -309,11 +327,15 @@ impl nym_client_core::init::helpers::GatewayWithAddress for Gateway {
         self.identity()
     }
 
-    fn clients_address(&self) -> String {
-        self.address.as_ref().unwrap().to_string()
+    fn is_wss(&self) -> bool {
+        todo!();
     }
 
-    fn is_wss(&self) -> bool {
-        self.is_wss
+    fn clients_address(&self) -> String {
+        // This is a bit of a sharp edge, but temporary until we can remove Option from host
+        // and tls port when we add these to the vpn API endpoints.
+        self.clients_address_tls()
+            .or(self.clients_address_no_tls())
+            .unwrap_or("ws://".to_string())
     }
 }
