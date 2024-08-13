@@ -3,70 +3,71 @@ package net.nymtech.nymvpn.service.android.tile
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.module.ApplicationScope
-import net.nymtech.nymvpn.module.ServiceScope
-import net.nymtech.nymvpn.service.vpn.VpnManager
-import net.nymtech.vpn.VpnClient
-import net.nymtech.vpn.model.VpnMode
-import net.nymtech.vpn.model.VpnState
+import net.nymtech.nymvpn.service.tunnel.TunnelManager
+import net.nymtech.nymvpn.util.extensions.isExpired
+import net.nymtech.nymvpn.util.extensions.startTunnelFromBackground
+import net.nymtech.nymvpn.util.extensions.stopTunnelFromBackground
+import net.nymtech.vpn.Tunnel
 import timber.log.Timber
 import javax.inject.Inject
-import javax.inject.Provider
 
 @AndroidEntryPoint
-class VpnQuickTile : TileService() {
+class VpnQuickTile : TileService(), LifecycleOwner {
 
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
 
 	@Inject
-	lateinit var vpnManager: VpnManager
+	lateinit var tunnelManager: TunnelManager
 
-	@Inject
-	lateinit var vpnClient: Provider<VpnClient>
+	private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
 
-	@Inject
-	@ServiceScope
-	lateinit var serviceScope: CoroutineScope
-
-	@Inject
-	@ApplicationScope
-	lateinit var applicationScope: CoroutineScope
-
-	private var job: Job? = null
+	override fun onCreate() {
+		super.onCreate()
+		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
+	}
 
 	override fun onStartListening() {
 		super.onStartListening()
-		Timber.d("Quick tile listening called")
-		setTileText()
-		val state = vpnClient.get().getState()
-		when (state.vpnState) {
-			VpnState.Up -> {
-				setActive()
-				setTileText()
-				qsTile.updateTile()
-			}
+		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
 
-			VpnState.Down -> {
-				setInactive()
-				setTileText()
-				qsTile.updateTile()
-			}
-
-			VpnState.Connecting.EstablishingConnection, VpnState.Connecting.InitializingClient -> {
-				setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
-				qsTile.updateTile()
-			}
-
-			VpnState.Disconnecting -> {
-				setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
-				qsTile.updateTile()
+		lifecycleScope.launch {
+			val credExpiry = settingsRepository.getCredentialExpiry()
+			if (credExpiry == null || credExpiry.isExpired()) return@launch setUnavailable()
+			val state = tunnelManager.getState()
+			kotlin.runCatching {
+				when (state) {
+					Tunnel.State.Up -> {
+						setTileText()
+						setActive()
+						qsTile.updateTile()
+					}
+					Tunnel.State.Down -> {
+						setTileText()
+						setInactive()
+						qsTile.updateTile()
+					}
+					Tunnel.State.Disconnecting -> {
+						setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
+						setActive()
+						qsTile.updateTile()
+					}
+					Tunnel.State.Connecting.EstablishingConnection, Tunnel.State.Connecting.InitializingClient -> {
+						setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
+						setInactive()
+						qsTile.updateTile()
+					}
+				}
+			}.onFailure {
+				Timber.e(it)
 			}
 		}
 	}
@@ -76,62 +77,51 @@ class VpnQuickTile : TileService() {
 		onStartListening()
 	}
 
+	override fun onStopListening() {
+		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+	}
+
+	override fun onDestroy() {
+		super.onDestroy()
+		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+	}
+
 	override fun onClick() {
 		super.onClick()
-		setTileText()
 		unlockAndRun {
-			when (vpnClient.get().getState().vpnState) {
-				VpnState.Up -> {
-					applicationScope.launch {
-						setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
-						qsTile.updateTile()
-						vpnClient.get().stop(true)
-						job = updateOnState(VpnState.Down)
-					}
+			when (tunnelManager.getState()) {
+				Tunnel.State.Up -> {
+					stopTunnelFromBackground()
 				}
-				VpnState.Down -> {
-					applicationScope.launch {
-						vpnManager.startVpn(true).onFailure {
-							// TODO handle failure
-							Timber.w(it)
-						}.onSuccess {
-							job = updateOnState(VpnState.Up)
-						}
-					}
+				Tunnel.State.Down -> {
+					startTunnelFromBackground()
 				}
 				else -> Unit
 			}
 		}
 	}
 
-	private suspend fun updateOnState(vpnState: VpnState) = serviceScope.launch {
-		vpnClient.get().stateFlow.collect {
-			if (it.vpnState == vpnState) {
-				onStartListening()
-				job?.cancel()
-			}
+	private suspend fun setTileText() {
+		kotlin.runCatching {
+			val firstHopCountry = settingsRepository.getFirstHopCountry()
+			val lastHopCountry = settingsRepository.getLastHopCountry()
+			val mode = settingsRepository.getVpnMode()
+			val isTwoHop = mode == Tunnel.Mode.TWO_HOP_MIXNET
+			setTitle(
+				"${this@VpnQuickTile.getString(R.string.mode)}: ${
+					if (isTwoHop) {
+						this@VpnQuickTile.getString(
+							R.string.two_hop,
+						)
+					} else {
+						this@VpnQuickTile.getString(R.string.five_hop)
+					}
+				}",
+			)
+			setTileDescription(
+				"${firstHopCountry.isoCode} -> ${lastHopCountry.isoCode}",
+			)
 		}
-	}
-
-	private fun setTileText() = serviceScope.launch {
-		val firstHopCountry = settingsRepository.getFirstHopCountry()
-		val lastHopCountry = settingsRepository.getLastHopCountry()
-		val mode = settingsRepository.getVpnMode()
-		val isTwoHop = mode == VpnMode.TWO_HOP_MIXNET
-		setTitle(
-			"${this@VpnQuickTile.getString(R.string.mode)}: ${
-				if (isTwoHop) {
-					this@VpnQuickTile.getString(
-						R.string.two_hop,
-					)
-				} else {
-					this@VpnQuickTile.getString(R.string.five_hop)
-				}
-			}",
-		)
-		setTileDescription(
-			"${firstHopCountry.isoCode} -> ${lastHopCountry.isoCode}",
-		)
 	}
 
 	private fun setActive() {
@@ -158,4 +148,7 @@ class VpnQuickTile : TileService() {
 			qsTile.stateDescription = description
 		}
 	}
+
+	override val lifecycle: Lifecycle
+		get() = lifecycleRegistry
 }

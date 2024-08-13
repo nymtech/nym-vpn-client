@@ -28,11 +28,11 @@ sealed class Destination(
 	)
 
 	data object Permission : Destination(
-		"permission/{permission}",
+		"/permission/{permission}",
 		StringValue.StringResource(R.string.permission_required),
 		backIcon,
 	) {
-		fun createRoute(permission: net.nymtech.nymvpn.ui.screens.permission.Permission) = "permission/${permission.name}"
+		fun createRoute(permission: net.nymtech.nymvpn.ui.screens.permission.Permission) = "/permission/${permission.name}"
 	}
 
 	data object Settings :

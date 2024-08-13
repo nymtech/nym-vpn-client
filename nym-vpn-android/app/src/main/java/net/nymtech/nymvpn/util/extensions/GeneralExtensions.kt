@@ -19,3 +19,7 @@ fun String.capitalize(locale: Locale): String {
 fun Instant.durationFromNow(): java.time.Duration {
 	return java.time.Duration.between(Instant.now(), this)
 }
+
+fun Instant.isExpired(): Boolean {
+	return this.isBefore(Instant.now())
+}

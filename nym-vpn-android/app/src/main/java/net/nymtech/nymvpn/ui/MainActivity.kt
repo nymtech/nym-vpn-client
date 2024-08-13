@@ -119,7 +119,6 @@ class MainActivity : ComponentActivity() {
 			val density = LocalDensity.current
 
 			navController.addOnDestinationChangedListener { controller, destination, _ ->
-				Timber.d("Destination: $destination")
 				if (destination.route == Destination.Main.route &&
 					controller.previousBackStackEntry?.destination?.route == Destination.Language.route
 				) {

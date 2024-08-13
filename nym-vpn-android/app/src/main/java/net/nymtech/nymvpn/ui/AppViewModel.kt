@@ -13,12 +13,11 @@ import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.Native
 import net.nymtech.nymvpn.service.gateway.GatewayService
+import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.vpn.VpnClient
 import net.nymtech.vpn.model.Country
 import timber.log.Timber
 import javax.inject.Inject
-import javax.inject.Provider
 
 @HiltViewModel
 class AppViewModel
@@ -27,7 +26,7 @@ constructor(
 	private val settingsRepository: SettingsRepository,
 	private val gatewayRepository: GatewayRepository,
 	@Native private val gatewayService: GatewayService,
-	private val vpnClient: Provider<VpnClient>,
+	private val tunnelManager: TunnelManager,
 ) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(AppUiState())
@@ -36,15 +35,15 @@ constructor(
 		combine(
 			_uiState,
 			settingsRepository.settingsFlow,
-			vpnClient.get().stateFlow,
-		) { state, settings, vpnState ->
+			tunnelManager.stateFlow,
+		) { state, settings, manager ->
 			AppUiState(
 				state.snackbarMessage,
 				state.snackbarMessageConsumed,
-				vpnState,
 				settings,
 				credentialExpiryTime = settings.credentialExpiry,
 				showLocationTooltip = state.showLocationTooltip,
+				state = manager.state,
 			)
 		}.stateIn(
 			viewModelScope,
