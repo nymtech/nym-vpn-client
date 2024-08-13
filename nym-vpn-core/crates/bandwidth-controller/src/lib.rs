@@ -6,17 +6,17 @@ use crate::utils::stored_credential_to_issued_bandwidth;
 use log::{debug, error, warn};
 use nym_credential_storage::storage::Storage;
 use nym_credentials::coconut::bandwidth::issued::BandwidthCredentialIssuedDataVariant;
-use nym_credentials::coconut::bandwidth::CredentialSpendingData;
+// use nym_credentials::coconut::bandwidth::CredentialSpendingData;
 // use nym_credentials::coconut::utils::obtain_aggregate_verification_key;
 use nym_credentials::IssuedBandwidthCredential;
-use nym_credentials_interface::VerificationKey;
-use nym_validator_client::coconut::all_coconut_api_clients;
-use nym_validator_client::nym_api::EpochId;
-use nym_validator_client::nyxd::contract_traits::DkgQueryClient;
+// use nym_credentials_interface::VerificationKey;
+// use nym_validator_client::coconut::all_coconut_api_clients;
+// use nym_validator_client::nym_api::EpochId;
+// use nym_validator_client::nyxd::contract_traits::DkgQueryClient;
 
 pub use event::BandwidthStatusMessage;
 
-pub mod acquire;
+// pub mod acquire;
 pub mod error;
 mod event;
 mod utils;
@@ -27,18 +27,18 @@ pub struct BandwidthController<C, St> {
     client: C,
 }
 
-pub struct PreparedCredential {
-    /// The cryptographic material required for spending the underlying credential.
-    pub data: CredentialSpendingData,
-
-    /// The (DKG) epoch id under which the credential has been issued so that the verifier
-    /// could use correct verification key for validation.
-    pub epoch_id: EpochId,
-
-    /// The database id of the stored credential.
-    pub credential_id: i64,
-}
-
+// pub struct PreparedCredential {
+//     /// The cryptographic material required for spending the underlying credential.
+//     pub data: CredentialSpendingData,
+//
+//     /// The (DKG) epoch id under which the credential has been issued so that the verifier
+//     /// could use correct verification key for validation.
+//     pub epoch_id: EpochId,
+//
+//     /// The database id of the stored credential.
+//     pub credential_id: i64,
+// }
+//
 pub struct RetrievedCredential {
     pub credential: IssuedBandwidthCredential,
     pub credential_id: i64,
@@ -143,19 +143,19 @@ impl<C, St: Storage> BandwidthController<C, St> {
     //     })
     // }
 
-    pub async fn consume_credential(
-        &self,
-        id: i64,
-        gateway_id: &str,
-    ) -> Result<(), BandwidthControllerError>
-    where
-        <St as Storage>::StorageError: Send + Sync + 'static,
-    {
-        self.storage
-            .consume_coconut_credential(id, gateway_id)
-            .await
-            .map_err(|err| BandwidthControllerError::CredentialStorageError(Box::new(err)))
-    }
+    // pub async fn consume_credential(
+    //     &self,
+    //     id: i64,
+    //     gateway_id: &str,
+    // ) -> Result<(), BandwidthControllerError>
+    // where
+    //     <St as Storage>::StorageError: Send + Sync + 'static,
+    // {
+    //     self.storage
+    //         .consume_coconut_credential(id, gateway_id)
+    //         .await
+    //         .map_err(|err| BandwidthControllerError::CredentialStorageError(Box::new(err)))
+    // }
 }
 
 impl<C, St> Clone for BandwidthController<C, St>

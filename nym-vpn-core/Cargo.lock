@@ -3620,12 +3620,8 @@ version = "0.1.0"
 dependencies = [
  "bip39",
  "log",
- "nym-coconut 0.5.0",
  "nym-credential-storage 0.1.0",
  "nym-credentials 0.1.0",
- "nym-credentials-interface 0.1.0",
- "nym-crypto",
- "nym-validator-client",
  "rand 0.8.5",
  "thiserror",
  "url",
