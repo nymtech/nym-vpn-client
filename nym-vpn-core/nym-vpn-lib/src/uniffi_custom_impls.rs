@@ -344,11 +344,9 @@ impl From<NymVpnStatusMessage> for NymVpnStatus {
             NymVpnStatusMessage::MixnetConnectionInfo {
                 mixnet_connection_info,
                 mixnet_exit_connection_info,
-            } => {
-                NymVpnStatus::ConnectionInfo {
-                    mixnet_connection_info: mixnet_connection_info.into(),
-                    mixnet_exit_connection_info: mixnet_exit_connection_info.into(),
-                }
+            } => NymVpnStatus::ConnectionInfo {
+                mixnet_connection_info: mixnet_connection_info.into(),
+                mixnet_exit_connection_info: mixnet_exit_connection_info.into(),
             },
         }
     }
