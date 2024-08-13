@@ -75,7 +75,7 @@ fn init_jni_logger(level: String) {
             .with_tag("libnymvpn")
             .with_filter(FilterBuilder::new().parse(levels.as_str()).build()),
     );
-    log::debug!("Logger initialized");
+    tracing::debug!("Logger initialized");
 }
 
 pub(crate) fn get_context() -> Option<AndroidContext> {
@@ -146,7 +146,7 @@ pub extern "system" fn Java_net_nymtech_vpn_NymVpnService_waitForTunnelUp(
     let is_ipv6_enabled = isIpv6Enabled != JNI_FALSE;
 
     if let Err(error) = wait_for_tunnel_up(tun_fd, is_ipv6_enabled) {
-        log::error!(
+        tracing::error!(
             "{}",
             error.display_chain_with_msg("Failed to wait for tunnel device to be usable")
         );
