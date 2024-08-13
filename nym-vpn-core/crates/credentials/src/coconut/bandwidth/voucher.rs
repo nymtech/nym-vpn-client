@@ -9,7 +9,8 @@ use nym_credentials_interface::{
     hash_to_scalar, Attribute, 
     // BlindSignRequest, 
     // BlindedSignature,
-    CredentialType, PublicAttribute,
+    // CredentialType,
+    PublicAttribute,
 };
 use nym_crypto::asymmetric::{encryption, identity};
 use nym_validator_client::nyxd::{Coin, Hash};
@@ -24,13 +25,13 @@ pub struct BandwidthVoucherIssuedData {
     value: Coin,
 }
 
-impl<'a> From<&'a BandwidthVoucherIssuanceData> for BandwidthVoucherIssuedData {
-    fn from(value: &'a BandwidthVoucherIssuanceData) -> Self {
-        BandwidthVoucherIssuedData {
-            value: value.value.clone(),
-        }
-    }
-}
+// impl<'a> From<&'a BandwidthVoucherIssuanceData> for BandwidthVoucherIssuedData {
+//     fn from(value: &'a BandwidthVoucherIssuanceData) -> Self {
+//         BandwidthVoucherIssuedData {
+//             value: value.value.clone(),
+//         }
+//     }
+// }
 
 impl BandwidthVoucherIssuedData {
     pub fn new(value: Coin) -> Self {
@@ -130,19 +131,19 @@ impl BandwidthVoucherIssuanceData {
         &self.value_prehashed
     }
 
-    pub fn typ() -> CredentialType {
-        CredentialType::Voucher
-    }
-
-    pub fn tx_hash(&self) -> Hash {
-        self.deposit_tx_hash
-    }
-
-    pub fn identity_key(&self) -> &identity::PrivateKey {
-        &self.signing_key
-    }
-
-    pub fn encryption_key(&self) -> &encryption::PrivateKey {
-        &self.unused_ed25519
-    }
+    // pub fn typ() -> CredentialType {
+    //     CredentialType::Voucher
+    // }
+    //
+    // pub fn tx_hash(&self) -> Hash {
+    //     self.deposit_tx_hash
+    // }
+    //
+    // pub fn identity_key(&self) -> &identity::PrivateKey {
+    //     &self.signing_key
+    // }
+    //
+    // pub fn encryption_key(&self) -> &encryption::PrivateKey {
+    //     &self.unused_ed25519
+    // }
 }

@@ -4,7 +4,8 @@
 // use crate::coconut::bandwidth::bandwidth_credential_params;
 use crate::coconut::bandwidth::freepass::FreePassIssuedData;
 use crate::coconut::bandwidth::issuance::{
-    BandwidthCredentialIssuanceDataVariant, IssuanceBandwidthCredential,
+    // BandwidthCredentialIssuanceDataVariant,
+    IssuanceBandwidthCredential,
 };
 use crate::coconut::bandwidth::voucher::BandwidthVoucherIssuedData;
 use crate::coconut::bandwidth::{
@@ -29,30 +30,30 @@ pub enum BandwidthCredentialIssuedDataVariant {
     FreePass(FreePassIssuedData),
 }
 
-impl<'a> From<&'a BandwidthCredentialIssuanceDataVariant> for BandwidthCredentialIssuedDataVariant {
-    fn from(value: &'a BandwidthCredentialIssuanceDataVariant) -> Self {
-        match value {
-            BandwidthCredentialIssuanceDataVariant::Voucher(voucher) => {
-                BandwidthCredentialIssuedDataVariant::Voucher(voucher.into())
-            }
-            BandwidthCredentialIssuanceDataVariant::FreePass(freepass) => {
-                BandwidthCredentialIssuedDataVariant::FreePass(freepass.into())
-            }
-        }
-    }
-}
-
-impl From<FreePassIssuedData> for BandwidthCredentialIssuedDataVariant {
-    fn from(value: FreePassIssuedData) -> Self {
-        BandwidthCredentialIssuedDataVariant::FreePass(value)
-    }
-}
-
-impl From<BandwidthVoucherIssuedData> for BandwidthCredentialIssuedDataVariant {
-    fn from(value: BandwidthVoucherIssuedData) -> Self {
-        BandwidthCredentialIssuedDataVariant::Voucher(value)
-    }
-}
+// impl<'a> From<&'a BandwidthCredentialIssuanceDataVariant> for BandwidthCredentialIssuedDataVariant {
+//     fn from(value: &'a BandwidthCredentialIssuanceDataVariant) -> Self {
+//         match value {
+//             BandwidthCredentialIssuanceDataVariant::Voucher(voucher) => {
+//                 BandwidthCredentialIssuedDataVariant::Voucher(voucher.into())
+//             }
+//             BandwidthCredentialIssuanceDataVariant::FreePass(freepass) => {
+//                 BandwidthCredentialIssuedDataVariant::FreePass(freepass.into())
+//             }
+//         }
+//     }
+// }
+//
+// impl From<FreePassIssuedData> for BandwidthCredentialIssuedDataVariant {
+//     fn from(value: FreePassIssuedData) -> Self {
+//         BandwidthCredentialIssuedDataVariant::FreePass(value)
+//     }
+// }
+//
+// impl From<BandwidthVoucherIssuedData> for BandwidthCredentialIssuedDataVariant {
+//     fn from(value: BandwidthVoucherIssuedData) -> Self {
+//         BandwidthCredentialIssuedDataVariant::Voucher(value)
+//     }
+// }
 
 impl BandwidthCredentialIssuedDataVariant {
     pub fn info(&self) -> CredentialType {
@@ -63,14 +64,14 @@ impl BandwidthCredentialIssuedDataVariant {
     }
 
     // currently this works under the assumption of there being a single unique public attribute for given variant
-    pub fn public_value_plain(&self) -> String {
-        match self {
-            BandwidthCredentialIssuedDataVariant::Voucher(voucher) => voucher.value_plain(),
-            BandwidthCredentialIssuedDataVariant::FreePass(freepass) => {
-                freepass.expiry_date_plain()
-            }
-        }
-    }
+    // pub fn public_value_plain(&self) -> String {
+    //     match self {
+    //         BandwidthCredentialIssuedDataVariant::Voucher(voucher) => voucher.value_plain(),
+    //         BandwidthCredentialIssuedDataVariant::FreePass(freepass) => {
+    //             freepass.expiry_date_plain()
+    //         }
+    //     }
+    // }
 }
 
 // the only important thing to zeroize here are the private attributes, the rest can be made fully public for what we're concerned
@@ -166,12 +167,12 @@ impl IssuedBandwidthCredential {
         self.variant_data.info()
     }
 
-    pub fn get_plain_public_attributes(&self) -> Vec<String> {
-        vec![
-            self.variant_data.public_value_plain(),
-            self.typ().to_string(),
-        ]
-    }
+    // pub fn get_plain_public_attributes(&self) -> Vec<String> {
+    //     vec![
+    //         self.variant_data.public_value_plain(),
+    //         self.typ().to_string(),
+    //     ]
+    // }
 
     // pub fn prepare_for_spending(
     //     &self,
