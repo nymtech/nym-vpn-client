@@ -31,7 +31,6 @@
     <string name="fastest">Le plus rapide</string>
     <string name="auto_connect">Auto-connexion</string>
     <string name="auto_connect_description">Auto-connexion au redémarrage</string>
-    <string name="entry_location_description">Sélectionnez manuellement votre nœud d\'entrée</string>
     <string name="logs">Journaux</string>
     <string name="feedback">Retour d\'expérience</string>
     <string name="support">Support</string>
