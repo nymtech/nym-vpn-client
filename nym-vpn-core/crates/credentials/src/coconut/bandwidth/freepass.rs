@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::coconut::utils::scalar_serde_helper;
-use crate::error::Error;
-use nym_api_requests::coconut::FreePassRequest;
+// use crate::error::Error;
+// use nym_api_requests::coconut::FreePassRequest;
 use nym_credentials_interface::{
-    hash_to_scalar, Attribute, BlindedSignature, CredentialSigningData, PublicAttribute,
+    hash_to_scalar, Attribute,
+    // BlindedSignature, CredentialSigningData, 
+    PublicAttribute,
 };
-use nym_validator_client::signing::AccountData;
+// use nym_validator_client::signing::AccountData;
 use serde::{Deserialize, Serialize};
 use time::{Duration, OffsetDateTime, Time};
 use zeroize::{Zeroize, ZeroizeOnDrop};

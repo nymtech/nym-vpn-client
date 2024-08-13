@@ -36,10 +36,10 @@ default-features = false
 # doc-comment = { workspace = true }
 rand_chacha = { workspace = true }
 
-[[bench]]
-name = "benchmarks"
-harness = false
-
+# [[bench]]
+# name = "benchmarks"
+# harness = false
+#
 [features]
 key-zeroize = ["zeroize", "bls12_381/zeroize"]
 default = []

@@ -16,7 +16,7 @@ use nym_credentials_interface::{
 };
 use nym_crypto::asymmetric::{encryption, identity};
 use nym_validator_client::nym_api::EpochId;
-use nym_validator_client::signing::AccountData;
+// use nym_validator_client::signing::AccountData;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 use zeroize::{Zeroize, ZeroizeOnDrop};

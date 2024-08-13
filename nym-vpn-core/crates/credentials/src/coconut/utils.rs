@@ -1,13 +1,13 @@
 // Copyright 2021-2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::coconut::bandwidth::IssuanceBandwidthCredential;
-use crate::error::Error;
-use log::{debug, warn};
-use nym_credentials_interface::{
-    aggregate_verification_keys, Signature, SignatureShare, VerificationKey,
-};
-use nym_validator_client::client::CoconutApiClient;
+// use crate::coconut::bandwidth::IssuanceBandwidthCredential;
+// use crate::error::Error;
+// use log::{debug, warn};
+// use nym_credentials_interface::{
+//     aggregate_verification_keys, Signature, SignatureShare, VerificationKey,
+// };
+// use nym_validator_client::client::CoconutApiClient;
 
 // pub fn obtain_aggregate_verification_key(
 //     api_clients: &[CoconutApiClient],

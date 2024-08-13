@@ -1,12 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::coconut::bandwidth::CredentialSigningData;
+// use crate::coconut::bandwidth::CredentialSigningData;
 use crate::coconut::utils::scalar_serde_helper;
-use crate::error::Error;
-use nym_api_requests::coconut::BlindSignRequestBody;
+// use crate::error::Error;
+// use nym_api_requests::coconut::BlindSignRequestBody;
 use nym_credentials_interface::{
-    hash_to_scalar, Attribute, BlindSignRequest, BlindedSignature, CredentialType, PublicAttribute,
+    hash_to_scalar, Attribute, BlindSignRequest, 
+    // BlindedSignature,
+    CredentialType, PublicAttribute,
 };
 use nym_crypto::asymmetric::{encryption, identity};
 use nym_validator_client::nyxd::{Coin, Hash};
@@ -90,11 +92,11 @@ impl BandwidthVoucherIssuanceData {
         message
     }
 
-    fn request_signature(&self, signing_request: &CredentialSigningData) -> identity::Signature {
-        let message =
-            Self::request_plaintext(&signing_request.blind_sign_request, self.deposit_tx_hash);
-        self.signing_key.sign(message)
-    }
+    // fn request_signature(&self, signing_request: &CredentialSigningData) -> identity::Signature {
+    //     let message =
+    //         Self::request_plaintext(&signing_request.blind_sign_request, self.deposit_tx_hash);
+    //     self.signing_key.sign(message)
+    // }
 
     // pub fn create_blind_sign_request_body(
     //     &self,
