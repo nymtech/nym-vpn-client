@@ -77,10 +77,6 @@ pub enum Error {
     FailedToLookupEntryCountries {
         source: nym_vpn_api_client::VpnApiError,
     },
-    // #[error("failed to select a low latency entry gateway: {source}")]
-    // LatencyMeasurementError {
-    //     source: nym_client_core::error::ClientCoreError,
-    // },
 }
 
 // Result type based on our error type
