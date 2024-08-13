@@ -427,7 +427,7 @@ async fn select_gateways(
         (entry_gateways, exit_gateways)
     } else {
         let all_gateways = gateway_directory_client
-            .lookup_all_gateways_from_nym_api()
+            .lookup_all_gateways()
             .await
             .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
         (all_gateways.clone(), all_gateways)
