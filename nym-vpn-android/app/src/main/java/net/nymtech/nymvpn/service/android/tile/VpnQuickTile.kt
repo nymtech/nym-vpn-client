@@ -15,10 +15,9 @@ import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.util.extensions.isExpired
 import net.nymtech.nymvpn.util.extensions.startTunnelFromBackground
 import net.nymtech.nymvpn.util.extensions.stopTunnelFromBackground
-import net.nymtech.vpn.Backend
 import net.nymtech.vpn.Tunnel
+import timber.log.Timber
 import javax.inject.Inject
-import javax.inject.Provider
 
 @AndroidEntryPoint
 class VpnQuickTile : TileService(), LifecycleOwner {
@@ -28,9 +27,6 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 
 	@Inject
 	lateinit var tunnelManager: TunnelManager
-
-	@Inject
-	lateinit var backend: Provider<Backend>
 
 	private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
 
@@ -46,7 +42,8 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 		lifecycleScope.launch {
 			val credExpiry = settingsRepository.getCredentialExpiry()
 			if (credExpiry == null || credExpiry.isExpired()) return@launch setUnavailable()
-			val state = backend.get().getState()
+			val state = tunnelManager.getState()
+			Timber.d("State from tile: $state")
 			when (state) {
 				Tunnel.State.Up -> {
 					setTileText()
@@ -80,7 +77,7 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 	override fun onClick() {
 		super.onClick()
 		unlockAndRun {
-			when (backend.get().getState()) {
+			when (tunnelManager.getState()) {
 				Tunnel.State.Up -> {
 					stopTunnelFromBackground()
 				}

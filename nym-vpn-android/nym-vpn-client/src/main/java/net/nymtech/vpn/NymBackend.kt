@@ -7,15 +7,18 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.InvalidCredentialException
 import net.nymtech.vpn.util.ServiceManager
+import nym_vpn_lib.FfiException
 import nym_vpn_lib.TunStatus
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.checkCredential
 import nym_vpn_lib.runVpn
+import timber.log.Timber
 import java.time.Instant
 
 object NymBackend : Backend, TunnelStatusListener {
@@ -31,7 +34,8 @@ object NymBackend : Backend, TunnelStatusListener {
 			withContext(ioDispatcher) {
 				checkCredential(credential)
 			}
-		} catch (e: Exception) {
+		} catch (e: FfiException) {
+			Timber.e(e)
 			throw InvalidCredentialException("Credential invalid or expired")
 		}
 	}
@@ -39,23 +43,23 @@ object NymBackend : Backend, TunnelStatusListener {
 	override suspend fun importCredential(credential: String): Instant? {
 		return try {
 			nym_vpn_lib.importCredential(credential, Constants.NATIVE_STORAGE_PATH)
-		} catch (e: Exception) {
+		} catch (e: FfiException) {
+			Timber.e(e)
 			throw InvalidCredentialException("Credential invalid or expired")
 		}
 	}
 
-	override suspend fun start(context: Context, tunnel: Tunnel): Tunnel.State {
+	override fun start(context: Context, tunnel: Tunnel): Tunnel.State {
 		this.tunnel = tunnel
-		// set all env vars
 		tunnel.environment.setup()
-		withContext(ioDispatcher) {
-			ServiceManager.startVpnService(context)
-		}
+		// reset any error state
+		tunnel.onBackendMessage(BackendMessage.None)
+		ServiceManager.startVpnServiceForeground(context)
 		return Tunnel.State.Connecting.InitializingClient
 	}
 
 	override fun stop(context: Context): Tunnel.State {
-		ServiceManager.stopVpnService(context)
+		ServiceManager.stopVpnServiceForeground(context)
 		return Tunnel.State.Disconnecting
 	}
 
@@ -80,17 +84,22 @@ object NymBackend : Backend, TunnelStatusListener {
 	internal suspend fun connect() {
 		withContext(ioDispatcher) {
 			tunnel?.let {
-				runVpn(
-					VpnConfig(
-						it.environment.apiUrl,
-						it.environment.explorerUrl,
-						it.entryPoint,
-						it.exitPoint,
-						isTwoHop(it.mode),
-						Constants.NATIVE_STORAGE_PATH,
-						this@NymBackend,
-					),
-				)
+				runCatching {
+					runVpn(
+						VpnConfig(
+							it.environment.apiUrl,
+							it.environment.explorerUrl,
+							it.entryPoint,
+							it.exitPoint,
+							isTwoHop(it.mode),
+							Constants.NATIVE_STORAGE_PATH,
+							this@NymBackend,
+						),
+					)
+				}.onFailure {
+					// temp for now until we setup error/message callback
+					tunnel?.onBackendMessage(BackendMessage.Error.StartFailed)
+				}
 			}
 		}
 	}

@@ -8,12 +8,16 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.ui.model.ConnectionState
+import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.Constants
+import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.vpn.Tunnel
+import net.nymtech.vpn.model.BackendMessage
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,17 +34,10 @@ constructor(
 		) { settings, manager ->
 			val connectionTime = manager.statistics.connectionSeconds.convertSecondsToTimeString()
 			val connectionState = ConnectionState.from(manager.state)
-// 			val stateMessage =
-// 				clientState.errorState.let {
-// 					when (it) {
-// 						ErrorState.BadGatewayNoHostnameAddress -> StateMessage.Error(StringValue.StringResource(R.string.error_no_hostname_address))
-// 						ErrorState.BadGatewayPeerCertificate -> StateMessage.Error(StringValue.StringResource(R.string.error_bad_peer_cert))
-// 						ErrorState.GatewayLookupFailure -> StateMessage.Error(StringValue.StringResource(R.string.error_gateway_lookup))
-// 						ErrorState.None -> connectionState.stateMessage
-// 						ErrorState.InvalidCredential -> StateMessage.Error(StringValue.StringResource(R.string.error_invalid_credential))
-// 						is ErrorState.VpnHaltedUnexpectedly -> StateMessage.Error(StringValue.StringResource(R.string.error_vpn_halted_unexpectedly))
-// 					}
-// 				}
+			val stateMessage = when (manager.backendMessage) {
+				BackendMessage.Error.StartFailed -> StateMessage.Error(StringValue.StringResource(R.string.error_gateway_lookup))
+				BackendMessage.None -> connectionState.stateMessage
+			}
 			MainUiState(
 				false,
 				lastHopCountry = settings.lastHopCountry,
@@ -49,7 +46,7 @@ constructor(
 				networkMode = settings.vpnMode,
 				connectionState = connectionState,
 				firstHopEnabled = settings.firstHopSelectionEnabled,
-				stateMessage = connectionState.stateMessage,
+				stateMessage = stateMessage,
 			)
 		}
 			.stateIn(
@@ -66,11 +63,11 @@ constructor(
 		settingsRepository.setVpnMode(Tunnel.Mode.FIVE_HOP_MIXNET)
 	}
 
-	fun onConnect(context: Context) = viewModelScope.launch {
-		tunnelManager.startVpn(context)
+	suspend fun onConnect(context: Context): Result<Tunnel.State> {
+		return tunnelManager.start(context)
 	}
 
 	fun onDisconnect(context: Context) = viewModelScope.launch {
-		tunnelManager.stopVpn(context)
+		tunnelManager.stop(context)
 	}
 }

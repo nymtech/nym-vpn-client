@@ -111,7 +111,7 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideVpnClient(): Backend {
+	fun provideBackend(): Backend {
 		return NymBackend
 	}
 

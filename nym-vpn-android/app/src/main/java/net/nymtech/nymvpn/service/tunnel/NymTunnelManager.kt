@@ -14,6 +14,7 @@ import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.InvalidCredentialException
 import net.nymtech.vpn.util.MissingPermissionException
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -25,13 +26,17 @@ class NymTunnelManager @Inject constructor(
 	private val _state = MutableStateFlow(TunnelState())
 	override val stateFlow: Flow<TunnelState> = _state.asStateFlow()
 
-	override suspend fun stopVpn(context: Context): Result<Tunnel.State> {
+	override fun getState(): Tunnel.State {
+		return backend.get().getState()
+	}
+
+	override suspend fun stop(context: Context): Result<Tunnel.State> {
 		return runCatching {
 			backend.get().stop(context)
 		}
 	}
 
-	override suspend fun startVpn(context: Context): Result<Tunnel.State> {
+	override suspend fun start(context: Context): Result<Tunnel.State> {
 		return runCatching {
 			val intent = VpnService.prepare(context)
 			if (intent != null) return Result.failure(MissingPermissionException("VPN permission missing"))
@@ -52,6 +57,12 @@ class NymTunnelManager @Inject constructor(
 				return Result.failure(InvalidCredentialException("Credential missing or expired"))
 			}
 			backend.get().start(context, tunnel)
+		}
+	}
+
+	override suspend fun importCredential(credential: String): Result<Instant?> {
+		return kotlin.runCatching {
+			backend.get().importCredential(credential)
 		}
 	}
 

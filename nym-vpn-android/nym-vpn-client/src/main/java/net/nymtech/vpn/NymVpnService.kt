@@ -92,7 +92,11 @@ class NymVpnService : LifecycleVpnService() {
 	private fun stopService() {
 		stopForeground(STOP_FOREGROUND_REMOVE)
 		lifecycleScope.launch(ioDispatcher) {
-			stopVpn()
+			runCatching {
+				stopVpn()
+			}.onFailure {
+				Timber.e(it)
+			}
 		}
 		stopSelf()
 	}

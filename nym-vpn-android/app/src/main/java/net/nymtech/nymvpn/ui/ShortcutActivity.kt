@@ -41,12 +41,12 @@ class ShortcutActivity : ComponentActivity() {
 			if (enabled) {
 				when (intent.action) {
 					Action.START.name -> {
-						tunnelManager.startVpn(this@ShortcutActivity).onFailure {
+						tunnelManager.start(this@ShortcutActivity).onFailure {
 							Timber.w(it)
 						}
 					}
 					Action.STOP.name -> {
-						tunnelManager.stopVpn(this@ShortcutActivity)
+						tunnelManager.stop(this@ShortcutActivity)
 					}
 				}
 			} else {
