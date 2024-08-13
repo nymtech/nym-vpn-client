@@ -157,11 +157,9 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
             .self_described
             .as_ref()
             .and_then(|d| d.auxiliary_details.location)
-            .and_then(|l| {
-                Some(Location {
-                    two_letter_iso_country_code: l.alpha2.to_string(),
-                    ..Default::default()
-                })
+            .map(|l| Location {
+                two_letter_iso_country_code: l.alpha2.to_string(),
+                ..Default::default()
             });
         let ipr_address = gateway
             .self_described
