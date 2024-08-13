@@ -327,15 +327,15 @@ impl nym_client_core::init::helpers::GatewayWithAddress for Gateway {
         self.identity()
     }
 
-    fn is_wss(&self) -> bool {
-        todo!();
-    }
-
     fn clients_address(&self) -> String {
         // This is a bit of a sharp edge, but temporary until we can remove Option from host
         // and tls port when we add these to the vpn API endpoints.
         self.clients_address_tls()
             .or(self.clients_address_no_tls())
             .unwrap_or("ws://".to_string())
+    }
+
+    fn is_wss(&self) -> bool {
+        self.clients_address_tls().is_some()
     }
 }
