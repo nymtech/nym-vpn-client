@@ -71,7 +71,7 @@ fn init_jni_logger(level: String) {
 
     android_logger::init_once(
         Config::default()
-            .with_max_level(LevelFilter::Trace)
+            .with_max_level(tracing_subscriber::filter::LevelFilter::Trace)
             .with_tag("libnymvpn")
             .with_filter(FilterBuilder::new().parse(levels.as_str()).build()),
     );
