@@ -215,6 +215,30 @@ impl GatewayClient {
             .map(|gateways| gateways.into_exit_gateways())
     }
 
+    pub async fn lookup_all_gateways(&self) -> Result<GatewayList> {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            info!("Fetching all gateways from nym-vpn-api...");
+            let mut gateways: Vec<_> = nym_vpn_api_client
+                .get_gateways()
+                .await?
+                .into_iter()
+                .filter_map(|gw| {
+                    Gateway::try_from(gw)
+                        .inspect_err(|err| error!("Failed to parse gateway: {err}"))
+                        .ok()
+                })
+                .collect();
+
+            // Lookup the IPR and authenticator addresses from the nym-api as a temporary hack until
+            // the nymvpn.com endpoints are updated to also include these fields.
+            let described_gateways = self.lookup_described_gateways().await?;
+            append_ipr_and_authenticator_addresses(&mut gateways, described_gateways);
+            Ok(GatewayList::new(gateways))
+        } else {
+            self.lookup_all_gateways_from_nym_api().await
+        }
+    }
+
     pub async fn lookup_entry_gateways(&self) -> Result<GatewayList> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching entry gateways from nym-vpn-api...");
