@@ -199,13 +199,13 @@ pub struct NymVpn<T: Vpn> {
     shadow_handle: ShadowHandle,
 }
 
-#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct MixnetConnectionInfo {
     pub nym_address: Recipient,
     pub entry_gateway: NodeIdentity,
 }
 
-#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct MixnetExitConnectionInfo {
     pub exit_gateway: NodeIdentity,
     pub exit_ipr: Recipient,
