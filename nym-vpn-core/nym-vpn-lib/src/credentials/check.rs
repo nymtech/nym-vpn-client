@@ -140,21 +140,20 @@ pub async fn check_imported_credential(
     data_path: PathBuf,
     gateway_id: &str,
 ) -> Result<(), CheckImportedCredentialError> {
-    todo!();
-    // let client = get_nyxd_client()?;
-    // let (credentials_store, _location) = get_credentials_store(data_path.clone()).await?;
-    // let bandwidth_controller = BandwidthController::new(credentials_store, client);
-    // let _usable_credential = bandwidth_controller
-    //     .get_next_usable_credential(gateway_id)
-    //     .await
-    //     .map_err(
-    //         |err| CheckImportedCredentialError::FailedToGetNextUsableCredential {
-    //             location: data_path,
-    //             reason: err.to_string(),
-    //         },
-    //     )?;
-    //
-    // Ok(())
+    let client = get_nyxd_client()?;
+    let (credentials_store, _location) = get_credentials_store(data_path.clone()).await?;
+    let bandwidth_controller = BandwidthController::new(credentials_store, client);
+    let _usable_credential = bandwidth_controller
+        .get_next_usable_credential(gateway_id)
+        .await
+        .map_err(
+            |err| CheckImportedCredentialError::FailedToGetNextUsableCredential {
+                location: data_path,
+                reason: err.to_string(),
+            },
+        )?;
+
+    Ok(())
 }
 
 #[derive(Debug, thiserror::Error)]
