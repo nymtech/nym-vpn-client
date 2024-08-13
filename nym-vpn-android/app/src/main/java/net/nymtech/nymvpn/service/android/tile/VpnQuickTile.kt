@@ -43,26 +43,38 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 			val credExpiry = settingsRepository.getCredentialExpiry()
 			if (credExpiry == null || credExpiry.isExpired()) return@launch setUnavailable()
 			val state = tunnelManager.getState()
-			Timber.d("State from tile: $state")
-			when (state) {
-				Tunnel.State.Up -> {
-					setTileText()
-					setActive()
+			kotlin.runCatching {
+				when (state) {
+					Tunnel.State.Up -> {
+						setTileText()
+						setActive()
+						qsTile.updateTile()
+					}
+					Tunnel.State.Down -> {
+						setTileText()
+						setInactive()
+						qsTile.updateTile()
+					}
+					Tunnel.State.Disconnecting -> {
+						setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
+						setActive()
+						qsTile.updateTile()
+					}
+					Tunnel.State.Connecting.EstablishingConnection, Tunnel.State.Connecting.InitializingClient -> {
+						setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
+						setInactive()
+						qsTile.updateTile()
+					}
 				}
-				Tunnel.State.Down -> {
-					setTileText()
-					setInactive()
-				}
-				Tunnel.State.Disconnecting -> {
-					setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
-					setActive()
-				}
-				Tunnel.State.Connecting.EstablishingConnection, Tunnel.State.Connecting.InitializingClient -> {
-					setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
-					setInactive()
-				}
+			}.onFailure {
+				Timber.e(it)
 			}
 		}
+	}
+
+	override fun onTileAdded() {
+		super.onTileAdded()
+		onStartListening()
 	}
 
 	override fun onStopListening() {
@@ -89,7 +101,7 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 		}
 	}
 
-	private fun setTileText() = lifecycleScope.launch {
+	private suspend fun setTileText() {
 		kotlin.runCatching {
 			val firstHopCountry = settingsRepository.getFirstHopCountry()
 			val lastHopCountry = settingsRepository.getLastHopCountry()
@@ -113,42 +125,27 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 	}
 
 	private fun setActive() {
-		kotlin.runCatching {
-			qsTile.state = Tile.STATE_ACTIVE
-			qsTile.updateTile()
-		}
+		qsTile.state = Tile.STATE_ACTIVE
 	}
 
 	private fun setTitle(title: String) {
-		kotlin.runCatching {
-			qsTile.label = title
-			qsTile.updateTile()
-		}
+		qsTile.label = title
 	}
 
 	private fun setInactive() {
-		kotlin.runCatching {
-			qsTile.state = Tile.STATE_INACTIVE
-			qsTile.updateTile()
-		}
+		qsTile.state = Tile.STATE_INACTIVE
 	}
 
 	private fun setUnavailable() {
-		kotlin.runCatching {
-			qsTile.state = Tile.STATE_UNAVAILABLE
-			qsTile.updateTile()
-		}
+		qsTile.state = Tile.STATE_UNAVAILABLE
 	}
 
 	private fun setTileDescription(description: String) {
-		kotlin.runCatching {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-				qsTile.subtitle = description
-			}
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-				qsTile.stateDescription = description
-			}
-			qsTile.updateTile()
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+			qsTile.subtitle = description
+		}
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			qsTile.stateDescription = description
 		}
 	}
 
