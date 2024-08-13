@@ -1,18 +1,21 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::coconut::bandwidth::bandwidth_credential_params;
+// use crate::coconut::bandwidth::bandwidth_credential_params;
 use crate::coconut::bandwidth::freepass::FreePassIssuedData;
 use crate::coconut::bandwidth::issuance::{
     BandwidthCredentialIssuanceDataVariant, IssuanceBandwidthCredential,
 };
 use crate::coconut::bandwidth::voucher::BandwidthVoucherIssuedData;
-use crate::coconut::bandwidth::{CredentialSpendingData, CredentialType};
+use crate::coconut::bandwidth::{
+    // CredentialSpendingData,
+    CredentialType};
 use crate::coconut::utils::scalar_serde_helper;
 use crate::error::Error;
-use nym_credentials_interface::prove_bandwidth_credential;
+// use nym_credentials_interface::prove_bandwidth_credential;
 use nym_credentials_interface::{
-    Parameters, PrivateAttribute, PublicAttribute, Signature, VerificationKey,
+    Parameters, PrivateAttribute, PublicAttribute, Signature, 
+    // VerificationKey,
 };
 use nym_validator_client::nym_api::EpochId;
 use serde::{Deserialize, Serialize};
@@ -170,28 +173,28 @@ impl IssuedBandwidthCredential {
         ]
     }
 
-    pub fn prepare_for_spending(
-        &self,
-        verification_key: &VerificationKey,
-    ) -> Result<CredentialSpendingData, Error> {
-        let params = bandwidth_credential_params();
-
-        let verify_credential_request = prove_bandwidth_credential(
-            params,
-            verification_key,
-            &self.signature,
-            &self.serial_number,
-            &self.binding_number,
-        )?;
-
-        Ok(CredentialSpendingData {
-            embedded_private_attributes: IssuanceBandwidthCredential::PRIVATE_ATTRIBUTES as usize,
-            verify_credential_request,
-            public_attributes_plain: self.get_plain_public_attributes(),
-            typ: self.typ(),
-            epoch_id: self.epoch_id,
-        })
-    }
+    // pub fn prepare_for_spending(
+    //     &self,
+    //     verification_key: &VerificationKey,
+    // ) -> Result<CredentialSpendingData, Error> {
+    //     let params = bandwidth_credential_params();
+    //
+    //     let verify_credential_request = prove_bandwidth_credential(
+    //         params,
+    //         verification_key,
+    //         &self.signature,
+    //         &self.serial_number,
+    //         &self.binding_number,
+    //     )?;
+    //
+    //     Ok(CredentialSpendingData {
+    //         embedded_private_attributes: IssuanceBandwidthCredential::PRIVATE_ATTRIBUTES as usize,
+    //         verify_credential_request,
+    //         public_attributes_plain: self.get_plain_public_attributes(),
+    //         typ: self.typ(),
+    //         epoch_id: self.epoch_id,
+    //     })
+    // }
 }
 
 fn make_storable_bincode_serializer() -> impl bincode::Options {

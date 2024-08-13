@@ -6,7 +6,8 @@ use crate::coconut::utils::scalar_serde_helper;
 // use crate::error::Error;
 // use nym_api_requests::coconut::BlindSignRequestBody;
 use nym_credentials_interface::{
-    hash_to_scalar, Attribute, BlindSignRequest, 
+    hash_to_scalar, Attribute, 
+    // BlindSignRequest, 
     // BlindedSignature,
     CredentialType, PublicAttribute,
 };
@@ -86,11 +87,11 @@ impl BandwidthVoucherIssuanceData {
         }
     }
 
-    pub fn request_plaintext(request: &BlindSignRequest, tx_hash: Hash) -> Vec<u8> {
-        let mut message = request.to_bytes();
-        message.extend_from_slice(tx_hash.as_bytes());
-        message
-    }
+    // pub fn request_plaintext(request: &BlindSignRequest, tx_hash: Hash) -> Vec<u8> {
+    //     let mut message = request.to_bytes();
+    //     message.extend_from_slice(tx_hash.as_bytes());
+    //     message
+    // }
 
     // fn request_signature(&self, signing_request: &CredentialSigningData) -> identity::Signature {
     //     let message =

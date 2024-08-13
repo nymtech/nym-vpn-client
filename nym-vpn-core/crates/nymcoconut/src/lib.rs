@@ -45,7 +45,7 @@ mod error;
 mod impls;
 mod proofs;
 mod scheme;
-pub mod tests;
+// pub mod tests;
 mod traits;
 mod utils;
 

@@ -5,14 +5,21 @@ use crate::coconut::bandwidth::freepass::FreePassIssuanceData;
 use crate::coconut::bandwidth::issued::IssuedBandwidthCredential;
 use crate::coconut::bandwidth::voucher::BandwidthVoucherIssuanceData;
 use crate::coconut::bandwidth::{
-    bandwidth_credential_params, CredentialSigningData, CredentialType,
+    bandwidth_credential_params, 
+    // CredentialSigningData,
+    CredentialType,
 };
 use crate::coconut::utils::scalar_serde_helper;
 use crate::error::Error;
 use nym_credentials_interface::{
-    aggregate_signature_shares, aggregate_signature_shares_and_verify, hash_to_scalar,
-    prepare_blind_sign, Attribute, BlindedSerialNumber, BlindedSignature, Parameters,
-    PrivateAttribute, PublicAttribute, Signature, SignatureShare, VerificationKey,
+    // aggregate_signature_shares, aggregate_signature_shares_and_verify,
+    hash_to_scalar,
+    // prepare_blind_sign,
+    Attribute, BlindedSerialNumber, 
+    // BlindedSignature,
+    Parameters,
+    PrivateAttribute, PublicAttribute, Signature,
+    // SignatureShare, VerificationKey,
 };
 use nym_crypto::asymmetric::{encryption, identity};
 use nym_validator_client::nym_api::EpochId;
@@ -178,47 +185,47 @@ impl IssuanceBandwidthCredential {
         self.variant_data.public_value_plain()
     }
 
-    pub fn prepare_for_signing(&self) -> CredentialSigningData {
-        let params = bandwidth_credential_params();
+    // pub fn prepare_for_signing(&self) -> CredentialSigningData {
+    //     let params = bandwidth_credential_params();
+    //
+    //     // safety: the creation of the request can only fail if one provided invalid parameters
+    //     // and we created then specific to this type of the credential so the unwrap is fine
+    //     let (pedersen_commitments_openings, blind_sign_request) = prepare_blind_sign(
+    //         params,
+    //         &[&self.serial_number, &self.binding_number],
+    //         &self.get_public_attributes(),
+    //     )
+    //     .unwrap();
+    //
+    //     CredentialSigningData {
+    //         pedersen_commitments_openings,
+    //         blind_sign_request,
+    //         public_attributes_plain: self.get_plain_public_attributes(),
+    //         typ: self.typ(),
+    //     }
+    // }
 
-        // safety: the creation of the request can only fail if one provided invalid parameters
-        // and we created then specific to this type of the credential so the unwrap is fine
-        let (pedersen_commitments_openings, blind_sign_request) = prepare_blind_sign(
-            params,
-            &[&self.serial_number, &self.binding_number],
-            &self.get_public_attributes(),
-        )
-        .unwrap();
-
-        CredentialSigningData {
-            pedersen_commitments_openings,
-            blind_sign_request,
-            public_attributes_plain: self.get_plain_public_attributes(),
-            typ: self.typ(),
-        }
-    }
-
-    pub fn unblind_signature(
-        &self,
-        validator_vk: &VerificationKey,
-        signing_data: &CredentialSigningData,
-        blinded_signature: BlindedSignature,
-    ) -> Result<Signature, Error> {
-        let public_attributes = self.get_public_attributes();
-        let private_attributes = self.get_private_attributes();
-
-        let params = bandwidth_credential_params();
-        let unblinded_signature = blinded_signature.unblind_and_verify(
-            params,
-            validator_vk,
-            &private_attributes,
-            &public_attributes,
-            &signing_data.blind_sign_request.get_commitment_hash(),
-            &signing_data.pedersen_commitments_openings,
-        )?;
-
-        Ok(unblinded_signature)
-    }
+    // pub fn unblind_signature(
+    //     &self,
+    //     validator_vk: &VerificationKey,
+    //     signing_data: &CredentialSigningData,
+    //     blinded_signature: BlindedSignature,
+    // ) -> Result<Signature, Error> {
+    //     let public_attributes = self.get_public_attributes();
+    //     let private_attributes = self.get_private_attributes();
+    //
+    //     let params = bandwidth_credential_params();
+    //     let unblinded_signature = blinded_signature.unblind_and_verify(
+    //         params,
+    //         validator_vk,
+    //         &private_attributes,
+    //         &public_attributes,
+    //         &signing_data.blind_sign_request.get_commitment_hash(),
+    //         &signing_data.pedersen_commitments_openings,
+    //     )?;
+    //
+    //     Ok(unblinded_signature)
+    // }
 
     // pub async fn obtain_partial_freepass_credential(
     //     &self,
@@ -266,30 +273,30 @@ impl IssuanceBandwidthCredential {
     //     self.unblind_signature(validator_vk, &signing_data, blinded_signature)
     // }
 
-    pub fn unchecked_aggregate_signature_shares(
-        &self,
-        shares: &[SignatureShare],
-    ) -> Result<Signature, Error> {
-        aggregate_signature_shares(shares).map_err(Error::SignatureAggregationError)
-    }
-
-    pub fn aggregate_signature_shares(
-        &self,
-        verification_key: &VerificationKey,
-        shares: &[SignatureShare],
-    ) -> Result<Signature, Error> {
-        let public_attributes = self.get_public_attributes();
-        let private_attributes = self.get_private_attributes();
-
-        let params = bandwidth_credential_params();
-
-        let mut attributes = Vec::with_capacity(private_attributes.len() + public_attributes.len());
-        attributes.extend_from_slice(&private_attributes);
-        attributes.extend_from_slice(&public_attributes);
-
-        aggregate_signature_shares_and_verify(params, verification_key, &attributes, shares)
-            .map_err(Error::SignatureAggregationError)
-    }
+    // pub fn unchecked_aggregate_signature_shares(
+    //     &self,
+    //     shares: &[SignatureShare],
+    // ) -> Result<Signature, Error> {
+    //     aggregate_signature_shares(shares).map_err(Error::SignatureAggregationError)
+    // }
+    //
+    // pub fn aggregate_signature_shares(
+    //     &self,
+    //     verification_key: &VerificationKey,
+    //     shares: &[SignatureShare],
+    // ) -> Result<Signature, Error> {
+    //     let public_attributes = self.get_public_attributes();
+    //     let private_attributes = self.get_private_attributes();
+    //
+    //     let params = bandwidth_credential_params();
+    //
+    //     let mut attributes = Vec::with_capacity(private_attributes.len() + public_attributes.len());
+    //     attributes.extend_from_slice(&private_attributes);
+    //     attributes.extend_from_slice(&public_attributes);
+    //
+    //     aggregate_signature_shares_and_verify(params, verification_key, &attributes, shares)
+    //         .map_err(Error::SignatureAggregationError)
+    // }
 
     // also drops self after the conversion
     pub fn into_issued_credential(
