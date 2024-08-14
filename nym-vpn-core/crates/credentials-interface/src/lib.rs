@@ -14,10 +14,6 @@ PrivateAttribute,
     Signature,
 };
 
-// pub(crate) use nym_coconut::{
-// VerifyCredentialRequest,
-// };
-
 pub(crate) const VOUCHER_INFO_TYPE: &str = "BandwidthVoucher";
 pub(crate) const FREE_PASS_INFO_TYPE: &str = "FreeBandwidthPass";
 
@@ -53,17 +49,3 @@ impl Display for CredentialType {
         }
     }
 }
-
-// #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
-// pub(crate) struct CredentialSpendingData {
-//     pub(crate) embedded_private_attributes: usize,
-//
-//     pub(crate) verify_credential_request: VerifyCredentialRequest,
-//
-//     pub(crate) public_attributes_plain: Vec<String>,
-//
-//     pub(crate) typ: CredentialType,
-//
-//     /// The (DKG) epoch id under which the credential has been issued so that the verifier could use correct verification key for validation.
-//     pub(crate) epoch_id: u64,
-// }

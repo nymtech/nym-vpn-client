@@ -4,8 +4,5 @@
 pub mod coconut;
 pub mod error;
 
-pub use coconut::bandwidth::{
-    // CredentialSigningData, CredentialSpendingData,
-    IssuedBandwidthCredential,
-};
+pub use coconut::bandwidth::IssuedBandwidthCredential;
 pub use error::Error;
