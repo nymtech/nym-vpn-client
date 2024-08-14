@@ -83,9 +83,9 @@ function LicenseDetails() {
               </ul>
             )}
           </div>
-          <div className="flex flex-col gap-2">
-            {label(t('license-texts'))}
-            {licenseTexts && (
+          {licenseTexts && (
+            <div className="flex flex-col gap-2">
+              {label(t('license-texts'))}
               <ul className="flex flex-col gap-4">
                 {licenseTexts.map(
                   (text, i) =>
@@ -101,8 +101,8 @@ function LicenseDetails() {
                     ),
                 )}
               </ul>
-            )}
-          </div>
+            </div>
+          )}
           <div className="flex flex-row items-center gap-4">
             {label(t('language'))}
             <p className="italic truncate">

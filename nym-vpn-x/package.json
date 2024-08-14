@@ -26,7 +26,7 @@
     "tauri": "tauri",
     "gen:licenses": "run-p --aggregate-output gen:licenses:rust gen:licenses:js",
     "gen:licenses:js": "npx license-checker-rseidelsohn --json --customPath license-fmt.json > public/licenses-js.json",
-    "gen:licenses:rust": "cd src-tauri && cargo about generate --all-features --format json -o ../public/licenses-rust.json"
+    "gen:licenses:rust": "cargo license -j --avoid-dev-deps --avoid-build-deps --manifest-path src-tauri/Cargo.toml > public/licenses-rust.json"
   },
   "dependencies": {
     "@headlessui/react": "^2.1.2",

@@ -5,8 +5,6 @@ import { CodeDependency, JsLicensesJson, RustLicensesJson } from '../types';
 const LicensesJs = '/licenses-js.json';
 const LicensesRust = '/licenses-rust.json';
 
-export type DependencyByNames = Record<string, CodeDependency>;
-
 export async function getRustLicenses(): Promise<CodeDependency[] | undefined> {
   let json: RustLicensesJson;
   try {
@@ -19,31 +17,11 @@ export async function getRustLicenses(): Promise<CodeDependency[] | undefined> {
 
   let list: CodeDependency[] = [];
   try {
-    const crates = json.licenses.reduce<DependencyByNames>(
-      (acc, { name: licenseName, text: licenseText, used_by }) => {
-        used_by.forEach(({ crate }) => {
-          const key = `${crate.name}@${crate.version}`;
-          if (acc[key]) {
-            if (!acc[key].licenses.includes(licenseName)) {
-              acc[key].licenses.push(licenseName);
-              acc[key].licenseTexts.push(licenseText);
-            }
-          } else {
-            acc[key] = {
-              ...crate,
-              licenses: [licenseName],
-              licenseTexts: [licenseText],
-            };
-          }
-        });
-        return acc;
-      },
-      {},
-    );
-    list = Object.values(crates).map((crate) => {
+    list = json.map((info) => {
       return {
-        ...crate,
-        authors: crate.authors,
+        ...info,
+        authors: info.authors?.split('|') || ['-'],
+        licenses: [info.license],
       };
     });
   } catch (e) {
