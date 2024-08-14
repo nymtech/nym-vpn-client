@@ -242,14 +242,14 @@ impl From<UserAgent> for NymUserAgent {
 }
 
 #[derive(Debug, PartialEq, uniffi::Record, Clone)]
-pub struct ConnectionInfo {
+pub struct MixConnectionInfo {
     pub nym_address: Recipient,
     pub entry_gateway: NodeIdentity,
 }
 
-impl From<MixnetConnectionInfo> for ConnectionInfo {
+impl From<MixnetConnectionInfo> for MixConnectionInfo {
     fn from(value: MixnetConnectionInfo) -> Self {
-        ConnectionInfo {
+        MixConnectionInfo {
             nym_address: value.nym_address,
             entry_gateway: value.entry_gateway,
         }
@@ -257,15 +257,15 @@ impl From<MixnetConnectionInfo> for ConnectionInfo {
 }
 
 #[derive(Debug, PartialEq, uniffi::Record, Clone)]
-pub struct ExitConnectionInfo {
+pub struct MixExitConnectionInfo {
     pub exit_gateway: NodeIdentity,
     pub exit_ipr: Recipient,
     pub ips: IpPair,
 }
 
-impl From<MixnetExitConnectionInfo> for ExitConnectionInfo {
+impl From<MixnetExitConnectionInfo> for MixExitConnectionInfo {
     fn from(value: MixnetExitConnectionInfo) -> Self {
-        ExitConnectionInfo {
+        MixExitConnectionInfo {
             exit_gateway: value.exit_gateway,
             exit_ipr: value.exit_ipr,
             ips: value.ips,
@@ -333,8 +333,8 @@ pub enum TunStatus {
 #[allow(clippy::large_enum_variant)]
 pub enum NymVpnStatus {
     ConnectionInfo {
-        mixnet_connection_info: ConnectionInfo,
-        mixnet_exit_connection_info: ExitConnectionInfo,
+        mixnet_connection_info: MixConnectionInfo,
+        mixnet_exit_connection_info: MixExitConnectionInfo,
     },
 }
 
