@@ -1628,7 +1628,7 @@ public object FfiConverterTypeLocation: FfiConverterRustBuffer<Location> {
 
 
 
-data class MixnetConnectionInfo (
+data class MixConnectionInfo (
     var `nymAddress`: Recipient, 
     var `entryGateway`: NodeIdentity
 ) {
@@ -1636,20 +1636,20 @@ data class MixnetConnectionInfo (
     companion object
 }
 
-public object FfiConverterTypeMixnetConnectionInfo: FfiConverterRustBuffer<MixnetConnectionInfo> {
-    override fun read(buf: ByteBuffer): MixnetConnectionInfo {
-        return MixnetConnectionInfo(
+public object FfiConverterTypeMixConnectionInfo: FfiConverterRustBuffer<MixConnectionInfo> {
+    override fun read(buf: ByteBuffer): MixConnectionInfo {
+        return MixConnectionInfo(
             FfiConverterTypeRecipient.read(buf),
             FfiConverterTypeNodeIdentity.read(buf),
         )
     }
 
-    override fun allocationSize(value: MixnetConnectionInfo) = (
+    override fun allocationSize(value: MixConnectionInfo) = (
             FfiConverterTypeRecipient.allocationSize(value.`nymAddress`) +
             FfiConverterTypeNodeIdentity.allocationSize(value.`entryGateway`)
     )
 
-    override fun write(value: MixnetConnectionInfo, buf: ByteBuffer) {
+    override fun write(value: MixConnectionInfo, buf: ByteBuffer) {
             FfiConverterTypeRecipient.write(value.`nymAddress`, buf)
             FfiConverterTypeNodeIdentity.write(value.`entryGateway`, buf)
     }
@@ -1657,7 +1657,7 @@ public object FfiConverterTypeMixnetConnectionInfo: FfiConverterRustBuffer<Mixne
 
 
 
-data class MixnetExitConnectionInfo (
+data class MixExitConnectionInfo (
     var `exitGateway`: NodeIdentity, 
     var `exitIpr`: Recipient, 
     var `ips`: IpPair
@@ -1666,22 +1666,22 @@ data class MixnetExitConnectionInfo (
     companion object
 }
 
-public object FfiConverterTypeMixnetExitConnectionInfo: FfiConverterRustBuffer<MixnetExitConnectionInfo> {
-    override fun read(buf: ByteBuffer): MixnetExitConnectionInfo {
-        return MixnetExitConnectionInfo(
+public object FfiConverterTypeMixExitConnectionInfo: FfiConverterRustBuffer<MixExitConnectionInfo> {
+    override fun read(buf: ByteBuffer): MixExitConnectionInfo {
+        return MixExitConnectionInfo(
             FfiConverterTypeNodeIdentity.read(buf),
             FfiConverterTypeRecipient.read(buf),
             FfiConverterTypeIpPair.read(buf),
         )
     }
 
-    override fun allocationSize(value: MixnetExitConnectionInfo) = (
+    override fun allocationSize(value: MixExitConnectionInfo) = (
             FfiConverterTypeNodeIdentity.allocationSize(value.`exitGateway`) +
             FfiConverterTypeRecipient.allocationSize(value.`exitIpr`) +
             FfiConverterTypeIpPair.allocationSize(value.`ips`)
     )
 
-    override fun write(value: MixnetExitConnectionInfo, buf: ByteBuffer) {
+    override fun write(value: MixExitConnectionInfo, buf: ByteBuffer) {
             FfiConverterTypeNodeIdentity.write(value.`exitGateway`, buf)
             FfiConverterTypeRecipient.write(value.`exitIpr`, buf)
             FfiConverterTypeIpPair.write(value.`ips`, buf)
@@ -2300,8 +2300,8 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
 sealed class NymVpnStatus {
     
     data class ConnectionInfo(
-        val `mixnetConnectionInfo`: MixnetConnectionInfo, 
-        val `mixnetExitConnectionInfo`: MixnetExitConnectionInfo) : NymVpnStatus() {
+        val `mixnetConnectionInfo`: MixConnectionInfo, 
+        val `mixnetExitConnectionInfo`: MixExitConnectionInfo) : NymVpnStatus() {
         companion object
     }
     
@@ -2314,8 +2314,8 @@ public object FfiConverterTypeNymVpnStatus : FfiConverterRustBuffer<NymVpnStatus
     override fun read(buf: ByteBuffer): NymVpnStatus {
         return when(buf.getInt()) {
             1 -> NymVpnStatus.ConnectionInfo(
-                FfiConverterTypeMixnetConnectionInfo.read(buf),
-                FfiConverterTypeMixnetExitConnectionInfo.read(buf),
+                FfiConverterTypeMixConnectionInfo.read(buf),
+                FfiConverterTypeMixExitConnectionInfo.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
@@ -2326,8 +2326,8 @@ public object FfiConverterTypeNymVpnStatus : FfiConverterRustBuffer<NymVpnStatus
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterTypeMixnetConnectionInfo.allocationSize(value.`mixnetConnectionInfo`)
-                + FfiConverterTypeMixnetExitConnectionInfo.allocationSize(value.`mixnetExitConnectionInfo`)
+                + FfiConverterTypeMixConnectionInfo.allocationSize(value.`mixnetConnectionInfo`)
+                + FfiConverterTypeMixExitConnectionInfo.allocationSize(value.`mixnetExitConnectionInfo`)
             )
         }
     }
@@ -2336,8 +2336,8 @@ public object FfiConverterTypeNymVpnStatus : FfiConverterRustBuffer<NymVpnStatus
         when(value) {
             is NymVpnStatus.ConnectionInfo -> {
                 buf.putInt(1)
-                FfiConverterTypeMixnetConnectionInfo.write(value.`mixnetConnectionInfo`, buf)
-                FfiConverterTypeMixnetExitConnectionInfo.write(value.`mixnetExitConnectionInfo`, buf)
+                FfiConverterTypeMixConnectionInfo.write(value.`mixnetConnectionInfo`, buf)
+                FfiConverterTypeMixExitConnectionInfo.write(value.`mixnetExitConnectionInfo`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }

@@ -1006,7 +1006,7 @@ public func FfiConverterTypeLocation_lower(_ value: Location) -> RustBuffer {
 }
 
 
-public struct MixnetConnectionInfo {
+public struct MixConnectionInfo {
     public var nymAddress: Recipient
     public var entryGateway: NodeIdentity
 
@@ -1020,8 +1020,8 @@ public struct MixnetConnectionInfo {
 
 
 
-extension MixnetConnectionInfo: Equatable, Hashable {
-    public static func ==(lhs: MixnetConnectionInfo, rhs: MixnetConnectionInfo) -> Bool {
+extension MixConnectionInfo: Equatable, Hashable {
+    public static func ==(lhs: MixConnectionInfo, rhs: MixConnectionInfo) -> Bool {
         if lhs.nymAddress != rhs.nymAddress {
             return false
         }
@@ -1038,32 +1038,32 @@ extension MixnetConnectionInfo: Equatable, Hashable {
 }
 
 
-public struct FfiConverterTypeMixnetConnectionInfo: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MixnetConnectionInfo {
+public struct FfiConverterTypeMixConnectionInfo: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MixConnectionInfo {
         return
-            try MixnetConnectionInfo(
+            try MixConnectionInfo(
                 nymAddress: FfiConverterTypeRecipient.read(from: &buf), 
                 entryGateway: FfiConverterTypeNodeIdentity.read(from: &buf)
         )
     }
 
-    public static func write(_ value: MixnetConnectionInfo, into buf: inout [UInt8]) {
+    public static func write(_ value: MixConnectionInfo, into buf: inout [UInt8]) {
         FfiConverterTypeRecipient.write(value.nymAddress, into: &buf)
         FfiConverterTypeNodeIdentity.write(value.entryGateway, into: &buf)
     }
 }
 
 
-public func FfiConverterTypeMixnetConnectionInfo_lift(_ buf: RustBuffer) throws -> MixnetConnectionInfo {
-    return try FfiConverterTypeMixnetConnectionInfo.lift(buf)
+public func FfiConverterTypeMixConnectionInfo_lift(_ buf: RustBuffer) throws -> MixConnectionInfo {
+    return try FfiConverterTypeMixConnectionInfo.lift(buf)
 }
 
-public func FfiConverterTypeMixnetConnectionInfo_lower(_ value: MixnetConnectionInfo) -> RustBuffer {
-    return FfiConverterTypeMixnetConnectionInfo.lower(value)
+public func FfiConverterTypeMixConnectionInfo_lower(_ value: MixConnectionInfo) -> RustBuffer {
+    return FfiConverterTypeMixConnectionInfo.lower(value)
 }
 
 
-public struct MixnetExitConnectionInfo {
+public struct MixExitConnectionInfo {
     public var exitGateway: NodeIdentity
     public var exitIpr: Recipient
     public var ips: IpPair
@@ -1079,8 +1079,8 @@ public struct MixnetExitConnectionInfo {
 
 
 
-extension MixnetExitConnectionInfo: Equatable, Hashable {
-    public static func ==(lhs: MixnetExitConnectionInfo, rhs: MixnetExitConnectionInfo) -> Bool {
+extension MixExitConnectionInfo: Equatable, Hashable {
+    public static func ==(lhs: MixExitConnectionInfo, rhs: MixExitConnectionInfo) -> Bool {
         if lhs.exitGateway != rhs.exitGateway {
             return false
         }
@@ -1101,17 +1101,17 @@ extension MixnetExitConnectionInfo: Equatable, Hashable {
 }
 
 
-public struct FfiConverterTypeMixnetExitConnectionInfo: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MixnetExitConnectionInfo {
+public struct FfiConverterTypeMixExitConnectionInfo: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MixExitConnectionInfo {
         return
-            try MixnetExitConnectionInfo(
+            try MixExitConnectionInfo(
                 exitGateway: FfiConverterTypeNodeIdentity.read(from: &buf), 
                 exitIpr: FfiConverterTypeRecipient.read(from: &buf), 
                 ips: FfiConverterTypeIpPair.read(from: &buf)
         )
     }
 
-    public static func write(_ value: MixnetExitConnectionInfo, into buf: inout [UInt8]) {
+    public static func write(_ value: MixExitConnectionInfo, into buf: inout [UInt8]) {
         FfiConverterTypeNodeIdentity.write(value.exitGateway, into: &buf)
         FfiConverterTypeRecipient.write(value.exitIpr, into: &buf)
         FfiConverterTypeIpPair.write(value.ips, into: &buf)
@@ -1119,12 +1119,12 @@ public struct FfiConverterTypeMixnetExitConnectionInfo: FfiConverterRustBuffer {
 }
 
 
-public func FfiConverterTypeMixnetExitConnectionInfo_lift(_ buf: RustBuffer) throws -> MixnetExitConnectionInfo {
-    return try FfiConverterTypeMixnetExitConnectionInfo.lift(buf)
+public func FfiConverterTypeMixExitConnectionInfo_lift(_ buf: RustBuffer) throws -> MixExitConnectionInfo {
+    return try FfiConverterTypeMixExitConnectionInfo.lift(buf)
 }
 
-public func FfiConverterTypeMixnetExitConnectionInfo_lower(_ value: MixnetExitConnectionInfo) -> RustBuffer {
-    return FfiConverterTypeMixnetExitConnectionInfo.lower(value)
+public func FfiConverterTypeMixExitConnectionInfo_lower(_ value: MixExitConnectionInfo) -> RustBuffer {
+    return FfiConverterTypeMixExitConnectionInfo.lower(value)
 }
 
 
@@ -1962,7 +1962,7 @@ extension FfiError: Error { }
 
 public enum NymVpnStatus {
     
-    case connectionInfo(mixnetConnectionInfo: MixnetConnectionInfo, mixnetExitConnectionInfo: MixnetExitConnectionInfo
+    case connectionInfo(mixnetConnectionInfo: MixConnectionInfo, mixnetExitConnectionInfo: MixExitConnectionInfo
     )
 }
 
@@ -1974,7 +1974,7 @@ public struct FfiConverterTypeNymVpnStatus: FfiConverterRustBuffer {
         let variant: Int32 = try readInt(&buf)
         switch variant {
         
-        case 1: return .connectionInfo(mixnetConnectionInfo: try FfiConverterTypeMixnetConnectionInfo.read(from: &buf), mixnetExitConnectionInfo: try FfiConverterTypeMixnetExitConnectionInfo.read(from: &buf)
+        case 1: return .connectionInfo(mixnetConnectionInfo: try FfiConverterTypeMixConnectionInfo.read(from: &buf), mixnetExitConnectionInfo: try FfiConverterTypeMixExitConnectionInfo.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -1987,8 +1987,8 @@ public struct FfiConverterTypeNymVpnStatus: FfiConverterRustBuffer {
         
         case let .connectionInfo(mixnetConnectionInfo,mixnetExitConnectionInfo):
             writeInt(&buf, Int32(1))
-            FfiConverterTypeMixnetConnectionInfo.write(mixnetConnectionInfo, into: &buf)
-            FfiConverterTypeMixnetExitConnectionInfo.write(mixnetExitConnectionInfo, into: &buf)
+            FfiConverterTypeMixConnectionInfo.write(mixnetConnectionInfo, into: &buf)
+            FfiConverterTypeMixExitConnectionInfo.write(mixnetExitConnectionInfo, into: &buf)
             
         }
     }
