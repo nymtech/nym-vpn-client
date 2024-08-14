@@ -11,7 +11,7 @@ use nym_pemstore::traits::{PemStorableKey, PemStorableKeyPair};
 use serde_derive::{Deserialize, Serialize};
 
 use crate::error::{CoconutError, Result};
-use crate::scheme::aggregation::aggregate_verification_keys;
+// use crate::scheme::aggregation::aggregate_verification_keys;
 use crate::scheme::setup::Parameters;
 use crate::scheme::SignerIndex;
 use crate::traits::Bytable;
@@ -354,9 +354,9 @@ impl VerificationKey {
         }
     }
 
-    pub fn aggregate(sigs: &[Self], indices: Option<&[SignerIndex]>) -> Result<Self> {
-        aggregate_verification_keys(sigs, indices)
-    }
+    // pub fn aggregate(sigs: &[Self], indices: Option<&[SignerIndex]>) -> Result<Self> {
+    //     aggregate_verification_keys(sigs, indices)
+    // }
 
     pub fn alpha(&self) -> &G2Projective {
         &self.alpha
