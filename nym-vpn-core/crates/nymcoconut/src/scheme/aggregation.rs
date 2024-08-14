@@ -5,19 +5,14 @@ use core::iter::Sum;
 use core::ops::Mul;
 
 use bls12_381::{
-    // G2Prepared, G2Projective,
     Scalar
 };
-// use group::Curve;
 use itertools::Itertools;
 
 use crate::error::{CoconutError, Result};
-// use crate::scheme::verification::check_bilinear_pairing;
 use crate::scheme::{PartialSignature, Signature,
-// SignatureShare,
 SignerIndex, VerificationKey};
 use crate::utils::perform_lagrangian_interpolation_at_origin;
-// use crate::{Attribute, Parameters, VerificationKeyShare};
 
 pub(crate) trait Aggregatable: Sized {
     fn aggregate(aggregatable: &[Self], indices: Option<&[SignerIndex]>) -> Result<Self>;
@@ -84,81 +79,4 @@ pub fn aggregate_verification_keys(
     }
     Aggregatable::aggregate(keys, indices)
 }
-
-// pub fn aggregate_key_shares(shares: &[VerificationKeyShare]) -> Result<VerificationKey> {
-//     let (keys, indices): (Vec<_>, Vec<_>) = shares
-//         .iter()
-//         .map(|share| (share.key.clone(), share.index))
-//         .unzip();
-//
-//     aggregate_verification_keys(&keys, Some(&indices))
-// }
-//
-// pub fn aggregate_signatures(
-//     signatures: &[PartialSignature],
-//     indices: Option<&[SignerIndex]>,
-// ) -> Result<Signature> {
-//     Aggregatable::aggregate(signatures, indices)
-// }
-//
-// pub fn aggregate_signatures_and_verify(
-//     params: &Parameters,
-//     verification_key: &VerificationKey,
-//     attributes: &[&Attribute],
-//     signatures: &[PartialSignature],
-//     indices: Option<&[SignerIndex]>,
-// ) -> Result<Signature> {
-//     // aggregate the signature
-//     let signature = aggregate_signatures(signatures, indices)?;
-//
-//     // Verify the signature
-//     let alpha = verification_key.alpha;
-//
-//     let tmp = attributes
-//         .iter()
-//         .zip(verification_key.beta_g2.iter())
-//         .map(|(&attr, beta_i)| beta_i * attr)
-//         .sum::<G2Projective>();
-//
-//     if !check_bilinear_pairing(
-//         &signature.0.to_affine(),
-//         &G2Prepared::from((alpha + tmp).to_affine()),
-//         &signature.1.to_affine(),
-//         params.prepared_miller_g2(),
-//     ) {
-//         return Err(CoconutError::Aggregation(
-//             "Verification of the aggregated signature failed".to_string(),
-//         ));
-//     }
-//     Ok(signature)
-// }
-//
-// pub fn aggregate_signature_shares(shares: &[SignatureShare]) -> Result<Signature> {
-//     let (signatures, indices): (Vec<_>, Vec<_>) = shares
-//         .iter()
-//         .map(|share| (*share.signature(), share.index()))
-//         .unzip();
-//
-//     aggregate_signatures(&signatures, Some(&indices))
-// }
-//
-// pub fn aggregate_signature_shares_and_verify(
-//     params: &Parameters,
-//     verification_key: &VerificationKey,
-//     attributes: &[&Attribute],
-//     shares: &[SignatureShare],
-// ) -> Result<Signature> {
-//     let (signatures, indices): (Vec<_>, Vec<_>) = shares
-//         .iter()
-//         .map(|share| (*share.signature(), share.index()))
-//         .unzip();
-//
-//     aggregate_signatures_and_verify(
-//         params,
-//         verification_key,
-//         attributes,
-//         &signatures,
-//         Some(&indices),
-//     )
-// }
 

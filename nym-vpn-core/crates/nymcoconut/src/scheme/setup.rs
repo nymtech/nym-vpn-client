@@ -72,20 +72,16 @@ impl Parameters {
     }
 }
 
-// pub fn setup(num_attributes: u32) -> Result<Parameters> {
-//     Parameters::new(num_attributes)
-// }
-
 // for ease of use in tests requiring params
 // TODO: not sure if this will have to go away when tests require some specific number of generators
-#[cfg(test)]
-impl Default for Parameters {
-    fn default() -> Self {
-        Parameters {
-            g1: G1Affine::generator(),
-            hs: Vec::new(),
-            g2: G2Affine::generator(),
-            _g2_prepared_miller: G2Prepared::from(G2Affine::generator()),
-        }
-    }
-}
+// #[cfg(test)]
+// impl Default for Parameters {
+//     fn default() -> Self {
+//         Parameters {
+//             g1: G1Affine::generator(),
+//             hs: Vec::new(),
+//             g2: G2Affine::generator(),
+//             _g2_prepared_miller: G2Prepared::from(G2Affine::generator()),
+//         }
+//     }
+// }

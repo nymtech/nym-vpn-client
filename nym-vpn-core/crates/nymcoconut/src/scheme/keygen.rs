@@ -18,7 +18,6 @@ use crate::traits::Bytable;
 use crate::utils::{
     try_deserialize_g1_projective, try_deserialize_g2_projective, try_deserialize_scalar,
     try_deserialize_scalar_vec, 
-    // Polynomial,
 };
 use crate::Base58;
 
@@ -580,84 +579,4 @@ impl TryFrom<&[u8]> for KeyPair {
         })
     }
 }
-
-// /// Generate a single Coconut keypair ((x, y0, y1...), (g2^x, g2^y0, ...)).
-// /// It is not suitable for threshold credentials as all subsequent calls to `keygen` generate keys
-// /// that are independent of each other.
-// pub fn keygen(params: &Parameters) -> KeyPair {
-//     let attributes = params.gen_hs().len();
-//
-//     let x = params.random_scalar();
-//     let ys = params.n_random_scalars(attributes);
-//
-//     let secret_key = SecretKey { x, ys };
-//     let verification_key = secret_key.verification_key(params);
-//
-//     KeyPair {
-//         secret_key,
-//         verification_key,
-//         index: None,
-//     }
-// }
-//
-// /// Generate a set of n Coconut keypairs [((x, y0, y1...), (g2^x, g2^y0, ...)), ...],
-// /// such that they support threshold aggregation by `threshold` number of parties.
-// /// It is expected that this procedure is executed by a Trusted Third Party.
-// pub fn ttp_keygen(
-//     params: &Parameters,
-//     threshold: u64,
-//     num_authorities: u64,
-// ) -> Result<Vec<KeyPair>> {
-//     if threshold == 0 {
-//         return Err(CoconutError::Setup(
-//             "Tried to generate threshold keys with a 0 threshold value".to_string(),
-//         ));
-//     }
-//
-//     if threshold > num_authorities {
-//         return Err(
-//             CoconutError::Setup(
-//                 "Tried to generate threshold keys for threshold value being higher than number of the signing authorities".to_string(),
-//             ));
-//     }
-//
-//     let attributes = params.gen_hs().len();
-//
-//     // generate polynomials
-//     let v = Polynomial::new_random(params, threshold - 1);
-//     let ws = (0..attributes)
-//         .map(|_| Polynomial::new_random(params, threshold - 1))
-//         .collect::<Vec<_>>();
-//
-//     // TODO: potentially if we had some known authority identifier we could use that instead
-//     // of the increasing (1,2,3,...) sequence
-//     let polynomial_indices = (1..=num_authorities).collect::<Vec<_>>();
-//
-//     // generate polynomial shares
-//     let x = polynomial_indices
-//         .iter()
-//         .map(|&id| v.evaluate(&Scalar::from(id)));
-//     let ys = polynomial_indices.iter().map(|&id| {
-//         ws.iter()
-//             .map(|w| w.evaluate(&Scalar::from(id)))
-//             .collect::<Vec<_>>()
-//     });
-//
-//     // finally set the keys
-//     let secret_keys = x.zip(ys).map(|(x, ys)| SecretKey { x, ys });
-//
-//     let keypairs = secret_keys
-//         .zip(polynomial_indices.iter())
-//         .map(|(secret_key, index)| {
-//             let verification_key = secret_key.verification_key(params);
-//             KeyPair {
-//                 secret_key,
-//                 verification_key,
-//                 index: Some(*index),
-//             }
-//         })
-//         .collect();
-//
-//     Ok(keypairs)
-// }
 
