@@ -1,7 +1,5 @@
 use crate::{
-    // BlindSignRequest,
     BlindedSignature, Bytable,
-    // VerifyCredentialRequest
 };
 
 macro_rules! impl_clone {
@@ -14,6 +12,4 @@ macro_rules! impl_clone {
     };
 }
 
-// impl_clone!(BlindSignRequest);
 impl_clone!(BlindedSignature);
-// impl_clone!(VerifyCredentialRequest);

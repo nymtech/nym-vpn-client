@@ -2,11 +2,9 @@
 use crate::scheme::SecretKey;
 use crate::{
     Base58,
-    // BlindSignRequest,
     BlindedSignature, 
-    // PublicKey,
-    Signature, VerificationKey,
-    // VerifyCredentialRequest,
+    Signature, 
+    VerificationKey,
 };
 use serde::de::Unexpected;
 use serde::{de::Error, de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
@@ -53,9 +51,5 @@ macro_rules! impl_serde {
 
 impl_serde!(SecretKey, V1);
 impl_serde!(VerificationKey, V2);
-// impl_serde!(PublicKey, V3);
-// impl_serde!(PrivateKey, V4);
-// impl_serde!(BlindSignRequest, V5);
 impl_serde!(BlindedSignature, V6);
 impl_serde!(Signature, V7);
-// impl_serde!(VerifyCredentialRequest, V8);

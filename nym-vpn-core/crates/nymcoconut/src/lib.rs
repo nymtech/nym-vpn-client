@@ -5,7 +5,6 @@
 #![warn(clippy::unwrap_used)]
 
 pub use error::CoconutError;
-pub use scheme::keygen::SecretKey;
 pub use scheme::keygen::VerificationKey;
 pub use scheme::BlindedSignature;
 pub use scheme::Signature;

@@ -10,16 +10,16 @@ pub type Result<T> = std::result::Result<T, CoconutError>;
 pub enum CoconutError {
     #[error("Setup error: {0}")]
     Setup(String),
-
-    #[error("encountered error during keygen")]
-    Keygen,
-
-    #[error("Issuance related error: {0}")]
-    Issuance(String),
-
-    #[error("Tried to prepare blind sign request for higher than specified number of attributes (max: {}, requested: {})", max, requested)]
-    IssuanceMaxAttributes { max: usize, requested: usize },
-
+    //
+    // #[error("encountered error during keygen")]
+    // Keygen,
+    //
+    // #[error("Issuance related error: {0}")]
+    // Issuance(String),
+    //
+    // #[error("Tried to prepare blind sign request for higher than specified number of attributes (max: {}, requested: {})", max, requested)]
+    // IssuanceMaxAttributes { max: usize, requested: usize },
+    //
     #[error("Interpolation error: {0}")]
     Interpolation(String),
 
