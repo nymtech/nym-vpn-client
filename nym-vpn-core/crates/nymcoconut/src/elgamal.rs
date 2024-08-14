@@ -11,7 +11,7 @@ use crate::error::{CoconutError, Result};
 use crate::scheme::setup::Parameters;
 use crate::traits::{Base58, Bytable};
 use crate::utils::{try_deserialize_g1_projective, try_deserialize_scalar};
-use crate::Attribute;
+// use crate::Attribute;
 
 /// Type alias for the ephemeral key generated during ElGamal encryption
 pub type EphemeralKey = Scalar;
@@ -231,124 +231,25 @@ impl ElGamalKeyPair {
     }
 }
 
-/// Generate a fresh ElGamal keypair using the group generator specified by the provided [Parameters]
-pub fn elgamal_keygen(params: &Parameters) -> ElGamalKeyPair {
-    let private_key = params.random_scalar();
-    let gamma = params.gen1() * private_key;
+// /// Generate a fresh ElGamal keypair using the group generator specified by the provided [Parameters]
+// pub fn elgamal_keygen(params: &Parameters) -> ElGamalKeyPair {
+//     let private_key = params.random_scalar();
+//     let gamma = params.gen1() * private_key;
+//
+//     ElGamalKeyPair {
+//         private_key: PrivateKey(private_key),
+//         public_key: PublicKey(gamma),
+//     }
+// }
 
-    ElGamalKeyPair {
-        private_key: PrivateKey(private_key),
-        public_key: PublicKey(gamma),
-    }
-}
-
-pub fn compute_attribute_encryption(
-    params: &Parameters,
-    private_attributes: &[&Attribute],
-    pub_key: &PublicKey,
-    commitment_hash: G1Projective,
-) -> (Vec<Ciphertext>, Vec<EphemeralKey>) {
-    private_attributes
-        .iter()
-        .map(|m| pub_key.encrypt(params, &commitment_hash, m))
-        .unzip()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn keygen() {
-        let params = Parameters::default();
-        let keypair = super::elgamal_keygen(&params);
-
-        let expected = params.gen1() * keypair.private_key.0;
-        let gamma = keypair.public_key.0;
-        assert_eq!(
-            expected, gamma,
-            "Public key, gamma, should be equal to g1^d, where d is the private key"
-        );
-    }
-
-    #[test]
-    fn encryption() {
-        let params = Parameters::default();
-        let keypair = super::elgamal_keygen(&params);
-
-        let r = params.random_scalar();
-        let h = params.gen1() * r;
-        let m = params.random_scalar();
-
-        let (ciphertext, ephemeral_key) = keypair.public_key.encrypt(&params, &h, &m);
-
-        let expected_c1 = params.gen1() * ephemeral_key;
-        assert_eq!(expected_c1, ciphertext.0, "c1 should be equal to g1^k");
-
-        let expected_c2 = keypair.public_key.0 * ephemeral_key + h * m;
-        assert_eq!(
-            expected_c2, ciphertext.1,
-            "c2 should be equal to gamma^k * h^m"
-        );
-    }
-
-    #[test]
-    fn decryption() {
-        let params = Parameters::default();
-        let keypair = super::elgamal_keygen(&params);
-
-        let r = params.random_scalar();
-        let h = params.gen1() * r;
-        let m = params.random_scalar();
-
-        let (ciphertext, _) = keypair.public_key.encrypt(&params, &h, &m);
-        let dec = keypair.private_key.decrypt(&ciphertext);
-
-        let expected = h * m;
-        assert_eq!(
-            expected, dec,
-            "after ElGamal decryption, original h^m should be obtained"
-        );
-    }
-
-    #[test]
-    fn private_key_bytes_roundtrip() {
-        let params = Parameters::default();
-        let private_key = PrivateKey(params.random_scalar());
-        let bytes = private_key.to_bytes();
-
-        // also make sure it is equivalent to the internal scalar's bytes
-        assert_eq!(private_key.0.to_bytes(), bytes);
-        assert_eq!(private_key, PrivateKey::from_bytes(&bytes).unwrap())
-    }
-
-    #[test]
-    fn public_key_bytes_roundtrip() {
-        let params = Parameters::default();
-        let r = params.random_scalar();
-        let public_key = PublicKey(params.gen1() * r);
-        let bytes = public_key.to_bytes();
-
-        // also make sure it is equivalent to the internal g1 compressed bytes
-        assert_eq!(public_key.0.to_affine().to_compressed(), bytes);
-        assert_eq!(public_key, PublicKey::from_bytes(&bytes).unwrap())
-    }
-
-    #[test]
-    fn ciphertext_bytes_roundtrip() {
-        let params = Parameters::default();
-        let r = params.random_scalar();
-        let s = params.random_scalar();
-        let ciphertext = Ciphertext(params.gen1() * r, params.gen1() * s);
-        let bytes = ciphertext.to_bytes();
-
-        // also make sure it is equivalent to the internal g1 compressed bytes concatenated
-        let expected_bytes = [
-            ciphertext.0.to_affine().to_compressed(),
-            ciphertext.1.to_affine().to_compressed(),
-        ]
-        .concat();
-        assert_eq!(expected_bytes, bytes);
-        assert_eq!(ciphertext, Ciphertext::try_from(&bytes[..]).unwrap())
-    }
-}
+// pub fn compute_attribute_encryption(
+//     params: &Parameters,
+//     private_attributes: &[&Attribute],
+//     pub_key: &PublicKey,
+//     commitment_hash: G1Projective,
+// ) -> (Vec<Ciphertext>, Vec<EphemeralKey>) {
+//     private_attributes
+//         .iter()
+//         .map(|m| pub_key.encrypt(params, &commitment_hash, m))
+//         .unzip()
+// }
