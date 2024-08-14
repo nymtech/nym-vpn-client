@@ -15,9 +15,6 @@ use crate::traits::{Base58, Bytable};
 use crate::utils::try_deserialize_g1_projective;
 use crate::Attribute;
 
-// mod aggregation;
-mod double_use;
-// pub(crate) mod issuance;
 pub(crate) mod keygen;
 pub(crate) mod setup;
 mod verification;
@@ -27,8 +24,6 @@ pub(crate) type SignerIndex = u64;
 // (h, s)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Signature(pub(crate) G1Projective, pub(crate) G1Projective);
-
-// pub type PartialSignature = Signature;
 
 impl TryFrom<&[u8]> for Signature {
     type Error = CoconutError;
@@ -62,14 +57,6 @@ impl TryFrom<&[u8]> for Signature {
 }
 
 impl Signature {
-    // pub(crate) fn sig1(&self) -> &G1Projective {
-    //     &self.0
-    // }
-    //
-    // pub(crate) fn sig2(&self) -> &G1Projective {
-    //     &self.1
-    // }
-
     pub fn randomise_simple(&self, params: &Parameters) -> Signature {
         let r = params.random_scalar();
         Signature(self.0 * r, self.1 * r)

@@ -11,7 +11,6 @@ use nym_pemstore::traits::{PemStorableKey, PemStorableKeyPair};
 use serde_derive::{Deserialize, Serialize};
 
 use crate::error::{CoconutError, Result};
-// use crate::scheme::aggregation::aggregate_verification_keys;
 use crate::scheme::setup::Parameters;
 use crate::scheme::SignerIndex;
 use crate::traits::Bytable;
