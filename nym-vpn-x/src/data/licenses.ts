@@ -61,9 +61,8 @@ export async function getJsLicenses(): Promise<CodeDependency[] | undefined> {
         ...info,
         name: components.join('@'),
         version,
-        authors: info.publisher ? [info.publisher] : [],
+        authors: info.publisher ? [info.publisher] : ['-'],
         licenses,
-        licenseTexts: info.licenseText ? [info.licenseText] : [],
       };
     });
   } catch (e) {

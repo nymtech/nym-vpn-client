@@ -19,7 +19,6 @@ export type JsLicensesJson = Record<
     repository?: string;
     publisher?: string;
     email?: string;
-    licenseText?: string;
     copyright?: string;
   }
 >;

@@ -25,7 +25,7 @@
     "tscheck": "tsc --noEmit",
     "tauri": "tauri",
     "gen:licenses": "run-p --aggregate-output gen:licenses:rust gen:licenses:js",
-    "gen:licenses:js": "npx license-checker-rseidelsohn --json --customPath license-fmt.json > public/licenses-js.json",
+    "gen:licenses:js": "npx license-checker-rseidelsohn --production --json > public/licenses-js.json",
     "gen:licenses:rust": "cargo license -j --avoid-dev-deps --avoid-build-deps --manifest-path src-tauri/Cargo.toml > public/licenses-rust.json"
   },
   "dependencies": {
