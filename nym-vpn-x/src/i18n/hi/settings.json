@@ -1,5 +1,31 @@
 {
   "legal": {
-    "tos": "उपयोग की शर्तें"
+    "tos": "उपयोग की शर्तें",
+    "title": "कानूनी",
+    "policy": "गोपनीयता कथन"
+  },
+  "auto-connect": {
+    "title": "स्वचालित कनेक्ट"
+  },
+  "error-monitoring": {
+    "title": "अनाम त्रुटि रिपोर्ट"
+  },
+  "credential": {
+    "title": "प्रमाण-पत्र"
+  },
+  "feedback": {
+    "title": "प्रतिक्रिया",
+    "github": "GitHub मुद्दा खोलें",
+    "send": "हमें प्रतिक्रिया भेजें",
+    "matrix": "Matrix पर हमसे जुड़ें",
+    "discord": "Discord पर हमसे जुड़ें"
+  },
+  "support": {
+    "title": "समर्थन",
+    "faq": "अक्सर पूछे जाने वाले प्रश्न (FAQ) देखें"
+  },
+  "add-credential-button": "कनेक्ट करने के लिए क्रेडेंशियल जोड़ें",
+  "logs": {
+    "title": "लॉग्स"
   }
 }
