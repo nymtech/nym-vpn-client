@@ -72,9 +72,9 @@ impl Parameters {
     }
 }
 
-pub fn setup(num_attributes: u32) -> Result<Parameters> {
-    Parameters::new(num_attributes)
-}
+// pub fn setup(num_attributes: u32) -> Result<Parameters> {
+//     Parameters::new(num_attributes)
+// }
 
 // for ease of use in tests requiring params
 // TODO: not sure if this will have to go away when tests require some specific number of generators
