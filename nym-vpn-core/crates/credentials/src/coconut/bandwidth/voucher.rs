@@ -3,7 +3,7 @@
 
 use crate::coconut::utils::scalar_serde_helper;
 use nym_credentials_interface::{
-    hash_to_scalar, Attribute, 
+    // hash_to_scalar, Attribute, 
     PublicAttribute,
 };
 use nym_crypto::asymmetric::{encryption, identity};
@@ -20,21 +20,21 @@ pub struct BandwidthVoucherIssuedData {
 }
 
 impl BandwidthVoucherIssuedData {
-    pub fn new(value: Coin) -> Self {
-        BandwidthVoucherIssuedData { value }
-    }
+    // pub(crate) fn new(value: Coin) -> Self {
+    //     BandwidthVoucherIssuedData { value }
+    // }
 
     pub fn value(&self) -> &Coin {
         &self.value
     }
 
-    pub fn value_plain(&self) -> String {
-        self.value.amount.to_string()
-    }
+    // pub(crate) fn value_plain(&self) -> String {
+    //     self.value.amount.to_string()
+    // }
 }
 
 #[derive(Zeroize, ZeroizeOnDrop, Serialize, Deserialize)]
-pub struct BandwidthVoucherIssuanceData {
+pub(crate) struct BandwidthVoucherIssuanceData {
     /// the plain value (e.g., bandwidth) encoded in this voucher
     // note: for legacy reasons we're only using the value of the coin and ignoring the denom
     #[zeroize(skip)]
@@ -55,30 +55,30 @@ pub struct BandwidthVoucherIssuanceData {
     unused_ed25519: encryption::PrivateKey,
 }
 
-impl BandwidthVoucherIssuanceData {
-    pub fn new(
-        value: impl Into<Coin>,
-        deposit_tx_hash: Hash,
-        signing_key: identity::PrivateKey,
-        unused_ed25519: encryption::PrivateKey,
-    ) -> Self {
-        let value = value.into();
-        let value_prehashed = hash_to_scalar(value.amount.to_string());
-
-        BandwidthVoucherIssuanceData {
-            value,
-            value_prehashed,
-            deposit_tx_hash,
-            signing_key,
-            unused_ed25519,
-        }
-    }
-
-    pub fn value_plain(&self) -> String {
-        self.value.amount.to_string()
-    }
-
-    pub fn value_attribute(&self) -> &Attribute {
-        &self.value_prehashed
-    }
-}
+// impl BandwidthVoucherIssuanceData {
+//     pub(crate) fn new(
+//         value: impl Into<Coin>,
+//         deposit_tx_hash: Hash,
+//         signing_key: identity::PrivateKey,
+//         unused_ed25519: encryption::PrivateKey,
+//     ) -> Self {
+//         let value = value.into();
+//         let value_prehashed = hash_to_scalar(value.amount.to_string());
+//
+//         BandwidthVoucherIssuanceData {
+//             value,
+//             value_prehashed,
+//             deposit_tx_hash,
+//             signing_key,
+//             unused_ed25519,
+//         }
+//     }
+//
+//     pub(crate) fn value_plain(&self) -> String {
+//         self.value.amount.to_string()
+//     }
+//
+//     pub(crate) fn value_attribute(&self) -> &Attribute {
+//         &self.value_prehashed
+//     }
+// }
