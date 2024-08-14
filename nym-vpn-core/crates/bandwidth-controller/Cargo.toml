@@ -14,15 +14,5 @@ thiserror = { workspace = true }
 url = { workspace = true }
 zeroize = { workspace = true }
 
-# nym-coconut = { path = "../nymcoconut" }
 nym-credential-storage = { path = "../credential-storage" }
 nym-credentials = { path = "../credentials" }
-# nym-credentials-interface = { path = "../credentials-interface" }
-# nym-crypto = { workspace = true, features = ["rand", "asymmetric", "symmetric", "aes", "hashing"] }
-# nym-network-defaults = { path = "../network-defaults" }
-# nym-validator-client = { path = "../client-libs/validator-client", default-features = false }
-# nym-validator-client.workspace = true
-
-# [target."cfg(not(target_arch = \"wasm32\"))".dependencies.nym-validator-client]
-# path = "../client-libs/validator-client"
-# features = ["http-client"]
