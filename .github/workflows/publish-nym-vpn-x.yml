@@ -1,16 +1,16 @@
 name: publish-nym-vpn-x
 on:
-  # schedule:
-  #   - cron: "4 4 * * *"
+  schedule:
+    - cron: "4 4 * * *"
   workflow_dispatch:
     inputs:
       tag_name:
         description: "Tag name for release"
         required: false
         default: nym-vpn-x-nightly
-  # push:
-  #   tags:
-  #     - nym-vpn-x-v[0-9]+.[0-9]+.[0-9]+*
+  push:
+    tags:
+      - nym-vpn-x-v[0-9]+.[0-9]+.[0-9]+*
 
 jobs:
   build-nym-vpn-x-linux:
