@@ -7,7 +7,6 @@ use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::tunnel::setup_route_manager;
-use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::WgGatewayClient;
 use error::GatewayDirectoryError;
 use futures::channel::{mpsc, oneshot};
@@ -26,7 +25,7 @@ use std::sync::{Arc, Mutex};
 use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
 use tunnel_setup::{init_firewall_dns, setup_tunnel, AllTunnelsSetup, TunnelSetup};
-use util::wait_for_interrupt_and_signal;
+use util::{wait_and_handle_interrupt, wait_for_interrupt_and_signal};
 
 // Public re-export
 pub use nym_connection_monitor as connection_monitor;
@@ -539,8 +538,7 @@ impl SpecificVpn {
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
             AllTunnelsSetup::Mix(_) => {
-                wait_for_interrupt(task_manager).await;
-                handle_interrupt(route_manager, None).await;
+                wait_and_handle_interrupt(&mut task_manager, route_manager, None).await;
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
                         log::error!("Failed to reset dns monitor: {err}");
@@ -549,8 +547,8 @@ impl SpecificVpn {
                 .await??;
             }
             AllTunnelsSetup::Wg { entry, exit } => {
-                wait_for_interrupt(task_manager).await;
-                handle_interrupt(
+                wait_and_handle_interrupt(
+                    &mut task_manager,
                     route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
@@ -645,8 +643,13 @@ impl SpecificVpn {
                     .await
                     .unwrap();
 
-                let result = wait_for_interrupt_and_signal(Some(task_manager), vpn_ctrl_rx).await;
-                handle_interrupt(route_manager, None).await;
+                let result = wait_for_interrupt_and_signal(
+                    Some(task_manager),
+                    vpn_ctrl_rx,
+                    route_manager,
+                    None,
+                )
+                .await;
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
                         log::error!("Failed to reset dns monitor: {err}");
@@ -656,8 +659,9 @@ impl SpecificVpn {
                 result
             }
             AllTunnelsSetup::Wg { entry, exit } => {
-                let result = wait_for_interrupt_and_signal(Some(task_manager), vpn_ctrl_rx).await;
-                handle_interrupt(
+                let result = wait_for_interrupt_and_signal(
+                    Some(task_manager),
+                    vpn_ctrl_rx,
                     route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
