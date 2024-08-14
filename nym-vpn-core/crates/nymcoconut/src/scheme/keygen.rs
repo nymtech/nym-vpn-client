@@ -11,7 +11,6 @@ use nym_pemstore::traits::{PemStorableKey, PemStorableKeyPair};
 use serde_derive::{Deserialize, Serialize};
 
 use crate::error::{CoconutError, Result};
-use crate::scheme::setup::Parameters;
 use crate::scheme::SignerIndex;
 use crate::traits::Bytable;
 use crate::utils::{
@@ -90,35 +89,8 @@ impl TryFrom<&[u8]> for SecretKey {
 }
 
 impl SecretKey {
-    /// Following a (distributed) key generation process, scalar values can be obtained
-    /// outside of the normal key generation process.
-    pub fn create_from_raw(x: Scalar, ys: Vec<Scalar>) -> Self {
-        Self { x, ys }
-    }
-
-    /// Extract the Scalar copy of the underlying secrets.
-    /// The caller of this function must exercise extreme care to not misuse the data and ensuring it gets zeroized
-    pub fn hazmat_to_raw(&self) -> (Scalar, Vec<Scalar>) {
-        (self.x, self.ys.clone())
-    }
-
-    pub fn size(&self) -> usize {
-        self.ys.len()
-    }
-
-    /// Derive verification key using this secret key.
-    pub fn verification_key(&self, params: &Parameters) -> VerificationKey {
-        let g1 = params.gen1();
-        let g2 = params.gen2();
-        VerificationKey {
-            alpha: g2 * self.x,
-            beta_g1: self.ys.iter().map(|y| g1 * y).collect(),
-            beta_g2: self.ys.iter().map(|y| g2 * y).collect(),
-        }
-    }
-
     // x || ys.len() || ys
-    pub fn to_bytes(&self) -> Vec<u8> {
+    pub(crate) fn to_bytes(&self) -> Vec<u8> {
         let ys_len = self.ys.len();
         let mut bytes = Vec::with_capacity(8 + (ys_len + 1) * 32);
 
@@ -130,7 +102,7 @@ impl SecretKey {
         bytes
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> Result<SecretKey> {
+    pub(crate) fn from_bytes(bytes: &[u8]) -> Result<SecretKey> {
         SecretKey::try_from(bytes)
     }
 }
@@ -353,23 +325,7 @@ impl VerificationKey {
         }
     }
 
-    // pub fn aggregate(sigs: &[Self], indices: Option<&[SignerIndex]>) -> Result<Self> {
-    //     aggregate_verification_keys(sigs, indices)
-    // }
-
-    pub fn alpha(&self) -> &G2Projective {
-        &self.alpha
-    }
-
-    pub fn beta_g1(&self) -> &Vec<G1Projective> {
-        &self.beta_g1
-    }
-
-    pub fn beta_g2(&self) -> &Vec<G2Projective> {
-        &self.beta_g2
-    }
-
-    pub fn to_bytes(&self) -> Vec<u8> {
+    pub(crate) fn to_bytes(&self) -> Vec<u8> {
         let beta_g1_len = self.beta_g1.len();
         let beta_g2_len = self.beta_g2.len();
         let mut bytes = Vec::with_capacity(96 + 8 + beta_g1_len * 48 + beta_g2_len * 96);
@@ -389,7 +345,7 @@ impl VerificationKey {
         bytes
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> Result<VerificationKey> {
+    pub(crate) fn from_bytes(bytes: &[u8]) -> Result<VerificationKey> {
         VerificationKey::try_from(bytes)
     }
 }
@@ -406,29 +362,14 @@ impl Bytable for VerificationKey {
 
 impl Base58 for VerificationKey {}
 
-#[derive(Debug, Clone)]
-pub struct VerificationKeyShare {
-    pub key: VerificationKey,
-    pub index: SignerIndex,
-}
-
-impl From<(VerificationKey, SignerIndex)> for VerificationKeyShare {
-    fn from(value: (VerificationKey, SignerIndex)) -> Self {
-        VerificationKeyShare {
-            key: value.0,
-            index: value.1,
-        }
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Eq, Clone))]
-pub struct KeyPair {
+pub(crate) struct KeyPair {
     secret_key: SecretKey,
     verification_key: VerificationKey,
 
     /// Optional index value specifying polynomial point used during threshold key generation.
-    pub index: Option<SignerIndex>,
+    pub(crate) index: Option<SignerIndex>,
 }
 
 impl From<KeyPair> for (SecretKey, VerificationKey) {
@@ -457,36 +398,12 @@ impl PemStorableKeyPair for KeyPair {
 impl KeyPair {
     const MARKER_BYTES: &'static [u8] = b"coconutkeypair";
 
-    pub fn from_keys(secret_key: SecretKey, verification_key: VerificationKey) -> Self {
+    pub(crate) fn from_keys(secret_key: SecretKey, verification_key: VerificationKey) -> Self {
         Self {
             secret_key,
             verification_key,
             index: None,
         }
-    }
-
-    pub fn secret_key(&self) -> &SecretKey {
-        &self.secret_key
-    }
-
-    pub fn verification_key(&self) -> &VerificationKey {
-        &self.verification_key
-    }
-
-    pub fn to_verification_key_share(&self) -> Option<VerificationKeyShare> {
-        self.index.map(|index| VerificationKeyShare {
-            key: self.verification_key.clone(),
-            index,
-        })
-    }
-
-    pub fn to_bytes(&self) -> Vec<u8> {
-        // Schema is coconutkeypair[14]|secret_key_len[8]|secret_key[secret_key_len]|verification_key_len[8]|verification_key[verification_key_len]|signer_index[8] - optional
-        self.to_byte_vec()
-    }
-
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        KeyPair::try_from_byte_slice(bytes)
     }
 }
 

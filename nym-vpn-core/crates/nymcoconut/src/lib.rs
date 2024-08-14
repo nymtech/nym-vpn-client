@@ -12,7 +12,6 @@ pub use utils::hash_to_scalar;
 
 mod error;
 mod impls;
-// mod proofs;
 mod scheme;
 mod traits;
 mod utils;
