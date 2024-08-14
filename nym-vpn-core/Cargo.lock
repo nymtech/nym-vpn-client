@@ -3939,7 +3939,6 @@ dependencies = [
  "bincode",
  "bls12_381",
  "log",
- "nym-api-requests",
  "nym-credentials-interface 0.1.0",
  "nym-crypto",
  "nym-validator-client",

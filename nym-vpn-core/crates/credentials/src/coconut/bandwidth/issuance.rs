@@ -15,8 +15,8 @@ use nym_credentials_interface::{
 use serde::{Deserialize, Serialize};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-pub use nym_validator_client::nyxd::{Coin, Hash};
-
+// pub use nym_validator_client::nyxd::{Coin, Hash};
+//
 #[derive(Zeroize, ZeroizeOnDrop, Serialize, Deserialize)]
 pub enum BandwidthCredentialIssuanceDataVariant {
     Voucher(BandwidthVoucherIssuanceData),
