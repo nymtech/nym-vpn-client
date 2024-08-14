@@ -78,7 +78,7 @@ android {
 				getDefaultProguardFile("proguard-android-optimize.txt"),
 				"proguard-rules.pro",
 			)
-			signingConfig = signingConfigs.getByName("debug")
+			signingConfig = signingConfigs.getByName(Constants.RELEASE)
 		}
 		debug {
 			isMinifyEnabled = false
@@ -186,7 +186,6 @@ dependencies {
 	implementation(libs.androidx.window.core.android)
 
 	testImplementation(libs.junit)
-	testImplementation(libs.java.client)
 	androidTestImplementation(libs.androidx.junit)
 	androidTestImplementation(libs.androidx.espresso.core)
 	androidTestImplementation(platform(libs.androidx.compose.bom))

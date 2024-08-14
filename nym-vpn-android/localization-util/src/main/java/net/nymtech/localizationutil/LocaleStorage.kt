@@ -1,4 +1,4 @@
-package com.zaneschepke.localizationutil
+package net.nymtech.localizationutil
 
 import android.content.Context
 import android.content.SharedPreferences
