@@ -45,6 +45,8 @@ pub use nym_task::{
 pub use crate::platform::swift;
 #[cfg(target_os = "ios")]
 use crate::platform::swift::OSTunProvider;
+use crate::platform::uniffi_set_listener_status;
+use crate::uniffi_custom_impls::{ExitStatus, StatusEvent};
 pub use nym_bin_common;
 pub use nym_config;
 use talpid_tunnel::tun_provider::TunProvider;
@@ -198,13 +200,13 @@ pub struct NymVpn<T: Vpn> {
     shadow_handle: ShadowHandle,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct MixnetConnectionInfo {
     pub nym_address: Recipient,
     pub entry_gateway: NodeIdentity,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct MixnetExitConnectionInfo {
     pub exit_gateway: NodeIdentity,
     pub exit_ipr: Recipient,
@@ -684,7 +686,7 @@ impl SpecificVpn {
     }
 }
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Clone, Debug)]
 pub enum NymVpnStatusMessage {
     #[error("mixnet connection info")]
     MixnetConnectionInfo {
@@ -822,6 +824,9 @@ async fn run_nym_vpn(
         Err(err) => {
             error!("Nym VPN returned error: {err}");
             debug!("{err:?}");
+            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
+                error: err.to_string(),
+            }));
             vpn_exit_tx
                 .send(NymVpnExitStatusMessage::Failed(err))
                 .expect("Failed to send exit status");

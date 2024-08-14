@@ -111,8 +111,8 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideBackend(): Backend {
-		return NymBackend
+	fun provideBackend(@ApplicationContext context: Context): Backend {
+		return NymBackend.getInstance(context)
 	}
 
 	@Singleton

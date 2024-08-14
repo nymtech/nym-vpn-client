@@ -29,7 +29,7 @@ class BootReceiver : BroadcastReceiver() {
 		if (Intent.ACTION_BOOT_COMPLETED != intent.action) return
 		applicationScope.launch {
 			if (settingsRepository.isAutoStartEnabled()) {
-				tunnelManager.start(context).onFailure {
+				tunnelManager.start().onFailure {
 					// TODO handle failures
 					Timber.w(it)
 				}

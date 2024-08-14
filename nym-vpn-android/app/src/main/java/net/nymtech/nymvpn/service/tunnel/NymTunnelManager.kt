@@ -21,6 +21,7 @@ import javax.inject.Provider
 class NymTunnelManager @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val backend: Provider<Backend>,
+	private val context: Context,
 ) : TunnelManager {
 
 	private val _state = MutableStateFlow(TunnelState())
@@ -30,13 +31,13 @@ class NymTunnelManager @Inject constructor(
 		return backend.get().getState()
 	}
 
-	override suspend fun stop(context: Context): Result<Tunnel.State> {
+	override suspend fun stop(): Result<Tunnel.State> {
 		return runCatching {
-			backend.get().stop(context)
+			backend.get().stop()
 		}
 	}
 
-	override suspend fun start(context: Context): Result<Tunnel.State> {
+	override suspend fun start(): Result<Tunnel.State> {
 		return runCatching {
 			val intent = VpnService.prepare(context)
 			if (intent != null) return Result.failure(MissingPermissionException("VPN permission missing"))
@@ -56,7 +57,7 @@ class NymTunnelManager @Inject constructor(
 			if (credentialExpiry != null && credentialExpiry.isExpired()) {
 				return Result.failure(InvalidCredentialException("Credential missing or expired"))
 			}
-			backend.get().start(context, tunnel)
+			backend.get().start(tunnel)
 		}
 	}
 

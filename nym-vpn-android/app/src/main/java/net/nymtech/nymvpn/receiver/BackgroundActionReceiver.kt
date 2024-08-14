@@ -25,12 +25,12 @@ class BackgroundActionReceiver : BroadcastReceiver() {
 		when (action) {
 			ACTION_CONNECT -> {
 				applicationScope.launch {
-					tunnelManager.start(context)
+					tunnelManager.start()
 				}
 			}
 			ACTION_DISCONNECT -> {
 				applicationScope.launch {
-					tunnelManager.stop(context)
+					tunnelManager.stop()
 				}
 			}
 		}
