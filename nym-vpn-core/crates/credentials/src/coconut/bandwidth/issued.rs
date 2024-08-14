@@ -1,22 +1,17 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-// use crate::coconut::bandwidth::bandwidth_credential_params;
 use crate::coconut::bandwidth::freepass::FreePassIssuedData;
 use crate::coconut::bandwidth::issuance::{
-    // BandwidthCredentialIssuanceDataVariant,
     IssuanceBandwidthCredential,
 };
 use crate::coconut::bandwidth::voucher::BandwidthVoucherIssuedData;
 use crate::coconut::bandwidth::{
-    // CredentialSpendingData,
     CredentialType};
 use crate::coconut::utils::scalar_serde_helper;
 use crate::error::Error;
-// use nym_credentials_interface::prove_bandwidth_credential;
 use nym_credentials_interface::{
     Parameters, PrivateAttribute, PublicAttribute, Signature, 
-    // VerificationKey,
 };
 use nym_validator_client::nym_api::EpochId;
 use serde::{Deserialize, Serialize};
@@ -30,31 +25,6 @@ pub enum BandwidthCredentialIssuedDataVariant {
     FreePass(FreePassIssuedData),
 }
 
-// impl<'a> From<&'a BandwidthCredentialIssuanceDataVariant> for BandwidthCredentialIssuedDataVariant {
-//     fn from(value: &'a BandwidthCredentialIssuanceDataVariant) -> Self {
-//         match value {
-//             BandwidthCredentialIssuanceDataVariant::Voucher(voucher) => {
-//                 BandwidthCredentialIssuedDataVariant::Voucher(voucher.into())
-//             }
-//             BandwidthCredentialIssuanceDataVariant::FreePass(freepass) => {
-//                 BandwidthCredentialIssuedDataVariant::FreePass(freepass.into())
-//             }
-//         }
-//     }
-// }
-//
-// impl From<FreePassIssuedData> for BandwidthCredentialIssuedDataVariant {
-//     fn from(value: FreePassIssuedData) -> Self {
-//         BandwidthCredentialIssuedDataVariant::FreePass(value)
-//     }
-// }
-//
-// impl From<BandwidthVoucherIssuedData> for BandwidthCredentialIssuedDataVariant {
-//     fn from(value: BandwidthVoucherIssuedData) -> Self {
-//         BandwidthCredentialIssuedDataVariant::Voucher(value)
-//     }
-// }
-
 impl BandwidthCredentialIssuedDataVariant {
     pub fn info(&self) -> CredentialType {
         match self {
@@ -62,16 +32,6 @@ impl BandwidthCredentialIssuedDataVariant {
             BandwidthCredentialIssuedDataVariant::FreePass(..) => CredentialType::FreePass,
         }
     }
-
-    // currently this works under the assumption of there being a single unique public attribute for given variant
-    // pub fn public_value_plain(&self) -> String {
-    //     match self {
-    //         BandwidthCredentialIssuedDataVariant::Voucher(voucher) => voucher.value_plain(),
-    //         BandwidthCredentialIssuedDataVariant::FreePass(freepass) => {
-    //             freepass.expiry_date_plain()
-    //         }
-    //     }
-    // }
 }
 
 // the only important thing to zeroize here are the private attributes, the rest can be made fully public for what we're concerned
@@ -166,36 +126,6 @@ impl IssuedBandwidthCredential {
     pub fn typ(&self) -> CredentialType {
         self.variant_data.info()
     }
-
-    // pub fn get_plain_public_attributes(&self) -> Vec<String> {
-    //     vec![
-    //         self.variant_data.public_value_plain(),
-    //         self.typ().to_string(),
-    //     ]
-    // }
-
-    // pub fn prepare_for_spending(
-    //     &self,
-    //     verification_key: &VerificationKey,
-    // ) -> Result<CredentialSpendingData, Error> {
-    //     let params = bandwidth_credential_params();
-    //
-    //     let verify_credential_request = prove_bandwidth_credential(
-    //         params,
-    //         verification_key,
-    //         &self.signature,
-    //         &self.serial_number,
-    //         &self.binding_number,
-    //     )?;
-    //
-    //     Ok(CredentialSpendingData {
-    //         embedded_private_attributes: IssuanceBandwidthCredential::PRIVATE_ATTRIBUTES as usize,
-    //         verify_credential_request,
-    //         public_attributes_plain: self.get_plain_public_attributes(),
-    //         typ: self.typ(),
-    //         epoch_id: self.epoch_id,
-    //     })
-    // }
 }
 
 fn make_storable_bincode_serializer() -> impl bincode::Options {
@@ -203,19 +133,4 @@ fn make_storable_bincode_serializer() -> impl bincode::Options {
     bincode::DefaultOptions::new()
         .with_big_endian()
         .with_varint_encoding()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn assert_zeroize_on_drop<T: ZeroizeOnDrop>() {}
-
-    fn assert_zeroize<T: Zeroize>() {}
-
-    #[test]
-    fn credential_is_zeroized() {
-        assert_zeroize::<IssuedBandwidthCredential>();
-        assert_zeroize_on_drop::<IssuedBandwidthCredential>();
-    }
 }
