@@ -44,12 +44,14 @@ impl VpnServiceStatusListener {
                     let connected_details = VpnConnectedStateDetails {
                         entry_gateway: mixnet_connection_info.entry_gateway,
                         exit_gateway: mixnet_exit_connection_info.exit_gateway,
-                        specific_details: ConnectedStateDetails::Mix(MixConnectedStateDetails {
-                            nym_address: mixnet_connection_info.nym_address,
-                            exit_ipr: mixnet_exit_connection_info.exit_ipr,
-                            ipv4: mixnet_exit_connection_info.ips.ipv4,
-                            ipv6: mixnet_exit_connection_info.ips.ipv6,
-                        }),
+                        specific_details: ConnectedStateDetails::Mix(Box::new(
+                            MixConnectedStateDetails {
+                                nym_address: mixnet_connection_info.nym_address,
+                                exit_ipr: mixnet_exit_connection_info.exit_ipr,
+                                ipv4: mixnet_exit_connection_info.ips.ipv4,
+                                ipv6: mixnet_exit_connection_info.ips.ipv6,
+                            },
+                        )),
                         since: OffsetDateTime::now_utc(),
                     };
                     self.shared_vpn_state

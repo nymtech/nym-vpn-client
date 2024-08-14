@@ -65,7 +65,7 @@ pub struct WgConnectedStateDetails {
 
 #[derive(Debug, Clone)]
 pub enum ConnectedStateDetails {
-    Mix(MixConnectedStateDetails),
+    Mix(Box<MixConnectedStateDetails>),
     Wg(WgConnectedStateDetails),
 }
 
