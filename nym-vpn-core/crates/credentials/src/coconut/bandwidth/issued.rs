@@ -59,24 +59,6 @@ pub struct IssuedBandwidthCredential {
 }
 
 impl IssuedBandwidthCredential {
-    // pub(crate) fn new(
-    //     serial_number: PrivateAttribute,
-    //     binding_number: PrivateAttribute,
-    //     signature: Signature,
-    //     variant_data: BandwidthCredentialIssuedDataVariant,
-    //     type_prehashed: PublicAttribute,
-    //     epoch_id: EpochId,
-    // ) -> Self {
-    //     IssuedBandwidthCredential {
-    //         serial_number,
-    //         binding_number,
-    //         signature,
-    //         variant_data,
-    //         type_prehashed,
-    //         epoch_id,
-    //     }
-    // }
-    //
     pub fn try_unpack(bytes: &[u8], revision: impl Into<Option<u8>>) -> Result<Self, Error> {
         let revision = revision.into().unwrap_or(CURRENT_SERIALIZATION_REVISION);
 
@@ -97,13 +79,6 @@ impl IssuedBandwidthCredential {
     pub fn current_serialization_revision(&self) -> u8 {
         CURRENT_SERIALIZATION_REVISION
     }
-
-    /// Pack (serialize) this credential data into a stream of bytes using v1 serializer.
-    // pub(crate) fn pack_v1(&self) -> Vec<u8> {
-    //     use bincode::Options;
-    //     // safety: our data format is stable and thus the serialization should not fail
-    //     make_storable_bincode_serializer().serialize(self).unwrap()
-    // }
 
     /// Unpack (deserialize) the credential data from the given bytes using v1 serializer.
     pub fn unpack_v1(bytes: &[u8]) -> Result<Self, Error> {

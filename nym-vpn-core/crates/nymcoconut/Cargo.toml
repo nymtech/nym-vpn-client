@@ -11,8 +11,6 @@ license.workspace = true
 # bls12_381 = { workspace = true, default-features = false, features = ["pairings", "alloc", "experimental"] }
 bls12_381 = { git = "https://github.com/jstuczyn/bls12_381", default-features = false,  branch = "feature/gt-serialization-0.8.0", features = ["pairings", "alloc"] }
 itertools = { workspace = true }
-digest = "0.9"
-rand = "0.8"
 thiserror = { workspace = true }
 serde = { workspace = true }
 serde_derive = { version = "1.0" }
@@ -20,30 +18,10 @@ bs58 = { workspace = true }
 sha2 = "0.9"
 zeroize = { workspace = true, optional = true }
 
-# nym-dkg = { path = "../dkg" }
-nym-pemstore = { workspace = true }
-
-[dependencies.ff]
-version = "0.13.0"
-default-features = false
-
 [dependencies.group]
 version = "0.13.0"
 default-features = false
 
-[dev-dependencies]
-# criterion = { workspace = true, features = ["html_reports"] }
-# doc-comment = { workspace = true }
-rand_chacha = { workspace = true }
-
-# [[bench]]
-# name = "benchmarks"
-# harness = false
-#
 [features]
 key-zeroize = ["zeroize", "bls12_381/zeroize"]
 default = []
-
-
-[target.'cfg(target_env = "wasm32-unknown-unknown")'.dependencies]
-getrandom = { version="0.2", features=["js"] }
