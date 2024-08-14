@@ -2,16 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::coconut::bandwidth::freepass::FreePassIssuedData;
-use crate::coconut::bandwidth::issuance::{
-    IssuanceBandwidthCredential,
-};
 use crate::coconut::bandwidth::voucher::BandwidthVoucherIssuedData;
 use crate::coconut::bandwidth::{
     CredentialType};
 use crate::coconut::utils::scalar_serde_helper;
 use crate::error::Error;
 use nym_credentials_interface::{
-    Parameters, PrivateAttribute, PublicAttribute, Signature, 
+    PrivateAttribute, PublicAttribute, Signature, 
 };
 use nym_validator_client::nym_api::EpochId;
 use serde::{Deserialize, Serialize};
@@ -117,10 +114,6 @@ impl IssuedBandwidthCredential {
                 source,
                 revision: 1,
             })
-    }
-
-    pub fn default_parameters() -> Parameters {
-        IssuanceBandwidthCredential::default_parameters()
     }
 
     pub fn typ(&self) -> CredentialType {

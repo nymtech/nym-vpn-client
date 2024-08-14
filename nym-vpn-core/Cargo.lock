@@ -3942,7 +3942,6 @@ dependencies = [
  "nym-credentials-interface 0.1.0",
  "nym-crypto",
  "nym-validator-client",
- "rand 0.8.5",
  "serde",
  "thiserror",
  "time",
