@@ -17,32 +17,32 @@ use zeroize::Zeroizing;
 
 pub mod state;
 
-pub async fn deposit<C>(client: &C, amount: Coin) -> Result<State, BandwidthControllerError>
-where
-    C: CoconutBandwidthSigningClient + Sync,
-{
-    let mut rng = OsRng;
-    let signing_key = identity::PrivateKey::new(&mut rng);
-    let encryption_key = encryption::PrivateKey::new(&mut rng);
-
-    let tx_hash = client
-        .deposit(
-            amount.clone(),
-            CredentialType::Voucher.to_string(),
-            signing_key.public_key().to_base58_string(),
-            encryption_key.public_key().to_base58_string(),
-            None,
-        )
-        .await?
-        .transaction_hash;
-
-    let voucher =
-        IssuanceBandwidthCredential::new_voucher(amount, tx_hash, signing_key, encryption_key);
-
-    let state = State { voucher };
-
-    Ok(state)
-}
+// pub async fn deposit<C>(client: &C, amount: Coin) -> Result<State, BandwidthControllerError>
+// where
+//     C: CoconutBandwidthSigningClient + Sync,
+// {
+//     let mut rng = OsRng;
+//     let signing_key = identity::PrivateKey::new(&mut rng);
+//     let encryption_key = encryption::PrivateKey::new(&mut rng);
+//
+//     let tx_hash = client
+//         .deposit(
+//             amount.clone(),
+//             CredentialType::Voucher.to_string(),
+//             signing_key.public_key().to_base58_string(),
+//             encryption_key.public_key().to_base58_string(),
+//             None,
+//         )
+//         .await?
+//         .transaction_hash;
+//
+//     let voucher =
+//         IssuanceBandwidthCredential::new_voucher(amount, tx_hash, signing_key, encryption_key);
+//
+//     let state = State { voucher };
+//
+//     Ok(state)
+// }
 
 // pub async fn get_bandwidth_voucher<C, St>(
 //     state: &State,
