@@ -4,12 +4,10 @@
 #![warn(clippy::expect_used)]
 #![warn(clippy::unwrap_used)]
 
-pub use error::CoconutError;
-pub use scheme::keygen::VerificationKey;
-pub use scheme::BlindedSignature;
+pub(crate) use error::CoconutError;
+pub(crate) use scheme::keygen::VerificationKey;
 pub use scheme::Signature;
-pub use traits::Base58;
-pub use traits::Bytable;
+pub(crate) use traits::Base58;
 pub use utils::hash_to_scalar;
 
 mod error;

@@ -6,7 +6,7 @@
 use bls12_381::{G1Projective, G2Prepared, G2Projective, Scalar};
 use group::Curve;
 
-pub use keygen::{SecretKey, VerificationKey};
+pub(crate) use keygen::{SecretKey, VerificationKey};
 
 use crate::error::{CoconutError, Result};
 use crate::scheme::setup::Parameters;
@@ -15,14 +15,14 @@ use crate::traits::{Base58, Bytable};
 use crate::utils::try_deserialize_g1_projective;
 use crate::Attribute;
 
-pub mod aggregation;
-pub mod double_use;
-pub mod issuance;
-pub mod keygen;
-pub mod setup;
-pub mod verification;
+pub(crate) mod aggregation;
+pub(crate) mod double_use;
+pub(crate) mod issuance;
+pub(crate) mod keygen;
+pub(crate) mod setup;
+pub(crate) mod verification;
 
-pub type SignerIndex = u64;
+pub(crate) type SignerIndex = u64;
 
 // (h, s)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

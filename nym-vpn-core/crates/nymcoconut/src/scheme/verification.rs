@@ -70,11 +70,11 @@ impl TryFrom<&[u8]> for VerifyCredentialRequest {
 }
 
 impl VerifyCredentialRequest {
-    pub fn has_blinded_serial_number(&self, blinded_serial_number_bs58: &str) -> Result<bool> {
-        let blinded_serial_number = BlindedSerialNumber::try_from_bs58(blinded_serial_number_bs58)?;
-        let ret = self.blinded_serial_number.eq(&blinded_serial_number);
-        Ok(ret)
-    }
+    // pub fn has_blinded_serial_number(&self, blinded_serial_number_bs58: &str) -> Result<bool> {
+    //     let blinded_serial_number = BlindedSerialNumber::try_from_bs58(blinded_serial_number_bs58)?;
+    //     let ret = self.blinded_serial_number.eq(&blinded_serial_number);
+    //     Ok(ret)
+    // }
 
     // blinded message (kappa)  || blinded serial number (zeta) || credential || pi_v
     pub fn to_bytes(&self) -> Vec<u8> {

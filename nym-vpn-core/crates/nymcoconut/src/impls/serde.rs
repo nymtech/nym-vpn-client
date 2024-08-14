@@ -2,7 +2,7 @@
 use crate::scheme::SecretKey;
 use crate::{
     Base58,
-    BlindedSignature, 
+    // BlindedSignature, 
     Signature, 
     VerificationKey,
 };
@@ -51,5 +51,5 @@ macro_rules! impl_serde {
 
 impl_serde!(SecretKey, V1);
 impl_serde!(VerificationKey, V2);
-impl_serde!(BlindedSignature, V6);
+// impl_serde!(BlindedSignature, V6);
 impl_serde!(Signature, V7);
