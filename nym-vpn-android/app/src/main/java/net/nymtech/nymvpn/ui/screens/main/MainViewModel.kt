@@ -63,11 +63,11 @@ constructor(
 		settingsRepository.setVpnMode(Tunnel.Mode.FIVE_HOP_MIXNET)
 	}
 
-	suspend fun onConnect(context: Context): Result<Tunnel.State> {
-		return tunnelManager.start(context)
+	suspend fun onConnect(): Result<Tunnel.State> {
+		return tunnelManager.start()
 	}
 
 	fun onDisconnect(context: Context) = viewModelScope.launch {
-		tunnelManager.stop(context)
+		tunnelManager.stop()
 	}
 }

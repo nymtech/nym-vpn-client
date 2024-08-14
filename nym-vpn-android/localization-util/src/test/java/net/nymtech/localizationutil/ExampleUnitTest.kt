@@ -1,4 +1,4 @@
-package com.zaneschepke.localizationutil
+package net.nymtech.localizationutil
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

@@ -1,8 +1,5 @@
 package net.nymtech.nymvpn.ui.common.navigation
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -40,63 +37,60 @@ fun NavBar(appUiState: AppUiState, navController: NavController, onTrailingClick
 		keyboardController?.hide()
 	}
 
-	val emptyTitle = navItem.title.asString(context) == ""
-	AnimatedVisibility(!emptyTitle, enter = fadeIn(), exit = fadeOut()) {
-		CenterAlignedTopAppBar(
-			modifier = modifier,
-			title = {
-				if (navItem.route == Destination.Main.route) {
-					val darkTheme =
-						when (appUiState.settings.theme) {
-							Theme.AUTOMATIC -> isSystemInDarkTheme()
-							Theme.DARK_MODE -> true
-							Theme.LIGHT_MODE -> false
-							else -> true
-						}
-					if (darkTheme) {
-						Icon(ImageVector.vectorResource(R.drawable.app_label_dark), "app_label", tint = Color.Unspecified)
-					} else {
-						Icon(ImageVector.vectorResource(R.drawable.app_label_light), "app_label", tint = Color.Unspecified)
+	CenterAlignedTopAppBar(
+		modifier = modifier,
+		title = {
+			if (navItem.route == Destination.Main.route) {
+				val darkTheme =
+					when (appUiState.settings.theme) {
+						Theme.AUTOMATIC -> isSystemInDarkTheme()
+						Theme.DARK_MODE -> true
+						Theme.LIGHT_MODE -> false
+						else -> true
 					}
+				if (darkTheme) {
+					Icon(ImageVector.vectorResource(R.drawable.app_label_dark), "app_label", tint = Color.Unspecified)
 				} else {
-					Text(
-						navItem.title.asString(context),
-						style = MaterialTheme.typography.titleLarge,
+					Icon(ImageVector.vectorResource(R.drawable.app_label_light), "app_label", tint = Color.Unspecified)
+				}
+			} else {
+				Text(
+					navItem.title.asString(context),
+					style = MaterialTheme.typography.titleLarge,
+				)
+			}
+		},
+		actions = {
+			navItem.trailing?.let {
+				IconButton(
+					onClick = {
+						onTrailingClick()
+					},
+				) {
+					Icon(
+						imageVector = it,
+						contentDescription = it.name,
+						tint = MaterialTheme.colorScheme.onSurface,
+						modifier =
+						Modifier.size(
+							iconSize,
+						),
 					)
 				}
-			},
-			actions = {
-				navItem.trailing?.let {
-					IconButton(
-						onClick = {
-							onTrailingClick()
-						},
-					) {
-						Icon(
-							imageVector = it,
-							contentDescription = it.name,
-							tint = MaterialTheme.colorScheme.onSurface,
-							modifier =
-							Modifier.size(
-								iconSize,
-							),
-						)
-					}
+			}
+		},
+		navigationIcon = {
+			navItem.leading?.let {
+				IconButton(
+					onClick = {
+						when {
+							it == Destination.backIcon -> navController.popBackStack()
+						}
+					},
+				) {
+					Icon(imageVector = it, contentDescription = it.name)
 				}
-			},
-			navigationIcon = {
-				navItem.leading?.let {
-					IconButton(
-						onClick = {
-							when {
-								it == Destination.backIcon -> navController.popBackStack()
-							}
-						},
-					) {
-						Icon(imageVector = it, contentDescription = it.name)
-					}
-				}
-			},
-		)
-	}
+			}
+		},
+	)
 }

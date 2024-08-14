@@ -25,8 +25,8 @@ import net.nymtech.nymvpn.service.gateway.GatewayLibService
 import net.nymtech.nymvpn.service.gateway.GatewayService
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.FileUtils
-import net.nymtech.vpn.NymApi
 import net.nymtech.vpn.Backend
+import net.nymtech.vpn.NymApi
 import net.nymtech.vpn.NymBackend
 import nym_vpn_lib.UserAgent
 import okhttp3.OkHttpClient
@@ -111,8 +111,8 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideBackend(): Backend {
-		return NymBackend
+	fun provideBackend(@ApplicationContext context: Context): Backend {
+		return NymBackend.getInstance(context)
 	}
 
 	@Singleton

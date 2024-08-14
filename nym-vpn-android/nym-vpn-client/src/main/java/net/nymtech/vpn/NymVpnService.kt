@@ -5,10 +5,10 @@ import android.content.res.Resources
 import android.os.Build
 import androidx.annotation.CallSuper
 import androidx.lifecycle.lifecycleScope
-import com.zaneschepke.localizationutil.LocaleStorage
-import com.zaneschepke.localizationutil.LocaleUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import net.nymtech.localizationutil.LocaleStorage
+import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.vpn.tun_provider.TunConfig
 import net.nymtech.vpn.util.Action
 import net.nymtech.vpn.util.Constants
@@ -82,9 +82,11 @@ class NymVpnService : LifecycleVpnService() {
 	private fun startService() {
 		synchronized(this) {
 			lifecycleScope.launch(ioDispatcher) {
-				val logLevel = if (BuildConfig.DEBUG) "debug" else "info"
-				initVPN(this@NymVpnService, logLevel)
-				NymBackend.connect()
+				val context = this@NymVpnService
+				// debug is too spammy
+				val logLevel = "info"
+				initVPN(context, logLevel)
+				NymBackend.getInstance(context).connect()
 			}
 		}
 	}

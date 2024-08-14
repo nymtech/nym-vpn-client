@@ -1,6 +1,5 @@
 package net.nymtech.vpn
 
-import android.content.Context
 import java.time.Instant
 
 interface Backend {
@@ -9,9 +8,9 @@ interface Backend {
 
 	suspend fun importCredential(credential: String): Instant?
 
-	fun start(context: Context, tunnel: Tunnel): Tunnel.State
+	fun start(tunnel: Tunnel): Tunnel.State
 
-	fun stop(context: Context): Tunnel.State
+	fun stop(): Tunnel.State
 
 	fun getState(): Tunnel.State
 }

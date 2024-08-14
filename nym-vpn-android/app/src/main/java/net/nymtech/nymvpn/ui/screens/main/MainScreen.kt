@@ -71,12 +71,12 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.exceptions.NymVpnExceptions
 import net.nymtech.nymvpn.util.extensions.buildCountryNameString
+import net.nymtech.nymvpn.util.extensions.isExpired
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.Tunnel
-import java.time.Instant
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -103,7 +103,7 @@ fun MainScreen(
 
 	fun onConnectWithPermission() {
 		scope.launch {
-			viewModel.onConnect(context)
+			viewModel.onConnect()
 				.onFailure {
 					appViewModel.showSnackbarMessage(context.getString(R.string.exception_cred_invalid))
 					navController.navigate(Destination.Credential.route)
@@ -344,13 +344,12 @@ fun MainScreen(
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
 								scope.launch {
-									if (appUiState.credentialExpiryTime != null &&
-										appUiState.credentialExpiryTime.isAfter(Instant.now())
+									if (appUiState.credentialExpiryTime == null ||
+										appUiState.credentialExpiryTime.isExpired()
 									) {
-										onConnect()
-									} else {
-										navController.navigate(Destination.Credential.route)
+										return@launch navController.navigate(Destination.Credential.route)
 									}
+									onConnect()
 								}
 							},
 							content = {

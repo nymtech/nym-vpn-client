@@ -4,12 +4,12 @@ import android.app.Application
 import android.content.Context
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
-import com.zaneschepke.localizationutil.LocaleStorage
-import com.zaneschepke.localizationutil.LocaleUtil
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import net.nymtech.localizationutil.LocaleStorage
+import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.logcatutil.LogCollect
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.module.IoDispatcher

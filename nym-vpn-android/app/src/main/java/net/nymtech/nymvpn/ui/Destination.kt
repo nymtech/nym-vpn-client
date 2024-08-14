@@ -6,7 +6,6 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.util.StringValue
 import kotlin.reflect.full.isSubclassOf
 
