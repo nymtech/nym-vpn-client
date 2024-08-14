@@ -51,7 +51,7 @@ async fn set_shutdown_handle(handle: Arc<Notify>) -> Result<(), FFIError> {
     Ok(())
 }
 
-pub(crate) fn set_listener_status(status: StatusEvent) {
+pub(crate) fn uniffi_set_listener_status(status: StatusEvent) {
     let mut guard = LISTENER.lock().unwrap();
     if let Some(listener) = &mut *guard {
         match status {
@@ -78,7 +78,7 @@ async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
     }
     *guard = None;
     debug!("VPN shutdown handle reset");
-    set_listener_status(StatusEvent::Tun(TunStatus::Down));
+    uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
     Ok(())
 }
 
@@ -126,13 +126,13 @@ async fn wait_for_shutdown(
             let error = error
                 .downcast_ref::<NymVpnExitError>()
                 .ok_or(crate::Error::StopError)?;
-            set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
+            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
                 error: error.to_string(),
             }));
             error!("Stopped Nym VPN with error: {:?}", error);
         }
         NymVpnExitStatusMessage::Stopped => {
-            set_listener_status(StatusEvent::Exit(ExitStatus::Stopped));
+            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Stopped));
             debug!("Stopped Nym VPN")
         }
     }
@@ -188,20 +188,20 @@ pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
         .unwrap()
         .clone_from(&config.tun_status_listener);
 
-    set_listener_status(StatusEvent::Tun(TunStatus::InitializingClient));
+    uniffi_set_listener_status(StatusEvent::Tun(TunStatus::InitializingClient));
 
     debug!("Trying to run VPN");
     let vpn = sync_run_vpn(config);
     debug!("Got VPN");
     if vpn.is_err() {
         error!("Err creating VPN");
-        set_listener_status(StatusEvent::Tun(TunStatus::Down));
+        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
         RUNNING.store(false, Ordering::Relaxed);
     }
     let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
     if ret.is_err() {
         error!("Error running VPN");
-        set_listener_status(StatusEvent::Tun(TunStatus::Down));
+        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
         RUNNING.store(false, Ordering::Relaxed);
     }
     ret
@@ -252,10 +252,10 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
                 .expect("Failed to reset shutdown handle");
             RUNNING.store(false, Ordering::Relaxed);
             error!("Could not start the VPN: {:?}", err);
-            set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
+            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
                 error: err.to_string(),
             }));
-            set_listener_status(StatusEvent::Tun(TunStatus::Down));
+            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
             Err(err)
         }
         Ok((stop_handle, handle)) => {
@@ -280,7 +280,7 @@ pub fn stopVPN() -> Result<(), FFIError> {
     if !RUNNING.fetch_and(false, Ordering::Relaxed) {
         return Err(FFIError::VpnNotStarted);
     }
-    set_listener_status(StatusEvent::Tun(TunStatus::Disconnecting));
+    uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Disconnecting));
     debug!("Stopping VPN");
     RUNTIME.block_on(stop_vpn())
 }

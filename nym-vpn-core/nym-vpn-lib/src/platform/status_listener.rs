@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::platform::{set_listener_status, RUNTIME};
+use crate::platform::{uniffi_set_listener_status, RUNTIME};
 use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
 use crate::NymVpnStatusMessage;
 use nym_bandwidth_controller::BandwidthStatusMessage;
@@ -26,24 +26,24 @@ impl VpnServiceStatusListener {
                 TaskStatus::Ready => debug!("Started Nym VPN"),
                 TaskStatus::ReadyWithGateway(gateway) => {
                     debug!("Started Nym VPN: connected to {gateway}");
-                    set_listener_status(StatusEvent::Tun(TunStatus::Up));
+                    uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
                 }
             }
         }
 
         if let Some(message) = status_update.downcast_ref::<BandwidthStatusMessage>() {
-            set_listener_status(StatusEvent::Bandwidth(message.into()))
+            uniffi_set_listener_status(StatusEvent::Bandwidth(message.into()))
         }
 
         if let Some(message) = status_update
             .downcast_ref::<ConnectionMonitorStatus>()
             .cloned()
         {
-            set_listener_status(StatusEvent::Connection(message.into()))
+            uniffi_set_listener_status(StatusEvent::Connection(message.into()))
         }
 
         if let Some(message) = status_update.downcast_ref::<NymVpnStatusMessage>().cloned() {
-            set_listener_status(StatusEvent::NymVpn(message.into()))
+            uniffi_set_listener_status(StatusEvent::NymVpn(message.into()))
         }
         status_update
     }
