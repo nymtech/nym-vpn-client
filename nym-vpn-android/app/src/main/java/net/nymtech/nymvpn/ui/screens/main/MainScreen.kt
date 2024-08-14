@@ -103,7 +103,7 @@ fun MainScreen(
 
 	fun onConnectWithPermission() {
 		scope.launch {
-			viewModel.onConnect(context)
+			viewModel.onConnect()
 				.onFailure {
 					appViewModel.showSnackbarMessage(context.getString(R.string.exception_cred_invalid))
 					navController.navigate(Destination.Credential.route)

@@ -317,6 +317,14 @@ pub enum StatusEvent {
     Bandwidth(BandwidthStatus),
     Connection(ConnectionStatus),
     NymVpn(NymVpnStatus),
+    Exit(ExitStatus),
+}
+
+#[derive(uniffi::Enum, Clone, PartialEq)]
+#[allow(clippy::large_enum_variant)]
+pub enum ExitStatus {
+    Stopped,
+    Failed { error: String },
 }
 
 #[derive(uniffi::Enum, Clone, PartialEq)]

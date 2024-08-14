@@ -82,10 +82,11 @@ class NymVpnService : LifecycleVpnService() {
 	private fun startService() {
 		synchronized(this) {
 			lifecycleScope.launch(ioDispatcher) {
+				val context = this@NymVpnService
 				// debug is too spammy
 				val logLevel = "info"
-				initVPN(this@NymVpnService, logLevel)
-				NymBackend.connect()
+				initVPN(context, logLevel)
+				NymBackend.getInstance(context).connect()
 			}
 		}
 	}

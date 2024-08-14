@@ -718,7 +718,9 @@ public protocol TunnelStatusListener : AnyObject {
     
     func onConnectionStatusChange(status: ConnectionStatus) 
     
-    func onNymVpnStatusChange(statusEvent: NymVpnStatus) 
+    func onNymVpnStatusChange(status: NymVpnStatus) 
+    
+    func onExitStatusChange(status: ExitStatus) 
     
 }
 
@@ -784,9 +786,16 @@ open func onConnectionStatusChange(status: ConnectionStatus) {try! rustCall() {
 }
 }
     
-open func onNymVpnStatusChange(statusEvent: NymVpnStatus) {try! rustCall() {
+open func onNymVpnStatusChange(status: NymVpnStatus) {try! rustCall() {
     uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_nym_vpn_status_change(self.uniffiClonePointer(),
-        FfiConverterTypeNymVpnStatus.lower(statusEvent),$0
+        FfiConverterTypeNymVpnStatus.lower(status),$0
+    )
+}
+}
+    
+open func onExitStatusChange(status: ExitStatus) {try! rustCall() {
+    uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_exit_status_change(self.uniffiClonePointer(),
+        FfiConverterTypeExitStatus.lower(status),$0
     )
 }
 }
@@ -875,7 +884,7 @@ fileprivate struct UniffiCallbackInterfaceTunnelStatusListener {
         },
         onNymVpnStatusChange: { (
             uniffiHandle: UInt64,
-            statusEvent: RustBuffer,
+            status: RustBuffer,
             uniffiOutReturn: UnsafeMutableRawPointer,
             uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
         ) in
@@ -885,7 +894,31 @@ fileprivate struct UniffiCallbackInterfaceTunnelStatusListener {
                     throw UniffiInternalError.unexpectedStaleHandle
                 }
                 return uniffiObj.onNymVpnStatusChange(
-                     statusEvent: try FfiConverterTypeNymVpnStatus.lift(statusEvent)
+                     status: try FfiConverterTypeNymVpnStatus.lift(status)
+                )
+            }
+
+            
+            let writeReturn = { () }
+            uniffiTraitInterfaceCall(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn
+            )
+        },
+        onExitStatusChange: { (
+            uniffiHandle: UInt64,
+            status: RustBuffer,
+            uniffiOutReturn: UnsafeMutableRawPointer,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeTunnelStatusListener.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return uniffiObj.onExitStatusChange(
+                     status: try FfiConverterTypeExitStatus.lift(status)
                 )
             }
 
@@ -1838,6 +1871,64 @@ public func FfiConverterTypeExitPoint_lower(_ value: ExitPoint) -> RustBuffer {
 
 
 extension ExitPoint: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum ExitStatus {
+    
+    case stopped
+    case failed(error: String
+    )
+}
+
+
+public struct FfiConverterTypeExitStatus: FfiConverterRustBuffer {
+    typealias SwiftType = ExitStatus
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ExitStatus {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .stopped
+        
+        case 2: return .failed(error: try FfiConverterString.read(from: &buf)
+        )
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: ExitStatus, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .stopped:
+            writeInt(&buf, Int32(1))
+        
+        
+        case let .failed(error):
+            writeInt(&buf, Int32(2))
+            FfiConverterString.write(error, into: &buf)
+            
+        }
+    }
+}
+
+
+public func FfiConverterTypeExitStatus_lift(_ buf: RustBuffer) throws -> ExitStatus {
+    return try FfiConverterTypeExitStatus.lift(buf)
+}
+
+public func FfiConverterTypeExitStatus_lower(_ value: ExitStatus) -> RustBuffer {
+    return FfiConverterTypeExitStatus.lower(value)
+}
+
+
+
+extension ExitStatus: Equatable, Hashable {}
 
 
 
@@ -2891,7 +2982,10 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_connection_status_change() != 33534) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_nym_vpn_status_change() != 26859) {
+    if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_nym_vpn_status_change() != 65319) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_exit_status_change() != 8499) {
         return InitializationResult.apiChecksumMismatch
     }
 

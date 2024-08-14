@@ -41,12 +41,12 @@ class ShortcutActivity : ComponentActivity() {
 			if (enabled) {
 				when (intent.action) {
 					Action.START.name -> {
-						tunnelManager.start(this@ShortcutActivity).onFailure {
+						tunnelManager.start().onFailure {
 							Timber.w(it)
 						}
 					}
 					Action.STOP.name -> {
-						tunnelManager.stop(this@ShortcutActivity)
+						tunnelManager.stop()
 					}
 				}
 			} else {

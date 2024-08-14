@@ -12,8 +12,10 @@ import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.InvalidCredentialException
 import net.nymtech.vpn.util.ServiceManager
+import net.nymtech.vpn.util.SingletonHolder
 import nym_vpn_lib.BandwidthStatus
 import nym_vpn_lib.ConnectionStatus
+import nym_vpn_lib.ExitStatus
 import nym_vpn_lib.FfiException
 import nym_vpn_lib.NymVpnStatus
 import nym_vpn_lib.TunStatus
@@ -24,8 +26,9 @@ import nym_vpn_lib.runVpn
 import timber.log.Timber
 import java.time.Instant
 
-object NymBackend : Backend, TunnelStatusListener {
+class NymBackend private constructor(val context: Context) : Backend, TunnelStatusListener {
 
+	companion object : SingletonHolder<NymBackend, Context>(::NymBackend)
 	private val ioDispatcher = Dispatchers.IO
 
 	private var statsJob: Job? = null
@@ -52,7 +55,7 @@ object NymBackend : Backend, TunnelStatusListener {
 		}
 	}
 
-	override fun start(context: Context, tunnel: Tunnel): Tunnel.State {
+	override fun start(tunnel: Tunnel): Tunnel.State {
 		this.tunnel = tunnel
 		tunnel.environment.setup()
 		// reset any error state
@@ -61,7 +64,7 @@ object NymBackend : Backend, TunnelStatusListener {
 		return Tunnel.State.Connecting.InitializingClient
 	}
 
-	override fun stop(context: Context): Tunnel.State {
+	override fun stop(): Tunnel.State {
 		ServiceManager.stopVpnServiceForeground(context)
 		return Tunnel.State.Disconnecting
 	}
@@ -148,7 +151,21 @@ object NymBackend : Backend, TunnelStatusListener {
 		Timber.d("Connection status: $status")
 	}
 
-	override fun onNymVpnStatusChange(statusEvent: NymVpnStatus) {
-		Timber.d("VPN status: $statusEvent")
+	override fun onNymVpnStatusChange(status: NymVpnStatus) {
+		Timber.d("VPN status: $status")
+	}
+
+	override fun onExitStatusChange(status: ExitStatus) {
+		when (status) {
+			ExitStatus.Stopped -> Timber.d("Tunnel stopped")
+			is ExitStatus.Failed -> {
+				Timber.e(status.error)
+				// need to stop the vpn service even though vpn never started from lib perspective
+				stop()
+				tunnel?.onBackendMessage(BackendMessage.Error.StartFailed)
+				// Need to set state down because this likely never happened in lib
+				tunnel?.onStateChange(Tunnel.State.Down)
+			}
+		}
 	}
 }

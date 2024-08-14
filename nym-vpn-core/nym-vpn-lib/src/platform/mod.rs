@@ -7,8 +7,8 @@ use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
 use crate::platform::status_listener::VpnServiceStatusListener;
 use crate::uniffi_custom_impls::{
-    BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, Location, NymVpnStatus, StatusEvent,
-    TunStatus, UserAgent,
+    BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location, NymVpnStatus,
+    StatusEvent, TunStatus, UserAgent,
 };
 use crate::{
     spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
@@ -59,6 +59,7 @@ pub(crate) fn set_listener_status(status: StatusEvent) {
             StatusEvent::Bandwidth(status) => listener.on_bandwidth_status_change(status),
             StatusEvent::NymVpn(status) => listener.on_nym_vpn_status_change(status),
             StatusEvent::Connection(status) => listener.on_connection_status_change(status),
+            StatusEvent::Exit(status) => listener.on_exit_status_change(status),
         }
     }
 }
@@ -114,21 +115,30 @@ async fn wait_for_shutdown(
         vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)
     });
 
-    VpnServiceStatusListener::new().start(vpn_status_rx).await;
+    info!("Spawning status listener");
+
+    RUNTIME.spawn(async move {
+        VpnServiceStatusListener::new().start(vpn_status_rx).await;
+    });
+
+    info!("Waiting for shutdown handle");
 
     match vpn_exit_rx.await? {
         NymVpnExitStatusMessage::Failed(error) => {
             debug!("received exit status message for vpn");
             RUNNING.store(false, Ordering::Relaxed);
-            debug!("running set to false");
-            error!(
-                "Stopped Nym VPN with error: {:?}",
-                error
-                    .downcast_ref::<NymVpnExitError>()
-                    .ok_or(crate::Error::StopError)?
-            );
+            let error = error
+                .downcast_ref::<NymVpnExitError>()
+                .ok_or(crate::Error::StopError)?;
+            set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
+                error: error.to_string(),
+            }));
+            error!("Stopped Nym VPN with error: {:?}", error);
         }
-        NymVpnExitStatusMessage::Stopped => debug!("Stopped Nym VPN"),
+        NymVpnExitStatusMessage::Stopped => {
+            set_listener_status(StatusEvent::Exit(ExitStatus::Stopped));
+            debug!("Stopped Nym VPN")
+        }
     }
     Ok(())
 }
@@ -246,6 +256,10 @@ async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
                 .expect("Failed to reset shutdown handle");
             RUNNING.store(false, Ordering::Relaxed);
             error!("Could not start the VPN: {:?}", err);
+            set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
+                error: err.to_string(),
+            }));
+            set_listener_status(StatusEvent::Tun(TunStatus::Down));
             Err(err)
         }
         Ok((stop_handle, handle)) => {
@@ -398,5 +412,6 @@ pub trait TunnelStatusListener: Send + Sync {
     fn on_tun_status_change(&self, status: TunStatus);
     fn on_bandwidth_status_change(&self, status: BandwidthStatus);
     fn on_connection_status_change(&self, status: ConnectionStatus);
-    fn on_nym_vpn_status_change(&self, status_event: NymVpnStatus);
+    fn on_nym_vpn_status_change(&self, status: NymVpnStatus);
+    fn on_exit_status_change(&self, status: ExitStatus);
 }
