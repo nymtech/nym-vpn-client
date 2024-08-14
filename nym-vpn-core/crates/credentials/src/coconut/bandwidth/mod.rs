@@ -5,9 +5,9 @@ pub use issued::IssuedBandwidthCredential;
 pub(crate) use nym_credentials_interface::{
     CredentialType,
 };
-pub use nym_credentials_interface::{
-    CredentialSigningData, CredentialSpendingData,
-};
+// pub use nym_credentials_interface::{
+//     CredentialSigningData, CredentialSpendingData,
+// };
 
 mod freepass;
 pub mod issued;
