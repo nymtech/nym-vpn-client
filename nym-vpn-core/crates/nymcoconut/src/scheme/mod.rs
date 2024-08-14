@@ -3,8 +3,7 @@
 
 // TODO: implement https://crates.io/crates/signature traits?
 
-use bls12_381::{G1Projective, 
-};
+use bls12_381::{G1Projective};
 use group::Curve;
 
 pub(crate) use keygen::{SecretKey};
@@ -15,11 +14,11 @@ use crate::utils::try_deserialize_g1_projective;
 
 pub(crate) mod keygen;
 
-pub(crate) type SignerIndex = u64;
+type SignerIndex = u64;
 
 // (h, s)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Signature(pub(crate) G1Projective, pub(crate) G1Projective);
+pub struct Signature(G1Projective, G1Projective);
 
 impl TryFrom<&[u8]> for Signature {
     type Error = CoconutError;
@@ -53,14 +52,14 @@ impl TryFrom<&[u8]> for Signature {
 }
 
 impl Signature {
-    pub(crate) fn to_bytes(self) -> [u8; 96] {
+    fn to_bytes(self) -> [u8; 96] {
         let mut bytes = [0u8; 96];
         bytes[..48].copy_from_slice(&self.0.to_affine().to_compressed());
         bytes[48..].copy_from_slice(&self.1.to_affine().to_compressed());
         bytes
     }
 
-    pub(crate) fn from_bytes(bytes: &[u8]) -> Result<Signature> {
+    fn from_bytes(bytes: &[u8]) -> Result<Signature> {
         Signature::try_from(bytes)
     }
 }

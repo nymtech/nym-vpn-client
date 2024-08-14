@@ -25,8 +25,8 @@ use crate::Base58;
     derive(zeroize::Zeroize, zeroize::ZeroizeOnDrop)
 )]
 pub struct SecretKey {
-    pub(crate) x: Scalar,
-    pub(crate) ys: Vec<Scalar>,
+    x: Scalar,
+    ys: Vec<Scalar>,
 }
 
 impl TryFrom<&[u8]> for SecretKey {
@@ -73,7 +73,7 @@ impl TryFrom<&[u8]> for SecretKey {
 
 impl SecretKey {
     // x || ys.len() || ys
-    pub(crate) fn to_bytes(&self) -> Vec<u8> {
+    fn to_bytes(&self) -> Vec<u8> {
         let ys_len = self.ys.len();
         let mut bytes = Vec::with_capacity(8 + (ys_len + 1) * 32);
 
@@ -103,9 +103,9 @@ impl Base58 for SecretKey {}
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct VerificationKey {
     // TODO add gen2 as per the paper or imply it from the fact library is using bls381?
-    pub(crate) alpha: G2Projective,
-    pub(crate) beta_g1: Vec<G1Projective>,
-    pub(crate) beta_g2: Vec<G2Projective>,
+    alpha: G2Projective,
+    beta_g1: Vec<G1Projective>,
+    beta_g2: Vec<G2Projective>,
 }
 
 impl TryFrom<&[u8]> for VerificationKey {
@@ -280,7 +280,7 @@ where
 impl VerificationKey {
     /// Create a (kinda) identity verification key using specified
     /// number of 'beta' elements
-    pub(crate) fn identity(beta_size: usize) -> Self {
+    fn identity(beta_size: usize) -> Self {
         VerificationKey {
             alpha: G2Projective::identity(),
             beta_g1: vec![G1Projective::identity(); beta_size],
@@ -288,7 +288,7 @@ impl VerificationKey {
         }
     }
 
-    pub(crate) fn to_bytes(&self) -> Vec<u8> {
+    fn to_bytes(&self) -> Vec<u8> {
         let beta_g1_len = self.beta_g1.len();
         let beta_g2_len = self.beta_g2.len();
         let mut bytes = Vec::with_capacity(96 + 8 + beta_g1_len * 48 + beta_g2_len * 96);
@@ -323,12 +323,12 @@ impl Base58 for VerificationKey {}
 
 #[derive(Debug, Serialize, Deserialize)]
 #[cfg_attr(test, derive(PartialEq, Eq, Clone))]
-pub(crate) struct KeyPair {
+struct KeyPair {
     secret_key: SecretKey,
     verification_key: VerificationKey,
 
     /// Optional index value specifying polynomial point used during threshold key generation.
-    pub(crate) index: Option<SignerIndex>,
+    index: Option<SignerIndex>,
 }
 
 impl From<KeyPair> for (SecretKey, VerificationKey) {
