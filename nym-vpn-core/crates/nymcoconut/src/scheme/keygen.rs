@@ -7,7 +7,6 @@ use core::ops::{Add, Mul};
 
 use bls12_381::{G1Projective, G2Projective, Scalar};
 use group::Curve;
-use nym_pemstore::traits::{PemStorableKey, PemStorableKeyPair};
 use serde_derive::{Deserialize, Serialize};
 
 use crate::error::{CoconutError, Result};
@@ -28,22 +27,6 @@ use crate::Base58;
 pub struct SecretKey {
     pub(crate) x: Scalar,
     pub(crate) ys: Vec<Scalar>,
-}
-
-impl PemStorableKey for SecretKey {
-    type Error = CoconutError;
-
-    fn pem_type() -> &'static str {
-        "COCONUT SECRET KEY"
-    }
-
-    fn to_bytes(&self) -> Vec<u8> {
-        self.to_bytes()
-    }
-
-    fn from_bytes(bytes: &[u8]) -> std::result::Result<Self, Self::Error> {
-        Self::from_bytes(bytes)
-    }
 }
 
 impl TryFrom<&[u8]> for SecretKey {
@@ -101,10 +84,6 @@ impl SecretKey {
         }
         bytes
     }
-
-    pub(crate) fn from_bytes(bytes: &[u8]) -> Result<SecretKey> {
-        SecretKey::try_from(bytes)
-    }
 }
 
 impl Bytable for SecretKey {
@@ -127,22 +106,6 @@ pub struct VerificationKey {
     pub(crate) alpha: G2Projective,
     pub(crate) beta_g1: Vec<G1Projective>,
     pub(crate) beta_g2: Vec<G2Projective>,
-}
-
-impl PemStorableKey for VerificationKey {
-    type Error = CoconutError;
-
-    fn pem_type() -> &'static str {
-        "COCONUT VERIFICATION KEY"
-    }
-
-    fn to_bytes(&self) -> Vec<u8> {
-        self.to_bytes()
-    }
-
-    fn from_bytes(bytes: &[u8]) -> std::result::Result<Self, Self::Error> {
-        Self::from_bytes(bytes)
-    }
 }
 
 impl TryFrom<&[u8]> for VerificationKey {
@@ -344,10 +307,6 @@ impl VerificationKey {
 
         bytes
     }
-
-    pub(crate) fn from_bytes(bytes: &[u8]) -> Result<VerificationKey> {
-        VerificationKey::try_from(bytes)
-    }
 }
 
 impl Bytable for VerificationKey {
@@ -378,33 +337,8 @@ impl From<KeyPair> for (SecretKey, VerificationKey) {
     }
 }
 
-impl PemStorableKeyPair for KeyPair {
-    type PrivatePemKey = SecretKey;
-    type PublicPemKey = VerificationKey;
-
-    fn private_key(&self) -> &Self::PrivatePemKey {
-        &self.secret_key
-    }
-
-    fn public_key(&self) -> &Self::PublicPemKey {
-        &self.verification_key
-    }
-
-    fn from_keys(secret_key: Self::PrivatePemKey, verification_key: Self::PublicPemKey) -> Self {
-        Self::from_keys(secret_key, verification_key)
-    }
-}
-
 impl KeyPair {
     const MARKER_BYTES: &'static [u8] = b"coconutkeypair";
-
-    pub(crate) fn from_keys(secret_key: SecretKey, verification_key: VerificationKey) -> Self {
-        Self {
-            secret_key,
-            verification_key,
-            index: None,
-        }
-    }
 }
 
 impl Bytable for KeyPair {
