@@ -115,13 +115,9 @@ async fn wait_for_shutdown(
         vpn_ctrl_tx.send(NymVpnCtrlMessage::Stop)
     });
 
-    info!("Spawning status listener");
-
     RUNTIME.spawn(async move {
         VpnServiceStatusListener::new().start(vpn_status_rx).await;
     });
-
-    info!("Waiting for shutdown handle");
 
     match vpn_exit_rx.await? {
         NymVpnExitStatusMessage::Failed(error) => {
