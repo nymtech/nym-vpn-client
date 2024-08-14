@@ -22,7 +22,6 @@ export type CodeDependency = {
   name: string;
   version?: string;
   licenses: string[];
-  licenseTexts: string[];
   repository?: string;
   authors: string[];
   copyright?: string;

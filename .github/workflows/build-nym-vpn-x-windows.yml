@@ -62,8 +62,8 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
-      - name: Install cargo-about
-        run: cargo install --locked cargo-about
+      - name: Install cargo-license
+        run: cargo install --locked cargo-license
 
       - name: Install Node
         uses: actions/setup-node@v4
