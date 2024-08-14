@@ -12,7 +12,7 @@ pub(crate) use config::{default_log_dir, DEFAULT_LOG_FILE};
 pub(crate) use error::{ConnectionFailedError, ImportCredentialError};
 pub(crate) use start::start_vpn_service;
 pub(crate) use vpn_service::{
-    ConnectArgs, ConnectOptions, VpnServiceCommand, VpnServiceConnectResult,
+    ConnectArgs, ConnectOptions, ConnectedStateDetails, VpnServiceCommand, VpnServiceConnectResult,
     VpnServiceDisconnectResult, VpnServiceInfoResult, VpnServiceStateChange,
     VpnServiceStatusResult,
 };

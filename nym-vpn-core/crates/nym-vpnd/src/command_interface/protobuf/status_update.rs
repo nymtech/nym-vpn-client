@@ -24,6 +24,21 @@ pub(crate) fn status_update_from_status_message(
                 "ipv6".to_string() => mixnet_exit_connection_info.ips.ipv6.to_string(),
             },
         },
+        NymVpnStatusMessage::WireguardConnectionInfo {
+            entry_connection_info,
+            exit_connection_info,
+        } => ConnectionStatusUpdate {
+            kind: StatusType::TunnelEndToEndConnectionEstablished as i32,
+            message: status.to_string(),
+            details: maplit::hashmap! {
+                "entry_gateway".to_string() => entry_connection_info.gateway_id.to_base58_string(),
+                "exit_gateway".to_string() => exit_connection_info.gateway_id.to_base58_string(),
+                "entry_public_key".to_string() => entry_connection_info.public_key.clone(),
+                "exit_public_key".to_string() => exit_connection_info.public_key.clone(),
+                "entry_private_ipv4".to_string() => entry_connection_info.private_ipv4.to_string(),
+                "exit_private_ipv4".to_string() => exit_connection_info.private_ipv4.to_string(),
+            },
+        },
     }
 }
 

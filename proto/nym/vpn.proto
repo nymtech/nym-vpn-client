@@ -36,6 +36,25 @@ message ExitNode {
   }
 }
 
+message MixConnectedStateDetails {
+  Address nym_address = 1;
+  Address exit_ipr = 2;
+  string ipv4 = 3;
+  string ipv6 = 4;
+}
+
+message WgConnectedStateDetails {
+  string entry_ipv4 = 1;
+  string exit_ipv4 = 2;
+}
+
+message ConnectedStateDetails {
+  oneof connected_state_details_enum {
+    MixConnectedStateDetails mix = 1;
+    WgConnectedStateDetails wg = 2;
+  }
+}
+
 message Dns {
   string ip = 1;
 }
@@ -87,13 +106,10 @@ enum ConnectionStatus {
 import "google/protobuf/timestamp.proto";
 
 message ConnectionDetails {
-  Address nym_address = 1;
-  Gateway entry_gateway = 2;
-  Gateway exit_gateway = 3;
-  Address exit_ipr = 4;
-  string ipv4 = 5;
-  string ipv6 = 6;
-  google.protobuf.Timestamp since = 7;
+  Gateway entry_gateway = 1;
+  Gateway exit_gateway = 2;
+  ConnectedStateDetails specific_details = 3;
+  google.protobuf.Timestamp since = 4;
 }
 
 message StatusRequest {}

@@ -123,8 +123,8 @@ pub struct TunnelGatewayIp {
 
 impl TunnelGatewayIp {
     pub fn new(wireguard_config: &WireguardConfig) -> Self {
-        let ipv4 = wireguard_config.0.ipv4_gateway;
-        let ipv6 = wireguard_config.0.ipv6_gateway;
+        let ipv4 = wireguard_config.talpid_config.ipv4_gateway;
+        let ipv6 = wireguard_config.talpid_config.ipv6_gateway;
         Self { ipv4, ipv6 }
     }
 }

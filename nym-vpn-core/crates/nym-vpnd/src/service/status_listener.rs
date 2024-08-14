@@ -11,7 +11,10 @@ use nym_vpn_lib::{
 use time::OffsetDateTime;
 use tracing::{debug, info};
 
-use crate::service::vpn_service::VpnConnectedStateDetails;
+use crate::service::vpn_service::{
+    ConnectedStateDetails, MixConnectedStateDetails, VpnConnectedStateDetails,
+    WgConnectedStateDetails,
+};
 
 use super::vpn_service::{SharedVpnState, VpnState};
 
@@ -39,12 +42,31 @@ impl VpnServiceStatusListener {
                     mixnet_exit_connection_info,
                 } => {
                     let connected_details = VpnConnectedStateDetails {
-                        nym_address: mixnet_connection_info.nym_address,
                         entry_gateway: mixnet_connection_info.entry_gateway,
                         exit_gateway: mixnet_exit_connection_info.exit_gateway,
-                        exit_ipr: mixnet_exit_connection_info.exit_ipr,
-                        ipv4: mixnet_exit_connection_info.ips.ipv4,
-                        ipv6: mixnet_exit_connection_info.ips.ipv6,
+                        specific_details: ConnectedStateDetails::Mix(MixConnectedStateDetails {
+                            nym_address: mixnet_connection_info.nym_address,
+                            exit_ipr: mixnet_exit_connection_info.exit_ipr,
+                            ipv4: mixnet_exit_connection_info.ips.ipv4,
+                            ipv6: mixnet_exit_connection_info.ips.ipv6,
+                        }),
+                        since: OffsetDateTime::now_utc(),
+                    };
+                    self.shared_vpn_state
+                        .set(VpnState::Connected(Box::new(connected_details)));
+                }
+                NymVpnStatusMessage::WireguardConnectionInfo {
+                    entry_connection_info,
+                    exit_connection_info,
+                } => {
+                    let connected_details = VpnConnectedStateDetails {
+                        entry_gateway: entry_connection_info.gateway_id,
+                        exit_gateway: exit_connection_info.gateway_id,
+                        specific_details: ConnectedStateDetails::Wg(WgConnectedStateDetails {
+                            entry_ipv4: entry_connection_info.private_ipv4,
+                            exit_ipv4: exit_connection_info.private_ipv4,
+                        }),
+
                         since: OffsetDateTime::now_utc(),
                     };
                     self.shared_vpn_state

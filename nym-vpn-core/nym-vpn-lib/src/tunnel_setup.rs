@@ -7,12 +7,12 @@ use std::time::Duration;
 use crate::bandwidth_controller::BandwidthController;
 use crate::error::{Error, GatewayDirectoryError, Result};
 use crate::mixnet_connect::SharedMixnetClient;
-use crate::platform;
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
 use crate::uniffi_custom_impls::TunStatus;
 use crate::wg_gateway_client::WgGatewayClient;
 use crate::wireguard_setup::create_wireguard_tunnel;
 use crate::{init_wireguard_config, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS};
+use crate::{platform, WireguardConnectionInfo};
 use crate::{routing, MixnetConnectionInfo, NymVpn};
 use crate::{MixnetExitConnectionInfo, MixnetVpn, SpecificVpn};
 use futures::channel::{mpsc, oneshot};
@@ -43,6 +43,8 @@ pub struct MixTunnelSetup {
 impl TunnelSpecifcSetup for MixTunnelSetup {}
 
 pub struct WgTunnelSetup {
+    pub connection_info: WireguardConnectionInfo,
+
     pub receiver: oneshot::Receiver<()>,
     pub handle: tokio::task::JoinHandle<()>,
     pub tunnel_close_tx: oneshot::Sender<()>,
@@ -176,7 +178,7 @@ async fn setup_wg_tunnel(
     )
     .await?;
     let wg_gateway = exit_wireguard_config
-        .0
+        .talpid_config
         .peers
         .first()
         .map(|config| config.endpoint.ip());
@@ -195,24 +197,32 @@ async fn setup_wg_tunnel(
         wg_entry_gateway_client.run(task_manager.subscribe_named("bandwidth_entry_client")),
     );
     tokio::spawn(wg_exit_gateway_client.run(task_manager.subscribe_named("bandwidth_exit_client")));
-    entry_wireguard_config.0.peers.iter_mut().for_each(|peer| {
-        peer.allowed_ips.append(
-            &mut exit_wireguard_config
-                .0
-                .peers
-                .iter()
-                .map(|peer| IpNetwork::from(peer.endpoint.ip()))
-                .collect::<Vec<_>>(),
-        );
-    });
+    entry_wireguard_config
+        .talpid_config
+        .peers
+        .iter_mut()
+        .for_each(|peer| {
+            peer.allowed_ips.append(
+                &mut exit_wireguard_config
+                    .talpid_config
+                    .peers
+                    .iter()
+                    .map(|peer| IpNetwork::from(peer.endpoint.ip()))
+                    .collect::<Vec<_>>(),
+            );
+        });
     // If routing is disabled, we don't append the catch all routing rules
     if !nym_vpn.generic_config.disable_routing {
-        exit_wireguard_config.0.peers.iter_mut().for_each(|peer| {
-            peer.allowed_ips
-                .append(&mut replace_default_prefixes(catch_all_ipv4()));
-            peer.allowed_ips
-                .append(&mut replace_default_prefixes(catch_all_ipv6()));
-        });
+        exit_wireguard_config
+            .talpid_config
+            .peers
+            .iter_mut()
+            .for_each(|peer| {
+                peer.allowed_ips
+                    .append(&mut replace_default_prefixes(catch_all_ipv4()));
+                peer.allowed_ips
+                    .append(&mut replace_default_prefixes(catch_all_ipv6()));
+            });
     } else {
         info!("Routing is disabled, skipping adding routes");
     }

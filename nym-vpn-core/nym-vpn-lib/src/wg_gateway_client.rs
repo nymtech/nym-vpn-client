@@ -19,7 +19,7 @@ use nym_wireguard_types::registration::RegistrationData;
 use nym_wireguard_types::{GatewayClient, DEFAULT_PEER_TIMEOUT_CHECK};
 use rand::rngs::OsRng;
 use rand::{CryptoRng, RngCore};
-use std::net::{IpAddr, SocketAddr};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Duration;
@@ -39,7 +39,7 @@ const ASSUMED_BANDWIDTH_DEPLETION_RATE: u64 = 10 * 1024 * 1024; // 10 MB/s
 pub struct GatewayData {
     pub(crate) public_key: PublicKey,
     pub(crate) endpoint: SocketAddr,
-    pub(crate) private_ip: IpAddr,
+    pub(crate) private_ipv4: Ipv4Addr,
 }
 
 pub struct WgGatewayClient {
@@ -157,13 +157,16 @@ impl WgGatewayClient {
             _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
+        let IpAddr::V4(private_ipv4) = registred_data.private_ip else {
+            return Err(Error::InvalidGatewayAuthResponse);
+        };
         let gateway_data = GatewayData {
             public_key: PublicKey::from(registred_data.pub_key.to_bytes()),
             endpoint: SocketAddr::from_str(&format!(
                 "{}:{}",
                 gateway_host, registred_data.wg_port
             ))?,
-            private_ip: registred_data.private_ip,
+            private_ipv4,
         };
 
         Ok(gateway_data)
