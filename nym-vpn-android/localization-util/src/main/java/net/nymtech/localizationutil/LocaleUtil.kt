@@ -1,4 +1,4 @@
-package com.zaneschepke.localizationutil
+package net.nymtech.localizationutil
 
 import android.content.Context
 import android.content.res.Configuration
@@ -6,7 +6,6 @@ import android.content.res.Resources
 import android.os.Build
 import android.os.LocaleList
 import androidx.core.os.ConfigurationCompat
-import net.nymtech.localizationutil.BuildConfig
 import java.util.Locale
 
 object LocaleUtil {

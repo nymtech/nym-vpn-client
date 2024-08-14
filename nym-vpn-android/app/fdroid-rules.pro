@@ -14,4 +14,9 @@
  # is used.
  -keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
 
+-keep class net.nymtech.nymvpn.ui.Destination
+-keep class net.nymtech.nymvpn.ui.Destination$* {
+    *;
+}
+
 

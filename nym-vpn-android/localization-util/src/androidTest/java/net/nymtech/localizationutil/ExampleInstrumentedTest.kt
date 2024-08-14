@@ -1,4 +1,4 @@
-package com.zaneschepke.localizationutil
+package net.nymtech.localizationutil
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry

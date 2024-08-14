@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -31,13 +32,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.zaneschepke.localizationutil.LocaleStorage
-import com.zaneschepke.localizationutil.LocaleUtil
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import net.nymtech.localizationutil.LocaleStorage
+import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.IoDispatcher
@@ -114,8 +116,10 @@ class MainActivity : ComponentActivity() {
 			val uiState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle = this.lifecycle)
 
 			val navController = rememberNavController()
+			val navBackStackEntry by navController.currentBackStackEntryAsState()
 			val snackbarHostState = remember { SnackbarHostState() }
 			var navHeight by remember { mutableStateOf(0.dp) }
+			var showNavBar by rememberSaveable { mutableStateOf(true) }
 			val density = LocalDensity.current
 
 			navController.addOnDestinationChangedListener { controller, destination, _ ->
@@ -171,6 +175,11 @@ class MainActivity : ComponentActivity() {
 				return uiState.settings.theme ?: theme?.let { Theme.valueOf(it) } ?: Theme.default()
 			}
 
+			showNavBar = when (Destination.from(navBackStackEntry?.destination?.route).title.asString(this)) {
+				"" -> false
+				else -> true
+			}
+
 			NymVPNTheme(theme = getTheme()) {
 				Scaffold(
 					Modifier.semantics {
@@ -179,17 +188,19 @@ class MainActivity : ComponentActivity() {
 						testTagsAsResourceId = true
 					},
 					topBar = {
-						NavBar(
-							uiState,
-							navController,
-							{ onNavBarTrailingClick() },
-							Modifier
-								.onGloballyPositioned {
-									navHeight = with(density) {
-										it.size.height.toDp()
-									}
-								},
-						)
+						if (showNavBar) {
+							NavBar(
+								uiState,
+								navController,
+								{ onNavBarTrailingClick() },
+								Modifier
+									.onGloballyPositioned {
+										navHeight = with(density) {
+											it.size.height.toDp()
+										}
+									},
+							)
+						}
 					},
 					snackbarHost = {
 						SnackbarHost(snackbarHostState) { snackbarData: SnackbarData ->
