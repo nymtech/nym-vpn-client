@@ -209,9 +209,10 @@ jobs:
         run: |
           diff -B build/nym_vpn_lib/nym_vpn_lib.kt nym-vpn-lib/uniffi/nym_vpn_lib.kt
         continue-on-error: true
+        id: diff_android
 
       - name: Upload generated uniffi file (Android)
-        if: failure() && contains(matrix.target, 'android')
+        if: steps.diff_android.outcome == 'failure' && contains(matrix.target, 'android')
         uses: actions/upload-artifact@v3
         with:
           name: updated-uniffi-android
@@ -219,7 +220,7 @@ jobs:
           retention-days: 1
 
       - name: Fail workflow (Android)
-        if: failure() && contains(matrix.target, 'android')
+        if: steps.diff_android.outcome = 'failure' && contains(matrix.target, 'android')
         run: exit 1
 
       - name: Diff check (iOS)
@@ -228,9 +229,10 @@ jobs:
         run: |
           diff -B build/nym_vpn_lib.swift nym-vpn-lib/uniffi/nym_vpn_lib.swift
         continue-on-error: true
+        id: diff_ios
 
       - name: Upload generated uniffi file (iOS)
-        if: failure() && (contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1'))
+        if: steps.diff_ios.outcome == 'failure' && (contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1'))
         uses: actions/upload-artifact@v3
         with:
           name: updated-uniffi-ios
@@ -238,7 +240,7 @@ jobs:
           retention-days: 1
 
       - name: Fail workflow (iOS)
-        if: failure() && (contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1'))
+        if: steps.diff_ios.outcome == 'failure' && (contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1'))
         run: exit 1
 
       - name: Run tests
