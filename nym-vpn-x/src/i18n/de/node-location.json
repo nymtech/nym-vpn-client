@@ -1,1 +1,8 @@
-{}
+{
+  "selected": "Ausgewählt",
+  "input-label": "Suche",
+  "location-details": {
+    "title": "Details zum Serverstandort",
+    "description": "Wir leiten den Serverstandort von der IP-Addresse ab. Der reale Standort kann leicht abweichen."
+  }
+}
