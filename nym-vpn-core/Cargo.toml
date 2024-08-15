@@ -24,17 +24,14 @@ members = [
 
 # For local development
 # [patch."https://github.com/nymtech/nym"]
+# nym-api-requests = { path = "../../nym/nym-api/nym-api-requests" }
 # nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
-# nym-bandwidth-controller = { path = "../../nym/common/bandwidth-controller" }
 # nym-bin-common = { path = "../../nym/common/bin-common" }
 # nym-client-core = { path = "../../nym/common/client-core" }
 # nym-config = { path = "../../nym/common/config" }
-# nym-credential-storage = { path = "../../nym/common/credential-storage" }
-# nym-credentials = { path = "../../nym/common/credentials" }
 # nym-crypto = { path = "../../nym/common/crypto" }
 # nym-explorer-client = { path = "../../nym/explorer-api/explorer-client" }
 # nym-http-api-client = { path = "../../nym/common/http-api-client" }
-# nym-id = { path = "../../nym/common/nym-id" }
 # nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
 # nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
 # nym-pemstore = { path = "../../nym/common/pemstore" }
@@ -106,12 +103,6 @@ uniffi = { version = "0.27.3", features = ["cli"] }
 url = "2.5"
 vergen = { version = "8.3.1", default-features = false }
 zeroize = "1.6.0"
-
-# nym-bandwidth-controller-fork = { path = "crates/nym-bandwidth-controller-fork" }
-# nym-credential-interface-fork = { path = "crates/nym-credentials-interface-fork" }
-# nym-credential-storage-fork = { path = "crates/nym-credential-storage-fork" }
-# nym-credentials-fork = { path = "crates/nym-credentials-fork" }
-# nym-id-fork = { path = "crates/nym-id-fork" }
 
 # Use the develop-pre-ecash-for-vpn branch until we have ported the vpn client to use ecash
 
