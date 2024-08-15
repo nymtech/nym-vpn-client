@@ -220,7 +220,7 @@ jobs:
           retention-days: 1
 
       - name: Fail workflow (Android)
-        if: steps.diff_android.outcome = 'failure' && contains(matrix.target, 'android')
+        if: steps.diff_android.outcome == 'failure' && contains(matrix.target, 'android')
         run: exit 1
 
       - name: Diff check (iOS)
