@@ -1,1 +1,34 @@
-{}
+{
+  "logs": {
+    "title": "Logs"
+  },
+  "add-credential-button": "Zum verbinden Zugangsberechtigung hinzufügen",
+  "credential": {
+    "title": "Zugangsberechtigung"
+  },
+  "auto-connect": {
+    "title": "Automatisch verbinden"
+  },
+  "entry-selector": {
+    "title": "Auswahl der Eingangs Location"
+  },
+  "error-monitoring": {
+    "title": "Anonymisierte Fehlerprotokolle"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "github": "Problem auf GitHub melden",
+    "send": "Schicke uns Feedback",
+    "matrix": "Tritt unserem Matrix Chat bei",
+    "discord": "Tritt unserem Discord Channel bei"
+  },
+  "support": {
+    "title": "Support",
+    "faq": "Lies die FAQ"
+  },
+  "legal": {
+    "title": "Rechtlich",
+    "policy": "Datenschutzerklärung",
+    "tos": "Allgemeine Geschäftsbedingungen"
+  }
+}
