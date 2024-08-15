@@ -1047,18 +1047,7 @@ source = "git+https://github.com/jstuczyn/cosmos-rust?branch=nym-temp/all-valida
 dependencies = [
  "prost 0.12.6",
  "prost-types 0.12.6",
- "tendermint-proto 0.34.1",
-]
-
-[[package]]
-name = "cosmos-sdk-proto"
-version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b2f63ab112b8c8e7b8a29c891adc48f43145beb21c0bfbf562957072c1e0beb"
-dependencies = [
- "prost 0.13.1",
- "prost-types 0.13.1",
- "tendermint-proto 0.38.1",
+ "tendermint-proto",
 ]
 
 [[package]]
@@ -1067,7 +1056,7 @@ version = "0.15.0"
 source = "git+https://github.com/jstuczyn/cosmos-rust?branch=nym-temp/all-validator-features#41ed4631e146268b0300033c8bbb993d79a49f58"
 dependencies = [
  "bip32",
- "cosmos-sdk-proto 0.20.0",
+ "cosmos-sdk-proto",
  "ecdsa 0.16.9",
  "eyre",
  "k256",
@@ -1076,28 +1065,8 @@ dependencies = [
  "serde_json",
  "signature 2.2.0",
  "subtle-encoding",
- "tendermint 0.34.1",
+ "tendermint",
  "tendermint-rpc",
- "thiserror",
-]
-
-[[package]]
-name = "cosmrs"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f21bb63ec6a903510a3d01f44735dd4914724e5eccbe409e6da6833d17c7829"
-dependencies = [
- "bip32",
- "cosmos-sdk-proto 0.23.0",
- "ecdsa 0.16.9",
- "eyre",
- "k256",
- "rand_core 0.6.4",
- "serde",
- "serde_json",
- "signature 2.2.0",
- "subtle-encoding",
- "tendermint 0.38.1",
  "thiserror",
 ]
 
@@ -3605,7 +3574,7 @@ version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=3f922cc0#3f922cc0aee9ce82472aadada2e7445ef7f03ca0"
 dependencies = [
  "bs58 0.5.1",
- "cosmrs 0.15.0",
+ "cosmrs",
  "cosmwasm-std",
  "ecdsa 0.16.9",
  "getset",
@@ -3615,7 +3584,7 @@ dependencies = [
  "nym-node-requests",
  "schemars",
  "serde",
- "tendermint 0.34.1",
+ "tendermint",
  "time",
 ]
 
@@ -3757,7 +3726,7 @@ version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?rev=3f922cc0#3f922cc0aee9ce82472aadada2e7445ef7f03ca0"
 dependencies = [
  "async-trait",
- "cosmrs 0.15.0",
+ "cosmrs",
  "log",
  "nym-crypto",
  "nym-gateway-requests",
@@ -3923,7 +3892,7 @@ source = "git+https://github.com/nymtech/nym?rev=3f922cc0#3f922cc0aee9ce82472aad
 dependencies = [
  "bincode",
  "bls12_381",
- "cosmrs 0.15.0",
+ "cosmrs",
  "log",
  "nym-api-requests",
  "nym-credentials-interface",
@@ -4679,7 +4648,7 @@ dependencies = [
  "bip32",
  "bip39",
  "colored",
- "cosmrs 0.15.0",
+ "cosmrs",
  "cosmwasm-std",
  "cw-controllers",
  "cw-utils",
@@ -4853,14 +4822,11 @@ name = "nym-vpn-store"
 version = "0.1.0"
 dependencies = [
  "bip39",
- "cosmrs 0.18.0",
- "hex",
  "nym-crypto",
  "nym-pemstore",
  "nym-validator-client",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
- "secp256k1",
  "serde",
  "serde_json",
  "tempfile",
@@ -5485,16 +5451,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "prost"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e13db3d3fde688c61e2446b4d843bc27a7e8af269a69440c0308021dc92333cc"
-dependencies = [
- "bytes",
- "prost-derive 0.13.1",
-]
-
-[[package]]
 name = "prost-build"
 version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5565,19 +5521,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "prost-derive"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18bec9b0adc4eba778b33684b7ba3e7137789434769ee3ce3930463ef904cfca"
-dependencies = [
- "anyhow",
- "itertools 0.13.0",
- "proc-macro2",
- "quote",
- "syn 2.0.58",
-]
-
-[[package]]
 name = "prost-types"
 version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5593,15 +5536,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9091c90b0a32608e984ff2fa4091273cbdd755d54935c51d520887f4a1dbd5b0"
 dependencies = [
  "prost 0.12.6",
-]
-
-[[package]]
-name = "prost-types"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cee5168b05f49d4b0ca581206eb14a7b22fafd963efe729ac48eb03266e25cc2"
-dependencies = [
- "prost 0.13.1",
 ]
 
 [[package]]
@@ -6254,24 +6188,6 @@ dependencies = [
  "serdect",
  "subtle 2.5.0",
  "zeroize",
-]
-
-[[package]]
-name = "secp256k1"
-version = "0.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e0cc0f1cf93f4969faf3ea1c7d8a9faed25918d96affa959720823dfe86d4f3"
-dependencies = [
- "secp256k1-sys",
-]
-
-[[package]]
-name = "secp256k1-sys"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1433bd67156263443f14d603720b082dd3121779323fce20cba2aa07b874bc1b"
-dependencies = [
- "cc",
 ]
 
 [[package]]
@@ -7299,38 +7215,7 @@ dependencies = [
  "signature 2.2.0",
  "subtle 2.5.0",
  "subtle-encoding",
- "tendermint-proto 0.34.1",
- "time",
- "zeroize",
-]
-
-[[package]]
-name = "tendermint"
-version = "0.38.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "505d9d6ffeb83b1de47c307c6e0d2dff56c6256989299010ad03cd80a8491e97"
-dependencies = [
- "bytes",
- "digest 0.10.7",
- "ed25519 2.2.3",
- "ed25519-consensus",
- "flex-error",
- "futures",
- "k256",
- "num-traits",
- "once_cell",
- "prost 0.13.1",
- "prost-types 0.13.1",
- "ripemd",
- "serde",
- "serde_bytes",
- "serde_json",
- "serde_repr",
- "sha2 0.10.8",
- "signature 2.2.0",
- "subtle 2.5.0",
- "subtle-encoding",
- "tendermint-proto 0.38.1",
+ "tendermint-proto",
  "time",
  "zeroize",
 ]
@@ -7344,7 +7229,7 @@ dependencies = [
  "flex-error",
  "serde",
  "serde_json",
- "tendermint 0.34.1",
+ "tendermint",
  "toml 0.5.11",
  "url",
 ]
@@ -7361,22 +7246,6 @@ dependencies = [
  "num-traits",
  "prost 0.12.6",
  "prost-types 0.12.6",
- "serde",
- "serde_bytes",
- "subtle-encoding",
- "time",
-]
-
-[[package]]
-name = "tendermint-proto"
-version = "0.38.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ed14abe3b0502a3afe21ca74ca5cdd6c7e8d326d982c26f98a394445eb31d6e"
-dependencies = [
- "bytes",
- "flex-error",
- "prost 0.13.1",
- "prost-types 0.13.1",
  "serde",
  "serde_bytes",
  "subtle-encoding",
@@ -7404,9 +7273,9 @@ dependencies = [
  "serde_json",
  "subtle 2.5.0",
  "subtle-encoding",
- "tendermint 0.34.1",
+ "tendermint",
  "tendermint-config",
- "tendermint-proto 0.34.1",
+ "tendermint-proto",
  "thiserror",
  "time",
  "tokio",

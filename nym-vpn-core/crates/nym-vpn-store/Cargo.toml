@@ -9,22 +9,19 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-bip39 = "2.0"
-cosmrs = "0.18"
-hex = "0.4.3"
+bip39.workspace = true
 nym-crypto = { workspace = true, features = ["rand", "symmetric", "asymmetric"] }
 nym-pemstore.workspace = true
 nym-validator-client.workspace = true
 rand.workspace = true
-rand_chacha = "0.3.1"
-secp256k1 = "0.29"
+rand_chacha.workspace = true
+serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["sync"] }
 zeroize.workspace = true
-serde = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
+bip39 = { workspace = true, features = ["rand"] }
+tempfile.workspace = true
 tokio = { workspace = true, features = ["sync", "macros", "rt-multi-thread"] }
-bip39 = { version = "2.0", features = ["rand"] }
-tempfile = "3.12"

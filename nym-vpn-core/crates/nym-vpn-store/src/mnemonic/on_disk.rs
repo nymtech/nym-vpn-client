@@ -7,9 +7,6 @@ use super::{MnemonicStorage, StoredMnemonic};
 
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskMnemonicStorageError {
-    // #[error("no mnemonic stored")]
-    // NoMnemonicStored,
-
     #[error("mnemonic already stored")]
     MnemonicAlreadyStored { path: PathBuf },
 
