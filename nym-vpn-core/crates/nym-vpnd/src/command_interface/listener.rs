@@ -18,6 +18,7 @@ use nym_vpn_proto::{
     InfoRequest, InfoResponse, ListEntryCountriesRequest, ListEntryCountriesResponse,
     ListEntryGatewaysRequest, ListEntryGatewaysResponse, ListExitCountriesRequest,
     ListExitCountriesResponse, ListExitGatewaysRequest, ListExitGatewaysResponse,
+    StoreAccountRequest, StoreAccountResponse,
 };
 use prost_types::Timestamp;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
@@ -382,6 +383,28 @@ impl NymVpnd for CommandInterface {
             "Returning list exit countries response: {} countries",
             response.countries.len()
         );
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn store_account(
+        &self,
+        request: tonic::Request<StoreAccountRequest>,
+    ) -> Result<tonic::Response<StoreAccountResponse>, tonic::Status> {
+        info!("Got store account request");
+
+        let account = request.into_inner().mnemonic;
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_store_account(account)
+            .await
+            .map_err(|err| {
+                let msg = format!("Failed to store account: {:?}", err);
+                error!(msg);
+                tonic::Status::internal(msg)
+            })?;
+
+        let response = StoreAccountResponse::from(result);
+        info!("Returning store account response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 }

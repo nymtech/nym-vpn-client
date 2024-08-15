@@ -323,6 +323,15 @@ message ListExitCountriesResponse {
   repeated Location countries = 1;
 }
 
+message StoreAccountRequest {
+  string name = 1;
+  string mnemonic = 2;
+  uint32 nonce = 3;
+}
+message StoreAccountResponse {
+  bool success = 1;
+}
+
 service NymVpnd {
   rpc Info (InfoRequest) returns (InfoResponse) {}
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
@@ -336,5 +345,7 @@ service NymVpnd {
   rpc ListExitGateways (ListExitGatewaysRequest) returns (ListExitGatewaysResponse) {}
   rpc ListEntryCountries (ListEntryCountriesRequest) returns (ListEntryCountriesResponse) {}
   rpc ListExitCountries (ListExitCountriesRequest) returns (ListExitCountriesResponse) {}
+
+  rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
 }
 

@@ -280,3 +280,8 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
         }
     }
 }
+
+#[derive(Debug, thiserror::Error)]
+pub enum StoreAccountError {
+    StorageError { path: PathBuf, error: String },
+}

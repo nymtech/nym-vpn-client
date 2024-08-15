@@ -29,7 +29,7 @@ use super::{
         self, create_config_file, create_data_dir, read_config_file, write_config_file,
         ConfigSetupError, NymVpnServiceConfig, DEFAULT_CONFIG_FILE,
     },
-    error::{ConnectionFailedError, ImportCredentialError},
+    error::{ConnectionFailedError, ImportCredentialError, StoreAccountError},
     exit_listener::VpnServiceExitListener,
     status_listener::VpnServiceStatusListener,
 };
@@ -93,6 +93,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Option<OffsetDateTime>, ImportCredentialError>>,
         Vec<u8>,
     ),
+    StoreAccount(oneshot::Sender<Result<(), StoreAccountError>>, String),
 }
 
 impl fmt::Display for VpnServiceCommand {
@@ -103,6 +104,7 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::Status(_) => write!(f, "Status"),
             VpnServiceCommand::Info(_) => write!(f, "Info"),
             VpnServiceCommand::ImportCredential(_, _) => write!(f, "ImportCredential"),
+            VpnServiceCommand::StoreAccount(_, _) => write!(f, "StoreAccount"),
         }
     }
 }

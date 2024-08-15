@@ -36,6 +36,12 @@ pub enum ListGatewayError {
     },
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum StoreAccountError {
+    #[error("failed to store account")]
+    StoreAccount,
+}
+
 pub(super) struct CommandInterfaceConnectionHandler {
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
 }
@@ -178,6 +184,21 @@ impl CommandInterfaceConnectionHandler {
             .map_err(|error| ListGatewayError::GetExitGateways { error })?;
 
         Ok(gateways.into_iter().map(gateway::Country::from).collect())
+    }
+
+    pub(crate) async fn handle_store_account(
+        &self,
+        account: String,
+    ) -> Result<(), StoreAccountError> {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::StoreAccount(tx, account))
+            .unwrap();
+        debug!("Sent store account command to VPN");
+        debug!("Waiting for response");
+        let result = rx.await.unwrap();
+        debug!("VPN store account result: {:?}", result);
+        result
     }
 }
 
