@@ -129,7 +129,4 @@ pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialNyxd
 pub enum CredentialCoconutApiClientError {
     #[error("failed to query contract")]
     FailedToQueryContract,
-
-    #[error("failed to fetch coconut api clients: {0}")]
-    FailedToFetchCoconutApiClients(nym_validator_client::coconut::CoconutApiError),
 }
