@@ -1,1 +1,7 @@
-{}
+{
+  "vpn-tunnel-state": {
+    "connected": "VPN tüneli bağlandı",
+    "disconnected": "VPN tünel bağlantısı kesildi",
+    "failed": "VPN tünel bağlantısı başarısız oldu!"
+  }
+}
