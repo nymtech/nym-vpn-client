@@ -65,28 +65,22 @@ interface Tunnel {
 	 */
 	enum class Environment {
 		MAINNET {
+			override val nymVpnApiUrl: URL
+				get() = URL("https://nymvpn.com/api")
 			override val apiUrl: URL
 				get() = URL("https://validator.nymtech.net/api/")
-			override val explorerUrl: URL
-				get() = URL("https://explorer.nymtech.net/api/")
-			override val harbourMasterUrl: URL
-				get() = URL("https://harbourmaster.nymtech.net")
 		},
 		SANDBOX {
+			override val nymVpnApiUrl: URL?
+				get() = null
 			override val apiUrl: URL
 				get() = URL("https://sandbox-nym-api1.nymtech.net/api")
-			override val explorerUrl: URL
-				get() = URL("https://sandbox-explorer.nymtech.net/api")
-			override val harbourMasterUrl: URL?
-				get() = null
 		},
 		CANARY {
+			override val nymVpnApiUrl: URL?
+				get() = null
 			override val apiUrl: URL
 				get() = URL("https://canary-api.performance.nymte.ch/api")
-			override val explorerUrl: URL
-				get() = URL("https://canary-explorer.performance.nymte.ch/api")
-			override val harbourMasterUrl: URL?
-				get() = null
 		}, ;
 
 		/**
@@ -111,8 +105,7 @@ interface Tunnel {
 			}
 		}
 
+		abstract val nymVpnApiUrl: URL?
 		abstract val apiUrl: URL
-		abstract val explorerUrl: URL
-		abstract val harbourMasterUrl: URL?
 	}
 }

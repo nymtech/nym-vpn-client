@@ -1439,7 +1439,7 @@ public func FfiConverterTypeUserAgent_lower(_ value: UserAgent) -> RustBuffer {
 
 public struct VpnConfig {
     public var apiUrl: Url
-    public var explorerUrl: Url
+    public var vpnApiUrl: Url?
     public var entryGateway: EntryPoint
     public var exitRouter: ExitPoint
     public var enableTwoHop: Bool
@@ -1449,9 +1449,9 @@ public struct VpnConfig {
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(apiUrl: Url, explorerUrl: Url, entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?) {
+    public init(apiUrl: Url, vpnApiUrl: Url?, entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?) {
         self.apiUrl = apiUrl
-        self.explorerUrl = explorerUrl
+        self.vpnApiUrl = vpnApiUrl
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
         self.enableTwoHop = enableTwoHop
@@ -1468,7 +1468,7 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
         return
             try VpnConfig(
                 apiUrl: FfiConverterTypeUrl.read(from: &buf), 
-                explorerUrl: FfiConverterTypeUrl.read(from: &buf), 
+                vpnApiUrl: FfiConverterOptionTypeUrl.read(from: &buf), 
                 entryGateway: FfiConverterTypeEntryPoint.read(from: &buf), 
                 exitRouter: FfiConverterTypeExitPoint.read(from: &buf), 
                 enableTwoHop: FfiConverterBool.read(from: &buf), 
@@ -1480,7 +1480,7 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
 
     public static func write(_ value: VpnConfig, into buf: inout [UInt8]) {
         FfiConverterTypeUrl.write(value.apiUrl, into: &buf)
-        FfiConverterTypeUrl.write(value.explorerUrl, into: &buf)
+        FfiConverterOptionTypeUrl.write(value.vpnApiUrl, into: &buf)
         FfiConverterTypeEntryPoint.write(value.entryGateway, into: &buf)
         FfiConverterTypeExitPoint.write(value.exitRouter, into: &buf)
         FfiConverterBool.write(value.enableTwoHop, into: &buf)
@@ -2899,20 +2899,20 @@ public func getGatewayCountries(apiUrl: Url, nymVpnApiUrl: Url?, exitOnly: Bool,
     )
 })
 }
-public func getLowLatencyEntryCountry(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?)throws  -> Location {
+public func getLowLatencyEntryCountry(apiUrl: Url, vpnApiUrl: Url?, harbourMasterUrl: Url?)throws  -> Location {
     return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
         FfiConverterTypeUrl.lower(apiUrl),
-        FfiConverterTypeUrl.lower(explorerUrl),
+        FfiConverterOptionTypeUrl.lower(vpnApiUrl),
         FfiConverterOptionTypeUrl.lower(harbourMasterUrl),$0
     )
 })
 }
-public func getLowLatencyEntryCountryUserAgent(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?, userAgent: UserAgent)throws  -> Location {
+public func getLowLatencyEntryCountryUserAgent(apiUrl: Url, vpnApiUrl: Url?, harbourMasterUrl: Url?, userAgent: UserAgent)throws  -> Location {
     return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountryuseragent(
         FfiConverterTypeUrl.lower(apiUrl),
-        FfiConverterTypeUrl.lower(explorerUrl),
+        FfiConverterOptionTypeUrl.lower(vpnApiUrl),
         FfiConverterOptionTypeUrl.lower(harbourMasterUrl),
         FfiConverterTypeUserAgent.lower(userAgent),$0
     )
@@ -2959,10 +2959,10 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 63092) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 20907) {
+    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 38719) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountryuseragent() != 64176) {
+    if (uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountryuseragent() != 14533) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 8591) {
