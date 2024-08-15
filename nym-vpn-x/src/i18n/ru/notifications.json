@@ -1,1 +1,7 @@
-{}
+{
+  "vpn-tunnel-state": {
+    "connected": "VPN-туннель подключён",
+    "disconnected": "VPN-туннель отключён",
+    "failed": "Соединение с VPN-туннелем не удалось!"
+  }
+}
