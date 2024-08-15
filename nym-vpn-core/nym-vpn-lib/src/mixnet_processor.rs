@@ -252,12 +252,6 @@ impl MixnetListener {
                 }
                 Some(reconstructed_message) = mixnet_client.next() => {
                     // We're just going to assume that all incoming messags are IPR messages
-                    if let Some(version) = reconstructed_message.message.first() {
-                        if *version != nym_ip_packet_requests::CURRENT_VERSION {
-                            error!("Received packet with invalid version: v{version}, is your client up to date?");
-                            continue;
-                        }
-                    }
                     match self.ipr_listener.handle_reconstructed_message(reconstructed_message).await {
                         Ok(Some(MixnetMessageOutcome::IpPackets(packets))) => {
                             for packet in packets {

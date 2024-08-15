@@ -12,6 +12,8 @@ use nym_sdk::mixnet::{Recipient, ReconstructedMessage};
 use tokio_util::codec::Decoder;
 use tracing::{debug, error, info, warn};
 
+use crate::helpers::check_ipr_message_version;
+
 pub enum MixnetMessageOutcome {
     IpPackets(Vec<Bytes>),
     MixnetSelfPing,
@@ -23,7 +25,10 @@ pub struct IprListener {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum IprListenerError {}
+pub enum IprListenerError {
+    #[error(transparent)]
+    IprClientError(#[from] crate::Error),
+}
 
 impl IprListener {
     pub fn new(our_address: Recipient) -> Self {
@@ -52,6 +57,8 @@ impl IprListener {
         &mut self,
         message: ReconstructedMessage,
     ) -> Result<Option<MixnetMessageOutcome>, IprListenerError> {
+        check_ipr_message_version(&message)?;
+
         match IpPacketResponse::from_reconstructed_message(&message) {
             Ok(response) => match response.data {
                 IpPacketResponseData::StaticConnect(_) => {
