@@ -2,5 +2,6 @@
   "title": {
     "part1": "Benvenuto/a"
   },
-  "continue-button": "Continua"
+  "continue-button": "Continua",
+  "experimental": "Questo prodotto è in fase di sperimentazione. Non affidartici per un'anonimità completa (per ora)."
 }
