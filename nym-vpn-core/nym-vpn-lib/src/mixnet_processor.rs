@@ -181,11 +181,20 @@ impl MixnetProcessor {
     }
 }
 
-struct IprClient {
+struct IprListener {
     our_address: Recipient,
+    decoder: MultiIpPacketCodec,
 }
 
-impl IprClient {
+impl IprListener {
+    fn new(our_address: Recipient) -> Self {
+        let decoder = MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
+        Self {
+            our_address,
+            decoder,
+        }
+    }
+
     fn is_mix_self_ping(&self, request: &IpPacketRequest) -> bool {
         match request.data {
             IpPacketRequestData::Ping(ref ping_request)
@@ -201,9 +210,8 @@ impl IprClient {
     }
 
     async fn handle_reconstructed_message(
-        &self,
+        &mut self,
         message: ReconstructedMessage,
-        multi_ip_packet_decoder: &mut MultiIpPacketCodec,
     ) -> Result<Option<MixnetMessageOutcome>> {
         match IpPacketResponse::from_reconstructed_message(&message) {
             Ok(response) => match response.data {
@@ -225,7 +233,7 @@ impl IprClient {
                     // to the tun device
                     let mut bytes = BytesMut::from(&*data_response.ip_packet);
                     let mut responses = vec![];
-                    while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
+                    while let Ok(Some(packet)) = self.decoder.decode(&mut bytes) {
                         responses.push(packet);
                     }
                     return Ok(Some(MixnetMessageOutcome::IpPackets(responses)));
@@ -268,7 +276,7 @@ struct MixnetListener {
     mixnet_client: SharedMixnetClient,
 
     // IPR client for handling responses
-    ipr_client: IprClient,
+    ipr_listener: IprListener,
 
     // Task client for receiving shutdown signals
     task_client: TaskClient,
@@ -296,11 +304,11 @@ impl MixnetListener {
         connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
     ) -> Self {
         let our_address = mixnet_client.nym_address().await;
-        let ipr_client = IprClient { our_address };
+        let ipr_client = IprListener::new(our_address);
 
         Self {
             mixnet_client,
-            ipr_client,
+            ipr_listener: ipr_client,
             task_client,
             tun_device_sink,
             icmp_beacon_identifier,
@@ -329,8 +337,6 @@ impl MixnetListener {
         let mut mixnet_client_binding = self.mixnet_client.lock().await;
         let mixnet_client = mixnet_client_binding.as_mut().unwrap();
 
-        let mut decoder = MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
-
         while !self.task_client.is_shutdown() {
             tokio::select! {
                 _ = self.task_client.recv_with_delay() => {
@@ -346,7 +352,7 @@ impl MixnetListener {
                         }
                     }
                     // match self.handle_reconstructed_message(reconstructed_message, &mut decoder).await {
-                    match self.ipr_client.handle_reconstructed_message(reconstructed_message, &mut decoder).await {
+                    match self.ipr_listener.handle_reconstructed_message(reconstructed_message).await {
                         Ok(Some(MixnetMessageOutcome::IpPackets(packets))) => {
                             for packet in packets {
                                 self.check_for_icmp_beacon_reply(&packet);
