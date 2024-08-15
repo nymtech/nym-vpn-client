@@ -15,5 +15,8 @@
   "first-hop-selection": "Selezione del primo hop",
   "tos": "Termini di utilizzo",
   "privacy-statement": "Privacy policy",
-  "last-hop-selection": "Selezione dell'ultimo hop"
+  "last-hop-selection": "Selezione dell'ultimo hop",
+  "appearance": "Aspetto",
+  "language": "Lingua",
+  "notifications": "Notifiche"
 }
