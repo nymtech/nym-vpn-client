@@ -5,12 +5,9 @@
 use futures::channel::{mpsc, oneshot};
 #[cfg(not(target_os = "ios"))]
 use nym_sdk::TaskClient;
-#[cfg(not(target_os = "ios"))]
-use std::sync::{Arc, Mutex};
-#[cfg(not(target_os = "ios"))]
 use talpid_routing::RouteManager;
-#[cfg(not(target_os = "ios"))]
-use talpid_tunnel::{tun_provider::TunProvider, TunnelEvent};
+use talpid_tunnel::{TunnelEvent};
+use tracing::debug;
 
 #[cfg(not(target_os = "ios"))]
 use crate::{
@@ -25,7 +22,6 @@ use crate::{
 pub async fn create_wireguard_tunnel(
     route_manager: &RouteManager,
     shutdown: TaskClient,
-    tun_provider: Arc<Mutex<TunProvider>>,
     wireguard_config: WireguardConfig,
 ) -> Result<(
     WgTunnelSetup,
@@ -33,7 +29,7 @@ pub async fn create_wireguard_tunnel(
 )> {
     tracing::debug!("Creating wireguard tunnel");
     let handle = route_manager.handle()?;
-    let tunnel = Tunnel::new(wireguard_config.clone(), handle, tun_provider);
+    let tunnel = Tunnel::new(wireguard_config, handle);
 
     let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
     let (tunnel_handle, event_rx, tunnel_close_tx) =

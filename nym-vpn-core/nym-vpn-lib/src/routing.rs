@@ -42,8 +42,6 @@ pub struct RoutingConfig {
     pub(crate) disable_routing: bool,
     #[cfg(target_os = "android")]
     pub(crate) gateway_ws_fd: Option<RawFd>,
-    #[cfg(target_os = "android")]
-    pub(crate) tun_provider: Arc<Mutex<TunProvider>>,
 }
 
 impl Display for RoutingConfig {
@@ -66,8 +64,9 @@ impl RoutingConfig {
         vpn: &NymVpn<MixnetVpn>,
         tun_ips: IpPair,
         entry_mixnet_gateway_ip: IpAddr,
+        #[cfg(target_os = "android")]
+        gateway_ws_fd: Option<RawFd>,
         lan_gateway_ip: LanGatewayIp,
-        #[cfg(target_os = "android")] gateway_ws_fd: Option<RawFd>,
     ) -> Self {
         debug!("TUN device IPs: {}", tun_ips);
         let mut mixnet_tun_config = tun2::Configuration::default();
@@ -91,8 +90,6 @@ impl RoutingConfig {
             disable_routing: vpn.generic_config.disable_routing,
             #[cfg(target_os = "android")]
             gateway_ws_fd,
-            #[cfg(target_os = "android")]
-            tun_provider: vpn.tun_provider.clone(),
         }
     }
 
@@ -256,29 +253,32 @@ pub async fn setup_mixnet_routing(
 pub async fn setup_mixnet_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
+    #[cfg(target_os = "android")] android_tun_provider: std::sync::Arc<
+        dyn crate::platform::android::AndroidTunProvider,
+    >,
+    #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<
+        dyn crate::platform::swift::OSTunProvider,
+    >,
     dns_monitor: &mut DnsMonitor,
     dns: Option<IpAddr>,
 ) -> Result<tun2::AsyncDevice> {
     debug!("Creating tun device");
     let mixnet_tun_config = config.mixnet_tun_config.clone();
+
+    #[cfg(target_os = "ios")]
+    let mixnet_tun_config = {
+        let fd = ios_tun_provider.configure_nym(config.clone().into())?;
+        let mut mixnet_tun_config = mixnet_tun_config.clone();
+        mixnet_tun_config.raw_fd(fd);
+        mixnet_tun_config
+    };
     #[cfg(target_os = "android")]
     let mixnet_tun_config = {
-        let mut tun_config = talpid_tunnel::tun_provider::TunConfig::default();
-        let tun_ips = config.tun_ips();
-        tun_config.addresses = vec![tun_ips.ipv4.into(), tun_ips.ipv6.into()];
-        let fd = {
-            let mut tun_provider = config
-                .tun_provider
-                .lock()
-                .expect("access should not be passed to mullvad yet");
-
-            let fd = tun_provider.get_tun(tun_config)?.as_raw_fd();
-            if let Some(raw_fd) = config.gateway_ws_fd {
-                tun_provider.bypass(raw_fd)?;
-            }
-            fd
-        };
+        let fd = android_tun_provider.configure_nym(config.clone().into())?;
         let mut mixnet_tun_config = mixnet_tun_config.clone();
+        if let Some(raw_fd) = config.gateway_ws_fd {
+            android_tun_provider.bypass(raw_fd);
+        }
         mixnet_tun_config.raw_fd(fd);
         mixnet_tun_config
     };

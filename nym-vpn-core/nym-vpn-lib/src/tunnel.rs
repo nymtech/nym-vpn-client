@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 use talpid_routing::{RouteManager, RouteManagerHandle};
 use talpid_tunnel::tun_provider::TunProvider;
 use talpid_tunnel::{TunnelArgs, TunnelEvent};
-use talpid_wireguard::{config::Config, WireguardMonitor};
+use talpid_wireguard::{config::Config};
 use tokio::task::JoinHandle;
 
 use crate::config::WireguardConfig;
@@ -20,20 +20,17 @@ pub type EventReceiver = mpsc::UnboundedReceiver<(TunnelEvent, Sender<()>)>;
 
 pub struct Tunnel {
     pub config: Config,
-    pub route_manager_handle: RouteManagerHandle,
-    pub tun_provider: Arc<Mutex<TunProvider>>,
+    pub route_manager_handle: RouteManagerHandle
 }
 
 impl Tunnel {
     pub fn new(
         config: WireguardConfig,
         route_manager_handle: RouteManagerHandle,
-        tun_provider: Arc<Mutex<TunProvider>>,
     ) -> Self {
         Tunnel {
             config: config.talpid_config,
             route_manager_handle,
-            tun_provider,
         }
     }
 }
@@ -48,7 +45,6 @@ pub fn start_tunnel(
     // We only start the tunnel when we have wireguard enabled, and then we have the config
     let config = tunnel.config.clone();
     let id: Option<String> = config.tunnel.addresses.first().map(|a| a.to_string());
-    let tun_provider = Arc::clone(&tunnel.tun_provider);
     let (event_tx, event_rx) = mpsc::unbounded();
     let (tunnel_close_tx, tunnel_close_rx) = oneshot::channel::<()>();
     let handle = tokio::task::spawn_blocking(move || {
@@ -69,38 +65,37 @@ pub fn start_tunnel(
             return;
         }
         debug!("Tunnel resource dir: {:?}", resource_dir);
-        let args = TunnelArgs {
-            runtime: tokio::runtime::Handle::current(),
-            resource_dir: &resource_dir,
-            on_event: on_tunnel_event,
-            tunnel_close_rx,
-            tun_provider,
-            retry_attempt: 3,
-            route_manager,
-        };
-        let monitor = match WireguardMonitor::start(
-            config,
-            None,
-            Some(Path::new(&resource_dir.join("logs"))),
-            args,
-        ) {
-            Ok(monitor) => monitor,
-            Err(e) => {
-                shutdown.send_status_msg(Box::new(e));
-                return;
-            }
-        };
-        debug!("Wireguard monitor started, blocking current thread until shutdown");
-        if let Err(e) = monitor.wait() {
-            error!("Tunnel disconnected with error {:?}", e);
-            shutdown.send_status_msg(Box::new(e));
-        } else {
-            if finished_shutdown_tx.send(()).is_err() {
-                shutdown
-                    .send_status_msg(Box::new(crate::error::Error::FailedToSendWireguardShutdown));
-            }
-            debug!("Sent shutdown message");
-        }
+        // let args = TunnelArgs {
+        //     runtime: tokio::runtime::Handle::current(),
+        //     resource_dir: &resource_dir,
+        //     on_event: on_tunnel_event,
+        //     tunnel_close_rx,
+        //     retry_attempt: 3,
+        //     route_manager,
+        // };
+        // let monitor = match WireguardMonitor::start(
+        //     config,
+        //     None,
+        //     Some(Path::new(&resource_dir.join("logs"))),
+        //     args,
+        // ) {
+        //     Ok(monitor) => monitor,
+        //     Err(e) => {
+        //         shutdown.send_status_msg(Box::new(e));
+        //         return;
+        //     }
+        // };
+        // debug!("Wireguard monitor started, blocking current thread until shutdown");
+        // if let Err(e) = monitor.wait() {
+        //     error!("Tunnel disconnected with error {:?}", e);
+        //     shutdown.send_status_msg(Box::new(e));
+        // } else {
+        //     if finished_shutdown_tx.send(()).is_err() {
+        //         shutdown
+        //             .send_status_msg(Box::new(crate::error::Error::FailedToSendWireguardShutdown));
+        //     }
+        //     debug!("Sent shutdown message");
+        // }
         shutdown.disarm();
     });
 

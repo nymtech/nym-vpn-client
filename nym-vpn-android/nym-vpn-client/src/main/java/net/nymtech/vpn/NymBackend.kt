@@ -1,8 +1,13 @@
 package net.nymtech.vpn
 
 import android.content.Context
+import android.content.Intent
+import android.net.VpnService
+import android.os.Build
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -11,24 +16,39 @@ import net.nymtech.vpn.model.BackendMessage
 import net.nymtech.vpn.model.Statistics
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.InvalidCredentialException
-import net.nymtech.vpn.util.ServiceManager
 import net.nymtech.vpn.util.SingletonHolder
+import net.nymtech.vpn.util.prefix
+import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.BandwidthStatus
 import nym_vpn_lib.ConnectionStatus
 import nym_vpn_lib.ExitStatus
 import nym_vpn_lib.FfiException
+import nym_vpn_lib.NymConfig
 import nym_vpn_lib.NymVpnStatus
 import nym_vpn_lib.TunStatus
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
+import nym_vpn_lib.WgConfig
 import nym_vpn_lib.checkCredential
+import nym_vpn_lib.initLogger
 import nym_vpn_lib.runVpn
+import nym_vpn_lib.stopVpn
 import timber.log.Timber
+import java.net.InetAddress
 import java.time.Instant
 
-class NymBackend private constructor(val context: Context) : Backend, TunnelStatusListener {
+class NymBackend private constructor(val context: Context) : Backend, TunnelStatusListener, AndroidTunProvider {
 
-	companion object : SingletonHolder<NymBackend, Context>(::NymBackend)
+	init {
+		System.loadLibrary(Constants.NYM_VPN_LIB)
+		initLogger("info")
+	}
+
+	companion object : SingletonHolder<NymBackend, Context>(::NymBackend) {
+		private var vpnService = CompletableDeferred<VpnService>()
+	}
+	private var currentTunnelHandle : Int = -1
+
 	private val ioDispatcher = Dispatchers.IO
 
 	private var statsJob: Job? = null
@@ -55,17 +75,45 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 	}
 
-	override fun start(tunnel: Tunnel): Tunnel.State {
+	override suspend fun start(tunnel: Tunnel): Tunnel.State {
+		val state = getState()
+		if(tunnel == this.tunnel && state != Tunnel.State.Down) return state
 		this.tunnel = tunnel
 		tunnel.environment.setup()
+		if (!vpnService.isCompleted) {
+			context.startService(Intent(context, VpnService::class.java))
+		}
 		// reset any error state
 		tunnel.onBackendMessage(BackendMessage.None)
-		ServiceManager.startVpnServiceForeground(context)
+		withContext(ioDispatcher) {
+			runCatching {
+				runVpn(
+					VpnConfig(
+						tunnel.environment.apiUrl,
+						tunnel.environment.nymVpnApiUrl,
+						tunnel.entryPoint,
+						tunnel.exitPoint,
+						isTwoHop(tunnel.mode),
+						this@NymBackend,
+						Constants.NATIVE_STORAGE_PATH,
+						this@NymBackend,
+					),
+				)
+			}.onFailure {
+				// temp for now until we setup error/message callback
+				tunnel.onBackendMessage(BackendMessage.Error.StartFailed)
+			}
+		}
 		return Tunnel.State.Connecting.InitializingClient
 	}
 
-	override fun stop(): Tunnel.State {
-		ServiceManager.stopVpnServiceForeground(context)
+	@OptIn(ExperimentalCoroutinesApi::class)
+	override suspend fun stop(): Tunnel.State {
+		withContext(ioDispatcher) {
+			stopVpn()
+			currentTunnelHandle = -1
+			vpnService.getCompleted().stopSelf()
+		}
 		return Tunnel.State.Disconnecting
 	}
 
@@ -85,29 +133,6 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	private fun isTwoHop(mode: Tunnel.Mode): Boolean = when (mode) {
 		Tunnel.Mode.TWO_HOP_MIXNET -> true
 		else -> false
-	}
-
-	internal suspend fun connect() {
-		withContext(ioDispatcher) {
-			tunnel?.let {
-				runCatching {
-					runVpn(
-						VpnConfig(
-							it.environment.apiUrl,
-							it.environment.nymVpnApiUrl,
-							it.entryPoint,
-							it.exitPoint,
-							isTwoHop(it.mode),
-							Constants.NATIVE_STORAGE_PATH,
-							this@NymBackend,
-						),
-					)
-				}.onFailure {
-					// temp for now until we setup error/message callback
-					tunnel?.onBackendMessage(BackendMessage.Error.StartFailed)
-				}
-			}
-		}
 	}
 
 	private suspend fun startConnectionTimer() {
@@ -161,11 +186,82 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			is ExitStatus.Failed -> {
 				Timber.e(status.error)
 				// need to stop the vpn service even though vpn never started from lib perspective
-				stop()
+				context.stopService(Intent(context, VpnService::class.java))
 				tunnel?.onBackendMessage(BackendMessage.Error.StartFailed)
 				// Need to set state down because this likely never happened in lib
 				tunnel?.onStateChange(Tunnel.State.Down)
 			}
 		}
+	}
+
+	class VpnService : android.net.VpnService() {
+		private var owner: NymBackend? = null
+
+		val builder: Builder
+			get() = Builder()
+
+		override fun onCreate() {
+			vpnService.complete(this)
+			super.onCreate()
+		}
+
+		override fun onDestroy() {
+			owner?.let {
+				if(it.tunnel != null) {
+					it.currentTunnelHandle = -1
+				}
+			}
+			vpnService = CompletableDeferred()
+			super.onDestroy()
+		}
+
+		override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+			vpnService.complete(this)
+			//TODO can add AOVPN callback here later
+			return super.onStartCommand(intent, flags, startId)
+		}
+
+		fun setOwner(owner: NymBackend?) {
+			this.owner = owner
+		}
+	}
+
+	@OptIn(ExperimentalCoroutinesApi::class)
+	override fun bypass(socket: Int) {
+		vpnService.getCompleted().protect(socket)
+	}
+
+	override fun configureWg(config: WgConfig) {
+		TODO("Not yet implemented")
+	}
+
+	@OptIn(ExperimentalCoroutinesApi::class)
+	override fun configureNym(config: NymConfig): Int {
+		Timber.d("Configuring Nym")
+		//TODO make better exceptions
+		if(android.net.VpnService.prepare(context) != null) throw Exception()
+		Timber.d("2")
+		val service = vpnService.getCompleted()
+		Timber.d("3")
+		service.setOwner(this)
+		Timber.d("4")
+		if(currentTunnelHandle != -1) return currentTunnelHandle
+		Timber.d("5")
+		val vpnInterface = service.builder.apply {
+			addAddress(config.ipv4Addr,InetAddress.getByName(config.ipv4Addr).prefix())
+			addAddress(config.ipv6Addr,InetAddress.getByName(config.ipv6Addr).prefix())
+			config.entryMixnetGatewayIp?.let {
+				val route = InetAddress.getByName(it)
+				addRoute(route, route.prefix())
+			}
+			addDnsServer("1.1.1.1")
+			setMtu(config.mtu.toInt())
+			setBlocking(false)
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+				setMetered(false)
+			}
+		}.establish()
+		Timber.d("7")
+		return vpnInterface?.detachFd() ?: throw Exception()
 	}
 }

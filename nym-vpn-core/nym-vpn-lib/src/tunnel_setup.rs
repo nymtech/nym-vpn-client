@@ -280,7 +280,6 @@ async fn setup_wg_tunnel(
     let (wireguard_waiting_entry, event_rx) = create_wireguard_tunnel(
         route_manager,
         task_manager.subscribe_named("entry_wg_tunnel"),
-        nym_vpn.tun_provider.clone(),
         entry_wireguard_config,
     )
     .await?;
@@ -298,7 +297,6 @@ async fn setup_wg_tunnel(
     let (wireguard_waiting_exit, event_rx) = create_wireguard_tunnel(
         route_manager,
         task_manager.subscribe_named("exit_wg_tunnel"),
-        nym_vpn.tun_provider.clone(),
         exit_wireguard_config,
     )
     .await?;

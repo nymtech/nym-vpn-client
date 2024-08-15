@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
+use crate::error::Error;
+
 #[derive(thiserror::Error, uniffi::Error, Debug)]
 pub enum FFIError {
     #[error("Invalid value passed in uniffi")]
@@ -49,6 +51,11 @@ impl From<crate::Error> for FFIError {
     }
 }
 
+impl From<FFIError> for Error {
+    fn from(value: FFIError) -> Self {
+        Error::StopError
+    }
+}
 impl From<nym_gateway_directory::Error> for FFIError {
     fn from(value: nym_gateway_directory::Error) -> Self {
         Self::GatewayDirectoryError {

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use self::error::FFIError;
 use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
@@ -15,6 +16,7 @@ use crate::uniffi_custom_impls::{
 use crate::{
     NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage, NymVpnHandle, SpecificVpn,
 };
+use crate::{spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage, NymVpnHandle, SpecificVpn};
 use lazy_static::lazy_static;
 use log::*;
 use std::path::PathBuf;
@@ -22,15 +24,23 @@ use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::SystemTime;
+use ipnetwork::IpNetwork;
 use talpid_core::mpsc::Sender;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 use url::Url;
+use crate::routing::RoutingConfig;
+use talpid_types::net::wireguard::{
+    PeerConfig as WgPeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig as WgTunnelConfig,
+};
 
 #[cfg(target_os = "android")]
 pub mod android;
+
+#[cfg(target_os = "ios")]
+pub mod swift;
 pub(crate) mod error;
 mod status_listener;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
@@ -175,53 +185,39 @@ pub struct VPNConfig {
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
+    #[cfg(target_os = "android")]
+    pub tun_provider: Arc<dyn crate::AndroidTunProvider>,
     #[cfg(target_os = "ios")]
     pub tun_provider: Arc<dyn crate::OSTunProvider>,
     pub credential_data_path: Option<PathBuf>,
     pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
 }
 
-fn sync_run_vpn(config: VPNConfig) -> Result<SpecificVpn, FFIError> {
-    #[cfg(target_os = "android")]
-    let context = crate::platform::android::get_context().ok_or(FFIError::NoContext)?;
-    #[cfg(target_os = "android")]
-    debug!("got android context to create new vpn");
+fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
 
-    let vpn: SpecificVpn = if config.enable_two_hop {
-        debug!("Created new wireguard vpn");
-        let mut vpn = NymVpn::new_wireguard_vpn(
-            config.entry_gateway.into(),
-            config.exit_router.into(),
-            #[cfg(target_os = "android")]
-            context,
-            #[cfg(target_os = "ios")]
-            config.tun_provider,
-        );
-        vpn.generic_config.gateway_config.api_url = config.api_url;
-        vpn.generic_config
-            .data_path
-            .clone_from(&config.credential_data_path);
-
-        vpn.into()
-    } else {
-        debug!("Created new mixnet vpn");
-        let mut vpn = NymVpn::new_mixnet_vpn(
-            config.entry_gateway.into(),
-            config.exit_router.into(),
-            #[cfg(target_os = "android")]
-            context,
-            #[cfg(target_os = "ios")]
-            config.tun_provider,
-        );
-        vpn.generic_config.gateway_config.api_url = config.api_url;
-        vpn.generic_config
-            .data_path
-            .clone_from(&config.credential_data_path);
-
-        vpn.into()
-    };
-
+    let mut vpn = NymVpn::new_mixnet_vpn(
+        config.entry_gateway.into(),
+        config.exit_router.into(),
+        #[cfg(target_os = "android")]
+        config.tun_provider,
+        #[cfg(target_os = "ios")]
+        config.tun_provider,
+    );
+    debug!("Created new mixnet vpn");
+    vpn.generic_config.gateway_config.api_url = config.api_url;
+    vpn.generic_config
+        .data_path
+        .clone_from(&config.credential_data_path);
     Ok(vpn)
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn initLogger(level : String) {
+    #[cfg(target_os = "ios")]
+    swift::init_logs(level);
+    #[cfg(target_os = "android")]
+    android::init_logs(level);
 }
 
 #[allow(non_snake_case)]
@@ -480,6 +476,81 @@ async fn get_low_latency_entry_country(
 
     Ok(country)
 }
+
+#[derive(uniffi::Record, Clone)]
+pub struct TunnelConfig {
+    pub private_key: PrivateKey,
+    pub addresses: Vec<IpAddr>,
+}
+
+impl From<WgTunnelConfig> for TunnelConfig {
+    fn from(value: WgTunnelConfig) -> Self {
+        TunnelConfig {
+            private_key: value.private_key,
+            addresses: value.addresses,
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone)]
+pub struct PeerConfig {
+    pub public_key: PublicKey,
+    pub allowed_ips: Vec<IpNetwork>,
+    pub endpoint: SocketAddr,
+    pub psk: Option<PresharedKey>,
+}
+
+impl From<WgPeerConfig> for PeerConfig {
+    fn from(value: WgPeerConfig) -> Self {
+        PeerConfig {
+            public_key: value.public_key,
+            allowed_ips: value.allowed_ips,
+            endpoint: value.endpoint,
+            psk: value.psk,
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone)]
+pub struct WgConfig {
+    pub tunnel: TunnelConfig,
+    pub peers: Vec<PeerConfig>,
+    pub ipv4_gateway: Ipv4Addr,
+    pub ipv6_gateway: Option<Ipv6Addr>,
+    pub mtu: u16,
+}
+
+impl From<talpid_wireguard::config::Config> for WgConfig {
+    fn from(value: talpid_wireguard::config::Config) -> Self {
+        WgConfig {
+            tunnel: value.tunnel.into(),
+            peers: value.peers.into_iter().map(Into::into).collect(),
+            ipv4_gateway: value.ipv4_gateway,
+            ipv6_gateway: value.ipv6_gateway,
+            mtu: value.mtu,
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone)]
+pub struct NymConfig {
+    pub ipv4_addr: Ipv4Addr,
+    pub ipv6_addr: Ipv6Addr,
+    pub mtu: u16,
+    pub entry_mixnet_gateway_ip: Option<IpAddr>,
+}
+
+impl From<RoutingConfig> for NymConfig {
+    fn from(value: RoutingConfig) -> Self {
+        NymConfig {
+            ipv4_addr: value.tun_ips().ipv4,
+            ipv6_addr: value.tun_ips().ipv6,
+            mtu: value.mtu(),
+            entry_mixnet_gateway_ip: None,
+        }
+    }
+}
+
 
 #[uniffi::export(with_foreign)]
 pub trait TunnelStatusListener: Send + Sync {

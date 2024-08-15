@@ -2,10 +2,12 @@ package net.nymtech.nymvpn.service.tunnel
 
 import android.content.Context
 import android.net.VpnService
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.util.extensions.isExpired
 import net.nymtech.vpn.Backend

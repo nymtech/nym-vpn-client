@@ -27,17 +27,15 @@ use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::path::PathBuf;
 use std::sync::Arc;
-#[cfg(not(target_os = "ios"))]
-use std::sync::Mutex;
-#[cfg(not(target_os = "ios"))]
+#[cfg(not(target_os = "ios"))] #[cfg(not(target_os = "android"))]
 use talpid_core::dns::DnsMonitor;
-#[cfg(not(target_os = "ios"))]
+#[cfg(not(target_os = "ios"))] #[cfg(not(target_os = "android"))]
 use talpid_routing::RouteManager;
-#[cfg(not(target_os = "ios"))]
+#[cfg(not(target_os = "ios"))] #[cfg(not(target_os = "android"))]
 use tunnel_setup::init_firewall_dns;
-#[cfg(not(target_os = "ios"))]
+#[cfg(not(target_os = "ios"))] #[cfg(not(target_os = "android"))]
 use tunnel_setup::{setup_tunnel, AllTunnelsSetup, TunnelSetup};
-#[cfg(not(target_os = "ios"))]
+#[cfg(not(target_os = "ios"))] #[cfg(not(target_os = "android"))]
 use util::wait_and_handle_interrupt;
 use util::wait_for_interrupt_and_signal;
 
@@ -63,10 +61,10 @@ use crate::platform::uniffi_set_listener_status;
 use crate::uniffi_custom_impls::{ExitStatus, StatusEvent};
 pub use nym_bin_common;
 pub use nym_config;
-#[cfg(not(target_os = "ios"))]
-use talpid_tunnel::tun_provider::TunProvider;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
+#[cfg(target_os = "android")]
+use crate::platform::android::AndroidTunProvider;
 
 mod bandwidth_controller;
 mod platform;
@@ -216,8 +214,8 @@ pub struct NymVpn<T: Vpn> {
     /// VPN configuration, depending on the type used
     pub vpn_config: T,
 
-    #[cfg(not(target_os = "ios"))]
-    tun_provider: Arc<Mutex<TunProvider>>,
+    #[cfg(target_os = "android")]
+    android_tun_provider: Arc<dyn AndroidTunProvider>,
 
     #[cfg(target_os = "ios")]
     ios_tun_provider: Arc<dyn OSTunProvider>,
@@ -250,20 +248,9 @@ impl NymVpn<WireguardVpn> {
     pub fn new_wireguard_vpn(
         entry_point: EntryPoint,
         exit_point: ExitPoint,
-        #[cfg(target_os = "android")] android_context: talpid_types::android::AndroidContext,
+        #[cfg(target_os = "android")] android_tun_provider: Arc<dyn AndroidTunProvider>,
         #[cfg(target_os = "ios")] ios_tun_provider: Arc<dyn OSTunProvider>,
     ) -> Self {
-        #[cfg(not(target_os = "ios"))]
-        let tun_provider = Arc::new(Mutex::new(TunProvider::new(
-            #[cfg(target_os = "android")]
-            android_context,
-            #[cfg(target_os = "android")]
-            false,
-            #[cfg(target_os = "android")]
-            None,
-            #[cfg(target_os = "android")]
-            vec![],
-        )));
 
         Self {
             generic_config: GenericNymVpnConfig {
@@ -285,8 +272,8 @@ impl NymVpn<WireguardVpn> {
                 user_agent: None,
             },
             vpn_config: WireguardVpn {},
-            #[cfg(not(target_os = "ios"))]
-            tun_provider,
+            #[cfg(target_os = "android")]
+            android_tun_provider,
             #[cfg(target_os = "ios")]
             ios_tun_provider,
             shadow_handle: ShadowHandle::default(),
@@ -298,20 +285,9 @@ impl NymVpn<MixnetVpn> {
     pub fn new_mixnet_vpn(
         entry_point: EntryPoint,
         exit_point: ExitPoint,
-        #[cfg(target_os = "android")] android_context: talpid_types::android::AndroidContext,
+        #[cfg(target_os = "android")] android_tun_provider: Arc<dyn AndroidTunProvider>,
         #[cfg(target_os = "ios")] ios_tun_provider: Arc<dyn OSTunProvider>,
     ) -> Self {
-        #[cfg(not(target_os = "ios"))]
-        let tun_provider = Arc::new(Mutex::new(TunProvider::new(
-            #[cfg(target_os = "android")]
-            android_context,
-            #[cfg(target_os = "android")]
-            false,
-            #[cfg(target_os = "android")]
-            None,
-            #[cfg(target_os = "android")]
-            vec![],
-        )));
 
         Self {
             generic_config: GenericNymVpnConfig {
@@ -333,8 +309,8 @@ impl NymVpn<MixnetVpn> {
                 user_agent: None,
             },
             vpn_config: MixnetVpn {},
-            #[cfg(not(target_os = "ios"))]
-            tun_provider,
+            #[cfg(target_os = "android")]
+            android_tun_provider,
             #[cfg(target_os = "ios")]
             ios_tun_provider,
             shadow_handle: ShadowHandle::default(),
@@ -381,9 +357,9 @@ impl NymVpn<MixnetVpn> {
             self,
             our_ips,
             entry_mixnet_gateway_ip,
-            default_lan_gateway_ip,
             #[cfg(target_os = "android")]
             mixnet_client.gateway_ws_fd().await,
+            default_lan_gateway_ip
         );
         debug!("Routing config: {}", routing_config);
         #[cfg(target_os = "ios")]
@@ -394,6 +370,10 @@ impl NymVpn<MixnetVpn> {
         let mixnet_tun_dev = routing::setup_mixnet_routing(
             route_manager,
             routing_config,
+            #[cfg(target_os = "android")]
+            self.android_tun_provider.clone(),
+            #[cfg(target_os = "ios")]
+            self.ios_tun_provider.clone(),
             dns_monitor,
             self.generic_config.dns,
         )
