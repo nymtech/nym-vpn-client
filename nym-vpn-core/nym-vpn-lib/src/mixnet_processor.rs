@@ -3,7 +3,7 @@
 
 use bytes::Bytes;
 use futures::{channel::mpsc, prelude::stream::SplitSink, SinkExt, StreamExt};
-use nym_ip_packet_client::listener::{IprListener, MixnetMessageOutcome};
+use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
 use nym_ip_packet_requests::{codec::MultiIpPacketCodec, request::IpPacketRequest, IpPair};
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
