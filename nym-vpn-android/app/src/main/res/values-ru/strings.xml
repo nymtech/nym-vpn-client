@@ -131,4 +131,15 @@
     <string name="gateway_modal_description">Мы определяем местоположение серверов на основе их IP-адресов, но фактические местоположения могут незначительно отличаться.</string>
     <string name="gateway_locations_title">Подробные сведения о локации серверов</string>
     <string name="entry_location_selector">Выбор точки входа</string>
+    <string name="two_hop">2-ступенчатый</string>
+    <string name="appearance">Внешний вид</string>
+    <string name="remaining">оставшееся</string>
+    <string name="vpn_connection">VPN Соединение</string>
+    <string name="vpn_permission_message">Проверьте запрос на подключение к VPN, попробовав подключиться снова.</string>
+    <string name="view_system_settings">Посмотреть системные настройки</string>
+    <string name="try_reconnecting">Попробуйте переподключиться</string>
+    <string name="always_on_disbled">Режим постоянного VPN отключен</string>
+    <string name="always_on_message">VPN не работает? Убедитесь, что функция постоянного VPN отключена для других приложений</string>
+    <string name="vpn_settings">Настройки VPN</string>
+    <string name="try_again">попробуйте снова</string>
 </resources>
