@@ -1,1 +1,22 @@
-{}
+{
+  "vpn-modes": {
+    "privacy": "Anonym",
+    "fast": "Schnell"
+  },
+  "connect": "Verbinden",
+  "disconnect": "Trennen",
+  "first-hop-selection": "Eingangs Location",
+  "last-hop-selection": "Ausgangs Region",
+  "settings": "Einstellungen",
+  "notifications": "Benachrichtigungen",
+  "logs": "Logs",
+  "feedback": "Feedback",
+  "legal": "Rechtlich",
+  "support": "Support",
+  "fastest": "Am schnellsten",
+  "sentry": "Sentry",
+  "tos": "Allgemeine Geschäftsbedingungen",
+  "privacy-statement": "Datenschutzerklärung",
+  "appearance": "Erscheinungsbild",
+  "language": "Sprache"
+}
