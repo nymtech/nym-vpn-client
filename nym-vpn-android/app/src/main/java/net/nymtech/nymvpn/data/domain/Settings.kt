@@ -1,13 +1,13 @@
 package net.nymtech.nymvpn.data.domain
 
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.vpn.Tunnel
 import net.nymtech.vpn.model.Country
-import net.nymtech.vpn.model.VpnMode
 import java.time.Instant
 
 data class Settings(
 	val theme: Theme? = null,
-	val vpnMode: VpnMode = VpnMode.default(),
+	val vpnMode: Tunnel.Mode = Tunnel.Mode.TWO_HOP_MIXNET,
 	val autoStartEnabled: Boolean = AUTO_START_DEFAULT,
 	val errorReportingEnabled: Boolean = REPORTING_DEFAULT,
 	val analyticsEnabled: Boolean = REPORTING_DEFAULT,

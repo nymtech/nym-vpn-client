@@ -7,7 +7,6 @@ use crate::config::WireguardConfig;
 use crate::error::{Error, Result};
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::tunnel::setup_route_manager;
-use crate::util::{handle_interrupt, wait_for_interrupt};
 use crate::wg_gateway_client::WgGatewayClient;
 use error::GatewayDirectoryError;
 use futures::channel::{mpsc, oneshot};
@@ -26,7 +25,7 @@ use std::sync::{Arc, Mutex};
 use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
 use tunnel_setup::{init_firewall_dns, setup_tunnel, AllTunnelsSetup, TunnelSetup};
-use util::wait_for_interrupt_and_signal;
+use util::{wait_and_handle_interrupt, wait_for_interrupt_and_signal};
 
 // Public re-export
 pub use nym_connection_monitor as connection_monitor;
@@ -46,6 +45,8 @@ pub use nym_task::{
 pub use crate::platform::swift;
 #[cfg(target_os = "ios")]
 use crate::platform::swift::OSTunProvider;
+use crate::platform::uniffi_set_listener_status;
+use crate::uniffi_custom_impls::{ExitStatus, StatusEvent};
 pub use nym_bin_common;
 pub use nym_config;
 use talpid_tunnel::tun_provider::TunProvider;
@@ -199,13 +200,13 @@ pub struct NymVpn<T: Vpn> {
     shadow_handle: ShadowHandle,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct MixnetConnectionInfo {
     pub nym_address: Recipient,
     pub entry_gateway: NodeIdentity,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct MixnetExitConnectionInfo {
     pub exit_gateway: NodeIdentity,
     pub exit_ipr: Recipient,
@@ -539,8 +540,7 @@ impl SpecificVpn {
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
             AllTunnelsSetup::Mix(_) => {
-                wait_for_interrupt(task_manager).await;
-                handle_interrupt(route_manager, None).await;
+                wait_and_handle_interrupt(&mut task_manager, route_manager, None).await;
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
                         log::error!("Failed to reset dns monitor: {err}");
@@ -549,8 +549,8 @@ impl SpecificVpn {
                 .await??;
             }
             AllTunnelsSetup::Wg { entry, exit } => {
-                wait_for_interrupt(task_manager).await;
-                handle_interrupt(
+                wait_and_handle_interrupt(
+                    &mut task_manager,
                     route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
@@ -645,8 +645,13 @@ impl SpecificVpn {
                     .await
                     .unwrap();
 
-                let result = wait_for_interrupt_and_signal(Some(task_manager), vpn_ctrl_rx).await;
-                handle_interrupt(route_manager, None).await;
+                let result = wait_for_interrupt_and_signal(
+                    Some(task_manager),
+                    vpn_ctrl_rx,
+                    route_manager,
+                    None,
+                )
+                .await;
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
                         log::error!("Failed to reset dns monitor: {err}");
@@ -656,8 +661,9 @@ impl SpecificVpn {
                 result
             }
             AllTunnelsSetup::Wg { entry, exit } => {
-                let result = wait_for_interrupt_and_signal(Some(task_manager), vpn_ctrl_rx).await;
-                handle_interrupt(
+                let result = wait_for_interrupt_and_signal(
+                    Some(task_manager),
+                    vpn_ctrl_rx,
                     route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
@@ -680,7 +686,7 @@ impl SpecificVpn {
     }
 }
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Clone, Debug)]
 pub enum NymVpnStatusMessage {
     #[error("mixnet connection info")]
     MixnetConnectionInfo {
@@ -818,6 +824,9 @@ async fn run_nym_vpn(
         Err(err) => {
             error!("Nym VPN returned error: {err}");
             debug!("{err:?}");
+            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
+                error: err.to_string(),
+            }));
             vpn_exit_tx
                 .send(NymVpnExitStatusMessage::Failed(err))
                 .expect("Failed to send exit status");

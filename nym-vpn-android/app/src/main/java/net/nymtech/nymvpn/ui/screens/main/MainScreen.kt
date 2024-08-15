@@ -50,7 +50,6 @@ import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
-import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
@@ -72,12 +71,12 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.exceptions.NymVpnExceptions
 import net.nymtech.nymvpn.util.extensions.buildCountryNameString
+import net.nymtech.nymvpn.util.extensions.isExpired
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import net.nymtech.vpn.model.VpnMode
-import java.time.Instant
+import net.nymtech.vpn.Tunnel
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -92,6 +91,9 @@ fun MainScreen(
 	val context = LocalContext.current
 	val scope = rememberCoroutineScope()
 
+	var didAutoStart by remember { mutableStateOf(false) }
+	var showDialog by remember { mutableStateOf(false) }
+
 	val notificationPermissionState =
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 			rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
@@ -99,16 +101,23 @@ fun MainScreen(
 			null
 		}
 
-	var didAutoStart by remember { mutableStateOf(false) }
-	var showDialog by remember { mutableStateOf(false) }
-
 	fun onConnectWithPermission() {
 		scope.launch {
-			viewModel.onConnect().onFailure {
-				appViewModel.showSnackbarMessage(context.getString(R.string.exception_cred_invalid))
-				navController.navigate(Destination.Credential.route)
-			}
+			viewModel.onConnect()
+				.onFailure {
+					appViewModel.showSnackbarMessage(context.getString(R.string.exception_cred_invalid))
+					navController.navigate(Destination.Credential.route)
+				}
 		}
+	}
+
+	fun requestNotificationPermissions(): Result<Unit> {
+		if (notificationPermissionState == null || notificationPermissionState.status.isGranted) return Result.success(Unit)
+		if (!notificationPermissionState.status.isGranted && !notificationPermissionState.status.shouldShowRationale
+		) {
+			notificationPermissionState.launchPermissionRequest()
+		}
+		return Result.failure(NymVpnExceptions.PermissionsNotGrantedException())
 	}
 
 	val vpnActivityResultState =
@@ -123,15 +132,6 @@ fun MainScreen(
 				}
 			},
 		)
-
-	fun requestNotificationPermissions(): Result<Unit> {
-		if (notificationPermissionState == null || notificationPermissionState.status.isGranted) return Result.success(Unit)
-		if (!notificationPermissionState.status.isGranted && !notificationPermissionState.status.shouldShowRationale
-		) {
-			notificationPermissionState.launchPermissionRequest()
-		}
-		return Result.failure(NymVpnExceptions.PermissionsNotGrantedException())
-	}
 
 	fun onConnect() {
 		requestNotificationPermissions().onSuccess {
@@ -174,10 +174,6 @@ fun MainScreen(
 		)
 	})
 
-	LaunchedEffect(uiState.firstHopCounty, uiState.lastHopCountry, uiState.networkMode, uiState.connectionState) {
-		NymVpn.requestTileServiceStateUpdate()
-	}
-
 	Column(
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -204,7 +200,7 @@ fun MainScreen(
 						)
 				}
 			}
-			AnimatedVisibility(visible = uiState.connectionTime != "") {
+			AnimatedVisibility(visible = uiState.connectionState is ConnectionState.Connected) {
 				StatusInfoLabel(
 					message = uiState.connectionTime,
 					textColor = MaterialTheme.colorScheme.onSurface,
@@ -253,7 +249,7 @@ fun MainScreen(
 								appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
-						selected = uiState.networkMode == VpnMode.FIVE_HOP_MIXNET,
+						selected = uiState.networkMode == Tunnel.Mode.FIVE_HOP_MIXNET,
 					)
 					IconSurfaceButton(
 						leadingIcon = Icons.Outlined.Speed,
@@ -266,7 +262,7 @@ fun MainScreen(
 								appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
-						selected = uiState.networkMode == VpnMode.TWO_HOP_MIXNET,
+						selected = uiState.networkMode == Tunnel.Mode.TWO_HOP_MIXNET,
 					)
 				}
 			}
@@ -348,13 +344,12 @@ fun MainScreen(
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
 								scope.launch {
-									if (appUiState.credentialExpiryTime != null &&
-										appUiState.credentialExpiryTime.isAfter(Instant.now())
+									if (appUiState.credentialExpiryTime == null ||
+										appUiState.credentialExpiryTime.isExpired()
 									) {
-										onConnect()
-									} else {
-										navController.navigate(Destination.Credential.route)
+										return@launch navController.navigate(Destination.Credential.route)
 									}
+									onConnect()
 								}
 							},
 							content = {
@@ -375,7 +370,7 @@ fun MainScreen(
 					is ConnectionState.Connected ->
 						MainStyledButton(
 							testTag = Constants.DISCONNECT_TEST_TAG,
-							onClick = { viewModel.onDisconnect() },
+							onClick = { viewModel.onDisconnect(context) },
 							content = {
 								Text(
 									stringResource(id = R.string.disconnect),
