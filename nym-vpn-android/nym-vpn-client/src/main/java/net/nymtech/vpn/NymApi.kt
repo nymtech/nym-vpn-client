@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import net.nymtech.vpn.model.Country
 import nym_vpn_lib.UserAgent
-import nym_vpn_lib.getGatewayCountriesUserAgent
+import nym_vpn_lib.getGatewayCountries
 
 class NymApi(
 	private val environment: Tunnel.Environment,
@@ -13,23 +13,14 @@ class NymApi(
 ) {
 	suspend fun gateways(exitOnly: Boolean): Set<Country> {
 		return withContext(ioDispatcher) {
-			getGatewayCountriesUserAgent(environment.apiUrl, environment.explorerUrl, environment.harbourMasterUrl, exitOnly, userAgent).map {
+			getGatewayCountries(environment.apiUrl, environment.nymVpnApiUrl, exitOnly, userAgent).map {
 				Country(isoCode = it.twoLetterIsoCountryCode)
 			}.toSet()
 		}
 	}
 
 	suspend fun getLowLatencyEntryCountry(): Country {
-		return withContext(ioDispatcher) {
-			Country(
-				isoCode =
-				nym_vpn_lib.getLowLatencyEntryCountry(
-					environment.apiUrl,
-					environment.explorerUrl,
-					environment.harbourMasterUrl,
-				).twoLetterIsoCountryCode,
-				isLowLatency = true,
-			)
-		}
+		// TODO
+		return Country()
 	}
 }
