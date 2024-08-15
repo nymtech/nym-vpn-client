@@ -203,7 +203,7 @@ jobs:
         run: |
           cargo run --bin uniffi-bindgen generate --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  --language swift --out-dir build -n
 
-      - name: Diff check (Android)
+      - name: Uniffi diff check (Android)
         if: contains(matrix.target, 'android')
         working-directory: nym-vpn-core
         run: |
@@ -216,14 +216,14 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: updated-uniffi-android
-          path: build/nym_vpn_lib/nym_vpn_lib.kt
+          path: nym-vpn-core/build/nym_vpn_lib/nym_vpn_lib.kt
           retention-days: 1
 
-      - name: Fail workflow (Android)
+      - name: Fail workflow for uniffi (Android)
         if: steps.diff_android.outcome == 'failure' && contains(matrix.target, 'android')
         run: exit 1
 
-      - name: Diff check (iOS)
+      - name: Uniffi diff check (iOS)
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
         working-directory: nym-vpn-core
         run: |
@@ -236,10 +236,10 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: updated-uniffi-ios
-          path: build/nym_vpn_lib.swift
+          path: nym-vpn-core/build/nym_vpn_lib.swift
           retention-days: 1
 
-      - name: Fail workflow (iOS)
+      - name: Fail workflow for uniffi (iOS)
         if: steps.diff_ios.outcome == 'failure' && (contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1'))
         run: exit 1
 
