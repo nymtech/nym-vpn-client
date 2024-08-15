@@ -1,3 +1,6 @@
+// Copyright 2023-2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use std::cmp::Ordering;
 use std::sync::Arc;
 use std::time::Duration;
@@ -17,6 +20,7 @@ use nym_sdk::mixnet::{
 use tracing::{debug, error};
 
 mod error;
+pub mod listener;
 
 pub use crate::error::{Error, Result};
 
