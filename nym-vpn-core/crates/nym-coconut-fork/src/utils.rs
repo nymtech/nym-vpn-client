@@ -1,8 +1,7 @@
 // Copyright 2021 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-use bls12_381::hash_to_curve::{ExpandMsgXmd,
-HashToField};
+use bls12_381::hash_to_curve::{ExpandMsgXmd, HashToField};
 use bls12_381::{G1Affine, G1Projective, G2Affine, G2Projective, Scalar};
 
 use crate::error::{CoconutError, Result};

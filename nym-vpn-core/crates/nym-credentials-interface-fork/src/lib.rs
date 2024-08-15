@@ -7,11 +7,7 @@ use std::str::FromStr;
 use thiserror::Error;
 
 pub use nym_coconut_fork::{
-    hash_to_scalar,
-    Attribute, 
-PublicAttribute,
-PrivateAttribute,
-    Signature,
+    hash_to_scalar, Attribute, PrivateAttribute, PublicAttribute, Signature,
 };
 
 pub(crate) const VOUCHER_INFO_TYPE: &str = "BandwidthVoucher";

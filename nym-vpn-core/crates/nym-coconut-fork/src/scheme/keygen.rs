@@ -14,7 +14,7 @@ use crate::scheme::SignerIndex;
 use crate::traits::Bytable;
 use crate::utils::{
     try_deserialize_g1_projective, try_deserialize_g2_projective, try_deserialize_scalar,
-    try_deserialize_scalar_vec, 
+    try_deserialize_scalar_vec,
 };
 use crate::Base58;
 
@@ -429,4 +429,3 @@ impl TryFrom<&[u8]> for KeyPair {
         })
     }
 }
-

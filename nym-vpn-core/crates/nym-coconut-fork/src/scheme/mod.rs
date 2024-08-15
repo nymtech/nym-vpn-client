@@ -3,10 +3,10 @@
 
 // TODO: implement https://crates.io/crates/signature traits?
 
-use bls12_381::{G1Projective};
+use bls12_381::G1Projective;
 use group::Curve;
 
-pub(crate) use keygen::{SecretKey};
+pub(crate) use keygen::SecretKey;
 
 use crate::error::{CoconutError, Result};
 use crate::traits::{Base58, Bytable};

@@ -1,9 +1,5 @@
 use crate::scheme::SecretKey;
-use crate::{
-    Base58,
-    Signature, 
-    VerificationKey,
-};
+use crate::{Base58, Signature, VerificationKey};
 use serde::de::Unexpected;
 use serde::{de::Error, de::Visitor, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
