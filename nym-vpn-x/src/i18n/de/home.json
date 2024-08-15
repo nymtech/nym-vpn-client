@@ -1,1 +1,32 @@
-{}
+{
+  "connect": "Verbinden",
+  "disconnect": "Trennen",
+  "status": {
+    "connected": "Verbunden",
+    "disconnected": "Getrennt",
+    "connecting": "Verbinden",
+    "disconnecting": "Trennen",
+    "unknown": "Unbekannt"
+  },
+  "last-hop": "Ausgangs Region",
+  "first-hop": "Eingangs Location",
+  "connecting-message": "Verbindung wird hergestellt",
+  "connection-time": "Verbindungsdauer",
+  "select-mode-label": "Modus wählen",
+  "fast-mode": {
+    "title": "Schnell",
+    "desc": "Ideal für browsen, streamen, file-sharing"
+  },
+  "select-node-title": "Verbinden mit",
+  "privacy-mode": {
+    "title": "Anonym"
+  },
+  "snackbar-disabled-message": {
+    "connected": "Deaktiviert während Verbindung zu VPN besteht"
+  },
+  "modes-dialog": {
+    "title": "Modus auswählen",
+    "privacy-description": "Geniesse die höchste Sicherheit indem du deine Verbindung durch 5 Server leitest. Ideal für die sichere Abwicklung von Zahlungen, E-Mails und Nachrichten.",
+    "link": "Weiter lesen"
+  }
+}
