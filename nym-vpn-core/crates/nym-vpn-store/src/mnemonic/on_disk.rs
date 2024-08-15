@@ -7,8 +7,8 @@ use super::{MnemonicStorage, StoredMnemonic};
 
 #[derive(Debug, thiserror::Error)]
 pub enum OnDiskMnemonicStorageError {
-    #[error("no mnemonic stored")]
-    NoMnemonicStored,
+    // #[error("no mnemonic stored")]
+    // NoMnemonicStored,
 
     #[error("mnemonic already stored")]
     MnemonicAlreadyStored { path: PathBuf },
@@ -63,8 +63,8 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
 
         // Another layer of defense, only create the file if it doesn't already exist
         let file = std::fs::OpenOptions::new()
-            .write(true)
             .create_new(true)
+            .write(true)
             .open(&self.path)
             .map_err(|err| OnDiskMnemonicStorageError::FileCreateError {
                 path: self.path.clone(),
@@ -87,9 +87,10 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_store_mnemonic() {
+    async fn store_mnemonic() {
         let mnemonic = bip39::Mnemonic::generate_in(bip39::Language::English, 12).unwrap();
-        let path = tempfile::tempdir().unwrap().path().join("test.txt");
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("test.txt");
         let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
         mnemonic_storage
             .store_mnemonic(mnemonic.clone())
@@ -101,9 +102,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_store_twice_fails() {
+    async fn store_twice_fails() {
         let mnemonic = bip39::Mnemonic::generate_in(bip39::Language::English, 12).unwrap();
-        let path = tempfile::tempdir().unwrap().path().join("test.txt");
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("test.txt");
         let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
         mnemonic_storage
             .store_mnemonic(mnemonic.clone())
@@ -113,16 +115,16 @@ mod tests {
         let result = mnemonic_storage.store_mnemonic(mnemonic).await;
         assert!(matches!(
             result,
-            Err(OnDiskMnemonicStorageError::FileCreateError { .. })
+            Err(OnDiskMnemonicStorageError::MnemonicAlreadyStored { .. })
         ));
     }
 
     #[tokio::test]
-    async fn test_load_fails_if_file_does_not_exist() {
-        let path = tempfile::tempdir().unwrap().path().join("test.txt");
+    async fn load_fails_if_file_does_not_exist() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("test.txt");
         let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
         let result = mnemonic_storage.load_mnemonic().await;
-        dbg!(&result);
         assert!(matches!(
             result,
             Err(OnDiskMnemonicStorageError::FileOpenError(_))
@@ -130,14 +132,27 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_load_fails_if_no_mnemonic_stored() {
-        let path = tempfile::tempdir().unwrap().path().join("test.txt");
+    async fn load_fails_if_no_mnemonic_file() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("test.txt");
+        let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
+        let result = mnemonic_storage.load_mnemonic().await;
+        assert!(matches!(
+            result,
+            Err(OnDiskMnemonicStorageError::FileOpenError(_))
+        ));
+    }
+
+    #[tokio::test]
+    async fn load_fails_if_no_mnemonic_stored() {
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("test.txt");
         let mnemonic_storage = OnDiskMnemonicStorage::new(path.clone());
         let _ = File::create(&path).unwrap();
         let result = mnemonic_storage.load_mnemonic().await;
         assert!(matches!(
             result,
-            Err(OnDiskMnemonicStorageError::NoMnemonicStored)
+            Err(OnDiskMnemonicStorageError::ReadError(_))
         ));
     }
 }
