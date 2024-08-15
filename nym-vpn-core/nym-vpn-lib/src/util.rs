@@ -6,8 +6,24 @@ use futures::{channel::mpsc, StreamExt};
 use log::*;
 use talpid_routing::RouteManager;
 
-pub(crate) async fn wait_for_interrupt(mut task_manager: nym_task::TaskManager) {
-    if let Err(e) = task_manager.catch_interrupt().await {
+pub(crate) async fn wait_and_handle_interrupt(
+    task_manager: &mut nym_task::TaskManager,
+    route_manager: RouteManager,
+    wireguard_waiting: Option<[WgTunnelSetup; 2]>,
+) {
+    wait_for_interrupt(task_manager).await;
+    handle_interrupt(route_manager, wireguard_waiting).await;
+    log::info!("Waiting for tasks to finish... (Press ctrl-c to force)");
+    task_manager.wait_for_shutdown().await;
+}
+
+pub(crate) async fn wait_for_interrupt(task_manager: &mut nym_task::TaskManager) {
+    let res = nym_task::wait_for_signal_and_error(task_manager).await;
+
+    log::info!("Sending shutdown");
+    task_manager.signal_shutdown().ok();
+
+    if let Err(e) = res {
         error!("Could not wait for interrupts anymore - {e}. Shutting down the tunnel.");
     }
 }
@@ -15,6 +31,8 @@ pub(crate) async fn wait_for_interrupt(mut task_manager: nym_task::TaskManager) 
 pub(crate) async fn wait_for_interrupt_and_signal(
     mut task_manager: Option<nym_task::TaskManager>,
     mut vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
+    route_manager: RouteManager,
+    wireguard_waiting: Option<[WgTunnelSetup; 2]>,
 ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
     let task_manager_wait = async {
         if let Some(task_manager) = &mut task_manager {
@@ -49,6 +67,8 @@ pub(crate) async fn wait_for_interrupt_and_signal(
     if let Some(mut task_manager) = task_manager {
         info!("Sending shutdown signal");
         task_manager.signal_shutdown().ok();
+
+        handle_interrupt(route_manager, wireguard_waiting).await;
 
         info!("Waiting for tasks to finish... (Press ctrl-c to force)");
         task_manager.wait_for_shutdown().await;

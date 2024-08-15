@@ -638,22 +638,54 @@ internal interface UniffiForeignFutureCompleteVoid : com.sun.jna.Callback {
 internal interface UniffiCallbackInterfaceTunnelStatusListenerMethod0 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
-@Structure.FieldOrder("onTunStatusChange", "uniffiFree")
+internal interface UniffiCallbackInterfaceTunnelStatusListenerMethod1 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceTunnelStatusListenerMethod2 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceTunnelStatusListenerMethod3 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+internal interface UniffiCallbackInterfaceTunnelStatusListenerMethod4 : com.sun.jna.Callback {
+    fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+}
+@Structure.FieldOrder("onTunStatusChange", "onBandwidthStatusChange", "onConnectionStatusChange", "onNymVpnStatusChange", "onExitStatusChange", "uniffiFree")
 internal open class UniffiVTableCallbackInterfaceTunnelStatusListener(
     @JvmField internal var `onTunStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod0? = null,
+    @JvmField internal var `onBandwidthStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod1? = null,
+    @JvmField internal var `onConnectionStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod2? = null,
+    @JvmField internal var `onNymVpnStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod3? = null,
+    @JvmField internal var `onExitStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod4? = null,
     @JvmField internal var `uniffiFree`: UniffiCallbackInterfaceFree? = null,
 ) : Structure() {
     class UniffiByValue(
         `onTunStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod0? = null,
+        `onBandwidthStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod1? = null,
+        `onConnectionStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod2? = null,
+        `onNymVpnStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod3? = null,
+        `onExitStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod4? = null,
         `uniffiFree`: UniffiCallbackInterfaceFree? = null,
-    ): UniffiVTableCallbackInterfaceTunnelStatusListener(`onTunStatusChange`,`uniffiFree`,), Structure.ByValue
+    ): UniffiVTableCallbackInterfaceTunnelStatusListener(`onTunStatusChange`,`onBandwidthStatusChange`,`onConnectionStatusChange`,`onNymVpnStatusChange`,`onExitStatusChange`,`uniffiFree`,), Structure.ByValue
 
    internal fun uniffiSetValue(other: UniffiVTableCallbackInterfaceTunnelStatusListener) {
         `onTunStatusChange` = other.`onTunStatusChange`
+        `onBandwidthStatusChange` = other.`onBandwidthStatusChange`
+        `onConnectionStatusChange` = other.`onConnectionStatusChange`
+        `onNymVpnStatusChange` = other.`onNymVpnStatusChange`
+        `onExitStatusChange` = other.`onExitStatusChange`
         `uniffiFree` = other.`uniffiFree`
     }
 
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -760,6 +792,14 @@ internal interface UniffiLib : Library {
     fun uniffi_nym_vpn_lib_fn_init_callback_vtable_tunnelstatuslistener(`vtable`: UniffiVTableCallbackInterfaceTunnelStatusListener,
     ): Unit
     fun uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_tun_status_change(`ptr`: Pointer,`status`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_bandwidth_status_change(`ptr`: Pointer,`status`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_connection_status_change(`ptr`: Pointer,`status`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_nym_vpn_status_change(`ptr`: Pointer,`status`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    ): Unit
+    fun uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_exit_status_change(`ptr`: Pointer,`status`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_nym_vpn_lib_fn_func_checkcredential(`credential`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -907,6 +947,14 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_tun_status_change(
     ): Short
+    fun uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_bandwidth_status_change(
+    ): Short
+    fun uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_connection_status_change(
+    ): Short
+    fun uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_nym_vpn_status_change(
+    ): Short
+    fun uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_exit_status_change(
+    ): Short
     fun ffi_nym_vpn_lib_uniffi_contract_version(
     ): Int
     
@@ -951,6 +999,18 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_tun_status_change() != 55105.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_bandwidth_status_change() != 27737.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_connection_status_change() != 33534.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_nym_vpn_status_change() != 65319.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_exit_status_change() != 8499.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
 }
 
 // Async support
@@ -990,6 +1050,26 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
 
 /** Used to instantiate an interface without an actual pointer, for fakes in tests, mostly. */
 object NoPointer
+
+public object FfiConverterLong: FfiConverter<Long, Long> {
+    override fun lift(value: Long): Long {
+        return value
+    }
+
+    override fun read(buf: ByteBuffer): Long {
+        return buf.getLong()
+    }
+
+    override fun lower(value: Long): Long {
+        return value
+    }
+
+    override fun allocationSize(value: Long) = 8UL
+
+    override fun write(value: Long, buf: ByteBuffer) {
+        buf.putLong(value)
+    }
+}
 
 public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
     override fun lift(value: Byte): Boolean {
@@ -1267,6 +1347,14 @@ public interface TunnelStatusListener {
     
     fun `onTunStatusChange`(`status`: TunStatus)
     
+    fun `onBandwidthStatusChange`(`status`: BandwidthStatus)
+    
+    fun `onConnectionStatusChange`(`status`: ConnectionStatus)
+    
+    fun `onNymVpnStatusChange`(`status`: NymVpnStatus)
+    
+    fun `onExitStatusChange`(`status`: ExitStatus)
+    
     companion object
 }
 
@@ -1362,6 +1450,50 @@ open class TunnelStatusListenerImpl: Disposable, AutoCloseable, TunnelStatusList
     
     
 
+    override fun `onBandwidthStatusChange`(`status`: BandwidthStatus)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_bandwidth_status_change(
+        it, FfiConverterTypeBandwidthStatus.lower(`status`),_status)
+}
+    }
+    
+    
+
+    override fun `onConnectionStatusChange`(`status`: ConnectionStatus)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_connection_status_change(
+        it, FfiConverterTypeConnectionStatus.lower(`status`),_status)
+}
+    }
+    
+    
+
+    override fun `onNymVpnStatusChange`(`status`: NymVpnStatus)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_nym_vpn_status_change(
+        it, FfiConverterTypeNymVpnStatus.lower(`status`),_status)
+}
+    }
+    
+    
+
+    override fun `onExitStatusChange`(`status`: ExitStatus)
+        = 
+    callWithPointer {
+    uniffiRustCall() { _status ->
+    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_exit_status_change(
+        it, FfiConverterTypeExitStatus.lower(`status`),_status)
+}
+    }
+    
+    
+
     
 
     
@@ -1413,6 +1545,54 @@ internal object uniffiCallbackInterfaceTunnelStatusListener {
             uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
         }
     }
+    internal object `onBandwidthStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod1 {
+        override fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeTunnelStatusListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onBandwidthStatusChange`(
+                    FfiConverterTypeBandwidthStatus.lift(`status`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+    internal object `onConnectionStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod2 {
+        override fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeTunnelStatusListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onConnectionStatusChange`(
+                    FfiConverterTypeConnectionStatus.lift(`status`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+    internal object `onNymVpnStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod3 {
+        override fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeTunnelStatusListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onNymVpnStatusChange`(
+                    FfiConverterTypeNymVpnStatus.lift(`status`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
+    internal object `onExitStatusChange`: UniffiCallbackInterfaceTunnelStatusListenerMethod4 {
+        override fun callback(`uniffiHandle`: Long,`status`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+            val uniffiObj = FfiConverterTypeTunnelStatusListener.handleMap.get(uniffiHandle)
+            val makeCall = { ->
+                uniffiObj.`onExitStatusChange`(
+                    FfiConverterTypeExitStatus.lift(`status`),
+                )
+            }
+            val writeReturn = { _: Unit -> Unit }
+            uniffiTraitInterfaceCall(uniffiCallStatus, makeCall, writeReturn)
+        }
+    }
 
     internal object uniffiFree: UniffiCallbackInterfaceFree {
         override fun callback(handle: Long) {
@@ -1422,6 +1602,10 @@ internal object uniffiCallbackInterfaceTunnelStatusListener {
 
     internal var vtable = UniffiVTableCallbackInterfaceTunnelStatusListener.UniffiByValue(
         `onTunStatusChange`,
+        `onBandwidthStatusChange`,
+        `onConnectionStatusChange`,
+        `onNymVpnStatusChange`,
+        `onExitStatusChange`,
         uniffiFree,
     )
 
@@ -1480,6 +1664,68 @@ public object FfiConverterTypeLocation: FfiConverterRustBuffer<Location> {
 
     override fun write(value: Location, buf: ByteBuffer) {
             FfiConverterString.write(value.`twoLetterIsoCountryCode`, buf)
+    }
+}
+
+
+
+data class MixConnectionInfo (
+    var `nymAddress`: Recipient, 
+    var `entryGateway`: NodeIdentity
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeMixConnectionInfo: FfiConverterRustBuffer<MixConnectionInfo> {
+    override fun read(buf: ByteBuffer): MixConnectionInfo {
+        return MixConnectionInfo(
+            FfiConverterTypeRecipient.read(buf),
+            FfiConverterTypeNodeIdentity.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: MixConnectionInfo) = (
+            FfiConverterTypeRecipient.allocationSize(value.`nymAddress`) +
+            FfiConverterTypeNodeIdentity.allocationSize(value.`entryGateway`)
+    )
+
+    override fun write(value: MixConnectionInfo, buf: ByteBuffer) {
+            FfiConverterTypeRecipient.write(value.`nymAddress`, buf)
+            FfiConverterTypeNodeIdentity.write(value.`entryGateway`, buf)
+    }
+}
+
+
+
+data class MixExitConnectionInfo (
+    var `exitGateway`: NodeIdentity, 
+    var `exitIpr`: Recipient, 
+    var `ips`: IpPair
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeMixExitConnectionInfo: FfiConverterRustBuffer<MixExitConnectionInfo> {
+    override fun read(buf: ByteBuffer): MixExitConnectionInfo {
+        return MixExitConnectionInfo(
+            FfiConverterTypeNodeIdentity.read(buf),
+            FfiConverterTypeRecipient.read(buf),
+            FfiConverterTypeIpPair.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: MixExitConnectionInfo) = (
+            FfiConverterTypeNodeIdentity.allocationSize(value.`exitGateway`) +
+            FfiConverterTypeRecipient.allocationSize(value.`exitIpr`) +
+            FfiConverterTypeIpPair.allocationSize(value.`ips`)
+    )
+
+    override fun write(value: MixExitConnectionInfo, buf: ByteBuffer) {
+            FfiConverterTypeNodeIdentity.write(value.`exitGateway`, buf)
+            FfiConverterTypeRecipient.write(value.`exitIpr`, buf)
+            FfiConverterTypeIpPair.write(value.`ips`, buf)
     }
 }
 
@@ -1581,6 +1827,99 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
             FfiConverterOptionalTypeTunnelStatusListener.write(value.`tunStatusListener`, buf)
     }
 }
+
+
+
+sealed class BandwidthStatus {
+    
+    object NoBandwidth : BandwidthStatus()
+    
+    
+    data class RemainingBandwidth(
+        val `bandwidth`: kotlin.Long) : BandwidthStatus() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeBandwidthStatus : FfiConverterRustBuffer<BandwidthStatus>{
+    override fun read(buf: ByteBuffer): BandwidthStatus {
+        return when(buf.getInt()) {
+            1 -> BandwidthStatus.NoBandwidth
+            2 -> BandwidthStatus.RemainingBandwidth(
+                FfiConverterLong.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: BandwidthStatus) = when(value) {
+        is BandwidthStatus.NoBandwidth -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is BandwidthStatus.RemainingBandwidth -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterLong.allocationSize(value.`bandwidth`)
+            )
+        }
+    }
+
+    override fun write(value: BandwidthStatus, buf: ByteBuffer) {
+        when(value) {
+            is BandwidthStatus.NoBandwidth -> {
+                buf.putInt(1)
+                Unit
+            }
+            is BandwidthStatus.RemainingBandwidth -> {
+                buf.putInt(2)
+                FfiConverterLong.write(value.`bandwidth`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+
+enum class ConnectionStatus {
+    
+    ENTRY_GATEWAY_DOWN,
+    EXIT_GATEWAY_DOWN_IPV4,
+    EXIT_GATEWAY_DOWN_IPV6,
+    EXIT_GATEWAY_ROUTING_ERROR_IPV4,
+    EXIT_GATEWAY_ROUTING_ERROR_IPV6,
+    CONNECTED_IPV4,
+    CONNECTED_IPV6;
+    companion object
+}
+
+
+public object FfiConverterTypeConnectionStatus: FfiConverterRustBuffer<ConnectionStatus> {
+    override fun read(buf: ByteBuffer) = try {
+        ConnectionStatus.values()[buf.getInt() - 1]
+    } catch (e: IndexOutOfBoundsException) {
+        throw RuntimeException("invalid enum value, something is very wrong!!", e)
+    }
+
+    override fun allocationSize(value: ConnectionStatus) = 4UL
+
+    override fun write(value: ConnectionStatus, buf: ByteBuffer) {
+        buf.putInt(value.ordinal + 1)
+    }
+}
+
+
 
 
 
@@ -1756,6 +2095,67 @@ public object FfiConverterTypeExitPoint : FfiConverterRustBuffer<ExitPoint>{
             is ExitPoint.Location -> {
                 buf.putInt(3)
                 FfiConverterString.write(value.`location`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
+sealed class ExitStatus {
+    
+    object Stopped : ExitStatus()
+    
+    
+    data class Failed(
+        val `error`: kotlin.String) : ExitStatus() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeExitStatus : FfiConverterRustBuffer<ExitStatus>{
+    override fun read(buf: ByteBuffer): ExitStatus {
+        return when(buf.getInt()) {
+            1 -> ExitStatus.Stopped
+            2 -> ExitStatus.Failed(
+                FfiConverterString.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: ExitStatus) = when(value) {
+        is ExitStatus.Stopped -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+            )
+        }
+        is ExitStatus.Failed -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterString.allocationSize(value.`error`)
+            )
+        }
+    }
+
+    override fun write(value: ExitStatus, buf: ByteBuffer) {
+        when(value) {
+            is ExitStatus.Stopped -> {
+                buf.putInt(1)
+                Unit
+            }
+            is ExitStatus.Failed -> {
+                buf.putInt(2)
+                FfiConverterString.write(value.`error`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -1999,6 +2399,57 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
 
 
 
+sealed class NymVpnStatus {
+    
+    data class ConnectionInfo(
+        val `mixnetConnectionInfo`: MixConnectionInfo, 
+        val `mixnetExitConnectionInfo`: MixExitConnectionInfo) : NymVpnStatus() {
+        companion object
+    }
+    
+
+    
+    companion object
+}
+
+public object FfiConverterTypeNymVpnStatus : FfiConverterRustBuffer<NymVpnStatus>{
+    override fun read(buf: ByteBuffer): NymVpnStatus {
+        return when(buf.getInt()) {
+            1 -> NymVpnStatus.ConnectionInfo(
+                FfiConverterTypeMixConnectionInfo.read(buf),
+                FfiConverterTypeMixExitConnectionInfo.read(buf),
+                )
+            else -> throw RuntimeException("invalid enum value, something is very wrong!!")
+        }
+    }
+
+    override fun allocationSize(value: NymVpnStatus) = when(value) {
+        is NymVpnStatus.ConnectionInfo -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeMixConnectionInfo.allocationSize(value.`mixnetConnectionInfo`)
+                + FfiConverterTypeMixExitConnectionInfo.allocationSize(value.`mixnetExitConnectionInfo`)
+            )
+        }
+    }
+
+    override fun write(value: NymVpnStatus, buf: ByteBuffer) {
+        when(value) {
+            is NymVpnStatus.ConnectionInfo -> {
+                buf.putInt(1)
+                FfiConverterTypeMixConnectionInfo.write(value.`mixnetConnectionInfo`, buf)
+                FfiConverterTypeMixExitConnectionInfo.write(value.`mixnetExitConnectionInfo`, buf)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+}
+
+
+
+
+
 
 enum class TunStatus {
     
@@ -2167,6 +2618,16 @@ public object FfiConverterSequenceTypeLocation: FfiConverterRustBuffer<List<Loca
         }
     }
 }
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias IpPair = kotlin.String
+public typealias FfiConverterTypeIpPair = FfiConverterString
 
 
 

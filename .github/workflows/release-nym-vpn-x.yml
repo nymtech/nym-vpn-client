@@ -169,8 +169,8 @@ jobs:
           $targetPath = 'nym-vpn-x/src-tauri'
           Copy-Item -Path (Join-Path -Path $sourcePath -ChildPath '*') -Destination $targetPath -Recurse -Force
 
-      - name: Install cargo-about
-        run: cargo install --locked cargo-about
+      - name: Install cargo-license
+        run: cargo install --locked cargo-license
 
       - name: Install extra arch macos
         if: env.PLATFORM_ARCH == 'apple_universal'

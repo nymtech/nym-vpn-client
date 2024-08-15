@@ -39,7 +39,7 @@ impl Gateway {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Location {
     pub two_letter_iso_country_code: String,
     pub latitude: f64,
@@ -153,6 +153,14 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
                 source,
             }
         })?;
+        let location = gateway
+            .self_described
+            .as_ref()
+            .and_then(|d| d.auxiliary_details.location)
+            .map(|l| Location {
+                two_letter_iso_country_code: l.alpha2.to_string(),
+                ..Default::default()
+            });
         let ipr_address = gateway
             .self_described
             .as_ref()
@@ -173,7 +181,7 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
             });
         Ok(Gateway {
             identity,
-            location: None,
+            location,
             ipr_address,
             authenticator_address,
             last_probe: None,

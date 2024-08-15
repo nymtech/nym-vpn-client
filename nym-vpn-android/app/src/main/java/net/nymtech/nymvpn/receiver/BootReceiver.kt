@@ -4,9 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.service.vpn.VpnManager
-import net.nymtech.nymvpn.util.extensions.goAsync
+import net.nymtech.nymvpn.module.ApplicationScope
+import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -17,14 +19,20 @@ class BootReceiver : BroadcastReceiver() {
 	lateinit var settingsRepository: SettingsRepository
 
 	@Inject
-	lateinit var vpnManager: VpnManager
+	lateinit var tunnelManager: TunnelManager
 
-	override fun onReceive(context: Context?, intent: Intent?) = goAsync {
-		if (Intent.ACTION_BOOT_COMPLETED != intent?.action) return@goAsync
-		if (settingsRepository.isAutoStartEnabled()) {
-			vpnManager.startVpn(true).onFailure {
-				// TODO handle failures
-				Timber.w(it)
+	@Inject
+	@ApplicationScope
+	lateinit var applicationScope: CoroutineScope
+
+	override fun onReceive(context: Context, intent: Intent) {
+		if (Intent.ACTION_BOOT_COMPLETED != intent.action) return
+		applicationScope.launch {
+			if (settingsRepository.isAutoStartEnabled()) {
+				tunnelManager.start().onFailure {
+					// TODO handle failures
+					Timber.w(it)
+				}
 			}
 		}
 	}

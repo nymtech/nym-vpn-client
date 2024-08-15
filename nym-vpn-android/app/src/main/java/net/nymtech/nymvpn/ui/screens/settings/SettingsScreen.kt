@@ -43,12 +43,12 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.durationFromNow
+import net.nymtech.nymvpn.util.extensions.isExpired
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import net.nymtech.vpn.model.VpnState
-import java.time.Instant
+import net.nymtech.vpn.Tunnel
 
 @Composable
 fun SettingsScreen(
@@ -71,7 +71,7 @@ fun SettingsScreen(
 			.padding(top = 24.dp)
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
-		if (appUiState.credentialExpiryTime == null || appUiState.credentialExpiryTime.isBefore(Instant.now())) {
+		if (appUiState.credentialExpiryTime == null || appUiState.credentialExpiryTime.isExpired()) {
 			MainStyledButton(
 				onClick = { navController.navigate(Destination.Credential.route) },
 				content = {
@@ -184,7 +184,7 @@ fun SettingsScreen(
 							Modifier
 								.height(32.dp.scaledHeight())
 								.width(52.dp.scaledWidth()),
-							enabled = (appUiState.vpnClientState.vpnState is VpnState.Down),
+							enabled = (appUiState.state is Tunnel.State.Down),
 						)
 					},
 					title = {

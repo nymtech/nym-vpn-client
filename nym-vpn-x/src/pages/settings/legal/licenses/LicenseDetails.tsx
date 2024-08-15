@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { PageAnim } from '../../../../ui';
 import { CodeDependency } from '../../../../types';
@@ -24,8 +23,7 @@ function LicenseDetails() {
     }
   }, [locationState]);
 
-  const { licenses, name, repository, authors, licenseTexts, version } =
-    license || {};
+  const { licenses, name, repository, authors, version } = license || {};
 
   const label = (label: string) => (
     <p className="truncate text-dim-gray dark:text-mercury-mist select-none cursor-default">
@@ -80,26 +78,6 @@ function LicenseDetails() {
                     {author}
                   </li>
                 ))}
-              </ul>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            {label(t('license-texts'))}
-            {licenseTexts && (
-              <ul className="flex flex-col gap-4">
-                {licenseTexts.map(
-                  (text, i) =>
-                    text.length > 0 && (
-                      <li
-                        key={i}
-                        className={clsx([
-                          'text-sm break-words mr-4 overflow-scroll max-h-44 min-w-52',
-                        ])}
-                      >
-                        {text}
-                      </li>
-                    ),
-                )}
               </ul>
             )}
           </div>

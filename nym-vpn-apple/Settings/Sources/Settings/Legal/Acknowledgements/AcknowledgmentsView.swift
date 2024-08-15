@@ -37,22 +37,20 @@ private extension AcknowledgmentsView {
 
     @ViewBuilder
     func section() -> some View {
-        if let acknowledgements = viewModel.acknoledgementsList?.acknowledgements {
-            ScrollView {
-                Spacer()
-                    .frame(height: 8)
+        ScrollView {
+            Spacer()
+                .frame(height: 8)
 
-                ForEach(acknowledgements) { acknowledgement in
-                    AcknowledgementsRow(
-                        viewModel: AcknowledgementsRowViewModel(
-                            acknowledgement: acknowledgement,
-                            path: viewModel.$path
-                        )
+            ForEach(viewModel.acknowledgements) { acknowledgement in
+                AcknowledgementsRow(
+                    viewModel: AcknowledgementsRowViewModel(
+                        acknowledgement: acknowledgement,
+                        navigationPath: viewModel.$navigationPath
                     )
-                }
-                Spacer()
-                    .frame(height: 24)
+                )
             }
+            Spacer()
+                .frame(height: 24)
         }
     }
 }

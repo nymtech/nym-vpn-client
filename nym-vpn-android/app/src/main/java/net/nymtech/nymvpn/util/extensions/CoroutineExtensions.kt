@@ -1,10 +1,8 @@
 package net.nymtech.nymvpn.util.extensions
 
-import android.content.BroadcastReceiver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -14,13 +12,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.whileSelect
 import timber.log.Timber
 import java.time.Duration
 import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.coroutineContext
 
@@ -88,17 +83,5 @@ suspend inline fun <T> Flow<T>.safeCollect(crossinline action: suspend (T) -> Un
 	collect {
 		coroutineContext.ensureActive()
 		action(it)
-	}
-}
-
-fun BroadcastReceiver.goAsync(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> Unit) {
-	val pendingResult = goAsync()
-	@OptIn(DelicateCoroutinesApi::class) // Must run globally; there's no teardown callback.
-	GlobalScope.launch(context) {
-		try {
-			block()
-		} finally {
-			pendingResult.finish()
-		}
 	}
 }

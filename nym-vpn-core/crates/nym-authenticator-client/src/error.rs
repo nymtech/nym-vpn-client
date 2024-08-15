@@ -20,6 +20,9 @@ pub enum Error {
 
     #[error("timeout waiting for connect response from exit gateway (authenticator)")]
     TimeoutWaitingForConnectResponse,
+
+    #[error("shutting down")]
+    ShuttingDown,
 }
 
 // Result type based on our error type
