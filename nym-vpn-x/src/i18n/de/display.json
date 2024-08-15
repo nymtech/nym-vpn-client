@@ -1,1 +1,8 @@
-{}
+{
+  "options": {
+    "system": "Automatisch",
+    "light": "Heller Modus",
+    "dark": "Dunkler Modus"
+  },
+  "system-desc": "Nutze Geräte Modus"
+}
