@@ -1,5 +1,5 @@
 [package]
-name = "nym-id"
+name = "nym-id-fork"
 version = "0.1.0"
 authors.workspace = true
 repository.workspace = true
@@ -16,5 +16,5 @@ time.workspace = true
 tracing.workspace = true
 zeroize.workspace = true
 
-nym-credential-storage = { path = "../credential-storage" }
-nym-credentials = { path = "../credentials" }
+nym-credential-storage-fork = { path = "../nym-credential-storage-fork" }
+nym-credentials-fork = { path = "../nym-credentials-fork" }

@@ -57,16 +57,11 @@ talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = 
 talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
 
 nym-authenticator-requests.workspace = true
-nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
 nym-client-core.workspace = true
 nym-config.workspace = true
-nym-credential-storage.workspace = true
-nym-credentials.workspace = true
 nym-crypto.workspace = true
 nym-explorer-client.workspace = true
-# nym-id.workspace = true
-nym-id = { path = "../crates/nym-id" }
 nym-ip-packet-requests.workspace = true
 nym-node-requests.workspace = true
 nym-pemstore.workspace = true
@@ -75,6 +70,11 @@ nym-task.workspace = true
 nym-topology.workspace = true
 nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
+
+nym-bandwidth-controller-fork = { path = "../crates/nym-bandwidth-controller-fork" }
+nym-credential-storage-fork = { path = "../crates/nym-credential-storage-fork" }
+nym-credentials-fork = { path = "../crates/nym-credentials-fork" }
+nym-id-fork = { path = "../crates/nym-id-fork" }
 
 nym-authenticator-client = { path = "../crates/nym-authenticator-client" }
 nym-connection-monitor = { path = "../crates/nym-connection-monitor" }

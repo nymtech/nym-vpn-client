@@ -30,9 +30,9 @@ use util::wait_for_interrupt_and_signal;
 
 // Public re-export
 pub use nym_connection_monitor as connection_monitor;
-pub use nym_credential_storage as credential_storage;
+pub use nym_credential_storage_fork as credential_storage;
 pub use nym_gateway_directory as gateway_directory;
-pub use nym_id as id;
+pub use nym_id_fork as id;
 
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient, StoragePaths};

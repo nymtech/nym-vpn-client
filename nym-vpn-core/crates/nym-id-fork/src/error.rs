@@ -8,7 +8,7 @@ use time::OffsetDateTime;
 #[derive(Debug, Error)]
 pub enum NymIdError {
     #[error("failed to deserialize provided credential: {source}")]
-    CredentialDeserializationFailure { source: nym_credentials::Error },
+    CredentialDeserializationFailure { source: nym_credentials_fork::Error },
 
     #[error("attempted to import an expired credential (it expired on {expiration})")]
     ExpiredCredentialImport { expiration: OffsetDateTime },

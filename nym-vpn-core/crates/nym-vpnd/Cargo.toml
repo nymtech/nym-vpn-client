@@ -38,7 +38,7 @@ tracing.workspace = true
 url.workspace = true
 
 # Nym monorepo
-nym-bandwidth-controller.workspace = true
+nym-bandwidth-controller-fork = { path = "../nym-bandwidth-controller-fork" }
 nym-task.workspace = true
 nym-validator-client.workspace = true
 

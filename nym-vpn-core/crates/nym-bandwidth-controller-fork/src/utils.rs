@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::error::BandwidthControllerError;
-use nym_credential_storage::models::StoredIssuedCredential;
-use nym_credentials::coconut::bandwidth::issued::CURRENT_SERIALIZATION_REVISION;
-use nym_credentials::coconut::bandwidth::IssuedBandwidthCredential;
+use nym_credential_storage_fork::models::StoredIssuedCredential;
+use nym_credentials_fork::coconut::bandwidth::issued::CURRENT_SERIALIZATION_REVISION;
+use nym_credentials_fork::coconut::bandwidth::IssuedBandwidthCredential;
 
 pub fn stored_credential_to_issued_bandwidth(
     cred: StoredIssuedCredential,

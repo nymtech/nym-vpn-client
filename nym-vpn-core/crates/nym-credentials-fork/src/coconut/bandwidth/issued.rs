@@ -7,7 +7,7 @@ use crate::coconut::bandwidth::{
     CredentialType};
 use crate::coconut::utils::scalar_serde_helper;
 use crate::error::Error;
-use nym_credentials_interface::{
+use nym_credentials_interface_fork::{
     PrivateAttribute, PublicAttribute, Signature, 
 };
 use nym_validator_client::nym_api::EpochId;

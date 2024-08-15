@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-use nym_credentials::error::Error as CredentialsError;
+use nym_credentials_fork::error::Error as CredentialsError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]

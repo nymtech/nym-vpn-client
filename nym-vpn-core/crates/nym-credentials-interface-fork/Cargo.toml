@@ -1,5 +1,5 @@
 [package]
-name = "nym-credentials-interface"
+name = "nym-credentials-interface-fork"
 version = "0.1.0"
 authors.workspace = true
 repository.workspace = true
@@ -14,4 +14,4 @@ license.workspace = true
 serde = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 
-nym-coconut = { path = "../nymcoconut" }
+nym-coconut-fork = { path = "../nym-coconut-fork" }

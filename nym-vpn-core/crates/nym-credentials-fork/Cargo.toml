@@ -1,5 +1,5 @@
 [package]
-name = "nym-credentials"
+name = "nym-credentials-fork"
 version = "0.1.0"
 edition = "2021"
 license.workspace = true
@@ -15,11 +15,7 @@ time = { workspace = true, features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }
 zeroize = { workspace = true }
 
-# I guess temporarily until we get serde support in coconut up and running
-nym-credentials-interface = { path = "../credentials-interface" }
+nym-credentials-interface-fork = { path = "../nym-credentials-interface-fork" }
 nym-crypto = { workspace = true, features = ["rand", "asymmetric", "serde"] }
 nym-validator-client = { workspace = true }
-
-# [dev-dependencies]
-# rand = "0.8.5"
 

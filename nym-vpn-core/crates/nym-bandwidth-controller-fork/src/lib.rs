@@ -4,9 +4,9 @@
 use crate::error::BandwidthControllerError;
 use crate::utils::stored_credential_to_issued_bandwidth;
 use log::{debug, error, warn};
-use nym_credential_storage::storage::Storage;
-use nym_credentials::coconut::bandwidth::issued::BandwidthCredentialIssuedDataVariant;
-use nym_credentials::IssuedBandwidthCredential;
+use nym_credential_storage_fork::storage::Storage;
+use nym_credentials_fork::coconut::bandwidth::issued::BandwidthCredentialIssuedDataVariant;
+use nym_credentials_fork::IssuedBandwidthCredential;
 
 pub use event::BandwidthStatusMessage;
 

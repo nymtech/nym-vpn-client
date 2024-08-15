@@ -1,5 +1,5 @@
 [package]
-name = "nym-credential-storage"
+name = "nym-credential-storage-fork"
 version = "0.1.0"
 edition = "2021"
 license.workspace = true
@@ -14,7 +14,6 @@ thiserror = { workspace = true }
 tokio = { workspace = true, features = ["sync"]}
 zeroize = { workspace = true, features = ["zeroize_derive"] }
 
-
 [target."cfg(not(target_arch = \"wasm32\"))".dependencies.sqlx]
 version = "0.6.3"
 features = ["runtime-tokio-rustls", "sqlite", "macros", "migrate"]
@@ -22,7 +21,6 @@ features = ["runtime-tokio-rustls", "sqlite", "macros", "migrate"]
 [target."cfg(not(target_arch = \"wasm32\"))".dependencies.tokio]
 workspace = true
 features = [ "rt-multi-thread", "net", "signal", "fs" ]
-
 
 [build-dependencies]
 sqlx = { version = "0.6.3", features = ["runtime-tokio-rustls", "sqlite", "macros", "migrate"] }

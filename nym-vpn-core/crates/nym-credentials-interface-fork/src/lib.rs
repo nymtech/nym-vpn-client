@@ -6,7 +6,7 @@ use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 use thiserror::Error;
 
-pub use nym_coconut::{
+pub use nym_coconut_fork::{
     hash_to_scalar,
     Attribute, 
 PublicAttribute,

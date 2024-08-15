@@ -1,8 +1,8 @@
 use std::time::SystemTime;
 use std::{fs, path::PathBuf};
 
-use nym_bandwidth_controller::BandwidthController;
-use nym_credentials::{
+use nym_bandwidth_controller_fork::BandwidthController;
+use nym_credentials_fork::{
     coconut::bandwidth::issued::BandwidthCredentialIssuedDataVariant, IssuedBandwidthCredential,
 };
 
@@ -16,7 +16,7 @@ use super::{
 #[derive(Debug, thiserror::Error)]
 pub enum CheckRawCredentialError {
     #[error("failed to unpack raw credential: {source}")]
-    FailedToUnpackRawCredential { source: nym_credentials::Error },
+    FailedToUnpackRawCredential { source: nym_credentials_fork::Error },
 
     #[error("the free pass has already expired! The expiration was set to {expiry_date}")]
     FreepassExpired { expiry_date: String },
@@ -159,10 +159,10 @@ pub async fn check_imported_credential(
 #[derive(Debug, thiserror::Error)]
 pub enum VerifyCredentialError {
     #[error("failed to obtain aggregate key")]
-    FailedToObtainAggregateVerificationKey(nym_credentials::Error),
+    FailedToObtainAggregateVerificationKey(nym_credentials_fork::Error),
 
     #[error("failed to prepare credential for spending")]
-    FailedToPrepareCredentialForSpending(nym_credentials::Error),
+    FailedToPrepareCredentialForSpending(nym_credentials_fork::Error),
 
     #[error("missing bandwidth type attribute")]
     MissingBandwidthTypeAttribute,

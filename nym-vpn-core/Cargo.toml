@@ -12,12 +12,12 @@ members = [
     "crates/nym-vpn-store",
     "crates/nym-vpnc",
     "crates/nym-vpnd",
-    "crates/credential-storage",
-    "crates/credentials",
-    "crates/credentials-interface",
-    "crates/bandwidth-controller",
-    "crates/nymcoconut",
-    "crates/nym-id",
+    "crates/nym-credential-storage-fork",
+    "crates/nym-credentials-fork",
+    "crates/nym-credentials-interface-fork",
+    "crates/nym-bandwidth-controller-fork",
+    "crates/nym-coconut-fork",
+    "crates/nym-id-fork",
     "nym-vpn-cli",
     "nym-vpn-lib",
 ]
@@ -108,23 +108,22 @@ url = "2.5"
 vergen = { version = "8.3.1", default-features = false }
 zeroize = "1.6.0"
 
+# nym-bandwidth-controller-fork = { path = "crates/nym-bandwidth-controller-fork" }
+# nym-credential-interface-fork = { path = "crates/nym-credentials-interface-fork" }
+# nym-credential-storage-fork = { path = "crates/nym-credential-storage-fork" }
+# nym-credentials-fork = { path = "crates/nym-credentials-fork" }
+# nym-id-fork = { path = "crates/nym-id-fork" }
+
 # Use the develop-pre-ecash-for-vpn branch until we have ported the vpn client to use ecash
 
+nym-api-requests = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
-# nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
-nym-bandwidth-controller = { path = "crates/bandwidth-controller" }
 nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-client-core = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-config = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
-# nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
-nym-credential-storage = { path = "crates/credential-storage" }
-# nym-credentials = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
-nym-credentials = { path = "crates/credentials" }
-nym-credential-interface = { path = "crates/credentials-interface" }
 nym-crypto = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
-# nym-id = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-pemstore = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
@@ -133,5 +132,3 @@ nym-task = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-topology = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
-
-nym-api-requests = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }

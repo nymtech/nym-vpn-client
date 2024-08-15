@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::NymIdError;
-use nym_credential_storage::models::StorableIssuedCredential;
-use nym_credential_storage::storage::Storage;
-use nym_credentials::coconut::bandwidth::issued::BandwidthCredentialIssuedDataVariant;
-use nym_credentials::IssuedBandwidthCredential;
+use nym_credential_storage_fork::models::StorableIssuedCredential;
+use nym_credential_storage_fork::storage::Storage;
+use nym_credentials_fork::coconut::bandwidth::issued::BandwidthCredentialIssuedDataVariant;
+use nym_credentials_fork::IssuedBandwidthCredential;
 use time::OffsetDateTime;
 use tracing::{debug, warn};
 use zeroize::Zeroizing;

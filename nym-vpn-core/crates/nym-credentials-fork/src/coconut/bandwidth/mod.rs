@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 pub use issued::IssuedBandwidthCredential;
-pub(crate) use nym_credentials_interface::CredentialType;
+pub(crate) use nym_credentials_interface_fork::CredentialType;
 
 mod freepass;
 pub mod issued;

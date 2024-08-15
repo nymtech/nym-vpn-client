@@ -1,5 +1,5 @@
 [package]
-name = "nym-bandwidth-controller"
+name = "nym-bandwidth-controller-fork"
 version = "0.1.0"
 edition = "2021"
 license.workspace = true
@@ -14,5 +14,5 @@ thiserror = { workspace = true }
 url = { workspace = true }
 zeroize = { workspace = true }
 
-nym-credential-storage = { path = "../credential-storage" }
-nym-credentials = { path = "../credentials" }
+nym-credential-storage-fork = { path = "../nym-credential-storage-fork" }
+nym-credentials-fork = { path = "../nym-credentials-fork" }

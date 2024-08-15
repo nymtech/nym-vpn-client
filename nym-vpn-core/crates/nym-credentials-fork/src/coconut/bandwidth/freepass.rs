@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::coconut::utils::scalar_serde_helper;
-use nym_credentials_interface::{
+use nym_credentials_interface_fork::{
     hash_to_scalar, Attribute,
     PublicAttribute,
 };
