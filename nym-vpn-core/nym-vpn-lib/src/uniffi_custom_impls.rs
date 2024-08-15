@@ -273,6 +273,23 @@ impl From<MixnetExitConnectionInfo> for MixExitConnectionInfo {
     }
 }
 
+#[derive(uniffi::Record, Clone, Debug, PartialEq)]
+pub struct WireguardConnectionInfo {
+    pub gateway_id: NodeIdentity,
+    pub public_key: String,
+    pub private_ipv4: Ipv4Addr,
+}
+
+impl From<crate::WireguardConnectionInfo> for WireguardConnectionInfo {
+    fn from(value: crate::WireguardConnectionInfo) -> Self {
+        WireguardConnectionInfo {
+            gateway_id: value.gateway_id,
+            public_key: value.public_key,
+            private_ipv4: value.private_ipv4,
+        }
+    }
+}
+
 #[derive(uniffi::Enum)]
 pub enum EntryPoint {
     Gateway { identity: NodeIdentity },
@@ -340,9 +357,13 @@ pub enum TunStatus {
 #[derive(uniffi::Enum, PartialEq)]
 #[allow(clippy::large_enum_variant)]
 pub enum NymVpnStatus {
-    ConnectionInfo {
+    MixnetConnectionInfo {
         mixnet_connection_info: MixConnectionInfo,
         mixnet_exit_connection_info: MixExitConnectionInfo,
+    },
+    WireguardConnectionInfo {
+        entry_connection_info: WireguardConnectionInfo,
+        exit_connection_info: WireguardConnectionInfo,
     },
 }
 
@@ -352,9 +373,16 @@ impl From<NymVpnStatusMessage> for NymVpnStatus {
             NymVpnStatusMessage::MixnetConnectionInfo {
                 mixnet_connection_info,
                 mixnet_exit_connection_info,
-            } => NymVpnStatus::ConnectionInfo {
+            } => NymVpnStatus::MixnetConnectionInfo {
                 mixnet_connection_info: mixnet_connection_info.into(),
-                mixnet_exit_connection_info: mixnet_exit_connection_info.into(),
+                mixnet_exit_connection_info: (*mixnet_exit_connection_info).into(),
+            },
+            NymVpnStatusMessage::WireguardConnectionInfo {
+                entry_connection_info,
+                exit_connection_info,
+            } => NymVpnStatus::WireguardConnectionInfo {
+                entry_connection_info: entry_connection_info.into(),
+                exit_connection_info: exit_connection_info.into(),
             },
         }
     }
