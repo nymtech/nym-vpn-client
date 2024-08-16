@@ -193,7 +193,7 @@ async fn wg_probe(
         let public_key_bs64 = general_purpose::STANDARD.encode(peer_public.as_bytes());
 
         info!("WG connection details");
-        info!("Our private key: {}", private_key_bs64);
+        // info!("Our private key: {}", private_key_bs64);
         info!("Peer public key: {}", public_key_bs64);
         info!(
             "ip {}, port {}",
