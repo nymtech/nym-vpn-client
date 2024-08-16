@@ -13,8 +13,8 @@
     "dark": "Karanlık mod",
     "light": "Aydınlık mod"
   },
-  "first-hop-selection": "İlk hop seçimi",
-  "last-hop-selection": "Son hop seçimi",
+  "first-hop-selection": "Giriş lokasyonu",
+  "last-hop-selection": "Çıkış lokasyonu",
   "tos": "Kullanım şartları",
   "privacy-statement": "Gizlilik politikası",
   "vpn-modes": {
