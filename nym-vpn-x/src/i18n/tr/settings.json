@@ -1,5 +1,5 @@
 {
-  "display-theme": "Panel teması",
+  "display-theme": "Ekran modu",
   "add-credential-button": "Bağlanmak için anahtar ekleyin",
   "auto-connect": {
     "title": "Otomatik bağlan",
@@ -44,6 +44,7 @@
     "title": "Bilgisayar masaüstü bildirimleri"
   },
   "logs": {
-    "title": "Günlükler"
+    "title": "Günlükler",
+    "desc": "Logları kopyala veya sil"
   }
 }
