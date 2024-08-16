@@ -403,7 +403,8 @@ impl NymVpnd for CommandInterface {
                 tonic::Status::internal(msg)
             })?;
 
-        let response = StoreAccountResponse::from(result);
+        // let response = StoreAccountResponse::from(result);
+        let response = StoreAccountResponse { success: true };
         info!("Returning store account response: {:?}", response);
         Ok(tonic::Response::new(response))
     }

@@ -11,7 +11,7 @@ use tracing::{debug, info, warn};
 
 use crate::{
     service::{
-        ConnectArgs, ConnectOptions, ImportCredentialError, VpnServiceCommand,
+        ConnectArgs, ConnectOptions, StoreAccountError, ImportCredentialError, VpnServiceCommand,
         VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceInfoResult,
         VpnServiceStatusResult,
     },
@@ -34,12 +34,6 @@ pub enum ListGatewayError {
     GetExitGateways {
         error: nym_vpn_lib::gateway_directory::Error,
     },
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum StoreAccountError {
-    #[error("failed to store account")]
-    StoreAccount,
 }
 
 pub(super) struct CommandInterfaceConnectionHandler {

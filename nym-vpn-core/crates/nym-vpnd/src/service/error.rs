@@ -283,5 +283,9 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum StoreAccountError {
+    #[error("failed to store account")]
     StorageError { path: PathBuf, error: String },
+
+    #[error("this is a jon error")]
+    JonError,
 }

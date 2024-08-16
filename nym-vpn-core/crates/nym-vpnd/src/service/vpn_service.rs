@@ -546,6 +546,13 @@ where
             .map_err(|err| err.into())
     }
 
+    async fn handle_store_account(
+        &mut self,
+        account: String,
+    ) -> Result<(), StoreAccountError> {
+        return Err(StoreAccountError::JonError);
+    }
+
     pub(crate) async fn run(mut self) -> anyhow::Result<()> {
         while let Some(command) = self.vpn_command_rx.recv().await {
             debug!("VPN: Received command: {command}");
@@ -568,6 +575,10 @@ where
                 }
                 VpnServiceCommand::ImportCredential(tx, credential) => {
                     let result = self.handle_import_credential(credential).await;
+                    tx.send(result).unwrap();
+                }
+                VpnServiceCommand::StoreAccount(tx, account) => {
+                    let result = self.handle_store_account(account).await;
                     tx.send(result).unwrap();
                 }
             }
