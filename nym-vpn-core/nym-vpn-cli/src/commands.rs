@@ -78,11 +78,6 @@ pub(crate) struct RunArgs {
     #[arg(long)]
     pub(crate) disable_routing: bool,
 
-    /// Enable two-hop mixnet traffic. This means that traffic jumps directly from entry gateway to
-    /// exit gateway.
-    #[arg(long)]
-    pub(crate) enable_two_hop: bool,
-
     /// Enable Poisson process rate limiting of outbound traffic.
     #[arg(long)]
     pub(crate) enable_poisson_rate: bool,
