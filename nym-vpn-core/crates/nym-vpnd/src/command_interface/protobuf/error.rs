@@ -3,11 +3,11 @@
 
 use maplit::hashmap;
 use nym_vpn_proto::{
-    error::ErrorType, import_error::ImportErrorType, Error as ProtoError,
-    ImportError as ProtoImportError,
+    error::ErrorType, import_error::ImportErrorType, store_account_error::StoreAccountErrorType,
+    Error as ProtoError, ImportError as ProtoImportError,
 };
 
-use crate::service::{ConnectionFailedError, ImportCredentialError};
+use crate::service::{ConnectionFailedError, ImportCredentialError, StoreAccountError};
 
 impl From<ImportCredentialError> for ProtoImportError {
     fn from(err: ImportCredentialError) -> Self {
@@ -181,6 +181,31 @@ impl From<ConnectionFailedError> for ProtoError {
                 message: err.to_string(),
                 details: hashmap! {},
             },
+        }
+    }
+}
+
+impl From<StoreAccountError> for nym_vpn_proto::StoreAccountError {
+    fn from(err: StoreAccountError) -> Self {
+        match err {
+            StoreAccountError::InvalidMnemonic { source } => {
+                nym_vpn_proto::StoreAccountError {
+                    kind: StoreAccountErrorType::Unhandled as i32,
+                    message: err.to_string(),
+                    details: hashmap! {
+                        "source".to_string() => source.to_string(),
+                    },
+                }
+            }
+            StoreAccountError::FailedToStoreMnemonic { ref source } => {
+                nym_vpn_proto::StoreAccountError {
+                    kind: StoreAccountErrorType::Unhandled as i32,
+                    message: err.to_string(),
+                    details: hashmap! {
+                        "source".to_string() => source.to_string(),
+                    },
+                }
+            }
         }
     }
 }

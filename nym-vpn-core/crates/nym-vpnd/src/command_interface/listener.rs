@@ -396,15 +396,24 @@ impl NymVpnd for CommandInterface {
 
         let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_store_account(account)
-            .await
-            .map_err(|err| {
-                let msg = format!("Failed to store account: {:?}", err);
-                error!(msg);
-                tonic::Status::internal(msg)
-            })?;
+            .await;
+        // .map_err(|err| {
+        //     let msg = format!("Failed to store account: {:?}", err);
+        //     error!(msg);
+        //     tonic::Status::internal(msg)
+        // })?;
 
-        // let response = StoreAccountResponse::from(result);
-        let response = StoreAccountResponse { success: true };
+        let response = match result {
+            Ok(()) => StoreAccountResponse {
+                success: true,
+                error: None,
+            },
+            Err(err) => StoreAccountResponse {
+                success: false,
+                error: Some(err.into()),
+            },
+        };
+
         info!("Returning store account response: {:?}", response);
         Ok(tonic::Response::new(response))
     }

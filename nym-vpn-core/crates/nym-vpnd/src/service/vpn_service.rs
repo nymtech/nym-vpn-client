@@ -546,14 +546,24 @@ where
             .map_err(|err| err.into())
     }
 
-    async fn handle_store_account(
-        &mut self,
-        account: String,
-    ) -> Result<(), StoreAccountError> {
-        return Err(StoreAccountError::JonError);
+    async fn handle_store_account(&mut self, account: String) -> Result<(), StoreAccountError>
+    where
+        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
+    {
+        let mnemonic = nym_vpn_store::mnemonic::Mnemonic::parse(&account)
+            .map_err(|err| StoreAccountError::InvalidMnemonic { source: err })?;
+
+        self.storage.store_mnemonic(mnemonic).await.map_err(|err| {
+            StoreAccountError::FailedToStoreMnemonic {
+                source: Box::new(err),
+            }
+        })
     }
 
-    pub(crate) async fn run(mut self) -> anyhow::Result<()> {
+    pub(crate) async fn run(mut self) -> anyhow::Result<()>
+    where
+        <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
+    {
         while let Some(command) = self.vpn_command_rx.recv().await {
             debug!("VPN: Received command: {command}");
             match command {

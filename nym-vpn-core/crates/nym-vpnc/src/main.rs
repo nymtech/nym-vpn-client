@@ -6,7 +6,7 @@ use clap::Parser;
 use nym_vpn_proto::{
     ConnectRequest, DisconnectRequest, Empty, ImportUserCredentialRequest, InfoRequest,
     ListEntryCountriesRequest, ListEntryGatewaysRequest, ListExitCountriesRequest,
-    ListExitGatewaysRequest, StatusRequest,
+    ListExitGatewaysRequest, StatusRequest, StoreAccountRequest,
 };
 use protobuf_conversion::into_threshold;
 use vpnd_client::ClientType;
@@ -39,6 +39,7 @@ async fn main() -> Result<()> {
         Command::ImportCredential(ref import_args) => {
             import_credential(client_type, import_args).await?
         }
+        Command::StoreAccount => store_account(client_type).await?,
         Command::ListenToStatus => listen_to_status(client_type).await?,
         Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
         Command::ListEntryGateways => list_entry_gateways(client_type).await?,
@@ -133,6 +134,18 @@ async fn import_credential(
 
 fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
     bs58::decode(raw).into_vec()
+}
+
+async fn store_account(client_type: ClientType) -> Result<()> {
+    let mut client = vpnd_client::get_client(client_type).await?;
+    let request = tonic::Request::new(StoreAccountRequest {
+        name: "placeholder_name".to_string(),
+        mnemonic: "placeholder_mnemonic".to_string(),
+        nonce: 0,
+    });
+    let response = client.store_account(request).await?.into_inner();
+    println!("{:#?}", response);
+    Ok(())
 }
 
 async fn listen_to_status(client_type: ClientType) -> Result<()> {

@@ -13,6 +13,7 @@ license.workspace = true
 anyhow.workspace = true
 axum-server = { workspace = true, features = ["tls-rustls"] }
 axum.workspace = true
+bip39.workspace = true
 clap.workspace = true
 dirs.workspace = true
 futures.workspace = true

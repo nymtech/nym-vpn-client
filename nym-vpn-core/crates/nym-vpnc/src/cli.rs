@@ -24,6 +24,7 @@ pub(crate) enum Command {
     Status,
     Info,
     ImportCredential(ImportCredentialArgs),
+    StoreAccount,
     ListenToStatus,
     ListenToStateChanges,
     ListEntryGateways,

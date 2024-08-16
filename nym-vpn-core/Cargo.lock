@@ -4861,6 +4861,7 @@ dependencies = [
  "anyhow",
  "axum 0.7.5",
  "axum-server",
+ "bip39",
  "clap",
  "dirs 5.0.1",
  "eventlog",

@@ -283,9 +283,11 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum StoreAccountError {
-    #[error("failed to store account")]
-    StorageError { path: PathBuf, error: String },
+    #[error("invalid mnemonic")]
+    InvalidMnemonic { source: bip39::Error },
 
-    #[error("this is a jon error")]
-    JonError,
+    #[error("failed to store mnemonic")]
+    FailedToStoreMnemonic {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
 }

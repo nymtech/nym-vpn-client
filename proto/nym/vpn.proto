@@ -328,8 +328,27 @@ message StoreAccountRequest {
   string mnemonic = 2;
   uint32 nonce = 3;
 }
+
 message StoreAccountResponse {
   bool success = 1;
+  StoreAccountError error = 2;
+}
+
+message StoreAccountError {
+  enum StoreAccountErrorType {
+    STORE_ACCOUNT_ERROR_UNSPECIFIED = 0;
+
+    // Placeholder
+    UNHANDLED = 1;
+  }
+
+  StoreAccountErrorType kind = 1;
+
+  // Detailed error message for logging and debugging
+  string message = 2;
+
+  // Optional additional details
+  map<string, string> details = 3;
 }
 
 service NymVpnd {
