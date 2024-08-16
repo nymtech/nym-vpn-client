@@ -1,7 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, fs, os::unix::fs::PermissionsExt as _, path::PathBuf};
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt as _;
+use std::{fmt, fs, path::PathBuf};
 
 use nym_vpn_lib::gateway_directory;
 use tracing::info;
