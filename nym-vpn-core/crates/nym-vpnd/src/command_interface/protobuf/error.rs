@@ -188,24 +188,20 @@ impl From<ConnectionFailedError> for ProtoError {
 impl From<StoreAccountError> for nym_vpn_proto::StoreAccountError {
     fn from(err: StoreAccountError) -> Self {
         match err {
-            StoreAccountError::InvalidMnemonic { source } => {
-                nym_vpn_proto::StoreAccountError {
-                    kind: StoreAccountErrorType::Unhandled as i32,
-                    message: err.to_string(),
-                    details: hashmap! {
-                        "source".to_string() => source.to_string(),
-                    },
-                }
-            }
-            StoreAccountError::FailedToStoreMnemonic { ref source } => {
-                nym_vpn_proto::StoreAccountError {
-                    kind: StoreAccountErrorType::Unhandled as i32,
-                    message: err.to_string(),
-                    details: hashmap! {
-                        "source".to_string() => source.to_string(),
-                    },
-                }
-            }
+            StoreAccountError::InvalidMnemonic { source } => nym_vpn_proto::StoreAccountError {
+                kind: StoreAccountErrorType::InvalidMnemonic as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "source".to_string() => source.to_string(),
+                },
+            },
+            StoreAccountError::FailedToStore { ref source } => nym_vpn_proto::StoreAccountError {
+                kind: StoreAccountErrorType::Storage as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "source".to_string() => source.to_string(),
+                },
+            },
         }
     }
 }

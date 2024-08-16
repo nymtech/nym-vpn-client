@@ -11,7 +11,7 @@ use tracing::{debug, info, warn};
 
 use crate::{
     service::{
-        ConnectArgs, ConnectOptions, StoreAccountError, ImportCredentialError, VpnServiceCommand,
+        ConnectArgs, ConnectOptions, ImportCredentialError, StoreAccountError, VpnServiceCommand,
         VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceInfoResult,
         VpnServiceStatusResult,
     },

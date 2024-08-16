@@ -324,9 +324,8 @@ message ListExitCountriesResponse {
 }
 
 message StoreAccountRequest {
-  string name = 1;
-  string mnemonic = 2;
-  uint32 nonce = 3;
+  string mnemonic = 1;
+  uint32 nonce = 2;
 }
 
 message StoreAccountResponse {
@@ -338,8 +337,11 @@ message StoreAccountError {
   enum StoreAccountErrorType {
     STORE_ACCOUNT_ERROR_UNSPECIFIED = 0;
 
-    // Placeholder
-    UNHANDLED = 1;
+    // The provided mnemonic was not able to be parsed
+    INVALID_MNEMONIC = 1;
+
+    // General error from the storage backend
+    STORAGE = 2;
   }
 
   StoreAccountErrorType kind = 1;

@@ -39,7 +39,7 @@ async fn main() -> Result<()> {
         Command::ImportCredential(ref import_args) => {
             import_credential(client_type, import_args).await?
         }
-        Command::StoreAccount => store_account(client_type).await?,
+        Command::StoreAccount(ref store_args) => store_account(client_type, store_args).await?,
         Command::ListenToStatus => listen_to_status(client_type).await?,
         Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
         Command::ListEntryGateways => list_entry_gateways(client_type).await?,
@@ -136,11 +136,10 @@ fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
     bs58::decode(raw).into_vec()
 }
 
-async fn store_account(client_type: ClientType) -> Result<()> {
+async fn store_account(client_type: ClientType, store_args: &cli::StoreAccountArgs) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(StoreAccountRequest {
-        name: "placeholder_name".to_string(),
-        mnemonic: "placeholder_mnemonic".to_string(),
+        mnemonic: store_args.mnemonic.clone(),
         nonce: 0,
     });
     let response = client.store_account(request).await?.into_inner();

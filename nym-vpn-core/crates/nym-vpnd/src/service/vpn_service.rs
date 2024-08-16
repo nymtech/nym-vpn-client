@@ -8,6 +8,7 @@ use std::{
     sync::Arc,
 };
 
+use bip39::Mnemonic;
 use futures::{
     channel::{mpsc::UnboundedSender, oneshot::Receiver as OneshotReceiver},
     SinkExt,
@@ -550,14 +551,12 @@ where
     where
         <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,
     {
-        let mnemonic = nym_vpn_store::mnemonic::Mnemonic::parse(&account)
-            .map_err(|err| StoreAccountError::InvalidMnemonic { source: err })?;
-
-        self.storage.store_mnemonic(mnemonic).await.map_err(|err| {
-            StoreAccountError::FailedToStoreMnemonic {
+        self.storage
+            .store_mnemonic(Mnemonic::parse(&account)?)
+            .await
+            .map_err(|err| StoreAccountError::FailedToStore {
                 source: Box::new(err),
-            }
-        })
+            })
     }
 
     pub(crate) async fn run(mut self) -> anyhow::Result<()>

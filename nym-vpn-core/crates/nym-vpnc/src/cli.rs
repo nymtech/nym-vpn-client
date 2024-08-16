@@ -24,7 +24,7 @@ pub(crate) enum Command {
     Status,
     Info,
     ImportCredential(ImportCredentialArgs),
-    StoreAccount,
+    StoreAccount(StoreAccountArgs),
     ListenToStatus,
     ListenToStateChanges,
     ListEntryGateways,
@@ -150,6 +150,13 @@ impl From<ImportCredentialType> for ImportCredentialTypeEnum {
             _ => unreachable!(),
         }
     }
+}
+
+#[derive(Args)]
+pub(crate) struct StoreAccountArgs {
+    /// The account mnemonic to be stored.
+    #[arg(long)]
+    pub(crate) mnemonic: String,
 }
 
 pub(crate) fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {
