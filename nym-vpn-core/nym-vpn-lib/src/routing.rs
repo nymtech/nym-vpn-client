@@ -277,7 +277,9 @@ pub async fn setup_mixnet_routing(
         let fd = android_tun_provider.configure_nym(config.clone().into())?;
         let mut mixnet_tun_config = mixnet_tun_config.clone();
         if let Some(raw_fd) = config.gateway_ws_fd {
+            info!("Raw FD: {}", raw_fd);
             android_tun_provider.bypass(raw_fd);
+            info!("Bypassed raw_fd")
         }
         mixnet_tun_config.raw_fd(fd);
         mixnet_tun_config

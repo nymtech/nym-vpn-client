@@ -228,7 +228,9 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 
 	@OptIn(ExperimentalCoroutinesApi::class)
 	override fun bypass(socket: Int) {
+		Timber.d("socket: $socket")
 		vpnService.getCompleted().protect(socket)
+		Timber.d("Protected socket: $socket")
 	}
 
 	override fun configureWg(config: WgConfig) {
@@ -250,10 +252,12 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		val vpnInterface = service.builder.apply {
 			addAddress(config.ipv4Addr,InetAddress.getByName(config.ipv4Addr).prefix())
 			addAddress(config.ipv6Addr,InetAddress.getByName(config.ipv6Addr).prefix())
-			config.entryMixnetGatewayIp?.let {
-				val route = InetAddress.getByName(it)
-				addRoute(route, route.prefix())
-			}
+//			config.entryMixnetGatewayIp?.let {
+//				val route = InetAddress.getByName(it)
+//				addRoute(route, route.prefix())
+//			}
+			addRoute("0.0.0.0", 0);
+			addRoute("::", 0)
 			addDnsServer("1.1.1.1")
 			setMtu(config.mtu.toInt())
 			setBlocking(false)
@@ -262,6 +266,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			}
 		}.establish()
 		Timber.d("7")
-		return vpnInterface?.detachFd() ?: throw Exception()
+		val fd = vpnInterface?.detachFd() ?: throw Exception()
+		return fd
 	}
 }
