@@ -596,6 +596,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "blake2"
+version = "0.10.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46502ad458c9a52b69d4d4d32775c788b7a1b85e8bc9d482d92250fc0e3f8efe"
+dependencies = [
+ "digest 0.10.7",
+]
+
+[[package]]
 name = "blake3"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -671,6 +680,29 @@ name = "bnum"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab9008b6bb9fc80b5277f2fe481c09e828743d9151203e804583eb4c9e15b31d"
+
+[[package]]
+name = "boringtun"
+version = "0.6.0"
+source = "git+https://github.com/cloudflare/boringtun.git#f672bb6c1e1e371240a8d151f15854687eb740bb"
+dependencies = [
+ "aead 0.5.2",
+ "base64 0.13.1",
+ "blake2 0.10.6",
+ "chacha20poly1305 0.10.1",
+ "hex",
+ "hmac",
+ "ip_network",
+ "ip_network_table",
+ "libc",
+ "nix 0.25.1",
+ "parking_lot 0.12.1",
+ "rand_core 0.6.4",
+ "ring 0.17.8",
+ "tracing",
+ "untrusted 0.9.0",
+ "x25519-dalek",
+]
 
 [[package]]
 name = "bs58"
@@ -2954,6 +2986,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1c429fffa658f288669529fc26565f728489a2e39bc7b24a428aaaf51355182e"
 
 [[package]]
+name = "ip_network"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa2f047c0a98b2f299aa5d6d7088443570faae494e9ae1305e48be000c9e0eb1"
+
+[[package]]
+name = "ip_network_table"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4099b7cfc5c5e2fe8c5edf3f6f7adf7a714c9cc697534f63a5a5da30397cb2c0"
+dependencies = [
+ "ip_network",
+ "ip_network_table-deps-treebitmap",
+]
+
+[[package]]
+name = "ip_network_table-deps-treebitmap"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e537132deb99c0eb4b752f0346b6a836200eaaa3516dd7e5514b63930a09e5d"
+
+[[package]]
 name = "ipconfig"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3231,7 +3285,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ae926706ba42c425c9457121178330d75e273df2e82e28b758faf3de3a9acb9"
 dependencies = [
  "arrayref",
- "blake2",
+ "blake2 0.8.1",
  "chacha",
  "keystream",
 ]
@@ -3591,6 +3645,18 @@ version = "0.24.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fa52e972a9a719cecb6864fb88568781eb706bac2cd1d4f04a648542dbf78069"
 dependencies = [
+ "bitflags 1.3.2",
+ "cfg-if",
+ "libc",
+]
+
+[[package]]
+name = "nix"
+version = "0.25.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f346ff70e7dbfd675fe90590b92d59ef2de15a8779ae305ebcbfd3f0caf59be4"
+dependencies = [
+ "autocfg",
  "bitflags 1.3.2",
  "cfg-if",
  "libc",
@@ -4438,22 +4504,29 @@ name = "nym-gateway-probe"
 version = "0.1.18-dev"
 dependencies = [
  "anyhow",
+ "base64 0.22.1",
  "bincode",
+ "boringtun",
  "bs58 0.5.1",
  "bytes",
  "clap",
  "dirs 5.0.1",
  "futures",
  "log",
+ "nym-authenticator-client",
+ "nym-authenticator-requests",
  "nym-bin-common 0.6.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
  "nym-client-core",
  "nym-config 0.1.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
  "nym-connection-monitor",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
  "nym-gateway-directory",
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
  "nym-sdk",
  "nym-task",
+ "nym-topology",
+ "nym-wireguard-types 0.1.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
  "pnet_packet",
  "rand 0.8.5",
  "serde",
@@ -4464,6 +4537,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "vergen",
+ "x25519-dalek",
 ]
 
 [[package]]
@@ -7272,7 +7346,7 @@ checksum = "dabeca95bf5fd0563d6be7ebcb1c6a9fcb135746a0ba9050c47dc68c8607e595"
 dependencies = [
  "aes 0.8.4",
  "arrayref",
- "blake2",
+ "blake2 0.8.1",
  "bs58 0.5.1",
  "byteorder",
  "chacha",

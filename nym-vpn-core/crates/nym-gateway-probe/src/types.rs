@@ -11,6 +11,13 @@ pub struct ProbeResult {
 pub struct ProbeOutcome {
     pub as_entry: Entry,
     pub as_exit: Option<Exit>,
+    pub wg: Option<Wg>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct Wg {
+    pub can_register: bool,
+    pub can_handshake: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
