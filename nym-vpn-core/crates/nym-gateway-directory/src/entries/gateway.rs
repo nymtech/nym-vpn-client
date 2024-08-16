@@ -16,6 +16,7 @@ pub struct Gateway {
     pub ipr_address: Option<IpPacketRouterAddress>,
     pub authenticator_address: Option<AuthAddress>,
     pub last_probe: Option<Probe>,
+    pub host: Option<String>,
 }
 
 impl Gateway {
@@ -139,6 +140,7 @@ impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
             ipr_address: None,
             authenticator_address: None,
             last_probe: gateway.last_probe.map(Probe::from),
+            host: None,
         })
     }
 }
@@ -185,6 +187,7 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
             ipr_address,
             authenticator_address,
             last_probe: None,
+            host: Some(gateway.bond.gateway.host.clone()),
         })
     }
 }
