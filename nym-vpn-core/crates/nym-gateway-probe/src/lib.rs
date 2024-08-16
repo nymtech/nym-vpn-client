@@ -189,7 +189,7 @@ async fn wg_probe(
         let peer_public = registered_data.pub_key.inner();
         let static_private = x25519_dalek::StaticSecret::from(private_key.to_bytes());
 
-        let private_key_bs64 = general_purpose::STANDARD.encode(static_private.as_bytes());
+        let _private_key_bs64 = general_purpose::STANDARD.encode(static_private.as_bytes());
         let public_key_bs64 = general_purpose::STANDARD.encode(peer_public.as_bytes());
 
         info!("WG connection details");
