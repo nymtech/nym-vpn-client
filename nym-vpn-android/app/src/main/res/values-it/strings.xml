@@ -130,7 +130,6 @@
     <string name="view_system_settings">Vedi le impostazioni di sistema</string>
     <string name="missing_credential">Credenziali mancanti</string>
     <string name="hours">ore</string>
-    <string name="continue_agree"></string>
     <string name="share_anonymous_analytics">Condividi dati sul prodotto anonimamente</string>
     <string name="anonymous_error_reports">Report degli errori anonimo</string>
     <string name="app_shortcuts">Scorciatoie dell\'app</string>

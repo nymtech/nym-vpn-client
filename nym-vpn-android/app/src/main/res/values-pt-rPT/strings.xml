@@ -18,7 +18,6 @@
     <string name="establishing_connection">Estabelecendo conexão</string>
     <string name="connection_time">Tempo de conexão</string>
     <string name="connect_to">Conectar ao</string>
-    <string name="last_hop_selection"></string>
     <string name="display_theme">Tema da Tela</string>
     <string name="light_theme">Tema claro</string>
     <string name="dark_theme">Tema escuro</string>
