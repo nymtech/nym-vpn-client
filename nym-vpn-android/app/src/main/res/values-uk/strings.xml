@@ -132,4 +132,14 @@
     <string name="entry_location_selector">Вибір країни входу</string>
     <string name="two_hop">2-ланки</string>
     <string name="appearance">Зовнішній вигляд</string>
+    <string name="try_again">і спробуйте відновити підключення</string>
+    <string name="gateway_locations_title">Детальна інформація про розташування серверів</string>
+    <string name="remaining">що залишився</string>
+    <string name="vpn_connection">VPN-з\'єднання</string>
+    <string name="vpn_permission_message">Підтвердіть запит на VPN-з\'єднання, спробувавши перепідключитися.</string>
+    <string name="view_system_settings">Перегляд налаштувань системи</string>
+    <string name="try_reconnecting">Спробуйте перепідключитися</string>
+    <string name="always_on_disbled">Постійно ввімкнений VPN вимкнено</string>
+    <string name="always_on_message">Не працює? Переконайтеся, що Always-on VPN вимкнено для інших програм у</string>
+    <string name="vpn_settings">налаштуваннях системи VPN</string>
 </resources>
