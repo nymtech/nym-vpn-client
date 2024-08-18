@@ -18,5 +18,10 @@
   "tos": "Allgemeine Geschäftsbedingungen",
   "privacy-statement": "Datenschutzerklärung",
   "appearance": "Erscheinungsbild",
-  "language": "Sprache"
+  "language": "Sprache",
+  "display-theme": "Anzeige",
+  "ui-mode": {
+    "dark": "Dark mode",
+    "light": "Light mode"
+  }
 }
