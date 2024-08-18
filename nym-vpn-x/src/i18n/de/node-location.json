@@ -3,6 +3,15 @@
   "input-label": "Suche",
   "location-details": {
     "title": "Details zum Serverstandort",
-    "description": "Wir leiten den Serverstandort von der IP-Addresse ab. Der reale Standort kann leicht abweichen."
+    "description": "Wir leiten den Serverstandort von der IP-Addresse ab. Der reale Standort kann leicht abweichen.",
+    "link": "Mehr lesen"
+  },
+  "loading": "Laden...",
+  "none-found": "Kein Ergebnis gefunden. Bitte versuch es erneut",
+  "list-loading": "Die Standortliste wird geladen…",
+  "search-country": "Standortsuche",
+  "location-not-available": {
+    "entry": "Ausgewählter Eintrittsstandort nicht verfügbar, gewechselt zu {{location}}",
+    "exit": "Ausgewählter Austrittsstandort nicht verfügbar, gewechselt zu {{location}}"
   }
 }
