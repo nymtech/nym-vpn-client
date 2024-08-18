@@ -1,11 +1,19 @@
 {
   "title": {
-    "part1": "Herzlich Willkommen"
+    "part1": "Herzlich Willkommen",
+    "part2": "zur NymVPN Alpha"
   },
   "tos": {
     "part1": "Wenn du fortfährst willigst du zu NymVPN",
-    "part2": "und stimmst NymVPN"
+    "part2": "und stimmst NymVPN",
+    "part3": "."
   },
   "experimental": "Es handelt sich um experimentelle Software. Ein hoher Grad an Anonymität kann (noch) nicht garantiert werden.",
-  "continue-button": "Fortfahren"
+  "continue-button": "Fortfahren",
+  "description": {
+    "part1": "Hilf uns die App während der Alpha-Phase zu verbessern!",
+    "part2": "Dein Feedback ist wichtig",
+    "part3": "Um Probleme zu identifizieren und zu lösen. Zustimmung zur anonymisierten Fehlerüberwachung geben",
+    "part4": "und Analysedaten. Du kannst deine Zustimmung jederzeit widerrufen. Vielen Dank für deine Unterstützung!"
+  }
 }
