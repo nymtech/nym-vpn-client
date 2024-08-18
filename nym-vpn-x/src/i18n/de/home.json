@@ -19,14 +19,23 @@
   },
   "select-node-title": "Verbinden mit",
   "privacy-mode": {
-    "title": "Anonym"
+    "title": "Anonym",
+    "desc": "Ideal für Zahlungen, E-Mails, Nachrichten"
   },
   "snackbar-disabled-message": {
-    "connected": "Deaktiviert während Verbindung zu VPN besteht"
+    "connected": "Deaktiviert während Verbindung zu VPN besteht",
+    "connecting": "Deaktiviert während Verbindung mit dem VPN besteht",
+    "disconnecting": "Deaktiviert während Verbindung vom VPN getrennt wird",
+    "daemon-not-connected": "Deaktiviert während keine Verbindung zum VPN Dienst besteht"
   },
   "modes-dialog": {
     "title": "Modus auswählen",
     "privacy-description": "Geniesse die höchste Sicherheit indem du deine Verbindung durch 5 Server leitest. Ideal für die sichere Abwicklung von Zahlungen, E-Mails und Nachrichten.",
-    "link": "Weiter lesen"
+    "link": "Weiter lesen",
+    "fast-description": "Erlebe die maximale Geschwindigkeit mit dem 2-Server-Modus. Perfekt für schnelles surfen, streamen und File-Sharing."
+  },
+  "last-node-select": {
+    "label": "Letzter Knoten",
+    "text": "Schnellzugriff ({{country}})"
   }
 }
