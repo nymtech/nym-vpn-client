@@ -72,6 +72,7 @@ pub(super) enum ConfigSetupError {
         error: std::io::Error,
     },
 
+    #[cfg(unix)]
     #[error("failed to set permissions for directory {dir}: {error}")]
     SetPermissions { dir: PathBuf, error: std::io::Error },
 
