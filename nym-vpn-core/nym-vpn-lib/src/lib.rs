@@ -22,7 +22,7 @@ use nym_connection_monitor::ConnectionMonitorTask;
 use nym_gateway_directory::{
     Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress,
 };
-use nym_ip_packet_client::IprClient;
+use nym_ip_packet_client::IprClientConnect;
 use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::path::PathBuf;
@@ -350,7 +350,7 @@ impl NymVpn<MixnetVpn> {
         info!("Connecting to exit gateway: {exit_gateway}");
         // Currently the IPR client is only used to connect. The next step would be to use it to
         // spawn a separate task that handles IPR request/responses.
-        let mut ipr_client = IprClient::new_from_inner(mixnet_client.inner()).await;
+        let mut ipr_client = IprClientConnect::new_from_inner(mixnet_client.inner()).await;
         let our_ips = ipr_client
             .connect(exit_mix_addresses.0, self.generic_config.nym_ips)
             .await?;

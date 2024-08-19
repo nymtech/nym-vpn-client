@@ -1,20 +1,15 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use bytes::{Bytes, BytesMut};
+use bytes::Bytes;
 use futures::{channel::mpsc, prelude::stream::SplitSink, SinkExt, StreamExt};
-use nym_ip_packet_requests::{
-    codec::MultiIpPacketCodec,
-    request::{IpPacketRequest, IpPacketRequestData},
-    response::IpPacketResponseData,
-    response::{InfoLevel, IpPacketResponse},
-    IpPair,
-};
-use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient, ReconstructedMessage};
+use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
+use nym_ip_packet_requests::{codec::MultiIpPacketCodec, request::IpPacketRequest, IpPair};
+use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use tokio::task::JoinHandle;
-use tokio_util::codec::{Decoder, Framed};
-use tracing::{debug, error, info, trace, warn};
+use tokio_util::codec::Framed;
+use tracing::{debug, error, info, trace};
 use tun2::{AbstractDevice, AsyncDevice, TunPacketCodec};
 
 use nym_connection_monitor::{
@@ -187,6 +182,9 @@ struct MixnetListener {
     // Mixnet client for receiving messages
     mixnet_client: SharedMixnetClient,
 
+    // IPR client for handling responses
+    ipr_listener: IprListener,
+
     // Task client for receiving shutdown signals
     task_client: TaskClient,
 
@@ -201,9 +199,6 @@ struct MixnetListener {
 
     // Connection event sender
     connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
-
-    // Our mixnet address
-    our_address: Recipient,
 }
 
 impl MixnetListener {
@@ -216,15 +211,16 @@ impl MixnetListener {
         connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
     ) -> Self {
         let our_address = mixnet_client.nym_address().await;
+        let ipr_client = IprListener::new(our_address);
 
         Self {
             mixnet_client,
+            ipr_listener: ipr_client,
             task_client,
             tun_device_sink,
             icmp_beacon_identifier,
             our_ips,
             connection_event_tx,
-            our_address,
         }
     }
 
@@ -232,19 +228,6 @@ impl MixnetListener {
         let res = self.connection_event_tx.unbounded_send(event);
         if res.is_err() && !self.task_client.is_shutdown() {
             error!("Failed to send connection event to connection monitor");
-        }
-    }
-
-    fn check_for_mix_self_ping(&self, request: &IpPacketRequest) {
-        match request.data {
-            IpPacketRequestData::Ping(ref ping_request)
-                if ping_request.reply_to == self.our_address =>
-            {
-                self.send_connection_event(ConnectionStatusEvent::MixnetSelfPing);
-            }
-            ref request => {
-                debug!("Received unexpected request: {request:?}");
-            }
         }
     }
 
@@ -256,70 +239,10 @@ impl MixnetListener {
         }
     }
 
-    async fn handle_reconstructed_message(
-        &self,
-        message: ReconstructedMessage,
-        multi_ip_packet_decoder: &mut MultiIpPacketCodec,
-    ) -> Result<Option<MixnetMessageOutcome>> {
-        match IpPacketResponse::from_reconstructed_message(&message) {
-            Ok(response) => match response.data {
-                IpPacketResponseData::StaticConnect(_) => {
-                    info!("Received static connect response when already connected - ignoring");
-                }
-                IpPacketResponseData::DynamicConnect(_) => {
-                    info!("Received dynamic connect response when already connected - ignoring");
-                }
-                IpPacketResponseData::Disconnect(_) => {
-                    // Disconnect is not yet handled on the IPR side anyway
-                    info!("Received disconnect response, ignoring for now");
-                }
-                IpPacketResponseData::UnrequestedDisconnect(_) => {
-                    info!("Received unrequested disconnect response, ignoring for now");
-                }
-                IpPacketResponseData::Data(data_response) => {
-                    // Un-bundle the mixnet message and send the individual IP packets
-                    // to the tun device
-                    let mut bytes = BytesMut::from(&*data_response.ip_packet);
-                    let mut responses = vec![];
-                    while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
-                        responses.push(packet);
-                    }
-                    return Ok(Some(MixnetMessageOutcome::IpPackets(responses)));
-                }
-                IpPacketResponseData::Pong(_) => {
-                    info!("Received pong response, ignoring for now");
-                }
-                IpPacketResponseData::Health(_) => {
-                    info!("Received health response, ignoring for now");
-                }
-                IpPacketResponseData::Info(info) => {
-                    let msg = format!("Received info response from the mixnet: {}", info.reply);
-                    match info.level {
-                        InfoLevel::Info => info!("{msg}"),
-                        InfoLevel::Warn => warn!("{msg}"),
-                        InfoLevel::Error => error!("{msg}"),
-                    }
-                }
-            },
-            Err(err) => {
-                // The exception to when we are not expecting a response, is when we
-                // are sending a ping to ourselves.
-                if let Ok(request) = IpPacketRequest::from_reconstructed_message(&message) {
-                    self.check_for_mix_self_ping(&request);
-                } else {
-                    warn!("Failed to deserialize reconstructed message: {err}");
-                }
-            }
-        }
-        Ok(None)
-    }
-
     async fn run(mut self) -> SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>> {
         // We are the only one listening for mixnet messages when this is active
         let mut mixnet_client_binding = self.mixnet_client.lock().await;
         let mixnet_client = mixnet_client_binding.as_mut().unwrap();
-
-        let mut decoder = MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
 
         while !self.task_client.is_shutdown() {
             tokio::select! {
@@ -329,13 +252,7 @@ impl MixnetListener {
                 }
                 Some(reconstructed_message) = mixnet_client.next() => {
                     // We're just going to assume that all incoming messags are IPR messages
-                    if let Some(version) = reconstructed_message.message.first() {
-                        if *version != nym_ip_packet_requests::CURRENT_VERSION {
-                            error!("Received packet with invalid version: v{version}, is your client up to date?");
-                            continue;
-                        }
-                    }
-                    match self.handle_reconstructed_message(reconstructed_message, &mut decoder).await {
+                    match self.ipr_listener.handle_reconstructed_message(reconstructed_message).await {
                         Ok(Some(MixnetMessageOutcome::IpPackets(packets))) => {
                             for packet in packets {
                                 self.check_for_icmp_beacon_reply(&packet);
@@ -347,6 +264,9 @@ impl MixnetListener {
                                     error!("Failed to send packet to tun device: {err}");
                                 }
                             }
+                        }
+                        Ok(Some(MixnetMessageOutcome::MixnetSelfPing)) => {
+                            self.send_connection_event(ConnectionStatusEvent::MixnetSelfPing);
                         }
                         Ok(None) => {}
                         Err(err) => {
@@ -368,10 +288,6 @@ impl MixnetListener {
     fn start(self) -> JoinHandle<SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>>> {
         tokio::spawn(self.run())
     }
-}
-
-enum MixnetMessageOutcome {
-    IpPackets(Vec<Bytes>),
 }
 
 fn check_for_icmp_beacon_reply(

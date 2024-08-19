@@ -7,7 +7,7 @@ use nym_gateway_directory::{
     Config as GatewayDirectoryConfig, EntryPoint, GatewayClient as GatewayDirectoryClient,
     GatewayList, IpPacketRouterAddress,
 };
-use nym_ip_packet_client::{IprClient, SharedMixnetClient};
+use nym_ip_packet_client::{IprClientConnect, SharedMixnetClient};
 use nym_ip_packet_requests::{
     codec::MultiIpPacketCodec,
     response::{DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData},
@@ -149,7 +149,7 @@ async fn do_ping(
         "Connecting to exit gateway: {}",
         exit_router_address.gateway().to_base58_string()
     );
-    let mut ipr_client = IprClient::new(shared_mixnet_client.clone()).await;
+    let mut ipr_client = IprClientConnect::new(shared_mixnet_client.clone()).await;
     let Ok(our_ips) = ipr_client.connect(exit_router_address.0, None).await else {
         return Ok(ProbeOutcome {
             as_entry: Entry::success(),
