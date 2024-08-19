@@ -129,6 +129,7 @@ impl Config {
 pub struct GatewayClient {
     api_client: NymApiClient,
     nym_vpn_api_client: Option<nym_vpn_api_client::Client>,
+    min_gateway_performance: Option<f64>,
 }
 
 impl GatewayClient {
@@ -149,6 +150,7 @@ impl GatewayClient {
         Ok(GatewayClient {
             api_client,
             nym_vpn_api_client,
+            min_gateway_performance: config.min_gateway_performance,
         })
     }
 
@@ -249,6 +251,7 @@ impl GatewayClient {
             let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
             append_ipr_and_authenticator_addresses(&mut gateways, described_gateways);
             append_performance(&mut gateways, basic_gw);
+            filter_on_min_performance(&mut gateways, self.min_gateway_performance);
             Ok(GatewayList::new(gateways))
         } else {
             self.lookup_all_gateways_from_nym_api().await
@@ -275,6 +278,7 @@ impl GatewayClient {
             let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
             append_ipr_and_authenticator_addresses(&mut entry_gateways, described_gateways);
             append_performance(&mut entry_gateways, basic_gw);
+            filter_on_min_performance(&mut entry_gateways, self.min_gateway_performance);
             Ok(GatewayList::new(entry_gateways))
         } else {
             self.lookup_entry_gateways_from_nym_api().await
@@ -301,6 +305,7 @@ impl GatewayClient {
             let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
             append_ipr_and_authenticator_addresses(&mut exit_gateways, described_gateways);
             append_performance(&mut exit_gateways, basic_gw);
+            filter_on_min_performance(&mut exit_gateways, self.min_gateway_performance);
             Ok(GatewayList::new(exit_gateways))
         } else {
             self.lookup_exit_gateways_from_nym_api().await
@@ -316,6 +321,7 @@ impl GatewayClient {
                 .into_iter()
                 .map(Country::from)
                 .collect())
+            // TODO: problematic, we need the min performance as a parameter to the endpoint maybe?
         } else {
             self.lookup_entry_gateways_from_nym_api()
                 .await
@@ -396,6 +402,16 @@ fn append_performance(
             );
         }
     }
+}
+
+fn filter_on_min_performance(gateways: &mut Vec<Gateway>, min_gateway_performance: Option<f64>) {
+    gateways.retain(|gateway| {
+        if let Some(min_performance) = min_gateway_performance {
+            gateway.performance.unwrap_or(0.0) >= min_performance
+        } else {
+            true
+        }
+    });
 }
 
 #[cfg(test)]
