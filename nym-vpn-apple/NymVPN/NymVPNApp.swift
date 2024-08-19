@@ -10,7 +10,7 @@ import Theme
 
 @main
 struct NymVPNApp: App {
-    @StateObject private var appSettings = AppSettings.shared
+    @ObservedObject private var appSettings = AppSettings.shared
     @StateObject private var homeViewModel = HomeViewModel()
 
     init() {
