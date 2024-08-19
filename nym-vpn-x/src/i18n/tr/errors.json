@@ -13,7 +13,8 @@
   "connection": {
     "no-valid-credential": "Geçerli anahtar yok, lütfen önce bir anahtar ekleyin",
     "timeout": "Bağlantı zaman aşımı",
-    "gateway-lookup": "Gateway araması başarısız oldu"
+    "gateway-lookup": "Gateway araması başarısız oldu",
+    "bad-country-combination": "Desteklenmeyen ülke kombinasyonu, lütfen giriş veya çıkış ülkesini değiştirin"
   },
   "countries-request": {
     "entry": "Kullanılabilir entry node ülke bilgileri alınamadı",
@@ -21,5 +22,11 @@
   },
   "unknown": "Tanımlanamayan hata",
   "internal": "Dahili hata",
-  "grpc": "Dahili gRPC hatası"
+  "grpc": "Dahili gRPC hatası",
+  "out-of-bandwidth": "Bant genişliği kotası doldu",
+  "exit-node": {
+    "routing": "Çıkış nodeu {{protocol}} trafiğini iletmiyor",
+    "ping": "Çıkış nodeu {{protocol}} trafiği için ping başarısız oldu"
+  },
+  "entry-node-routing": "Giriş nodeu trafiği iletmiyor (internet bağlantısı mı kesik?)"
 }

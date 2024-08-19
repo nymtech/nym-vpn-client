@@ -1,0 +1,32 @@
+{
+  "credential": {
+    "invalid": "Ungültige Zugangsberechtigung",
+    "expired": "Zugangsdaten abgelaufen",
+    "no-duplicate": "Diese Zugangsdaten wurden bereits importiert",
+    "storage": "Fehler beim importieren der Zugangsdaten auf Grund eines internen Fehlers",
+    "deserialize": "Fehler beim Auflösen der Zugangsdaten",
+    "vpn-running": "Du kannst keine Zugangsdaten importieren während du mit dem VPN verbunden bist"
+  },
+  "unknown": "Unbekannter Fehler",
+  "internal": "Interner Fehler",
+  "daemon": {
+    "not-connected": "Nicht mit dem Dienst verbunden"
+  },
+  "grpc": "Interner gRPC Fehler",
+  "connection": {
+    "timeout": "Time-Out der Verbindung",
+    "gateway-lookup": "Fehler beim Suchen des Gateways",
+    "no-valid-credential": "Keine gültige Zugangsberechtigung, bitte gib zunächst deine Zugangsdaten ein",
+    "bad-country-combination": "Ungültige Länderkombination. Bitte ändere das Ein- oder Ausgangsland"
+  },
+  "countries-request": {
+    "entry": "Fehler beim Abrufen der verfügbaren Eingangsländer",
+    "exit": "Fehler beim Abrufen der verfügbaren Ausgangsländer"
+  },
+  "out-of-bandwidth": "Zugewiesene Bandbreite aufgebraucht",
+  "entry-node-routing": "Eingangs-Node leitet keine Daten (Internetverbindung inaktiv?)",
+  "exit-node": {
+    "routing": "Ausgans-Node leitet keine {{protocol}} Daten",
+    "ping": "Ausgangs-Node Ping für {{protocol}} fehlgeschlagen"
+  }
+}

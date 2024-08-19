@@ -1,0 +1,50 @@
+{
+  "logs": {
+    "title": "Logs",
+    "desc": "Kopiere oder lösche Logfiles"
+  },
+  "add-credential-button": "Zum verbinden Zugangsdaten hinzufügen",
+  "credential": {
+    "title": "Zugangsberechtigung"
+  },
+  "auto-connect": {
+    "title": "Automatisch verbinden",
+    "desc": "Bei Start der App automatisch verbinden"
+  },
+  "entry-selector": {
+    "title": "Auswahl der Eingangs Location",
+    "desc": "Wähle deinen Eingangs-Standort"
+  },
+  "error-monitoring": {
+    "title": "Anonymisierte Fehlerprotokolle",
+    "desc": "Gültig mit Neustart der App"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "github": "Problem auf GitHub melden",
+    "send": "Schicke uns Feedback",
+    "matrix": "Tritt unserem Matrix Chat bei",
+    "discord": "Tritt unserem Discord Channel bei"
+  },
+  "support": {
+    "title": "Support",
+    "faq": "Lies die FAQ",
+    "contact": "Kontaktiere den Support"
+  },
+  "legal": {
+    "title": "Rechtlich",
+    "policy": "Datenschutzerklärung",
+    "tos": "Allgemeine Geschäftsbedingungen",
+    "license": "Lizenz",
+    "licenses-rust": "Lizenzen (Rust)",
+    "licenses-js": "Lizenzen (JS)",
+    "emptyData": "Keine Lizenzdaten verfügbar"
+  },
+  "notifications": {
+    "title": "Bildschirmbenachrichtigungen"
+  },
+  "monitoring-alert": "Du musst die App neu starten damit die Änderungen aktiv werden.",
+  "faq": "FAQ",
+  "display-theme": "Anzeigemodus",
+  "quit": "NymVPN beenden"
+}

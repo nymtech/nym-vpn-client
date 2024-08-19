@@ -4,5 +4,14 @@
   "input-label": "Ara",
   "loading": "Yükleniyor..",
   "none-found": "Sonuç bulunamadı",
-  "list-loading": "Ülke listesi yükleniyor…"
+  "list-loading": "Ülke listesi yükleniyor…",
+  "location-details": {
+    "description": "Sunucu konumlarını IP adreslerine dayanarak tahmin ediyoruz, ancak gerçek konumlar biraz farklı olabilir.",
+    "title": "Sunucu konumları hakkında detaylar",
+    "link": "Detaylı bilgi"
+  },
+  "location-not-available": {
+    "entry": "Seçilen giriş konumu kullanılamıyor, {{location}} konumuna geçildi",
+    "exit": "Seçilen çıkış konumu mevcut değil, {{location}} konumuna geçildi"
+  }
 }
