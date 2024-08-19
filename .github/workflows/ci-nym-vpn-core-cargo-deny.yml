@@ -5,14 +5,14 @@ on:
       - "nym-vpn-core/**"
 jobs:
   cargo-deny:
-    runs-on: ubuntu-22.04-arc
+    runs-on: arc-ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - run: |
           sudo apt-get update && sudo apt-get install -y curl gcc git
       - uses: dtolnay/rust-toolchain@stable
       # The cargo-deny action uses docker which we currently can't run on
-      # ubuntu-22.04-arc, so we have to build manually for now
+      # arc-ubuntu-22.04, so we have to build manually for now
       - run: cargo install --locked cargo-deny
       - run: |
           cd nym-vpn-core
