@@ -1,8 +1,8 @@
 use std::time::SystemTime;
 use std::{fs, path::PathBuf};
 
-use nym_bandwidth_controller::BandwidthController;
-use nym_credentials::{
+use nym_bandwidth_controller_pre_ecash::BandwidthController;
+use nym_credentials_pre_ecash::{
     coconut::bandwidth::issued::BandwidthCredentialIssuedDataVariant, IssuedBandwidthCredential,
 };
 
@@ -10,13 +10,15 @@ use tracing::debug;
 
 use super::{
     helpers::{get_credentials_store, get_nyxd_client},
-    CredentialCoconutApiClientError, CredentialNyxdClientError, CredentialStoreError,
+    CredentialNyxdClientError, CredentialStoreError,
 };
 
 #[derive(Debug, thiserror::Error)]
 pub enum CheckRawCredentialError {
     #[error("failed to unpack raw credential: {source}")]
-    FailedToUnpackRawCredential { source: nym_credentials::Error },
+    FailedToUnpackRawCredential {
+        source: nym_credentials_pre_ecash::Error,
+    },
 
     #[error("the free pass has already expired! The expiration was set to {expiry_date}")]
     FreepassExpired { expiry_date: String },
@@ -118,21 +120,9 @@ pub enum CheckImportedCredentialError {
     },
 
     #[error(transparent)]
-    VerifyCredentialError {
-        #[from]
-        source: VerifyCredentialError,
-    },
-
-    #[error(transparent)]
     NyxdClientError {
         #[from]
         source: CredentialNyxdClientError,
-    },
-
-    #[error(transparent)]
-    CoconutApiClientError {
-        #[from]
-        source: CredentialCoconutApiClientError,
     },
 }
 
@@ -154,19 +144,4 @@ pub async fn check_imported_credential(
         )?;
 
     Ok(())
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum VerifyCredentialError {
-    #[error("failed to obtain aggregate key")]
-    FailedToObtainAggregateVerificationKey(nym_credentials::Error),
-
-    #[error("failed to prepare credential for spending")]
-    FailedToPrepareCredentialForSpending(nym_credentials::Error),
-
-    #[error("missing bandwidth type attribute")]
-    MissingBandwidthTypeAttribute,
-
-    #[error("failed to verify credential")]
-    FailedToVerifyCredential,
 }
