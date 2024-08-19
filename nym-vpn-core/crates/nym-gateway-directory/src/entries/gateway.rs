@@ -322,7 +322,7 @@ impl IntoIterator for GatewayList {
     }
 }
 
-impl nym_client_core::init::helpers::GatewayWithAddress for Gateway {
+impl nym_client_core::init::helpers::ConnectableGateway for Gateway {
     fn identity(&self) -> &nym_sdk::mixnet::NodeIdentity {
         self.identity()
     }
