@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04-arc, custom-windows-11]
+        os: [arc-ubuntu-22.04, custom-windows-11]
     runs-on: ${{ matrix.os }}
 
     steps:
