@@ -4,8 +4,8 @@ use anyhow::{anyhow, Result};
 use itertools::Itertools;
 use nym_vpn_proto::{
     health_check_response::ServingStatus, health_client::HealthClient,
-    nym_vpnd_client::NymVpndClient, ConnectionStatus, DisconnectRequest, EntryGateway, ExitGateway,
-    HealthCheckRequest, ListEntryGatewaysRequest, ListExitGatewaysRequest, Location, StatusRequest,
+    nym_vpnd_client::NymVpndClient, ConnectionStatus, DisconnectRequest, HealthCheckRequest,
+    ListEntryCountriesRequest, ListExitCountriesRequest, Location, StatusRequest,
 };
 use nym_vpn_proto::{
     ConnectRequest, Dns, Empty, EntryNode, ExitNode, ImportUserCredentialRequest,
@@ -346,25 +346,22 @@ impl GrpcClient {
         debug!("entry_countries");
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(ListEntryGatewaysRequest {});
-        let response = vpnd.list_entry_gateways(request).await.map_err(|e| {
-            error!("grpc entry_gateways: {}", e);
+        let request = Request::new(ListEntryCountriesRequest {});
+        let response = vpnd.list_entry_countries(request).await.map_err(|e| {
+            error!("grpc list_entry_countries: {}", e);
             VpndError::GrpcError(e)
         })?;
-        debug!("gateways count: {}", response.get_ref().gateways.len());
+        debug!("countries count: {}", response.get_ref().countries.len());
 
         let countries: Vec<Country> = response
             .get_ref()
-            .gateways
+            .countries
             .iter()
-            .filter_map(|gateway| {
-                // TODO add probe data check once daemon returns some data
-                Country::try_from(gateway).ok()
-            })
+            .filter_map(|location| Country::try_from(location).ok())
             .unique()
             .sorted_by(|a, b| a.name.cmp(&b.name))
             .collect();
-        debug!("countries count: {}", countries.len());
+        debug!("filtered countries count: {}", countries.len());
 
         Ok(countries)
     }
@@ -375,25 +372,22 @@ impl GrpcClient {
         debug!("exit_countries");
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(ListExitGatewaysRequest {});
-        let response = vpnd.list_exit_gateways(request).await.map_err(|e| {
-            error!("grpc entry_gateways: {}", e);
+        let request = Request::new(ListExitCountriesRequest {});
+        let response = vpnd.list_exit_countries(request).await.map_err(|e| {
+            error!("grpc list_exit_countries: {}", e);
             VpndError::GrpcError(e)
         })?;
-        debug!("gateways count: {}", response.get_ref().gateways.len());
+        debug!("countries count: {}", response.get_ref().countries.len());
 
         let countries: Vec<Country> = response
             .get_ref()
-            .gateways
+            .countries
             .iter()
-            .filter_map(|gateway| {
-                // TODO add probe data check
-                Country::try_from(gateway).ok()
-            })
+            .filter_map(|location| Country::try_from(location).ok())
             .unique()
             .sorted_by(|a, b| a.name.cmp(&b.name))
             .collect();
-        debug!("countries count: {}", countries.len());
+        debug!("filtered countries count: {}", countries.len());
 
         Ok(countries)
     }
@@ -498,35 +492,17 @@ impl From<(&AppConfig, &Cli)> for Transport {
     }
 }
 
-pub fn proto_location_to_country(location: &Option<Location>) -> Result<Country> {
-    if let Some(location) = location {
+impl TryFrom<&Location> for Country {
+    type Error = anyhow::Error;
+
+    fn try_from(location: &Location) -> Result<Country, Self::Error> {
         Country::try_new_from_code(&location.two_letter_iso_country_code).ok_or_else(|| {
-            warn!(
+            let msg = format!(
                 "invalid country code {}",
                 location.two_letter_iso_country_code
             );
-            anyhow!(
-                "invalid country code {}",
-                location.two_letter_iso_country_code
-            )
+            warn!(msg);
+            anyhow!(msg)
         })
-    } else {
-        Err(anyhow!("no location found"))
-    }
-}
-
-impl TryFrom<&EntryGateway> for Country {
-    type Error = anyhow::Error;
-
-    fn try_from(gateway: &EntryGateway) -> Result<Country, Self::Error> {
-        proto_location_to_country(&gateway.location)
-    }
-}
-
-impl TryFrom<&ExitGateway> for Country {
-    type Error = anyhow::Error;
-
-    fn try_from(gateway: &ExitGateway) -> Result<Country, Self::Error> {
-        proto_location_to_country(&gateway.location)
     }
 }

@@ -1995,12 +1995,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
-name = "hex-literal"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ebdb29d2ea9ed0083cd8cece49bbd968021bd99b0849edb4a9a7ee0fdf6a4e0"
-
-[[package]]
 name = "home"
 version = "0.5.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2789,7 +2783,7 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=3f922cc0#3f922cc0aee9ce82472aadada2e7445ef7f03ca0"
+source = "git+https://github.com/nymtech/nym?rev=dff82f9#dff82f946f3d8e3eddad0d1c72c101fa600bde3e"
 dependencies = [
  "dirs",
  "handlebars",
@@ -2803,16 +2797,12 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?rev=3f922cc0#3f922cc0aee9ce82472aadada2e7445ef7f03ca0"
+source = "git+https://github.com/nymtech/nym?rev=dff82f9#dff82f946f3d8e3eddad0d1c72c101fa600bde3e"
 dependencies = [
- "cfg-if",
  "dotenvy",
- "hex-literal",
  "log",
- "once_cell",
  "schemars",
  "serde",
- "thiserror",
  "url",
 ]
 
