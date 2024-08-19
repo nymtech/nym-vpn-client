@@ -84,6 +84,18 @@ pub enum ConnectionFailedError {
         gateway_id: String,
     },
 
+    #[error("failed to setup mixnet storage paths: {reason}")]
+    FailedToSetupMixnetStoragePaths { reason: String },
+
+    #[error("failed to create mixnet client with default storage: {reason}")]
+    FailedToCreateMixnetClientWithDefaultStorage { reason: String },
+
+    #[error("failed to build mixnet client: {reason}")]
+    FailedToBuildMixnetClient { reason: String },
+
+    #[error("failed to connect to mixnet: {reason}")]
+    FailedToConnectToMixnet { reason: String },
+
     #[error("timeout starting mixnet client after {0} seconds")]
     StartMixnetTimeout(u64),
 
@@ -147,6 +159,28 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             nym_vpn_lib::error::Error::StartMixnetTimeout(timeout_sec) => {
                 ConnectionFailedError::StartMixnetTimeout(*timeout_sec)
             }
+            nym_vpn_lib::error::Error::Mixnet(e) => match e {
+                nym_vpn_lib::error::MixnetError::FailedToSetupMixnetStoragePaths { source } => {
+                    ConnectionFailedError::FailedToSetupMixnetStoragePaths {
+                        reason: source.to_string(),
+                    }
+                }
+                nym_vpn_lib::error::MixnetError::FailedToCreateMixnetClientWithDefaultStorage {
+                    source,
+                } => ConnectionFailedError::FailedToCreateMixnetClientWithDefaultStorage {
+                    reason: source.to_string(),
+                },
+                nym_vpn_lib::error::MixnetError::FailedToBuildMixnetClient { source } => {
+                    ConnectionFailedError::FailedToBuildMixnetClient {
+                        reason: source.to_string(),
+                    }
+                }
+                nym_vpn_lib::error::MixnetError::FailedToConnectToMixnet { source } => {
+                    ConnectionFailedError::FailedToConnectToMixnet {
+                        reason: source.to_string(),
+                    }
+                }
+            },
             nym_vpn_lib::error::Error::GatewayDirectoryError(e) => match e {
                 GatewayDirectoryError::FailedtoSetupGatewayDirectoryClient { config, source } => {
                     ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
@@ -222,7 +256,6 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::JoinError(_)
             | nym_vpn_lib::error::Error::CanceledError(_)
             | nym_vpn_lib::error::Error::FailedToSendWireguardShutdown
-            | nym_vpn_lib::error::Error::SDKError(_)
             | nym_vpn_lib::error::Error::NodeIdentityFormattingError
             | nym_vpn_lib::error::Error::TunError(_)
             | nym_vpn_lib::error::Error::WireguardConfigError(_)

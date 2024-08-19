@@ -88,6 +88,36 @@ impl From<ConnectionFailedError> for ProtoError {
                 message: timeout.to_string(),
                 details: Default::default(),
             },
+            ConnectionFailedError::FailedToSetupMixnetStoragePaths { ref reason } => ProtoError {
+                kind: ErrorType::MixnetStoragePaths as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::FailedToCreateMixnetClientWithDefaultStorage { ref reason } => {
+                ProtoError {
+                    kind: ErrorType::MixnetDefaultStorage as i32,
+                    message: err.to_string(),
+                    details: hashmap! {
+                        "reason".to_string() => reason.to_string(),
+                    },
+                }
+            }
+            ConnectionFailedError::FailedToBuildMixnetClient { ref reason } => ProtoError {
+                kind: ErrorType::MixnetBuildClient as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::FailedToConnectToMixnet { ref reason } => ProtoError {
+                kind: ErrorType::MixnetConnect as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
             ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
                 ref config,
                 ref reason,

@@ -216,6 +216,18 @@ message Error {
 
     // Client ran out of allocated bandwidth
     OUT_OF_BANDWIDTH = 18;
+
+    // Failed to setup the mixnet storage paths
+    MIXNET_STORAGE_PATHS = 19;
+
+    // Failed to create a mixnet client with default storage setup
+    MIXNET_DEFAULT_STORAGE = 20;
+
+    // Failed to build the mixnet client instance
+    MIXNET_BUILD_CLIENT = 21;
+
+    // Failed to connect to the mixnet
+    MIXNET_CONNECT = 22;
   }
 
   ErrorType kind = 1;
