@@ -1,13 +1,16 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
-use nym_credential_storage::persistent_storage::PersistentStorage;
+use nym_credential_storage_pre_ecash::persistent_storage::PersistentStorage;
 
 use nym_sdk::{mixnet::StoragePaths, NymNetworkDetails};
 use nym_validator_client::{
     nyxd::{Config as NyxdClientConfig, NyxdClient},
     QueryHttpRpcNyxdClient,
 };
+use sqlx::{ConnectOptions as _, Row as _};
 use tracing::debug;
+
+const PRE_ECASH_DB_MIGRATION_VERSION: i64 = 20241104120000;
 
 #[derive(Debug, thiserror::Error)]
 pub enum CredentialStoreError {
@@ -26,7 +29,7 @@ pub enum CredentialStoreError {
     #[error("failed to initialize persistent storage: {path}: {source}")]
     FailedToInitializePersistentStorage {
         path: PathBuf,
-        source: nym_credential_storage::error::StorageError,
+        source: nym_credential_storage_pre_ecash::error::StorageError,
     },
 
     #[error("failed to read credential store metadata: {path}: {source}")]
@@ -40,6 +43,49 @@ pub enum CredentialStoreError {
         path: PathBuf,
         source: std::io::Error,
     },
+
+    #[error("failed to copy old db file: {source}")]
+    FailedToLookupDbVersion {
+        #[from]
+        source: sqlx::Error,
+    },
+
+    #[error("failed to copy old db file: {0}")]
+    FailedToCopyOldDbFile(std::io::Error),
+}
+
+fn forked_db_path(db_path: &Path) -> PathBuf {
+    db_path.with_file_name(format!(
+        "fork_{}",
+        db_path.file_name().unwrap().to_str().unwrap()
+    ))
+}
+
+async fn is_db_old(db_path: &Path) -> Result<bool, CredentialStoreError> {
+    let mut opts = sqlx::sqlite::SqliteConnectOptions::new().filename(db_path);
+    opts.disable_statement_logging();
+    let pool = sqlx::SqlitePool::connect_with(opts).await?;
+
+    let row = sqlx::query("SELECT MAX(version) as version FROM _sqlx_migrations")
+        .fetch_one(&pool)
+        .await?;
+    let migration_version: i64 = row.get("version");
+    Ok(migration_version == PRE_ECASH_DB_MIGRATION_VERSION)
+}
+
+async fn copy_old_db_file(db_path: &Path, new_db_path: &Path) -> Result<u64, CredentialStoreError> {
+    debug!("Copying old db file to {}", new_db_path.display());
+    std::fs::copy(db_path, new_db_path).map_err(CredentialStoreError::FailedToCopyOldDbFile)
+}
+
+async fn migrate_to_forked_credential_db(
+    credential_db_path: &Path,
+) -> Result<PathBuf, CredentialStoreError> {
+    let fork_credential_db_path = forked_db_path(credential_db_path);
+    if !fork_credential_db_path.exists() && is_db_old(credential_db_path).await? {
+        copy_old_db_file(credential_db_path, &fork_credential_db_path).await?;
+    };
+    Ok(fork_credential_db_path)
 }
 
 pub(super) async fn get_credentials_store(
@@ -61,13 +107,24 @@ pub(super) async fn get_credentials_store(
     })?;
     let credential_db_path = storage_path.credential_database_path;
     debug!("Credential store: {}", credential_db_path.display());
-    let storage = nym_credential_storage::persistent_storage::PersistentStorage::init(
-        credential_db_path.clone(),
+
+    // For the freepasses we need to work with a forked db copy as part of the transition to ecash.
+    // The credential path will used again later in the connection phase by the mixnet client where
+    // it will be migrated to a newer schema, and hence become incompatible with this client
+    // credential check.
+    let fork_credential_db_path = migrate_to_forked_credential_db(&credential_db_path).await?;
+    debug!(
+        "Forked credential store: {}",
+        fork_credential_db_path.display()
+    );
+
+    let storage = nym_credential_storage_pre_ecash::persistent_storage::PersistentStorage::init(
+        fork_credential_db_path.clone(),
     )
     .await
     .map_err(
         |err| CredentialStoreError::FailedToInitializePersistentStorage {
-            path: credential_db_path.clone(),
+            path: fork_credential_db_path.clone(),
             source: err,
         },
     )?;
@@ -77,23 +134,23 @@ pub(super) async fn get_credentials_store(
         use std::fs;
         use std::os::unix::fs::PermissionsExt;
 
-        let metadata = fs::metadata(&credential_db_path).map_err(|err| {
+        let metadata = fs::metadata(&fork_credential_db_path).map_err(|err| {
             CredentialStoreError::FailedToReadCredentialStoreMetadata {
-                path: credential_db_path.clone(),
+                path: fork_credential_db_path.clone(),
                 source: err,
             }
         })?;
         let mut permissions = metadata.permissions();
         permissions.set_mode(0o600);
-        fs::set_permissions(&credential_db_path, permissions).map_err(|err| {
+        fs::set_permissions(&fork_credential_db_path, permissions).map_err(|err| {
             CredentialStoreError::FailedToSetCredentialStorePermissions {
-                path: credential_db_path.clone(),
+                path: fork_credential_db_path.clone(),
                 source: err,
             }
         })?;
     }
 
-    Ok((storage, credential_db_path))
+    Ok((storage, fork_credential_db_path))
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -123,13 +180,4 @@ pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialNyxd
     debug!("Connecting to nyx validator at: {}", nyxd_url);
     NyxdClient::connect(config, nyxd_url.as_str())
         .map_err(CredentialNyxdClientError::FailedToConnectUsingNyxdClient)
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum CredentialCoconutApiClientError {
-    #[error("failed to query contract")]
-    FailedToQueryContract,
-
-    #[error("failed to fetch coconut api clients: {0}")]
-    FailedToFetchCoconutApiClients(nym_validator_client::coconut::CoconutApiError),
 }

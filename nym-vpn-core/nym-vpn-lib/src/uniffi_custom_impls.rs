@@ -7,7 +7,7 @@ use crate::{
     UniffiCustomTypeConverter,
 };
 use ipnetwork::IpNetwork;
-use nym_bandwidth_controller::BandwidthStatusMessage;
+use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage;
 use nym_connection_monitor::ConnectionMonitorStatus;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use nym_ip_packet_requests::IpPair;
