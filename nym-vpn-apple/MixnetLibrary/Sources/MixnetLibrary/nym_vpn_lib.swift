@@ -3851,8 +3851,8 @@ public func importCredential(credential: String, path: String)throws  -> Date? {
     )
 })
 }
-public func runVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
-    uniffi_nym_vpn_lib_fn_func_runvpn(
+public func startVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    uniffi_nym_vpn_lib_fn_func_startvpn(
         FfiConverterTypeVPNConfig.lower(config),$0
     )
 }
@@ -3893,7 +3893,7 @@ private var initializationResult: InitializationResult = {
     if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 8591) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_runvpn() != 2496) {
+    if (uniffi_nym_vpn_lib_checksum_func_startvpn() != 17465) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_stopvpn() != 23819) {
