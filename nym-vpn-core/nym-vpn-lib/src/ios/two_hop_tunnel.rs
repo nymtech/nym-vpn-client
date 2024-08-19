@@ -69,7 +69,8 @@ impl TwoHopTunnel {
         );
         os_tun_provider
             .set_tunnel_network_settings(tunnel_settings)
-            .await?;
+            .await
+            .map_err(Error::SetNetworkSettings)?;
 
         let Some(entry_priv_key) =
             nym_wg_go::PrivateKey::from_base64("4Hn6EKuZtFriBxk93qGCSRqEkm5a2t8MEs8Ris91IFM=")

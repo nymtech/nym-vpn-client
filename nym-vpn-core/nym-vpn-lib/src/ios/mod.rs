@@ -40,6 +40,9 @@ pub enum Error {
 
     #[error("Invalid WireGuard key")]
     InvalidKey,
+
+    #[error("Failed to set network settings")]
+    SetNetworkSettings(#[source] crate::platform::error::FFIError),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
