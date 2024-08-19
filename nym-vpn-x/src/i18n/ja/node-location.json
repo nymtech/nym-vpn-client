@@ -1,1 +1,17 @@
-{}
+{
+  "loading": "ロード中...",
+  "none-found": "該当する結果は見つかりませんでした。別のキーワードで検索してください",
+  "list-loading": "ロケーションリストを読み込み中です…",
+  "selected": "選択中",
+  "search-country": "国を検索",
+  "input-label": "検索",
+  "location-details": {
+    "title": "サーバーの場所に関する詳細",
+    "description": "サーバーの位置はIPアドレスに基づいて推測していますが、実際の位置とはわずかに異なる場合があります。",
+    "link": "続きを読む"
+  },
+  "location-not-available": {
+    "entry": "選択されたエントリー位置が利用できないため、{{location}}に切り替えました",
+    "exit": "選択された出口位置が利用できないため、{{location}}に切り替えました"
+  }
+}
