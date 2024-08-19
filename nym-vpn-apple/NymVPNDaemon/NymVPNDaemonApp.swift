@@ -12,9 +12,9 @@ import Theme
 
 @main
 struct NymVPNDaemonApp: App {
-    private let appSettings = AppSettings.shared
     private let autoUpdater = AutoUpdater.shared
 
+    @ObservedObject private var appSettings = AppSettings.shared
     @StateObject private var homeViewModel = HomeViewModel()
 
     init() {
