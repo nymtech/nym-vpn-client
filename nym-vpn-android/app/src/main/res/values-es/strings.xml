@@ -134,10 +134,20 @@
     <string name="five_hop_explanation">Disfrute de la máxima privacidad enrutando su conexión a través de 5 servidores mediante mixnet. Perfecto para gestionar pagos, correos electrónicos y mensajes de forma segura.</string>
     <string name="two_hop_explanation">Disfruta de la máxima velocidad conectándote a 2 servidores. Perfecto para navegar, transmitir y compartir archivos a gran velocidad.</string>
     <string name="entry_location">Gateway de entrada</string>
-    <string name="exit_location">Ubicación de salida</string>
+    <string name="exit_location">Gateway de salida</string>
     <string name="appearance">Apariencia</string>
     <string name="language">Idioma</string>
     <string name="gateway_modal_description">Inferimos la ubicación de los servidores basándonos en sus direcciones IP, pero las ubicaciones reales pueden variar ligeramente.</string>
     <string name="gateway_locations_title">Datos sobre la ubicación de los servidores</string>
     <string name="entry_location_selector">Selector de ubicación de entrada</string>
+    <string name="two_hop">2-saltos</string>
+    <string name="remaining">restante</string>
+    <string name="vpn_connection">Conexión VPN</string>
+    <string name="vpn_permission_message">Confirma la solicitud de conexión al VPN intentando volver a conectarte.</string>
+    <string name="view_system_settings">Ver ajustes del sistema</string>
+    <string name="try_reconnecting">Intenta reconectar</string>
+    <string name="always_on_disbled">VPN siempre activa desactivado</string>
+    <string name="always_on_message">¿No funciona? Asegúrate de que VPN siempre activa está desactivada para otras aplicaciones</string>
+    <string name="vpn_settings">Ajustes del sistema VPN</string>
+    <string name="try_again">y intenta reconectar</string>
 </resources>
