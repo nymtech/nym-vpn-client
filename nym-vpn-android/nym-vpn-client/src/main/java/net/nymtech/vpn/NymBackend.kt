@@ -94,7 +94,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 					runVpn(
 						VpnConfig(
 							it.environment.apiUrl,
-							it.environment.explorerUrl,
+							it.environment.nymVpnApiUrl,
 							it.entryPoint,
 							it.exitPoint,
 							isTwoHop(it.mode),

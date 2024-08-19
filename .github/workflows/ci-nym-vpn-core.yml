@@ -17,10 +17,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04-arc, custom-runner-mac-m1, custom-windows-11]
+        os: [arc-ubuntu-22.04, custom-runner-mac-m1, custom-windows-11]
         target: [native]
         include:
-          - os: ubuntu-22.04-arc
+          - os: arc-ubuntu-22.04
             target: android
     runs-on: ${{ matrix.os }}
 
@@ -183,17 +183,65 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
-          rustflags="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu"
-          RUSTFLAGS=$rustflags cargo run --bin uniffi-bindgen generate --library target/aarch64-linux-android/debug/libnym_vpn_lib.so  --language kotlin --out-dir build -n
-          diff -B build/nym_vpn_lib/nym_vpn_lib.kt nym-vpn-lib/uniffi/nym_vpn_lib.kt
 
       - name: Build (iOS)
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
         working-directory: nym-vpn-core
         run: |
           cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
+
+      - name: Generate uniffi (Android)
+        if: contains(matrix.target, 'android')
+        working-directory: nym-vpn-core
+        run: |
+          rustflags="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu"
+          RUSTFLAGS=$rustflags cargo run --bin uniffi-bindgen generate --library target/aarch64-linux-android/debug/libnym_vpn_lib.so  --language kotlin --out-dir build -n
+
+      - name: Generate uniffi (iOS)
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        working-directory: nym-vpn-core
+        run: |
           cargo run --bin uniffi-bindgen generate --library target/aarch64-apple-ios/debug/libnym_vpn_lib.a  --language swift --out-dir build -n
+
+      - name: Uniffi diff check (Android)
+        if: contains(matrix.target, 'android')
+        working-directory: nym-vpn-core
+        run: |
+          diff -B build/nym_vpn_lib/nym_vpn_lib.kt nym-vpn-lib/uniffi/nym_vpn_lib.kt
+        continue-on-error: true
+        id: diff_android
+
+      - name: Upload generated uniffi file (Android)
+        if: steps.diff_android.outcome == 'failure' && contains(matrix.target, 'android')
+        uses: actions/upload-artifact@v3
+        with:
+          name: updated-uniffi-android
+          path: nym-vpn-core/build/nym_vpn_lib/nym_vpn_lib.kt
+          retention-days: 1
+
+      - name: Fail workflow for uniffi (Android)
+        if: steps.diff_android.outcome == 'failure' && contains(matrix.target, 'android')
+        run: exit 1
+
+      - name: Uniffi diff check (iOS)
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        working-directory: nym-vpn-core
+        run: |
           diff -B build/nym_vpn_lib.swift nym-vpn-lib/uniffi/nym_vpn_lib.swift
+        continue-on-error: true
+        id: diff_ios
+
+      - name: Upload generated uniffi file (iOS)
+        if: steps.diff_ios.outcome == 'failure' && (contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1'))
+        uses: actions/upload-artifact@v3
+        with:
+          name: updated-uniffi-ios
+          path: nym-vpn-core/build/nym_vpn_lib.swift
+          retention-days: 1
+
+      - name: Fail workflow for uniffi (iOS)
+        if: steps.diff_ios.outcome == 'failure' && (contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1'))
+        run: exit 1
 
       - name: Run tests
         if: "!contains(matrix.target, 'android')"

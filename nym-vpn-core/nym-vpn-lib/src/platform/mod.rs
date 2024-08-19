@@ -142,7 +142,7 @@ async fn wait_for_shutdown(
 #[derive(uniffi::Record)]
 pub struct VPNConfig {
     pub api_url: Url,
-    pub explorer_url: Url,
+    pub vpn_api_url: Option<Url>,
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
@@ -294,71 +294,50 @@ async fn stop_vpn() -> Result<(), FFIError> {
 #[uniffi::export]
 pub fn getGatewayCountries(
     api_url: Url,
-    explorer_url: Url,
-    harbour_master_url: Option<Url>,
+    nym_vpn_api_url: Option<Url>,
     exit_only: bool,
+    user_agent: Option<UserAgent>,
 ) -> Result<Vec<Location>, FFIError> {
     RUNTIME.block_on(get_gateway_countries(
         api_url,
-        explorer_url,
-        harbour_master_url,
+        nym_vpn_api_url,
         exit_only,
-        None,
-    ))
-}
-
-#[allow(non_snake_case)]
-#[uniffi::export]
-pub fn getGatewayCountriesUserAgent(
-    api_url: Url,
-    explorer_url: Url,
-    harbour_master_url: Option<Url>,
-    exit_only: bool,
-    user_agent: UserAgent,
-) -> Result<Vec<Location>, FFIError> {
-    RUNTIME.block_on(get_gateway_countries(
-        api_url,
-        explorer_url,
-        harbour_master_url,
-        exit_only,
-        Some(user_agent),
+        user_agent,
     ))
 }
 
 async fn get_gateway_countries(
     api_url: Url,
-    _explorer_url: Url,
-    _harbour_master_url: Option<Url>,
+    nym_vpn_api_url: Option<Url>,
     exit_only: bool,
     user_agent: Option<UserAgent>,
 ) -> Result<Vec<Location>, FFIError> {
-    //TODO support other envs in the future
-    let _config = nym_gateway_directory::Config {
-        api_url,
-        nym_vpn_api_url: None,
-    };
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)
         .unwrap_or_else(|| nym_bin_common::bin_info!().into());
-
+    let directory_config = nym_gateway_directory::Config {
+        api_url,
+        nym_vpn_api_url,
+    };
+    let directory_client = GatewayClient::new(directory_config, user_agent)?;
     let locations = if !exit_only {
-        nym_vpn_api_client::get_countries(user_agent).await
+        directory_client.lookup_entry_countries().await
     } else {
-        nym_vpn_api_client::get_exit_countries(user_agent).await
+        directory_client.lookup_exit_countries().await
     }?;
-    Ok(locations.into_iter().map(Into::into).collect())
+    Ok(locations.into_iter().map(Location::from).collect())
 }
 
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getLowLatencyEntryCountry(
     api_url: Url,
-    explorer_url: Url,
+    vpn_api_url: Option<Url>,
     harbour_master_url: Option<Url>,
 ) -> Result<Location, FFIError> {
     RUNTIME.block_on(get_low_latency_entry_country(
         api_url,
-        explorer_url,
+        vpn_api_url,
         harbour_master_url,
         None,
     ))
@@ -368,13 +347,13 @@ pub fn getLowLatencyEntryCountry(
 #[uniffi::export]
 pub fn getLowLatencyEntryCountryUserAgent(
     api_url: Url,
-    explorer_url: Url,
+    vpn_api_url: Option<Url>,
     harbour_master_url: Option<Url>,
     user_agent: UserAgent,
 ) -> Result<Location, FFIError> {
     RUNTIME.block_on(get_low_latency_entry_country(
         api_url,
-        explorer_url,
+        vpn_api_url,
         harbour_master_url,
         Some(user_agent),
     ))
@@ -382,13 +361,13 @@ pub fn getLowLatencyEntryCountryUserAgent(
 
 async fn get_low_latency_entry_country(
     api_url: Url,
-    _explorer_url: Url,
+    vpn_api_url: Option<Url>,
     _harbour_master_url: Option<Url>,
     user_agent: Option<UserAgent>,
 ) -> Result<Location, FFIError> {
     let config = nym_gateway_directory::Config {
         api_url,
-        nym_vpn_api_url: None,
+        nym_vpn_api_url: vpn_api_url,
     };
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)

@@ -763,8 +763,6 @@ internal open class UniffiVTableCallbackInterfaceTunnelStatusListener(
 
 
 
-
-
 // A JNA Library to expose the extern-C FFI definitions.
 // This is an implementation detail which will be called internally by the public API.
 
@@ -803,13 +801,11 @@ internal interface UniffiLib : Library {
     ): Unit
     fun uniffi_nym_vpn_lib_fn_func_checkcredential(`credential`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,`exitOnly`: Byte,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_getgatewaycountries(`apiUrl`: RustBuffer.ByValue,`nymVpnApiUrl`: RustBuffer.ByValue,`exitOnly`: Byte,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_nym_vpn_lib_fn_func_getgatewaycountriesuseragent(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,`exitOnly`: Byte,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`vpnApiUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountryuseragent(`apiUrl`: RustBuffer.ByValue,`explorerUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
+    fun uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountryuseragent(`apiUrl`: RustBuffer.ByValue,`vpnApiUrl`: RustBuffer.ByValue,`harbourMasterUrl`: RustBuffer.ByValue,`userAgent`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_nym_vpn_lib_fn_func_importcredential(`credential`: RustBuffer.ByValue,`path`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): RustBuffer.ByValue
@@ -933,8 +929,6 @@ internal interface UniffiLib : Library {
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_getgatewaycountries(
     ): Short
-    fun uniffi_nym_vpn_lib_checksum_func_getgatewaycountriesuseragent(
-    ): Short
     fun uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry(
     ): Short
     fun uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountryuseragent(
@@ -975,16 +969,13 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_nym_vpn_lib_checksum_func_checkcredential() != 2527.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 4475.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 63092.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_getgatewaycountriesuseragent() != 8388.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 38719.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountry() != 20907.toShort()) {
-        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
-    }
-    if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountryuseragent() != 64176.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_func_getlowlatencyentrycountryuseragent() != 14533.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_func_importcredential() != 8591.toShort()) {
@@ -1770,7 +1761,7 @@ public object FfiConverterTypeUserAgent: FfiConverterRustBuffer<UserAgent> {
 
 data class VpnConfig (
     var `apiUrl`: Url, 
-    var `explorerUrl`: Url, 
+    var `vpnApiUrl`: Url?, 
     var `entryGateway`: EntryPoint, 
     var `exitRouter`: ExitPoint, 
     var `enableTwoHop`: kotlin.Boolean, 
@@ -1783,7 +1774,7 @@ data class VpnConfig (
         
     Disposable.destroy(
         this.`apiUrl`, 
-        this.`explorerUrl`, 
+        this.`vpnApiUrl`, 
         this.`entryGateway`, 
         this.`exitRouter`, 
         this.`enableTwoHop`, 
@@ -1798,7 +1789,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
     override fun read(buf: ByteBuffer): VpnConfig {
         return VpnConfig(
             FfiConverterTypeUrl.read(buf),
-            FfiConverterTypeUrl.read(buf),
+            FfiConverterOptionalTypeUrl.read(buf),
             FfiConverterTypeEntryPoint.read(buf),
             FfiConverterTypeExitPoint.read(buf),
             FfiConverterBoolean.read(buf),
@@ -1809,7 +1800,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
 
     override fun allocationSize(value: VpnConfig) = (
             FfiConverterTypeUrl.allocationSize(value.`apiUrl`) +
-            FfiConverterTypeUrl.allocationSize(value.`explorerUrl`) +
+            FfiConverterOptionalTypeUrl.allocationSize(value.`vpnApiUrl`) +
             FfiConverterTypeEntryPoint.allocationSize(value.`entryGateway`) +
             FfiConverterTypeExitPoint.allocationSize(value.`exitRouter`) +
             FfiConverterBoolean.allocationSize(value.`enableTwoHop`) +
@@ -1819,7 +1810,7 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
 
     override fun write(value: VpnConfig, buf: ByteBuffer) {
             FfiConverterTypeUrl.write(value.`apiUrl`, buf)
-            FfiConverterTypeUrl.write(value.`explorerUrl`, buf)
+            FfiConverterOptionalTypeUrl.write(value.`vpnApiUrl`, buf)
             FfiConverterTypeEntryPoint.write(value.`entryGateway`, buf)
             FfiConverterTypeExitPoint.write(value.`exitRouter`, buf)
             FfiConverterBoolean.write(value.`enableTwoHop`, buf)
@@ -2539,6 +2530,35 @@ public object FfiConverterOptionalTypeTunnelStatusListener: FfiConverterRustBuff
 
 
 
+public object FfiConverterOptionalTypeUserAgent: FfiConverterRustBuffer<UserAgent?> {
+    override fun read(buf: ByteBuffer): UserAgent? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterTypeUserAgent.read(buf)
+    }
+
+    override fun allocationSize(value: UserAgent?): ULong {
+        if (value == null) {
+            return 1UL
+        } else {
+            return 1UL + FfiConverterTypeUserAgent.allocationSize(value)
+        }
+    }
+
+    override fun write(value: UserAgent?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterTypeUserAgent.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypePathBuf: FfiConverterRustBuffer<PathBuf?> {
     override fun read(buf: ByteBuffer): PathBuf? {
         if (buf.get().toInt() == 0) {
@@ -2708,41 +2728,31 @@ public object FfiConverterTypeUrl: FfiConverter<Url, RustBuffer.ByValue> {
     }
     
 
-    @Throws(FfiException::class) fun `getGatewayCountries`(`apiUrl`: Url, `explorerUrl`: Url, `harbourMasterUrl`: Url?, `exitOnly`: kotlin.Boolean): List<Location> {
+    @Throws(FfiException::class) fun `getGatewayCountries`(`apiUrl`: Url, `nymVpnApiUrl`: Url?, `exitOnly`: kotlin.Boolean, `userAgent`: UserAgent?): List<Location> {
             return FfiConverterSequenceTypeLocation.lift(
     uniffiRustCallWithError(FfiException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
-        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterTypeUrl.lower(`explorerUrl`),FfiConverterOptionalTypeUrl.lower(`harbourMasterUrl`),FfiConverterBoolean.lower(`exitOnly`),_status)
+        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterOptionalTypeUrl.lower(`nymVpnApiUrl`),FfiConverterBoolean.lower(`exitOnly`),FfiConverterOptionalTypeUserAgent.lower(`userAgent`),_status)
 }
     )
     }
     
 
-    @Throws(FfiException::class) fun `getGatewayCountriesUserAgent`(`apiUrl`: Url, `explorerUrl`: Url, `harbourMasterUrl`: Url?, `exitOnly`: kotlin.Boolean, `userAgent`: UserAgent): List<Location> {
-            return FfiConverterSequenceTypeLocation.lift(
-    uniffiRustCallWithError(FfiException) { _status ->
-    UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getgatewaycountriesuseragent(
-        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterTypeUrl.lower(`explorerUrl`),FfiConverterOptionalTypeUrl.lower(`harbourMasterUrl`),FfiConverterBoolean.lower(`exitOnly`),FfiConverterTypeUserAgent.lower(`userAgent`),_status)
-}
-    )
-    }
-    
-
-    @Throws(FfiException::class) fun `getLowLatencyEntryCountry`(`apiUrl`: Url, `explorerUrl`: Url, `harbourMasterUrl`: Url?): Location {
+    @Throws(FfiException::class) fun `getLowLatencyEntryCountry`(`apiUrl`: Url, `vpnApiUrl`: Url?, `harbourMasterUrl`: Url?): Location {
             return FfiConverterTypeLocation.lift(
     uniffiRustCallWithError(FfiException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
-        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterTypeUrl.lower(`explorerUrl`),FfiConverterOptionalTypeUrl.lower(`harbourMasterUrl`),_status)
+        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterOptionalTypeUrl.lower(`vpnApiUrl`),FfiConverterOptionalTypeUrl.lower(`harbourMasterUrl`),_status)
 }
     )
     }
     
 
-    @Throws(FfiException::class) fun `getLowLatencyEntryCountryUserAgent`(`apiUrl`: Url, `explorerUrl`: Url, `harbourMasterUrl`: Url?, `userAgent`: UserAgent): Location {
+    @Throws(FfiException::class) fun `getLowLatencyEntryCountryUserAgent`(`apiUrl`: Url, `vpnApiUrl`: Url?, `harbourMasterUrl`: Url?, `userAgent`: UserAgent): Location {
             return FfiConverterTypeLocation.lift(
     uniffiRustCallWithError(FfiException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountryuseragent(
-        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterTypeUrl.lower(`explorerUrl`),FfiConverterOptionalTypeUrl.lower(`harbourMasterUrl`),FfiConverterTypeUserAgent.lower(`userAgent`),_status)
+        FfiConverterTypeUrl.lower(`apiUrl`),FfiConverterOptionalTypeUrl.lower(`vpnApiUrl`),FfiConverterOptionalTypeUrl.lower(`harbourMasterUrl`),FfiConverterTypeUserAgent.lower(`userAgent`),_status)
 }
     )
     }

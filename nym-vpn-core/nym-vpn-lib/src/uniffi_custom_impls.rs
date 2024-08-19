@@ -9,11 +9,9 @@ use crate::{
 use ipnetwork::IpNetwork;
 use nym_bandwidth_controller::BandwidthStatusMessage;
 use nym_connection_monitor::ConnectionMonitorStatus;
-use nym_explorer_client::Location as ExpLocation;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent as NymUserAgent;
-use nym_vpn_api_client::Country;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -189,14 +187,6 @@ pub struct Location {
     pub two_letter_iso_country_code: String,
 }
 
-impl From<ExpLocation> for Location {
-    fn from(value: ExpLocation) -> Self {
-        Location {
-            two_letter_iso_country_code: value.two_letter_iso_country_code,
-        }
-    }
-}
-
 impl From<nym_gateway_directory::Location> for Location {
     fn from(value: nym_gateway_directory::Location) -> Self {
         Location {
@@ -205,8 +195,8 @@ impl From<nym_gateway_directory::Location> for Location {
     }
 }
 
-impl From<Country> for Location {
-    fn from(value: Country) -> Self {
+impl From<nym_gateway_directory::Country> for Location {
+    fn from(value: nym_gateway_directory::Country) -> Self {
         Location {
             two_letter_iso_country_code: value.iso_code().to_string(),
         }
