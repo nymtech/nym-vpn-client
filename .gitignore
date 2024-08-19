@@ -14,7 +14,6 @@ bin
 .vscode
 **/.DS_Store
 /.cargo
-/nym-vpn-core/.cargo
 nym-vpn-core/nym-vpn-lib/generated/headers/module.modulemap
 nym-vpn-core/nym-vpn-lib/uniffi/nym_vpn_libFFI.modulemap
 nym-vpn-core/nym-vpn-lib/uniffi/nym_vpn_libFFI.h
