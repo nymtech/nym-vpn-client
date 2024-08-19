@@ -262,17 +262,17 @@ pub enum GatewayDirectoryError {
 // Errors specific to the mixnet. This often comes from the nym-sdk crate, but not necessarily.
 #[derive(thiserror::Error, Debug)]
 pub enum MixnetError {
-    #[error("failed to setup mixnet storage paths: {source}")]
-    FailedToSetupMixnetStoragePaths { source: nym_sdk::Error },
+    #[error("failed to setup mixnet storage paths: {0}")]
+    FailedToSetupMixnetStoragePaths(#[source] nym_sdk::Error),
 
-    #[error("failed to create mixnet client with default storage: {source}")]
-    FailedToCreateMixnetClientWithDefaultStorage { source: nym_sdk::Error },
+    #[error("failed to create mixnet client with default storage: {0}")]
+    FailedToCreateMixnetClientWithDefaultStorage(#[source] nym_sdk::Error),
 
-    #[error("failed to build mixnet client: {source}")]
-    FailedToBuildMixnetClient { source: nym_sdk::Error },
+    #[error("failed to build mixnet client: {0}")]
+    FailedToBuildMixnetClient(#[source] nym_sdk::Error),
 
-    #[error("failed to connect to mixnet: {source}")]
-    FailedToConnectToMixnet { source: nym_sdk::Error },
+    #[error("failed to connect to mixnet: {0}")]
+    FailedToConnectToMixnet(#[source] nym_sdk::Error),
 
     #[error("failed to connect to mixnet entry gateway {gateway_id}: {source}")]
     EntryGateway {

@@ -153,12 +153,10 @@ pub(crate) async fn setup_mixnet_client(
         };
 
         let key_storage_path = StoragePaths::new_from_dir(path)
-            .map_err(|err| MixnetError::FailedToSetupMixnetStoragePaths { source: err })?;
+            .map_err(MixnetError::FailedToSetupMixnetStoragePaths)?;
         MixnetClientBuilder::new_with_default_storage(key_storage_path)
             .await
-            .map_err(
-                |err| MixnetError::FailedToCreateMixnetClientWithDefaultStorage { source: err },
-            )?
+            .map_err(MixnetError::FailedToCreateMixnetClientWithDefaultStorage)?
             .with_wireguard_mode(enable_wireguard)
             .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
@@ -167,7 +165,7 @@ pub(crate) async fn setup_mixnet_client(
             .custom_shutdown(task_client)
             .credentials_mode(mixnet_client_config.enable_credentials_mode)
             .build()
-            .map_err(|err| MixnetError::FailedToBuildMixnetClient { source: err })?
+            .map_err(MixnetError::FailedToBuildMixnetClient)?
             .connect_to_mixnet()
             .await
             .map_err(map_mixnet_connect_error)?
@@ -182,7 +180,7 @@ pub(crate) async fn setup_mixnet_client(
             .custom_shutdown(task_client)
             .credentials_mode(mixnet_client_config.enable_credentials_mode)
             .build()
-            .map_err(|err| MixnetError::FailedToBuildMixnetClient { source: err })?
+            .map_err(MixnetError::FailedToBuildMixnetClient)?
             .connect_to_mixnet()
             .await
             .map_err(map_mixnet_connect_error)?
@@ -191,6 +189,7 @@ pub(crate) async fn setup_mixnet_client(
     Ok(SharedMixnetClient::new(mixnet_client))
 }
 
+// Map some specific mixnet errors to more specific ones
 fn map_mixnet_connect_error(err: nym_sdk::Error) -> Error {
     match err {
         nym_sdk::Error::ClientCoreError(
@@ -199,6 +198,6 @@ fn map_mixnet_connect_error(err: nym_sdk::Error) -> Error {
             gateway_id: gateway_id.to_string(),
             source: Box::new(source),
         }),
-        _ => Error::Mixnet(MixnetError::FailedToConnectToMixnet { source: err }),
+        _ => Error::Mixnet(MixnetError::FailedToConnectToMixnet(err)),
     }
 }
