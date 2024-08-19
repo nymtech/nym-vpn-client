@@ -133,4 +133,6 @@
     <string name="anonymous_analytics_description">NymVPNの品質向上にご協力ください</string>
     <string name="app_shortcuts">アプリショートカット</string>
     <string name="permission_message">アプリが正しく動作するよう、以下の権限を許可してください。これらの権限はアプリが機能するのに必要です。</string>
+    <string name="legal">法的</string>
+    <string name="sentry">Sentry</string>
 </resources>
