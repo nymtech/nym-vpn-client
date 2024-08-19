@@ -26,26 +26,12 @@ pub enum ConnectionState {
     Unknown,
 }
 
-#[allow(unused)]
-#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq, Eq, TS)]
-#[ts(export)]
-pub struct ConnectionInfo {
-    pub gateway: String,
-}
-
 #[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq)]
 #[ts(export)]
 pub enum VpnMode {
     #[default]
     Mixnet,
     TwoHop,
-}
-
-#[derive(Debug, Serialize, Deserialize, TS)]
-#[ts(export)]
-pub struct TunnelConfig {
-    pub id: String,
-    pub name: String,
 }
 
 #[derive(Debug, Default)]

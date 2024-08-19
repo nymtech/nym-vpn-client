@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::{SinkExt, StreamExt};
-use nym_bandwidth_controller::BandwidthStatusMessage;
+use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage;
 use nym_task::StatusSender;
 use nym_vpn_lib::{
     connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage, SentStatus, StatusReceiver,

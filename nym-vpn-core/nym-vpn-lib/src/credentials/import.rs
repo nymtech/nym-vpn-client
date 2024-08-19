@@ -9,7 +9,7 @@ pub enum ImportCredentialError {
     #[error("failed to import credential to: {location}: {source}")]
     FailedToImportRawCredential {
         location: std::path::PathBuf,
-        source: nym_id::NymIdError,
+        source: nym_id_pre_ecash::NymIdError,
     },
 
     #[error("credential store error: {path}: {source}")]
@@ -33,7 +33,7 @@ pub async fn import_credential(
                 source: err,
             })?;
     let version = None;
-    nym_id::import_credential(credentials_store, raw_credential, version)
+    nym_id_pre_ecash::import_credential(credentials_store, raw_credential, version)
         .await
         .map_err(|err| ImportCredentialError::FailedToImportRawCredential {
             location,
