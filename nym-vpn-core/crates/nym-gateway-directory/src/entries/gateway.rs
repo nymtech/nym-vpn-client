@@ -9,6 +9,9 @@ use tracing::error;
 
 use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
 
+// Decimal between 0 and 1 representing the performance of a gateway, measured over 24h.
+type Perfomance = f64;
+
 #[derive(Clone, Debug)]
 pub struct Gateway {
     pub identity: NodeIdentity,
@@ -19,6 +22,7 @@ pub struct Gateway {
     pub host: Option<nym_topology::NetworkAddress>,
     pub clients_ws_port: Option<u16>,
     pub clients_wss_port: Option<u16>,
+    pub performance: Option<Perfomance>,
 }
 
 impl Gateway {
@@ -159,6 +163,7 @@ impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
             host: None,
             clients_ws_port: None,
             clients_wss_port: None,
+            performance: None,
         })
     }
 }
@@ -212,6 +217,7 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
             host,
             clients_ws_port,
             clients_wss_port,
+            performance: None,
         })
     }
 }
