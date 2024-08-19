@@ -259,8 +259,16 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 				config.dnsIps.forEach {
 					addDnsServer(it)
 				}
-				addRoute("0.0.0.0", 0)
-				addRoute("::", 0)
+				try {
+					val allowedIps = config.allowedIps.map { it.split("/") }
+					allowedIps.forEach {
+						addRoute(it.first(), it.last().toInt())
+						addRoute(it.first(), it.last().toInt())
+					}
+				} catch (e: Exception) {
+					Timber.e(e)
+					return -1
+				}
 
 				setMtu(config.mtu.toInt())
 

@@ -17,6 +17,10 @@ use std::sync::{Arc, Mutex};
 #[cfg(not(target_os = "ios"))]
 use talpid_core::dns::DnsMonitor;
 #[cfg(not(target_os = "ios"))]
+
+use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
+use netdev::interface::get_default_interface;
+use nym_ip_packet_requests::IpPair;
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 #[cfg(target_os = "android")]
 use talpid_tunnel::tun_provider::TunProvider;
@@ -31,6 +35,24 @@ use crate::{MixnetVpn, NymVpn};
 
 const DEFAULT_TUN_MTU: u16 = 1500;
 
+pub(crate) fn default_dns_servers() -> Vec<IpAddr> {
+    vec![
+        IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)),
+        IpAddr::V4(Ipv4Addr::new(1, 0, 0, 1)),
+        IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111)),
+        IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1001)),
+    ]
+}
+
+fn default_allowed_ips() -> Vec<IpNetwork> {
+    vec![
+        IpNetwork::V4(Ipv4Network::new(Ipv4Addr::new(0, 0, 0, 0), 0).expect("Invalid network")),
+        IpNetwork::V6(
+            Ipv6Network::new(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0), 0).expect("Invalid network"),
+        ),
+    ]
+}
+
 #[derive(Clone)]
 pub struct RoutingConfig {
     pub(crate) mixnet_tun_config: tun2::Configuration,
@@ -38,6 +60,7 @@ pub struct RoutingConfig {
     pub(crate) tun_ips: IpPair,
     pub(crate) mtu: u16,
     pub(crate) dns_ips: Vec<IpAddr>,
+    pub(crate) allowed_ips: Vec<IpNetwork>,
     pub(crate) entry_mixnet_gateway_ip: IpAddr,
     pub(crate) lan_gateway_ip: LanGatewayIp,
     pub(crate) disable_routing: bool,
@@ -88,6 +111,7 @@ impl RoutingConfig {
             dns_ips: default_dns_servers(),
             entry_mixnet_gateway_ip,
             lan_gateway_ip,
+            allowed_ips: default_allowed_ips(),
             disable_routing: vpn.generic_config.disable_routing,
             #[cfg(target_os = "android")]
             gateway_ws_fd,

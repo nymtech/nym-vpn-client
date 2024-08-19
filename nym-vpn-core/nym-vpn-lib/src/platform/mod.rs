@@ -9,6 +9,7 @@ use crate::platform::status_listener::VpnServiceStatusListener;
 #[cfg(not(target_os = "ios"))]
 use crate::spawn_nym_vpn;
 use crate::routing::RoutingConfig;
+use crate::routing::{default_dns_servers, RoutingConfig};
 use crate::uniffi_custom_impls::{
     BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location, NymVpnStatus,
     StatusEvent, TunStatus, UserAgent,
@@ -521,6 +522,7 @@ impl From<WgPeerConfig> for PeerConfig {
 pub struct WgConfig {
     pub tunnel: TunnelConfig,
     pub peers: Vec<PeerConfig>,
+    pub dns_ips: Vec<IpAddr>,
     pub ipv4_gateway: Ipv4Addr,
     pub ipv6_gateway: Option<Ipv6Addr>,
     pub mtu: u16,
@@ -531,6 +533,7 @@ impl From<talpid_wireguard::config::Config> for WgConfig {
         WgConfig {
             tunnel: value.tunnel.into(),
             peers: value.peers.into_iter().map(Into::into).collect(),
+            dns_ips: default_dns_servers(),
             ipv4_gateway: value.ipv4_gateway,
             ipv6_gateway: value.ipv6_gateway,
             mtu: value.mtu,
@@ -543,6 +546,7 @@ pub struct NymConfig {
     pub ipv4_addr: Ipv4Addr,
     pub ipv6_addr: Ipv6Addr,
     pub dns_ips: Vec<IpAddr>,
+    pub allowed_ips: Vec<IpNetwork>,
     pub mtu: u16,
     pub entry_mixnet_gateway_ip: Option<IpAddr>,
 }
@@ -552,6 +556,7 @@ impl From<RoutingConfig> for NymConfig {
         NymConfig {
             ipv4_addr: value.tun_ips().ipv4,
             ipv6_addr: value.tun_ips().ipv6,
+            allowed_ips: value.allowed_ips.clone(),
             dns_ips: value.dns_ips.clone(),
             mtu: value.mtu(),
             entry_mixnet_gateway_ip: None,
