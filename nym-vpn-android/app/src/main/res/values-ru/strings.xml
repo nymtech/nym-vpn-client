@@ -140,6 +140,6 @@
     <string name="try_reconnecting">Попробуйте переподключиться</string>
     <string name="always_on_disbled">Режим постоянного VPN отключен</string>
     <string name="always_on_message">VPN не работает? Убедитесь, что функция постоянного VPN отключена для других приложений</string>
-    <string name="vpn_settings">Настройки VPN</string>
-    <string name="try_again">попробуйте снова</string>
+    <string name="vpn_settings">Настройки системы VPN</string>
+    <string name="try_again">попробуйте переподключиться</string>
 </resources>
