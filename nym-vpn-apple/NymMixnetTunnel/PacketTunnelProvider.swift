@@ -8,7 +8,6 @@ import Constants
 
 enum TunnelEvent {
     case statusUpdate(TunStatus)
-    case runFailure(Error)
 }
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
@@ -49,18 +48,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // todo: figure out WHAT always defaults this setting to .randomLowLatency
         vpnConfig.entryGateway = .random
 
-        self.logger.debug("VpnConfig = \(vpnConfig)")
-
-        // Start tunnel on background queue to prevent blocking
-        let immutableVpnConfig = vpnConfig
-        DispatchQueue.global().async { [weak self] in
-            do {
-                self?.logger.info("Run tunnel...")
-                try runVpn(config: immutableVpnConfig)
-            } catch {
-                self?.eventContinuation.yield(.runFailure(error))
-            }
+        logger.info("Starting backend")
+        do {
+            try startVpn(config: vpnConfig)
+        } catch {
+            throw PacketTunnelProviderError.backendStartFailure
         }
+        logger.info("Backend is up an running...")
 
         for await event in eventStream {
             switch event {
@@ -69,15 +63,17 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 // Stop blocking startTunnel() to avoid being terminated due to system 60s timeout
                 return
 
-            case let .runFailure(error):
-                self.logger.debug("Failed to run the tunnel: \(error)")
-                throw error
-
             case .statusUpdate(.establishingConnection):
                 self.logger.debug("Tunnel is establishing connection.")
 
-            case .statusUpdate(_):
-                break
+            case .statusUpdate(.down):
+                throw PacketTunnelProviderError.backendStartFailure
+
+            case .statusUpdate(.initializingClient):
+                self.logger.debug("Initializing the client")
+
+            case .statusUpdate(.disconnecting):
+                self.logger.debug("Disconnecting?")
             }
         }
     }

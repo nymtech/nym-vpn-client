@@ -11,11 +11,12 @@ use crate::uniffi_custom_impls::{
     StatusEvent, TunStatus, UserAgent,
 };
 use crate::{
-    spawn_nym_vpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
-    NymVpnHandle, SpecificVpn,
+    NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage, NymVpnHandle, SpecificVpn,
 };
 use lazy_static::lazy_static;
 use log::*;
+#[cfg(not(target_os = "ios"))]
+use spawn_nym_vpn;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -39,6 +40,14 @@ lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
     static ref LISTENER: std::sync::Mutex<Option<Arc<dyn TunnelStatusListener>>> =
         std::sync::Mutex::new(None);
+}
+
+#[cfg(target_os = "ios")]
+use crate::ios::two_hop_tunnel::TwoHopTunnel;
+
+#[cfg(target_os = "ios")]
+lazy_static! {
+    static ref TWO_HOP_TUNNEL: std::sync::Mutex<Option<TwoHopTunnel>> = std::sync::Mutex::new(None);
 }
 
 async fn set_shutdown_handle(handle: Arc<Notify>) -> Result<(), FFIError> {
@@ -89,6 +98,7 @@ async fn reset_shutdown_handle() -> Result<(), FFIError> {
     Ok(())
 }
 
+#[cfg(not(target_os = "ios"))]
 async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle), FFIError> {
     debug!("creating new stop handle");
     let stop_handle = Arc::new(Notify::new());
@@ -212,21 +222,45 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
 
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::InitializingClient));
 
-    debug!("Trying to run VPN");
-    let vpn = sync_run_vpn(config);
-    debug!("Got VPN");
-    if vpn.is_err() {
-        error!("Err creating VPN");
-        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-        RUNNING.store(false, Ordering::Relaxed);
+    #[cfg(target_os = "ios")]
+    {
+        RUNTIME.block_on(async move {
+            tracing::debug!("Starting VPN tunnel...");
+
+            match TwoHopTunnel::start(config.tun_provider).await {
+                Ok(two_hop_tunnel) => {
+                    *TWO_HOP_TUNNEL.lock().unwrap() = Some(two_hop_tunnel);
+                    tracing::debug!("Tunnel is up...");
+                    uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
+                }
+                Err(e) => {
+                    tracing::error!("Failed to start the tunnel: {}", e);
+                    uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+                }
+            }
+        });
+
+        Ok(())
     }
-    let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
-    if ret.is_err() {
-        error!("Error running VPN");
-        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-        RUNNING.store(false, Ordering::Relaxed);
+
+    #[cfg(not(target_os = "ios"))]
+    {
+        debug!("Trying to run VPN");
+        let vpn = sync_run_vpn(config);
+        debug!("Got VPN");
+        if vpn.is_err() {
+            error!("Err creating VPN");
+            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+            RUNNING.store(false, Ordering::Relaxed);
+        }
+        let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
+        if ret.is_err() {
+            error!("Error running VPN");
+            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+            RUNNING.store(false, Ordering::Relaxed);
+        }
+        ret
     }
-    ret
 }
 
 #[allow(non_snake_case)]
@@ -265,6 +299,7 @@ async fn check_credential_string(credential: &str) -> Result<Option<SystemTime>,
         .map_err(|_| FFIError::InvalidCredential)
 }
 
+#[cfg(not(target_os = "ios"))]
 async fn run_vpn(vpn: SpecificVpn) -> Result<(), FFIError> {
     match _async_run_vpn(vpn).await {
         Err(err) => {

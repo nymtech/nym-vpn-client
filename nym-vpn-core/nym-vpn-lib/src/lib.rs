@@ -35,6 +35,7 @@ use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
 #[cfg(not(target_os = "ios"))]
 use tunnel_setup::init_firewall_dns;
+#[cfg(not(target_os = "ios"))]
 use tunnel_setup::{setup_tunnel, AllTunnelsSetup, TunnelSetup};
 #[cfg(not(target_os = "ios"))]
 use util::wait_and_handle_interrupt;
@@ -532,6 +533,7 @@ impl SpecificVpn {
     // Start the Nym VPN client, and wait for it to shutdown. The use case is in simple console
     // applications where the main way to interact with the running process is to send SIGINT
     // (ctrl-c)
+    #[cfg(not(target_os = "ios"))]
     pub async fn run(&mut self) -> Result<()> {
         let mut task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
         info!("Setting up route manager");
@@ -597,7 +599,6 @@ impl SpecificVpn {
                 })
                 .await??;
             }
-            #[cfg(not(target_os = "ios"))]
             AllTunnelsSetup::Wg { entry, exit } => {
                 wait_and_handle_interrupt(
                     &mut task_manager,
@@ -626,6 +627,7 @@ impl SpecificVpn {
     // as reporting it's status on the provided channel. The usecase when the VPN is embedded in
     // another application, or running as a background process with a graphical interface remote
     // controlling it.
+    #[cfg(not(target_os = "ios"))]
     pub async fn run_and_listen(
         &mut self,
         mut vpn_status_tx: nym_task::StatusSender,
@@ -805,6 +807,7 @@ pub enum NymVpnExitStatusMessage {
 /// ExitPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()).unwrap()});
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config.into());
 /// ```
+#[cfg(not(target_os = "ios"))]
 pub fn spawn_nym_vpn(nym_vpn: SpecificVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
     let (vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
@@ -845,6 +848,7 @@ pub fn spawn_nym_vpn(nym_vpn: SpecificVpn) -> Result<NymVpnHandle> {
 /// ExitPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()).unwrap()});
 /// let vpn_handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config.into());
 /// ```
+#[cfg(not(target_os = "ios"))]
 pub fn spawn_nym_vpn_with_new_runtime(nym_vpn: SpecificVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
     let (vpn_status_tx, vpn_status_rx) = mpsc::channel(128);
@@ -870,6 +874,7 @@ pub fn spawn_nym_vpn_with_new_runtime(nym_vpn: SpecificVpn) -> Result<NymVpnHand
     })
 }
 
+#[cfg(not(target_os = "ios"))]
 async fn run_nym_vpn(
     mut nym_vpn: SpecificVpn,
     vpn_status_tx: nym_task::StatusSender,

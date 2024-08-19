@@ -78,8 +78,6 @@ pub enum AllTunnelsSetup {
         entry: TunnelSetup<WgTunnelSetup>,
         exit: TunnelSetup<WgTunnelSetup>,
     },
-    #[cfg(target_os = "ios")]
-    WgIos(crate::ios::TwoHopTunnel),
 }
 
 #[cfg(not(target_os = "ios"))]
@@ -150,27 +148,6 @@ async fn wait_interface_up(
             }
         }
     }
-}
-
-#[cfg(target_os = "ios")]
-async fn setup_wg_tunnel(
-    nym_vpn: &mut NymVpn<WireguardVpn>,
-    mixnet_client: SharedMixnetClient,
-    task_manager: &mut TaskManager,
-    gateway_directory_client: GatewayClient,
-    auth_addresses: AuthAddresses,
-) -> Result<AllTunnelsSetup> {
-    tracing::debug!("setup_wg_tunnel");
-    let two_hop_tunnel = crate::ios::TwoHopTunnel::start(
-        nym_vpn,
-        mixnet_client,
-        task_manager,
-        gateway_directory_client,
-        auth_addresses,
-    )
-    .await?;
-
-    Ok(AllTunnelsSetup::WgIos(two_hop_tunnel))
 }
 
 #[cfg(not(target_os = "ios"))]
@@ -363,6 +340,7 @@ async fn setup_mix_tunnel(
     }))
 }
 
+#[cfg(not(target_os = "ios"))]
 pub async fn setup_tunnel(
     nym_vpn: &mut SpecificVpn,
     task_manager: &mut TaskManager,
