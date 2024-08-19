@@ -23,5 +23,13 @@
   "select-mode-label": "Seleziona modalità",
   "connecting-message": "In connessione",
   "connection-time": "Tempo di connessione",
-  "select-node-title": "Connettiti a"
+  "select-node-title": "Connettiti a",
+  "modes-dialog": {
+    "title": "Selezione modalità",
+    "privacy-description": "Goditi il massimo livello di privacy mandando la tua connessione attraverso 5 server sulla mixnet. Perfetto per gestire in modo sicuro pagamenti, e-mail e messaggi.",
+    "link": "Continua a leggere"
+  },
+  "snackbar-disabled-message": {
+    "connected": "Disabilità quando connesso al VPN"
+  }
 }

@@ -17,7 +17,8 @@
   "snackbar-disabled-message": {
     "connected": "Отключён при подключении к VPN",
     "connecting": "Неактивно при подключении к VPN",
-    "disconnecting": "Неактивно при отключении от VPN"
+    "disconnecting": "Неактивно при отключении от VPN",
+    "daemon-not-connected": "Отключено, так как нет соединения с VPN-сервером"
   },
   "status": {
     "connected": "Подключено",

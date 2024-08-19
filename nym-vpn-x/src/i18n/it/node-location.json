@@ -1,4 +1,8 @@
 {
   "selected": "Selezionato",
-  "input-label": "Cerca"
+  "input-label": "Cerca",
+  "location-details": {
+    "title": "Dettagli sulla posizione dei server",
+    "description": "L'ubicazione dei server viene dedotta in base ai loro indirizzi IP, ma l'ubicazione effettiva può variare leggermente."
+  }
 }
