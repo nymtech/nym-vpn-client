@@ -96,6 +96,9 @@ pub enum ConnectionFailedError {
     #[error("failed to connect to mixnet: {reason}")]
     FailedToConnectToMixnet { reason: String },
 
+    #[error("failed to connect to entry gateway {gateway_id}: {reason}")]
+    FailedToConnectToMixnetEntryGateway { gateway_id: String, reason: String },
+
     #[error("timeout starting mixnet client after {0} seconds")]
     StartMixnetTimeout(u64),
 
@@ -119,6 +122,9 @@ pub enum ConnectionFailedError {
 
     #[error("failed to select exit gateway: {reason}")]
     FailedToSelectExitGateway { reason: String },
+
+    #[error("selected gateway id not found: {requested_id}")]
+    FailedToSelectEntryGatewayIdNotFound { requested_id: String },
 
     #[error("failed to select entry gateway location: {requested_location}")]
     FailedToSelectEntryGatewayLocation {
@@ -180,6 +186,17 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
                         reason: source.to_string(),
                     }
                 }
+                nym_vpn_lib::error::MixnetError::FailedToConnectToMixnetClientCore { source } => {
+                    ConnectionFailedError::FailedToConnectToMixnet {
+                        reason: source.to_string(),
+                    }
+                }
+                nym_vpn_lib::error::MixnetError::EntryGateway { gateway_id, source } => {
+                    ConnectionFailedError::FailedToConnectToMixnetEntryGateway {
+                        gateway_id: gateway_id.clone(),
+                        reason: source.to_string(),
+                    }
+                }
             },
             nym_vpn_lib::error::Error::GatewayDirectoryError(e) => match e {
                 GatewayDirectoryError::FailedtoSetupGatewayDirectoryClient { config, source } => {
@@ -207,6 +224,11 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
                 } => ConnectionFailedError::FailedToSelectEntryGatewayLocation {
                     requested_location: requested_location.clone(),
                     available_countries: available_countries.clone(),
+                },
+                GatewayDirectoryError::FailedToSelectEntryGateway {
+                    source: DirError::NoMatchingGateway { requested_identity },
+                } => ConnectionFailedError::FailedToSelectEntryGatewayIdNotFound {
+                    requested_id: requested_identity.clone(),
                 },
                 GatewayDirectoryError::FailedToSelectEntryGateway { source } => {
                     ConnectionFailedError::FailedToSelectEntryGateway {

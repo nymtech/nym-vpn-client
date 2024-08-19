@@ -273,6 +273,17 @@ pub enum MixnetError {
 
     #[error("failed to connect to mixnet: {source}")]
     FailedToConnectToMixnet { source: nym_sdk::Error },
+
+    #[error("failed to connect to mixnet: {source}")]
+    FailedToConnectToMixnetClientCore {
+        source: nym_client_core::error::ClientCoreError,
+    },
+
+    #[error("failed to connect to mixnet entry gateway {gateway_id}: {source}")]
+    EntryGateway {
+        gateway_id: String,
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
 }
 
 // Result type based on our error type
