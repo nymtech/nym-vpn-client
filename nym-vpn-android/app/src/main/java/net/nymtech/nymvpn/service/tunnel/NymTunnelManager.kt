@@ -2,12 +2,10 @@ package net.nymtech.nymvpn.service.tunnel
 
 import android.content.Context
 import android.net.VpnService
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.util.extensions.isExpired
 import net.nymtech.vpn.Backend
@@ -39,7 +37,7 @@ class NymTunnelManager @Inject constructor(
 		}
 	}
 
-	override suspend fun start(): Result<Tunnel.State> {
+	override suspend fun start(background: Boolean): Result<Tunnel.State> {
 		return runCatching {
 			val intent = VpnService.prepare(context)
 			if (intent != null) return Result.failure(MissingPermissionException("VPN permission missing"))
@@ -59,7 +57,7 @@ class NymTunnelManager @Inject constructor(
 			if (credentialExpiry != null && credentialExpiry.isExpired()) {
 				return Result.failure(InvalidCredentialException("Credential missing or expired"))
 			}
-			backend.get().start(tunnel)
+			backend.get().start(tunnel, background)
 		}
 	}
 

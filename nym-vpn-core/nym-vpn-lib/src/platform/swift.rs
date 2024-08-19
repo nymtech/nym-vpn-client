@@ -12,9 +12,10 @@ use talpid_types::net::wireguard::{
 };
 use std::fmt::Debug;
 use oslog::OsLogger;
+use std::fmt::Debug;
 use std::os::fd::RawFd;
 
-pub fn init_logs(level : String) {
+pub fn init_logs(level: String) {
     OsLogger::new("net.nymtech.vpn.agent")
         .level_filter(log::LevelFilter::from_str(level.as_str()).expect("Invalid log level"))
         .category_level_filter("hyper", log::LevelFilter::Warn)

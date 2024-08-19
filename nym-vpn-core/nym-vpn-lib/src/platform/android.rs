@@ -1,8 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-use std::fmt::Debug;
 use super::*;
+use std::fmt::Debug;
 use std::io;
 use std::os::fd::RawFd;
 
@@ -18,7 +18,6 @@ pub fn init_logs(level: String) {
     );
     log::debug!("Logger initialized");
 }
-
 
 #[uniffi::export(with_foreign)]
 pub trait AndroidTunProvider: Send + Sync + Debug {

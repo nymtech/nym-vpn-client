@@ -28,5 +28,14 @@
 				android:name="android.net.VpnService.SUPPORTS_ALWAYS_ON"
 				android:value="true" />
 		</service>
+		<service
+			android:name="net.nymtech.vpn.NymBackend$VpnBackgroundService"
+			android:exported="false"
+			android:foregroundServiceType="systemExempted"
+			android:permission="android.permission.BIND_VPN_SERVICE">
+			<intent-filter>
+				<action android:name="android.net.VpnService" />
+			</intent-filter>
+		</service>
     </application>
 </manifest>

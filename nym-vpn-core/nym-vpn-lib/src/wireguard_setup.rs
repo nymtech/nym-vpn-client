@@ -6,7 +6,7 @@ use futures::channel::{mpsc, oneshot};
 #[cfg(not(target_os = "ios"))]
 use nym_sdk::TaskClient;
 use talpid_routing::RouteManager;
-use talpid_tunnel::{TunnelEvent};
+use talpid_tunnel::TunnelEvent;
 use tracing::debug;
 
 #[cfg(not(target_os = "ios"))]

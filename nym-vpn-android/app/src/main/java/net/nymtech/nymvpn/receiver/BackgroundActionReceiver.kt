@@ -22,6 +22,7 @@ class BackgroundActionReceiver : BroadcastReceiver() {
 
 	override fun onReceive(context: Context, intent: Intent) {
 		val action = intent.action ?: return
+
 		when (action) {
 			ACTION_CONNECT -> {
 				applicationScope.launch {

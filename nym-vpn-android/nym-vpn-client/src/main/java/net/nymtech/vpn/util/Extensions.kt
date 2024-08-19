@@ -4,7 +4,7 @@ import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
 
-fun InetAddress.prefix() : Int {
+fun InetAddress.prefix(): Int {
 	return when (this) {
 		is Inet4Address -> 32
 		is Inet6Address -> 128

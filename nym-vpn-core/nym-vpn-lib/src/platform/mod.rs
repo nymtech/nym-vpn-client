@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use self::error::FFIError;
 use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
 use crate::platform::status_listener::VpnServiceStatusListener;
 #[cfg(not(target_os = "ios"))]
 use crate::spawn_nym_vpn;
+use crate::routing::RoutingConfig;
 use crate::uniffi_custom_impls::{
     BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location, NymVpnStatus,
     StatusEvent, TunStatus, UserAgent,
@@ -17,14 +17,18 @@ use crate::{
     NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage, NymVpnHandle, SpecificVpn,
 };
 use crate::{spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage, NymVpnHandle, SpecificVpn};
+    spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
+    NymVpnHandle, SpecificVpn,
+};
+use ipnetwork::IpNetwork;
 use lazy_static::lazy_static;
 use log::*;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::SystemTime;
-use ipnetwork::IpNetwork;
 use talpid_core::mpsc::Sender;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
@@ -35,14 +39,17 @@ use crate::routing::RoutingConfig;
 use talpid_types::net::wireguard::{
     PeerConfig as WgPeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig as WgTunnelConfig,
 };
+use tokio::runtime::Runtime;
+use tokio::sync::{Mutex, Notify};
+use url::Url;
 
 #[cfg(target_os = "android")]
 pub mod android;
 
-#[cfg(target_os = "ios")]
-pub mod swift;
 pub(crate) mod error;
 mod status_listener;
+#[cfg(target_os = "ios")]
+pub mod swift;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub mod swift;
 
@@ -194,7 +201,6 @@ pub struct VPNConfig {
 }
 
 fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
-
     let mut vpn = NymVpn::new_mixnet_vpn(
         config.entry_gateway.into(),
         config.exit_router.into(),
@@ -213,7 +219,7 @@ fn sync_run_vpn(config: VPNConfig) -> Result<NymVpn<MixnetVpn>, FFIError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn initLogger(level : String) {
+pub fn initLogger(level: String) {
     #[cfg(target_os = "ios")]
     swift::init_logs(level);
     #[cfg(target_os = "android")]
@@ -536,6 +542,7 @@ impl From<talpid_wireguard::config::Config> for WgConfig {
 pub struct NymConfig {
     pub ipv4_addr: Ipv4Addr,
     pub ipv6_addr: Ipv6Addr,
+    pub dns_ips: Vec<IpAddr>,
     pub mtu: u16,
     pub entry_mixnet_gateway_ip: Option<IpAddr>,
 }
@@ -545,12 +552,12 @@ impl From<RoutingConfig> for NymConfig {
         NymConfig {
             ipv4_addr: value.tun_ips().ipv4,
             ipv6_addr: value.tun_ips().ipv6,
+            dns_ips: value.dns_ips.clone(),
             mtu: value.mtu(),
             entry_mixnet_gateway_ip: None,
         }
     }
 }
-
 
 #[uniffi::export(with_foreign)]
 pub trait TunnelStatusListener: Send + Sync {

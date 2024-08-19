@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 use talpid_routing::{RouteManager, RouteManagerHandle};
 use talpid_tunnel::tun_provider::TunProvider;
 use talpid_tunnel::{TunnelArgs, TunnelEvent};
-use talpid_wireguard::{config::Config};
+use talpid_wireguard::config::Config;
 use tokio::task::JoinHandle;
 
 use crate::config::WireguardConfig;
@@ -20,14 +20,11 @@ pub type EventReceiver = mpsc::UnboundedReceiver<(TunnelEvent, Sender<()>)>;
 
 pub struct Tunnel {
     pub config: Config,
-    pub route_manager_handle: RouteManagerHandle
+    pub route_manager_handle: RouteManagerHandle,
 }
 
 impl Tunnel {
-    pub fn new(
-        config: WireguardConfig,
-        route_manager_handle: RouteManagerHandle,
-    ) -> Self {
+    pub fn new(config: WireguardConfig, route_manager_handle: RouteManagerHandle) -> Self {
         Tunnel {
             config: config.talpid_config,
             route_manager_handle,

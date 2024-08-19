@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.main
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -64,10 +63,10 @@ constructor(
 	}
 
 	suspend fun onConnect(): Result<Tunnel.State> {
-		return tunnelManager.start()
+		return tunnelManager.start(false)
 	}
 
-	fun onDisconnect(context: Context) = viewModelScope.launch {
+	fun onDisconnect() = viewModelScope.launch {
 		tunnelManager.stop()
 	}
 }

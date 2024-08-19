@@ -1,9 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.main
 
-import android.Manifest
 import android.app.Activity.RESULT_OK
 import android.net.VpnService
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -46,9 +44,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -69,7 +64,6 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.exceptions.NymVpnExceptions
 import net.nymtech.nymvpn.util.extensions.buildCountryNameString
 import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.isExpired
@@ -95,13 +89,6 @@ fun MainScreen(
 	var didAutoStart by remember { mutableStateOf(false) }
 	var showDialog by remember { mutableStateOf(false) }
 
-	val notificationPermissionState =
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
-		} else {
-			null
-		}
-
 	fun onConnectWithPermission() {
 		scope.launch {
 			viewModel.onConnect()
@@ -110,15 +97,6 @@ fun MainScreen(
 					navController.go(Destination.Credential.route)
 				}
 		}
-	}
-
-	fun requestNotificationPermissions(): Result<Unit> {
-		if (notificationPermissionState == null || notificationPermissionState.status.isGranted) return Result.success(Unit)
-		if (!notificationPermissionState.status.isGranted && !notificationPermissionState.status.shouldShowRationale
-		) {
-			notificationPermissionState.launchPermissionRequest()
-		}
-		return Result.failure(NymVpnExceptions.PermissionsNotGrantedException())
 	}
 
 	val vpnActivityResultState =
@@ -135,15 +113,13 @@ fun MainScreen(
 		)
 
 	fun onConnect() {
-		requestNotificationPermissions().onSuccess {
-			val intent = VpnService.prepare(context)
-			if (intent != null) {
-				vpnActivityResultState.launch(
-					intent,
-				)
-			} else {
-				onConnectWithPermission()
-			}
+		val intent = VpnService.prepare(context)
+		if (intent != null) {
+			vpnActivityResultState.launch(
+				intent,
+			)
+		} else {
+			onConnectWithPermission()
 		}
 	}
 
@@ -152,12 +128,6 @@ fun MainScreen(
 			didAutoStart = true
 			onConnect()
 			navController.navigateAndForget(Destination.Main.route)
-		}
-	}
-
-	LaunchedEffect(notificationPermissionState?.status?.shouldShowRationale) {
-		if (notificationPermissionState?.status?.shouldShowRationale == true) {
-			navController.go(Destination.Permission.createRoute(Permission.NOTIFICATION))
 		}
 	}
 
@@ -371,7 +341,7 @@ fun MainScreen(
 					is ConnectionState.Connected ->
 						MainStyledButton(
 							testTag = Constants.DISCONNECT_TEST_TAG,
-							onClick = { viewModel.onDisconnect(context) },
+							onClick = { viewModel.onDisconnect() },
 							content = {
 								Text(
 									stringResource(id = R.string.disconnect),

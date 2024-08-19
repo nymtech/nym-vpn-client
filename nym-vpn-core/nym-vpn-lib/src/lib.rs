@@ -55,6 +55,8 @@ pub use nym_task::{
 
 #[cfg(target_os = "ios")]
 use crate::ios::OSTunProvider;
+#[cfg(target_os = "android")]
+use crate::platform::android::AndroidTunProvider;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub use crate::platform::swift;
 use crate::platform::uniffi_set_listener_status;
@@ -63,8 +65,6 @@ pub use nym_bin_common;
 pub use nym_config;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
-#[cfg(target_os = "android")]
-use crate::platform::android::AndroidTunProvider;
 
 mod bandwidth_controller;
 mod platform;
@@ -251,7 +251,6 @@ impl NymVpn<WireguardVpn> {
         #[cfg(target_os = "android")] android_tun_provider: Arc<dyn AndroidTunProvider>,
         #[cfg(target_os = "ios")] ios_tun_provider: Arc<dyn OSTunProvider>,
     ) -> Self {
-
         Self {
             generic_config: GenericNymVpnConfig {
                 mixnet_client_config: MixnetClientConfig {
@@ -288,7 +287,6 @@ impl NymVpn<MixnetVpn> {
         #[cfg(target_os = "android")] android_tun_provider: Arc<dyn AndroidTunProvider>,
         #[cfg(target_os = "ios")] ios_tun_provider: Arc<dyn OSTunProvider>,
     ) -> Self {
-
         Self {
             generic_config: GenericNymVpnConfig {
                 mixnet_client_config: MixnetClientConfig {
@@ -359,7 +357,7 @@ impl NymVpn<MixnetVpn> {
             entry_mixnet_gateway_ip,
             #[cfg(target_os = "android")]
             mixnet_client.gateway_ws_fd().await,
-            default_lan_gateway_ip
+            default_lan_gateway_ip,
         );
         debug!("Routing config: {}", routing_config);
         #[cfg(target_os = "ios")]

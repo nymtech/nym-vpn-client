@@ -36,7 +36,7 @@ pub struct RoutingConfig {
     // In case we need them, as they're not read-accessible in the tun2 config
     pub(crate) tun_ips: IpPair,
     pub(crate) mtu: u16,
-
+    pub(crate) dns_ips: Vec<IpAddr>,
     pub(crate) entry_mixnet_gateway_ip: IpAddr,
     pub(crate) lan_gateway_ip: LanGatewayIp,
     pub(crate) disable_routing: bool,
@@ -64,8 +64,7 @@ impl RoutingConfig {
         vpn: &NymVpn<MixnetVpn>,
         tun_ips: IpPair,
         entry_mixnet_gateway_ip: IpAddr,
-        #[cfg(target_os = "android")]
-        gateway_ws_fd: Option<RawFd>,
+        #[cfg(target_os = "android")] gateway_ws_fd: Option<RawFd>,
         lan_gateway_ip: LanGatewayIp,
     ) -> Self {
         debug!("TUN device IPs: {}", tun_ips);
@@ -85,6 +84,7 @@ impl RoutingConfig {
             mixnet_tun_config,
             tun_ips,
             mtu,
+            dns_ips: default_dns_servers(),
             entry_mixnet_gateway_ip,
             lan_gateway_ip,
             disable_routing: vpn.generic_config.disable_routing,
