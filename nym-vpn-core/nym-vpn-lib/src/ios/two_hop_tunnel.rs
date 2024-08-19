@@ -62,8 +62,8 @@ impl TwoHopTunnel {
     pub async fn start(os_tun_provider: Arc<dyn OSTunProvider>) -> Result<Self> {
         // Configure tun interface & DNS
         let tunnel_settings = tunnel_settings::create(
-            vec!["10.71.122.208".parse().unwrap()],
-            "172.245.26.38:12912".parse().unwrap(),
+            vec!["10.71.122.208".parse().expect("iface addr")],
+            "172.245.26.38".parse().expect("remote addr"),
             crate::DEFAULT_DNS_SERVERS.to_vec(),
             EXIT_MTU,
         );
@@ -89,11 +89,11 @@ impl TwoHopTunnel {
         let entry_node_config = WgNodeConfig {
             interface: WgInterface {
                 private_key: entry_priv_key,
-                address: "192.168.4.162".parse().unwrap(),
+                address: "192.168.4.162".parse().expect("entry iface addr"),
             },
             peer: WgPeer {
                 public_key: entry_pub_key,
-                endpoint: "172.245.26.38:12912".parse().unwrap(),
+                endpoint: "172.245.26.38:12912".parse().expect("entry peer endpoint"),
             },
         };
 
@@ -113,13 +113,15 @@ impl TwoHopTunnel {
         let exit_node_config = WgNodeConfig {
             interface: WgInterface {
                 private_key: exit_priv_key,
-                address: "10.71.122.208".parse().unwrap(),
+                address: "10.71.122.208".parse().expect("exit iface addr"),
             },
             peer: WgPeer {
                 public_key: exit_pub_key,
-                endpoint: "194.182.160.201:51820".parse().unwrap(),
+                endpoint: "194.182.160.201:51820".parse().expect("exit peer endpoint"),
             },
         };
+
+        tracing::debug!("WG configuration is ready. Proceeding to start the wg clients.");
 
         Self::start_wg_tunnel(entry_node_config, exit_node_config, os_tun_provider)
     }
