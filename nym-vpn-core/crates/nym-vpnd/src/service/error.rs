@@ -166,22 +166,22 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
                 ConnectionFailedError::StartMixnetTimeout(*timeout_sec)
             }
             nym_vpn_lib::error::Error::Mixnet(e) => match e {
-                nym_vpn_lib::error::MixnetError::FailedToSetupMixnetStoragePaths { source } => {
+                nym_vpn_lib::error::MixnetError::FailedToSetupMixnetStoragePaths(source) => {
                     ConnectionFailedError::FailedToSetupMixnetStoragePaths {
                         reason: source.to_string(),
                     }
                 }
-                nym_vpn_lib::error::MixnetError::FailedToCreateMixnetClientWithDefaultStorage {
+                nym_vpn_lib::error::MixnetError::FailedToCreateMixnetClientWithDefaultStorage(
                     source,
-                } => ConnectionFailedError::FailedToCreateMixnetClientWithDefaultStorage {
+                ) => ConnectionFailedError::FailedToCreateMixnetClientWithDefaultStorage {
                     reason: source.to_string(),
                 },
-                nym_vpn_lib::error::MixnetError::FailedToBuildMixnetClient { source } => {
+                nym_vpn_lib::error::MixnetError::FailedToBuildMixnetClient(source) => {
                     ConnectionFailedError::FailedToBuildMixnetClient {
                         reason: source.to_string(),
                     }
                 }
-                nym_vpn_lib::error::MixnetError::FailedToConnectToMixnet { source } => {
+                nym_vpn_lib::error::MixnetError::FailedToConnectToMixnet(source) => {
                     ConnectionFailedError::FailedToConnectToMixnet {
                         reason: source.to_string(),
                     }
