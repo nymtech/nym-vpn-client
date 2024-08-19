@@ -170,19 +170,7 @@ pub(crate) async fn setup_mixnet_client(
             .map_err(|err| MixnetError::FailedToBuildMixnetClient { source: err })?
             .connect_to_mixnet()
             .await
-            .map_err(|err| match err {
-                nym_sdk::Error::ClientCoreError(ccerr) => match ccerr {
-                    nym_client_core::error::ClientCoreError::GatewayClientError {
-                        gateway_id,
-                        source,
-                    } => MixnetError::EntryGateway {
-                        gateway_id: gateway_id.to_string(),
-                        source: Box::new(source),
-                    },
-                    _ => MixnetError::FailedToConnectToMixnetClientCore { source: ccerr },
-                },
-                _ => MixnetError::FailedToConnectToMixnet { source: err },
-            })?
+            .map_err(map_mixnet_connection_error)?
     } else {
         // Code path only really used for development and testing
         debug!("Using ephemeral key storage");
@@ -198,8 +186,20 @@ pub(crate) async fn setup_mixnet_client(
             .map_err(|err| MixnetError::FailedToBuildMixnetClient { source: err })?
             .connect_to_mixnet()
             .await
-            .map_err(|err| MixnetError::FailedToConnectToMixnet { source: err })?
+            .map_err(map_mixnet_connection_error)?
     };
 
     Ok(SharedMixnetClient::new(mixnet_client))
+}
+
+fn map_mixnet_connection_error(err: nym_sdk::Error) -> Error {
+    match err {
+        nym_sdk::Error::ClientCoreError(
+            nym_client_core::error::ClientCoreError::GatewayClientError { gateway_id, source },
+        ) => Error::Mixnet(MixnetError::EntryGateway {
+            gateway_id: gateway_id.to_string(),
+            source: Box::new(source),
+        }),
+        _ => Error::Mixnet(MixnetError::FailedToConnectToMixnet { source: err }),
+    }
 }
