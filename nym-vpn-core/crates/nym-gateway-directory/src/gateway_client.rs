@@ -22,6 +22,7 @@ use url::Url;
 pub struct Config {
     pub api_url: Url,
     pub nym_vpn_api_url: Option<Url>,
+    pub min_gateway_performance: Option<f64>,
 }
 
 impl Default for Config {
@@ -65,10 +66,11 @@ impl Config {
         Config {
             api_url: default_api_url,
             nym_vpn_api_url: Some(default_nym_vpn_api_url),
+            min_gateway_performance: None,
         }
     }
 
-    pub fn new_from_env() -> Self {
+    pub fn new_from_env(min_gateway_performance: Option<u8>) -> Self {
         let network = nym_sdk::NymNetworkDetails::new_from_env();
         let api_url = network
             .endpoints
@@ -80,18 +82,21 @@ impl Config {
         // The vpn api url is strictly not needed, so skip the expect here
         let nym_vpn_api_url = network.nym_vpn_api_url();
 
+        let min_gateway_performance = min_gateway_performance.map(|p| p as f64 / 100.0);
+
         Config {
             api_url,
             nym_vpn_api_url,
+            min_gateway_performance,
         }
     }
 
-    pub fn new_from_urls(api_url: Url, nym_vpn_api_url: Option<Url>) -> Self {
-        Config {
-            api_url,
-            nym_vpn_api_url,
-        }
-    }
+    // pub fn new_from_urls(api_url: Url, nym_vpn_api_url: Option<Url>) -> Self {
+    //     Config {
+    //         api_url,
+    //         nym_vpn_api_url,
+    //     }
+    // }
 
     pub fn api_url(&self) -> &Url {
         &self.api_url
@@ -108,6 +113,15 @@ impl Config {
 
     pub fn with_custom_nym_vpn_api_url(mut self, nym_vpn_api_url: Url) -> Self {
         self.nym_vpn_api_url = Some(nym_vpn_api_url);
+        self
+    }
+
+    pub fn min_gateway_performance(&self) -> Option<f64> {
+        self.min_gateway_performance
+    }
+
+    pub fn with_custom_min_gateway_performance(mut self, min_gateway_performance: f64) -> Self {
+        self.min_gateway_performance = Some(min_gateway_performance);
         self
     }
 }

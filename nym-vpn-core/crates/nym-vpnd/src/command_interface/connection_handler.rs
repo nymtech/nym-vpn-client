@@ -196,9 +196,12 @@ impl CommandInterfaceConnectionHandler {
     }
 }
 
-fn directory_client() -> Result<GatewayClient, ListGatewayError> {
+fn directory_client(
+    min_gateway_performance: Option<f64>,
+) -> Result<GatewayClient, ListGatewayError> {
     let user_agent = bin_info_local_vergen!().into();
-    let directory_config = nym_vpn_lib::gateway_directory::Config::new_from_env();
+    let directory_config =
+        nym_vpn_lib::gateway_directory::Config::new_from_env(min_gateway_performance);
     GatewayClient::new(directory_config, user_agent)
         .map_err(|error| ListGatewayError::CreateGatewayDirectoryClient { error })
 }

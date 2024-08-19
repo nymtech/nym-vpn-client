@@ -318,6 +318,7 @@ async fn get_gateway_countries(
     let directory_config = nym_gateway_directory::Config {
         api_url,
         nym_vpn_api_url,
+        min_gateway_performance: None,
     };
     let directory_client = GatewayClient::new(directory_config, user_agent)?;
     let locations = if !exit_only {
@@ -368,6 +369,7 @@ async fn get_low_latency_entry_country(
     let config = nym_gateway_directory::Config {
         api_url,
         nym_vpn_api_url: vpn_api_url,
+        min_gateway_performance: None,
     };
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)
