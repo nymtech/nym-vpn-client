@@ -105,6 +105,9 @@ pub enum Error {
     #[error("deadlock when trying to aquire mixnet client mutes")]
     MixnetClientDeadlock,
 
+    #[error("failed to setup mixnet client routing")]
+    MixnetClientRoutingFailed,
+
     #[error("timeout after waiting {0}s for mixnet client to start")]
     StartMixnetTimeout(u64),
 
