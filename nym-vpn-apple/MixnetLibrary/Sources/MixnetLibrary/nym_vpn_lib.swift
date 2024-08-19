@@ -194,9 +194,9 @@ extension FfiConverterRustBuffer {
     }
 
     public static func lower(_ value: SwiftType) -> RustBuffer {
-        var writer = createWriter()
-        write(value, into: &writer)
-        return RustBuffer(bytes: writer)
+          var writer = createWriter()
+          write(value, into: &writer)
+          return RustBuffer(bytes: writer)
     }
 }
 // An error type for FFI errors. These errors occur at the UniFFI level, not
@@ -260,8 +260,8 @@ private func rustCall<T>(_ callback: (UnsafeMutablePointer<RustCallStatus>) -> T
 private func rustCallWithError<T>(
     _ errorHandler: @escaping (RustBuffer) throws -> Error,
     _ callback: (UnsafeMutablePointer<RustCallStatus>) -> T) throws -> T {
-        try makeRustCall(callback, errorHandler: errorHandler)
-    }
+    try makeRustCall(callback, errorHandler: errorHandler)
+}
 
 private func makeRustCall<T>(
     _ callback: (UnsafeMutablePointer<RustCallStatus>) -> T,
@@ -279,33 +279,33 @@ private func uniffiCheckCallStatus(
     errorHandler: ((RustBuffer) throws -> Error)?
 ) throws {
     switch callStatus.code {
-    case CALL_SUCCESS:
-        return
+        case CALL_SUCCESS:
+            return
 
-    case CALL_ERROR:
-        if let errorHandler = errorHandler {
-            throw try errorHandler(callStatus.errorBuf)
-        } else {
-            callStatus.errorBuf.deallocate()
-            throw UniffiInternalError.unexpectedRustCallError
-        }
+        case CALL_ERROR:
+            if let errorHandler = errorHandler {
+                throw try errorHandler(callStatus.errorBuf)
+            } else {
+                callStatus.errorBuf.deallocate()
+                throw UniffiInternalError.unexpectedRustCallError
+            }
 
-    case CALL_UNEXPECTED_ERROR:
-        // When the rust code sees a panic, it tries to construct a RustBuffer
-        // with the message.  But if that code panics, then it just sends back
-        // an empty buffer.
-        if callStatus.errorBuf.len > 0 {
-            throw UniffiInternalError.rustPanic(try FfiConverterString.lift(callStatus.errorBuf))
-        } else {
-            callStatus.errorBuf.deallocate()
-            throw UniffiInternalError.rustPanic("Rust panic")
-        }
+        case CALL_UNEXPECTED_ERROR:
+            // When the rust code sees a panic, it tries to construct a RustBuffer
+            // with the message.  But if that code panics, then it just sends back
+            // an empty buffer.
+            if callStatus.errorBuf.len > 0 {
+                throw UniffiInternalError.rustPanic(try FfiConverterString.lift(callStatus.errorBuf))
+            } else {
+                callStatus.errorBuf.deallocate()
+                throw UniffiInternalError.rustPanic("Rust panic")
+            }
 
-    case CALL_CANCELLED:
-        fatalError("Cancellation not supported yet")
+        case CALL_CANCELLED:
+            fatalError("Cancellation not supported yet")
 
-    default:
-        throw UniffiInternalError.unexpectedRustCallStatusCode
+        default:
+            throw UniffiInternalError.unexpectedRustCallStatusCode
     }
 }
 
@@ -352,7 +352,7 @@ fileprivate class UniffiHandleMap<T> {
         }
     }
 
-    func get(handle: UInt64) throws -> T {
+     func get(handle: UInt64) throws -> T {
         try lock.withLock {
             guard let obj = map[handle] else {
                 throw UniffiInternalError.unexpectedStaleHandle
@@ -506,11 +506,11 @@ fileprivate struct FfiConverterTimestamp: FfiConverterRustBuffer {
 
 
 public protocol OsTunProvider : AnyObject {
-
+    
     func configureWg(config: WgConfig) throws
-
+    
     func configureNym(config: NymConfig) throws  -> Int32
-
+    
 }
 
 open class OsTunProviderImpl:
@@ -551,24 +551,24 @@ open class OsTunProviderImpl:
         try! rustCall { uniffi_nym_vpn_lib_fn_free_ostunprovider(pointer, $0) }
     }
 
+    
 
-
-
-    open func configureWg(config: WgConfig)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
-        uniffi_nym_vpn_lib_fn_method_ostunprovider_configure_wg(self.uniffiClonePointer(),
-                                                                FfiConverterTypeWgConfig.lower(config),$0
-        )
-    }
-    }
-
-    open func configureNym(config: NymConfig)throws  -> Int32 {
-        return try  FfiConverterInt32.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
-            uniffi_nym_vpn_lib_fn_method_ostunprovider_configure_nym(self.uniffiClonePointer(),
-                                                                     FfiConverterTypeNymConfig.lower(config),$0
-            )
-        })
-    }
-
+    
+open func configureWg(config: WgConfig)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    uniffi_nym_vpn_lib_fn_method_ostunprovider_configure_wg(self.uniffiClonePointer(),
+        FfiConverterTypeWgConfig.lower(config),$0
+    )
+}
+}
+    
+open func configureNym(config: NymConfig)throws  -> Int32 {
+    return try  FfiConverterInt32.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    uniffi_nym_vpn_lib_fn_method_ostunprovider_configure_nym(self.uniffiClonePointer(),
+        FfiConverterTypeNymConfig.lower(config),$0
+    )
+})
+}
+    
 
 }
 // Magic number for the Rust proxy to call using the same mechanism as every other method,
@@ -597,11 +597,11 @@ fileprivate struct UniffiCallbackInterfaceOSTunProvider {
                     throw UniffiInternalError.unexpectedStaleHandle
                 }
                 return try uniffiObj.configureWg(
-                    config: try FfiConverterTypeWgConfig.lift(config)
+                     config: try FfiConverterTypeWgConfig.lift(config)
                 )
             }
 
-
+            
             let writeReturn = { () }
             uniffiTraitInterfaceCallWithError(
                 callStatus: uniffiCallStatus,
@@ -622,11 +622,11 @@ fileprivate struct UniffiCallbackInterfaceOSTunProvider {
                     throw UniffiInternalError.unexpectedStaleHandle
                 }
                 return try uniffiObj.configureNym(
-                    config: try FfiConverterTypeNymConfig.lift(config)
+                     config: try FfiConverterTypeNymConfig.lift(config)
                 )
             }
 
-
+            
             let writeReturn = { uniffiOutReturn.pointee = FfiConverterInt32.lower($0) }
             uniffiTraitInterfaceCallWithError(
                 callStatus: uniffiCallStatus,
@@ -698,9 +698,9 @@ public func FfiConverterTypeOSTunProvider_lower(_ value: OsTunProvider) -> Unsaf
 
 
 public protocol TunnelStatusListener : AnyObject {
-
+    
     func onTunStatusChange(status: TunStatus)
-
+    
 }
 
 open class TunnelStatusListenerImpl:
@@ -741,16 +741,16 @@ open class TunnelStatusListenerImpl:
         try! rustCall { uniffi_nym_vpn_lib_fn_free_tunnelstatuslistener(pointer, $0) }
     }
 
+    
 
-
-
-    open func onTunStatusChange(status: TunStatus) {try! rustCall() {
-        uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_tun_status_change(self.uniffiClonePointer(),
-                                                                               FfiConverterTypeTunStatus.lower(status),$0
-        )
-    }
-    }
-
+    
+open func onTunStatusChange(status: TunStatus) {try! rustCall() {
+    uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_tun_status_change(self.uniffiClonePointer(),
+        FfiConverterTypeTunStatus.lower(status),$0
+    )
+}
+}
+    
 
 }
 
@@ -773,11 +773,11 @@ fileprivate struct UniffiCallbackInterfaceTunnelStatusListener {
                     throw UniffiInternalError.unexpectedStaleHandle
                 }
                 return uniffiObj.onTunStatusChange(
-                    status: try FfiConverterTypeTunStatus.lift(status)
+                     status: try FfiConverterTypeTunStatus.lift(status)
                 )
             }
 
-
+            
             let writeReturn = { () }
             uniffiTraitInterfaceCall(
                 callStatus: uniffiCallStatus,
@@ -874,8 +874,8 @@ extension Location: Equatable, Hashable {
 public struct FfiConverterTypeLocation: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Location {
         return
-        try Location(
-            twoLetterIsoCountryCode: FfiConverterString.read(from: &buf)
+            try Location(
+                twoLetterIsoCountryCode: FfiConverterString.read(from: &buf)
         )
     }
 
@@ -941,11 +941,11 @@ extension NymConfig: Equatable, Hashable {
 public struct FfiConverterTypeNymConfig: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NymConfig {
         return
-        try NymConfig(
-            ipv4Addr: FfiConverterTypeIpv4Addr.read(from: &buf),
-            ipv6Addr: FfiConverterTypeIpv6Addr.read(from: &buf),
-            mtu: FfiConverterUInt16.read(from: &buf),
-            entryMixnetGatewayIp: FfiConverterOptionTypeIpAddr.read(from: &buf)
+            try NymConfig(
+                ipv4Addr: FfiConverterTypeIpv4Addr.read(from: &buf),
+                ipv6Addr: FfiConverterTypeIpv6Addr.read(from: &buf),
+                mtu: FfiConverterUInt16.read(from: &buf),
+                entryMixnetGatewayIp: FfiConverterOptionTypeIpAddr.read(from: &buf)
         )
     }
 
@@ -1014,11 +1014,11 @@ extension PeerConfig: Equatable, Hashable {
 public struct FfiConverterTypePeerConfig: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PeerConfig {
         return
-        try PeerConfig(
-            publicKey: FfiConverterTypePublicKey.read(from: &buf),
-            allowedIps: FfiConverterSequenceTypeIpNetwork.read(from: &buf),
-            endpoint: FfiConverterTypeSocketAddr.read(from: &buf),
-            psk: FfiConverterOptionTypePresharedKey.read(from: &buf)
+            try PeerConfig(
+                publicKey: FfiConverterTypePublicKey.read(from: &buf),
+                allowedIps: FfiConverterSequenceTypeIpNetwork.read(from: &buf),
+                endpoint: FfiConverterTypeSocketAddr.read(from: &buf),
+                psk: FfiConverterOptionTypePresharedKey.read(from: &buf)
         )
     }
 
@@ -1075,9 +1075,9 @@ extension TunnelConfig: Equatable, Hashable {
 public struct FfiConverterTypeTunnelConfig: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TunnelConfig {
         return
-        try TunnelConfig(
-            privateKey: FfiConverterTypePrivateKey.read(from: &buf),
-            addresses: FfiConverterSequenceTypeIpAddr.read(from: &buf)
+            try TunnelConfig(
+                privateKey: FfiConverterTypePrivateKey.read(from: &buf),
+                addresses: FfiConverterSequenceTypeIpAddr.read(from: &buf)
         )
     }
 
@@ -1144,11 +1144,11 @@ extension UserAgent: Equatable, Hashable {
 public struct FfiConverterTypeUserAgent: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UserAgent {
         return
-        try UserAgent(
-            application: FfiConverterString.read(from: &buf),
-            version: FfiConverterString.read(from: &buf),
-            platform: FfiConverterString.read(from: &buf),
-            gitCommit: FfiConverterString.read(from: &buf)
+            try UserAgent(
+                application: FfiConverterString.read(from: &buf),
+                version: FfiConverterString.read(from: &buf),
+                platform: FfiConverterString.read(from: &buf),
+                gitCommit: FfiConverterString.read(from: &buf)
         )
     }
 
@@ -1199,15 +1199,15 @@ public struct VpnConfig {
 public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> VpnConfig {
         return
-        try VpnConfig(
-            apiUrl: FfiConverterTypeUrl.read(from: &buf),
-            explorerUrl: FfiConverterTypeUrl.read(from: &buf),
-            entryGateway: FfiConverterTypeEntryPoint.read(from: &buf),
-            exitRouter: FfiConverterTypeExitPoint.read(from: &buf),
-            enableTwoHop: FfiConverterBool.read(from: &buf),
-            tunProvider: FfiConverterTypeOSTunProvider.read(from: &buf),
-            credentialDataPath: FfiConverterOptionTypePathBuf.read(from: &buf),
-            tunStatusListener: FfiConverterOptionTypeTunnelStatusListener.read(from: &buf)
+            try VpnConfig(
+                apiUrl: FfiConverterTypeUrl.read(from: &buf),
+                explorerUrl: FfiConverterTypeUrl.read(from: &buf),
+                entryGateway: FfiConverterTypeEntryPoint.read(from: &buf),
+                exitRouter: FfiConverterTypeExitPoint.read(from: &buf),
+                enableTwoHop: FfiConverterBool.read(from: &buf),
+                tunProvider: FfiConverterTypeOSTunProvider.read(from: &buf),
+                credentialDataPath: FfiConverterOptionTypePathBuf.read(from: &buf),
+                tunStatusListener: FfiConverterOptionTypeTunnelStatusListener.read(from: &buf)
         )
     }
 
@@ -1286,12 +1286,12 @@ extension WgConfig: Equatable, Hashable {
 public struct FfiConverterTypeWgConfig: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> WgConfig {
         return
-        try WgConfig(
-            tunnel: FfiConverterTypeTunnelConfig.read(from: &buf),
-            peers: FfiConverterSequenceTypePeerConfig.read(from: &buf),
-            ipv4Gateway: FfiConverterTypeIpv4Addr.read(from: &buf),
-            ipv6Gateway: FfiConverterOptionTypeIpv6Addr.read(from: &buf),
-            mtu: FfiConverterUInt16.read(from: &buf)
+            try WgConfig(
+                tunnel: FfiConverterTypeTunnelConfig.read(from: &buf),
+                peers: FfiConverterSequenceTypePeerConfig.read(from: &buf),
+                ipv4Gateway: FfiConverterTypeIpv4Addr.read(from: &buf),
+                ipv6Gateway: FfiConverterOptionTypeIpv6Addr.read(from: &buf),
+                mtu: FfiConverterUInt16.read(from: &buf)
         )
     }
 
@@ -1317,7 +1317,7 @@ public func FfiConverterTypeWgConfig_lower(_ value: WgConfig) -> RustBuffer {
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
 public enum EntryPoint {
-
+    
     case gateway(identity: NodeIdentity
     )
     case location(location: String
@@ -1333,42 +1333,42 @@ public struct FfiConverterTypeEntryPoint: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> EntryPoint {
         let variant: Int32 = try readInt(&buf)
         switch variant {
-
+        
         case 1: return .gateway(identity: try FfiConverterTypeNodeIdentity.read(from: &buf)
         )
-
+        
         case 2: return .location(location: try FfiConverterString.read(from: &buf)
         )
-
+        
         case 3: return .randomLowLatency
-
+        
         case 4: return .random
-
+        
         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
 
     public static func write(_ value: EntryPoint, into buf: inout [UInt8]) {
         switch value {
-
-
+        
+        
         case let .gateway(identity):
             writeInt(&buf, Int32(1))
             FfiConverterTypeNodeIdentity.write(identity, into: &buf)
-
-
+            
+        
         case let .location(location):
             writeInt(&buf, Int32(2))
             FfiConverterString.write(location, into: &buf)
-
-
+            
+        
         case .randomLowLatency:
             writeInt(&buf, Int32(3))
-
-
+        
+        
         case .random:
             writeInt(&buf, Int32(4))
-
+        
         }
     }
 }
@@ -1392,7 +1392,7 @@ extension EntryPoint: Equatable, Hashable {}
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
 public enum ExitPoint {
-
+    
     case address(address: Recipient
     )
     case gateway(identity: NodeIdentity
@@ -1408,38 +1408,38 @@ public struct FfiConverterTypeExitPoint: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ExitPoint {
         let variant: Int32 = try readInt(&buf)
         switch variant {
-
+        
         case 1: return .address(address: try FfiConverterTypeRecipient.read(from: &buf)
         )
-
+        
         case 2: return .gateway(identity: try FfiConverterTypeNodeIdentity.read(from: &buf)
         )
-
+        
         case 3: return .location(location: try FfiConverterString.read(from: &buf)
         )
-
+        
         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
 
     public static func write(_ value: ExitPoint, into buf: inout [UInt8]) {
         switch value {
-
-
+        
+        
         case let .address(address):
             writeInt(&buf, Int32(1))
             FfiConverterTypeRecipient.write(address, into: &buf)
-
-
+            
+        
         case let .gateway(identity):
             writeInt(&buf, Int32(2))
             FfiConverterTypeNodeIdentity.write(identity, into: &buf)
-
-
+            
+        
         case let .location(location):
             writeInt(&buf, Int32(3))
             FfiConverterString.write(location, into: &buf)
-
+            
         }
     }
 }
@@ -1462,8 +1462,8 @@ extension ExitPoint: Equatable, Hashable {}
 
 public enum FfiError {
 
-
-
+    
+    
     case InvalidValueUniffi
     case InvalidCredential
     case VpnApiClientError(inner: String
@@ -1488,14 +1488,14 @@ public struct FfiConverterTypeFFIError: FfiConverterRustBuffer {
         let variant: Int32 = try readInt(&buf)
         switch variant {
 
+        
 
-
-
+        
         case 1: return .InvalidValueUniffi
         case 2: return .InvalidCredential
         case 3: return .VpnApiClientError(
             inner: try FfiConverterString.read(from: &buf)
-        )
+            )
         case 4: return .InvalidPath
         case 5: return .FdNotFound
         case 6: return .VpnNotStopped
@@ -1504,68 +1504,68 @@ public struct FfiConverterTypeFFIError: FfiConverterRustBuffer {
         case 9: return .VpnNotRunning
         case 10: return .LibError(
             inner: try FfiConverterString.read(from: &buf)
-        )
+            )
         case 11: return .GatewayDirectoryError(
             inner: try FfiConverterString.read(from: &buf)
-        )
+            )
 
-        default: throw UniffiInternalError.unexpectedEnumCase
+         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
 
     public static func write(_ value: FfiError, into buf: inout [UInt8]) {
         switch value {
 
+        
 
-
-
-
+        
+        
         case .InvalidValueUniffi:
             writeInt(&buf, Int32(1))
-
-
+        
+        
         case .InvalidCredential:
             writeInt(&buf, Int32(2))
-
-
+        
+        
         case let .VpnApiClientError(inner):
             writeInt(&buf, Int32(3))
             FfiConverterString.write(inner, into: &buf)
-
-
+            
+        
         case .InvalidPath:
             writeInt(&buf, Int32(4))
-
-
+        
+        
         case .FdNotFound:
             writeInt(&buf, Int32(5))
-
-
+        
+        
         case .VpnNotStopped:
             writeInt(&buf, Int32(6))
-
-
+        
+        
         case .VpnNotStarted:
             writeInt(&buf, Int32(7))
-
-
+        
+        
         case .VpnAlreadyRunning:
             writeInt(&buf, Int32(8))
-
-
+        
+        
         case .VpnNotRunning:
             writeInt(&buf, Int32(9))
-
-
+        
+        
         case let .LibError(inner):
             writeInt(&buf, Int32(10))
             FfiConverterString.write(inner, into: &buf)
-
-
+            
+        
         case let .GatewayDirectoryError(inner):
             writeInt(&buf, Int32(11))
             FfiConverterString.write(inner, into: &buf)
-
+            
         }
     }
 }
@@ -1579,7 +1579,7 @@ extension FfiError: Error { }
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
 public enum TunStatus {
-
+    
     case up
     case down
     case initializingClient
@@ -1594,44 +1594,44 @@ public struct FfiConverterTypeTunStatus: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TunStatus {
         let variant: Int32 = try readInt(&buf)
         switch variant {
-
+        
         case 1: return .up
-
+        
         case 2: return .down
-
+        
         case 3: return .initializingClient
-
+        
         case 4: return .establishingConnection
-
+        
         case 5: return .disconnecting
-
+        
         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
 
     public static func write(_ value: TunStatus, into buf: inout [UInt8]) {
         switch value {
-
-
+        
+        
         case .up:
             writeInt(&buf, Int32(1))
-
-
+        
+        
         case .down:
             writeInt(&buf, Int32(2))
-
-
+        
+        
         case .initializingClient:
             writeInt(&buf, Int32(3))
-
-
+        
+        
         case .establishingConnection:
             writeInt(&buf, Int32(4))
-
-
+        
+        
         case .disconnecting:
             writeInt(&buf, Int32(5))
-
+        
         }
     }
 }
@@ -2304,58 +2304,58 @@ public func FfiConverterTypeUrl_lower(_ value: Url) -> RustBuffer {
 
 public func checkCredential(credential: String)throws  -> Date? {
     return try  FfiConverterOptionTimestamp.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
-        uniffi_nym_vpn_lib_fn_func_checkcredential(
-            FfiConverterString.lower(credential),$0
-        )
-    })
+    uniffi_nym_vpn_lib_fn_func_checkcredential(
+        FfiConverterString.lower(credential),$0
+    )
+})
 }
 public func getGatewayCountries(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?, exitOnly: Bool)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
-        uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
-            FfiConverterTypeUrl.lower(apiUrl),
-            FfiConverterTypeUrl.lower(explorerUrl),
-            FfiConverterOptionTypeUrl.lower(harbourMasterUrl),
-            FfiConverterBool.lower(exitOnly),$0
-        )
-    })
+    uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
+        FfiConverterTypeUrl.lower(apiUrl),
+        FfiConverterTypeUrl.lower(explorerUrl),
+        FfiConverterOptionTypeUrl.lower(harbourMasterUrl),
+        FfiConverterBool.lower(exitOnly),$0
+    )
+})
 }
 public func getGatewayCountriesUserAgent(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?, exitOnly: Bool, userAgent: UserAgent)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
-        uniffi_nym_vpn_lib_fn_func_getgatewaycountriesuseragent(
-            FfiConverterTypeUrl.lower(apiUrl),
-            FfiConverterTypeUrl.lower(explorerUrl),
-            FfiConverterOptionTypeUrl.lower(harbourMasterUrl),
-            FfiConverterBool.lower(exitOnly),
-            FfiConverterTypeUserAgent.lower(userAgent),$0
-        )
-    })
+    uniffi_nym_vpn_lib_fn_func_getgatewaycountriesuseragent(
+        FfiConverterTypeUrl.lower(apiUrl),
+        FfiConverterTypeUrl.lower(explorerUrl),
+        FfiConverterOptionTypeUrl.lower(harbourMasterUrl),
+        FfiConverterBool.lower(exitOnly),
+        FfiConverterTypeUserAgent.lower(userAgent),$0
+    )
+})
 }
 public func getLowLatencyEntryCountry(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?)throws  -> Location {
     return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
-        uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
-            FfiConverterTypeUrl.lower(apiUrl),
-            FfiConverterTypeUrl.lower(explorerUrl),
-            FfiConverterOptionTypeUrl.lower(harbourMasterUrl),$0
-        )
-    })
+    uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountry(
+        FfiConverterTypeUrl.lower(apiUrl),
+        FfiConverterTypeUrl.lower(explorerUrl),
+        FfiConverterOptionTypeUrl.lower(harbourMasterUrl),$0
+    )
+})
 }
 public func getLowLatencyEntryCountryUserAgent(apiUrl: Url, explorerUrl: Url, harbourMasterUrl: Url?, userAgent: UserAgent)throws  -> Location {
     return try  FfiConverterTypeLocation.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
-        uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountryuseragent(
-            FfiConverterTypeUrl.lower(apiUrl),
-            FfiConverterTypeUrl.lower(explorerUrl),
-            FfiConverterOptionTypeUrl.lower(harbourMasterUrl),
-            FfiConverterTypeUserAgent.lower(userAgent),$0
-        )
-    })
+    uniffi_nym_vpn_lib_fn_func_getlowlatencyentrycountryuseragent(
+        FfiConverterTypeUrl.lower(apiUrl),
+        FfiConverterTypeUrl.lower(explorerUrl),
+        FfiConverterOptionTypeUrl.lower(harbourMasterUrl),
+        FfiConverterTypeUserAgent.lower(userAgent),$0
+    )
+})
 }
 public func importCredential(credential: String, path: String)throws  -> Date? {
     return try  FfiConverterOptionTimestamp.lift(try rustCallWithError(FfiConverterTypeFFIError.lift) {
-        uniffi_nym_vpn_lib_fn_func_importcredential(
-            FfiConverterString.lower(credential),
-            FfiConverterString.lower(path),$0
-        )
-    })
+    uniffi_nym_vpn_lib_fn_func_importcredential(
+        FfiConverterString.lower(credential),
+        FfiConverterString.lower(path),$0
+    )
+})
 }
 public func runVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_func_runvpn(

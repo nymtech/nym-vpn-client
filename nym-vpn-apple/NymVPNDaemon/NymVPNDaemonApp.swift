@@ -3,6 +3,7 @@ import Logging
 import AppSettings
 import AutoUpdater
 import AutoUpdates
+import ConfigurationManager
 import Constants
 import Home
 import HelperManager
@@ -50,6 +51,7 @@ private extension NymVPNDaemonApp {
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label)
         }
+        ConfigurationManager.configureMainnetEnvironmentVariables()
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
         HelperManager.shared.setup(helperName: Constants.helperName.rawValue)

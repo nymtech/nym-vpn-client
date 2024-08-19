@@ -26,7 +26,7 @@ public final class ConnectionStorage {
 
     func entryGateway() -> EntryGateway {
         if !appSettings.isEntryLocationSelectionOn {
-            return .randomLowLatency
+            return .random
         }
 
         if !appSettings.entryCountryCode.isEmpty {
