@@ -246,7 +246,9 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			protect(socket)
 		}
 
-		override fun configureWg(config: WgConfig) {
+		override fun configureWg(config: WgConfig) : Int {
+			Timber.d("Wg not yet implemented")
+			return -1
 		}
 
 		override fun configureNym(config: NymConfig): Int {

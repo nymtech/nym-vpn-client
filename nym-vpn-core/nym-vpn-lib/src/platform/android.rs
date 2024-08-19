@@ -22,6 +22,6 @@ pub fn init_logs(level: String) {
 #[uniffi::export(with_foreign)]
 pub trait AndroidTunProvider: Send + Sync + Debug {
     fn bypass(&self, socket: i32);
-    fn configure_wg(&self, config: WgConfig) -> Result<(), crate::platform::error::FFIError>;
+    fn configure_wg(&self, config: WgConfig) -> Result<RawFd, crate::platform::error::FFIError>;
     fn configure_nym(&self, config: NymConfig) -> Result<RawFd, crate::platform::error::FFIError>;
 }

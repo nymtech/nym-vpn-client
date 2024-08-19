@@ -639,7 +639,7 @@ internal interface UniffiCallbackInterfaceAndroidTunProviderMethod0 : com.sun.jn
     fun callback(`uniffiHandle`: Long,`socket`: Int,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceAndroidTunProviderMethod1 : com.sun.jna.Callback {
-    fun callback(`uniffiHandle`: Long,`config`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,)
+    fun callback(`uniffiHandle`: Long,`config`: RustBuffer.ByValue,`uniffiOutReturn`: IntByReference,uniffiCallStatus: UniffiRustCallStatus,)
 }
 internal interface UniffiCallbackInterfaceAndroidTunProviderMethod2 : com.sun.jna.Callback {
     fun callback(`uniffiHandle`: Long,`config`: RustBuffer.ByValue,`uniffiOutReturn`: IntByReference,uniffiCallStatus: UniffiRustCallStatus,)
@@ -835,7 +835,7 @@ internal interface UniffiLib : Library {
     fun uniffi_nym_vpn_lib_fn_method_androidtunprovider_bypass(`ptr`: Pointer,`socket`: Int,uniffi_out_err: UniffiRustCallStatus, 
     ): Unit
     fun uniffi_nym_vpn_lib_fn_method_androidtunprovider_configure_wg(`ptr`: Pointer,`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
-    ): Unit
+    ): Int
     fun uniffi_nym_vpn_lib_fn_method_androidtunprovider_configure_nym(`ptr`: Pointer,`config`: RustBuffer.ByValue,uniffi_out_err: UniffiRustCallStatus, 
     ): Int
     fun uniffi_nym_vpn_lib_fn_clone_tunnelstatuslistener(`ptr`: Pointer,uniffi_out_err: UniffiRustCallStatus, 
@@ -1058,7 +1058,7 @@ private fun uniffiCheckApiChecksums(lib: UniffiLib) {
     if (lib.uniffi_nym_vpn_lib_checksum_method_androidtunprovider_bypass() != 2706.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_vpn_lib_checksum_method_androidtunprovider_configure_wg() != 3311.toShort()) {
+    if (lib.uniffi_nym_vpn_lib_checksum_method_androidtunprovider_configure_wg() != 24897.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_nym_vpn_lib_checksum_method_androidtunprovider_configure_nym() != 6414.toShort()) {
@@ -1455,7 +1455,7 @@ public interface AndroidTunProvider {
     
     fun `bypass`(`socket`: kotlin.Int)
     
-    fun `configureWg`(`config`: WgConfig)
+    fun `configureWg`(`config`: WgConfig): kotlin.Int
     
     fun `configureNym`(`config`: NymConfig): kotlin.Int
     
@@ -1555,15 +1555,16 @@ open class AndroidTunProviderImpl: Disposable, AutoCloseable, AndroidTunProvider
     
 
     
-    @Throws(FfiException::class)override fun `configureWg`(`config`: WgConfig)
-        = 
+    @Throws(FfiException::class)override fun `configureWg`(`config`: WgConfig): kotlin.Int {
+            return FfiConverterInt.lift(
     callWithPointer {
     uniffiRustCallWithError(FfiException) { _status ->
     UniffiLib.INSTANCE.uniffi_nym_vpn_lib_fn_method_androidtunprovider_configure_wg(
         it, FfiConverterTypeWgConfig.lower(`config`),_status)
 }
     }
-    
+    )
+    }
     
 
     
@@ -1631,14 +1632,14 @@ internal object uniffiCallbackInterfaceAndroidTunProvider {
         }
     }
     internal object `configureWg`: UniffiCallbackInterfaceAndroidTunProviderMethod1 {
-        override fun callback(`uniffiHandle`: Long,`config`: RustBuffer.ByValue,`uniffiOutReturn`: Pointer,uniffiCallStatus: UniffiRustCallStatus,) {
+        override fun callback(`uniffiHandle`: Long,`config`: RustBuffer.ByValue,`uniffiOutReturn`: IntByReference,uniffiCallStatus: UniffiRustCallStatus,) {
             val uniffiObj = FfiConverterTypeAndroidTunProvider.handleMap.get(uniffiHandle)
             val makeCall = { ->
                 uniffiObj.`configureWg`(
                     FfiConverterTypeWgConfig.lift(`config`),
                 )
             }
-            val writeReturn = { _: Unit -> Unit }
+            val writeReturn = { value: kotlin.Int -> uniffiOutReturn.setValue(FfiConverterInt.lower(value)) }
             uniffiTraitInterfaceCallWithError(
                 uniffiCallStatus,
                 makeCall,
