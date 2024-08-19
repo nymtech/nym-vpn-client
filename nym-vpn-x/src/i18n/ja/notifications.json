@@ -1,1 +1,7 @@
-{}
+{
+  "vpn-tunnel-state": {
+    "connected": "VPNトンネルに接続済",
+    "disconnected": "VPNトンネルが切断されました",
+    "failed": "VPNトンネルの接続に失敗しました！"
+  }
+}
