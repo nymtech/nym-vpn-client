@@ -104,16 +104,12 @@ zeroize = "1.6.0"
 # Use the develop-pre-ecash-for-vpn branch until we have ported the vpn client to use ecash
 
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-bin-common = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-client-core = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-config = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
-nym-credentials = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-crypto = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-explorer-client = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-http-api-client = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
-nym-id = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-node-requests = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-pemstore = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
@@ -122,3 +118,8 @@ nym-task = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-topology = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "3f922cc0" }
+
+nym-credential-storage-fork = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-credential-storage" }
+nym-credentials-fork = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-credentials" }
+nym-id-fork = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-id" }
+nym-bandwidth-controller-fork = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-bandwidth-controller" }
