@@ -23,7 +23,6 @@ pub enum KeyStoreError {
         error: Box<dyn std::error::Error>,
     },
 
-    // WIP: feels malplaced
     #[error("invalid key pair, one is missing: {path}")]
     InvalidKeyPair { path: PathBuf },
 }
