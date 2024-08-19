@@ -51,11 +51,6 @@ impl From<crate::Error> for FFIError {
     }
 }
 
-impl From<FFIError> for Error {
-    fn from(value: FFIError) -> Self {
-        Error::StopError
-    }
-}
 impl From<nym_gateway_directory::Error> for FFIError {
     fn from(value: nym_gateway_directory::Error) -> Self {
         Self::GatewayDirectoryError {

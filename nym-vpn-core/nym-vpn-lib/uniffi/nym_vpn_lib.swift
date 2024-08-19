@@ -1606,14 +1606,18 @@ public func FfiConverterTypeMixExitConnectionInfo_lower(_ value: MixExitConnecti
 public struct NymConfig {
     public var ipv4Addr: Ipv4Addr
     public var ipv6Addr: Ipv6Addr
+    public var dnsIps: [IpAddr]
+    public var allowedIps: [IpNetwork]
     public var mtu: UInt16
     public var entryMixnetGatewayIp: IpAddr?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(ipv4Addr: Ipv4Addr, ipv6Addr: Ipv6Addr, mtu: UInt16, entryMixnetGatewayIp: IpAddr?) {
+    public init(ipv4Addr: Ipv4Addr, ipv6Addr: Ipv6Addr, dnsIps: [IpAddr], allowedIps: [IpNetwork], mtu: UInt16, entryMixnetGatewayIp: IpAddr?) {
         self.ipv4Addr = ipv4Addr
         self.ipv6Addr = ipv6Addr
+        self.dnsIps = dnsIps
+        self.allowedIps = allowedIps
         self.mtu = mtu
         self.entryMixnetGatewayIp = entryMixnetGatewayIp
     }
@@ -1629,6 +1633,12 @@ extension NymConfig: Equatable, Hashable {
         if lhs.ipv6Addr != rhs.ipv6Addr {
             return false
         }
+        if lhs.dnsIps != rhs.dnsIps {
+            return false
+        }
+        if lhs.allowedIps != rhs.allowedIps {
+            return false
+        }
         if lhs.mtu != rhs.mtu {
             return false
         }
@@ -1641,6 +1651,8 @@ extension NymConfig: Equatable, Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(ipv4Addr)
         hasher.combine(ipv6Addr)
+        hasher.combine(dnsIps)
+        hasher.combine(allowedIps)
         hasher.combine(mtu)
         hasher.combine(entryMixnetGatewayIp)
     }
@@ -1653,6 +1665,8 @@ public struct FfiConverterTypeNymConfig: FfiConverterRustBuffer {
             try NymConfig(
                 ipv4Addr: FfiConverterTypeIpv4Addr.read(from: &buf), 
                 ipv6Addr: FfiConverterTypeIpv6Addr.read(from: &buf), 
+                dnsIps: FfiConverterSequenceTypeIpAddr.read(from: &buf), 
+                allowedIps: FfiConverterSequenceTypeIpNetwork.read(from: &buf), 
                 mtu: FfiConverterUInt16.read(from: &buf), 
                 entryMixnetGatewayIp: FfiConverterOptionTypeIpAddr.read(from: &buf)
         )
@@ -1661,6 +1675,8 @@ public struct FfiConverterTypeNymConfig: FfiConverterRustBuffer {
     public static func write(_ value: NymConfig, into buf: inout [UInt8]) {
         FfiConverterTypeIpv4Addr.write(value.ipv4Addr, into: &buf)
         FfiConverterTypeIpv6Addr.write(value.ipv6Addr, into: &buf)
+        FfiConverterSequenceTypeIpAddr.write(value.dnsIps, into: &buf)
+        FfiConverterSequenceTypeIpNetwork.write(value.allowedIps, into: &buf)
         FfiConverterUInt16.write(value.mtu, into: &buf)
         FfiConverterOptionTypeIpAddr.write(value.entryMixnetGatewayIp, into: &buf)
     }
@@ -2142,15 +2158,17 @@ public func FfiConverterTypeVPNConfig_lower(_ value: VpnConfig) -> RustBuffer {
 public struct WgConfig {
     public var tunnel: TunnelConfig
     public var peers: [PeerConfig]
+    public var dnsIps: [IpAddr]
     public var ipv4Gateway: Ipv4Addr
     public var ipv6Gateway: Ipv6Addr?
     public var mtu: UInt16
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(tunnel: TunnelConfig, peers: [PeerConfig], ipv4Gateway: Ipv4Addr, ipv6Gateway: Ipv6Addr?, mtu: UInt16) {
+    public init(tunnel: TunnelConfig, peers: [PeerConfig], dnsIps: [IpAddr], ipv4Gateway: Ipv4Addr, ipv6Gateway: Ipv6Addr?, mtu: UInt16) {
         self.tunnel = tunnel
         self.peers = peers
+        self.dnsIps = dnsIps
         self.ipv4Gateway = ipv4Gateway
         self.ipv6Gateway = ipv6Gateway
         self.mtu = mtu
@@ -2165,6 +2183,9 @@ extension WgConfig: Equatable, Hashable {
             return false
         }
         if lhs.peers != rhs.peers {
+            return false
+        }
+        if lhs.dnsIps != rhs.dnsIps {
             return false
         }
         if lhs.ipv4Gateway != rhs.ipv4Gateway {
@@ -2182,6 +2203,7 @@ extension WgConfig: Equatable, Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(tunnel)
         hasher.combine(peers)
+        hasher.combine(dnsIps)
         hasher.combine(ipv4Gateway)
         hasher.combine(ipv6Gateway)
         hasher.combine(mtu)
@@ -2195,6 +2217,7 @@ public struct FfiConverterTypeWgConfig: FfiConverterRustBuffer {
             try WgConfig(
                 tunnel: FfiConverterTypeTunnelConfig.read(from: &buf), 
                 peers: FfiConverterSequenceTypePeerConfig.read(from: &buf), 
+                dnsIps: FfiConverterSequenceTypeIpAddr.read(from: &buf), 
                 ipv4Gateway: FfiConverterTypeIpv4Addr.read(from: &buf), 
                 ipv6Gateway: FfiConverterOptionTypeIpv6Addr.read(from: &buf), 
                 mtu: FfiConverterUInt16.read(from: &buf)
@@ -2204,6 +2227,7 @@ public struct FfiConverterTypeWgConfig: FfiConverterRustBuffer {
     public static func write(_ value: WgConfig, into buf: inout [UInt8]) {
         FfiConverterTypeTunnelConfig.write(value.tunnel, into: &buf)
         FfiConverterSequenceTypePeerConfig.write(value.peers, into: &buf)
+        FfiConverterSequenceTypeIpAddr.write(value.dnsIps, into: &buf)
         FfiConverterTypeIpv4Addr.write(value.ipv4Gateway, into: &buf)
         FfiConverterOptionTypeIpv6Addr.write(value.ipv6Gateway, into: &buf)
         FfiConverterUInt16.write(value.mtu, into: &buf)
@@ -4328,8 +4352,14 @@ public func importCredential(credential: String, path: String)throws  -> Date? {
     )
 })
 }
+public func initLogger(level: String) {try! rustCall() {
+    uniffi_nym_vpn_lib_fn_func_initlogger(
+        FfiConverterString.lower(level),$0
+    )
+}
+}
 public func startVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
-    uniffi_nym_vpn_lib_fn_func_startvpn(
+    uniffi_nym_vpn_lib_fn_func_runvpn(
         FfiConverterTypeVPNConfig.lower(config),$0
     )
 }
@@ -4368,6 +4398,9 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_importcredential() != 8591) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_initlogger() != 25878) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_startvpn() != 17465) {

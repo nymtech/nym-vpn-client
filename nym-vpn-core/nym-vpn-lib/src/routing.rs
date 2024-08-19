@@ -30,7 +30,7 @@ use tun2::AbstractDevice;
 
 use crate::config::WireguardConfig;
 use crate::error::Error::MixnetClientRoutingFailed;
-use crate::error::Result;
+use crate::error::{Error, Result};
 use crate::{MixnetVpn, NymVpn};
 
 const DEFAULT_TUN_MTU: u16 = 1500;
@@ -299,7 +299,9 @@ pub async fn setup_mixnet_routing(
     };
     #[cfg(target_os = "android")]
     let mixnet_tun_config = {
-        let fd = android_tun_provider.configure_nym(config.clone().into())?;
+        let fd = android_tun_provider.configure_nym(config.clone().into()).map_err(|_| {
+            MixnetClientRoutingFailed
+        })?;
         // if tun interface config fails on android, we return -1
         if fd.is_negative() {
             return Err(MixnetClientRoutingFailed);

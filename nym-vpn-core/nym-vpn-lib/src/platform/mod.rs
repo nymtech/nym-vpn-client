@@ -49,8 +49,6 @@ pub mod android;
 
 pub(crate) mod error;
 mod status_listener;
-#[cfg(target_os = "ios")]
-pub mod swift;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub mod swift;
 
