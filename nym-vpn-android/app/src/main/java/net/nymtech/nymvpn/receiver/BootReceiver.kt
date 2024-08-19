@@ -10,7 +10,6 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
 import net.nymtech.nymvpn.util.extensions.startTunnelFromBackground
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
