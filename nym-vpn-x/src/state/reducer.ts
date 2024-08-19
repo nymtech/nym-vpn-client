@@ -75,7 +75,6 @@ export const initialState: AppState = {
   loading: false,
   vpnMode: 'TwoHop',
   entrySelector: false,
-  tunnel: { name: 'nym', id: 'nym' },
   uiTheme: 'Light',
   themeMode: DefaultThemeMode,
   progressMessages: [],
