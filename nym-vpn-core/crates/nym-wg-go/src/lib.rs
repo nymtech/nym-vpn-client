@@ -83,6 +83,18 @@ impl PeerEndpointUpdate {
 pub struct PrivateKey(x25519_dalek::StaticSecret);
 
 impl PrivateKey {
+    pub fn from_base64(s: &str) -> Option<Self> {
+        use base64::engine::Engine;
+        let bytes = base64::engine::general_purpose::STANDARD.decode(s).ok()?;
+        if bytes.len() == 32 {
+            let mut key = [0u8; 32];
+            key.copy_from_slice(&bytes);
+            Some(PrivateKey::from(key))
+        } else {
+            None
+        }
+    }
+
     pub fn to_bytes(&self) -> [u8; 32] {
         self.0.to_bytes()
     }
@@ -102,6 +114,18 @@ impl From<[u8; 32]> for PrivateKey {
 pub struct PublicKey(x25519_dalek::PublicKey);
 
 impl PublicKey {
+    pub fn from_base64(s: &str) -> Option<Self> {
+        use base64::engine::Engine;
+        let bytes = base64::engine::general_purpose::STANDARD.decode(s).ok()?;
+        if bytes.len() == 32 {
+            let mut key = [0u8; 32];
+            key.copy_from_slice(&bytes);
+            Some(PublicKey::from(key))
+        } else {
+            None
+        }
+    }
+
     pub fn as_bytes(&self) -> &[u8; 32] {
         self.0.as_bytes()
     }
