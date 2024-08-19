@@ -197,7 +197,7 @@ fn sync_run_vpn(config: VPNConfig) -> Result<SpecificVpn, FFIError> {
 
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn runVPN(config: VPNConfig) -> Result<(), FFIError> {
+pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
     if RUNNING.fetch_or(true, Ordering::Relaxed) {
         return Err(FFIError::VpnAlreadyRunning);
     }
