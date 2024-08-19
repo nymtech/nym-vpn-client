@@ -13,11 +13,6 @@ export type ConnectionState =
 
 export type VpnMode = 'TwoHop' | 'Mixnet';
 
-export type TunnelConfig = {
-  id: string;
-  name: string;
-};
-
 export type CodeDependency = {
   name: string;
   version?: string;
@@ -54,7 +49,6 @@ export type AppState = {
   progressMessages: ConnectProgressMsg[];
   sessionStartDate?: Dayjs | null;
   vpnMode: VpnMode;
-  tunnel: TunnelConfig;
   // `UiTheme` is the current applied theme to the UI, that is either `Dark` or `Light`
   uiTheme: UiTheme;
   // `themeMode` is the current user selected mode, could be `System`, `Dark` or `Light`
