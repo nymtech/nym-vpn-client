@@ -299,9 +299,9 @@ pub async fn setup_mixnet_routing(
     };
     #[cfg(target_os = "android")]
     let mixnet_tun_config = {
-        let fd = android_tun_provider.configure_nym(config.clone().into()).map_err(|_| {
-            MixnetClientRoutingFailed
-        })?;
+        let fd = android_tun_provider
+            .configure_nym(config.clone().into())
+            .map_err(|_| MixnetClientRoutingFailed)?;
         // if tun interface config fails on android, we return -1
         if fd.is_negative() {
             return Err(MixnetClientRoutingFailed);
