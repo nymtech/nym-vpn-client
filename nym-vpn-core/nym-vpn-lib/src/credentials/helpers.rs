@@ -7,8 +7,10 @@ use nym_validator_client::{
     nyxd::{Config as NyxdClientConfig, NyxdClient},
     QueryHttpRpcNyxdClient,
 };
-use sqlx::{sqlite::SqlitePoolOptions, Row as _};
+use sqlx::{ConnectOptions as _, Row as _};
 use tracing::debug;
+
+const PRE_ECASH_DB_MIGRATION_VERSION: i64 = 20241104120000;
 
 #[derive(Debug, thiserror::Error)]
 pub enum CredentialStoreError {
@@ -59,20 +61,20 @@ fn forked_db_path(db_path: &Path) -> PathBuf {
     ))
 }
 
-async fn is_db_old(db_path: &str) -> Result<bool, CredentialStoreError> {
-    let pool = SqlitePoolOptions::new()
-        .max_connections(5)
-        .connect(db_path)
-        .await?;
+async fn is_db_old(db_path: &Path) -> Result<bool, CredentialStoreError> {
+    let mut opts = sqlx::sqlite::SqliteConnectOptions::new().filename(db_path);
+    opts.disable_statement_logging();
+    let pool = sqlx::SqlitePool::connect_with(opts).await?;
+
     let row = sqlx::query("SELECT MAX(version) as version FROM _sqlx_migrations")
         .fetch_one(&pool)
         .await?;
     let migration_version: i64 = row.get("version");
-    Ok(migration_version == 20241104120000)
+    Ok(migration_version == PRE_ECASH_DB_MIGRATION_VERSION)
 }
 
 async fn copy_old_db_file(db_path: &Path, new_db_path: &Path) -> Result<u64, CredentialStoreError> {
-    tracing::debug!("Copying old db file to {}", new_db_path.display());
+    debug!("Copying old db file to {}", new_db_path.display());
     std::fs::copy(db_path, new_db_path).map_err(CredentialStoreError::FailedToCopyOldDbFile)
 }
 
@@ -80,7 +82,7 @@ async fn migrate_to_forked_credential_db(
     credential_db_path: &Path,
 ) -> Result<PathBuf, CredentialStoreError> {
     let fork_credential_db_path = forked_db_path(credential_db_path);
-    if !fork_credential_db_path.exists() && is_db_old(credential_db_path.to_str().unwrap()).await? {
+    if !fork_credential_db_path.exists() && is_db_old(credential_db_path).await? {
         copy_old_db_file(credential_db_path, &fork_credential_db_path).await?;
     };
     Ok(fork_credential_db_path)
