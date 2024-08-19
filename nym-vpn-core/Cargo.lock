@@ -4173,12 +4173,14 @@ dependencies = [
 name = "nym-ip-packet-client"
 version = "0.1.0"
 dependencies = [
+ "bytes",
  "futures",
  "nym-gateway-directory",
  "nym-ip-packet-requests",
  "nym-sdk",
  "thiserror",
  "tokio",
+ "tokio-util",
  "tracing",
  "tracing-subscriber",
 ]
