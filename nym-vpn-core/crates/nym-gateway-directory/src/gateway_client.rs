@@ -232,7 +232,9 @@ impl GatewayClient {
             // Lookup the IPR and authenticator addresses from the nym-api as a temporary hack until
             // the nymvpn.com endpoints are updated to also include these fields.
             let described_gateways = self.lookup_described_gateways().await?;
+            let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
             append_ipr_and_authenticator_addresses(&mut gateways, described_gateways);
+            append_performance(&mut gateways, basic_gw);
             Ok(GatewayList::new(gateways))
         } else {
             self.lookup_all_gateways_from_nym_api().await
@@ -256,7 +258,9 @@ impl GatewayClient {
             // Lookup the IPR and authenticator addresses from the nym-api as a temporary hack until
             // the nymvpn.com endpoints are updated to also include these fields.
             let described_gateways = self.lookup_described_gateways().await?;
+            let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
             append_ipr_and_authenticator_addresses(&mut entry_gateways, described_gateways);
+            append_performance(&mut entry_gateways, basic_gw);
             Ok(GatewayList::new(entry_gateways))
         } else {
             self.lookup_entry_gateways_from_nym_api().await
@@ -280,7 +284,9 @@ impl GatewayClient {
             // Lookup the IPR and authenticator addresses from the nym-api as a temporary hack until
             // the nymvpn.com endpoints are updated to also include these fields.
             let described_gateways = self.lookup_described_gateways().await?;
+            let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
             append_ipr_and_authenticator_addresses(&mut exit_gateways, described_gateways);
+            append_performance(&mut exit_gateways, basic_gw);
             Ok(GatewayList::new(exit_gateways))
         } else {
             self.lookup_exit_gateways_from_nym_api().await
@@ -344,6 +350,32 @@ fn append_ipr_and_authenticator_addresses(
                 .map(|auth| auth.address)
                 .and_then(|address| Recipient::try_from_base58_string(address).ok())
                 .map(|r| AuthAddress(Some(r)))
+        } else {
+            error!(
+                "Failed to find described gateway for gateway with identity {}",
+                gateway.identity()
+            );
+        }
+    }
+}
+
+// Append the performance to the gateways. This is a temporary hack until the nymvpn.com endpoints
+// are updated to also include this field.
+fn append_performance(
+    gateways: &mut [Gateway],
+    basic_gw: Vec<nym_validator_client::nym_nodes::SkimmedNode>,
+) {
+    for gateway in gateways.iter_mut() {
+        if let Some(basic_gw) = basic_gw
+            .iter()
+            .find(|bgw| bgw.ed25519_identity_pubkey == gateway.identity().to_base58_string())
+        {
+            gateway.performance = Some(basic_gw.performance.round_to_integer() as f64 / 100.0);
+        } else {
+            error!(
+                "Failed to find skimmed node for gateway with identity {}",
+                gateway.identity()
+            );
         }
     }
 }
