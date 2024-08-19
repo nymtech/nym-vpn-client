@@ -140,6 +140,6 @@
     <string name="vpn_permission_message">VPN bağlantı talebini yeniden bağlanmayı deneyerek onaylayın.</string>
     <string name="view_system_settings">Sistem ayarlarını görüntüle</string>
     <string name="try_reconnecting">Yeniden bağlanmayı deneyin</string>
-    <string name="vpn_settings">VPN ayarları</string>
-    <string name="try_again">ve tekrar deneyin</string>
+    <string name="vpn_settings">VPN sistem ayarları</string>
+    <string name="try_again">ve yeniden bağlanmayı deneyin</string>
 </resources>
