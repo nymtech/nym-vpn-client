@@ -139,4 +139,5 @@
     <string name="gateway_modal_description">Nous déduisons l\'emplacement des serveurs sur la base de leurs adresses IP, mais l\'emplacement réel peut varier légèrement.</string>
     <string name="gateway_locations_title">Détails sur l\'emplacement des serveurs</string>
     <string name="entry_location_selector">Sélecteur d\'emplacement d\'entrée</string>
+    <string name="appearance">Apparence</string>
 </resources>
