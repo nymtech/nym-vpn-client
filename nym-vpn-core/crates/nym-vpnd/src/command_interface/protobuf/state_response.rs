@@ -3,15 +3,15 @@
 
 use crate::service::{ConnectedStateDetails, VpnServiceStatusResult};
 use nym_vpn_proto::{
-    connected_state_details::ConnectedStateDetailsEnum, ConnectionStatus, Error as ProtoError,
-    MixConnectedStateDetails, StatusResponse, WgConnectedStateDetails,
+    connected_state_details, ConnectionStatus, Error as ProtoError, MixConnectedStateDetails,
+    StatusResponse, WgConnectedStateDetails,
 };
 
-impl From<ConnectedStateDetails> for ConnectedStateDetailsEnum {
+impl From<ConnectedStateDetails> for connected_state_details::ConnectedStateDetails {
     fn from(value: ConnectedStateDetails) -> Self {
         match value {
             ConnectedStateDetails::Mix(details) => {
-                ConnectedStateDetailsEnum::Mix(MixConnectedStateDetails {
+                connected_state_details::ConnectedStateDetails::Mix(MixConnectedStateDetails {
                     nym_address: Some(nym_vpn_proto::Address {
                         nym_address: details.nym_address.to_string(),
                     }),
@@ -23,7 +23,7 @@ impl From<ConnectedStateDetails> for ConnectedStateDetailsEnum {
                 })
             }
             ConnectedStateDetails::Wg(details) => {
-                ConnectedStateDetailsEnum::Wg(WgConnectedStateDetails {
+                connected_state_details::ConnectedStateDetails::Wg(WgConnectedStateDetails {
                     entry_ipv4: details.entry_ipv4.to_string(),
                     exit_ipv4: details.exit_ipv4.to_string(),
                 })
@@ -51,10 +51,12 @@ impl From<VpnServiceStatusResult> for StatusResponse {
                     exit_gateway: Some(nym_vpn_proto::Gateway {
                         id: conn_details.exit_gateway.to_string(),
                     }),
-                    specific_details: Some(nym_vpn_proto::ConnectedStateDetails {
-                        connected_state_details_enum: Some(ConnectedStateDetailsEnum::from(
-                            conn_details.specific_details,
-                        )),
+                    protocol_details: Some(nym_vpn_proto::ConnectedStateDetails {
+                        connected_state_details: Some(
+                            connected_state_details::ConnectedStateDetails::from(
+                                conn_details.specific_details,
+                            ),
+                        ),
                     }),
                     since: Some(timestamp),
                 });

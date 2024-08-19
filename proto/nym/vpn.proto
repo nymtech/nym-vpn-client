@@ -49,7 +49,7 @@ message WgConnectedStateDetails {
 }
 
 message ConnectedStateDetails {
-  oneof connected_state_details_enum {
+  oneof connected_state_details {
     MixConnectedStateDetails mix = 1;
     WgConnectedStateDetails wg = 2;
   }
@@ -108,7 +108,7 @@ import "google/protobuf/timestamp.proto";
 message ConnectionDetails {
   Gateway entry_gateway = 1;
   Gateway exit_gateway = 2;
-  ConnectedStateDetails specific_details = 3;
+  ConnectedStateDetails protocol_details = 3;
   google.protobuf.Timestamp since = 4;
 }
 
