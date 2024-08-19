@@ -4,7 +4,9 @@ use crate::envi;
 use crate::fs::path::LOG_DIR_PATH;
 use anyhow::{anyhow, Result};
 use tracing_appender::{non_blocking::WorkerGuard, rolling};
+use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::fmt::writer::MakeWriterExt;
+use tracing_subscriber::EnvFilter;
 
 const ENV_LOG_FILE: &str = "LOG_FILE";
 const LOG_FILE: &str = "app.log";
@@ -32,12 +34,11 @@ fn rotate_log_file(log_dir: PathBuf) -> Result<()> {
 }
 
 pub async fn setup_tracing(log_file: bool) -> Result<Option<WorkerGuard>> {
-    let filter = tracing_subscriber::EnvFilter::builder()
-        .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
-        .from_env()
-        .unwrap()
-        .add_directive("hyper::proto=info".parse().unwrap())
-        .add_directive("netlink_proto=info".parse().unwrap());
+    let filter = EnvFilter::builder()
+        .with_default_directive(LevelFilter::INFO.into())
+        .from_env()?
+        .add_directive("hyper::proto=info".parse()?)
+        .add_directive("netlink_proto=info".parse()?);
 
     if log_file || envi::is_truthy(ENV_LOG_FILE) {
         let log_dir = LOG_DIR_PATH

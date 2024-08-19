@@ -135,12 +135,9 @@ async fn main() -> Result<()> {
             app_win.restore_size(&db)?;
             app_win.restore_position(&db)?;
 
-            let env_nosplash = envi::is_truthy(ENV_APP_NOSPLASH);
-            trace!("env APP_NOSPLASH: {}", env_nosplash);
-
             // if splash-screen is disabled, remove it and show
             // the main window without waiting for frontend signal
-            if cli.nosplash || env_nosplash {
+            if cli.nosplash || envi::is_truthy(ENV_APP_NOSPLASH) {
                 debug!("splash screen disabled, showing main window");
                 app_win.no_splash();
             }
