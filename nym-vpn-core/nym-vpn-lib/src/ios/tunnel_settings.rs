@@ -55,14 +55,18 @@ pub fn create(
                             subnet_mask: addr_range.mask(),
                             gateway: None,
                         })
-                        .chain([Ipv4Route::Default])
+                        .chain([Ipv4Route::Specific {
+                            destination: Ipv4Addr::UNSPECIFIED,
+                            subnet_mask: Ipv4Addr::UNSPECIFIED,
+                            gateway: None,
+                        }])
                         .collect(),
                 );
-                ipv4_settings.excluded_routes = Some(vec![Ipv4Route::Specific {
-                    destination: entry_server_ipv4,
-                    subnet_mask: Ipv4Addr::BROADCAST,
-                    gateway: None,
-                }]);
+                // ipv4_settings.excluded_routes = Some(vec![Ipv4Route::Specific {
+                //     destination: entry_server_ipv4,
+                //     subnet_mask: Ipv4Addr::BROADCAST,
+                //     gateway: None,
+                // }]);
             }
         }
         IpAddr::V6(entry_server_ipv6) => {
@@ -75,14 +79,18 @@ pub fn create(
                             prefix_length: addr_range.prefix(),
                             gateway: None,
                         })
-                        .chain([Ipv6Route::Default])
+                        .chain([Ipv6Route::Specific {
+                            destination: Ipv6Addr::UNSPECIFIED,
+                            prefix_length: 0,
+                            gateway: None,
+                        }])
                         .collect(),
                 );
-                ipv6_settings.excluded_routes = Some(vec![Ipv6Route::Specific {
-                    destination: entry_server_ipv6,
-                    prefix_length: 128,
-                    gateway: None,
-                }]);
+                // ipv6_settings.excluded_routes = Some(vec![Ipv6Route::Specific {
+                //     destination: entry_server_ipv6,
+                //     prefix_length: 128,
+                //     gateway: None,
+                // }]);
             }
         }
     }
