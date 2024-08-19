@@ -1,1 +1,32 @@
-{}
+{
+  "unknown": "「不明なエラー」",
+  "internal": "内部エラー",
+  "grpc": "Internal gRPCエラー",
+  "connection": {
+    "timeout": "接続タイムアウト",
+    "gateway-lookup": "gatewayの検索に失敗しました",
+    "bad-country-combination": "サポートされていない国の組み合わせです。エントリーまたは出口の国を変更してください。",
+    "no-valid-credential": "有効なクレデンシャルがありません。クレデンシャルを追加してください。"
+  },
+  "credential": {
+    "invalid": "無効なクレデンシャル",
+    "expired": "期限切れのクレデンシャル",
+    "storage": "内部エラーのため、クレデンシャルのインポートに失敗しました",
+    "deserialize": "クレデンシャルのデシリアライズに失敗しました",
+    "no-duplicate": "このクレデンシャルはすでに使用されています",
+    "vpn-running": "VPNに接続している間はクレデンシャルをインポートできません"
+  },
+  "countries-request": {
+    "entry": "利用可能なエントリーノードの国を取得できませんでした",
+    "exit": "利用可能な出口ノードの国を取得できませんでした"
+  },
+  "out-of-bandwidth": "帯域幅の割り当てを超えました",
+  "exit-node": {
+    "routing": "出口ノードが{{protocol}}トラフィックをルーティングしていません",
+    "ping": "出口ノードの{{protocol}}トラフィックのPingに失敗しました"
+  },
+  "daemon": {
+    "not-connected": "デーモンに接続されていません"
+  },
+  "entry-node-routing": "エントリーノードがトラフィックをルーティングしていません（インターネット接続がダウンしている可能性があります）"
+}
