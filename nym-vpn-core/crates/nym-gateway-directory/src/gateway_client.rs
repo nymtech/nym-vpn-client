@@ -12,7 +12,7 @@ use crate::{
 };
 use nym_sdk::{mixnet::Recipient, UserAgent};
 use nym_topology::IntoGatewayNode;
-use nym_validator_client::{models::DescribedGateway, NymApiClient};
+use nym_validator_client::{models::DescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
 use nym_vpn_api_client::VpnApiClientExt;
 use std::{fmt, net::IpAddr, time::Duration};
 use tracing::{debug, error, info};
@@ -139,11 +139,19 @@ impl GatewayClient {
     }
 
     async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {
-        info!("Fetching gateways from nym-api...");
+        info!("Fetching described gateways from nym-api...");
         self.api_client
             .get_cached_described_gateways()
             .await
-            .map_err(|source| Error::FailedToLookupDescribedGateways { source })
+            .map_err(Error::FailedToLookupDescribedGateways)
+    }
+
+    async fn lookup_skimmed_gateways(&self) -> Result<Vec<SkimmedNode>> {
+        info!("Fetching skimmed gateways from nym-api...");
+        self.api_client
+            .get_basic_gateways(None)
+            .await
+            .map_err(Error::FailedToLookupSkimmedGateways)
     }
 
     pub async fn lookup_low_latency_entry_gateway(&self) -> Result<Gateway> {
@@ -181,7 +189,7 @@ impl GatewayClient {
     }
 
     pub async fn lookup_all_gateways_from_nym_api(&self) -> Result<GatewayList> {
-        let gateways = self
+        let mut gateways = self
             .lookup_described_gateways()
             .await?
             .into_iter()
@@ -190,7 +198,9 @@ impl GatewayClient {
                     .inspect_err(|err| error!("Failed to parse gateway: {err}"))
                     .ok()
             })
-            .collect();
+            .collect::<Vec<_>>();
+        let skimmed_gateways = self.lookup_skimmed_gateways().await?;
+        append_performance(&mut gateways, skimmed_gateways);
         Ok(GatewayList::new(gateways))
     }
 

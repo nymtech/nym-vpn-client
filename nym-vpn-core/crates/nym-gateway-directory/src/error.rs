@@ -33,10 +33,11 @@ pub enum Error {
     #[error("resolved hostname {0} but no IP address found")]
     ResolvedHostnameButNoIp(String),
 
-    #[error("failed to lookup described gateways: {source}")]
-    FailedToLookupDescribedGateways {
-        source: nym_validator_client::ValidatorClientError,
-    },
+    #[error("failed to lookup described gateways: {0}")]
+    FailedToLookupDescribedGateways(#[source] nym_validator_client::ValidatorClientError),
+
+    #[error("failed to lookup skimmed gateways: {0}")]
+    FailedToLookupSkimmedGateways(#[source] nym_validator_client::ValidatorClientError),
 
     #[error("requested gateway not found in the remote list: {0}")]
     RequestedGatewayIdNotFound(String),
