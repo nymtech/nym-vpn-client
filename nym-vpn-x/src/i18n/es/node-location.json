@@ -11,6 +11,7 @@
     "description": "Inferimos la ubicación de los servidores basándonos en sus direcciones IP, pero las ubicaciones reales pueden variar ligeramente."
   },
   "location-not-available": {
-    "entry": "Ubicación de entrada seleccionada no disponible, cambiada a {{location}}"
+    "entry": "Ubicación de entrada seleccionada no disponible, cambiada a {{location}}",
+    "exit": "Ubicación de salida seleccionada no disponible, cambiada a {{location}}"
   }
 }
