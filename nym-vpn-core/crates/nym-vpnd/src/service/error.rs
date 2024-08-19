@@ -186,11 +186,6 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
                         reason: source.to_string(),
                     }
                 }
-                nym_vpn_lib::error::MixnetError::FailedToConnectToMixnetClientCore { source } => {
-                    ConnectionFailedError::FailedToConnectToMixnet {
-                        reason: source.to_string(),
-                    }
-                }
                 nym_vpn_lib::error::MixnetError::EntryGateway { gateway_id, source } => {
                     ConnectionFailedError::FailedToConnectToMixnetEntryGateway {
                         gateway_id: gateway_id.clone(),
