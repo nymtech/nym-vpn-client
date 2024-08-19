@@ -4881,6 +4881,7 @@ dependencies = [
  "serde",
  "serde_json",
  "signature 2.2.0",
+ "sqlx",
  "talpid-core",
  "talpid-platform-metadata",
  "talpid-routing",
