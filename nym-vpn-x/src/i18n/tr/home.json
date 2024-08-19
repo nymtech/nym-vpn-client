@@ -9,7 +9,7 @@
     "unknown": "Tanımlanamayan"
   },
   "last-hop": "Çıkış lokasyonu",
-  "first-hop": "İlk hop",
+  "first-hop": "Giriş lokasyonu",
   "connecting-message": "Bağlantı kuruluyor",
   "connection-time": "Bağlantı süresi",
   "select-node-title": "-e bağlan",
