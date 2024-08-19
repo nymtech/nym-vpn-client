@@ -120,12 +120,6 @@ pub enum CheckImportedCredentialError {
     },
 
     #[error(transparent)]
-    VerifyCredentialError {
-        #[from]
-        source: VerifyCredentialError,
-    },
-
-    #[error(transparent)]
     NyxdClientError {
         #[from]
         source: CredentialNyxdClientError,
@@ -150,19 +144,4 @@ pub async fn check_imported_credential(
         )?;
 
     Ok(())
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum VerifyCredentialError {
-    #[error("failed to obtain aggregate key")]
-    FailedToObtainAggregateVerificationKey(nym_credentials_pre_ecash::Error),
-
-    #[error("failed to prepare credential for spending")]
-    FailedToPrepareCredentialForSpending(nym_credentials_pre_ecash::Error),
-
-    #[error("missing bandwidth type attribute")]
-    MissingBandwidthTypeAttribute,
-
-    #[error("failed to verify credential")]
-    FailedToVerifyCredential,
 }
