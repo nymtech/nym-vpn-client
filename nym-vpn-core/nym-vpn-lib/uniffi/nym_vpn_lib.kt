@@ -1821,6 +1821,39 @@ public object FfiConverterTypeVPNConfig: FfiConverterRustBuffer<VpnConfig> {
 
 
 
+data class WireguardConnectionInfo (
+    var `gatewayId`: NodeIdentity, 
+    var `publicKey`: kotlin.String, 
+    var `privateIpv4`: Ipv4Addr
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeWireguardConnectionInfo: FfiConverterRustBuffer<WireguardConnectionInfo> {
+    override fun read(buf: ByteBuffer): WireguardConnectionInfo {
+        return WireguardConnectionInfo(
+            FfiConverterTypeNodeIdentity.read(buf),
+            FfiConverterString.read(buf),
+            FfiConverterTypeIpv4Addr.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: WireguardConnectionInfo) = (
+            FfiConverterTypeNodeIdentity.allocationSize(value.`gatewayId`) +
+            FfiConverterString.allocationSize(value.`publicKey`) +
+            FfiConverterTypeIpv4Addr.allocationSize(value.`privateIpv4`)
+    )
+
+    override fun write(value: WireguardConnectionInfo, buf: ByteBuffer) {
+            FfiConverterTypeNodeIdentity.write(value.`gatewayId`, buf)
+            FfiConverterString.write(value.`publicKey`, buf)
+            FfiConverterTypeIpv4Addr.write(value.`privateIpv4`, buf)
+    }
+}
+
+
+
 sealed class BandwidthStatus {
     
     object NoBandwidth : BandwidthStatus()
@@ -2392,9 +2425,15 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
 
 sealed class NymVpnStatus {
     
-    data class ConnectionInfo(
+    data class MixnetConnectionInfo(
         val `mixnetConnectionInfo`: MixConnectionInfo, 
         val `mixnetExitConnectionInfo`: MixExitConnectionInfo) : NymVpnStatus() {
+        companion object
+    }
+    
+    data class WireguardConnectionInfo(
+        val `entryConnectionInfo`: WireguardConnectionInfo, 
+        val `exitConnectionInfo`: WireguardConnectionInfo) : NymVpnStatus() {
         companion object
     }
     
@@ -2406,16 +2445,20 @@ sealed class NymVpnStatus {
 public object FfiConverterTypeNymVpnStatus : FfiConverterRustBuffer<NymVpnStatus>{
     override fun read(buf: ByteBuffer): NymVpnStatus {
         return when(buf.getInt()) {
-            1 -> NymVpnStatus.ConnectionInfo(
+            1 -> NymVpnStatus.MixnetConnectionInfo(
                 FfiConverterTypeMixConnectionInfo.read(buf),
                 FfiConverterTypeMixExitConnectionInfo.read(buf),
+                )
+            2 -> NymVpnStatus.WireguardConnectionInfo(
+                FfiConverterTypeWireguardConnectionInfo.read(buf),
+                FfiConverterTypeWireguardConnectionInfo.read(buf),
                 )
             else -> throw RuntimeException("invalid enum value, something is very wrong!!")
         }
     }
 
     override fun allocationSize(value: NymVpnStatus) = when(value) {
-        is NymVpnStatus.ConnectionInfo -> {
+        is NymVpnStatus.MixnetConnectionInfo -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -2423,14 +2466,28 @@ public object FfiConverterTypeNymVpnStatus : FfiConverterRustBuffer<NymVpnStatus
                 + FfiConverterTypeMixExitConnectionInfo.allocationSize(value.`mixnetExitConnectionInfo`)
             )
         }
+        is NymVpnStatus.WireguardConnectionInfo -> {
+            // Add the size for the Int that specifies the variant plus the size needed for all fields
+            (
+                4UL
+                + FfiConverterTypeWireguardConnectionInfo.allocationSize(value.`entryConnectionInfo`)
+                + FfiConverterTypeWireguardConnectionInfo.allocationSize(value.`exitConnectionInfo`)
+            )
+        }
     }
 
     override fun write(value: NymVpnStatus, buf: ByteBuffer) {
         when(value) {
-            is NymVpnStatus.ConnectionInfo -> {
+            is NymVpnStatus.MixnetConnectionInfo -> {
                 buf.putInt(1)
                 FfiConverterTypeMixConnectionInfo.write(value.`mixnetConnectionInfo`, buf)
                 FfiConverterTypeMixExitConnectionInfo.write(value.`mixnetExitConnectionInfo`, buf)
+                Unit
+            }
+            is NymVpnStatus.WireguardConnectionInfo -> {
+                buf.putInt(2)
+                FfiConverterTypeWireguardConnectionInfo.write(value.`entryConnectionInfo`, buf)
+                FfiConverterTypeWireguardConnectionInfo.write(value.`exitConnectionInfo`, buf)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -2648,6 +2705,16 @@ public object FfiConverterSequenceTypeLocation: FfiConverterRustBuffer<List<Loca
  */
 public typealias IpPair = kotlin.String
 public typealias FfiConverterTypeIpPair = FfiConverterString
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ * It's also what we have an external type that references a custom type.
+ */
+public typealias Ipv4Addr = kotlin.String
+public typealias FfiConverterTypeIpv4Addr = FfiConverterString
 
 
 
