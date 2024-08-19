@@ -11,6 +11,8 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.module.ApplicationScope
 import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
+import net.nymtech.nymvpn.util.extensions.startTunnelFromBackground
+import net.nymtech.nymvpn.util.extensions.stopTunnelFromBackground
 import net.nymtech.vpn.util.Action
 import timber.log.Timber
 import javax.inject.Inject
@@ -39,14 +41,13 @@ class ShortcutActivity : ComponentActivity() {
 				settingsRepository.isApplicationShortcutsEnabled()
 			}
 			if (enabled) {
+				val context = this@ShortcutActivity
 				when (intent.action) {
 					Action.START.name -> {
-						tunnelManager.start().onFailure {
-							Timber.w(it)
-						}
+						context.startTunnelFromBackground()
 					}
 					Action.STOP.name -> {
-						tunnelManager.stop()
+						context.stopTunnelFromBackground()
 					}
 				}
 			} else {
