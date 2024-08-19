@@ -124,12 +124,3 @@ pub(super) fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient, CredentialNyxd
     NyxdClient::connect(config, nyxd_url.as_str())
         .map_err(CredentialNyxdClientError::FailedToConnectUsingNyxdClient)
 }
-
-#[derive(Debug, thiserror::Error)]
-pub enum CredentialCoconutApiClientError {
-    #[error("failed to query contract")]
-    FailedToQueryContract,
-
-    #[error("failed to fetch coconut api clients: {0}")]
-    FailedToFetchCoconutApiClients(nym_validator_client::coconut::CoconutApiError),
-}

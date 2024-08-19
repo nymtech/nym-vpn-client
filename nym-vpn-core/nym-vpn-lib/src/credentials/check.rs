@@ -10,7 +10,7 @@ use tracing::debug;
 
 use super::{
     helpers::{get_credentials_store, get_nyxd_client},
-    CredentialCoconutApiClientError, CredentialNyxdClientError, CredentialStoreError,
+    CredentialNyxdClientError, CredentialStoreError,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -127,12 +127,6 @@ pub enum CheckImportedCredentialError {
     NyxdClientError {
         #[from]
         source: CredentialNyxdClientError,
-    },
-
-    #[error(transparent)]
-    CoconutApiClientError {
-        #[from]
-        source: CredentialCoconutApiClientError,
     },
 }
 
