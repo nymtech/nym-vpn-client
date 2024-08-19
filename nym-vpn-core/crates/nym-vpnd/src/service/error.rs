@@ -1,9 +1,9 @@
 use std::path::PathBuf;
 
 use nym_vpn_lib::{
-    credential_storage_fork::error::StorageError,
+    credential_storage_pre_ecash::error::StorageError,
     credentials::ImportCredentialError as VpnLibImportCredentialError,
-    error::GatewayDirectoryError, id_fork::NymIdError,
+    error::GatewayDirectoryError, id_pre_ecash::NymIdError,
 };
 use time::OffsetDateTime;
 use tracing::error;

@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use nym_credential_storage_fork::persistent_storage::PersistentStorage;
+use nym_credential_storage_pre_ecash::persistent_storage::PersistentStorage;
 
 use nym_sdk::{mixnet::StoragePaths, NymNetworkDetails};
 use nym_validator_client::{
@@ -29,7 +29,7 @@ pub enum CredentialStoreError {
     #[error("failed to initialize persistent storage: {path}: {source}")]
     FailedToInitializePersistentStorage {
         path: PathBuf,
-        source: nym_credential_storage_fork::error::StorageError,
+        source: nym_credential_storage_pre_ecash::error::StorageError,
     },
 
     #[error("failed to read credential store metadata: {path}: {source}")]
@@ -118,7 +118,7 @@ pub(super) async fn get_credentials_store(
         fork_credential_db_path.display()
     );
 
-    let storage = nym_credential_storage_fork::persistent_storage::PersistentStorage::init(
+    let storage = nym_credential_storage_pre_ecash::persistent_storage::PersistentStorage::init(
         fork_credential_db_path.clone(),
     )
     .await

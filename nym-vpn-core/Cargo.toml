@@ -120,7 +120,7 @@ nym-wireguard-types = { git = "https://github.com/nymtech/nym", rev = "dff82f9" 
 
 # Pointing to before ecash was merged, for backwards compatibility and migration period
 
-nym-credential-storage-fork = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-credential-storage" }
-nym-credentials-fork = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-credentials" }
-nym-id-fork = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-id" }
-nym-bandwidth-controller-fork = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-bandwidth-controller" }
+nym-credential-storage-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-credential-storage" }
+nym-credentials-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-credentials" }
+nym-id-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-id" }
+nym-bandwidth-controller-pre-ecash = { git = "https://github.com/nymtech/nym", rev = "3f922cc0", package = "nym-bandwidth-controller" }

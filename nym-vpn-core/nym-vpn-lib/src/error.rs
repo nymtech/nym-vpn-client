@@ -152,7 +152,7 @@ pub enum Error {
     #[error("failed to import credential to: {location}: {source}")]
     FailedToImportCredential {
         location: PathBuf,
-        source: nym_id_fork::NymIdError,
+        source: nym_id_pre_ecash::NymIdError,
     },
 
     #[error("failed decode base58 credential: {source}")]

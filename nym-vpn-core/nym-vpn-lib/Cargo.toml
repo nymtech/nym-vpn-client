@@ -58,15 +58,15 @@ talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = 
 talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }
 
 nym-authenticator-requests.workspace = true
-nym-bandwidth-controller-fork.workspace = true
+nym-bandwidth-controller-pre-ecash.workspace = true
 nym-bin-common.workspace = true
 nym-client-core.workspace = true
 nym-config.workspace = true
-nym-credential-storage-fork.workspace = true
-nym-credentials-fork.workspace = true
+nym-credential-storage-pre-ecash.workspace = true
+nym-credentials-pre-ecash.workspace = true
 nym-crypto.workspace = true
 nym-explorer-client.workspace = true
-nym-id-fork.workspace = true
+nym-id-pre-ecash.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-node-requests.workspace = true
 nym-pemstore.workspace = true

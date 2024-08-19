@@ -4,7 +4,7 @@
 use crate::platform::{uniffi_set_listener_status, RUNTIME};
 use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
 use crate::NymVpnStatusMessage;
-use nym_bandwidth_controller_fork::BandwidthStatusMessage;
+use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage;
 use nym_connection_monitor::ConnectionMonitorStatus;
 use nym_task::manager::{SentStatus, TaskStatus};
 use nym_task::StatusReceiver;
