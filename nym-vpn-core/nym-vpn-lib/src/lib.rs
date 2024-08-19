@@ -617,10 +617,6 @@ impl SpecificVpn {
                     Error::FirewallError(err.to_string())
                 })?;
             }
-            #[cfg(target_os = "ios")]
-            AllTunnelsSetup::WgIos(_two_hop_tunnel) => {
-                wait_for_interrupt(&mut task_manager).await;
-            }
         }
 
         Ok(())
@@ -747,11 +743,6 @@ impl SpecificVpn {
                     }
                 })?;
                 result
-            }
-            #[cfg(target_os = "ios")]
-            AllTunnelsSetup::WgIos(_) => {
-                wait_for_interrupt(&mut task_manager).await;
-                Ok(())
             }
         }
     }
