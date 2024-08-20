@@ -50,10 +50,15 @@ jobs:
         run: |
           ./scripts/create-nym-vpn-core-release.sh
 
-      - name: Push the new branch and tags
+      - name: Run bump version script
         run: |
-          git push origin ${{ env.branch_name }}
-          git push --tags
+          ./scripts/bump-nym-vpn-core-to-next-dev-version.sh
+
+      - name: Commit bumped version
+        run: |
+          git add .
+          git commit -m "Bump version to next dev version"
+          # git push origin ${{ env.branch_name }}
 
       - name: Open a Pull Request
         uses: peter-evans/create-pull-request@v5
@@ -62,22 +67,23 @@ jobs:
           title: "Release: ${{ env.branch_name }}"
           body: "Automated PR for the release."
 
-      - name: Run bump version script
+      - name: Push the new branch and tags
         run: |
-          ./scripts/bump-nym-vpn-core-to-next-dev-version.sh
-
-      - name: Commit and push the bumped version
-        run: |
-          git add .
-          git commit -m "Bump version to next dev version"
           git push origin ${{ env.branch_name }}
+          git push --tags
 
-      - name: Update PR with bumped version
-        uses: peter-evans/create-pull-request@v5
-        with:
-          branch: ${{ env.branch_name }}
-          title: "Release: ${{ env.branch_name }} (Bumped)"
-          body: "Automated PR with the bumped version."
-          committer: "GitHub <noreply@github.com>"
-          author: "GitHub Actions <actions@github.com>"
+      # - name: Commit and push the bumped version
+      #   run: |
+      #     git add .
+      #     git commit -m "Bump version to next dev version"
+      #     git push origin ${{ env.branch_name }}
+
+      # - name: Update PR with bumped version
+      #   uses: peter-evans/create-pull-request@v5
+      #   with:
+      #     branch: ${{ env.branch_name }}
+      #     title: "Release: ${{ env.branch_name }} (Bumped)"
+      #     body: "Automated PR with the bumped version."
+      #     committer: "GitHub <noreply@github.com>"
+      #     author: "GitHub Actions <actions@github.com>"
 
