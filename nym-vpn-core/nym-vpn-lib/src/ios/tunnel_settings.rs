@@ -2,17 +2,16 @@
 
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-use ipnetwork::{Ipv4Network, Ipv6Network};
+use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use itertools::{Either, Itertools};
 
 /// Create tunnel settings for iOS packet tunnel.
 ///
-/// * `interface_addresses` - a list of IP addresses to assign on tunnel interface
-/// * `remote_endpoint` - remote endpoint that will be excluded from the tunnel
+/// * `interface_addresses` - a list of IP addresses to assign on tunnel interface.
+/// * `dns_servers` - a list of DNS servers to assign on interface.
 /// * `mtu` - tunnel device MTU.
 pub fn create(
-    interface_addresses: Vec<IpAddr>,
-    remote_endpoint: IpAddr,
+    interface_addresses: Vec<IpNetwork>,
     dns_servers: Vec<IpAddr>,
     mtu: u16,
 ) -> TunnelNetworkSettings {
@@ -23,11 +22,12 @@ pub fn create(
     let (ipv4_interface_addrs, ipv6_interface_addrs): (Vec<_>, Vec<_>) = interface_addresses
         .into_iter()
         .partition_map(|addr| match addr {
-            IpAddr::V4(address) => Either::Left(
-                Ipv4Network::new(address, 32).expect("failed to create ipv4 addr with /32 prefix"),
+            IpNetwork::V4(address) => Either::Left(
+                Ipv4Network::new(address.ip(), address.prefix())
+                    .expect("failed to create ipv4 addr with /32 prefix"),
             ),
-            IpAddr::V6(address) => Either::Right(
-                Ipv6Network::new(address, 128)
+            IpNetwork::V6(address) => Either::Right(
+                Ipv6Network::new(address.ip(), address.prefix())
                     .expect("failed to create ipv6 addr with /128 prefix"),
             ),
         });
@@ -40,59 +40,41 @@ pub fn create(
         ipv6_settings = Some(Ipv6Settings::new(ipv6_interface_addrs.clone()));
     }
 
-    // Add routes:
-    //
-    // - Add default route to pass all traffic over the tunnel.
-    // - Exclude entry server IP to pass entry traffic outside of tunnel.
-    match remote_endpoint {
-        IpAddr::V4(entry_server_ipv4) => {
-            if let Some(ipv4_settings) = ipv4_settings.as_mut() {
-                ipv4_settings.included_routes = Some(
-                    ipv4_interface_addrs
-                        .into_iter()
-                        .map(|addr_range| Ipv4Route::Specific {
-                            destination: addr_range.network(),
-                            subnet_mask: addr_range.mask(),
-                            gateway: None,
-                        })
-                        .chain([Ipv4Route::Specific {
-                            destination: Ipv4Addr::UNSPECIFIED,
-                            subnet_mask: Ipv4Addr::UNSPECIFIED,
-                            gateway: None,
-                        }])
-                        .collect(),
-                );
-                // ipv4_settings.excluded_routes = Some(vec![Ipv4Route::Specific {
-                //     destination: entry_server_ipv4,
-                //     subnet_mask: Ipv4Addr::BROADCAST,
-                //     gateway: None,
-                // }]);
-            }
-        }
-        IpAddr::V6(entry_server_ipv6) => {
-            if let Some(ipv6_settings) = ipv6_settings.as_mut() {
-                ipv6_settings.included_routes = Some(
-                    ipv6_interface_addrs
-                        .into_iter()
-                        .map(|addr_range| Ipv6Route::Specific {
-                            destination: addr_range.network(),
-                            prefix_length: addr_range.prefix(),
-                            gateway: None,
-                        })
-                        .chain([Ipv6Route::Specific {
-                            destination: Ipv6Addr::UNSPECIFIED,
-                            prefix_length: 0,
-                            gateway: None,
-                        }])
-                        .collect(),
-                );
-                // ipv6_settings.excluded_routes = Some(vec![Ipv6Route::Specific {
-                //     destination: entry_server_ipv6,
-                //     prefix_length: 128,
-                //     gateway: None,
-                // }]);
-            }
-        }
+    // Add routes
+    if let Some(ipv4_settings) = ipv4_settings.as_mut() {
+        ipv4_settings.included_routes = Some(
+            ipv4_interface_addrs
+                .into_iter()
+                .map(|addr_range| Ipv4Route::Specific {
+                    destination: addr_range.network(),
+                    subnet_mask: addr_range.mask(),
+                    gateway: Some(addr_range.ip()),
+                })
+                .chain([Ipv4Route::Specific {
+                    destination: Ipv4Addr::UNSPECIFIED,
+                    subnet_mask: Ipv4Addr::UNSPECIFIED,
+                    gateway: None,
+                }])
+                .collect(),
+        );
+    }
+
+    if let Some(ipv6_settings) = ipv6_settings.as_mut() {
+        ipv6_settings.included_routes = Some(
+            ipv6_interface_addrs
+                .into_iter()
+                .map(|addr_range| Ipv6Route::Specific {
+                    destination: addr_range.network(),
+                    prefix_length: addr_range.prefix(),
+                    gateway: Some(addr_range.ip()),
+                })
+                .chain([Ipv6Route::Specific {
+                    destination: Ipv6Addr::UNSPECIFIED,
+                    prefix_length: 0,
+                    gateway: None,
+                }])
+                .collect(),
+        );
     }
 
     TunnelNetworkSettings {

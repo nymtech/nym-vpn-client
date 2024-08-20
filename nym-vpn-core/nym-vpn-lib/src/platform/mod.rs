@@ -25,6 +25,8 @@ use std::time::SystemTime;
 use talpid_core::mpsc::Sender;
 use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
+use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use url::Url;
 
 #[cfg(target_os = "android")]
@@ -46,8 +48,25 @@ lazy_static! {
 use crate::ios::two_hop_tunnel::TwoHopTunnel;
 
 #[cfg(target_os = "ios")]
+struct ShutdownHandle {
+    join_handle: JoinHandle<()>,
+    shutdown_token: CancellationToken,
+}
+
+#[cfg(target_os = "ios")]
+impl ShutdownHandle {
+    async fn cancel_and_wait(self) {
+        self.shutdown_token.cancel();
+        if let Err(e) = self.join_handle.await {
+            tracing::warn!("Failed to join on shutdown handle: {}", e);
+        }
+    }
+}
+
+#[cfg(target_os = "ios")]
 lazy_static! {
-    static ref TWO_HOP_TUNNEL: std::sync::Mutex<Option<TwoHopTunnel>> = std::sync::Mutex::new(None);
+    static ref TUNNEL_SHUTDOWN_HANDLE: std::sync::Mutex<Option<ShutdownHandle>> =
+        std::sync::Mutex::new(None);
 }
 
 async fn set_shutdown_handle(handle: Arc<Notify>) -> Result<(), FFIError> {
@@ -227,17 +246,28 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
         RUNTIME.block_on(async move {
             tracing::debug!("Starting VPN tunnel...");
 
-            match TwoHopTunnel::start(config.tun_provider).await {
-                Ok(two_hop_tunnel) => {
-                    *TWO_HOP_TUNNEL.lock().unwrap() = Some(two_hop_tunnel);
-                    tracing::debug!("Tunnel is up...");
-                    uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
+            let shutdown_token = CancellationToken::new();
+            let cloned_shutdown_token = shutdown_token.clone();
+            let join_handle = tokio::spawn(async move {
+                // todo: set this only when two hop tunnel is actually up.
+                uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
+
+                match TwoHopTunnel::start(config.tun_provider, cloned_shutdown_token).await {
+                    Ok(()) => {
+                        tracing::debug!("Tunnel has finished execution");
+                    }
+                    Err(e) => {
+                        tracing::error!("Tunnel exited with error: {}", e);
+                    }
                 }
-                Err(e) => {
-                    tracing::error!("Failed to start the tunnel: {}", e);
-                    uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-                }
-            }
+
+                uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+            });
+
+            *TUNNEL_SHUTDOWN_HANDLE.lock().unwrap() = Some(ShutdownHandle {
+                join_handle,
+                shutdown_token,
+            });
         });
 
         Ok(())
@@ -339,7 +369,19 @@ pub fn stopVPN() -> Result<(), FFIError> {
     }
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Disconnecting));
     debug!("Stopping VPN");
-    RUNTIME.block_on(stop_vpn())
+
+    #[cfg(not(target_os = "ios"))]
+    RUNTIME.block_on(stop_vpn())?;
+
+    #[cfg(target_os = "ios")]
+    RUNTIME.block_on(async move {
+        let shutdown_handle = TUNNEL_SHUTDOWN_HANDLE.lock().unwrap().take();
+        if let Some(shutdown_handle) = shutdown_handle {
+            shutdown_handle.cancel_and_wait().await;
+        }
+    });
+
+    Ok(())
 }
 
 async fn stop_vpn() -> Result<(), FFIError> {

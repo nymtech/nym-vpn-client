@@ -11,10 +11,16 @@ enum TunnelEvent {
 }
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
+    private static var defaultPathObserverContext = 0
+
     private lazy var logger = Logger(label: "MixnetTunnel")
 
     private let eventStream: AsyncStream<TunnelEvent>
     private let eventContinuation: AsyncStream<TunnelEvent>.Continuation
+
+    private let stateLock = NSLock()
+    private var defaultPathObserver: (any OsDefaultPathObserver)?
+    private var installedDefaultPathObserver = false
 
     override init() {
         LoggingSystem.bootstrap { label in
@@ -31,6 +37,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let (eventStream, eventContinuation) = AsyncStream<TunnelEvent>.makeStream();
         self.eventStream = eventStream
         self.eventContinuation = eventContinuation
+    }
+
+    deinit {
+        removeDefaultPathObserver()
     }
 
     override func startTunnel(options: [String: NSObject]? = nil) async throws {
@@ -89,10 +99,38 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 }
 
-extension PacketTunnelProvider
-{
+extension PacketTunnelProvider {
+
     func setup() {
         setupEnvironmentVariables()
+        addDefaultPathObserver()
+    }
+
+    func addDefaultPathObserver() {
+        guard !installedDefaultPathObserver else { return }
+        installedDefaultPathObserver = true
+        self.addObserver(self, forKeyPath: #keyPath(defaultPath), context: &Self.defaultPathObserverContext)
+    }
+
+    func removeDefaultPathObserver() {
+        guard installedDefaultPathObserver else { return }
+        installedDefaultPathObserver = false
+        self.removeObserver(self, forKeyPath: #keyPath(defaultPath), context: &Self.defaultPathObserverContext)
+    }
+
+    func notifyDefaultPathObserver() {
+        guard let defaultPath else { return }
+
+        let observer = stateLock.withLock { defaultPathObserver }
+        observer?.onDefaultPathChange(newPath: defaultPath.asOsDefaultPath())
+    }
+
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == #keyPath(defaultPath) && context == &Self.defaultPathObserverContext {
+            notifyDefaultPathObserver()
+        } else {
+            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+        }
     }
 
     func setupEnvironmentVariables() {
@@ -167,6 +205,12 @@ extension PacketTunnelProvider: TunnelStatusListener {
 }
 
 extension PacketTunnelProvider: OsTunProvider {
+    func setDefaultPathObserver(observer: (any OsDefaultPathObserver)?) throws {
+        stateLock.withLock {
+            defaultPathObserver = observer
+        }
+    }
+    
     func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings) async throws {
         do {
             let networkSettings = tunnelSettings.asPacketTunnelNetworkSettings()
@@ -271,6 +315,33 @@ extension Ipv6Route {
             let ipv6Route = NEIPv6Route(destinationAddress: destination, networkPrefixLength: NSNumber(value: prefixLength))
             ipv6Route.gatewayAddress = gateway
             return ipv6Route
+        }
+    }
+}
+
+extension NWPath {
+    func asOsDefaultPath() -> OsDefaultPath {
+        return OsDefaultPath(
+            status: status.asOsPathStatus(),
+            isExpensive: isExpensive,
+            isConstrained: isConstrained
+        )
+    }
+}
+
+extension NWPathStatus {
+    func asOsPathStatus() -> OsPathStatus {
+        switch self {
+        case .invalid: 
+            return .invalid
+        case .satisfiable:
+            return .satisfiable
+        case .satisfied:
+            return .satisfied
+        case .unsatisfied:
+            return .unsatisfied
+        @unknown default:
+            return .unknown(rawValue)
         }
     }
 }

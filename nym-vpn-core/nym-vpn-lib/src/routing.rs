@@ -206,6 +206,8 @@ pub async fn setup_mixnet_routing(
     config: RoutingConfig,
     ios_tun_provider: std::sync::Arc<dyn crate::ios::OSTunProvider>,
 ) -> Result<tun2::AsyncDevice> {
+    use ipnetwork::IpNetwork;
+
     let fd = crate::ios::tun::get_tun_fd().ok_or(crate::ios::Error::CannotLocateTunFd)?;
     let mut tun_config = tun2::Configuration::default();
     tun_config.raw_fd(fd);
@@ -213,10 +215,11 @@ pub async fn setup_mixnet_routing(
     let interface_addresses = config.tun_ips();
     let tunnel_settings = crate::ios::tunnel_settings::create(
         vec![
-            IpAddr::V4(interface_addresses.ipv4),
-            IpAddr::V6(interface_addresses.ipv6),
+            IpNetwork::new(IpAddr::V4(interface_addresses.ipv4), 32)
+                .expect("ipnetwork from v4/32 addr"),
+            IpNetwork::new(IpAddr::V6(interface_addresses.ipv6), 128)
+                .expect("ipnetwrok from v6/128 addr"),
         ],
-        config.entry_mixnet_gateway_ip(),
         crate::DEFAULT_DNS_SERVERS.to_vec(),
         config.mtu(),
     );
