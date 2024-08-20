@@ -37,7 +37,7 @@ run_cargo_set_version() {
     echo "Running in dry-run mode: $command --dry-run"
     $command --dry-run
 
-    ask_for_confirmation "$command"
+    ask_for_confirmation "$command" "$yes"
     cd ../..
 }
 
