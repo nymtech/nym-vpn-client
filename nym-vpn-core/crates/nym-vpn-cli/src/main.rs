@@ -153,7 +153,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
             disable_background_cover_traffic: args.disable_background_cover_traffic,
             enable_credentials_mode: args.enable_credentials_mode,
             min_mixnode_performance: args.min_mixnode_performance,
-            min_gateway_performance: None,
+            min_gateway_performance: args.min_gateway_performance,
         },
         data_path,
         gateway_config,
