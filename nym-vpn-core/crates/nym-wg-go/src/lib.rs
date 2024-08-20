@@ -1,17 +1,20 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-use ipnetwork::IpNetwork;
-use std::{fmt, net::SocketAddr};
-use uapi::UapiConfigBuilder;
-use zeroize::{Zeroize, ZeroizeOnDrop};
-
 mod logging;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub mod netstack;
 pub mod uapi;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub mod wireguard_go;
+
+use ipnetwork::IpNetwork;
+use std::{fmt, net::SocketAddr};
+
+use base64::engine::Engine;
+use zeroize::{Zeroize, ZeroizeOnDrop};
+
+use uapi::UapiConfigBuilder;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -66,11 +69,14 @@ impl PeerConfig {
     }
 }
 
-impl std::fmt::Debug for PeerConfig {
+impl fmt::Debug for PeerConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("PeerConfig")
             .field("public_key", &self.public_key)
-            .field("preshared_key", &"(hidden)")
+            .field(
+                "preshared_key",
+                &self.preshared_key.as_ref().map(|_| "(hidden)"),
+            )
             .field("endpoint", &self.endpoint)
             .field("allowed_ips", &self.allowed_ips)
             .finish()
@@ -96,7 +102,6 @@ pub struct PrivateKey(x25519_dalek::StaticSecret);
 
 impl PrivateKey {
     pub fn from_base64(s: &str) -> Option<Self> {
-        use base64::engine::Engine;
         let bytes = base64::engine::general_purpose::STANDARD.decode(s).ok()?;
         if bytes.len() == 32 {
             let mut key = [0u8; 32];
@@ -122,12 +127,11 @@ impl From<[u8; 32]> for PrivateKey {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct PublicKey(x25519_dalek::PublicKey);
 
 impl PublicKey {
     pub fn from_base64(s: &str) -> Option<Self> {
-        use base64::engine::Engine;
         let bytes = base64::engine::general_purpose::STANDARD.decode(s).ok()?;
         if bytes.len() == 32 {
             let mut key = [0u8; 32];
@@ -143,8 +147,13 @@ impl PublicKey {
     }
 
     pub fn to_base64(&self) -> String {
-        use base64::Engine;
         base64::engine::general_purpose::STANDARD.encode(self.as_bytes())
+    }
+}
+
+impl fmt::Debug for PublicKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", &self.to_base64())
     }
 }
 
