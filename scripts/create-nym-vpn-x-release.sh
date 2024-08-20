@@ -16,6 +16,16 @@ NAME=nym-vpn-x
 DIRNAME=nym-vpn-x
 YES=false
 
+# Parse arguments
+for arg in "$@"; do
+    case $arg in
+        --yes)
+        YES=true
+        shift
+        ;;
+    esac
+done
+
 cargo_version_bump() {
     cd $DIRNAME/src-tauri
     local command="cargo set-version --bump patch"
