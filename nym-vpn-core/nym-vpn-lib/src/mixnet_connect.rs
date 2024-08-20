@@ -3,8 +3,7 @@
 
 use nym_config::defaults::NymNetworkDetails;
 use nym_sdk::mixnet::{
-    MixnetClient, MixnetClientBuilder, MixnetClientSender, MixnetMessageSender, NodeIdentity,
-    Recipient, StoragePaths,
+    MixnetClient, MixnetClientBuilder, MixnetClientSender, NodeIdentity, Recipient, StoragePaths,
 };
 #[cfg(target_family = "unix")]
 use std::os::fd::RawFd;
@@ -16,7 +15,7 @@ use tracing::{debug, info};
 
 use crate::{
     credentials::check_imported_credential,
-    error::{Error, Result},
+    error::{Error, MixnetError, Result},
     MixnetClientConfig,
 };
 
@@ -47,11 +46,6 @@ impl SharedMixnetClient {
             .unwrap()
             .gateway_connection()
             .gateway_ws_fd
-    }
-
-    pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<()> {
-        self.lock().await.as_mut().unwrap().send(msg).await?;
-        Ok(())
     }
 
     pub async fn disconnect(self) -> Self {
@@ -158,9 +152,11 @@ pub(crate) async fn setup_mixnet_client(
             });
         };
 
-        let key_storage_path = StoragePaths::new_from_dir(path)?;
+        let key_storage_path = StoragePaths::new_from_dir(path)
+            .map_err(MixnetError::FailedToSetupMixnetStoragePaths)?;
         MixnetClientBuilder::new_with_default_storage(key_storage_path)
-            .await?
+            .await
+            .map_err(MixnetError::FailedToCreateMixnetClientWithDefaultStorage)?
             .with_wireguard_mode(enable_wireguard)
             .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
@@ -168,9 +164,11 @@ pub(crate) async fn setup_mixnet_client(
             .debug_config(debug_config)
             .custom_shutdown(task_client)
             .credentials_mode(mixnet_client_config.enable_credentials_mode)
-            .build()?
+            .build()
+            .map_err(MixnetError::FailedToBuildMixnetClient)?
             .connect_to_mixnet()
-            .await?
+            .await
+            .map_err(map_mixnet_connect_error)?
     } else {
         debug!("Using ephemeral key storage");
         MixnetClientBuilder::new_ephemeral()
@@ -181,10 +179,25 @@ pub(crate) async fn setup_mixnet_client(
             .debug_config(debug_config)
             .custom_shutdown(task_client)
             .credentials_mode(mixnet_client_config.enable_credentials_mode)
-            .build()?
+            .build()
+            .map_err(MixnetError::FailedToBuildMixnetClient)?
             .connect_to_mixnet()
-            .await?
+            .await
+            .map_err(map_mixnet_connect_error)?
     };
 
     Ok(SharedMixnetClient::new(mixnet_client))
+}
+
+// Map some specific mixnet errors to more specific ones
+fn map_mixnet_connect_error(err: nym_sdk::Error) -> Error {
+    match err {
+        nym_sdk::Error::ClientCoreError(
+            nym_client_core::error::ClientCoreError::GatewayClientError { gateway_id, source },
+        ) => Error::Mixnet(MixnetError::EntryGateway {
+            gateway_id: gateway_id.to_string(),
+            source: Box::new(source),
+        }),
+        _ => Error::Mixnet(MixnetError::FailedToConnectToMixnet(err)),
+    }
 }

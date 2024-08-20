@@ -88,6 +88,47 @@ impl From<ConnectionFailedError> for ProtoError {
                 message: timeout.to_string(),
                 details: Default::default(),
             },
+            ConnectionFailedError::FailedToSetupMixnetStoragePaths { ref reason } => ProtoError {
+                kind: ErrorType::MixnetStoragePaths as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::FailedToCreateMixnetClientWithDefaultStorage { ref reason } => {
+                ProtoError {
+                    kind: ErrorType::MixnetDefaultStorage as i32,
+                    message: err.to_string(),
+                    details: hashmap! {
+                        "reason".to_string() => reason.to_string(),
+                    },
+                }
+            }
+            ConnectionFailedError::FailedToBuildMixnetClient { ref reason } => ProtoError {
+                kind: ErrorType::MixnetBuildClient as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::FailedToConnectToMixnet { ref reason } => ProtoError {
+                kind: ErrorType::MixnetConnect as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
+            ConnectionFailedError::FailedToConnectToMixnetEntryGateway {
+                ref gateway_id,
+                ref reason,
+            } => ProtoError {
+                kind: ErrorType::MixnetEntryGateway as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "gateway_id".to_string() => gateway_id.clone(),
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
             ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
                 ref config,
                 ref reason,
@@ -145,6 +186,15 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.clone(),
                 },
             },
+            ConnectionFailedError::FailedToSelectEntryGatewayIdNotFound { ref requested_id } => {
+                ProtoError {
+                    kind: ErrorType::GatewayDirectoryEntryId as i32,
+                    message: err.to_string(),
+                    details: hashmap! {
+                        "requested_id".to_string() => requested_id.clone(),
+                    },
+                }
+            }
             ConnectionFailedError::FailedToSelectEntryGatewayLocation {
                 ref requested_location,
                 ref available_countries,
