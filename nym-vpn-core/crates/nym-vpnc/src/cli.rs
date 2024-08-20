@@ -70,7 +70,7 @@ pub(crate) struct ConnectArgs {
 
     /// An integer between 0 and 100 representing the minimum mixnode performance required to
     /// consider a mixnode for routing traffic.
-    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100), hide = true)]
     pub(crate) min_mixnode_performance: Option<u8>,
 
     /// An integer between 0 and 100 representing the minimum gateway performance required to
