@@ -44,7 +44,7 @@ pub enum CredentialStoreError {
         source: std::io::Error,
     },
 
-    #[error("failed to copy old db file: {source}")]
+    #[error("failed to lookup db version: {source}")]
     FailedToLookupDbVersion {
         #[from]
         source: sqlx::Error,
