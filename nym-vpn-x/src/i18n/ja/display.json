@@ -1,1 +1,10 @@
-{}
+{
+  "zoom-section-title": "ズームレベル",
+  "options": {
+    "system": "自動",
+    "light": "ライトモード",
+    "dark": "ダークモード"
+  },
+  "system-desc": "デバイスのテーマを使用",
+  "theme-section-title": "テーマ"
+}

@@ -1,1 +1,6 @@
-{}
+{
+  "connection-progress": {
+    "Initializing": "NymVPN クライアントを初期化中…",
+    "InitDone": "NymVPNクライアントが初期化されました"
+  }
+}

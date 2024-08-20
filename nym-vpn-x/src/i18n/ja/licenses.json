@@ -1,1 +1,10 @@
-{}
+{
+  "license-texts": "ライセンス文書",
+  "name": "名前",
+  "version": "バージョン",
+  "authors": "著者",
+  "repository": "リポジトリ",
+  "no-data": "ライセンスデータがありません",
+  "licenses": "ライセンス",
+  "language": "プログラミング言語"
+}
