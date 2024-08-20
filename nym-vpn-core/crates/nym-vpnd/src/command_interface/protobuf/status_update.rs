@@ -9,7 +9,7 @@ pub(crate) fn status_update_from_status_message(
     status: &NymVpnStatusMessage,
 ) -> ConnectionStatusUpdate {
     match status {
-        NymVpnStatusMessage::MixnetConnectionInfo {
+        NymVpnStatusMessage::MixConnectionInfo {
             mixnet_connection_info,
             mixnet_exit_connection_info,
         } => ConnectionStatusUpdate {
@@ -24,7 +24,7 @@ pub(crate) fn status_update_from_status_message(
                 "ipv6".to_string() => mixnet_exit_connection_info.ips.ipv6.to_string(),
             },
         },
-        NymVpnStatusMessage::WireguardConnectionInfo {
+        NymVpnStatusMessage::WgConnectionInfo {
             entry_connection_info,
             exit_connection_info,
         } => ConnectionStatusUpdate {

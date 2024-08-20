@@ -37,7 +37,7 @@ impl VpnServiceStatusListener {
         } else if let Some(msg) = msg.downcast_ref::<NymVpnStatusMessage>() {
             info!("VPN status: {msg}");
             match msg {
-                NymVpnStatusMessage::MixnetConnectionInfo {
+                NymVpnStatusMessage::MixConnectionInfo {
                     mixnet_connection_info,
                     mixnet_exit_connection_info,
                 } => {
@@ -57,7 +57,7 @@ impl VpnServiceStatusListener {
                     self.shared_vpn_state
                         .set(VpnState::Connected(Box::new(connected_details)));
                 }
-                NymVpnStatusMessage::WireguardConnectionInfo {
+                NymVpnStatusMessage::WgConnectionInfo {
                     entry_connection_info,
                     exit_connection_info,
                 } => {
