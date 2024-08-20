@@ -2219,6 +2219,71 @@ public func FfiConverterTypeWgConfig_lower(_ value: WgConfig) -> RustBuffer {
     return FfiConverterTypeWgConfig.lower(value)
 }
 
+
+public struct WireguardConnectionInfo {
+    public var gatewayId: NodeIdentity
+    public var publicKey: String
+    public var privateIpv4: Ipv4Addr
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(gatewayId: NodeIdentity, publicKey: String, privateIpv4: Ipv4Addr) {
+        self.gatewayId = gatewayId
+        self.publicKey = publicKey
+        self.privateIpv4 = privateIpv4
+    }
+}
+
+
+
+extension WireguardConnectionInfo: Equatable, Hashable {
+    public static func ==(lhs: WireguardConnectionInfo, rhs: WireguardConnectionInfo) -> Bool {
+        if lhs.gatewayId != rhs.gatewayId {
+            return false
+        }
+        if lhs.publicKey != rhs.publicKey {
+            return false
+        }
+        if lhs.privateIpv4 != rhs.privateIpv4 {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(gatewayId)
+        hasher.combine(publicKey)
+        hasher.combine(privateIpv4)
+    }
+}
+
+
+public struct FfiConverterTypeWireguardConnectionInfo: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> WireguardConnectionInfo {
+        return
+            try WireguardConnectionInfo(
+                gatewayId: FfiConverterTypeNodeIdentity.read(from: &buf), 
+                publicKey: FfiConverterString.read(from: &buf), 
+                privateIpv4: FfiConverterTypeIpv4Addr.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: WireguardConnectionInfo, into buf: inout [UInt8]) {
+        FfiConverterTypeNodeIdentity.write(value.gatewayId, into: &buf)
+        FfiConverterString.write(value.publicKey, into: &buf)
+        FfiConverterTypeIpv4Addr.write(value.privateIpv4, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeWireguardConnectionInfo_lift(_ buf: RustBuffer) throws -> WireguardConnectionInfo {
+    return try FfiConverterTypeWireguardConnectionInfo.lift(buf)
+}
+
+public func FfiConverterTypeWireguardConnectionInfo_lower(_ value: WireguardConnectionInfo) -> RustBuffer {
+    return FfiConverterTypeWireguardConnectionInfo.lower(value)
+}
+
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
@@ -2824,7 +2889,9 @@ extension Ipv6Route: Equatable, Hashable {}
 
 public enum NymVpnStatus {
     
-    case connectionInfo(mixnetConnectionInfo: MixConnectionInfo, mixnetExitConnectionInfo: MixExitConnectionInfo
+    case mixConnectInfo(mixConnectionInfo: MixConnectionInfo, mixExitConnectionInfo: MixExitConnectionInfo
+    )
+    case wgConnectInfo(entryConnectionInfo: WireguardConnectionInfo, exitConnectionInfo: WireguardConnectionInfo
     )
 }
 
@@ -2836,7 +2903,10 @@ public struct FfiConverterTypeNymVpnStatus: FfiConverterRustBuffer {
         let variant: Int32 = try readInt(&buf)
         switch variant {
         
-        case 1: return .connectionInfo(mixnetConnectionInfo: try FfiConverterTypeMixConnectionInfo.read(from: &buf), mixnetExitConnectionInfo: try FfiConverterTypeMixExitConnectionInfo.read(from: &buf)
+        case 1: return .mixConnectInfo(mixConnectionInfo: try FfiConverterTypeMixConnectionInfo.read(from: &buf), mixExitConnectionInfo: try FfiConverterTypeMixExitConnectionInfo.read(from: &buf)
+        )
+        
+        case 2: return .wgConnectInfo(entryConnectionInfo: try FfiConverterTypeWireguardConnectionInfo.read(from: &buf), exitConnectionInfo: try FfiConverterTypeWireguardConnectionInfo.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -2847,10 +2917,16 @@ public struct FfiConverterTypeNymVpnStatus: FfiConverterRustBuffer {
         switch value {
         
         
-        case let .connectionInfo(mixnetConnectionInfo,mixnetExitConnectionInfo):
+        case let .mixConnectInfo(mixConnectionInfo,mixExitConnectionInfo):
             writeInt(&buf, Int32(1))
-            FfiConverterTypeMixConnectionInfo.write(mixnetConnectionInfo, into: &buf)
-            FfiConverterTypeMixExitConnectionInfo.write(mixnetExitConnectionInfo, into: &buf)
+            FfiConverterTypeMixConnectionInfo.write(mixConnectionInfo, into: &buf)
+            FfiConverterTypeMixExitConnectionInfo.write(mixExitConnectionInfo, into: &buf)
+            
+        
+        case let .wgConnectInfo(entryConnectionInfo,exitConnectionInfo):
+            writeInt(&buf, Int32(2))
+            FfiConverterTypeWireguardConnectionInfo.write(entryConnectionInfo, into: &buf)
+            FfiConverterTypeWireguardConnectionInfo.write(exitConnectionInfo, into: &buf)
             
         }
     }

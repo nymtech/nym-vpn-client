@@ -31,7 +31,7 @@ impl Tunnel {
         tun_provider: Arc<Mutex<TunProvider>>,
     ) -> Self {
         Tunnel {
-            config: config.0,
+            config: config.talpid_config,
             route_manager_handle,
             tun_provider,
         }

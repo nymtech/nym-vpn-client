@@ -4,6 +4,7 @@
 use crate::error::*;
 use crate::wg_gateway_client::GatewayData;
 use nym_crypto::asymmetric::x25519::KeyPair;
+use nym_gateway_directory::NodeIdentity;
 use std::net::{IpAddr, Ipv4Addr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::{
@@ -15,7 +16,11 @@ use talpid_types::net::GenericTunnelOptions;
 pub const TUNNEL_FWMARK: u32 = 0x6d6f6c65;
 
 #[derive(Clone)]
-pub struct WireguardConfig(pub talpid_wireguard::config::Config);
+pub struct WireguardConfig {
+    pub talpid_config: talpid_wireguard::config::Config,
+    pub gateway_data: GatewayData,
+    pub gateway_id: NodeIdentity,
+}
 
 impl WireguardConfig {
     fn new(
@@ -24,34 +29,41 @@ impl WireguardConfig {
         connection_config: &ConnectionConfig,
         wg_options: &TunnelOptions,
         generic_options: &GenericTunnelOptions,
+        gateway_data: GatewayData,
+        gateway_id: NodeIdentity,
     ) -> Result<Self> {
-        Ok(Self(talpid_wireguard::config::Config::new(
-            tunnel,
-            peers,
-            connection_config,
-            wg_options,
-            generic_options,
-            None,
-        )?))
+        Ok(Self {
+            talpid_config: talpid_wireguard::config::Config::new(
+                tunnel,
+                peers,
+                connection_config,
+                wg_options,
+                generic_options,
+                None,
+            )?,
+            gateway_data,
+            gateway_id,
+        })
     }
 
     pub fn init(
         keypair: &KeyPair,
-        gateway_data: &GatewayData,
+        gateway_data: GatewayData,
         wg_gateway: Option<IpAddr>,
+        gateway_id: NodeIdentity,
         mtu: u16,
     ) -> Result<Self> {
         let tunnel = TunnelConfig {
             private_key: PrivateKey::from(keypair.private_key().to_bytes()),
-            addresses: vec![gateway_data.private_ip],
+            addresses: vec![gateway_data.private_ipv4.into()],
         };
         let peers = vec![PeerConfig {
             public_key: gateway_data.public_key.clone(),
-            allowed_ips: vec![gateway_data.private_ip.into()],
+            allowed_ips: vec![IpAddr::from(gateway_data.private_ipv4).into()],
             endpoint: gateway_data.endpoint,
             psk: None,
         }];
-        let default_ipv4_gateway = Ipv4Addr::from_str(&gateway_data.private_ip.to_string())?;
+        let default_ipv4_gateway = Ipv4Addr::from_str(&gateway_data.private_ipv4.to_string())?;
         let (ipv4_gateway, ipv6_gateway) = match wg_gateway {
             Some(IpAddr::V4(ipv4_gateway)) => (ipv4_gateway, None),
             Some(IpAddr::V6(ipv6_gateway)) => (default_ipv4_gateway, Some(ipv6_gateway)),
@@ -77,6 +89,8 @@ impl WireguardConfig {
             &connection_config,
             &wg_options,
             &generic_options,
+            gateway_data,
+            gateway_id,
         )?;
         Ok(config)
     }
@@ -85,15 +99,15 @@ impl WireguardConfig {
 impl std::fmt::Display for WireguardConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "tunnel:")?;
-        writeln!(f, "  mtu: {}", self.0.mtu)?;
+        writeln!(f, "  mtu: {}", self.talpid_config.mtu)?;
         #[cfg(target_os = "linux")]
-        writeln!(f, "  enable_ipv6: {}", self.0.enable_ipv6)?;
+        writeln!(f, "  enable_ipv6: {}", self.talpid_config.enable_ipv6)?;
         writeln!(f, "  addresses:")?;
-        for address in &self.0.tunnel.addresses {
+        for address in &self.talpid_config.tunnel.addresses {
             writeln!(f, "    - {}", address)?;
         }
         writeln!(f, "peers:")?;
-        for peer in &self.0.peers {
+        for peer in &self.talpid_config.peers {
             writeln!(f, "  - public_key: {}", peer.public_key)?;
             writeln!(f, "    allowed_ips:")?;
             for allowed_ip in &peer.allowed_ips {
@@ -102,12 +116,12 @@ impl std::fmt::Display for WireguardConfig {
             writeln!(f, "    endpoint: {}", peer.endpoint)?;
         }
         writeln!(f, "connection:")?;
-        writeln!(f, "  ipv4_gateway: {}", self.0.ipv4_gateway)?;
-        if let Some(ipv6_gateway) = &self.0.ipv6_gateway {
+        writeln!(f, "  ipv4_gateway: {}", self.talpid_config.ipv4_gateway)?;
+        if let Some(ipv6_gateway) = &self.talpid_config.ipv6_gateway {
             writeln!(f, "  ipv6_gateway: {}", ipv6_gateway)?;
         }
         #[cfg(target_os = "linux")]
-        if let Some(fwmark) = &self.0.fwmark {
+        if let Some(fwmark) = &self.talpid_config.fwmark {
             writeln!(f, "  fwmark: {}", fwmark)?;
         }
         Ok(())

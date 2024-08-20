@@ -291,6 +291,23 @@ impl From<MixnetExitConnectionInfo> for MixExitConnectionInfo {
     }
 }
 
+#[derive(uniffi::Record, Clone, Debug, PartialEq)]
+pub struct WireguardConnectionInfo {
+    pub gateway_id: NodeIdentity,
+    pub public_key: String,
+    pub private_ipv4: Ipv4Addr,
+}
+
+impl From<crate::WireguardConnectionInfo> for WireguardConnectionInfo {
+    fn from(value: crate::WireguardConnectionInfo) -> Self {
+        WireguardConnectionInfo {
+            gateway_id: value.gateway_id,
+            public_key: value.public_key,
+            private_ipv4: value.private_ipv4,
+        }
+    }
+}
+
 #[derive(uniffi::Enum)]
 pub enum EntryPoint {
     Gateway { identity: NodeIdentity },
@@ -358,21 +375,32 @@ pub enum TunStatus {
 #[derive(uniffi::Enum, PartialEq)]
 #[allow(clippy::large_enum_variant)]
 pub enum NymVpnStatus {
-    ConnectionInfo {
-        mixnet_connection_info: MixConnectionInfo,
-        mixnet_exit_connection_info: MixExitConnectionInfo,
+    MixConnectInfo {
+        mix_connection_info: MixConnectionInfo,
+        mix_exit_connection_info: MixExitConnectionInfo,
+    },
+    WgConnectInfo {
+        entry_connection_info: WireguardConnectionInfo,
+        exit_connection_info: WireguardConnectionInfo,
     },
 }
 
 impl From<NymVpnStatusMessage> for NymVpnStatus {
     fn from(value: NymVpnStatusMessage) -> Self {
         match value {
-            NymVpnStatusMessage::MixnetConnectionInfo {
+            NymVpnStatusMessage::MixConnectionInfo {
                 mixnet_connection_info,
                 mixnet_exit_connection_info,
-            } => NymVpnStatus::ConnectionInfo {
-                mixnet_connection_info: mixnet_connection_info.into(),
-                mixnet_exit_connection_info: mixnet_exit_connection_info.into(),
+            } => NymVpnStatus::MixConnectInfo {
+                mix_connection_info: mixnet_connection_info.into(),
+                mix_exit_connection_info: (*mixnet_exit_connection_info).into(),
+            },
+            NymVpnStatusMessage::WgConnectionInfo {
+                entry_connection_info,
+                exit_connection_info,
+            } => NymVpnStatus::WgConnectInfo {
+                entry_connection_info: entry_connection_info.into(),
+                exit_connection_info: exit_connection_info.into(),
             },
         }
     }
