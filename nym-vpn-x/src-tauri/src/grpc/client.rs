@@ -348,7 +348,7 @@ impl GrpcClient {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(ListEntryCountriesRequest {
-            min_mixnode_performance: None,
+            min_gateway_performance: None,
         });
         let response = vpnd.list_entry_countries(request).await.map_err(|e| {
             error!("grpc list_entry_countries: {}", e);
