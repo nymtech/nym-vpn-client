@@ -52,7 +52,7 @@ ask_for_confirmation() {
             echo "Exiting without making changes."
             exit 1
         fi
-    fI
+    fi
 }
 
 ask_and_tag_release() {
