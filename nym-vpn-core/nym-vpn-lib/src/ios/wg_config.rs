@@ -13,6 +13,9 @@ pub struct WgNodeConfig {
 }
 
 pub struct WgInterface {
+    /// WG client port.
+    pub listen_port: Option<u16>,
+
     /// Private key used by wg client.
     pub private_key: PrivateKey,
 
@@ -29,6 +32,7 @@ pub struct WgInterface {
 impl std::fmt::Debug for WgInterface {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_struct("WgInterface")
+            .field("listen_port", &self.listen_port)
             .field("private_key", &"(hidden)")
             .field("address", &self.addresses)
             .field("dns", &self.dns)
@@ -53,6 +57,7 @@ impl WgNodeConfig {
     ) -> Self {
         Self {
             interface: WgInterface {
+                listen_port: None,
                 addresses: vec![if gateway_data.private_ip.is_ipv4() {
                     IpNetwork::new(gateway_data.private_ip, 32).expect("private_ip v4/32")
                 } else {

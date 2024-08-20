@@ -26,6 +26,8 @@ pub struct WgTwoHopConfig {
 
 impl WgTwoHopConfig {
     pub fn new(entry: WgNodeConfig, exit: WgNodeConfig) -> Self {
+        let client_port = entry.interface.listen_port.unwrap_or(EXIT_WG_CLIENT_PORT);
+
         let forwarder_config = WgForwarderConfig {
             // Local endpoint that will forward exit traffic over entry tunnel
             listen_endpoint: SocketAddr::new(
@@ -37,7 +39,7 @@ impl WgTwoHopConfig {
                 UDP_FORWARDER_PORT,
             ),
             exit_endpoint: exit.peer.endpoint,
-            client_port: EXIT_WG_CLIENT_PORT,
+            client_port,
         };
 
         // Since we collect the exit traffic on tun, the tun's mtu must be lesser than entry mtu.
@@ -54,6 +56,7 @@ impl WgTwoHopConfig {
             entry: WgNodeConfig {
                 interface: WgInterface {
                     mtu: entry_mtu,
+                    listen_port: Some(client_port),
                     ..entry.interface
                 },
                 peer: WgPeer {

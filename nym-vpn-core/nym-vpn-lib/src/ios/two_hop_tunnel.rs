@@ -81,6 +81,7 @@ impl TwoHopTunnel {
 
         let entry_node_config = WgNodeConfig {
             interface: WgInterface {
+                listen_port: None,
                 private_key: entry_priv_key,
                 addresses: vec!["10.71.122.208/32"
                     .parse()
@@ -109,6 +110,7 @@ impl TwoHopTunnel {
 
         let exit_node_config = WgNodeConfig {
             interface: WgInterface {
+                listen_port: None,
                 private_key: exit_priv_key,
                 addresses: vec!["10.71.122.208/32".parse().expect("exit iface addr")],
                 dns: crate::DEFAULT_DNS_SERVERS.to_vec(),
