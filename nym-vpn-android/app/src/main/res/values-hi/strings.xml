@@ -126,4 +126,6 @@
     <string name="credential_message">शुरू करने के लिए अपने क्रेडेंशियल दर्ज करें।</string>
     <string name="mode_selection">मोड चयन</string>
     <string name="continue_reading">पढ़ना जारी रखें</string>
+    <string name="entry_location">उद्भव स्थान</string>
+    <string name="exit_location">आखरी स्थान</string>
 </resources>
