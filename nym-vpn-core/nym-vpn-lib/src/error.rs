@@ -42,9 +42,6 @@ pub enum Error {
     #[error("failed to send shutdown message to wireguard tunnel")]
     FailedToSendWireguardShutdown,
 
-    #[error("{0}")]
-    SDKError(#[from] nym_sdk::Error),
-
     #[error("identity not formatted correctly")]
     NodeIdentityFormattingError,
 
@@ -77,6 +74,9 @@ pub enum Error {
 
     #[error("could not obtain the default interface")]
     DefaultInterfaceError,
+
+    #[error(transparent)]
+    Mixnet(#[from] MixnetError),
 
     #[error("received response with version v{received}, the client is too new and can only understand v{expected}")]
     ReceivedResponseWithOldVersion { expected: u8, received: u8 },
@@ -261,6 +261,28 @@ pub enum GatewayDirectoryError {
 
     #[error("unable to use same entry and exit gateway for location: {requested_location}")]
     SameEntryAndExitGatewayFromCountry { requested_location: String },
+}
+
+// Errors specific to the mixnet. This often comes from the nym-sdk crate, but not necessarily.
+#[derive(thiserror::Error, Debug)]
+pub enum MixnetError {
+    #[error("failed to setup mixnet storage paths: {0}")]
+    FailedToSetupMixnetStoragePaths(#[source] nym_sdk::Error),
+
+    #[error("failed to create mixnet client with default storage: {0}")]
+    FailedToCreateMixnetClientWithDefaultStorage(#[source] nym_sdk::Error),
+
+    #[error("failed to build mixnet client: {0}")]
+    FailedToBuildMixnetClient(#[source] nym_sdk::Error),
+
+    #[error("failed to connect to mixnet: {0}")]
+    FailedToConnectToMixnet(#[source] nym_sdk::Error),
+
+    #[error("failed to connect to mixnet entry gateway {gateway_id}: {source}")]
+    EntryGateway {
+        gateway_id: String,
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
 }
 
 // Result type based on our error type

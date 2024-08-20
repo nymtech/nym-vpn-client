@@ -507,7 +507,7 @@ async fn select_gateways(
     info!("Found {} entry gateways", entry_gateways.len());
     info!("Found {} exit gateways", exit_gateways.len());
     info!(
-        "Using entry gateway: {}, location: {}, performane: {}",
+        "Using entry gateway: {}, location: {}, performance: {}",
         *entry_gateway.identity(),
         entry_gateway
             .two_letter_iso_country_code()

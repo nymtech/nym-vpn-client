@@ -440,8 +440,19 @@ where
             options,
         } = connect_args;
 
-        info!("Using entry point: {:?}", entry);
-        info!("Using exit point: {:?}", exit);
+        info!(
+            "Using entry point: {}",
+            entry
+                .clone()
+                .map(|e| e.to_string())
+                .unwrap_or("None".to_string())
+        );
+        info!(
+            "Using exit point: {}",
+            exit.clone()
+                .map(|e| e.to_string())
+                .unwrap_or("None".to_string())
+        );
         info!("Using options: {:?}", options);
 
         let config = match self.try_setup_config(entry, exit) {
