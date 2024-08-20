@@ -11,7 +11,7 @@ use tracing::{debug, info, warn};
 
 use crate::{
     service::{
-        ConnectArgs, ConnectOptions, ImportCredentialError, VpnServiceCommand,
+        ConnectArgs, ConnectOptions, ImportCredentialError, StoreAccountError, VpnServiceCommand,
         VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceInfoResult,
         VpnServiceStatusResult,
     },
@@ -178,6 +178,21 @@ impl CommandInterfaceConnectionHandler {
             .map_err(|error| ListGatewayError::GetExitGateways { error })?;
 
         Ok(gateways.into_iter().map(gateway::Country::from).collect())
+    }
+
+    pub(crate) async fn handle_store_account(
+        &self,
+        account: String,
+    ) -> Result<(), StoreAccountError> {
+        let (tx, rx) = oneshot::channel();
+        self.vpn_command_tx
+            .send(VpnServiceCommand::StoreAccount(tx, account))
+            .unwrap();
+        debug!("Sent store account command to VPN");
+        debug!("Waiting for response");
+        let result = rx.await.unwrap();
+        debug!("VPN store account result: {:?}", result);
+        result
     }
 }
 

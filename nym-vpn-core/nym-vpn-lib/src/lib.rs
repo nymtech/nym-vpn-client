@@ -76,12 +76,13 @@ mod uniffi_custom_impls;
 pub mod config;
 pub mod credentials;
 pub mod error;
-#[cfg(target_os = "ios")]
-mod ios;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+mod mobile;
 pub mod keys;
 pub mod mixnet_connect;
 pub mod mixnet_processor;
 pub mod routing;
+pub mod storage;
 pub mod tunnel;
 pub mod util;
 pub mod wg_gateway_client;

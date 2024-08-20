@@ -285,3 +285,17 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
         }
     }
 }
+
+#[derive(Debug, thiserror::Error)]
+pub enum StoreAccountError {
+    #[error("invalid mnemonic")]
+    InvalidMnemonic {
+        #[from]
+        source: bip39::Error,
+    },
+
+    #[error("failed to store account: {source}")]
+    FailedToStore {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+}

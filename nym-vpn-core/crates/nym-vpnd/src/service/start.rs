@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use tokio::sync::mpsc::UnboundedReceiver;
-use tracing::info;
+use tracing::{error, info};
 
 use super::vpn_service::NymVpnService;
 use super::{VpnServiceCommand, VpnServiceStateChange};
@@ -23,10 +23,16 @@ pub(crate) fn start_vpn_service(
             .build()
             .unwrap();
         vpn_rt.block_on(async {
-            NymVpnService::new(vpn_state_changes_tx, vpn_command_rx)
-                .run()
-                .await
-                .ok();
+            let service = NymVpnService::new(vpn_state_changes_tx, vpn_command_rx);
+            match service.init_storage().await {
+                Ok(()) => {
+                    info!("VPN service initialized successfully");
+                    service.run().await.ok();
+                }
+                Err(err) => {
+                    error!("Failed to initialize VPN service: {:?}", err);
+                }
+            }
         });
     })
 }
