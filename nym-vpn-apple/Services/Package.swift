@@ -14,6 +14,7 @@ let package = Package(
         .library(name: "AppSettings", targets: ["AppSettings"]),
         .library(name: "AppVersionProvider", targets: ["AppVersionProvider"]),
         .library(name: "ConnectionManager", targets: ["ConnectionManager"]),
+        .library(name: "ConfigurationManager", targets: ["ConfigurationManager"]),
         .library(name: "Constants", targets: ["Constants"]),
         .library(name: "CountriesManager", targets: ["CountriesManager"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
@@ -45,6 +46,13 @@ let package = Package(
             path: "Sources/Services/AppVersionProvider"
         ),
         .target(
+            name: "ConfigurationManager",
+            dependencies: [
+                "Constants"
+            ],
+            path: "Sources/Services/ConfigurationManager"
+        ),
+        .target(
             name: "ConnectionManager",
             dependencies: [
                 "CredentialsManager",
@@ -65,6 +73,8 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 "Constants",
+                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
+                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 "NymLogger",
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
             ],

@@ -38,6 +38,7 @@ let package = Package(
         .target(
             name: "HelperManager",
             dependencies: [
+                "GRPCManager",
                 "Shell"
             ],
             path: "Sources/HelperManager"

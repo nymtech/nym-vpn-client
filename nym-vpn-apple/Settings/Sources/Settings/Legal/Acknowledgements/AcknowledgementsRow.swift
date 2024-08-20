@@ -13,43 +13,60 @@ public struct AcknowledgementsRow: View {
     public var body: some View {
         VStack {
             if viewModel.textExistsAndCanFetchLicence {
-                    SettingsListItem(
-                        viewModel: SettingsListItemViewModel(
-                            accessory: .arrow,
-                            title: viewModel.acknowledgement.title,
-                            position: .init(isFirst: true, isLast: true),
-                            action: {
-                                viewModel.navigateToLicence()
-                            }
-                        )
-                    )
+                settingsListItemNavigateToLicence()
             } else if viewModel.canOpenRepository() {
-                SettingsListItem(
-                    viewModel: SettingsListItemViewModel(
-                        accessory: .arrow,
-                        title: viewModel.acknowledgement.title,
-                        position: .init(isFirst: true, isLast: true),
-                        action: {
-                            viewModel.openExternalBrowser()
-                        }
-                    )
-                )
+                settingsListItemOpenExternalBrowser()
             } else {
-                SettingsListItem(
-                    viewModel: SettingsListItemViewModel(
-                        accessory: .empty,
-                        title: viewModel.acknowledgement.title,
-                        position: .init(isFirst: true, isLast: true),
-                        action: {
-                            viewModel.openExternalBrowser()
-                        }
-                    )
-                )
+                settingsListItemOpenExternalBrowserNoArrow()
             }
         }
         .background {
             NymColor.background
                 .ignoresSafeArea()
         }
+    }
+}
+
+extension AcknowledgementsRow {
+    @ViewBuilder
+    func settingsListItemNavigateToLicence() -> some View {
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .arrow,
+                title: viewModel.acknowledgement.title,
+                position: .init(isFirst: true, isLast: true),
+                action: {
+                    viewModel.navigateToLicence()
+                }
+            )
+        )
+    }
+
+    @ViewBuilder
+    func settingsListItemOpenExternalBrowser() -> some View {
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .arrow,
+                title: viewModel.acknowledgement.title,
+                position: .init(isFirst: true, isLast: true),
+                action: {
+                    viewModel.openExternalBrowser()
+                }
+            )
+        )
+    }
+
+    @ViewBuilder
+    func settingsListItemOpenExternalBrowserNoArrow() -> some View {
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .empty,
+                title: viewModel.acknowledgement.title,
+                position: .init(isFirst: true, isLast: true),
+                action: {
+                    viewModel.openExternalBrowser()
+                }
+            )
+        )
     }
 }

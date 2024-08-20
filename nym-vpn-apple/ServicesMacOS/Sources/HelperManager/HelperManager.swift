@@ -1,5 +1,6 @@
 import SecurityFoundation
 import ServiceManagement
+import GRPCManager
 import Shell
 
 // Any changes made to Info.plist & Launchd.plist - are used to create daemon in nym-vpnd.
@@ -18,7 +19,7 @@ public final class HelperManager {
     public func authorizeAndInstallHelper() throws -> Bool {
         var authRef: AuthorizationRef?
         let status = AuthorizationCreate(nil, nil, [], &authRef)
-        if status != errAuthorizationSuccess {
+        guard status == errAuthorizationSuccess, let authRef = authRef else {
             return false
         }
 
@@ -37,7 +38,7 @@ public final class HelperManager {
             return withUnsafeMutablePointer(to: &authItem) { authItemPointer -> Bool in
                 var authRights = AuthorizationRights(count: 1, items: authItemPointer)
                 let authFlags: AuthorizationFlags = [.interactionAllowed, .preAuthorize, .extendRights]
-                let status = AuthorizationCopyRights(authRef!, &authRights, nil, authFlags, nil)
+                let status = AuthorizationCopyRights(authRef, &authRights, nil, authFlags, nil)
                 if status == errAuthorizationSuccess {
                     // Place to execute your authorized action:
                     return installHelper(with: authRef, error: &cfError)
@@ -45,6 +46,7 @@ public final class HelperManager {
                 return false
             }
         }
+
         if let error = cfError?.takeRetainedValue() {
             throw error
         }

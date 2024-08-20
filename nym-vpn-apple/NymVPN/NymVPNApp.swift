@@ -1,6 +1,7 @@
 import SwiftUI
 import Logging
 import AppSettings
+import ConfigurationManager
 import Home
 import Extensions
 import KeyboardManager
@@ -45,6 +46,7 @@ private extension NymVPNApp {
         }
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
+        ConfigurationManager.configureMainnetEnvironmentVariables()
     }
 
     func configureScreenSize() {
