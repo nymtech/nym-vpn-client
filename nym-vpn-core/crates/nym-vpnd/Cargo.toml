@@ -13,6 +13,7 @@ license.workspace = true
 anyhow.workspace = true
 axum-server = { workspace = true, features = ["tls-rustls"] }
 axum.workspace = true
+bip39.workspace = true
 clap.workspace = true
 dirs.workspace = true
 futures.workspace = true
@@ -32,7 +33,7 @@ tonic-health.workspace = true
 tonic-reflection.workspace = true
 tonic.workspace = true
 tower-http = { workspace = true, features = ["cors"] }
-tracing-appender = "0.2.3"
+tracing-appender.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 tracing.workspace = true
 url.workspace = true
