@@ -44,7 +44,7 @@ pub async fn fetch_gateways_with_ipr() -> anyhow::Result<GatewayList> {
 pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
     // Setup the entry gateways
     let gateways = lookup_gateways().await?;
-    let entry_gateway = entry_point.lookup_gateway(&gateways)?;
+    let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
     let exit_router_address = entry_gateway.ipr_address;
     let entry_gateway_id = entry_gateway.identity();
 

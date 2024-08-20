@@ -19,21 +19,10 @@ pub enum Error {
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 
     #[error(transparent)]
-    ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
-
-    #[error(transparent)]
-    HarbourMasterError(#[from] nym_harbour_master_client::HarbourMasterError),
-
-    #[error(transparent)]
-    HarbourMasterApiError(#[from] nym_harbour_master_client::HarbourMasterApiError),
+    NymHttpApiError(#[from] nym_vpn_api_client::VpnApiError),
 
     #[error(transparent)]
     NymVpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
-
-    #[error("failed to fetch location data from explorer-api: {error}")]
-    FailedFetchLocationData {
-        error: nym_explorer_client::ExplorerApiError,
-    },
 
     #[error("failed to resolve gateway hostname: {hostname}: {source}")]
     FailedToDnsResolveGateway {
@@ -44,10 +33,11 @@ pub enum Error {
     #[error("resolved hostname {0} but no IP address found")]
     ResolvedHostnameButNoIp(String),
 
-    #[error("failed to lookup described gateways: {source}")]
-    FailedToLookupDescribedGateways {
-        source: nym_validator_client::ValidatorClientError,
-    },
+    #[error("failed to lookup described gateways: {0}")]
+    FailedToLookupDescribedGateways(#[source] nym_validator_client::ValidatorClientError),
+
+    #[error("failed to lookup skimmed gateways: {0}")]
+    FailedToLookupSkimmedGateways(#[source] nym_validator_client::ValidatorClientError),
 
     #[error("requested gateway not found in the remote list: {0}")]
     RequestedGatewayIdNotFound(String),
