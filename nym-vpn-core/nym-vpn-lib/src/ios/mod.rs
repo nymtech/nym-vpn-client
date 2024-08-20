@@ -75,7 +75,7 @@ pub enum OSPathStatus {
     Unknown(i64),
 }
 
-/// Default path returned by packet tunnel provider on iOS.
+/// Represents a default network route used by the system.
 #[derive(uniffi::Record, Debug)]
 pub struct OSDefaultPath {
     /// Indicates whether the process is able to make connection through the given path.
@@ -88,6 +88,7 @@ pub struct OSDefaultPath {
     pub is_constrained: bool,
 }
 
+/// Types observing network changes.
 #[uniffi::export(with_foreign)]
 pub trait OSDefaultPathObserver: Send + Sync + std::fmt::Debug {
     fn on_default_path_change(&self, new_path: OSDefaultPath);
@@ -96,10 +97,13 @@ pub trait OSDefaultPathObserver: Send + Sync + std::fmt::Debug {
 #[uniffi::export(with_foreign)]
 #[async_trait::async_trait]
 pub trait OSTunProvider: Send + Sync + std::fmt::Debug {
+    /// Set network settings including tun, dns, ip.
     async fn set_tunnel_network_settings(
         &self,
         tunnel_settings: tunnel_settings::TunnelNetworkSettings,
     ) -> std::result::Result<(), FFIError>;
+
+    /// Set or unset the default path observer.
     fn set_default_path_observer(
         &self,
         observer: Option<Arc<dyn OSDefaultPathObserver>>,

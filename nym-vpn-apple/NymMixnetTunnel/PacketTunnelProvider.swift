@@ -348,7 +348,7 @@ extension NWPathStatus {
         case .unsatisfied:
             return .unsatisfied
         @unknown default:
-            return .unknown(rawValue)
+            return .unknown(Int64(rawValue))
         }
     }
 }

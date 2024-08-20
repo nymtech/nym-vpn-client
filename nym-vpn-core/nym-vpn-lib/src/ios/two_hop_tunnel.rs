@@ -39,7 +39,6 @@ const EXIT_WG_CLIENT_PORT: u16 = 54001;
 /// * The UDP connection to the exit node is established over the entry tunnel.
 /// * The exit traffic is captured on tun interface and directed towards local UDP forwarding proxy.
 /// * The local UDP forwarding proxy injects all received UDP datagrams into the UDP connection to the exit node.
-#[derive(Debug)]
 pub struct TwoHopTunnel {
     /// Entry node tunnel
     #[allow(unused)]
@@ -301,14 +300,12 @@ impl TwoHopTunnel {
     }
 }
 
-#[derive(Debug)]
 struct WgTunConfig {
     pub addresses: Vec<IpNetwork>,
     pub dns: Vec<IpAddr>,
     pub mtu: u16,
 }
 
-#[derive(Debug)]
 struct WgTwoHopConfig {
     entry: WgNodeConfig,
     exit: WgNodeConfig,
@@ -352,7 +349,7 @@ impl WgTwoHopConfig {
         }
     }
 }
-#[derive(Debug)]
+
 struct WgForwarderConfig {
     /// Local endpoint for collecting exit wg traffic.
     pub listen_endpoint: SocketAddr,
@@ -365,7 +362,6 @@ struct WgForwarderConfig {
     pub client_port: u16,
 }
 
-#[derive(Debug)]
 struct WgNodeConfig {
     /// Interface configuration
     interface: WgInterface,
@@ -374,7 +370,6 @@ struct WgNodeConfig {
     peer: WgPeer,
 }
 
-#[derive(Debug)]
 struct WgInterface {
     /// Private key used by wg client.
     private_key: PrivateKey,
@@ -386,7 +381,7 @@ struct WgInterface {
     dns: Vec<IpAddr>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 struct WgPeer {
     /// Gateway public key.
     public_key: PublicKey,

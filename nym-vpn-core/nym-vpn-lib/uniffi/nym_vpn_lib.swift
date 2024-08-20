@@ -518,9 +518,179 @@ fileprivate struct FfiConverterTimestamp: FfiConverterRustBuffer {
 
 
 
+/**
+ * Types observing network changes.
+ */
+public protocol OsDefaultPathObserver : AnyObject {
+    
+    func onDefaultPathChange(newPath: OsDefaultPath) 
+    
+}
+
+/**
+ * Types observing network changes.
+ */
+open class OsDefaultPathObserverImpl:
+    OsDefaultPathObserver {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_nym_vpn_lib_fn_clone_osdefaultpathobserver(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_nym_vpn_lib_fn_free_osdefaultpathobserver(pointer, $0) }
+    }
+
+    
+
+    
+open func onDefaultPathChange(newPath: OsDefaultPath) {try! rustCall() {
+    uniffi_nym_vpn_lib_fn_method_osdefaultpathobserver_on_default_path_change(self.uniffiClonePointer(),
+        FfiConverterTypeOSDefaultPath.lower(newPath),$0
+    )
+}
+}
+    
+
+}
+// Magic number for the Rust proxy to call using the same mechanism as every other method,
+// to free the callback once it's dropped by Rust.
+private let IDX_CALLBACK_FREE: Int32 = 0
+// Callback return codes
+private let UNIFFI_CALLBACK_SUCCESS: Int32 = 0
+private let UNIFFI_CALLBACK_ERROR: Int32 = 1
+private let UNIFFI_CALLBACK_UNEXPECTED_ERROR: Int32 = 2
+
+// Put the implementation in a struct so we don't pollute the top-level namespace
+fileprivate struct UniffiCallbackInterfaceOSDefaultPathObserver {
+
+    // Create the VTable using a series of closures.
+    // Swift automatically converts these into C callback functions.
+    static var vtable: UniffiVTableCallbackInterfaceOsDefaultPathObserver = UniffiVTableCallbackInterfaceOsDefaultPathObserver(
+        onDefaultPathChange: { (
+            uniffiHandle: UInt64,
+            newPath: RustBuffer,
+            uniffiOutReturn: UnsafeMutableRawPointer,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeOSDefaultPathObserver.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return uniffiObj.onDefaultPathChange(
+                     newPath: try FfiConverterTypeOSDefaultPath.lift(newPath)
+                )
+            }
+
+            
+            let writeReturn = { () }
+            uniffiTraitInterfaceCall(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn
+            )
+        },
+        uniffiFree: { (uniffiHandle: UInt64) -> () in
+            let result = try? FfiConverterTypeOSDefaultPathObserver.handleMap.remove(handle: uniffiHandle)
+            if result == nil {
+                print("Uniffi callback interface OSDefaultPathObserver: handle missing in uniffiFree")
+            }
+        }
+    )
+}
+
+private func uniffiCallbackInitOSDefaultPathObserver() {
+    uniffi_nym_vpn_lib_fn_init_callback_vtable_osdefaultpathobserver(&UniffiCallbackInterfaceOSDefaultPathObserver.vtable)
+}
+
+public struct FfiConverterTypeOSDefaultPathObserver: FfiConverter {
+    fileprivate static var handleMap = UniffiHandleMap<OsDefaultPathObserver>()
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = OsDefaultPathObserver
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> OsDefaultPathObserver {
+        return OsDefaultPathObserverImpl(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: OsDefaultPathObserver) -> UnsafeMutableRawPointer {
+        guard let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: handleMap.insert(obj: value))) else {
+            fatalError("Cast to UnsafeMutableRawPointer failed")
+        }
+        return ptr
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> OsDefaultPathObserver {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: OsDefaultPathObserver, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeOSDefaultPathObserver_lift(_ pointer: UnsafeMutableRawPointer) throws -> OsDefaultPathObserver {
+    return try FfiConverterTypeOSDefaultPathObserver.lift(pointer)
+}
+
+public func FfiConverterTypeOSDefaultPathObserver_lower(_ value: OsDefaultPathObserver) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeOSDefaultPathObserver.lower(value)
+}
+
+
+
+
 public protocol OsTunProvider : AnyObject {
     
+    /**
+     * Set network settings including tun, dns, ip.
+     */
     func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings) async throws 
+    
+    /**
+     * Set or unset the default path observer.
+     */
+    func setDefaultPathObserver(observer: OsDefaultPathObserver?) throws 
     
 }
 
@@ -565,6 +735,9 @@ open class OsTunProviderImpl:
     
 
     
+    /**
+     * Set network settings including tun, dns, ip.
+     */
 open func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings)async throws  {
     return
         try  await uniffiRustCallAsync(
@@ -582,15 +755,19 @@ open func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings)async t
         )
 }
     
+    /**
+     * Set or unset the default path observer.
+     */
+open func setDefaultPathObserver(observer: OsDefaultPathObserver?)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
+    uniffi_nym_vpn_lib_fn_method_ostunprovider_set_default_path_observer(self.uniffiClonePointer(),
+        FfiConverterOptionTypeOSDefaultPathObserver.lower(observer),$0
+    )
+}
+}
+    
 
 }
-// Magic number for the Rust proxy to call using the same mechanism as every other method,
-// to free the callback once it's dropped by Rust.
-private let IDX_CALLBACK_FREE: Int32 = 0
-// Callback return codes
-private let UNIFFI_CALLBACK_SUCCESS: Int32 = 0
-private let UNIFFI_CALLBACK_ERROR: Int32 = 1
-private let UNIFFI_CALLBACK_UNEXPECTED_ERROR: Int32 = 2
+
 
 // Put the implementation in a struct so we don't pollute the top-level namespace
 fileprivate struct UniffiCallbackInterfaceOSTunProvider {
@@ -638,6 +815,31 @@ fileprivate struct UniffiCallbackInterfaceOSTunProvider {
                 lowerError: FfiConverterTypeFFIError.lower
             )
             uniffiOutReturn.pointee = uniffiForeignFuture
+        },
+        setDefaultPathObserver: { (
+            uniffiHandle: UInt64,
+            observer: RustBuffer,
+            uniffiOutReturn: UnsafeMutableRawPointer,
+            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+        ) in
+            let makeCall = {
+                () throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeOSTunProvider.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return try uniffiObj.setDefaultPathObserver(
+                     observer: try FfiConverterOptionTypeOSDefaultPathObserver.lift(observer)
+                )
+            }
+
+            
+            let writeReturn = { () }
+            uniffiTraitInterfaceCallWithError(
+                callStatus: uniffiCallStatus,
+                makeCall: makeCall,
+                writeReturn: writeReturn,
+                lowerError: FfiConverterTypeFFIError.lower
+            )
         },
         uniffiFree: { (uniffiHandle: UInt64) -> () in
             let result = try? FfiConverterTypeOSTunProvider.handleMap.remove(handle: uniffiHandle)
@@ -1471,6 +1673,92 @@ public func FfiConverterTypeNymConfig_lift(_ buf: RustBuffer) throws -> NymConfi
 
 public func FfiConverterTypeNymConfig_lower(_ value: NymConfig) -> RustBuffer {
     return FfiConverterTypeNymConfig.lower(value)
+}
+
+
+/**
+ * Represents a default network route used by the system.
+ */
+public struct OsDefaultPath {
+    /**
+     * Indicates whether the process is able to make connection through the given path.
+     */
+    public var status: OsPathStatus
+    /**
+     * Set to true for interfaces that are considered expensive, such as when using cellular data plan.
+     */
+    public var isExpensive: Bool
+    /**
+     * Set to true when using a constrained interface, such as when using low-data mode.
+     */
+    public var isConstrained: Bool
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(
+        /**
+         * Indicates whether the process is able to make connection through the given path.
+         */status: OsPathStatus, 
+        /**
+         * Set to true for interfaces that are considered expensive, such as when using cellular data plan.
+         */isExpensive: Bool, 
+        /**
+         * Set to true when using a constrained interface, such as when using low-data mode.
+         */isConstrained: Bool) {
+        self.status = status
+        self.isExpensive = isExpensive
+        self.isConstrained = isConstrained
+    }
+}
+
+
+
+extension OsDefaultPath: Equatable, Hashable {
+    public static func ==(lhs: OsDefaultPath, rhs: OsDefaultPath) -> Bool {
+        if lhs.status != rhs.status {
+            return false
+        }
+        if lhs.isExpensive != rhs.isExpensive {
+            return false
+        }
+        if lhs.isConstrained != rhs.isConstrained {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(status)
+        hasher.combine(isExpensive)
+        hasher.combine(isConstrained)
+    }
+}
+
+
+public struct FfiConverterTypeOSDefaultPath: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> OsDefaultPath {
+        return
+            try OsDefaultPath(
+                status: FfiConverterTypeOSPathStatus.read(from: &buf), 
+                isExpensive: FfiConverterBool.read(from: &buf), 
+                isConstrained: FfiConverterBool.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: OsDefaultPath, into buf: inout [UInt8]) {
+        FfiConverterTypeOSPathStatus.write(value.status, into: &buf)
+        FfiConverterBool.write(value.isExpensive, into: &buf)
+        FfiConverterBool.write(value.isConstrained, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeOSDefaultPath_lift(_ buf: RustBuffer) throws -> OsDefaultPath {
+    return try FfiConverterTypeOSDefaultPath.lift(buf)
+}
+
+public func FfiConverterTypeOSDefaultPath_lower(_ value: OsDefaultPath) -> RustBuffer {
+    return FfiConverterTypeOSDefaultPath.lower(value)
 }
 
 
@@ -2586,6 +2874,103 @@ extension NymVpnStatus: Equatable, Hashable {}
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
+public enum OsPathStatus {
+    
+    /**
+     * The path cannot be evaluated.
+     */
+    case invalid
+    /**
+     * The path is ready to be used for network connections.
+     */
+    case satisfied
+    /**
+     * The path for network connections is not available, either due to lack of network
+     * connectivity or being prohibited by system policy.
+     */
+    case unsatisfied
+    /**
+     * The path is not currently satisfied, but may become satisfied upon a connection attempt.
+     * This can be due to a service, such as a VPN or a cellular data connection not being activated.
+     */
+    case satisfiable
+    /**
+     * Unknown path status was received.
+     * The raw variant code is contained in associated value.
+     */
+    case unknown(Int64
+    )
+}
+
+
+public struct FfiConverterTypeOSPathStatus: FfiConverterRustBuffer {
+    typealias SwiftType = OsPathStatus
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> OsPathStatus {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .invalid
+        
+        case 2: return .satisfied
+        
+        case 3: return .unsatisfied
+        
+        case 4: return .satisfiable
+        
+        case 5: return .unknown(try FfiConverterInt64.read(from: &buf)
+        )
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: OsPathStatus, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .invalid:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .satisfied:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .unsatisfied:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .satisfiable:
+            writeInt(&buf, Int32(4))
+        
+        
+        case let .unknown(v1):
+            writeInt(&buf, Int32(5))
+            FfiConverterInt64.write(v1, into: &buf)
+            
+        }
+    }
+}
+
+
+public func FfiConverterTypeOSPathStatus_lift(_ buf: RustBuffer) throws -> OsPathStatus {
+    return try FfiConverterTypeOSPathStatus.lift(buf)
+}
+
+public func FfiConverterTypeOSPathStatus_lower(_ value: OsPathStatus) -> RustBuffer {
+    return FfiConverterTypeOSPathStatus.lower(value)
+}
+
+
+
+extension OsPathStatus: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
 public enum TunStatus {
     
     case up
@@ -2675,6 +3060,27 @@ fileprivate struct FfiConverterOptionTimestamp: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTimestamp.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeOSDefaultPathObserver: FfiConverterRustBuffer {
+    typealias SwiftType = OsDefaultPathObserver?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeOSDefaultPathObserver.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeOSDefaultPathObserver.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -3894,7 +4300,13 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_stopvpn() != 23819) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_tunnel_network_settings() != 49154) {
+    if (uniffi_nym_vpn_lib_checksum_method_osdefaultpathobserver_on_default_path_change() != 43452) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_tunnel_network_settings() != 48304) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_default_path_observer() != 18569) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_tun_status_change() != 55105) {
@@ -3913,6 +4325,7 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
 
+    uniffiCallbackInitOSDefaultPathObserver()
     uniffiCallbackInitOSTunProvider()
     uniffiCallbackInitTunnelStatusListener()
     return InitializationResult.ok

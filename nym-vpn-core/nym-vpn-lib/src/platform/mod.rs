@@ -6,6 +6,8 @@ use self::error::FFIError;
 use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
 use crate::platform::status_listener::VpnServiceStatusListener;
+#[cfg(not(target_os = "ios"))]
+use crate::spawn_nym_vpn;
 use crate::uniffi_custom_impls::{
     BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location, NymVpnStatus,
     StatusEvent, TunStatus, UserAgent,
@@ -15,8 +17,6 @@ use crate::{
 };
 use lazy_static::lazy_static;
 use log::*;
-#[cfg(not(target_os = "ios"))]
-use spawn_nym_vpn;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};

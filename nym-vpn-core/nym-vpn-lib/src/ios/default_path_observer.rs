@@ -2,7 +2,7 @@ use tokio::sync::mpsc::UnboundedSender;
 
 use super::{OSDefaultPath, OSDefaultPathObserver};
 
-/// Observer type that funnels all new default routes into the channel.
+/// Observer type that wraps network path changes into a channel.
 #[derive(Debug)]
 pub struct DefaultPathObserver {
     tx: UnboundedSender<OSDefaultPath>,

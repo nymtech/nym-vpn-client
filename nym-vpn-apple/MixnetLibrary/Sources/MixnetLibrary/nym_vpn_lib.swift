@@ -519,12 +519,18 @@ fileprivate struct FfiConverterTimestamp: FfiConverterRustBuffer {
 
 
 
+/**
+ * Types observing network changes.
+ */
 public protocol OsDefaultPathObserver : AnyObject {
     
     func onDefaultPathChange(newPath: OsDefaultPath) 
     
 }
 
+/**
+ * Types observing network changes.
+ */
 open class OsDefaultPathObserverImpl:
     OsDefaultPathObserver {
     fileprivate let pointer: UnsafeMutableRawPointer!
@@ -677,8 +683,14 @@ public func FfiConverterTypeOSDefaultPathObserver_lower(_ value: OsDefaultPathOb
 
 public protocol OsTunProvider : AnyObject {
     
+    /**
+     * Set network settings including tun, dns, ip.
+     */
     func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings) async throws 
     
+    /**
+     * Set or unset the default path observer.
+     */
     func setDefaultPathObserver(observer: OsDefaultPathObserver?) throws 
     
 }
@@ -724,6 +736,9 @@ open class OsTunProviderImpl:
     
 
     
+    /**
+     * Set network settings including tun, dns, ip.
+     */
 open func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings)async throws  {
     return
         try  await uniffiRustCallAsync(
@@ -741,6 +756,9 @@ open func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings)async t
         )
 }
     
+    /**
+     * Set or unset the default path observer.
+     */
 open func setDefaultPathObserver(observer: OsDefaultPathObserver?)throws  {try rustCallWithError(FfiConverterTypeFFIError.lift) {
     uniffi_nym_vpn_lib_fn_method_ostunprovider_set_default_path_observer(self.uniffiClonePointer(),
         FfiConverterOptionTypeOSDefaultPathObserver.lower(observer),$0
@@ -1659,14 +1677,35 @@ public func FfiConverterTypeNymConfig_lower(_ value: NymConfig) -> RustBuffer {
 }
 
 
+/**
+ * Represents a default network route used by the system.
+ */
 public struct OsDefaultPath {
+    /**
+     * Indicates whether the process is able to make connection through the given path.
+     */
     public var status: OsPathStatus
+    /**
+     * Set to true for interfaces that are considered expensive, such as when using cellular data plan.
+     */
     public var isExpensive: Bool
+    /**
+     * Set to true when using a constrained interface, such as when using low-data mode.
+     */
     public var isConstrained: Bool
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(status: OsPathStatus, isExpensive: Bool, isConstrained: Bool) {
+    public init(
+        /**
+         * Indicates whether the process is able to make connection through the given path.
+         */status: OsPathStatus, 
+        /**
+         * Set to true for interfaces that are considered expensive, such as when using cellular data plan.
+         */isExpensive: Bool, 
+        /**
+         * Set to true when using a constrained interface, such as when using low-data mode.
+         */isConstrained: Bool) {
         self.status = status
         self.isExpensive = isExpensive
         self.isConstrained = isConstrained
@@ -2842,11 +2881,30 @@ extension NymVpnStatus: Equatable, Hashable {}
 
 public enum OsPathStatus {
     
+    /**
+     * The path cannot be evaluated.
+     */
     case invalid
+    /**
+     * The path is ready to be used for network connections.
+     */
     case satisfied
+    /**
+     * The path for network connections is not available, either due to lack of network
+     * connectivity or being prohibited by system policy.
+     */
     case unsatisfied
+    /**
+     * The path is not currently satisfied, but may become satisfied upon a connection attempt.
+     * This can be due to a service, such as a VPN or a cellular data connection not being activated.
+     */
     case satisfiable
-    case unknown
+    /**
+     * Unknown path status was received.
+     * The raw variant code is contained in associated value.
+     */
+    case unknown(Int64
+    )
 }
 
 
@@ -2865,7 +2923,8 @@ public struct FfiConverterTypeOSPathStatus: FfiConverterRustBuffer {
         
         case 4: return .satisfiable
         
-        case 5: return .unknown
+        case 5: return .unknown(try FfiConverterInt64.read(from: &buf)
+        )
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -2891,9 +2950,10 @@ public struct FfiConverterTypeOSPathStatus: FfiConverterRustBuffer {
             writeInt(&buf, Int32(4))
         
         
-        case .unknown:
+        case let .unknown(v1):
             writeInt(&buf, Int32(5))
-        
+            FfiConverterInt64.write(v1, into: &buf)
+            
         }
     }
 }
@@ -4248,10 +4308,10 @@ private var initializationResult: InitializationResult = {
     if (uniffi_nym_vpn_lib_checksum_method_osdefaultpathobserver_on_default_path_change() != 43452) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_tunnel_network_settings() != 49154) {
+    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_tunnel_network_settings() != 48304) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_default_path_observer() != 24203) {
+    if (uniffi_nym_vpn_lib_checksum_method_ostunprovider_set_default_path_observer() != 18569) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_method_tunnelstatuslistener_on_tun_status_change() != 55105) {
