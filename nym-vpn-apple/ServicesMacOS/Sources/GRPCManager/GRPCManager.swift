@@ -57,6 +57,7 @@ public final class GRPCManager: ObservableObject {
         _ = try? call.status.wait()
     }
 
+    // MARK: - Credentials -
     public func importCredential(credential: String) throws -> Date? {
         var request = Nym_Vpn_ImportUserCredentialRequest()
 
@@ -94,6 +95,7 @@ public final class GRPCManager: ObservableObject {
         }
     }
 
+    // MARK: - Connection -
     public func connect(
         entryGatewayCountryCode: String?,
         exitRouterCountryCode: String?,
@@ -169,8 +171,64 @@ public final class GRPCManager: ObservableObject {
             print("Error waiting for call status: \(error)")
         }
     }
+
+    // MARK: - Countries -
+    public func entryCountryCodes() async throws -> [String] {
+        try await withCheckedThrowingContinuation { continuation in
+            let call = client.listEntryCountries(
+                Nym_Vpn_ListEntryCountriesRequest(),
+                callOptions: CallOptions(logger: logger)
+            )
+
+            call.response.whenComplete { result in
+                switch result {
+                case let .success(countries):
+                    continuation.resume(returning: countries.countries.map { $0.twoLetterIsoCountryCode })
+                case let .failure(error):
+                    continuation.resume(throwing: error)
+                }
+            }
+
+            call.status.whenComplete { [weak self] result in
+                switch result {
+                case .success:
+                    break
+                case let .failure(error):
+                    self?.logger.log(level: .error, "\(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    public func exitCountryCodes() async throws -> [String] {
+        try await withCheckedThrowingContinuation { continuation in
+            let call = client.listExitCountries(
+                Nym_Vpn_ListExitCountriesRequest(),
+                callOptions: CallOptions(logger: logger)
+            )
+
+            call.response.whenComplete { result in
+                switch result {
+                case let .success(countries):
+                    continuation.resume(returning: countries.countries.map { $0.twoLetterIsoCountryCode })
+                case let .failure(error):
+                    continuation.resume(throwing: error)
+                }
+            }
+
+            call.status.whenComplete { [weak self] result in
+                switch result {
+                case .success:
+                    break
+                case let .failure(error):
+                    self?.logger.log(level: .error, "\(error.localizedDescription)")
+                }
+            }
+        }
+    }
 }
 
+// MARK: - Private -
 private extension GRPCManager {
     func setup() {
         setupListenToConnectionStateObserver()
@@ -229,7 +287,7 @@ private extension GRPCManager {
     func convertToGeneralNymError(from error: Nym_Vpn_Error) -> GeneralNymError {
         switch error.kind {
         case .unspecified, .unhandled:
-            GeneralNymError.library(message: "error.unexpected".localizedString)
+            GeneralNymError.library(message: "\("error.unexpected".localizedString): \(error.message)")
         case .noValidCredentials:
             GeneralNymError.invalidCredential
         case .timeout:

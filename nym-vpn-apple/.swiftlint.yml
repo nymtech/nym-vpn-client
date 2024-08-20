@@ -146,4 +146,6 @@ warning_threshold: 50
 reporter: "xcode"
 
 excluded:
-  - ${PWD}/MixnetLibrary/**
+  - "MixnetLibrary/Sources/MixnetLibrary/**"
+  - "ServicesMacOS/Sources/GRPCManager/proto/nym/**"
+  - "ServicesMacOS/Sources/GRPCManager/proto/grpc/**"
