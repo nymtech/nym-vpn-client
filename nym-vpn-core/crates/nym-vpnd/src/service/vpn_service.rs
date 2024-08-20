@@ -58,13 +58,51 @@ impl fmt::Display for VpnState {
 }
 
 #[derive(Debug, Clone)]
-pub struct VpnConnectedStateDetails {
+pub struct MixConnectedStateDetails {
     pub nym_address: Recipient,
-    pub entry_gateway: NodeIdentity,
-    pub exit_gateway: NodeIdentity,
     pub exit_ipr: Recipient,
     pub ipv4: Ipv4Addr,
     pub ipv6: Ipv6Addr,
+}
+
+#[derive(Debug, Clone)]
+pub struct WgConnectedStateDetails {
+    pub entry_ipv4: Ipv4Addr,
+    pub exit_ipv4: Ipv4Addr,
+}
+
+#[derive(Debug, Clone)]
+pub enum ConnectedStateDetails {
+    Mix(Box<MixConnectedStateDetails>),
+    Wg(WgConnectedStateDetails),
+}
+
+impl fmt::Display for ConnectedStateDetails {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Mix(details) => {
+                write!(
+                    f,
+                    "nym_address: {}, exit_ipr: {}, ipv4: {}, ipv6: {}",
+                    details.nym_address, details.exit_ipr, details.ipv4, details.ipv6
+                )
+            }
+            Self::Wg(details) => {
+                write!(
+                    f,
+                    "entry_ipv4: {}, exit_ipv4: {}",
+                    details.entry_ipv4, details.exit_ipv4
+                )
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct VpnConnectedStateDetails {
+    pub entry_gateway: NodeIdentity,
+    pub exit_gateway: NodeIdentity,
+    pub specific_details: ConnectedStateDetails,
     pub since: time::OffsetDateTime,
 }
 
@@ -72,14 +110,8 @@ impl fmt::Display for VpnConnectedStateDetails {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "nym_address: {}, entry_gateway: {}, exit_gateway: {}, exit_ipr: {}, ipv4: {}, ipv6: {}, since: {}",
-            self.nym_address,
-            self.entry_gateway,
-            self.exit_gateway,
-            self.exit_ipr,
-            self.ipv4,
-            self.ipv6,
-            self.since
+            "entry_gateway: {}, exit_gateway: {}, specific_details: {}, since: {}",
+            self.entry_gateway, self.exit_gateway, self.specific_details, self.since
         )
     }
 }
@@ -196,12 +228,9 @@ impl fmt::Display for VpnServiceStatusResult {
 
 #[derive(Clone, Debug)]
 pub struct ConnectedResultDetails {
-    pub nym_address: Recipient,
     pub entry_gateway: NodeIdentity,
     pub exit_gateway: NodeIdentity,
-    pub exit_ipr: Recipient,
-    pub ipv4: Ipv4Addr,
-    pub ipv6: Ipv6Addr,
+    pub specific_details: ConnectedStateDetails,
     pub since: time::OffsetDateTime,
 }
 
@@ -209,14 +238,8 @@ impl fmt::Display for ConnectedResultDetails {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "nym_address: {}, entry_gateway: {}, exit_gateway: {}, exit_ipr: {}, ipv4: {}, ipv6: {}, since: {}",
-            self.nym_address,
-            self.entry_gateway,
-            self.exit_gateway,
-            self.exit_ipr,
-            self.ipv4,
-            self.ipv6,
-            self.since
+            "entry_gateway: {}, exit_gateway: {}, specific_details: {}, since: {}",
+            self.entry_gateway, self.exit_gateway, self.specific_details, self.since
         )
     }
 }
@@ -224,12 +247,9 @@ impl fmt::Display for ConnectedResultDetails {
 impl From<VpnConnectedStateDetails> for ConnectedResultDetails {
     fn from(details: VpnConnectedStateDetails) -> Self {
         ConnectedResultDetails {
-            nym_address: details.nym_address,
             entry_gateway: details.entry_gateway,
             exit_gateway: details.exit_gateway,
-            exit_ipr: details.exit_ipr,
-            ipv4: details.ipv4,
-            ipv6: details.ipv6,
+            specific_details: details.specific_details,
             since: details.since,
         }
     }

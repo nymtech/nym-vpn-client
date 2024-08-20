@@ -19,7 +19,7 @@ use nym_gateway_directory::{
 };
 use nym_ip_packet_client::IprClientConnect;
 use nym_task::TaskManager;
-use std::net::IpAddr;
+use std::net::{IpAddr, Ipv4Addr};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use talpid_core::dns::DnsMonitor;
@@ -81,24 +81,22 @@ async fn init_wireguard_config(
 ) -> Result<(WireguardConfig, IpAddr)> {
     // First we need to register with the gateway to setup keys and IP assignment
     info!("Registering with wireguard gateway");
-    let gateway_auth_recipient = wg_gateway_client
+    let gateway_id = wg_gateway_client
         .auth_recipient()
         .gateway()
         .to_base58_string();
     let gateway_host = gateway_client
-        .lookup_gateway_ip(&gateway_auth_recipient)
+        .lookup_gateway_ip(&gateway_id)
         .await
-        .map_err(|source| GatewayDirectoryError::FailedToLookupGatewayIp {
-            gateway_id: gateway_auth_recipient,
-            source,
-        })?;
+        .map_err(|source| GatewayDirectoryError::FailedToLookupGatewayIp { gateway_id, source })?;
     let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
     debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
     let wireguard_config = WireguardConfig::init(
         wg_gateway_client.keypair(),
-        &wg_gateway_data,
+        wg_gateway_data,
         wg_gateway,
+        *wg_gateway_client.auth_recipient().gateway(),
         mtu,
     )?;
     Ok((wireguard_config, gateway_host))
@@ -211,6 +209,13 @@ pub struct MixnetExitConnectionInfo {
     pub exit_gateway: NodeIdentity,
     pub exit_ipr: Recipient,
     pub ips: IpPair,
+}
+
+#[derive(Clone, Debug)]
+pub struct WireguardConnectionInfo {
+    pub gateway_id: NodeIdentity,
+    pub public_key: String,
+    pub private_ipv4: Ipv4Addr,
 }
 
 impl NymVpn<WireguardVpn> {
@@ -589,6 +594,7 @@ impl SpecificVpn {
             route_manager.handle()?,
         )
         .await?;
+
         let tunnels = match setup_tunnel(
             self,
             &mut task_manager,
@@ -619,6 +625,8 @@ impl SpecificVpn {
             }
         };
 
+        info!("Nym VPN is now running");
+
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
             AllTunnelsSetup::Mix(TunnelSetup { specific_setup, .. }) => {
@@ -638,9 +646,9 @@ impl SpecificVpn {
                     .await;
 
                 vpn_status_tx
-                    .send(Box::new(NymVpnStatusMessage::MixnetConnectionInfo {
+                    .send(Box::new(NymVpnStatusMessage::MixConnectionInfo {
                         mixnet_connection_info: specific_setup.mixnet_connection_info,
-                        mixnet_exit_connection_info: specific_setup.exit_connection_info,
+                        mixnet_exit_connection_info: Box::new(specific_setup.exit_connection_info),
                     }))
                     .await
                     .unwrap();
@@ -661,6 +669,24 @@ impl SpecificVpn {
                 result
             }
             AllTunnelsSetup::Wg { entry, exit } => {
+                let start_status = TaskStatus::ReadyWithGateway(
+                    entry
+                        .specific_setup
+                        .connection_info
+                        .gateway_id
+                        .to_base58_string(),
+                );
+                task_manager
+                    .start_status_listener(vpn_status_tx.clone(), start_status)
+                    .await;
+
+                vpn_status_tx
+                    .send(Box::new(NymVpnStatusMessage::WgConnectionInfo {
+                        entry_connection_info: entry.specific_setup.connection_info.clone(),
+                        exit_connection_info: exit.specific_setup.connection_info.clone(),
+                    }))
+                    .await
+                    .unwrap();
                 let result = wait_for_interrupt_and_signal(
                     Some(task_manager),
                     vpn_ctrl_rx,
@@ -689,9 +715,14 @@ impl SpecificVpn {
 #[derive(thiserror::Error, Clone, Debug)]
 pub enum NymVpnStatusMessage {
     #[error("mixnet connection info")]
-    MixnetConnectionInfo {
+    MixConnectionInfo {
         mixnet_connection_info: MixnetConnectionInfo,
-        mixnet_exit_connection_info: MixnetExitConnectionInfo,
+        mixnet_exit_connection_info: Box<MixnetExitConnectionInfo>,
+    },
+    #[error("wireguard connection info")]
+    WgConnectionInfo {
+        entry_connection_info: WireguardConnectionInfo,
+        exit_connection_info: WireguardConnectionInfo,
     },
 }
 

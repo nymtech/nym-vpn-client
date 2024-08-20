@@ -13,6 +13,7 @@ use crate::{
     error::Result,
     tunnel::{start_tunnel, Tunnel},
     tunnel_setup::WgTunnelSetup,
+    WireguardConnectionInfo,
 };
 
 pub async fn create_wireguard_tunnel(
@@ -26,13 +27,23 @@ pub async fn create_wireguard_tunnel(
 )> {
     debug!("Creating wireguard tunnel");
     let handle = route_manager.handle()?;
-    let tunnel = Tunnel::new(wireguard_config, handle, tun_provider);
+    let tunnel = Tunnel::new(wireguard_config.clone(), handle, tun_provider);
 
     let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
     let (tunnel_handle, event_rx, tunnel_close_tx) =
         start_tunnel(&tunnel, shutdown, finished_shutdown_tx)?;
 
     let wireguard_waiting = WgTunnelSetup {
+        connection_info: WireguardConnectionInfo {
+            gateway_id: wireguard_config.gateway_id,
+            public_key: wireguard_config
+                .talpid_config
+                .tunnel
+                .private_key
+                .public_key()
+                .to_string(),
+            private_ipv4: wireguard_config.gateway_data.private_ipv4,
+        },
         receiver: finished_shutdown_rx,
         handle: tunnel_handle,
         tunnel_close_tx,
