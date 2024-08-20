@@ -206,8 +206,8 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
             });
         let gateway = nym_topology::gateway::Node::try_from(gateway).ok();
         let host = gateway.clone().map(|g| g.host);
-        let clients_ws_port = gateway.clone().map(|g| g.clients_ws_port);
-        let clients_wss_port = gateway.clone().and_then(|g| g.clients_wss_port);
+        let clients_ws_port = gateway.as_ref().map(|g| g.clients_ws_port);
+        let clients_wss_port = gateway.and_then(|g| g.clients_wss_port);
         Ok(Gateway {
             identity,
             location,
