@@ -111,8 +111,13 @@ async fn main() -> Result<()> {
     };
     debug!("app_config: {app_config:?}");
 
-    info!("network environment: mainnet");
-    defaults::setup_env::<PathBuf>(None);
+    if let Some(env_file) = &app_config.network_env_file {
+        info!("network environment: custom - {}", env_file.display());
+        defaults::setup_env(Some(env_file.clone()));
+    } else {
+        info!("network environment: mainnet");
+        defaults::setup_env::<PathBuf>(None);
+    }
 
     let app_state = AppState::try_from((&db, &app_config, &cli)).map_err(|e| {
         error!("failed to create app state from saved app data and config: {e}");
