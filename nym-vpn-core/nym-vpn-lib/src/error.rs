@@ -57,17 +57,11 @@ pub enum Error {
     #[error(transparent)]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 
-    #[error(transparent)]
-    ExplorerApiError(#[from] nym_explorer_client::ExplorerApiError),
-
     #[error("{0}")]
     KeyRecoveryError(#[from] nym_crypto::asymmetric::encryption::KeyRecoveryError),
 
     #[error("{0}")]
     NymNodeApiClientError(#[from] nym_node_requests::api::client::NymNodeApiClientError),
-
-    #[error("gateway was requested by location, but we don't have any location data - is the explorer-api set correctly?")]
-    RequestedGatewayByLocationWithoutLocationDataAvailable,
 
     #[error("{0}")]
     WireguardTypesError(#[from] nym_wireguard_types::error::Error),
@@ -108,18 +102,12 @@ pub enum Error {
     #[error("timeout after waiting {0}s for mixnet client to start")]
     StartMixnetTimeout(u64),
 
-    #[error("vpn could not be started")]
-    NotStarted,
-
     #[error("vpn errored on stop")]
     StopError,
 
     #[cfg(any(unix, target_os = "android"))]
     #[error("{0}")]
     TunProvider(#[from] talpid_tunnel::tun_provider::Error),
-
-    #[error("{0}")]
-    TalpidCoreMpsc(#[from] talpid_core::mpsc::Error),
 
     #[cfg(target_os = "ios")]
     #[error("{0}")]
@@ -143,17 +131,8 @@ pub enum Error {
     #[error("gateway does not contain a two character country ISO")]
     CountryCodeNotFound,
 
-    #[error("failed to find an exit gateway for country that is running a working version")]
-    CountryExitGatewaysOutdated,
-
     #[error(transparent)]
     GatewayDirectoryError(#[from] GatewayDirectoryError),
-
-    #[error("failed to import credential to: {location}: {source}")]
-    FailedToImportCredential {
-        location: PathBuf,
-        source: nym_id_pre_ecash::NymIdError,
-    },
 
     #[error("failed decode base58 credential: {source}")]
     FailedToDecodeBase58Credential {
@@ -174,9 +153,6 @@ pub enum Error {
     #[cfg(windows)]
     #[error("administrator privileges required, try rerunning with administrator privileges: `runas /user:Administrator {binary_name} run`")]
     AdminPrivilegesRequired { binary_name: String },
-
-    #[error("poisoned route manager lock")]
-    RouteManagerPoisonedLock,
 
     #[error("invalid credential: {reason}")]
     InvalidCredential {

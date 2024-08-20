@@ -65,7 +65,6 @@ nym-config.workspace = true
 nym-credential-storage-pre-ecash.workspace = true
 nym-credentials-pre-ecash.workspace = true
 nym-crypto.workspace = true
-nym-explorer-client.workspace = true
 nym-id-pre-ecash.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-node-requests.workspace = true
