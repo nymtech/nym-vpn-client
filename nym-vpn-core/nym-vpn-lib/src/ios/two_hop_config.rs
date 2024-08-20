@@ -5,7 +5,7 @@ use ipnetwork::IpNetwork;
 use super::wg_config::{WgInterface, WgNodeConfig, WgPeer};
 
 /// Minimum IPv6 MTU that the hosts should be ready to accept.
-pub const MIN_IPV6_MTU: u16 = 1280;
+const MIN_IPV6_MTU: u16 = 1280;
 
 /// WG tunnel overhead (IPv6)
 const WG_TUNNEL_OVERHEAD: u16 = 80;
@@ -16,17 +16,28 @@ const UDP_FORWARDER_PORT: u16 = 34001;
 /// Local port used by exit tunnel when sending traffic to the udp forwarder.
 const EXIT_WG_CLIENT_PORT: u16 = 54001;
 
+/// A struct that holds all configuration needed to setup the tunnels, tun device and forwarder.
 #[derive(Debug)]
-pub struct WgTwoHopConfig {
+pub struct TwoHopConfig {
+    /// Entry configuration applied to netstack based WireGuard tunnel.
     pub entry: WgNodeConfig,
+
+    /// Exit configuration applied to wireguard-go attached to tun device.
     pub exit: WgNodeConfig,
+
+    /// Configuration for UDP forwader that's used for wrapping tunnel in tunnel.
     pub forwarder: WgForwarderConfig,
+
+    /// Tun device configuration.
     pub tun: TunConfig,
 }
 
-impl WgTwoHopConfig {
+impl TwoHopConfig {
+    /// Create new two-hop configuration given two individual WireGuard configurations.
     pub fn new(entry: WgNodeConfig, exit: WgNodeConfig) -> Self {
-        let client_port = entry.interface.listen_port.unwrap_or(EXIT_WG_CLIENT_PORT);
+        // Ensure that exit instance of wg attached on tun interface, uses a fixed port number
+        // to initiate connection to the udp forwarder, because it ignores traffic from other ports.
+        let client_port = exit.interface.listen_port.unwrap_or(EXIT_WG_CLIENT_PORT);
 
         let forwarder_config = WgForwarderConfig {
             // Local endpoint that will forward exit traffic over entry tunnel
@@ -56,16 +67,13 @@ impl WgTwoHopConfig {
             entry: WgNodeConfig {
                 interface: WgInterface {
                     mtu: entry_mtu,
-                    listen_port: Some(client_port),
                     ..entry.interface
                 },
-                peer: WgPeer {
-                    endpoint: forwarder_config.listen_endpoint,
-                    ..entry.peer
-                },
+                peer: entry.peer,
             },
             exit: WgNodeConfig {
                 interface: WgInterface {
+                    listen_port: Some(client_port),
                     mtu: exit_mtu,
                     ..exit.interface
                 },

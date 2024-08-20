@@ -20,7 +20,19 @@ pub struct InterfaceConfig {
     pub mtu: u16,
 }
 
+impl fmt::Debug for InterfaceConfig {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("InterfaceConfig")
+            .field("private_key", &"(hidden)")
+            .field("local_addrs", &self.local_addrs)
+            .field("dns_addrs", &self.dns_addrs)
+            .field("mtu", &self.mtu)
+            .finish()
+    }
+}
+
 /// Netstack configuration.
+#[derive(Debug)]
 pub struct Config {
     pub interface: InterfaceConfig,
     pub peers: Vec<PeerConfig>,
@@ -42,31 +54,6 @@ impl Config {
         }
 
         config_builder.into_bytes()
-    }
-}
-
-impl fmt::Display for Config {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "tunnel:")?;
-        writeln!(f, "  mtu: {}", self.interface.mtu)?;
-        writeln!(f, "  addresses:")?;
-        for address in &self.interface.local_addrs {
-            writeln!(f, "    - {}", address)?;
-        }
-        writeln!(f, "  dns:")?;
-        for address in &self.interface.dns_addrs {
-            writeln!(f, "    - {}", address)?;
-        }
-        writeln!(f, "peers:")?;
-        for peer in &self.peers {
-            writeln!(f, "  - public_key: {}", peer.public_key)?;
-            writeln!(f, "    allowed_ips:")?;
-            for allowed_ip in &peer.allowed_ips {
-                writeln!(f, "      - {}", allowed_ip)?;
-            }
-            writeln!(f, "    endpoint: {}", peer.endpoint)?;
-        }
-        Ok(())
     }
 }
 

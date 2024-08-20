@@ -20,7 +20,7 @@ pub struct InterfaceConfig {
     pub mtu: u16,
 }
 
-impl std::fmt::Debug for InterfaceConfig {
+impl fmt::Debug for InterfaceConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("InterfaceConfig")
             .field("listen_port", &self.listen_port)

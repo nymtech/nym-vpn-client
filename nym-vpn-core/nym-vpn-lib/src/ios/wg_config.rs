@@ -1,7 +1,10 @@
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
+use std::{
+    fmt,
+    net::{IpAddr, SocketAddr},
+};
 
 use ipnetwork::IpNetwork;
-use nym_wg_go::{netstack, wireguard_go, PeerConfig, PresharedKey, PrivateKey, PublicKey};
+use nym_wg_go::{netstack, wireguard_go, PeerConfig, PrivateKey, PublicKey};
 
 #[derive(Debug)]
 pub struct WgNodeConfig {
@@ -29,8 +32,8 @@ pub struct WgInterface {
     pub mtu: u16,
 }
 
-impl std::fmt::Debug for WgInterface {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl fmt::Debug for WgInterface {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("WgInterface")
             .field("listen_port", &self.listen_port)
             .field("private_key", &"(hidden)")
@@ -100,7 +103,7 @@ impl WgNodeConfig {
     pub fn into_wireguard_config(self) -> wireguard_go::Config {
         wireguard_go::Config {
             interface: wireguard_go::InterfaceConfig {
-                listen_port: None,
+                listen_port: self.interface.listen_port,
                 private_key: self.interface.private_key,
                 mtu: self.interface.mtu,
             },

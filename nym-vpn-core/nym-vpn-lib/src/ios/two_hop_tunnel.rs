@@ -6,7 +6,7 @@ use tokio_util::sync::CancellationToken;
 use super::{
     default_path_observer::DefaultPathObserver,
     dns64, tun, tunnel_settings,
-    two_hop_config::WgTwoHopConfig,
+    two_hop_config::TwoHopConfig,
     wg_config::{WgInterface, WgNodeConfig, WgPeer},
     Error, OSDefaultPath, OSDefaultPathObserver, OSTunProvider, Result,
 };
@@ -25,7 +25,7 @@ use nym_wg_go::{netstack, wireguard_go, PeerEndpointUpdate};
 pub struct TwoHopTunnel {
     /// Entry node tunnel
     #[allow(unused)]
-    entry: Option<netstack::Tunnel>,
+    entry: netstack::Tunnel,
 
     /// Exit node tunnel
     #[allow(unused)]
@@ -36,12 +36,9 @@ pub struct TwoHopTunnel {
     exit_connection: Option<netstack::TunnelConnection>,
 
     /// Entry peer configuration.
-    /// todo: use it later to update peers on network change
-    #[allow(unused)]
     entry_peer: WgPeer,
 
     /// Exit peer configuration.
-    /// todo: use it later to update peers on network change
     #[allow(unused)]
     exit_peer: WgPeer,
 
@@ -50,6 +47,7 @@ pub struct TwoHopTunnel {
     tun_provider: Arc<dyn OSTunProvider>,
 
     /// An object observing the default path.
+    #[allow(unused)]
     default_path_observer: Arc<dyn OSDefaultPathObserver>,
 
     /// Default path receiver.
@@ -62,7 +60,7 @@ pub struct TwoHopTunnel {
 impl TwoHopTunnel {
     /// Fetch wg gateways and start the tunnel.
     pub async fn start(
-        os_tun_provider: Arc<dyn OSTunProvider>,
+        tun_provider: Arc<dyn OSTunProvider>,
         shutdown_token: CancellationToken,
     ) -> Result<()> {
         let Some(entry_priv_key) =
@@ -96,13 +94,13 @@ impl TwoHopTunnel {
         };
 
         let Some(exit_priv_key) =
-            nym_wg_go::PrivateKey::from_base64("MMLgfpAzr5RsVoK6UQezipadSx/QhjDDBM86MqOTolA=")
+            nym_wg_go::PrivateKey::from_base64("2GJR/sWv5YuutftnnxVr3UI6DjSjAdnWjvMtPkBtKn4=")
         else {
             tracing::error!("Failed to decode exit priv key.");
             return Err(Error::InvalidKey);
         };
         let Some(exit_pub_key) =
-            nym_wg_go::PublicKey::from_base64("TNrdH73p6h2EfeXxUiLOCOWHcjmjoslLxZptZpIPQXU=")
+            nym_wg_go::PublicKey::from_base64("GE2WP6hmwVggSvGVWLgq2L10T3WM2VspnUptK5F4B0U=")
         else {
             tracing::error!("Failed to decode exit pub key.");
             return Err(Error::InvalidKey);
@@ -112,96 +110,27 @@ impl TwoHopTunnel {
             interface: WgInterface {
                 listen_port: None,
                 private_key: exit_priv_key,
-                addresses: vec!["10.71.122.208/32".parse().expect("exit iface addr")],
+                addresses: vec!["10.64.93.204/32".parse().expect("exit iface addr")],
                 dns: crate::DEFAULT_DNS_SERVERS.to_vec(),
                 mtu: 1280,
             },
             peer: WgPeer {
                 public_key: exit_pub_key,
-                endpoint: "146.70.116.98:12912".parse().expect("exit peer endpoint"),
+                endpoint: "91.90.123.2:443".parse().expect("exit peer endpoint"),
             },
         };
 
-        tracing::debug!("WG configuration is ready. Proceeding to start the wg clients.");
-
-        // Configure tun interface & DNS
-        let tunnel_settings = tunnel_settings::create(
-            exit_node_config.interface.addresses.clone(),
-            vec!["10.64.0.1".parse().unwrap()], // crate::DEFAULT_DNS_SERVERS.to_vec(),
-            super::two_hop_config::MIN_IPV6_MTU,
-        );
-        os_tun_provider
-            .set_tunnel_network_settings(tunnel_settings)
-            .await
-            .map_err(Error::SetNetworkSettings)?;
-
-        Self::start_wg_tunnel(
+        Self::start_inner(
             entry_node_config,
             exit_node_config,
-            os_tun_provider,
+            tun_provider,
             shutdown_token,
         )
         .await
     }
 
-    async fn start_wg_tunnel(
-        entry_node_config: WgNodeConfig,
-        exit_node_config: WgNodeConfig,
-        tun_provider: Arc<dyn OSTunProvider>,
-        shutdown_token: CancellationToken,
-    ) -> Result<()> {
-        // Save original peer endpoints so that we can re-resolve them with DNS64 when device switches networks.
-        let orig_entry_peer = entry_node_config.peer.clone();
-        let orig_exit_peer = exit_node_config.peer.clone();
-
-        // Transform wg config structs into what nym-wg-go expects.
-        let mut entry_wg_config = entry_node_config.into_wireguard_config();
-
-        tracing::info!("Entry wireguard config: \n{:#?}", entry_wg_config);
-
-        // Re-resolve peers with DNS64.
-        for peer in entry_wg_config.peers.iter_mut() {
-            peer.endpoint = dns64::reresolve_endpoint(peer.endpoint)?;
-        }
-
-        // Obtain tunnel file descriptor and interface name.
-        let tun_fd = tun::get_tun_fd().ok_or(Error::CannotLocateTunFd)?;
-        tracing::debug!("Found tunnel fd: {}", tun_fd);
-
-        let tun_name = tun::get_tun_ifname(tun_fd).ok_or(Error::ObtainTunName)?;
-        tracing::debug!("Tunnel interface name: {}", tun_name);
-
-        // Create exit tunnel capturing exit traffic on device and sending it to the local udp forwarder.
-        let entry_tunnel = wireguard_go::Tunnel::start(entry_wg_config, tun_fd, |s| {
-            tracing::debug!(name = "wg-go", "{}", s);
-        })?;
-
-        let (default_path_tx, default_path_rx) = mpsc::unbounded_channel();
-        let default_path_observer = Arc::new(DefaultPathObserver::new(default_path_tx));
-
-        tun_provider
-            .set_default_path_observer(Some(default_path_observer.clone()))
-            .map_err(Error::SetDefaultPathObserver)?;
-
-        let tunnel = Self {
-            entry: None,
-            exit: entry_tunnel,
-            exit_connection: None,
-            entry_peer: orig_entry_peer,
-            exit_peer: orig_exit_peer,
-            tun_provider,
-            default_path_observer,
-            default_path_rx,
-            shutdown_token,
-        };
-
-        tunnel.run().await;
-
-        Ok(())
-    }
-
     /// Start two-hop wg tunnel given entry and exit nodes.
-    async fn start_wg_tunnel2(
+    async fn start_inner(
         entry_node_config: WgNodeConfig,
         exit_node_config: WgNodeConfig,
         tun_provider: Arc<dyn OSTunProvider>,
@@ -211,9 +140,12 @@ impl TwoHopTunnel {
         let orig_entry_peer = entry_node_config.peer.clone();
         let orig_exit_peer = exit_node_config.peer.clone();
 
-        let two_hop_config = WgTwoHopConfig::new(entry_node_config, exit_node_config);
+        let two_hop_config = TwoHopConfig::new(entry_node_config, exit_node_config);
 
-        tracing::info!("Two-hop config: {:#?}", two_hop_config);
+        tracing::info!("Two-hop entry: {:#?}", two_hop_config.entry);
+        tracing::info!("Two-hop exit: {:#?}", two_hop_config.exit);
+        tracing::info!("Two-hop tun: {:#?}", two_hop_config.tun);
+        tracing::info!("Two-hop forwarder: {:#?}", two_hop_config.forwarder);
 
         // Transform wg config structs into what nym-wg-go expects.
         let mut entry_wg_config = two_hop_config.entry.into_netstack_config();
@@ -248,6 +180,18 @@ impl TwoHopTunnel {
             tracing::debug!(name = "wg-go", "{}", s);
         })?;
 
+        // Configure tun, dns and routing
+        let tunnel_settings = tunnel_settings::create(
+            two_hop_config.tun.addresses,
+            two_hop_config.tun.dns,
+            two_hop_config.tun.mtu,
+        );
+        tun_provider
+            .set_tunnel_network_settings(tunnel_settings)
+            .await
+            .map_err(Error::SetNetworkSettings)?;
+
+        // Setup default path observer.
         let (default_path_tx, default_path_rx) = mpsc::unbounded_channel();
         let default_path_observer = Arc::new(DefaultPathObserver::new(default_path_tx));
 
@@ -256,7 +200,7 @@ impl TwoHopTunnel {
             .map_err(Error::SetDefaultPathObserver)?;
 
         let two_hop_tunnel = Self {
-            entry: Some(entry_tunnel),
+            entry: entry_tunnel,
             exit: exit_tunnel,
             exit_connection: Some(exit_connection),
             entry_peer: orig_entry_peer,
@@ -291,7 +235,10 @@ impl TwoHopTunnel {
     fn on_network_path_change(&mut self, new_path: OSDefaultPath) {
         tracing::debug!("New default path: {:?}", new_path);
 
-        // Update peers, re-resolving peers with DNS64.
+        // Depending on the network device is connected to, we may need to re-resolve the IP addresses.
+        // For instance when device connects to IPv4-only server from IPv6-only network,
+        // it needs to use an IPv4-mapped address, which can be received by re-resolving
+        // the original peer IP.
         if let Err(e) = self.update_peers() {
             tracing::error!("Failed to update peers on network change: {}", e);
         }
@@ -307,7 +254,10 @@ impl TwoHopTunnel {
             public_key: self.entry_peer.public_key.clone(),
         };
 
+        // Update wireguard-go configuration with re-resolved peer endpoints.
         self.exit.update_peers(&[peer_update])?;
+
+        // wireguard-go resets the roaming flag when updating peers, this call fixes this.
         self.exit.disable_roaming();
 
         Ok(())
