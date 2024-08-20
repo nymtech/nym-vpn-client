@@ -10,19 +10,15 @@ use std::{
 
 use super::{Error, Result};
 
-/// Resolve each peer with DNS64 and update the endpoint.
-pub fn resolve_peers(peers: &mut [PeerConfig]) -> Result<()> {
-    for peer_config in peers.iter_mut() {
-        let resolved_endpoint = resolve_addr(peer_config.endpoint)?;
-
-        if resolved_endpoint == peer_config.endpoint {
-            tracing::info!("Resolved {} to self", peer_config.endpoint);
+/// Re-resolve an endpoint with DNS64
+pub fn reresolve_endpoint(endpoint: SocketAddr) -> Result<SocketAddr> {
+    resolve_addr(endpoint).inspect(|resolved_endpoint| {
+        if resolved_endpoint == &endpoint {
+            tracing::info!("Resolved {} to self", endpoint);
         } else {
-            tracing::info!("Resolved {} to {}", peer_config.endpoint, resolved_endpoint);
-            peer_config.endpoint = resolved_endpoint;
+            tracing::info!("Resolved {} to {}", endpoint, resolved_endpoint);
         }
-    }
-    Ok(())
+    })
 }
 
 /// Returns new socket address resolved with DNS64.

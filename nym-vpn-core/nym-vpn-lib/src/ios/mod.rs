@@ -9,7 +9,9 @@ mod dns64;
 mod gateway;
 pub mod tun;
 pub mod tunnel_settings;
+pub mod two_hop_config;
 pub mod two_hop_tunnel;
+mod wg_config;
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -25,13 +27,13 @@ pub enum Error {
     ObtainTunName,
 
     #[error("Tunnel failure")]
-    Tunnel(nym_wg_go::Error),
+    Tunnel(#[from] nym_wg_go::Error),
 
     #[error("Failed to resolve {} (error code: {})", addr, code)]
     DnsLookup { code: i32, addr: SocketAddr },
 
     #[error("Failed to parse addrinfo")]
-    ParseAddrInfo(std::io::Error),
+    ParseAddrInfo(#[source] std::io::Error),
 
     #[error("DNS lookup has seemingly succeeded without any results")]
     EmptyDnsLookupResult,

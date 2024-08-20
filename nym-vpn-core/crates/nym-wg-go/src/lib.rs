@@ -66,7 +66,19 @@ impl PeerConfig {
     }
 }
 
+impl std::fmt::Debug for PeerConfig {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("PeerConfig")
+            .field("public_key", &self.public_key)
+            .field("preshared_key", &"(hidden)")
+            .field("endpoint", &self.endpoint)
+            .field("allowed_ips", &self.allowed_ips)
+            .finish()
+    }
+}
+
 /// Holds new endpoint for the peer matching by public key.
+#[derive(Debug)]
 pub struct PeerEndpointUpdate {
     pub public_key: PublicKey,
     pub endpoint: SocketAddr,

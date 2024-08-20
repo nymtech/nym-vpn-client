@@ -18,11 +18,20 @@ pub struct InterfaceConfig {
     pub listen_port: Option<u16>,
     pub private_key: PrivateKey,
     pub mtu: u16,
-    #[cfg(target_os = "linux")]
-    pub fwmark: Option<u32>,
+}
+
+impl std::fmt::Debug for InterfaceConfig {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("InterfaceConfig")
+            .field("listen_port", &self.listen_port)
+            .field("private_key", &"(hidden)")
+            .field("mtu", &self.mtu)
+            .finish()
+    }
 }
 
 /// Classic WireGuard configuration.
+#[derive(Debug)]
 pub struct Config {
     pub interface: InterfaceConfig,
     pub peers: Vec<PeerConfig>,
@@ -40,11 +49,6 @@ impl Config {
             config_builder.add("listen_port", listen_port.to_string().as_str());
         }
 
-        #[cfg(target_os = "linux")]
-        if let Some(fwmark) = self.interface.fwmark {
-            config_builder.add("fwmark", fwmark.to_string().as_str());
-        }
-
         if !self.peers.is_empty() {
             config_builder.add("replace_peers", "true");
             for peer in self.peers.iter() {
@@ -53,23 +57,6 @@ impl Config {
         }
 
         config_builder.into_bytes()
-    }
-}
-
-impl fmt::Display for Config {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "tunnel:")?;
-        writeln!(f, "  mtu: {}", self.interface.mtu)?;
-        writeln!(f, "peers:")?;
-        for peer in &self.peers {
-            writeln!(f, "  - public_key: {}", peer.public_key)?;
-            writeln!(f, "    allowed_ips:")?;
-            for allowed_ip in &peer.allowed_ips {
-                writeln!(f, "      - {}", allowed_ip)?;
-            }
-            writeln!(f, "    endpoint: {}", peer.endpoint)?;
-        }
-        Ok(())
     }
 }
 
