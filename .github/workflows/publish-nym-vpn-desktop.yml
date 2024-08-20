@@ -39,7 +39,7 @@ jobs:
       - build-nym-vpn-desktop-mac
       - build-nym-vpn-desktop-windows
       - generate-build-info-desktop
-    runs-on: ubuntu-22.04-arc
+    runs-on: arc-ubuntu-22.04
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}
     env:
