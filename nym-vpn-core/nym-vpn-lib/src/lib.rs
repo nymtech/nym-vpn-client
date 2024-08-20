@@ -646,7 +646,7 @@ impl SpecificVpn {
                     .await;
 
                 vpn_status_tx
-                    .send(Box::new(NymVpnStatusMessage::MixnetConnectionInfo {
+                    .send(Box::new(NymVpnStatusMessage::MixConnectionInfo {
                         mixnet_connection_info: specific_setup.mixnet_connection_info,
                         mixnet_exit_connection_info: Box::new(specific_setup.exit_connection_info),
                     }))
@@ -681,7 +681,7 @@ impl SpecificVpn {
                     .await;
 
                 vpn_status_tx
-                    .send(Box::new(NymVpnStatusMessage::WireguardConnectionInfo {
+                    .send(Box::new(NymVpnStatusMessage::WgConnectionInfo {
                         entry_connection_info: entry.specific_setup.connection_info.clone(),
                         exit_connection_info: exit.specific_setup.connection_info.clone(),
                     }))
@@ -715,12 +715,12 @@ impl SpecificVpn {
 #[derive(thiserror::Error, Clone, Debug)]
 pub enum NymVpnStatusMessage {
     #[error("mixnet connection info")]
-    MixnetConnectionInfo {
+    MixConnectionInfo {
         mixnet_connection_info: MixnetConnectionInfo,
         mixnet_exit_connection_info: Box<MixnetExitConnectionInfo>,
     },
     #[error("wireguard connection info")]
-    WireguardConnectionInfo {
+    WgConnectionInfo {
         entry_connection_info: WireguardConnectionInfo,
         exit_connection_info: WireguardConnectionInfo,
     },

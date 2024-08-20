@@ -347,11 +347,11 @@ pub enum TunStatus {
 #[derive(uniffi::Enum, PartialEq)]
 #[allow(clippy::large_enum_variant)]
 pub enum NymVpnStatus {
-    MixnetConnectionInfo {
-        mixnet_connection_info: MixConnectionInfo,
-        mixnet_exit_connection_info: MixExitConnectionInfo,
+    MixConnectInfo {
+        mix_connection_info: MixConnectionInfo,
+        mix_exit_connection_info: MixExitConnectionInfo,
     },
-    WireguardConnectionInfo {
+    WgConnectInfo {
         entry_connection_info: WireguardConnectionInfo,
         exit_connection_info: WireguardConnectionInfo,
     },
@@ -360,17 +360,17 @@ pub enum NymVpnStatus {
 impl From<NymVpnStatusMessage> for NymVpnStatus {
     fn from(value: NymVpnStatusMessage) -> Self {
         match value {
-            NymVpnStatusMessage::MixnetConnectionInfo {
+            NymVpnStatusMessage::MixConnectionInfo {
                 mixnet_connection_info,
                 mixnet_exit_connection_info,
-            } => NymVpnStatus::MixnetConnectionInfo {
-                mixnet_connection_info: mixnet_connection_info.into(),
-                mixnet_exit_connection_info: (*mixnet_exit_connection_info).into(),
+            } => NymVpnStatus::MixConnectInfo {
+                mix_connection_info: mixnet_connection_info.into(),
+                mix_exit_connection_info: (*mixnet_exit_connection_info).into(),
             },
-            NymVpnStatusMessage::WireguardConnectionInfo {
+            NymVpnStatusMessage::WgConnectionInfo {
                 entry_connection_info,
                 exit_connection_info,
-            } => NymVpnStatus::WireguardConnectionInfo {
+            } => NymVpnStatus::WgConnectInfo {
                 entry_connection_info: entry_connection_info.into(),
                 exit_connection_info: exit_connection_info.into(),
             },

@@ -2425,13 +2425,13 @@ public object FfiConverterTypeFFIError : FfiConverterRustBuffer<FfiException> {
 
 sealed class NymVpnStatus {
     
-    data class MixnetConnectionInfo(
-        val `mixnetConnectionInfo`: MixConnectionInfo, 
-        val `mixnetExitConnectionInfo`: MixExitConnectionInfo) : NymVpnStatus() {
+    data class MixConnectInfo(
+        val `mixConnectionInfo`: MixConnectionInfo, 
+        val `mixExitConnectionInfo`: MixExitConnectionInfo) : NymVpnStatus() {
         companion object
     }
     
-    data class WireguardConnectionInfo(
+    data class WgConnectInfo(
         val `entryConnectionInfo`: WireguardConnectionInfo, 
         val `exitConnectionInfo`: WireguardConnectionInfo) : NymVpnStatus() {
         companion object
@@ -2445,11 +2445,11 @@ sealed class NymVpnStatus {
 public object FfiConverterTypeNymVpnStatus : FfiConverterRustBuffer<NymVpnStatus>{
     override fun read(buf: ByteBuffer): NymVpnStatus {
         return when(buf.getInt()) {
-            1 -> NymVpnStatus.MixnetConnectionInfo(
+            1 -> NymVpnStatus.MixConnectInfo(
                 FfiConverterTypeMixConnectionInfo.read(buf),
                 FfiConverterTypeMixExitConnectionInfo.read(buf),
                 )
-            2 -> NymVpnStatus.WireguardConnectionInfo(
+            2 -> NymVpnStatus.WgConnectInfo(
                 FfiConverterTypeWireguardConnectionInfo.read(buf),
                 FfiConverterTypeWireguardConnectionInfo.read(buf),
                 )
@@ -2458,15 +2458,15 @@ public object FfiConverterTypeNymVpnStatus : FfiConverterRustBuffer<NymVpnStatus
     }
 
     override fun allocationSize(value: NymVpnStatus) = when(value) {
-        is NymVpnStatus.MixnetConnectionInfo -> {
+        is NymVpnStatus.MixConnectInfo -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
-                + FfiConverterTypeMixConnectionInfo.allocationSize(value.`mixnetConnectionInfo`)
-                + FfiConverterTypeMixExitConnectionInfo.allocationSize(value.`mixnetExitConnectionInfo`)
+                + FfiConverterTypeMixConnectionInfo.allocationSize(value.`mixConnectionInfo`)
+                + FfiConverterTypeMixExitConnectionInfo.allocationSize(value.`mixExitConnectionInfo`)
             )
         }
-        is NymVpnStatus.WireguardConnectionInfo -> {
+        is NymVpnStatus.WgConnectInfo -> {
             // Add the size for the Int that specifies the variant plus the size needed for all fields
             (
                 4UL
@@ -2478,13 +2478,13 @@ public object FfiConverterTypeNymVpnStatus : FfiConverterRustBuffer<NymVpnStatus
 
     override fun write(value: NymVpnStatus, buf: ByteBuffer) {
         when(value) {
-            is NymVpnStatus.MixnetConnectionInfo -> {
+            is NymVpnStatus.MixConnectInfo -> {
                 buf.putInt(1)
-                FfiConverterTypeMixConnectionInfo.write(value.`mixnetConnectionInfo`, buf)
-                FfiConverterTypeMixExitConnectionInfo.write(value.`mixnetExitConnectionInfo`, buf)
+                FfiConverterTypeMixConnectionInfo.write(value.`mixConnectionInfo`, buf)
+                FfiConverterTypeMixExitConnectionInfo.write(value.`mixExitConnectionInfo`, buf)
                 Unit
             }
-            is NymVpnStatus.WireguardConnectionInfo -> {
+            is NymVpnStatus.WgConnectInfo -> {
                 buf.putInt(2)
                 FfiConverterTypeWireguardConnectionInfo.write(value.`entryConnectionInfo`, buf)
                 FfiConverterTypeWireguardConnectionInfo.write(value.`exitConnectionInfo`, buf)

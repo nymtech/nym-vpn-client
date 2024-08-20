@@ -2118,9 +2118,9 @@ extension FfiError: Error { }
 
 public enum NymVpnStatus {
     
-    case mixnetConnectionInfo(mixnetConnectionInfo: MixConnectionInfo, mixnetExitConnectionInfo: MixExitConnectionInfo
+    case mixConnectInfo(mixConnectionInfo: MixConnectionInfo, mixExitConnectionInfo: MixExitConnectionInfo
     )
-    case wireguardConnectionInfo(entryConnectionInfo: WireguardConnectionInfo, exitConnectionInfo: WireguardConnectionInfo
+    case wgConnectInfo(entryConnectionInfo: WireguardConnectionInfo, exitConnectionInfo: WireguardConnectionInfo
     )
 }
 
@@ -2132,10 +2132,10 @@ public struct FfiConverterTypeNymVpnStatus: FfiConverterRustBuffer {
         let variant: Int32 = try readInt(&buf)
         switch variant {
         
-        case 1: return .mixnetConnectionInfo(mixnetConnectionInfo: try FfiConverterTypeMixConnectionInfo.read(from: &buf), mixnetExitConnectionInfo: try FfiConverterTypeMixExitConnectionInfo.read(from: &buf)
+        case 1: return .mixConnectInfo(mixConnectionInfo: try FfiConverterTypeMixConnectionInfo.read(from: &buf), mixExitConnectionInfo: try FfiConverterTypeMixExitConnectionInfo.read(from: &buf)
         )
         
-        case 2: return .wireguardConnectionInfo(entryConnectionInfo: try FfiConverterTypeWireguardConnectionInfo.read(from: &buf), exitConnectionInfo: try FfiConverterTypeWireguardConnectionInfo.read(from: &buf)
+        case 2: return .wgConnectInfo(entryConnectionInfo: try FfiConverterTypeWireguardConnectionInfo.read(from: &buf), exitConnectionInfo: try FfiConverterTypeWireguardConnectionInfo.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -2146,13 +2146,13 @@ public struct FfiConverterTypeNymVpnStatus: FfiConverterRustBuffer {
         switch value {
         
         
-        case let .mixnetConnectionInfo(mixnetConnectionInfo,mixnetExitConnectionInfo):
+        case let .mixConnectInfo(mixConnectionInfo,mixExitConnectionInfo):
             writeInt(&buf, Int32(1))
-            FfiConverterTypeMixConnectionInfo.write(mixnetConnectionInfo, into: &buf)
-            FfiConverterTypeMixExitConnectionInfo.write(mixnetExitConnectionInfo, into: &buf)
+            FfiConverterTypeMixConnectionInfo.write(mixConnectionInfo, into: &buf)
+            FfiConverterTypeMixExitConnectionInfo.write(mixExitConnectionInfo, into: &buf)
             
         
-        case let .wireguardConnectionInfo(entryConnectionInfo,exitConnectionInfo):
+        case let .wgConnectInfo(entryConnectionInfo,exitConnectionInfo):
             writeInt(&buf, Int32(2))
             FfiConverterTypeWireguardConnectionInfo.write(entryConnectionInfo, into: &buf)
             FfiConverterTypeWireguardConnectionInfo.write(exitConnectionInfo, into: &buf)
