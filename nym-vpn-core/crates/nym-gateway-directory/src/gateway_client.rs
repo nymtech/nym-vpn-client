@@ -18,6 +18,8 @@ use std::{fmt, net::IpAddr, time::Duration};
 use tracing::{debug, error, info};
 use url::Url;
 
+const DIRECTORY_CLIENT_TIMEOUT: Duration = Duration::from_secs(20);
+
 #[derive(Clone, Debug)]
 pub struct Config {
     pub api_url: Url,
@@ -131,7 +133,7 @@ impl GatewayClient {
                 nym_vpn_api_client::ClientBuilder::new(url)
                     .map_err(nym_vpn_api_client::VpnApiClientError::from)?
                     .with_user_agent(user_agent)
-                    .with_timeout(Duration::from_secs(10))
+                    .with_timeout(DIRECTORY_CLIENT_TIMEOUT)
                     .build()?,
             )
         } else {
