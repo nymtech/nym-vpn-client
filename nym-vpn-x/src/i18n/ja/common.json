@@ -1,1 +1,27 @@
-{}
+{
+  "settings": "設定",
+  "connect": "接続",
+  "disconnect": "接続解除",
+  "fastest": "最速",
+  "logs": "履歴",
+  "feedback": "フィードバック",
+  "support": "サポート",
+  "notifications": "通知",
+  "vpn-modes": {
+    "privacy": "匿名",
+    "fast": "高速"
+  },
+  "first-hop-selection": "エントリーロケーション",
+  "last-hop-selection": "出口ロケーション",
+  "display-theme": "ディスプレイ",
+  "legal": "法的",
+  "sentry": "Sentry",
+  "tos": "利用規約",
+  "privacy-statement": "「プライバシーポリシー」",
+  "ui-mode": {
+    "dark": "ダークモード",
+    "light": "ライトモード"
+  },
+  "appearance": "外観",
+  "language": "言語"
+}

@@ -1,1 +1,50 @@
-{}
+{
+  "auto-connect": {
+    "title": "自動接続",
+    "desc": "アプリ起動時に自動で接続"
+  },
+  "entry-selector": {
+    "title": "エントリーロケーション選択",
+    "desc": "エントリーホップを手動で選択する"
+  },
+  "error-monitoring": {
+    "title": "匿名のエラーレポート",
+    "desc": "アプリの再起動時に適用されます"
+  },
+  "notifications": {
+    "title": "デスクトップ通知"
+  },
+  "feedback": {
+    "title": "フィードバック",
+    "github": "GitHubで問題を報告する",
+    "send": "フィードバックを送信する",
+    "matrix": "Matrixに参加する",
+    "discord": "Discordに参加する"
+  },
+  "support": {
+    "title": "サポート",
+    "faq": "FAQをチェック",
+    "contact": "サポートに連絡する"
+  },
+  "legal": {
+    "title": "法",
+    "policy": "プライバシーポリシー",
+    "tos": "利用規約",
+    "license": "ライセンス",
+    "licenses-js": "ライセンス（JS）",
+    "licenses-rust": "ライセンス（Rust）",
+    "emptyData": "ライセンスデータが利用できません"
+  },
+  "logs": {
+    "title": "履歴",
+    "desc": "履歴をコピーまたは削除する"
+  },
+  "faq": "よくある質問",
+  "display-theme": "ディスプレイモード",
+  "quit": "NymVPNを終了する",
+  "add-credential-button": "接続するには、クレデンシャルを追加してください",
+  "credential": {
+    "title": "クレデンシャル"
+  },
+  "monitoring-alert": "変更を反映させるには、アプリを再起動する必要があります。"
+}
