@@ -295,6 +295,7 @@ impl GrpcClient {
             enable_credentials_mode: false,
             dns,
             min_mixnode_performance: None,
+            min_gateway_performance: None,
         });
         let response = vpnd.vpn_connect(request).await.map_err(|e| {
             error!("grpc vpn_connect: {}", e);
@@ -346,7 +347,9 @@ impl GrpcClient {
         debug!("entry_countries");
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(ListEntryCountriesRequest {});
+        let request = Request::new(ListEntryCountriesRequest {
+            min_mixnode_performance: None,
+        });
         let response = vpnd.list_entry_countries(request).await.map_err(|e| {
             error!("grpc list_entry_countries: {}", e);
             VpndError::GrpcError(e)
@@ -372,7 +375,9 @@ impl GrpcClient {
         debug!("exit_countries");
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(ListExitCountriesRequest {});
+        let request = Request::new(ListExitCountriesRequest {
+            min_gateway_performance: None,
+        });
         let response = vpnd.list_exit_countries(request).await.map_err(|e| {
             error!("grpc list_exit_countries: {}", e);
             VpndError::GrpcError(e)
