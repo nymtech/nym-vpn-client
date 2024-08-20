@@ -27,10 +27,10 @@ pub(crate) enum Command {
     StoreAccount(StoreAccountArgs),
     ListenToStatus,
     ListenToStateChanges,
-    ListEntryGateways,
-    ListExitGateways,
-    ListEntryCountries,
-    ListExitCountries,
+    ListEntryGateways(ListEntryGatewaysArgs),
+    ListExitGateways(ListExitGatewaysArgs),
+    ListEntryCountries(ListEntryCountriesArgs),
+    ListExitCountries(ListExitCountriesArgs),
 }
 
 #[derive(Args)]
@@ -72,25 +72,30 @@ pub(crate) struct ConnectArgs {
     /// consider a mixnode for routing traffic.
     #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
     pub(crate) min_mixnode_performance: Option<u8>,
+
+    /// An integer between 0 and 100 representing the minimum gateway performance required to
+    /// consider a gateway for routing traffic.
+    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    pub(crate) min_gateway_performance: Option<u8>,
 }
 
 #[derive(Args)]
 #[group(multiple = false)]
 pub(crate) struct CliEntry {
     /// Mixnet public ID of the entry gateway.
-    #[clap(long, alias = "entry-id")]
+    #[arg(long, alias = "entry-id")]
     pub(crate) entry_gateway_id: Option<String>,
 
     /// Auto-select entry gateway by country ISO.
-    #[clap(long, alias = "entry-country")]
+    #[arg(long, alias = "entry-country")]
     pub(crate) entry_gateway_country: Option<String>,
 
     /// Auto-select entry gateway by latency
-    #[clap(long, alias = "entry-fastest")]
+    #[arg(long, alias = "entry-fastest")]
     pub(crate) entry_gateway_low_latency: bool,
 
     /// Auto-select entry gateway randomly.
-    #[clap(long, alias = "entry-random")]
+    #[arg(long, alias = "entry-random")]
     pub(crate) entry_gateway_random: bool,
 }
 
@@ -157,6 +162,38 @@ pub(crate) struct StoreAccountArgs {
     /// The account mnemonic to be stored.
     #[arg(long)]
     pub(crate) mnemonic: String,
+}
+
+#[derive(Args)]
+pub(crate) struct ListEntryGatewaysArgs {
+    /// An integer between 0 and 100 representing the minimum gateway performance required to
+    /// consider a gateway for routing traffic.
+    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    pub(crate) min_gateway_performance: Option<u8>,
+}
+
+#[derive(Args)]
+pub(crate) struct ListExitGatewaysArgs {
+    /// An integer between 0 and 100 representing the minimum gateway performance required to
+    /// consider a gateway for routing traffic.
+    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    pub(crate) min_gateway_performance: Option<u8>,
+}
+
+#[derive(Args)]
+pub(crate) struct ListEntryCountriesArgs {
+    /// An integer between 0 and 100 representing the minimum gateway performance required to
+    /// consider a gateway for routing traffic.
+    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    pub(crate) min_gateway_performance: Option<u8>,
+}
+
+#[derive(Args)]
+pub(crate) struct ListExitCountriesArgs {
+    /// An integer between 0 and 100 representing the minimum gateway performance required to
+    /// consider a gateway for routing traffic.
+    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    pub(crate) min_gateway_performance: Option<u8>,
 }
 
 pub(crate) fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {

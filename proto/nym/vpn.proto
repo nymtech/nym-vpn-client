@@ -95,6 +95,7 @@ message ConnectRequest {
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
   Threshold min_mixnode_performance = 9;
+  Threshold min_gateway_performance = 10;
 }
 
 message ConnectResponse {
@@ -347,7 +348,10 @@ message EntryGateway {
   Probe last_probe = 3;
 }
 
-message ListEntryGatewaysRequest {}
+message ListEntryGatewaysRequest {
+  Threshold min_gateway_performance = 1;
+}
+
 message ListEntryGatewaysResponse {
   repeated EntryGateway gateways = 1;
 }
@@ -358,17 +362,26 @@ message ExitGateway {
   Probe last_probe = 3;
 }
 
-message ListExitGatewaysRequest {}
+message ListExitGatewaysRequest {
+  Threshold min_gateway_performance = 1;
+}
+
 message ListExitGatewaysResponse {
   repeated ExitGateway gateways = 1;
 }
 
-message ListEntryCountriesRequest {}
+message ListEntryCountriesRequest {
+  Threshold min_gateway_performance = 1;
+}
+
 message ListEntryCountriesResponse {
   repeated Location countries = 1;
 }
 
-message ListExitCountriesRequest {}
+message ListExitCountriesRequest {
+  Threshold min_gateway_performance = 1;
+}
+
 message ListExitCountriesResponse {
   repeated Location countries = 1;
 }

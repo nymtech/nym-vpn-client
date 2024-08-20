@@ -22,7 +22,7 @@ use url::Url;
 pub struct Config {
     pub api_url: Url,
     pub nym_vpn_api_url: Option<Url>,
-    pub min_gateway_performance: Option<f64>,
+    pub min_gateway_performance: Option<u8>,
 }
 
 impl Default for Config {
@@ -82,21 +82,12 @@ impl Config {
         // The vpn api url is strictly not needed, so skip the expect here
         let nym_vpn_api_url = network.nym_vpn_api_url();
 
-        let min_gateway_performance = min_gateway_performance.map(|p| p as f64 / 100.0);
-
         Config {
             api_url,
             nym_vpn_api_url,
             min_gateway_performance,
         }
     }
-
-    // pub fn new_from_urls(api_url: Url, nym_vpn_api_url: Option<Url>) -> Self {
-    //     Config {
-    //         api_url,
-    //         nym_vpn_api_url,
-    //     }
-    // }
 
     pub fn api_url(&self) -> &Url {
         &self.api_url
@@ -116,11 +107,11 @@ impl Config {
         self
     }
 
-    pub fn min_gateway_performance(&self) -> Option<f64> {
+    pub fn min_gateway_performance(&self) -> Option<u8> {
         self.min_gateway_performance
     }
 
-    pub fn with_custom_min_gateway_performance(mut self, min_gateway_performance: f64) -> Self {
+    pub fn with_custom_min_gateway_performance(mut self, min_gateway_performance: u8) -> Self {
         self.min_gateway_performance = Some(min_gateway_performance);
         self
     }
@@ -129,7 +120,7 @@ impl Config {
 pub struct GatewayClient {
     api_client: NymApiClient,
     nym_vpn_api_client: Option<nym_vpn_api_client::Client>,
-    min_gateway_performance: Option<f64>,
+    min_gateway_performance: Option<u8>,
 }
 
 impl GatewayClient {
@@ -313,6 +304,17 @@ impl GatewayClient {
     }
 
     pub async fn lookup_entry_countries(&self) -> Result<Vec<Country>> {
+        // Workaround until we can pass a threshold parameter directly to the nym-vpn-api.
+        // Get the full list, which is filtered, and get the countries from that.
+        if let Some(min_gateway_performance) = self.min_gateway_performance {
+            if min_gateway_performance != 50 {
+                return self
+                    .lookup_entry_gateways()
+                    .await
+                    .map(|list| list.all_countries());
+            }
+        }
+
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching entry countries from nym-vpn-api...");
             Ok(nym_vpn_api_client
@@ -321,7 +323,6 @@ impl GatewayClient {
                 .into_iter()
                 .map(Country::from)
                 .collect())
-            // TODO: problematic, we need the min performance as a parameter to the endpoint maybe?
         } else {
             self.lookup_entry_gateways_from_nym_api()
                 .await
@@ -330,6 +331,17 @@ impl GatewayClient {
     }
 
     pub async fn lookup_exit_countries(&self) -> Result<Vec<Country>> {
+        // Workaround until we can pass a threshold parameter directly to the nym-vpn-api.
+        // Get the full list, which is filtered, and get the countries from that.
+        if let Some(min_gateway_performance) = self.min_gateway_performance {
+            if min_gateway_performance != 50 {
+                return self
+                    .lookup_exit_gateways()
+                    .await
+                    .map(|list| list.all_countries());
+            }
+        }
+
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching exit countries from nym-vpn-api...");
             Ok(nym_vpn_api_client
@@ -394,7 +406,7 @@ fn append_performance(
             .iter()
             .find(|bgw| bgw.ed25519_identity_pubkey == gateway.identity().to_base58_string())
         {
-            gateway.performance = Some(basic_gw.performance.round_to_integer() as f64 / 100.0);
+            gateway.performance = Some(basic_gw.performance.round_to_integer());
         } else {
             error!(
                 "Failed to find skimmed node for gateway with identity {}",
@@ -404,14 +416,10 @@ fn append_performance(
     }
 }
 
-fn filter_on_min_performance(gateways: &mut Vec<Gateway>, min_gateway_performance: Option<f64>) {
-    gateways.retain(|gateway| {
-        if let Some(min_performance) = min_gateway_performance {
-            gateway.performance.unwrap_or(0.0) >= min_performance
-        } else {
-            true
-        }
-    });
+fn filter_on_min_performance(gateways: &mut Vec<Gateway>, min_gateway_performance: Option<u8>) {
+    if let Some(min_performance) = min_gateway_performance {
+        gateways.retain(|gateway| gateway.performance.unwrap_or(0) >= min_performance);
+    }
 }
 
 #[cfg(test)]
