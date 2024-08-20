@@ -7,12 +7,12 @@ use crate::{
         gateway::{Gateway, GatewayList},
     },
     error::Result,
-    helpers::{select_random_low_latency_described_gateway, try_resolve_hostname},
+    helpers::try_resolve_hostname,
     AuthAddress, Error, IpPacketRouterAddress,
 };
 use nym_sdk::{mixnet::Recipient, UserAgent};
 use nym_topology::IntoGatewayNode;
-use nym_validator_client::{models::DescribedGateway, NymApiClient};
+use nym_validator_client::{models::DescribedGateway, nym_nodes::SkimmedNode, NymApiClient};
 use nym_vpn_api_client::VpnApiClientExt;
 use std::{fmt, net::IpAddr, time::Duration};
 use tracing::{debug, error, info};
@@ -139,27 +139,25 @@ impl GatewayClient {
     }
 
     async fn lookup_described_gateways(&self) -> Result<Vec<DescribedGateway>> {
-        info!("Fetching gateways from nym-api...");
+        info!("Fetching described gateways from nym-api...");
         self.api_client
             .get_cached_described_gateways()
             .await
-            .map_err(|source| Error::FailedToLookupDescribedGateways { source })
+            .map_err(Error::FailedToLookupDescribedGateways)
+    }
+
+    async fn lookup_skimmed_gateways(&self) -> Result<Vec<SkimmedNode>> {
+        info!("Fetching skimmed gateways from nym-api...");
+        self.api_client
+            .get_basic_gateways(None)
+            .await
+            .map_err(Error::FailedToLookupSkimmedGateways)
     }
 
     pub async fn lookup_low_latency_entry_gateway(&self) -> Result<Gateway> {
         debug!("Fetching low latency entry gateway...");
-        let gateways = self.lookup_described_gateways().await?;
-        let low_latency_gateway: Gateway = select_random_low_latency_described_gateway(&gateways)
-            .await
-            .cloned()?
-            .try_into()?;
-        let gateway_list = self.lookup_entry_gateways().await?;
-        gateway_list
-            .gateway_with_identity(low_latency_gateway.identity())
-            .ok_or_else(|| Error::NoMatchingGateway {
-                requested_identity: low_latency_gateway.identity().to_string(),
-            })
-            .cloned()
+        let gateways = self.lookup_entry_gateways().await?;
+        gateways.random_low_latency_gateway().await
     }
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
@@ -191,7 +189,7 @@ impl GatewayClient {
     }
 
     pub async fn lookup_all_gateways_from_nym_api(&self) -> Result<GatewayList> {
-        let gateways = self
+        let mut gateways = self
             .lookup_described_gateways()
             .await?
             .into_iter()
@@ -200,7 +198,9 @@ impl GatewayClient {
                     .inspect_err(|err| error!("Failed to parse gateway: {err}"))
                     .ok()
             })
-            .collect();
+            .collect::<Vec<_>>();
+        let skimmed_gateways = self.lookup_skimmed_gateways().await?;
+        append_performance(&mut gateways, skimmed_gateways);
         Ok(GatewayList::new(gateways))
     }
 
@@ -232,7 +232,9 @@ impl GatewayClient {
             // Lookup the IPR and authenticator addresses from the nym-api as a temporary hack until
             // the nymvpn.com endpoints are updated to also include these fields.
             let described_gateways = self.lookup_described_gateways().await?;
+            let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
             append_ipr_and_authenticator_addresses(&mut gateways, described_gateways);
+            append_performance(&mut gateways, basic_gw);
             Ok(GatewayList::new(gateways))
         } else {
             self.lookup_all_gateways_from_nym_api().await
@@ -256,7 +258,9 @@ impl GatewayClient {
             // Lookup the IPR and authenticator addresses from the nym-api as a temporary hack until
             // the nymvpn.com endpoints are updated to also include these fields.
             let described_gateways = self.lookup_described_gateways().await?;
+            let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
             append_ipr_and_authenticator_addresses(&mut entry_gateways, described_gateways);
+            append_performance(&mut entry_gateways, basic_gw);
             Ok(GatewayList::new(entry_gateways))
         } else {
             self.lookup_entry_gateways_from_nym_api().await
@@ -280,7 +284,9 @@ impl GatewayClient {
             // Lookup the IPR and authenticator addresses from the nym-api as a temporary hack until
             // the nymvpn.com endpoints are updated to also include these fields.
             let described_gateways = self.lookup_described_gateways().await?;
+            let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
             append_ipr_and_authenticator_addresses(&mut exit_gateways, described_gateways);
+            append_performance(&mut exit_gateways, basic_gw);
             Ok(GatewayList::new(exit_gateways))
         } else {
             self.lookup_exit_gateways_from_nym_api().await
@@ -343,7 +349,37 @@ fn append_ipr_and_authenticator_addresses(
                 .and_then(|d| d.authenticator)
                 .map(|auth| auth.address)
                 .and_then(|address| Recipient::try_from_base58_string(address).ok())
-                .map(|r| AuthAddress(Some(r)))
+                .map(|r| AuthAddress(Some(r)));
+            let gateway_node = nym_topology::gateway::Node::try_from(described_gateway).unwrap();
+            gateway.host = Some(gateway_node.host);
+            gateway.clients_ws_port = Some(gateway_node.clients_ws_port);
+            gateway.clients_wss_port = gateway_node.clients_wss_port;
+        } else {
+            error!(
+                "Failed to find described gateway for gateway with identity {}",
+                gateway.identity()
+            );
+        }
+    }
+}
+
+// Append the performance to the gateways. This is a temporary hack until the nymvpn.com endpoints
+// are updated to also include this field.
+fn append_performance(
+    gateways: &mut [Gateway],
+    basic_gw: Vec<nym_validator_client::nym_nodes::SkimmedNode>,
+) {
+    for gateway in gateways.iter_mut() {
+        if let Some(basic_gw) = basic_gw
+            .iter()
+            .find(|bgw| bgw.ed25519_identity_pubkey == gateway.identity().to_base58_string())
+        {
+            gateway.performance = Some(basic_gw.performance.round_to_integer() as f64 / 100.0);
+        } else {
+            error!(
+                "Failed to find skimmed node for gateway with identity {}",
+                gateway.identity()
+            );
         }
     }
 }

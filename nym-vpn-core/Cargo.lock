@@ -3135,7 +3135,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0c2a198fb6b0eada2a8df47933734e6d35d350665a33a3593d7164fa52c75c19"
 dependencies = [
  "cfg-if",
- "windows-targets 0.48.5",
+ "windows-targets 0.52.4",
 ]
 
 [[package]]
@@ -3802,8 +3802,8 @@ dependencies = [
  "time",
  "tokio",
  "tokio-stream",
- "tokio-tungstenite",
- "tungstenite",
+ "tokio-tungstenite 0.20.1",
+ "tungstenite 0.20.1",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -4324,8 +4324,8 @@ dependencies = [
  "time",
  "tokio",
  "tokio-stream",
- "tokio-tungstenite",
- "tungstenite",
+ "tokio-tungstenite 0.20.1",
+ "tungstenite 0.20.1",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -4339,13 +4339,11 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
+ "futures",
  "hickory-resolver",
  "itertools 0.13.0",
- "log",
  "nym-client-core",
  "nym-config 0.1.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
- "nym-explorer-client",
- "nym-harbour-master-client",
  "nym-sdk",
  "nym-topology",
  "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
@@ -4354,7 +4352,9 @@ dependencies = [
  "serde",
  "thiserror",
  "tokio",
+ "tokio-tungstenite 0.23.1",
  "tracing",
+ "tungstenite 0.23.0",
  "url",
 ]
 
@@ -4409,7 +4409,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tracing",
- "tungstenite",
+ "tungstenite 0.20.1",
  "wasmtimer",
  "zeroize",
 ]
@@ -8132,8 +8132,20 @@ dependencies = [
  "rustls 0.21.10",
  "tokio",
  "tokio-rustls 0.24.1",
- "tungstenite",
+ "tungstenite 0.20.1",
  "webpki-roots 0.25.4",
+]
+
+[[package]]
+name = "tokio-tungstenite"
+version = "0.23.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c6989540ced10490aaf14e6bad2e3d33728a2813310a0c71d1574304c49631cd"
+dependencies = [
+ "futures-util",
+ "log",
+ "tokio",
+ "tungstenite 0.23.0",
 ]
 
 [[package]]
@@ -8647,6 +8659,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "tungstenite"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e2e2ce1e47ed2994fd43b04c8f618008d4cabdd5ee34027cf14f9d918edd9c8"
+dependencies = [
+ "byteorder",
+ "bytes",
+ "data-encoding",
+ "http 1.1.0",
+ "httparse",
+ "log",
+ "rand 0.8.5",
+ "sha1",
+ "thiserror",
+ "utf-8",
+]
+
+[[package]]
 name = "tunnel-obfuscation"
 version = "0.0.0"
 source = "git+https://github.com/nymtech/nym-vpn-mullvad-libs?rev=164e254aa#164e254aa14e0189e54d40dbf98fbc8ada1e359b"
@@ -9081,7 +9111,7 @@ dependencies = [
  "gloo-net",
  "gloo-utils",
  "js-sys",
- "tungstenite",
+ "tungstenite 0.20.1",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",

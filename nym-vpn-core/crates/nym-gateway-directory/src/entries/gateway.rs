@@ -9,6 +9,9 @@ use tracing::error;
 
 use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
 
+// Decimal between 0 and 1 representing the performance of a gateway, measured over 24h.
+type Perfomance = f64;
+
 #[derive(Clone, Debug)]
 pub struct Gateway {
     pub identity: NodeIdentity,
@@ -16,6 +19,10 @@ pub struct Gateway {
     pub ipr_address: Option<IpPacketRouterAddress>,
     pub authenticator_address: Option<AuthAddress>,
     pub last_probe: Option<Probe>,
+    pub host: Option<nym_topology::NetworkAddress>,
+    pub clients_ws_port: Option<u16>,
+    pub clients_wss_port: Option<u16>,
+    pub performance: Option<Perfomance>,
 }
 
 impl Gateway {
@@ -36,6 +43,20 @@ impl Gateway {
 
     pub fn has_ipr_address(&self) -> bool {
         self.ipr_address.is_some()
+    }
+
+    pub fn clients_address_no_tls(&self) -> Option<String> {
+        match (&self.host, &self.clients_ws_port) {
+            (Some(host), Some(port)) => Some(format!("ws://{}:{}", host, port)),
+            _ => None,
+        }
+    }
+
+    pub fn clients_address_tls(&self) -> Option<String> {
+        match (&self.host, &self.clients_wss_port) {
+            (Some(host), Some(port)) => Some(format!("wss://{}:{}", host, port)),
+            _ => None,
+        }
     }
 }
 
@@ -139,6 +160,10 @@ impl TryFrom<nym_vpn_api_client::Gateway> for Gateway {
             ipr_address: None,
             authenticator_address: None,
             last_probe: gateway.last_probe.map(Probe::from),
+            host: None,
+            clients_ws_port: None,
+            clients_wss_port: None,
+            performance: None,
         })
     }
 }
@@ -179,12 +204,20 @@ impl TryFrom<nym_validator_client::models::DescribedGateway> for Gateway {
                     .inspect_err(|err| error!("Failed to parse authenticator address: {err}"))
                     .ok()
             });
+        let gateway = nym_topology::gateway::Node::try_from(gateway).ok();
+        let host = gateway.clone().map(|g| g.host);
+        let clients_ws_port = gateway.as_ref().map(|g| g.clients_ws_port);
+        let clients_wss_port = gateway.and_then(|g| g.clients_wss_port);
         Ok(Gateway {
             identity,
             location,
             ipr_address,
             authenticator_address,
             last_probe: None,
+            host,
+            clients_ws_port,
+            clients_wss_port,
+            performance: None,
         })
     }
 }
@@ -277,6 +310,13 @@ impl GatewayList {
     pub fn into_inner(self) -> Vec<Gateway> {
         self.gateways
     }
+
+    pub(crate) async fn random_low_latency_gateway(&self) -> Result<Gateway> {
+        let mut rng = rand::rngs::OsRng;
+        nym_client_core::init::helpers::choose_gateway_by_latency(&mut rng, &self.gateways, false)
+            .await
+            .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })
+    }
 }
 
 impl IntoIterator for GatewayList {
@@ -285,5 +325,23 @@ impl IntoIterator for GatewayList {
 
     fn into_iter(self) -> Self::IntoIter {
         self.gateways.into_iter()
+    }
+}
+
+impl nym_client_core::init::helpers::ConnectableGateway for Gateway {
+    fn identity(&self) -> &nym_sdk::mixnet::NodeIdentity {
+        self.identity()
+    }
+
+    fn clients_address(&self) -> String {
+        // This is a bit of a sharp edge, but temporary until we can remove Option from host
+        // and tls port when we add these to the vpn API endpoints.
+        self.clients_address_tls()
+            .or(self.clients_address_no_tls())
+            .unwrap_or("ws://".to_string())
+    }
+
+    fn is_wss(&self) -> bool {
+        self.clients_address_tls().is_some()
     }
 }

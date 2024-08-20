@@ -443,6 +443,7 @@ async fn select_gateways(
     let entry_gateway = nym_vpn
         .entry_point()
         .lookup_gateway(&entry_gateways)
+        .await
         .map_err(|source| match source {
             nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation {
                 requested_location,
@@ -460,18 +461,24 @@ async fn select_gateways(
     info!("Found {} entry gateways", entry_gateways.len());
     info!("Found {} exit gateways", exit_gateways.len());
     info!(
-        "Using entry gateway: {}, location: {}",
+        "Using entry gateway: {}, location: {}, performane: {}",
         *entry_gateway.identity(),
         entry_gateway
             .two_letter_iso_country_code()
-            .map_or_else(|| "unknown".to_string(), |code| code.to_string())
+            .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
+        entry_gateway
+            .performance
+            .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
     );
     info!(
-        "Using exit gateway: {}, location: {}",
+        "Using exit gateway: {}, location: {}, performance: {}",
         *exit_gateway.identity(),
         exit_gateway
             .two_letter_iso_country_code()
-            .map_or_else(|| "unknown".to_string(), |code| code.to_string())
+            .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
+        entry_gateway
+            .performance
+            .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
     );
     info!(
         "Using exit router address {}",

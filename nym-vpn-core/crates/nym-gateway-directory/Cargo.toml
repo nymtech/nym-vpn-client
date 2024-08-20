@@ -6,14 +6,12 @@ license.workspace = true
 
 [dependencies]
 async-trait.workspace = true
-chrono = "0.4.38"
+chrono.workspace = true
+futures.workspace = true
 hickory-resolver.workspace = true
 itertools.workspace = true
-log.workspace = true
 nym-client-core.workspace = true
 nym-config.workspace = true
-nym-explorer-client.workspace = true
-nym-harbour-master-client = { path = "../nym-harbour-master-client" }
 nym-sdk.workspace = true
 nym-topology.workspace = true
 nym-validator-client.workspace = true
@@ -21,6 +19,9 @@ nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 rand.workspace = true
 serde.workspace = true
 thiserror.workspace = true
+tokio = { workspace = true }
+tokio-tungstenite = { version = "0.23" }
+tungstenite = { version = "0.23" }
 tracing.workspace = true
 url.workspace = true
 

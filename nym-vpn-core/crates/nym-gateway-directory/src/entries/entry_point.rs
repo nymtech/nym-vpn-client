@@ -51,7 +51,7 @@ impl EntryPoint {
         matches!(self, EntryPoint::Location { .. })
     }
 
-    pub fn lookup_gateway(&self, gateways: &GatewayList) -> Result<Gateway> {
+    pub async fn lookup_gateway(&self, gateways: &GatewayList) -> Result<Gateway> {
         match &self {
             EntryPoint::Gateway { identity } => {
                 debug!("Selecting gateway by identity: {}", identity);
@@ -73,7 +73,7 @@ impl EntryPoint {
             }
             EntryPoint::RandomLowLatency => {
                 debug!("Selecting a random low latency gateway");
-                todo!("Need to add client address to Gateway type");
+                gateways.random_low_latency_gateway().await
             }
             EntryPoint::Random => {
                 debug!("Selecting a random gateway");
