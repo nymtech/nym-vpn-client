@@ -168,16 +168,23 @@ extension PacketTunnelProvider {
         setenv("STAKE_DENOM_DISPLAY", "nyx", 1)
         setenv("DENOMS_EXPONENT", "6", 1)
 
-        setenv("REWARDING_VALIDATOR_ADDRESS", "n1duuyj2th2y0z4u4f4wtljpdz9s3pxtu0xx6zdz", 1)
-        setenv("MIXNET_CONTRACT_ADDRESS", "n14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9sjyvg3g", 1)
-        setenv("COCONUT_BANDWIDTH_CONTRACT_ADDRESS", "n1mf6ptkssddfmxvhdx0ech0k03ktp6kf9yk59renau2gvht3nq2gqt5tdrk", 1)
-        setenv("GROUP_CONTRACT_ADDRESS", "n1qg5ega6dykkxc307y25pecuufrjkxkaggkkxh7nad0vhyhtuhw3sa07c47", 1)
-        setenv("MULTISIG_CONTRACT_ADDRESS", "n1zwv6feuzhy6a9wekh96cd57lsarmqlwxdypdsplw6zhfncqw6ftqx5a364", 1)
-        setenv("COCONUT_DKG_CONTRACT_ADDRESS", "n1aakfpghcanxtc45gpqlx8j3rq0zcpyf49qmhm9mdjrfx036h4z5sy2vfh9", 1)
+        setenv("REWARDING_VALIDATOR_ADDRESS", "n1pefc2utwpy5w78p2kqdsfmpjxfwmn9d39k5mqa", 1)
+        setenv("MIXNET_CONTRACT_ADDRESS", "n1xr3rq8yvd7qplsw5yx90ftsr2zdhg4e9z60h5duusgxpv72hud3sjkxkav", 1)
+        setenv("VESTING_CONTRACT_ADDRESS", "n1unyuj8qnmygvzuex3dwmg9yzt9alhvyeat0uu0jedg2wj33efl5qackslz", 1)
+        setenv("GROUP_CONTRACT_ADDRESS", "n1ewmwz97xm0h8rdk8sw7h9mwn866qkx9hl9zlmagqfkhuzvwk5hhq844ue9", 1)
+        setenv("MULTISIG_CONTRACT_ADDRESS", "n1tz0setr8vkh9udp8xyxgpqc89ns27k4d0jx2h942hr0ax63yjhmqz6xct8", 1)
+        setenv("COCONUT_DKG_CONTRACT_ADDRESS", "n1v3n2ly2dp3a9ng3ff6rh26yfkn0pc5hed7w2shc5u9ca5c865utqj5elvh", 1)
+        setenv("ECASH_CONTRACT_ADDRESS", "n1v3vydvs2ued84yv3khqwtgldmgwn0elljsdh08dr5s2j9x4rc5fs9jlwz9", 1)
 
-        setenv("EXPLORER_API", Constants.sandboxExplorerURL.rawValue, 1)
-        setenv("NYXD", "https://canary-validator.performance.nymte.ch", 1)
-        setenv("NYM_API", Constants.sandboxApiUrl.rawValue, 1)
+        setenv("STATISTICS_SERVICE_DOMAIN_ADDRESS", "http://0.0.0.0", 1)
+        setenv("EXPLORER_API", "https://sandbox-explorer.nymtech.net/api", 1)
+        setenv("NYXD", "https://rpc.sandbox.nymtech.net", 1)
+        setenv("NYXD_WS", "wss://rpc.sandbox.nymtech.net/websocket", 1)
+        setenv("NYM_API", "https://sandbox-nym-api1.nymtech.net/api", 1)
+
+        setenv("NYXD", "https://rpc.nymtech.net", 1)
+        setenv("NYXD_WS", "wss://rpc.nymtech.net/websocket", 1)
+        setenv("NYM_API", "https://sandbox-nym-api1.nymtech.net/api", 1)
     }
 
 }

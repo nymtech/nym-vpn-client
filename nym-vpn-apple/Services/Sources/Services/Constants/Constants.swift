@@ -5,9 +5,6 @@ public enum Constants: String {
     case apiUrl = "https://validator.nymtech.net/api"
     case nymVpnApi = "https://nymvpn.com/api"
 
-    case sandboxApiUrl = "https://canary-api.performance.nymte.ch/api"
-    case sandboxExplorerURL = "https://canary-explorer.performance.nymte.ch/api"
-
     case supportURL = "https://support.nymvpn.com/hc/en-us"
     case termsOfUseURL = "https://nymvpn.com/en/terms"
     case privacyPolicyURL = "https://nymvpn.com/en/privacy?type=apps"
