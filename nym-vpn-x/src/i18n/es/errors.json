@@ -20,6 +20,13 @@
   "connection": {
     "timeout": "Tiempo de conexión agotado",
     "gateway-lookup": "Error al buscar gateway",
-    "no-valid-credential": "Credencial no válida, por favor añada credencial"
-  }
+    "no-valid-credential": "Credencial no válida, por favor añada credencial",
+    "bad-country-combination": "Combinación de países no soportada, por favor cambie el país de entrada o salida"
+  },
+  "out-of-bandwidth": "Fuera del ancho de banda asignado",
+  "exit-node": {
+    "ping": "Falló el ping del nodo de salida para el tráfico {{protocolo}}",
+    "routing": "El nodo de salida no está enrutando tráfico {{protocolo}}"
+  },
+  "entry-node-routing": "El nodo de entrada no enruta el tráfico (¿se ha caído la conexión a Internet?)"
 }

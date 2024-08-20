@@ -1,1 +1,41 @@
-{}
+{
+  "disconnect": "接続解除",
+  "status": {
+    "connected": "接続済",
+    "disconnected": "接続解除",
+    "connecting": "接続中",
+    "disconnecting": "接続解除中",
+    "unknown": "不明"
+  },
+  "last-hop": "出口ロケーション",
+  "first-hop": "エントリーロケーション",
+  "connection-time": "接続時間",
+  "select-mode-label": "モードの選択",
+  "select-node-title": "接続",
+  "privacy-mode": {
+    "title": "匿名",
+    "desc": "支払い、メール、メッセージに最適"
+  },
+  "fast-mode": {
+    "title": "高速",
+    "desc": "ブラウジング、ストリーミング、ファイル共有に最適"
+  },
+  "last-node-select": {
+    "label": "最終ホップ",
+    "text": "クイック接続（{{country}}）"
+  },
+  "snackbar-disabled-message": {
+    "connected": "VPN接続中は無効です",
+    "connecting": "VPN接続中は無効です",
+    "disconnecting": "VPNから切断中は無効です",
+    "daemon-not-connected": "VPNデーモンに接続していない間は無効です"
+  },
+  "modes-dialog": {
+    "title": "モード選択",
+    "fast-description": "サーバーの経由を２つにすることで、最高の速度を体験できます。高速なブラウジング、ストリーミング、ファイル共有に最適です。",
+    "link": "続きを読む",
+    "privacy-description": "5つのサーバーを通じてMixnet経由で接続をルーティングすることで、最高レベルのプライバシーを実現します。支払い、メール、メッセージの安全な取り扱いに最適です。"
+  },
+  "connect": "接続",
+  "connecting-message": "接続を確立中"
+}
