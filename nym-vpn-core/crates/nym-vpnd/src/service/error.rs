@@ -108,6 +108,9 @@ pub enum ConnectionFailedError {
         reason: String,
     },
 
+    #[error("failed to connect to ip packet router: {reason}")]
+    FailedToConnectToIpPacketRouter { reason: String },
+
     #[error("failed to lookup gateways: {reason}")]
     FailedToLookupGateways { reason: String },
 
@@ -262,6 +265,11 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
                     requested_location: requested_location.clone(),
                 },
             },
+            nym_vpn_lib::error::Error::FailedToConnectToIpPacketRouter(inner) => {
+                ConnectionFailedError::FailedToConnectToIpPacketRouter {
+                    reason: inner.to_string(),
+                }
+            },
             nym_vpn_lib::error::Error::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
             nym_vpn_lib::error::Error::IO(_)
             | nym_vpn_lib::error::Error::InvalidWireGuardKey
@@ -301,7 +309,6 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::ConfigPathNotSet
             | nym_vpn_lib::error::Error::ConnectionMonitorError(_)
             | nym_vpn_lib::error::Error::ImportCredentialError(_)
-            | nym_vpn_lib::error::Error::IpPacketRouterClientError(_)
             | nym_vpn_lib::error::Error::FailedWireguardRegistration
             | nym_vpn_lib::error::Error::InvalidGatewayAuthResponse
             | nym_vpn_lib::error::Error::AuthenticatorClientError(_)

@@ -327,7 +327,8 @@ impl NymVpn<MixnetVpn> {
         let mut ipr_client = IprClientConnect::new_from_inner(mixnet_client.inner()).await;
         let our_ips = ipr_client
             .connect(exit_mix_addresses.0, self.generic_config.nym_ips)
-            .await?;
+            .await
+            .map_err(Error::FailedToConnectToIpPacketRouter)?;
         info!("Successfully connected to exit gateway");
         info!("Using mixnet VPN IP addresses: {our_ips}");
 

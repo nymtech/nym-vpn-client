@@ -164,8 +164,8 @@ pub enum Error {
     #[error(transparent)]
     ImportCredentialError(#[from] crate::credentials::ImportCredentialError),
 
-    #[error(transparent)]
-    IpPacketRouterClientError(#[from] nym_ip_packet_client::Error),
+    #[error("failed to connect to ip packet router: {0}")]
+    FailedToConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
     #[error("failed to register wireguard key")]
     FailedWireguardRegistration,
