@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use crate::bandwidth_controller::BandwidthController;
 use crate::error::{Error, GatewayDirectoryError, Result};
-use crate::mixnet_connect::SharedMixnetClient;
+use crate::mixnet::SharedMixnetClient;
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
 use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
 use crate::wg_gateway_client::WgGatewayClient;

@@ -3,30 +3,41 @@
 
 uniffi::setup_scaffolding!();
 
-use crate::config::WireguardConfig;
-use crate::error::Result;
-use crate::mixnet_connect::setup_mixnet_client;
-use crate::tunnel::setup_route_manager;
-use crate::wg_gateway_client::WgGatewayClient;
 use futures::channel::{mpsc, oneshot};
 use futures::SinkExt;
 use log::{debug, error, info};
-use mixnet_connect::SharedMixnetClient;
 use nym_connection_monitor::ConnectionMonitorTask;
 use nym_gateway_directory::{
     Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, GatewayClient, IpPacketRouterAddress,
 };
 use nym_ip_packet_client::IprClientConnect;
 use nym_task::TaskManager;
-use std::net::{IpAddr, Ipv4Addr};
-use std::path::PathBuf;
-use std::sync::{Arc, Mutex};
+use std::{
+    net::{IpAddr, Ipv4Addr},
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
 use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
+use talpid_tunnel::tun_provider::TunProvider;
+use tokio::task::JoinHandle;
+use tun2::AsyncDevice;
 use tunnel_setup::{init_firewall_dns, setup_tunnel, AllTunnelsSetup, TunnelSetup};
 use util::{wait_and_handle_interrupt, wait_for_interrupt_and_signal};
 
-// Public re-export
+use crate::config::WireguardConfig;
+use crate::error::Result;
+use crate::mixnet::{setup_mixnet_client, SharedMixnetClient};
+#[cfg(target_os = "ios")]
+use crate::platform::swift::OSTunProvider;
+use crate::platform::uniffi_set_listener_status;
+use crate::tunnel::setup_route_manager;
+use crate::uniffi_custom_impls::{ExitStatus, StatusEvent};
+use crate::wg_gateway_client::WgGatewayClient;
+
+// Public re-export some dependencies
+pub use nym_bin_common;
+pub use nym_config;
 pub use nym_connection_monitor as connection_monitor;
 pub use nym_credential_storage_pre_ecash as credential_storage_pre_ecash;
 pub use nym_gateway_directory as gateway_directory;
@@ -42,15 +53,8 @@ pub use nym_task::{
 
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub use crate::platform::swift;
-#[cfg(target_os = "ios")]
-use crate::platform::swift::OSTunProvider;
-use crate::platform::uniffi_set_listener_status;
-use crate::uniffi_custom_impls::{ExitStatus, StatusEvent};
-pub use nym_bin_common;
-pub use nym_config;
-use talpid_tunnel::tun_provider::TunProvider;
-use tokio::task::JoinHandle;
-use tun2::AsyncDevice;
+
+pub use error::{Error, GatewayDirectoryError, MixnetError};
 
 mod bandwidth_controller;
 mod platform;
@@ -60,16 +64,13 @@ mod uniffi_custom_impls;
 pub mod config;
 pub mod credentials;
 mod error;
-pub mod mixnet_connect;
-pub mod mixnet_processor;
+mod mixnet;
 pub mod routing;
 pub mod storage;
 pub mod tunnel;
 pub mod util;
 pub mod wg_gateway_client;
 mod wireguard_setup;
-
-pub use error::{Error, GatewayDirectoryError, MixnetError};
 
 const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
 pub const SHUTDOWN_TIMER_SECS: u64 = 10;
@@ -367,7 +368,7 @@ impl NymVpn<MixnetVpn> {
         .await?;
 
         info!("Setting up mixnet processor");
-        let processor_config = mixnet_processor::Config::new(exit_mix_addresses.0);
+        let processor_config = mixnet::Config::new(exit_mix_addresses.0);
         debug!("Mixnet processor config: {:#?}", processor_config);
 
         // For other components that will want to send mixnet packets
@@ -376,7 +377,7 @@ impl NymVpn<MixnetVpn> {
         // Setup connection monitor shared tag and channels
         let connection_monitor = ConnectionMonitorTask::setup();
 
-        let shadow_handle = mixnet_processor::start_processor(
+        let shadow_handle = mixnet::start_processor(
             processor_config,
             mixnet_tun_dev,
             mixnet_client,
