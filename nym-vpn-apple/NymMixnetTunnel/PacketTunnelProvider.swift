@@ -17,7 +17,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     override init() {
         LoggingSystem.bootstrap { label in
-            FileLogHandler(label: label)
+            let fileLogHandler = FileLogHandler(label: label)
+
+            #if DEBUG
+                let osLogHandler = OSLogHandler(subsystem: Bundle.main.bundleIdentifier!, category: label)
+                return MultiplexLogHandler([osLogHandler, fileLogHandler])
+            #else
+                return fileLogHandler
+            #endif
         }
     }
 
