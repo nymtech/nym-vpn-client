@@ -236,10 +236,8 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
                 // todo: set this only when two hop tunnel is actually up.
                 uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
 
-                match TwoHopTunnel::start(#[cfg(target_os = "android")]
-                                          config.tun_provider,
-                                          #[cfg(target_os = "ios")]
-                                          config.tun_provider,cloned_shutdown_token).await {
+                #[cfg(any(target_os = "ios", target_os = "android"))]
+                match TwoHopTunnel::start(config.tun_provider,cloned_shutdown_token).await {
                     Ok(()) => {
                         debug!("Tunnel has finished execution");
                     }

@@ -271,6 +271,7 @@ impl TwoHopTunnel {
         }
 
         // Rebind wireguard-go on tun device.
+        #[cfg(target_os = "ios")]
         self.exit.bump_sockets();
     }
 

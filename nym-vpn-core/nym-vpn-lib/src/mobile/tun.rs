@@ -1,19 +1,20 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
-
+#[cfg(target_os = "ios")]
 use std::{
     ffi::{c_char, c_ulong, CStr},
     os::fd::{BorrowedFd, RawFd},
 };
-
+#[cfg(target_os = "ios")]
 use nix::{
     libc::{self, sockaddr, sockaddr_ctl, socklen_t, AF_SYSTEM},
     sys::socket,
 };
-
+#[cfg(target_os = "ios")]
 const UTUN_CTL_NAME: &CStr = c"com.apple.net.utun_control";
+#[cfg(target_os = "ios")]
 const CTLIOCGINFO: c_ulong = 0xc0644e03;
-
+#[cfg(target_os = "ios")]
 #[repr(C)]
 #[allow(clippy::non_camel_case_types)]
 struct ctl_info {

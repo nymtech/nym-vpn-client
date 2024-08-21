@@ -5382,7 +5382,6 @@ dependencies = [
  "libc",
  "log",
  "netdev",
- "nix 0.23.2",
  "nix 0.29.0",
  "nym-authenticator-client",
  "nym-authenticator-requests",
