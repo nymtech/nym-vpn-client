@@ -24,8 +24,8 @@ fun NavController.navigateAndForget(route: String) {
 	}
 }
 
-fun NavController.go(route : String) {
-	if(route == currentBackStackEntry?.destination?.route) return
+fun NavController.go(route: String) {
+	if (route == currentBackStackEntry?.destination?.route) return
 	this.navigate(route) {
 		// Pop up to the start destination of the graph to
 		// avoid building up a large stack of destinations
