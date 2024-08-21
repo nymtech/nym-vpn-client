@@ -8,7 +8,6 @@ use crate::error::Result;
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::tunnel::setup_route_manager;
 use crate::wg_gateway_client::WgGatewayClient;
-use error::GatewayDirectoryError;
 use futures::channel::{mpsc, oneshot};
 use futures::SinkExt;
 use log::{debug, error, info};
@@ -58,19 +57,19 @@ mod platform;
 mod tunnel_setup;
 mod uniffi_custom_impls;
 
-pub mod config;
+mod config;
 pub mod credentials;
-pub mod error;
-pub mod mixnet_connect;
-pub mod mixnet_processor;
-pub mod routing;
+mod error;
+mod mixnet_connect;
+mod mixnet_processor;
+mod routing;
 pub mod storage;
-pub mod tunnel;
+mod tunnel;
 pub mod util;
-pub mod wg_gateway_client;
+mod wg_gateway_client;
 mod wireguard_setup;
 
-pub use error::Error;
+pub use error::{Error, GatewayDirectoryError, MixnetError};
 
 const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
 pub const SHUTDOWN_TIMER_SECS: u64 = 10;

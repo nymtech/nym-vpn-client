@@ -4,7 +4,7 @@
 #[derive(thiserror::Error, Debug)]
 pub(crate) enum Error {
     #[error(transparent)]
-    VpnLib(#[from] nym_vpn_lib::error::Error),
+    VpnLib(#[from] nym_vpn_lib::Error),
 
     #[error(transparent)]
     ImportCredential(#[from] nym_vpn_lib::credentials::ImportCredentialError),
