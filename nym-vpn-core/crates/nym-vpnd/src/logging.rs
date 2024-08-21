@@ -8,7 +8,7 @@ use crate::service;
 pub fn setup_logging(_as_service: bool) {
     #[cfg(target_os = "macos")]
     if _as_service {
-        nym_vpn_lib::swift::init_logs();
+        nym_vpn_lib::swift::init_logs("info".to_string());
         return;
     }
 

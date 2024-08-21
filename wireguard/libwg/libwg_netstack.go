@@ -106,6 +106,39 @@ func wgNetTurnOff(tunnelHandle int32) {
 	dev.Close()
 }
 
+// func wgGetSocketV4(tunnelHandle int32) int32 {
+// 	handle, ok := netTunnelHandles[tunnelHandle]
+// 	if !ok {
+// 		return -1
+// 	}
+// 	bind, _ := handle.device.Bind().(conn.PeekLookAtSocketFd)
+// 	if bind == nil {
+// 		return -1
+// 	}
+// 	fd, err := bind.PeekLookAtSocketFd4()
+// 	if err != nil {
+// 		return -1
+// 	}
+// 	return int32(fd)
+// }
+//
+// //export wgGetSocketV6
+// func wgGetSocketV6(tunnelHandle int32) int32 {
+// 	handle, ok := netTunnelHandles[tunnelHandle]
+// 	if !ok {
+// 		return -1
+// 	}
+// 	bind, _ := handle.device.Bind().(conn.PeekLookAtSocketFd)
+// 	if bind == nil {
+// 		return -1
+// 	}
+// 	fd, err := bind.PeekLookAtSocketFd6()
+// 	if err != nil {
+// 		return -1
+// 	}
+// 	return int32(fd)
+// }
+
 //export wgNetSetConfig
 func wgNetSetConfig(tunnelHandle int32, settings *C.char) int64 {
 	dev, err := netTunnelHandles.Get(tunnelHandle)

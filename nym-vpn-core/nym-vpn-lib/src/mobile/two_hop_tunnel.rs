@@ -1,5 +1,5 @@
 use std::sync::Arc;
-
+use log::info;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -203,6 +203,16 @@ impl TwoHopTunnel {
         let tun_fd = tun_provider.configure_wg(tunnel_settings).map_err(|_| {
             Error::CannotLocateTunFd
         })?;
+
+        // #[cfg(target_os = "android")]
+        // {
+        //     info!("Bypassing sockets");
+        //     tun_provider.bypass(entry_tunnel.get_socket_v6(tun_fd));
+        //     tun_provider.bypass(entry_tunnel.get_socket_v4(tun_fd));
+        //
+        // }
+
+
         #[cfg(target_os = "android")]
         if tun_fd == -1 { return Err(Error::CannotLocateTunFd); }
         // Create exit tunnel capturing exit traffic on device and sending it to the local udp forwarder.
@@ -220,7 +230,6 @@ impl TwoHopTunnel {
         let (default_path_tx, default_path_rx) = mpsc::unbounded_channel();
         let default_path_observer = Arc::new(DefaultPathObserver::new(default_path_tx));
 
-        //todo I don't understand what this is for and what this would be for android
         #[cfg(target_os = "ios")]
         tun_provider
             .set_default_path_observer(Some(default_path_observer.clone()))

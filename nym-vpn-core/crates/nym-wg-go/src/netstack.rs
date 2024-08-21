@@ -6,7 +6,7 @@ use std::{
     fmt,
     net::{IpAddr, SocketAddr},
 };
-
+use std::os::fd::RawFd;
 use super::{
     uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
     Result,
@@ -130,6 +130,16 @@ impl Tunnel {
         unsafe { wgNetDisableSomeRoamingForBrokenMobileSemantics(self.handle) }
     }
 
+    // #[cfg(any(target_os = "android"))]
+    // pub fn get_socket_v6(&mut self, fd : RawFd) -> i32 {
+    //     unsafe { wgGetSocketV6(fd) }
+    // }
+    //
+    // #[cfg(any(target_os = "android"))]
+    // pub fn get_socket_v4(&mut self, fd : RawFd) -> i32 {
+    //     unsafe { wgGetSocketV4(fd) }
+    // }
+
     /// Open UDP connection through the tunnel.
     ///
     /// Due to FFI boundary, direct communication is impossible. Instead a bidrectional UDP forwarder listens on
@@ -246,5 +256,9 @@ extern "C" {
         client_port: u16,
         exit_endpoint: *const c_char,
     ) -> i32;
+    // #[cfg(target_os = "android")]
+    // pub fn wgGetSocketV6(tunnelHandle: i32) -> i32;
+    // #[cfg(target_os = "android")]
+    // fn wgGetSocketV4(tunnelHandle: i32) -> i32;
     fn wgNetCloseConnectionThroughTunnel(handle: i32);
 }

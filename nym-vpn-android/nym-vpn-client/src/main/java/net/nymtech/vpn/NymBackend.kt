@@ -2,8 +2,10 @@ package net.nymtech.vpn
 
 import android.content.Context
 import android.content.Intent
+import android.net.IpPrefix
 import android.os.Build
 import android.os.IBinder
+import androidx.annotation.RequiresApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -244,22 +246,29 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			protect(socket)
 		}
 
+		@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 		override fun configureWg(config: TunnelNetworkSettings): Int {
 			Timber.d("Configuring Wg tunnel")
 			if (prepare(this) != null) return -1
 			if (currentTunnelHandle != -1) return currentTunnelHandle
 			val vpnInterface = builder.apply {
 				config.ipv4Settings?.addresses?.forEach {
-					addAddress(it, InetAddress.getByName(it).prefix())
+					Timber.d("Address: $it")
+					val address = it.split("/")
+					addAddress(address.first(), address.last().toInt())
 				}
 				config.ipv6Settings?.addresses?.forEach {
-					addAddress(it, InetAddress.getByName(it).prefix())
+					val address = it.split("/")
+					addAddress(address.first(), address.last().toInt())
 				}
 				config.dnsSettings?.servers?.forEach {
 					addDnsServer(it)
 				}
+				Timber.d("Setting routes")
 				addRoute("0.0.0.0",0)
 				addRoute("::", 0)
+				excludeRoute(IpPrefix(InetAddress.getByName("10.71.122.208"), 32))
+				Timber.d("Huh")
 //				try {
 //					val allowedIps = config.allowedIps.map { it.split("/") }
 //					allowedIps.forEach {
