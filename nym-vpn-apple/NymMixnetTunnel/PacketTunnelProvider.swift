@@ -20,7 +20,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             let fileLogHandler = FileLogHandler(label: label)
 
             #if DEBUG
-                let osLogHandler = OSLogHandler(subsystem: Bundle.main.bundleIdentifier!, category: label)
+                let osLogHandler = OSLogHandler(
+                    subsystem: Bundle.main.bundleIdentifier ?? "NymMixnetTunnel",
+                    category: label
+                )
                 return MultiplexLogHandler([osLogHandler, fileLogHandler])
             #else
                 return fileLogHandler
