@@ -1,0 +1,4 @@
+O que há de novo:
+- Correção do erro de animação da navegação
+- Correção de erros no ecrã de credenciais
+- Correção da API da lista de países e da pesquisa
