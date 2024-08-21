@@ -2,10 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_sdk::mixnet::{MixnetClient, MixnetClientSender, Recipient};
-#[cfg(target_family = "unix")]
-use std::os::fd::RawFd;
-#[cfg(not(target_family = "unix"))]
-use std::os::raw::c_int as RawFd;
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -28,7 +24,8 @@ impl SharedMixnetClient {
         self.lock().await.as_ref().unwrap().split_sender()
     }
 
-    pub async fn gateway_ws_fd(&self) -> Option<RawFd> {
+    #[cfg(target_os = "android")]
+    pub async fn gateway_ws_fd(&self) -> Option<std::os::fd::dRawFd> {
         self.lock()
             .await
             .as_ref()

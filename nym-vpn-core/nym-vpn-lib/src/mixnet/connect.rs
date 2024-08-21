@@ -3,8 +3,6 @@
 
 use nym_config::defaults::NymNetworkDetails;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths};
-#[cfg(not(target_family = "unix"))]
-use std::os::raw::c_int as RawFd;
 use std::path::PathBuf;
 use tracing::{debug, info};
 
