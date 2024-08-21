@@ -3,8 +3,10 @@
 
 uniffi::setup_scaffolding!();
 
-use futures::channel::{mpsc, oneshot};
-use futures::SinkExt;
+use futures::{
+    channel::{mpsc, oneshot},
+    SinkExt,
+};
 use log::{debug, error, info};
 use nym_connection_monitor::ConnectionMonitorTask;
 use nym_gateway_directory::{

@@ -7,7 +7,6 @@ use std::path::PathBuf;
 use tracing::{debug, info};
 
 use crate::{
-    credentials::check_imported_credential,
     error::{Error, MixnetError, Result},
     MixnetClientConfig,
 };
@@ -96,7 +95,9 @@ pub(crate) async fn setup_mixnet_client(
         debug!("Using custom key storage path: {:?}", path);
 
         let gateway_id = mixnet_entry_gateway.to_base58_string();
-        if let Err(err) = check_imported_credential(path.to_path_buf(), &gateway_id).await {
+        if let Err(err) =
+            crate::credentials::check_imported_credential(path.to_path_buf(), &gateway_id).await
+        {
             // UGLY: flow needs to restructured to sort this out, but I don't want to refactor all
             // that just before release.
             task_client.disarm();

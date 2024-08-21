@@ -11,10 +11,7 @@ use tokio_util::codec::Framed;
 use tracing::{debug, error, trace};
 use tun2::{AsyncDevice, TunPacketCodec};
 
-use nym_connection_monitor::{
-    is_icmp_beacon_reply, is_icmp_v6_beacon_reply, ConnectionStatusEvent, IcmpBeaconReply,
-    Icmpv6BeaconReply,
-};
+use nym_connection_monitor::{ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply};
 
 use super::SharedMixnetClient;
 
@@ -139,7 +136,8 @@ fn check_for_icmp_beacon_reply(
     icmp_beacon_identifier: u16,
     our_ips: IpPair,
 ) -> Option<ConnectionStatusEvent> {
-    match is_icmp_beacon_reply(packet, icmp_beacon_identifier, our_ips.ipv4) {
+    match nym_connection_monitor::is_icmp_beacon_reply(packet, icmp_beacon_identifier, our_ips.ipv4)
+    {
         Some(IcmpBeaconReply::TunDeviceReply) => {
             debug!("Received ping response from ipr tun device");
             return Some(ConnectionStatusEvent::Icmpv4IprTunDevicePingReply);
@@ -151,7 +149,11 @@ fn check_for_icmp_beacon_reply(
         None => {}
     }
 
-    match is_icmp_v6_beacon_reply(packet, icmp_beacon_identifier, our_ips.ipv6) {
+    match nym_connection_monitor::is_icmp_v6_beacon_reply(
+        packet,
+        icmp_beacon_identifier,
+        our_ips.ipv6,
+    ) {
         Some(Icmpv6BeaconReply::TunDeviceReply) => {
             debug!("Received ping v6 response from ipr tun device");
             return Some(ConnectionStatusEvent::Icmpv6IprTunDevicePingReply);
