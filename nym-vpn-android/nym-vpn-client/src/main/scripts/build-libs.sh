@@ -11,7 +11,8 @@ export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin"
 bash $PWD/../../wireguard/build-wireguard-go.sh
 bash $PWD/../../wireguard/libwg/build-android.sh
 echo "Building nym-vpn-lib dep"
-export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-linux-android"
+#todo only will build on mac atm
+export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-linux-android -L ${PWD}/../../build/lib/aarch64-apple-darwin"
 #fix emulators later
 #(cd $PWD/src/tools/nym-vpn-client/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release)
 (cd $PWD/../../nym-vpn-core/nym-vpn-lib; cargo ndk -t arm64-v8a -o ../../nym-vpn-android/nym-vpn-client/src/main/jniLibs build --release)
