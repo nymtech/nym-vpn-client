@@ -6,6 +6,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.Keep
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -67,6 +70,7 @@ import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.nymvpn.util.extensions.go
 import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
@@ -157,7 +161,7 @@ class MainActivity : ComponentActivity() {
 			fun onNavBarTrailingClick() {
 				navController.currentBackStackEntry?.destination?.route?.let {
 					when (Destination.valueOf(it)) {
-						Destination.Main -> navController.navigate(Destination.Settings.route)
+						Destination.Main -> navController.go(Destination.Settings.route)
 						Destination.EntryLocation, Destination.ExitLocation -> appViewModel.onToggleShowLocationTooltip()
 						else -> Unit
 					}
@@ -215,6 +219,8 @@ class MainActivity : ComponentActivity() {
 						Modifier
 							.fillMaxSize()
 							.padding(padding),
+						enterTransition = { fadeIn(tween(200)) },
+						exitTransition = { fadeOut(tween(200)) },
 					) {
 						composable(
 							Destination.Main.route,

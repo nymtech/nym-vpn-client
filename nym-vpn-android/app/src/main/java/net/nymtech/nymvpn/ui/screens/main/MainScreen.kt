@@ -71,6 +71,7 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.exceptions.NymVpnExceptions
 import net.nymtech.nymvpn.util.extensions.buildCountryNameString
+import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.isExpired
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
@@ -106,7 +107,7 @@ fun MainScreen(
 			viewModel.onConnect()
 				.onFailure {
 					appViewModel.showSnackbarMessage(context.getString(R.string.exception_cred_invalid))
-					navController.navigate(Destination.Credential.route)
+					navController.go(Destination.Credential.route)
 				}
 		}
 	}
@@ -126,7 +127,7 @@ fun MainScreen(
 			onResult = {
 				val accepted = (it.resultCode == RESULT_OK)
 				if (!accepted) {
-					navController.navigate(Destination.Permission.createRoute(Permission.VPN))
+					navController.go(Destination.Permission.createRoute(Permission.VPN))
 				} else {
 					onConnectWithPermission()
 				}
@@ -156,7 +157,7 @@ fun MainScreen(
 
 	LaunchedEffect(notificationPermissionState?.status?.shouldShowRationale) {
 		if (notificationPermissionState?.status?.shouldShowRationale == true) {
-			navController.navigate(Destination.Permission.createRoute(Permission.NOTIFICATION))
+			navController.go(Destination.Permission.createRoute(Permission.NOTIFICATION))
 		}
 	}
 
@@ -298,7 +299,7 @@ fun MainScreen(
 								indication = if (selectionEnabled) rememberRipple() else null,
 							) {
 								if (selectionEnabled) {
-									navController.navigate(
+									navController.go(
 										Destination.EntryLocation.route,
 									)
 								} else {
@@ -328,7 +329,7 @@ fun MainScreen(
 						.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
 						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) rememberRipple() else null) {
 							if (selectionEnabled) {
-								navController.navigate(
+								navController.go(
 									Destination.ExitLocation.route,
 								)
 							} else {
@@ -347,7 +348,7 @@ fun MainScreen(
 									if (appUiState.credentialExpiryTime == null ||
 										appUiState.credentialExpiryTime.isExpired()
 									) {
-										return@launch navController.navigate(Destination.Credential.route)
+										return@launch navController.go(Destination.Credential.route)
 									}
 									onConnect()
 								}

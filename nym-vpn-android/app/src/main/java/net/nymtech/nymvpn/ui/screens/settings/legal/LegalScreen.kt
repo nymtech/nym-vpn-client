@@ -19,6 +19,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -56,7 +57,7 @@ fun LegalScreen(navController: NavController) {
 				SelectionItem(
 					title = { Text(stringResource(R.string.licenses), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
-						navController.navigate(Destination.Licenses.route)
+						navController.go(Destination.Licenses.route)
 					},
 				),
 			),
