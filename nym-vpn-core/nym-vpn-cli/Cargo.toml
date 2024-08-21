@@ -15,11 +15,11 @@ bs58.workspace = true
 clap = { workspace = true, features = ["cargo", "derive"] }
 dirs.workspace = true
 ipnetwork.workspace = true
-log.workspace = true
+thiserror.workspace = true
+time.workspace = true
 tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "sync"] }
 tracing-subscriber.workspace = true
 tracing.workspace = true
-time.workspace = true
 
 nym-vpn-lib = { path = "../nym-vpn-lib" }
 

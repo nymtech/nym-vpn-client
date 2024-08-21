@@ -4,7 +4,7 @@
 uniffi::setup_scaffolding!();
 
 use crate::config::WireguardConfig;
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::tunnel::setup_route_manager;
 use crate::wg_gateway_client::WgGatewayClient;
@@ -69,6 +69,8 @@ pub mod tunnel;
 pub mod util;
 pub mod wg_gateway_client;
 mod wireguard_setup;
+
+pub use error::Error;
 
 const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
 pub const SHUTDOWN_TIMER_SECS: u64 = 10;

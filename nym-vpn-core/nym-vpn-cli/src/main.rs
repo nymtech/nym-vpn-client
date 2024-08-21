@@ -1,24 +1,27 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod commands;
+use std::{fs, path::PathBuf};
 
-use std::fs;
-use std::path::PathBuf;
-
-use commands::{CliArgs, ImportCredentialTypeEnum};
-use nym_vpn_lib::gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint};
-use nym_vpn_lib::nym_bin_common::bin_info;
-use nym_vpn_lib::{
-    error::*, GenericNymVpnConfig, IpPair, MixnetClientConfig, NodeIdentity, SpecificVpn,
-};
-use nym_vpn_lib::{NymVpn, Recipient};
-use time::OffsetDateTime;
-
-use crate::commands::Commands;
 use clap::Parser;
-use log::*;
-use nym_vpn_lib::nym_config::defaults::{setup_env, var_names};
+use commands::{CliArgs, ImportCredentialTypeEnum};
+// use log::*;
+use nym_vpn_lib::{
+    gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint},
+    nym_bin_common::bin_info,
+    nym_config::defaults::{setup_env, var_names},
+    GenericNymVpnConfig, IpPair, MixnetClientConfig, NodeIdentity, NymVpn, Recipient, SpecificVpn,
+};
+use time::OffsetDateTime;
+use tracing::{debug, error, info};
+
+use crate::{
+    commands::Commands,
+    error::{Error, Result},
+};
+
+mod commands;
+mod error;
 
 const CONFIG_DIRECTORY_NAME: &str = "nym-vpn-cli";
 
@@ -47,7 +50,7 @@ fn parse_entry_point(args: &commands::RunArgs) -> Result<EntryPoint> {
     if let Some(ref entry_gateway_id) = args.entry.entry_gateway_id {
         Ok(EntryPoint::Gateway {
             identity: NodeIdentity::from_base58_string(entry_gateway_id.clone())
-                .map_err(|_| Error::NodeIdentityFormattingError)?,
+                .map_err(|_| Error::NodeIdentityFormatting)?,
         })
     } else if let Some(ref entry_gateway_country) = args.entry.entry_gateway_country {
         Ok(EntryPoint::Location {
@@ -64,12 +67,12 @@ fn parse_exit_point(args: &commands::RunArgs) -> Result<ExitPoint> {
     if let Some(ref exit_router_address) = args.exit.exit_router_address {
         Ok(ExitPoint::Address {
             address: Recipient::try_from_base58_string(exit_router_address.clone())
-                .map_err(|_| Error::RecipientFormattingError)?,
+                .map_err(|_| Error::RecipientFormatting)?,
         })
     } else if let Some(ref exit_router_id) = args.exit.exit_gateway_id {
         Ok(ExitPoint::Gateway {
             identity: NodeIdentity::from_base58_string(exit_router_id.clone())
-                .map_err(|_| Error::NodeIdentityFormattingError)?,
+                .map_err(|_| Error::NodeIdentityFormatting)?,
         })
     } else if let Some(ref exit_gateway_country) = args.exit.exit_gateway_country {
         Ok(ExitPoint::Location {
@@ -93,10 +96,10 @@ fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
     }
 
     #[cfg(unix)]
-    return nym_vpn_lib::util::unix_has_root("nym-vpn-cli");
+    return Ok(nym_vpn_lib::util::unix_has_root("nym-vpn-cli")?);
 
     #[cfg(windows)]
-    return nym_vpn_lib::util::win_has_admin("nym-vpn-cli");
+    return Ok(nym_vpn_lib::util::win_has_admin("nym-vpn-cli")?);
 
     // Assume we're all good on unknown platforms
     debug!("Platform not supported for root privilege check");
@@ -186,15 +189,19 @@ async fn import_credential(
     info!("Importing credential data into: {}", data_path.display());
     let data: ImportCredentialTypeEnum = args.credential_type.into();
     let raw_credential = match data {
-        ImportCredentialTypeEnum::Path(path) => fs::read(path)?,
+        ImportCredentialTypeEnum::Path(path) => {
+            fs::read(path).map_err(Error::FailedToReadCredentialPath)?
+        }
         ImportCredentialTypeEnum::Data(data) => parse_encoded_credential_data(&data)?,
     };
-    fs::create_dir_all(&data_path)?;
+    fs::create_dir_all(&data_path).map_err(Error::FailedToCreateCredentialDataPath)?;
     Ok(nym_vpn_lib::credentials::import_credential(raw_credential, data_path).await?)
 }
 
-fn parse_encoded_credential_data(raw: &str) -> bs58::decode::Result<Vec<u8>> {
-    bs58::decode(raw).into_vec()
+fn parse_encoded_credential_data(raw: &str) -> Result<Vec<u8>> {
+    bs58::decode(raw)
+        .into_vec()
+        .map_err(Error::FailedToParseEncodedCredentialData)
 }
 
 fn mixnet_data_path() -> Option<PathBuf> {

@@ -6,9 +6,6 @@ use std::path::PathBuf;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("{0}")]
-    IO(#[from] std::io::Error),
-
-    #[error("{0}")]
     AddrParseError(#[from] std::net::AddrParseError),
 
     #[error("{0}")]
@@ -20,7 +17,7 @@ pub enum Error {
     // We are not returning the underlying talpid_core::firewall:Error error as I ran into issues
     // with the Send marker trait not being implemented when building on Mac. Possibly we can fix
     // this in the future.
-    #[error("{0} - are you running as admin/root/sudo?")]
+    #[error("{0}")]
     FirewallError(String),
 
     #[error("{0}")]
@@ -32,17 +29,11 @@ pub enum Error {
     #[error("failed to send shutdown message to wireguard tunnel")]
     FailedToSendWireguardShutdown,
 
-    #[error("identity not formatted correctly")]
-    NodeIdentityFormattingError,
-
     #[error("failed setting up local TUN network device: {0}")]
     TunError(#[from] tun2::Error),
 
     #[error("{0}")]
     WireguardConfigError(#[from] talpid_wireguard::config::Error),
-
-    #[error("recipient is not formatted correctly")]
-    RecipientFormattingError,
 
     #[error("{0}")]
     WireguardTypesError(#[from] nym_wireguard_types::error::Error),
@@ -84,9 +75,6 @@ pub enum Error {
         #[from]
         source: bs58::decode::Error,
     },
-
-    #[error("config path not set")]
-    ConfigPathNotSet,
 
     #[error("{0}")]
     ConnectionMonitorError(#[from] nym_connection_monitor::Error),
@@ -132,6 +120,9 @@ pub enum Error {
 
     #[error("out of bandwidth")]
     OutOfBandwidth,
+
+    #[error("failed to add ipv6 route: {0}")]
+    FailedToAddIpv6Route(#[source] std::io::Error),
 }
 
 #[derive(thiserror::Error, Debug)]

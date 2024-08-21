@@ -271,25 +271,22 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
                 }
             }
             nym_vpn_lib::error::Error::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
-            nym_vpn_lib::error::Error::IO(_)
-            | nym_vpn_lib::error::Error::AddrParseError(_)
+            nym_vpn_lib::error::Error::AddrParseError(_)
             | nym_vpn_lib::error::Error::RoutingError(_)
+            | nym_vpn_lib::error::Error::FailedToAddIpv6Route(_)
             | nym_vpn_lib::error::Error::DNSError(_)
             | nym_vpn_lib::error::Error::FirewallError(_)
             | nym_vpn_lib::error::Error::JoinError(_)
             | nym_vpn_lib::error::Error::CanceledError(_)
             | nym_vpn_lib::error::Error::FailedToSendWireguardShutdown
-            | nym_vpn_lib::error::Error::NodeIdentityFormattingError
             | nym_vpn_lib::error::Error::TunError(_)
             | nym_vpn_lib::error::Error::WireguardConfigError(_)
-            | nym_vpn_lib::error::Error::RecipientFormattingError
             | nym_vpn_lib::error::Error::WireguardTypesError(_)
             | nym_vpn_lib::error::Error::DefaultInterfaceError
             | nym_vpn_lib::error::Error::StopError
             | nym_vpn_lib::error::Error::FailedToSerializeMessage { .. }
             | nym_vpn_lib::error::Error::CountryCodeNotFound
             | nym_vpn_lib::error::Error::FailedToDecodeBase58Credential { .. }
-            | nym_vpn_lib::error::Error::ConfigPathNotSet
             | nym_vpn_lib::error::Error::ConnectionMonitorError(_)
             | nym_vpn_lib::error::Error::ImportCredentialError(_)
             | nym_vpn_lib::error::Error::InvalidGatewayAuthResponse
