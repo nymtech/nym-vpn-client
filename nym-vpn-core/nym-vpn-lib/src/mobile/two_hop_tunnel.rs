@@ -286,6 +286,7 @@ impl TwoHopTunnel {
         self.exit.update_peers(&[peer_update])?;
 
         // wireguard-go resets the roaming flag when updating peers, this call fixes this.
+        #[cfg(target_os = "ios")]
         self.exit.disable_roaming();
 
         Ok(())

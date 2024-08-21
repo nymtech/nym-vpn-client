@@ -131,7 +131,7 @@ impl Tunnel {
         }
     }
 
-    #[cfg(any(target_os = "ios", target_os = "android"))]
+    #[cfg(any(target_os = "ios"))]
     pub fn disable_roaming(&mut self) {
         unsafe { wgDisableSomeRoamingForBrokenMobileSemantics(self.handle) }
     }

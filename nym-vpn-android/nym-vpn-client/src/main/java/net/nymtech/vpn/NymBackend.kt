@@ -2,7 +2,6 @@ package net.nymtech.vpn
 
 import android.content.Context
 import android.content.Intent
-import android.net.VpnService
 import android.os.Build
 import android.os.IBinder
 import kotlinx.coroutines.CompletableDeferred
@@ -30,14 +29,12 @@ import nym_vpn_lib.TunStatus
 import nym_vpn_lib.TunnelNetworkSettings
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
-import nym_vpn_lib.WgConfig
 import nym_vpn_lib.checkCredential
 import nym_vpn_lib.initLogger
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
 import timber.log.Timber
 import java.net.InetAddress
-import java.security.Provider.Service
 import java.time.Instant
 
 class NymBackend private constructor(val context: Context) : Backend, TunnelStatusListener {
@@ -248,7 +245,41 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 		}
 
 		override fun configureWg(config: TunnelNetworkSettings): Int {
-			TODO("Not yet implemented")
+			Timber.d("Configuring Wg tunnel")
+			if (prepare(this) != null) return -1
+			if (currentTunnelHandle != -1) return currentTunnelHandle
+			val vpnInterface = builder.apply {
+				config.ipv4Settings?.addresses?.forEach {
+					addAddress(it, InetAddress.getByName(it).prefix())
+				}
+				config.ipv6Settings?.addresses?.forEach {
+					addAddress(it, InetAddress.getByName(it).prefix())
+				}
+				config.dnsSettings?.servers?.forEach {
+					addDnsServer(it)
+				}
+				addRoute("0.0.0.0",0)
+				addRoute("::", 0)
+//				try {
+//					val allowedIps = config.allowedIps.map { it.split("/") }
+//					allowedIps.forEach {
+//						addRoute(it.first(), it.last().toInt())
+//						addRoute(it.first(), it.last().toInt())
+//					}
+//				} catch (e: Exception) {
+//					Timber.e(e)
+//					return -1
+//				}
+
+				setMtu(config.mtu.toInt())
+
+				setBlocking(false)
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+					setMetered(false)
+				}
+			}.establish()
+			val fd = vpnInterface?.detachFd() ?: return -1
+			return fd
 		}
 
 		override fun configureNym(config: NymConfig): Int {
