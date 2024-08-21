@@ -1,20 +1,20 @@
 {
-  "unknown": "「不明なエラー」",
+  "unknown": "不明なエラー",
   "internal": "内部エラー",
-  "grpc": "Internal gRPCエラー",
+  "grpc": "内部gRPCエラー",
   "connection": {
     "timeout": "接続タイムアウト",
     "gateway-lookup": "gatewayの検索に失敗しました",
     "bad-country-combination": "サポートされていない国の組み合わせです。エントリーまたは出口の国を変更してください。",
-    "no-valid-credential": "有効なクレデンシャルがありません。クレデンシャルを追加してください。"
+    "no-valid-credential": "有効な認証情報がありません。認証情報を追加してください"
   },
   "credential": {
-    "invalid": "無効なクレデンシャル",
-    "expired": "期限切れのクレデンシャル",
-    "storage": "内部エラーのため、クレデンシャルのインポートに失敗しました",
-    "deserialize": "クレデンシャルのデシリアライズに失敗しました",
-    "no-duplicate": "このクレデンシャルはすでに使用されています",
-    "vpn-running": "VPNに接続している間はクレデンシャルをインポートできません"
+    "invalid": "無効な認証情報",
+    "expired": "期限切れの認証情報",
+    "storage": "内部エラーのため、認証情報のインポートに失敗しました",
+    "deserialize": "認証情報のデシリアライズに失敗しました",
+    "no-duplicate": "この認証情報はすでに使用されています",
+    "vpn-running": "VPNに接続している間は認証情報をインポートできません"
   },
   "countries-request": {
     "entry": "利用可能なエントリーノードの国を取得できませんでした",
