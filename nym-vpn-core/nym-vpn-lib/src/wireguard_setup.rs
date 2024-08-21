@@ -29,7 +29,7 @@ pub async fn create_wireguard_tunnel(
 )> {
     tracing::debug!("Creating wireguard tunnel");
     let handle = route_manager.handle()?;
-    let tunnel = Tunnel::new(wireguard_config, handle);
+    let tunnel = Tunnel::new(wireguard_config.clone(), handle);
 
     let (finished_shutdown_tx, finished_shutdown_rx) = oneshot::channel();
     let (tunnel_handle, event_rx, tunnel_close_tx) =

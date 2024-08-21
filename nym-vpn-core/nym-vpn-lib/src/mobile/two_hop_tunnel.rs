@@ -200,7 +200,9 @@ impl TwoHopTunnel {
         );
 
         #[cfg(target_os = "android")]
-        let tun_fd = tun_provider.configure_wg(tunnel_settings);
+        let tun_fd = tun_provider.configure_wg(tunnel_settings).map_err(|_| {
+            Error::CannotLocateTunFd
+        })?;
         #[cfg(target_os = "android")]
         if tun_fd == -1 { return Err(Error::CannotLocateTunFd); }
         // Create exit tunnel capturing exit traffic on device and sending it to the local udp forwarder.

@@ -59,9 +59,10 @@ use crate::platform::android::AndroidTunProvider;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub use crate::platform::swift;
 use crate::platform::uniffi_set_listener_status;
-use crate::uniffi_custom_impls::{ExitStatus, StatusEvent, UserAgent};
+use crate::uniffi_custom_impls::{ExitStatus, StatusEvent};
 pub use nym_bin_common;
 pub use nym_config;
+use nym_sdk::UserAgent;
 use tokio::task::JoinHandle;
 use tun2::AsyncDevice;
 
