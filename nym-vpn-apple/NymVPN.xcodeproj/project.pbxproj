@@ -61,7 +61,7 @@
 		D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = D9E9F19F2C3807A00056EB8C /* Sparkle */; };
 		D9EACBD62BC016D60094CDDF /* NymVPNUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9EACBD52BC016D60094CDDF /* NymVPNUITests.swift */; };
 		D9EACBDF2BC01D790094CDDF /* SwiftyPing in Frameworks */ = {isa = PBXBuildFile; productRef = D9EACBDE2BC01D790094CDDF /* SwiftyPing */; };
-		D9F236232C64E64E00CCC433 /* LibLicences.json in Sources */ = {isa = PBXBuildFile; fileRef = D9F236222C64E64E00CCC433 /* LibLicences.json */; };
+		D9F236232C64E64E00CCC433 /* LibLicences.json in Resources */ = {isa = PBXBuildFile; fileRef = D9F236222C64E64E00CCC433 /* LibLicences.json */; };
 		D9F236252C650A9200CCC433 /* LibLicences.json in Resources */ = {isa = PBXBuildFile; fileRef = D9F236242C650A9200CCC433 /* LibLicences.json */; };
 		D9F699E02B4C1862005576A9 /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = D9F699DF2B4C1862005576A9 /* Settings */; };
 		D9FB33DA2BECC163009C3419 /* Extensions in Frameworks */ = {isa = PBXBuildFile; productRef = D9FB33D92BECC163009C3419 /* Extensions */; };
@@ -572,6 +572,7 @@
 				D96B94E02C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
 				D96B94DE2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
 				D9264E262B3DA062004594A8 /* Assets.xcassets in Resources */,
+				D9F236232C64E64E00CCC433 /* LibLicences.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -666,7 +667,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D99A147A2B357E9900F2728B /* NymVPNApp.swift in Sources */,
-				D9F236232C64E64E00CCC433 /* LibLicences.json in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
