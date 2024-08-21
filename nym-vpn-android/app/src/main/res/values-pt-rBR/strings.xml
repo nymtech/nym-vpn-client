@@ -123,7 +123,7 @@
     <string name="error_no_hostname_address">O gateway está sem o endereço do hostname. Por favor, tente novamente conectando-se a um gateway diferente.</string>
     <string name="top_up">Recarregar</string>
     <string name="notification_permission_message">Necessário para manter os serviços de VPN em funcionamento enquanto o aplicativo está fechado.</string>
-    <string name="two_hop_explanation">Experimente velocidade máxima com conectividade de 2 servidores. Perfeito para navegação rápida, streaming e compartilhamento de arquivos.</string>
+    <string name="two_hop_explanation">Experimente a velocidade máxima com a conectividade de dois servidores. Perfeito para navegação rápida, streaming e compartilhamento de arquivos.</string>
     <string name="error_gateway_lookup">Falha ao buscar os gateways da Nym. Por favor, verifique sua conexão de rede e tente novamente.</string>
     <string name="entry_location">Local de entrada</string>
     <string name="exit_location">Local de saída</string>
@@ -131,4 +131,15 @@
     <string name="gateway_modal_description">Inferimos a localização dos servidores com base em seus endereços IP, mas a localização real pode variar um pouco.</string>
     <string name="gateway_locations_title">Detalhes sobre os locais dos servidores</string>
     <string name="entry_location_selector">Seletor de local de entrada</string>
+    <string name="appearance">Aparência</string>
+    <string name="remaining">restantes</string>
+    <string name="vpn_connection">Conexão VPN</string>
+    <string name="vpn_permission_message">Confirme a solicitação de conexão VPN tentando se reconectar.</string>
+    <string name="view_system_settings">Exibir configurações do sistema</string>
+    <string name="try_reconnecting">Tente reconectar</string>
+    <string name="always_on_disbled">VPN sempre ativa desativada</string>
+    <string name="always_on_message">Não está funcionando? Certifique-se de que a VPN sempre ativa esteja desativada para outros aplicativos em</string>
+    <string name="vpn_settings">Configurações do sistema VPN</string>
+    <string name="try_again">e tentar se reconectar</string>
+    <string name="two_hop">2-saltos</string>
 </resources>
