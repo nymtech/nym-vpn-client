@@ -72,6 +72,11 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     _ request: Nym_Vpn_ListExitCountriesRequest,
     callOptions: CallOptions?
   ) -> UnaryCall<Nym_Vpn_ListExitCountriesRequest, Nym_Vpn_ListExitCountriesResponse>
+
+  func storeAccount(
+    _ request: Nym_Vpn_StoreAccountRequest,
+    callOptions: CallOptions?
+  ) -> UnaryCall<Nym_Vpn_StoreAccountRequest, Nym_Vpn_StoreAccountResponse>
 }
 
 extension Nym_Vpn_NymVpndClientProtocol {
@@ -282,6 +287,24 @@ extension Nym_Vpn_NymVpndClientProtocol {
       interceptors: self.interceptors?.makeListExitCountriesInterceptors() ?? []
     )
   }
+
+  /// Unary call to StoreAccount
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to StoreAccount.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func storeAccount(
+    _ request: Nym_Vpn_StoreAccountRequest,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<Nym_Vpn_StoreAccountRequest, Nym_Vpn_StoreAccountResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.storeAccount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStoreAccountInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -400,6 +423,11 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     _ request: Nym_Vpn_ListExitCountriesRequest,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<Nym_Vpn_ListExitCountriesRequest, Nym_Vpn_ListExitCountriesResponse>
+
+  func makeStoreAccountCall(
+    _ request: Nym_Vpn_StoreAccountRequest,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_StoreAccountRequest, Nym_Vpn_StoreAccountResponse>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -543,6 +571,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       interceptors: self.interceptors?.makeListExitCountriesInterceptors() ?? []
     )
   }
+
+  internal func makeStoreAccountCall(
+    _ request: Nym_Vpn_StoreAccountRequest,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_StoreAccountRequest, Nym_Vpn_StoreAccountResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.storeAccount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStoreAccountInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -678,6 +718,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       interceptors: self.interceptors?.makeListExitCountriesInterceptors() ?? []
     )
   }
+
+  internal func storeAccount(
+    _ request: Nym_Vpn_StoreAccountRequest,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_StoreAccountResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.storeAccount.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeStoreAccountInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -731,6 +783,9 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'listExitCountries'.
   func makeListExitCountriesInterceptors() -> [ClientInterceptor<Nym_Vpn_ListExitCountriesRequest, Nym_Vpn_ListExitCountriesResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'storeAccount'.
+  func makeStoreAccountInterceptors() -> [ClientInterceptor<Nym_Vpn_StoreAccountRequest, Nym_Vpn_StoreAccountResponse>]
 }
 
 internal enum Nym_Vpn_NymVpndClientMetadata {
@@ -749,6 +804,7 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       Nym_Vpn_NymVpndClientMetadata.Methods.listExitGateways,
       Nym_Vpn_NymVpndClientMetadata.Methods.listEntryCountries,
       Nym_Vpn_NymVpndClientMetadata.Methods.listExitCountries,
+      Nym_Vpn_NymVpndClientMetadata.Methods.storeAccount,
     ]
   )
 
@@ -818,6 +874,12 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       path: "/nym.vpn.NymVpnd/ListExitCountries",
       type: GRPCCallType.unary
     )
+
+    internal static let storeAccount = GRPCMethodDescriptor(
+      name: "StoreAccount",
+      path: "/nym.vpn.NymVpnd/StoreAccount",
+      type: GRPCCallType.unary
+    )
   }
 }
 
@@ -846,6 +908,8 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   func listEntryCountries(request: Nym_Vpn_ListEntryCountriesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListEntryCountriesResponse>
 
   func listExitCountries(request: Nym_Vpn_ListExitCountriesRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ListExitCountriesResponse>
+
+  func storeAccount(request: Nym_Vpn_StoreAccountRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_StoreAccountResponse>
 }
 
 extension Nym_Vpn_NymVpndProvider {
@@ -959,6 +1023,15 @@ extension Nym_Vpn_NymVpndProvider {
         userFunction: self.listExitCountries(request:context:)
       )
 
+    case "StoreAccount":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_StoreAccountRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_StoreAccountResponse>(),
+        interceptors: self.interceptors?.makeStoreAccountInterceptors() ?? [],
+        userFunction: self.storeAccount(request:context:)
+      )
+
     default:
       return nil
     }
@@ -1027,6 +1100,11 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     request: Nym_Vpn_ListExitCountriesRequest,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_ListExitCountriesResponse
+
+  func storeAccount(
+    request: Nym_Vpn_StoreAccountRequest,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_StoreAccountResponse
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1147,6 +1225,15 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         wrapping: { try await self.listExitCountries(request: $0, context: $1) }
       )
 
+    case "StoreAccount":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<Nym_Vpn_StoreAccountRequest>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_StoreAccountResponse>(),
+        interceptors: self.interceptors?.makeStoreAccountInterceptors() ?? [],
+        wrapping: { try await self.storeAccount(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -1198,6 +1285,10 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'listExitCountries'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeListExitCountriesInterceptors() -> [ServerInterceptor<Nym_Vpn_ListExitCountriesRequest, Nym_Vpn_ListExitCountriesResponse>]
+
+  /// - Returns: Interceptors to use when handling 'storeAccount'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeStoreAccountInterceptors() -> [ServerInterceptor<Nym_Vpn_StoreAccountRequest, Nym_Vpn_StoreAccountResponse>]
 }
 
 internal enum Nym_Vpn_NymVpndServerMetadata {
@@ -1216,6 +1307,7 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       Nym_Vpn_NymVpndServerMetadata.Methods.listExitGateways,
       Nym_Vpn_NymVpndServerMetadata.Methods.listEntryCountries,
       Nym_Vpn_NymVpndServerMetadata.Methods.listExitCountries,
+      Nym_Vpn_NymVpndServerMetadata.Methods.storeAccount,
     ]
   )
 
@@ -1283,6 +1375,12 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     internal static let listExitCountries = GRPCMethodDescriptor(
       name: "ListExitCountries",
       path: "/nym.vpn.NymVpnd/ListExitCountries",
+      type: GRPCCallType.unary
+    )
+
+    internal static let storeAccount = GRPCMethodDescriptor(
+      name: "StoreAccount",
+      path: "/nym.vpn.NymVpnd/StoreAccount",
       type: GRPCCallType.unary
     )
   }
