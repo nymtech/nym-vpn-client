@@ -25,7 +25,6 @@ let package = Package(
         .library(name: "SentryManager", targets: ["SentryManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
         .library(name: "TunnelMixnet", targets: ["TunnelMixnet"]),
-        .library(name: "TunnelWG", targets: ["TunnelWG"])
     ],
     dependencies: [
         .package(path: "../ServicesMacOS"),
@@ -33,7 +32,6 @@ let package = Package(
         .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
         .package(name: "Theme", path: "../Theme"),
         .package(url: "https://github.com/apple/swift-log", from: "1.5.4"),
-        .package(url: "https://git.zx2c4.com/wireguard-apple", exact: "1.0.15-26"),
         .package(url: "https://github.com/getsentry/sentry-cocoa", from: "8.26.0")
     ],
     targets: [
@@ -153,15 +151,5 @@ let package = Package(
             ],
             path: "Sources/Services/TunnelMixnet"
         ),
-        .target(
-            name: "TunnelWG",
-            dependencies: [
-                .product(name: "Logging", package: "swift-log"),
-                "NymLogger",
-                "Tunnels",
-                .product(name: "WireGuardKit", package: "wireguard-apple")
-            ],
-            path: "Sources/Services/TunnelWG"
-        )
     ]
 )

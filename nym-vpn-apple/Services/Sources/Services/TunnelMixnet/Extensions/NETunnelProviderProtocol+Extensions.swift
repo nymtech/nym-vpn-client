@@ -12,10 +12,12 @@ extension NETunnelProviderProtocol {
         }
 
         providerBundleIdentifier = "\(appId).network-extension"
+        serverAddress = "127.0.0.1"
         passwordReference = Keychain.makeReference(containing: configString, called: mixnetConfiguration.name)
-        guard passwordReference != nil else { return nil }
-        // TODO: Mixnet - What server address should we be using?
-        serverAddress = "Unspecified"
+
+        if passwordReference == nil {
+            return nil
+        }
     }
 
     public func destroyConfigurationReference() {
