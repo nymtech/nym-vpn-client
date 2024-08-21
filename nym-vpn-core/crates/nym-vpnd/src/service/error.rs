@@ -278,10 +278,8 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::WireguardConfigError(_)
             | nym_vpn_lib::error::Error::RecipientFormattingError
             | nym_vpn_lib::error::Error::ValidatorClientError(_)
-            | nym_vpn_lib::error::Error::ExplorerApiError(_)
             | nym_vpn_lib::error::Error::KeyRecoveryError(_)
             | nym_vpn_lib::error::Error::NymNodeApiClientError(_)
-            | nym_vpn_lib::error::Error::RequestedGatewayByLocationWithoutLocationDataAvailable
             | nym_vpn_lib::error::Error::WireguardTypesError(_)
             | nym_vpn_lib::error::Error::DefaultInterfaceError
             | nym_vpn_lib::error::Error::ReceivedResponseWithOldVersion { .. }
@@ -293,20 +291,15 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::StaticConnectRequestDenied { .. }
             | nym_vpn_lib::error::Error::DynamicConnectRequestDenied { .. }
             | nym_vpn_lib::error::Error::MixnetClientDeadlock
-            | nym_vpn_lib::error::Error::NotStarted
             | nym_vpn_lib::error::Error::StopError
-            | nym_vpn_lib::error::Error::TalpidCoreMpsc(_)
             | nym_vpn_lib::error::Error::FailedToSerializeMessage { .. }
             | nym_vpn_lib::error::Error::IcmpEchoRequestPacketCreationFailure
             | nym_vpn_lib::error::Error::IcmpPacketCreationFailure
             | nym_vpn_lib::error::Error::Ipv4PacketCreationFailure
             | nym_vpn_lib::error::Error::CountryCodeNotFound
-            | nym_vpn_lib::error::Error::CountryExitGatewaysOutdated
-            | nym_vpn_lib::error::Error::FailedToImportCredential { .. }
             | nym_vpn_lib::error::Error::FailedToDecodeBase58Credential { .. }
             | nym_vpn_lib::error::Error::ConfigPathNotSet
             | nym_vpn_lib::error::Error::ConnectionMonitorError(_)
-            | nym_vpn_lib::error::Error::RouteManagerPoisonedLock
             | nym_vpn_lib::error::Error::ImportCredentialError(_)
             | nym_vpn_lib::error::Error::IpPacketRouterClientError(_)
             | nym_vpn_lib::error::Error::FailedWireguardRegistration

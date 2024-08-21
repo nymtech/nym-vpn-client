@@ -44,11 +44,11 @@ pub enum CredentialStoreError {
         source: std::io::Error,
     },
 
-    #[error("failed to lookup db version: {source}")]
-    FailedToLookupDbVersion {
-        #[from]
-        source: sqlx::Error,
-    },
+    #[error("failed to connect to db for getting the version: {0}")]
+    FailedToConnectoToDbForFetchingVersion(#[source] sqlx::Error),
+
+    #[error("failed to fetch db version: {0}")]
+    FailedToFetchDbVersion(#[source] sqlx::Error),
 
     #[error("failed to copy old db file: {0}")]
     FailedToCopyOldDbFile(std::io::Error),
@@ -64,11 +64,15 @@ fn forked_db_path(db_path: &Path) -> PathBuf {
 async fn is_db_old(db_path: &Path) -> Result<bool, CredentialStoreError> {
     let mut opts = sqlx::sqlite::SqliteConnectOptions::new().filename(db_path);
     opts.disable_statement_logging();
-    let pool = sqlx::SqlitePool::connect_with(opts).await?;
+    let pool = sqlx::SqlitePool::connect_with(opts)
+        .await
+        .map_err(CredentialStoreError::FailedToConnectoToDbForFetchingVersion)?;
 
     let row = sqlx::query("SELECT MAX(version) as version FROM _sqlx_migrations")
         .fetch_one(&pool)
-        .await?;
+        .await
+        .map_err(CredentialStoreError::FailedToFetchDbVersion)?;
+
     let migration_version: i64 = row.get("version");
     Ok(migration_version == PRE_ECASH_DB_MIGRATION_VERSION)
 }
@@ -82,7 +86,10 @@ async fn migrate_to_forked_credential_db(
     credential_db_path: &Path,
 ) -> Result<PathBuf, CredentialStoreError> {
     let fork_credential_db_path = forked_db_path(credential_db_path);
-    if !fork_credential_db_path.exists() && is_db_old(credential_db_path).await? {
+    if !fork_credential_db_path.exists()
+        && credential_db_path.exists()
+        && is_db_old(credential_db_path).await?
+    {
         copy_old_db_file(credential_db_path, &fork_credential_db_path).await?;
     };
     Ok(fork_credential_db_path)
