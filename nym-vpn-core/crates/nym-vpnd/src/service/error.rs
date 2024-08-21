@@ -269,7 +269,7 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
                 ConnectionFailedError::FailedToConnectToIpPacketRouter {
                     reason: inner.to_string(),
                 }
-            },
+            }
             nym_vpn_lib::error::Error::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
             nym_vpn_lib::error::Error::IO(_)
             | nym_vpn_lib::error::Error::InvalidWireGuardKey
