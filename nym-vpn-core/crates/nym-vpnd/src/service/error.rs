@@ -2,8 +2,8 @@ use std::path::PathBuf;
 
 use nym_vpn_lib::{
     credential_storage_pre_ecash::error::StorageError,
-    credentials::ImportCredentialError as VpnLibImportCredentialError,
-    error::GatewayDirectoryError, id_pre_ecash::NymIdError,
+    credentials::ImportCredentialError as VpnLibImportCredentialError, id_pre_ecash::NymIdError,
+    GatewayDirectoryError,
 };
 use time::OffsetDateTime;
 use tracing::error;
@@ -108,6 +108,9 @@ pub enum ConnectionFailedError {
         reason: String,
     },
 
+    #[error("failed to connect to ip packet router: {reason}")]
+    FailedToConnectToIpPacketRouter { reason: String },
+
     #[error("failed to lookup gateways: {reason}")]
     FailedToLookupGateways { reason: String },
 
@@ -150,10 +153,10 @@ pub enum ConnectionFailedError {
 
 use nym_vpn_lib::gateway_directory::Error as DirError;
 
-impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
-    fn from(err: &nym_vpn_lib::error::Error) -> Self {
+impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
+    fn from(err: &nym_vpn_lib::Error) -> Self {
         match err {
-            nym_vpn_lib::error::Error::InvalidCredential {
+            nym_vpn_lib::Error::InvalidCredential {
                 reason,
                 path,
                 gateway_id,
@@ -162,38 +165,38 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
                 location: path.to_string_lossy().to_string(),
                 gateway_id: gateway_id.clone(),
             },
-            nym_vpn_lib::error::Error::StartMixnetTimeout(timeout_sec) => {
+            nym_vpn_lib::Error::StartMixnetTimeout(timeout_sec) => {
                 ConnectionFailedError::StartMixnetTimeout(*timeout_sec)
             }
-            nym_vpn_lib::error::Error::Mixnet(e) => match e {
-                nym_vpn_lib::error::MixnetError::FailedToSetupMixnetStoragePaths(source) => {
+            nym_vpn_lib::Error::Mixnet(e) => match e {
+                nym_vpn_lib::MixnetError::FailedToSetupMixnetStoragePaths(source) => {
                     ConnectionFailedError::FailedToSetupMixnetStoragePaths {
                         reason: source.to_string(),
                     }
                 }
-                nym_vpn_lib::error::MixnetError::FailedToCreateMixnetClientWithDefaultStorage(
-                    source,
-                ) => ConnectionFailedError::FailedToCreateMixnetClientWithDefaultStorage {
-                    reason: source.to_string(),
-                },
-                nym_vpn_lib::error::MixnetError::FailedToBuildMixnetClient(source) => {
+                nym_vpn_lib::MixnetError::FailedToCreateMixnetClientWithDefaultStorage(source) => {
+                    ConnectionFailedError::FailedToCreateMixnetClientWithDefaultStorage {
+                        reason: source.to_string(),
+                    }
+                }
+                nym_vpn_lib::MixnetError::FailedToBuildMixnetClient(source) => {
                     ConnectionFailedError::FailedToBuildMixnetClient {
                         reason: source.to_string(),
                     }
                 }
-                nym_vpn_lib::error::MixnetError::FailedToConnectToMixnet(source) => {
+                nym_vpn_lib::MixnetError::FailedToConnectToMixnet(source) => {
                     ConnectionFailedError::FailedToConnectToMixnet {
                         reason: source.to_string(),
                     }
                 }
-                nym_vpn_lib::error::MixnetError::EntryGateway { gateway_id, source } => {
+                nym_vpn_lib::MixnetError::EntryGateway { gateway_id, source } => {
                     ConnectionFailedError::FailedToConnectToMixnetEntryGateway {
                         gateway_id: gateway_id.clone(),
                         reason: source.to_string(),
                     }
                 }
             },
-            nym_vpn_lib::error::Error::GatewayDirectoryError(e) => match e {
+            nym_vpn_lib::Error::GatewayDirectoryError(e) => match e {
                 GatewayDirectoryError::FailedtoSetupGatewayDirectoryClient { config, source } => {
                     ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
                         config: Box::new(*config.clone()),
@@ -262,62 +265,45 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
                     requested_location: requested_location.clone(),
                 },
             },
-            nym_vpn_lib::error::Error::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
-            nym_vpn_lib::error::Error::IO(_)
-            | nym_vpn_lib::error::Error::InvalidWireGuardKey
-            | nym_vpn_lib::error::Error::AddrParseError(_)
-            | nym_vpn_lib::error::Error::RoutingError(_)
-            | nym_vpn_lib::error::Error::DNSError(_)
-            | nym_vpn_lib::error::Error::FirewallError(_)
-            | nym_vpn_lib::error::Error::WireguardError(_)
-            | nym_vpn_lib::error::Error::JoinError(_)
-            | nym_vpn_lib::error::Error::CanceledError(_)
-            | nym_vpn_lib::error::Error::FailedToSendWireguardShutdown
-            | nym_vpn_lib::error::Error::NodeIdentityFormattingError
-            | nym_vpn_lib::error::Error::TunError(_)
-            | nym_vpn_lib::error::Error::WireguardConfigError(_)
-            | nym_vpn_lib::error::Error::RecipientFormattingError
-            | nym_vpn_lib::error::Error::ValidatorClientError(_)
-            | nym_vpn_lib::error::Error::KeyRecoveryError(_)
-            | nym_vpn_lib::error::Error::NymNodeApiClientError(_)
-            | nym_vpn_lib::error::Error::WireguardTypesError(_)
-            | nym_vpn_lib::error::Error::DefaultInterfaceError
-            | nym_vpn_lib::error::Error::ReceivedResponseWithOldVersion { .. }
-            | nym_vpn_lib::error::Error::ReceivedResponseWithNewVersion { .. }
-            | nym_vpn_lib::error::Error::GotReplyIntendedForWrongAddress
-            | nym_vpn_lib::error::Error::UnexpectedConnectResponse
-            | nym_vpn_lib::error::Error::NoMixnetMessagesReceived
-            | nym_vpn_lib::error::Error::TimeoutWaitingForConnectResponse
-            | nym_vpn_lib::error::Error::StaticConnectRequestDenied { .. }
-            | nym_vpn_lib::error::Error::DynamicConnectRequestDenied { .. }
-            | nym_vpn_lib::error::Error::MixnetClientDeadlock
-            | nym_vpn_lib::error::Error::StopError
-            | nym_vpn_lib::error::Error::FailedToSerializeMessage { .. }
-            | nym_vpn_lib::error::Error::IcmpEchoRequestPacketCreationFailure
-            | nym_vpn_lib::error::Error::IcmpPacketCreationFailure
-            | nym_vpn_lib::error::Error::Ipv4PacketCreationFailure
-            | nym_vpn_lib::error::Error::CountryCodeNotFound
-            | nym_vpn_lib::error::Error::FailedToDecodeBase58Credential { .. }
-            | nym_vpn_lib::error::Error::ConfigPathNotSet
-            | nym_vpn_lib::error::Error::ConnectionMonitorError(_)
-            | nym_vpn_lib::error::Error::ImportCredentialError(_)
-            | nym_vpn_lib::error::Error::IpPacketRouterClientError(_)
-            | nym_vpn_lib::error::Error::FailedWireguardRegistration
-            | nym_vpn_lib::error::Error::InvalidGatewayAuthResponse
-            | nym_vpn_lib::error::Error::AuthenticatorClientError(_)
-            | nym_vpn_lib::error::Error::AuthenticationNotPossible(_)
-            | nym_vpn_lib::error::Error::AuthenticatorAddressNotFound
-            | nym_vpn_lib::error::Error::NotEnoughBandwidth
-            | nym_vpn_lib::error::Error::BadWireguardEvent => {
+            nym_vpn_lib::Error::FailedToConnectToIpPacketRouter(inner) => {
+                ConnectionFailedError::FailedToConnectToIpPacketRouter {
+                    reason: inner.to_string(),
+                }
+            }
+            nym_vpn_lib::Error::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
+            nym_vpn_lib::Error::AddrParseError(_)
+            | nym_vpn_lib::Error::RoutingError(_)
+            | nym_vpn_lib::Error::FailedToAddIpv6Route(_)
+            | nym_vpn_lib::Error::DNSError(_)
+            | nym_vpn_lib::Error::FirewallError(_)
+            | nym_vpn_lib::Error::JoinError(_)
+            | nym_vpn_lib::Error::CanceledError(_)
+            | nym_vpn_lib::Error::FailedToSendWireguardShutdown
+            | nym_vpn_lib::Error::TunError(_)
+            | nym_vpn_lib::Error::WireguardConfigError(_)
+            | nym_vpn_lib::Error::WireguardTypesError(_)
+            | nym_vpn_lib::Error::DefaultInterfaceError
+            | nym_vpn_lib::Error::StopError
+            | nym_vpn_lib::Error::FailedToSerializeMessage { .. }
+            | nym_vpn_lib::Error::CountryCodeNotFound
+            | nym_vpn_lib::Error::FailedToDecodeBase58Credential { .. }
+            | nym_vpn_lib::Error::ConnectionMonitorError(_)
+            | nym_vpn_lib::Error::ImportCredentialError(_)
+            | nym_vpn_lib::Error::InvalidGatewayAuthResponse
+            | nym_vpn_lib::Error::AuthenticatorClientError(_)
+            | nym_vpn_lib::Error::AuthenticationNotPossible(_)
+            | nym_vpn_lib::Error::AuthenticatorAddressNotFound
+            | nym_vpn_lib::Error::NotEnoughBandwidth
+            | nym_vpn_lib::Error::BadWireguardEvent => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
             }
             #[cfg(windows)]
-            nym_vpn_lib::error::Error::AdminPrivilegesRequired { .. } => {
+            nym_vpn_lib::Error::AdminPrivilegesRequired { .. } => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
             }
             #[cfg(unix)]
-            nym_vpn_lib::error::Error::TunProvider(_)
-            | nym_vpn_lib::error::Error::RootPrivilegesRequired { .. } => {
+            nym_vpn_lib::Error::TunProvider(_)
+            | nym_vpn_lib::Error::RootPrivilegesRequired { .. } => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
             }
         }

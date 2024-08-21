@@ -215,6 +215,9 @@ message Error {
     // Failed to connect to the mixnet entry gateway
     MIXNET_ENTRY_GATEWAY = 23;
 
+    // Failed to connect to the IPR
+    IPR_FAILED_TO_CONNECT = 25;
+
     // Looking up gateways can fail in a number of ways.
     GATEWAY_DIRECTORY = 8;
 

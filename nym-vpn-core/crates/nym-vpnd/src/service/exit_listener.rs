@@ -37,7 +37,7 @@ impl VpnServiceExitListener {
 
                         // Inspect the error so we can set a strongly typed error state
                         let vpn_lib_err = err
-                            .downcast_ref::<nym_vpn_lib::error::Error>()
+                            .downcast_ref::<nym_vpn_lib::Error>()
                             .map(ConnectionFailedError::from);
 
                         let connection_failed_err = match vpn_lib_err {

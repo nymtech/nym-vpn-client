@@ -129,6 +129,13 @@ impl From<ConnectionFailedError> for ProtoError {
                     "reason".to_string() => reason.to_string(),
                 },
             },
+            ConnectionFailedError::FailedToConnectToIpPacketRouter { ref reason } => ProtoError {
+                kind: ErrorType::IprFailedToConnect as i32,
+                message: err.to_string(),
+                details: hashmap! {
+                    "reason".to_string() => reason.to_string(),
+                },
+            },
             ConnectionFailedError::FailedToSetupGatewayDirectoryClient {
                 ref config,
                 ref reason,

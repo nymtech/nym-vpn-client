@@ -267,12 +267,14 @@ pub async fn setup_mixnet_routing(
     #[cfg(target_os = "linux")]
     std::process::Command::new("ip")
         .args(["-6", "addr", "add", &_ipv6_addr, "dev", &device_name])
-        .output()?;
+        .output()
+        .map_err(crate::Error::FailedToAddIpv6Route)?;
 
     #[cfg(target_os = "macos")]
     std::process::Command::new("ifconfig")
         .args([&device_name, "inet6", "add", &_ipv6_addr])
-        .output()?;
+        .output()
+        .map_err(crate::Error::FailedToAddIpv6Route)?;
 
     if config.disable_routing {
         info!("Routing is disabled, skipping adding routes");

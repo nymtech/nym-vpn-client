@@ -4,11 +4,10 @@
 uniffi::setup_scaffolding!();
 
 use crate::config::WireguardConfig;
-use crate::error::{Error, Result};
+use crate::error::Result;
 use crate::mixnet_connect::setup_mixnet_client;
 use crate::tunnel::setup_route_manager;
 use crate::wg_gateway_client::WgGatewayClient;
-use error::GatewayDirectoryError;
 use futures::channel::{mpsc, oneshot};
 use futures::SinkExt;
 use log::{debug, error, info};
@@ -60,7 +59,7 @@ mod uniffi_custom_impls;
 
 pub mod config;
 pub mod credentials;
-pub mod error;
+mod error;
 pub mod mixnet_connect;
 pub mod mixnet_processor;
 pub mod routing;
@@ -69,6 +68,8 @@ pub mod tunnel;
 pub mod util;
 pub mod wg_gateway_client;
 mod wireguard_setup;
+
+pub use error::{Error, GatewayDirectoryError, MixnetError};
 
 const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
 pub const SHUTDOWN_TIMER_SECS: u64 = 10;
@@ -327,7 +328,8 @@ impl NymVpn<MixnetVpn> {
         let mut ipr_client = IprClientConnect::new_from_inner(mixnet_client.inner()).await;
         let our_ips = ipr_client
             .connect(exit_mix_addresses.0, self.generic_config.nym_ips)
-            .await?;
+            .await
+            .map_err(Error::FailedToConnectToIpPacketRouter)?;
         info!("Successfully connected to exit gateway");
         info!("Using mixnet VPN IP addresses: {our_ips}");
 
