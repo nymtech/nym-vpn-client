@@ -27,7 +27,7 @@
   "snackbar-disabled-message": {
     "connected": "VPN接続中は無効です",
     "connecting": "VPN接続中は無効です",
-    "disconnecting": "VPNから切断中は無効です",
+    "disconnecting": "VPNの切断中は無効です",
     "daemon-not-connected": "VPNデーモンに接続していない間は無効です"
   },
   "modes-dialog": {
@@ -37,5 +37,5 @@
     "privacy-description": "5つのサーバーを通じてMixnet経由で接続をルーティングすることで、最高レベルのプライバシーを実現します。支払い、メール、メッセージの安全な取り扱いに最適です。"
   },
   "connect": "接続",
-  "connecting-message": "接続を確立中"
+  "connecting-message": "接続中"
 }
