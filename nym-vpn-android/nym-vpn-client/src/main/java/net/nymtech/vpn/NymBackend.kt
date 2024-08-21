@@ -27,12 +27,13 @@ import nym_vpn_lib.FfiException
 import nym_vpn_lib.NymConfig
 import nym_vpn_lib.NymVpnStatus
 import nym_vpn_lib.TunStatus
+import nym_vpn_lib.TunnelNetworkSettings
 import nym_vpn_lib.TunnelStatusListener
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.WgConfig
 import nym_vpn_lib.checkCredential
 import nym_vpn_lib.initLogger
-import nym_vpn_lib.runVpn
+import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
 import timber.log.Timber
 import java.net.InetAddress
@@ -105,7 +106,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			val service = vpnService.await()
 			service.setOwner(this@NymBackend)
 			runCatching {
-				runVpn(
+				startVpn(
 					VpnConfig(
 						tunnel.environment.apiUrl,
 						tunnel.environment.nymVpnApiUrl,
@@ -246,9 +247,8 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 			protect(socket)
 		}
 
-		override fun configureWg(config: WgConfig): Int {
-			Timber.d("Wg not yet implemented")
-			return -1
+		override fun configureWg(config: TunnelNetworkSettings): Int {
+			TODO("Not yet implemented")
 		}
 
 		override fun configureNym(config: NymConfig): Int {

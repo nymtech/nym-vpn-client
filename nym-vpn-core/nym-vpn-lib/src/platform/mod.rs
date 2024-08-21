@@ -34,6 +34,8 @@ use talpid_types::net::wireguard::{
     PeerConfig as WgPeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig as WgTunnelConfig,
 };
 use url::Url;
+
+#[cfg(any(target_os = "ios", target_os = "android" ))]
 use crate::mobile::two_hop_tunnel::TwoHopTunnel;
 
 #[cfg(target_os = "android")]
