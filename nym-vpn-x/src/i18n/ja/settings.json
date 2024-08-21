@@ -16,7 +16,7 @@
   },
   "feedback": {
     "title": "フィードバック",
-    "github": "GitHubで問題を報告する",
+    "github": "GitHubでIssueを作成する",
     "send": "フィードバックを送信する",
     "matrix": "Matrixに参加する",
     "discord": "Discordに参加する"
