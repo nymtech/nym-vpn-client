@@ -21,7 +21,6 @@ use tap::TapFallible;
 use tracing::{debug, error, info, trace};
 use tun2::AbstractDevice;
 
-use crate::config::WireguardConfig;
 use crate::error::Result;
 use crate::{MixnetVpn, NymVpn};
 
@@ -99,42 +98,6 @@ impl RoutingConfig {
             gateway_ws_fd,
             #[cfg(target_os = "android")]
             tun_provider: vpn.tun_provider.clone(),
-        }
-    }
-
-    pub fn tun_ips(&self) -> IpPair {
-        self.tun_ips
-    }
-
-    pub fn mtu(&self) -> u16 {
-        self.mtu
-    }
-
-    pub fn entry_mixnet_gateway_ip(&self) -> IpAddr {
-        self.entry_mixnet_gateway_ip
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct TunnelGatewayIp {
-    pub ipv4: Ipv4Addr,
-    pub ipv6: Option<Ipv6Addr>,
-}
-
-impl TunnelGatewayIp {
-    pub fn new(wireguard_config: &WireguardConfig) -> Self {
-        let ipv4 = wireguard_config.talpid_config.ipv4_gateway;
-        let ipv6 = wireguard_config.talpid_config.ipv6_gateway;
-        Self { ipv4, ipv6 }
-    }
-}
-
-impl std::fmt::Display for TunnelGatewayIp {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if let Some(ipv6) = &self.ipv6 {
-            write!(f, "ipv4: {}, ipv6: {}", self.ipv4, ipv6)
-        } else {
-            write!(f, "ipv4: {}", self.ipv4)
         }
     }
 }
