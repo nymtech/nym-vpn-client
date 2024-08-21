@@ -57,16 +57,16 @@ mod platform;
 mod tunnel_setup;
 mod uniffi_custom_impls;
 
-mod config;
+pub mod config;
 pub mod credentials;
 mod error;
-mod mixnet_connect;
-mod mixnet_processor;
-mod routing;
+pub mod mixnet_connect;
+pub mod mixnet_processor;
+pub mod routing;
 pub mod storage;
-mod tunnel;
+pub mod tunnel;
 pub mod util;
-mod wg_gateway_client;
+pub mod wg_gateway_client;
 mod wireguard_setup;
 
 pub use error::{Error, GatewayDirectoryError, MixnetError};

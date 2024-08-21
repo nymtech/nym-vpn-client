@@ -5,7 +5,6 @@ use std::{fs, path::PathBuf};
 
 use clap::Parser;
 use commands::{CliArgs, ImportCredentialTypeEnum};
-// use log::*;
 use nym_vpn_lib::{
     gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint},
     nym_bin_common::bin_info,
