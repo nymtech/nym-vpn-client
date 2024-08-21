@@ -34,7 +34,7 @@ public class OSLogHandler: LogHandler {
 
         var metadataOutput = fullMetadata.formatted()
         if !metadataOutput.isEmpty {
-            metadataOutput = metadataOutput + " "
+            metadataOutput += " "
         }
         let logLine = "\(metadataOutput)\(message)\n"
 
