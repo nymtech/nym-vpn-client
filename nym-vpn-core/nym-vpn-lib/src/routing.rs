@@ -100,6 +100,21 @@ impl RoutingConfig {
             tun_provider: vpn.tun_provider.clone(),
         }
     }
+
+    #[cfg(target_os = "ios")]
+    pub fn tun_ips(&self) -> IpPair {
+        self.tun_ips
+    }
+
+    #[cfg(target_os = "ios")]
+    pub fn mtu(&self) -> u16 {
+        self.mtu
+    }
+
+    #[cfg(target_os = "ios")]
+    pub fn entry_mixnet_gateway_ip(&self) -> IpAddr {
+        self.entry_mixnet_gateway_ip
+    }
 }
 
 #[derive(Clone, Debug)]

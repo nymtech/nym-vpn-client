@@ -47,11 +47,9 @@ use util::{wait_and_handle_interrupt, wait_for_interrupt_and_signal};
 #[cfg(target_os = "ios")]
 use crate::platform::swift::OSTunProvider;
 use crate::{
-    config::WireguardConfig,
     error::Result,
     mixnet::SharedMixnetClient,
     uniffi_custom_impls::{ExitStatus, StatusEvent},
-    wg_gateway_client::WgGatewayClient,
 };
 
 // Public re-export some dependencies
@@ -77,35 +75,6 @@ pub use error::{Error, GatewayDirectoryError, MixnetError};
 
 const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
 pub const SHUTDOWN_TIMER_SECS: u64 = 10;
-
-async fn init_wireguard_config(
-    gateway_client: &GatewayClient,
-    wg_gateway_client: &mut WgGatewayClient,
-    wg_gateway: Option<IpAddr>,
-    mtu: u16,
-) -> Result<(WireguardConfig, IpAddr)> {
-    // First we need to register with the gateway to setup keys and IP assignment
-    info!("Registering with wireguard gateway");
-    let gateway_id = wg_gateway_client
-        .auth_recipient()
-        .gateway()
-        .to_base58_string();
-    let gateway_host = gateway_client
-        .lookup_gateway_ip(&gateway_id)
-        .await
-        .map_err(|source| GatewayDirectoryError::FailedToLookupGatewayIp { gateway_id, source })?;
-    let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
-    debug!("Received wireguard gateway data: {wg_gateway_data:?}");
-
-    let wireguard_config = WireguardConfig::init(
-        wg_gateway_client.keypair(),
-        wg_gateway_data,
-        wg_gateway,
-        *wg_gateway_client.auth_recipient().gateway(),
-        mtu,
-    )?;
-    Ok((wireguard_config, gateway_host))
-}
 
 struct ShadowHandle {
     _inner: Option<JoinHandle<Result<AsyncDevice>>>,
