@@ -48,6 +48,7 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
+import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -179,7 +180,7 @@ fun HopScreen(
 // 						name,
 // 						onClick = {
 // 							viewModel.onSelected(lowLatencyCountry)
-// 							navController.navigate(NavItem.Main.route)
+// 							navController.go(NavItem.Main.route)
 // 						},
 // 						trailingText =
 // 						if (lowLatencyCountry == uiState.selected) {
@@ -222,7 +223,7 @@ fun HopScreen(
 				buttonText = it.name,
 				onClick = {
 					viewModel.onSelected(it)
-					navController.navigate(Destination.Main.route)
+					navController.go(Destination.Main.route)
 				},
 				trailing = {
 					if (it == uiState.selected) {

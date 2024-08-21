@@ -19,6 +19,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
@@ -38,7 +39,7 @@ fun AppearanceScreen(navController: NavController) {
 				SelectionItem(
 					Icons.Outlined.Translate,
 					title = { Text(stringResource(R.string.language), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(Destination.Language.route) },
+					onClick = { navController.go(Destination.Language.route) },
 				),
 			),
 		)
@@ -47,7 +48,7 @@ fun AppearanceScreen(navController: NavController) {
 				SelectionItem(
 					Icons.Outlined.Contrast,
 					title = { Text(stringResource(R.string.display_theme), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(Destination.Display.route) },
+					onClick = { navController.go(Destination.Display.route) },
 				),
 			),
 		)
