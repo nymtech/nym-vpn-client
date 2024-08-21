@@ -3,7 +3,7 @@ use std::{
     net::{IpAddr, SocketAddr},
 };
 
-use ipnetwork::IpNetwork;
+use ipnetwork::{IpNetwork, Ipv4Network};
 use nym_wg_go::{netstack, wireguard_go, PeerConfig, PrivateKey, PublicKey};
 
 #[derive(Debug)]
@@ -61,11 +61,8 @@ impl WgNodeConfig {
         Self {
             interface: WgInterface {
                 listen_port: None,
-                addresses: vec![if gateway_data.private_ip.is_ipv4() {
-                    IpNetwork::new(gateway_data.private_ip, 32).expect("private_ip v4/32")
-                } else {
-                    IpNetwork::new(gateway_data.private_ip, 128).expect("private_ip v6/128")
-                }],
+                //todo needs to just be ipv4 for now
+                addresses: vec![IpNetwork::new(IpAddr::V4(gateway_data.private_ipv4), 32).expect("Invalid Ipv4")],
                 private_key: PrivateKey::from(private_key.to_bytes()),
                 dns: vec![],
                 mtu: 0,
