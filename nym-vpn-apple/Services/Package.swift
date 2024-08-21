@@ -24,7 +24,7 @@ let package = Package(
         .library(name: "NymLogger", targets: ["NymLogger"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
-        .library(name: "TunnelMixnet", targets: ["TunnelMixnet"]),
+        .library(name: "TunnelMixnet", targets: ["TunnelMixnet"])
     ],
     dependencies: [
         .package(path: "../ServicesMacOS"),
@@ -150,6 +150,6 @@ let package = Package(
                 "Tunnels"
             ],
             path: "Sources/Services/TunnelMixnet"
-        ),
+        )
     ]
 )
