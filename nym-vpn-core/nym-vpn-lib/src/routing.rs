@@ -106,12 +106,12 @@ impl RoutingConfig {
         self.tun_ips
     }
 
-    #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
     pub fn mtu(&self) -> u16 {
         self.mtu
     }
 
-    #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
+    #[cfg(any(target_os = "ios", target_os = "macos"))]
     pub fn entry_mixnet_gateway_ip(&self) -> IpAddr {
         self.entry_mixnet_gateway_ip
     }
