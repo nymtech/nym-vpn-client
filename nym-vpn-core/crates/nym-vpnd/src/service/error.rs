@@ -272,12 +272,10 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             }
             nym_vpn_lib::error::Error::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
             nym_vpn_lib::error::Error::IO(_)
-            | nym_vpn_lib::error::Error::InvalidWireGuardKey
             | nym_vpn_lib::error::Error::AddrParseError(_)
             | nym_vpn_lib::error::Error::RoutingError(_)
             | nym_vpn_lib::error::Error::DNSError(_)
             | nym_vpn_lib::error::Error::FirewallError(_)
-            | nym_vpn_lib::error::Error::WireguardError(_)
             | nym_vpn_lib::error::Error::JoinError(_)
             | nym_vpn_lib::error::Error::CanceledError(_)
             | nym_vpn_lib::error::Error::FailedToSendWireguardShutdown
@@ -285,31 +283,15 @@ impl From<&nym_vpn_lib::error::Error> for ConnectionFailedError {
             | nym_vpn_lib::error::Error::TunError(_)
             | nym_vpn_lib::error::Error::WireguardConfigError(_)
             | nym_vpn_lib::error::Error::RecipientFormattingError
-            | nym_vpn_lib::error::Error::ValidatorClientError(_)
-            | nym_vpn_lib::error::Error::KeyRecoveryError(_)
-            | nym_vpn_lib::error::Error::NymNodeApiClientError(_)
             | nym_vpn_lib::error::Error::WireguardTypesError(_)
             | nym_vpn_lib::error::Error::DefaultInterfaceError
-            | nym_vpn_lib::error::Error::ReceivedResponseWithOldVersion { .. }
-            | nym_vpn_lib::error::Error::ReceivedResponseWithNewVersion { .. }
-            | nym_vpn_lib::error::Error::GotReplyIntendedForWrongAddress
-            | nym_vpn_lib::error::Error::UnexpectedConnectResponse
-            | nym_vpn_lib::error::Error::NoMixnetMessagesReceived
-            | nym_vpn_lib::error::Error::TimeoutWaitingForConnectResponse
-            | nym_vpn_lib::error::Error::StaticConnectRequestDenied { .. }
-            | nym_vpn_lib::error::Error::DynamicConnectRequestDenied { .. }
-            | nym_vpn_lib::error::Error::MixnetClientDeadlock
             | nym_vpn_lib::error::Error::StopError
             | nym_vpn_lib::error::Error::FailedToSerializeMessage { .. }
-            | nym_vpn_lib::error::Error::IcmpEchoRequestPacketCreationFailure
-            | nym_vpn_lib::error::Error::IcmpPacketCreationFailure
-            | nym_vpn_lib::error::Error::Ipv4PacketCreationFailure
             | nym_vpn_lib::error::Error::CountryCodeNotFound
             | nym_vpn_lib::error::Error::FailedToDecodeBase58Credential { .. }
             | nym_vpn_lib::error::Error::ConfigPathNotSet
             | nym_vpn_lib::error::Error::ConnectionMonitorError(_)
             | nym_vpn_lib::error::Error::ImportCredentialError(_)
-            | nym_vpn_lib::error::Error::FailedWireguardRegistration
             | nym_vpn_lib::error::Error::InvalidGatewayAuthResponse
             | nym_vpn_lib::error::Error::AuthenticatorClientError(_)
             | nym_vpn_lib::error::Error::AuthenticationNotPossible(_)

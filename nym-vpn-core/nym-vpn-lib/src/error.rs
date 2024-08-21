@@ -3,17 +3,10 @@
 
 use std::path::PathBuf;
 
-use nym_ip_packet_requests::{
-    response::DynamicConnectFailureReason, response::StaticConnectFailureReason,
-};
-
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("{0}")]
     IO(#[from] std::io::Error),
-
-    #[error("invalid WireGuard Key")]
-    InvalidWireGuardKey,
 
     #[error("{0}")]
     AddrParseError(#[from] std::net::AddrParseError),
@@ -29,9 +22,6 @@ pub enum Error {
     // this in the future.
     #[error("{0} - are you running as admin/root/sudo?")]
     FirewallError(String),
-
-    #[error("{0}")]
-    WireguardError(#[from] talpid_wireguard::Error),
 
     #[error("{0}")]
     JoinError(#[from] tokio::task::JoinError),
@@ -54,15 +44,6 @@ pub enum Error {
     #[error("recipient is not formatted correctly")]
     RecipientFormattingError,
 
-    #[error(transparent)]
-    ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
-
-    #[error("{0}")]
-    KeyRecoveryError(#[from] nym_crypto::asymmetric::encryption::KeyRecoveryError),
-
-    #[error("{0}")]
-    NymNodeApiClientError(#[from] nym_node_requests::api::client::NymNodeApiClientError),
-
     #[error("{0}")]
     WireguardTypesError(#[from] nym_wireguard_types::error::Error),
 
@@ -71,33 +52,6 @@ pub enum Error {
 
     #[error(transparent)]
     Mixnet(#[from] MixnetError),
-
-    #[error("received response with version v{received}, the client is too new and can only understand v{expected}")]
-    ReceivedResponseWithOldVersion { expected: u8, received: u8 },
-
-    #[error("received response with version v{received}, the client is too old and can only understand v{expected}")]
-    ReceivedResponseWithNewVersion { expected: u8, received: u8 },
-
-    #[error("got reply for connect request, but it appears intended for the wrong address?")]
-    GotReplyIntendedForWrongAddress,
-
-    #[error("unexpected connect response")]
-    UnexpectedConnectResponse,
-
-    #[error("mixnet client stopped returning responses")]
-    NoMixnetMessagesReceived,
-
-    #[error("timeout waiting for connect response from exit gateway (ipr)")]
-    TimeoutWaitingForConnectResponse,
-
-    #[error("connect request denied: {reason}")]
-    StaticConnectRequestDenied { reason: StaticConnectFailureReason },
-
-    #[error("connect request denied: {reason}")]
-    DynamicConnectRequestDenied { reason: DynamicConnectFailureReason },
-
-    #[error("deadlock when trying to aquire mixnet client mutes")]
-    MixnetClientDeadlock,
 
     #[error("timeout after waiting {0}s for mixnet client to start")]
     StartMixnetTimeout(u64),
@@ -118,15 +72,6 @@ pub enum Error {
         #[from]
         source: bincode::Error,
     },
-
-    #[error("failed to create icmp echo request packet")]
-    IcmpEchoRequestPacketCreationFailure,
-
-    #[error("failed to create icmp packet")]
-    IcmpPacketCreationFailure,
-
-    #[error("failed to create ipv4 packet")]
-    Ipv4PacketCreationFailure,
 
     #[error("gateway does not contain a two character country ISO")]
     CountryCodeNotFound,
@@ -166,9 +111,6 @@ pub enum Error {
 
     #[error("failed to connect to ip packet router: {0}")]
     FailedToConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
-
-    #[error("failed to register wireguard key")]
-    FailedWireguardRegistration,
 
     #[error("received bad event for wireguard tunnel creation")]
     BadWireguardEvent,
