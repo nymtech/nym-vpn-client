@@ -11,6 +11,7 @@ use super::{
     Error, OSDefaultPath, OSDefaultPathObserver, OSTunProvider, Result,
 };
 use nym_wg_go::{netstack, wireguard_go, PeerEndpointUpdate};
+use crate::platform::android::AndroidTunProvider;
 
 /// Two-hop WireGuard tunnel.
 ///
@@ -44,7 +45,13 @@ pub struct TwoHopTunnel {
 
     /// Interface for interacting with the iOS tunnel provider.
     #[allow(unused)]
+    #[cfg(target_os = "ios")]
     tun_provider: Arc<dyn OSTunProvider>,
+
+    /// Interface for interacting with the Android tunnel provider.
+    #[allow(unused)]
+    #[cfg(target_os = "android")]
+    tun_provider: Arc<dyn AndroidTunProvider>,
 
     /// An object observing the default path.
     #[allow(unused)]
@@ -60,7 +67,10 @@ pub struct TwoHopTunnel {
 impl TwoHopTunnel {
     /// Fetch wg gateways and start the tunnel.
     pub async fn start(
+        #[cfg(target_os = "ios")]
         tun_provider: Arc<dyn OSTunProvider>,
+        #[cfg(target_os = "android")]
+        tun_provider: Arc<dyn AndroidTunProvider>,
         shutdown_token: CancellationToken,
     ) -> Result<()> {
         let Some(entry_priv_key) =
@@ -133,7 +143,10 @@ impl TwoHopTunnel {
     async fn start_inner(
         entry_node_config: WgNodeConfig,
         exit_node_config: WgNodeConfig,
+        #[cfg(target_os = "ios")]
         tun_provider: Arc<dyn OSTunProvider>,
+        #[cfg(target_os = "android")]
+        tun_provider: Arc<dyn AndroidTunProvider>,
         shutdown_token: CancellationToken,
     ) -> Result<()> {
         // Save original peer endpoints so that we can re-resolve them with DNS64 when device switches networks.
@@ -157,10 +170,14 @@ impl TwoHopTunnel {
         }
 
         // Obtain tunnel file descriptor and interface name.
+        #[cfg(target_os = "ios")]
         let tun_fd = tun::get_tun_fd().ok_or(Error::CannotLocateTunFd)?;
+        #[cfg(target_os = "ios")]
         tracing::debug!("Found tunnel fd: {}", tun_fd);
 
+        #[cfg(target_os = "ios")]
         let tun_name = tun::get_tun_ifname(tun_fd).ok_or(Error::ObtainTunName)?;
+        #[cfg(target_os = "ios")]
         tracing::debug!("Tunnel interface name: {}", tun_name);
 
         // Create netstack wg connected to the entry node.
@@ -175,17 +192,23 @@ impl TwoHopTunnel {
             two_hop_config.forwarder.exit_endpoint,
         )?;
 
-        // Create exit tunnel capturing exit traffic on device and sending it to the local udp forwarder.
-        let exit_tunnel = wireguard_go::Tunnel::start(exit_wg_config, tun_fd, |s| {
-            tracing::debug!(name = "wg-go", "{}", s);
-        })?;
-
         // Configure tun, dns and routing
         let tunnel_settings = tunnel_settings::create(
             two_hop_config.tun.addresses,
             two_hop_config.tun.dns,
             two_hop_config.tun.mtu,
         );
+
+        #[cfg(target_os = "android")]
+        let tun_fd = tun_provider.configure_wg(tunnel_settings);
+        #[cfg(target_os = "android")]
+        if tun_fd == -1 { return Err(Error::CannotLocateTunFd); }
+        // Create exit tunnel capturing exit traffic on device and sending it to the local udp forwarder.
+        let exit_tunnel = wireguard_go::Tunnel::start(exit_wg_config, tun_fd, |s| {
+            tracing::debug!(name = "wg-go", "{}", s);
+        })?;
+
+        #[cfg(target_os = "ios")]
         tun_provider
             .set_tunnel_network_settings(tunnel_settings)
             .await
@@ -195,6 +218,8 @@ impl TwoHopTunnel {
         let (default_path_tx, default_path_rx) = mpsc::unbounded_channel();
         let default_path_observer = Arc::new(DefaultPathObserver::new(default_path_tx));
 
+        //todo I don't understand what this is for and what this would be for android
+        #[cfg(target_os = "ios")]
         tun_provider
             .set_default_path_observer(Some(default_path_observer.clone()))
             .map_err(Error::SetDefaultPathObserver)?;

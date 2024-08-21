@@ -5,6 +5,7 @@ use super::*;
 use std::fmt::Debug;
 use std::io;
 use std::os::fd::RawFd;
+use crate::mobile::tunnel_settings::TunnelNetworkSettings;
 
 pub fn init_logs(level: String) {
     use android_logger::{Config, FilterBuilder};
@@ -22,6 +23,6 @@ pub fn init_logs(level: String) {
 #[uniffi::export(with_foreign)]
 pub trait AndroidTunProvider: Send + Sync + Debug {
     fn bypass(&self, socket: i32);
-    fn configure_wg(&self, config: WgConfig) -> Result<RawFd, crate::platform::error::FFIError>;
+    fn configure_wg(&self, config: TunnelNetworkSettings) -> Result<RawFd, crate::platform::error::FFIError>;
     fn configure_nym(&self, config: NymConfig) -> Result<RawFd, crate::platform::error::FFIError>;
 }

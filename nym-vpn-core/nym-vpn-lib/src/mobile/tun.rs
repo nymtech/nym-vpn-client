@@ -22,6 +22,7 @@ struct ctl_info {
 }
 
 /// Returns tunnel file descriptor on iOS by incrementally probing first 1024 file descriptors.
+#[cfg(target_os = "ios")]
 pub fn get_tun_fd() -> Option<RawFd> {
     let mut ctl_info: ctl_info = unsafe { std::mem::zeroed() };
     unsafe {
@@ -52,7 +53,9 @@ pub fn get_tun_fd() -> Option<RawFd> {
     })
 }
 
+
 /// Returns tunnel interface name
+#[cfg(target_os = "ios")]
 pub fn get_tun_ifname(tun_fd: RawFd) -> Option<String> {
     let borrowed_fd = unsafe { BorrowedFd::borrow_raw(tun_fd) };
 

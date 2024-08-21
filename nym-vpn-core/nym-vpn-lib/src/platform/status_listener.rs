@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use futures::StreamExt;
 use crate::platform::{uniffi_set_listener_status, RUNTIME};
 use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
 use crate::NymVpnStatusMessage;
@@ -8,7 +9,6 @@ use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage;
 use nym_connection_monitor::ConnectionMonitorStatus;
 use nym_task::manager::{SentStatus, TaskStatus};
 use nym_task::StatusReceiver;
-use tokio_stream::StreamExt;
 use tracing::debug;
 
 pub(super) struct VpnServiceStatusListener {}

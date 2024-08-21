@@ -11,8 +11,6 @@ use talpid_types::net::wireguard::{
     PeerConfig as WgPeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig as WgTunnelConfig,
 };
 use std::fmt::Debug;
-use oslog::OsLogger;
-use std::fmt::Debug;
 use std::os::fd::RawFd;
 
 pub fn init_logs(level: String) {
@@ -104,6 +102,8 @@ impl From<RoutingConfig> for NymConfig {
             entry_mixnet_gateway_ip: None,
         }
     }
+}
+
 #[uniffi::export(with_foreign)]
 pub trait OSTunProvider: Send + Sync + Debug {
     fn configure_wg(&self, config: WgConfig) -> Result<(), crate::platform::error::FFIError>;

@@ -27,15 +27,15 @@ use nym_task::TaskManager;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::path::PathBuf;
 use std::sync::Arc;
-#[cfg(not(target_os = "ios"))] #[cfg(not(target_os = "android"))]
+#[cfg(not(target_os = "ios"))]
 use talpid_core::dns::DnsMonitor;
-#[cfg(not(target_os = "ios"))] #[cfg(not(target_os = "android"))]
+#[cfg(not(target_os = "ios"))]
 use talpid_routing::RouteManager;
-#[cfg(not(target_os = "ios"))] #[cfg(not(target_os = "android"))]
+#[cfg(not(target_os = "ios"))]
 use tunnel_setup::init_firewall_dns;
-#[cfg(not(target_os = "ios"))] #[cfg(not(target_os = "android"))]
+#[cfg(not(target_os = "ios"))]
 use tunnel_setup::{setup_tunnel, AllTunnelsSetup, TunnelSetup};
-#[cfg(not(target_os = "ios"))] #[cfg(not(target_os = "android"))]
+#[cfg(not(target_os = "ios"))]
 use util::wait_and_handle_interrupt;
 use util::wait_for_interrupt_and_signal;
 
@@ -47,7 +47,6 @@ pub use nym_id_pre_ecash as id_pre_ecash;
 
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::mixnet::{NodeIdentity, Recipient, StoragePaths};
-pub use nym_sdk::UserAgent;
 pub use nym_task::{
     manager::{SentStatus, TaskStatus},
     StatusReceiver,
@@ -60,7 +59,7 @@ use crate::platform::android::AndroidTunProvider;
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub use crate::platform::swift;
 use crate::platform::uniffi_set_listener_status;
-use crate::uniffi_custom_impls::{ExitStatus, StatusEvent};
+use crate::uniffi_custom_impls::{ExitStatus, StatusEvent, UserAgent};
 pub use nym_bin_common;
 pub use nym_config;
 use tokio::task::JoinHandle;
@@ -76,7 +75,6 @@ pub mod credentials;
 pub mod error;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 mod mobile;
-pub mod keys;
 pub mod mixnet_connect;
 pub mod mixnet_processor;
 pub mod routing;

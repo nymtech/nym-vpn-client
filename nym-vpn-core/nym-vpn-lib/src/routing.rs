@@ -18,9 +18,7 @@ use std::sync::{Arc, Mutex};
 use talpid_core::dns::DnsMonitor;
 #[cfg(not(target_os = "ios"))]
 
-use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
-use netdev::interface::get_default_interface;
-use nym_ip_packet_requests::IpPair;
+use ipnetwork::{Ipv4Network, Ipv6Network};
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 #[cfg(target_os = "android")]
 use talpid_tunnel::tun_provider::TunProvider;

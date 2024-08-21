@@ -19,13 +19,11 @@ use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
 use crate::wg_gateway_client::WgGatewayClient;
 #[cfg(not(target_os = "ios"))]
 use crate::wireguard_setup::create_wireguard_tunnel;
-use crate::{
-    init_wireguard_config, platform, WireguardConnectionInfo, WireguardVpn,
+use crate::{ WireguardConnectionInfo, WireguardVpn,
     MIXNET_CLIENT_STARTUP_TIMEOUT_SECS,
 };
 use crate::{routing, MixnetConnectionInfo, NymVpn};
 use crate::{MixnetExitConnectionInfo, MixnetVpn, SpecificVpn};
-use crate::{WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS};
 #[cfg(not(target_os = "ios"))]
 use futures::channel::mpsc;
 #[cfg(not(target_os = "ios"))]

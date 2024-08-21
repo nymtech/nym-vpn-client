@@ -8,19 +8,13 @@ use crate::gateway_directory::GatewayClient;
 use crate::platform::status_listener::VpnServiceStatusListener;
 #[cfg(not(target_os = "ios"))]
 use crate::spawn_nym_vpn;
-use crate::routing::RoutingConfig;
-use crate::routing::{default_dns_servers, RoutingConfig};
+use crate::routing::default_dns_servers;
 use crate::uniffi_custom_impls::{
     BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location, NymVpnStatus,
     StatusEvent, TunStatus, UserAgent,
 };
-use crate::{
-    NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage, NymVpnHandle, SpecificVpn,
-};
-use crate::{spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage, NymVpnHandle, SpecificVpn};
-    spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
-    NymVpnHandle, SpecificVpn,
-};
+use crate::{MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage, NymVpnHandle, SpecificVpn};
+
 use ipnetwork::IpNetwork;
 use lazy_static::lazy_static;
 use log::*;
@@ -35,14 +29,12 @@ use tokio::runtime::Runtime;
 use tokio::sync::{Mutex, Notify};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
-use url::Url;
 use crate::routing::RoutingConfig;
 use talpid_types::net::wireguard::{
     PeerConfig as WgPeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig as WgTunnelConfig,
 };
-use tokio::runtime::Runtime;
-use tokio::sync::{Mutex, Notify};
 use url::Url;
+use crate::mobile::two_hop_tunnel::TwoHopTunnel;
 
 #[cfg(target_os = "android")]
 pub mod android;
@@ -60,16 +52,12 @@ lazy_static! {
         std::sync::Mutex::new(None);
 }
 
-#[cfg(target_os = "ios")]
-use crate::ios::two_hop_tunnel::TwoHopTunnel;
 
-#[cfg(target_os = "ios")]
 struct ShutdownHandle {
     join_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
 
-#[cfg(target_os = "ios")]
 impl ShutdownHandle {
     async fn cancel_and_wait(self) {
         self.shutdown_token.cancel();
@@ -79,7 +67,6 @@ impl ShutdownHandle {
     }
 }
 
-#[cfg(target_os = "ios")]
 lazy_static! {
     static ref TUNNEL_SHUTDOWN_HANDLE: std::sync::Mutex<Option<ShutdownHandle>> =
         std::sync::Mutex::new(None);
@@ -232,9 +219,6 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
         return Err(FFIError::VpnAlreadyRunning);
     }
 
-    #[cfg(any(target_os = "ios", target_os = "macos"))]
-    crate::platform::swift::init_logs();
-
     LISTENER
         .lock()
         .unwrap()
@@ -242,10 +226,10 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
 
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::InitializingClient));
 
-    #[cfg(target_os = "ios")]
-    {
+
+    if(config.enable_two_hop) {
         RUNTIME.block_on(async move {
-            tracing::debug!("Starting VPN tunnel...");
+            info!("Starting VPN tunnel two hop...");
 
             let shutdown_token = CancellationToken::new();
             let cloned_shutdown_token = shutdown_token.clone();
@@ -255,10 +239,10 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
 
                 match TwoHopTunnel::start(config.tun_provider, cloned_shutdown_token).await {
                     Ok(()) => {
-                        tracing::debug!("Tunnel has finished execution");
+                        debug!("Tunnel has finished execution");
                     }
                     Err(e) => {
-                        tracing::error!("Tunnel exited with error: {}", e);
+                        error!("Tunnel exited with error: {}", e);
                     }
                 }
 
@@ -272,10 +256,7 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
         });
 
         Ok(())
-    }
-
-    #[cfg(not(target_os = "ios"))]
-    {
+    } else {
         debug!("Trying to run VPN");
         let vpn = sync_run_vpn(config);
         debug!("Got VPN");

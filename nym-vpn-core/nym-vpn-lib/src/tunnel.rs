@@ -26,7 +26,7 @@ pub struct Tunnel {
 impl Tunnel {
     pub fn new(config: WireguardConfig, route_manager_handle: RouteManagerHandle) -> Self {
         Tunnel {
-            config: config.talpid_config,
+            config: config.clone().talpid_config,
             route_manager_handle,
         }
     }
