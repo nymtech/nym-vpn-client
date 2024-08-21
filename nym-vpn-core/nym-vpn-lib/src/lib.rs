@@ -3,6 +3,28 @@
 
 uniffi::setup_scaffolding!();
 
+pub mod credentials;
+pub mod storage;
+pub mod util;
+
+mod bandwidth_controller;
+mod config;
+mod error;
+mod mixnet;
+mod platform;
+mod routing;
+mod tunnel;
+mod tunnel_setup;
+mod uniffi_custom_impls;
+mod wg_gateway_client;
+mod wireguard_setup;
+
+use std::{
+    net::{IpAddr, Ipv4Addr},
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
+
 use futures::{
     channel::{mpsc, oneshot},
     SinkExt,
@@ -14,11 +36,6 @@ use nym_gateway_directory::{
 };
 use nym_ip_packet_client::IprClientConnect;
 use nym_task::TaskManager;
-use std::{
-    net::{IpAddr, Ipv4Addr},
-    path::PathBuf,
-    sync::{Arc, Mutex},
-};
 use talpid_core::dns::DnsMonitor;
 use talpid_routing::RouteManager;
 use talpid_tunnel::tun_provider::TunProvider;
@@ -27,15 +44,13 @@ use tun2::AsyncDevice;
 use tunnel_setup::{init_firewall_dns, setup_tunnel, AllTunnelsSetup, TunnelSetup};
 use util::{wait_and_handle_interrupt, wait_for_interrupt_and_signal};
 
-use crate::config::WireguardConfig;
-use crate::error::Result;
-use crate::mixnet::SharedMixnetClient;
 #[cfg(target_os = "ios")]
 use crate::platform::swift::OSTunProvider;
-use crate::platform::uniffi_set_listener_status;
-use crate::tunnel::setup_route_manager;
-use crate::uniffi_custom_impls::{ExitStatus, StatusEvent};
-use crate::wg_gateway_client::WgGatewayClient;
+use crate::{
+    error::Result,
+    mixnet::SharedMixnetClient,
+    uniffi_custom_impls::{ExitStatus, StatusEvent},
+};
 
 // Public re-export some dependencies
 pub use nym_bin_common;
@@ -58,53 +73,8 @@ pub use crate::platform::swift;
 
 pub use error::{Error, GatewayDirectoryError, MixnetError};
 
-mod bandwidth_controller;
-mod platform;
-mod tunnel_setup;
-mod uniffi_custom_impls;
-
-pub mod config;
-pub mod credentials;
-mod error;
-mod mixnet;
-pub mod routing;
-pub mod storage;
-pub mod tunnel;
-pub mod util;
-pub mod wg_gateway_client;
-mod wireguard_setup;
-
 const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
 pub const SHUTDOWN_TIMER_SECS: u64 = 10;
-
-async fn init_wireguard_config(
-    gateway_client: &GatewayClient,
-    wg_gateway_client: &mut WgGatewayClient,
-    wg_gateway: Option<IpAddr>,
-    mtu: u16,
-) -> Result<(WireguardConfig, IpAddr)> {
-    // First we need to register with the gateway to setup keys and IP assignment
-    info!("Registering with wireguard gateway");
-    let gateway_id = wg_gateway_client
-        .auth_recipient()
-        .gateway()
-        .to_base58_string();
-    let gateway_host = gateway_client
-        .lookup_gateway_ip(&gateway_id)
-        .await
-        .map_err(|source| GatewayDirectoryError::FailedToLookupGatewayIp { gateway_id, source })?;
-    let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
-    debug!("Received wireguard gateway data: {wg_gateway_data:?}");
-
-    let wireguard_config = WireguardConfig::init(
-        wg_gateway_client.keypair(),
-        wg_gateway_data,
-        wg_gateway,
-        *wg_gateway_client.auth_recipient().gateway(),
-        mtu,
-    )?;
-    Ok((wireguard_config, gateway_host))
-}
 
 struct ShadowHandle {
     _inner: Option<JoinHandle<Result<AsyncDevice>>>,
@@ -510,7 +480,7 @@ impl SpecificVpn {
     pub async fn run(&mut self) -> Result<()> {
         let mut task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
         info!("Setting up route manager");
-        let mut route_manager = setup_route_manager().await?;
+        let mut route_manager = tunnel::setup_route_manager().await?;
         let (mut firewall, mut dns_monitor) = init_firewall_dns(
             #[cfg(target_os = "linux")]
             route_manager.handle()?,
@@ -593,7 +563,7 @@ impl SpecificVpn {
     ) -> std::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>> {
         let mut task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
         info!("Setting up route manager");
-        let mut route_manager = setup_route_manager().await?;
+        let mut route_manager = tunnel::setup_route_manager().await?;
         let (mut firewall, mut dns_monitor) = init_firewall_dns(
             #[cfg(target_os = "linux")]
             route_manager.handle()?,
@@ -860,7 +830,7 @@ async fn run_nym_vpn(
         Err(err) => {
             error!("Nym VPN returned error: {err}");
             debug!("{err:?}");
-            uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
+            platform::uniffi_set_listener_status(StatusEvent::Exit(ExitStatus::Failed {
                 error: err.to_string(),
             }));
             vpn_exit_tx

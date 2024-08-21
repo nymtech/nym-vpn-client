@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::error::*;
-use crate::wg_gateway_client::GatewayData;
+use crate::wg_gateway_client::{GatewayData, WgGatewayClient};
 use nym_crypto::asymmetric::x25519::KeyPair;
-use nym_gateway_directory::NodeIdentity;
+use nym_gateway_directory::{GatewayClient, NodeIdentity};
 use std::net::{IpAddr, Ipv4Addr};
 use std::str::FromStr;
 use talpid_types::net::wireguard::{
@@ -126,4 +126,33 @@ impl std::fmt::Display for WireguardConfig {
         }
         Ok(())
     }
+}
+
+pub(crate) async fn init_wireguard_config(
+    gateway_client: &GatewayClient,
+    wg_gateway_client: &mut WgGatewayClient,
+    wg_gateway: Option<IpAddr>,
+    mtu: u16,
+) -> Result<(WireguardConfig, IpAddr)> {
+    // First we need to register with the gateway to setup keys and IP assignment
+    tracing::info!("Registering with wireguard gateway");
+    let gateway_id = wg_gateway_client
+        .auth_recipient()
+        .gateway()
+        .to_base58_string();
+    let gateway_host = gateway_client
+        .lookup_gateway_ip(&gateway_id)
+        .await
+        .map_err(|source| GatewayDirectoryError::FailedToLookupGatewayIp { gateway_id, source })?;
+    let wg_gateway_data = wg_gateway_client.register_wireguard(gateway_host).await?;
+    tracing::debug!("Received wireguard gateway data: {wg_gateway_data:?}");
+
+    let wireguard_config = WireguardConfig::init(
+        wg_gateway_client.keypair(),
+        wg_gateway_data,
+        wg_gateway,
+        *wg_gateway_client.auth_recipient().gateway(),
+        mtu,
+    )?;
+    Ok((wireguard_config, gateway_host))
 }

@@ -6,15 +6,12 @@ use std::time::Duration;
 
 use crate::bandwidth_controller::BandwidthController;
 use crate::error::{Error, GatewayDirectoryError, Result};
-use crate::mixnet;
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
 use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
 use crate::wg_gateway_client::WgGatewayClient;
 use crate::wireguard_setup::create_wireguard_tunnel;
-use crate::{
-    init_wireguard_config, platform, WireguardConnectionInfo, WireguardVpn,
-    MIXNET_CLIENT_STARTUP_TIMEOUT_SECS,
-};
+use crate::{config, mixnet};
+use crate::{platform, WireguardConnectionInfo, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS};
 use crate::{routing, MixnetConnectionInfo, NymVpn};
 use crate::{MixnetExitConnectionInfo, MixnetVpn, SpecificVpn};
 use futures::channel::{mpsc, oneshot};
@@ -172,7 +169,7 @@ async fn setup_wg_tunnel(
         exit_auth_recipient,
     );
 
-    let (mut exit_wireguard_config, _) = init_wireguard_config(
+    let (mut exit_wireguard_config, _) = config::init_wireguard_config(
         &gateway_directory_client,
         &mut wg_exit_gateway_client,
         None,
@@ -184,7 +181,7 @@ async fn setup_wg_tunnel(
         .peers
         .first()
         .map(|config| config.endpoint.ip());
-    let (mut entry_wireguard_config, entry_gateway_ip) = init_wireguard_config(
+    let (mut entry_wireguard_config, entry_gateway_ip) = config::init_wireguard_config(
         &gateway_directory_client,
         &mut wg_entry_gateway_client,
         wg_gateway,
