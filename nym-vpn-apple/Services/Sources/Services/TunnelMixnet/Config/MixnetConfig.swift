@@ -10,7 +10,6 @@ import MixnetLibrary
 public struct MixnetConfig: Codable, Equatable {
 #if os(iOS)
     let apiUrlString: String
-    let explorerURLString: String
     let credentialsDataPath: String
 #endif
     public let entryGateway: EntryGateway?
@@ -25,8 +24,7 @@ public struct MixnetConfig: Codable, Equatable {
         credentialsDataPath: String,
         isTwoHopEnabled: Bool = false,
         name: String = "NymVPN Mixnet",
-        apiUrlString: String = Constants.apiUrl.rawValue,
-        explorerURLString: String = Constants.explorerURL.rawValue
+        apiUrlString: String = Constants.apiUrl.rawValue
     ) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
@@ -34,7 +32,6 @@ public struct MixnetConfig: Codable, Equatable {
         self.isTwoHopEnabled = isTwoHopEnabled
         self.name = name
         self.apiUrlString = apiUrlString
-        self.explorerURLString = explorerURLString
     }
 #endif
 
@@ -57,13 +54,13 @@ extension MixnetConfig {
     public func asVpnConfig(mixnetTunnelProvider: MixnetTunnelProvider) throws -> VpnConfig {
         guard
             let apiURL = URL(string: Constants.apiUrl.rawValue),
-            let explorerURL = URL(string: Constants.explorerURL.rawValue)
+            let vpnApiURL = URL(string: Constants.nymVpnApiUrl.rawValue)
         else {
             throw GeneralNymError.invalidUrl
         }
         return VpnConfig(
             apiUrl: apiURL,
-            explorerUrl: explorerURL,
+            vpnApiUrl: vpnApiURL,
             entryGateway: entryGateway?.entryPoint ?? .randomLowLatency,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,

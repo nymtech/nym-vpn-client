@@ -36,6 +36,25 @@ message ExitNode {
   }
 }
 
+message MixConnectedStateDetails {
+  Address nym_address = 1;
+  Address exit_ipr = 2;
+  string ipv4 = 3;
+  string ipv6 = 4;
+}
+
+message WgConnectedStateDetails {
+  string entry_ipv4 = 1;
+  string exit_ipv4 = 2;
+}
+
+message ConnectedStateDetails {
+  oneof connected_state_details {
+    MixConnectedStateDetails mix = 1;
+    WgConnectedStateDetails wg = 2;
+  }
+}
+
 message Dns {
   string ip = 1;
 }
@@ -87,13 +106,10 @@ enum ConnectionStatus {
 import "google/protobuf/timestamp.proto";
 
 message ConnectionDetails {
-  Address nym_address = 1;
-  Gateway entry_gateway = 2;
-  Gateway exit_gateway = 3;
-  Address exit_ipr = 4;
-  string ipv4 = 5;
-  string ipv6 = 6;
-  google.protobuf.Timestamp since = 7;
+  Gateway entry_gateway = 1;
+  Gateway exit_gateway = 2;
+  ConnectedStateDetails protocol_details = 3;
+  google.protobuf.Timestamp since = 4;
 }
 
 message StatusRequest {}
@@ -184,6 +200,21 @@ message Error {
     // Timeout starting the mixnet client
     MIXNET_TIMEOUT = 7;
 
+    // Failed to setup the mixnet storage paths
+    MIXNET_STORAGE_PATHS = 19;
+
+    // Failed to create a mixnet client with default storage setup
+    MIXNET_DEFAULT_STORAGE = 20;
+
+    // Failed to build the mixnet client instance
+    MIXNET_BUILD_CLIENT = 21;
+
+    // Failed to connect to the mixnet
+    MIXNET_CONNECT = 22;
+
+    // Failed to connect to the mixnet entry gateway
+    MIXNET_ENTRY_GATEWAY = 23;
+
     // Looking up gateways can fail in a number of ways.
     GATEWAY_DIRECTORY = 8;
 
@@ -201,6 +232,9 @@ message Error {
 
     // Failing to lookup the entry gateway
     GATEWAY_DIRECTORY_ENTRY = 13;
+
+    // Entry gateway identity not found
+    GATEWAY_DIRECTORY_ENTRY_ID = 24;
 
     // Failing to lookup the entry gateway for a given location
     GATEWAY_DIRECTORY_ENTRY_LOCATION = 14;
@@ -323,6 +357,36 @@ message ListExitCountriesResponse {
   repeated Location countries = 1;
 }
 
+message StoreAccountRequest {
+  string mnemonic = 1;
+  uint32 nonce = 2;
+}
+
+message StoreAccountResponse {
+  bool success = 1;
+  StoreAccountError error = 2;
+}
+
+message StoreAccountError {
+  enum StoreAccountErrorType {
+    STORE_ACCOUNT_ERROR_UNSPECIFIED = 0;
+
+    // The provided mnemonic was not able to be parsed
+    INVALID_MNEMONIC = 1;
+
+    // General error from the storage backend
+    STORAGE = 2;
+  }
+
+  StoreAccountErrorType kind = 1;
+
+  // Detailed error message for logging and debugging
+  string message = 2;
+
+  // Optional additional details
+  map<string, string> details = 3;
+}
+
 service NymVpnd {
   rpc Info (InfoRequest) returns (InfoResponse) {}
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
@@ -336,5 +400,7 @@ service NymVpnd {
   rpc ListExitGateways (ListExitGatewaysRequest) returns (ListExitGatewaysResponse) {}
   rpc ListEntryCountries (ListEntryCountriesRequest) returns (ListEntryCountriesResponse) {}
   rpc ListExitCountries (ListExitCountriesRequest) returns (ListExitCountriesResponse) {}
+
+  rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
 }
 

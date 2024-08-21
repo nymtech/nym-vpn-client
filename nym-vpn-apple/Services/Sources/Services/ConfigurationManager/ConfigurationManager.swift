@@ -22,7 +22,6 @@ public final class ConfigurationManager {
         setenv("COCONUT_DKG_CONTRACT_ADDRESS", "n19604yflqggs9mk2z26mqygq43q2kr3n932egxx630svywd5mpxjsztfpvx", 1)
 
         setenv("STATISTICS_SERVICE_DOMAIN_ADDRESS", "https://mainnet-stats.nymte.ch:8090", 1)
-        setenv("EXPLORER_API", Constants.explorerURL.rawValue, 1)
         setenv("NYXD", "https://rpc.nymtech.net", 1)
         setenv("NYXD_WS", "wss://rpc.nymtech.net/websocket", 1)
         setenv("NYM_API", Constants.apiUrl.rawValue, 1)

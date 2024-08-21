@@ -319,6 +319,18 @@ private extension GRPCManager {
             GeneralNymError.library(message: error.message)
         case .outOfBandwidth:
             GeneralNymError.library(message: error.message)
+        case .mixnetStoragePaths:
+            GeneralNymError.library(message: error.message)
+        case .mixnetDefaultStorage:
+            GeneralNymError.library(message: error.message)
+        case .mixnetBuildClient:
+            GeneralNymError.library(message: error.message)
+        case .mixnetConnect:
+            GeneralNymError.library(message: error.message)
+        case .mixnetEntryGateway:
+            GeneralNymError.library(message: error.message)
+        case .gatewayDirectoryEntryID:
+            GeneralNymError.library(message: error.message)
         }
     }
 }
