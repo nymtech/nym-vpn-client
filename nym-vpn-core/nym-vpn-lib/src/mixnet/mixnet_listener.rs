@@ -12,8 +12,8 @@ use tracing::{debug, error, trace};
 use tun2::{AsyncDevice, TunPacketCodec};
 
 use nym_connection_monitor::{
-    is_icmp_beacon_reply, is_icmp_v6_beacon_reply, ConnectionStatusEvent,
-    IcmpBeaconReply, Icmpv6BeaconReply,
+    is_icmp_beacon_reply, is_icmp_v6_beacon_reply, ConnectionStatusEvent, IcmpBeaconReply,
+    Icmpv6BeaconReply,
 };
 
 use super::SharedMixnetClient;
@@ -127,7 +127,9 @@ impl MixnetListener {
         self.tun_device_sink
     }
 
-    pub(super) fn start(self) -> JoinHandle<SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>>> {
+    pub(super) fn start(
+        self,
+    ) -> JoinHandle<SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>>> {
         tokio::spawn(self.run())
     }
 }
@@ -163,4 +165,3 @@ fn check_for_icmp_beacon_reply(
 
     None
 }
-
