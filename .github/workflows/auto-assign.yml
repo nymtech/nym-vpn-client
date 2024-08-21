@@ -1,0 +1,12 @@
+name: "Auto assign reviewer"
+on:
+  - pull_request
+
+jobs:
+  assign_reviewer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: shufo/auto-assign-reviewer-by-files@v1.1.5
+        with:
+          config: ".github/reviewer-by-files.yml"
+          token: ${{ secrets.GITHUB_TOKEN }}

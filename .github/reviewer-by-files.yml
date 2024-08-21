@@ -1,0 +1,17 @@
+---
+# proto changes
+"proto/**/*.proto":
+  - rokas
+  - neacsu
+  - zaneschepke
+  - doums
+  - pronebird
+  - octol
+
+# uniffi changes
+"nym-vpn-core/nym-vpn-lib/uniffi/*":
+  - zaneschepke
+  - rokas
+  - neacsu
+  - pronebird
+  - octol
