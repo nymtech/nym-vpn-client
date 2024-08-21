@@ -27,7 +27,7 @@ use util::{wait_and_handle_interrupt, wait_for_interrupt_and_signal};
 
 use crate::config::WireguardConfig;
 use crate::error::Result;
-use crate::mixnet::{setup_mixnet_client, SharedMixnetClient};
+use crate::mixnet::SharedMixnetClient;
 #[cfg(target_os = "ios")]
 use crate::platform::swift::OSTunProvider;
 use crate::platform::uniffi_set_listener_status;

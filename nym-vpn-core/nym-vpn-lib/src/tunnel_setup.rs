@@ -364,7 +364,7 @@ pub async fn setup_tunnel(
     info!("Connecting to mixnet gateway: {}", entry.identity());
     let mixnet_client = timeout(
         Duration::from_secs(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS),
-        crate::setup_mixnet_client(
+        crate::mixnet::setup_mixnet_client(
             entry.identity(),
             &nym_vpn.data_path(),
             task_manager.subscribe_named("mixnet_client_main"),
