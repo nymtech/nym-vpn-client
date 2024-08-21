@@ -92,18 +92,19 @@ pub(crate) async fn handle_interrupt(
     let [entry, exit] = wireguard_waiting;
 
     entry.tunnel_close_tx.send(()).ok();
-    exit.tunnel_close_tx.send(()).ok();
-
-    let ret1 = entry.handle.await;
-    let ret2 = exit.handle.await;
-    if ret1.is_err() || ret2.is_err() {
-        error!("Error on tunnel handle");
+    if let Err(err) = entry.receiver.await {
+        error!("Error on entry signal handle {}", err);
+    }
+    if let Err(err) = entry.handle.await {
+        error!("Error on entry tunnel handle {}", err);
     }
 
-    let ret1 = entry.receiver.await;
-    let ret2 = exit.receiver.await;
-    if ret1.is_err() || ret2.is_err() {
-        error!("Error on signal handle");
+    exit.tunnel_close_tx.send(()).ok();
+    if let Err(err) = exit.receiver.await {
+        error!("Error on exit signal handle {}", err);
+    }
+    if let Err(err) = exit.handle.await {
+        error!("Error on exit tunnel handle {}", err);
     }
 }
 
