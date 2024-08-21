@@ -16,10 +16,17 @@
   "connection": {
     "timeout": "Tempo limite de conexão",
     "gateway-lookup": "Falha na pesquisa do gateway",
-    "no-valid-credential": "Nenhuma credencial válida, adicione uma credencial primeiro"
+    "no-valid-credential": "Nenhuma credencial válida, adicione uma credencial primeiro",
+    "bad-country-combination": "Combinação de países não suportada, altere o país de entrada ou saída"
   },
   "countries-request": {
     "entry": "Falha ao buscar os países com nós de entrada disponíveis",
     "exit": "Falha ao buscar os países de nós de saída disponíveis"
-  }
+  },
+  "exit-node": {
+    "routing": "O nó de saída não está roteando o tráfego {{protocol}}",
+    "ping": "Falha no ping do nó de saída para o tráfego {{protocol}}"
+  },
+  "out-of-bandwidth": "Fora da largura de banda alocada",
+  "entry-node-routing": "O nó de entrada não está roteando o tráfego (a conexão com a Internet caiu?)"
 }
