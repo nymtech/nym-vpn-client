@@ -3,7 +3,7 @@
 
 use nym_sdk::TaskClient;
 
-use crate::mixnet_connect::SharedMixnetClient;
+use crate::mixnet::SharedMixnetClient;
 
 pub struct BandwidthController {
     shared_mixnet_client: SharedMixnetClient,

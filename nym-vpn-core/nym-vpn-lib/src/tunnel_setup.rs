@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use crate::bandwidth_controller::BandwidthController;
 use crate::error::{Error, GatewayDirectoryError, Result};
-use crate::mixnet_connect::SharedMixnetClient;
+use crate::mixnet;
 use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
 use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
 use crate::wg_gateway_client::WgGatewayClient;
@@ -133,7 +133,7 @@ async fn wait_interface_up(
 
 async fn setup_wg_tunnel(
     nym_vpn: &mut NymVpn<WireguardVpn>,
-    mixnet_client: SharedMixnetClient,
+    mixnet_client: mixnet::SharedMixnetClient,
     task_manager: &mut TaskManager,
     route_manager: &mut RouteManager,
     gateway_directory_client: GatewayClient,
@@ -296,7 +296,7 @@ async fn setup_wg_tunnel(
 #[allow(clippy::too_many_arguments)]
 async fn setup_mix_tunnel(
     nym_vpn: &mut NymVpn<MixnetVpn>,
-    mixnet_client: SharedMixnetClient,
+    mixnet_client: mixnet::SharedMixnetClient,
     task_manager: &mut TaskManager,
     route_manager: &mut RouteManager,
     dns_monitor: &mut DnsMonitor,
@@ -364,7 +364,7 @@ pub async fn setup_tunnel(
     info!("Connecting to mixnet gateway: {}", entry.identity());
     let mixnet_client = timeout(
         Duration::from_secs(MIXNET_CLIENT_STARTUP_TIMEOUT_SECS),
-        crate::setup_mixnet_client(
+        mixnet::setup_mixnet_client(
             entry.identity(),
             &nym_vpn.data_path(),
             task_manager.subscribe_named("mixnet_client_main"),
