@@ -78,7 +78,7 @@ pub struct NymVpn<T: Vpn> {
     pub tun_provider: Arc<Mutex<TunProvider>>,
 
     #[cfg(target_os = "ios")]
-    ios_tun_provider: Arc<dyn OSTunProvider>,
+    pub(super) ios_tun_provider: Arc<dyn OSTunProvider>,
 
     // Necessary so that the device doesn't get closed before cleanup has taken place
     pub(super) shadow_handle: ShadowHandle,
