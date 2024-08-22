@@ -17,7 +17,9 @@ use nym_vpn_lib::{
     credentials::import_credential,
     gateway_directory::{self, EntryPoint, ExitPoint},
     nym_bin_common::bin_info,
-    GenericNymVpnConfig, MixnetClientConfig, NodeIdentity, Recipient,
+    vpn::GenericNymVpnConfig,
+    vpn::MixnetClientConfig,
+    NodeIdentity, Recipient,
 };
 use nym_vpn_store::keys::KeyStore as _;
 use serde::{Deserialize, Serialize};
@@ -176,7 +178,7 @@ impl VpnServiceConnectResult {
 pub struct VpnServiceConnectHandle {
     pub listener_vpn_status_rx: nym_vpn_lib::StatusReceiver,
     #[allow(unused)]
-    pub listener_vpn_exit_rx: OneshotReceiver<nym_vpn_lib::NymVpnExitStatusMessage>,
+    pub listener_vpn_exit_rx: OneshotReceiver<nym_vpn_lib::vpn::NymVpnExitStatusMessage>,
 }
 
 #[derive(Debug)]
@@ -348,7 +350,7 @@ where
     vpn_command_rx: UnboundedReceiver<VpnServiceCommand>,
 
     // Send commands to the actual vpn service task
-    vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>>,
+    vpn_ctrl_sender: Option<UnboundedSender<nym_vpn_lib::vpn::NymVpnCtrlMessage>>,
 
     config_file: PathBuf,
 
@@ -486,19 +488,19 @@ where
 
         let nym_vpn = if options.enable_two_hop {
             let mut nym_vpn =
-                nym_vpn_lib::NymVpn::new_wireguard_vpn(config.entry_point, config.exit_point);
+                nym_vpn_lib::vpn::NymVpn::new_wireguard_vpn(config.entry_point, config.exit_point);
             nym_vpn.generic_config = generic_config;
             nym_vpn.into()
         } else {
             let mut nym_vpn =
-                nym_vpn_lib::NymVpn::new_mixnet_vpn(config.entry_point, config.exit_point);
+                nym_vpn_lib::vpn::NymVpn::new_mixnet_vpn(config.entry_point, config.exit_point);
             nym_vpn.generic_config = generic_config;
             nym_vpn.into()
         };
 
-        let handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(nym_vpn).unwrap();
+        let handle = nym_vpn_lib::vpn::spawn_nym_vpn_with_new_runtime(nym_vpn).unwrap();
 
-        let nym_vpn_lib::NymVpnHandle {
+        let nym_vpn_lib::vpn::NymVpnHandle {
             vpn_ctrl_tx,
             vpn_status_rx,
             vpn_exit_rx,
@@ -542,7 +544,7 @@ where
 
         if let Some(ref mut vpn_ctrl_sender) = self.vpn_ctrl_sender {
             vpn_ctrl_sender
-                .send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
+                .send(nym_vpn_lib::vpn::NymVpnCtrlMessage::Stop)
                 .await
                 .ok();
             VpnServiceDisconnectResult::Success

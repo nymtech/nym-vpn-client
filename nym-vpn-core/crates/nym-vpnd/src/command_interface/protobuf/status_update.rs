@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage;
-use nym_vpn_lib::{connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage};
+use nym_vpn_lib::{connection_monitor::ConnectionMonitorStatus, vpn::NymVpnStatusMessage};
 use nym_vpn_proto::{connection_status_update::StatusType, ConnectionStatusUpdate};
 
 pub(crate) fn status_update_from_status_message(

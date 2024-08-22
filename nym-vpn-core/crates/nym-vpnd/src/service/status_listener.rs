@@ -5,8 +5,8 @@ use futures::{SinkExt, StreamExt};
 use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage;
 use nym_task::StatusSender;
 use nym_vpn_lib::{
-    connection_monitor::ConnectionMonitorStatus, NymVpnStatusMessage, SentStatus, StatusReceiver,
-    TaskStatus,
+    connection_monitor::ConnectionMonitorStatus, vpn::NymVpnStatusMessage, SentStatus,
+    StatusReceiver, TaskStatus,
 };
 use time::OffsetDateTime;
 use tracing::{debug, info};

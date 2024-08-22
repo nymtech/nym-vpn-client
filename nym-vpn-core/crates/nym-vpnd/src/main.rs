@@ -3,7 +3,7 @@
 
 use clap::Parser;
 use nym_task::TaskManager;
-use nym_vpn_lib::{nym_config::defaults::setup_env, SHUTDOWN_TIMER_SECS};
+use nym_vpn_lib::{nym_config::defaults::setup_env, vpn::SHUTDOWN_TIMER_SECS};
 use tokio::sync::broadcast;
 
 use crate::{

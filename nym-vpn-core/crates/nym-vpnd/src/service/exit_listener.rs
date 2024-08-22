@@ -20,18 +20,18 @@ impl VpnServiceExitListener {
 
     pub(super) async fn start(
         self,
-        vpn_exit_rx: oneshot::Receiver<nym_vpn_lib::NymVpnExitStatusMessage>,
-        listener_vpn_exit_tx: oneshot::Sender<nym_vpn_lib::NymVpnExitStatusMessage>,
+        vpn_exit_rx: oneshot::Receiver<nym_vpn_lib::vpn::NymVpnExitStatusMessage>,
+        listener_vpn_exit_tx: oneshot::Sender<nym_vpn_lib::vpn::NymVpnExitStatusMessage>,
     ) {
         tokio::spawn(async move {
             match vpn_exit_rx.await {
                 Ok(exit_res) => match exit_res {
-                    nym_vpn_lib::NymVpnExitStatusMessage::Stopped => {
+                    nym_vpn_lib::vpn::NymVpnExitStatusMessage::Stopped => {
                         info!("VPN exit: stopped");
                         self.shared_vpn_state.set(VpnState::NotConnected);
                         listener_vpn_exit_tx.send(exit_res).ok();
                     }
-                    nym_vpn_lib::NymVpnExitStatusMessage::Failed(ref err) => {
+                    nym_vpn_lib::vpn::NymVpnExitStatusMessage::Failed(ref err) => {
                         error!("VPN exit: fail: {err}");
                         debug!("VPN exit: fail: {err:?}");
 

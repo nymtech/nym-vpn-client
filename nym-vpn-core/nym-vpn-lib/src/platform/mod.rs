@@ -10,7 +10,7 @@ use crate::uniffi_custom_impls::{
     BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location, NymVpnStatus,
     StatusEvent, TunStatus, UserAgent,
 };
-use crate::{
+use crate::vpn::{
     spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
     NymVpnHandle, SpecificVpn,
 };

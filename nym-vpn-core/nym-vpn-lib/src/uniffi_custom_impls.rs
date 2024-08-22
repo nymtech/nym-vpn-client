@@ -3,8 +3,8 @@
 
 use crate::platform::error::FFIError;
 use crate::{
-    MixnetConnectionInfo, MixnetExitConnectionInfo, NodeIdentity, NymVpnStatusMessage, Recipient,
-    UniffiCustomTypeConverter,
+    vpn::{MixnetConnectionInfo, MixnetExitConnectionInfo, NymVpnStatusMessage},
+    NodeIdentity, Recipient, UniffiCustomTypeConverter,
 };
 use ipnetwork::IpNetwork;
 use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage;
@@ -270,8 +270,8 @@ pub struct WireguardConnectionInfo {
     pub private_ipv4: Ipv4Addr,
 }
 
-impl From<crate::WireguardConnectionInfo> for WireguardConnectionInfo {
-    fn from(value: crate::WireguardConnectionInfo) -> Self {
+impl From<crate::vpn::WireguardConnectionInfo> for WireguardConnectionInfo {
+    fn from(value: crate::vpn::WireguardConnectionInfo) -> Self {
         WireguardConnectionInfo {
             gateway_id: value.gateway_id,
             public_key: value.public_key,

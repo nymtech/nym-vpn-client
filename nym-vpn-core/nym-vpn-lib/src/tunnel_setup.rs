@@ -11,9 +11,13 @@ use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
 use crate::wg_gateway_client::WgGatewayClient;
 use crate::wireguard_setup::create_wireguard_tunnel;
 use crate::{config, mixnet};
-use crate::{platform, WireguardConnectionInfo, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS};
-use crate::{routing, MixnetConnectionInfo, NymVpn};
-use crate::{MixnetExitConnectionInfo, MixnetVpn, SpecificVpn};
+use crate::{
+    platform, routing,
+    vpn::{
+        MixnetConnectionInfo, MixnetExitConnectionInfo, MixnetVpn, NymVpn, SpecificVpn,
+        WireguardConnectionInfo, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS,
+    },
+};
 use futures::channel::{mpsc, oneshot};
 use futures::StreamExt;
 use ipnetwork::IpNetwork;
