@@ -342,17 +342,6 @@
         }
       }
     },
-    "copy" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copy"
-          }
-        }
-      }
-    },
     "darkThemeTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -837,6 +826,39 @@
         }
       }
     },
+    "logs.deleteAllLogs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to delete all logs?"
+          }
+        }
+      }
+    },
+    "logs.export" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export"
+          }
+        }
+      }
+    },
+    "logs.no" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No"
+          }
+        }
+      }
+    },
     "logs.noLogs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -844,6 +866,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No logs available"
+          }
+        }
+      }
+    },
+    "logs.noRetrieval" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You will not be able to retrieve them"
+          }
+        }
+      }
+    },
+    "logs.yes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yes"
           }
         }
       }

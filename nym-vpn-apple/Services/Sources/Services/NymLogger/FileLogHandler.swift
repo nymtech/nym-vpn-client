@@ -27,7 +27,7 @@ public class FileLogHandler: LogHandler {
         guard let logsDirectory else { return nil }
 
         try? fileManager.createDirectory(at: logsDirectory, withIntermediateDirectories: true, attributes: nil)
-        let logFileURL = logsDirectory.appendingPathComponent("Log.log")
+        let logFileURL = logsDirectory.appendingPathComponent(Constants.logFileName.rawValue)
         return logFileURL
     }
 
@@ -63,10 +63,20 @@ public class FileLogHandler: LogHandler {
         let data = Data(logLine.utf8)
 
         ioQueue.async {
-            if self.fileHandle == nil, let logFileURL = FileLogHandler.logFileURL {
-                self.fileHandle = try? FileHandle(forWritingTo: logFileURL)
-            }
-            try? self.fileHandle?.write(contentsOf: data)
+            do {
+                if self.fileHandle == nil, let logFileURL = FileLogHandler.logFileURL {
+                    self.fileHandle = try FileHandle(forWritingTo: logFileURL)
+                }
+                try self.fileHandle?.write(contentsOf: data)
+            } catch CocoaError.fileNoSuchFile {
+                guard let logFileURL = FileLogHandler.logFileURL,
+                      !FileManager.default.fileExists(atPath: logFileURL.relativePath)
+                else {
+                    return
+                }
+                FileManager.default.createFile(atPath: logFileURL.relativePath, contents: nil, attributes: nil)
+                self.fileHandle = nil
+            } catch {}
         }
     }
 }
