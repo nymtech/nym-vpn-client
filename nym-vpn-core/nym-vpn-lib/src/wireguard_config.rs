@@ -52,7 +52,7 @@ impl WireguardConfig {
         })
     }
 
-    pub(crate) fn init(
+    fn init(
         keypair: &KeyPair,
         gateway_data: GatewayData,
         wg_gateway: Option<IpAddr>,
