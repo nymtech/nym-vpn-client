@@ -492,7 +492,9 @@ async fn select_gateways(
     );
     info!(
         "Using exit router address {}",
-        exit_gateway.ipr_address.unwrap()
+        exit_gateway
+            .ipr_address
+            .map_or_else(|| "none".to_string(), |ipr| ipr.to_string())
     );
 
     Ok(SelectedGateways {
