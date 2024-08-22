@@ -22,7 +22,7 @@ use talpid_tunnel::tun_provider::TunProvider;
 use crate::platform::swift::OSTunProvider;
 use crate::{error::Result, mixnet::SharedMixnetClient, routing, Error, GatewayDirectoryError};
 
-use super::common::{GenericNymVpnConfig, NymVpn, ShadowHandle, Vpn};
+use super::base::{GenericNymVpnConfig, NymVpn, ShadowHandle, Vpn};
 
 #[derive(Clone, Debug)]
 pub struct MixnetClientConfig {

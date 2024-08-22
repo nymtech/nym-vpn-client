@@ -13,7 +13,7 @@ use talpid_tunnel::tun_provider::TunProvider;
 use crate::platform::swift::OSTunProvider;
 
 use super::{
-    common::{GenericNymVpnConfig, ShadowHandle, Vpn},
+    base::{GenericNymVpnConfig, ShadowHandle, Vpn},
     MixnetClientConfig, NymVpn,
 };
 
