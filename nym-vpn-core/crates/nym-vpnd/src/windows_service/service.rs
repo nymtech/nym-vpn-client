@@ -1,7 +1,9 @@
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use std::{env, ffi::OsString, time::Duration};
 
 use nym_task::TaskManager;
-use nym_vpn_lib::SHUTDOWN_TIMER_SECS;
 use tokio::sync::broadcast;
 use tracing::{error, info};
 use windows_service::{

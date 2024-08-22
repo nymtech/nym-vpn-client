@@ -1,13 +1,18 @@
-use super::{service::get_service_info, SERVICE_DESCRIPTION, SERVICE_DISPLAY_NAME, SERVICE_NAME};
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use std::{
     thread::sleep,
     time::{Duration, Instant},
 };
+
 use windows_service::{
     service::{ServiceAccess, ServiceState},
     service_manager::{ServiceManager, ServiceManagerAccess},
 };
 use windows_sys::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
+
+use super::{service::get_service_info, SERVICE_DESCRIPTION, SERVICE_DISPLAY_NAME, SERVICE_NAME};
 
 // see https://github.com/mullvad/windows-service-rs/blob/main/examples/install_service.rs
 pub(super) fn install_service() -> windows_service::Result<()> {
