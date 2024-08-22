@@ -1,16 +1,20 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::error::*;
-use crate::wg_gateway_client::{GatewayData, WgGatewayClient};
+use crate::{
+    error::*,
+    wg_gateway_client::{GatewayData, WgGatewayClient},
+};
 use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{GatewayClient, NodeIdentity};
-use std::net::{IpAddr, Ipv4Addr};
-use std::str::FromStr;
-use talpid_types::net::wireguard::{
-    ConnectionConfig, PeerConfig, PrivateKey, TunnelConfig, TunnelOptions,
+use std::{
+    net::{IpAddr, Ipv4Addr},
+    str::FromStr,
 };
-use talpid_types::net::GenericTunnelOptions;
+use talpid_types::net::{
+    wireguard::{ConnectionConfig, PeerConfig, PrivateKey, TunnelConfig, TunnelOptions},
+    GenericTunnelOptions,
+};
 
 #[cfg(target_os = "linux")]
 pub const TUNNEL_FWMARK: u32 = 0x6d6f6c65;

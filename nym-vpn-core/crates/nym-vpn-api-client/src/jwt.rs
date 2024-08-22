@@ -1,6 +1,5 @@
 use nym_crypto::asymmetric::ed25519::KeyPair;
-use nym_validator_client::signing::signer::OfflineSigner;
-use nym_validator_client::DirectSecp256k1HdWallet;
+use nym_validator_client::{signing::signer::OfflineSigner, DirectSecp256k1HdWallet};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sha2::{Digest, Sha256};

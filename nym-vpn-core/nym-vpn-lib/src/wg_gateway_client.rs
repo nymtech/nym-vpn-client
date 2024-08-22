@@ -7,25 +7,25 @@ use nym_authenticator_requests::v1::response::{
     AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
     RemainingBandwidthResponse,
 };
-use nym_crypto::asymmetric::encryption;
-use nym_crypto::asymmetric::x25519::KeyPair;
+use nym_crypto::asymmetric::{encryption, x25519::KeyPair};
 use nym_gateway_directory::Recipient;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, InitMessage, PeerPublicKey,
 };
 use nym_pemstore::KeyPairPath;
 use nym_sdk::TaskClient;
-use nym_wireguard_types::registration::RegistrationData;
-use nym_wireguard_types::{GatewayClient, DEFAULT_PEER_TIMEOUT_CHECK};
-use rand::rngs::OsRng;
-use rand::{CryptoRng, RngCore};
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::path::PathBuf;
-use std::str::FromStr;
-use std::time::Duration;
+use nym_wireguard_types::{
+    registration::RegistrationData, GatewayClient, DEFAULT_PEER_TIMEOUT_CHECK,
+};
+use rand::{rngs::OsRng, CryptoRng, RngCore};
+use std::{
+    net::{IpAddr, Ipv4Addr, SocketAddr},
+    path::PathBuf,
+    str::FromStr,
+    time::Duration,
+};
 use talpid_types::net::wireguard::PublicKey;
-use tokio_stream::wrappers::IntervalStream;
-use tokio_stream::StreamExt;
+use tokio_stream::{wrappers::IntervalStream, StreamExt};
 use tracing::*;
 
 const DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME: &str = "private_entry_wireguard.pem";

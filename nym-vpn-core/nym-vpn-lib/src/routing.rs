@@ -2,13 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use netdev::Interface;
-use std::fmt::{Display, Formatter};
-use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(target_os = "android")]
 use std::os::fd::{AsRawFd, RawFd};
 #[cfg(target_os = "android")]
 use std::sync::{Arc, Mutex};
-use std::{collections::HashSet, net::IpAddr};
+use std::{
+    collections::HashSet,
+    fmt::{Display, Formatter},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
+};
 use talpid_core::dns::DnsMonitor;
 
 use ipnetwork::IpNetwork;
@@ -21,8 +23,7 @@ use tap::TapFallible;
 use tracing::{debug, error, info, trace};
 use tun2::AbstractDevice;
 
-use crate::error::Result;
-use crate::{MixnetVpn, NymVpn};
+use crate::{error::Result, MixnetVpn, NymVpn};
 
 const DEFAULT_TUN_MTU: u16 = 1500;
 

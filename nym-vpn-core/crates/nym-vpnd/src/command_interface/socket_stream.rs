@@ -1,11 +1,10 @@
 use futures::TryStreamExt;
-use std::path::Path;
-use std::pin::Pin;
-use std::task::Context;
-use std::task::Poll;
-use tokio::io::AsyncRead;
-use tokio::io::AsyncWrite;
-use tokio::io::ReadBuf;
+use std::{
+    path::Path,
+    pin::Pin,
+    task::{Context, Poll},
+};
+use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 use tonic::transport::server::Connected;
 
 #[derive(Debug)]

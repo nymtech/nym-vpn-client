@@ -61,8 +61,10 @@ pub use nym_gateway_directory as gateway_directory;
 pub use nym_id_pre_ecash as id_pre_ecash;
 
 pub use nym_ip_packet_requests::IpPair;
-pub use nym_sdk::mixnet::{NodeIdentity, Recipient, StoragePaths};
-pub use nym_sdk::UserAgent;
+pub use nym_sdk::{
+    mixnet::{NodeIdentity, Recipient, StoragePaths},
+    UserAgent,
+};
 pub use nym_task::{
     manager::{SentStatus, TaskStatus},
     StatusReceiver,

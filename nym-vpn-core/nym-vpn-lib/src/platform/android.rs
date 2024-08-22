@@ -3,26 +3,28 @@
 
 use super::*;
 use ipnetwork::IpNetwork;
-use jnix::jni::objects::JString;
-use jnix::jni::{
-    objects::JObject,
-    sys::{jboolean, jint, JNI_FALSE},
-    JNIEnv,
+use jnix::{
+    jni::{
+        objects::{JObject, JString},
+        sys::{jboolean, jint, JNI_FALSE},
+        JNIEnv,
+    },
+    FromJava, IntoJava, JnixEnv,
 };
-use jnix::{FromJava, IntoJava, JnixEnv};
 use nix::sys::{
     select::{pselect, FdSet},
     time::{TimeSpec, TimeValLike},
 };
 use rand::{thread_rng, Rng};
-use std::io;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, UdpSocket};
-use std::os::fd::RawFd;
-use std::sync::{Arc, Mutex, Once};
-use std::time::{Duration, Instant};
+use std::{
+    io,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, UdpSocket},
+    os::fd::RawFd,
+    sync::{Arc, Mutex, Once},
+    time::{Duration, Instant},
+};
 use talpid_tunnel::tun_provider::{TunConfig, TunProvider};
-use talpid_types::android::AndroidContext;
-use talpid_types::ErrorExt;
+use talpid_types::{android::AndroidContext, ErrorExt};
 
 static LOAD_CLASSES: Once = Once::new();
 

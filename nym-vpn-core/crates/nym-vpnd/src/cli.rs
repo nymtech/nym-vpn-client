@@ -1,8 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use clap::Args;
-use clap::Parser;
+use clap::{Args, Parser};
 use nym_vpn_lib::nym_bin_common::bin_info_local_vergen;
 use std::{path::PathBuf, sync::OnceLock};
 

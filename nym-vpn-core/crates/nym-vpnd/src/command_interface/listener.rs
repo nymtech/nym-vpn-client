@@ -1,23 +1,21 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::SystemTime;
 use std::{
     fs,
     net::SocketAddr,
     path::{Path, PathBuf},
+    time::SystemTime,
 };
 
 use futures::{stream::BoxStream, StreamExt};
 use nym_vpn_proto::{
     nym_vpnd_server::NymVpnd, ConnectRequest, ConnectResponse, ConnectionStateChange,
     ConnectionStatusUpdate, DisconnectRequest, DisconnectResponse, Empty,
-    ImportUserCredentialRequest, ImportUserCredentialResponse, StatusRequest, StatusResponse,
-};
-use nym_vpn_proto::{
-    InfoRequest, InfoResponse, ListEntryCountriesRequest, ListEntryCountriesResponse,
-    ListEntryGatewaysRequest, ListEntryGatewaysResponse, ListExitCountriesRequest,
-    ListExitCountriesResponse, ListExitGatewaysRequest, ListExitGatewaysResponse,
+    ImportUserCredentialRequest, ImportUserCredentialResponse, InfoRequest, InfoResponse,
+    ListEntryCountriesRequest, ListEntryCountriesResponse, ListEntryGatewaysRequest,
+    ListEntryGatewaysResponse, ListExitCountriesRequest, ListExitCountriesResponse,
+    ListExitGatewaysRequest, ListExitGatewaysResponse, StatusRequest, StatusResponse,
     StoreAccountError, StoreAccountRequest, StoreAccountResponse,
 };
 use prost_types::Timestamp;

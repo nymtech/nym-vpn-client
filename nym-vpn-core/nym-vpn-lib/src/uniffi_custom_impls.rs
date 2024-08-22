@@ -1,10 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::platform::error::FFIError;
 use crate::{
-    MixnetConnectionInfo, MixnetExitConnectionInfo, NodeIdentity, NymVpnStatusMessage, Recipient,
-    UniffiCustomTypeConverter,
+    platform::error::FFIError, MixnetConnectionInfo, MixnetExitConnectionInfo, NodeIdentity,
+    NymVpnStatusMessage, Recipient, UniffiCustomTypeConverter,
 };
 use ipnetwork::IpNetwork;
 use nym_bandwidth_controller_pre_ecash::BandwidthStatusMessage;
@@ -12,9 +11,11 @@ use nym_connection_monitor::ConnectionMonitorStatus;
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent as NymUserAgent;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-use std::path::PathBuf;
-use std::str::FromStr;
+use std::{
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    path::PathBuf,
+    str::FromStr,
+};
 use talpid_types::net::wireguard::{PresharedKey, PrivateKey, PublicKey};
 use url::Url;
 

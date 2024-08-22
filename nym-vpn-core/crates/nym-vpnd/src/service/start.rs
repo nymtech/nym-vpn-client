@@ -4,8 +4,7 @@
 use tokio::sync::mpsc::UnboundedReceiver;
 use tracing::{error, info};
 
-use super::vpn_service::NymVpnService;
-use super::{VpnServiceCommand, VpnServiceStateChange};
+use super::{vpn_service::NymVpnService, VpnServiceCommand, VpnServiceStateChange};
 
 pub(crate) fn start_vpn_service(
     vpn_state_changes_tx: tokio::sync::broadcast::Sender<VpnServiceStateChange>,

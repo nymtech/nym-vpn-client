@@ -6,9 +6,11 @@ use crate::routing::RoutingConfig;
 use error::FFIError;
 use ipnetwork::IpNetwork;
 use oslog::OsLogger;
-use std::fmt::Debug;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
-use std::os::fd::RawFd;
+use std::{
+    fmt::Debug,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    os::fd::RawFd,
+};
 use talpid_types::net::wireguard::{
     PeerConfig as WgPeerConfig, PresharedKey, PrivateKey, PublicKey, TunnelConfig as WgTunnelConfig,
 };

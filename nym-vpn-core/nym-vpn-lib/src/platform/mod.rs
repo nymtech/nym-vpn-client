@@ -3,27 +3,34 @@
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
 use self::error::FFIError;
-use crate::credentials::{check_credential_base58, import_credential_base58};
-use crate::gateway_directory::GatewayClient;
-use crate::platform::status_listener::VpnServiceStatusListener;
-use crate::uniffi_custom_impls::{
-    BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location, NymVpnStatus,
-    StatusEvent, TunStatus, UserAgent,
-};
 use crate::{
-    spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
-    NymVpnHandle, SpecificVpn,
+    credentials::{check_credential_base58, import_credential_base58},
+    gateway_directory::GatewayClient,
+    platform::status_listener::VpnServiceStatusListener,
+    spawn_nym_vpn,
+    uniffi_custom_impls::{
+        BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location,
+        NymVpnStatus, StatusEvent, TunStatus, UserAgent,
+    },
+    MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage, NymVpnHandle,
+    SpecificVpn,
 };
 use lazy_static::lazy_static;
 use log::*;
-use std::path::PathBuf;
-use std::str::FromStr;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use std::time::SystemTime;
+use std::{
+    path::PathBuf,
+    str::FromStr,
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    time::SystemTime,
+};
 use talpid_core::mpsc::Sender;
-use tokio::runtime::Runtime;
-use tokio::sync::{Mutex, Notify};
+use tokio::{
+    runtime::Runtime,
+    sync::{Mutex, Notify},
+};
 use url::Url;
 
 #[cfg(target_os = "android")]
