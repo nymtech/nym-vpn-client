@@ -6,9 +6,6 @@ use std::path::PathBuf;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("{0}")]
-    AddrParseError(#[from] std::net::AddrParseError),
-
-    #[error("{0}")]
     RoutingError(#[from] talpid_routing::Error),
 
     #[error("{0}")]
@@ -123,6 +120,12 @@ pub enum Error {
 
     #[error("failed to add ipv6 route: {0}")]
     FailedToAddIpv6Route(#[source] std::io::Error),
+
+    #[error("failed to parse entry gateway ipv4: {0}")]
+    FailedToParseEntryGatewayIpv4(#[source] std::net::AddrParseError),
+
+    #[error("failed to parse entry gateway socket addr: {0}")]
+    FailedToParseEntryGatewaySocketAddr(#[source] std::net::AddrParseError),
 }
 
 #[derive(thiserror::Error, Debug)]

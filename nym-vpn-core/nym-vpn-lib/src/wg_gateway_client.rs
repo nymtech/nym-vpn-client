@@ -162,10 +162,8 @@ impl WgGatewayClient {
         };
         let gateway_data = GatewayData {
             public_key: PublicKey::from(registred_data.pub_key.to_bytes()),
-            endpoint: SocketAddr::from_str(&format!(
-                "{}:{}",
-                gateway_host, registred_data.wg_port
-            ))?,
+            endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, registred_data.wg_port))
+                .map_err(Error::FailedToParseEntryGatewaySocketAddr)?,
             private_ipv4,
         };
 

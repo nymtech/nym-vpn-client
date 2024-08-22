@@ -270,8 +270,7 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                 }
             }
             nym_vpn_lib::Error::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
-            nym_vpn_lib::Error::AddrParseError(_)
-            | nym_vpn_lib::Error::RoutingError(_)
+            nym_vpn_lib::Error::RoutingError(_)
             | nym_vpn_lib::Error::FailedToAddIpv6Route(_)
             | nym_vpn_lib::Error::DNSError(_)
             | nym_vpn_lib::Error::FirewallError(_)
@@ -293,6 +292,8 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
             | nym_vpn_lib::Error::AuthenticationNotPossible(_)
             | nym_vpn_lib::Error::AuthenticatorAddressNotFound
             | nym_vpn_lib::Error::NotEnoughBandwidth
+            | nym_vpn_lib::Error::FailedToParseEntryGatewayIpv4(_)
+            | nym_vpn_lib::Error::FailedToParseEntryGatewaySocketAddr(_)
             | nym_vpn_lib::Error::BadWireguardEvent => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
             }

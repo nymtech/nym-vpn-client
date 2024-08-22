@@ -63,7 +63,8 @@ impl WireguardConfig {
             endpoint: gateway_data.endpoint,
             psk: None,
         }];
-        let default_ipv4_gateway = Ipv4Addr::from_str(&gateway_data.private_ipv4.to_string())?;
+        let default_ipv4_gateway = Ipv4Addr::from_str(&gateway_data.private_ipv4.to_string())
+            .map_err(Error::FailedToParseEntryGatewayIpv4)?;
         let (ipv4_gateway, ipv6_gateway) = match wg_gateway {
             Some(IpAddr::V4(ipv4_gateway)) => (ipv4_gateway, None),
             Some(IpAddr::V6(ipv6_gateway)) => (default_ipv4_gateway, Some(ipv6_gateway)),
