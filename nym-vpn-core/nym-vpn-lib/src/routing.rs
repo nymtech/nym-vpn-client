@@ -112,11 +112,6 @@ impl RoutingConfig {
     pub(crate) fn mtu(&self) -> u16 {
         self.mtu
     }
-
-    #[cfg(any(target_os = "ios", target_os = "macos"))]
-    pub(crate) fn entry_mixnet_gateway_ip(&self) -> IpAddr {
-        self.entry_mixnet_gateway_ip
-    }
 }
 
 #[derive(Clone, Debug)]
