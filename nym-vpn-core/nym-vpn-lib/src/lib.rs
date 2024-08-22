@@ -16,7 +16,6 @@ mod tunnel;
 mod tunnel_setup;
 mod uniffi_custom_impls;
 mod vpn;
-mod wg_gateway_client;
 mod wireguard_config;
 mod wireguard_setup;
 
@@ -25,6 +24,7 @@ pub use nym_bin_common as bin_common;
 pub use nym_config;
 pub use nym_connection_monitor as connection_monitor;
 pub use nym_gateway_directory as gateway_directory;
+pub use nym_wg_gateway_client as wg_gateway_client;
 
 pub use nym_credential_storage_pre_ecash::error::StorageError as CredentialStorageError;
 pub use nym_id_pre_ecash::error::NymIdError;

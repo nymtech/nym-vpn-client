@@ -1,32 +1,38 @@
-// Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
+// Copyright 2023-2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::error::*;
+mod error;
+
+use std::{
+    net::{IpAddr, Ipv4Addr, SocketAddr},
+    path::PathBuf,
+    str::FromStr,
+    time::Duration,
+};
+
 use nym_authenticator_client::AuthClient;
 use nym_authenticator_requests::v1::response::{
     AuthenticatorResponseData, PendingRegistrationResponse, RegisteredResponse,
     RemainingBandwidthResponse,
 };
-use nym_crypto::asymmetric::encryption;
-use nym_crypto::asymmetric::x25519::KeyPair;
+use nym_crypto::asymmetric::{encryption, x25519::KeyPair};
 use nym_gateway_directory::Recipient;
 use nym_node_requests::api::v1::gateway::client_interfaces::wireguard::models::{
     ClientMessage, InitMessage, PeerPublicKey,
 };
 use nym_pemstore::KeyPairPath;
 use nym_sdk::TaskClient;
-use nym_wireguard_types::registration::RegistrationData;
-use nym_wireguard_types::{GatewayClient, DEFAULT_PEER_TIMEOUT_CHECK};
-use rand::rngs::OsRng;
-use rand::{CryptoRng, RngCore};
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::path::PathBuf;
-use std::str::FromStr;
-use std::time::Duration;
-use talpid_types::net::wireguard::PublicKey;
-use tokio_stream::wrappers::IntervalStream;
-use tokio_stream::StreamExt;
-use tracing::*;
+use nym_wireguard_types::{
+    registration::RegistrationData, GatewayClient, DEFAULT_PEER_TIMEOUT_CHECK,
+};
+use rand::{rngs::OsRng, CryptoRng, RngCore};
+use talpid_types::net::wireguard::PublicKey; // TODO: this is a type we should provide instead
+use tokio_stream::{wrappers::IntervalStream, StreamExt};
+use tracing::{debug, error, info, trace, warn};
+
+pub use error::WgGatewayClientError;
+
+use crate::error::Result;
 
 const DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME: &str = "private_entry_wireguard.pem";
 const DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME: &str = "public_entry_wireguard.pem";
@@ -36,13 +42,13 @@ const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(10); // 10 seconds
 const ASSUMED_BANDWIDTH_DEPLETION_RATE: u64 = 10 * 1024 * 1024; // 10 MB/s
 
 #[derive(Clone, Debug)]
-pub(crate) struct GatewayData {
-    pub(crate) public_key: PublicKey,
-    pub(crate) endpoint: SocketAddr,
-    pub(crate) private_ipv4: Ipv4Addr,
+pub struct GatewayData {
+    pub public_key: PublicKey,
+    pub endpoint: SocketAddr,
+    pub private_ipv4: Ipv4Addr,
 }
 
-pub(crate) struct WgGatewayClient {
+pub struct WgGatewayClient {
     keypair: encryption::KeyPair,
     auth_client: AuthClient,
     auth_recipient: Recipient,
@@ -77,7 +83,7 @@ impl WgGatewayClient {
         }
     }
 
-    pub(crate) fn new_entry(
+    pub fn new_entry(
         data_path: &Option<PathBuf>,
         auth_client: AuthClient,
         auth_recipient: Recipient,
@@ -91,7 +97,7 @@ impl WgGatewayClient {
         )
     }
 
-    pub(crate) fn new_exit(
+    pub fn new_exit(
         data_path: &Option<PathBuf>,
         auth_client: AuthClient,
         auth_recipient: Recipient,
@@ -105,15 +111,15 @@ impl WgGatewayClient {
         )
     }
 
-    pub(crate) fn keypair(&self) -> &encryption::KeyPair {
+    pub fn keypair(&self) -> &encryption::KeyPair {
         &self.keypair
     }
 
-    pub(crate) fn auth_recipient(&self) -> Recipient {
+    pub fn auth_recipient(&self) -> Recipient {
         self.auth_recipient
     }
 
-    pub(crate) async fn register_wireguard(&mut self, gateway_host: IpAddr) -> Result<GatewayData> {
+    pub async fn register_wireguard(&mut self, gateway_host: IpAddr) -> Result<GatewayData> {
         debug!("Registering with the wg gateway...");
         let init_message = ClientMessage::Initial(InitMessage {
             pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
@@ -149,21 +155,21 @@ impl WgGatewayClient {
                 let AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) =
                     response.data
                 else {
-                    return Err(Error::InvalidGatewayAuthResponse);
+                    return Err(WgGatewayClientError::InvalidGatewayAuthResponse);
                 };
                 reply
             }
             AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) => reply,
-            _ => return Err(Error::InvalidGatewayAuthResponse),
+            _ => return Err(WgGatewayClientError::InvalidGatewayAuthResponse),
         };
 
         let IpAddr::V4(private_ipv4) = registred_data.private_ip else {
-            return Err(Error::InvalidGatewayAuthResponse);
+            return Err(WgGatewayClientError::InvalidGatewayAuthResponse);
         };
         let gateway_data = GatewayData {
             public_key: PublicKey::from(registred_data.pub_key.to_bytes()),
             endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, registred_data.wg_port))
-                .map_err(Error::FailedToParseEntryGatewaySocketAddr)?,
+                .map_err(WgGatewayClientError::FailedToParseEntryGatewaySocketAddr)?,
             private_ipv4,
         };
 
@@ -188,7 +194,7 @@ impl WgGatewayClient {
                 reply: None,
                 ..
             }) => return Ok(Some(0)),
-            _ => return Err(Error::InvalidGatewayAuthResponse),
+            _ => return Err(WgGatewayClientError::InvalidGatewayAuthResponse),
         };
 
         if remaining_bandwidth_data.suspended {
@@ -215,11 +221,11 @@ impl WgGatewayClient {
         }
     }
 
-    pub(crate) async fn suspended(&mut self) -> Result<bool> {
+    pub async fn suspended(&mut self) -> Result<bool> {
         Ok(self.query_bandwidth().await?.is_none())
     }
 
-    pub(crate) async fn run(mut self, mut shutdown: TaskClient) {
+    pub async fn run(mut self, mut shutdown: TaskClient) {
         let mut timeout_check_interval =
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
         // Skip the first, immediate tick
@@ -240,7 +246,7 @@ impl WgGatewayClient {
                                     timeout_check_interval.next().await;
                                 }
                                 None => {
-                                    shutdown.send_we_stopped(Box::new(Error::OutOfBandwidth));
+                                    shutdown.send_we_stopped(Box::new(WgGatewayClientError::OutOfBandwidth));
                                 }
                             }
                         },

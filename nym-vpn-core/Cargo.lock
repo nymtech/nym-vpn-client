@@ -5281,6 +5281,7 @@ dependencies = [
  "nym-validator-client 0.1.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
  "nym-vpn-api-client",
  "nym-vpn-store",
+ "nym-wg-gateway-client",
  "nym-wireguard-types 0.1.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
  "oslog",
  "pnet_packet",
@@ -5399,6 +5400,26 @@ dependencies = [
  "winapi",
  "windows-service 0.7.0",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "nym-wg-gateway-client"
+version = "0.1.17-dev"
+dependencies = [
+ "nym-authenticator-client",
+ "nym-authenticator-requests",
+ "nym-crypto 0.4.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
+ "nym-gateway-directory",
+ "nym-node-requests 0.1.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
+ "nym-pemstore 0.3.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
+ "nym-sdk",
+ "nym-wireguard-types 0.1.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
+ "rand 0.8.5",
+ "talpid-types",
+ "thiserror",
+ "tokio",
+ "tokio-stream",
+ "tracing",
 ]
 
 [[package]]

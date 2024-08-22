@@ -8,15 +8,13 @@ use std::{
 
 use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{GatewayClient, NodeIdentity};
+use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
 use talpid_types::net::{
     wireguard::{ConnectionConfig, PeerConfig, PrivateKey, TunnelConfig, TunnelOptions},
     GenericTunnelOptions,
 };
 
-use crate::{
-    error::*,
-    wg_gateway_client::{GatewayData, WgGatewayClient},
-};
+use crate::error::*;
 
 #[cfg(target_os = "linux")]
 pub(crate) const TUNNEL_FWMARK: u32 = 0x6d6f6c65;

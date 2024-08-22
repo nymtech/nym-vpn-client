@@ -4,30 +4,31 @@
 use std::net::IpAddr;
 use std::time::Duration;
 
-use crate::bandwidth_controller::BandwidthController;
-use crate::error::{Error, GatewayDirectoryError, Result};
-use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
-use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
-use crate::wg_gateway_client::WgGatewayClient;
-use crate::wireguard_setup::create_wireguard_tunnel;
-use crate::{mixnet, wireguard_config};
 use crate::{
-    platform, routing,
+    bandwidth_controller::BandwidthController,
+    error::{Error, GatewayDirectoryError, Result},
+    mixnet, platform,
+    routing::{self, catch_all_ipv4, catch_all_ipv6, replace_default_prefixes},
+    uniffi_custom_impls::{StatusEvent, TunStatus},
     vpn::{
         MixnetConnectionInfo, MixnetExitConnectionInfo, MixnetVpn, NymVpn, SpecificVpn,
         WireguardConnectionInfo, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS,
     },
+    wireguard_config,
+    wireguard_setup::create_wireguard_tunnel,
 };
-use futures::channel::{mpsc, oneshot};
-use futures::StreamExt;
+use futures::{
+    channel::{mpsc, oneshot},
+    StreamExt,
+};
 use ipnetwork::IpNetwork;
 use log::*;
 use nym_authenticator_client::AuthClient;
 use nym_bin_common::bin_info;
 use nym_gateway_directory::{AuthAddresses, GatewayClient, IpPacketRouterAddress};
 use nym_task::TaskManager;
-use talpid_core::dns::DnsMonitor;
-use talpid_core::firewall::Firewall;
+use nym_wg_gateway_client::WgGatewayClient;
+use talpid_core::{dns::DnsMonitor, firewall::Firewall};
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 use talpid_tunnel::{TunnelEvent, TunnelMetadata};
 use tokio::time::timeout;
