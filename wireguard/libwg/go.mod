@@ -1,15 +1,18 @@
-module github.com/mullvad/mullvadvpn-app/wireguard/libwg
+module github.com/nymtech/nym-vpn-client/wireguard/libwg
 
-go 1.18
+go 1.22
 
 require (
-	golang.org/x/sys v0.0.0-20220808155132-1c4a2a72c664
+	golang.org/x/sys v0.12.0
 	golang.zx2c4.com/wireguard v0.0.0-20220703234212-c31a7b1ab478
-	golang.zx2c4.com/wireguard/windows v0.5.3
+	golang.zx2c4.com/wireguard/tun/netstack v0.0.0-20220703234212-c31a7b1ab478
+	gvisor.dev/gvisor v0.0.0-20211020211948-f76a604701b6
 )
 
 require (
-	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
-	golang.org/x/net v0.0.0-20220809184613-07c6da5e1ced // indirect
-	golang.zx2c4.com/wintun v0.0.0-20211104114900-415007cec224 // indirect
+	github.com/google/btree v1.0.1 // indirect
+	golang.org/x/crypto v0.13.0 // indirect
+	golang.org/x/net v0.15.0 // indirect
+	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
+	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 )

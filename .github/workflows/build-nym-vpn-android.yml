@@ -104,9 +104,9 @@ jobs:
             x86_64-linux-android \
             i686-linux-android
 
-      - name: Add cargo-ndk
+      - name: Install cargo deps
         run: |
-          cargo install cargo-ndk
+          cargo install cargo-ndk cargo-license --locked
 
       - name: Install deps
         run: |

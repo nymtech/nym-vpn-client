@@ -18,7 +18,7 @@ jobs:
           cache-dependency-path: "**/go.sum"
 
       - name: Build wireguard
-        run: ./wireguard/build-wireguard-go.sh
+        run: ./wireguard/build-wireguard-go.sh --ios
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

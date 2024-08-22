@@ -17,6 +17,7 @@ path = "uniffi-bindgen.rs"
 
 [dependencies]
 anyhow.workspace = true
+base64.workspace = true
 bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
@@ -82,6 +83,7 @@ nym-ip-packet-client = { path = "../crates/nym-ip-packet-client" }
 nym-vpn-api-client = { path = "../crates/nym-vpn-api-client" }
 nym-vpn-store = { path = "../crates/nym-vpn-store" }
 nym-wg-gateway-client = { path = "../crates/nym-wg-gateway-client" }
+nym-wg-go = { path = "../crates/nym-wg-go" }
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger = "0.14.1"

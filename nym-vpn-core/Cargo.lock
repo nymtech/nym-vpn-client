@@ -5247,6 +5247,7 @@ version = "0.1.17-dev"
 dependencies = [
  "android_logger",
  "anyhow",
+ "base64 0.22.1",
  "bincode",
  "bs58 0.5.1",
  "bytes",
@@ -5285,6 +5286,7 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-vpn-store",
  "nym-wg-gateway-client",
+ "nym-wg-go",
  "nym-wireguard-types 0.1.0 (git+https://github.com/nymtech/nym?rev=dff82f9)",
  "oslog",
  "pnet_packet",
@@ -5425,6 +5427,18 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tracing",
+]
+
+[[package]]
+name = "nym-wg-go"
+version = "0.1.17-dev"
+dependencies = [
+ "base64 0.22.1",
+ "hex",
+ "ipnetwork",
+ "thiserror",
+ "x25519-dalek",
+ "zeroize",
 ]
 
 [[package]]
