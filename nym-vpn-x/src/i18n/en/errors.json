@@ -6,9 +6,28 @@
   },
   "grpc": "Internal gRPC error",
   "connection": {
-    "timeout": "Connection timeout",
-    "gateway-lookup": "Failed to lookup gateway",
     "no-valid-credential": "No valid credential, please add a credential first",
+    "timeout": "Connection timeout",
+    "mixnet": {
+      "timeout": "Mixnet connection timeout",
+      "storage-path": "Failed to create the mixnet storage paths",
+      "default-storage": "Failed to create the mixnet with default storage",
+      "build-client": "Failed to build the mixnet client",
+      "connect": "Failed to connect to the mixnet",
+      "entry-gateway": "Failed to connect to the mixnet entry gateway"
+    },
+    "ipr-connect": "Failed to connect to the IPR",
+    "gateway-lookup": {
+      "generic": "Failed to lookup the gateways",
+      "id": "Failed to lookup gateway identity",
+      "ipr": "Failed to lookup the IPR address",
+      "ip": "Failed to lookup the gateway IP address",
+      "entry": "Failed to lookup the entry gateway",
+      "entry-id": "Failed to lookup the entry gateway identity",
+      "entry-location": "Failed to lookup the entry gateway for a given location",
+      "exit": "Failed to lookup the exit gateway",
+      "exit-location": "Failed to lookup the entry gateway for a given location"
+    },
     "bad-country-combination": "Unsupported country combination, please change the entry or exit country"
   },
   "credential": {
