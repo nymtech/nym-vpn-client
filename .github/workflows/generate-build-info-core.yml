@@ -37,7 +37,7 @@ jobs:
         id: package-version-cli
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry nym-vpn-core/nym-vpn-cli
+          subcommand: package.version --entry nym-vpn-core/crates/nym-vpn-cli
 
       - name: Get package version vpnc
         id: package-version-vpnc
