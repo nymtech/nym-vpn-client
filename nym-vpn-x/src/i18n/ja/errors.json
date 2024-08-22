@@ -4,7 +4,6 @@
   "grpc": "内部gRPCエラー",
   "connection": {
     "timeout": "接続タイムアウト",
-    "gateway-lookup": "gatewayの検索に失敗しました",
     "bad-country-combination": "サポートされていない国の組み合わせです。エントリーまたは出口の国を変更してください。",
     "no-valid-credential": "有効な認証情報がありません。認証情報を追加してください"
   },

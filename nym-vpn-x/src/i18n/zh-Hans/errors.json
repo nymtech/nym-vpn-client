@@ -15,7 +15,6 @@
   "grpc": "gRPC内部错误",
   "connection": {
     "timeout": "连接超时",
-    "gateway-lookup": "查询网关失败",
     "no-valid-credential": "无有效凭证，请先添加凭证"
   },
   "countries-request": {

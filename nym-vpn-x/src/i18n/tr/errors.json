@@ -13,7 +13,6 @@
   "connection": {
     "no-valid-credential": "Geçerli anahtar yok, lütfen önce bir anahtar ekleyin",
     "timeout": "Bağlantı zaman aşımı",
-    "gateway-lookup": "Gateway araması başarısız oldu",
     "bad-country-combination": "Desteklenmeyen ülke kombinasyonu, lütfen giriş veya çıkış ülkesini değiştirin"
   },
   "countries-request": {

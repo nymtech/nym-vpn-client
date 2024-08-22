@@ -19,7 +19,6 @@
   "grpc": "Error interno gRPC",
   "connection": {
     "timeout": "Tiempo de conexión agotado",
-    "gateway-lookup": "Error al buscar gateway",
     "no-valid-credential": "Credencial no válida, por favor añada credencial",
     "bad-country-combination": "Combinación de países no soportada, por favor cambie el país de entrada o salida"
   },

@@ -15,7 +15,6 @@
   "grpc": "Interner gRPC Fehler",
   "connection": {
     "timeout": "Time-Out der Verbindung",
-    "gateway-lookup": "Fehler beim Suchen des Gateways",
     "no-valid-credential": "Keine gültige Zugangsberechtigung, bitte gib zunächst deine Zugangsdaten ein",
     "bad-country-combination": "Ungültige Länderkombination. Bitte ändere das Ein- oder Ausgangsland"
   },

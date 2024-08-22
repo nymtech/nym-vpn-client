@@ -15,7 +15,6 @@
   "grpc": "Erreur interne gRPC",
   "connection": {
     "timeout": "Connexion expirée",
-    "gateway-lookup": "Échec de la recherche de passerelle",
     "no-valid-credential": "Pas d'identifiant valide, ajoutez un identifiant et réessayez"
   },
   "countries-request": {
