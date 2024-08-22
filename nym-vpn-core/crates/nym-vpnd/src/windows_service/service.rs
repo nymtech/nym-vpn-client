@@ -67,7 +67,7 @@ fn run_service(_arguments: Vec<OsString>) -> windows_service::Result<()> {
         process_id: None,
     })?;
 
-    let task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpnd");
+    let task_manager = TaskManager::new(crate::SHUTDOWN_TIMER_SECS).named("nym_vpnd");
     let service_task_client = task_manager.subscribe_named("vpn_service");
 
     let state_changes_tx = broadcast::channel(10).0;
