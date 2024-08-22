@@ -21,7 +21,7 @@ tokio = { workspace = true, features = ["process", "rt-multi-thread", "fs", "syn
 tracing-subscriber.workspace = true
 tracing.workspace = true
 
-nym-vpn-lib = { path = "../nym-vpn-lib" }
+nym-vpn-lib = { path = "../../nym-vpn-lib" }
 
 [build-dependencies]
 vergen = { workspace = true, default-features = false, features = [
