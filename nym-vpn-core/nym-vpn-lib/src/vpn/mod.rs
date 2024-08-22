@@ -38,7 +38,7 @@ pub use start::{spawn_nym_vpn, spawn_nym_vpn_with_new_runtime, NymVpnHandle};
 pub use wireguard::{WireguardConnectionInfo, WireguardVpn};
 
 pub(crate) const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: u64 = 30;
-pub const SHUTDOWN_TIMER_SECS: u64 = 10;
+const SHUTDOWN_TIMER_SECS: u64 = 10;
 
 pub struct GenericNymVpnConfig {
     pub mixnet_client_config: mixnet::MixnetClientConfig,
@@ -380,13 +380,7 @@ impl SpecificVpn {
 // not all error cases satisfied the Sync marker trait.
 #[derive(thiserror::Error, Debug)]
 pub enum NymVpnExitError {
-    #[error("{reason}")]
-    Generic { reason: Error },
-
     // TODO: capture the concrete error type once we have time to investigate on Mac
     #[error("failed to reset firewall policy: {reason}")]
     FailedToResetFirewallPolicy { reason: String },
-
-    #[error("failed to reset dns monitor: {reason}")]
-    FailedToResetDnsMonitor { reason: String },
 }

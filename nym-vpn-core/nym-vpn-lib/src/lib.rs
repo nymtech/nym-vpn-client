@@ -6,7 +6,6 @@ uniffi::setup_scaffolding!();
 pub mod credentials;
 pub mod storage;
 pub mod util;
-pub mod vpn;
 
 mod bandwidth_controller;
 mod config;
@@ -17,6 +16,7 @@ mod routing;
 mod tunnel;
 mod tunnel_setup;
 mod uniffi_custom_impls;
+mod vpn;
 mod wg_gateway_client;
 mod wireguard_setup;
 
@@ -35,6 +35,13 @@ pub use nym_task::{
     StatusReceiver,
 };
 
-pub use crate::error::{Error, GatewayDirectoryError, MixnetError};
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub use crate::platform::swift;
+pub use crate::{
+    error::{Error, GatewayDirectoryError, MixnetError},
+    vpn::{
+        spawn_nym_vpn, spawn_nym_vpn_with_new_runtime, GenericNymVpnConfig, MixnetClientConfig,
+        NymVpn, NymVpnCtrlMessage, NymVpnExitStatusMessage, NymVpnHandle, NymVpnStatusMessage,
+        SpecificVpn,
+    },
+};

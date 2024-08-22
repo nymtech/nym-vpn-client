@@ -9,8 +9,7 @@ use nym_vpn_lib::{
     gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint},
     nym_bin_common::bin_info,
     nym_config::defaults::{setup_env, var_names},
-    vpn::{GenericNymVpnConfig, MixnetClientConfig, NymVpn, SpecificVpn},
-    IpPair, NodeIdentity, Recipient,
+    GenericNymVpnConfig, IpPair, MixnetClientConfig, NodeIdentity, NymVpn, Recipient, SpecificVpn,
 };
 use time::OffsetDateTime;
 use tracing::{debug, error, info};

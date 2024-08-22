@@ -21,18 +21,18 @@ use super::{NymVpnCtrlMessage, NymVpnExitStatusMessage, SpecificVpn};
 /// use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 /// use nym_vpn_lib::NodeIdentity;
 ///
-/// let mut vpn_config = nym_vpn_lib::vpn::NymVpn::new_mixnet_vpn(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
+/// let mut vpn_config = nym_vpn_lib::NymVpn::new_mixnet_vpn(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
 /// ExitPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()).unwrap()});
-/// let vpn_handle = nym_vpn_lib::vpn::spawn_nym_vpn(vpn_config.into());
+/// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config.into());
 /// ```
 ///
 /// ```no_run
 /// use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 /// use nym_vpn_lib::NodeIdentity;
 ///
-/// let mut vpn_config = nym_vpn_lib::vpn::NymVpn::new_wireguard_vpn(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
+/// let mut vpn_config = nym_vpn_lib::NymVpn::new_wireguard_vpn(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
 /// ExitPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()).unwrap()});
-/// let vpn_handle = nym_vpn_lib::vpn::spawn_nym_vpn(vpn_config.into());
+/// let vpn_handle = nym_vpn_lib::spawn_nym_vpn(vpn_config.into());
 /// ```
 pub fn spawn_nym_vpn(nym_vpn: SpecificVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
@@ -61,18 +61,18 @@ pub fn spawn_nym_vpn(nym_vpn: SpecificVpn) -> Result<NymVpnHandle> {
 /// use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 /// use nym_vpn_lib::NodeIdentity;
 ///
-/// let mut vpn_config = nym_vpn_lib::vpn::NymVpn::new_mixnet_vpn(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
+/// let mut vpn_config = nym_vpn_lib::NymVpn::new_mixnet_vpn(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
 /// ExitPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()).unwrap()});
-/// let vpn_handle = nym_vpn_lib::vpn::spawn_nym_vpn_with_new_runtime(vpn_config.into());
+/// let vpn_handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config.into());
 /// ```
 ///
 /// ```no_run
 /// use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint};
 /// use nym_vpn_lib::NodeIdentity;
 ///
-/// let mut vpn_config = nym_vpn_lib::vpn::NymVpn::new_wireguard_vpn(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
+/// let mut vpn_config = nym_vpn_lib::NymVpn::new_wireguard_vpn(EntryPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890").unwrap()},
 /// ExitPoint::Gateway { identity: NodeIdentity::from_base58_string("Qwertyuiopasdfghjklzxcvbnm1234567890".to_string()).unwrap()});
-/// let vpn_handle = nym_vpn_lib::vpn::spawn_nym_vpn_with_new_runtime(vpn_config.into());
+/// let vpn_handle = nym_vpn_lib::spawn_nym_vpn_with_new_runtime(vpn_config.into());
 /// ```
 pub fn spawn_nym_vpn_with_new_runtime(nym_vpn: SpecificVpn) -> Result<NymVpnHandle> {
     let (vpn_ctrl_tx, vpn_ctrl_rx) = mpsc::unbounded();
