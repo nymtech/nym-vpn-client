@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::channel::{mpsc, oneshot};
-use log::{debug, error};
+use tracing::{debug, error, info};
 
 use crate::{
     error::Result,
@@ -105,7 +105,7 @@ async fn run_nym_vpn(
 ) {
     match nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await {
         Ok(()) => {
-            log::info!("Nym VPN has shut down");
+            info!("Nym VPN has shut down");
             vpn_exit_tx
                 .send(NymVpnExitStatusMessage::Stopped)
                 .expect("Failed to send exit status");
