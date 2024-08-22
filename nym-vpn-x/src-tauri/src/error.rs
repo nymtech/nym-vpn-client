@@ -201,7 +201,7 @@ impl From<DaemonError> for ErrorKey {
                 ErrorKey::CStateGwDirSameEntryAndExitGw
             }
             DaemonError::OutOfBandwidth => ErrorKey::CStateOutOfBandwidth,
-            _ => ErrorKey::UnknownError, // `Unspecified` &  `Unhandled`
+            _ => ErrorKey::UnknownError, // `Unspecified` & `Unhandled`
         }
     }
 }
