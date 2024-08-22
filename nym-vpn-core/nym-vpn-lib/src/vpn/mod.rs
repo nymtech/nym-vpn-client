@@ -7,9 +7,6 @@ mod mixnet;
 mod start;
 mod wireguard;
 
-#[cfg(target_os = "ios")]
-use crate::platform::swift::OSTunProvider;
-
 pub(crate) use base::{NymVpnExitError, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS};
 pub(crate) use mixnet::{MixnetConnectionInfo, MixnetExitConnectionInfo, MixnetVpn};
 pub(crate) use wireguard::{WireguardConnectionInfo, WireguardVpn};
