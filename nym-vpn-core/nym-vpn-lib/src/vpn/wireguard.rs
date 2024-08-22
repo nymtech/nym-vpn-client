@@ -12,7 +12,10 @@ use talpid_tunnel::tun_provider::TunProvider;
 #[cfg(target_os = "ios")]
 use crate::platform::swift::OSTunProvider;
 
-use super::{GenericNymVpnConfig, MixnetClientConfig, NymVpn, ShadowHandle, Vpn};
+use super::{
+    common::{GenericNymVpnConfig, ShadowHandle, Vpn},
+    MixnetClientConfig, NymVpn,
+};
 
 #[derive(Clone, Debug)]
 pub struct WireguardConnectionInfo {
