@@ -32,31 +32,31 @@ use talpid_routing::{Node, RequiredRoute, RouteManager};
 use talpid_tunnel::{TunnelEvent, TunnelMetadata};
 use tokio::time::timeout;
 
-pub struct TunnelSetup<T: TunnelSpecifcSetup> {
-    pub specific_setup: T,
+pub(crate) struct TunnelSetup<T: TunnelSpecifcSetup> {
+    pub(crate) specific_setup: T,
 }
 
-pub trait TunnelSpecifcSetup {}
+pub(crate) trait TunnelSpecifcSetup {}
 
-pub struct MixTunnelSetup {
-    pub mixnet_connection_info: MixnetConnectionInfo,
-    pub exit_connection_info: MixnetExitConnectionInfo,
+pub(crate) struct MixTunnelSetup {
+    pub(crate) mixnet_connection_info: MixnetConnectionInfo,
+    pub(crate) exit_connection_info: MixnetExitConnectionInfo,
 }
 
 impl TunnelSpecifcSetup for MixTunnelSetup {}
 
-pub struct WgTunnelSetup {
-    pub connection_info: WireguardConnectionInfo,
+pub(crate) struct WgTunnelSetup {
+    pub(crate) connection_info: WireguardConnectionInfo,
 
-    pub receiver: oneshot::Receiver<()>,
-    pub handle: tokio::task::JoinHandle<()>,
-    pub tunnel_close_tx: oneshot::Sender<()>,
+    pub(crate) receiver: oneshot::Receiver<()>,
+    pub(crate) handle: tokio::task::JoinHandle<()>,
+    pub(crate) tunnel_close_tx: oneshot::Sender<()>,
 }
 
 impl TunnelSpecifcSetup for WgTunnelSetup {}
 
 #[allow(clippy::large_enum_variant)]
-pub enum AllTunnelsSetup {
+pub(crate) enum AllTunnelsSetup {
     Mix(TunnelSetup<MixTunnelSetup>),
     Wg {
         entry: TunnelSetup<WgTunnelSetup>,

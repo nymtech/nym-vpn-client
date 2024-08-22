@@ -1,9 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::{Arc, Mutex};
+
 use futures::channel::{mpsc, oneshot};
 use nym_sdk::TaskClient;
-use std::sync::{Arc, Mutex};
 use talpid_routing::RouteManager;
 use talpid_tunnel::{tun_provider::TunProvider, TunnelEvent};
 use tracing::debug;
@@ -16,7 +17,7 @@ use crate::{
     wireguard_config::WireguardConfig,
 };
 
-pub async fn create_wireguard_tunnel(
+pub(crate) async fn create_wireguard_tunnel(
     route_manager: &RouteManager,
     shutdown: TaskClient,
     tun_provider: Arc<Mutex<TunProvider>>,

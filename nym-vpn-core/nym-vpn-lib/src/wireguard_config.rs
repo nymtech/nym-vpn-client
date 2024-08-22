@@ -1,25 +1,31 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::error::*;
-use crate::wg_gateway_client::{GatewayData, WgGatewayClient};
+use std::{
+    net::{IpAddr, Ipv4Addr},
+    str::FromStr,
+};
+
 use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{GatewayClient, NodeIdentity};
-use std::net::{IpAddr, Ipv4Addr};
-use std::str::FromStr;
-use talpid_types::net::wireguard::{
-    ConnectionConfig, PeerConfig, PrivateKey, TunnelConfig, TunnelOptions,
+use talpid_types::net::{
+    wireguard::{ConnectionConfig, PeerConfig, PrivateKey, TunnelConfig, TunnelOptions},
+    GenericTunnelOptions,
 };
-use talpid_types::net::GenericTunnelOptions;
+
+use crate::{
+    error::*,
+    wg_gateway_client::{GatewayData, WgGatewayClient},
+};
 
 #[cfg(target_os = "linux")]
-pub const TUNNEL_FWMARK: u32 = 0x6d6f6c65;
+pub(crate) const TUNNEL_FWMARK: u32 = 0x6d6f6c65;
 
 #[derive(Clone)]
-pub struct WireguardConfig {
-    pub talpid_config: talpid_wireguard::config::Config,
-    pub gateway_data: GatewayData,
-    pub gateway_id: NodeIdentity,
+pub(crate) struct WireguardConfig {
+    pub(crate) talpid_config: talpid_wireguard::config::Config,
+    pub(crate) gateway_data: GatewayData,
+    pub(crate) gateway_id: NodeIdentity,
 }
 
 impl WireguardConfig {
@@ -46,7 +52,7 @@ impl WireguardConfig {
         })
     }
 
-    pub fn init(
+    pub(crate) fn init(
         keypair: &KeyPair,
         gateway_data: GatewayData,
         wg_gateway: Option<IpAddr>,

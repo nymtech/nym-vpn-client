@@ -36,13 +36,13 @@ const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(10); // 10 seconds
 const ASSUMED_BANDWIDTH_DEPLETION_RATE: u64 = 10 * 1024 * 1024; // 10 MB/s
 
 #[derive(Clone, Debug)]
-pub struct GatewayData {
+pub(crate) struct GatewayData {
     pub(crate) public_key: PublicKey,
     pub(crate) endpoint: SocketAddr,
     pub(crate) private_ipv4: Ipv4Addr,
 }
 
-pub struct WgGatewayClient {
+pub(crate) struct WgGatewayClient {
     keypair: encryption::KeyPair,
     auth_client: AuthClient,
     auth_recipient: Recipient,
@@ -77,7 +77,7 @@ impl WgGatewayClient {
         }
     }
 
-    pub fn new_entry(
+    pub(crate) fn new_entry(
         data_path: &Option<PathBuf>,
         auth_client: AuthClient,
         auth_recipient: Recipient,
@@ -91,7 +91,7 @@ impl WgGatewayClient {
         )
     }
 
-    pub fn new_exit(
+    pub(crate) fn new_exit(
         data_path: &Option<PathBuf>,
         auth_client: AuthClient,
         auth_recipient: Recipient,
@@ -105,15 +105,15 @@ impl WgGatewayClient {
         )
     }
 
-    pub fn keypair(&self) -> &encryption::KeyPair {
+    pub(crate) fn keypair(&self) -> &encryption::KeyPair {
         &self.keypair
     }
 
-    pub fn auth_recipient(&self) -> Recipient {
+    pub(crate) fn auth_recipient(&self) -> Recipient {
         self.auth_recipient
     }
 
-    pub async fn register_wireguard(&mut self, gateway_host: IpAddr) -> Result<GatewayData> {
+    pub(crate) async fn register_wireguard(&mut self, gateway_host: IpAddr) -> Result<GatewayData> {
         debug!("Registering with the wg gateway...");
         let init_message = ClientMessage::Initial(InitMessage {
             pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
@@ -215,11 +215,11 @@ impl WgGatewayClient {
         }
     }
 
-    pub async fn suspended(&mut self) -> Result<bool> {
+    pub(crate) async fn suspended(&mut self) -> Result<bool> {
         Ok(self.query_bandwidth().await?.is_none())
     }
 
-    pub async fn run(mut self, mut shutdown: TaskClient) {
+    pub(crate) async fn run(mut self, mut shutdown: TaskClient) {
         let mut timeout_check_interval =
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
         // Skip the first, immediate tick
