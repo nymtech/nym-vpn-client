@@ -131,37 +131,42 @@ pub enum ErrorKey {
     /// Happens when the app is not connected to a running daemon
     /// and attempts to make a gRPC call
     NotConnectedToDaemon,
-    /// Forwarded from proto
-    ConnectionTimeout,
-    /// Forwarded from proto
-    ConnectionGatewayLookup,
-    /// Forwarded from proto
-    ConnectionNoValidCredential,
-    /// Forwarded from proto
-    ConnectionSameEntryAndExitGw,
-    /// Forwarded from proto
+    // Forwarded from proto `error::ErrorType`, connection state update
+    CStateNoValidCredential,
+    CStateTimeout,
+    CStateMixnetTimeout,
+    CStateMixnetStoragePaths,
+    CStateMixnetDefaultStorage,
+    CStateMixnetBuildClient,
+    CStateMixnetConnect,
+    CStateMixnetEntryGateway,
+    CStateIprFailedToConnect,
+    CStateGwDir,
+    CStateGwDirLookupGateways,
+    CStateGwDirLookupGatewayId,
+    CStateGwDirLookupRouterAddr,
+    CStateGwDirLookupIp,
+    CStateGwDirEntry,
+    CStateGwDirEntryId,
+    CStateGwDirEntryLocation,
+    CStateGwDirExit,
+    CStateGwDirExitLocation,
+    CStateGwDirSameEntryAndExitGw,
+    CStateOutOfBandwidth,
+    /// Import invalid credential format -> base58 decoding failed
     CredentialInvalid,
-    /// Forwarded from proto
+    // Forwarded from proto `import_error::ImportErrorType`
     CredentialVpnRunning,
-    /// Forwarded from proto
     CredentialAlreadyImported,
-    /// Forwarded from proto
     CredentialStorageError,
-    /// Forwarded from proto
     CredentialDeserializationFailure,
-    /// Forwarded from proto
     CredentialExpired,
-    /// Forwarded from proto
-    OutOfBandwidth,
-    /// Forwarded from proto `connection_status_update::StatusType`
+    // Forwarded from proto `connection_status_update::StatusType`
     EntryGatewayNotRouting,
-    /// Forwarded from proto `connection_status_update::StatusType`
     ExitRouterPingIpv4,
-    /// Forwarded from proto `connection_status_update::StatusType`
     ExitRouterNotRoutingIpv4,
-    /// Forwarded from proto `connection_status_update::StatusType`
     UserNoBandwidth,
-    /// Failure when querying countries from gRPC
+    // Failure when querying countries from gRPC
     GetEntryCountriesQuery,
     GetExitCountriesQuery,
 }
@@ -169,14 +174,34 @@ pub enum ErrorKey {
 impl From<DaemonError> for ErrorKey {
     fn from(value: DaemonError) -> Self {
         match value {
-            DaemonError::NoValidCredentials => ErrorKey::ConnectionNoValidCredential,
-            DaemonError::Timeout => ErrorKey::ConnectionTimeout,
-            DaemonError::GatewayDirectory => ErrorKey::ConnectionGatewayLookup,
-            DaemonError::GatewayDirectorySameEntryAndExitGw => {
-                ErrorKey::ConnectionSameEntryAndExitGw
+            DaemonError::NoValidCredentials => ErrorKey::CStateNoValidCredential,
+            DaemonError::Timeout => ErrorKey::CStateTimeout,
+            DaemonError::MixnetTimeout => ErrorKey::CStateMixnetTimeout,
+            DaemonError::MixnetStoragePaths => ErrorKey::CStateMixnetStoragePaths,
+            DaemonError::MixnetDefaultStorage => ErrorKey::CStateMixnetDefaultStorage,
+            DaemonError::MixnetBuildClient => ErrorKey::CStateMixnetBuildClient,
+            DaemonError::MixnetConnect => ErrorKey::CStateMixnetConnect,
+            DaemonError::MixnetEntryGateway => ErrorKey::CStateMixnetEntryGateway,
+            DaemonError::IprFailedToConnect => ErrorKey::CStateIprFailedToConnect,
+            DaemonError::GatewayDirectory => ErrorKey::CStateGwDir,
+            DaemonError::GatewayDirectoryLookupGateways => ErrorKey::CStateGwDirLookupGateways,
+            DaemonError::GatewayDirectoryLookupGatewayIdentity => {
+                ErrorKey::CStateGwDirLookupGatewayId
             }
-            DaemonError::OutOfBandwidth => ErrorKey::OutOfBandwidth,
-            _ => ErrorKey::UnknownError,
+            DaemonError::GatewayDirectoryLookupRouterAddress => {
+                ErrorKey::CStateGwDirLookupRouterAddr
+            }
+            DaemonError::GatewayDirectoryLookupIp => ErrorKey::CStateGwDirLookupIp,
+            DaemonError::GatewayDirectoryEntry => ErrorKey::CStateGwDirEntry,
+            DaemonError::GatewayDirectoryEntryId => ErrorKey::CStateGwDirEntryId,
+            DaemonError::GatewayDirectoryEntryLocation => ErrorKey::CStateGwDirEntryLocation,
+            DaemonError::GatewayDirectoryExit => ErrorKey::CStateGwDirExit,
+            DaemonError::GatewayDirectoryExitLocation => ErrorKey::CStateGwDirExitLocation,
+            DaemonError::GatewayDirectorySameEntryAndExitGw => {
+                ErrorKey::CStateGwDirSameEntryAndExitGw
+            }
+            DaemonError::OutOfBandwidth => ErrorKey::CStateOutOfBandwidth,
+            _ => ErrorKey::UnknownError, // `Unspecified` &  `Unhandled`
         }
     }
 }

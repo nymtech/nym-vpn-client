@@ -54,7 +54,7 @@ function Home() {
   };
 
   useEffect(() => {
-    if (error?.key === 'ConnectionNoValidCredential') {
+    if (error?.key === 'CStateNoValidCredential') {
       navigate(routes.credential);
       dispatch({ type: 'reset-error' });
     }
