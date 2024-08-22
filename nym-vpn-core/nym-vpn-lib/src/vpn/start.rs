@@ -4,8 +4,6 @@
 use futures::channel::{mpsc, oneshot};
 use log::{debug, error};
 
-#[cfg(target_os = "ios")]
-use crate::platform::swift::OSTunProvider;
 use crate::{
     error::Result,
     uniffi_custom_impls::{ExitStatus, StatusEvent},
