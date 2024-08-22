@@ -1,9 +1,8 @@
 use std::path::PathBuf;
 
 use nym_vpn_lib::{
-    credential_storage_pre_ecash::error::StorageError,
-    credentials::ImportCredentialError as VpnLibImportCredentialError, id_pre_ecash::NymIdError,
-    GatewayDirectoryError,
+    credentials::ImportCredentialError as VpnLibImportCredentialError, CredentialStorageError,
+    GatewayDirectoryError, NymIdError,
 };
 use time::OffsetDateTime;
 use tracing::error;
@@ -53,8 +52,8 @@ impl From<VpnLibImportCredentialError> for ImportCredentialError {
                         }
                     }
                     NymIdError::StorageError { source } => {
-                        if let Some(StorageError::ConstraintUnique) =
-                            source.downcast_ref::<StorageError>()
+                        if let Some(CredentialStorageError::ConstraintUnique) =
+                            source.downcast_ref::<CredentialStorageError>()
                         {
                             return ImportCredentialError::CredentialAlreadyImported;
                         }

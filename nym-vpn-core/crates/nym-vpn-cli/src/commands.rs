@@ -3,7 +3,7 @@
 
 use clap::{Args, Parser, Subcommand};
 use ipnetwork::{Ipv4Network, Ipv6Network};
-use nym_vpn_lib::nym_bin_common::bin_info_local_vergen;
+use nym_vpn_lib::bin_common::bin_info_local_vergen;
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,

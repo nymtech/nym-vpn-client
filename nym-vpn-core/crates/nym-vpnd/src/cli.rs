@@ -3,7 +3,7 @@
 
 use clap::Args;
 use clap::Parser;
-use nym_vpn_lib::nym_bin_common::bin_info_local_vergen;
+use nym_vpn_lib::bin_common::bin_info_local_vergen;
 use std::{path::PathBuf, sync::OnceLock};
 
 // Helper for passing LONG_VERSION to clap

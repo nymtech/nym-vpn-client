@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib::{
+    bin_common::bin_info_local_vergen,
     gateway_directory::{EntryPoint, ExitPoint, GatewayClient},
-    nym_bin_common::bin_info_local_vergen,
 };
 use time::OffsetDateTime;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};

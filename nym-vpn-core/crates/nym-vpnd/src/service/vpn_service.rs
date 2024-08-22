@@ -14,9 +14,9 @@ use futures::{
     SinkExt,
 };
 use nym_vpn_lib::{
+    bin_common::bin_info,
     credentials::import_credential,
     gateway_directory::{self, EntryPoint, ExitPoint},
-    nym_bin_common::bin_info,
     GenericNymVpnConfig, MixnetClientConfig, NodeIdentity, Recipient,
 };
 use nym_vpn_store::keys::KeyStore as _;
@@ -556,7 +556,7 @@ where
     }
 
     async fn handle_info(&self) -> VpnServiceInfoResult {
-        let bin_info = nym_vpn_lib::nym_bin_common::bin_info_local_vergen!();
+        let bin_info = nym_vpn_lib::bin_common::bin_info_local_vergen!();
         VpnServiceInfoResult {
             version: bin_info.build_version.to_string(),
             build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339).ok(),

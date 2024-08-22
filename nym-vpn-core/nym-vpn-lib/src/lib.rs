@@ -20,16 +20,19 @@ mod vpn;
 mod wg_gateway_client;
 mod wireguard_setup;
 
-pub use nym_bin_common;
+// Re-export some our nym dependencies
+pub use nym_bin_common as bin_common;
 pub use nym_config;
 pub use nym_connection_monitor as connection_monitor;
-pub use nym_credential_storage_pre_ecash as credential_storage_pre_ecash;
 pub use nym_gateway_directory as gateway_directory;
-pub use nym_id_pre_ecash as id_pre_ecash;
 
+pub use nym_credential_storage_pre_ecash::error::StorageError as CredentialStorageError;
+pub use nym_id_pre_ecash::error::NymIdError;
 pub use nym_ip_packet_requests::IpPair;
-pub use nym_sdk::mixnet::{NodeIdentity, Recipient, StoragePaths};
-pub use nym_sdk::UserAgent;
+pub use nym_sdk::{
+    mixnet::{NodeIdentity, Recipient, StoragePaths},
+    UserAgent,
+};
 pub use nym_task::{
     manager::{SentStatus, TaskStatus},
     StatusReceiver,
