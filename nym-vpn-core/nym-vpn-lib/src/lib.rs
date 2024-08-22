@@ -8,7 +8,6 @@ pub mod storage;
 pub mod util;
 
 mod bandwidth_controller;
-mod config;
 mod error;
 mod mixnet;
 mod platform;
@@ -18,6 +17,7 @@ mod tunnel_setup;
 mod uniffi_custom_impls;
 mod vpn;
 mod wg_gateway_client;
+mod wireguard_config;
 mod wireguard_setup;
 
 // Re-export some our nym dependencies

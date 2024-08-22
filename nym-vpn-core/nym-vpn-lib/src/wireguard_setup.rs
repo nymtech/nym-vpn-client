@@ -9,11 +9,11 @@ use talpid_tunnel::{tun_provider::TunProvider, TunnelEvent};
 use tracing::debug;
 
 use crate::{
-    config::WireguardConfig,
     error::Result,
     tunnel::{start_tunnel, Tunnel},
     tunnel_setup::WgTunnelSetup,
     vpn::WireguardConnectionInfo,
+    wireguard_config::WireguardConfig,
 };
 
 pub async fn create_wireguard_tunnel(

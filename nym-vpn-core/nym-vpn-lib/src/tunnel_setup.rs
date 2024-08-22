@@ -10,7 +10,7 @@ use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
 use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
 use crate::wg_gateway_client::WgGatewayClient;
 use crate::wireguard_setup::create_wireguard_tunnel;
-use crate::{config, mixnet};
+use crate::{mixnet, wireguard_config};
 use crate::{
     platform, routing,
     vpn::{
@@ -173,7 +173,7 @@ async fn setup_wg_tunnel(
         exit_auth_recipient,
     );
 
-    let (mut exit_wireguard_config, _) = config::init_wireguard_config(
+    let (mut exit_wireguard_config, _) = wireguard_config::init_wireguard_config(
         &gateway_directory_client,
         &mut wg_exit_gateway_client,
         None,
@@ -185,7 +185,7 @@ async fn setup_wg_tunnel(
         .peers
         .first()
         .map(|config| config.endpoint.ip());
-    let (mut entry_wireguard_config, entry_gateway_ip) = config::init_wireguard_config(
+    let (mut entry_wireguard_config, entry_gateway_ip) = wireguard_config::init_wireguard_config(
         &gateway_directory_client,
         &mut wg_entry_gateway_client,
         wg_gateway,
