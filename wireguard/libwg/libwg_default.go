@@ -87,10 +87,10 @@ func wgSetConfig(tunnelHandle int32, cSettings *C.char) int32 {
 	}
 	settings := C.GoString(cSettings)
 
-	err = tunnel.Device.IpcSetOperation(bufio.NewReader(strings.NewReader(settings)))
-	if err != nil {
+	setError := tunnel.Device.IpcSetOperation(bufio.NewReader(strings.NewReader(settings)))
+	if setError != nil {
 		tunnel.Logger.Errorf("Failed to set device configuration\n")
-		tunnel.Logger.Errorf("%s\n", err)
+		tunnel.Logger.Errorf("%s\n", setError)
 		return ERROR_GENERAL_FAILURE
 	}
 	return 0
