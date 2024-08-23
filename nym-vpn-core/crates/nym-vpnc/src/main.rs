@@ -102,7 +102,7 @@ async fn info(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
     let request = tonic::Request::new(InfoRequest {});
     let response = client.info(request).await?.into_inner();
-    println!("{:?}", response);
+    println!("{:#?}", response);
 
     if let Some(Ok(utc_build_timestamp)) = response.build_timestamp.map(parse_offset_datetime) {
         println!("build timestamp (utc): {:?}", utc_build_timestamp);

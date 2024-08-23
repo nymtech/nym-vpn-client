@@ -59,6 +59,16 @@ message Dns {
   string ip = 1;
 }
 
+message Url {
+  string url = 1;
+}
+
+message Endpoints {
+  Url nyxd_url = 1;
+  Url websocket_url = 2;
+  Url api_url = 3;
+}
+
 message InfoRequest {}
 
 message InfoResponse {
@@ -66,6 +76,9 @@ message InfoResponse {
   google.protobuf.Timestamp build_timestamp = 2;
   string triple = 3;
   string git_commit = 4;
+  string network_name = 5;
+  repeated Endpoints endpoints = 6;
+  Url nym_vpn_api_url = 7;
 }
 
 message Threshold {
