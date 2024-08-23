@@ -21,8 +21,10 @@ use tap::TapFallible;
 use tracing::{debug, error, info, trace};
 use tun2::AbstractDevice;
 
-use crate::error::Result;
-use crate::{MixnetVpn, NymVpn};
+use crate::{
+    error::Result,
+    vpn::{MixnetVpn, NymVpn},
+};
 
 const DEFAULT_TUN_MTU: u16 = 1500;
 

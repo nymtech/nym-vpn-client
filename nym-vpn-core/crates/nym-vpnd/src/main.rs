@@ -1,9 +1,17 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod cli;
+mod command_interface;
+mod logging;
+mod service;
+mod types;
+#[cfg(windows)]
+mod windows_service;
+
 use clap::Parser;
 use nym_task::TaskManager;
-use nym_vpn_lib::{nym_config::defaults::setup_env, SHUTDOWN_TIMER_SECS};
+use nym_vpn_lib::nym_config::defaults::setup_env;
 use tokio::sync::broadcast;
 
 use crate::{
@@ -13,13 +21,7 @@ use crate::{
     service::start_vpn_service,
 };
 
-mod cli;
-mod command_interface;
-mod logging;
-mod service;
-mod types;
-#[cfg(windows)]
-mod windows_service;
+const SHUTDOWN_TIMER_SECS: u64 = 10;
 
 fn run_inner(args: CliArgs) -> Result<(), Box<dyn std::error::Error>> {
     let task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpnd");

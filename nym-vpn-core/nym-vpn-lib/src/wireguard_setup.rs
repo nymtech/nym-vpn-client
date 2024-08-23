@@ -13,7 +13,7 @@ use crate::{
     error::Result,
     tunnel::{start_tunnel, Tunnel},
     tunnel_setup::WgTunnelSetup,
-    WireguardConnectionInfo,
+    vpn::WireguardConnectionInfo,
 };
 
 pub async fn create_wireguard_tunnel(

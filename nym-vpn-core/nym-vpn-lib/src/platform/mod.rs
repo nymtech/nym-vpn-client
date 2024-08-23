@@ -10,7 +10,7 @@ use crate::uniffi_custom_impls::{
     BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location, NymVpnStatus,
     StatusEvent, TunStatus, UserAgent,
 };
-use crate::{
+use crate::vpn::{
     spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
     NymVpnHandle, SpecificVpn,
 };
@@ -147,7 +147,7 @@ pub struct VPNConfig {
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
     #[cfg(target_os = "ios")]
-    pub tun_provider: Arc<dyn crate::OSTunProvider>,
+    pub tun_provider: Arc<dyn crate::swift::OSTunProvider>,
     pub credential_data_path: Option<PathBuf>,
     pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
 }

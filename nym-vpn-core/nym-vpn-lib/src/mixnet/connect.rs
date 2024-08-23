@@ -8,7 +8,7 @@ use tracing::{debug, info};
 
 use crate::{
     error::{Error, MixnetError, Result},
-    MixnetClientConfig,
+    vpn::MixnetClientConfig,
 };
 
 use super::SharedMixnetClient;

@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{error::*, tunnel_setup::WgTunnelSetup, NymVpnCtrlMessage};
+use crate::{error::*, tunnel_setup::WgTunnelSetup, vpn::NymVpnCtrlMessage};
 use futures::{channel::mpsc, StreamExt};
 use log::*;
 use talpid_routing::RouteManager;
