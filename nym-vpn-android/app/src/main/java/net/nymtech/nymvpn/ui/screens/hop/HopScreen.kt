@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.os.ConfigurationCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
@@ -56,12 +55,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import java.text.Collator
 
 @Composable
-fun HopScreen(
-	gatewayLocation: GatewayLocation,
-	appViewModel : AppViewModel,
-	appUiState: AppUiState,
-	viewModel: HopViewModel = hiltViewModel(),
-) {
+fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appUiState: AppUiState, viewModel: HopViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 

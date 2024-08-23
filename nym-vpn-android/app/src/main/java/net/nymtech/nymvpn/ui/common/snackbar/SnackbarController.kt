@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui.common.snackbar
 
-import android.content.Context
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
@@ -22,7 +21,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 private val LocalSnackbarController = staticCompositionLocalOf {
 	SnackbarController(
 		host = SnackbarHostState(),
-		scope = CoroutineScope(EmptyCoroutineContext)
+		scope = CoroutineScope(EmptyCoroutineContext),
 	)
 }
 private val channel = Channel<SnackbarChannelMessage>(capacity = Int.MAX_VALUE)
@@ -40,7 +39,7 @@ fun SnackbarControllerProvider(content: @Composable (snackbarHost: SnackbarHostS
 				snackController.showMessage(
 					message = payload.message.asString(context),
 					duration = payload.duration,
-					action = payload.action
+					action = payload.action,
 				)
 			}
 		}
@@ -52,7 +51,7 @@ fun SnackbarControllerProvider(content: @Composable (snackbarHost: SnackbarHostS
 
 	CompositionLocalProvider(LocalSnackbarController provides snackController) {
 		content(
-			snackHostState
+			snackHostState,
 		)
 	}
 }
@@ -68,27 +67,18 @@ class SnackbarController(
 			@ReadOnlyComposable
 			get() = LocalSnackbarController.current
 
-		fun showMessage(
-			message: StringValue,
-			action: SnackbarAction? = null,
-			duration: SnackbarDuration = SnackbarDuration.Short,
-		) {
+		fun showMessage(message: StringValue, action: SnackbarAction? = null, duration: SnackbarDuration = SnackbarDuration.Short) {
 			channel.trySend(
 				SnackbarChannelMessage(
 					message = message,
 					duration = duration,
-					action = action
-				)
+					action = action,
+				),
 			)
 		}
 	}
 
-
-	fun showMessage(
-		message: String,
-		action: SnackbarAction? = null,
-		duration: SnackbarDuration = SnackbarDuration.Short,
-	) {
+	fun showMessage(message: String, action: SnackbarAction? = null, duration: SnackbarDuration = SnackbarDuration.Short) {
 		scope.launch {
 			/**
 			 * note: uncomment this line if you want snackbar to be displayed immediately,
@@ -99,7 +89,7 @@ class SnackbarController(
 				host.showSnackbar(
 					message = message,
 					actionLabel = action?.title,
-					duration = duration
+					duration = duration,
 				)
 
 			if (result == SnackbarResult.ActionPerformed) {
@@ -114,6 +104,5 @@ data class SnackbarChannelMessage(
 	val action: SnackbarAction?,
 	val duration: SnackbarDuration = SnackbarDuration.Short,
 )
-
 
 data class SnackbarAction(val title: String, val onActionPress: () -> Unit)

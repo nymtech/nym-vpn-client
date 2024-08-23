@@ -13,7 +13,6 @@ import net.nymtech.logcatutil.model.LogMessage
 import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.module.MainDispatcher
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.FileUtils
 import net.nymtech.nymvpn.util.extensions.chunked
 import net.nymtech.nymvpn.util.extensions.shareFile
 import java.time.Duration
@@ -47,7 +46,7 @@ class LogsViewModel @Inject constructor(
 	fun shareLogs(context: Context) = viewModelScope.launch(ioDispatcher) {
 		val fileName = "${Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.txt"
 		val file = logCollect.getLogFile(fileName).getOrElse {
-			//TODO add error message
+			// TODO add error message
 			return@launch
 		}
 		context.shareFile(file)

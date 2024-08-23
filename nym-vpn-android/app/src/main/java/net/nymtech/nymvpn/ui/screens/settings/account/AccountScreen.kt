@@ -29,12 +29,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
@@ -161,7 +158,7 @@ fun AccountScreen(navController: NavController, appUiState: AppUiState) {
 					}
 				}
 				SurfaceSelectionGroupButton(
-					//TODO add device to state when we add this feature
+					// TODO add device to state when we add this feature
 					items =
 					emptyList<Device>().map {
 						SelectionItem(

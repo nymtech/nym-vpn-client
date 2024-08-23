@@ -29,7 +29,7 @@ constructor(
 	private val gatewayRepository: GatewayRepository,
 	@Native private val gatewayService: GatewayService,
 	private val tunnelManager: TunnelManager,
-	val navController: NavHostController
+	val navController: NavHostController,
 ) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(AppUiState())
@@ -113,5 +113,4 @@ constructor(
 			}
 		}
 	}
-
 }

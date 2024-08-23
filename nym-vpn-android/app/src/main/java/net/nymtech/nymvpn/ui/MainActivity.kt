@@ -1,7 +1,6 @@
 package net.nymtech.nymvpn.ui
 
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,12 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarData
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,17 +31,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.nymtech.localizationutil.LocaleStorage
 import net.nymtech.localizationutil.LocaleUtil
 import net.nymtech.nymvpn.NymVpn
-import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.module.IoDispatcher
-import net.nymtech.nymvpn.module.MainImmediateDispatcher
 import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
@@ -71,12 +60,8 @@ import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.resetTile
-import timber.log.Timber
 import java.util.Locale
-import javax.inject.Inject
 
 @AndroidEntryPoint
 @Keep
@@ -194,14 +179,14 @@ class MainActivity : ComponentActivity() {
 								HopScreen(
 									gatewayLocation = GatewayLocation.ENTRY,
 									appViewModel,
-									appState
+									appState,
 								)
 							}
 							composable(Destination.ExitLocation.route) {
 								HopScreen(
 									gatewayLocation = GatewayLocation.EXIT,
 									appViewModel,
-									appState
+									appState,
 								)
 							}
 							composable(Destination.Logs.route) { LogsScreen() }

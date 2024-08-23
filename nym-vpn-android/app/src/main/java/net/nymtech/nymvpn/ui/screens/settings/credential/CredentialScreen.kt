@@ -49,7 +49,6 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun CredentialScreen(viewModel: CredentialViewModel = hiltViewModel()) {
-
 	val context = LocalContext.current
 
 	val imeState = rememberImeState()

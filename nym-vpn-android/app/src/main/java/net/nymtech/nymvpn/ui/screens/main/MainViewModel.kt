@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.main
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
@@ -30,7 +29,7 @@ class MainViewModel
 constructor(
 	private val settingsRepository: SettingsRepository,
 	private val tunnelManager: TunnelManager,
-	val navController: NavHostController
+	val navController: NavHostController,
 ) : ViewModel() {
 	val uiState =
 		combine(

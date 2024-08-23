@@ -6,12 +6,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.waterfall
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -42,7 +39,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import net.nymtech.logcatutil.model.LogMessage
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.labels.LogTypeLabel
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
@@ -54,7 +50,6 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 	val scope = rememberCoroutineScope()
 
 	val context = LocalContext.current
-
 
 	val logs = viewModel.logs
 
@@ -69,7 +64,7 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 			NavigationBar(
 				containerColor = MaterialTheme.colorScheme.surface,
 				tonalElevation = 0.dp,
-				windowInsets = WindowInsets.ime
+				windowInsets = WindowInsets.ime,
 			) {
 				listOf(
 					NavigationBarItem(
@@ -80,14 +75,14 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 						label = {
 							Text(
 								text = stringResource(R.string.share),
-								style = MaterialTheme.typography.labelMedium
+								style = MaterialTheme.typography.labelMedium,
 							)
 						},
 						icon = {
 							val icon = Icons.Outlined.Share
 							Icon(
 								imageVector = icon,
-								contentDescription = icon.name
+								contentDescription = icon.name,
 							)
 						},
 					),
@@ -99,20 +94,20 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 						label = {
 							Text(
 								text = stringResource(R.string.delete),
-								style = MaterialTheme.typography.labelMedium
+								style = MaterialTheme.typography.labelMedium,
 							)
 						},
 						icon = {
 							val icon = Icons.Outlined.Delete
 							Icon(
 								imageVector = icon,
-								contentDescription = icon.name
+								contentDescription = icon.name,
 							)
 						},
-					)
+					),
 				)
 			}
-		}
+		},
 	) {
 		LazyColumn(
 			horizontalAlignment = Alignment.CenterHorizontally,

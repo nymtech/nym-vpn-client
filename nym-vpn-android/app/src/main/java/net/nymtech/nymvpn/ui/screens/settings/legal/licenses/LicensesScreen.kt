@@ -19,7 +19,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController

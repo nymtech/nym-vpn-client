@@ -134,7 +134,7 @@ fun Context.requestTileServiceStateUpdate() {
 	)
 }
 
-fun Context.shareFile(file : File) {
+fun Context.shareFile(file: File) {
 	val shareIntent: Intent = Intent().apply {
 		action = Intent.ACTION_SEND
 		setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -145,7 +145,7 @@ fun Context.shareFile(file : File) {
 	startActivity(Intent.createChooser(shareIntent, null))
 }
 
-//for localization changes
+// for localization changes
 fun Activity.resetTile() {
 	try {
 		val label = packageManager.getActivityInfo(componentName, PackageManager.GET_META_DATA).labelRes

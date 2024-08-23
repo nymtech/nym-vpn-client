@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
@@ -21,7 +20,6 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun DisplayScreen(appUiState: AppUiState, viewModel: DisplayViewModel = hiltViewModel()) {
-
 	Column(
 		horizontalAlignment = Alignment.Start,
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),

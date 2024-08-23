@@ -24,7 +24,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel

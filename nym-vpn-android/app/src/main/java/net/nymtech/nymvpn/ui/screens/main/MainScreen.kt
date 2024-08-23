@@ -79,12 +79,7 @@ import net.nymtech.vpn.Tunnel
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun MainScreen(
-	navController: NavController,
-	appUiState: AppUiState,
-	autoStart: Boolean,
-	viewModel: MainViewModel = hiltViewModel(),
-) {
+fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val snackbar = SnackbarController.current

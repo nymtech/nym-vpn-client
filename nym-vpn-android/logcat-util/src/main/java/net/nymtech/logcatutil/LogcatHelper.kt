@@ -120,7 +120,7 @@ object LogcatHelper {
 				}
 		}
 
-		override suspend fun getLogFile(name : String): Result<File> {
+		override suspend fun getLogFile(name: String): Result<File> {
 			stop()
 			return withContext(ioDispatcher) {
 				try {

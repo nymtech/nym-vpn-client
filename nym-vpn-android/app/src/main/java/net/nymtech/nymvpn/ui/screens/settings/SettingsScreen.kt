@@ -30,8 +30,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -52,11 +50,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.Tunnel
 
 @Composable
-fun SettingsScreen(
-	appViewModel: AppViewModel,
-	appUiState: AppUiState,
-	viewModel: SettingsViewModel = hiltViewModel(),
-) {
+fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: SettingsViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val navController = appViewModel.navController
 
