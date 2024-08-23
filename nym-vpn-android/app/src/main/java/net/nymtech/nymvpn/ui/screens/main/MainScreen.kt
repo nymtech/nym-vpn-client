@@ -46,13 +46,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
@@ -61,6 +59,7 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.countryIcon
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
@@ -69,10 +68,9 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.exceptions.NymVpnExceptions
 import net.nymtech.nymvpn.util.extensions.buildCountryNameString
 import net.nymtech.nymvpn.util.extensions.go
-import net.nymtech.nymvpn.util.extensions.isExpired
+import net.nymtech.nymvpn.util.extensions.isInvalid
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -83,13 +81,13 @@ import net.nymtech.vpn.Tunnel
 @Composable
 fun MainScreen(
 	navController: NavController,
-	appViewModel: AppViewModel,
 	appUiState: AppUiState,
 	autoStart: Boolean,
 	viewModel: MainViewModel = hiltViewModel(),
 ) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
+	val snackbar = SnackbarController.current
 	val scope = rememberCoroutineScope()
 
 	var didAutoStart by remember { mutableStateOf(false) }
@@ -102,25 +100,6 @@ fun MainScreen(
 			null
 		}
 
-	fun onConnectWithPermission() {
-		scope.launch {
-			viewModel.onConnect()
-				.onFailure {
-					appViewModel.showSnackbarMessage(context.getString(R.string.exception_cred_invalid))
-					navController.go(Destination.Credential.route)
-				}
-		}
-	}
-
-	fun requestNotificationPermissions(): Result<Unit> {
-		if (notificationPermissionState == null || notificationPermissionState.status.isGranted) return Result.success(Unit)
-		if (!notificationPermissionState.status.isGranted && !notificationPermissionState.status.shouldShowRationale
-		) {
-			notificationPermissionState.launchPermissionRequest()
-		}
-		return Result.failure(NymVpnExceptions.PermissionsNotGrantedException())
-	}
-
 	val vpnActivityResultState =
 		rememberLauncherForActivityResult(
 			ActivityResultContracts.StartActivityForResult(),
@@ -129,28 +108,26 @@ fun MainScreen(
 				if (!accepted) {
 					navController.go(Destination.Permission.createRoute(Permission.VPN))
 				} else {
-					onConnectWithPermission()
+					viewModel.onConnect()
 				}
 			},
 		)
 
-	fun onConnect() {
-		requestNotificationPermissions().onSuccess {
-			val intent = VpnService.prepare(context)
-			if (intent != null) {
-				vpnActivityResultState.launch(
-					intent,
-				)
-			} else {
-				onConnectWithPermission()
-			}
+	fun onConnectPressed() {
+		val intent = VpnService.prepare(context)
+		if (intent != null) {
+			vpnActivityResultState.launch(
+				intent,
+			)
+		} else {
+			viewModel.onConnect()
 		}
 	}
 
 	if (autoStart && !didAutoStart) {
 		LaunchedEffect(Unit) {
 			didAutoStart = true
-			onConnect()
+			onConnectPressed()
 			navController.navigateAndForget(Destination.Main.route)
 		}
 	}
@@ -247,7 +224,7 @@ fun MainScreen(
 							if (uiState.connectionState == ConnectionState.Disconnected) {
 								viewModel.onFiveHopSelected()
 							} else {
-								appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
+								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
 						selected = uiState.networkMode == Tunnel.Mode.FIVE_HOP_MIXNET,
@@ -260,7 +237,7 @@ fun MainScreen(
 							if (uiState.connectionState == ConnectionState.Disconnected) {
 								viewModel.onTwoHopSelected()
 							} else {
-								appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
+								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
 						selected = uiState.networkMode == Tunnel.Mode.TWO_HOP_MIXNET,
@@ -303,7 +280,7 @@ fun MainScreen(
 										Destination.EntryLocation.route,
 									)
 								} else {
-									appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
+									snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 								}
 							},
 					)
@@ -333,7 +310,7 @@ fun MainScreen(
 									Destination.ExitLocation.route,
 								)
 							} else {
-								appViewModel.showSnackbarMessage(context.getString(R.string.disabled_while_connected))
+								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
 				)
@@ -345,12 +322,11 @@ fun MainScreen(
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
 								scope.launch {
-									if (appUiState.credentialExpiryTime == null ||
-										appUiState.credentialExpiryTime.isExpired()
+									if (appUiState.settings.credentialExpiry.isInvalid()
 									) {
 										return@launch navController.go(Destination.Credential.route)
 									}
-									onConnect()
+									onConnectPressed()
 								}
 							},
 							content = {
@@ -371,7 +347,7 @@ fun MainScreen(
 					is ConnectionState.Connected ->
 						MainStyledButton(
 							testTag = Constants.DISCONNECT_TEST_TAG,
-							onClick = { viewModel.onDisconnect(context) },
+							onClick = { viewModel.onDisconnect() },
 							content = {
 								Text(
 									stringResource(id = R.string.disconnect),

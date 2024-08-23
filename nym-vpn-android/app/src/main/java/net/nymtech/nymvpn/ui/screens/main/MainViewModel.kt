@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui.screens.main
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -11,11 +12,14 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
+import net.nymtech.nymvpn.ui.Destination
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.model.StateMessage
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
+import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.vpn.Tunnel
 import net.nymtech.vpn.model.BackendMessage
 import javax.inject.Inject
@@ -26,6 +30,7 @@ class MainViewModel
 constructor(
 	private val settingsRepository: SettingsRepository,
 	private val tunnelManager: TunnelManager,
+	val navController: NavHostController
 ) : ViewModel() {
 	val uiState =
 		combine(
@@ -63,11 +68,14 @@ constructor(
 		settingsRepository.setVpnMode(Tunnel.Mode.FIVE_HOP_MIXNET)
 	}
 
-	suspend fun onConnect(): Result<Tunnel.State> {
-		return tunnelManager.start()
+	fun onConnect() = viewModelScope.launch {
+		tunnelManager.start().onFailure {
+			SnackbarController.showMessage(StringValue.StringResource(R.string.exception_cred_invalid))
+			navController.go(Destination.Credential.route)
+		}
 	}
 
-	fun onDisconnect(context: Context) = viewModelScope.launch {
+	fun onDisconnect() = viewModelScope.launch {
 		tunnelManager.stop()
 	}
 }

@@ -40,6 +40,7 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
+import net.nymtech.nymvpn.ui.screens.settings.account.model.Device
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.durationFromNow
@@ -49,10 +50,8 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.util.extensions.showToast
 
 @Composable
-fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState, navController: NavController, viewModel: AccountViewModel = hiltViewModel()) {
+fun AccountScreen(navController: NavController, appUiState: AppUiState) {
 	val context = LocalContext.current
-
-	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
 	val devicesDisabled = true
 
@@ -76,7 +75,7 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState, navControl
 				horizontalAlignment = Alignment.Start,
 				modifier = Modifier.fillMaxSize(),
 			) {
-				appUiState.credentialExpiryTime?.let {
+				appUiState.settings.credentialExpiry?.let {
 					val credentialDuration = it.durationFromNow()
 					val days = credentialDuration.toDaysPart()
 					val hours = credentialDuration.toHoursPart()
@@ -162,8 +161,9 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState, navControl
 					}
 				}
 				SurfaceSelectionGroupButton(
+					//TODO add device to state when we add this feature
 					items =
-					uiState.devices.map {
+					emptyList<Device>().map {
 						SelectionItem(
 							ImageVector.vectorResource(it.type.icon()),
 							trailing = {

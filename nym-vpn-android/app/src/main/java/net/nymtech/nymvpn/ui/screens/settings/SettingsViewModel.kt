@@ -17,14 +17,6 @@ class SettingsViewModel
 constructor(
 	private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
-	val uiState =
-		settingsRepository.settingsFlow.map {
-			SettingsUiState(it.firstHopSelectionEnabled, it.autoStartEnabled, it.isShortcutsEnabled)
-		}.stateIn(
-			viewModelScope,
-			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
-			SettingsUiState(),
-		)
 
 	fun onAutoConnectSelected(selected: Boolean) = viewModelScope.launch {
 		settingsRepository.setAutoStart(selected)

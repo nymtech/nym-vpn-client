@@ -22,13 +22,15 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hiltViewModel()) {
+fun LicensesScreen(viewModel: LicensesViewModel = hiltViewModel()) {
 	val context = LocalContext.current
+	val snackbar = SnackbarController.current
 	val licenses = viewModel.licenses
 
 	val licenseComparator = compareBy<Artifact> { it.name?.lowercase() }
@@ -84,7 +86,7 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 							if (artifact.scm != null) {
 								context.openWebUrl(artifact.scm.url)
 							} else {
-								appViewModel.showSnackbarMessage(
+								snackbar.showMessage(
 									context.getString(R.string.no_scm_found),
 								)
 							}

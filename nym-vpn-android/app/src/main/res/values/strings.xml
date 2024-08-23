@@ -152,4 +152,6 @@
 	<string name="always_on_message">Not working? Make sure Always-on VPN is disable for other apps in</string>
 	<string name="vpn_settings">VPN system settings</string>
 	<string name="try_again">and try to reconnect</string>
+	<string name="share">Share</string>
+	<string name="delete">Delete</string>
 </resources>

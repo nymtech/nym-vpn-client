@@ -18,14 +18,6 @@ class DisplayViewModel
 constructor(
 	private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
-	val uiState =
-		settingsRepository.settingsFlow.map {
-			DisplayUiState(false, it.theme ?: Theme.default())
-		}.stateIn(
-			viewModelScope,
-			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
-			DisplayUiState(),
-		)
 
 	fun onThemeChange(theme: Theme) = viewModelScope.launch {
 		settingsRepository.setTheme(theme)

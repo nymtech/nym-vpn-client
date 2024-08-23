@@ -44,7 +44,7 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.durationFromNow
 import net.nymtech.nymvpn.util.extensions.go
-import net.nymtech.nymvpn.util.extensions.isExpired
+import net.nymtech.nymvpn.util.extensions.isInvalid
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -53,14 +53,12 @@ import net.nymtech.vpn.Tunnel
 
 @Composable
 fun SettingsScreen(
-	navController: NavController,
 	appViewModel: AppViewModel,
 	appUiState: AppUiState,
 	viewModel: SettingsViewModel = hiltViewModel(),
 ) {
 	val context = LocalContext.current
-
-	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+	val navController = appViewModel.navController
 
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -72,7 +70,7 @@ fun SettingsScreen(
 			.padding(top = 24.dp)
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
-		if (appUiState.credentialExpiryTime == null || appUiState.credentialExpiryTime.isExpired()) {
+		if (appUiState.settings.credentialExpiry.isInvalid()) {
 			MainStyledButton(
 				onClick = { navController.go(Destination.Credential.route) },
 				content = {
@@ -84,7 +82,7 @@ fun SettingsScreen(
 				color = MaterialTheme.colorScheme.primary,
 			)
 		} else {
-			appUiState.credentialExpiryTime.let {
+			appUiState.settings.credentialExpiry?.let {
 				val credentialDuration = it.durationFromNow()
 				val days = credentialDuration.toDaysPart()
 				val hours = credentialDuration.toHoursPart()
@@ -122,7 +120,7 @@ fun SettingsScreen(
 					ImageVector.vectorResource(R.drawable.auto),
 					{
 						ScaledSwitch(
-							uiState.isAutoConnectEnabled,
+							appUiState.settings.autoStartEnabled,
 							onClick = { viewModel.onAutoConnectSelected(it) },
 							modifier =
 							Modifier
@@ -149,7 +147,7 @@ fun SettingsScreen(
 					Icons.Outlined.AppShortcut,
 					{
 						ScaledSwitch(
-							uiState.isApplicationShortcutsEnabled,
+							appUiState.settings.isShortcutsEnabled,
 							onClick = { viewModel.onAppShortcutsSelected(it) },
 							modifier =
 							Modifier
@@ -179,7 +177,7 @@ fun SettingsScreen(
 					ImageVector.vectorResource(R.drawable.two),
 					{
 						ScaledSwitch(
-							uiState.isFirstHopSelectionEnabled,
+							appUiState.settings.firstHopSelectionEnabled,
 							onClick = { appViewModel.onEntryLocationSelected(it) },
 							modifier =
 							Modifier

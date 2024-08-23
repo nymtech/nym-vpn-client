@@ -13,14 +13,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun DisplayScreen(viewModel: DisplayViewModel = hiltViewModel()) {
-	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+fun DisplayScreen(appUiState: AppUiState, viewModel: DisplayViewModel = hiltViewModel()) {
 
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -37,17 +37,17 @@ fun DisplayScreen(viewModel: DisplayViewModel = hiltViewModel()) {
 			onClick = {
 				viewModel.onThemeChange(Theme.AUTOMATIC)
 			},
-			selected = uiState.theme == Theme.AUTOMATIC,
+			selected = appUiState.settings.theme == Theme.AUTOMATIC,
 		)
 		IconSurfaceButton(
 			title = stringResource(R.string.light_theme),
 			onClick = { viewModel.onThemeChange(Theme.LIGHT_MODE) },
-			selected = uiState.theme == Theme.LIGHT_MODE,
+			selected = appUiState.settings.theme == Theme.LIGHT_MODE,
 		)
 		IconSurfaceButton(
 			title = stringResource(R.string.dark_theme),
 			onClick = { viewModel.onThemeChange(Theme.DARK_MODE) },
-			selected = uiState.theme == Theme.DARK_MODE,
+			selected = appUiState.settings.theme == Theme.DARK_MODE,
 		)
 	}
 }
