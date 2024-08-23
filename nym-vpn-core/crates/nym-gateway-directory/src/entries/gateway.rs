@@ -10,7 +10,7 @@ use tracing::error;
 use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
 
 // Decimal between 0 and 1 representing the performance of a gateway, measured over 24h.
-type Perfomance = f64;
+type Performance = u8;
 
 #[derive(Clone, Debug)]
 pub struct Gateway {
@@ -22,7 +22,7 @@ pub struct Gateway {
     pub host: Option<nym_topology::NetworkAddress>,
     pub clients_ws_port: Option<u16>,
     pub clients_wss_port: Option<u16>,
-    pub performance: Option<Perfomance>,
+    pub performance: Option<Performance>,
 }
 
 impl Gateway {

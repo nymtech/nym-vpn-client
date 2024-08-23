@@ -27,7 +27,7 @@ use tracing::{error, info};
 use super::{
     connection_handler::CommandInterfaceConnectionHandler,
     error::CommandInterfaceError,
-    helpers::{parse_entry_point, parse_exit_point},
+    helpers::{parse_entry_point, parse_exit_point, threshold_into_u8},
     status_broadcaster::ConnectionStatusBroadcaster,
 };
 use crate::service::{
@@ -276,8 +276,13 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ListEntryGatewaysResponse>, tonic::Status> {
         info!("Got list entry gateways request: {:?}", request);
 
+        let min_gateway_performance = request
+            .into_inner()
+            .min_gateway_performance
+            .map(threshold_into_u8);
+
         let entry_gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_entry_gateways()
+            .handle_list_entry_gateways(min_gateway_performance)
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list entry gateways: {:?}", err);
@@ -305,8 +310,13 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ListExitGatewaysResponse>, tonic::Status> {
         info!("Got list exit gateways request: {:?}", request);
 
+        let min_gateway_performance = request
+            .into_inner()
+            .min_gateway_performance
+            .map(threshold_into_u8);
+
         let exit_gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_exit_gateways()
+            .handle_list_exit_gateways(min_gateway_performance)
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list exit gateways: {:?}", err);
@@ -334,8 +344,13 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ListEntryCountriesResponse>, tonic::Status> {
         info!("Got list entry countries request: {request:?}");
 
+        let min_gateway_performance = request
+            .into_inner()
+            .min_gateway_performance
+            .map(threshold_into_u8);
+
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_entry_countries()
+            .handle_list_entry_countries(min_gateway_performance)
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list entry countries: {:?}", err);
@@ -363,8 +378,13 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ListExitCountriesResponse>, tonic::Status> {
         info!("Got list exit countries request: {request:?}");
 
+        let min_gateway_performance = request
+            .into_inner()
+            .min_gateway_performance
+            .map(threshold_into_u8);
+
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_exit_countries()
+            .handle_list_exit_countries(min_gateway_performance)
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list exit countries: {:?}", err);
@@ -438,9 +458,8 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             enable_poisson_rate: request.enable_poisson_rate,
             disable_background_cover_traffic: request.disable_background_cover_traffic,
             enable_credentials_mode: request.enable_credentials_mode,
-            min_mixnode_performance: request
-                .min_mixnode_performance
-                .map(|t| t.min_performance.min(100) as u8),
+            min_mixnode_performance: request.min_mixnode_performance.map(threshold_into_u8),
+            min_gateway_performance: request.min_gateway_performance.map(threshold_into_u8),
         })
     }
 }

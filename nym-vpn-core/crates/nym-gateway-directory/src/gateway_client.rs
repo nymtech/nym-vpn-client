@@ -18,10 +18,13 @@ use std::{fmt, net::IpAddr, time::Duration};
 use tracing::{debug, error, info};
 use url::Url;
 
+const DIRECTORY_CLIENT_TIMEOUT: Duration = Duration::from_secs(20);
+
 #[derive(Clone, Debug)]
 pub struct Config {
     pub api_url: Url,
     pub nym_vpn_api_url: Option<Url>,
+    pub min_gateway_performance: Option<u8>,
 }
 
 impl Default for Config {
@@ -65,10 +68,11 @@ impl Config {
         Config {
             api_url: default_api_url,
             nym_vpn_api_url: Some(default_nym_vpn_api_url),
+            min_gateway_performance: None,
         }
     }
 
-    pub fn new_from_env() -> Self {
+    pub fn new_from_env(min_gateway_performance: Option<u8>) -> Self {
         let network = nym_sdk::NymNetworkDetails::new_from_env();
         let api_url = network
             .endpoints
@@ -83,13 +87,7 @@ impl Config {
         Config {
             api_url,
             nym_vpn_api_url,
-        }
-    }
-
-    pub fn new_from_urls(api_url: Url, nym_vpn_api_url: Option<Url>) -> Self {
-        Config {
-            api_url,
-            nym_vpn_api_url,
+            min_gateway_performance,
         }
     }
 
@@ -110,11 +108,21 @@ impl Config {
         self.nym_vpn_api_url = Some(nym_vpn_api_url);
         self
     }
+
+    pub fn min_gateway_performance(&self) -> Option<u8> {
+        self.min_gateway_performance
+    }
+
+    pub fn with_custom_min_gateway_performance(mut self, min_gateway_performance: u8) -> Self {
+        self.min_gateway_performance = Some(min_gateway_performance);
+        self
+    }
 }
 
 pub struct GatewayClient {
     api_client: NymApiClient,
     nym_vpn_api_client: Option<nym_vpn_api_client::Client>,
+    min_gateway_performance: Option<u8>,
 }
 
 impl GatewayClient {
@@ -125,7 +133,7 @@ impl GatewayClient {
                 nym_vpn_api_client::ClientBuilder::new(url)
                     .map_err(nym_vpn_api_client::VpnApiClientError::from)?
                     .with_user_agent(user_agent)
-                    .with_timeout(Duration::from_secs(10))
+                    .with_timeout(DIRECTORY_CLIENT_TIMEOUT)
                     .build()?,
             )
         } else {
@@ -135,6 +143,7 @@ impl GatewayClient {
         Ok(GatewayClient {
             api_client,
             nym_vpn_api_client,
+            min_gateway_performance: config.min_gateway_performance,
         })
     }
 
@@ -235,6 +244,7 @@ impl GatewayClient {
             let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
             append_ipr_and_authenticator_addresses(&mut gateways, described_gateways);
             append_performance(&mut gateways, basic_gw);
+            filter_on_min_performance(&mut gateways, self.min_gateway_performance);
             Ok(GatewayList::new(gateways))
         } else {
             self.lookup_all_gateways_from_nym_api().await
@@ -261,6 +271,7 @@ impl GatewayClient {
             let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
             append_ipr_and_authenticator_addresses(&mut entry_gateways, described_gateways);
             append_performance(&mut entry_gateways, basic_gw);
+            filter_on_min_performance(&mut entry_gateways, self.min_gateway_performance);
             Ok(GatewayList::new(entry_gateways))
         } else {
             self.lookup_entry_gateways_from_nym_api().await
@@ -287,6 +298,7 @@ impl GatewayClient {
             let basic_gw = self.api_client.get_basic_gateways(None).await.unwrap();
             append_ipr_and_authenticator_addresses(&mut exit_gateways, described_gateways);
             append_performance(&mut exit_gateways, basic_gw);
+            filter_on_min_performance(&mut exit_gateways, self.min_gateway_performance);
             Ok(GatewayList::new(exit_gateways))
         } else {
             self.lookup_exit_gateways_from_nym_api().await
@@ -294,6 +306,17 @@ impl GatewayClient {
     }
 
     pub async fn lookup_entry_countries(&self) -> Result<Vec<Country>> {
+        // Workaround until we can pass a threshold parameter directly to the nym-vpn-api.
+        // Get the full list, which is filtered, and get the countries from that.
+        if let Some(min_gateway_performance) = self.min_gateway_performance {
+            if min_gateway_performance != 50 {
+                return self
+                    .lookup_entry_gateways()
+                    .await
+                    .map(|list| list.all_countries());
+            }
+        }
+
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching entry countries from nym-vpn-api...");
             Ok(nym_vpn_api_client
@@ -310,6 +333,17 @@ impl GatewayClient {
     }
 
     pub async fn lookup_exit_countries(&self) -> Result<Vec<Country>> {
+        // Workaround until we can pass a threshold parameter directly to the nym-vpn-api.
+        // Get the full list, which is filtered, and get the countries from that.
+        if let Some(min_gateway_performance) = self.min_gateway_performance {
+            if min_gateway_performance != 50 {
+                return self
+                    .lookup_exit_gateways()
+                    .await
+                    .map(|list| list.all_countries());
+            }
+        }
+
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
             info!("Fetching exit countries from nym-vpn-api...");
             Ok(nym_vpn_api_client
@@ -374,13 +408,19 @@ fn append_performance(
             .iter()
             .find(|bgw| bgw.ed25519_identity_pubkey == gateway.identity().to_base58_string())
         {
-            gateway.performance = Some(basic_gw.performance.round_to_integer() as f64 / 100.0);
+            gateway.performance = Some(basic_gw.performance.round_to_integer());
         } else {
             error!(
                 "Failed to find skimmed node for gateway with identity {}",
                 gateway.identity()
             );
         }
+    }
+}
+
+fn filter_on_min_performance(gateways: &mut Vec<Gateway>, min_gateway_performance: Option<u8>) {
+    if let Some(min_performance) = min_gateway_performance {
+        gateways.retain(|gateway| gateway.performance.unwrap_or(0) >= min_performance);
     }
 }
 

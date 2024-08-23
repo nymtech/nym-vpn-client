@@ -92,7 +92,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
 }
 
 async fn lookup_gateways() -> anyhow::Result<GatewayList> {
-    let gateway_config = GatewayDirectoryConfig::new_from_env();
+    let gateway_config = GatewayDirectoryConfig::new_from_env(None);
     info!("nym-api: {}", gateway_config.api_url());
     info!(
         "nym-vpn-api: {}",

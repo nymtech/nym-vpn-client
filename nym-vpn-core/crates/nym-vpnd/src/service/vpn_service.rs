@@ -158,6 +158,7 @@ pub(crate) struct ConnectOptions {
     pub(crate) disable_background_cover_traffic: bool,
     pub(crate) enable_credentials_mode: bool,
     pub(crate) min_mixnode_performance: Option<u8>,
+    pub(crate) min_gateway_performance: Option<u8>,
 }
 
 #[derive(Debug)]
@@ -474,10 +475,12 @@ where
                 disable_background_cover_traffic: options.disable_background_cover_traffic,
                 enable_credentials_mode: options.enable_credentials_mode,
                 min_mixnode_performance: options.min_mixnode_performance,
-                min_gateway_performance: None,
+                min_gateway_performance: options.min_gateway_performance,
             },
             data_path: Some(self.data_dir.clone()),
-            gateway_config: gateway_directory::Config::new_from_env(),
+            gateway_config: gateway_directory::Config::new_from_env(
+                options.min_gateway_performance,
+            ),
             entry_point: config.entry_point.clone(),
             exit_point: config.exit_point.clone(),
             nym_ips: None,

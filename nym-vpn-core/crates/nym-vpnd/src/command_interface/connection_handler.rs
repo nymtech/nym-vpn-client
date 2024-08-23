@@ -138,8 +138,9 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_entry_gateways(
         &self,
+        min_gateway_performance: Option<u8>,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
-        let gateways = directory_client()?
+        let gateways = directory_client(min_gateway_performance)?
             .lookup_entry_gateways()
             .await
             .map_err(|error| ListGatewayError::GetEntryGateways { error })?;
@@ -149,8 +150,9 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_exit_gateways(
         &self,
+        min_gateway_performance: Option<u8>,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
-        let gateways = directory_client()?
+        let gateways = directory_client(min_gateway_performance)?
             .lookup_exit_gateways()
             .await
             .map_err(|error| ListGatewayError::GetExitGateways { error })?;
@@ -160,8 +162,9 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_entry_countries(
         &self,
+        min_gateway_performance: Option<u8>,
     ) -> Result<Vec<gateway::Country>, ListGatewayError> {
-        let gateways = directory_client()?
+        let gateways = directory_client(min_gateway_performance)?
             .lookup_entry_countries()
             .await
             .map_err(|error| ListGatewayError::GetEntryGateways { error })?;
@@ -171,8 +174,9 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_list_exit_countries(
         &self,
+        min_gateway_performance: Option<u8>,
     ) -> Result<Vec<gateway::Country>, ListGatewayError> {
-        let gateways = directory_client()?
+        let gateways = directory_client(min_gateway_performance)?
             .lookup_exit_countries()
             .await
             .map_err(|error| ListGatewayError::GetExitGateways { error })?;
@@ -196,9 +200,12 @@ impl CommandInterfaceConnectionHandler {
     }
 }
 
-fn directory_client() -> Result<GatewayClient, ListGatewayError> {
+fn directory_client(
+    min_gateway_performance: Option<u8>,
+) -> Result<GatewayClient, ListGatewayError> {
     let user_agent = bin_info_local_vergen!().into();
-    let directory_config = nym_vpn_lib::gateway_directory::Config::new_from_env();
+    let directory_config =
+        nym_vpn_lib::gateway_directory::Config::new_from_env(min_gateway_performance);
     GatewayClient::new(directory_config, user_agent)
         .map_err(|error| ListGatewayError::CreateGatewayDirectoryClient { error })
 }

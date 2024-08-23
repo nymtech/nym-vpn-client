@@ -78,3 +78,7 @@ pub(super) fn parse_exit_point(
         }
     })
 }
+
+pub(super) fn threshold_into_u8(threshold: nym_vpn_proto::Threshold) -> u8 {
+    threshold.min_performance.clamp(0, 100) as u8
+}

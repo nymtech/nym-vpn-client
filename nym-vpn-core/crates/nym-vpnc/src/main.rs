@@ -42,10 +42,18 @@ async fn main() -> Result<()> {
         Command::StoreAccount(ref store_args) => store_account(client_type, store_args).await?,
         Command::ListenToStatus => listen_to_status(client_type).await?,
         Command::ListenToStateChanges => listen_to_state_changes(client_type).await?,
-        Command::ListEntryGateways => list_entry_gateways(client_type).await?,
-        Command::ListExitGateways => list_exit_gateways(client_type).await?,
-        Command::ListEntryCountries => list_entry_countries(client_type).await?,
-        Command::ListExitCountries => list_exit_countries(client_type).await?,
+        Command::ListEntryGateways(ref list_args) => {
+            list_entry_gateways(client_type, list_args).await?
+        }
+        Command::ListExitGateways(ref list_args) => {
+            list_exit_gateways(client_type, list_args).await?
+        }
+        Command::ListEntryCountries(ref list_args) => {
+            list_entry_countries(client_type, list_args).await?
+        }
+        Command::ListExitCountries(ref list_args) => {
+            list_exit_countries(client_type, list_args).await?
+        }
     }
     Ok(())
 }
@@ -64,6 +72,7 @@ async fn connect(client_type: ClientType, connect_args: &cli::ConnectArgs) -> Re
         disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
         enable_credentials_mode: connect_args.enable_credentials_mode,
         min_mixnode_performance: connect_args.min_mixnode_performance.map(into_threshold),
+        min_gateway_performance: connect_args.min_gateway_performance.map(into_threshold),
     });
 
     let mut client = vpnd_client::get_client(client_type).await?;
@@ -173,9 +182,14 @@ async fn listen_to_state_changes(client_type: ClientType) -> Result<()> {
     Ok(())
 }
 
-async fn list_entry_gateways(client_type: ClientType) -> Result<()> {
+async fn list_entry_gateways(
+    client_type: ClientType,
+    list_args: &cli::ListEntryGatewaysArgs,
+) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(ListEntryGatewaysRequest {});
+    let request = tonic::Request::new(ListEntryGatewaysRequest {
+        min_gateway_performance: list_args.min_gateway_performance.map(into_threshold),
+    });
     let response = client.list_entry_gateways(request).await?.into_inner();
     println!("{:#?}", response);
 
@@ -191,9 +205,14 @@ async fn list_entry_gateways(client_type: ClientType) -> Result<()> {
     Ok(())
 }
 
-async fn list_exit_gateways(client_type: ClientType) -> Result<()> {
+async fn list_exit_gateways(
+    client_type: ClientType,
+    list_args: &cli::ListExitGatewaysArgs,
+) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(ListExitGatewaysRequest {});
+    let request = tonic::Request::new(ListExitGatewaysRequest {
+        min_gateway_performance: list_args.min_gateway_performance.map(into_threshold),
+    });
     let response = client.list_exit_gateways(request).await?.into_inner();
     println!("{:#?}", response);
 
@@ -209,17 +228,27 @@ async fn list_exit_gateways(client_type: ClientType) -> Result<()> {
     Ok(())
 }
 
-async fn list_entry_countries(client_type: ClientType) -> Result<()> {
+async fn list_entry_countries(
+    client_type: ClientType,
+    list_args: &cli::ListEntryCountriesArgs,
+) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(ListEntryCountriesRequest {});
+    let request = tonic::Request::new(ListEntryCountriesRequest {
+        min_gateway_performance: list_args.min_gateway_performance.map(into_threshold),
+    });
     let response = client.list_entry_countries(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn list_exit_countries(client_type: ClientType) -> Result<()> {
+async fn list_exit_countries(
+    client_type: ClientType,
+    list_args: &cli::ListExitCountriesArgs,
+) -> Result<()> {
     let mut client = vpnd_client::get_client(client_type).await?;
-    let request = tonic::Request::new(ListExitCountriesRequest {});
+    let request = tonic::Request::new(ListExitCountriesRequest {
+        min_gateway_performance: list_args.min_gateway_performance.map(into_threshold),
+    });
     let response = client.list_exit_countries(request).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
