@@ -5,6 +5,7 @@ import ConfigurationManager
 import Home
 import Extensions
 import KeyboardManager
+import NotificationManager
 import NymLogger
 import SentryManager
 import Theme
@@ -47,6 +48,7 @@ private extension NymVPNApp {
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
         ConfigurationManager.configureMainnetEnvironmentVariables()
+        NotificationsManager.shared.setup()
     }
 
     func configureScreenSize() {

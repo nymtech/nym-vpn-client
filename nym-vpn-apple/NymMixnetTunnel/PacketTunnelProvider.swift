@@ -1,4 +1,6 @@
 import NetworkExtension
+import UIKit
+import UserNotifications
 import Logging
 import NymLogger
 import MixnetLibrary
@@ -75,6 +77,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         } catch let error {
             logger.log(level: .error, "Stop tunnel reason: \(reason), error: \(error)")
         }
+        displayDisconnectNotification(reason: reason)
     }
 }
 
@@ -108,6 +111,28 @@ private extension PacketTunnelProvider {
 
         if let error = systemError {
             throw error
+        }
+    }
+}
+
+// MARK: - Notifications -
+private extension PacketTunnelProvider {
+    func displayDisconnectNotification(reason: NEProviderStopReason) {
+        let content = UNMutableNotificationContent()
+        content.title = "VPN Disconnected"
+        content.body = "The VPN connection was disconnected"
+        content.sound = UNNotificationSound.default
+
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: nil
+        )
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                self.logger.log(level: .error, "Failed to schedule disconnect notification: \(error)")
+            }
         }
     }
 }

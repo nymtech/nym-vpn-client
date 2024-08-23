@@ -41,6 +41,7 @@
 		D99820982BB6E8D9000C1FEE /* MixnetLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = D99820972BB6E8D9000C1FEE /* MixnetLibrary */; };
 		D99A147A2B357E9900F2728B /* NymVPNApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99A14792B357E9900F2728B /* NymVPNApp.swift */; };
 		D99A148C2B35A74200F2728B /* Theme in Frameworks */ = {isa = PBXBuildFile; productRef = D99A148B2B35A74200F2728B /* Theme */; };
+		D9A229B42C621D690075695D /* NotificationManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9A229B32C621D690075695D /* NotificationManager */; };
 		D9ABF2842BF4989B009089FA /* Shell in Frameworks */ = {isa = PBXBuildFile; productRef = D9ABF2832BF4989B009089FA /* Shell */; };
 		D9AC152E2BF3845E0041E334 /* net.nymtech.vpn.helper in Embed Helper Tool */ = {isa = PBXBuildFile; fileRef = D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		D9B7BAF82C4866A0005AF2D6 /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9B7BAF72C4866A0005AF2D6 /* NymLogger */; };
@@ -210,6 +211,7 @@
 				D92FBA2D2C6B6AB800D743DF /* ConfigurationManager in Frameworks */,
 				D9870CF32BE3A12800551A86 /* Home in Frameworks */,
 				D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */,
+				D9A229B42C621D690075695D /* NotificationManager in Frameworks */,
 				D9CD835D2B6C32D4008DA864 /* Modifiers in Frameworks */,
 				D9D483582BEBA72F0005A41C /* UIComponents in Frameworks */,
 			);
@@ -441,6 +443,7 @@
 				D924A8E52C33F3D400465E84 /* ExternalLinkManager */,
 				D9B7BAFB2C4866AF005AF2D6 /* NymLogger */,
 				D92FBA2C2C6B6AB800D743DF /* ConfigurationManager */,
+				D9A229B32C621D690075695D /* NotificationManager */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -1253,6 +1256,10 @@
 		D99A148B2B35A74200F2728B /* Theme */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Theme;
+		};
+		D9A229B32C621D690075695D /* NotificationManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NotificationManager;
 		};
 		D9ABF2832BF4989B009089FA /* Shell */ = {
 			isa = XCSwiftPackageProductDependency;

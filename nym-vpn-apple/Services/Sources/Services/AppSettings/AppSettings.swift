@@ -42,6 +42,10 @@ public final class AppSettings: ObservableObject {
     public var connectionType: Int?
     @AppStorage(AppSettingKey.lastConnectionIntent.rawValue)
     public var lastConnectionIntent: String?
+    @AppStorage(AppSettingKey.didConnectSuccessfullyOnce.rawValue)
+    public var didConnectSuccessfullyOnce = false
+    @AppStorage(AppSettingKey.didAskForNotificationPermission.rawValue)
+    public var didAskForNotificationPermission = false
 
     // Observed values for view models
     @Published public var isEntryLocationSelectionOnPublisher = false
@@ -70,4 +74,6 @@ enum AppSettingKey: String {
     case exitCountry
     case connectionType
     case lastConnectionIntent
+    case didConnectSuccessfullyOnce
+    case didAskForNotificationPermission
 }
