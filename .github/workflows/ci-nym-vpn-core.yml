@@ -95,6 +95,7 @@ jobs:
 
       - name: set rust flags
         working-directory: nym-vpn-core
+        shell: bash
         run: |
           case  "$(uname -s)" in
             Darwin*) echo "export RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-darwin -L ${GITHUB_WORKSPACE}/build/lib/aarch64-linux-android -L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-ios";;" >> $GITHUB_ENV 
