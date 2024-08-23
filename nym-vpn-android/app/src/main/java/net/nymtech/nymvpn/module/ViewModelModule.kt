@@ -11,7 +11,7 @@ import net.nymtech.nymvpn.ui.common.navigation.NavigationService
 
 @Module
 @InstallIn(ViewModelComponent::class)
-object NavigationModule {
+object ViewModelModule {
 	@Provides
 	fun provideNestedNavController(@ApplicationContext context: Context): NavHostController {
 		return NavigationService(context).navController
