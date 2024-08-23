@@ -1,0 +1,28 @@
+[package]
+name = "nym-wg-gateway-client"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+nym-authenticator-requests.workspace = true
+nym-crypto.workspace = true
+nym-node-requests.workspace = true
+nym-pemstore.workspace = true
+nym-sdk.workspace = true
+nym-wireguard-types.workspace = true
+rand.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = [ "process", "rt-multi-thread", "fs", "sync", ] }
+tokio-stream.workspace = true
+tracing.workspace = true
+
+nym-authenticator-client = { path = "../nym-authenticator-client" }
+nym-gateway-directory = { path = "../nym-gateway-directory" }
+
+# Only a very weak dependency and something that we should need (soon)
+talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "164e254aa" }

@@ -13,6 +13,7 @@ members = [
     "crates/nym-vpn-store",
     "crates/nym-vpnc",
     "crates/nym-vpnd",
+    "crates/nym-wg-gateway-client",
     "nym-vpn-lib",
 ]
 

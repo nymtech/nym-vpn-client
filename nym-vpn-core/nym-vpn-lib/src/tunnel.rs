@@ -14,7 +14,7 @@ use talpid_tunnel::{TunnelArgs, TunnelEvent};
 use talpid_wireguard::{config::Config, WireguardMonitor};
 use tokio::task::JoinHandle;
 
-use crate::config::WireguardConfig;
+use crate::wireguard_config::WireguardConfig;
 
 pub type EventReceiver = mpsc::UnboundedReceiver<(TunnelEvent, Sender<()>)>;
 

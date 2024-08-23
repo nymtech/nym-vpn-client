@@ -6,9 +6,6 @@ use std::path::PathBuf;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("{0}")]
-    AddrParseError(#[from] std::net::AddrParseError),
-
-    #[error("{0}")]
     RoutingError(#[from] talpid_routing::Error),
 
     #[error("{0}")]
@@ -35,8 +32,8 @@ pub enum Error {
     #[error("{0}")]
     WireguardConfigError(#[from] talpid_wireguard::config::Error),
 
-    #[error("{0}")]
-    WireguardTypesError(#[from] nym_wireguard_types::error::Error),
+    #[error(transparent)]
+    WgGatewayClientError(#[from] nym_wg_gateway_client::WgGatewayClientError),
 
     #[error("could not obtain the default interface")]
     DefaultInterfaceError,
@@ -103,12 +100,6 @@ pub enum Error {
     #[error("received bad event for wireguard tunnel creation")]
     BadWireguardEvent,
 
-    #[error("received invalid response from gateway authenticator")]
-    InvalidGatewayAuthResponse,
-
-    #[error(transparent)]
-    AuthenticatorClientError(#[from] nym_authenticator_client::Error),
-
     #[error("wiregurad authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
     AuthenticationNotPossible(String),
 
@@ -118,11 +109,11 @@ pub enum Error {
     #[error("not enough bandwidth")]
     NotEnoughBandwidth,
 
-    #[error("out of bandwidth")]
-    OutOfBandwidth,
-
     #[error("failed to add ipv6 route: {0}")]
     FailedToAddIpv6Route(#[source] std::io::Error),
+
+    #[error("failed to parse entry gateway ipv4: {0}")]
+    FailedToParseEntryGatewayIpv4(#[source] std::net::AddrParseError),
 }
 
 #[derive(thiserror::Error, Debug)]

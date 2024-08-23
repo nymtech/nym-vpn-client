@@ -1,8 +1,9 @@
 use std::path::PathBuf;
 
 use nym_vpn_lib::{
-    credentials::ImportCredentialError as VpnLibImportCredentialError, CredentialStorageError,
-    GatewayDirectoryError, NymIdError,
+    credentials::ImportCredentialError as VpnLibImportCredentialError,
+    wg_gateway_client::WgGatewayClientError, CredentialStorageError, GatewayDirectoryError,
+    NymIdError,
 };
 use time::OffsetDateTime;
 use tracing::error;
@@ -269,9 +270,16 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
                     reason: inner.to_string(),
                 }
             }
-            nym_vpn_lib::Error::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
-            nym_vpn_lib::Error::AddrParseError(_)
-            | nym_vpn_lib::Error::RoutingError(_)
+            nym_vpn_lib::Error::WgGatewayClientError(inner) => match inner {
+                WgGatewayClientError::OutOfBandwidth => ConnectionFailedError::OutOfBandwidth,
+                WgGatewayClientError::InvalidGatewayAuthResponse
+                | WgGatewayClientError::AuthenticatorClientError(_)
+                | WgGatewayClientError::WireguardTypesError(_)
+                | WgGatewayClientError::FailedToParseEntryGatewaySocketAddr(_) => {
+                    ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
+                }
+            },
+            nym_vpn_lib::Error::RoutingError(_)
             | nym_vpn_lib::Error::FailedToAddIpv6Route(_)
             | nym_vpn_lib::Error::DNSError(_)
             | nym_vpn_lib::Error::FirewallError(_)
@@ -280,7 +288,6 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
             | nym_vpn_lib::Error::FailedToSendWireguardShutdown
             | nym_vpn_lib::Error::TunError(_)
             | nym_vpn_lib::Error::WireguardConfigError(_)
-            | nym_vpn_lib::Error::WireguardTypesError(_)
             | nym_vpn_lib::Error::DefaultInterfaceError
             | nym_vpn_lib::Error::StopError
             | nym_vpn_lib::Error::FailedToSerializeMessage { .. }
@@ -288,11 +295,10 @@ impl From<&nym_vpn_lib::Error> for ConnectionFailedError {
             | nym_vpn_lib::Error::FailedToDecodeBase58Credential { .. }
             | nym_vpn_lib::Error::ConnectionMonitorError(_)
             | nym_vpn_lib::Error::ImportCredentialError(_)
-            | nym_vpn_lib::Error::InvalidGatewayAuthResponse
-            | nym_vpn_lib::Error::AuthenticatorClientError(_)
             | nym_vpn_lib::Error::AuthenticationNotPossible(_)
             | nym_vpn_lib::Error::AuthenticatorAddressNotFound
             | nym_vpn_lib::Error::NotEnoughBandwidth
+            | nym_vpn_lib::Error::FailedToParseEntryGatewayIpv4(_)
             | nym_vpn_lib::Error::BadWireguardEvent => {
                 ConnectionFailedError::Unhandled(format!("unhandled error: {err:#?}"))
             }

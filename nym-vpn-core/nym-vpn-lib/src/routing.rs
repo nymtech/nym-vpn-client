@@ -38,7 +38,7 @@ fn default_dns_servers() -> Vec<IpAddr> {
 }
 
 #[derive(Clone)]
-pub struct RoutingConfig {
+pub(crate) struct RoutingConfig {
     pub(crate) mixnet_tun_config: tun2::Configuration,
     // In case we need them, as they're not read-accessible in the tun2 config
     pub(crate) tun_ips: IpPair,
@@ -69,7 +69,7 @@ impl Display for RoutingConfig {
 }
 
 impl RoutingConfig {
-    pub fn new(
+    pub(crate) fn new(
         vpn: &NymVpn<MixnetVpn>,
         tun_ips: IpPair,
         entry_mixnet_gateway_ip: IpAddr,
@@ -104,26 +104,21 @@ impl RoutingConfig {
     }
 
     #[cfg(any(target_os = "ios", target_os = "macos", target_os = "android"))]
-    pub fn tun_ips(&self) -> IpPair {
+    pub(crate) fn tun_ips(&self) -> IpPair {
         self.tun_ips
     }
 
     #[cfg(any(target_os = "ios", target_os = "macos"))]
-    pub fn mtu(&self) -> u16 {
+    pub(crate) fn mtu(&self) -> u16 {
         self.mtu
-    }
-
-    #[cfg(any(target_os = "ios", target_os = "macos"))]
-    pub fn entry_mixnet_gateway_ip(&self) -> IpAddr {
-        self.entry_mixnet_gateway_ip
     }
 }
 
 #[derive(Clone, Debug)]
-pub struct LanGatewayIp(pub Interface);
+pub(crate) struct LanGatewayIp(pub(crate) Interface);
 
 impl LanGatewayIp {
-    pub fn get_default_interface() -> Result<Self> {
+    pub(crate) fn get_default_interface() -> Result<Self> {
         trace!("Getting default interface");
         let default_interface = get_default_interface().map_err(|err| {
             error!("Failed to get default interface: {}", err);
@@ -183,7 +178,7 @@ pub(crate) fn replace_default_prefixes(network: IpNetwork) -> Vec<IpNetwork> {
     vec![network]
 }
 
-pub async fn setup_mixnet_routing(
+pub(crate) async fn setup_mixnet_routing(
     route_manager: &mut RouteManager,
     config: RoutingConfig,
     #[cfg(target_os = "ios")] ios_tun_provider: std::sync::Arc<

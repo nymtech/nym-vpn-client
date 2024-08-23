@@ -4,59 +4,60 @@
 use std::net::IpAddr;
 use std::time::Duration;
 
-use crate::bandwidth_controller::BandwidthController;
-use crate::error::{Error, GatewayDirectoryError, Result};
-use crate::routing::{catch_all_ipv4, catch_all_ipv6, replace_default_prefixes};
-use crate::uniffi_custom_impls::{StatusEvent, TunStatus};
-use crate::wg_gateway_client::WgGatewayClient;
-use crate::wireguard_setup::create_wireguard_tunnel;
-use crate::{config, mixnet};
 use crate::{
-    platform, routing,
+    bandwidth_controller::BandwidthController,
+    error::{Error, GatewayDirectoryError, Result},
+    mixnet, platform,
+    routing::{self, catch_all_ipv4, catch_all_ipv6, replace_default_prefixes},
+    uniffi_custom_impls::{StatusEvent, TunStatus},
     vpn::{
         MixnetConnectionInfo, MixnetExitConnectionInfo, MixnetVpn, NymVpn, SpecificVpn,
         WireguardConnectionInfo, WireguardVpn, MIXNET_CLIENT_STARTUP_TIMEOUT_SECS,
     },
+    wireguard_config,
+    wireguard_setup::create_wireguard_tunnel,
 };
-use futures::channel::{mpsc, oneshot};
-use futures::StreamExt;
+use futures::{
+    channel::{mpsc, oneshot},
+    StreamExt,
+};
 use ipnetwork::IpNetwork;
 use log::*;
 use nym_authenticator_client::AuthClient;
 use nym_bin_common::bin_info;
 use nym_gateway_directory::{AuthAddresses, GatewayClient, IpPacketRouterAddress};
 use nym_task::TaskManager;
-use talpid_core::dns::DnsMonitor;
-use talpid_core::firewall::Firewall;
+use nym_wg_gateway_client::WgGatewayClient;
+use talpid_core::{dns::DnsMonitor, firewall::Firewall};
 use talpid_routing::{Node, RequiredRoute, RouteManager};
 use talpid_tunnel::{TunnelEvent, TunnelMetadata};
 use tokio::time::timeout;
 
-pub struct TunnelSetup<T: TunnelSpecifcSetup> {
-    pub specific_setup: T,
+pub(crate) struct TunnelSetup<T: TunnelSpecifcSetup> {
+    pub(crate) specific_setup: T,
 }
 
-pub trait TunnelSpecifcSetup {}
+pub(crate) trait TunnelSpecifcSetup {}
 
-pub struct MixTunnelSetup {
-    pub mixnet_connection_info: MixnetConnectionInfo,
-    pub exit_connection_info: MixnetExitConnectionInfo,
+pub(crate) struct MixTunnelSetup {
+    pub(crate) mixnet_connection_info: MixnetConnectionInfo,
+    pub(crate) exit_connection_info: MixnetExitConnectionInfo,
 }
 
 impl TunnelSpecifcSetup for MixTunnelSetup {}
 
-pub struct WgTunnelSetup {
-    pub connection_info: WireguardConnectionInfo,
+pub(crate) struct WgTunnelSetup {
+    pub(crate) connection_info: WireguardConnectionInfo,
 
-    pub receiver: oneshot::Receiver<()>,
-    pub handle: tokio::task::JoinHandle<()>,
-    pub tunnel_close_tx: oneshot::Sender<()>,
+    pub(crate) receiver: oneshot::Receiver<()>,
+    pub(crate) handle: tokio::task::JoinHandle<()>,
+    pub(crate) tunnel_close_tx: oneshot::Sender<()>,
 }
 
 impl TunnelSpecifcSetup for WgTunnelSetup {}
 
 #[allow(clippy::large_enum_variant)]
-pub enum AllTunnelsSetup {
+pub(crate) enum AllTunnelsSetup {
     Mix(TunnelSetup<MixTunnelSetup>),
     Wg {
         entry: TunnelSetup<WgTunnelSetup>,
@@ -173,7 +174,7 @@ async fn setup_wg_tunnel(
         exit_auth_recipient,
     );
 
-    let (mut exit_wireguard_config, _) = config::init_wireguard_config(
+    let (mut exit_wireguard_config, _) = wireguard_config::init_wireguard_config(
         &gateway_directory_client,
         &mut wg_exit_gateway_client,
         None,
@@ -185,7 +186,7 @@ async fn setup_wg_tunnel(
         .peers
         .first()
         .map(|config| config.endpoint.ip());
-    let (mut entry_wireguard_config, entry_gateway_ip) = config::init_wireguard_config(
+    let (mut entry_wireguard_config, entry_gateway_ip) = wireguard_config::init_wireguard_config(
         &gateway_directory_client,
         &mut wg_entry_gateway_client,
         wg_gateway,
