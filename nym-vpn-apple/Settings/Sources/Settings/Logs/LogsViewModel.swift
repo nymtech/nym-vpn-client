@@ -3,6 +3,8 @@ import NymLogger
 import Theme
 
 public final class LogsViewModel: ObservableObject {
+    private let logFileManager: LogFileManager
+
     let title = "logs".localizedString
     let exportLocalizedString = "logs.export".localizedString
     let deleteLocalizedString = "logs.delete".localizedString
@@ -14,8 +16,9 @@ public final class LogsViewModel: ObservableObject {
 
     @Binding private var path: NavigationPath
 
-    init(path: Binding<NavigationPath>) {
+    init(path: Binding<NavigationPath>, logFileManager: LogFileManager = LogFileManager.shared) {
         _path = path
+        self.logFileManager = logFileManager
         readLogs()
     }
 
@@ -24,24 +27,17 @@ public final class LogsViewModel: ObservableObject {
     }
 
     func deleteLogs() {
-        FileLogHandler.deleteLogs()
-        readLogs()
+        logFileManager.deleteLogs()
+        logs = ""
     }
 
     func logFileURL() -> URL? {
-        FileLogHandler.logFileURL
+        logFileManager.logFileURL
     }
 }
 
 private extension LogsViewModel {
     func readLogs() {
-        guard let logFileURL = FileLogHandler.logFileURL,
-              let logData = try? Data(contentsOf: logFileURL),
-              let appLogs = String(data: logData, encoding: .utf8)
-        else {
-            logs = ""
-            return
-        }
-        logs = appLogs
+        logs = logFileManager.logs()
     }
 }
