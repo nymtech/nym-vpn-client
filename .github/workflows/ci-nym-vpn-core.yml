@@ -180,12 +180,11 @@ jobs:
 
       - name: set rust flags
         working-directory: nym-vpn-core
-        if: contains(matrix.target, 'android')
         run: |
           case  "$(uname -s)" in
-            Darwin*) export RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-darwin -L ${GITHUB_WORKSPACE}/build/lib/aarch64-linux-android";;
-            Linux*) export RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu -L ${GITHUB_WORKSPACE}/build/lib/aarch64-linux-android";;
-            MINGW*|MSYS_NT*) export RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc -L ${GITHUB_WORKSPACE}/build/lib//aarch64-linux-android";;
+            Darwin*) export RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-darwin -L ${GITHUB_WORKSPACE}/build/lib/aarch64-linux-android -L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-ios";;
+            Linux*) export RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu -L ${GITHUB_WORKSPACE}/build/lib/aarch64-linux-android -L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-ios";;
+            MINGW*|MSYS_NT*) export RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc -L ${GITHUB_WORKSPACE}/build/lib//aarch64-linux-android -L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-ios";;
           esac
 
       - name: Build
@@ -204,8 +203,7 @@ jobs:
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
         working-directory: nym-vpn-core
         run: |
-          rustflags="-L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-ios" 
-          RUSTFLAGS=$rustflags cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
+          cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
 
       - name: Generate uniffi (Android)
         if: contains(matrix.target, 'android')
