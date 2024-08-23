@@ -3,13 +3,14 @@
 
 use std::borrow::Cow;
 
+#[derive(Default)]
 pub struct UapiConfigBuilder {
     buf: Vec<u8>,
 }
 
 impl UapiConfigBuilder {
-    pub fn new() -> UapiConfigBuilder {
-        UapiConfigBuilder { buf: Vec::new() }
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn add<'a, C: Into<Value<'a>> + 'a>(&mut self, key: &str, value: C) -> &mut Self {
