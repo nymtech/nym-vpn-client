@@ -93,6 +93,15 @@ jobs:
           echo "TRIPLET=$triplet" >> $GITHUB_ENV
           echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
 
+      - name: set rust flags
+        working-directory: nym-vpn-core
+        run: |
+          case  "$(uname -s)" in
+            Darwin*) echo "export RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-darwin -L ${GITHUB_WORKSPACE}/build/lib/aarch64-linux-android -L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-ios";;" >> $GITHUB_ENV 
+            Linux*) echo "export RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu -L ${GITHUB_WORKSPACE}/build/lib/aarch64-linux-android -L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-ios";;" >> $GITHUB_ENV
+            MINGW*|MSYS_NT*) echo "export RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc -L ${GITHUB_WORKSPACE}/build/lib//aarch64-linux-android -L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-ios";;" >> $GITHUB_ENV
+          esac
+
       - name: Set extra env for Windows
         if: contains(matrix.os, 'windows')
         shell: bash
@@ -177,15 +186,6 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           cargo fmt --check
-
-      - name: set rust flags
-        working-directory: nym-vpn-core
-        run: |
-          case  "$(uname -s)" in
-            Darwin*) export RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-darwin -L ${GITHUB_WORKSPACE}/build/lib/aarch64-linux-android -L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-ios";;
-            Linux*) export RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-unknown-linux-gnu -L ${GITHUB_WORKSPACE}/build/lib/aarch64-linux-android -L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-ios";;
-            MINGW*|MSYS_NT*) export RUSTFLAGS="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc -L ${GITHUB_WORKSPACE}/build/lib//aarch64-linux-android -L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-ios";;
-          esac
 
       - name: Build
         if: "!contains(matrix.target, 'android')"
