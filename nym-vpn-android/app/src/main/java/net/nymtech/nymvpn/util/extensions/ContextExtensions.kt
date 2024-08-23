@@ -1,9 +1,11 @@
 package net.nymtech.nymvpn.util.extensions
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.service.quicksettings.TileService
 import android.widget.Toast
@@ -17,6 +19,7 @@ import net.nymtech.nymvpn.service.android.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.Country
 import timber.log.Timber
+import java.io.File
 
 private const val BASELINE_HEIGHT = 2201
 private const val BASELINE_WIDTH = 1080
@@ -129,4 +132,27 @@ fun Context.requestTileServiceStateUpdate() {
 		this,
 		ComponentName(instance, VpnQuickTile::class.java),
 	)
+}
+
+fun Context.shareFile(file: File) {
+	val shareIntent: Intent = Intent().apply {
+		action = Intent.ACTION_SEND
+		setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		// Example: content://com.google.android.apps.photos.contentprovider/...
+		putExtra(Intent.EXTRA_STREAM, file.toURI())
+		type = Constants.TEXT_MIME_TYPE
+	}
+	startActivity(Intent.createChooser(shareIntent, null))
+}
+
+// for localization changes
+fun Activity.resetTile() {
+	try {
+		val label = packageManager.getActivityInfo(componentName, PackageManager.GET_META_DATA).labelRes
+		if (label != 0) {
+			setTitle(label)
+		}
+	} catch (e: PackageManager.NameNotFoundException) {
+		Timber.e(e)
+	}
 }

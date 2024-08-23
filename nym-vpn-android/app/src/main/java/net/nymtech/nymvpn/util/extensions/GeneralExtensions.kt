@@ -20,6 +20,6 @@ fun Instant.durationFromNow(): java.time.Duration {
 	return java.time.Duration.between(Instant.now(), this)
 }
 
-fun Instant.isExpired(): Boolean {
-	return this.isBefore(Instant.now())
+fun Instant?.isInvalid(): Boolean {
+	return this == null || this.isBefore(Instant.now())
 }

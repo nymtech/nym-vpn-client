@@ -2,12 +2,17 @@ package net.nymtech.nymvpn.ui.screens.settings.credential
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.tunnel.TunnelManager
+import net.nymtech.nymvpn.ui.Destination
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
+import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import timber.log.Timber
-import java.time.Instant
 import javax.inject.Inject
 
 @HiltViewModel
@@ -16,17 +21,19 @@ class CredentialViewModel
 constructor(
 	private val settingsRepository: SettingsRepository,
 	private val tunnelManager: TunnelManager,
+	private val navHostController: NavHostController,
 ) : ViewModel() {
 
-	suspend fun onImportCredential(credential: String): Result<Instant?> {
+	fun onImportCredential(credential: String, onFailure: () -> Unit) = viewModelScope.launch {
 		val trimmedCred = credential.trim()
-		return withContext(viewModelScope.coroutineContext) {
-			tunnelManager.importCredential(trimmedCred).onSuccess {
-				Timber.d("Imported credential successfully")
-				it?.let {
-					settingsRepository.saveCredentialExpiry(it)
-				}
-			}.onFailure { Timber.e(it) }
+		tunnelManager.importCredential(trimmedCred).onSuccess {
+			Timber.d("Imported credential successfully")
+			it?.let {
+				settingsRepository.saveCredentialExpiry(it)
+			}
+		}.onSuccess {
+			SnackbarController.showMessage(StringValue.StringResource(R.string.credential_successful))
+			navHostController.navigateAndForget(Destination.Main.route)
 		}
 	}
 }

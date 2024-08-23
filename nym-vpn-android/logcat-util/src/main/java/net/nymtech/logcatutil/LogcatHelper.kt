@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -27,6 +28,8 @@ object LogcatHelper {
 
 	private const val MAX_FILE_SIZE = 2097152L // 2MB
 	private const val MAX_FOLDER_SIZE = 10485760L // 10MB
+
+	private val ioDispatcher = Dispatchers.IO
 
 	private object LogcatHelperInit {
 		var maxFileSize: Long = MAX_FILE_SIZE
@@ -60,13 +63,11 @@ object LogcatHelper {
 
 		private var logcatReader: LogcatReader? = null
 
-		override fun start(onLogMessage: ((message: LogMessage) -> Unit)?) {
+		override suspend fun start(onLogMessage: ((message: LogMessage) -> Unit)?) {
 			logcatReader ?: run {
 				logcatReader = LogcatReader(LogcatHelperInit.pID.toString(), LogcatHelperInit.logcatPath, onLogMessage)
 			}
-			logcatReader?.let { logReader ->
-				if (!logReader.isAlive) logReader.start()
-			}
+			logcatReader?.run()
 		}
 
 		override fun stop() {
@@ -119,12 +120,12 @@ object LogcatHelper {
 				}
 		}
 
-		override suspend fun getLogFile(): Result<File> {
+		override suspend fun getLogFile(name: String): Result<File> {
 			stop()
-			return withContext(Dispatchers.IO) {
+			return withContext(ioDispatcher) {
 				try {
 					val outputDir = File(LogcatHelperInit.publicAppDirectory + File.separator + "output")
-					val outputFile = File(outputDir.absolutePath + File.separator + "logs.txt")
+					val outputFile = File(outputDir.absolutePath + File.separator + name)
 
 					if (!outputDir.exists()) outputDir.mkdir()
 					if (outputFile.exists()) outputFile.delete()
@@ -140,6 +141,14 @@ object LogcatHelper {
 				} finally {
 					start()
 				}
+			}
+		}
+
+		@OptIn(ExperimentalCoroutinesApi::class)
+		override suspend fun deleteAndClearLogs() {
+			withContext(ioDispatcher) {
+				_bufferedLogs.resetReplayCache()
+				logcatReader?.deleteAllFiles()
 			}
 		}
 
@@ -160,7 +169,7 @@ object LogcatHelper {
 			pID: String,
 			private val logcatPath: String,
 			private val callback: ((input: LogMessage) -> Unit)?,
-		) : Thread() {
+		) {
 			private var logcatProc: Process? = null
 			private var reader: BufferedReader? = null
 			private var mRunning = true
@@ -187,7 +196,7 @@ object LogcatHelper {
 				Runtime.getRuntime().exec(clearLogCommand)
 			}
 
-			override fun run() {
+			fun run() {
 				if (outputStream == null) return
 				try {
 					clear()
@@ -212,7 +221,7 @@ object LogcatHelper {
 							outputStream = FileOutputStream(createLogFile(logcatPath))
 						}
 						if (getFolderSize(logcatPath) >= LogcatHelperInit.maxFolderSize) {
-							deleteOldestFile(logcatPath)
+							deleteOldestFile()
 						}
 						line?.let { text ->
 							outputStream!!.write((text + System.lineSeparator()).toByteArray())
@@ -263,13 +272,19 @@ object LogcatHelper {
 				return File(dir, "logcat_" + System.currentTimeMillis() + ".txt")
 			}
 
-			private fun deleteOldestFile(path: String) {
-				val directory = File(path)
+			fun deleteOldestFile() {
+				val directory = File(logcatPath)
 				if (directory.isDirectory) {
 					directory.listFiles()?.toMutableList()?.run {
 						this.sortBy { it.lastModified() }
 						this.first().delete()
 					}
+				}
+			}
+			fun deleteAllFiles() {
+				val directory = File(logcatPath)
+				directory.listFiles()?.toMutableList()?.run {
+					this.forEach { it.delete() }
 				}
 			}
 		}

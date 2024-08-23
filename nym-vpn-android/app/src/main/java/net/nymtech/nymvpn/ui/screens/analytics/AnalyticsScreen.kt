@@ -24,7 +24,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
@@ -40,7 +39,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, appUiState: AppUiState) {
+fun AnalyticsScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 	val context = LocalContext.current
 
 	val errorReportingDescription = buildAnnotatedString {
@@ -189,7 +188,7 @@ fun AnalyticsScreen(navController: NavController, appViewModel: AppViewModel, ap
 			)
 			MainStyledButton(onClick = {
 				appViewModel.setAnalyticsShown()
-				navController.navigateAndForget(Destination.Main.route)
+				appViewModel.navController.navigateAndForget(Destination.Main.route)
 			}, content = {
 				Text(stringResource(id = R.string.cont), style = CustomTypography.labelHuge.copy(color = MaterialTheme.colorScheme.onPrimary))
 			})

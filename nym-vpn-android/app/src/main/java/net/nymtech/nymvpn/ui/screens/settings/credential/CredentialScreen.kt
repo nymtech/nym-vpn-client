@@ -25,7 +25,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,25 +35,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
-import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, viewModel: CredentialViewModel = hiltViewModel()) {
+fun CredentialScreen(viewModel: CredentialViewModel = hiltViewModel()) {
+	val context = LocalContext.current
+
+	val imeState = rememberImeState()
+	val scrollState = rememberScrollState()
+
 	var credential by remember {
 		mutableStateOf("")
 	}
@@ -63,20 +62,9 @@ fun CredentialScreen(navController: NavController, appViewModel: AppViewModel, v
 		mutableStateOf(false)
 	}
 
-	val context = LocalContext.current
-	val scope = rememberCoroutineScope()
-
-	val imeState = rememberImeState()
-	val scrollState = rememberScrollState()
-
 	fun onAddCredential() {
-		scope.launch {
-			viewModel.onImportCredential(credential).onSuccess { _ ->
-				appViewModel.showSnackbarMessage(context.getString(R.string.credential_successful))
-				navController.navigateAndForget(Destination.Main.route)
-			}.onFailure {
-				isImportError = true
-			}
+		viewModel.onImportCredential(credential) {
+			isImportError = true
 		}
 	}
 
