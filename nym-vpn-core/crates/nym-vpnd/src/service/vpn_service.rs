@@ -14,7 +14,7 @@ use futures::{
     SinkExt,
 };
 use nym_vpn_lib::{
-    bin_common::bin_info,
+    bin_common::bin_info_local_vergen,
     credentials::import_credential,
     gateway_directory::{self, EntryPoint, ExitPoint},
     GenericNymVpnConfig, MixnetClientConfig, NodeIdentity, Recipient,
@@ -487,7 +487,7 @@ where
             nym_mtu: None,
             dns: options.dns,
             disable_routing: options.disable_routing,
-            user_agent: Some(bin_info!().into()),
+            user_agent: Some(bin_info_local_vergen!().into()),
         };
 
         let nym_vpn = if options.enable_two_hop {

@@ -4388,6 +4388,7 @@ dependencies = [
  "tokio-util",
  "tracing",
  "tracing-subscriber",
+ "vergen",
 ]
 
 [[package]]

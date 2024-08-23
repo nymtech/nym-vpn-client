@@ -55,7 +55,7 @@ async fn run() -> anyhow::Result<ProbeResult> {
     if !args.no_log {
         setup_logging();
     }
-    debug!("{:?}", nym_bin_common::bin_info!());
+    debug!("{:?}", nym_bin_common::bin_info_local_vergen!());
     setup_env(args.config_env_file.as_ref());
 
     let gateway = if let Some(gateway) = args.gateway {

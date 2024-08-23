@@ -8,8 +8,6 @@ documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 anyhow.workspace = true
 bincode.workspace = true
@@ -38,3 +36,12 @@ nym-ip-packet-client = { path = "../nym-ip-packet-client" }
 nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
 nym-task.workspace = true
+
+[build-dependencies]
+vergen = { workspace = true, default-features = false, features = [
+    "build",
+    "git",
+    "gitcl",
+    "rustc",
+    "cargo",
+] }
