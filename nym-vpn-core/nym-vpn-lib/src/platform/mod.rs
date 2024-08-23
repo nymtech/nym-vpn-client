@@ -314,7 +314,7 @@ async fn get_gateway_countries(
 ) -> Result<Vec<Location>, FFIError> {
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)
-        .unwrap_or_else(|| nym_bin_common::bin_info!().into());
+        .unwrap_or_else(|| nym_bin_common::bin_info_local_vergen!().into());
     let directory_config = nym_gateway_directory::Config {
         api_url,
         nym_vpn_api_url,
@@ -373,7 +373,7 @@ async fn get_low_latency_entry_country(
     };
     let user_agent = user_agent
         .map(nym_sdk::UserAgent::from)
-        .unwrap_or_else(|| nym_bin_common::bin_info!().into());
+        .unwrap_or_else(|| nym_bin_common::bin_info_local_vergen!().into());
     let gateway_client = GatewayClient::new(config, user_agent)?;
     let gateway = gateway_client.lookup_low_latency_entry_gateway().await?;
     let country = gateway

@@ -5308,6 +5308,7 @@ dependencies = [
  "tun2",
  "uniffi",
  "url",
+ "vergen",
 ]
 
 [[package]]

@@ -24,7 +24,7 @@ use futures::{
 use ipnetwork::IpNetwork;
 use log::*;
 use nym_authenticator_client::AuthClient;
-use nym_bin_common::bin_info;
+use nym_bin_common::bin_info_local_vergen;
 use nym_gateway_directory::{AuthAddresses, GatewayClient, IpPacketRouterAddress};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
@@ -339,7 +339,7 @@ pub async fn setup_tunnel(
     // what we know here if we don't have anything.
     let user_agent = nym_vpn.user_agent().unwrap_or_else(|| {
         warn!("No user agent provided, using default");
-        bin_info!().into()
+        bin_info_local_vergen!().into()
     });
     info!("User agent: {user_agent}");
 
