@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[derive(Debug, thiserror::Error)]
-pub enum WgGatewayClientError {
+pub enum Error {
     #[error("received invalid response from gateway authenticator")]
     InvalidGatewayAuthResponse,
 
@@ -20,4 +20,4 @@ pub enum WgGatewayClientError {
 }
 
 // Result type based on our error type
-pub type Result<T> = std::result::Result<T, WgGatewayClientError>;
+pub type Result<T> = std::result::Result<T, Error>;

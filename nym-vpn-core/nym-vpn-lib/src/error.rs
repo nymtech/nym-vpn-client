@@ -33,7 +33,7 @@ pub enum Error {
     WireguardConfigError(#[from] talpid_wireguard::config::Error),
 
     #[error(transparent)]
-    WgGatewayClientError(#[from] nym_wg_gateway_client::WgGatewayClientError),
+    WgGatewayClientError(#[from] nym_wg_gateway_client::Error),
 
     #[error("could not obtain the default interface")]
     DefaultInterfaceError,

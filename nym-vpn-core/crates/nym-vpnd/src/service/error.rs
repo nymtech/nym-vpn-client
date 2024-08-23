@@ -2,8 +2,8 @@ use std::path::PathBuf;
 
 use nym_vpn_lib::{
     credentials::ImportCredentialError as VpnLibImportCredentialError,
-    wg_gateway_client::WgGatewayClientError, CredentialStorageError, GatewayDirectoryError,
-    NymIdError,
+    wg_gateway_client::Error as WgGatewayClientError, CredentialStorageError,
+    GatewayDirectoryError, NymIdError,
 };
 use time::OffsetDateTime;
 use tracing::error;
