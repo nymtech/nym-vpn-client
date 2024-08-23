@@ -15,3 +15,11 @@
   - neacsu
   - pronebird
   - octol
+
+# client app changes
+"nym-vpn-x/*":
+  - doums
+"nym-vpn-apple/*":
+  - rokas-ambrazevicius
+"nym-vpn-android/*":
+  - zaneschepke
