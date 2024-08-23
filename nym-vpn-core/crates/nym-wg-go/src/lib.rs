@@ -1,11 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: Apache-2.0
 
+#![cfg(any(target_os = "ios", target_os = "android"))]
+
 mod logging;
-#[cfg(any(target_os = "android", target_os = "ios"))]
 pub mod netstack;
 pub mod uapi;
-#[cfg(any(target_os = "android", target_os = "ios"))]
 pub mod wireguard_go;
 
 use ipnetwork::IpNetwork;
