@@ -210,6 +210,9 @@ pub struct VpnServiceInfoResult {
     pub build_timestamp: Option<time::OffsetDateTime>,
     pub triple: String,
     pub git_commit: String,
+    pub network_name: String,
+    pub endpoints: Vec<nym_vpn_lib::nym_config::defaults::ValidatorDetails>,
+    pub nym_vpn_api_url: Option<String>,
 }
 
 impl fmt::Display for VpnServiceStatusResult {
@@ -556,12 +559,16 @@ where
     }
 
     async fn handle_info(&self) -> VpnServiceInfoResult {
+        let network = nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env();
         let bin_info = nym_vpn_lib::bin_common::bin_info_local_vergen!();
         VpnServiceInfoResult {
             version: bin_info.build_version.to_string(),
             build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339).ok(),
             triple: bin_info.cargo_triple.to_string(),
             git_commit: bin_info.commit_sha.to_string(),
+            network_name: network.network_name,
+            endpoints: network.endpoints,
+            nym_vpn_api_url: network.nym_vpn_api_url,
         }
     }
 
