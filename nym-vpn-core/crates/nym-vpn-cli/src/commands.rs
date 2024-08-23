@@ -3,7 +3,6 @@
 
 use clap::{Args, Parser, Subcommand};
 use ipnetwork::{Ipv4Network, Ipv6Network};
-use nym_vpn_lib::bin_common::bin_info_local_vergen;
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::PathBuf,
@@ -17,7 +16,7 @@ const TUN_IP6_SUBNET: &str = "2001:db8:a160::0/112";
 // Helper for passing LONG_VERSION to clap
 fn pretty_build_info_static() -> &'static str {
     static PRETTY_BUILD_INFORMATION: OnceLock<String> = OnceLock::new();
-    PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info_local_vergen!().pretty_print())
+    PRETTY_BUILD_INFORMATION.get_or_init(|| nym_bin_common::bin_info_local_vergen!().pretty_print())
 }
 
 #[derive(Parser)]

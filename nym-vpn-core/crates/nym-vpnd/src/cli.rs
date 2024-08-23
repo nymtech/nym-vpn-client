@@ -3,13 +3,12 @@
 
 use clap::Args;
 use clap::Parser;
-use nym_vpn_lib::bin_common::bin_info_local_vergen;
 use std::{path::PathBuf, sync::OnceLock};
 
 // Helper for passing LONG_VERSION to clap
 fn pretty_build_info_static() -> &'static str {
     static PRETTY_BUILD_INFORMATION: OnceLock<String> = OnceLock::new();
-    PRETTY_BUILD_INFORMATION.get_or_init(|| bin_info_local_vergen!().pretty_print())
+    PRETTY_BUILD_INFORMATION.get_or_init(|| nym_bin_common::bin_info_local_vergen!().pretty_print())
 }
 
 #[derive(Parser, Clone, Debug)]

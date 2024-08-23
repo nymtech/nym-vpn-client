@@ -22,6 +22,7 @@ tracing-subscriber.workspace = true
 tracing.workspace = true
 
 nym-vpn-lib = { path = "../../nym-vpn-lib" }
+nym-bin-common.workspace = true
 
 [build-dependencies]
 vergen = { workspace = true, default-features = false, features = [

@@ -40,6 +40,7 @@ url.workspace = true
 
 # Nym monorepo
 nym-bandwidth-controller-pre-ecash.workspace = true
+nym-bin-common.workspace = true
 nym-task.workspace = true
 nym-validator-client.workspace = true
 
