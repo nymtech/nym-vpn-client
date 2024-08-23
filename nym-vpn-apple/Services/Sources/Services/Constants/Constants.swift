@@ -4,7 +4,6 @@ public enum Constants: String {
 
     case apiUrl = "https://validator.nymtech.net/api"
     case nymVpnApiUrl = "https://nymvpn.com/api"
-    case harbourURL = "https://harbourmaster.nymtech.net"
 
     case sandboxApiUrl = "https://canary-api.performance.nymte.ch/api"
     case sandboxExplorerURL = "https://canary-explorer.performance.nymte.ch/api"
@@ -16,4 +15,6 @@ public enum Constants: String {
 
     case discordLink = "https://nymtech.net/go/discord"
     case ghIssuesLink = "https://www.nymtech.net/go/github/nym-vpn-client/issues"
+
+    case logFileName = "Logs.log"
 }

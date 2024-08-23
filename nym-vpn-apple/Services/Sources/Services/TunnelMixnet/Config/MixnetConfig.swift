@@ -61,7 +61,7 @@ extension MixnetConfig {
         return VpnConfig(
             apiUrl: apiURL,
             vpnApiUrl: vpnApiURL,
-            entryGateway: entryGateway?.entryPoint ?? .randomLowLatency,
+            entryGateway: entryGateway?.entryPoint ?? .random,
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
             tunProvider: mixnetTunnelProvider,

@@ -4,37 +4,15 @@ import Constants
 
 public class FileLogHandler: LogHandler {
     private let label: String
+    private let logFileManager: LogFileManager
 
-    public init(label: String) {
+    public init(label: String, logFileManager: LogFileManager = LogFileManager.shared) {
         self.label = label
+        self.logFileManager = logFileManager
     }
 
     public var metadata = Logging.Logger.Metadata()
     public var logLevel = Logging.Logger.Level.info
-
-    private let ioQueue = DispatchQueue(label: "FileLogHandler-queue", qos: .utility)
-    private var fileHandle: FileHandle?
-
-    public static var logFileURL: URL? {
-        let fileManager = FileManager.default
-        let logsDirectory = fileManager
-            .containerURL(
-                forSecurityApplicationGroupIdentifier: Constants.groupID.rawValue
-            )?
-            .appendingPathComponent("net.nymtech.vpn")
-            .appendingPathComponent("Logs")
-
-        guard let logsDirectory else { return nil }
-
-        try? fileManager.createDirectory(at: logsDirectory, withIntermediateDirectories: true, attributes: nil)
-        let logFileURL = logsDirectory.appendingPathComponent("Log.log")
-        return logFileURL
-    }
-
-    public static func deleteLogs() {
-        guard let logFileURL = FileLogHandler.logFileURL else { return }
-        try? FileManager.default.removeItem(at: logFileURL)
-    }
 
     public subscript(metadataKey key: String) -> Logging.Logger.Metadata.Value? {
         get { metadata[key] }
@@ -60,14 +38,8 @@ public class FileLogHandler: LogHandler {
         }
 
         let logLine = "\(Date()) [\(label)] \(level.emoji) \(level)\(metadataOutput): \(message)\n"
-        let data = Data(logLine.utf8)
 
-        ioQueue.async {
-            if self.fileHandle == nil, let logFileURL = FileLogHandler.logFileURL {
-                self.fileHandle = try? FileHandle(forWritingTo: logFileURL)
-            }
-            try? self.fileHandle?.write(contentsOf: data)
-        }
+        logFileManager.write(logLine)
     }
 }
 
