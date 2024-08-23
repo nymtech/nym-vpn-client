@@ -1,4 +1,4 @@
-name: "Auto assign reviewer"
+name: auto-assign-reviewer
 on:
   - pull_request
 
