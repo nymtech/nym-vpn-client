@@ -1,5 +1,3 @@
-//go:build ios
-
 /* SPDX-License-Identifier: MIT
  *
  * Copyright (C) 2018-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
