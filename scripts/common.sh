@@ -38,13 +38,20 @@ confirm_nym_vpn_core_directory() {
 
 ask_for_confirmation() {
     local command=$1
-    read -p "Was this the intended change? (Y/N): " answer
-    if [[ $answer =~ ^[Yy]$ ]]; then
-        echo "Running command without dry-run: $command"
+    local yes=$2
+
+    if [ "$yes" = true ]; then
+        echo "Running command without dry-run due to --yes flag: $command"
         $command
     else
-        echo "Exiting without making changes."
-        exit 1
+        read -p "Was this the intended change? (Y/N): " answer
+        if [[ $answer =~ ^[Yy]$ ]]; then
+            echo "Running command without dry-run: $command"
+            $command
+        else
+            echo "Exiting without making changes."
+            exit 1
+        fi
     fi
 }
 
@@ -52,15 +59,25 @@ ask_and_tag_release() {
     local tag_name=$1
     local version=$2
     local tag_base_name=$3
-    read -p "Do you want to tag this commit with: $tag_name ? (Y/N): " confirm_tag
-    if [[ $confirm_tag =~ ^[Yy]$ ]]; then
-        echo "Tagging the commit with tag: $tag_name"
+    local yes=$4
+
+    if [ "$yes" = true ]; then
+        echo "Tagging the commit with the tag: $tag_name due to --yes flag"
         git commit -a -m "Bump $tag_base_name to $version"
         git tag $tag_name
         # Optionally, push the tag to remote repository
-        # git push origin $tag
+        #git push origin $tag
     else
-        echo "Not tagging."
+        read -p "Do you want to tag this commit with: $tag_name ? (Y/N): " confirm_tag
+        if [[ $confirm_tag =~ ^[Yy]$ ]]; then
+            echo "Tagging the commit with tag: $tag_name"
+            git commit -a -m "Bump $tag_base_name to $version"
+            git tag $tag_name
+            # Optionally, push the tag to remote repository
+            #git push origin $tag
+        else
+            echo "Not tagging."
+        fi
     fi
 }
 

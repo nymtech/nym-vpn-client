@@ -9,6 +9,17 @@ source "$(dirname "$0")/common.sh"
 
 NAME=nym-vpn-x
 DIRNAME=nym-vpn-x
+YES=false
+
+# Parse arguments
+for arg in "$@"; do
+    case $arg in
+        --yes)
+        YES=true
+        shift
+        ;;
+    esac
+done
 
 get_current_cargo_version() {
     cd $DIRNAME
@@ -19,13 +30,14 @@ get_current_cargo_version() {
 run_cargo_set_version() {
     cd $DIRNAME/src-tauri
     local next_version=$1
+    local yes=$2
     local command="cargo set-version $next_version"
 
     # Run the command with --dry-run option first
     echo "Running in dry-run mode: $command --dry-run"
     $command --dry-run
 
-    ask_for_confirmation "$command"
+    ask_for_confirmation "$command" "$yes"
     cd ../..
 }
 
@@ -49,7 +61,7 @@ main() {
         exit 1
     fi
 
-    run_cargo_set_version "$next_version"
+    run_cargo_set_version "$next_version" "$YES"
     run_npm_set_version "$next_version"
     git_commit_new_dev_version "$next_version" "$NAME"
 }

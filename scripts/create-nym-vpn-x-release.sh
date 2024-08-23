@@ -14,13 +14,24 @@ source "$(dirname "$0")/common.sh"
 
 NAME=nym-vpn-x
 DIRNAME=nym-vpn-x
+YES=false
+
+# Parse arguments
+for arg in "$@"; do
+    case $arg in
+        --yes)
+        YES=true
+        shift
+        ;;
+    esac
+done
 
 cargo_version_bump() {
     cd $DIRNAME/src-tauri
     local command="cargo set-version --bump patch"
     echo "Running in dry-run mode: $command --dry-run"
     $command --dry-run
-    ask_for_confirmation "$command"
+    ask_for_confirmation "$command" "$YES"
     cd ../..
 }
 
@@ -38,7 +49,7 @@ tag_release() {
     local version=$(cargo get package.version --entry src-tauri)
     local tag_name="$NAME-v$version"
     echo "New version: $version, Tag: $tag_name"
-    ask_and_tag_release "$tag_name" "$version" "$NAME"
+    ask_and_tag_release "$tag_name" "$version" "$NAME" "$YES"
 }
 
 main() {

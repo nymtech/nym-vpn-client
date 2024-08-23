@@ -14,6 +14,7 @@ source "$(dirname "$0")/common.sh"
 
 TAG_BASE_NAME=nym-vpn-core
 DIRNAME=nym-vpn-core
+YES=false
 
 # We want to set the workspace version, but I didn't manage to get cargo
 # set-version to do this explicitly, only implicitly by specifying the lib
@@ -21,13 +22,23 @@ DIRNAME=nym-vpn-core
 # all relevant crates.
 PACKAGE=nym-vpn-lib
 
+# Parse arguments
+for arg in "$@"; do
+    case $arg in
+        --yes)
+        YES=true
+        shift
+        ;;
+    esac
+done
+
 cargo_version_bump() {
     cd $DIRNAME
     local package_flags="-p $PACKAGE"
     local command="cargo set-version $package_flags --bump patch"
     echo "Running in dry-run mode: $command --dry-run"
     $command --dry-run
-    ask_for_confirmation "$command"
+    ask_for_confirmation "$command" "$YES"
     cd ..
 }
 
@@ -36,7 +47,7 @@ tag_release() {
     local version=$(cargo get workspace.package.version)
     local tag_name="$TAG_BASE_NAME-v$version"
     echo "New version: $version, prepared tag: $tag_name"
-    ask_and_tag_release "$tag_name" "$version" "$TAG_BASE_NAME"
+    ask_and_tag_release "$tag_name" "$version" "$TAG_BASE_NAME" "$YES"
 }
 
 main() {

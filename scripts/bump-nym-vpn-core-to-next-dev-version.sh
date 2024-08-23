@@ -10,6 +10,17 @@ source "$(dirname "$0")/common.sh"
 TAG_BASE_NAME="nym-vpn-core"
 DIRNAME="nym-vpn-core"
 PACKAGE=nym-vpn-lib
+YES=false
+
+# Parse arguments
+for arg in "$@"; do
+    case $arg in
+        --yes)
+        YES=true
+        shift
+        ;;
+    esac
+done
 
 get_current_version() {
     echo "$(cargo get workspace.package.version)"
@@ -17,6 +28,7 @@ get_current_version() {
 
 run_cargo_set_version() {
     local next_version=$1
+    local yes=$2
 
     local package_flags="-p $PACKAGE"
     local command="cargo set-version $package_flags $next_version"
@@ -25,7 +37,7 @@ run_cargo_set_version() {
     echo "Running in dry-run mode: $command --dry-run"
     $command --dry-run
 
-    ask_for_confirmation "$command"
+    ask_for_confirmation "$command" "$yes"
 }
 
 main() {
@@ -40,7 +52,7 @@ main() {
         exit 1
     fi
 
-    run_cargo_set_version "$next_version"
+    run_cargo_set_version "$next_version" "$YES"
     git_commit_new_dev_version "$next_version" "$TAG_BASE_NAME"
 }
 
