@@ -194,7 +194,8 @@ jobs:
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
+          rustflags="-L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-ios" 
+          RUSTFLAGS=$rustflags cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
 
       - name: Generate uniffi (Android)
         if: contains(matrix.target, 'android')
