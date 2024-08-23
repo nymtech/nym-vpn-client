@@ -15,10 +15,37 @@
   "grpc": "Erreur interne gRPC",
   "connection": {
     "timeout": "Connexion expirée",
-    "no-valid-credential": "Pas d'identifiant valide, ajoutez un identifiant et réessayez"
+    "no-valid-credential": "Pas d'identifiant valide, ajoutez un identifiant et réessayez",
+    "mixnet": {
+      "storage-path": "Échec de la création des chemins de stockage pour le mode Mixnet",
+      "timeout": "La connexion en mode Mixnet a échoué : temps expiré",
+      "default-storage": "Échec de la création du client mixnet avec le stockage par défaut",
+      "build-client": "Échec de la création du client mixnet",
+      "connect": "Échec de la connexion au Mixnet",
+      "entry-gateway": "Échec de la connexion au nœud d'entrée mixnet"
+    },
+    "ipr-connect": "Échec de la connexion au routeur IP",
+    "gateway-lookup": {
+      "generic": "Échec de la recherche des nœuds de passerelles",
+      "id": "Échec de la recherche de l'identité de la passerelle",
+      "ipr": "Échec de la recherche de l'adresse du routeur IP",
+      "ip": "Échec de la recherche de l'IP de la passerelle",
+      "entry": "Échec de la recherche de la passerelle d'entrée",
+      "entry-id": "Échec de la recherche de l'identité de la passerelle d'entrée",
+      "entry-location": "Échec de la recherche de la passerelle d'entrée pour l'emplacement donné",
+      "exit": "Échec de la recherche de la passerelle de sortie",
+      "exit-location": "Échec de la recherche de la passerelle de sortie pour l'emplacement donné"
+    },
+    "bad-country-combination": "Mauvaise combinaison pour les emplacements sélectionnés, veuillez changer l'emplacement d'entrée ou de sortie."
   },
   "countries-request": {
     "entry": "Échec de la recherche des pays de nœuds d'entrée disponibles",
     "exit": "Échec de la recherche des pays de nœuds de sortie disponibles"
+  },
+  "out-of-bandwidth": "Bande passante entièrement consommée",
+  "entry-node-routing": "Le nœud d'entrée ne relai pas le trafic réseau (connexion internet perdue ?)",
+  "exit-node": {
+    "routing": "Le nœud de sortie ne relai pas le trafic {{protocol}}",
+    "ping": "Échec du ping sur le nœud de sortie pour le trafic {{protocol}}"
   }
 }
