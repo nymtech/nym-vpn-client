@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::path::PathBuf;
+use std::process::exit;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -40,6 +41,7 @@ mod events;
 mod fs;
 mod grpc;
 mod log;
+mod startup;
 mod states;
 mod system_tray;
 mod vpn_status;
@@ -77,7 +79,13 @@ async fn main() -> Result<()> {
     }
 
     info!("Creating k/v embedded db");
-    let db = Db::new()?;
+    let Ok(db) = Db::new()
+        .inspect_err(|e| startup::set_error(format!("It is likely that the application is already running. Please check as
+ you cannot run multiple instances of the app at the same time, this is not supported. Details: failed to open the app db, {}", e)))
+    else {
+        startup::show_error_window()?;
+        exit(1);
+    };
 
     if let Some(Commands::Db { command: Some(cmd) }) = &cli.command {
         return db_command(&db, cmd);
@@ -119,10 +127,16 @@ async fn main() -> Result<()> {
         defaults::setup_env::<PathBuf>(None);
     }
 
-    let app_state = AppState::try_from((&db, &app_config, &cli)).map_err(|e| {
+    let Ok(app_state) = AppState::try_from((&db, &app_config, &cli)).map_err(|e| {
         error!("failed to create app state from saved app data and config: {e}");
+        startup::set_error(format!(
+            "failed to create app state from saved app data and config: {e}"
+        ));
         e
-    })?;
+    }) else {
+        startup::show_error_window()?;
+        exit(1);
+    };
 
     let grpc = GrpcClient::new(&app_config, &cli);
 

@@ -1,3 +1,4 @@
+import { resolve } from 'path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import svgr from 'vite-plugin-svgr';
@@ -23,6 +24,10 @@ export default defineConfig(async () => ({
   envPrefix: ['VITE_', 'TAURI_', 'APP_'],
   build: {
     rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        startupError: resolve(__dirname, 'src/error.html'),
+      },
       output: {
         manualChunks: {
           // put the following packages in their own chunk
