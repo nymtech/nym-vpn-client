@@ -128,4 +128,18 @@
     <string name="continue_reading">पढ़ना जारी रखें</string>
     <string name="entry_location">उद्भव स्थान</string>
     <string name="exit_location">आखरी स्थान</string>
+    <string name="try_again">और पुनः कनेक्ट करने का प्रयास करें</string>
+    <string name="gateway_modal_description">हम IP पतों के आधार पर सर्वर स्थानों का अनुमान लगाते हैं, लेकिन वास्तविक स्थानों में थोड़ा बदलाव हो सकता है।</string>
+    <string name="always_on_message">काम नहीं कर रहा? सुनिश्चित करें कि अन्य ऐप्स के लिए Always-on VPN बंद है।</string>
+    <string name="language">भाषा</string>
+    <string name="appearance">रूपरंग</string>
+    <string name="gateway_locations_title">सर्वर स्थानों की जानकारी</string>
+    <string name="remaining">बाकी</string>
+    <string name="entry_location_selector">प्रवेश स्थान चयनकर्ता</string>
+    <string name="vpn_connection">VPN कनेक्शन</string>
+    <string name="vpn_permission_message">VPN कनेक्शन अनुरोध को मान्यता देने के लिए पुनः कनेक्ट करने का प्रयास करें।</string>
+    <string name="view_system_settings">सिस्टम सेटिंग्स देखें</string>
+    <string name="try_reconnecting">फिर से कनेक्ट करने का प्रयास करें</string>
+    <string name="always_on_disbled">आगे-पीछे VPN बंद है</string>
+    <string name="vpn_settings">VPN सिस्टम सेटिंग्स</string>
 </resources>
