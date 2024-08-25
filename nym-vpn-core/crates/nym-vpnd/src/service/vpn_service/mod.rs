@@ -9,14 +9,18 @@ mod state;
 
 pub(crate) use {
     command::{ConnectArgs, ConnectOptions, VpnServiceCommand},
-    nym_vpn_service::NymVpnService,
     response::{
         VpnServiceConnectResult, VpnServiceDisconnectResult, VpnServiceInfoResult,
         VpnServiceStatusResult,
     },
-    shared_state::{SharedVpnState, VpnServiceStateChange},
+    shared_state::VpnServiceStateChange,
+    state::ConnectedStateDetails,
+};
+
+pub(super) use {
+    nym_vpn_service::NymVpnService,
+    shared_state::SharedVpnState,
     state::{
-        ConnectedStateDetails, MixConnectedStateDetails, VpnConnectedStateDetails, VpnState,
-        WgConnectedStateDetails,
+        MixConnectedStateDetails, VpnConnectedStateDetails, VpnState, WgConnectedStateDetails,
     },
 };
