@@ -36,21 +36,12 @@ impl SharedVpnState {
 }
 
 #[derive(Clone, Debug)]
-pub enum VpnServiceStateChange {
+pub(crate) enum VpnServiceStateChange {
     NotConnected,
     Connecting,
     Connected,
     Disconnecting,
     ConnectionFailed(ConnectionFailedError),
-}
-
-impl VpnServiceStateChange {
-    pub fn error(&self) -> Option<ConnectionFailedError> {
-        match self {
-            VpnServiceStateChange::ConnectionFailed(reason) => Some(reason.clone()),
-            _ => None,
-        }
-    }
 }
 
 impl From<VpnState> for VpnServiceStateChange {

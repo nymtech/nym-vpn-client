@@ -16,7 +16,7 @@ use super::{
 };
 
 #[allow(clippy::large_enum_variant)]
-pub enum VpnServiceCommand {
+pub(crate) enum VpnServiceCommand {
     Connect(oneshot::Sender<VpnServiceConnectResult>, ConnectArgs),
     Disconnect(oneshot::Sender<VpnServiceDisconnectResult>),
     Status(oneshot::Sender<VpnServiceStatusResult>),
@@ -42,10 +42,10 @@ impl fmt::Display for VpnServiceCommand {
 }
 
 #[derive(Debug)]
-pub struct ConnectArgs {
-    pub entry: Option<EntryPoint>,
-    pub exit: Option<ExitPoint>,
-    pub options: ConnectOptions,
+pub(crate) struct ConnectArgs {
+    pub(crate) entry: Option<EntryPoint>,
+    pub(crate) exit: Option<ExitPoint>,
+    pub(crate) options: ConnectOptions,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]

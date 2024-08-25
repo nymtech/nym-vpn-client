@@ -12,7 +12,7 @@ use crate::service::ConnectionFailedError;
 
 // The current state of the VPN service
 #[derive(Debug, Clone)]
-pub enum VpnState {
+pub(crate) enum VpnState {
     NotConnected,
     Connecting,
     Connected(Box<VpnConnectedStateDetails>),
@@ -33,21 +33,21 @@ impl fmt::Display for VpnState {
 }
 
 #[derive(Debug, Clone)]
-pub struct MixConnectedStateDetails {
-    pub nym_address: Recipient,
-    pub exit_ipr: Recipient,
-    pub ipv4: Ipv4Addr,
-    pub ipv6: Ipv6Addr,
+pub(crate) struct MixConnectedStateDetails {
+    pub(crate) nym_address: Recipient,
+    pub(crate) exit_ipr: Recipient,
+    pub(crate) ipv4: Ipv4Addr,
+    pub(crate) ipv6: Ipv6Addr,
 }
 
 #[derive(Debug, Clone)]
-pub struct WgConnectedStateDetails {
-    pub entry_ipv4: Ipv4Addr,
-    pub exit_ipv4: Ipv4Addr,
+pub(crate) struct WgConnectedStateDetails {
+    pub(crate) entry_ipv4: Ipv4Addr,
+    pub(crate) exit_ipv4: Ipv4Addr,
 }
 
 #[derive(Debug, Clone)]
-pub enum ConnectedStateDetails {
+pub(crate) enum ConnectedStateDetails {
     Mix(Box<MixConnectedStateDetails>),
     Wg(WgConnectedStateDetails),
 }
@@ -74,11 +74,11 @@ impl fmt::Display for ConnectedStateDetails {
 }
 
 #[derive(Debug, Clone)]
-pub struct VpnConnectedStateDetails {
-    pub entry_gateway: NodeIdentity,
-    pub exit_gateway: NodeIdentity,
-    pub specific_details: ConnectedStateDetails,
-    pub since: time::OffsetDateTime,
+pub(crate) struct VpnConnectedStateDetails {
+    pub(crate) entry_gateway: NodeIdentity,
+    pub(crate) exit_gateway: NodeIdentity,
+    pub(crate) specific_details: ConnectedStateDetails,
+    pub(crate) since: time::OffsetDateTime,
 }
 
 impl fmt::Display for VpnConnectedStateDetails {
@@ -92,11 +92,11 @@ impl fmt::Display for VpnConnectedStateDetails {
 }
 
 #[derive(Clone, Debug)]
-pub struct ConnectedResultDetails {
-    pub entry_gateway: NodeIdentity,
-    pub exit_gateway: NodeIdentity,
-    pub specific_details: ConnectedStateDetails,
-    pub since: time::OffsetDateTime,
+pub(crate) struct ConnectedResultDetails {
+    pub(crate) entry_gateway: NodeIdentity,
+    pub(crate) exit_gateway: NodeIdentity,
+    pub(crate) specific_details: ConnectedStateDetails,
+    pub(crate) since: time::OffsetDateTime,
 }
 
 impl fmt::Display for ConnectedResultDetails {

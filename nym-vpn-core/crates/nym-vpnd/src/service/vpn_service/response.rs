@@ -10,26 +10,26 @@ use crate::service::ConnectionFailedError;
 use super::{ConnectedResultDetails, VpnConnectedStateDetails, VpnState};
 
 #[derive(Debug)]
-pub enum VpnServiceConnectResult {
+pub(crate) enum VpnServiceConnectResult {
     Success(VpnServiceConnectHandle),
     Fail(String),
 }
 
 impl VpnServiceConnectResult {
-    pub fn is_success(&self) -> bool {
+    pub(crate) fn is_success(&self) -> bool {
         matches!(self, VpnServiceConnectResult::Success(_))
     }
 }
 
 #[derive(Debug)]
-pub struct VpnServiceConnectHandle {
-    pub listener_vpn_status_rx: nym_vpn_lib::StatusReceiver,
+pub(crate) struct VpnServiceConnectHandle {
+    pub(crate) listener_vpn_status_rx: nym_vpn_lib::StatusReceiver,
     #[allow(unused)]
-    pub listener_vpn_exit_rx: OneshotReceiver<nym_vpn_lib::NymVpnExitStatusMessage>,
+    pub(crate) listener_vpn_exit_rx: OneshotReceiver<nym_vpn_lib::NymVpnExitStatusMessage>,
 }
 
 #[derive(Debug)]
-pub enum VpnServiceDisconnectResult {
+pub(crate) enum VpnServiceDisconnectResult {
     Success,
     NotRunning,
     #[allow(unused)]
@@ -37,7 +37,7 @@ pub enum VpnServiceDisconnectResult {
 }
 
 impl VpnServiceDisconnectResult {
-    pub fn is_success(&self) -> bool {
+    pub(crate) fn is_success(&self) -> bool {
         matches!(self, VpnServiceDisconnectResult::Success)
     }
 }
@@ -45,7 +45,7 @@ impl VpnServiceDisconnectResult {
 // Respond with the current state of the VPN service. This is currently almost the same as VpnState,
 // but it's conceptually not the same thing, so we keep them separate.
 #[derive(Clone, Debug)]
-pub enum VpnServiceStatusResult {
+pub(crate) enum VpnServiceStatusResult {
     NotConnected,
     Connecting,
     Connected(Box<ConnectedResultDetails>),
@@ -53,24 +53,15 @@ pub enum VpnServiceStatusResult {
     ConnectionFailed(ConnectionFailedError),
 }
 
-impl VpnServiceStatusResult {
-    pub fn error(&self) -> Option<ConnectionFailedError> {
-        match self {
-            VpnServiceStatusResult::ConnectionFailed(reason) => Some(reason.clone()),
-            _ => None,
-        }
-    }
-}
-
 #[derive(Clone, Debug)]
-pub struct VpnServiceInfoResult {
-    pub version: String,
-    pub build_timestamp: Option<time::OffsetDateTime>,
-    pub triple: String,
-    pub git_commit: String,
-    pub network_name: String,
-    pub endpoints: Vec<nym_vpn_lib::nym_config::defaults::ValidatorDetails>,
-    pub nym_vpn_api_url: Option<String>,
+pub(crate) struct VpnServiceInfoResult {
+    pub(crate) version: String,
+    pub(crate) build_timestamp: Option<time::OffsetDateTime>,
+    pub(crate) triple: String,
+    pub(crate) git_commit: String,
+    pub(crate) network_name: String,
+    pub(crate) endpoints: Vec<nym_vpn_lib::nym_config::defaults::ValidatorDetails>,
+    pub(crate) nym_vpn_api_url: Option<String>,
 }
 
 impl fmt::Display for VpnServiceStatusResult {
