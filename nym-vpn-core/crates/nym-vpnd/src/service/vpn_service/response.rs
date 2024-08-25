@@ -7,7 +7,7 @@ use futures::channel::oneshot::Receiver as OneshotReceiver;
 
 use crate::service::ConnectionFailedError;
 
-use super::{ConnectedResultDetails, VpnConnectedStateDetails, VpnState};
+use super::{state::ConnectedResultDetails, VpnConnectedStateDetails, VpnState};
 
 #[derive(Debug)]
 pub(crate) enum VpnServiceConnectResult {

@@ -16,7 +16,7 @@ pub(crate) use {
     },
     shared_state::{SharedVpnState, VpnServiceStateChange},
     state::{
-        ConnectedResultDetails, ConnectedStateDetails, MixConnectedStateDetails,
-        VpnConnectedStateDetails, VpnState, WgConnectedStateDetails,
+        ConnectedStateDetails, MixConnectedStateDetails, VpnConnectedStateDetails, VpnState,
+        WgConnectedStateDetails,
     },
 };

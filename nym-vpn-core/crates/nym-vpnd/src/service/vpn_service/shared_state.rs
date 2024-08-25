@@ -17,7 +17,7 @@ pub(crate) struct SharedVpnState {
 }
 
 impl SharedVpnState {
-    pub(crate) fn new(vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>) -> Self {
+    pub(super) fn new(vpn_state_changes_tx: broadcast::Sender<VpnServiceStateChange>) -> Self {
         Self {
             shared_vpn_state: Arc::new(std::sync::Mutex::new(VpnState::NotConnected)),
             vpn_state_changes_tx,
@@ -30,7 +30,7 @@ impl SharedVpnState {
         self.vpn_state_changes_tx.send(state.into()).ok();
     }
 
-    pub(crate) fn get(&self) -> VpnState {
+    pub(super) fn get(&self) -> VpnState {
         self.shared_vpn_state.lock().unwrap().clone()
     }
 }
