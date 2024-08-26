@@ -23,10 +23,10 @@ func New[Context any]() Container[Context] {
 	}
 }
 
-func (tc *Container[Context]) Insert(context Context) (int32, error) {
+func (wself *Container[Context]) Insert(context Context) (int32, error) {
 	var i int32
 	for i = 0; i < math.MaxInt32; i++ {
-		if _, exists := tc.tunnels[i]; !exists {
+		if _, exists := wself.tunnels[i]; !exists {
 			break
 		}
 	}
@@ -35,29 +35,29 @@ func (tc *Container[Context]) Insert(context Context) (int32, error) {
 		return 0, errors.New("container is full")
 	}
 
-	tc.tunnels[i] = context
+	wself.tunnels[i] = context
 	return i, nil
 }
 
-func (tc *Container[Context]) Get(handle int32) (*Context, error) {
-	context, ok := tc.tunnels[handle]
+func (wself *Container[Context]) Get(handle int32) (*Context, error) {
+	context, ok := wself.tunnels[handle]
 	if !ok {
 		return nil, errors.New("invalid context handle")
 	}
 	return &context, nil
 }
 
-func (tc *Container[Context]) Remove(handle int32) (*Context, error) {
-	context, ok := tc.tunnels[handle]
+func (wself *Container[Context]) Remove(handle int32) (*Context, error) {
+	context, ok := wself.tunnels[handle]
 	if !ok {
 		return nil, errors.New("invalid context handle")
 	}
-	delete(tc.tunnels, handle)
+	delete(wself.tunnels, handle)
 	return &context, nil
 }
 
-func (tc *Container[Context]) ForEach(callback func(Context)) {
-	for _, tunnel := range tc.tunnels {
+func (wself *Container[Context]) ForEach(callback func(Context)) {
+	for _, tunnel := range wself.tunnels {
 		callback(tunnel)
 	}
 }
