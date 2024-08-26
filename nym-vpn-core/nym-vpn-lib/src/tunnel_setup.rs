@@ -560,8 +560,11 @@ async fn select_gateways(
 }
 
 fn pkey_from_base64(base64_key: &str) -> talpid_types::net::wireguard::PrivateKey {
+    use base64::engine::Engine;
     let mut key = [0u8; 32];
-    let decoded_bytes = ::base64::decode(base64_key).unwrap();
+    let decoded_bytes = base64::engine::general_purpose::STANDARD
+        .decode(base64_key)
+        .unwrap();
     assert!(decoded_bytes.len() == 32);
     key.copy_from_slice(&decoded_bytes);
     talpid_types::net::wireguard::PrivateKey::from(key)
