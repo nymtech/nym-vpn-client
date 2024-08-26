@@ -166,7 +166,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         user_agent: Some(bin_info!().into()),
     };
 
-    let mut nym_vpn: SpecificVpn = if args.wireguard_mode {
+    let nym_vpn: SpecificVpn = if args.wireguard_mode {
         let mut nym_vpn = NymVpn::new_wireguard_vpn(entry_point, exit_point);
         nym_vpn.generic_config = generic_config;
         nym_vpn.into()
@@ -176,9 +176,29 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.into()
     };
 
-    nym_vpn.run().await?;
+    let handle = nym_vpn_lib::spawn_nym_vpn(nym_vpn).unwrap();
 
-    Ok(())
+    tokio::select! {
+        exit_msg = handle.vpn_exit_rx => match exit_msg {
+            Ok(exit_msg) => {
+                info!("VPN exited: {:?}", exit_msg);
+                match exit_msg {
+                    nym_vpn_lib::NymVpnExitStatusMessage::Stopped => {
+                        info!("VPN stopped");
+                        Ok(())
+                    }
+                    nym_vpn_lib::NymVpnExitStatusMessage::Failed(err) => {
+                        error!("VPN exited with error: {:?}", err);
+                        Err(Error::BoxedError(err))
+                    }
+                }
+            }
+            Err(err) => {
+                error!("VPN exited with error: {:?}", err);
+                Err(Error::UnexpectedStop)
+            }
+        }
+    }
 }
 
 async fn import_credential(
