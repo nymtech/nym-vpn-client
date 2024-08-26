@@ -109,6 +109,27 @@ func wgTurnOn(cIfaceName *C.char, mtu int, cSettings *C.char, cIfaceNameOut **C.
 	return handle
 }
 
+//export wgSetConfig
+func wgSetConfig(tunnelHandle int32, cSettings *C.char) int32 {
+	tunnel, err := tunnels.Get(tunnelHandle)
+	if err != nil {
+		return ERROR_GENERAL_FAILURE
+	}
+	if cSettings == nil {
+		tunnel.Logger.Errorf("cSettings is null\n")
+		return ERROR_GENERAL_FAILURE
+	}
+	settings := C.GoString(cSettings)
+
+	setError := tunnel.Device.IpcSetOperation(bufio.NewReader(strings.NewReader(settings)))
+	if setError != nil {
+		tunnel.Logger.Errorf("Failed to set device configuration\n")
+		tunnel.Logger.Errorf("%s\n", setError)
+		return ERROR_GENERAL_FAILURE
+	}
+	return 0
+}
+
 //export wgRebindTunnelSocket
 func wgRebindTunnelSocket(family uint16, interfaceIndex uint32) {
 	tunnels.ForEach(func(tunnel TunnelContext) {
