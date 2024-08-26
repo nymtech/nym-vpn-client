@@ -182,7 +182,8 @@ jobs:
         if: "!contains(matrix.target, 'android')"
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose
+          rustflags="-L ${GITHUB_WORKSPACE}/build/lib/x86_64-pc-windows-msvc" 
+          RUSTFLAGS=$rustflags cargo build --verbose
 
       - name: Build (Android)
         if: contains(matrix.target, 'android')
