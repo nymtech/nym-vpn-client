@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.ui.screens.settings.logs
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,9 +17,11 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.chunked
 import net.nymtech.nymvpn.util.extensions.launchShareFile
 import timber.log.Timber
+import java.io.File
 import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
+
 
 @HiltViewModel
 class LogsViewModel @Inject constructor(
@@ -44,11 +47,15 @@ class LogsViewModel @Inject constructor(
 		}
 	}
 
-	fun shareLogs(context: Context) = viewModelScope.launch {
-		Timber.d("HUHHH")
-		val fileName = "${Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.txt"
+	fun shareLogs(context: Context) = viewModelScope.launch(ioDispatcher) {
 		runCatching {
-			val file = logCollect.getLogFile(fileName)
+			val sharePath = File(context.filesDir, "external_files")
+			if(sharePath.exists()) sharePath.delete()
+			sharePath.mkdir()
+			val file = File( "${sharePath.path + "/" + Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.zip")
+			if(file.exists()) file.delete()
+			file.createNewFile()
+			logCollect.zipLogFiles(file.absolutePath)
 			context.launchShareFile(file)
 		}.onFailure {
 			Timber.e(it)

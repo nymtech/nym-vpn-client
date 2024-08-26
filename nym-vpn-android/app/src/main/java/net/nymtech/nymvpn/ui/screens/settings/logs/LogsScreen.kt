@@ -6,9 +6,15 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -18,31 +24,39 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.window.core.layout.WindowSizeClass
 import kotlinx.coroutines.launch
 import net.nymtech.logcatutil.model.LogMessage
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.labels.LogTypeLabel
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 	val lazyColumnListState = rememberLazyListState()
@@ -60,14 +74,18 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 	}
 
 	Scaffold(
+		contentWindowInsets = WindowInsets(0.dp),
 		bottomBar = {
 			NavigationBar(
 				containerColor = MaterialTheme.colorScheme.surface,
 				tonalElevation = 0.dp,
-				windowInsets = WindowInsets.ime,
 			) {
 				listOf(
 					NavigationBarItem(
+						colors = NavigationBarItemDefaults.colors().copy(
+							unselectedIconColor = MaterialTheme.colorScheme.onSurface,
+							unselectedTextColor = MaterialTheme.colorScheme.onSurface
+						),
 						selected = false,
 						onClick = {
 							viewModel.shareLogs(context)
@@ -87,6 +105,10 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 						},
 					),
 					NavigationBarItem(
+						colors = NavigationBarItemDefaults.colors().copy(
+							unselectedIconColor = MaterialTheme.colorScheme.onSurface,
+							unselectedTextColor = MaterialTheme.colorScheme.onSurface
+						),
 						selected = false,
 						onClick = {
 							viewModel.deleteLogs()
@@ -117,7 +139,7 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 			Modifier
 				.fillMaxSize()
 				.padding(top = 5.dp)
-				.padding(horizontal = 24.dp.scaledWidth()),
+				.padding(horizontal = 24.dp.scaledWidth()).padding(it).padding(bottom = 5.dp),
 		) {
 			itemsIndexed(logs, key = { index, _ -> index }, contentType = { _: Int, _: LogMessage -> null }) { _, it ->
 				Row(

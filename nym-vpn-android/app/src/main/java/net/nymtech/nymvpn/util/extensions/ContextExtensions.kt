@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
+import androidx.core.content.FileProvider
 import net.nymtech.nymvpn.NymVpn.Companion.instance
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.receiver.BackgroundActionReceiver
@@ -22,7 +23,6 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.Country
 import timber.log.Timber
 import java.io.File
-import java.net.URLConnection
 
 
 private const val BASELINE_HEIGHT = 2201
@@ -139,16 +139,14 @@ fun Context.requestTileServiceStateUpdate() {
 }
 
 fun Context.launchShareFile(file: File) {
-	val shareIntent: Intent = Intent().apply {
-		setType(URLConnection.guessContentTypeFromName(file.getName()));
-		putExtra(
-			Intent.EXTRA_STREAM,
-			Uri.parse("file://" + file.absolutePath),
-		);
-		action = Intent.ACTION_SEND
-		setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-	}
-	startActivity(Intent.createChooser(shareIntent, null))
+	val shareIntent = Intent()
+	shareIntent.setAction(Intent.ACTION_SEND)
+	shareIntent.setType("*/*")
+
+	val uri = FileProvider.getUriForFile(this, "net.nymtech.nymvpn.provider", file)
+	shareIntent.putExtra(Intent.EXTRA_STREAM, uri)
+	shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+	this.startActivity(Intent.createChooser(shareIntent, ""))
 }
 
 fun Context.launchNotificationSettings() {

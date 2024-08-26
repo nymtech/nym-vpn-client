@@ -2,9 +2,12 @@ package net.nymtech.nymvpn.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
@@ -55,6 +58,7 @@ import net.nymtech.vpn.Tunnel
 fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: SettingsViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val navController = appViewModel.navController
+	val padding = WindowInsets.systemBars.asPaddingValues()
 
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -64,7 +68,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 			.verticalScroll(rememberScrollState())
 			.fillMaxSize()
 			.padding(top = 24.dp)
-			.padding(horizontal = 24.dp.scaledWidth()),
+			.padding(horizontal = 24.dp.scaledWidth()).padding(bottom = padding.calculateBottomPadding()),
 	) {
 		if (appUiState.settings.credentialExpiry.isInvalid()) {
 			MainStyledButton(
