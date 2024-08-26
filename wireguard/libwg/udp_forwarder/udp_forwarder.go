@@ -17,7 +17,7 @@ import (
 )
 
 const UDP_WRITE_TIMEOUT = time.Duration(5) * time.Second
-const UDP_READ_BUFFER_LEN = 1420
+const MAX_UDP_DATAGRAM_LEN = 65535
 
 type UDPForwarderConfig struct {
 	// Listen port for incoming WireGuard traffic.
@@ -109,7 +109,7 @@ func (w *UDPForwarder) Wait() {
 func (w *UDPForwarder) RoutineHandleInbound(inbound *net.UDPConn, outbound *gonet.UDPConn, clientAddr *net.UDPAddr) {
 	defer w.waitGroup.Done()
 
-	inboundBuffer := make([]byte, UDP_READ_BUFFER_LEN)
+	inboundBuffer := make([]byte, MAX_UDP_DATAGRAM_LEN)
 
 	w.logger.Verbosef("udpforwarder(inbound): listening on %s", inbound.LocalAddr().String())
 	defer w.logger.Verbosef("udpforwarder(inbound): closed")
@@ -158,7 +158,7 @@ func (w *UDPForwarder) RoutineHandleOutbound(inbound *net.UDPConn, outbound *gon
 	w.logger.Verbosef("udpforwarder(outbound): dial %s", remoteAddr.String())
 	defer w.logger.Verbosef("udpforwarder(outbound): closed")
 
-	outboundBuffer := make([]byte, UDP_READ_BUFFER_LEN)
+	outboundBuffer := make([]byte, MAX_UDP_DATAGRAM_LEN)
 
 	for {
 		// Receive WireGuard packet from remote server.
