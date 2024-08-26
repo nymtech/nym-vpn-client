@@ -179,9 +179,9 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
 
     let handle = nym_vpn_lib::spawn_nym_vpn(nym_vpn).unwrap();
 
-    register_signal_handler(handle.vpn_ctrl_tx.clone());
+    register_signal_handler(handle.ctrl_tx());
 
-    join_vpn_handle(handle).await
+    handle.wait_until_stopped().await.map_err(Error::VpnLib)
 }
 
 fn register_signal_handler(vpn_ctrl_tx: mpsc::UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>) {
@@ -194,23 +194,6 @@ fn register_signal_handler(vpn_ctrl_tx: mpsc::UnboundedSender<nym_vpn_lib::NymVp
             .unbounded_send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
             .unwrap();
     });
-}
-
-async fn join_vpn_handle(handle: nym_vpn_lib::NymVpnHandle) -> Result<()> {
-    match handle.vpn_exit_rx.await {
-        Ok(nym_vpn_lib::NymVpnExitStatusMessage::Stopped) => {
-            debug!("VPN stopped");
-            Ok(())
-        }
-        Ok(nym_vpn_lib::NymVpnExitStatusMessage::Failed(err)) => {
-            debug!("VPN exited with error: {:?}", err);
-            Err(Error::VpnRun(err))
-        }
-        Err(err) => {
-            debug!("VPN exited with error: {:?}", err);
-            Err(Error::UnexpectedStop)
-        }
-    }
 }
 
 async fn import_credential(

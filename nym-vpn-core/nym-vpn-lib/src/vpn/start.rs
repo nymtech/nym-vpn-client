@@ -7,6 +7,7 @@ use tracing::{debug, error, info};
 use crate::{
     error::Result,
     uniffi_custom_impls::{ExitStatus, StatusEvent},
+    Error,
 };
 
 use super::{NymVpnCtrlMessage, NymVpnExitStatusMessage, SpecificVpn};
@@ -127,4 +128,27 @@ pub struct NymVpnHandle {
     pub vpn_ctrl_tx: mpsc::UnboundedSender<NymVpnCtrlMessage>,
     pub vpn_status_rx: nym_task::StatusReceiver,
     pub vpn_exit_rx: oneshot::Receiver<NymVpnExitStatusMessage>,
+}
+
+impl NymVpnHandle {
+    pub fn ctrl_tx(&self) -> mpsc::UnboundedSender<NymVpnCtrlMessage> {
+        self.vpn_ctrl_tx.clone()
+    }
+
+    pub async fn wait_until_stopped(self) -> Result<()> {
+        match self.vpn_exit_rx.await {
+            Ok(NymVpnExitStatusMessage::Stopped) => {
+                debug!("VPN stopped");
+                Ok(())
+            }
+            Ok(NymVpnExitStatusMessage::Failed(err)) => {
+                debug!("VPN exited with error: {:?}", err);
+                Err(Error::NymVpnExitWithError(err))
+            }
+            Err(err) => {
+                debug!("VPN unexpected exit with error: {:?}", err);
+                Err(Error::NymVpnExitUnexpectedChannelClose)
+            }
+        }
+    }
 }
