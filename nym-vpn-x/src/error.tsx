@@ -6,9 +6,21 @@ import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api';
 import { exit } from '@tauri-apps/api/process';
 import { Button, MsIcon } from './ui';
+import { StartupError, StartupErrorKey } from './types';
+
+function getErrorText(key: StartupErrorKey) {
+  switch (key) {
+    case 'StartupOpenDb':
+      return 'Failed to open the application database.';
+    case 'StartupOpenDbLocked':
+      return 'It is likely that the application is already running. You cannot run multiple instances of the application at the same time.';
+    default:
+      return 'Unknown error';
+  }
+}
 
 (async () => {
-  const error = await invoke<string | undefined>('startup_error');
+  const error = await invoke<StartupError | undefined>('startup_error');
 
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
@@ -30,13 +42,14 @@ import { Button, MsIcon } from './ui';
           <p className="font-semibold">
             Something went wrong while loading the app.
           </p>
-          {error && (
+          {error && <p className="font-semibold">{getErrorText(error?.key)}</p>}
+          {error?.details && (
             <div className="overflow-auto overscroll-auto max-h-32 mt-4">
               <p
                 id="error-content"
                 className="italic text-mercury-mist cursor-auto select-text"
               >
-                {error}
+                {error.details}
               </p>
             </div>
           )}

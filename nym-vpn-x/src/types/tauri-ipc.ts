@@ -6,6 +6,8 @@ export type BackendError = {
   data: Record<string, string> | null;
 };
 
+export type StartupError = { key: StartupErrorKey; details: string | null };
+
 export type Cli = {
   nosplash: boolean;
 };
@@ -64,6 +66,8 @@ export type BkdErrorKey =
   | 'UserNoBandwidth'
   | 'GetEntryCountriesQuery'
   | 'GetExitCountriesQuery';
+
+export type StartupErrorKey = 'StartupOpenDb' | 'StartupOpenDbLocked';
 
 export type ConnectionStateResponse = {
   state: ConnectionState;

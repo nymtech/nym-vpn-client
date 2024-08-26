@@ -1,16 +1,41 @@
+use crate::commands::startup;
+use crate::db::DbError;
+
 use anyhow::{anyhow, Result};
 use once_cell::sync::OnceCell;
+use serde::{Deserialize, Serialize};
 use tauri::Manager;
 use tracing::{error, info, warn};
+use ts_rs::TS;
 
-use crate::commands::startup;
-
-pub static STARTUP_ERROR: OnceCell<String> = OnceCell::new();
+pub static STARTUP_ERROR: OnceCell<StartupError> = OnceCell::new();
 const ERROR_WIN_LABEL: &str = "error";
 
-pub fn set_error(error: String) {
+#[derive(Debug, Serialize, Deserialize, TS, Clone)]
+#[ts(export, export_to = "StartupErrorKey.ts")]
+pub enum ErrorKey {
+    /// At startup, failed to open the embedded db, generic
+    StartupOpenDb,
+    /// At startup, failed to open the embedded db because it is already locked
+    StartupOpenDbLocked,
+}
+
+#[derive(Debug, Serialize, Deserialize, TS, Clone)]
+#[ts(export)]
+pub struct StartupError {
+    pub key: ErrorKey,
+    pub details: Option<String>,
+}
+
+impl StartupError {
+    pub fn new(key: ErrorKey, details: Option<String>) -> Self {
+        Self { key, details }
+    }
+}
+
+pub fn set_error(key: ErrorKey, details: Option<&str>) {
     STARTUP_ERROR
-        .set(error)
+        .set(StartupError::new(key, details.map(String::from)))
         .inspect_err(|_| {
             warn!("failed to set startup error: already set");
         })
@@ -40,4 +65,13 @@ pub fn show_error_window() -> Result<()> {
         .expect("error while running tauri application");
 
     Ok(())
+}
+
+impl From<&DbError> for ErrorKey {
+    fn from(value: &DbError) -> Self {
+        match value {
+            DbError::Locked(_) => ErrorKey::StartupOpenDbLocked,
+            _ => ErrorKey::StartupOpenDb,
+        }
+    }
 }

@@ -6,5 +6,5 @@ pub mod daemon;
 pub mod db;
 pub mod fs;
 pub mod log;
-pub mod window;
 pub mod startup;
+pub mod window;

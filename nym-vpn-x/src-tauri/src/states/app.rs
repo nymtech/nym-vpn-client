@@ -2,6 +2,7 @@ use nym_vpn_proto::ConnectionStatus;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use time::OffsetDateTime;
+use tracing::error;
 use ts_rs::TS;
 
 use crate::{
@@ -43,20 +44,22 @@ pub struct AppState {
     pub dns_server: Option<String>,
 }
 
-impl TryFrom<(&Db, &AppConfig, &Cli)> for AppState {
-    type Error = anyhow::Error;
-
-    fn try_from(store: (&Db, &AppConfig, &Cli)) -> Result<Self, Self::Error> {
-        // retrieve the saved app data from the embedded db
-        let vpn_mode = store.0.get_typed::<VpnMode>(Key::VpnMode)?;
-        let dns_server: Option<String> = store.2.dns.clone().or(store.1.dns_server.clone());
+impl AppState {
+    pub fn new(db: &Db, config: &AppConfig, cli: &Cli) -> Self {
+        let vpn_mode = db
+            .get_typed::<VpnMode>(Key::VpnMode)
+            .inspect_err(|e| error!("failed to retrieve vpn mode from db: {e}"))
+            .ok()
+            .flatten()
+            .unwrap_or_default();
+        let dns_server: Option<String> = cli.dns.clone().or(config.dns_server.clone());
 
         // restore any state from the saved app data (previous user session)
-        Ok(AppState {
-            vpn_mode: vpn_mode.unwrap_or_default(),
+        AppState {
+            vpn_mode,
             dns_server,
             ..Default::default()
-        })
+        }
     }
 }
 

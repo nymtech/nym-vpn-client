@@ -7,6 +7,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::cli::{db_command, Commands};
+use crate::startup::ErrorKey;
 use crate::window::AppWindow;
 use crate::{
     cli::{print_build_info, Cli},
@@ -79,10 +80,9 @@ async fn main() -> Result<()> {
     }
 
     info!("Creating k/v embedded db");
-    let Ok(db) = Db::new()
-        .inspect_err(|e| startup::set_error(format!("It is likely that the application is already running. Please check as
- you cannot run multiple instances of the app at the same time, this is not supported. Details: failed to open the app db, {}", e)))
-    else {
+    let Ok(db) = Db::new().inspect_err(|e| {
+        startup::set_error(ErrorKey::from(e), Some(&e.to_string()));
+    }) else {
         startup::show_error_window()?;
         exit(1);
     };
@@ -127,16 +127,7 @@ async fn main() -> Result<()> {
         defaults::setup_env::<PathBuf>(None);
     }
 
-    let Ok(app_state) = AppState::try_from((&db, &app_config, &cli)).map_err(|e| {
-        error!("failed to create app state from saved app data and config: {e}");
-        startup::set_error(format!(
-            "failed to create app state from saved app data and config: {e}"
-        ));
-        e
-    }) else {
-        startup::show_error_window()?;
-        exit(1);
-    };
+    let app_state = AppState::new(&db, &app_config, &cli);
 
     let grpc = GrpcClient::new(&app_config, &cli);
 

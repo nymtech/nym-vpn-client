@@ -1,15 +1,12 @@
-use tracing::{debug, instrument};
+use tracing::{debug, instrument, trace};
 
-use crate::error::BackendError;
-use crate::startup::STARTUP_ERROR;
+use crate::startup::{StartupError, STARTUP_ERROR};
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub fn startup_error() -> Result<String, BackendError> {
+pub fn startup_error() -> Option<StartupError> {
     debug!("startup_error");
-
-    Ok(STARTUP_ERROR
-        .get()
-        .cloned()
-        .unwrap_or_else(|| "No startup error found".to_string()))
+    STARTUP_ERROR.get().cloned().inspect(|e| {
+        trace!("{:#?}", e);
+    })
 }
