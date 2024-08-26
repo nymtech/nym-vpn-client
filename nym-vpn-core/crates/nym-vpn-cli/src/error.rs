@@ -28,7 +28,7 @@ pub(crate) enum Error {
     FailedToParseEncodedCredentialData(#[source] bs58::decode::Error),
 
     #[error(transparent)]
-    BoxedError(#[from] Box<dyn std::error::Error + Send + Sync + 'static>),
+    Boxed(#[from] Box<dyn std::error::Error + Send + Sync + 'static>),
 
     #[error("vpn task stopped unexpectedly")]
     UnexpectedStop,

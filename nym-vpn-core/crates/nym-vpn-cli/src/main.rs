@@ -186,16 +186,14 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
 
 async fn join_vpn_handle(handle: nym_vpn_lib::NymVpnHandle) -> Result<()> {
     match handle.vpn_exit_rx.await {
-        Ok(exit_msg) => match exit_msg {
-            nym_vpn_lib::NymVpnExitStatusMessage::Stopped => {
-                debug!("VPN stopped");
-                Ok(())
-            }
-            nym_vpn_lib::NymVpnExitStatusMessage::Failed(err) => {
-                debug!("VPN exited with error: {:?}", err);
-                Err(Error::BoxedError(err))
-            }
-        },
+        Ok(nym_vpn_lib::NymVpnExitStatusMessage::Stopped) => {
+            debug!("VPN stopped");
+            Ok(())
+        }
+        Ok(nym_vpn_lib::NymVpnExitStatusMessage::Failed(err)) => {
+            debug!("VPN exited with error: {:?}", err);
+            Err(Error::Boxed(err))
+        }
         Err(err) => {
             debug!("VPN exited with error: {:?}", err);
             Err(Error::UnexpectedStop)
