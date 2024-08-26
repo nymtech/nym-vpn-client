@@ -64,10 +64,12 @@ object LogcatHelper {
 		private var logcatReader: LogcatReader? = null
 
 		override suspend fun start(onLogMessage: ((message: LogMessage) -> Unit)?) {
-			logcatReader ?: run {
-				logcatReader = LogcatReader(LogcatHelperInit.pID.toString(), LogcatHelperInit.logcatPath, onLogMessage)
+			withContext(ioDispatcher) {
+				logcatReader ?: run {
+					logcatReader = LogcatReader(LogcatHelperInit.pID.toString(), LogcatHelperInit.logcatPath, onLogMessage)
+				}
+				logcatReader?.run()
 			}
-			logcatReader?.run()
 		}
 
 		override fun stop() {
@@ -75,7 +77,7 @@ object LogcatHelper {
 			logcatReader = null
 		}
 
-		private fun mergeLogs(sourceDir: String, outputFile: File) {
+		private fun mergeLogs(sourceDir: String, outputFile: File) : File {
 			val logcatDir = File(sourceDir)
 
 			if (!outputFile.exists()) outputFile.createNewFile()
@@ -98,17 +100,18 @@ object LogcatHelper {
 			}
 			pw.flush()
 			pw.close()
+			return outputFile
 		}
 
 		@RequiresApi(Build.VERSION_CODES.O)
-		private fun mergeLogsApi26(sourceDir: String, outputFile: File) {
+		private fun mergeLogsApi26(sourceDir: String, outputFile: File) : File {
 			val outputFilePath = Paths.get(outputFile.absolutePath)
 			val logcatPath = Paths.get(sourceDir)
 
-			Files.list(logcatPath)
-				.sorted { o1, o2 ->
-					Files.getLastModifiedTime(o1).compareTo(Files.getLastModifiedTime(o2))
-				}
+			Files.list(logcatPath).use {
+				it.sorted { o1, o2 ->
+				Files.getLastModifiedTime(o1).compareTo(Files.getLastModifiedTime(o2))
+			}
 				.flatMap(Files::lines)
 				.forEach { line ->
 					Files.write(
@@ -118,29 +121,24 @@ object LogcatHelper {
 						StandardOpenOption.APPEND,
 					)
 				}
+			}
+			return outputFile
 		}
 
-		override suspend fun getLogFile(name: String): Result<File> {
-			stop()
+		override suspend fun getLogFile(name: String): File {
 			return withContext(ioDispatcher) {
-				try {
+					stop()
 					val outputDir = File(LogcatHelperInit.publicAppDirectory + File.separator + "output")
 					val outputFile = File(outputDir.absolutePath + File.separator + name)
-
 					if (!outputDir.exists()) outputDir.mkdir()
 					if (outputFile.exists()) outputFile.delete()
-
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 						mergeLogsApi26(LogcatHelperInit.logcatPath, outputFile)
 					} else {
 						mergeLogs(LogcatHelperInit.logcatPath, outputFile)
 					}
-					Result.success(outputFile)
-				} catch (e: Exception) {
-					Result.failure(e)
-				} finally {
-					start()
-				}
+				}.also {
+				start()
 			}
 		}
 

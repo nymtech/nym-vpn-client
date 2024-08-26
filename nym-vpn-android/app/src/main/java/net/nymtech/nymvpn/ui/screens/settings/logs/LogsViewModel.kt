@@ -14,7 +14,8 @@ import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.module.MainDispatcher
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.chunked
-import net.nymtech.nymvpn.util.extensions.shareFile
+import net.nymtech.nymvpn.util.extensions.launchShareFile
+import timber.log.Timber
 import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
@@ -43,13 +44,15 @@ class LogsViewModel @Inject constructor(
 		}
 	}
 
-	fun shareLogs(context: Context) = viewModelScope.launch(ioDispatcher) {
+	fun shareLogs(context: Context) = viewModelScope.launch {
+		Timber.d("HUHHH")
 		val fileName = "${Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.txt"
-		val file = logCollect.getLogFile(fileName).getOrElse {
-			// TODO add error message
-			return@launch
+		runCatching {
+			val file = logCollect.getLogFile(fileName)
+			context.launchShareFile(file)
+		}.onFailure {
+			Timber.e(it)
 		}
-		context.shareFile(file)
 	}
 
 	fun deleteLogs() = viewModelScope.launch {
