@@ -106,7 +106,7 @@ jobs:
 
       - name: Install cargo deps
         run: |
-          cargo install cargo-ndk cargo-license
+          cargo install cargo-ndk cargo-license --locked
 
       - name: Install deps
         run: |

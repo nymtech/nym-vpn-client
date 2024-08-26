@@ -11,7 +11,6 @@ export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin"
 bash $PWD/../../wireguard/build-wireguard-go.sh
 bash $PWD/../../wireguard/libwg/build-android.sh
 echo "Building nym-vpn-lib dep"
-echo "${PWD}/../../build/lib/universal-apple-darwin"
 
 case  "$(uname -s)" in
     Darwin*) export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-apple-darwin -L ${PWD}/../../build/lib/aarch64-linux-android";;
