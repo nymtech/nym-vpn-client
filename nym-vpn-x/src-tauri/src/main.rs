@@ -7,7 +7,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::cli::{db_command, Commands};
-use crate::startup::ErrorKey;
+use crate::startup_error::ErrorKey;
 use crate::window::AppWindow;
 use crate::{
     cli::{print_build_info, Cli},
@@ -42,7 +42,7 @@ mod events;
 mod fs;
 mod grpc;
 mod log;
-mod startup;
+mod startup_error;
 mod states;
 mod system_tray;
 mod vpn_status;
@@ -81,9 +81,9 @@ async fn main() -> Result<()> {
 
     info!("Creating k/v embedded db");
     let Ok(db) = Db::new().inspect_err(|e| {
-        startup::set_error(ErrorKey::from(e), Some(&e.to_string()));
+        startup_error::set_error(ErrorKey::from(e), Some(&e.to_string()));
     }) else {
-        startup::show_error_window()?;
+        startup_error::show_window()?;
         exit(1);
     };
 

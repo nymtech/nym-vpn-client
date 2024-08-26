@@ -42,7 +42,7 @@ pub fn set_error(key: ErrorKey, details: Option<&str>) {
         .ok();
 }
 
-pub fn show_error_window() -> Result<()> {
+pub fn show_window() -> Result<()> {
     let context = tauri::generate_context!();
 
     info!("Starting tauri app");

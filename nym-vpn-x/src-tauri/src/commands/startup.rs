@@ -1,6 +1,6 @@
 use tracing::{debug, instrument, trace};
 
-use crate::startup::{StartupError, STARTUP_ERROR};
+use crate::startup_error::{StartupError, STARTUP_ERROR};
 
 #[instrument(skip_all)]
 #[tauri::command]
