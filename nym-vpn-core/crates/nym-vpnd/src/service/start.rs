@@ -33,6 +33,11 @@ pub(crate) fn start_vpn_service(
                     error!("Failed to initialize VPN service: {:?}", err);
                 }
             }
+
+            // The task handling of the vpn libary is not yet integrated with the daemon task
+            // handling, so sleep here to give the mixnet client a sporting chance to flush data to
+            // storage.
+            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         });
     })
 }
