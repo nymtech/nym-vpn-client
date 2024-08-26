@@ -1,15 +1,15 @@
 use crate::commands::startup;
 use crate::db::DbError;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
-use tauri::Manager;
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 use ts_rs::TS;
 
 pub static STARTUP_ERROR: OnceCell<StartupError> = OnceCell::new();
-const ERROR_WIN_LABEL: &str = "error";
+const WIN_LABEL: &str = "error";
+const WIN_TITLE: &str = "NymVPN - Startup error";
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
 #[ts(export, export_to = "StartupErrorKey.ts")]
@@ -50,13 +50,22 @@ pub fn show_error_window() -> Result<()> {
         .setup(move |app| {
             info!("app setup");
 
-            let window = app
-                .get_window(ERROR_WIN_LABEL)
-                .ok_or_else(|| anyhow!("failed to get window {}", ERROR_WIN_LABEL))?;
-
-            window
-                .show()
-                .inspect_err(|e| error!("failed to show window {}: {}", ERROR_WIN_LABEL, e))?;
+            tauri::WindowBuilder::new(
+                app,
+                WIN_LABEL,
+                tauri::WindowUrl::App("src/error.html".into()),
+            )
+            .fullscreen(false)
+            .resizable(false)
+            .maximizable(false)
+            .visible(true)
+            .focused(true)
+            .inner_size(600.0, 560.0)
+            .min_inner_size(200.0, 340.0)
+            .max_inner_size(800.0, 1000.0)
+            .center()
+            .title(WIN_TITLE)
+            .build()?;
 
             Ok(())
         })
