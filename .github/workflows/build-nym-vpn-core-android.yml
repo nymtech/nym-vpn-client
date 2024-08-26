@@ -48,7 +48,7 @@ jobs:
 
       - name: Install cargo deps
         run: |
-          cargo install cargo-ndk cargo-license
+          cargo install cargo-ndk cargo-license --locked
 
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
@@ -59,7 +59,7 @@ jobs:
       - name: Build nym-vpn-core for android
         working-directory: nym-vpn-core/nym-vpn-lib
         env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}/x86_64-unknown-linux-gnu -L ${{ env.WG_GO_LIB_PATH }}/aarch64-linux-android"
+          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
           cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --${{ env.CARGO_TARGET }}
           ls -la ../target/aarch64-linux-android/release/ || true
