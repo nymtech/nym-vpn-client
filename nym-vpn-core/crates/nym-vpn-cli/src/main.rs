@@ -192,7 +192,7 @@ async fn join_vpn_handle(handle: nym_vpn_lib::NymVpnHandle) -> Result<()> {
         }
         Ok(nym_vpn_lib::NymVpnExitStatusMessage::Failed(err)) => {
             debug!("VPN exited with error: {:?}", err);
-            Err(Error::Boxed(err))
+            Err(Error::VpnRun(err))
         }
         Err(err) => {
             debug!("VPN exited with error: {:?}", err);
