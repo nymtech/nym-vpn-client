@@ -5247,6 +5247,7 @@ version = "0.1.17-dev"
 dependencies = [
  "android_logger",
  "anyhow",
+ "base64 0.22.1",
  "bincode",
  "bs58 0.5.1",
  "bytes",
