@@ -184,12 +184,41 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
     handle.wait_until_stopped().await.map_err(Error::VpnLib)
 }
 
+#[cfg(unix)]
+fn register_signal_handler(vpn_ctrl_tx: mpsc::UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>) {
+    use tokio::signal::unix::{signal, SignalKind};
+
+    tokio::spawn(async move {
+        let mut sigterm = signal(SignalKind::terminate()).expect("Failed to setup SIGTERM channel");
+        let mut sigquit = signal(SignalKind::quit()).expect("Failed to setup SIGQUIT channel");
+
+        tokio::select! {
+            _ = tokio::signal::ctrl_c() => {
+                info!("Received Ctrl-C signal");
+            }
+            _ = sigterm.recv() => {
+                info!("Received SIGTERM signal");
+            }
+            _ = sigquit.recv() => {
+                info!("Received SIGQUIT signal");
+            }
+        }
+        info!("Sending stop message to VPN");
+        vpn_ctrl_tx
+            .unbounded_send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
+            .unwrap();
+    });
+}
+
+#[cfg(not(unix))]
 fn register_signal_handler(vpn_ctrl_tx: mpsc::UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>) {
     tokio::spawn(async move {
-        tokio::signal::ctrl_c()
-            .await
-            .expect("Failed to listen for ctrl-c signal");
-        info!("Received ctrl-c signal, shutting down VPN");
+        tokio::select! {
+            _ = tokio::signal::ctrl_c() => {
+                info!("Received Ctrl-C signal");
+            }
+        }
+        info!("Sending stop message to VPN");
         vpn_ctrl_tx
             .unbounded_send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
             .unwrap();
