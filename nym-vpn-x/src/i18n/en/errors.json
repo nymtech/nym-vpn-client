@@ -26,7 +26,7 @@
       "entry-id": "Failed to lookup the entry gateway identity",
       "entry-location": "Failed to lookup the entry gateway for a given location",
       "exit": "Failed to lookup the exit gateway",
-      "exit-location": "Failed to lookup the entry gateway for a given location"
+      "exit-location": "Failed to lookup the exit gateway for a given location"
     },
     "bad-country-combination": "Unsupported country combination, please change the entry or exit country"
   },
