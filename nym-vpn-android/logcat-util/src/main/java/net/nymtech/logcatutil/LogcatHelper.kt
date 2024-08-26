@@ -1,8 +1,6 @@
 package net.nymtech.logcatutil
 
 import android.content.Context
-import android.os.Build
-import androidx.annotation.RequiresApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
@@ -17,13 +15,8 @@ import java.io.BufferedReader
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
-import java.io.FileReader
 import java.io.IOException
 import java.io.InputStreamReader
-import java.io.PrintWriter
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardOpenOption
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -82,9 +75,9 @@ object LogcatHelper {
 
 		override suspend fun zipLogFiles(path: String) {
 			return withContext(ioDispatcher) {
-					stop()
-					zipAll(path)
-				}.also {
+				stop()
+				zipAll(path)
+			}.also {
 				start()
 			}
 		}
@@ -98,7 +91,9 @@ object LogcatHelper {
 					val entry = ZipEntry("$zipFileName${(if (file.isDirectory) "/" else "")}")
 					zos.putNextEntry(entry)
 					if (file.isFile) {
-						file.inputStream().copyTo(zos)
+						file.inputStream().use {
+							it.copyTo(zos)
+						}
 					}
 				}
 			}

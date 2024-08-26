@@ -53,7 +53,7 @@ class NymVpn : Application() {
 					.penaltyLog()
 					.build(),
 			)
-			StrictMode.setVmPolicy(builder.build());
+			StrictMode.setVmPolicy(builder.build())
 		} else {
 			Timber.plant(ReleaseTree())
 		}

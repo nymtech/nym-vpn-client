@@ -14,7 +14,6 @@ import android.widget.Toast
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
-import androidx.core.content.FileProvider
 import net.nymtech.nymvpn.NymVpn.Companion.instance
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.receiver.BackgroundActionReceiver
@@ -22,8 +21,6 @@ import net.nymtech.nymvpn.service.android.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.Country
 import timber.log.Timber
-import java.io.File
-
 
 private const val BASELINE_HEIGHT = 2201
 private const val BASELINE_WIDTH = 1080
@@ -138,24 +135,24 @@ fun Context.requestTileServiceStateUpdate() {
 	)
 }
 
-fun Context.launchShareFile(file: File) {
+fun Context.launchShareFile(file: Uri) {
 	val shareIntent = Intent()
 	shareIntent.setAction(Intent.ACTION_SEND)
 	shareIntent.setType("*/*")
-
-	val uri = FileProvider.getUriForFile(this, "net.nymtech.nymvpn.provider", file)
-	shareIntent.putExtra(Intent.EXTRA_STREAM, uri)
+	shareIntent.putExtra(Intent.EXTRA_STREAM, file)
 	shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 	this.startActivity(Intent.createChooser(shareIntent, ""))
 }
 
 fun Context.launchNotificationSettings() {
-	if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 		val settingsIntent: Intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
 			.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 			.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
 		this.startActivity(settingsIntent)
-	} else this.launchAppSettings()
+	} else {
+		this.launchAppSettings()
+	}
 }
 
 // for localization changes

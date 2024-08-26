@@ -22,7 +22,6 @@ import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
 
-
 @HiltViewModel
 class LogsViewModel @Inject constructor(
 	private val logCollect: LogCollect,
@@ -50,13 +49,14 @@ class LogsViewModel @Inject constructor(
 	fun shareLogs(context: Context) = viewModelScope.launch(ioDispatcher) {
 		runCatching {
 			val sharePath = File(context.filesDir, "external_files")
-			if(sharePath.exists()) sharePath.delete()
+			if (sharePath.exists()) sharePath.delete()
 			sharePath.mkdir()
-			val file = File( "${sharePath.path + "/" + Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.zip")
-			if(file.exists()) file.delete()
+			val file = File("${sharePath.path + "/" + Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.zip")
+			if (file.exists()) file.delete()
 			file.createNewFile()
 			logCollect.zipLogFiles(file.absolutePath)
-			context.launchShareFile(file)
+			val uri = FileProvider.getUriForFile(context, "net.nymtech.nymvpn.provider", file)
+			context.launchShareFile(uri)
 		}.onFailure {
 			Timber.e(it)
 		}
