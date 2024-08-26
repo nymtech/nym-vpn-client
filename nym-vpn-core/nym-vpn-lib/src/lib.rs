@@ -20,7 +20,6 @@ mod wireguard_config;
 mod wireguard_setup;
 
 // Re-export some our nym dependencies
-pub use nym_bin_common as bin_common;
 pub use nym_config;
 pub use nym_connection_monitor as connection_monitor;
 pub use nym_gateway_directory as gateway_directory;

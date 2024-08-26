@@ -1,10 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib::{
-    bin_common::bin_info_local_vergen,
-    gateway_directory::{EntryPoint, ExitPoint, GatewayClient},
-};
+use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient};
 use time::OffsetDateTime;
 use tokio::sync::{mpsc::UnboundedSender, oneshot};
 use tracing::{debug, info, warn};
@@ -203,7 +200,7 @@ impl CommandInterfaceConnectionHandler {
 fn directory_client(
     min_gateway_performance: Option<u8>,
 ) -> Result<GatewayClient, ListGatewayError> {
-    let user_agent = bin_info_local_vergen!().into();
+    let user_agent = nym_bin_common::bin_info_local_vergen!().into();
     let directory_config =
         nym_vpn_lib::gateway_directory::Config::new_from_env(min_gateway_performance);
     GatewayClient::new(directory_config, user_agent)

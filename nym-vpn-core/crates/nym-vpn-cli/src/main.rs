@@ -7,7 +7,6 @@ use clap::Parser;
 use commands::{CliArgs, ImportCredentialTypeEnum};
 use futures::channel::mpsc;
 use nym_vpn_lib::{
-    bin_common::bin_info,
     gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint},
     nym_config::defaults::{setup_env, var_names},
     GenericNymVpnConfig, IpPair, MixnetClientConfig, NodeIdentity, NymVpn, Recipient, SpecificVpn,
@@ -109,7 +108,7 @@ fn check_root_privileges(args: &commands::CliArgs) -> Result<()> {
 async fn run() -> Result<()> {
     let args = commands::CliArgs::parse();
     setup_logging(&args);
-    debug!("{:?}", nym_vpn_lib::bin_common::bin_info!());
+    debug!("{:?}", nym_bin_common::bin_info_local_vergen!());
     setup_env(args.config_env_file.as_ref());
 
     check_root_privileges(&args)?;
@@ -164,7 +163,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_mtu: args.nym_mtu,
         dns: args.dns,
         disable_routing: args.disable_routing,
-        user_agent: Some(bin_info!().into()),
+        user_agent: Some(nym_bin_common::bin_info_local_vergen!().into()),
     };
 
     let nym_vpn: SpecificVpn = if args.wireguard_mode {

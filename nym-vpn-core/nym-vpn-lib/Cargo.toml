@@ -101,6 +101,13 @@ is_elevated = "0.1.2"
 
 [build-dependencies]
 uniffi = { version = "0.27.3", features = ["build"] }
+vergen = { workspace = true, default-features = false, features = [
+    "build",
+    "git",
+    "gitcl",
+    "rustc",
+    "cargo",
+] }
 
 [features]
 metrics-server = ["nym-client-core/metrics-server"]

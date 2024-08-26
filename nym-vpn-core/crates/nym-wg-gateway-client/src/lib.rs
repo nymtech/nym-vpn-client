@@ -30,7 +30,7 @@ use talpid_types::net::wireguard::PublicKey; // TODO: this is a type we should p
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 use tracing::{debug, error, info, trace, warn};
 
-pub use error::WgGatewayClientError;
+pub use error::Error;
 
 use crate::error::Result;
 
@@ -155,21 +155,21 @@ impl WgGatewayClient {
                 let AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) =
                     response.data
                 else {
-                    return Err(WgGatewayClientError::InvalidGatewayAuthResponse);
+                    return Err(Error::InvalidGatewayAuthResponse);
                 };
                 reply
             }
             AuthenticatorResponseData::Registered(RegisteredResponse { reply, .. }) => reply,
-            _ => return Err(WgGatewayClientError::InvalidGatewayAuthResponse),
+            _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
         let IpAddr::V4(private_ipv4) = registred_data.private_ip else {
-            return Err(WgGatewayClientError::InvalidGatewayAuthResponse);
+            return Err(Error::InvalidGatewayAuthResponse);
         };
         let gateway_data = GatewayData {
             public_key: PublicKey::from(registred_data.pub_key.to_bytes()),
             endpoint: SocketAddr::from_str(&format!("{}:{}", gateway_host, registred_data.wg_port))
-                .map_err(WgGatewayClientError::FailedToParseEntryGatewaySocketAddr)?,
+                .map_err(Error::FailedToParseEntryGatewaySocketAddr)?,
             private_ipv4,
         };
 
@@ -194,7 +194,7 @@ impl WgGatewayClient {
                 reply: None,
                 ..
             }) => return Ok(Some(0)),
-            _ => return Err(WgGatewayClientError::InvalidGatewayAuthResponse),
+            _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
         if remaining_bandwidth_data.suspended {
@@ -246,7 +246,7 @@ impl WgGatewayClient {
                                     timeout_check_interval.next().await;
                                 }
                                 None => {
-                                    shutdown.send_we_stopped(Box::new(WgGatewayClientError::OutOfBandwidth));
+                                    shutdown.send_we_stopped(Box::new(Error::OutOfBandwidth));
                                 }
                             }
                         },

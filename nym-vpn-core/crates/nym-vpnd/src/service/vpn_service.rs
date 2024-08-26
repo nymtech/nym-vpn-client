@@ -14,7 +14,6 @@ use futures::{
     SinkExt,
 };
 use nym_vpn_lib::{
-    bin_common::bin_info,
     credentials::import_credential,
     gateway_directory::{self, EntryPoint, ExitPoint},
     GenericNymVpnConfig, MixnetClientConfig, NodeIdentity, Recipient,
@@ -489,7 +488,7 @@ where
             nym_mtu: None,
             dns: options.dns,
             disable_routing: options.disable_routing,
-            user_agent: Some(bin_info!().into()),
+            user_agent: Some(nym_bin_common::bin_info_local_vergen!().into()),
         };
 
         let nym_vpn = if options.enable_two_hop {
@@ -565,7 +564,7 @@ where
 
     async fn handle_info(&self) -> VpnServiceInfoResult {
         let network = nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env();
-        let bin_info = nym_vpn_lib::bin_common::bin_info_local_vergen!();
+        let bin_info = nym_bin_common::bin_info_local_vergen!();
         VpnServiceInfoResult {
             version: bin_info.build_version.to_string(),
             build_timestamp: time::OffsetDateTime::parse(bin_info.build_timestamp, &Rfc3339).ok(),

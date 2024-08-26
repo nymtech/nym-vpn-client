@@ -1,6 +1,5 @@
 use bytes::BytesMut;
 use futures::StreamExt;
-use nym_bin_common::bin_info;
 use nym_config::defaults::NymNetworkDetails;
 use nym_connection_monitor::self_ping_and_wait;
 use nym_gateway_directory::{
@@ -102,7 +101,7 @@ async fn lookup_gateways() -> anyhow::Result<GatewayList> {
             .unwrap_or("unavailable".to_string())
     );
 
-    let user_agent = bin_info!().into();
+    let user_agent = nym_bin_common::bin_info_local_vergen!().into();
     let gateway_client = GatewayDirectoryClient::new(gateway_config.clone(), user_agent)?;
     let gateways = gateway_client.lookup_all_gateways_from_nym_api().await?;
     Ok(gateways)
