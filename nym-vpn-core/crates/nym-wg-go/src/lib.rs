@@ -18,19 +18,19 @@ use uapi::UapiConfigBuilder;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("Failed to convert IP addr into C string")]
+    #[error("failed to convert IP addr into C string")]
     IpAddrToCstr,
 
-    #[error("Config contains nul byte")]
+    #[error("config contains nul byte")]
     ConfigContainsNulByte,
 
-    #[error("Failed to start netstack tunnel (code: {})", _0)]
+    #[error("failed to start netstack tunnel (code: {})", _0)]
     StartTunnel(i32),
 
-    #[error("Failed to open connection through the tunnel (code: {})", _0)]
+    #[error("failed to open connection through the tunnel (code: {})", _0)]
     OpenConnection(i32),
 
-    #[error("Failed to set UAPI config (code: {})", _0)]
+    #[error("failed to set UAPI config (code: {})", _0)]
     SetUapiConfig(i64),
 }
 
