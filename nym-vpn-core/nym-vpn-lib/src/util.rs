@@ -64,7 +64,7 @@ pub(crate) async fn wait_for_interrupt(
         handle_interrupt(route_manager, wireguard_waiting).await;
 
         info!("Waiting for tasks to finish... (Press ctrl-c to force)");
-        // TODO: this contains another signal handler that needs to be moved out out.
+        // TODO: this contains another signal handler that needs to be moved out.
         task_manager.wait_for_shutdown().await;
 
         info!("Stopping mixnet client");
