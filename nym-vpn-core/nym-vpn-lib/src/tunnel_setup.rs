@@ -379,6 +379,10 @@ pub async fn setup_tunnel(
 
     let tunnels_setup = match nym_vpn {
         SpecificVpn::Wg(vpn) => {
+
+            // HERE BE DRAGONS: these all can fail, including setup_mix_tunnel, and the
+            // mixnet_client is not disconnected when that happens!
+
             let entry_authenticator_address = entry
                 .authenticator_address
                 .ok_or(Error::AuthenticatorAddressNotFound)?;
