@@ -178,25 +178,27 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
 
     let handle = nym_vpn_lib::spawn_nym_vpn(nym_vpn).unwrap();
 
-    tokio::select! {
-        exit_msg = handle.vpn_exit_rx => match exit_msg {
-            Ok(exit_msg) => {
-                info!("VPN exited: {:?}", exit_msg);
-                match exit_msg {
-                    nym_vpn_lib::NymVpnExitStatusMessage::Stopped => {
-                        info!("VPN stopped");
-                        Ok(())
-                    }
-                    nym_vpn_lib::NymVpnExitStatusMessage::Failed(err) => {
-                        error!("VPN exited with error: {:?}", err);
-                        Err(Error::BoxedError(err))
-                    }
-                }
+    // TODO: at this point, after the vpn lib has been spawned, we should register a ctrl-c signal
+    // handler here at this layer and not as it's currently, in the vpn lib itself
+
+    join_vpn_handle(handle).await
+}
+
+async fn join_vpn_handle(handle: nym_vpn_lib::NymVpnHandle) -> Result<()> {
+    match handle.vpn_exit_rx.await {
+        Ok(exit_msg) => match exit_msg {
+            nym_vpn_lib::NymVpnExitStatusMessage::Stopped => {
+                debug!("VPN stopped");
+                Ok(())
             }
-            Err(err) => {
-                error!("VPN exited with error: {:?}", err);
-                Err(Error::UnexpectedStop)
+            nym_vpn_lib::NymVpnExitStatusMessage::Failed(err) => {
+                debug!("VPN exited with error: {:?}", err);
+                Err(Error::BoxedError(err))
             }
+        },
+        Err(err) => {
+            debug!("VPN exited with error: {:?}", err);
+            Err(Error::UnexpectedStop)
         }
     }
 }
