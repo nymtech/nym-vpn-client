@@ -127,6 +127,7 @@ pub enum VpnServiceCommand {
         Vec<u8>,
     ),
     StoreAccount(oneshot::Sender<Result<(), StoreAccountError>>, String),
+    Shutdown,
 }
 
 impl fmt::Display for VpnServiceCommand {
@@ -138,6 +139,7 @@ impl fmt::Display for VpnServiceCommand {
             VpnServiceCommand::Info(_) => write!(f, "Info"),
             VpnServiceCommand::ImportCredential(_, _) => write!(f, "ImportCredential"),
             VpnServiceCommand::StoreAccount(_, _) => write!(f, "StoreAccount"),
+            VpnServiceCommand::Shutdown => write!(f, "Shutdown"),
         }
     }
 }
@@ -630,6 +632,14 @@ where
                 VpnServiceCommand::StoreAccount(tx, account) => {
                     let result = self.handle_store_account(account).await;
                     tx.send(result).unwrap();
+                }
+                VpnServiceCommand::Shutdown => {
+                    let result = self.handle_disconnect().await;
+                    info!("VPN: Shutting down: {:?}", result);
+                    while self.is_running() {
+                        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                    }
+                    break;
                 }
             }
         }

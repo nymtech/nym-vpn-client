@@ -10,14 +10,15 @@ use tokio::sync::{
     mpsc::{UnboundedReceiver, UnboundedSender},
 };
 use tonic::transport::Server;
-use tracing::{debug, debug_span, info, info_span, trace, trace_span, warn, Span};
+use tracing::{debug, debug_span, info, info_span, trace, trace_span, Span};
 
 use super::{
     config::{default_socket_path, default_uri_addr},
     listener::CommandInterface,
     socket_stream::setup_socket_stream,
 };
-use crate::service::{VpnServiceCommand, VpnServiceDisconnectResult, VpnServiceStateChange};
+
+use crate::service::{VpnServiceCommand, VpnServiceStateChange};
 
 fn grpc_span(req: &http::Request<()>) -> Span {
     let service = req.uri().path().trim_start_matches('/');
@@ -170,7 +171,7 @@ pub(crate) fn start_command_interface(
             tokio::select! {
                 _ = task_manager.catch_interrupt() => {
                     info!("Caught interrupt");
-                    send_disconnect_vpn(&vpn_command_tx).await;
+                    vpn_command_tx.send(VpnServiceCommand::Shutdown).unwrap();
                 },
                 _ = event_rx.recv() => {
                     info!("Caught event stop");
@@ -178,7 +179,7 @@ pub(crate) fn start_command_interface(
                     task_manager.signal_shutdown().ok();
                     info!("Waiting for shutdown ...");
                     task_manager.wait_for_shutdown().await;
-                    send_disconnect_vpn(&vpn_command_tx).await;
+                    vpn_command_tx.send(VpnServiceCommand::Shutdown).unwrap();
                 }
             }
 
@@ -187,23 +188,4 @@ pub(crate) fn start_command_interface(
     });
 
     (handle, vpn_command_rx)
-}
-
-async fn send_disconnect_vpn(vpn_command_tx: &UnboundedSender<VpnServiceCommand>) {
-    let (tx, rx) = tokio::sync::oneshot::channel();
-    vpn_command_tx
-        .send(VpnServiceCommand::Disconnect(tx))
-        .unwrap();
-    info!("Sent disconnect command to VPN");
-    match rx.await.unwrap() {
-        VpnServiceDisconnectResult::Success => {
-            info!("VPN disconnect command sent successfully");
-        }
-        VpnServiceDisconnectResult::NotRunning => {
-            info!("VPN can't stop - it's not running");
-        }
-        VpnServiceDisconnectResult::Fail(ref err) => {
-            warn!("VPN failed to send disconnect command: {err}");
-        }
-    };
 }
