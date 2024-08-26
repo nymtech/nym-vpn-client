@@ -5,6 +5,7 @@ use std::{fs, path::PathBuf};
 
 use clap::Parser;
 use commands::{CliArgs, ImportCredentialTypeEnum};
+use futures::channel::mpsc;
 use nym_vpn_lib::{
     bin_common::bin_info,
     gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint},
@@ -178,10 +179,21 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
 
     let handle = nym_vpn_lib::spawn_nym_vpn(nym_vpn).unwrap();
 
-    // TODO: at this point, after the vpn lib has been spawned, we should register a ctrl-c signal
-    // handler here at this layer and not as it's currently, in the vpn lib itself
+    register_signal_handler(handle.vpn_ctrl_tx.clone());
 
     join_vpn_handle(handle).await
+}
+
+fn register_signal_handler(vpn_ctrl_tx: mpsc::UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>) {
+    tokio::spawn(async move {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Failed to listen for ctrl-c signal");
+        info!("Received ctrl-c signal, shutting down VPN");
+        vpn_ctrl_tx
+            .unbounded_send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
+            .unwrap();
+    });
 }
 
 async fn join_vpn_handle(handle: nym_vpn_lib::NymVpnHandle) -> Result<()> {

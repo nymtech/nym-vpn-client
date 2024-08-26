@@ -170,7 +170,7 @@ pub(crate) fn start_command_interface(
             tokio::select! {
                 _ = task_manager.catch_interrupt() => {
                     info!("Caught interrupt");
-                    disconnect_vpn(&vpn_command_tx).await;
+                    send_disconnect_vpn(&vpn_command_tx).await;
                 },
                 _ = event_rx.recv() => {
                     info!("Caught event stop");
@@ -178,7 +178,7 @@ pub(crate) fn start_command_interface(
                     task_manager.signal_shutdown().ok();
                     info!("Waiting for shutdown ...");
                     task_manager.wait_for_shutdown().await;
-                    disconnect_vpn(&vpn_command_tx).await;
+                    send_disconnect_vpn(&vpn_command_tx).await;
                 }
             }
 
@@ -189,13 +189,12 @@ pub(crate) fn start_command_interface(
     (handle, vpn_command_rx)
 }
 
-async fn disconnect_vpn(vpn_command_tx: &UnboundedSender<VpnServiceCommand>) {
+async fn send_disconnect_vpn(vpn_command_tx: &UnboundedSender<VpnServiceCommand>) {
     let (tx, rx) = tokio::sync::oneshot::channel();
     vpn_command_tx
         .send(VpnServiceCommand::Disconnect(tx))
         .unwrap();
-    info!("Sent stop command to VPN");
-    info!("Waiting for response");
+    info!("Sent disconnect command to VPN");
     match rx.await.unwrap() {
         VpnServiceDisconnectResult::Success => {
             info!("VPN disconnect command sent successfully");
