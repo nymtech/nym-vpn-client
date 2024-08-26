@@ -103,7 +103,7 @@ async fn run_nym_vpn(
     vpn_ctrl_rx: mpsc::UnboundedReceiver<NymVpnCtrlMessage>,
     vpn_exit_tx: oneshot::Sender<NymVpnExitStatusMessage>,
 ) {
-    match nym_vpn.run_and_listen(vpn_status_tx, vpn_ctrl_rx).await {
+    match nym_vpn.run(vpn_status_tx, vpn_ctrl_rx).await {
         Ok(()) => {
             info!("Nym VPN has shut down");
             vpn_exit_tx
