@@ -188,7 +188,8 @@ jobs:
         if: contains(matrix.target, 'android')
         working-directory: nym-vpn-core
         run: |
-          cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
+          rustflags="-L ${GITHUB_WORKSPACE}/build/lib/aarch64-linux-android" 
+          RUSTFLAGS=$rustflags cargo ndk  -t aarch64-linux-android -o ./build build -p nym-vpn-lib
 
       - name: Build (iOS)
         if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
