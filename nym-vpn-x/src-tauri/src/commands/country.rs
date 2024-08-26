@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::sync::Arc;
 use tauri::State;
 use tracing::{debug, instrument};
@@ -26,17 +25,17 @@ pub async fn get_countries(
     debug!("get_countries");
     match node_type {
         NodeType::Entry => grpc.entry_countries().await.map_err(|e| {
-            BackendError::new_with_data(
+            BackendError::new_with_details(
                 "failed to fetch entry countries",
                 ErrorKey::GetEntryCountriesQuery,
-                HashMap::from([("details", e.to_string())]),
+                e.to_string(),
             )
         }),
         NodeType::Exit => grpc.exit_countries().await.map_err(|e| {
-            BackendError::new_with_data(
+            BackendError::new_with_details(
                 "failed to fetch exit countries",
                 ErrorKey::GetExitCountriesQuery,
-                HashMap::from([("details", e.to_string())]),
+                e.to_string(),
             )
         }),
     }

@@ -70,6 +70,8 @@ pub struct Db {
 
 #[derive(Error, Debug)]
 pub enum DbError {
+    #[error("lock error {0}")]
+    Locked(String),
     #[error("IO error {0}")]
     Io(#[from] io::Error),
     #[error("db error {0}")]
@@ -95,9 +97,23 @@ impl Db {
             error!("failed to create db directory {}", path.display());
             DbError::Io(e)
         })?;
-        // TODO handle db recovery
-        let db = sled::open(&path)
-            .inspect_err(|e| error!("failed to open sled db from path {}: {e}", path.display()))?;
+        let db = sled::open(&path).map_err(|e| {
+            error!("failed to open sled db from path {}: {e}", path.display());
+            dbg!(&e);
+            match &e {
+                sled::Error::Io(io_err) => {
+                    if io_err.kind() == io::ErrorKind::Other
+                        && io_err.to_string().starts_with("could not acquire lock")
+                    {
+                        // this error happens when it failed to acquire db lock, ie db is already locked
+                        // by another running app instance
+                        return DbError::Locked(e.to_string());
+                    }
+                    DbError::Db(e)
+                }
+                _ => DbError::Db(e),
+            }
+        })?;
         if db.was_recovered() {
             info!("sled db recovered");
         } else {

@@ -2,10 +2,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::path::PathBuf;
+use std::process::exit;
 use std::sync::Arc;
 use std::time::Duration;
 
 use crate::cli::{db_command, Commands};
+use crate::startup_error::ErrorKey;
 use crate::window::AppWindow;
 use crate::{
     cli::{print_build_info, Cli},
@@ -40,6 +42,7 @@ mod events;
 mod fs;
 mod grpc;
 mod log;
+mod startup_error;
 mod states;
 mod system_tray;
 mod vpn_status;
@@ -77,7 +80,12 @@ async fn main() -> Result<()> {
     }
 
     info!("Creating k/v embedded db");
-    let db = Db::new()?;
+    let Ok(db) = Db::new().inspect_err(|e| {
+        startup_error::set_error(ErrorKey::from(e), Some(&e.to_string()));
+    }) else {
+        startup_error::show_window()?;
+        exit(1);
+    };
 
     if let Some(Commands::Db { command: Some(cmd) }) = &cli.command {
         return db_command(&db, cmd);
@@ -119,10 +127,7 @@ async fn main() -> Result<()> {
         defaults::setup_env::<PathBuf>(None);
     }
 
-    let app_state = AppState::try_from((&db, &app_config, &cli)).map_err(|e| {
-        error!("failed to create app state from saved app data and config: {e}");
-        e
-    })?;
+    let app_state = AppState::new(&db, &app_config, &cli);
 
     let grpc = GrpcClient::new(&app_config, &cli);
 
