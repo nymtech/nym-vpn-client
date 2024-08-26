@@ -59,7 +59,7 @@
     "@types/react-window": "^1.8.8",
     "@vitejs/plugin-react-swc": "^3.3.2",
     "autoprefixer": "^10.4.20",
-    "eslint": "^9.8.0",
+    "eslint": "^9.9.1",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-react": "^7.34.4",
     "eslint-plugin-react-hooks": "^5.1.0-rc-187dd6a7-20240806",
