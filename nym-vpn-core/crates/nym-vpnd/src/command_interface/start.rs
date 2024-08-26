@@ -17,6 +17,7 @@ use super::{
     listener::CommandInterface,
     socket_stream::setup_socket_stream,
 };
+
 use crate::service::{VpnServiceCommand, VpnServiceStateChange};
 
 fn grpc_span(req: &http::Request<()>) -> Span {
@@ -170,6 +171,7 @@ pub(crate) fn start_command_interface(
             tokio::select! {
                 _ = task_manager.catch_interrupt() => {
                     info!("Caught interrupt");
+                    vpn_command_tx.send(VpnServiceCommand::Shutdown).unwrap();
                 },
                 _ = event_rx.recv() => {
                     info!("Caught event stop");
@@ -177,6 +179,7 @@ pub(crate) fn start_command_interface(
                     task_manager.signal_shutdown().ok();
                     info!("Waiting for shutdown ...");
                     task_manager.wait_for_shutdown().await;
+                    vpn_command_tx.send(VpnServiceCommand::Shutdown).unwrap();
                 }
             }
 

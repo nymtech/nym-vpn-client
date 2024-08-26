@@ -5,6 +5,7 @@ use std::{fs, path::PathBuf};
 
 use clap::Parser;
 use commands::{CliArgs, ImportCredentialTypeEnum};
+use futures::channel::mpsc;
 use nym_vpn_lib::{
     bin_common::bin_info,
     gateway_directory::{Config as GatewayConfig, EntryPoint, ExitPoint},
@@ -178,27 +179,50 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
 
     let handle = nym_vpn_lib::spawn_nym_vpn(nym_vpn).unwrap();
 
-    // TODO: at this point, after the vpn lib has been spawned, we should register a ctrl-c signal
-    // handler here at this layer and not as it's currently, in the vpn lib itself
+    register_signal_handler(handle.ctrl_tx());
 
-    join_vpn_handle(handle).await
+    handle.wait_until_stopped().await.map_err(Error::VpnLib)
 }
 
-async fn join_vpn_handle(handle: nym_vpn_lib::NymVpnHandle) -> Result<()> {
-    match handle.vpn_exit_rx.await {
-        Ok(nym_vpn_lib::NymVpnExitStatusMessage::Stopped) => {
-            debug!("VPN stopped");
-            Ok(())
+#[cfg(unix)]
+fn register_signal_handler(vpn_ctrl_tx: mpsc::UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>) {
+    use tokio::signal::unix::{signal, SignalKind};
+
+    tokio::spawn(async move {
+        let mut sigterm = signal(SignalKind::terminate()).expect("Failed to setup SIGTERM channel");
+        let mut sigquit = signal(SignalKind::quit()).expect("Failed to setup SIGQUIT channel");
+
+        tokio::select! {
+            _ = tokio::signal::ctrl_c() => {
+                info!("Received Ctrl-C signal");
+            }
+            _ = sigterm.recv() => {
+                info!("Received SIGTERM signal");
+            }
+            _ = sigquit.recv() => {
+                info!("Received SIGQUIT signal");
+            }
         }
-        Ok(nym_vpn_lib::NymVpnExitStatusMessage::Failed(err)) => {
-            debug!("VPN exited with error: {:?}", err);
-            Err(Error::VpnRun(err))
+        info!("Sending stop message to VPN");
+        vpn_ctrl_tx
+            .unbounded_send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
+            .unwrap();
+    });
+}
+
+#[cfg(not(unix))]
+fn register_signal_handler(vpn_ctrl_tx: mpsc::UnboundedSender<nym_vpn_lib::NymVpnCtrlMessage>) {
+    tokio::spawn(async move {
+        tokio::select! {
+            _ = tokio::signal::ctrl_c() => {
+                info!("Received Ctrl-C signal");
+            }
         }
-        Err(err) => {
-            debug!("VPN exited with error: {:?}", err);
-            Err(Error::UnexpectedStop)
-        }
-    }
+        info!("Sending stop message to VPN");
+        vpn_ctrl_tx
+            .unbounded_send(nym_vpn_lib::NymVpnCtrlMessage::Stop)
+            .unwrap();
+    });
 }
 
 async fn import_credential(

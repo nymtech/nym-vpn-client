@@ -45,12 +45,6 @@ pub(crate) async fn wait_for_interrupt(
             log::info!("Task error: {:?}", msg);
             Err(msg)
         }
-        _ = tokio::signal::ctrl_c() => {
-            // TODO: instead of this we should register a signal handler that when triggered would
-            // signal a shutdown, and then indirectly exiting this select.
-            log::info!("Received SIGINT");
-            Ok(())
-        },
         else => {
             log::error!("Unexpected channel close when waiting for interrupt");
             Ok(())

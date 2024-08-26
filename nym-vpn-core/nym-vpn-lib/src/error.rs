@@ -47,6 +47,12 @@ pub enum Error {
     #[error("vpn errored on stop")]
     StopError,
 
+    #[error("{0}")]
+    NymVpnExitWithError(#[source] Box<dyn std::error::Error + Send + Sync>),
+
+    #[error("vpn exit listener channel unexpected close when listening")]
+    NymVpnExitUnexpectedChannelClose,
+
     #[cfg(any(unix, target_os = "android"))]
     #[error("{0}")]
     TunProvider(#[from] talpid_tunnel::tun_provider::Error),

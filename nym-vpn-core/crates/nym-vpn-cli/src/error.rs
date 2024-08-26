@@ -26,12 +26,6 @@ pub(crate) enum Error {
 
     #[error("failed to parse encoded credential data")]
     FailedToParseEncodedCredentialData(#[source] bs58::decode::Error),
-
-    #[error("{0}")]
-    VpnRun(#[source] Box<dyn std::error::Error + Send + Sync + 'static>),
-
-    #[error("vpn task stopped unexpectedly")]
-    UnexpectedStop,
 }
 
 // Result type based on our error type

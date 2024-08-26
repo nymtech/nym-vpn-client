@@ -5228,6 +5228,7 @@ dependencies = [
  "bs58 0.5.1",
  "clap",
  "dirs 5.0.1",
+ "futures",
  "ipnetwork",
  "nym-vpn-lib",
  "thiserror",
