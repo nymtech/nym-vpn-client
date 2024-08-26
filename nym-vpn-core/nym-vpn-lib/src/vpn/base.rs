@@ -202,8 +202,10 @@ impl SpecificVpn {
         // Finished starting everything, now wait for mixnet client shutdown
         match tunnels {
             AllTunnelsSetup::Mix(_) => {
-                crate::util::wait_and_handle_interrupt(&mut task_manager, route_manager, None)
-                    .await;
+                let _result =
+                    crate::util::wait_for_interrupt(Some(task_manager), None, route_manager, None)
+                        .await;
+
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
                         error!("Failed to reset dns monitor: {err}");
@@ -212,8 +214,9 @@ impl SpecificVpn {
                 .await??;
             }
             AllTunnelsSetup::Wg { entry, exit } => {
-                crate::util::wait_and_handle_interrupt(
-                    &mut task_manager,
+                let _result = crate::util::wait_for_interrupt(
+                    Some(task_manager),
+                    None,
                     route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
@@ -292,7 +295,7 @@ impl SpecificVpn {
                 // TODO: this should actually be sent much earlier, when the mixnet client is
                 // connected. However that would also require starting the status listener earlier.
                 // This means that for now, we basically just ignore the status message and use the
-                // NymVpnStatusMessage2 sent below instead.
+                // NymVpnStatusMessage sent below instead.
                 let start_status = TaskStatus::ReadyWithGateway(
                     specific_setup
                         .mixnet_connection_info
@@ -311,13 +314,15 @@ impl SpecificVpn {
                     .await
                     .unwrap();
 
-                let result = crate::util::wait_for_interrupt_and_signal(
+                // We are operational, wait for exit
+                let result = crate::util::wait_for_interrupt(
                     Some(task_manager),
-                    vpn_ctrl_rx,
+                    Some(vpn_ctrl_rx),
                     route_manager,
                     None,
                 )
                 .await;
+
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
                         error!("Failed to reset dns monitor: {err}");
@@ -345,13 +350,16 @@ impl SpecificVpn {
                     }))
                     .await
                     .unwrap();
-                let result = crate::util::wait_for_interrupt_and_signal(
+
+                // We are operational, wait for exit
+                let result = crate::util::wait_for_interrupt(
                     Some(task_manager),
-                    vpn_ctrl_rx,
+                    Some(vpn_ctrl_rx),
                     route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
                 .await;
+
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
                         error!("Failed to reset dns monitor: {err}");
