@@ -166,7 +166,7 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         user_agent: Some(bin_info!().into()),
     };
 
-    let mut nym_vpn: SpecificVpn = if args.wireguard_mode {
+    let nym_vpn: SpecificVpn = if args.wireguard_mode {
         let mut nym_vpn = NymVpn::new_wireguard_vpn(entry_point, exit_point);
         nym_vpn.generic_config = generic_config;
         nym_vpn.into()
@@ -176,9 +176,29 @@ async fn run_vpn(args: commands::RunArgs, data_path: Option<PathBuf>) -> Result<
         nym_vpn.into()
     };
 
-    nym_vpn.run().await?;
+    let handle = nym_vpn_lib::spawn_nym_vpn(nym_vpn).unwrap();
 
-    Ok(())
+    // TODO: at this point, after the vpn lib has been spawned, we should register a ctrl-c signal
+    // handler here at this layer and not as it's currently, in the vpn lib itself
+
+    join_vpn_handle(handle).await
+}
+
+async fn join_vpn_handle(handle: nym_vpn_lib::NymVpnHandle) -> Result<()> {
+    match handle.vpn_exit_rx.await {
+        Ok(nym_vpn_lib::NymVpnExitStatusMessage::Stopped) => {
+            debug!("VPN stopped");
+            Ok(())
+        }
+        Ok(nym_vpn_lib::NymVpnExitStatusMessage::Failed(err)) => {
+            debug!("VPN exited with error: {:?}", err);
+            Err(Error::VpnRun(err))
+        }
+        Err(err) => {
+            debug!("VPN exited with error: {:?}", err);
+            Err(Error::UnexpectedStop)
+        }
+    }
 }
 
 async fn import_credential(

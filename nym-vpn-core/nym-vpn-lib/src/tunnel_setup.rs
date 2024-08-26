@@ -379,14 +379,19 @@ pub async fn setup_tunnel(
 
     let tunnels_setup = match nym_vpn {
         SpecificVpn::Wg(vpn) => {
-            let entry_authenticator_address = entry
-                .authenticator_address
-                .ok_or(Error::AuthenticatorAddressNotFound)?;
-            let exit_authenticator_address = exit
-                .authenticator_address
-                .ok_or(Error::AuthenticatorAddressNotFound)?;
-            let auth_addresses =
-                AuthAddresses::new(entry_authenticator_address, exit_authenticator_address);
+            let auth_addresses = match setup_auth_addresses(&entry, &exit) {
+                Ok(auth_addr) => auth_addr,
+                Err(err) => {
+                    // Put in some manual error handling, the correct long-term solution is that handling
+                    // errors and diconnecting the mixnet client needs to be unified down this code path
+                    // and merged with the mix tunnel one.
+                    mixnet_client.disconnect().await;
+                    return Err(err);
+                }
+            };
+
+            // HERE BE DRAGONS: this can fail and the mixnet_client is not disconnected when that
+            // happens!
             setup_wg_tunnel(
                 vpn,
                 mixnet_client,
@@ -413,6 +418,22 @@ pub async fn setup_tunnel(
         }
     }?;
     Ok(tunnels_setup)
+}
+
+fn setup_auth_addresses(
+    entry: &nym_gateway_directory::Gateway,
+    exit: &nym_gateway_directory::Gateway,
+) -> Result<AuthAddresses> {
+    let entry_authenticator_address = entry
+        .authenticator_address
+        .ok_or(Error::AuthenticatorAddressNotFound)?;
+    let exit_authenticator_address = exit
+        .authenticator_address
+        .ok_or(Error::AuthenticatorAddressNotFound)?;
+    Ok(AuthAddresses::new(
+        entry_authenticator_address,
+        exit_authenticator_address,
+    ))
 }
 
 struct SelectedGateways {

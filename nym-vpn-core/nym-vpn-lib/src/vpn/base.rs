@@ -22,7 +22,6 @@ use crate::platform::swift::OSTunProvider;
 use crate::{
     error::Result,
     tunnel_setup::{AllTunnelsSetup, TunnelSetup},
-    Error,
 };
 
 use super::{
@@ -156,90 +155,9 @@ impl SpecificVpn {
         }
     }
 
-    // Start the Nym VPN client, and wait for it to shutdown. The use case is in simple console
-    // applications where the main way to interact with the running process is to send SIGINT
-    // (ctrl-c)
-    pub async fn run(&mut self) -> Result<()> {
-        let mut task_manager = TaskManager::new(SHUTDOWN_TIMER_SECS).named("nym_vpn_lib");
-        info!("Setting up route manager");
-        let mut route_manager = crate::tunnel::setup_route_manager().await?;
-        let (mut firewall, mut dns_monitor) = crate::tunnel_setup::init_firewall_dns(
-            #[cfg(target_os = "linux")]
-            route_manager.handle()?,
-        )
-        .await?;
-        let tunnels = match crate::tunnel_setup::setup_tunnel(
-            self,
-            &mut task_manager,
-            &mut route_manager,
-            &mut dns_monitor,
-        )
-        .await
-        {
-            Ok(tunnels) => tunnels,
-            Err(e) => {
-                tokio::task::spawn_blocking(move || {
-                    dns_monitor
-                        .reset()
-                        .inspect_err(|err| {
-                            error!("Failed to reset dns monitor: {err}");
-                        })
-                        .ok();
-                    firewall
-                        .reset_policy()
-                        .inspect_err(|err| {
-                            error!("Failed to reset firewall policy: {err}");
-                        })
-                        .ok();
-                    drop(route_manager);
-                })
-                .await?;
-                return Err(e);
-            }
-        };
-        info!("Nym VPN is now running");
-
-        // Finished starting everything, now wait for mixnet client shutdown
-        match tunnels {
-            AllTunnelsSetup::Mix(_) => {
-                crate::util::wait_and_handle_interrupt(&mut task_manager, route_manager, None)
-                    .await;
-                tokio::task::spawn_blocking(move || {
-                    dns_monitor.reset().inspect_err(|err| {
-                        error!("Failed to reset dns monitor: {err}");
-                    })
-                })
-                .await??;
-            }
-            AllTunnelsSetup::Wg { entry, exit } => {
-                crate::util::wait_and_handle_interrupt(
-                    &mut task_manager,
-                    route_manager,
-                    Some([entry.specific_setup, exit.specific_setup]),
-                )
-                .await;
-
-                tokio::task::spawn_blocking(move || {
-                    dns_monitor.reset().inspect_err(|err| {
-                        error!("Failed to reset dns monitor: {err}");
-                    })
-                })
-                .await??;
-                firewall.reset_policy().map_err(|err| {
-                    error!("Failed to reset firewall policy: {err}");
-                    Error::FirewallError(err.to_string())
-                })?;
-            }
-        }
-
-        Ok(())
-    }
-
     // Start the Nym VPN client, but also listen for external messages to e.g. disconnect as well
-    // as reporting it's status on the provided channel. The usecase when the VPN is embedded in
-    // another application, or running as a background process with a graphical interface remote
-    // controlling it.
-    pub async fn run_and_listen(
+    // as reporting it's status on the provided channel.
+    pub async fn run(
         &mut self,
         mut vpn_status_tx: nym_task::StatusSender,
         vpn_ctrl_rx: mpsc::UnboundedReceiver<super::NymVpnCtrlMessage>,
@@ -292,7 +210,7 @@ impl SpecificVpn {
                 // TODO: this should actually be sent much earlier, when the mixnet client is
                 // connected. However that would also require starting the status listener earlier.
                 // This means that for now, we basically just ignore the status message and use the
-                // NymVpnStatusMessage2 sent below instead.
+                // NymVpnStatusMessage sent below instead.
                 let start_status = TaskStatus::ReadyWithGateway(
                     specific_setup
                         .mixnet_connection_info
@@ -311,13 +229,15 @@ impl SpecificVpn {
                     .await
                     .unwrap();
 
-                let result = crate::util::wait_for_interrupt_and_signal(
+                // We are operational, wait for exit
+                let result = crate::util::wait_for_interrupt(
                     Some(task_manager),
-                    vpn_ctrl_rx,
+                    Some(vpn_ctrl_rx),
                     route_manager,
                     None,
                 )
                 .await;
+
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
                         error!("Failed to reset dns monitor: {err}");
@@ -345,13 +265,16 @@ impl SpecificVpn {
                     }))
                     .await
                     .unwrap();
-                let result = crate::util::wait_for_interrupt_and_signal(
+
+                // We are operational, wait for exit
+                let result = crate::util::wait_for_interrupt(
                     Some(task_manager),
-                    vpn_ctrl_rx,
+                    Some(vpn_ctrl_rx),
                     route_manager,
                     Some([entry.specific_setup, exit.specific_setup]),
                 )
                 .await;
+
                 tokio::task::spawn_blocking(move || {
                     dns_monitor.reset().inspect_err(|err| {
                         error!("Failed to reset dns monitor: {err}");
