@@ -1,7 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.permission
 
-import android.Manifest
-import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,13 +12,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.outlined.VpnLock
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,9 +26,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Destination
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
@@ -44,25 +37,9 @@ import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun PermissionScreen(navController: NavController, permission: Permission) {
 	val context = LocalContext.current
-
-	val notificationPermissionState =
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
-		} else {
-			null
-		}
-
-	LaunchedEffect(notificationPermissionState?.status) {
-		if (notificationPermissionState?.status?.isGranted == true &&
-			permission == Permission.NOTIFICATION
-		) {
-			navController.navigateAndForget(Destination.Main.createRoute(false))
-		}
-	}
 
 	Column(
 		modifier = Modifier
@@ -88,22 +65,6 @@ fun PermissionScreen(navController: NavController, permission: Permission) {
 			}
 
 			when (permission) {
-				Permission.NOTIFICATION -> {
-					PermissionLabel(
-						SelectionItem(
-							leadingIcon = Icons.Outlined.Notifications,
-							title = { Text(stringResource(id = R.string.notifications), style = MaterialTheme.typography.bodyLarge) },
-							description = {
-								Text(
-									stringResource(id = R.string.notification_permission_message),
-									style = MaterialTheme.typography.bodyMedium,
-									color = MaterialTheme.colorScheme.outline,
-								)
-							},
-							trailing = null,
-						),
-					)
-				}
 				Permission.VPN -> {
 					PermissionLabel(
 						SelectionItem(
@@ -151,16 +112,6 @@ fun PermissionScreen(navController: NavController, permission: Permission) {
 			}
 		}
 		when (permission) {
-			Permission.NOTIFICATION -> {
-				Column(verticalArrangement = Arrangement.Bottom) {
-					MainStyledButton(
-						onClick = {
-							notificationPermissionState?.launchPermissionRequest()
-						},
-						content = { Text(stringResource(R.string.allow_permissions), style = CustomTypography.labelHuge) },
-					)
-				}
-			}
 			Permission.VPN -> {
 				Column(verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom)) {
 					MainStyledButton(

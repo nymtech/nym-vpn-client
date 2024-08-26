@@ -1,9 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.main
 
-import android.Manifest
 import android.app.Activity.RESULT_OK
 import android.net.VpnService
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -46,8 +44,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -77,7 +73,6 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.Tunnel
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -87,13 +82,6 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 
 	var didAutoStart by remember { mutableStateOf(false) }
 	var showDialog by remember { mutableStateOf(false) }
-
-	val notificationPermissionState =
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
-		} else {
-			null
-		}
 
 	val vpnActivityResultState =
 		rememberLauncherForActivityResult(
@@ -124,12 +112,6 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 			didAutoStart = true
 			onConnectPressed()
 			navController.navigateAndForget(Destination.Main.route)
-		}
-	}
-
-	LaunchedEffect(notificationPermissionState?.status?.shouldShowRationale) {
-		if (notificationPermissionState?.status?.shouldShowRationale == true) {
-			navController.go(Destination.Permission.createRoute(Permission.NOTIFICATION))
 		}
 	}
 
