@@ -121,6 +121,7 @@ jobs:
           ./wireguard/build-wireguard-go.sh
 
       - name: Build wireguard (iOS)
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
         shell: bash
         run: |
           ./wireguard/build-wireguard-go.sh --ios
