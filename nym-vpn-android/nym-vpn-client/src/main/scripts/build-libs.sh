@@ -14,7 +14,7 @@ echo "Building nym-vpn-lib dep"
 
 case  "$(uname -s)" in
     Darwin*) export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-apple-darwin -L ${PWD}/../../build/lib/aarch64-linux-android";;
-    Linux*) export RUSTFLAGS="-L ${PWD}/../../build/lib/x86_64-unknown-linux-gnu -L ${PWD}/../../build/lib/aarch64-linux-android";;
+    Linux*) export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-unknown-linux-gnu -L ${PWD}/../../build/lib/aarch64-linux-android";;
     MINGW*|MSYS_NT*) export RUSTFLAGS="-L ${PWD}/../../build/lib/x86_64-pc-windows-msvc -L ${PWD}/../../build/lib/aarch64-linux-android";;
 esac
 
