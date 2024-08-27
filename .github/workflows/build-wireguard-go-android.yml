@@ -24,7 +24,7 @@ jobs:
       - name: Build wireguard with docker
         uses: addnab/docker-run-action@v3
         with:
-          image: quay.io/mullvad/mullvad-android-app-build@sha256:afa84a78b428163b4585d04259fad801df2ebf5ab079f53b3a90892afd18dd9f
+          image: docker.io/pronebird1337/nymtech-android-app@sha256:992c4d5c7dcd00eacf6f3e3667ce86b8e185f011352bdd9f79e467fef3e27abd
           options: --rm -v ${{ github.workspace }}/workspace:/workspace --env ANDROID_NDK_HOME="/opt/android/android-ndk-r20b"
           run: /workspace/wireguard/libwg/build-android.sh
 

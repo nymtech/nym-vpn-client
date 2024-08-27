@@ -1,7 +1,7 @@
 # To build the image:
-# docker build . -t quay.io/mullvad/mullvad-android-app-build -f Dockerfile_AndroidPatchedGoruntime
-# To push the image to Quay.io:
-# docker push quay.io/mullvad/mullvad-android-app-build
+# docker build . -t docker.io/pronebird1337/nymtech-android-app -f Dockerfile_AndroidPatchedGoruntime
+# To push the image to docker.io:
+# docker push docker.io/pronebird1337/nymtech-android-app
 
 FROM debian@sha256:77f46c1cf862290e750e913defffb2828c889d291a93bdd10a7a0597720948fc
 
