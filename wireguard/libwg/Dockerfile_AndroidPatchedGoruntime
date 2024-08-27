@@ -3,7 +3,7 @@
 # To push the image to Quay.io:
 # docker push quay.io/mullvad/mullvad-android-app-build
 
-FROM debian@sha256:75f7d0590b45561bfa443abad0b3e0f86e2811b1fc176f786cd30eb078d1846f
+FROM debian@sha256:77f46c1cf862290e750e913defffb2828c889d291a93bdd10a7a0597720948fc
 
 RUN apt-get update -y && apt-get install -y \
     curl \
@@ -27,8 +27,8 @@ RUN cd /tmp && \
 ENV ANDROID_NDK_HOME="/opt/android/android-ndk-r20b"
 ENV NDK_TOOLCHAIN_DIR="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin"
 
-ENV GOLANG_VERSION 1.18.5
-ENV GOLANG_HASH 9e5de37f9c49942c601b191ac5fba404b868bfc21d446d6960acc12283d6e5f2
+ENV GOLANG_VERSION 1.22.6
+ENV GOLANG_HASH 999805bed7d9039ec3da1a53bfbcafc13e367da52aa823cb60b68ba22d44c616
 
 # Install Go-lang and patch it to use the appropriate monotonic clock
 COPY goruntime-boottime-over-monotonic.diff /opt/goruntime-boottime-over-monotonic.diff
