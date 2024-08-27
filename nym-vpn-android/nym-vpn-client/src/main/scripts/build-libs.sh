@@ -14,14 +14,14 @@ echo "Building nym-vpn-lib dep"
 echo "${PWD}/../../build/lib/universal-apple-darwin"
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 	export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/linux-x86_64/bin"
-	export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-unknown-linux-gnu -L ${PWD}/../../build/lib/aarch64-linux-android";;
+	export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-unknown-linux-gnu -L ${PWD}/../../build/lib/aarch64-linux-android"
 
 elif [[ "$OSTYPE" == "darwin"* ]]; then
 	export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin"
-	export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-apple-darwin -L ${PWD}/../../build/lib/aarch64-linux-android";;
+	export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-apple-darwin -L ${PWD}/../../build/lib/aarch64-linux-android"
 else
 	export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin"
-	export RUSTFLAGS="-L ${PWD}/../../build/lib/x86_64-pc-windows-msvc -L ${PWD}/../../build/lib/aarch64-linux-android";;
+	export RUSTFLAGS="-L ${PWD}/../../build/lib/x86_64-pc-windows-msvc -L ${PWD}/../../build/lib/aarch64-linux-android"
 fi
 
 bash $PWD/../../wireguard/build-wireguard-go.sh
