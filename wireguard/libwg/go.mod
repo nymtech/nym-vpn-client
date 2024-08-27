@@ -4,9 +4,8 @@ go 1.22
 
 require (
 	golang.org/x/sys v0.12.0
-	golang.zx2c4.com/wireguard v0.0.0-20220703234212-c31a7b1ab478
-	golang.zx2c4.com/wireguard/tun/netstack v0.0.0-20220703234212-c31a7b1ab478
-	gvisor.dev/gvisor v0.0.0-20211020211948-f76a604701b6
+	golang.zx2c4.com/wireguard v0.0.0-20231211153847-12269c276173
+	gvisor.dev/gvisor v0.0.0-20230927004350-cbd86285d259
 )
 
 require (
