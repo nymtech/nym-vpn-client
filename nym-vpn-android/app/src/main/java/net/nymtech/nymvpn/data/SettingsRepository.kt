@@ -54,5 +54,9 @@ interface SettingsRepository {
 
 	suspend fun saveCredentialExpiry(instant: Instant)
 
+	suspend fun getEnvironment() : Tunnel.Environment
+
+	suspend fun setEnvironment(environment : Tunnel.Environment)
+
 	val settingsFlow: Flow<Settings>
 }

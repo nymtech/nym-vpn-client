@@ -43,6 +43,12 @@ sealed class Destination(
 		backIcon,
 	)
 
+	data object Environment : Destination(
+		"/settings/environment",
+		StringValue.DynamicString("Environment"),
+		backIcon,
+	)
+
 	data object Display : Destination(
 		"/settings/appearance/display",
 		StringValue.StringResource(R.string.display_theme),

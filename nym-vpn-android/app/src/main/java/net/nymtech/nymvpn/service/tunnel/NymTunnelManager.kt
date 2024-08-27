@@ -44,12 +44,11 @@ class NymTunnelManager @Inject constructor(
 			val entryCountry = settingsRepository.getFirstHopCountry()
 			val exitCountry = settingsRepository.getLastHopCountry()
 			val credentialExpiry = settingsRepository.getCredentialExpiry()
-			val mode = settingsRepository.getVpnMode()
 			val tunnel = NymTunnel(
 				entryPoint = entryCountry.toEntryPoint(),
 				exitPoint = exitCountry.toExitPoint(),
-				mode = mode,
-				environment = Tunnel.Environment.MAINNET,
+				mode = settingsRepository.getVpnMode(),
+				environment = settingsRepository.getEnvironment(),
 				statChange = ::emitStats,
 				stateChange = ::emitState,
 				backendMessage = ::emitMessage,
