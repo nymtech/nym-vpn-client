@@ -51,12 +51,12 @@ tun2 = { workspace = true, features = ["async"] }
 uniffi = { workspace = true, features = ["cli"] }
 url.workspace = true
 
-talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "5f478c385" }
-talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "5f478c385" }
-talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "5f478c385" }
-talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "5f478c385" }
-talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "5f478c385" }
-talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "5f478c385" }
+talpid-core = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "f9fd4be7f" }
+talpid-platform-metadata = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "f9fd4be7f" }
+talpid-routing = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "f9fd4be7f" }
+talpid-tunnel = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "f9fd4be7f" }
+talpid-types = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "f9fd4be7f" }
+talpid-wireguard = { git = "https://github.com/nymtech/nym-vpn-mullvad-libs", rev = "f9fd4be7f" }
 
 nym-authenticator-requests.workspace = true
 nym-bandwidth-controller-pre-ecash.workspace = true
