@@ -12,7 +12,7 @@ plugins {
 }
 
 android {
-	namespace = "${Constants.NAMESPACE}.${Constants.APP_NAME}"
+	namespace = Constants.APP_ID
 	compileSdk = Constants.COMPILE_SDK
 
 	androidResources {
@@ -20,7 +20,7 @@ android {
 	}
 
 	defaultConfig {
-		applicationId = "${Constants.NAMESPACE}.${Constants.APP_NAME}"
+		applicationId = Constants.APP_ID
 		minSdk = Constants.MIN_SDK
 		targetSdk = Constants.TARGET_SDK
 		versionCode = determineVersionCode()
@@ -78,6 +78,7 @@ android {
 				getDefaultProguardFile("proguard-android-optimize.txt"),
 				"proguard-rules.pro",
 			)
+			resValue("string", "provider", "\"${Constants.APP_NAME}.provider\"")
 			signingConfig = signingConfigs.getByName(Constants.RELEASE)
 		}
 		debug {
@@ -87,6 +88,7 @@ android {
 			applicationIdSuffix = ".debug"
 			versionNameSuffix = "-debug"
 			resValue("string", "app_name", "NymVPN - Debug")
+			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.debug\"")
 		}
 
 		create(Constants.PRERELEASE) {
@@ -94,6 +96,7 @@ android {
 			applicationIdSuffix = ".prerelease"
 			versionNameSuffix = "-pre"
 			resValue("string", "app_name", "NymVPN - Pre")
+			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.pre\"")
 		}
 
 		create(Constants.NIGHTLY) {
@@ -101,6 +104,7 @@ android {
 			applicationIdSuffix = ".nightly"
 			versionNameSuffix = "-nightly"
 			resValue("string", "app_name", "NymVPN - Nightly")
+			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.nightly\"")
 		}
 	}
 	flavorDimensions.add(Constants.TYPE)

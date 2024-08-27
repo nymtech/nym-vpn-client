@@ -13,9 +13,11 @@ object Constants {
     const val JVM_TARGET = "17"
     val JAVA_VERSION = JavaVersion.VERSION_17
 
-    const val NAMESPACE = "net.nymtech"
 
-    const val APP_NAME = "nymvpn"
+	const val APP_NAME = "nymvpn"
+	const val NAMESPACE = "net.nymtech"
+    const val APP_ID = "${NAMESPACE}.${APP_NAME}"
+
     const val VPN_LIB_NAME = "vpn"
 
     const val RELEASE = "release"

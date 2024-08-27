@@ -69,17 +69,14 @@ object LogcatHelper {
 		}
 
 		override fun stop() {
-			logcatReader?.stopLogs()
+			logcatReader?.pause()
 			logcatReader = null
 		}
 
-		override suspend fun zipLogFiles(path: String) {
-			return withContext(ioDispatcher) {
-				stop()
-				zipAll(path)
-			}.also {
-				start()
-			}
+		override fun zipLogFiles(path: String) {
+			logcatReader?.pause()
+			zipAll(path)
+			logcatReader?.resume()
 		}
 
 		private fun zipAll(zipFilePath: String) {
@@ -143,8 +140,12 @@ object LogcatHelper {
 				clearLogCommand = "logcat -c"
 			}
 
-			fun stopLogs() {
+			fun pause() {
 				mRunning = false
+			}
+
+			fun resume() {
+				mRunning = true
 			}
 
 			fun clear() {

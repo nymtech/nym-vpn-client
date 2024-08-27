@@ -7,10 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.logcatutil.LogCollect
 import net.nymtech.logcatutil.model.LogMessage
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.module.MainDispatcher
 import net.nymtech.nymvpn.util.Constants
@@ -46,7 +48,7 @@ class LogsViewModel @Inject constructor(
 		}
 	}
 
-	fun shareLogs(context: Context) = viewModelScope.launch(ioDispatcher) {
+	fun shareLogs(context: Context): Job = viewModelScope.launch(ioDispatcher) {
 		runCatching {
 			val sharePath = File(context.filesDir, "external_files")
 			if (sharePath.exists()) sharePath.delete()
@@ -55,7 +57,7 @@ class LogsViewModel @Inject constructor(
 			if (file.exists()) file.delete()
 			file.createNewFile()
 			logCollect.zipLogFiles(file.absolutePath)
-			val uri = FileProvider.getUriForFile(context, "net.nymtech.nymvpn.provider", file)
+			val uri = FileProvider.getUriForFile(context, context.getString(R.string.provider), file)
 			context.launchShareFile(uri)
 		}.onFailure {
 			Timber.e(it)

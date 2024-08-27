@@ -136,11 +136,12 @@ fun Context.requestTileServiceStateUpdate() {
 }
 
 fun Context.launchShareFile(file: Uri) {
-	val shareIntent = Intent()
-	shareIntent.setAction(Intent.ACTION_SEND)
-	shareIntent.setType("*/*")
-	shareIntent.putExtra(Intent.EXTRA_STREAM, file)
-	shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+	val shareIntent = Intent().apply {
+		setAction(Intent.ACTION_SEND)
+		setType("*/*")
+		putExtra(Intent.EXTRA_STREAM, file)
+		addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+	}
 	this.startActivity(Intent.createChooser(shareIntent, ""))
 }
 

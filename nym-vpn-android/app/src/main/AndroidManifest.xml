@@ -105,7 +105,7 @@
 			android:exported="false"/>
 		<provider
 			android:name="androidx.core.content.FileProvider"
-			android:authorities="net.nymtech.nymvpn.provider"
+			android:authorities="@string/provider"
 			android:exported="false"
 			android:grantUriPermissions="true">
 			<meta-data
