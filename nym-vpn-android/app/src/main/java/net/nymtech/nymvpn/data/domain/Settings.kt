@@ -17,7 +17,7 @@ data class Settings(
 	val lastHopCountry: Country = Country(),
 	val isShortcutsEnabled: Boolean = SHORTCUTS_DEFAULT,
 	val credentialExpiry: Instant? = null,
-	val environment: Tunnel.Environment = DEFAULT_ENVIRONMENT
+	val environment: Tunnel.Environment = DEFAULT_ENVIRONMENT,
 ) {
 	companion object {
 		const val FIRST_HOP_SELECTION_DEFAULT = false

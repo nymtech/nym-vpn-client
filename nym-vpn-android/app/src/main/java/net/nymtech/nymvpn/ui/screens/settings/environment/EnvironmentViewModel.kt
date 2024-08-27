@@ -20,9 +20,11 @@ constructor(
 ) : ViewModel() {
 
 	fun onEnvironmentChange(environment: Tunnel.Environment) = viewModelScope.launch {
-		if(tunnelManager.getState() == Tunnel.State.Down) {
+		if (tunnelManager.getState() == Tunnel.State.Down) {
 			settingsRepository.setEnvironment(environment)
-			//no need to translate this
-		} else SnackbarController.showMessage(StringValue.DynamicString("Tunnel must be down"))
+			// no need to translate this
+		} else {
+			SnackbarController.showMessage(StringValue.DynamicString("Tunnel must be down"))
+		}
 	}
 }
