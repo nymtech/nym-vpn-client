@@ -48,7 +48,7 @@ jobs:
 
       - name: Install cargo deps
         run: |
-          cargo install cargo-ndk cargo-license
+          cargo install cargo-ndk cargo-license --locked
 
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4

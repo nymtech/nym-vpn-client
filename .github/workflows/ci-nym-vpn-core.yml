@@ -76,22 +76,30 @@ jobs:
         run: |
           if ${{ contains(matrix.os, 'ubuntu') && contains(matrix.target, 'native') }}; then
             triplet=x86_64-unknown-linux-gnu
+            echo "TRIPLET=$triplet" >> $GITHUB_ENV
+            echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
           elif ${{ matrix.target == 'android' }}; then
             triplet=aarch64-linux-android
             echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
             echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
+            echo "TRIPLET=$triplet" >> $GITHUB_ENV
+            echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} -L ${GITHUB_WORKSPACE}/build/lib/aarch64-unknown-linux-gnu" >> $GITHUB_ENV
           elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
             triplet=x86_64-apple-darwin
+            echo "TRIPLET=$triplet" >> $GITHUB_ENV
+            echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} -L ${GITHUB_WORKSPACE}/build/lib/x86_64-apple-ios" >> $GITHUB_ENV
           elif ${{ contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1') }}; then
             triplet=universal-apple-darwin
+            echo "TRIPLET=$triplet" >> $GITHUB_ENV
+            echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet} -L ${GITHUB_WORKSPACE}/build/lib/aarch64-apple-ios" >> $GITHUB_ENV
           elif ${{ contains(matrix.os, 'windows') }}; then
             triplet=x86_64-pc-windows-msvc
+            echo "TRIPLET=$triplet" >> $GITHUB_ENV
+            echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
           else
             echo " ✗ unknown platform/arch [${{ matrix.os }}]"
             exit 1
           fi
-          echo "TRIPLET=$triplet" >> $GITHUB_ENV
-          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
 
       - name: Set extra env for Windows
         if: contains(matrix.os, 'windows')
@@ -119,6 +127,12 @@ jobs:
         shell: bash
         run: |
           ./wireguard/build-wireguard-go.sh
+
+      - name: Build wireguard (iOS)
+        if: contains(matrix.os, 'macos') || contains(matrix.os, 'mac-m1')
+        shell: bash
+        run: |
+          ./wireguard/build-wireguard-go.sh --ios
 
       - name: Build wireguard (Android)
         if: contains(matrix.target, 'android')

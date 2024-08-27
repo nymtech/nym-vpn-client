@@ -1,10 +1,10 @@
-// +build darwin linux
-// +build !android
+//go:build (darwin || linux) && !android && !ios
 
 /* SPDX-License-Identifier: Apache-2.0
  *
  * Copyright (C) 2017-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
  * Copyright (C) 2021 Mullvad VPN AB. All Rights Reserved.
+ * Copyright (C) 2024 Nym Technologies SA <contact@nymtech.net>. All Rights Reserved.
  */
 
 package main
@@ -21,8 +21,7 @@ import (
 	"golang.zx2c4.com/wireguard/device"
 	"golang.zx2c4.com/wireguard/tun"
 
-	"github.com/mullvad/mullvadvpn-app/wireguard/libwg/logging"
-	"github.com/mullvad/mullvadvpn-app/wireguard/libwg/tunnelcontainer"
+	"github.com/nymtech/nym-vpn-client/wireguard/libwg/logging"
 )
 
 // Redefined here because otherwise the compiler doesn't realize it's a type alias for a type that's safe to export.
@@ -32,7 +31,6 @@ type LogContext = unsafe.Pointer
 
 //export wgTurnOn
 func wgTurnOn(mtu int, cSettings *C.char, fd int, logSink LogSink, logContext LogContext) int32 {
-
 	logger := logging.NewLogger(logSink, logContext)
 
 	if cSettings == nil {
@@ -62,7 +60,7 @@ func wgTurnOn(mtu int, cSettings *C.char, fd int, logSink LogSink, logContext Lo
 
 	device.Up()
 
-	context := tunnelcontainer.Context{
+	context := TunnelContext{
 		Device: device,
 		Logger: logger,
 	}
@@ -75,4 +73,25 @@ func wgTurnOn(mtu int, cSettings *C.char, fd int, logSink LogSink, logContext Lo
 	}
 
 	return handle
+}
+
+//export wgSetConfig
+func wgSetConfig(tunnelHandle int32, cSettings *C.char) int32 {
+	tunnel, err := tunnels.Get(tunnelHandle)
+	if err != nil {
+		return ERROR_GENERAL_FAILURE
+	}
+	if cSettings == nil {
+		tunnel.Logger.Errorf("cSettings is null\n")
+		return ERROR_GENERAL_FAILURE
+	}
+	settings := C.GoString(cSettings)
+
+	setError := tunnel.Device.IpcSetOperation(bufio.NewReader(strings.NewReader(settings)))
+	if setError != nil {
+		tunnel.Logger.Errorf("Failed to set device configuration\n")
+		tunnel.Logger.Errorf("%s\n", setError)
+		return ERROR_GENERAL_FAILURE
+	}
+	return 0
 }
