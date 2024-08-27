@@ -84,14 +84,23 @@ android {
 			isMinifyEnabled = false
 			isShrinkResources = false
 			isDebuggable = true
+			applicationIdSuffix = ".debug"
+			versionNameSuffix = "-debug"
+			resValue("string", "app_name", "NymVPN - Debug")
 		}
 
 		create(Constants.PRERELEASE) {
 			initWith(buildTypes.getByName(Constants.RELEASE))
+			applicationIdSuffix = ".prerelease"
+			versionNameSuffix = "-pre"
+			resValue("string", "app_name", "NymVPN - Pre")
 		}
 
 		create(Constants.NIGHTLY) {
 			initWith(buildTypes.getByName(Constants.RELEASE))
+			applicationIdSuffix = ".nightly"
+			versionNameSuffix = "-nightly"
+			resValue("string", "app_name", "NymVPN - Nightly")
 		}
 	}
 	flavorDimensions.add(Constants.TYPE)
