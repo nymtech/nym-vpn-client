@@ -47,7 +47,6 @@ import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
-import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.durationFromNow
 import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.isInvalid
@@ -310,12 +309,14 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 				style = MaterialTheme.typography.bodyMedium,
 				color = MaterialTheme.colorScheme.secondary,
 				modifier = Modifier.clickable {
-					if(BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "prerelease") {
+					if (BuildConfig.DEBUG || BuildConfig.BUILD_TYPE == "prerelease") {
 						navController.go(Destination.Environment.route)
-					} else clipboardManager.setText(
-						annotatedString = AnnotatedString(BuildConfig.VERSION_NAME),
-					)
-				}
+					} else {
+						clipboardManager.setText(
+							annotatedString = AnnotatedString(BuildConfig.VERSION_NAME),
+						)
+					}
+				},
 			)
 		}
 	}

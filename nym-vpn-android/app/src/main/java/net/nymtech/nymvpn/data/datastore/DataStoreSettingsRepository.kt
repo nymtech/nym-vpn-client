@@ -182,7 +182,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						lastHopCountry = Country.from(pref[lastHopCountry]) ?: default,
 						isShortcutsEnabled = pref[applicationShortcuts] ?: Settings.SHORTCUTS_DEFAULT,
 						credentialExpiry = pref[credentialExpiry]?.let { Instant.ofEpochSecond(it) },
-						environment = pref[environment]?.let { Tunnel.Environment.valueOf(it) } ?: Settings.DEFAULT_ENVIRONMENT
+						environment = pref[environment]?.let { Tunnel.Environment.valueOf(it) } ?: Settings.DEFAULT_ENVIRONMENT,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)
