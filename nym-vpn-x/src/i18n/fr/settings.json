@@ -28,7 +28,7 @@
     "licenses-rust": "Licences (Rust)",
     "licenses-js": "Licences (JavaScript)"
   },
-  "display-theme": "Apparence d'affichage",
+  "display-theme": "Apparence",
   "add-credential-button": "Ajoutez un identifiant pour vous connecter",
   "entry-selector": {
     "title": "Sélecteur d'emplacement d'entrée",
