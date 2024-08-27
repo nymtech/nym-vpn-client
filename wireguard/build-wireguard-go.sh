@@ -123,7 +123,7 @@ function build_android {
             -v "$(pwd)/../":/workspace \
             --entrypoint "/workspace/wireguard/libwg/build-android.sh" \
             --env ANDROID_NDK_HOME="/opt/android/android-ndk-r20b" \
-            quay.io/mullvad/mullvad-android-app-build@sha256:$docker_image_hash
+            docker.io/pronebird1337/nymtech-android-app@sha256:$docker_image_hash
     else
         ./libwg/build-android.sh
     fi
