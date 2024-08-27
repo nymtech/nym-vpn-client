@@ -20,7 +20,27 @@
   "connection": {
     "timeout": "Tiempo de conexión agotado",
     "no-valid-credential": "Credencial no válida, por favor añada credencial",
-    "bad-country-combination": "Combinación de países no soportada, por favor cambie el país de entrada o salida"
+    "bad-country-combination": "Combinación de países no soportada, por favor cambie el país de entrada o salida",
+    "mixnet": {
+      "entry-gateway": "Fallo al conectar con el gateway de entrada a la mixnet",
+      "timeout": "Tiempo de espera de la conexión a Mixnet",
+      "storage-path": "Error al crear las rutas de almacenamiento mixnet",
+      "default-storage": "Error al crear la mixnet con el almacenamiento predeterminado",
+      "build-client": "Fallo al crear el cliente mixnet",
+      "connect": "Fallo al conectar con la mixnet"
+    },
+    "gateway-lookup": {
+      "ipr": "Fallo al buscar la dirección del IPR",
+      "entry-location": "Fallo al buscar el gateway de entrada para una ubicación determinada",
+      "generic": "Fallo al buscar los gateways",
+      "id": "Fallo al buscar la identidad del gateway",
+      "ip": "Fallo al buscar la dirección IP del gateway",
+      "entry": "Fallo al buscar el gateway de entrada",
+      "entry-id": "Fallo al buscar la identidad del gateway de entrada",
+      "exit": "Fallo al buscar el gateway de salida",
+      "exit-location": "Fallo al buscar el gateway de salida para la ubicación determinada"
+    },
+    "ipr-connect": "Fallo al conectar con el IPR"
   },
   "out-of-bandwidth": "Fuera del ancho de banda asignado",
   "exit-node": {

@@ -15,10 +15,37 @@
   "grpc": "gRPC内部错误",
   "connection": {
     "timeout": "连接超时",
-    "no-valid-credential": "无有效凭证，请先添加凭证"
+    "no-valid-credential": "无有效凭证，请先添加凭证",
+    "bad-country-combination": "不支持国家组合，请更改入境或出境国家",
+    "mixnet": {
+      "timeout": "Mixnet 连接超时",
+      "storage-path": "创建 mixnet 存储路径失败",
+      "default-storage": "使用默认存储空间创建 mixnet 失败",
+      "build-client": "构建 mixnet 客户端失败",
+      "connect": "连接 mixnet 失败",
+      "entry-gateway": "连接 mixnet 入口网关失败"
+    },
+    "ipr-connect": "连接 IPR 失败",
+    "gateway-lookup": {
+      "generic": "查询网关失败",
+      "id": "查询网关身份失败",
+      "ipr": "查找 IPR 地址失败",
+      "ip": "查询网关 IP 地址失败",
+      "entry": "查询入口网关失败",
+      "entry-id": "查询入口网关身份失败",
+      "entry-location": "查找指定位置的入口网关失败",
+      "exit": "查询出口网关失败",
+      "exit-location": "查找指定地点的出口网关失败"
+    }
   },
   "countries-request": {
     "entry": "获取可用条目节点国家失败",
     "exit": "获取可用出口节点国家失败"
+  },
+  "out-of-bandwidth": "超出分配的带宽",
+  "entry-node-routing": "入口节点未路由流量（互联网连接中断？）",
+  "exit-node": {
+    "routing": "出口节点未路由{{protocol}} 流量",
+    "ping": "{{protocol}} 流量的出口节点 ping 失败"
   }
 }

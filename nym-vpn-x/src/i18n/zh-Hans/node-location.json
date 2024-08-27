@@ -1,8 +1,17 @@
 {
   "selected": "已选择",
-  "search-country": "搜索国家",
+  "search-country": "搜索位置",
   "input-label": "搜索",
   "loading": "加载中...",
   "none-found": "未找到结果。请尝试其他搜索",
-  "list-loading": "国家列表正在加载中…"
+  "list-loading": "位置列表正在加载中…",
+  "location-not-available": {
+    "entry": "所选条目位置不可用，切换到 {{location}}",
+    "exit": "所选出口位置不可用，切换到 {{location}}"
+  },
+  "location-details": {
+    "title": "服务器位置详情",
+    "link": "更多信息",
+    "description": "我们根据 IP 地址推断服务器位置，但实际位置可能略有不同。"
+  }
 }

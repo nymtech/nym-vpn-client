@@ -20,7 +20,8 @@
   "snackbar-disabled-message": {
     "connected": "Désactivé lors de la connexion au VPN",
     "disconnecting": "Désactivé lors de la déconnexion du VPN",
-    "connecting": "Désactivé lors de la connexion au VPN"
+    "connecting": "Désactivé lors de la connexion au VPN",
+    "daemon-not-connected": "Désactivé lorsque non connecté au daemon VPN"
   },
   "privacy-mode": {
     "title": "Anonyme",

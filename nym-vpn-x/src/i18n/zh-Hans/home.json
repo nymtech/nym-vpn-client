@@ -8,8 +8,8 @@
     "disconnecting": "断开连接",
     "unknown": "未知"
   },
-  "last-hop": "最后一跳",
-  "first-hop": "第一跳",
+  "last-hop": "出口位置",
+  "first-hop": "入口位置",
   "connecting-message": "建立连接",
   "connection-time": "连接时间",
   "select-node-title": "连接到",
@@ -28,7 +28,8 @@
   "snackbar-disabled-message": {
     "connected": "连接 VPN 时禁用",
     "connecting": "连接 VPN 时禁用",
-    "disconnecting": "断开 VPN 连接时禁用"
+    "disconnecting": "断开 VPN 连接时禁用",
+    "daemon-not-connected": "未连接 VPN 守护进程时禁用"
   },
   "select-mode-label": "选择模式",
   "modes-dialog": {
