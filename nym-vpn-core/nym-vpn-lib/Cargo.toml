@@ -17,7 +17,6 @@ path = "uniffi-bindgen.rs"
 
 [dependencies]
 anyhow.workspace = true
-base64.workspace = true
 bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
