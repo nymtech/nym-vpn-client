@@ -1,9 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.main
 
-import android.Manifest
 import android.app.Activity.RESULT_OK
 import android.net.VpnService
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -13,12 +11,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Speed
@@ -45,9 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -77,23 +75,16 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.Tunnel
 
-@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val snackbar = SnackbarController.current
 	val scope = rememberCoroutineScope()
+	val padding = WindowInsets.systemBars.asPaddingValues()
 
 	var didAutoStart by remember { mutableStateOf(false) }
 	var showDialog by remember { mutableStateOf(false) }
-
-	val notificationPermissionState =
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-			rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
-		} else {
-			null
-		}
 
 	val vpnActivityResultState =
 		rememberLauncherForActivityResult(
@@ -127,12 +118,6 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 		}
 	}
 
-	LaunchedEffect(notificationPermissionState?.status?.shouldShowRationale) {
-		if (notificationPermissionState?.status?.shouldShowRationale == true) {
-			navController.go(Destination.Permission.createRoute(Permission.NOTIFICATION))
-		}
-	}
-
 	Modal(show = showDialog, onDismiss = { showDialog = false }, title = {
 		Text(
 			text = stringResource(R.string.mode_selection),
@@ -150,7 +135,7 @@ fun MainScreen(navController: NavController, appUiState: AppUiState, autoStart: 
 	Column(
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
 		horizontalAlignment = Alignment.CenterHorizontally,
-		modifier = Modifier.fillMaxSize(),
+		modifier = Modifier.fillMaxSize().padding(bottom = padding.calculateBottomPadding()),
 	) {
 		Column(
 			verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight()),

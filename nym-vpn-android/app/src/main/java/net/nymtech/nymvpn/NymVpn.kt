@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
+import android.os.StrictMode.VmPolicy
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -43,6 +44,7 @@ class NymVpn : Application() {
 		instance = this
 		if (BuildConfig.DEBUG) {
 			Timber.plant(DebugTree())
+			val builder = VmPolicy.Builder()
 			StrictMode.setThreadPolicy(
 				ThreadPolicy.Builder()
 					.detectDiskReads()
@@ -51,6 +53,7 @@ class NymVpn : Application() {
 					.penaltyLog()
 					.build(),
 			)
+			StrictMode.setVmPolicy(builder.build())
 		} else {
 			Timber.plant(ReleaseTree())
 		}

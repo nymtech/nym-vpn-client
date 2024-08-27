@@ -2,9 +2,12 @@ package net.nymtech.nymvpn.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
@@ -15,10 +18,10 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.AppShortcut
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -43,6 +46,7 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.durationFromNow
 import net.nymtech.nymvpn.util.extensions.go
 import net.nymtech.nymvpn.util.extensions.isInvalid
+import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -53,6 +57,7 @@ import net.nymtech.vpn.Tunnel
 fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: SettingsViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	val navController = appViewModel.navController
+	val padding = WindowInsets.systemBars.asPaddingValues()
 
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -62,7 +67,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 			.verticalScroll(rememberScrollState())
 			.fillMaxSize()
 			.padding(top = 24.dp)
-			.padding(horizontal = 24.dp.scaledWidth()),
+			.padding(horizontal = 24.dp.scaledWidth()).padding(bottom = padding.calculateBottomPadding()),
 	) {
 		if (appUiState.settings.credentialExpiry.isInvalid()) {
 			MainStyledButton(
@@ -156,17 +161,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 						)
 					},
-
 				),
-				SelectionItem(
-					Icons.AutoMirrored.Outlined.ViewQuilt,
-					title = { Text(stringResource(R.string.appearance), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.go(Destination.Appearance.route) },
-				),
-			),
-		)
-		SurfaceSelectionGroupButton(
-			listOf(
 				SelectionItem(
 					ImageVector.vectorResource(R.drawable.two),
 					{
@@ -187,10 +182,21 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						)
 					},
 				),
+			),
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
 				SelectionItem(
-					ImageVector.vectorResource(R.drawable.logs),
-					title = { Text(stringResource(R.string.logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.go(Destination.Logs.route) },
+					Icons.AutoMirrored.Outlined.ViewQuilt,
+					title = { Text(stringResource(R.string.appearance), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					onClick = { navController.go(Destination.Appearance.route) },
+				),
+				SelectionItem(
+					Icons.Outlined.Notifications,
+					title = { Text(stringResource(R.string.notifications), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					onClick = {
+						context.launchNotificationSettings()
+					},
 				),
 			),
 		)
@@ -217,6 +223,11 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					ImageVector.vectorResource(R.drawable.support),
 					title = { Text(stringResource(R.string.support), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.go(Destination.Support.route) },
+				),
+				SelectionItem(
+					ImageVector.vectorResource(R.drawable.logs),
+					title = { Text(stringResource(R.string.logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					onClick = { navController.go(Destination.Logs.route) },
 				),
 				SelectionItem(
 					Icons.Outlined.BugReport,

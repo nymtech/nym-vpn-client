@@ -1,8 +1,6 @@
 package net.nymtech.logcatutil
 
 import android.content.Context
-import android.os.Build
-import androidx.annotation.RequiresApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
@@ -12,17 +10,15 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.withContext
 import net.nymtech.logcatutil.model.LogMessage
 import timber.log.Timber
+import java.io.BufferedOutputStream
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
-import java.io.FileReader
 import java.io.IOException
 import java.io.InputStreamReader
-import java.io.PrintWriter
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardOpenOption
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 object LogcatHelper {
 
@@ -64,82 +60,38 @@ object LogcatHelper {
 		private var logcatReader: LogcatReader? = null
 
 		override suspend fun start(onLogMessage: ((message: LogMessage) -> Unit)?) {
-			logcatReader ?: run {
-				logcatReader = LogcatReader(LogcatHelperInit.pID.toString(), LogcatHelperInit.logcatPath, onLogMessage)
+			withContext(ioDispatcher) {
+				logcatReader ?: run {
+					logcatReader = LogcatReader(LogcatHelperInit.pID.toString(), LogcatHelperInit.logcatPath, onLogMessage)
+				}
+				logcatReader?.run()
 			}
-			logcatReader?.run()
 		}
 
 		override fun stop() {
-			logcatReader?.stopLogs()
+			logcatReader?.pause()
 			logcatReader = null
 		}
 
-		private fun mergeLogs(sourceDir: String, outputFile: File) {
-			val logcatDir = File(sourceDir)
-
-			if (!outputFile.exists()) outputFile.createNewFile()
-			val pw = PrintWriter(outputFile)
-			val logFiles = logcatDir.listFiles()
-
-			logFiles?.sortBy { it.lastModified() }
-
-			logFiles?.forEach { logFile ->
-				val br = BufferedReader(FileReader(logFile))
-
-				var line: String?
-				while (run {
-						line = br.readLine()
-						line
-					} != null
-				) {
-					pw.println(line)
-				}
-			}
-			pw.flush()
-			pw.close()
+		override fun zipLogFiles(path: String) {
+			logcatReader?.pause()
+			zipAll(path)
+			logcatReader?.resume()
 		}
 
-		@RequiresApi(Build.VERSION_CODES.O)
-		private fun mergeLogsApi26(sourceDir: String, outputFile: File) {
-			val outputFilePath = Paths.get(outputFile.absolutePath)
-			val logcatPath = Paths.get(sourceDir)
-
-			Files.list(logcatPath)
-				.sorted { o1, o2 ->
-					Files.getLastModifiedTime(o1).compareTo(Files.getLastModifiedTime(o2))
-				}
-				.flatMap(Files::lines)
-				.forEach { line ->
-					Files.write(
-						outputFilePath,
-						(line + System.lineSeparator()).toByteArray(),
-						StandardOpenOption.CREATE,
-						StandardOpenOption.APPEND,
-					)
-				}
-		}
-
-		override suspend fun getLogFile(name: String): Result<File> {
-			stop()
-			return withContext(ioDispatcher) {
-				try {
-					val outputDir = File(LogcatHelperInit.publicAppDirectory + File.separator + "output")
-					val outputFile = File(outputDir.absolutePath + File.separator + name)
-
-					if (!outputDir.exists()) outputDir.mkdir()
-					if (outputFile.exists()) outputFile.delete()
-
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-						mergeLogsApi26(LogcatHelperInit.logcatPath, outputFile)
-					} else {
-						mergeLogs(LogcatHelperInit.logcatPath, outputFile)
+		private fun zipAll(zipFilePath: String) {
+			val sourceFile = File(LogcatHelperInit.logcatPath)
+			val outputZipFile = File(zipFilePath)
+			ZipOutputStream(BufferedOutputStream(FileOutputStream(outputZipFile))).use { zos ->
+				sourceFile.walkTopDown().forEach { file ->
+					val zipFileName = file.absolutePath.removePrefix(sourceFile.absolutePath).removePrefix("/")
+					val entry = ZipEntry("$zipFileName${(if (file.isDirectory) "/" else "")}")
+					zos.putNextEntry(entry)
+					if (file.isFile) {
+						file.inputStream().use {
+							it.copyTo(zos)
+						}
 					}
-					Result.success(outputFile)
-				} catch (e: Exception) {
-					Result.failure(e)
-				} finally {
-					start()
 				}
 			}
 		}
@@ -188,8 +140,12 @@ object LogcatHelper {
 				clearLogCommand = "logcat -c"
 			}
 
-			fun stopLogs() {
+			fun pause() {
 				mRunning = false
+			}
+
+			fun resume() {
+				mRunning = true
 			}
 
 			fun clear() {

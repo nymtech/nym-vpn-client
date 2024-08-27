@@ -2,19 +2,24 @@ package net.nymtech.nymvpn.ui.screens.settings.logs
 
 import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.logcatutil.LogCollect
 import net.nymtech.logcatutil.model.LogMessage
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.module.IoDispatcher
 import net.nymtech.nymvpn.module.MainDispatcher
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.chunked
-import net.nymtech.nymvpn.util.extensions.shareFile
+import net.nymtech.nymvpn.util.extensions.launchShareFile
+import timber.log.Timber
+import java.io.File
 import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
@@ -43,13 +48,20 @@ class LogsViewModel @Inject constructor(
 		}
 	}
 
-	fun shareLogs(context: Context) = viewModelScope.launch(ioDispatcher) {
-		val fileName = "${Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.txt"
-		val file = logCollect.getLogFile(fileName).getOrElse {
-			// TODO add error message
-			return@launch
+	fun shareLogs(context: Context): Job = viewModelScope.launch(ioDispatcher) {
+		runCatching {
+			val sharePath = File(context.filesDir, "external_files")
+			if (sharePath.exists()) sharePath.delete()
+			sharePath.mkdir()
+			val file = File("${sharePath.path + "/" + Constants.BASE_LOG_FILE_NAME}-${Instant.now().epochSecond}.zip")
+			if (file.exists()) file.delete()
+			file.createNewFile()
+			logCollect.zipLogFiles(file.absolutePath)
+			val uri = FileProvider.getUriForFile(context, context.getString(R.string.provider), file)
+			context.launchShareFile(uri)
+		}.onFailure {
+			Timber.e(it)
 		}
-		context.shareFile(file)
 	}
 
 	fun deleteLogs() = viewModelScope.launch {

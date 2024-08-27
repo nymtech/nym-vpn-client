@@ -52,8 +52,6 @@ class SmokeTest {
 		connect()
 		login()
 		connect()
-		acceptNotificationPermission()
-		connect()
 		allowVpnPermission()
 		connectWithPermissions()
 		disconnect()
@@ -63,11 +61,6 @@ class SmokeTest {
 
 	private fun UiDevice.allowVpnPermission() {
 		findObject(UiSelector().text("OK")).click()
-		waitForIdle()
-	}
-
-	private fun UiDevice.acceptNotificationPermission() {
-		findObject(UiSelector().text("Allow")).click()
 		waitForIdle()
 	}
 

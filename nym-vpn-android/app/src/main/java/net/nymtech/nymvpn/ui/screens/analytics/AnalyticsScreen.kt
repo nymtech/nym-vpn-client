@@ -3,9 +3,12 @@ package net.nymtech.nymvpn.ui.screens.analytics
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
@@ -41,6 +44,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 @Composable
 fun AnalyticsScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 	val context = LocalContext.current
+	val padding = WindowInsets.systemBars.asPaddingValues()
 
 	val errorReportingDescription = buildAnnotatedString {
 		append("(")
@@ -101,7 +105,7 @@ fun AnalyticsScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 		modifier =
 		Modifier
 			.fillMaxSize()
-			.padding(horizontal = 16.dp.scaledWidth()),
+			.padding(horizontal = 16.dp.scaledWidth()).padding(padding),
 	) {
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,

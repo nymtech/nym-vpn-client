@@ -104,6 +104,7 @@ jobs:
         run: |
           echo "RELEASE_NOTES=Nightly build of the latest development version of the android client." >> $GITHUB_ENV
           gh release delete nym-vpn-android-nightly --yes || true
+          git push origin :nym-vpn-android-nightly || true
 
       - name: On prerelease release notes
         if: ${{ inputs.release_type == 'prerelease' }}

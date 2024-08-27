@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import android.service.quicksettings.TileService
 import android.widget.Toast
 import androidx.compose.ui.text.buildAnnotatedString
@@ -19,7 +21,6 @@ import net.nymtech.nymvpn.service.android.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.model.Country
 import timber.log.Timber
-import java.io.File
 
 private const val BASELINE_HEIGHT = 2201
 private const val BASELINE_WIDTH = 1080
@@ -134,15 +135,25 @@ fun Context.requestTileServiceStateUpdate() {
 	)
 }
 
-fun Context.shareFile(file: File) {
-	val shareIntent: Intent = Intent().apply {
-		action = Intent.ACTION_SEND
-		setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-		// Example: content://com.google.android.apps.photos.contentprovider/...
-		putExtra(Intent.EXTRA_STREAM, file.toURI())
-		type = Constants.TEXT_MIME_TYPE
+fun Context.launchShareFile(file: Uri) {
+	val shareIntent = Intent().apply {
+		setAction(Intent.ACTION_SEND)
+		setType("*/*")
+		putExtra(Intent.EXTRA_STREAM, file)
+		addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 	}
-	startActivity(Intent.createChooser(shareIntent, null))
+	this.startActivity(Intent.createChooser(shareIntent, ""))
+}
+
+fun Context.launchNotificationSettings() {
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+		val settingsIntent: Intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+			.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+			.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+		this.startActivity(settingsIntent)
+	} else {
+		this.launchAppSettings()
+	}
 }
 
 // for localization changes
@@ -154,5 +165,15 @@ fun Activity.resetTile() {
 		}
 	} catch (e: PackageManager.NameNotFoundException) {
 		Timber.e(e)
+	}
+}
+
+fun Context.launchAppSettings() {
+	kotlin.runCatching {
+		val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+			data = Uri.fromParts("package", packageName, null)
+			setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		}
+		startActivity(intent)
 	}
 }

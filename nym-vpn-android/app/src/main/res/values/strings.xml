@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">NymVPN</string>
+	<string name="provider" translatable="false">net.nymtech.nymvpn.provider</string>
     <string name="settings">Settings</string>
     <string name="connected">Connected</string>
     <string name="disconnected">Disconnected</string>
@@ -154,4 +155,8 @@
 	<string name="try_again">and try to reconnect</string>
 	<string name="share">Share</string>
 	<string name="delete">Delete</string>
+	<string name="delete_logs_title">Are you sure you want to delete all logs?</string>
+	<string name="delete_logs_description">Once deleted, the logs will not be recoverable.</string>
+	<string name="no">No</string>
+	<string name="yes">Yes</string>
 </resources>
