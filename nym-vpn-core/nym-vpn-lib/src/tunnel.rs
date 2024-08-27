@@ -6,6 +6,7 @@ use futures::channel::{mpsc, oneshot};
 use log::*;
 use nym_sdk::TaskClient;
 use std::collections::HashSet;
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 use talpid_routing::{RouteManager, RouteManagerHandle};
 use talpid_tunnel::tun_provider::TunProvider;
@@ -80,7 +81,7 @@ pub fn start_tunnel(
         let monitor = match WireguardMonitor::start(
             config,
             None,
-            Some(&resource_dir.join("wireguard.log")),
+            Some(Path::new(&resource_dir.join("logs"))),
             args,
         ) {
             Ok(monitor) => monitor,

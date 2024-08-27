@@ -180,22 +180,6 @@ async fn setup_wg_tunnel(
         exit_mtu,
     )
     .await?;
-
-    exit_wireguard_config.talpid_config.ipv4_gateway = "10.64.93.204".parse().unwrap();
-    exit_wireguard_config.talpid_config.ipv6_gateway = None;
-    exit_wireguard_config.talpid_config.tunnel.addresses = vec!["10.64.93.204".parse().unwrap()];
-    exit_wireguard_config.talpid_config.tunnel.private_key =
-        pkey_from_base64("2GJR/sWv5YuutftnnxVr3UI6DjSjAdnWjvMtPkBtKn4=");
-    exit_wireguard_config.talpid_config.peers = vec![talpid_types::net::wireguard::PeerConfig {
-        allowed_ips: vec!["10.64.93.204/32".parse().unwrap()],
-        public_key: talpid_types::net::wireguard::PublicKey::from_base64(
-            "GE2WP6hmwVggSvGVWLgq2L10T3WM2VspnUptK5F4B0U=",
-        )
-        .unwrap(),
-        endpoint: "91.90.123.2:443".parse().unwrap(),
-        psk: None,
-    }];
-
     let wg_gateway = exit_wireguard_config
         .talpid_config
         .peers
@@ -208,24 +192,6 @@ async fn setup_wg_tunnel(
         entry_mtu,
     )
     .await?;
-
-    entry_wireguard_config.talpid_config.ipv4_gateway = "10.71.122.208".parse().unwrap();
-    entry_wireguard_config.talpid_config.ipv6_gateway = None;
-    entry_wireguard_config.talpid_config.tunnel.addresses = vec!["10.71.122.208".parse().unwrap()];
-    entry_wireguard_config.talpid_config.tunnel.private_key =
-        pkey_from_base64("MMLgfpAzr5RsVoK6UQezipadSx/QhjDDBM86MqOTolA=");
-    entry_wireguard_config.talpid_config.peers = vec![talpid_types::net::wireguard::PeerConfig {
-        allowed_ips: vec![
-            "10.71.122.208/32".parse().unwrap(),
-            "0.0.0.0/0".parse().unwrap(),
-        ],
-        public_key: talpid_types::net::wireguard::PublicKey::from_base64(
-            "TNrdH73p6h2EfeXxUiLOCOWHcjmjoslLxZptZpIPQXU=",
-        )
-        .unwrap(),
-        endpoint: "146.70.116.98:12912".parse().unwrap(),
-        psk: None,
-    }];
 
     if wg_entry_gateway_client.suspended().await? || wg_exit_gateway_client.suspended().await? {
         return Err(Error::NotEnoughBandwidth);
@@ -560,15 +526,4 @@ async fn select_gateways(
         entry: entry_gateway,
         exit: exit_gateway,
     })
-}
-
-fn pkey_from_base64(base64_key: &str) -> talpid_types::net::wireguard::PrivateKey {
-    use base64::engine::Engine;
-    let mut key = [0u8; 32];
-    let decoded_bytes = base64::engine::general_purpose::STANDARD
-        .decode(base64_key)
-        .unwrap();
-    assert!(decoded_bytes.len() == 32);
-    key.copy_from_slice(&decoded_bytes);
-    talpid_types::net::wireguard::PrivateKey::from(key)
 }
