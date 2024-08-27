@@ -5,8 +5,8 @@
   },
   "connect": "连接",
   "disconnect": "断开",
-  "first-hop-selection": "第一跳选择",
-  "last-hop-selection": "最后一跳选择",
+  "first-hop-selection": "入口位置",
+  "last-hop-selection": "出口位置",
   "settings": "设置",
   "logs": "日志",
   "feedback": "反馈",
@@ -22,5 +22,6 @@
     "light": "亮光模式"
   },
   "notifications": "通知",
-  "language": "语言"
+  "language": "语言",
+  "appearance": "外观"
 }
