@@ -28,7 +28,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val analyticsShown = booleanPreferencesKey("ANALYTICS_SHOWN")
 	private val applicationShortcuts = booleanPreferencesKey("APPLICATION_SHORTCUTS")
 	private val credentialExpiry = longPreferencesKey("CREDENTIAL_EXPIRY")
-	private val locale = stringPreferencesKey("LOCALE")
+	private val environment = stringPreferencesKey("ENVIRONMENT")
 
 	override suspend fun init() {
 		val firstHop = dataStoreManager.getFromStore(firstHopCountry)
@@ -145,6 +145,16 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(credentialExpiry, instant.epochSecond)
 	}
 
+	override suspend fun getEnvironment(): Tunnel.Environment {
+		return dataStoreManager.getFromStore(environment)?.let {
+			Tunnel.Environment.valueOf(it)
+		} ?: Settings.DEFAULT_ENVIRONMENT
+	}
+
+	override suspend fun setEnvironment(environment: Tunnel.Environment) {
+		dataStoreManager.saveToDataStore(this.environment, environment.name)
+	}
+
 	override val settingsFlow: Flow<Settings> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
@@ -172,6 +182,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						lastHopCountry = Country.from(pref[lastHopCountry]) ?: default,
 						isShortcutsEnabled = pref[applicationShortcuts] ?: Settings.SHORTCUTS_DEFAULT,
 						credentialExpiry = pref[credentialExpiry]?.let { Instant.ofEpochSecond(it) },
+						environment = pref[environment]?.let { Tunnel.Environment.valueOf(it) } ?: Settings.DEFAULT_ENVIRONMENT,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

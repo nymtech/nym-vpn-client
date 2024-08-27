@@ -7,22 +7,32 @@ echo "NDK_HOME: $1"
 archDir=$(basename $1/toolchains/llvm/prebuilt/*/)
 echo "archdir: ${archDir}"
 export ANDROID_NDK_HOME="$1"
+bash $PWD/../../wireguard/build-wireguard-go.sh
+bash $PWD/../../wireguard/libwg/build-android.sh
+echo "Building nym-vpn-lib dep"
 
-case  "$(uname -s)" in
-    Darwin*) export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin";;
-    Linux*) export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/linux-x86_64/bin";;
-    MINGW*|MSYS_NT*) export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin";;
-esac
+echo "${PWD}/../../build/lib/universal-apple-darwin"
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+	export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/linux-x86_64/bin"
+	export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-unknown-linux-gnu -L ${PWD}/../../build/lib/aarch64-linux-android"
 
-case  "$(uname -s)" in
-    Darwin*) export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-apple-darwin -L ${PWD}/../../build/lib/aarch64-linux-android";;
-    Linux*) export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-unknown-linux-gnu -L ${PWD}/../../build/lib/aarch64-linux-android";;
-    MINGW*|MSYS_NT*) export RUSTFLAGS="-L ${PWD}/../../build/lib/x86_64-pc-windows-msvc -L ${PWD}/../../build/lib/aarch64-linux-android";;
-esac
+elif [[ "$OSTYPE" == "darwin"* ]]; then
+	export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin"
+	export RUSTFLAGS="-L ${PWD}/../../build/lib/aarch64-apple-darwin -L ${PWD}/../../build/lib/aarch64-linux-android"
+else
+	export NDK_TOOLCHAIN_DIR="$1/toolchains/llvm/prebuilt/${archDir}/bin"
+	export RUSTFLAGS="-L ${PWD}/../../build/lib/x86_64-pc-windows-msvc -L ${PWD}/../../build/lib/aarch64-linux-android"
+fi
 
 bash $PWD/../../wireguard/build-wireguard-go.sh
 bash $PWD/../../wireguard/libwg/build-android.sh
 echo "Building nym-vpn-lib dep"
+
+#fix emulators later
+#(cd $PWD/src/tools/nym-vpn-client/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release)
+(cd $PWD/../../nym-vpn-core/nym-vpn-lib; cargo ndk -t arm64-v8a -o ../../nym-vpn-android/nym-vpn-client/src/main/jniLibs build --release)
+#mv wireguard
+
 
 #fix emulators later
 #(cd $PWD/src/tools/nym-vpn-client/nym-vpn-lib; cargo ndk -t armeabi-v7a -t arm64-v8a -t i686-linux-android -t x86_64-linux-android  -o ../../../main/jniLibs build --release)
