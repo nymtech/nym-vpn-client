@@ -1,1 +1,7 @@
-{}
+{
+  "vpn-tunnel-state": {
+    "connected": "已连接 VPN 隧道",
+    "disconnected": "VPN 隧道断开",
+    "failed": "VPN 隧道连接失败！"
+  }
+}
