@@ -1,3 +1,5 @@
+use std::fmt;
+
 use nym_crypto::asymmetric::ed25519::KeyPair;
 use nym_validator_client::signing::signer::OfflineSigner;
 use nym_validator_client::DirectSecp256k1HdWallet;
@@ -47,7 +49,7 @@ pub(crate) struct Jwt {
 #[allow(unused)]
 impl Jwt {
     pub fn new_secp256k1(wallet: &DirectSecp256k1HdWallet) -> Jwt {
-        let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_millis();
+        let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as u128;
         Jwt::new_secp256k1_with_now(wallet, timestamp)
     }
 
@@ -87,7 +89,7 @@ impl Jwt {
     }
 
     pub fn new_ecdsa(key_pair: &KeyPair) -> Jwt {
-        let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_millis();
+        let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as u128;
         Jwt::new_ecdsa_with_now(key_pair, timestamp)
     }
 
@@ -122,9 +124,11 @@ impl Jwt {
             jwt,
         }
     }
+}
 
-    pub fn jwt(&self) -> &str {
-        &self.jwt
+impl fmt::Display for Jwt {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.jwt)
     }
 }
 
@@ -150,7 +154,7 @@ mod tests {
         let wallet = get_secp256k1_keypair();
         let jwt = Jwt::new_secp256k1_with_now(&wallet, now);
 
-        let jwt_str = jwt.jwt();
+        let jwt_str = jwt.to_string();
         let jwt_components: Vec<&str> = jwt_str.split('.').collect();
 
         if jwt_str != jwt_expected_from_js_snapshot {
@@ -200,7 +204,7 @@ mod tests {
 
         let jwt = Jwt::new_ecdsa_with_now(&key_pair, now);
 
-        let jwt_str = jwt.jwt();
+        let jwt_str = jwt.to_string();
         let jwt_components: Vec<&str> = jwt_str.split('.').collect();
 
         if jwt_str != jwt_expected_from_js_snapshot {
