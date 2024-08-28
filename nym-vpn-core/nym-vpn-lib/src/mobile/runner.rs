@@ -310,7 +310,7 @@ impl TunnelRunner {
             recipient,
         );
 
-        let (gateway_data, gateway_host) =
+        let (gateway_data, _gateway_host) =
             self.register_wg_key(&mut wg_entry_gateway_client).await?;
         let key_pair = wg_entry_gateway_client.keypair();
         let node_config = WgNodeConfig::with_gateway_data(gateway_data, key_pair.private_key());

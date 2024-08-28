@@ -45,9 +45,6 @@ lazy_static! {
 }
 
 #[cfg(target_os = "ios")]
-use crate::mobile::two_hop_tunnel::TwoHopTunnel;
-
-#[cfg(target_os = "ios")]
 struct ShutdownHandle {
     join_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
