@@ -37,7 +37,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             #endif
         }
 
-        let (eventStream, eventContinuation) = AsyncStream<TunnelEvent>.makeStream();
+        let (eventStream, eventContinuation) = AsyncStream<TunnelEvent>.makeStream()
         self.eventStream = eventStream
         self.eventContinuation = eventContinuation
     }
@@ -128,33 +128,38 @@ extension PacketTunnelProvider {
         observer?.onDefaultPathChange(newPath: defaultPath.asOsDefaultPath())
     }
 
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+    // swiftlint:disable:next block_based_kvo
+    override func observeValue(
+        forKeyPath keyPath: String?,
+        of object: Any?,
+        change: [NSKeyValueChangeKey: Any]?,
+        context: UnsafeMutableRawPointer?
+    ) {
         if keyPath == #keyPath(defaultPath) && context == &Self.defaultPathObserverContext {
             notifyDefaultPathObserver()
         } else {
             super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
         }
     }
-
 }
 
 extension PacketTunnelProvider: TunnelStatusListener {
     func onBandwidthStatusChange(status: BandwidthStatus) {
         // todo: implement
     }
-    
+
     func onConnectionStatusChange(status: ConnectionStatus) {
         // todo: implement
     }
-    
+
     func onNymVpnStatusChange(status: NymVpnStatus) {
         // todo: implement
     }
-    
+
     func onExitStatusChange(status: ExitStatus) {
         // todo: implement
     }
-    
+
     func onTunStatusChange(status: TunStatus) {
         eventContinuation.yield(.statusUpdate(status))
     }
@@ -166,7 +171,7 @@ extension PacketTunnelProvider: OsTunProvider {
             defaultPathObserver = observer
         }
     }
-    
+
     func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings) async throws {
         do {
             let networkSettings = tunnelSettings.asPacketTunnelNetworkSettings()
@@ -246,7 +251,6 @@ extension Ipv6Settings {
     }
 }
 
-
 extension Ipv4Route {
     func asNEIPv4Route() -> NEIPv4Route {
         switch self {
@@ -268,7 +272,10 @@ extension Ipv6Route {
             return NEIPv6Route.default()
 
         case let .specific(destination, prefixLength, gateway):
-            let ipv6Route = NEIPv6Route(destinationAddress: destination, networkPrefixLength: NSNumber(value: prefixLength))
+            let ipv6Route = NEIPv6Route(
+                destinationAddress: destination,
+                networkPrefixLength: NSNumber(value: prefixLength)
+            )
             ipv6Route.gatewayAddress = gateway
             return ipv6Route
         }
@@ -277,7 +284,7 @@ extension Ipv6Route {
 
 extension NWPath {
     func asOsDefaultPath() -> OsDefaultPath {
-        return OsDefaultPath(
+        OsDefaultPath(
             status: status.asOsPathStatus(),
             isExpensive: isExpensive,
             isConstrained: isConstrained
