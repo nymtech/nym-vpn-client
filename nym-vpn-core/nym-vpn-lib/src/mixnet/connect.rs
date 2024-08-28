@@ -78,16 +78,10 @@ pub(crate) async fn setup_mixnet_client(
     mixnet_entry_gateway: &NodeIdentity,
     mixnet_client_key_storage_path: &Option<PathBuf>,
     mut task_client: nym_task::TaskClient,
-    enable_wireguard: bool,
     mixnet_client_config: MixnetClientConfig,
 ) -> Result<SharedMixnetClient> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     apply_mixnet_client_config(&mixnet_client_config, &mut debug_config);
-
-    debug!(
-        "mixnet client has wireguard_mode: {}",
-        true_to_enabled(enable_wireguard)
-    );
 
     let user_agent = nym_bin_common::bin_info_owned!().into();
 
@@ -113,7 +107,6 @@ pub(crate) async fn setup_mixnet_client(
         MixnetClientBuilder::new_with_default_storage(key_storage_path)
             .await
             .map_err(MixnetError::FailedToCreateMixnetClientWithDefaultStorage)?
-            .with_wireguard_mode(enable_wireguard)
             .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
             .network_details(NymNetworkDetails::new_from_env())
@@ -128,7 +121,6 @@ pub(crate) async fn setup_mixnet_client(
     } else {
         debug!("Using ephemeral key storage");
         MixnetClientBuilder::new_ephemeral()
-            .with_wireguard_mode(enable_wireguard)
             .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
             .network_details(NymNetworkDetails::new_from_env())
