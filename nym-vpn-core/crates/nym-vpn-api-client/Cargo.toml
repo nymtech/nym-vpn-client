@@ -22,6 +22,9 @@ sha2.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 
+# Remove me?
+bip39 = { version = "2.0.0", features = ["zeroize"] }
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["full"] }
 bip39 = { version = "2.0.0", features = ["zeroize"] }

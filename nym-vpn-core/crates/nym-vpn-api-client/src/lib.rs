@@ -1,9 +1,11 @@
+pub mod responses;
+
+mod account;
 mod client;
 mod error;
-mod headers;
+pub(crate) mod headers;
 mod helpers;
-mod jwt;
-pub mod responses;
+pub(crate) mod jwt;
 mod routes;
 
 pub use client::{Client, ClientBuilder, VpnApiClientExt, VpnApiError};
