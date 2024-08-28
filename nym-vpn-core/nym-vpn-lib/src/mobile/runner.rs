@@ -79,7 +79,7 @@ impl TunnelRunner {
                 min_gateway_performance: None,
             },
             data_path: None,
-            gateway_config: nym_gateway_directory::Config::default(),
+            gateway_config: nym_gateway_directory::Config::new_from_env(None),
             entry_point: EntryPoint::from(config.entry_gateway),
             exit_point: ExitPoint::from(config.exit_router),
             nym_ips: None,
