@@ -105,7 +105,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 extension PacketTunnelProvider {
 
     func setup() {
-        ConfigurationManager.configureMainnetEnvironmentVariables()
+        do {
+            try ConfigurationManager.configureCanaryEnvironmentVariables()
+        } catch {
+            self.logger.error("Failed to set environment: \(error)")
+        }
         addDefaultPathObserver()
     }
 

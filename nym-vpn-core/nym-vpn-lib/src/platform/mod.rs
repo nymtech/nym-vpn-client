@@ -228,75 +228,24 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
 
             let shutdown_token = CancellationToken::new();
             let cloned_shutdown_token = shutdown_token.clone();
+
             let join_handle = tokio::spawn(async move {
-                use crate::mobile::wg_config::{WgInterface, WgNodeConfig, WgPeer};
+                use crate::mobile::runner::TunnelRunner;
 
                 // todo: set this only when two hop tunnel is actually up.
                 uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
 
-                let entry_priv_key = nym_wg_go::PrivateKey::from_base64(
-                    "MMLgfpAzr5RsVoK6UQezipadSx/QhjDDBM86MqOTolA=",
-                )
-                .unwrap();
-
-                let entry_pub_key = nym_wg_go::PublicKey::from_base64(
-                    "TNrdH73p6h2EfeXxUiLOCOWHcjmjoslLxZptZpIPQXU=",
-                )
-                .unwrap();
-
-                let entry_node_config = WgNodeConfig {
-                    interface: WgInterface {
-                        listen_port: None,
-                        private_key: entry_priv_key,
-                        addresses: vec!["10.71.122.208/32"
-                            .parse()
-                            .expect("failed to parse iface addr")],
-                        dns: crate::DEFAULT_DNS_SERVERS.to_vec(),
-                        mtu: 1280,
+                match TunnelRunner::new(config, cloned_shutdown_token) {
+                    Ok(tun_runner) => match tun_runner.start().await {
+                        Ok(_) => {
+                            tracing::debug!("Tunnel runner exited.");
+                        }
+                        Err(e) => {
+                            tracing::error!("Tunnel runner exited with error: {}", e);
+                        }
                     },
-                    peer: WgPeer {
-                        public_key: entry_pub_key,
-                        endpoint: "146.70.116.98:12912".parse().expect("entry peer endpoint"),
-                    },
-                };
-
-                let exit_priv_key = nym_wg_go::PrivateKey::from_base64(
-                    "2GJR/sWv5YuutftnnxVr3UI6DjSjAdnWjvMtPkBtKn4=",
-                )
-                .unwrap();
-
-                let exit_pub_key = nym_wg_go::PublicKey::from_base64(
-                    "GE2WP6hmwVggSvGVWLgq2L10T3WM2VspnUptK5F4B0U=",
-                )
-                .unwrap();
-
-                let exit_node_config = WgNodeConfig {
-                    interface: WgInterface {
-                        listen_port: None,
-                        private_key: exit_priv_key,
-                        addresses: vec!["10.64.93.204/32".parse().expect("exit iface addr")],
-                        dns: crate::DEFAULT_DNS_SERVERS.to_vec(),
-                        mtu: 1280,
-                    },
-                    peer: WgPeer {
-                        public_key: exit_pub_key,
-                        endpoint: "91.90.123.2:443".parse().expect("exit peer endpoint"),
-                    },
-                };
-
-                match TwoHopTunnel::start(
-                    entry_node_config, // entry config
-                    exit_node_config,  // exit config
-                    config.tun_provider,
-                    cloned_shutdown_token,
-                )
-                .await
-                {
-                    Ok(()) => {
-                        tracing::debug!("Tunnel has finished execution");
-                    }
                     Err(e) => {
-                        tracing::error!("Tunnel exited with error: {}", e);
+                        tracing::error!("Failed to create the tunnel runner: {}", e);
                     }
                 }
 
