@@ -105,11 +105,15 @@ jobs:
 
       - name: Generate checksums
         run: |
-          for f in ${{ env.UPLOAD_DIR_UBUNTU_22}}/*; do sha256sum ${f} > ${f}.sha256sum; done
-          for f in ${{ env.UPLOAD_DIR_WINDOWS}}/*; do sha256sum ${f} > ${f}.sha256sum; done
+          pushd ${{ env.UPLOAD_DIR_UBUNTU_22 }} || exit 1
+          for f in *; do sha256sum "$f" > "$f.sha256sum"; done
+          popd
+          pushd ${{ env.UPLOAD_DIR_WINDOWS }} || exit 1
+          for f in *; do sha256sum "$f" > "$f.sha256sum"; done
+          popd
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          cat ${{ env.UPLOAD_DIR_UBUNTU_22}}/*.sha256sum >> $GITHUB_ENV
-          cat ${{ env.UPLOAD_DIR_WINDOWS}}/*.sha256sum >> $GITHUB_ENV
+          cat ${{ env.UPLOAD_DIR_UBUNTU_22 }}/*.sha256sum >> $GITHUB_ENV
+          cat ${{ env.UPLOAD_DIR_WINDOWS }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       # - name: AppImage installer bump version
