@@ -196,7 +196,7 @@ pub(crate) async fn setup_mixnet_routing(
         dns_servers: dns
             .map(|dns| vec![dns])
             .unwrap_or(crate::DEFAULT_DNS_SERVERS.to_vec()),
-        remote_addresses: vec![config.entry_mixnet_gateway_ip()],
+        remote_addresses: vec![config.entry_mixnet_gateway_ip],
         mtu: config.mtu(),
     };
 

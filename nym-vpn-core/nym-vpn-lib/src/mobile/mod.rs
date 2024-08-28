@@ -14,24 +14,24 @@ use crate::platform::error::FFIError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to locate tun fd")]
+    #[error("failed to locate tun fd")]
     CannotLocateTunFd,
 
-    #[error("Failed to obtain tun interface name")]
+    #[error("failed to obtain tun interface name")]
     ObtainTunName,
 
-    #[error("Tunnel failure")]
+    #[error("tunnel failure")]
     Tunnel(#[from] nym_wg_go::Error),
 
     #[cfg(target_os = "ios")]
     #[error("DNS resolution failure")]
     DnsResolution(#[from] ios::dns64::Error),
 
-    #[error("Failed to set network settings")]
+    #[error("failed to set network settings")]
     SetNetworkSettings(#[source] FFIError),
 
     #[cfg(target_os = "ios")]
-    #[error("Failed to set default path observer")]
+    #[error("failed to set default path observer")]
     SetDefaultPathObserver(#[source] FFIError),
 }
 
