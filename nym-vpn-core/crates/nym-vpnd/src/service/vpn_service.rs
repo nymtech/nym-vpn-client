@@ -601,6 +601,48 @@ where
             })
     }
 
+    async fn handle_get_account_summary(&self) {
+        // Get account
+        let mnemonic = self.storage.load_mnemonic().await.unwrap();
+        let account = nym_vpn_api_client::account::Account::from(mnemonic);
+
+        // Get device
+        let device_keypair = self.storage.load_keys().await.unwrap();
+        let device_keypair = device_keypair.device_keypair();
+        let device = nym_vpn_api_client::account::Device::from(device_keypair);
+
+        // Setup client
+        let nym_vpn_api_url = nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env()
+            .nym_vpn_api_url
+            .unwrap()
+            .parse()
+            .unwrap();
+        let api_client = nym_vpn_api_client::account::AccountClient::new(nym_vpn_api_url);
+
+        api_client.get_account_summary(&account, &device).await;
+    }
+
+    async fn handle_register_device(&self) {
+        // Get account
+        let mnemonic = self.storage.load_mnemonic().await.unwrap();
+        let account = nym_vpn_api_client::account::Account::from(mnemonic);
+
+        // Get device
+        let device_keypair = self.storage.load_keys().await.unwrap();
+        let device_keypair = device_keypair.device_keypair();
+        let device = nym_vpn_api_client::account::Device::from(device_keypair);
+
+        // Setup client
+        let nym_vpn_api_url = nym_vpn_lib::nym_config::defaults::NymNetworkDetails::new_from_env()
+            .nym_vpn_api_url
+            .unwrap()
+            .parse()
+            .unwrap();
+        let api_client = nym_vpn_api_client::account::AccountClient::new(nym_vpn_api_url);
+
+        api_client.register_device(&account, &device).await;
+    }
+
     pub(crate) async fn run(mut self) -> anyhow::Result<()>
     where
         <S as nym_vpn_store::mnemonic::MnemonicStorage>::StorageError: Sync + Send + 'static,

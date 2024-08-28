@@ -1,19 +1,20 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt;
+use std::sync::Arc;
 
 use nym_crypto::asymmetric::ed25519;
 use nym_validator_client::{signing::signer::OfflineSigner as _, DirectSecp256k1HdWallet};
-use reqwest::{IntoUrl, Url};
+use reqwest::{IntoUrl, StatusCode, Url};
+use serde::{Deserialize, Serialize};
 
 use crate::jwt::Jwt;
 
-// const BASE_URL: &str = "https://nymvpn.com/api/public/v1";
+// const BASE_URL: &str = "https://nymvpn.com/api/public";
 const BASE_URL: &str =
-    "https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/api/public/v1";
+    "https://nym-dot-com-git-deploy-canary-nyx-network-staging.vercel.app/api/public";
 
-struct Account {
+pub struct Account {
     wallet: DirectSecp256k1HdWallet,
 }
 
@@ -41,26 +42,67 @@ impl From<bip39::Mnemonic> for Account {
     }
 }
 
-struct Device {
-    keypair: ed25519::KeyPair,
+pub struct Device {
+    keypair: Arc<ed25519::KeyPair>,
 }
 
 impl Device {
+    fn id(&self) -> String {
+        self.keypair.public_key().to_base58_string()
+    }
+
     fn jwt(&self) -> Jwt {
         Jwt::new_ecdsa(&self.keypair)
     }
 }
 
-impl From<ed25519::KeyPair> for Device {
-    fn from(keypair: ed25519::KeyPair) -> Self {
+impl From<Arc<ed25519::KeyPair>> for Device {
+    fn from(keypair: Arc<ed25519::KeyPair>) -> Self {
         Self { keypair }
     }
 }
 
+impl From<ed25519::KeyPair> for Device {
+    fn from(keypair: ed25519::KeyPair) -> Self {
+        Self {
+            keypair: Arc::new(keypair),
+        }
+    }
+}
+
 mod routes {
-    pub(super) const ACCOUNT: &str = "account";
-    pub(super) const SUMMARY: &str = "summary";
-    pub(super) const DEVICE: &str = "device";
+    pub const V1: &str = "v1";
+    pub const ACCOUNT: &str = "account";
+    pub const SUMMARY: &str = "summary";
+    pub const DEVICE: &str = "device";
+    pub const ACTIVE: &str = "active";
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct RegisterDeviceRequest {
+    device_identity_key: String,
+    signature: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct NymVpnAccountResponse {
+    created_on_utc: String,
+    last_updated_utc: String,
+    account_addr: String,
+}
+
+#[derive(thiserror::Error, Debug)]
+pub enum ApiError {
+    #[error("unknown")]
+    Unknown,
+
+    #[error("network error: {0}")]
+    NetworkError(#[from] reqwest::Error),
+
+    #[error("forbidden: {0}")]
+    Forbidden(serde_json::Value),
 }
 
 pub struct AccountClient {
@@ -78,83 +120,140 @@ impl AccountClient {
         path.join("/")
     }
 
-    fn add_authentication(
-        reqwest_builder: reqwest::RequestBuilder,
-        account: &Account,
-        device: &Device,
-    ) -> reqwest::RequestBuilder {
-        let reqwest_builder =
-            crate::headers::add_account_auth_header(reqwest_builder, account.jwt().to_string());
-        crate::headers::add_device_auth_header(reqwest_builder, device.jwt().to_string())
+    fn get_with_account<U: IntoUrl>(&self, url: U, account: &Account) -> reqwest::RequestBuilder {
+        let builder = reqwest::Client::new().get(url);
+        crate::headers::add_account_auth_header(builder, account.jwt().to_string())
     }
 
-    fn get<U: IntoUrl>(
+    fn get_with_device<U: IntoUrl>(
         &self,
         url: U,
         account: &Account,
         device: &Device,
     ) -> reqwest::RequestBuilder {
-        let reqwest_builder = reqwest::Client::new().get(url);
-        Self::add_authentication(reqwest_builder, account, device)
+        let builder = reqwest::Client::new().get(url);
+        let builder = crate::headers::add_account_auth_header(builder, account.jwt().to_string());
+        crate::headers::add_device_auth_header(builder, device.jwt().to_string())
     }
 
-    fn post<U: IntoUrl>(
+    fn post_with_account<U: IntoUrl>(&self, url: U, account: &Account) -> reqwest::RequestBuilder {
+        let builder = reqwest::Client::new().post(url);
+        crate::headers::add_account_auth_header(builder, account.jwt().to_string())
+    }
+
+    fn post_with_device<U: IntoUrl>(
         &self,
         url: U,
         account: &Account,
         device: &Device,
     ) -> reqwest::RequestBuilder {
-        let reqwest_builder = reqwest::Client::new().post(url);
-        Self::add_authentication(reqwest_builder, account, device)
+        let builder = reqwest::Client::new().post(url);
+        let builder = crate::headers::add_account_auth_header(builder, account.jwt().to_string());
+        crate::headers::add_device_auth_header(builder, device.jwt().to_string())
     }
 
-    fn delete<U: IntoUrl>(
+    fn delete_with_account<U: IntoUrl>(
+        &self,
+        url: U,
+        account: &Account,
+    ) -> reqwest::RequestBuilder {
+        let builder = reqwest::Client::new().delete(url);
+        crate::headers::add_account_auth_header(builder, account.jwt().to_string())
+    }
+
+    fn delete_with_device<U: IntoUrl>(
         &self,
         url: U,
         account: &Account,
         device: &Device,
     ) -> reqwest::RequestBuilder {
-        let reqwest_builder = reqwest::Client::new().delete(url);
-        Self::add_authentication(reqwest_builder, account, device)
+        let builder = reqwest::Client::new().delete(url);
+        let builder = crate::headers::add_account_auth_header(builder, account.jwt().to_string());
+        crate::headers::add_device_auth_header(builder, device.jwt().to_string())
     }
 
-    pub async fn get_account(&self, account: &Account, device: &Device) {
+    pub async fn get_account(&self, account: &Account) -> Result<NymVpnAccountResponse, ApiError> {
         dbg!(&account.jwt());
-        dbg!(&device.jwt());
-        let url = self.path(&[routes::ACCOUNT, &account.id()]);
-        let response = self.get(url, account, device).send().await.unwrap();
+        let url = self.path(&[routes::V1, routes::ACCOUNT, &account.id()]);
+        let response = self.get_with_account(url, account).send().await?;
+        dbg!(&response);
+
+        // let text = response.text().await.unwrap();
+        // dbg!(&text);
+
+        let json = match response.status() {
+            StatusCode::OK => response.json().await.map_err(ApiError::from),
+            StatusCode::FORBIDDEN => Err(ApiError::Forbidden(response.json().await.unwrap())),
+            _ => Err(ApiError::Unknown),
+        };
+        dbg!(&json);
+        json
+    }
+
+    pub async fn get_account_summary(&self, account: &Account) {
+        let url = self.path(&[routes::V1, routes::ACCOUNT, &account.id(), routes::SUMMARY]);
+        let response = self.get_with_account(url, account).send().await.unwrap();
         dbg!(&response);
         let text = response.text().await.unwrap();
         dbg!(&text);
     }
 
-    pub async fn get_account_summary(&self, account: &Account, device: &Device) {
-        let url = self.path(&[routes::ACCOUNT, &account.id(), routes::SUMMARY]);
-        let response = self.get(url, account, device).send().await.unwrap();
+    pub async fn remove_account(&self, account: &Account) {
+        let url = self.path(&[routes::V1, routes::ACCOUNT, &account.id()]);
+        let response = self.delete_with_account(url, account).send().await.unwrap();
         dbg!(&response);
         let text = response.text().await.unwrap();
         dbg!(&text);
     }
 
-    pub async fn remove_account(&self, account: &Account, device: &Device) {
-        let url = self.path(&[routes::ACCOUNT, &account.id()]);
-        let response = self.delete(url, account, device).send().await.unwrap();
-        dbg!(&response);
-        let text = response.text().await.unwrap();
-        dbg!(&text);
-    }
-
-    pub async fn get_devices(&self, account: &Account, device: &Device) {
-        let url = self.path(&[routes::ACCOUNT, &account.id(), routes::DEVICE]);
-        let response = self.get(url, account, device).send().await.unwrap();
+    pub async fn get_devices(&self, account: &Account) {
+        let url = self.path(&[routes::V1, routes::ACCOUNT, &account.id(), routes::DEVICE]);
+        let response = self.get_with_account(url, account).send().await.unwrap();
         dbg!(&response);
         let text = response.text().await.unwrap();
         dbg!(&text);
     }
 
     pub async fn register_device(&self, account: &Account, device: &Device) {
-        let url = self.path(&[routes::ACCOUNT, &account.id(), routes::DEVICE]);
-        let response = self.post(url, account, device).send().await.unwrap();
+        let url = self.path(&[routes::V1, routes::ACCOUNT, &account.id(), routes::DEVICE]);
+        let request = RegisterDeviceRequest {
+            device_identity_key: device.keypair.public_key().to_base58_string(),
+            signature: device.jwt().to_string(),
+        };
+        let response = self
+            .post_with_device(url, account, device)
+            .json(&request)
+            .send()
+            .await
+            .unwrap();
+        dbg!(&response);
+        let text = response.text().await.unwrap();
+        dbg!(&text);
+    }
+
+    pub async fn get_active_devices(&self, account: &Account) {
+        let url = self.path(&[
+            routes::V1,
+            routes::ACCOUNT,
+            &account.id(),
+            routes::DEVICE,
+            routes::ACTIVE,
+        ]);
+        let response = self.get_with_account(url, account).send().await.unwrap();
+        dbg!(&response);
+        let text = response.text().await.unwrap();
+        dbg!(&text);
+    }
+
+    pub async fn get_device_by_id(&self, account: &Account, device: &Device) {
+        let url = self.path(&[
+            routes::V1,
+            routes::ACCOUNT,
+            &account.id(),
+            routes::DEVICE,
+            &device.id(),
+        ]);
+        let response = self.get_with_account(url, account).send().await.unwrap();
         dbg!(&response);
         let text = response.text().await.unwrap();
         dbg!(&text);
@@ -184,16 +283,15 @@ mod tests {
     #[tokio::test]
     async fn get_account() {
         let account = Account::from(get_mnemonic());
-        let device = Device::from(get_ed25519_keypair());
         let client = AccountClient::new(BASE_URL.parse().unwrap());
-        client.get_account(&account, &device).await;
+        client.get_account(&account).await;
     }
 
-    #[tokio::test]
-    async fn remove_account() {
-        let account = Account::from(get_mnemonic());
-        let device = Device::from(get_ed25519_keypair());
-        let client = AccountClient::new(BASE_URL.parse().unwrap());
-        client.remove_account(&account, &device).await;
-    }
+    // #[tokio::test]
+    // async fn add_device() {
+    //     let account = Account::from(get_mnemonic());
+    //     let device = Device::from(get_ed25519_keypair());
+    //     let client = AccountClient::new(BASE_URL.parse().unwrap());
+    //     client.add_device(&account, &device).await;
+    // }
 }

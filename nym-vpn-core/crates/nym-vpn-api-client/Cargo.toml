@@ -15,7 +15,7 @@ chrono.workspace = true
 nym-crypto = { workspace = true, features = ["asymmetric"] }
 nym-http-api-client.workspace = true
 nym-validator-client.workspace = true
-reqwest = { workspace = true, features = ["rustls-tls"] }
+reqwest = { workspace = true, features = ["rustls-tls", "json"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 sha2.workspace = true

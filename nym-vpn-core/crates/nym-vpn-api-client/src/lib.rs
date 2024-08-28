@@ -1,6 +1,6 @@
+pub mod account;
 pub mod responses;
 
-mod account;
 mod client;
 mod error;
 pub(crate) mod headers;
