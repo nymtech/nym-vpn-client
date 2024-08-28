@@ -70,6 +70,8 @@ pub struct TunnelRunner {
 impl TunnelRunner {
     pub fn new(config: VPNConfig, shutdown_token: CancellationToken) -> Result<Self> {
         let user_agent = UserAgent::from(nym_bin_common::bin_info_local_vergen!());
+        tracing::info!("User agent: {user_agent}");
+
         let generic_config = GenericNymVpnConfig {
             mixnet_client_config: MixnetClientConfig {
                 enable_poisson_rate: false,
