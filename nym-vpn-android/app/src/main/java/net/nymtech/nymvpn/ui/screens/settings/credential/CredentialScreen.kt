@@ -6,12 +6,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -53,6 +56,7 @@ fun CredentialScreen(viewModel: CredentialViewModel = hiltViewModel()) {
 
 	val imeState = rememberImeState()
 	val scrollState = rememberScrollState()
+	val padding = WindowInsets.systemBars.asPaddingValues()
 
 	var credential by remember {
 		mutableStateOf("")
@@ -105,7 +109,7 @@ fun CredentialScreen(viewModel: CredentialViewModel = hiltViewModel()) {
 			.fillMaxSize()
 			.imePadding()
 			.verticalScroll(scrollState)
-			.padding(horizontal = 24.dp.scaledWidth()),
+			.padding(horizontal = 24.dp.scaledWidth()).padding(padding),
 	) {
 		Image(
 			painter = painterResource(id = R.drawable.login),
