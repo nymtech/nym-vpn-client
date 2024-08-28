@@ -74,7 +74,7 @@
     <string name="welcome">ようこそ</string>
     <string name="to_alpha">NymVPNアルファへ</string>
     <string name="cont">続ける</string>
-    <string name="continue_agree">続けることで、NymVPNの〜に同意したことになります</string>
+    <string name="continue_agree">続けることで、NymVPNの利用規約に同意したことになります</string>
     <string name="and_acknowledge">NymVPNに同意</string>
     <string name="share_anonymous_analytics">製品分析を匿名で報告</string>
     <string name="anonymous_error_reports">匿名のエラーレポート</string>
