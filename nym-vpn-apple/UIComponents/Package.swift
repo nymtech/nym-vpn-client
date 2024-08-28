@@ -18,7 +18,8 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../Services"),
-        .package(path: "../Theme")
+        .package(path: "../Theme"),
+        .package(url: "https://github.com/airbnb/lottie-spm.git", from: "4.5.0")
     ],
     targets: [
         .target(
@@ -27,7 +28,8 @@ let package = Package(
                 "Theme",
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "CountriesManager", package: "Services"),
-                .product(name: "Modifiers", package: "Services")
+                .product(name: "Modifiers", package: "Services"),
+                .product(name: "Lottie", package: "lottie-spm")
             ],
             resources: [
                 .process("Resources/Assets.xcassets")

@@ -25,7 +25,9 @@ struct NymVPNDaemonApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                if !appSettings.welcomeScreenDidDisplay {
+                if !homeViewModel.splashScreenDidDisplay {
+                    LaunchView(splashScreenDidDisplay: $homeViewModel.splashScreenDidDisplay)
+                } else if !appSettings.welcomeScreenDidDisplay {
                     WelcomeView(viewModel: WelcomeViewModel())
                         .transition(.slide)
                 } else {

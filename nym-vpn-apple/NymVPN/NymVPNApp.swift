@@ -21,7 +21,9 @@ struct NymVPNApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                if !appSettings.welcomeScreenDidDisplay {
+                if !homeViewModel.splashScreenDidDisplay {
+                    LaunchView(splashScreenDidDisplay: $homeViewModel.splashScreenDidDisplay)
+                } else if !appSettings.welcomeScreenDidDisplay {
                     WelcomeView(viewModel: WelcomeViewModel())
                         .transition(.slide)
                 } else {
@@ -29,7 +31,6 @@ struct NymVPNApp: App {
                         .transition(.slide)
                 }
             }
-            .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .onAppear {
                 configureScreenSize()
             }
