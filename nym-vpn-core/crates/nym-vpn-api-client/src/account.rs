@@ -59,6 +59,8 @@ impl From<ed25519::KeyPair> for Device {
 
 mod routes {
     pub(super) const ACCOUNT: &str = "account";
+    pub(super) const SUMMARY: &str = "summary";
+    pub(super) const DEVICE: &str = "device";
 }
 
 pub struct AccountClient {
@@ -76,6 +78,16 @@ impl AccountClient {
         path.join("/")
     }
 
+    fn add_authentication(
+        reqwest_builder: reqwest::RequestBuilder,
+        account: &Account,
+        device: &Device,
+    ) -> reqwest::RequestBuilder {
+        let reqwest_builder =
+            crate::headers::add_account_auth_header(reqwest_builder, account.jwt().to_string());
+        crate::headers::add_device_auth_header(reqwest_builder, device.jwt().to_string())
+    }
+
     fn get<U: IntoUrl>(
         &self,
         url: U,
@@ -83,11 +95,27 @@ impl AccountClient {
         device: &Device,
     ) -> reqwest::RequestBuilder {
         let reqwest_builder = reqwest::Client::new().get(url);
-        let reqwest_builder =
-            crate::headers::add_account_auth_header(reqwest_builder, account.jwt().to_string());
-        let reqwest_builder =
-            crate::headers::add_device_auth_header(reqwest_builder, device.jwt().to_string());
-        reqwest_builder
+        Self::add_authentication(reqwest_builder, account, device)
+    }
+
+    fn post<U: IntoUrl>(
+        &self,
+        url: U,
+        account: &Account,
+        device: &Device,
+    ) -> reqwest::RequestBuilder {
+        let reqwest_builder = reqwest::Client::new().post(url);
+        Self::add_authentication(reqwest_builder, account, device)
+    }
+
+    fn delete<U: IntoUrl>(
+        &self,
+        url: U,
+        account: &Account,
+        device: &Device,
+    ) -> reqwest::RequestBuilder {
+        let reqwest_builder = reqwest::Client::new().delete(url);
+        Self::add_authentication(reqwest_builder, account, device)
     }
 
     pub async fn get_account(&self, account: &Account, device: &Device) {
@@ -95,6 +123,38 @@ impl AccountClient {
         dbg!(&device.jwt());
         let url = self.path(&[routes::ACCOUNT, &account.id()]);
         let response = self.get(url, account, device).send().await.unwrap();
+        dbg!(&response);
+        let text = response.text().await.unwrap();
+        dbg!(&text);
+    }
+
+    pub async fn get_account_summary(&self, account: &Account, device: &Device) {
+        let url = self.path(&[routes::ACCOUNT, &account.id(), routes::SUMMARY]);
+        let response = self.get(url, account, device).send().await.unwrap();
+        dbg!(&response);
+        let text = response.text().await.unwrap();
+        dbg!(&text);
+    }
+
+    pub async fn remove_account(&self, account: &Account, device: &Device) {
+        let url = self.path(&[routes::ACCOUNT, &account.id()]);
+        let response = self.delete(url, account, device).send().await.unwrap();
+        dbg!(&response);
+        let text = response.text().await.unwrap();
+        dbg!(&text);
+    }
+
+    pub async fn get_devices(&self, account: &Account, device: &Device) {
+        let url = self.path(&[routes::ACCOUNT, &account.id(), routes::DEVICE]);
+        let response = self.get(url, account, device).send().await.unwrap();
+        dbg!(&response);
+        let text = response.text().await.unwrap();
+        dbg!(&text);
+    }
+
+    pub async fn register_device(&self, account: &Account, device: &Device) {
+        let url = self.path(&[routes::ACCOUNT, &account.id(), routes::DEVICE]);
+        let response = self.post(url, account, device).send().await.unwrap();
         dbg!(&response);
         let text = response.text().await.unwrap();
         dbg!(&text);
@@ -127,5 +187,13 @@ mod tests {
         let device = Device::from(get_ed25519_keypair());
         let client = AccountClient::new(BASE_URL.parse().unwrap());
         client.get_account(&account, &device).await;
+    }
+
+    #[tokio::test]
+    async fn remove_account() {
+        let account = Account::from(get_mnemonic());
+        let device = Device::from(get_ed25519_keypair());
+        let client = AccountClient::new(BASE_URL.parse().unwrap());
+        client.remove_account(&account, &device).await;
     }
 }
