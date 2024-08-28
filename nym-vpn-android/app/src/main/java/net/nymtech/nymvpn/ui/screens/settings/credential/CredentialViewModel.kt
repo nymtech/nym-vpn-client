@@ -34,6 +34,9 @@ constructor(
 		}.onSuccess {
 			SnackbarController.showMessage(StringValue.StringResource(R.string.credential_successful))
 			navHostController.navigateAndForget(Destination.Main.route)
+		}.onFailure {
+			onFailure()
+			Timber.e(it)
 		}
 	}
 }
