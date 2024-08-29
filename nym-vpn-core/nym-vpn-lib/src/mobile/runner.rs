@@ -58,17 +58,16 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 const MIXNET_CLIENT_STARTUP_TIMEOUT_SECS: Duration = Duration::from_secs(30);
 const TASK_MANAGER_SHUTDOWN_TIMER_SECS: u64 = 10;
 
-pub struct TunnelRunner {
+pub struct WgTunnelRunner {
     gateway_directory_client: GatewayClient,
     task_manager: TaskManager,
-    enable_wireguard: bool,
     generic_config: GenericNymVpnConfig,
     #[cfg(target_os = "ios")]
     tun_provider: Arc<dyn OSTunProvider>,
     shutdown_token: CancellationToken,
 }
 
-impl TunnelRunner {
+impl WgTunnelRunner {
     pub fn new(config: VPNConfig, shutdown_token: CancellationToken) -> Result<Self> {
         let user_agent = UserAgent::from(nym_bin_common::bin_info_local_vergen!());
         tracing::info!("User agent: {user_agent}");
@@ -108,7 +107,6 @@ impl TunnelRunner {
         Ok(Self {
             gateway_directory_client,
             task_manager,
-            enable_wireguard: config.enable_two_hop,
             generic_config,
             #[cfg(target_os = "ios")]
             tun_provider: config.tun_provider,
@@ -120,66 +118,62 @@ impl TunnelRunner {
         let SelectedGateways { entry, exit } = self.select_gateways().await?;
         let mixnet_client = self.start_mixnet_client(&entry).await?;
 
-        if self.enable_wireguard {
-            let auth_addresses = match self.setup_auth_addresses(&entry, &exit) {
-                Ok(auth_addr) => auth_addr,
-                Err(err) => {
-                    // Put in some manual error handling, the correct long-term solution is that handling
-                    // errors and diconnecting the mixnet client needs to be unified down this code path
-                    // and merged with the mix tunnel one.
-                    mixnet_client.disconnect().await;
-                    return Err(err);
-                }
-            };
+        let auth_addresses = match self.setup_auth_addresses(&entry, &exit) {
+            Ok(auth_addr) => auth_addr,
+            Err(err) => {
+                // Put in some manual error handling, the correct long-term solution is that handling
+                // errors and diconnecting the mixnet client needs to be unified down this code path
+                // and merged with the mix tunnel one.
+                mixnet_client.disconnect().await;
+                return Err(err);
+            }
+        };
 
-            let bandwidth_controller =
-                BandwidthController::new(mixnet_client.clone(), self.task_manager.subscribe());
-            tokio::spawn(bandwidth_controller.run());
+        let bandwidth_controller =
+            BandwidthController::new(mixnet_client.clone(), self.task_manager.subscribe());
+        tokio::spawn(bandwidth_controller.run());
 
-            let mut shutdown_monitor_task_client = self.task_manager.subscribe();
-            let cloned_shutdown_handle = self.shutdown_token.clone();
+        let mut shutdown_monitor_task_client = self.task_manager.subscribe();
+        let cloned_shutdown_handle = self.shutdown_token.clone();
 
-            let mut set = JoinSet::new();
-            set.spawn(async move {
-                let result = self.start_wireguard(mixnet_client, auth_addresses).await;
+        let mut set = JoinSet::new();
+        set.spawn(async move {
+            let result = self.start_wireguard(mixnet_client, auth_addresses).await;
 
-                // Shutdown task manager if the tunnel had to exit sooner.
-                if let Err(e) = self.task_manager.signal_shutdown() {
-                    tracing::error!("Failed to signal task manager shutdown.");
-                }
-
-                // Wait until all tasks have been shut down
-                self.task_manager.wait_for_shutdown().await;
-
-                result
-            });
-            set.spawn(async move {
-                // Monitor for shutdown from task manager
-                shutdown_monitor_task_client.recv().await;
-
-                // Cancel the tunnel if the task client exited sooner.
-                cloned_shutdown_handle.cancel();
-
-                Ok(())
-            });
-
-            let mut result: Result<()> = Ok(());
-            while let Some(res) = set.join_next().await {
-                match res {
-                    Ok(Ok(_)) => {}
-                    Ok(Err(e)) => {
-                        result = Err(e);
-                    }
-                    Err(join_err) => {
-                        tracing::error!("Failed to join task: {}", join_err);
-                    }
-                }
+            // Shutdown task manager if the tunnel had to exit sooner.
+            if self.task_manager.signal_shutdown().is_err() {
+                tracing::error!("Failed to signal task manager shutdown.");
             }
 
+            // Wait until all tasks have been shut down
+            self.task_manager.wait_for_shutdown().await;
+
             result
-        } else {
-            todo!("implement mixnet?")
+        });
+        set.spawn(async move {
+            // Monitor for shutdown from task manager
+            shutdown_monitor_task_client.recv().await;
+
+            // Cancel the tunnel if the task client exited sooner.
+            cloned_shutdown_handle.cancel();
+
+            Ok(())
+        });
+
+        let mut result: Result<()> = Ok(());
+        while let Some(res) = set.join_next().await {
+            match res {
+                Ok(Ok(_)) => {}
+                Ok(Err(e)) => {
+                    result = Err(e);
+                }
+                Err(join_err) => {
+                    tracing::error!("Failed to join task: {}", join_err);
+                }
+            }
         }
+
+        result
     }
 
     async fn start_mixnet_client(&self, entry: &Gateway) -> Result<SharedMixnetClient> {
@@ -206,29 +200,13 @@ impl TunnelRunner {
     async fn select_gateways(&self) -> Result<SelectedGateways> {
         // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
         // the exit gateway and then filter out the exit gateway from the set of entry gateways.
-
-        let (mut entry_gateways, exit_gateways) = if self.enable_wireguard {
-            let all_gateways = self
-                .gateway_directory_client
-                .lookup_all_gateways()
-                .await
-                .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
-            (all_gateways.clone(), all_gateways)
-        } else {
-            // Setup the gateway that we will use as the exit point
-            let exit_gateways = self
-                .gateway_directory_client
-                .lookup_exit_gateways()
-                .await
-                .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
-            // Setup the gateway that we will use as the entry point
-            let entry_gateways = self
-                .gateway_directory_client
-                .lookup_entry_gateways()
-                .await
-                .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
-            (entry_gateways, exit_gateways)
-        };
+        let all_gateways = self
+            .gateway_directory_client
+            .lookup_all_gateways()
+            .await
+            .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+        let mut entry_gateways = all_gateways.clone();
+        let exit_gateways = all_gateways;
 
         let exit_gateway = self
             .generic_config

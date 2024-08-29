@@ -2,11 +2,35 @@
 // SPDX-License-Identifier: Apache-2.0
 #![cfg_attr(not(target_os = "macos"), allow(dead_code))]
 
+#[cfg(target_os = "android")]
+pub mod android;
+pub(crate) mod error;
+mod status_listener;
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+pub mod swift;
+
+use lazy_static::lazy_static;
+use log::*;
+
+use std::{
+    path::PathBuf,
+    str::FromStr,
+    sync::atomic::{AtomicBool, Ordering},
+    sync::Arc,
+    sync::Mutex as StdMutex,
+    time::SystemTime,
+};
+
+use talpid_core::mpsc::Sender;
+use tokio::runtime::Runtime;
+use tokio::sync::{Mutex, Notify};
+use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
+use url::Url;
+
 use self::error::FFIError;
 use crate::credentials::{check_credential_base58, import_credential_base58};
 use crate::gateway_directory::GatewayClient;
-#[cfg(target_os = "ios")]
-use crate::mobile::ios::tun_provider::OSTunProvider;
 use crate::platform::status_listener::VpnServiceStatusListener;
 use crate::uniffi_custom_impls::{
     BandwidthStatus, ConnectionStatus, EntryPoint, ExitPoint, ExitStatus, Location, NymVpnStatus,
@@ -16,62 +40,33 @@ use crate::vpn::{
     spawn_nym_vpn, MixnetVpn, NymVpn, NymVpnCtrlMessage, NymVpnExitError, NymVpnExitStatusMessage,
     NymVpnHandle, SpecificVpn,
 };
-use lazy_static::lazy_static;
-use log::*;
-use std::path::PathBuf;
-use std::str::FromStr;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use std::time::SystemTime;
-use talpid_core::mpsc::Sender;
-use tokio::runtime::Runtime;
-use tokio::sync::{Mutex, Notify};
-use tokio::task::JoinHandle;
-use tokio_util::sync::CancellationToken;
-use url::Url;
-#[cfg(target_os = "android")]
-pub mod android;
-pub(crate) mod error;
-mod status_listener;
-#[cfg(any(target_os = "ios", target_os = "macos"))]
-pub mod swift;
+
+#[cfg(target_os = "ios")]
+use crate::mobile::{ios::tun_provider::OSTunProvider, runner::WgTunnelRunner};
 
 lazy_static! {
-    static ref VPN_SHUTDOWN_HANDLE: Mutex<Option<Arc<Notify>>> = Mutex::new(None);
+    static ref VPN_SHUTDOWN_HANDLE: Mutex<Option<ShutdownHandle>> = Mutex::new(None);
     static ref RUNNING: AtomicBool = AtomicBool::new(false);
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
-    static ref LISTENER: std::sync::Mutex<Option<Arc<dyn TunnelStatusListener>>> =
-        std::sync::Mutex::new(None);
+    static ref LISTENER: StdMutex<Option<Arc<dyn TunnelStatusListener>>> = StdMutex::new(None);
 }
 
-#[cfg(target_os = "ios")]
-struct ShutdownHandle {
-    join_handle: JoinHandle<()>,
-    shutdown_token: CancellationToken,
+#[derive(Debug)]
+enum ShutdownHandle {
+    Notify(Arc<Notify>),
+    CancellationToken {
+        join_handle: JoinHandle<()>,
+        shutdown_token: CancellationToken,
+    },
 }
 
-#[cfg(target_os = "ios")]
-impl ShutdownHandle {
-    async fn cancel_and_wait(self) {
-        self.shutdown_token.cancel();
-        if let Err(e) = self.join_handle.await {
-            tracing::warn!("Failed to join on shutdown handle: {}", e);
-        }
-    }
-}
-
-#[cfg(target_os = "ios")]
-lazy_static! {
-    static ref TUNNEL_SHUTDOWN_HANDLE: std::sync::Mutex<Option<ShutdownHandle>> =
-        std::sync::Mutex::new(None);
-}
-
-async fn set_shutdown_handle(handle: Arc<Notify>) -> Result<(), FFIError> {
-    let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
+async fn set_shutdown_handle(shutdown_handle: ShutdownHandle) -> Result<(), FFIError> {
+    let mut guard: tokio::sync::MutexGuard<'_, Option<ShutdownHandle>> =
+        VPN_SHUTDOWN_HANDLE.lock().await;
     if guard.is_some() {
         return Err(FFIError::VpnNotStopped);
     }
-    *guard = Some(handle);
+    *guard = Some(shutdown_handle);
 
     Ok(())
 }
@@ -90,19 +85,34 @@ pub(crate) fn uniffi_set_listener_status(status: StatusEvent) {
 }
 
 async fn stop_and_reset_shutdown_handle() -> Result<(), FFIError> {
-    debug!("Getting shutdown handle");
-    let mut guard = VPN_SHUTDOWN_HANDLE.lock().await;
-    if let Some(sh) = &*guard {
-        debug!("notifying waiters");
-        sh.notify_waiters();
-        debug!("waiting for waiters to be notified");
-        sh.notified().await;
-        debug!("waiters notified");
-    } else {
-        return Err(FFIError::VpnNotStarted);
+    tracing::debug!("Getting shutdown handle");
+    let shutdown_handle = VPN_SHUTDOWN_HANDLE
+        .lock()
+        .await
+        .take()
+        .ok_or(FFIError::VpnNotStarted)?;
+
+    match shutdown_handle {
+        ShutdownHandle::Notify(sh) => {
+            tracing::debug!("Notifying waiters");
+            sh.notify_waiters();
+            tracing::debug!("Waiting for waiters to be notified");
+            sh.notified().await;
+            tracing::debug!("Waiters notified");
+        }
+        ShutdownHandle::CancellationToken {
+            join_handle,
+            shutdown_token,
+        } => {
+            tracing::debug!("Cancel shutdown token.");
+            shutdown_token.cancel();
+            if let Err(e) = join_handle.await {
+                tracing::error!("Failed to join on shutdown handle task: {}", e);
+            }
+        }
     }
-    *guard = None;
-    debug!("VPN shutdown handle reset");
+
+    tracing::debug!("VPN shutdown handle reset");
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
     Ok(())
 }
@@ -118,7 +128,7 @@ async fn _async_run_vpn(vpn: SpecificVpn) -> Result<(Arc<Notify>, NymVpnHandle),
     debug!("creating new stop handle");
     let stop_handle = Arc::new(Notify::new());
     debug!("new stop handle created");
-    set_shutdown_handle(stop_handle.clone()).await?;
+    set_shutdown_handle(ShutdownHandle::Notify(stop_handle.clone())).await?;
     debug!("shutdown handle set with new stop handle");
     let handle = spawn_nym_vpn(vpn)?;
     debug!("spawned vpn handle");
@@ -218,8 +228,8 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
 
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::InitializingClient));
 
-    #[cfg(target_os = "ios")]
-    {
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    if config.enable_two_hop {
         RUNTIME.block_on(async move {
             tracing::debug!("Starting VPN tunnel...");
 
@@ -227,12 +237,10 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
             let cloned_shutdown_token = shutdown_token.clone();
 
             let join_handle = tokio::spawn(async move {
-                use crate::mobile::runner::TunnelRunner;
-
                 // todo: set this only when two hop tunnel is actually up.
                 uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Up));
 
-                match TunnelRunner::new(config, cloned_shutdown_token) {
+                match WgTunnelRunner::new(config, cloned_shutdown_token) {
                     Ok(tun_runner) => match tun_runner.start().await {
                         Ok(_) => {
                             tracing::debug!("Tunnel runner exited.");
@@ -249,33 +257,33 @@ pub fn startVPN(config: VPNConfig) -> Result<(), FFIError> {
                 uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
             });
 
-            *TUNNEL_SHUTDOWN_HANDLE.lock().unwrap() = Some(ShutdownHandle {
+            let shutdown_handle = ShutdownHandle::CancellationToken {
                 join_handle,
                 shutdown_token,
-            });
+            };
+            if let Err(e) = set_shutdown_handle(shutdown_handle).await {
+                tracing::error!("Failed to set shutdown handle: {}", e);
+            }
         });
 
-        Ok(())
+        return Ok(());
     }
 
-    #[cfg(not(target_os = "ios"))]
-    {
-        debug!("Trying to run VPN");
-        let vpn = sync_run_vpn(config);
-        debug!("Got VPN");
-        if vpn.is_err() {
-            error!("Err creating VPN");
-            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-            RUNNING.store(false, Ordering::Relaxed);
-        }
-        let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
-        if ret.is_err() {
-            error!("Error running VPN");
-            uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
-            RUNNING.store(false, Ordering::Relaxed);
-        }
-        ret
+    debug!("Trying to run VPN");
+    let vpn = sync_run_vpn(config);
+    debug!("Got VPN");
+    if vpn.is_err() {
+        error!("Err creating VPN");
+        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+        RUNNING.store(false, Ordering::Relaxed);
     }
+    let ret = RUNTIME.block_on(run_vpn(vpn?.into()));
+    if ret.is_err() {
+        error!("Error running VPN");
+        uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Down));
+        RUNNING.store(false, Ordering::Relaxed);
+    }
+    ret
 }
 
 #[allow(non_snake_case)]
@@ -354,16 +362,7 @@ pub fn stopVPN() -> Result<(), FFIError> {
     uniffi_set_listener_status(StatusEvent::Tun(TunStatus::Disconnecting));
     debug!("Stopping VPN");
 
-    #[cfg(not(target_os = "ios"))]
     RUNTIME.block_on(stop_vpn())?;
-
-    #[cfg(target_os = "ios")]
-    RUNTIME.block_on(async move {
-        let shutdown_handle = TUNNEL_SHUTDOWN_HANDLE.lock().unwrap().take();
-        if let Some(shutdown_handle) = shutdown_handle {
-            shutdown_handle.cancel_and_wait().await;
-        }
-    });
 
     Ok(())
 }
