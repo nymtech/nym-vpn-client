@@ -106,7 +106,7 @@ extension PacketTunnelProvider {
 
     func setup() {
         do {
-            try ConfigurationManager.configureCanaryEnvironmentVariables()
+            try ConfigurationManager.setEnvVariables(for: .canary)
         } catch {
             self.logger.error("Failed to set environment: \(error)")
         }
