@@ -161,7 +161,7 @@ func wgNetOpenConnectionThroughTunnel(entryTunnelHandle int32, listenPort uint16
 
 	udpForwarder, err := udp_forwarder.New(forwarderConfig, dev.Net, dev.Logger)
 	if err != nil {
-		dev.Errorf("Failed to parse create udp forwader: %v", err)
+		dev.Errorf("Failed to create udp forwarder: %v", err)
 		return ERROR_GENERAL_FAILURE
 	}
 
